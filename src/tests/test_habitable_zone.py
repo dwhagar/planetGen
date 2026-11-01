@@ -1,7 +1,7 @@
 # tests/test_habitable_zone.py
 
 """
-The habitable zone from the Kopparapu et al. (2014) fits (GEN.146): the runaway greenhouse limit is the inner edge and
+The habitable zone from the [R2447] fits (GEN.146): the runaway greenhouse limit is the inner edge and
 the maximum greenhouse limit the outer edge, both moving with the star's temperature.
 """
 

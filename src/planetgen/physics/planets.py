@@ -883,7 +883,7 @@ def hosting_population(planet):
     """
     What the hosting gate (`physics.hosting_gate`) calls `planet`: a small body (under `tuning.HOSTING_SMALL_BODY_MAX_RADIUS_KM` in
     radius) is a `trans-neptunian-cold` or `trans-neptunian-hot` body past `tuning.HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES`
-    snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, Stephens and Noll 2006), a
+    snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, [R4207]), a
     `belt-small-body` in the cold zone short of that, and an `inner-small-body` in the hot or habitable zone; every other
     planet is a `planet`, which the gate's share table has no rows for (its host-class table decides).
     """

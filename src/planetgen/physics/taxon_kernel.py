@@ -4,11 +4,11 @@
 The taxa of a belt from the disk's ice lines and the early heating of its bodies, in place of the Solar System's zone table (GEN.473, part 1;
 docs/design/composition/small-bodies-composition.md section 13).
 
-`small_body_composition.ZONES` is the one belt of the Solar System, in units of its snow line (DeMeo and Carry 2013, Table 6): every taxon
+`small_body_composition.ZONES` is the one belt of the Solar System, in units of its snow line ([R1065: Table 6]): every taxon
 row is a flagged stand-in. This module derives the same kind of kernel, as a function of the disk temperature a belt formed at and the
 aluminium-26 its star was born with, and returns the measured zone mix as one realisation of it (a test, never an input):
 
-1. **Where the families change** are the ice lines of Lodders 2003 (`condensate_shares`): water ice condenses below 182 K, so bodies formed
+1. **Where the families change** are the ice lines of [R2726] (`condensate_shares`): water ice condenses below 182 K, so bodies formed
    colder than that accrete water and alter to the hydrated carbonaceous taxa (C, B) instead of staying dry (S, V, A, M, K, L); ammonia hydrate
    below 131 K, where the primitive taxon P gives way to the ice-and-organic-rich D. The temperature at a distance is the blackbody one
    (`condensate_shares.disk_temperature_k`), so a belt's position is its own star's: nothing is in units of the Solar System's 2.7 AU. The line between

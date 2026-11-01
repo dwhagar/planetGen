@@ -12,12 +12,12 @@ EARTH = constants.EARTH_MASS_TO_KG
 JUPITER = constants.JUPITER_MASS_TO_KG
 SATURN = 95.16 * EARTH
 SUMI_SLOPE = 0.96
-SUMI_RANGE = (0.96 - 0.27, 0.96 + 0.47)           # Sumi et al. 2023, arXiv:2303.08280: alpha = 0.96 +0.47 -0.27
+SUMI_RANGE = (0.96 - 0.27, 0.96 + 0.47)           # [R4254, R4255], [R4254]: alpha = 0.96 +0.47 -0.27
 
 
 def test_a_strength_cascade_gives_dohnanyis_mass_exponent():
     assert mf.supply_slope(3.5) == pytest.approx(5.0 / 6.0)          # n(m) ~ m^-11/6, so dN/dlogM ~ m^-5/6
-    assert mf.supply_slope(4.0) == pytest.approx(1.0)                # the velocity-evolved cascade of Pan and Schlichting 2012
+    assert mf.supply_slope(4.0) == pytest.approx(1.0)                # the velocity-evolved cascade of [R3421]
     with pytest.raises(mf.RogueMassFunctionError):
         mf.supply_slope(1.0)
 
@@ -46,7 +46,7 @@ def test_the_shares_of_the_ejected_bodies_add_up_and_light_bodies_dominate_the_c
     shares = [mf.number_share(a, b, 0.1 * EARTH, JUPITER) for a, b in zip(edges, edges[1:])]
     assert sum(shares) == pytest.approx(1.0)
     assert shares == sorted(shares, reverse=True)
-    assert shares[0] > 0.9                                            # terrestrial bodies are most of what a giant throws out (Barclay et al. 2017)
+    assert shares[0] > 0.9                                            # terrestrial bodies are most of what a giant throws out [R0258]
     assert mf.number_share(0.0, 1e40, 0.1 * EARTH, JUPITER) == pytest.approx(1.0)
 
 

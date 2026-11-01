@@ -17,7 +17,7 @@ products' generators to continue from. Nothing here needs a draw: every row of t
 
 **The numbers** (section 4.1), all SI. `v_inf` is the relative speed of the stored velocities, `v_esc` the mutual escape
 speed at contact, `v_imp = sqrt(v_inf^2 + v_esc^2)`; `Q_R = 0.5 mu v_imp^2 / M_tot` the specific impact energy and
-`Q*_RD` the catastrophic disruption threshold of Leinhardt and Stewart (2012) for a strengthless planet (c* = 1.9,
+`Q*_RD` the catastrophic disruption threshold of [R2633] for a strengthless planet (c* = 1.9,
 mu_bar = 0.36), at the pair's mass ratio; `x = Q_R / Q*_RD`. A pass whose impact parameter is beyond `b_crit = R_target /
 (R_target + R_projectile)` only overlaps a lens of the projectile, and `Q_R` and `Q*_RD` are then worked out for the
 interacting mass, the projectile's lens fraction `(3 R_p l^2 - l^3) / (4 R_p^3)` of its mass, `l = R_t + R_p - b`.

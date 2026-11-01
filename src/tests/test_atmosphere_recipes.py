@@ -172,7 +172,7 @@ def test_example_a_the_redox_classes_at_one_drawn_value():
 
 
 def test_the_magma_ocean_redox_follows_the_model_and_the_first_hand_ranges_it_is_tested_against_gen_1005():
-    """The row calls physics.magma_ocean_redox; the Moon, Mars and Earth ranges of Hirschmann 2022 section 6.3 and Deng 2020 are checks (tests/test_magma_ocean_redox.py)."""
+    """The row calls physics.magma_ocean_redox; the Moon, Mars and Earth ranges of [R1951] section 6.3 and [R1075] are checks (tests/test_magma_ocean_redox.py)."""
     from planetgen.physics import magma_ocean_redox as mor
 
     def a1(mass):
@@ -181,7 +181,7 @@ def test_the_magma_ocean_redox_follows_the_model_and_the_first_hand_ranges_it_is
     for mass in (0.0123, 0.107, 1.0, 5.4):
         assert a1(mass)["mu"] == pytest.approx(mor.surface_diw(mass)) and a1(mass)["sigma"] == pytest.approx(mor.diw_sigma(mass))
     assert -2.2 - a1(0.0123)["sigma"] <= a1(0.0123)["mu"] <= -1.5 + a1(0.0123)["sigma"]
-    assert a1(30.0)["mu"] == pytest.approx(a1(6.0)["mu"]), "held where the base pressure passes the 140 GPa of Deng 2020"
+    assert a1(30.0)["mu"] == pytest.approx(a1(6.0)["mu"]), "held where the base pressure passes the 140 GPa of [R1075]"
     later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("terrestrial", {"mass_earth": 30.0}))
     assert later["mu"] == pytest.approx(mor.later_mantle_diw(1.0)), "no source for the later mantle of a super-Earth: the value at one Earth mass is held"
 
@@ -248,7 +248,7 @@ def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share
         delta = math.log10(flux) - 2.62
         p_atm = 1 / (1 + 10 ** (delta / 0.247))
         assert p.get("d1", 0.0) == pytest.approx(1 - p_atm, abs=1e-9)
-    # the slope in the escape speed is 5.9 and in the luminosity 1.17 (Berta-Thompson 2025)
+    # the slope in the escape speed is 5.9 and in the luminosity 1.17 [R0364]
     assert at(shore * 2 ** 5.9, v=11.186 * 2)["d1"] == pytest.approx(0.5, abs=1e-9)
     assert at(shore * 10 ** 1.17, lum=10.0)["d1"] == pytest.approx(0.5, abs=1e-9)
     assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d3"})) == {"p_max_bar": 0.01}
@@ -257,7 +257,7 @@ def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share
 
 def test_the_retired_k_window_is_gone_and_the_shoreline_is_marked_as_corrected():
     d1 = RECIPES.entry("d1")
-    assert "2507.02136" in d1.source and "Corrected 2026-10-18" in d1.notes
+    assert "[R0364]" in d1.source and "Corrected 2026-10-18" in d1.notes
     assert "K window" in d1.notes and "13 Solar System bodies" in d1.notes
     assert "3.0e-4" not in d1.weight.text
 

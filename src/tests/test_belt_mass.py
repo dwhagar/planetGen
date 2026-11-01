@@ -1,6 +1,6 @@
 # tests/test_belt_mass.py
 
-"""GEN.477 E2: the mass left in a planetesimal belt after collisional grinding (`physics/belt_mass.py`; Wyatt et al. 2007)."""
+"""GEN.477 E2: the mass left in a planetesimal belt after collisional grinding (`physics/belt_mass.py`; [R4785])."""
 
 import math
 
@@ -11,7 +11,7 @@ from planetgen.util import draw
 
 SUN_KG = constants.SOLAR_MASS_TO_KG
 SUN_W = 3.828e26
-KRASINSKY_2002_EARTH = 0.6e-3      # the inferred mass of the Solar System's belt, as Wyatt et al. 2007 quote it: a test point only
+KRASINSKY_2002_EARTH = 0.6e-3      # the inferred mass of the Solar System's belt, as [R4785] quote it: a test point only
 
 
 def disc_mass(lower, upper, star_kg=SUN_KG):

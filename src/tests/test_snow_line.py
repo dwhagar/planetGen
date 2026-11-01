@@ -1,4 +1,4 @@
-"""GEN.458: each star draws its own snow line, 0.2 dex around the 182 K blackbody position (Lodders 2003), and stores it once; the fixed 2.7 AU
+"""GEN.458: each star draws its own snow line, 0.2 dex around the 182 K blackbody position [R2726], and stores it once; the fixed 2.7 AU
 constant is gone (`physics/formation.py`, `Star.snow_line_au`, `stars.snow_line_km`, `planets/moons.born_beyond_snow_line`)."""
 
 import math

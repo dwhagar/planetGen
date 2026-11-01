@@ -4,8 +4,8 @@
 The star mass function census (TEST.454, item 1 of the star mass function chain, GEN.922): the generator's stars, bin by bin in
 mass, against the published curves of the Galactic disk.
 
-`tests/data/mass_function_curve.json` holds the curves as data (Chabrier 2003's log-normal fits for single stars and for systems,
-Kroupa 2001's broken power law), the mass bins, and which curves each sample is held to. Two samples, drawn at the default galaxy's
+`tests/data/mass_function_curve.json` holds the curves as data ([R0705]'s log-normal fits for single stars and for systems,
+[R2498]'s broken power law), the mass bins, and which curves each sample is held to. Two samples, drawn at the default galaxy's
 reference solar position by the population model the generator fills a sector with (`stellar_evolution.sample_living_star`):
 
 - **Primaries.** The star the generator draws as the primary of a system. Held to the system function (the curve of systems, not of

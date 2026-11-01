@@ -2,7 +2,7 @@
 
 Agent B, 2026-10-17. Read-only research; nothing in the repo was touched. Cross-checked against `/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md` (cited here as G425 s.N, not re-verified). Labels: READ, 2ND-HAND, COMPUTED, SNIPPET, RECALLED, NOT REACHED as in the brief. Everything marked COMPUTED was run in this session with a scipy reference solver (kept in the scratchpad) and the standard-library solver printed in section 3.8; the check numbers in section 3.9 are the output of that code.
 
-Hard-rule framing: Earth-calibrated laws (Zeng 2016 Eq. 2, PREM) are calibrations. The generator uses physics (EOS plus hydrostatic balance plus stoichiometry); Earth, Venus, Mars, Mercury and the Moon appear only in section 4 as tests.
+Hard-rule framing: Earth-calibrated laws ([R4882: Eq. 2], PREM) are calibrations. The generator uses physics (EOS plus hydrostatic balance plus stoichiometry); Earth, Venus, Mars, Mercury and the Moon appear only in section 4 as tests.
 
 ## 1. Scope and interfaces
 
@@ -33,9 +33,9 @@ Hard-rule framing: Earth-calibrated laws (Zeng 2016 Eq. 2, PREM) are calibration
 
 ### 2.1 Materials and EOS constants
 
-All SLB rows below are 2ND-HAND: the numbers were parsed from the open-source file `burnman/minerals/SLB_2024.py` (burnman 2.1.0, from PyPI) and mean the SLB 2024 parameter set "Thermodynamics of mantle minerals III: the role of iron" (Stixrude and Lithgow-Bertelloni, GJI 237, 1699, DOI 10.1093/gji/ggae126); the bibliography was confirmed via Crossref but the OUP full text was refused, so the original table was not read. Molar mass is computed from the formula with IUPAC standard atomic weights as used by burnman. EOS form for every SLB row: Mie-Grueneisen-Debye with 3rd-order Eulerian finite strain (burnman `slb3`), thermal expansion is not a tabulated parameter but follows from gamma, theta and the heat capacity; `q` is the volume exponent of gamma. ρ0 is the 1-bar, 300 K reference density (g/cm3); V0 is per formula unit as burnman defines it.
+All SLB rows below are 2ND-HAND: the numbers were parsed from the open-source file `burnman/minerals/SLB_2024.py` (burnman 2.1.0, from PyPI) and mean the [R4233] parameter set "Thermodynamics of mantle minerals III: the role of iron" (Stixrude and Lithgow-Bertelloni, GJI 237, 1699, [R4233]); the bibliography was confirmed via Crossref but the OUP full text was refused, so the original table was not read. Molar mass is computed from the formula with IUPAC standard atomic weights as used by burnman. EOS form for every SLB row: Mie-Grueneisen-Debye with 3rd-order Eulerian finite strain (burnman `slb3`), thermal expansion is not a tabulated parameter but follows from gamma, theta and the heat capacity; `q` is the volume exponent of gamma. ρ0 is the 1-bar, 300 K reference density (g/cm3); V0 is per formula unit as burnman defines it.
 
-**Table 2.1a: silicates, oxides, alumina phases (SLB 2024 via burnman 2.1.0)**
+**Table 2.1a: silicates, oxides, alumina phases ([R4233] via burnman 2.1.0)**
 
 | Phase | Formula (per burnman unit) | M (g/mol) | V0 (cm3/mol) | ρ0 (g/cm3) | K0 (GPa) | K0' | Theta0 (K) | gamma0 | q0 | Stable in mantle at (COMPUTED, 3.1) | Label |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -80,25 +80,25 @@ Notes. (1) The "stable at" column is the output of my own Gibbs-energy minimisat
 
 | Material | Formula | M (g/mol) | ρ0 (g/cm3) | K0 (GPa) | K0' | Theta0 (K) | gamma0 (q) | EOS form | Source | Label |
 |---|---|---|---|---|---|---|---|---|---|---|
-| epsilon-Fe (hcp), SLB 2024 | Fe | 55.845 | 8.255 (V0 6.765 cm3/mol) | 165.00 | 4.970 | 379.7 | 2.131 (1.023) | Mie-Grueneisen-Debye, slb3 | SLB 2024 via burnman | 2ND-HAND |
-| epsilon-Fe, Dewaele room-T Vinet | Fe | 55.845 | 8.270 (V0 6.75 cm3/mol) | 163.4 | 5.38 | 417 | 1.875 (q 3.289) | Vinet below 234.4 GPa | Hakim 2018, SEOS | READ |
-| epsilon-Fe, high-P | Fe | 55.845 | V0 4.28575 cm3/mol at 234.4 GPa | K 1145.7 at 234.4 GPa | | | | Holzapfel (c0 3.19, c2 -2.40) fitted to DFT | Hakim 2018, SEOS | READ |
-| epsilon-Fe, Seager | Fe | 55.845 | 8.300 | 156.2 | 6.08 | | | Vinet | Hakim 2018 Table F.7 | READ |
-| epsilon-Fe, Valencia | Fe | 55.845 | 8.300 | 160.2 | 5.82 | | | Vinet | Hakim 2018 Table F.7 | READ |
-| epsilon-Fe, Dorn | Fe | 55.845 | 8.341 | 173.98 | 5.297 | | | BM3 | Hakim 2018 Table F.7 | READ |
-| epsilon-Fe, Fei | Fe | 55.845 | 8.269 | 172.7 | 4.79 | | | BM3 | Hakim 2018 Table F.7 | READ |
+| epsilon-Fe (hcp), [R4233] | Fe | 55.845 | 8.255 (V0 6.765 cm3/mol) | 165.00 | 4.970 | 379.7 | 2.131 (1.023) | Mie-Grueneisen-Debye, slb3 | [R4233] via burnman | 2ND-HAND |
+| epsilon-Fe, Dewaele room-T Vinet | Fe | 55.845 | 8.270 (V0 6.75 cm3/mol) | 163.4 | 5.38 | 417 | 1.875 (q 3.289) | Vinet below 234.4 GPa | [R1752], SEOS | READ |
+| epsilon-Fe, high-P | Fe | 55.845 | V0 4.28575 cm3/mol at 234.4 GPa | K 1145.7 at 234.4 GPa | | | | Holzapfel (c0 3.19, c2 -2.40) fitted to DFT | [R1752], SEOS | READ |
+| epsilon-Fe, Seager | Fe | 55.845 | 8.300 | 156.2 | 6.08 | | | Vinet | [R1752] Table F.7 | READ |
+| epsilon-Fe, Valencia | Fe | 55.845 | 8.300 | 160.2 | 5.82 | | | Vinet | [R1752] Table F.7 | READ |
+| epsilon-Fe, Dorn | Fe | 55.845 | 8.341 | 173.98 | 5.297 | | | BM3 | [R1752] Table F.7 | READ |
+| epsilon-Fe, Fei | Fe | 55.845 | 8.269 | 172.7 | 4.79 | | | BM3 | [R1752] Table F.7 | READ |
 | **hcp-Fe used in the solver** | Fe | 55.845 | 8.2642 | 157.07 | 5.6167 | | | single Vinet fit to the Dewaele-plus-Hakim hybrid, error 0.3 % over 1 to 1000 GPa and 1.9 % to 20 TPa | this work | COMPUTED |
-| FeS | FeS | 87.91 | 6.118 | 144.3 | 4.79 | | | Holzapfel (Sata 2010 refit) | Hakim 2018 Table D.5 | READ |
-| FeSi | FeSi | 83.93 | 6.522 | 219.5 | 4.29 | | | Holzapfel (Sata 2010 refit) | Hakim 2018 Table D.5 | READ |
-| Fe0.95O | Fe0.95O | | 5.764 | 152.7 | 4.13 | | | Holzapfel (Sata 2010 refit) | Hakim 2018 Table D.5 | READ |
-| Fe3C | Fe3C | | 7.980 | 289.4 | 3.81 | | | Holzapfel (Sata 2010 refit) | Hakim 2018 Table D.5 | READ |
-| Liquid Fe (Anderson and Ahrens 1994) | Fe | 55.845 | 7.019 | 109.7 | 4.66 (K'' -0.043 /GPa) | | | BM4 | `exoplex-1.0.1a1` sdist; original not reached | 2ND-HAND |
-| Fe-Ni alloy | Fe(1-y)Ni(y) | | | | | | | no EOS reached; core Ni about 5 wt% (Earth, test target) changes density by under the light-element uncertainty | Putirka and Rarick 2019 (Earth core 87 wt% Fe, 5 Ni, 2 S, 4 to 7 Si) | READ for the wt%; EOS NOT REACHED |
-| Diamond | C | 12.011 | 3.512 (V0 3.42 cm3/mol) | 446.5 | 1.61 | | alpha 4e-6 /K | Holland-Powell tmt; unsuitable above about 100 GPa; use Dewaele 2008 EOS and TFD above 1000 GPa | burnman HP_2011_ds62 (2ND-HAND); EOS route per Madhusudhan 2012 (READ) | 2ND-HAND |
+| FeS | FeS | 87.91 | 6.118 | 144.3 | 4.79 | | | Holzapfel ([R3923] refit) | [R1752] Table D.5 | READ |
+| FeSi | FeSi | 83.93 | 6.522 | 219.5 | 4.29 | | | Holzapfel ([R3923] refit) | [R1752] Table D.5 | READ |
+| Fe0.95O | Fe0.95O | | 5.764 | 152.7 | 4.13 | | | Holzapfel ([R3923] refit) | [R1752] Table D.5 | READ |
+| Fe3C | Fe3C | | 7.980 | 289.4 | 3.81 | | | Holzapfel ([R3923] refit) | [R1752] Table D.5 | READ |
+| Liquid Fe [R0111] | Fe | 55.845 | 7.019 | 109.7 | 4.66 (K'' -0.043 /GPa) | | | BM4 | `exoplex-1.0.1a1` sdist; original not reached | 2ND-HAND |
+| Fe-Ni alloy | Fe(1-y)Ni(y) | | | | | | | no EOS reached; core Ni about 5 wt% (Earth, test target) changes density by under the light-element uncertainty | [R3626] (Earth core 87 wt% Fe, 5 Ni, 2 S, 4 to 7 Si) | READ for the wt%; EOS NOT REACHED |
+| Diamond | C | 12.011 | 3.512 (V0 3.42 cm3/mol) | 446.5 | 1.61 | | alpha 4e-6 /K | Holland-Powell tmt; unsuitable above about 100 GPa; use [R1095] EOS and TFD above 1000 GPa | burnman HP_2011_ds62 (2ND-HAND); EOS route per [R2801, R2803] (READ) | 2ND-HAND |
 | Graphite | C | 12.011 | (V0 5.3 cm3/mol) | 31.2 | 3.9 | | | Holland-Powell tmt | burnman HP_2011_ds62 | 2ND-HAND |
-| Graphite, planet EOS | C | | 2.250 | 33.8 | 8.9 | | | BM3 | Madhusudhan 2012 (Wang 2012 fit) as used in my run | 2ND-HAND |
-| Graphite to diamond transition | | | | | | | | at about 10 GPa | Madhusudhan 2012 | READ (paper's own statement) |
-| SiC | SiC | 40.10 | 3.220 | 227 | 4.1 | | | BM3 | Seager 2007 Table 1 via G425 s.2.7 | 2ND-HAND |
+| Graphite, planet EOS | C | | 2.250 | 33.8 | 8.9 | | | BM3 | [R2801, R2803] ([R4615] fit) as used in my run | 2ND-HAND |
+| Graphite to diamond transition | | | | | | | | at about 10 GPa | [R2801, R2803] | READ (paper's own statement) |
+| SiC | SiC | 40.10 | 3.220 | 227 | 4.1 | | | BM3 | [R3992: Table 1] via G425 s.2.7 | 2ND-HAND |
 | High-pressure ice VII/X, water | H2O | | | | | | | owned by part C | C-volatile-and-giants.md | not mine |
 
 Molar masses of FeS, FeSi, SiC and diamond are sums of standard atomic weights (burnman values for Fe and Si; S 32.06 and C 12.011 RECALLED, trivially checkable). The hcp-Fe thermal behaviour is in 2.6.
@@ -132,13 +132,13 @@ Radius against CMF at 1 Mearth (x 0.11, scale 0.9): CMF 0, 0.1, 0.2, 0.3, 0.4, 0
 
 | Check | Literature (READ) | This work (COMPUTED) | Comment |
 |---|---|---|---|
-| Pure silicate, Rogers 2015 radius where a rocky planet stops being rocky: R_thresh 1.48 median, 1.59 (95 % bound) Rearth, which Rogers converts to 3.5 and 5.0 Mearth for pure silicate and 4.5 and 6.0 Mearth for Earth-like | Rogers 2015 (READ) | coreless R at 3.5, 5.0 = 1.528, 1.680 (+3.2 %, +5.7 % vs 1.48, 1.59); Earth-like (CMF 0.325, x 0.11, scale 0.9) at 4.5, 6.0 Mearth = 1.499, 1.613 (+1.3 %, +1.4 %) | The Earth-like case agrees to 1.5 percent; the pure-silicate case is 3 to 6 percent larger (reason not isolated: different silicate EOS and temperature treatment) |
-| Otegi 2020 rocky fit | R = 1.03 M^0.29 (density above 3.3 g/cm3), M = 0.90 R^3.45 | Earth-like branch is within that scatter | data-driven fit, not a law |
-| NRPZ envelopes, Unterborn 2023 Eqs. 23 to 28: g_SM = 4.3 + 6.6 R^2.4 m/s2, rho_SM = 4.6 + 1.5 R^2.1 g/cm3, M_SM = 0.25 + 0.87 R^4.2 Mearth (super-Mercury bound); MN-WW (mantle-only, water-world) g = 3.3 + 4.7 R^2.3, rho = 3.6 + 0.91 R^2.1, M = 0.19 + 0.64 R^4.1 (R in Rearth) | Unterborn 2023 | At R = 1.0 rho_MN-WW 4.51 vs mine pure silicate 4.25; rho_SM 6.10 vs mine CMF 0.5 = 6.73 (rho_SM corresponds to CMF about 0.42); at R = 1.5: 5.73 and 8.11 vs mine 5.32 (CMF 0), 7.20, 9.13, 14.5 (CMF 0.3, 0.5, 0.8); at R = 2.0: 7.50 and 11.03 vs 6.83, 9.80, 13.14 | Envelope is compatible with my law within the CMF range it covers |
-| Zeng 2016 Eq. 2 / PREM closed forms | G425 s.2 | "100 % Fe" column of Zeng 2016 is not pure Fe (agrees with G425) | |
-| Zeng and Jacobsen 2017 closed forms (arXiv:1606.03522): P_typ = GM^2/(4 pi R^4); P_cmb = P_typ ln(1/CMF); P0 = P_cmb + 1.5 P_typ; P0 about (200 + 600 CMF)(M/Mearth) GPa (Eq. 23); CRF about sqrt(CMF); MoI C = (1/3)(1 + CMF^2/5) | READ | vs my solver (M 0.3 to 10, CMF 0.1 to 0.4): P_cmb within 30 %, Eq. 22 P0 within 70 %, Eq. 23 within 22 %, CRF within 12 %, MoI within 12 % | Use the solver, not the closed forms (COMPUTED) |
+| Pure silicate, [R3800] radius where a rocky planet stops being rocky: R_thresh 1.48 median, 1.59 (95 % bound) Rearth, which Rogers converts to 3.5 and 5.0 Mearth for pure silicate and 4.5 and 6.0 Mearth for Earth-like | [R3800] (READ) | coreless R at 3.5, 5.0 = 1.528, 1.680 (+3.2 %, +5.7 % vs 1.48, 1.59); Earth-like (CMF 0.325, x 0.11, scale 0.9) at 4.5, 6.0 Mearth = 1.499, 1.613 (+1.3 %, +1.4 %) | The Earth-like case agrees to 1.5 percent; the pure-silicate case is 3 to 6 percent larger (reason not isolated: different silicate EOS and temperature treatment) |
+| [R3384] rocky fit | R = 1.03 M^0.29 (density above 3.3 g/cm3), M = 0.90 R^3.45 | Earth-like branch is within that scatter | data-driven fit, not a law |
+| NRPZ envelopes, [R4467] Eqs. 23 to 28: g_SM = 4.3 + 6.6 R^2.4 m/s2, rho_SM = 4.6 + 1.5 R^2.1 g/cm3, M_SM = 0.25 + 0.87 R^4.2 Mearth (super-Mercury bound); MN-WW (mantle-only, water-world) g = 3.3 + 4.7 R^2.3, rho = 3.6 + 0.91 R^2.1, M = 0.19 + 0.64 R^4.1 (R in Rearth) | [R4467] | At R = 1.0 rho_MN-WW 4.51 vs mine pure silicate 4.25; rho_SM 6.10 vs mine CMF 0.5 = 6.73 (rho_SM corresponds to CMF about 0.42); at R = 1.5: 5.73 and 8.11 vs mine 5.32 (CMF 0), 7.20, 9.13, 14.5 (CMF 0.3, 0.5, 0.8); at R = 2.0: 7.50 and 11.03 vs 6.83, 9.80, 13.14 | Envelope is compatible with my law within the CMF range it covers |
+| [R4882: Eq. 2] / PREM closed forms | G425 s.2 | "100 % Fe" column of [R4882] is not pure Fe (agrees with G425) | |
+| [R4879] closed forms [R4879]: P_typ = GM^2/(4 pi R^4); P_cmb = P_typ ln(1/CMF); P0 = P_cmb + 1.5 P_typ; P0 about (200 + 600 CMF)(M/Mearth) GPa (Eq. 23); CRF about sqrt(CMF); MoI C = (1/3)(1 + CMF^2/5) | READ | vs my solver (M 0.3 to 10, CMF 0.1 to 0.4): P_cmb within 30 %, Eq. 22 P0 within 70 %, Eq. 23 within 22 %, CRF within 12 %, MoI within 12 % | Use the solver, not the closed forms (COMPUTED) |
 
-**Rocky / non-rocky boundary and scatter.** Fulton 2017 gap 1.5 to 2.0 Rearth (G425). Rogers 2015 R_thresh median 1.48, 95 % bound 1.59 (READ). Otegi 2020 density cut 2.8 to 3.3 g/cm3 separating rocky from volatile-rich (READ). Unterborn 2023: of 85 planets only 9 are nominally rocky; about 20 percent are super-Mercuries and 30 percent volatile-rich; selection-biased sample (READ). Hakim 2018: rock-iron miscibility is possible above about 1.75 to 1.9 Rearth, which would blur the core boundary (READ). Rule for the generator: a body with radius above the dry limit R_dry(M, CMF=0, x=0) (for example 1.466 at 3 Mearth) cannot be dry rock; hand it to part C (water or envelope). Route 1 returns None in that case (check number 3.9: M 5, R 2.3).
+**Rocky / non-rocky boundary and scatter.** [R1478] gap 1.5 to 2.0 Rearth (G425). [R3800] R_thresh median 1.48, 95 % bound 1.59 (READ). [R3384] density cut 2.8 to 3.3 g/cm3 separating rocky from volatile-rich (READ). [R4467]: of 85 planets only 9 are nominally rocky; about 20 percent are super-Mercuries and 30 percent volatile-rich; selection-biased sample (READ). [R1752]: rock-iron miscibility is possible above about 1.75 to 1.9 Rearth, which would blur the core boundary (READ). Rule for the generator: a body with radius above the dry limit R_dry(M, CMF=0, x=0) (for example 1.466 at 3 Mearth) cannot be dry rock; hand it to part C (water or envelope). Route 1 returns None in that case (check number 3.9: M 5, R 2.3).
 
 **Compression effect.** Lowering the surface pressure to 1 bar vs a volatile layer base: P_surf = 5 GPa lowers the rock-core radius by 0.94 percent at 1 Mearth and 0.49 percent at 4 Mearth; 10 GPa gives -1.77 and -0.93 percent (COMPUTED). This is the "rock core under an ocean" correction for part C.
 
@@ -153,15 +153,15 @@ Mass and radius fix the *total iron fraction* well (when the core is close to pu
 | 3.0 | 1.3548 | 0.210 to 0.403 | 0.308 to 0.403 | COMPUTED |
 | 8.0 | 1.7436 | 0.206 to 0.409 | 0.307 to 0.409 | COMPUTED |
 
-At core scale 1.0 (pure-Fe core) the total iron fraction is 0.308 to 0.317, a spread of only 0.009. The remaining degeneracy is the core density (light elements, thermal): scale 1 to 0.8 moves total Fe 0.31 to 0.40. FeO-versus-core split moves R by under 1 percent (agrees with Unterborn 2023 sections 5 to 6 and Plotnykov and Valencia 2020, READ). Consequence: a measured (M, R) gives CMF to roughly +/-0.1 absolute unless the light-element content is known.
+At core scale 1.0 (pure-Fe core) the total iron fraction is 0.308 to 0.317, a spread of only 0.009. The remaining degeneracy is the core density (light elements, thermal): scale 1 to 0.8 moves total Fe 0.31 to 0.40. FeO-versus-core split moves R by under 1 percent (agrees with [R4467] sections 5 to 6 and [R3545], READ). Consequence: a measured (M, R) gives CMF to roughly +/-0.1 absolute unless the light-element content is known.
 
 Single-parameter sensitivities of the inferred CMF at M = 1, R = 1.0 (COMPUTED, `cmf_from_mr`): x_Fe = 0, 0.11, 0.25 at core scale 0.9 give CMF 0.341, 0.299, 0.238 (about -0.04 per +0.1 in x_Fe); core scale 1.0, 0.9, 0.8 at x_Fe 0.11 give 0.263, 0.299, 0.347 (about +0.04 per -0.1 in scale).
 
-Measurement scatter is separate: radius errors of 5 percent translate to about +/-0.2 in CMF at 1 Mearth (slope 2.1 percent in R per 0.1 CMF), which is why observed CMFs are very uncertain (Schulze 2021, Plotnykov 2020).
+Measurement scatter is separate: radius errors of 5 percent translate to about +/-0.2 in CMF at 1 Mearth (slope 2.1 percent in R per 0.1 CMF), which is why observed CMFs are very uncertain [R3545, R3978].
 
 ### 2.4 Stoichiometry: bulk ratios to layers
 
-Unterborn et al. 2023 (arXiv:2212.03934, ExoPlex paper), READ:
+[R4467] ([R4467], ExoPlex paper), READ:
 
 | Relation | Form | Eq. | Label |
 |---|---|---|---|
@@ -170,7 +170,7 @@ Unterborn et al. 2023 (arXiv:2212.03934, ExoPlex paper), READ:
 | Mantle FeO and core Si | reaction 17: 3 Fe + SiO2 -> 2 FeO + FeSi, so core Si moles = FeO moles / 2 | Eqs. 12 to 14, 18 to 22 | READ |
 | Core light element mass fraction w_LE | CMF = [1 + (1 - w_LE) mu_bar / mu_Fe / (Fe/Mg)]^-1; core density scales with (mean molar weight)/(mu_Fe), 10 wt% O gives 0.8 | | READ |
 
-The coded version `layers_from_bulk` adds an explicit closed form for the coupled case: e = w K / (mu_FeO - w (mu_FeO - 0.5 mu_SiO2)), where K = mu_MgO + Ca/Mg mu_CaO + Al/Mg mu_AlO1.5 + Si/Mg mu_SiO2 and w is the FeO mass fraction of the mantle (COMPUTED). The ideal-mixing density rule (rho proportional to mean atomic mass of the alloy) is *approximate*: it gives 0.787 for 50 mol% S (Hakim 2018: 0.8) but 0.751 for 50 mol% Si (Hakim: 0.8) and 0.634 for 23 wt% O (Hakim: 0.8 at 51 mol% = 23 wt% O; the Fe0.95O end-member is 5.764/8.27 = 0.70). So the rule is within 2 to 6 percent for S and Si and too low by about 20 percent for large O contents; the nuisance range 0.8 to 1.0 of the core density factor covers realistic light-element loads (COMPUTED comparison; Hakim READ).
+The coded version `layers_from_bulk` adds an explicit closed form for the coupled case: e = w K / (mu_FeO - w (mu_FeO - 0.5 mu_SiO2)), where K = mu_MgO + Ca/Mg mu_CaO + Al/Mg mu_AlO1.5 + Si/Mg mu_SiO2 and w is the FeO mass fraction of the mantle (COMPUTED). The ideal-mixing density rule (rho proportional to mean atomic mass of the alloy) is *approximate*: it gives 0.787 for 50 mol% S ([R1752]: 0.8) but 0.751 for 50 mol% Si (Hakim: 0.8) and 0.634 for 23 wt% O (Hakim: 0.8 at 51 mol% = 23 wt% O; the Fe0.95O end-member is 5.764/8.27 = 0.70). So the rule is within 2 to 6 percent for S and Si and too low by about 20 percent for large O contents; the nuisance range 0.8 to 1.0 of the core density factor covers realistic light-element loads (COMPUTED comparison; Hakim READ).
 
 **Sensitivity of CMF to the stellar ratios (COMPUTED, no mantle FeO, Ca/Mg 0.07, Al/Mg 0.09):**
 
@@ -186,23 +186,23 @@ With 7.7 wt% mantle FeO (Putirka median) and Si/Mg 0.79: Fe/Mg 0.55, 0.71, 0.9 g
 
 | Item | Value | Source | Label |
 |---|---|---|---|
-| Mg/Si rule (mass thresholds 0.86 and 1.73 equal molar 1 and 2): below 1 pyroxene plus silica (stishovite/seifertite at depth); 1 to 2 pyroxene plus olivine; above 2 olivine plus MgO | | Thiabaud 2014 via G425 s.2.10; Bond 2010 | 2ND-HAND |
+| Mg/Si rule (mass thresholds 0.86 and 1.73 equal molar 1 and 2): below 1 pyroxene plus silica (stishovite/seifertite at depth); 1 to 2 pyroxene plus olivine; above 2 olivine plus MgO | | [R4335] via G425 s.2.10; [R0455] | 2ND-HAND |
 | Deep mantle, my Gibbs minimisation | Mg/Si = 0.7: pyroxene then bridgmanite plus stishovite/seifertite; Mg/Si = 1.0: single MgSiO3 phases through the table; Mg/Si = 1.5: fo/wa/ri plus en, then pv plus periclase | this work | COMPUTED |
 | Density law with Fe | rho(x) = rho(0)(1 + 0.264 x), x = Fe/(Fe+Mg), pressure-independent to +/-0.1 % | this work | COMPUTED |
 | Fe effect factor | 1.029 (x 0.11), 1.066 (x 0.25) | this work | COMPUTED |
 | Temperature | 300 K isotherm vs 1600 K adiabat: up to +4.4 % at about 1 GPa and +2.4 % at 127 GPa | this work | COMPUTED |
-| Mantle composition difference in total mass: Mg2SiO4 vs MgSiO3/SiO2 mixtures differ by under 2 to 3 %; FeSiO3 gives +32 % / +48 % at Earth-like core size | Hakim 2018 Table 4 | READ |
-| Mantle FeO of exoplanets | 2 to 12 wt% (median 7.7) at alpha_Fe = 0.263; alpha_Fe = FeBSP/FeBP ranges: Mercury 0 to 0.12, Earth 0.263 to 0.494, Mars 0.54 to 0.58 | Putirka and Rarick 2019 (arXiv:1907.05506) | READ |
+| Mantle composition difference in total mass: Mg2SiO4 vs MgSiO3/SiO2 mixtures differ by under 2 to 3 %; FeSiO3 gives +32 % / +48 % at Earth-like core size | [R1752: Table 4] | READ |
+| Mantle FeO of exoplanets | 2 to 12 wt% (median 7.7) at alpha_Fe = 0.263; alpha_Fe = FeBSP/FeBP ranges: Mercury 0 to 0.12, Earth 0.263 to 0.494, Mars 0.54 to 0.58 | [R3626] | READ |
 | Mantle mineralogy classes | (FeO+MgO)/SiO2; mantles dominated by olivine and/or orthopyroxene; median olivine fraction 38 % (alpha 0.263), 60 % (Mars-like), 19 % (Mercury-like) | same | READ |
 | Alkalis | Na2O maximum 1.33 to 1.45 wt% if no volatile loss (Earth BSE 0.13 to 0.36) | same | READ |
 | Oxygen budget | 97.8 % of 3266 stars have enough O to oxidise Si, Mg, Fe and C | same | READ |
-| Planetesimal sources | Solar abundances mirror Earth's to about 10 mol% in Mg, Si, Fe | Unterborn and Panero 2017 (arXiv:1604.08309, abstract) | READ |
-| Fragment populations | polluted white dwarfs show core-rich, mantle-rich and crust-rich fragments | Xu and Bonsor 2021 (arXiv:2108.08384) | READ (qualitative) |
-| Coreless planets | water-oxidised iron into mantle FeO | Elkins-Tanton and Seager 2008 (arXiv:0808.1908, abstract) | READ |
+| Planetesimal sources | Solar abundances mirror Earth's to about 10 mol% in Mg, Si, Fe | [R4470] ([R4470], abstract) | READ |
+| Fragment populations | polluted white dwarfs show core-rich, mantle-rich and crust-rich fragments | Xu and [R0458, R4797] | READ (qualitative) |
+| Coreless planets | water-oxidised iron into mantle FeO | [R1248] ([R1248], abstract) | READ |
 
 ### 2.6 Thermal effect on the core
 
-Density ratio rho(P, T)/rho(P, 300 K) of hcp-Fe from SLB 2024 `fee` (COMPUTED with burnman):
+Density ratio rho(P, T)/rho(P, 300 K) of hcp-Fe from [R4233] `fee` (COMPUTED with burnman):
 
 | P (GPa) | 1000 K | 2500 K | 4000 K | 6000 K | 8000 K |
 |---|---|---|---|---|---|
@@ -215,17 +215,17 @@ Density ratio rho(P, T)/rho(P, 300 K) of hcp-Fe from SLB 2024 `fee` (COMPUTED wi
 
 Fit in code: deficit = 0.0525 ((T - 300)/3700)(135/P_GPa)^0.84, about +/-15 percent of the deficit. Values at 50 GPa or below with high T are not physical (solid-state extrapolation); the code uses it only above the CMB pressure.
 
-hcp-Fe density cross-comparison (g/cm3, COMPUTED): at P = 50 / 135 / 234.4 / 330 / 500 / 1000 / 2000 / 5000 GPa: SLB 300 K 9.973 / 11.654 / 12.998 / 14.006 / 15.430 / 18.368 / 22.143 / 28.756; SLB 4000 K 8.840 / 11.042 / 12.562 / 13.651 / 15.154 / 18.184 / 22.019 / 28.681; Seager Vinet 9.987 / 11.552 / 12.801 / 13.744 / 15.093 / 17.951 / 21.803 / 29.107; Dewaele Vinet 9.977 / 11.653 / 13.027 / 14.081 / 15.611 / 18.927 / 23.530 / 32.607; Hakim SEOS 10.114 / 11.738 / 13.030 / 14.022 / 15.471 / 18.646 / 23.086 / 31.695. At 10 TPa: Seager 37.131, Dewaele 43.013, Hakim 41.030 (SLB not defined). Vinet extrapolation departs from SEOS by more than 5 % at 10 TPa and BM3 must not be used to extrapolate (Hakim 2018, READ). The thermal correction for a 1 Mearth planet (4000 K) is about 3 to 5 percent in core density, 1 percent in R.
+hcp-Fe density cross-comparison (g/cm3, COMPUTED): at P = 50 / 135 / 234.4 / 330 / 500 / 1000 / 2000 / 5000 GPa: SLB 300 K 9.973 / 11.654 / 12.998 / 14.006 / 15.430 / 18.368 / 22.143 / 28.756; SLB 4000 K 8.840 / 11.042 / 12.562 / 13.651 / 15.154 / 18.184 / 22.019 / 28.681; Seager Vinet 9.987 / 11.552 / 12.801 / 13.744 / 15.093 / 17.951 / 21.803 / 29.107; Dewaele Vinet 9.977 / 11.653 / 13.027 / 14.081 / 15.611 / 18.927 / 23.530 / 32.607; Hakim SEOS 10.114 / 11.738 / 13.030 / 14.022 / 15.471 / 18.646 / 23.086 / 31.695. At 10 TPa: Seager 37.131, Dewaele 43.013, Hakim 41.030 (SLB not defined). Vinet extrapolation departs from SEOS by more than 5 % at 10 TPa and BM3 must not be used to extrapolate ([R1752], READ). The thermal correction for a 1 Mearth planet (4000 K) is about 3 to 5 percent in core density, 1 percent in R.
 
 ### 2.7 Carbon planets (COMPUTED radii, READ criteria)
 
 | Item | Value | Source | Label |
 |---|---|---|---|
-| Equilibrium C/O (number) above which solid carbon (SiC plus graphite) replaces silicates | 0.8 (at 1e-4 bar) | Bond 2010 / Thiabaud via G425 s.2.10 | 2ND-HAND |
+| Equilibrium C/O (number) above which solid carbon (SiC plus graphite) replaces silicates | 0.8 (at 1e-4 bar) | [R0455] / Thiabaud via G425 s.2.10 | 2ND-HAND |
 | Sequential condensation | carbon-rich planetesimals as low as C/O about 0.65 | no source | READ |
-| Host-star distribution (849 FGK dwarfs) | C/O median 0.47, sd 0.07, max 0.66 (+/-0.068), Sun 0.55; C/O > 1 in under 0.13 % ; Mg/Si median 1.02, 40 % below 1, 60 % in 1 to 1.4; C/O rises with [Fe/H] and plateaus above about -0.1 dex | Brewer and Fischer 2016 (arXiv:1608.06286) | READ |
-| Older data | mean Mg/Si 1.32, C/O 0.77 for hosts; 21/60 above 0.8; with error propagation only 5 of 61 (8 %) at 2 sigma and 7 (11 %) at 1 sigma | Bond 2010 | 2ND-HAND (via G425) |
-| EOS | graphite below 10 GPa, diamond above (Dewaele 2008), TFD above 1000 GPa; SiC/MgSiO3/Fe from Seager 2007 | Madhusudhan 2012 (arXiv:1210.2720) | READ |
+| Host-star distribution (849 FGK dwarfs) | C/O median 0.47, sd 0.07, max 0.66 (+/-0.068), Sun 0.55; C/O > 1 in under 0.13 % ; Mg/Si median 1.02, 40 % below 1, 60 % in 1 to 1.4; C/O rises with [Fe/H] and plateaus above about -0.1 dex | [R0535, R0536] | READ |
+| Older data | mean Mg/Si 1.32, C/O 0.77 for hosts; 21/60 above 0.8; with error propagation only 5 of 61 (8 %) at 2 sigma and 7 (11 %) at 1 sigma | [R0455] | 2ND-HAND (via G425) |
+| EOS | graphite below 10 GPa, diamond above [R1095], TFD above 1000 GPa; SiC/MgSiO3/Fe from [R3992] | [R2803] | READ |
 | Radii (Rearth) at 1 / 5 Mearth, Seager-constant BM3 with Fe Vinet core | SiC coreless 1.146 / 1.844; SiC CMF 0.2: 1.088 / 1.741; CMF 0.325: 1.049 / 1.673. Graphite coreless 1.236 / 1.976; CMF 0.2: 1.167 / 1.857; CMF 0.325: 1.120 / 1.779. MgSiO3 pv BM3 coreless 1.047 / 1.662; CMF 0.2: 1.001 / 1.583; CMF 0.325: 0.971 / 1.533 | this work | COMPUTED |
 
 Carbon planets with C/O above the cut are rare in the solar neighbourhood (Brewer and Fischer: nothing above 0.66 in 849 stars), so the carbon branch should almost never fire in a sample drawn from solar-neighbourhood statistics. The Seager MgSiO3 comparison row is stiffer than the SLB assemblage (0.971 vs 0.994 at CMF 0.325), which is the sort of EOS-choice spread (about 2 percent) to expect.
@@ -234,14 +234,14 @@ Carbon planets with C/O above the cut are rare in the solar neighbourhood (Brewe
 
 | Study | Result | Label |
 |---|---|---|
-| Adibekyan 2021 (arXiv:2102.12444) | f_iron(star, Sun) = 33.2 +/- 1.7 %; f_core(planet) = 6.8 +/- 1.3 f_star - 184 +/- 40 (full sample, 22 rocky planets, 5 super-Mercuries); super-Earths only 4.5 +/- 0.8 (-115); rho/rho_Earth-like vs f_star slope 0.074 +/- 0.012 (-1.4) | READ |
-| Plotnykov and Valencia 2020 (arXiv:2010.06480) | stars Fe/Si 1.63 (+0.91/-0.85) vs planets 1.15 (+1.43/-0.76); CMF stars 0.32 (+0.14/-0.12) vs planets 0.24 (+0.33/-0.18); max enrichment rho0 about 6 g/cm3, CMF about 0.8 | READ |
-| Schulze 2021 (arXiv:2011.08893) | 10 of 11 planets (91 %) consistent with host at 2 sigma; mean CMF_star 0.28 (-0.06) | READ |
-| Brinkman 2024 (arXiv:2409.08361) | 20 planets, 1 to 1.8 Rearth, homogeneous stellar data; OLS slope m = 1.3 +/- 1.0 (b = -0.05 +/- 0.28); ODR slope m = 5.6 +/- 1.6 (b = -1.4 +/- 0.5); 75 % of planets within 1 sigma of host CMF; no distinct super-Mercury population; "current uncertainties and modelling differences prevent definitive conclusions" | READ (abstract and sections 5, 6.1.1) |
-| Plotnykov et al. (arXiv:2511.17717 v2, January 2026) | 21 planets, 20 stars, homogeneous data; best-fit line slope m = 0.94 (+1.02/-1.07), intercept c = -0.02 (+0.31/-0.29) for planet Fe mass fraction vs star-equivalent; consistent at 1 sigma with other homogeneous studies, not with heterogeneous samples (steeper); super-Mercuries reduced from four to one; zero slope also allowed at 1 sigma; outliers recovered in mock populations about 15 % of the time; 150 planets needed to settle; planet Fe-MF vs [Fe/H]: m = 0.24 +/- 0.16, c = 0.23 +/- 0.03 | READ (abstract and section 3.1) |
-| Hypatia (Unterborn 2023 s.3) | molar Fe/Mg = 0.71 +/- 0.18, Si/Mg = 0.79 +/- 0.19 (correlated, correlation not given); mean CMF 0.29 (mu_bar 97.2) | READ |
+| [R0032] | f_iron(star, Sun) = 33.2 +/- 1.7 %; f_core(planet) = 6.8 +/- 1.3 f_star - 184 +/- 40 (full sample, 22 rocky planets, 5 super-Mercuries); super-Earths only 4.5 +/- 0.8 (-115); rho/rho_Earth-like vs f_star slope 0.074 +/- 0.012 (-1.4) | READ |
+| [R3545] | stars Fe/Si 1.63 (+0.91/-0.85) vs planets 1.15 (+1.43/-0.76); CMF stars 0.32 (+0.14/-0.12) vs planets 0.24 (+0.33/-0.18); max enrichment rho0 about 6 g/cm3, CMF about 0.8 | READ |
+| [R3978] | 10 of 11 planets (91 %) consistent with host at 2 sigma; mean CMF_star 0.28 (-0.06) | READ |
+| [R0541] | 20 planets, 1 to 1.8 Rearth, homogeneous stellar data; OLS slope m = 1.3 +/- 1.0 (b = -0.05 +/- 0.28); ODR slope m = 5.6 +/- 1.6 (b = -1.4 +/- 0.5); 75 % of planets within 1 sigma of host CMF; no distinct super-Mercury population; "current uncertainties and modelling differences prevent definitive conclusions" | READ (abstract and sections 5, 6.1.1) |
+| Plotnykov et al. ([R3546] v2, January 2026) | 21 planets, 20 stars, homogeneous data; best-fit line slope m = 0.94 (+1.02/-1.07), intercept c = -0.02 (+0.31/-0.29) for planet Fe mass fraction vs star-equivalent; consistent at 1 sigma with other homogeneous studies, not with heterogeneous samples (steeper); super-Mercuries reduced from four to one; zero slope also allowed at 1 sigma; outliers recovered in mock populations about 15 % of the time; 150 planets needed to settle; planet Fe-MF vs [Fe/H]: m = 0.24 +/- 0.16, c = 0.23 +/- 0.03 | READ (abstract and section 3.1) |
+| Hypatia ([R4467] s.3) | molar Fe/Mg = 0.71 +/- 0.18, Si/Mg = 0.79 +/- 0.19 (correlated, correlation not given); mean CMF 0.29 (mu_bar 97.2) | READ |
 
-Reading. The steep slope (above 4) of Adibekyan 2021 depends on a heterogeneous sample and on the fitting method (OLS 1.3 vs ODR 5.6 on the same data, Brinkman 2024); the cleaner homogeneous sample gives a slope consistent with 1. So the default must be a 1:1 relation with scatter, with the steep-slope super-Mercury branch as an optional low-probability draw. 
+Reading. The steep slope (above 4) of [R0032] depends on a heterogeneous sample and on the fitting method (OLS 1.3 vs ODR 5.6 on the same data, [R0541]); the cleaner homogeneous sample gives a slope consistent with 1. So the default must be a 1:1 relation with scatter, with the steep-slope super-Mercury branch as an optional low-probability draw. 
 
 Brewer's Mg/Si median 1.02 (Si/Mg about 0.98) and A's BF16-based number median 1.07 both disagree with Hypatia's Si/Mg 0.79 (Mg/Si 1.27) by 15 to 20 percent; the effect on CMF is only about 0.02 (COMPUTED, table in 2.4).
 
@@ -283,8 +283,8 @@ Primary design: **route 2** (draw composition first, derive density and radius).
    | BF16 local medians | 1.81 | 0.93 | 0.847 | 0.931 | 0.311 | 0.279 | COMPUTED |
 
    A's local Mg/Si (mass 0.93, number 1.07) agrees with Brewer and Fischer's number median 1.02 and differs from Hypatia's Si/Mg 0.79 (number Mg/Si 1.27); the CMF effect of that choice is about 0.02.
-2. Planet vs star: take the planet Fe/Mg and Si/Mg equal to the star's (1:1, Thiabaud/Schulze/Plotnykov 2025), plus an optional intrinsic spread; with probability p_SM (PARAMETRISATION, 0.05 from Plotnykov 2025, 1 of 21; up to 0.23 from Adibekyan 2021, 5 of 22 heterogeneous) switch to a super-Mercury branch with Fe/Mg multiplied by a factor drawn so that CMF is uniform in 0.5 to 0.8 (Plotnykov and Valencia 2020: max CMF about 0.8). A coreless branch (CMF 0 with high mantle FeO) is available for water-rich formation (Elkins-Tanton and Seager 2008), tied to part C's water fraction.
-3. Mantle FeO: draw `w_feo` from a distribution with median 0.077 and range 0.02 to 0.12 (Putirka and Rarick 2019) as a PARAMETRISATION (a clipped lognormal). If `w_feo` would use more Fe than exists (e > Fe/Mg) redraw.
+2. Planet vs star: take the planet Fe/Mg and Si/Mg equal to the star's (1:1, Thiabaud/Schulze/[R3546]), plus an optional intrinsic spread; with probability p_SM (PARAMETRISATION, 0.05 from [R3546], 1 of 21; up to 0.23 from [R0032], 5 of 22 heterogeneous) switch to a super-Mercury branch with Fe/Mg multiplied by a factor drawn so that CMF is uniform in 0.5 to 0.8 ([R3545]: max CMF about 0.8). A coreless branch (CMF 0 with high mantle FeO) is available for water-rich formation [R1248], tied to part C's water fraction.
+3. Mantle FeO: draw `w_feo` from a distribution with median 0.077 and range 0.02 to 0.12 [R3626] as a PARAMETRISATION (a clipped lognormal). If `w_feo` would use more Fe than exists (e > Fe/Mg) redraw.
 4. Light elements: core Si from reaction 17 (set by `w_feo`); `core_w_o`, `core_w_s` from 0 to 0.10 each (PARAMETRISATION; Earth's core 2 wt% S, 4 to 7 wt% Si and unknown O are test values only). `core_scale_le` from the ideal-mixing rule (2.4).
 5. `layers_from_bulk` gives `cmf`, `x_fe`, core alloy, mantle oxide mass fractions, total Fe.
 6. Thermal: `t_core` default 4000 K; two passes of `thermal_deficit` at the CMB pressure.
@@ -296,7 +296,7 @@ Primary design: **route 2** (draw composition first, derive density and radius).
 2. Draw nuisance parameters: mantle FeO uniform 0 to 0.20 wt fraction, core density factor uniform 0.8 to 1.0 (PARAMETRISATIONS spanning 2.3).
 3. For each draw invert `radius_fit` for CMF (bisection); keep draws inside [0, 0.9].
 4. Report the median CMF and the 16 to 84 percent range; draw the stored value from that sample. Total iron fraction: median and range.
-5. Optional anchoring: when the star's Fe/Mg and Si/Mg are known, weight the draws by a Gaussian centred on the star-implied CMF (2.4 table) with width 0.1 (PARAMETRISATION, of the order of the planet-minus-star spread in Plotnykov and Valencia 2020); route 1 then becomes route 2 with a measured-radius likelihood.
+5. Optional anchoring: when the star's Fe/Mg and Si/Mg are known, weight the draws by a Gaussian centred on the star-implied CMF (2.4 table) with width 0.1 (PARAMETRISATION, of the order of the planet-minus-star spread in [R3545]); route 1 then becomes route 2 with a measured-radius likelihood.
 
 ### 3.5 Mg/Si and mantle mineralogy rule
 
@@ -343,14 +343,14 @@ The listing below is the exact file that produced the check numbers in 3.9. Core
 
 ```python
 """Two-layer rocky-planet structure, standard library only.  Units: SI.
-Core  : single Vinet fit to hcp-Fe (Dewaele 2006 Vinet below 234.4 GPa + Hakim 2018 SEOS above).
+Core  : single Vinet fit to hcp-Fe ([R1096] Vinet below 234.4 GPa + [R1752] SEOS above).
 Mantle: Fe-free MgSiO3-composition (Mg/Si = 1) density along a 1600 K potential-temperature adiabat,
-        from a Gibbs-energy minimisation with SLB 2024 end-members; (1 + 0.264 x_Fe) scales it
+        from a Gibbs-energy minimisation with [R4233] end-members; (1 + 0.264 x_Fe) scales it
         for Fe/(Fe+Mg) = x_Fe.  Tables are COMPUTED (see section 3 of the part file)."""
 import math
 from bisect import bisect_right
 
-G = 6.6743e-11            # CODATA 2018, m3 kg-1 s-2
+G = 6.6743e-11            # [R4361], m3 kg-1 s-2
 M_EARTH = 5.9722e24       # kg  (unit conversion only)
 R_EARTH = 6.371e6         # m   (unit conversion only)
 
@@ -504,7 +504,7 @@ MU_FEO = AMU["Fe"] + AMU["O"]                 # 71.844
 def layers_from_bulk(fe_mg, si_mg, ca_mg=0.07, al_mg=0.09, w_feo=0.0, w_o_core=0.0, w_s_core=0.0,
                      si_into_core=True):
     """Per mole of Mg.  w_feo = FeO mass fraction of the mantle.  If si_into_core, the mantle FeO is made
-    by 3 Fe + SiO2 -> 2 FeO + FeSi (Unterborn et al. 2023 reaction 17), so core Si moles = FeO moles / 2.
+    by 3 Fe + SiO2 -> 2 FeO + FeSi ([R4467] reaction 17), so core Si moles = FeO moles / 2.
     w_o_core, w_s_core = O and S mass fractions of the core (extra light elements, not tied to the mantle)."""
     a0 = MU_MGO + ca_mg * MU_CAO + al_mg * MU_ALO15
     k = a0 + si_mg * MU_SIO2
@@ -532,7 +532,7 @@ def layers_from_bulk(fe_mg, si_mg, ca_mg=0.07, al_mg=0.09, w_feo=0.0, w_o_core=0
     }
 
 def thermal_deficit(p_gpa, t_core_k):
-    """Fractional density loss of hcp-Fe at t_core_k relative to 300 K at p_gpa (fit to SLB 2024, 135-3000 GPa,
+    """Fractional density loss of hcp-Fe at t_core_k relative to 300 K at p_gpa (fit to [R4233], 135-3000 GPa,
     2500-6000 K, about +/-15 percent of the deficit)."""
     return 0.0525 * ((t_core_k - 300.0) / 3700.0) * (135.0 / p_gpa) ** 0.84
 
@@ -589,7 +589,7 @@ Run time in CPython (COMPUTED): about 0.09 s per `structure` call, 4 microsecond
 ### 3.9 Check numbers (output of the code above, COMPUTED)
 
 ```text
-1. Unterborn 2023 Eq.8: Fe/Mg 0.71, Si/Mg 0.79 (Hypatia means), no FeO, no light elements
+1. [R4467] Eq.8: Fe/Mg 0.71, Si/Mg 0.79 (Hypatia means), no FeO, no light elements
    CMF 0.2917 (paper: mean 0.29, mu_bar 97.2)
 2. Earth bulk (Fe/Mg 0.9, Si/Mg 0.9, Ca/Mg 0.07, Al/Mg 0.09), no FeO: CMF 0.3282
    + 8 wt% mantle FeO via reaction 17: CMF 0.2954, core Si 3.73 wt%, mantle Si/Mg 0.840, x_Fe 0.1073, core scale (Si only) 0.9644
@@ -604,7 +604,7 @@ Run time in CPython (COMPUTED): about 0.09 s per `structure` call, 4 microsecond
 7. Fit inversion round trip: CMF from (M=3, R=fit(3,0.37,.15,.85)) = 0.37
 ```
 
-Reading the check numbers: item 1 reproduces Unterborn 2023's mean CMF (0.29, mu_bar 97.2) with the Hypatia means (0.2917). Item 2 with 8 wt% mantle FeO gives core Si 3.73 wt% (paper 3.7), mantle Si/Mg 0.840 (paper text 0.83). Items 3 and 5 reproduce an Earth-sized planet within 0.1 percent in radius with MoI 0.3302 and a CMB pressure 148 GPa (see 4 for why this is 9 percent above PREM). Item 6: for a planet of 1 Mearth and 1.0 Rearth, CMF 0.295 (0.242 to 0.343 at 16 to 84 percent, 0.194 to 0.379 extremes) and total Fe 0.34 (0.315 to 0.366).
+Reading the check numbers: item 1 reproduces [R4467]'s mean CMF (0.29, mu_bar 97.2) with the Hypatia means (0.2917). Item 2 with 8 wt% mantle FeO gives core Si 3.73 wt% (paper 3.7), mantle Si/Mg 0.840 (paper text 0.83). Items 3 and 5 reproduce an Earth-sized planet within 0.1 percent in radius with MoI 0.3302 and a CMB pressure 148 GPa (see 4 for why this is 9 percent above PREM). Item 6: for a planet of 1 Mearth and 1.0 Rearth, CMF 0.295 (0.242 to 0.343 at 16 to 84 percent, 0.194 to 0.379 extremes) and total Fe 0.34 (0.315 to 0.366).
 
 ### 3.10 Tests and invariants a test can assert
 
@@ -640,19 +640,19 @@ Findings to flag: the Mars calibration needs a core density factor near 0.7; the
 Ranked.
 
 1. **Stellar Ca and Al, and the planet-versus-star scatter**: `A-stars.md` now supplies Mg, Si, O, C (stored `mg_fe`, `si_fe`, `o_fe`, `c_fe`) but its stored list has no Ca or Al, which `layers_from_bulk` uses (small effect, a few percent on CMF); the planet-minus-star scatter law is still open (only a width of about 0.1 CMF is parametrised). Gives: Ca/Mg, Al/Mg per star and a published scatter.
-2. **Brewer and Fischer 2016 full tables and Hypatia bulk table with the Fe/Mg-Si/Mg correlation**: VizieR refused; the Hypatia API needs star names. Gives the joint distribution to draw from.
-3. **Mantle FeO / oxygen fugacity rule versus star and water** (Elkins-Tanton and Seager 2008 full text; Schaefer and Fegley): only an abstract and Putirka's 2 to 12 wt% range are available. Gives a proper `w_feo` law.
+2. **[R0535] full tables and Hypatia bulk table with the Fe/Mg-Si/Mg correlation**: VizieR refused; the Hypatia API needs star names. Gives the joint distribution to draw from.
+3. **Mantle FeO / oxygen fugacity rule versus star and water** ([R1248] full text; Schaefer and Fegley): only an abstract and Putirka's 2 to 12 wt% range are available. Gives a proper `w_feo` law.
 4. **Crust mass fraction and crust composition law** (part E owns the types); B hands over mantle oxides only.
-5. **Volatile (C, N, H) inventory of the mantle and core**: no source gives ranges per planet; needed by the atmosphere lane. Candidates: Schlichting and Young 2022, Bergin et al.
+5. **Volatile (C, N, H) inventory of the mantle and core**: no source gives ranges per planet; needed by the atmosphere lane. Candidates: [R3961], Bergin et al.
 6. **K2O and Na2O mantle contents**: only the Na2O ceiling (Putirka) was read; K2O is part E's radiogenic table.
-7. **Primary EOS papers**: SLB 2011 and 2024 originals (OUP refused), Dewaele 2006 PRL, Sata 2010, Anderson and Ahrens 1994, Dewaele 2008 diamond, Occelli diamond, Sotin/Noack/Wagner 2012, Valencia 2007, Thiabaud 2014/2016. Gives original tabulated EOS to replace the 2ND-HAND copy.
+7. **Primary EOS papers**: [R4232] and 2024 originals (OUP refused), [R1096] [R0111, R1095, R3923] diamond, Occelli diamond, Sotin/Noack/[R4335, R4481, R4583]/2016. Gives original tabulated EOS to replace the 2ND-HAND copy.
 8. **Low-pressure Fe-alloy EOS (Fe-Ni, Fe-S, Fe-Si, Fe-O) and liquid-core density** with temperature; only Hakim's 300-K-type refits were read. The 0.8 to 1.0 `core_scale` range is the stand-in.
 9. **IOP-hosted full texts**: a bot check blocked access; not bypassed.
 
 ### To verify (RECALLED or weakly sourced)
 
-1. Earth CMF 0.325 (used via G425 s.2.3 from Zeng 2016) and PREM CMB pressure 135.8 GPa (via G425): only test-side numbers.
-2. Thermal-deficit fit coefficient (0.0525, 0.84): my own fit to SLB 2024 output.
+1. Earth CMF 0.325 (used via G425 s.2.3 from [R4882]) and PREM CMB pressure 135.8 GPa (via G425): only test-side numbers.
+2. Thermal-deficit fit coefficient (0.0525, 0.84): my own fit to [R4233] output.
 3. Ideal-mixing light-element density rule for O (20 percent too low versus Hakim at 23 wt% O).
 4. The probability p_SM for the super-Mercury branch (parametrisation).
 5. The Moon and Mars calibration pairs (only as test hints).
@@ -680,12 +680,12 @@ Counts are of table rows whose label cell carries the label (the prose lines tha
 
 | Label | Rows | What |
 |---|---|---|
-| READ | 33 | Hakim 2018, Unterborn 2023, Putirka and Rarick 2019, Brewer and Fischer 2016, Adibekyan 2021, Plotnykov and Valencia 2020, Schulze 2021, Brinkman 2024, Plotnykov 2025/2026, Rogers 2015, Otegi 2020, Zeng and Jacobsen 2017, Madhusudhan 2012, abstracts of Elkins-Tanton and Seager 2008, Unterborn and Panero 2017 |
-| 2ND-HAND | 46 | 32 SLB 2024 rows (via burnman 2.1.0), SLB hcp-Fe, liquid Fe and ExoPlex constants (sdist), diamond and graphite (burnman HP), SiC and Mg/Si thresholds (via G425) |
+| READ | 33 | [R0032, R0535, R0541, R1752, R3545, R3546, R3626, R3978, R4467]/2026, [R3384, R3800, R4879], [R2801, R2803], abstracts of [R1248, R4470] |
+| 2ND-HAND | 46 | 32 [R4233] rows (via burnman 2.1.0), SLB hcp-Fe, liquid Fe and ExoPlex constants (sdist), diamond and graphite (burnman HP), SiC and Mg/Si thresholds (via G425) |
 | COMPUTED | 31 | mass-radius tables, degeneracy, limits, carbon radii, thermal factor, stoichiometry check numbers, calibration fits, solver validation |
-| SNIPPET | 0 | the earlier snippet-level slope claims were replaced by the full-text reads of arXiv:2511.17717 and arXiv:2409.08361 |
+| SNIPPET | 0 | the earlier snippet-level slope claims were replaced by the full-text reads of [R0541, R3546] |
 | RECALLED | 2 table items | S 32.06 and C 12.011 atomic weights; plus the test-side Earth CMF 0.325 and PREM P_cmb 135.8 GPa, taken from G425 (so 2ND-HAND there) and listed under "to verify" |
 | NOT REACHED | 1 table row, 9 gap items | Fe-Ni EOS; the gap list in section 5 |
 
-Agreement and differences with G425: agree on Seager constants, the Zeng 2016 PREM calibration, the MgO K0 spread (177 vs 161.4 GPa) and the Mg/Si thresholds; differ in that the "100 percent Fe" Zeng column is not pure Fe (G425 already notes this) and that I recommend the integrated two-layer solver over the closed forms (P_cmb within 30 %, Eq. 22 within 70 %, MoI within 12 %).
+Agreement and differences with G425: agree on Seager constants, the [R4882] PREM calibration, the MgO K0 spread (177 vs 161.4 GPa) and the Mg/Si thresholds; differ in that the "100 percent Fe" Zeng column is not pure Fe (G425 already notes this) and that I recommend the integrated two-layer solver over the closed forms (P_cmb within 30 %, Eq. 22 within 70 %, MoI within 12 %).
 

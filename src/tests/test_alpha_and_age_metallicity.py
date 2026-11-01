@@ -17,7 +17,7 @@ def test_a_solar_scaled_star_reads_its_own_metallicity():
 
 
 def test_the_salaris_shift_for_plus_four_tenths_is_about_three_tenths_of_a_dex():
-    """Salaris et al. 1993: [alpha/Fe] = +0.4 is worth +0.29 dex in [M/H]."""
+    """[R3878]: [alpha/Fe] = +0.4 is worth +0.29 dex in [M/H]."""
     assert alpha_tracks.metallicity_shift(0.4) == pytest.approx(0.293, abs=0.002)
     assert alpha_tracks.metallicity_shift(0.2) < alpha_tracks.metallicity_shift(0.4)
 

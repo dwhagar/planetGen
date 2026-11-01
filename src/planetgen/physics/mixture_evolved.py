@@ -19,7 +19,7 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
 * **Abiotic oxygen (`j5`).** The outgassed gas, its carbon, nitrogen and sulfur rescaled to a carbon of `CARBON_PER_OCEAN_WATER` per molecule of the
   surface water of one to ten oceans (`OCEAN_WATER_WT_PERCENT`) added to it; the
   hydrogen of the water escapes (the fraction `WATER_PHOTOLYSED`) and the oxygen it leaves behind stays in the closed gas, except for
-  the share `OXYGEN_SINK` that the crust takes up (Luger and Barnes 2015: the O2 builds to tens or hundreds of bar around a late M
+  the share `OXYGEN_SINK` that the crust takes up ([R2769]: the O2 builds to tens or hundreds of bar around a late M
   dwarf). Nothing holds the oxygen fugacity here: the gas is free to have O2.
 * **Titan-like (`j3`): nitrogen and methane at the methane's saturation.** The nitrogen is the balance; the methane is the
   surface's humidity `TITAN_HUMIDITY` of the saturation pressure at the surface temperature over the pressure of the air (the
@@ -48,7 +48,7 @@ WATER_PHOTOLYSED = (0.3, 1.0, "uniform")
 
 OCEAN_WATER_WT_PERCENT = (0.0233, 0.233, "log")
 """tuple: The water an abiotic-oxygen world's surface holds before its hydrogen is lost, weight percent of the body: one to ten
-Earth oceans (one ocean is 0.0233 percent of the Earth's mass; the ten are the top of the range Luger and Barnes 2015 consider)."""
+Earth oceans (one ocean is 0.0233 percent of the Earth's mass; the ten are the top of the range [R2769] consider)."""
 
 CARBON_PER_OCEAN_WATER = (0.01, 0.2, "log")
 """tuple: The carbon of an abiotic-oxygen world's gas per water molecule of its oceans, mole per mole: the Earth's atmosphere and carbonate
@@ -59,10 +59,10 @@ OXYGEN_SINK = (0.0, 0.9, "uniform")
 
 TITAN_HUMIDITY = (0.3, 1.0, "uniform")
 """tuple: The methane's relative humidity at the surface (Titan: 5.65 percent near the surface at 94 K against a saturation of 12 percent;
-the measured humidity is about 0.5; TEST, Niemann et al. 2010)."""
+the measured humidity is about 0.5; [R3289])."""
 
 TITAN_HYDROGEN = (3e-4, 3e-3, "log")
-"""tuple: The hydrogen mole fraction of a methane atmosphere (Titan 1.0e-3 +/- 0.16e-3, Niemann et al. 2010, TEST); design bracket around it."""
+"""tuple: The hydrogen mole fraction of a methane atmosphere (Titan 1.0e-3 +/- 0.16e-3, [R3289], TEST); design bracket around it."""
 
 FROST_ICE = {"CH4": (3e-3, 0.3, "log"), "CO": (1e-3, 0.1, "log")}
 """dict: The mole fraction of each minor gas in the surface ice (the rest is nitrogen), stand-ins for the research item on the ice

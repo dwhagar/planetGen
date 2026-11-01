@@ -6,7 +6,7 @@ The simulated sample the iron branch is tuned to (GEN.512, docs/design/compositi
 
 The published statistic is how many of a homogeneous sample of small rocky planets are more iron-rich than their star, not what the planets
 are made of: each planet's core mass fraction (CMF) is inferred from a measured mass and radius, and called iron-rich when it exceeds the
-star-matched value by 2 sigma of that inference (Plotnykov et al. 2026: 1 of 21; Brinkman et al. 2024: the share within 1 sigma of the star, 15 of 20).
+star-matched value by 2 sigma of that inference ([R3546]: 1 of 21; [R0541]: the share within 1 sigma of the star, 15 of 20).
 The sampler here draws what the harness needs on the same footing:
 
 1. a host, with its abundances from the generator's own star model (`bulk_draw`'s ratios at a drawn [Fe/H]), and the dry partition
@@ -34,7 +34,7 @@ is relative to each host, so the width matters little."""
 MASS_RANGE_EARTH = (1.0, 10.0)
 PERIOD_RANGE_D = (0.5, 30.0)
 MAX_RADIUS_EARTH = 1.8
-"""float: The samples' rocky cut (Brinkman 2024: 1 to 1.8 Earth radii)."""
+"""float: The samples' rocky cut ([R0541]: 1 to 1.8 Earth radii)."""
 HOST_MASS_RANGE_SOLAR = (0.8, 1.2)
 OUTLIER_SIGMAS = 2.0
 FEO = 0.08

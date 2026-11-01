@@ -55,8 +55,8 @@ def test_a_younger_mean_age_puts_more_stars_in_the_recent_windows():
 
 def test_the_large_cloud_forms_stars_at_about_the_rate_and_with_about_the_gas_observed():
     """The targets, not inputs: the Large Cloud's star formation has averaged roughly 0.2 solar masses a year since 5 Gy
-    ago (Harris & Zaritsky 2009, AJ 138, 1243, arXiv:0908.1422, read) and holds 4.8e8 solar masses of atomic gas
-    (Staveley-Smith et al. 2003, MNRAS 339, 87, arXiv:astro-ph/0210501, abstract read); the history gives the rate and the
+    ago ([R1826], read) and holds 4.8e8 solar masses of atomic gas
+    ([R4201], abstract read); the history gives the rate and the
     gas from the stars' mass, size and mean age alone, within a factor of 2.5 (GEN.1192)."""
     found = _history("Large Magellanic Cloud")
     assert found.forming
@@ -66,7 +66,7 @@ def test_the_large_cloud_forms_stars_at_about_the_rate_and_with_about_the_gas_ob
 
 
 def test_the_small_cloud_holds_about_the_gas_observed_and_more_of_it_than_the_stars_would_need_at_their_size():
-    """The Small Cloud's atomic gas is some 4e8 solar masses [recalled, Stanimirovic et al. 1999: to verify]; a gas disc
+    """The Small Cloud's atomic gas is some 4e8 solar masses [recalled, [R4193]: to verify]; a gas disc
     only as large as the stars (the half-mass circle at the rate's density) held a seventh of it (GEN.1192)."""
     found = _history("Small Magellanic Cloud")
     assert 4.0e8 / 2.5 < found.gas_mass_solar < 4.0e8 * 2.5

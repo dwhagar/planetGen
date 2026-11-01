@@ -15,7 +15,7 @@ and the Trojans are test targets. **Both the IAU word and the numbers are kept**
    band of `ZONE_HILL_RADII` Hill radii on each side (Margot's C, BR22), and `zone_mass_kg` adds up what the ledger puts there: stored bodies by their orbits, and the leftover mass of a belt, spread evenly across its width.
 3. **Margot's Pi** (`margot_pi`): the body's mass over the mass that clears an orbit in the main-sequence lifetime, `1.9e-4 C^(3/2) (a / 1 AU)^(9/8) (M* / Msun)^(5/2)` Earth masses with `C = 2 sqrt 3` (BR7; Jupiter 4e4, Mars 54).
    Margot's `807` in the design note is `1 / (1.9e-4 C^(3/2))` = 816 with the printed digits. It is the cross-check on Soter's word: it needs no ledger.
-4. **Stern and Levison's Lambda** (`stern_levison_lambda`): `k m^2 / P`, with `m` in Earth masses per solar mass of the star, over the orbital period in years. Their `k` was not read (second hand, Soter 2006); the one here is fixed so that Lambda is 1 for a body of exactly Margot's
+4. **Stern and Levison's Lambda** (`stern_levison_lambda`): `k m^2 / P`, with `m` in Earth masses per solar mass of the star, over the orbital period in years. Their `k` was not read (second hand, [R4159]); the one here is fixed so that Lambda is 1 for a body of exactly Margot's
    clearing mass at 1 AU round the Sun (BR23), which puts Earth at 7e5 and Ceres at 4e-3. Above 1 the body clears its orbit.
 5. **The word** (`status`): a body that orbits another planet or dwarf planet is a `moon`. One that orbits the star is a `planet` if it is round and has cleared its zone (mu above `SOTER_MU_PLANET`), a `dwarf planet` if it is round and
    has not, and a `minor body` if it is not round, whatever its zone. Soter's mu decides, Margot's Pi is stored as the second opinion (`BodyStatus.pi_agrees`).
@@ -43,10 +43,10 @@ MOON = "moon"
 WORDS = (PLANET, DWARF_PLANET, MINOR_BODY, MOON)
 
 SOTER_MU_PLANET = 100.0
-"""float: A body whose mass is more than this many times the mass of the others in its zone is a planet (Soter 2006; the Solar System's gap is mu 0.3 to 1e5). [Stand-in BR6, tier T1, tweak L0.]"""
+"""float: A body whose mass is more than this many times the mass of the others in its zone is a planet ([R4159]; the Solar System's gap is mu 0.3 to 1e5). [Stand-in BR6, tier T1, tweak L0.]"""
 
 MARGOT_COEFFICIENT = 1.9e-4
-"""float: Margot's clearing mass at 1 AU round the Sun is this times `C^(3/2)` Earth masses (Margot 2015, printed). [Stand-in BR7, tier T1, tweak L0.]"""
+"""float: Margot's clearing mass at 1 AU round the Sun is this times `C^(3/2)` Earth masses ([R2871, R2874], printed). [Stand-in BR7, tier T1, tweak L0.]"""
 
 MARGOT_C = 2.0 * math.sqrt(3.0)
 """float: Margot's `C`, the width in Hill radii of the zone a planet must clear (2 sqrt 3, printed). [Stand-in BR7, tier T1, tweak L0.]"""

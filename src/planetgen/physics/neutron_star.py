@@ -5,9 +5,8 @@ The radius of a neutron star from its mass (GEN.463, GEN.969).
 
 A neutron star's radius is fixed by the equation of state of dense matter. `physics.neutron_star_structure` holds the radius of a
 star of each mass for 21 unified equations of state (GEN.968). Which of them is real is not known, only constrained: NICER measured
-PSR J0030+0451 at 1.34 solar masses, 12.71 +1.14 -1.19 km (Riley et al. 2019, arXiv:1912.05702), and PSR J0740+6620 at 2.08 solar
-masses, 13.7 +2.6 -1.5 km, and with the gravitational-wave and nuclear constraints Miller et al. 2021 (ApJL 918, L28,
-arXiv:2105.06979) give R(1.4) = 12.45 +- 0.65 km and R(2.08) = 12.35 +- 0.75 km.
+PSR J0030+0451 at 1.34 solar masses, 12.71 +1.14 -1.19 km [R3766], and PSR J0740+6620 at 2.08 solar
+masses, 13.7 +2.6 -1.5 km, and with the gravitational-wave and nuclear constraints [R3075] give R(1.4) = 12.45 +- 0.65 km and R(2.08) = 12.35 +- 0.75 km.
 
 So each equation of state carries a weight from how well it fits those constraints (`eos_weight`): a normal weight on its R(1.4)
 and on its R(2.08) about the Miller et al. values, and for one too soft to hold PSR J0740+6620 (2.08 +- 0.07 solar masses, Fonseca et al.
@@ -26,8 +25,8 @@ from planetgen.physics import neutron_star_structure as structure
 MILLER_R14 = (12.45, 0.65)
 MILLER_R208 = (12.35, 0.75)
 J0740_MASS = (2.08, 0.07)
-"""tuples: `(centre, sigma)` of the constraints the weights use: R(1.4) and R(2.08), km (Miller et al. 2021), and the mass of PSR
-J0740+6620, solar masses (Fonseca et al. 2021)."""
+"""tuples: `(centre, sigma)` of the constraints the weights use: R(1.4) and R(2.08), km [R3075], and the mass of PSR
+J0740+6620, solar masses [R1404]."""
 
 
 def _normal_weight(value, centre, sigma):

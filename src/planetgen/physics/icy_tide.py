@@ -17,7 +17,7 @@ the tide's: `F = F_own + P / (4 pi R^2)`.
 `(1/2) omega epsilon^2 Im(mu(T, omega))` per volume, with `mu` the complex rigidity of `tidal_rheology.compliance` at the local temperature. For an eccentricity tide at
 the orbital rate `n` the strain is `epsilon = 3 e (1 + k2) (M_h / M) (R / a)^3` (the amplitude of the tide's change over an orbit, `3 e h2` times the equilibrium bulge, with
 `h2 = 1 + k2` and `k2` of a homogeneous ice sphere, `tidal_rheology.ice_response`), and for the semi-diurnal tide of a spinning body (`dissipation`) the same bulge with the
-factor `sqrt(9/7)` that makes the two agree for the same `k2/Q` (the 21/2 of Peale et al. 1979 against the 3 of the despinning torque). The power is
+factor `sqrt(9/7)` that makes the two agree for the same `k2/Q` (the 21/2 of [R3464] against the 3 of the despinning torque). The power is
 
     P = 4 pi R^2 (1/2) omega epsilon^2 (A / F) I(omega),        I(omega) = integral of Im(mu) dT / T from top to base
 

@@ -6,7 +6,7 @@ Boss, 10-30: trojan swarms in the scatter, whole bodies at Lagrange points where
 
 `physics/trojans.py` and `physics/data/trojans.json`, stand-in rows 6.121 TJ1 to TJ5:
 
-- `stable`, `max_trojan_mass`, `allows`: L4 and L5 hold a trojan when the secondary plus the trojan stay under 0.0385 of the three masses (Gascheau-Routh; Schwarz et al. 2016). L1, L2, L3 hold nothing.
+- `stable`, `max_trojan_mass`, `allows`: L4 and L5 hold a trojan when the secondary plus the trojan stay under 0.0385 of the three masses (Gascheau-Routh; [R3984]). L1, L2, L3 hold nothing.
 - `libration_period`, `motion`: the slow libration of a tadpole, and tadpole against horseshoe by amplitude.
 - `swarm_split`, `leading_share`: the scatter's `trojans` share into L4 and L5 regions.
 - `point_label`, `pair_text`: `Jupiter-L4` and `L4 of Sun and Jupiter`, for the map.

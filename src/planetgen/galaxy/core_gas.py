@@ -8,13 +8,13 @@ stars at a small share of what comes in. Nothing here is typed in for a galaxy:
 
 1. **The inflow.** The disk's gas inside the bar's gap (`galaxy.disk_history`, GEN.469: each ring's gas at the end of
    its history, inside `galaxy.star_formation.gap_radius_pc`) leaves on `tuning.CORE_GAS_INFLOW_TIME_GY`. The Milky
-   Way's model gives 0.7 solar masses a year against the 0.8 measured (in Henshaw et al. 2023).
+   Way's model gives 0.7 solar masses a year against the 0.8 measured (in [R1910]).
    A galaxy without a bar has no inflow, so no ring.
 2. **The rate.** The ring forms stars at `tuning.CORE_STAR_FORMATION_PER_INFLOW` of the inflow (0.07 over 0.8 in the Milky
    Way: the review's continuity equation, inflow = star formation + outflow + growth).
 3. **The ring.** Radius, width and height are the bulge's scale radius times ratios (`tuning.CORE_RING_*`), as the
    nuclear disc's are. The rate over its area is a star formation rate density; the cluster formation efficiency of that
-   (`physics.open_cluster_evolution.cluster_formation_efficiency`, Kruijssen 2012) is the share of the new stars that
+   (`physics.open_cluster_evolution.cluster_formation_efficiency`, [R2502]) is the share of the new stars that
    form in bound clusters, which `generation/open_clusters.py` draws as components; the rest are the field's.
 4. **The field's young stars.** The rate times the age of the `young` population (0.1 Gy) times the unbound share is
    the mass of field stars the ring holds younger than that. They are part of the nuclear disc, not on top of it: the

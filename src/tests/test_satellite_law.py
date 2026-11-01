@@ -29,7 +29,7 @@ def _population(stellar_mass, count=40):
 
 
 def test_the_subhalo_count_is_the_laws():
-    assert satellites.subhalo_count_above(1.0e-5) == pytest.approx(640.0, rel=0.02)     # Boylan-Kolchin 2010: about 640
+    assert satellites.subhalo_count_above(1.0e-5) == pytest.approx(640.0, rel=0.02)     # [R0508]: about 640
     assert satellites.subhalo_count_above(0.01) == pytest.approx(0.95, rel=0.02)
     assert satellites.subhalo_count_above(0.001) > satellites.subhalo_count_above(0.01)
 
@@ -78,7 +78,7 @@ def test_no_satellite_lies_beyond_the_virial_radius_and_the_radius_is_the_halos(
 
 
 def test_the_milky_way_mass_population_is_plausible_against_the_milky_ways_own_rows():
-    """The Milky Way has 12 satellites above 1e5 solar masses (McConnachie 2012); the drawn median of those above 1e5 is of that order."""
+    """The Milky Way has 12 satellites above 1e5 solar masses [R2972]; the drawn median of those above 1e5 is of that order."""
     reference = sum(1 for row in reference_satellites.MILKY_WAY_SATELLITES if row.stellar_mass_sol > 1.0e5)
     drawn = [sum(1 for c in found if c.mass_solar > 1.0e5) for _chain, found in _population(5.0e10, count=60)]
     assert reference / 3.0 <= statistics.median(drawn) <= reference * 3.0
@@ -122,7 +122,7 @@ def test_no_satellite_out_weighs_a_quarter_of_its_host():
 
 
 def test_the_stripping_radius_is_270_kpc_for_the_milky_ways_halo_and_scales_with_the_virial_radius():
-    """GEN.1193: Grcevich and Putman 2009 put the cutoff of the dwarfs' HI at 250 to 280 kpc."""
+    """GEN.1193: [R1671] put the cutoff of the dwarfs' HI at 250 to 280 kpc."""
     milky_way = mass_chain.virial_radius_kpc(mass_chain.median_halo_mass(5.0e10))
     assert satellites.stripping_radius_kpc(milky_way) == pytest.approx(270.0)
     assert satellites.stripping_radius_kpc(2.0 * milky_way) == pytest.approx(540.0)

@@ -60,7 +60,7 @@ UNITS = {"ring_kind": "text", "ring_origin": "text", "ring_inner_km": "km", "rin
 """dict: Each field of `BODY_FIELDS` and its native unit (GEN.570), as `RoguePlanet.FIELD_UNITS` carries it."""
 
 ROCHE_COEFFICIENT = 2.456
-"""float: The fluid Roche limit in planet radii for particles as dense as the planet (Roche 1850; Murray and Dermott 1999). Recalled, T2, L0."""
+"""float: The fluid Roche limit in planet radii for particles as dense as the planet (Roche 1850; [R3220]). Recalled, T2, L0."""
 
 ICE_DENSITY_KG_M3 = 917.0
 """float: Water ice Ih, the density of a ring's ice (the repo's ice density, `constants`-free so the module stands alone)."""
@@ -83,7 +83,7 @@ RANGES = {
 - `particle_radius_m`: the effective particle radius that turns a mass into an optical depth (Saturn's particles run from centimetres to
   ten metres; dust grains are about 10 micrometres).
 - `filling`: the share of the annulus a ring covers, log-uniform; Uranus's rings cover about 0.3 percent of theirs.
-- `ice_fraction`: the ice share by mass beyond the snow line (Saturn's rings 90 to 99 percent, Cuzzi et al. 2018, recalled; Uranus's and
+- `ice_fraction`: the ice share by mass beyond the snow line (Saturn's rings 90 to 99 percent, [R0970], recalled; Uranus's and
   Neptune's are dark, no ice has been seen); 0 inside the snow line.
 - `outer_over_roche`: the outer edge as a share of the Roche limit of the ring's own material: Saturn 1.05 (with the planet's volumetric radius), Jupiter 0.93, Neptune 0.88,
   Uranus 0.76 (COMPUTED from the edges listed above).

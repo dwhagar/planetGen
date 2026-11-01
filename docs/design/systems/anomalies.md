@@ -88,7 +88,7 @@ Counts are whole-galaxy; "per sector" is the mean over the 2.1e10 qualifying sec
 | **Void** ("cosmic void boundaries") | Bootes void about 330 Mly across [S]; voids hold about 40% of volume [S] | n/a inside one galaxy | n/a | no; the galaxy-scale analogue is the Local Bubble, 100 to 200 pc, n_e about 0.005 cm^-3, hot [S]; simulated superbubble filling about 12% [S] |
 | **Dark matter halo / "nebula"** | Local density 0.4 to 0.6 GeV/cm^3 = 0.011 to 0.016 Msun/pc^3 [S] | about 1e12 Msun [R] | 0.5 to 1.0 Msun per 4 pc sector [C] | smooth background only; collisionless, no drag |
 | **Gravitational lens / Einstein ring** | `R_E = sqrt(4GM/c^2 * D_L D_LS / D_S)`: 10 Msun at 100 pc, source at 8 kpc: 2.8 AU [C]; 1 Msun at 2 pc: 0.13 AU [C]; bulge optical depth about 1.75e-6 [S] | n/a | n/a | an effect of existing objects, not an object |
-| **Stellar merger / red nova** | Merger rate 0.5/yr (M_V < -3), 0.1/yr (brighter than V1309 Sco), 0.03/yr (V838 Mon) [S, Kochanek 2014]; ZTF finds the bright end 5 to 100 times lower [S] | transient | about 5e-12 per sector per year [C] | a transient |
+| **Stellar merger / red nova** | Merger rate 0.5/yr (M_V < -3), 0.1/yr (brighter than V1309 Sco), 0.03/yr (V838 Mon) [S, [R2406]]; ZTF finds the bright end 5 to 100 times lower [S] | transient | about 5e-12 per sector per year [C] | a transient |
 | **Symbiotic star** | White dwarf with red giant; about 300 known [S]; estimates 1.2e3 to 1.5e4, 5.3e4, 3e5 [S] | 1e3 to 3e5 | 5e-8 to 1.4e-5 | Yes, a binary subtype |
 | **Quasar / AGN jet** | The existing quasar kind; Fermi bubbles about 50 degrees, about 8 kpc [R] | 1 | n/a | exists at ring 0 |
 | **Microquasar / particle fountain** | SS 433: precessing jets at 0.26 c, 162.3 d period [S]; several dozen known, perhaps 100 to 1,000 [S/R] | 1e2 to 1e3 | 5e-9 to 5e-8 [C] | jet 0.1 to 10s of pc spans sectors |
@@ -204,23 +204,23 @@ The `phenomenon_scatter` draw is weighted by total stellar density per ring and 
 
 Search results used (WebFetch was blocked; [S] claims rest on search-result text):
 
-- Magnetar birth rate and fraction: https://arxiv.org/pdf/astro-ph/0703346, https://arxiv.org/pdf/0807.2106, https://arxiv.org/pdf/1903.06718, https://arxiv.org/html/2601.16159v1
-- Cloud filling and catalogues: https://arxiv.org/pdf/1301.3905, https://arxiv.org/pdf/astro-ph/0701877, https://arxiv.org/abs/1602.02791, https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJ/834/57
-- Red novae: https://web3.arxiv.org/abs/1405.1042, https://arxiv.org/pdf/2211.05141, https://arxiv.org/pdf/1906.00812
-- Symbiotic stars: https://arxiv.org/pdf/2301.08201, https://arxiv.org/pdf/astro-ph/0208085, https://arxiv.org/html/2504.02090v2
-- Wolf-Rayet: https://arxiv.org/abs/1412.0699, https://arxiv.org/pdf/astro-ph/0003053, https://arxiv.org/pdf/0909.0621
-- Thorne-Zytkow: https://en.wikipedia.org/wiki/Thorne%E2%80%93%C5%BBytkow_object, https://arxiv.org/pdf/1601.05455, https://arxiv.org/abs/2407.11680v1
-- Cosmic strings: https://arxiv.org/pdf/2205.07194, https://arxiv.org/pdf/1907.04960, https://arxiv.org/pdf/1206.2924
-- Wormholes: https://arxiv.org/pdf/0807.2774, https://arxiv.org/pdf/1009.6084, https://arxiv.org/pdf/2405.05476
-- GRB rates: https://arxiv.org/pdf/1609.09355, https://arxiv.org/pdf/astro-ph/0610043, https://arxiv.org/pdf/astro-ph/0310667, https://arxiv.org/pdf/astro-ph/0701748
-- Supernova rate: https://arxiv.org/pdf/astro-ph/0603669, https://arxiv.org/pdf/1110.4105
-- FRBs and magnetars: https://arxiv.org/pdf/2005.05283, https://openaccess.inaf.it/handle/20.500.12386/35137
-- Microlensing: https://arxiv.org/pdf/1906.02210, https://iac.es/es/ciencia-y-tecnologia/publicaciones/microlensing-event-rate-and-optical-depth-moa-ii-9-yr-survey-toward-galactic-bulge
-- Local Bubble and superbubbles: https://arxiv.org/pdf/0812.0505, https://arxiv.org/pdf/1010.5654, https://arxiv.org/pdf/2403.12135
-- Dark matter density: https://arxiv.org/pdf/2012.11477, https://arxiv.org/abs/1404.1938
-- Microquasars and jets: https://arxiv.org/pdf/astro-ph/0506008, https://arxiv.org/html/2506.01106v1; Herbig-Haro estimate via the HH-30 Wikipedia page
-- Pulsars: https://arxiv.org/pdf/astro-ph/0412641, https://arxiv.org/pdf/2510.16618, https://arxiv.org/pdf/2205.05200
-- Eta Carinae and LBV rates: https://arxiv.org/pdf/1010.3718, https://arxiv.org/abs/0905.3338
-- Voids: https://en.wikipedia.org/wiki/Bo%C3%B6tes_Void, https://ar5iv.labs.arxiv.org/html/astro-ph/0702257
+- Magnetar birth rate and fraction: [R0337, R1364, R1566, R4981]
+- Cloud filling and catalogues: [R0465, R1335, R3759], https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJ/834/57
+- Red novae: https://web3.arxiv.org/abs/1405.1042, [R2245, R3446]
+- Symbiotic stars: [R0055, R2816, R4993]
+- Wolf-Rayet: [R1741, R3142, R3821]
+- Thorne-Zytkow: https://en.wikipedia.org/wiki/Thorne%E2%80%93%C5%BBytkow_object, [R2789, R3243]
+- Cosmic strings: [R0764, R2771, R4086]
+- Wormholes: [R0014, R0444, R3643]
+- GRB rates: [R1650, R2590, R3239, R4694]
+- Supernova rate: [R0774, R1108]
+- FRBs and magnetars: [R2869], https://openaccess.inaf.it/handle/20.500.12386/35137
+- Microlensing: [R3192], https://iac.es/es/ciencia-y-tecnologia/publicaciones/microlensing-event-rate-and-optical-depth-moa-ii-9-yr-survey-toward-galactic-bulge
+- Local Bubble and superbubbles: [R0526, R1029, R2662]
+- Dark matter density: [R1081, R3686]
+- Microquasars and jets: [R0749, R4994]; Herbig-Haro estimate via the HH-30 Wikipedia page
+- Pulsars: [R0406, R2850, R4454]
+- Eta Carinae and LBV rates: [R4131, R4556]
+- Voids: https://en.wikipedia.org/wiki/Bo%C3%B6tes_Void, [R4998]
 
 Project files read: `Star Trek Anomalies and Science.md`, `Star Trek Anomaly Probabilities.md`, [nebula-and-asteroid-field-classes.md](nebula-and-asteroid-field-classes.md), [interstellar-object-rates.md](interstellar-object-rates.md), [galaxy-coordinate-system.md](../galaxy/galaxy-coordinate-system.md), [galaxy-disk-density.md](../galaxy/galaxy-disk-density.md), [object-ids.md](../architecture/object-ids.md), [reproducible-galaxies.md](../generation/reproducible-galaxies.md); `tuning.py`, `generation/phenomenon_scatter.py`, `galaxy/nebula_field.py`, `generation/phenomena/compact_remnant.py`.

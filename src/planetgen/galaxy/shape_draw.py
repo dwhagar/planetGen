@@ -8,29 +8,27 @@ The stellar mass comes from the mass chain (`galaxy.mass_chain`, GEN.400). Every
 draws about the median laws, each through the one random wrapper (`planetgen.util.draw.Stream`) from
 `unit_seed(galaxy_seed, "shape", <link>)`, so one seed gives one shape and two seeds give two:
 
-1. **Disk scale length** from the size-mass relation of late-type galaxies (Shen et al. 2003, astro-ph/0301527):
+1. **Disk scale length** from the size-mass relation of late-type galaxies ([R4048], astro-ph/0301527):
    `R50 = gamma M^alpha (1 + M/M0)^(beta - alpha)`, a log-normal draw about it, and `Rd = R50 / 1.678` (the half-light
-   radius of a pure exponential disk; Boss chose Shen, 2026-10-16, 10:09 PM EDT).
+   radius of a pure exponential disk; Boss chose [R4046]-10-16, 10:09 PM EDT).
 2. **Scale height** from the length: `hz = Rd / q`, `q = 7.3` with a 0.13 dex draw (Kregel, van der Kruit and de Grijs
    2002, astro-ph/0204154, Section 5.1).
 3. **Stage.** Early (Sa to Sb) or late (Sc and later), the late share falling with mass as the GAMA morphology counts
-   of Kelvin et al. 2014 (arXiv:1407.7555, Table 1) say. STAND-IN: the table gives cumulative fractions above a mass
+   of [R2310: Table 1] say. STAND-IN: the table gives cumulative fractions above a mass
    bound, read here as the local fraction, and its classes (S0-Sa, Sab-Scd) are not the two classes of the next link;
    the per-bin fractions are the replacement research (5.13.6 item 6).
-4. **Bulge share** `B/T`: `log10(B/D)` drawn about the median of the stage (Graham and Worley 2008, arXiv:0805.3565,
-   Table 4, K band: -0.51 for T = 1 to 3 and -1.19 for T = 6 to 9) with the table's half width as the scatter.
+4. **Bulge share** `B/T`: `log10(B/D)` drawn about the median of the stage ([R1656: Table 4], K band: -0.51 for T = 1 to 3 and -1.19 for T = 6 to 9) with the table's half width as the scatter.
 5. **Bulge and bar scale.** The model has one boxy component, the bulge with its bar. Its major axis is set by the
-   bar's length in disk scale lengths, drawn about the stage's mean and deviation (Erwin 2005, astro-ph/0508590,
-   Table 5: S0-Sab 1.29 +/- 0.54, Sc-Sd 0.57 +/- 0.44) inside 0.2 to 3 (Erwin's smallest, and Gadotti 2011,
-   arXiv:1003.1719: no bar reaches 3 scale lengths). The profile `exp(-r_s^2 / 2)` is down to 1.1 percent of its
-   centre at three scale radii, taken as the bar's end. The bar's own mass (Gadotti 2009: 0.09 of the total in barred
+   bar's length in disk scale lengths, drawn about the stage's mean and deviation ([R1289], astro-ph/0508590,
+   Table 5: S0-Sab 1.29 +/- 0.54, Sc-Sd 0.57 +/- 0.44) inside 0.2 to 3 (Erwin's smallest, and [R1486]: no bar reaches 3 scale lengths). The profile `exp(-r_s^2 / 2)` is down to 1.1 percent of its
+   centre at three scale radii, taken as the bar's end. The bar's own mass ([R1485]: 0.09 of the total in barred
    galaxies) is not added to `B/T`. Whether a bar is present, the bulge's axis ratios and the bar's angle are
    drawn with the thick disk and the halo (`structure_draw`, GEN.532 and GEN.533) and not stored: DB.66 stores them
    later.
-6. **Arms.** The count follows the shares of Hart et al. 2017 (arXiv:1708.04628, Table 1: 1, 2, 3, 4 and 5 or more arms
+6. **Arms.** The count follows the shares of [R1836] ([R1836: Table 1]: 1, 2, 3, 4 and 5 or more arms
    are 3.9, 64.5, 17.8, 6.5 and 7.3 percent; "5 or more" is taken as 5), independent of mass (their rank correlation
    with total mass is +0.05). The pitch angle falls with mass as the two binned means of Yu and Ho 2019 (ApJ 871, 194)
-   (arXiv:1812.06010: 26.0 degrees at log M* = 9.6, 13.8 at 11.1; no fit is published, so the line through them) with
+   ([R4849]: 26.0 degrees at log M* = 9.6, 13.8 at 11.1; no fit is published, so the line through them) with
    their 5 to 6 degree scatter, kept inside Hart's 10 to 40 degrees. The two papers disagree on how strong the mass
    trend is (5.13.6 item 7).
 
@@ -57,7 +55,7 @@ from planetgen.util import draw
 
 SPIRAL = "spiral"
 
-# --- Row 4: size (Shen et al. 2003, late-type fit) ---------------------------------------------------------------
+# --- Row 4: size ([R4048], late-type fit) ---------------------------------------------------------------
 
 SHEN_ALPHA = 0.14
 SHEN_BETA = 0.39
@@ -70,7 +68,7 @@ SHEN_SIGMA_LN_LARGE = 0.34
 EXPONENTIAL_HALF_LIGHT_OVER_SCALE = 1.678
 """float: R50 / Rd for a pure exponential disk."""
 
-# --- Row 5: height (Kregel, van der Kruit and de Grijs 2002) -----------------------------------------------------
+# --- Row 5: height (Kregel, van [R2484]) -----------------------------------------------------
 
 KREGEL_Q = 7.3
 KREGEL_SCATTER_DEX = 0.13
@@ -81,7 +79,7 @@ AUTO_SIZE_ATTEMPTS = 32
 # --- Row 6: stage, bulge, bar and arms ---------------------------------------------------------------------------
 
 KELVIN_MASS_BOUNDS = (9.0, 9.5, 10.0, 10.5, 11.0)
-"""tuple: The lower bounds, log10 solar masses, of the columns of Kelvin et al. 2014 Table 1."""
+"""tuple: The lower bounds, log10 solar masses, of the columns of [R2310: Table 1]."""
 KELVIN_S0_SA = (0.18, 0.28, 0.42, 0.48, 0.22)
 KELVIN_SAB_SCD = (0.28, 0.36, 0.32, 0.20, 0.06)
 """tuple: Fractions of the galaxies above each bound that are S0-Sa and Sab-Scd (Vmax weighted)."""
@@ -99,7 +97,7 @@ BAR_LENGTH_PER_SCALE_RADIUS = 3.0
 """float: The bar's semi-major length in scale radii of the model's bulge profile."""
 
 ARM_COUNT_SHARES = ((1, 3.9), (2, 64.5), (3, 17.8), (4, 6.5), (5, 7.3))
-"""tuple: `(arms, percent)` from Hart et al. 2017 Table 1."""
+"""tuple: `(arms, percent)` from [R1836: Table 1]."""
 PITCH_AT_LOW_DEG = 26.0
 PITCH_AT_HIGH_DEG = 13.8
 PITCH_LOG_MASS_LOW = 9.6
@@ -132,7 +130,7 @@ def _stream(galaxy_seed, link):
 
 
 def size_median_kpc(stellar_mass_solar):
-    """Shen et al. 2003's median half-light radius, kpc, of a late-type galaxy of `stellar_mass_solar`."""
+    """[R4048]'s median half-light radius, kpc, of a late-type galaxy of `stellar_mass_solar`."""
     return (SHEN_GAMMA_KPC * stellar_mass_solar ** SHEN_ALPHA
             * (1.0 + stellar_mass_solar / SHEN_M0_SOLAR) ** (SHEN_BETA - SHEN_ALPHA))
 
@@ -143,7 +141,7 @@ def size_sigma_ln(stellar_mass_solar):
 
 
 def late_share(stellar_mass_solar):
-    """The share of the spirals that are late, from Kelvin et al. 2014 Table 1: `Sab-Scd / (S0-Sa + Sab-Scd)` above
+    """The share of the spirals that are late, from [R2310: Table 1]: `Sab-Scd / (S0-Sa + Sab-Scd)` above
     each mass bound, linear in log mass between the bounds and held at the ends."""
     shares = [late / (early + late) for early, late in zip(KELVIN_S0_SA, KELVIN_SAB_SCD)]
     log_mass = math.log10(stellar_mass_solar)
@@ -502,7 +500,7 @@ def resolve_scale(galaxy_seed, mass=None, compactness=None, length_pc=None, dens
 
 
 DISC_HALF_LIGHT_OVER_R200 = 0.015
-"""float: The median ratio of a galaxy's half-light radius to its halo's virial radius (Kravtsov 2013, arXiv:1212.2654,
+"""float: The median ratio of a galaxy's half-light radius to its halo's virial radius ([R2271, R2479],
 about 0.015; recalled, not read in the repository, so a placeholder), which the size-halo warning compares a plan with."""
 
 DISC_HALF_LIGHT_OVER_R200_DEX = 1.0

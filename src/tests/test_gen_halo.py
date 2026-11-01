@@ -108,7 +108,7 @@ def test_the_halo_integrates_to_its_share_of_the_visible_systems():
 
 
 def test_the_halo_is_its_share_of_the_stars_over_the_rest():
-    # 1.4e9 solar masses (Deason et al. 2019) of the 5e10 of stars: against the other 4.86e10, the same ratio of systems.
+    # 1.4e9 solar masses [R1026] of the 5e10 of stars: against the other 4.86e10, the same ratio of systems.
     structure = galaxyStructure.REFERENCE_STRUCTURE
     assert structure.halo_stellar_ratio * 5.0e10 == pytest.approx(1.4e9)
     assert galaxyStructure.stellar_halo_system_fraction(structure) == pytest.approx(1.4e9 / (5.0e10 - 1.4e9))

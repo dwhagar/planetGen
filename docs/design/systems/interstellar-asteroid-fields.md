@@ -16,7 +16,7 @@ Evidence tags: [S] a source exists and was found by search this session (title a
 ## 2. How often do two rogue planets collide?
 
 ### 2.1 Inputs [REPO unless marked]
-* Rogue density: 6.5 rogues per star, so 0.91 per pc3 at the solar neighbourhood, of which terrestrial 0.78 per pc3 (`tuning.ROGUE_PLANET_RATE_PER_STAR`, `PHENOMENON_DENSITY_PC3`). The observational root is the microlensing work (Mroz et al. 2017, 2020; Johnson et al. 2020, cited in tuning) [REPO]; the terrestrial number is already an extrapolation.
+* Rogue density: 6.5 rogues per star, so 0.91 per pc3 at the solar neighbourhood, of which terrestrial 0.78 per pc3 (`tuning.ROGUE_PLANET_RATE_PER_STAR`, `PHENOMENON_DENSITY_PC3`). The observational root is the microlensing work ([R3191], 2020; [R2178], cited in tuning) [REPO]; the terrestrial number is already an extrapolation.
 * Relative speed: rogues share the stellar velocity dispersion, plus the ejection kick. Relative 3-D speeds of 30 to 60 km/s in the old thin disc, 100 km/s and up in the bulge, 2 to 4 km/s inside a young cluster [R]. I carry 20, 40 and 80 km/s.
 * Gravitational focusing: cross-section `sigma = pi (R1+R2)^2 (1 + v_esc^2 / v^2)` with `v_esc` at touching of the pair (11.2 km/s for two Earths). At 40 km/s focusing is 1.08, so it hardly matters.
 
@@ -63,7 +63,7 @@ Specific impact energy of an equal-mass pair `Q_R = v^2 / 8`; gravitational bind
 | 40 | 2e8 | 2.1 TPa | mostly vapour and droplets |
 | 60 | 4.5e8 | 4.4 TPa | essentially all vapour and melt |
 
-Outcome regimes and the largest-remnant law are in Leinhardt and Stewart 2012, arXiv:1106.6084 and 1109.4588 [S, to read]. I used only the threshold idea (disruption when `Q_R` exceeds `Q*_RD`, which for planet size is of the order of the binding energy); the building lane replaces my table with their law, `M_lr / M_tot` as a function of `Q_R / Q*_RD`, and registers any piece it cannot read as a stand-in.
+Outcome regimes and the largest-remnant law are in [R2633] and 1109.4588 [S, to read]. I used only the threshold idea (disruption when `Q_R` exceeds `Q*_RD`, which for planet size is of the order of the binding energy); the building lane replaces my table with their law, `M_lr / M_tot` as a function of `Q_R / Q*_RD`, and registers any piece it cannot read as a stand-in.
 
 **The window that makes an asteroid field is 15 to 30 km/s.** Fraction of collisions in it, for a Maxwellian relative speed with 1-D dispersion s [C]:
 
@@ -88,10 +88,10 @@ Rates are stand-in orders of magnitude; the same lifetime rule gives the standin
 | Code | Source | Mechanism | Numbers | Standing Galaxy-wide | Verdict |
 |---|---|---|---|---|---|
 | S1 | Rogue-rogue collision | section 2 | 0.4 to 1 per Galaxy lifetime [C] | 1e-5 | physics-true, essentially none |
-| S2 | **Belt unbound by a supernova** | An A to B star keeps a debris belt (A-star 24 micron excess is common at 10 to 100 Myr; Su et al. 2006, arXiv:astro-ph/0608563 [S, to read]; stand-in 30 percent keep one). The core collapse removes more than half the mass, the belt (50 AU, orbital speed 13 km/s around 10 Msun, escape speed 7 km/s around the 1.4 Msun remnant) is unbound and leaves in a flat expanding ring. | core-collapse rate 0.02 per yr [R], belt fraction 0.3 [R, stand-in], leaves 1 ly in 25 to 37 kyr at 8 to 12 km/s [C] | **90 to 220** [C], 6e-10 to 9e-10 per star, 3e-9 to 8e-9 per 4 pc sector | the best physical source. Hosted by a young SNR (age under about 40 kyr). Shock heating of the belt by the blast: ice lost, rock kept [R]. |
-| S3 | Young-cluster stripped swarms | Flybys truncate discs at about 0.3 of periastron (Holman and Wiegert style cut already in repo; Breslau et al. 2014 [R]); the cut-off planetesimals fly free. Cluster dispersion 1 to 3 km/s, so the swarm leaves in a few Myr, then joins the interstellar background. | cluster-limited | tens of clusters x 1e5-ish swarm members, no coherent field after 10 to 20 Myr | hook only: a young cluster (age under 20 Myr) may list a swarm. Low priority. |
+| S2 | **Belt unbound by a supernova** | An A to B star keeps a debris belt (A-star 24 micron excess is common at 10 to 100 Myr; Su et al. 2006, [R4247] [S, to read]; stand-in 30 percent keep one). The core collapse removes more than half the mass, the belt (50 AU, orbital speed 13 km/s around 10 Msun, escape speed 7 km/s around the 1.4 Msun remnant) is unbound and leaves in a flat expanding ring. | core-collapse rate 0.02 per yr [R], belt fraction 0.3 [R, stand-in], leaves 1 ly in 25 to 37 kyr at 8 to 12 km/s [C] | **90 to 220** [C], 6e-10 to 9e-10 per star, 3e-9 to 8e-9 per 4 pc sector | the best physical source. Hosted by a young SNR (age under about 40 kyr). Shock heating of the belt by the blast: ice lost, rock kept [R]. |
+| S3 | Young-cluster stripped swarms | Flybys truncate discs at about 0.3 of periastron (Holman and Wiegert style cut already in repo; [R0527] [R]); the cut-off planetesimals fly free. Cluster dispersion 1 to 3 km/s, so the swarm leaves in a few Myr, then joins the interstellar background. | cluster-limited | tens of clusters x 1e5-ish swarm members, no coherent field after 10 to 20 Myr | hook only: a young cluster (age under 20 Myr) may list a swarm. Low priority. |
 | S4 | Rogue disrupted by NS/BH | section 2.4 | 5e-10 and 2e-9 per yr | 1e-5 | not a field source. Feeds the pulsar-planet disc. |
-| S5 | Ejected belt of a disrupted system | A stellar flyby or instability ejecting a whole belt. A star keeps its belt through a flyby unless the encounter is closer than about 3 times the belt radius; the ejected share is part of the isolated-body background rather than one cloud. | [R] | none | goes to the interstellar-comet background (`INTERSTELLAR_DEBRIS_DENSITY_PC3` 1e15 per pc3, consistent with Do, Tucker and Tonry 2018 arXiv:1801.02821, about 0.1 to 0.2 per AU3 [S]), which is not a field. |
+| S5 | Ejected belt of a disrupted system | A stellar flyby or instability ejecting a whole belt. A star keeps its belt through a flyby unless the encounter is closer than about 3 times the belt radius; the ejected share is part of the isolated-body background rather than one cloud. | [R] | none | goes to the interstellar-comet background (`INTERSTELLAR_DEBRIS_DENSITY_PC3` 1e15 per pc3, consistent with Do, [R1124], about 0.1 to 0.2 per AU3 [S]), which is not a field. |
 | S6 | Debris of a destroyed in-system planet | A giant impact inside a system: debris is **bound** to the star. | belongs to the belt `collisional-debris` origin (origins doc, section 3) | not interstellar | already a belt, not a field. |
 | S7 | Disrupted giant | A gas giant torn up by a star or hole forms a stream of gas, little rock. | rare | none | skip. |
 | S8 | Hand-made or facility | admin / future 8.6 edits | | | keep the type for it. |
@@ -181,7 +181,7 @@ Calibration rule for the dial: `lambda_sector = lambda_hosted(S2, S3) + lambda_f
 All carry the ledger draft's Solar System rule: no Solar System input; test targets only.
 
 ## 10. Reading list
-Leinhardt and Stewart 2012 (arXiv:1106.6084, 1109.4588); Su et al. 2006 (arXiv:astro-ph/0608563) and Rieke et al. 2005 [R] for A-star belts; Do, Tucker and Tonry 2018 (arXiv:1801.02821) for the interstellar background; Mroz et al. 2017 and 2020, Johnson et al. 2020 (already cited in tuning) for rogue density; Pierazzo and Melosh style shock-vaporisation work for the 400 GPa to 1 TPa vaporisation thresholds [R]; Breslau et al. 2014 for flyby truncation [R]. Boss cannot access some papers: use second-hand where closed.
+[R2633] ([R2633], 1109.4588); Su et al. 2006 [R4247] [R] for A-star belts; Do, [R1124] for the interstellar background; [R3191] and 2020, [R2178] (already cited in tuning) for rogue density; Pierazzo and Melosh style shock-vaporisation work for the 400 GPa to 1 TPa vaporisation thresholds [R]; [R0527] for flyby truncation [R]. Boss cannot access some papers: use second-hand where closed.
 
 ## 11. TODO items
 

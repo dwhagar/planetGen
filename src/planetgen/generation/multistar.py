@@ -80,14 +80,14 @@ MAX_MEMBERS = tuning.MAX_STARS_DEFAULT
 
 PERIOD_LAWS_LOG10_DAYS = {"solar": (5.03, 2.28), "massive": (3.5, 1.5)}
 """dict: The mean and sigma of the log-normal in log10 of the period in days: the
-solar-type law (Raghavan 2010) and, for a primary of `MASSIVE_PRIMARY_MIN_MASS_SOL`
-or more, the law that peaks at log P = 3.5 (Moe and Di Stefano 2017); the sigma of
+solar-type law [R3646] and, for a primary of `MASSIVE_PRIMARY_MIN_MASS_SOL`
+or more, the law that peaks at log P = 3.5 [R3108]; the sigma of
 the second is a design default."""
 
 MASSIVE_PRIMARY_MIN_MASS_SOL = 2.1
 
 CLOSE_COMPANION_AXIS_AU = 10.0
-"""float: The axis inside which a star's [Fe/H] moves its chance of a companion (GEN.103; Moe, Kratter and Badenes 2019 measured
+"""float: The axis inside which a star's [Fe/H] moves its chance of a companion (GEN.103; [R3109] measured
 the trend for periods under 10^4 days, which is 10 AU for two solar masses)."""
 ROOT_MAX_AXIS_AU = 20_000.0
 """float: The widest root pair (0.1 pc), a directive raises it."""
@@ -113,7 +113,7 @@ both past 1 is contact). Pairs of two single members use this in place of `EXTEN
 STABILITY_MARGIN = 1.15
 """float: How much wider than the bare criterion an inner orbit's outer partner must be, at every level of a tree (GEN.1010, GM15): the
 Eggleton and Kiseleva criterion is reliable to about 20 percent, and the nested-triple test over-predicts stable trees
-(Vynatheya, Mardling and Hamers 2023), so each triple of the tree has to clear the criterion by this factor. A stand-in."""
+[R4575], so each triple of the tree has to clear the criterion by this factor. A stand-in."""
 
 
 @dataclass(frozen=True)
@@ -524,7 +524,7 @@ class RunawayDraw:
 
 def runaway_rate(initial_mass_sol):
     """The share of stars of this initial mass that are runaways where the catalogue has an observed one: 10% to 30% of
-    O stars (default 20%) and 5% to 10% of B stars (default 7.5%, Gies 1987), else None (the field rate of
+    O stars (default 20%) and 5% to 10% of B stars (default 7.5%, [R1558]), else None (the field rate of
     `tuning.PHENOMENON_DENSITY_PC3['runaway-star']` applies at the fill)."""
     entry = system_types.SYSTEM_TYPE_RATES["runaway-star"]
     letter = spectral_class(initial_mass_sol)

@@ -128,15 +128,15 @@ venv [C]. Irrgang and McMillan are what galpy ships, read from its source.
 | Model | v_c at its R0 (km/s) | Local density (Msun/pc3) | Kz(1.1 kpc) / 2 pi G (Msun/pc2) | v_c at 2 / 6 / 15 / 20 kpc |
 |---|---|---|---|---|
 | Project | 229.3 at 8.128 | 0.1008 | 74.9 | 190 / 231 / 219 / 213 |
-| MWPotential2014 (Bovy 2015) | 220 at 8.0 | 0.101 | 71.7 | 187 / 225 / 204 / 198 |
+| MWPotential2014 [R0496] | 220 at 8.0 | 0.101 | 71.7 | 187 / 225 / 204 / 198 |
 | gala `MilkyWayPotential` | 231.5 at 8.122 | 0.099 | 72.4 | 192 / 235 / 220 / 214 |
 | gala `MilkyWayPotential2022` | 229.4 at 8.122 | 0.131 | 71.2 | 180 / 229 / 218 / 212 |
-| McMillan 2017 | 233.1 at 8.21 | 0.114 | 74.1 | 196 / 230 / 227 / 223 |
+| [R3009] | 233.1 at 8.21 | 0.114 | 74.1 | 196 / 230 / 227 / 223 |
 | no source | 229 at 8.122 | 0.113 | 73.5 | 206 / 230 / 217 / 208 |
 
 The project's curve sits inside the spread of published models. Gaia-based
 measurements give about 229 km/s at 8.1 kpc and a slope near -1.7 km/s per
-kpc over 5 to 25 kpc (Eilers et al. 2019) [R], so 209 km/s at 20 kpc against
+kpc over 5 to 25 kpc [R1231] [R], so 209 km/s at 20 kpc against
 the model's 213.5; a steeper fall beyond 20 kpc [R] does not matter for a
 galaxy that ends near 15 kpc.
 
@@ -147,8 +147,8 @@ GRAVITY 2018) [C]; GRAVITY 2019 and 2021 give 8.178 and 8.275 kpc [R]. Astropy's
 v4.0 defaults also give the Sun's velocity (12.9, 245.6, 7.78) km/s and z_sun =
 20.8 pc [C]; 245.6 / 8.122 = 30.24 km/s/kpc, matching the Sgr A* proper motion
 (about 6.4 mas/yr [R]). Solar peculiar motion is (11.1, 12.24, 7.25) km/s
-(Schonrich, Binney) [R]. McMillan 2017 fits R0 = 8.21 kpc and
-v0 = 233.1 km/s [S]. Oort constants: A = 15.3, B = -11.9 km/s/kpc (Bovy 2017)
+(Schonrich, Binney) [R]. [R3009] fits R0 = 8.21 kpc and
+v0 = 233.1 km/s [S]. Oort constants: A = 15.3, B = -11.9 km/s/kpc [R0497]
 [R], against the project's 14.8 and -13.4 [C].
 
 Two consequences. The Sun's angular speed is about 30.3 km/s/kpc, a galactic
@@ -654,17 +654,17 @@ allowed:
   astropy's reference link.
 - Reid and Brunthaler proper motion (6.379 mas/yr in 2004, 6.411 in 2020) and
   the derived 30.2 to 30.4 km/s/kpc (astropy's own defaults give 30.24).
-- Schonrich, Binney and Dehnen 2010 solar motion (11.1, 12.24, 7.25).
-- Eilers et al. 2019 (229.0 km/s, slope -1.7 km/s/kpc) and the steeper Gaia DR3
+- [R3972] solar motion (11.1, 12.24, 7.25).
+- [R1231] (229.0 km/s, slope -1.7 km/s/kpc) and the steeper Gaia DR3
   decline beyond 20 kpc.
-- Kz(1.1 kpc) of 71 and 74 Msun/pc2 (Kuijken and Gilmore 1991; Holmberg and), local density 0.08 to 0.10 Msun/pc3 (Boss's range), Oort
-  constants (Bovy 2017), escape speed 500 to 600 km/s.
+- Kz(1.1 kpc) of 71 and 74 Msun/pc2 ([R2515]; Holmberg and), local density 0.08 to 0.10 Msun/pc3 (Boss's range), Oort
+  constants [R0497], escape speed 500 to 600 km/s.
 - Model parameters (coded from memory; they reproduce the
   design 220 km/s at 8.5 kpc, which is the only check); left out of the
   comparison table for that reason.
 - Observed age-velocity relations, thick-disk kinematics and the Stromberg
   relation (section 8).
-- McMillan 2017 values are what galpy ships, not a re-reading
+- [R3009] values are what galpy ships, not a re-reading
   of the papers.
 - The Tully-Fisher and Freeman's-law reasoning in section 6 is from memory.
 - That astropy's latest defaults equal the v4.0 set was read from astropy 8.0.1;
@@ -672,15 +672,15 @@ allowed:
 
 ## Sources
 
-- McMillan 2017 (MNRAS 465, 76), search result [S]:
+- [R3009], search result [S]:
   https://academic.oup.com/mnras/article/465/1/76/2417479 and
-  https://ar5iv.labs.arxiv.org/html/1608.00971 (R0 8.21, v0 233.1; abstract
+  [R3009] (R0 8.21, v0 233.1; abstract
   8.20 +- 0.09 and 232.8 +- 3.0; r_h 19.6 kpc).
 - gala docs, search result (structure only; numbers from running the library) [S]:
   https://gala-astro.readthedocs.io/en/latest/api/gala.potential.potential.MilkyWayPotential2022.html and
   https://gala-astro.readthedocs.io/en/latest/api/gala.potential.potential.BovyMWPotential2014.html
-- Bovy 2015 galpy paper, search result (parameters from galpy 1.12.0
-  `mwpotentials.py`) [S]: https://arxiv.org/pdf/1412.3451
+- [R0496] galpy paper, search result (parameters from galpy 1.12.0
+  `mwpotentials.py`) [S]: [R0496]
 - PyPI JSON [C]: https://pypi.org/pypi/galpy/json,
   https://pypi.org/pypi/gala/json, https://pypi.org/pypi/astropy/json,
   https://pypi.org/pypi/agama/json (and per-version JSON for galpy 1.11.1 and

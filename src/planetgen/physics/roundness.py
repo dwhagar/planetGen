@@ -5,7 +5,7 @@ Roundness: does a solid body's own weight beat its strength? (GEN.1158; /mnt/pro
 ==============================================================================================================================================
 
 A solid body is round when the stress its own gravity puts on its inside is bigger than the strength of the material, so the lumps flow until the body settles into a ball.
-Lineweaver and Norman 2010 (arXiv:1004.1091, READ) work this out: the pressure half way down a body of radius `R` and density `rho` is `(2 pi / 3) G rho^2 (R^2 - r^2)`, and
+[R2703] ([R2703], READ) work this out: the pressure half way down a body of radius `R` and density `rho` is `(2 pi / 3) G rho^2 (R^2 - r^2)`, and
 a body with a bump on it (the longest axis `f` times the mean radius) is made level when the difference of that pressure under the bump and beside it reaches the yield strength
 `sigma`: `(2 pi / 3) G rho^2 R^2 (f^2 - 1) >= sigma` (their Eqs. 7 to 9). Solved for the radius it gives the **round radius**
 
@@ -25,13 +25,13 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    metal fraction, porosity and shape-set temperature in, and the strength, the round radius and the roundness ratio out; research gives new numbers in the file, a new rule in one of the three
    dicts, and nothing else changes. The numbers in the file now are the strength research's (/mnt/project-files/reports/planetary-material-strength-2026-10-31.md, sections 7 and 11):
    rock 16.5 MPa (confirmed three ways, range 4 to 30); ice 1 MPa by default (the creep strength of pure ice near 158 K, range 0.4 to 3), and when a shape-set `temperature_k` is given the
-   Durham, Kirby and Stern 1997 creep law of ice at 1e-15 per second (0.1 MPa at 200 K, 3.6 at 140 K, 34 at 100 K); metal 100 MPa (range 50 to 250, Pohl and Britt 2020); and a mix that follows
+   [R1190] creep law of ice at 1e-15 per second (0.1 MPa at 200 K, 3.6 at 140 K, 34 at 100 K); metal 100 MPa (range 50 to 250, [R3552]); and a mix that follows
    the *volume* shares, ice strength times `exp(2 f)` for the solids' volume fraction `f` (measured to 0.56), continued to 0.65 and then geometric to the solids' strength at 1.
-   Porosity is `none`: meteorites show no clear strength trend with porosity (Pohl and Britt 2020). An `exponential` rule (ceramics-based, a recalled placeholder) is built and off; with it
+   Porosity is `none`: meteorites show no clear strength trend with porosity [R3552]. An `exponential` rule (ceramics-based, a recalled placeholder) is built and off; with it
    Proteus (a porous ice-rich moon, 210 km, not round) would come out round. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
    other ice phases, and the rubble-pile branch (friction plus a little cohesion, a shape-set temperature and no size threshold).
    **Hot rock.** A rock body that took its shape hot is weaker than cold rock: with a shape-set `temperature_k` the rock strength follows the creep of dry olivine (`TEMPERATURE_RULES`,
-   `olivine-creep-law`), between the Hirth and Kohlstedt 2003 and Korenaga and Karato 2008 columns, and never above the cold whole-body strength of 16.5 MPa, which stands for the brittle limit. So
+   `olivine-creep-law`), between the [R1956, R2451] columns, and never above the cold whole-body strength of 16.5 MPa, which stands for the brittle limit. So
    rock keeps 16.5 MPa up to about 1100 to 1150 K, then falls to 2 to 5 MPa at 1300 K and 1 to 2 MPa at 1400 K. A rubble pile that took its shape hot is held by the same law (its `hot_strength_pa`
    of 2.5 MPa is olivine creep near 1330 K). Intact olivine crystal strength (10 GPa) is never used.
 
@@ -102,7 +102,7 @@ class StrengthTable:
 
 
 def stress_coefficient(sphericity_factor):
-    """`K = (2 pi / 3)(f^2 - 1)`: the differential stress is `K G rho^2 R^2` for a longest axis `f` times the mean radius (Lineweaver and Norman 2010, Eqs. 7 and 8)."""
+    """`K = (2 pi / 3)(f^2 - 1)`: the differential stress is `K G rho^2 R^2` for a longest axis `f` times the mean radius ([R2703], Eqs. 7 and 8)."""
     return (2.0 * math.pi / 3.0) * (sphericity_factor ** 2 - 1.0)
 
 
@@ -197,7 +197,7 @@ def _creep_stress_mpa(regime, rate, kelvin):
 
 
 def _ice_creep_law(table, rule, ice_strength_pa, temperature_k):
-    """The creep strength of pure ice that took its shape at `temperature_k`, Pa: the stress of each regime, the weakest governing (Durham, Kirby and Stern 1997 Table 2, the pressure term
+    """The creep strength of pure ice that took its shape at `temperature_k`, Pa: the stress of each regime, the weakest governing ([R1190: Table 2], the pressure term
     dropped). None is the default ice, `ice_strength_pa` (1 MPa, the law near 158 K); a temperature above the melting point is held at it. Dislocation creep of fine-grained lab ice, so an upper
     bound at the lowest stresses."""
     if temperature_k is None:
@@ -208,8 +208,8 @@ def _ice_creep_law(table, rule, ice_strength_pa, temperature_k):
 
 
 def _olivine_creep_law(table, rule, rock_strength_pa, temperature_k):
-    """The strength of silicate rock that took its shape at `temperature_k`, Pa: dry dislocation creep of olivine, between the two compilations of Korenaga and Karato 2008 Table 3 (
-    Hirth and Kohlstedt 2003 as printed there, and their re-fit) by the quantile of the body (`table.draw`; the geometric mean at the median), and never above `rock_strength_pa`, the 16.5 MPa whole-body
+    """The strength of silicate rock that took its shape at `temperature_k`, Pa: dry dislocation creep of olivine, between the two compilations of [R2451: Table 3] (
+    [R1956] as printed there, and their re-fit) by the quantile of the body (`table.draw`; the geometric mean at the median), and never above `rock_strength_pa`, the 16.5 MPa whole-body
     strength of fractured cold rock that stands for the brittle (Byerlee) limit. So rock keeps its cold strength until it is hot enough to creep below it (about 1100 to 1150 K), then weakens:
     2 to 5 MPa at 1300 K. None is cold rock. The pressure term is dropped; intact olivine crystal strength (10 GPa) is never used."""
     if temperature_k is None:
@@ -288,7 +288,7 @@ TABLE = _read_table()
 """StrengthTable: The strengths and rules in use (`data/roundness_strengths.json`). Rows RN1 to RN7 of the stand-in registry."""
 
 SPHERICITY_FACTOR = TABLE.sphericity_factor
-"""float: The longest axis of a body counted round is at most this times its mean radius (Lineweaver and Norman 2010, a 10 percent bump; their Eq. 9). [Stand-in RN1, tier T1, tweak L0.]"""
+"""float: The longest axis of a body counted round is at most this times its mean radius ([R2703] 10 percent bump; their Eq. 9). [Stand-in RN1, tier T1, tweak L0.]"""
 
 ICE_STRENGTH_PA = TABLE.strengths_pa["ice"]
 """float: The default yield strength of ice at the scale of a body, Pa (1 MPa, the creep strength of pure ice near 158 K; the Lineweaver and Norman fit is 0.4 to 3 MPa). [Stand-in RN2, tier T2, tweak L1.]"""
@@ -329,7 +329,7 @@ def drawn_strengths_pa(draw):
 
 
 ROCK_CREEP_COLUMNS = TABLE.temperature["rock"]["columns"]
-"""list: The two flow-law columns for dry olivine dislocation creep (Hirth and Kohlstedt 2003; Korenaga and Karato 2008 re-fit), `log10_a`, `n` and `e_kj_mol` each, between which a body's quantile `draw` sits. [Stand-in RN11, tier T2, tweak L0.]"""
+"""list: The two flow-law columns for dry olivine dislocation creep ([R1956, R2451] re-fit), `log10_a`, `n` and `e_kj_mol` each, between which a body's quantile `draw` sits. [Stand-in RN11, tier T2, tweak L0.]"""
 
 RANGES_PA = TABLE.ranges_pa
 """dict: The range each material's strength is drawn from, `(low, high)` Pa: ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250. The quantile `draw` of a body sits log-linearly in it with the stand-in strength at 0.5. [Stand-in RN10, tier T4, tweak L0.]"""

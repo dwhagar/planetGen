@@ -11,7 +11,7 @@
    "value": -1.25,
    "sigma": 0.1,
    "n": 22,
-   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4 (22 values, 2 upper limits left out): mean -1.25, standard error 0.10 (tunable-gaps.md section 3.2, group3-redox-wd-radio.md; the worker computed it and the tunable-gaps lane re-ran it)",
+   "source": "[R1152: Table 1] and [R1153: Table 4] (22 values, 2 upper limits left out): mean -1.25, standard error 0.10 (tunable-gaps.md section 3.2, group3-redox-wd-radio.md; the worker computed it and the tunable-gaps lane re-ran it)",
    "label": "COMPUTED",
    "validity": {
     "host_type": "WD"
@@ -35,7 +35,7 @@
    "value": 0.45,
    "sigma": 0.069,
    "n": 22,
-   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4: sample sd 0.45 (intrinsic about 0.22 from 13 well-constrained stars); sigma = 0.45 / sqrt(2 x 21), computed here",
+   "source": "[R1152: Table 1] and [R1153: Table 4]: sample sd 0.45 (intrinsic about 0.22 from 13 well-constrained stars); sigma = 0.45 / sqrt(2 x 21), computed here",
    "label": "COMPUTED",
    "validity": {
     "host_type": "WD"
@@ -59,7 +59,7 @@
    "value": -1.25,
    "sigma": 0.1,
    "n": 22,
-   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4: mean -1.25, standard error 0.10 (tunable-gaps.md section 3.2)",
+   "source": "[R1152: Table 1] and [R1153: Table 4]: mean -1.25, standard error 0.10 (tunable-gaps.md section 3.2)",
    "label": "COMPUTED",
    "validity": {
     "host_type": "WD"
@@ -83,7 +83,7 @@
    "value": 0.45,
    "sigma": 0.069,
    "n": 22,
-   "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4: sample sd 0.45; sigma = 0.45 / sqrt(2 x 21), computed here",
+   "source": "[R1152: Table 1] and [R1153: Table 4]: sample sd 0.45; sigma = 0.45 / sqrt(2 x 21), computed here",
    "label": "COMPUTED",
    "validity": {
     "host_type": "WD"
@@ -107,7 +107,7 @@
    "value": 29.3,
    "sigma": 3.04,
    "n": 147,
-   "source": "Chachan 2025 (arXiv 2509.20428): Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 0.1 MJ, error from a and b added in quadrature",
+   "source": "[R0710]: Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 0.1 MJ, error from a and b added in quadrature",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -133,7 +133,7 @@
    "value": 5.9,
    "sigma": 0.58,
    "n": 147,
-   "source": "Chachan 2025 (arXiv 2509.20428): Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 1.0 MJ, error from a and b added in quadrature",
+   "source": "[R0710]: Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 1.0 MJ, error from a and b added in quadrature",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -159,7 +159,7 @@
    "value": 3.56,
    "sigma": 0.5,
    "n": 147,
-   "source": "Chachan 2025 (arXiv 2509.20428): Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 10.0 MJ, error from a and b added in quadrature",
+   "source": "[R0710]: Zp/Z* = a/Mp + b with a 2.6 +/- 0.3, b 3.3 +/- 0.5 (Mp in M_J), 147 warm giants, 0.03 to 12 M_J; value at 10.0 MJ, error from a and b added in quadrature",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -186,7 +186,7 @@
    "value": 0.26,
    "sigma": 0.022,
    "n": 47,
-   "source": "Thorngren 2016 (arXiv 1511.07854): intrinsic spread factor 1.82 +/- 0.09 of the heavy-element mass, 47 giants; log10 band 0.238 to 0.281 (COMPUTED); Chachan 2025 agrees (0.22 to 0.29 dex)",
+   "source": "[R4352]: intrinsic spread factor 1.82 +/- 0.09 of the heavy-element mass, 47 giants; log10 band 0.238 to 0.281 (COMPUTED); [R0710] agrees (0.22 to 0.29 dex)",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -212,7 +212,7 @@
    "value": 0.57,
    "sigma": 0.04,
    "n": 69,
-   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: median 0.57 (0.42 transit, 0.69 eclipse, 0.58 direct imaging); sigma = 1.25 x 0.27 / sqrt(69)",
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, [R2751]; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: median 0.57 (0.42 transit, 0.69 eclipse, 0.58 direct imaging); sigma = 1.25 x 0.27 / sqrt(69)",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -241,7 +241,7 @@
    ],
    "threshold": 0.35,
    "below": true,
-   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: 12 of 69 below 0.35",
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, [R2751]; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: 12 of 69 below 0.35",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -269,7 +269,7 @@
     69
    ],
    "threshold": 0.8,
-   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: 6 of 69 above 0.8 (Wilson 95 percent 0.040 to 0.177); 3 of 69 if the 1-sigma lower bound must exceed 0.8",
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, [R2751]; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: 6 of 69 above 0.8 (Wilson 95 percent 0.040 to 0.177); 3 of 69 if the 1-sigma lower bound must exceed 0.8",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -295,7 +295,7 @@
    "value": 0.27,
    "sigma": 0.03,
    "n": 69,
-   "source": "LExACoM (Lothringer, Lowson and Fu 2025, arXiv 2510.26785; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: sd 0.27 (transit 0.38, eclipse 0.18, direct imaging 0.12); sigma = 0.27 / sqrt(2 x 68) plus a method allowance",
+   "source": "LExACoM (Lothringer, Lowson and Fu 2025, [R2751]; public table of 2026-08-28), 69 unique giant planets with a retrieved C/O: sd 0.27 (transit 0.38, eclipse 0.18, direct imaging 0.12); sigma = 0.27 / sqrt(2 x 68) plus a method allowance",
    "label": "COMPUTED",
    "validity": {
     "mass_jupiter": [
@@ -322,7 +322,7 @@
    "value": 0.061,
    "sigma": 0.037,
    "n": 32,
-   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: mean -0.063, sd 0.193; thin disc -0.044 (N=215); the thick-thin offset inside the catalogue is -0.019 (sigma 0.036 = sqrt(0.193^2/32 + 0.153^2/215)) and is added to the solar-twin thin-disc centre of row o1, +0.08 (Botelho 2019, 53 twins, sigma of the mean 0.008): 0.061 (GEN.664)",
+   "source": "Hypatia Catalog ([R1943]; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: mean -0.063, sd 0.193; thin disc -0.044 (N=215); the thick-thin offset inside the catalogue is -0.019 (sigma 0.036 = sqrt(0.193^2/32 + 0.153^2/215)) and is added to the solar-twin thin-disc centre of row o1, +0.08 ([R0479], 53 twins, sigma of the mean 0.008): 0.061 (GEN.664)",
    "label": "COMPUTED",
    "validity": {
     "thin_disc_fgk": false
@@ -346,7 +346,7 @@
    "value": 0.193,
    "sigma": 0.025,
    "n": 32,
-   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: sd 0.193 (thin disc 0.153, N=215; intrinsic 0.056 in 53 solar twins, Botelho 2019); sigma = 0.193 / sqrt(2 x 31)",
+   "source": "Hypatia Catalog ([R1943]; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: sd 0.193 (thin disc 0.153, N=215; intrinsic 0.056 in 53 solar twins, [R0479]); sigma = 0.193 / sqrt(2 x 31)",
    "label": "COMPUTED",
    "validity": {
     "thin_disc_fgk": false
@@ -369,7 +369,7 @@
    "value": -0.9626,
    "sigma": 0.11,
    "n": 21,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): geometric mean 10.9 percent, standard error 0.11 dex",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): geometric mean 10.9 percent, standard error 0.11 dex",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -396,7 +396,7 @@
    "value": 0.51,
    "sigma": 0.08,
    "n": 21,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): sigma 0.51 dex (standard error 0.08)",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): sigma 0.51 dex (standard error 0.08)",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -423,7 +423,7 @@
    "value": -1.6021,
    "sigma": 0.16,
    "n": 16,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): geometric mean 2.5 percent, standard error 0.16 dex",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): geometric mean 2.5 percent, standard error 0.16 dex",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -450,7 +450,7 @@
    "value": 0.65,
    "sigma": 0.12,
    "n": 16,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): sigma 0.65 dex (standard error 0.12)",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): sigma 0.65 dex (standard error 0.12)",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -477,7 +477,7 @@
    "value": -2.1675,
    "sigma": 0.09,
    "n": 12,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): CH4 geometric mean 0.68 percent, standard error 0.09 dex",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): CH4 geometric mean 0.68 percent, standard error 0.09 dex",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -508,7 +508,7 @@
    "value": 0.33,
    "sigma": 0.07,
    "n": 12,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): CH4 sigma 0.33 dex (standard error 0.07)",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): CH4 sigma 0.33 dex (standard error 0.07)",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -539,7 +539,7 @@
    "value": -2.3872,
    "sigma": 0.08,
    "n": 18,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): C2H6 geometric mean 0.41 percent, standard error 0.08 dex",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): C2H6 geometric mean 0.41 percent, standard error 0.08 dex",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -570,7 +570,7 @@
    "value": 0.33,
    "sigma": 0.06,
    "n": 18,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): C2H6 sigma 0.33 dex (standard error 0.06)",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): C2H6 sigma 0.33 dex (standard error 0.06)",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -601,7 +601,7 @@
    "value": -2.6021,
    "sigma": 0.09,
    "n": 15,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2CO geometric mean 0.25 percent, standard error 0.09 dex",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2CO geometric mean 0.25 percent, standard error 0.09 dex",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -632,7 +632,7 @@
    "value": 0.35,
    "sigma": 0.07,
    "n": 15,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2CO sigma 0.35 dex (standard error 0.07)",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2CO sigma 0.35 dex (standard error 0.07)",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -663,7 +663,7 @@
    "value": -2.1487,
    "sigma": 0.13,
    "n": 9,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2S geometric mean 0.71 percent, standard error 0.13 dex",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2S geometric mean 0.71 percent, standard error 0.13 dex",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -694,7 +694,7 @@
    "value": 0.39,
    "sigma": 0.1,
    "n": 9,
-   "source": "Robinson et al. 2024 comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2S sigma 0.39 dex (standard error 0.1)",
+   "source": "[R3782] comet composition database (CC BY 4.0), per-comet median of the detections at r_h up to 2.5 AU, as computed in the small-bodies source check (docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md): H2S sigma 0.39 dex (standard error 0.1)",
    "label": "COMPUTED",
    "validity": {
     "perihelion_au": [
@@ -725,7 +725,7 @@
    "value": 0.52,
    "sigma": 0,
    "n": 25,
-   "source": "Harrington Pinto et al. 2022 (HP22) Table 2, 25 comets, class from the CO/CO2 thresholds 2/3 and 4/3 (READ): 13 of 25; Clopper-Pearson 68 percent intervals 0.40 to 0.64, 0.25 to 0.48 and 0.055 to 0.22",
+   "source": "Harrington [R3535] (HP22) Table 2, 25 comets, class from the CO/CO2 thresholds 2/3 and 4/3 (READ): 13 of 25; Clopper-Pearson 68 percent intervals 0.40 to 0.64, 0.25 to 0.48 and 0.055 to 0.22",
    "label": "READ",
    "validity": {
     "perihelion_au": [
@@ -756,7 +756,7 @@
    "value": 0.36,
    "sigma": 0,
    "n": 25,
-   "source": "Harrington Pinto et al. 2022 (HP22) Table 2, 25 comets, class from the CO/CO2 thresholds 2/3 and 4/3 (READ): 9 of 25; Clopper-Pearson 68 percent intervals 0.40 to 0.64, 0.25 to 0.48 and 0.055 to 0.22",
+   "source": "Harrington [R3535] (HP22) Table 2, 25 comets, class from the CO/CO2 thresholds 2/3 and 4/3 (READ): 9 of 25; Clopper-Pearson 68 percent intervals 0.40 to 0.64, 0.25 to 0.48 and 0.055 to 0.22",
    "label": "READ",
    "validity": {
     "perihelion_au": [
@@ -787,7 +787,7 @@
    "value": 0.12,
    "sigma": 0,
    "n": 25,
-   "source": "Harrington Pinto et al. 2022 (HP22) Table 2, 25 comets, class from the CO/CO2 thresholds 2/3 and 4/3 (READ): 3 of 25; Clopper-Pearson 68 percent intervals 0.40 to 0.64, 0.25 to 0.48 and 0.055 to 0.22",
+   "source": "Harrington [R3535] (HP22) Table 2, 25 comets, class from the CO/CO2 thresholds 2/3 and 4/3 (READ): 3 of 25; Clopper-Pearson 68 percent intervals 0.40 to 0.64, 0.25 to 0.48 and 0.055 to 0.22",
    "label": "READ",
    "validity": {
     "perihelion_au": [
@@ -817,7 +817,7 @@
    "kind": "mean",
    "value": -0.11,
    "sigma": 0.02,
-   "source": "Petigura et al. 2022 (arXiv:2201.10020): m = dlogRp/dlogP = -0.11 +- 0.02, P 1 to 100 d, M* 0.5 to 1.4 (tunable-gaps-sources/group1-subneptunes.md, READ); the other published slopes -0.09 (+0.02/-0.04) Van Eylen and -0.096 (+0.023/-0.027) Ho and Van Eylen lie inside 1 sigma",
+   "source": "[R3500]: m = dlogRp/dlogP = -0.11 +- 0.02, P 1 to 100 d, M* 0.5 to 1.4 (tunable-gaps-sources/group1-subneptunes.md, READ); the other published slopes -0.09 (+0.02/-0.04) Van Eylen and -0.096 (+0.023/-0.027) Ho and Van Eylen lie inside 1 sigma",
    "label": "READ",
    "validity": {
     "period_d": [
@@ -840,7 +840,7 @@
    "kind": "mean",
    "value": 1.84,
    "sigma": 0.03,
-   "source": "Petigura et al. 2022 (arXiv:2201.10020): Rp,0 = 1.84 +- 0.03 R_E (6371 km) at P = 10 d (tunable-gaps-sources/group1-subneptunes.md, READ)",
+   "source": "[R3500]: Rp,0 = 1.84 +- 0.03 R_E (6371 km) at P = 10 d (tunable-gaps-sources/group1-subneptunes.md, READ)",
    "label": "READ",
    "validity": {
     "period_d": [
@@ -863,7 +863,7 @@
    "kind": "mean",
    "value": 0.069,
    "sigma": 0.021,
-   "source": "Berger et al. 2023 (arXiv:2302.00009, abstract READ for GEN.722): alpha = 0.069 +0.019 -0.023 (sigma taken as the mean of the two sides); core-powered mass loss predicts 0.08 and photoevaporation 0.12 in the same paper",
+   "source": "[R0354] ([R0354], abstract READ for GEN.722): alpha = 0.069 +0.019 -0.023 (sigma taken as the mean of the two sides); core-powered mass loss predicts 0.08 and photoevaporation 0.12 in the same paper",
    "label": "READ",
    "validity": {
     "period_d": [
@@ -886,7 +886,7 @@
    "kind": "mean",
    "value": -0.046,
    "sigma": 0.12,
-   "source": "Berger et al. 2023 (arXiv:2302.00009, abstract READ for GEN.722): beta = -0.046 +0.125 -0.117 (sigma the mean of the two sides). The paper's predictions, core-powered mass loss 0.00 and photoevaporation -0.17, both lie inside 1.1 sigma, so the survey cannot choose the mechanism",
+   "source": "[R0354] ([R0354], abstract READ for GEN.722): beta = -0.046 +0.125 -0.117 (sigma the mean of the two sides). The paper's predictions, core-powered mass loss 0.00 and photoevaporation -0.17, both lie inside 1.1 sigma, so the survey cannot choose the mechanism",
    "label": "READ",
    "validity": {
     "period_d": [
@@ -940,7 +940,7 @@
     1,
     21
    ],
-   "source": "Plotnykov, Valencia, Ross, Reggiani and Schlaufman 2026 (arXiv:2511.17717 v2; READ in tunable-gaps-sources/group2-delivery-retention.md section 2.5): 21 planets, 20 stars, super-Mercuries fall from four to one (Kepler-107 c); mass-radius scatter alone reproduces the outliers about 15 percent of the time. Exact binomial 95 percent interval 0.001 to 0.238. Schulze 2021: 1 of 11; Adibekyan 2021 (heterogeneous): 5 of 22, the upper end",
+   "source": "[R3546] ([R3546] v2; READ in tunable-gaps-sources/group2-delivery-retention.md section 2.5): 21 planets, 20 stars, super-Mercuries fall from four to one (Kepler-107 c); mass-radius scatter alone reproduces the outliers about 15 percent of the time. Exact binomial 95 percent interval 0.001 to 0.238. [R3978]: 1 of 11; [R0032] (heterogeneous): 5 of 22, the upper end",
    "falsifier": "a simulated outlier share more than 2 sigma from 1 of 21 over 3000 seeds through the mass-radius cut (physics/iron_branch_tuning.py)"
   },
   {
@@ -981,7 +981,7 @@
     15,
     20
    ],
-   "source": "Brinkman et al. 2024 (arXiv:2409.08361; READ in tunable-gaps-sources/group2-delivery-retention.md section 2.5): 75 percent of the planets within 1 sigma of the host, no distinct super-Mercury population; OLS slope 1.3 +- 1.0, orthogonal-distance slope 5.6 +- 1.6",
+   "source": "[R0541] ([R0541]; READ in tunable-gaps-sources/group2-delivery-retention.md section 2.5): 75 percent of the planets within 1 sigma of the host, no distinct super-Mercury population; OLS slope 1.3 +- 1.0, orthogonal-distance slope 5.6 +- 1.6",
    "falsifier": "a simulated within-1-sigma share more than 2 sigma from 15 of 20 over 3000 seeds through the mass-radius cut (physics/iron_branch_tuning.py)"
   }
  ]

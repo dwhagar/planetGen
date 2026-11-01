@@ -14,7 +14,7 @@ time while the temperature rises. The sum of the two is the Kelvin-Helmholtz tim
 note (which gives 10 Gyr at 0.1 solar masses, where models give about 1 Gyr, and had to be capped). Contraction does
 not pay for all the light, so `G M^2` is stretched by `tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR`.
 
-Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks (Baraffe et al. 2015, A&A 577, A42): the
+Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks [R0254]: the
 Hayashi temperature and its mass slope, the birthline radius and its slope, and the energy factor above. Past the
 table's 1.4 solar masses they are extended by the same power laws.
 
@@ -208,7 +208,7 @@ def draw_disk(mass_sol, age_yr, luminosity_sol, rng=draw):
 
 def companion_chance(mass_sol, age_yr):
     """
-    The share of protostars that have a companion, by their Class (Perseus' Tobin et al. 2016, `tuning`): the
+    The share of protostars that have a companion, by their Class (Perseus' [R4379], `tuning`): the
     Class 0 and Class I values; None for a star that is not a protostar, which keeps the field's multiplicity.
     """
     if stage(mass_sol, age_yr) != PROTOSTAR:

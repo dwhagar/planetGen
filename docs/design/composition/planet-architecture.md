@@ -21,12 +21,12 @@ GEN.722 (radius valley) is already built on main (`radius_valley.py`, rows RV1 t
 
 ## Sources (all in `physics/data/planet_occurrence.json`, each band READ or 2ND-HAND)
 
-Zhu et al. 2018 (arXiv:1802.09526): 30 percent of Sun-like stars have Kepler-like planets, mean about 3, the transit multiplicity {1:432, 2:99, 3:42, 4:11, 5:3, 6:2}, the inclination law. Yang et al. 2020 (2002.02840): about 75 percent of stars under 5000 K. Zhu and Dong 2021 (2103.02127, review). Pu and Wu 2015 (1502.05449): survival law, eq. 11. Weiss et al. 2018 (1706.06204): peas in a pod, spacing mode near 20. Mulders et al. 2015 (1406.7356): inner edge, mass ratio. Johnson et al. 2010 (1005.3084): giants rise with mass and with 10^(1.2 [Fe/H]). Fulton et al. 2021 (2105.11584) and Cumming et al. 2008 (0803.3357): giant occurrence peaks at 1 to 3 AU. Petigura et al. 2018 (1712.04042): hot Jupiters go as 10^(3.4 [Fe/H]). Gan et al. 2023 (2210.08313): 0.27 percent of early M dwarfs. Wright et al. 2012 (1205.2273), Bryson et al. 2021 (2010.14812), Dressing and Charbonneau 2015 (1501.01623), Andrews et al. 2013 (1305.5262), Pascucci et al. 2016 (1608.03621).
+[R4898]: 30 percent of Sun-like stars have Kepler-like planets, mean about 3, the transit multiplicity {1:432, 2:99, 3:42, 4:11, 5:3, 6:2}, the inclination law. [R4812] (2002.02840): about 75 percent of stars under 5000 K. [R4897] (2103.02127, review). Pu and Wu 2015 (1502.05449): survival law, eq. 11. [R4660] (1706.06204): peas in a pod, spacing mode near 20. [R3196] (1406.7356): inner edge, mass ratio. [R2172] (1005.3084): giants rise with mass and with 10^(1.2 [Fe/H]). [R1479] (2105.11584) and [R0960] (0803.3357): giant occurrence peaks at 1 to 3 AU. [R3499] (1712.04042): hot Jupiters go as 10^(3.4 [Fe/H]). [R1504] (2210.08313): 0.27 percent of early M dwarfs. [R4779] (1205.2273), [R0572] (2010.14812), [R1156] (1501.01623), [R0114] (1305.5262), [R3444] (1608.03621).
 
 ## The model (`planet_architecture.build`)
 
-1. **Disc scatter.** The disc's solids scatter 0.7 dex (Andrews 2013).
-2. **Inner system.** Whether the star has one: a Bernoulli draw at the share anchors (0.85 at 0.15 Msun, 0.75 at 0.6, 0.30 at 1.0 and 1.4, log-linear in mass; Zhu 2018, Yang 2020). It starts with `1 + Poisson` oligarchs (the mean itself log-normal), neighbours alike in mass (peas in a pod), the first at a period near 5 days (Mulders 2015), each next at a spacing in mutual Hill radii.
+1. **Disc scatter.** The disc's solids scatter 0.7 dex [R0114].
+2. **Inner system.** Whether the star has one: a Bernoulli draw at the share anchors (0.85 at 0.15 Msun, 0.75 at 0.6, 0.30 at 1.0 and 1.4, log-linear in mass; [R4812, R4898]). It starts with `1 + Poisson` oligarchs (the mean itself log-normal), neighbours alike in mass (peas in a pod), the first at a period near 5 days [R3193, R3196], each next at a spacing in mutual Hill radii.
 3. **Outer chain.** From 1.3 times 400 days outward, at the isolation mass of the feeding zone with a steep taper beyond `PLANET_OUTER_GROWTH_AU`.
 4. **Sculpting.** Pu and Wu's law, `x = 0.5 K - 0.6 - 0.35 log10 tau`, survival `1 - exp(-x^2)`, zero below `K < 1.2 + 0.7 log tau`. The earliest unstable pair merges (angular momentum conserved, mass retention 0.9) until every pair outlasts 1 Gyr.
 5. **Floors.** Bodies lighter than 0.1 Earth masses (inside the snow line) or 0.60 (beyond) are debris. No chain starts, and no hot Jupiter settles, closer than the distance where a blackbody would be at the dust sublimation temperature (`DUST_SUBLIMATION_K`, 1500 K; `sublimation_au`), which keeps the luminous stars' planets out of the vapour of their own rock.
@@ -44,15 +44,15 @@ A whole-disc oligarch chain alone gave about three times too many planets (teste
 | 1.0 Msun | 0.33 (0.30 +-0.03) | 3.2 (3.0 +-0.3) | 0.11 (0.141 +0.020 -0.018) | 1.0% (0.6 to 1.2%) |
 | 1.3 Msun | 0.32 (0.35) | 2.8 (1.8) | 0.15 | 0.9% |
 
-Hot Jupiters are compared on a mixture of metallicities (N(-0.03, 0.2) dex, the survey's), not at solar [Fe/H], because the rate rises with 10^(2.2 [Fe/H]). Spacing: median 14.6 mutual Hill radii, 93 percent of pairs over 10 (observed mode near 20, 93 percent). Giants rise 7 times between [Fe/H] -0.4 and +0.4; the 10^(1.2 [Fe/H]) law of Johnson 2010 gives 9 over that range (tweak L3). A Sun-like star holds 6.8 planets on average, 0.11 of them giants between 2 and 8 AU: GEN.950's lower solids beyond the snow line took the cold giants from 0.17 to 0.11 at the same constants, and the re-tune brought back most of it.
+Hot Jupiters are compared on a mixture of metallicities (N(-0.03, 0.2) dex, the survey's), not at solar [Fe/H], because the rate rises with 10^(2.2 [Fe/H]). Spacing: median 14.6 mutual Hill radii, 93 percent of pairs over 10 (observed mode near 20, 93 percent). Giants rise 7 times between [Fe/H] -0.4 and +0.4; the 10^(1.2 [Fe/H]) law of [R2172] gives 9 over that range (tweak L3). A Sun-like star holds 6.8 planets on average, 0.11 of them giants between 2 and 8 AU: GEN.950's lower solids beyond the snow line took the cold giants from 0.17 to 0.11 at the same constants, and the re-tune brought back most of it.
 
 ## Known weaknesses (tracked, not hidden)
 
 - Giants inside 2.5 AU and the exact metallicity slope are still loose. Giants between 2 and 8 AU are 0.11 per Sun-like star against 0.141 observed, the best the search found with the 182 K line. Several tuned constants sit near the edge of their search range (`PLANET_OUTER_GROWTH_AU` 11.4); a disc-evolution model (GEN.509, GEN.510) replaces them.
 - Hot-Jupiter statistics need n of several thousand to test.
 - The inner masses pile up near the inner core cap (`PLANET_INNER_CORE_MAX_EARTH` 12); warm super-Earths of 1 Earth mass or more are about 0.06 per star against 0.20 observed.
-- An F-type host has a multiplicity (2.9) above the observed 1.8 of Yang 2020; the multiplicity has no stellar-mass dependence yet.
-- The transit multiplicity has more doubles than Zhu 2018 (0.22 against 0.17), because the harness uses its inclination law and the model's singles are intrinsically fewer.
+- An F-type host has a multiplicity (2.9) above the observed 1.8 of [R4812]; the multiplicity has no stellar-mass dependence yet.
+- The transit multiplicity has more doubles than [R4898] (0.22 against 0.17), because the harness uses its inclination law and the model's singles are intrinsically fewer.
 
 ## Stand-ins
 

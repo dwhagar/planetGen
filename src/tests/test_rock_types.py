@@ -7,7 +7,7 @@ import pytest
 from planetgen.physics import mixture_lava, rock_types as rt, surface_composition
 
 BULK_SILICATE_EARTH = {oxide: row[0] for oxide, row in mixture_lava.OXIDES.items()}     # McDonough and Sun 1995
-UPPER_CRUST = dict(SiO2=66.6, TiO2=0.64, Al2O3=15.4, FeO=5.04, MgO=2.48, CaO=3.59, Na2O=3.27, K2O=2.80)     # Rudnick and Gao 2014 Table 11
+UPPER_CRUST = dict(SiO2=66.6, TiO2=0.64, Al2O3=15.4, FeO=5.04, MgO=2.48, CaO=3.59, Na2O=3.27, K2O=2.80)     # [R3842: Table 11]
 MIDDLE_CRUST = dict(SiO2=63.5, TiO2=0.69, Al2O3=15.0, FeO=6.02, MgO=3.59, CaO=5.25, Na2O=3.39, K2O=2.30)
 LOWER_CRUST = dict(SiO2=53.4, TiO2=0.82, Al2O3=16.9, FeO=8.57, MgO=7.24, CaO=9.59, Na2O=2.65, K2O=0.61)
 TOTAL_CRUST = dict(SiO2=60.6, TiO2=0.72, Al2O3=15.9, FeO=6.71, MgO=4.66, CaO=6.41, Na2O=3.07, K2O=1.81)

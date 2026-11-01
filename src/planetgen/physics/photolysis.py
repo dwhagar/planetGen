@@ -26,11 +26,11 @@ of the temperature between the three templates (4000 K, the Sun at 5772 K, 10000
   rather than assume one.
 * **Shielding is not in the lifetimes**: CO and N2 self-shield in a dense inner coma and in a thick air column, and the lifetimes
   in an atmosphere are longer (docs/design/composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.md). For the
-  species with a read mean UV cross section (H2O, NH3, CH4, CO2, H2S; Hu, Seager and Bains 2012 table 6) the column that absorbs the light
+  species with a read mean UV cross section (H2O, NH3, CH4, CO2, H2S; Hu, [R2026] table 6) the column that absorbs the light
   is one optical depth, `shielded_column_mol_m2`, and `photon_limited_flux_mol_m2_s` is the most the light can break in a thick air
   (GEN.982). It is the gross loss: the products that recombine are not taken off.
 * **Source values** are labelled in the file: the quiet-Sun lifetime of H2O, CO, CO2, HCN, CH3OH and CH2O is the
-  comet-community value, of CH4, C2H6, H2S and N2 the Heays 2017 total (a factor 2 for C2H6, H2S and N2), and NH3
+  comet-community value, of CH4, C2H6, H2S and N2 the [R1873] total (a factor 2 for C2H6, H2S and N2), and NH3
   6.7e3 s (1.5e-4 per s), not the 5.6e3 s that is a mean of quiet and active Sun.
 
 The functions are pure.
@@ -67,11 +67,11 @@ class Species:
         formula (str): The gas-table formula (formaldehyde is `CH2O`).
         lifetime_s (float): Lifetime at 1 AU, quiet Sun, seconds (dissociation plus ionisation).
         lifetime_range_s (tuple): The lowest and highest quiet-Sun value the sources give.
-        beta_diss_per_s, beta_ion_per_s (float): Heays 2017 rates, quiet Sun, 1 AU.
+        beta_diss_per_s, beta_ion_per_s (float): [R1873] rates, quiet Sun, 1 AU.
         activity_factor (float or None): How many times shorter the lifetime is for the active Sun, if read.
         ratio_4000k, ratio_10000k (float): The dissociation rate relative to the Sun's at equal 91.2 to 200 nm flux.
         lifetime_source, status (str): Where the lifetime comes from, and how it was got.
-        uv_cross_section_cm2 (float or None): The mean UV cross section (Hu, Seager and Bains 2012 table 6), `None` when none was read.
+        uv_cross_section_cm2 (float or None): The mean UV cross section (Hu, [R2026] table 6), `None` when none was read.
         uv_cross_section_source (str): Where it comes from.
     """
 
@@ -183,7 +183,7 @@ def shielded_column_mol_m2(formula):
     """
     The column of `formula` that absorbs its light, mol per m2 (GEN.982): the one that has an optical depth of 1 at the species' mean UV cross
     section `sigma`, `1 / sigma` molecules per cm2. Gas below it sees none of the far ultraviolet, so a thick air loses the species only from this column
-    however much of it there is (the critical-pressure rule of Hu, Seager and Bains 2012: a gas is photolysed above the pressure where its
+    however much of it there is (the critical-pressure rule of Hu, [R2026]: a gas is photolysed above the pressure where its
     column is one optical depth).
 
     Raises:

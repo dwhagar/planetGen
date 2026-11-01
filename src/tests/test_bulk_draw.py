@@ -174,7 +174,7 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
 
 
 def test_an_icy_bodys_water_tops_out_at_the_condensed_share_of_its_formation_temperature():
-    """GEN.950: the water of an icy body is at most the water share of the solids that its disk temperature condenses (Lodders 2003 Table 11)."""
+    """GEN.950: the water of an icy body is at most the water share of the solids that its disk temperature condenses ([R2726: Table 11])."""
     from planetgen.physics import condensate_shares
     near = _body(1000.0, icy=True, distance=2.7)    # just beyond the snow line of 2.7 AU: 182 K, water alone
     _, top = bulk_draw._icy_water_range(near)

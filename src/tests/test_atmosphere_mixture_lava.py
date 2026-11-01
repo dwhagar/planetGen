@@ -1,7 +1,7 @@
 # tests/test_atmosphere_mixture_lava.py
 
-"""The vapour over a molten surface (GEN.499, GEN.456, GEN.479) against Kite et al. 2016's vapour pressure of a BSE melt and the
-Miguel et al. 2011 sequence of dominant gases."""
+"""The vapour over a molten surface (GEN.499, GEN.456, GEN.479) against [R2380]'s vapour pressure of a BSE melt and the
+[R3059] sequence of dominant gases."""
 
 import math
 

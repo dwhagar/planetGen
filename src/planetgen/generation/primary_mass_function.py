@@ -26,7 +26,7 @@ systems per solar mass the ratio of `P`'s number to `xi`'s mass (`systems_per_so
 What the derivation leaves out, and the reason: the companions past the seventh star of a system (`multistar.TAIL_RATIOS`, a
 chance of about 1e-5 of a system); the brown dwarf companion (below the hydrogen-burning limit, not in `xi`); the mergers and
 stripped stars of `multistar`, which move a star between mass bins after its birth; and a twin excess in the mass ratio
-(Moe and Di Stefano 2017), which the draw does not make either.
+[R3108], which the draw does not make either.
 """
 
 import functools

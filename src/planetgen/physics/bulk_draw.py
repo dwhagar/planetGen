@@ -14,9 +14,9 @@ body's origin (`origin_of`: formed beyond its star's snow line or not) and its s
    `stellar_abundances`, the same star key its [Fe/H] stream uses) give the number ratios Fe/Mg, Si/Mg, Al/Mg, Ca/Mg, Ni/Mg
    and C/O. A rocky body takes all of the star's Mg, Si, Ca and Al into its rock as oxides and the Fe that its mantle does
    not hold as FeO into its metal core (`dry_partition`). The Earth-like star gives a core mass fraction near 0.3 with no
-   draw, and an iron-rich or iron-poor star moves it, which is the observed trend (Dorn et al. 2015; Santos et al. 2015).
+   draw, and an iron-rich or iron-poor star moves it, which is the observed trend [R1146, R3916].
 2. **What is drawn** is only what the star cannot say, in this order: the kind of rock (`ROCK_KIND_TABLE`, a gated possibility
-   table: silicate, or silicon carbide and graphite for a star with C/O of 0.8 or more, Bond et al. 2010; Unterborn et al.
+   table: silicate, or silicon carbide and graphite for a star with C/O of 0.8 or more, [R0455]; Unterborn et al.
    2014), the water share (a rocky body's from the Bern delivery law by its mass and the snow lines it formed at, `delivered_water`, GEN.849; an
    icy body's log-uniform from `tuning.ICY_WATER_MASS_FRACTION_FLOOR` up to the water share of the solids at its formation temperature, GEN.950), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
    light elements, a small icy body's porosity, a carbon body's graphite, and then the iron branch of a rocky planet (`IRON_BRANCH_TABLE`: its
@@ -49,7 +49,7 @@ _kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
 
 SOURCES = {
-    "bond2010": "Bond, O'Brien and Lauretta 2010, ApJ 715, 1050 (planets of stars with C/O above 0.8 are carbon-rich)",
+    "bond2010": "[R0455] (planets of stars with C/O above 0.8 are carbon-rich)",
     "unterborn2014": "Unterborn, ApJ 793, 124 (carbon-rich interiors: silicon carbide, graphite)",
 }
 
@@ -64,12 +64,12 @@ RANGES = {
 """dict: The drawn ranges.
 
 - `enriched_cmf`: the core mass fraction of the dry part of an iron-enriched planet (`IRON_BRANCH_TABLE`), uniform, floored at
-  the star-matched value; its top is the cap of the observed iron-rich rocky planets (about 0.8, Plotnykov and Valencia 2020).
+  the star-matched value; its top is the cap of the observed iron-rich rocky planets (about 0.8, [R3545]).
 - `rock_feo`: FeO as a mass fraction of the rock, uniform. Earth's bulk silicate has 0.081, the Moon about 0.10, Mars 0.18
-  (Khan and Connolly 2008); Mercury, under 0.01, is outside it: the Mercury-like range belonged to class B,
+  [R2334]; Mercury, under 0.01, is outside it: the Mercury-like range belonged to class B,
   a class the generator no longer draws, and no condition of the body says it is reduced (a stand-in, tier "from needed output").
 - `core_light_elements`: light elements (S, Si, O, C, H) as a mass fraction of the metal, uniform; Earth's core has 0.05 to
-  0.10 (Hirose et al. 2021).
+  0.10 [R1950].
 - `graphite_over_rock`: a carbon body's graphite against its silicon carbide and oxide rock, uniform; a stand-in range until the
   carbon mantle's equation of state (GEN.428's open item) says what the interiors hold.
 - `porosity`: the void share of a small icy body, uniform; a stand-in until viscous compaction (lane K) replaces it.
@@ -85,7 +85,7 @@ iron-rich in a homogeneous sample, an upper limit)."""
 
 DENSITY_BOUNDS_G_CM3 = (0.6, 25.0)
 """tuple: The lowest and highest mean density a terrestrial body can have, g/cm3: ice with the 30 percent porosity of `RANGES` (0.917 times 0.7) and
-pure iron at 20 Earth masses (Seager et al. 2007: about 23 g/cm3). The hard bounds of the plausibility checks."""
+pure iron at 20 Earth masses ([R3992]: about 23 g/cm3). The hard bounds of the plausibility checks."""
 
 MAX_MASS_EARTH = 20.0
 """float: The heaviest terrestrial body, Earth masses (the top of the closed forms)."""
@@ -96,7 +96,7 @@ RADIUS_TOLERANCE = 1.0e-6
 MAX_CMF = 0.9
 """float: The largest core mass fraction (of the dry part) the inverse route returns."""
 CARBON_OVER_OXYGEN = 0.8
-"""float: A star at or above this C/O makes carbon-rich rock (Bond et al. 2010)."""
+"""float: A star at or above this C/O makes carbon-rich rock [R0455]."""
 
 
 class DrawError(ValueError):
@@ -213,14 +213,14 @@ IRON_BRANCH_TABLE = pt.REGISTRY.register(pt.Table(
     "bulk-iron-branch", 1,
     [
         pt.Row("star-matched", IRON_BRANCH_ORIGINS, 1.0 - IRON_ENRICHED_WEIGHT,
-               "Plotnykov, Valencia, Ross et al. 2026 (arXiv:2511.17717) and Brinkman et al. 2024 (arXiv:2409.08361): planet iron follows the host's, 1:1",
+               "[R0541, R3546]: planet iron follows the host's, 1:1",
                state=pt.PARTLY_VERIFIED, tunable=True,
                limit="the slope of planet against star iron is 0.94 (+1.02/-1.07) and 1.3 to 5.6 by fit: consistent with 1:1, not measured; the scatter is an upper limit",
                notes="Fe/Mg of the planet = the star's times 10 to a normal of IRON_SCATTER_DEX; the slope stays 1"),
         pt.Row("iron-enriched", IRON_BRANCH_ORIGINS, IRON_ENRICHED_WEIGHT,
-               "Plotnykov, Valencia, Ross et al. 2026 (arXiv:2511.17717): 1 of 21 planets 2 sigma more iron-rich than its star; Schulze 2021: 1 of 11",
+               "[R3546]: 1 of 21 planets 2 sigma more iron-rich than its star; [R3978]: 1 of 11",
                state=pt.PARTLY_VERIFIED, tunable=True,
-               limit="an upper limit: 0 of 20 distinct (Brinkman 2024) to 5 of 22 (Adibekyan 2021, heterogeneous); mass-radius scatter alone makes about 15 percent of mock samples show one",
+               limit="an upper limit: 0 of 20 distinct [R0541] to 5 of 22 ([R0032], heterogeneous); mass-radius scatter alone makes about 15 percent of mock samples show one",
                notes="core mass fraction uniform 0.5 to 0.8 (RANGES), never below the star-matched value"),
     ],
     description="Whether a rocky planet's iron follows its star's or is enriched (an iron-rich core)."))

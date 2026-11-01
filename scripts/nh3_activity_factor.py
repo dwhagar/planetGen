@@ -6,7 +6,7 @@ The active-Sun factor of the NH3 photodissociation rate (GEN.794), from a measur
 
 The folder holds four files (downloaded by hand, never committed; `h5py` is needed to read them):
 
-* `NH3_partial_cross_sections.h5`: the photodissociation cross section of NH3 (from Samson 1987, Wu 2007,), https://home.strw.leidenuniv.nl/~ewine/photo/data/photo_data/NH3_partial_cross_sections.h5
+* `NH3_partial_cross_sections.h5`: the photodissociation cross section of NH3 (from [R3889], Wu 2007,), https://home.strw.leidenuniv.nl/~ewine/photo/data/photo_data/NH3_partial_cross_sections.h5
 * `sorcesols_v16_1nm.h5`, `susim_v22_1nm.h5`, `uarssols_v18_1nm.h5`: the daily 1 nm solar irradiance of SORCE SOLSTICE (2003 to 2018), UARS SUSIM
   (1991 to 2005) and UARS SOLSTICE (1991 to 2001), M. DeLand, https://sbuv.gsfc.nasa.gov/solar/compositev2/
 
@@ -17,7 +17,7 @@ differ in absolute scale by several percent at 200 nm (Yeo and others 2015), whi
 
 Limits: below 120 nm none of the instruments measure (Lyman-alpha at 121.6 nm is inside the range; the EUV below 120 nm, which varies more, carries
 a few percent of the rate), so the factor is a little low; the instruments' cycle amplitudes near 200 nm disagree (SORCE SOLSTICE more than the
-SUSIM), which is why the three are all kept; the cross section is that of 295 K; the Huebner and Mukherjee 2015 "active Sun" is stronger than any
+SUSIM), which is why the three are all kept; the cross section is that of 295 K; the [R2040] "active Sun" is stronger than any
 cycle maximum measured (for H2O 1.68 against 1.33 by this method), so a factor on their scale would be higher.
 """
 

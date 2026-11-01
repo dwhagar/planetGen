@@ -7,14 +7,14 @@ Where a planet's ring comes from (GEN.1054; docs/design/systems/weird-worlds.md 
 `rings.draw_ring` gives every giant a ring and a terrestrial planet one in a hundred, whatever happened to the planet. A ring is a result of history, and this is the
 history: a ring exists when something came apart inside the planet's Roche limit and has not yet spread away, and a giant with nothing in its past has none.
 
-* **R1, a moon that fell** (Canup 2010, recalled; Hesselbrock and Minton 2017, recalled; Black and Mittal 2015 for Phobos, recalled). A moon the tide drew below the Roche limit
+* **R1, a moon that fell** ([R0637], recalled; [R1927], recalled; [R0414] for Phobos, recalled). A moon the tide drew below the Roche limit
   (`moon_orbits.Fate`, `time_s`) was torn apart: the share `RING_RETAINED_FRACTION` of its mass stays in orbit as a ring and the rest rains onto the planet. That ring spreads
   and feeds new moons beyond the limit, which is the ring-moon cycle: its mass falls by `1/e` every `RING_LIFETIME_YR`.
-* **R2, a comet that passed inside the limit** (Dones 1991, recalled). A body that passes inside the Roche limit of a giant is torn apart in the same way and
+* **R2, a comet that passed inside the limit** ([R1140], recalled). A body that passes inside the Roche limit of a giant is torn apart in the same way and
   `COMET_CAPTURE_FRACTION` of it is left in orbit. The passages come at a rate `COMET_PASSAGES_PER_GYR` for Saturn's situation, scaled to the planet by the cross-section of its Roche
   sphere with gravitational focusing, `pi q^2 (1 + v_esc(q)^2 / v_inf^2)`, with `v_inf` a share (`COMET_ENCOUNTER_FRACTION`) of the circular speed at the planet's distance. Each is a
   body of `COMET_MASS_KG_RANGE` drawn log-uniform, at a time drawn uniformly over the planet's age.
-* **R9, close to the star.** A ring inside `RING_MIN_DISTANCE_AU` is gone at once (Schlichting and Chang 2011, recalled): no ring.
+* **R9, close to the star.** A ring inside `RING_MIN_DISTANCE_AU` is gone at once ([R3957], recalled): no ring.
 
 The ring that results is the sum of the rings of every event, each spread for the time since it came to be, capped at `rings.MAX_MASS_OVER_PLANET` of the planet; it exists above
 `MIN_RING_MASS_KG`, its origin is that of the event that holds most of it, and its age that event's. The Roche limit is `rings.roche_limit_km` for the ring's own material.
@@ -31,10 +31,10 @@ from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
 RING_RETAINED_FRACTION = 0.3
-"""float: The share of a moon torn apart inside the Roche limit that stays in orbit as a ring (the rest falls on the planet); Black and Mittal 2015 keep most of Phobos in orbit and Canup 2010 only the
+"""float: The share of a moon torn apart inside the Roche limit that stays in orbit as a ring (the rest falls on the planet); [R0414] keep most of Phobos in orbit and [R0637] only the
 ice mantle of a differentiated moon, so the share is argued between the two. Source tier T4, tweak level L3."""
 RING_LIFETIME_YR = 5.0e8
-"""float: The time in which a ring's mass falls by 1/e as it spreads and feeds moons beyond the Roche limit (the ring-moon cycle of Hesselbrock and Minton 2017 runs over 1e8 to 1e9 years; the age of Saturn's
+"""float: The time in which a ring's mass falls by 1/e as it spreads and feeds moons beyond the Roche limit (the ring-moon cycle of [R1927] runs over 1e8 to 1e9 years; the age of Saturn's
 rings is argued between 1e8 and the age of the planet). Source tier T4, tweak level L3."""
 COMET_PASSAGES_PER_GYR = 0.02
 """float: How many ring-making comets (`COMET_MASS_KG_RANGE`) pass inside the Roche limit of a body in Saturn's situation per Gyr; no survey measures it (about one in 50 Gyr would leave Saturn with a comet's ring
@@ -42,11 +42,11 @@ only once in the age of the Solar System). Source tier T4, tweak level L3."""
 COMET_MASS_KG_RANGE = (1.0e14, 1.0e20)
 """tuple: The masses, kg, of the comets that make rings, drawn log-uniform (a 5 km comet to a 300 km Centaur). Source tier T6, tweak level L1."""
 COMET_CAPTURE_FRACTION = 0.1
-"""float: The share of a torn comet left in orbit (Dones 1991 find a few percent to tens of percent captured). Source tier T4, tweak level L3."""
+"""float: The share of a torn comet left in orbit ([R1140] find a few percent to tens of percent captured). Source tier T4, tweak level L3."""
 COMET_ENCOUNTER_FRACTION = 0.2
 """float: A comet's speed at infinity as a share of the circular speed at the planet's distance (the Jupiter-family comets meet Jupiter at about 5 km/s of its 13). Source tier T6, tweak level L1."""
 RING_MIN_DISTANCE_AU = 0.1
-"""float: A planet closer to its star than this holds no ring (Schlichting and Chang 2011, recalled). Source tier T2, tweak level L0."""
+"""float: A planet closer to its star than this holds no ring ([R3957], recalled). Source tier T2, tweak level L0."""
 MIN_RING_MASS_KG = 1.0e7
 """float: The least ring that counts (the dust of Jupiter's ring is 1e7 to 1e9 kg). Source tier T6, tweak level L0."""
 

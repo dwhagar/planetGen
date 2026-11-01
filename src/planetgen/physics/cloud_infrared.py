@@ -31,7 +31,7 @@ from planetgen.physics import elements, sulfuric_cloud
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "acid_cloud_optics.json")
 
 TOP_OVER_BASE_PRESSURE = 0.0267 / 1.391
-"""float: The pressure of the cloud top over that of its base: Arney and Kane 2018 (arXiv 1804.05889) Table 1, the upper cloud's 70 km level
+"""float: The pressure of the cloud top over that of its base: [R0157: Table 1], the upper cloud's 70 km level
 (0.0267 bar) over the lower cloud's 47.5 km level (1.391 bar). The same ratio is used for any air (row CF3)."""
 DEFAULT_WEIGHT_PERCENT = 80.0
 """float: The acid strength the optics are read at, between the 76 and 81 percent tables: Gillmann and others 2024 give 80 percent at the equator."""

@@ -196,7 +196,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
         self.mass_bin = mass_bin
 
         if mass_bin == "brown-dwarf":
-            # GEN.252: the substellar mass function of the 20 pc census (Kirkpatrick et al. 2021), not log-uniform.
+            # GEN.252: the substellar mass function of the 20 pc census [R2374], not log-uniform.
             self.mass_kg = _msun_to_kg(brownDwarf.sample_mass_solar(draw))
         else:
             # The same mass function the bins' rates come from (GEN.45).

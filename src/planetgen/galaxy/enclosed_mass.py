@@ -18,7 +18,7 @@ middle got a Hill sphere several times too small.
    satellites the shape's `components` add are left out: they are stars of the smooth model already, or lie in the
    halo where their mass is small beside the dark halo's.
 2. **The central black hole** (`density.central_black_hole_mass_solar`), a point at the centre.
-3. **The dark halo.** An NFW halo (Navarro, Frenk and White 1996) of the mass chain's halo mass less its stars, with the
+3. **The dark halo.** An NFW halo [R3248] of the mass chain's halo mass less its stars, with the
    chain's own virial radius and concentration, so the halo's share inside `r` is
    `M_dark (ln(1 + x) - x / (1 + x)) / (ln(1 + c) - c / (1 + c))`, `x = r c / r200`, held at `M_dark` beyond `r200`.
 

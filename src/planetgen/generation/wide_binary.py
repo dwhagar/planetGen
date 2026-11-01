@@ -108,7 +108,7 @@ class WideBinaryPair:
         """
         Generates a fresh wide-binary orbital relationship between two
         already-generated stars, including each star's own
-        Holman & Wiegert (1999) planetary stability limit.
+        [R1990] planetary stability limit.
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object

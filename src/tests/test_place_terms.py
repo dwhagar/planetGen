@@ -84,8 +84,8 @@ def test_the_remnants_raise_the_perturber_mass_and_the_black_holes_do_most_of_it
 
 def test_the_black_hole_inputs_lie_inside_the_published_ranges():
     """GEN.541 (docs/design/generation/placement-by-population.md): the share of core-collapse stars that leave a hole
-    (the failed share, GEN.554: inside the verified 0 to 45 percent, Sukhbold et al. 2016, Table 4), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
-    Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
+    (the failed share, GEN.554: inside the verified 0 to 45 percent, [R4251: Table 4]), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
+    [R3348]: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
     1.3e8; the older estimates they list: 1e8 to 1e9)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
     collapse = imf.integral(0.0, low, high)
@@ -196,7 +196,7 @@ def test_a_g_dwarfs_chance_inside_10_au_follows_the_pooled_line_on_the_odds(fe_h
 
 
 def test_a_g_dwarfs_chance_inside_10_au_falls_with_metallicity_and_stays_below_moe_kratter_badenes_ranges():
-    # Moe, Kratter & Badenes 2019: 53, 40, 24 and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 (+-12, 6, 4, 3). Moe & Di
+    # [R3109]: 53, 40, 24 and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 (+-12, 6, 4, 3). Moe & Di
     # Stefano's Table 13 puts 0.15 +-0.03 companions inside logP 3.7 for solar-type stars, so the level is about 0.6 of
     # the pooled line's (both are in the design note); the shape follows it.
     found = [companion_classes.odds(1.0, 0.44, x, 11_400.0).within_10_au for x in (-3.0, -1.0, -0.2, 0.5)]

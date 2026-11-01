@@ -55,7 +55,7 @@ def test_the_count_above_a_diameter_falls_with_the_diameter_and_the_listed_bodie
 
 
 def test_the_solar_systems_belt_is_a_main_belt_within_a_few_times_its_counts():
-    # Ivezic et al. 2001: 530,000 objects above 1 km; some two hundred above 100 km (test targets); the nine biggest are listed
+    # [R2108]: 530,000 objects above 1 km; some two hundred above 100 km (test targets); the nine biggest are listed
     result = _density(listed_diameters_km=LISTED_D, listed_masses_kg=LISTED_M)
     one, ten, hundred = result.counts
     assert 530_000 / 5 < one.objects < 530_000 * 40

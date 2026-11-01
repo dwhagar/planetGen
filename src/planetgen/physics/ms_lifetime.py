@@ -5,14 +5,14 @@ The main-sequence lifetime of a star from its mass and metallicity (GEN.467).
 
 It replaces the fixed `10 Gy * M^-2.5`, a law anchored on the Sun, with the analytic fit of Hurley, Pols and Tout
 2000 (MNRAS 315, 543, "Comprehensive analytic formulae for stellar evolution as a function of mass and metallicity",
-arXiv:astro-ph/0001295), their equations 4 to 7 and the Appendix coefficients: the time to the base of the giant
+[R2055]), their equations 4 to 7 and the Appendix coefficients: the time to the base of the giant
 branch `t_BGB(M, Z)` (rms 1.9%, at most 4.8% off the detailed models over 0.1 to 100 solar masses and Z = 0.0001 to
 0.03), and the main sequence ends at `t_MS = max(t_hook, x t_BGB)`, a share `x` of that time (0.95 to 0.99) or a share
 `mu` where a hook feature makes it shorter. Above 100 solar masses the fit is carried on as it stands: it flattens to
 about 3 Myr, the lifetime the very massive stars have.
 
 Metallicity enters as `zeta = log10(Z / 0.02)`. A star's heavy-element mass fraction is `Z = Z_ref * 10^[Fe/H]`, with
-`tuning.MS_LIFETIME_REFERENCE_Z` the proto-solar value of the composition scale (Asplund 2021, `stellar-composition.md`
+`tuning.MS_LIFETIME_REFERENCE_Z` the proto-solar value of the composition scale ([R0168], `stellar-composition.md`
 D1); every caller that has no [Fe/H] yet takes the default 0, a star of the reference composition, for which a solar
 mass lasts 10.2 Gyr.
 """
@@ -23,7 +23,7 @@ import math
 from planetgen import tuning
 
 HPT_REFERENCE_Z = 0.02
-"""float: The `Z` the formulae's `zeta` is measured from (Hurley et al. 2000)."""
+"""float: The `Z` the formulae's `zeta` is measured from [R2055]."""
 
 # The Appendix coefficients, `a_n = alpha + beta zeta + gamma zeta^2 + eta zeta^3`, lowest power first; `a5`, `a7` and
 # `a10` do not depend on metallicity. Times are in Myr.

@@ -8,7 +8,7 @@ A black hole is the remnant of a massive star that fails to explode. Of the star
 (`imf_massive_share`) a share `f` fail, and `f` falls as the star's metallicity rises: the failed-supernova share of a
 metal-poor population is the larger. Only the range of `f` at two metallicities is known (`tuning.BLACK_HOLE_*`), so
 a galaxy draws its two ends from its seed (`draw_failed_shares`), and `failed_share` runs linearly in the metal mass
-fraction Z between them (the share saturates toward low Z, as Ebinger et al. 2020's grid does) and is held at the solar
+fraction Z between them (the share saturates toward low Z, as [R1208]'s grid does) and is held at the solar
 end above solar. A population whose stars are older than the lives of its massive stars has made all it will
 (`remnant_formed_share`); one still forming has made the share of them whose lives are over.
 """

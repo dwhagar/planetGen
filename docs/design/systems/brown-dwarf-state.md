@@ -8,12 +8,12 @@ temperature and the radius its mass and age give.
 
 | Piece | Value | Source (read) |
 |---|---|---|
-| Cooling track | Teff and radius for every mass of the table (0.01 to 1.4 solar masses) at its 30 ages from 0.5 Myr to 10 Gy, linear in log mass and log age (`datasets/baraffe_isochrones.py`, `cooling_track`; GEN.948 replaced `tuning.BROWN_DWARF_TRACKS`, eleven thinned rows) | Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42 (arXiv 1503.04107), the BHAC15 isochrones (`BHAC15_iso.2mass`) |
-| Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius | Burrows et al. 2001, Rev. Mod. Phys. 73, 719, eq. 2 (arXiv astro-ph/0103383) |
-| Temperature | the track's, no hotter than the temperature of the hydrogen-burning limit at the age (`substellar_ceiling.cap_k`: 2,950 K at the peak, 2,050 K at 1 Gy, 1,630 K at 5 Gy; a body at or above 0.07 solar masses only the 2,950 K peak) | Baraffe et al. 2015 section 3.3 and the BHAC15 table (GEN.494) |
+| Cooling track | Teff and radius for every mass of the table (0.01 to 1.4 solar masses) at its 30 ages from 0.5 Myr to 10 Gy, linear in log mass and log age (`datasets/baraffe_isochrones.py`, `cooling_track`; GEN.948 replaced `tuning.BROWN_DWARF_TRACKS`, eleven thinned rows) | [R0254], the BHAC15 isochrones (`BHAC15_iso.2mass`) |
+| Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius | [R0606], eq. 2 [R0606] |
+| Temperature | the track's, no hotter than the temperature of the hydrogen-burning limit at the age (`substellar_ceiling.cap_k`: 2,950 K at the peak, 2,050 K at 1 Gy, 1,630 K at 5 Gy; a body at or above 0.07 solar masses only the 2,950 K peak) | [R0254] section 3.3 and the BHAC15 table (GEN.494) |
 | Radius | the track's, 0.09 to 0.16 solar radii old, larger when young | as above |
 | Luminosity | `L = R^2 (Teff / Teff_sun)^4` of the two | Stefan-Boltzmann |
-| Mass function | `dN/dM ~ M^-0.6` between 13 Jupiter masses and 0.08 solar masses (83.8 Jupiter masses, where the stars' mass function begins; GEN.936: it ended at 80 and left 0.0764 to 0.08 empty) | Kirkpatrick et al. 2021, ApJS 253, 7 (arXiv 2011.11616): alpha 0.6 +- 0.1 from 525 L, T and Y dwarfs within 20 pc |
+| Mass function | `dN/dM ~ M^-0.6` between 13 Jupiter masses and 0.08 solar masses (83.8 Jupiter masses, where the stars' mass function begins; GEN.936: it ended at 80 and left 0.0764 to 0.08 empty) | [R2374]: alpha 0.6 +- 0.1 from 525 L, T and Y dwarfs within 20 pc |
 | Type from temperature | Teff of the type number (L0 = 0, T0 = 10, Y0 = 20) is `2237.5 - 144.96 x + 4.0301 x^2` to L8.75, `1437.9 - 18.309 x` to T4.75, `5141.3 - 368.65 x + 6.7301 x^2` beyond; inverted. L0 is 2,238 K, T0 1,255 K, Y0 461 K | the same paper, Table 13 (rms 134, 79, 79 K) |
 
 Above L0 a brown dwarf is a late-M dwarf, named by the stellar scale (`stellar_evolution.spectral_letter_and_subclass`).
@@ -71,6 +71,6 @@ cool to a plateau near 2,000 K at the hydrogen-burning limit and stay there for 
 The stars' mass function (`imf`) begins at 0.08 solar masses and the brown dwarf one ends there: one number, `mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL`,
 so no mass between them is missing and none is counted twice. Whether an object of a mass burns hydrogen is a question of its
 place: `stellar_abundances.hydrogen_burning_limit_for_fe_h` (0.074 solar masses at solar Z, 0.092 at none, linear in Z between;
-Burrows et al. 2001, a parametrisation). A primary drawn under it is drawn again (a system is built around a star, and the
+[R0606] parametrisation). A primary drawn under it is drawn again (a system is built around a star, and the
 generator makes none around a brown dwarf), and a companion under it is a brown dwarf member of its tree. The main sequence from
 0.07 to 0.1 solar masses is the Baraffe table's (`main_sequence`), scaled to meet MIST at 0.1.

@@ -19,7 +19,7 @@ N_G_MOL = 14.007
 SI_G_MOL = 28.086
 SI_WEIGHT_FRACTION_BSE = 0.21           # the bulk silicate Earth (tier 3: recalled, 45 weight percent SiO2)
 
-# Bergin et al. 2015 (arXiv:1507.04756) Table S1: atomic ratios to silicon of the bulk silicate Earth
+# [R0357: Table S1]: atomic ratios to silicon of the bulk silicate Earth
 BSE_C_PER_SI = 1.1e-3
 BSE_N_PER_SI = 2.5e-5
 BSE_C_OVER_N = 49.0
@@ -35,13 +35,13 @@ VENUS_DEGASSED_SHARE = 0.43     # the share of its mantle carbon that the 4.6e20
 VENUS_C_PPM = VENUS_AIR_KG * (1.0 - VENUS_N2_MASS_SHARE) * C_G_MOL / 44.01 / VENUS_MANTLE_KG * 1e6
 VENUS_N_PPM = VENUS_AIR_KG * VENUS_N2_MASS_SHARE / VENUS_MANTLE_KG * 1e6
 
-# Mars: the carbon dioxide of the source magma, 5 ppm at IW-1 to 1000 ppm at IW+1 (Hirschmann and Withers 2008; Grott et al. 2011,
-# as the model of arXiv:2302.04241 adopts them), and the nitrogen of the source magma 1.9 ppm (same paper)
+# Mars: the carbon dioxide of the source magma, 5 ppm at IW-1 to 1000 ppm at IW+1 ([R1701, R1955],
+# as the model of [R4345] adopts them), and the nitrogen of the source magma 1.9 ppm (same paper)
 MARS_C_PPM = (5.0 * C_G_MOL / 44.01, 1000.0 * C_G_MOL / 44.01)
 MARS_N_PPM = 1.9
 
 # Nitrogen per carbon atom: the bulk silicate Earth 1/49, the CI chondrites 1/17, the air of Venus 1/13.5 and of Mars 1/18 (Table S1);
-# Kargel and Lewis 1993 through Schaefer, Lodders and Fegley 2012: 0.013
+# [R2251] through [R3945]: 0.013
 N_PER_C = {"bulk silicate Earth": 1.0 / BSE_C_OVER_N, "CI chondrites": 1.0 / 17.0, "Venus air": 1.0 / 13.5, "Mars air": 1.0 / 18.0,
            "Kargel and Lewis": 0.013}
 

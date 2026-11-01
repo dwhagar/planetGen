@@ -5,8 +5,7 @@ The mean dwarf spectral-type sequence of Pecaut and Mamajek (GEN.943): the effec
 star of each spectral type, O3V to M9V.
 
 The file is `EEM_dwarf_UBVIJHK_colors_Teff.txt`, version 2022.04.16, from Eric Mamajek's page at the University of Rochester
-(https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt); much of it is Table 5 of Pecaut and Mamajek 2013, ApJS 208, 9
-(doi:10.1088/0067-0049/208/1/9), which is the paper to cite. Each row of its first table is a type (`G2V`, `K5V`, `M0.5V`) with the
+(https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt); much of it is Table 5 of [R3469], which is the paper to cite. Each row of its first table is a type (`G2V`, `K5V`, `M0.5V`) with the
 effective temperature, the colours, and for most types the bolometric correction, luminosity and radius.
 
 The generator reads the whole-number types only (O3 to M9, 67 rows): `spectral_letter_and_subclass` gives the type whose temperature is
@@ -31,7 +30,7 @@ FILE = "EEM_dwarf_UBVIJHK_colors_Teff.txt"
 DATASET = fetch.Dataset(
     key="mamajek_dwarf_sequence",
     title="Mamajek mean dwarf stellar colour and effective temperature sequence (2022.04.16)",
-    source="Pecaut and Mamajek 2013, ApJS 208, 9 (doi:10.1088/0067-0049/208/1/9), version 2022.04.16 of E. Mamajek's table",
+    source="[R3469], version 2022.04.16 of E. Mamajek's table",
     pieces=(fetch.Piece(FILE, "https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt",
                         "1de2edeec17bb3346e0e4e70b999de5ee29947df38474e64cddb7cfacc164b7f", 55680),),
     replaces="the subclasses linear in temperature inside a letter, with a K/M boundary at 3,700 K",

@@ -1,6 +1,6 @@
 # tests/test_quadruple_stability.py
 
-"""GEN.1029 and GEN.1031: the 3+1 and 2+2 quadruple stability networks of Vynatheya, Mardling and Hamers 2023, against the scikit-learn models they were made from."""
+"""GEN.1029 and GEN.1031: the 3+1 and 2+2 quadruple stability networks of [R4575], against the scikit-learn models they were made from."""
 
 import os
 import pathlib

@@ -13,13 +13,13 @@ where `n(Mh)` is the halo mass function. Halos fall steeply in number with mass,
 light side. Inverting the median relation and adding a Gaussian in `log Mh` (the first build, GEN.368) is exact at
 the light end and puts the halo up to 0.34 dex too heavy at 2e11 solar masses of stars.
 
-* The halo mass function is Tinker et al. 2008 (ApJ 688, 709, arXiv:0803.2706) Eq. 3, `dn/dlnM = f(sigma) rho_m / M
+* The halo mass function is [R4367: Eq. 3], `dn/dlnM = f(sigma) rho_m / M
   |dln sigma^-1 / dlnM|`, `f = A [(sigma / b)^-a + 1] exp(-c / sigma^2)`, its Table 2 interpolated in `log Delta`
   (Appendix B practice) at the overdensity the chain's halos are measured at (`mass_chain.OVERDENSITY` times the
   critical density, `Delta = OVERDENSITY / Omega_m` times the mean).
 * `sigma(M)` is the top-hat variance of the linear power spectrum, normalised to `SIGMA_8`, with the Eisenstein and Hu
-  1998 (ApJ 496, 605, arXiv:astro-ph/9709112) no-wiggle transfer function (Eqs. 26 and 28 to 31).
-* The cosmology is Planck 2013 (Planck Collaboration XVI, arXiv:1303.5076, Table 2, Planck best fit: Omega_b h^2
+  1998 (ApJ 496, 605, [R1233]) no-wiggle transfer function (Eqs. 26 and 28 to 31).
+* The cosmology is [R3542] (Planck Collaboration XVI, [R3542: Table 2], Planck best fit: Omega_b h^2
   0.022068, n_s 0.9624, Omega_m 0.3175, sigma_8 0.8344, h 0.6711); `mass_chain` already carried Omega_m 0.3175 and h 0.671.
 
 Nothing here reads the Milky Way or a dataset. The function is built once per process (about a second) on a grid
@@ -38,21 +38,21 @@ HUBBLE_H = 0.671
 OMEGA_MATTER = 0.3175
 """float: The matter density parameter."""
 OMEGA_BARYON_H2 = 0.022068
-"""float: The baryon density parameter times h squared (Planck 2013 XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
+"""float: The baryon density parameter times h squared ([R3542] XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
 SPECTRAL_INDEX = 0.9624
-"""float: The primordial spectral index n_s (Planck 2013 XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
+"""float: The primordial spectral index n_s ([R3542] XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
 SIGMA_8 = 0.8344
-"""float: The rms linear fluctuation in 8 Mpc/h spheres (Planck 2013 XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
+"""float: The rms linear fluctuation in 8 Mpc/h spheres ([R3542] XVI Table 2). [Stand-in HF1, tier T1, tweak L0.]"""
 CMB_TEMPERATURE_K = 2.728
 """float: The CMB temperature the transfer function's Theta is built on (Eisenstein and Hu 1998 use 2.728 K)."""
 
-# Tinker et al. 2008 Table 2: Delta (times the mean density), then A, a, b, c.
+# [R4367: Table 2]: Delta (times the mean density), then A, a, b, c.
 TINKER_TABLE = (
     (200.0, 0.186, 1.47, 2.57, 1.19), (300.0, 0.200, 1.52, 2.25, 1.27), (400.0, 0.212, 1.56, 2.05, 1.34),
     (600.0, 0.218, 1.61, 1.87, 1.45), (800.0, 0.248, 1.87, 1.59, 1.58), (1200.0, 0.255, 2.13, 1.51, 1.80),
     (1600.0, 0.260, 2.30, 1.46, 1.97), (2400.0, 0.260, 2.53, 1.44, 2.24), (3200.0, 0.260, 2.66, 1.41, 2.44),
 )
-"""tuple: Rows of (Delta, A, a, b, c) of the Tinker et al. 2008 fit to the halo mass function, z = 0."""
+"""tuple: Rows of (Delta, A, a, b, c) of the [R4367] fit to the halo mass function, z = 0."""
 
 LOG_MASS_LOW = 8.0
 LOG_MASS_HIGH = 17.0
@@ -147,7 +147,7 @@ def sigma(halo_mass_solar):
 
 
 def mass_function_per_dex(log_halo_mass, delta):
-    """Tinker et al. 2008's number density of halos, per cubic megaparsec per dex of mass, at `10 ** log_halo_mass`
+    """[R4367]'s number density of halos, per cubic megaparsec per dex of mass, at `10 ** log_halo_mass`
     solar masses and `delta` times the mean density; the logarithmic slope of `sigma` is a central difference of
     0.025 dex."""
     step = 0.025

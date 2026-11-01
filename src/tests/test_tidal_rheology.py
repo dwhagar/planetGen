@@ -43,7 +43,7 @@ def test_a_cold_stiff_mantle_has_the_elastic_love_number_and_a_large_q():
 
 
 def test_the_moon_comes_out_with_the_lunar_laser_ranging_k2_and_q():
-    """The Moon: k2 0.0242 and Q 37.5 at the monthly tide (Williams and Boggs 2015, recalled); a mantle at 1,450 K gives them to a factor of 2."""
+    """The Moon: k2 0.0242 and Q 37.5 at the monthly tide ([R4711], recalled); a mantle at 1,450 K gives them to a factor of 2."""
     moon = _rock(MOON, MONTH_RATE, 1450.0)
     assert moon.k2 == pytest.approx(0.0242, rel=0.15)
     assert 20.0 < moon.q < 75.0
@@ -78,7 +78,7 @@ def test_a_faster_tide_is_flexed_less_dissipatively_when_the_mantle_is_warm():
 
 
 def test_partial_melt_gives_io_the_k2_over_q_its_orbital_acceleration_needs():
-    """Io at 30 percent melt: Lainey et al. 2009 find k2/Q = 0.015 +- 0.003 from its orbital acceleration (recalled); the rheology gives a few
+    """Io at 30 percent melt: [R2535] find k2/Q = 0.015 +- 0.003 from its orbital acceleration (recalled); the rheology gives a few
     hundredths with no number fitted to Io (the fit `MOLTEN_K2_OVER_Q` of 0.015 is gone)."""
     io = _rock(IO, IO_RATE, SOLIDUS + 0.3 * (LIQUIDUS - SOLIDUS))
     assert 0.003 < io.k2_over_q < 0.1
@@ -99,7 +99,7 @@ def test_a_magma_ocean_tends_to_the_fluid_love_number_and_no_dissipation():
 
 
 def test_the_maxwell_form_reproduces_henning_peak_and_the_andrade_form_fixes_its_cold_end():
-    """Maxwell (Henning et al. 2009) dissipates only near its relaxation time; at 1,000 K its Q is beyond any measured rock's."""
+    """Maxwell [R1907] dissipates only near its relaxation time; at 1,000 K its Q is beyond any measured rock's."""
     maxwell = _rock(MOON, MONTH_RATE, 1000.0, maxwell=True)
     andrade = _rock(MOON, MONTH_RATE, 1000.0)
     assert maxwell.q > 1.0e4 > andrade.q

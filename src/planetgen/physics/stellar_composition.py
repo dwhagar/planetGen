@@ -47,7 +47,7 @@ raises `fetch.DataMissing` when they were not downloaded, and bulk generation do
 exception is a run told in so many words to disregard missing data (GEN.599, `fetch.set_disregard_missing_data`): each kind
 then takes its dataset's labelled fallback, says so in its `open_items` and is listed in `fetch.stand_ins_used()`. A main-sequence
 star has no fallback value (no luminosity, temperature, radius or lifetime), a white dwarf the radius of the zero-temperature
-Chandrasekhar table and no layers, a neutron star the Chamel and Haensel 2008 outer crust.
+Chandrasekhar table and no layers, a neutron star the [R0722] outer crust.
 """
 
 import math
@@ -83,15 +83,15 @@ SUPERGIANT_CLASSES = ("0", "IA+", "IA", "IAB", "IB")
 """tuple: The Yerkes classes of the supergiants and hypergiants (`generation.star`)."""
 
 DA_SHARE = tuning.STELLAR_WD_DA_SHARE
-"""float: The share of white dwarfs with a hydrogen atmosphere (DA), Xu, Rogers and Blouin 2024."""
+"""float: The share of white dwarfs with a hydrogen atmosphere (DA), Xu, [R4798]."""
 
 POLLUTED_SHARE = sum(tuning.STELLAR_WD_POLLUTED_SHARE) / 2.0
 """float: The share of cool white dwarfs polluted by accreted rocky debris (GEN.253): the middle of the 25 to 50 percent the
 observations give (`tuning.STELLAR_WD_POLLUTED_SHARE`), which is also the registry's default for `white-dwarf-pollution`."""
 
 CARBON_STAR_MINIMUM_MASS_SOL = ((0.010, 1.4), (0.020, 1.5))
-"""tuple: `(Z, least initial mass in solar masses)` for third dredge-up to make C/O above 1 (Karakas and Lugaro 2016, second-hand,
-Cristallo 2011); linear in Z between, 1.425 at Z 0.0125. Whether a given AGB star has run enough thermal pulses is the carbon-star
+"""tuple: `(Z, least initial mass in solar masses)` for third dredge-up to make C/O above 1 ([R2244], second-hand,
+[R0925]); linear in Z between, 1.425 at Z 0.0125. Whether a given AGB star has run enough thermal pulses is the carbon-star
 flag's (GEN.249), and the C/O it reaches is open."""
 
 
@@ -271,8 +271,8 @@ def wolf_rayet_surface(subtype, u, teff_k=None):
 def _neutron_star_crust(draws):
     """The outer crust of a neutron star: the nuclei, surface inward, of the nuclear mass model `draws.u_crust_model` picks among
     the downloaded ones (the 20 models are the spread of the theory, so one is drawn per star), and the density at which
-    neutron drip ends it. A run that disregards missing data takes the one sequence of Chamel and Haensel 2008 instead."""
-    if fetch.locate(neutron_star_matter.DATASET).use_stand_in("the Chamel and Haensel 2008 outer crust"):
+    neutron drip ends it. A run that disregards missing data takes the one sequence of [R0722] instead."""
+    if fetch.locate(neutron_star_matter.DATASET).use_stand_in("the [R0722] outer crust"):
         return {"crust_model": None, "outer_crust": tuple(nucleus for nucleus, _density in sa.NEUTRON_STAR_OUTER_CRUST),
                 "neutron_drip_g_cm3": sa.NEUTRON_DRIP_DENSITY_G_CM3, "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
     models = neutron_star_matter.crust_models()

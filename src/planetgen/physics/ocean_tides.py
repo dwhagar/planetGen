@@ -5,7 +5,7 @@ The open-ocean equilibrium tide at a world's surface (GEN.1034)
 ================================================================
 
 The height a liquid surface would reach if it could follow the tidal potential of each body that raises one, summed over the moons and the star into the
-spring range (every raiser in line) and the neap range (the largest against the rest). It is the *equilibrium* value only (Pugh and Woodworth 2014, *Sea-Level
+spring range (every raiser in line) and the neap range (the largest against the rest). It is the *equilibrium* value only ([R3622], *Sea-Level
 Science*, chapter 3, *Tides: A Scientific History*, recalled): the range on a coast depends on the shape and depth of the basin and on its
 resonance, which this does not model, so it is an upper bound for an ocean that does not resonate and can be exceeded many times over in one that does.
 
@@ -17,7 +17,7 @@ resonance, which this does not model, so it is an upper bound for an ocean that 
 * **A raiser the body is locked to** (the body turns at the raiser's orbital rate, either way round) holds its bulge fixed in the sky of the body: it raises no
   oscillating tide, and the water stands higher on one side for good. Only raisers the body is not locked to enter the ranges (`oscillates`). A tide that an eccentric
   orbit still varies on a locked body (the radial tide) is not counted.
-* **The floor.** The sea floor rises with the tide, so the sea measures `1 + k2 - h2` of it (Love 1909; 0.69 for the Earth with `k2` 0.30 and `h2` 0.61), with `h2` from
+* **The floor.** The sea floor rises with the tide, so the sea measures `1 + k2 - h2` of it ([R2754]; 0.69 for the Earth with `k2` 0.30 and `h2` 0.61), with `h2` from
   `k2` of the interior model (`H2_OVER_K2`) unless it is given.
 * **The liquid.** The equilibrium height does not depend on the liquid's density: the liquid and the potential both scale with it. What the density sets here is the
   loading of the floor by the sea's own weight and its self-attraction, which for a thin layer multiplies the tide by `1 / (1 - 3 rho_liquid / (5 rho_mean))` (recalled): 1.12 for water on the Earth. The factor goes singular as the liquid approaches 5/3 of the body's mean density, so a liquid heavier than
@@ -49,7 +49,7 @@ FIELDS = ("tide_range_spring_m", "tide_range_neap_m", "ocean_liquid")
 """tuple: The stored columns on `planets` and `moons` (see the module text)."""
 
 H2_OVER_K2 = 5.0 / 3.0
-"""float: `h2 / k2` of a homogeneous incompressible elastic sphere (Love 1909), used when only `k2` of the interior model is known. The Earth's measured values (0.61 and 0.30) give 2.0, so
+"""float: `h2 / k2` of a homogeneous incompressible elastic sphere [R2754], used when only `k2` of the interior model is known. The Earth's measured values (0.61 and 0.30) give 2.0, so
 the floor's share of the tide is 0.80 here against 0.69 measured. Source tier T5, tweak level L1."""
 LOADING_REFUSE = 0.9
 """float: The most `3 rho_liquid / (5 rho_mean)` the thin-layer loading factor is used at (the factor is 10 there); a heavier liquid is refused. Source tier T2, tweak level L0."""

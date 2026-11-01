@@ -40,7 +40,7 @@ def test_the_contraction_time_is_the_age_mist_leaves_the_pre_main_sequence(mass,
 ])
 def test_below_the_isochrones_the_contraction_time_is_the_models_own(mass, bhac15_myr):
     """GEN.529: where MIST's rows do not reach the mass the model's time stands, within 0.5 dex of the BHAC15 tracks' (the age
-    at which the radius is within 2% of its minimum, Baraffe et al. 2015, solar metallicity)."""
+    at which the radius is within 2% of its minimum, [R0254], solar metallicity)."""
     assert pms._track(mass)["scale"] == 1.0
     assert abs(math.log10(pms.contraction_time_yr(mass) / MYR / bhac15_myr)) < 0.5
 
@@ -168,7 +168,7 @@ def test_the_star_page_says_the_star_is_contracting_and_shows_the_disk():
 
 
 def test_a_protostar_has_the_companions_of_the_perseus_survey():
-    """Tobin et al. 2016: 57% of Class 0 and 23% of Class I protostars have a companion (the field's is 26 to 45%)."""
+    """[R4379]: 57% of Class 0 and 23% of Class I protostars have a companion (the field's is 26 to 45%)."""
     assert pms.companion_chance(1.0, 0.1 * MYR) == 0.57
     assert pms.companion_chance(1.0, 0.3 * MYR) == 0.23
     assert pms.companion_chance(1.0, 2.0 * MYR) is None  # a pre-main-sequence star keeps the field's rate

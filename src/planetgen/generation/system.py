@@ -1538,10 +1538,10 @@ class StarSystem:
         """
         For an S-type (wide) binary, prunes the outermost planet from
         whichever star's list gravitationally encroaches on the other
-        star's own outermost planet, using a Gladman (1993)-derived mutual
+        star's own outermost planet, using a [R1583]-derived mutual
         Hill radius between the two systems' outermost bodies.
 
-        Each star's own Holman & Wiegert (1999) `a_crit_au` (see
+        Each star's own [R1990] `a_crit_au` (see
         `_orbit_ceiling_au`) only guarantees a *test particle* is long-term
         stable there -- a real generated planet carries its own mass and
         Hill sphere, so the two stars' outermost planets (the ones nearest

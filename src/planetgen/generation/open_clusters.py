@@ -178,7 +178,7 @@ def ambient_density_msun_pc3(x, y, z, shape, expected_at_density_1, edge_pc):
     The mean density of stars where the clusters lie, solar masses per cubic parsec: the model's stellar density
     (relative to its calibration point, `galaxy.density.total_density_array`) times the systems a cell holds at
     density 1 over the cell's volume, times the mean system mass. Gas is left out, so the density is lower than the
-    stars-and-gas one Lamers et al. 2005 use and the disruption slightly slower.
+    stars-and-gas one [R2542] use and the disruption slightly slower.
     """
     relative = galaxy_density.total_density_array(x, y, z, shape)
     return relative * expected_at_density_1 / edge_pc ** 3 * galaxy_density.mean_system_mass_solar(shape)

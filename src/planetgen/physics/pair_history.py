@@ -12,15 +12,15 @@ For a pair at `axis_au` with eccentricity `e` now, each member has a present mas
 `radius_max_au` (the red-giant or AGB tip, or its present radius for a star that never shrank):
 
 * **The orbit of the past.** The mass the pair lost on its giant branches left slowly and evenly, so the orbit kept its angular momentum and grew:
-  `a (M_a + M_b)` is constant (Jeans 1924; Hadjidemetriou 1963; Veras et al. 2011, MNRAS 417, 2104; the same law as `mass_loss.expansion_factor`), so the
+  `a (M_a + M_b)` is constant ([R1745, R2149, R4534]; the same law as `mass_loss.expansion_factor`), so the
   separation of the past was `a_then = a (M_a + M_b) / (M_a_max + M_b_max)`, smaller than the present one, with the same eccentricity.
 * **The lobe of the past.** At the closest approach of that orbit, `a_then (1 - e)`, each member's largest radius is set against its Roche lobe at its largest
-  mass (Eggleton 1983, `roche`). A member that reached its lobe, or whose radius reached the closest approach itself (it swallowed its partner), went through
+  mass ([R1222], `roche`). A member that reached its lobe, or whose radius reached the closest approach itself (it swallowed its partner), went through
   mass transfer or a common envelope, and the pair is allowed only as a post-common-envelope pair, with the axis the law for that case draws, not the general
   period law.
 * **A pair of members that never shrank** has the present orbit for its past one, and its past filling is the present filling `classify_pair` already measures.
 
-The adiabatic form needs the mass to leave slowly against the orbital period: it does for a giant branch and does not for a supernova (Veras et al. 2011,
+The adiabatic form needs the mass to leave slowly against the orbital period: it does for a giant branch and does not for a supernova ([R4534],
 section 2.4), so a neutron star or a black hole in the pair is reported `sudden` and the separation of the past is only the orbit the loss would have had.
 Stand-ins are the rows GM10 and GM11 of `docs/design/research/gap-filling-plan.md` section 6.60.
 """
@@ -31,7 +31,7 @@ from dataclasses import dataclass
 from planetgen.physics import roche
 
 FILL_LIMIT = 1.0
-"""float: A member whose largest radius is this multiple of its Roche lobe at the closest approach of the past orbit has filled the lobe. Source tier T1 (Eggleton 1983), tweak
+"""float: A member whose largest radius is this multiple of its Roche lobe at the closest approach of the past orbit has filled the lobe. Source tier T1 [R1222], tweak
 level L0."""
 SHRINK_TOLERANCE = 1.0e-9
 """float: How much larger a member's largest radius or mass must be than its present one to count as having shrunk (float noise of a record that kept the same number twice). Source tier T6, tweak

@@ -51,19 +51,19 @@ All counts are galaxy-wide unless stated; links are the sources I could confirm 
 
 | Object | Real count and size | Source |
 |---|---|---|
-| Giant molecular clouds | 8,107 clouds holding 98% of the CO emission, total H2 mass about 1.2e9 Msun, most probable radius about 30 pc; the author's later release lists 9,710 | Miville-Deschenes, Murray and Lee 2017, [arXiv 1610.05918](https://arxiv.org/pdf/1610.05918), [catalogue page](https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJ/834/57) |
-| Massive GMCs | 1,064 | Rice et al. 2016, quoted in the GEN.47 note [R] |
-| Molecular gas fraction in bound clouds | 40% of CO mass | Heyer and Dame 2015, via [arXiv 1812.02180](https://arxiv.org/pdf/1812.02180) |
-| Cold medium volume filling, thin disc | under 5% (a simulation cross-check, not a measurement) | [arXiv astro-ph/0407034](https://arxiv.org/pdf/astro-ph/0407034) |
+| Giant molecular clouds | 8,107 clouds holding 98% of the CO emission, total H2 mass about 1.2e9 Msun, most probable radius about 30 pc; the author's later release lists 9,710 | [R3102], [catalogue page](https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJ/834/57) |
+| Massive GMCs | 1,064 | [R3759], quoted in the GEN.47 note [R] |
+| Molecular gas fraction in bound clouds | 40% of CO mass | [R1929], via [R2082] |
+| Cold medium volume filling, thin disc | under 5% (a simulation cross-check, not a measurement) | [R1028] |
 | Molecular volume filling | about 0.5% inner Galaxy, about 1% thin disc; arms 1% to 2% | the GEN.47 note [S/C] and `GMC_ARM_FILLING_FACTOR` = 0.015 in `tuning.py` [S] |
-| Dark nebulae (Lynds) | 1,802 entries, mostly within about 1 to 2 kpc [R for the range] | [Lynds 1962](https://articles.adsabs.harvard.edu/pdf/1962ApJS....7....1L), [catalogue](https://en.wikipedia.org/wiki/Lynds%27_Catalogue_of_Dark_Nebulae) |
-| Bok globules | 248 optically selected northern globules catalogued, 169 southern; a Galactic total of 3.2e5 small globules (a secondary citation of Clemens et al. 1991, so [R]) | [Bok globules in the LMC, arXiv astro-ph/9902165](https://arxiv.org/pdf/astro-ph/9902165) |
-| Cold clumps (cores) | 13,188 Planck sources, a survey-limited floor | Planck 2015 XXVIII, [arXiv 1502.01599](https://arxiv.org/pdf/1502.01599) |
-| H II regions | over 8,000 in the WISE catalogue, about 1,500 confirmed by recombination lines or H-alpha, about 2,500 more with radio continuum; a later census counts about 7,000 with 2,000 confirmed | Anderson et al. 2014, [arXiv 1510.07347](https://arxiv.org/pdf/1510.07347), [catalogue](https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJS/212/1) |
-| O stars | 14,000 to 18,000 O systems in a basic model, 30,000 to 50,000 individual O stars allowing for binaries and extinction; 24,706 OB stars within 1 kpc | Quintana, Wright and Garcia 2025, [arXiv 2503.08286](https://arxiv.org/pdf/2503.08286) |
-| Core-collapse supernova rate | 0.4 to 0.5 per century (Quintana et al.); 3 per century is the older rate used in the CTA planning, [arXiv 2310.02828](https://arxiv.org/pdf/2310.02828) | |
-| Supernova remnants | 294 in the revised Green catalogue, 310 on its current page; the count expected from the supernova rate over a remnant life of about 1e5 years is 400 (0.4 per century) to 3,000 (3 per century) [C] | [Green 2019, arXiv 1907.02638](https://arxiv.org/pdf/1907.02638), [catalogue](https://www.mrao.cam.ac.uk/surveys/snrs-2022/) |
-| Planetary nebulae | about 3,000 known; estimates of the total run 4,000 to 46,000: 7,200 plus or minus 1,800 (Peimbert), 17,000 plus or minus 3,000 (Bobylev and Bajkova), 46,000 plus or minus 13,000 (Moe and De Marco), about 25,000 typical | [arXiv 1704.01718](https://arxiv.org/abs/1704.01718), [arXiv 0910.0465](https://arxiv.org/pdf/0910.0465) |
+| Dark nebulae (Lynds) | 1,802 entries, mostly within about 1 to 2 kpc [R for the range] | [[R2779]](https://articles.adsabs.harvard.edu/pdf/1962ApJS....7....1L), [catalogue](https://en.wikipedia.org/wiki/Lynds%27_Catalogue_of_Dark_Nebulae) |
+| Bok globules | 248 optically selected northern globules catalogued, 169 southern; a Galactic total of 3.2e5 small globules (a secondary citation of [R0823], so [R]) | [R1521] |
+| Cold clumps (cores) | 13,188 Planck sources, a survey-limited floor | [R3543] XXVIII, [R3543] |
+| H II regions | over 8,000 in the WISE catalogue, about 1,500 confirmed by recombination lines or H-alpha, about 2,500 more with radio continuum; a later census counts about 7,000 with 2,000 confirmed | [R0108], [catalogue](https://dc.g-vo.org/rr/q/lp/custom/CDS.VizieR/J/ApJS/212/1) |
+| O stars | 14,000 to 18,000 O systems in a basic model, 30,000 to 50,000 individual O stars allowing for binaries and extinction; 24,706 OB stars within 1 kpc | [R3637] |
+| Core-collapse supernova rate | 0.4 to 0.5 per century (Quintana et al.); 3 per century is the older rate used in the CTA planning, [R0015] | |
+| Supernova remnants | 294 in the revised Green catalogue, 310 on its current page; the count expected from the supernova rate over a remnant life of about 1e5 years is 400 (0.4 per century) to 3,000 (3 per century) [C] | [R1675], [catalogue](https://www.mrao.cam.ac.uk/surveys/snrs-2022/) |
+| Planetary nebulae | about 3,000 known; estimates of the total run 4,000 to 46,000: 7,200 plus or minus 1,800 (Peimbert), 17,000 plus or minus 3,000 (Bobylev and Bajkova), 46,000 plus or minus 13,000 (Moe and De Marco), about 25,000 typical | [R0434, R2133] |
 
 Counts of clouds are sharper than filling fractions (a filling needs a layer volume and a shape for filamentary gas), so the counts are the anchor and filling is the cross-check.
 
@@ -236,4 +236,4 @@ Numbers are placeholders; the TODO thread assigns IDs. GEN.152 and DB.24 already
 
 - [S] `galaxy/nebula_field.py`, `tuning.py` (`PHENOMENON_DENSITY_PC3`, `GMC_ARM_FILLING_FACTOR`, `NEBULA_FIELD_*`, `NEBULA_CLASSES`, `NEBULA_HOST_RULES`), `db/models.py` (`nebulae`), `galaxy/nebula_shape.py`, TODO items GEN.152, DB.24, MAP.172 to MAP.182, GEN.202; the cited catalogues and papers in section 2.
 - [C] scripts and outputs in `/mnt/project-files/research/nebula-map-visibility/`: `scripts/density_options.py` and `density_options.json`, `shape_fill_fraction.json`, and the first study's `field_counts.json` and `cluster_inner.json`.
-- [R] Rice et al. 2016 (1,064 massive GMCs), the secondary Clemens et al. 1991 figure (3.2e5 Bok globules), the 150 pc layer and 1 to 2 kpc range for the Lynds comparison, the 64-times scaling of quarter-scale counts, and the 2 KB per stored nebula.
+- [R] [R3759] (1,064 massive GMCs), the secondary [R0823] figure (3.2e5 Bok globules), the 150 pc layer and 1 to 2 kpc range for the Lynds comparison, the 64-times scaling of quarter-scale counts, and the 2 KB per stored nebula.

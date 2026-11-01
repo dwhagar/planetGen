@@ -150,7 +150,7 @@ def test_giants_become_rarer_beyond_the_cut_distance():
 
 
 def test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au():
-    """The tuning target (tier L3): Fulton et al. 2021 give 0.10 to 0.15 giants per Sun-like star in 0.3 to 10 AU."""
+    """The tuning target (tier L3): [R1479] give 0.10 to 0.15 giants per Sun-like star in 0.3 to 10 AU."""
     stream = draw.Stream(21)
     slots = [0.3 * 1.5 ** index for index in range(12) if 0.3 * 1.5 ** index <= 10.0]
     giants = 0

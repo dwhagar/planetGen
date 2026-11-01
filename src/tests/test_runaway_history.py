@@ -1,7 +1,7 @@
 # tests/test_runaway_history.py
 
 """
-GEN.639: the runaway greenhouse limit depends on the planet's mass (the three Kopparapu et al. 2014 sets), and a body that was
+GEN.639: the runaway greenhouse limit depends on the planet's mass (the three [R2447] sets), and a body that was
 past the limit while its star was young and bright loses water to the energy-limited escape of its steam, deterministically.
 """
 

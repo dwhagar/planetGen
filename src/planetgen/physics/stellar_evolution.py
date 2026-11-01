@@ -66,7 +66,7 @@ HORIZONTAL_BRANCH_COLOURS = ("blue", "rr-lyrae", "red", "extreme")
 
 def main_sequence_lifetime_gy(mass_sol, fe_h=0.0):
     """The main-sequence lifetime, Gy, of a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` (default 0, the
-    reference composition), from `ms_lifetime` (Hurley, Pols and Tout 2000, GEN.467), the one the rest of the
+    reference composition), from `ms_lifetime` ([R2055], GEN.467), the one the rest of the
     generator uses."""
     return ms_lifetime.lifetime_gy(mass_sol, fe_h)
 
@@ -502,7 +502,7 @@ def cooling_age_gy(initial_mass_sol, age_gy, fe_h):
 
 def _white_dwarf_state(final_mass_sol, cooling_age_gy, rng):
     """
-    A white dwarf of `final_mass_sol` that began cooling `cooling_age_gy` ago (GEN.742): the Bedard et al. 2020 cooling sequences
+    A white dwarf of `final_mass_sol` that began cooling `cooling_age_gy` ago (GEN.742): the [R0308] cooling sequences
     (`datasets.white_dwarf_models.cooling_state`) give its effective temperature, luminosity, radius and the crystallised share of its
     core, on a hydrogen atmosphere (a thick hydrogen layer, `tuning.STELLAR_WD_DA_SHARE` of white dwarfs) or a helium one (thin).
     When the sequences are not downloaded and the run disregards missing data (GEN.599) it is the Mestel power law of the cooling age

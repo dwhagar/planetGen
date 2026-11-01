@@ -13,7 +13,7 @@ Tests: no world has TiO at 2349 K, every world has it at 2641 K, and 25 and 50 p
 ## 2. What is not built
 
 - **n6 (silicate against haze).** The row keeps `phi((teq - 950) / 100)`. The 950 K is the methane line plus the silicate sink depth: a model output that GEN.518 (the chemistry module) must compute before it can be tuned. The measured quantity (Fu 2017, N = 34: the water band amplitude rises 0.0008 +- 0.00016 per K) needs an amplitude model that links cloud cover to the band amplitude; it does not exist in the generator, so a target cannot be simulated.
-- **n7 (haze yield).** The row stays a stand-in (`y` log-uniform 0.01 to 1). Every population statistic is degenerate with metallicity, Kzz and cloud cover, and the one published scatter (Brande 2024, about 0.5 scale height, N = 15) is in scale heights, not in a yield. It needs a haze amplitude model first.
+- **n7 (haze yield).** The row stays a stand-in (`y` log-uniform 0.01 to 1). Every population statistic is degenerate with metallicity, Kzz and cloud cover, and the one published scatter ([R0516], about 0.5 scale height, N = 15) is in scale heights, not in a yield. It needs a haze amplitude model first.
 
 Both are filed to the TODO thread as the remainder of GEN.519.
 

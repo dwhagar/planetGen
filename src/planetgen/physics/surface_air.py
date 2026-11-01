@@ -133,7 +133,7 @@ LONG_LIVED_FLUX_FRACTION = 0.5
 inferred physics, tweak level L0)."""
 
 RELATIVE_HUMIDITY = 0.77
-"""float: The relative humidity of the air over a surface with water (the fixed value of Manabe and Wetherald 1967, 0.77, the Earth's
+"""float: The relative humidity of the air over a surface with water (the fixed value of [R2848], 0.77, the Earth's
 mean; tier: verified, tweak level L0): the water vapour stands at this share of its saturation pressure while the ocean or ice lasts."""
 
 GIANT_FAMILIES = ("giant", "brown-dwarf", "hot-jupiter", "envelope")

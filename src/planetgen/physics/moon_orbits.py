@@ -40,11 +40,11 @@ from scipy import integrate
 from planetgen.physics import constants, rings, spin_torques
 
 COROTATION_SOFTNESS = 1.0e-2
-"""float: The share of its orbital rate over which a moon's torque on the planet changes sign (Auclair-Desrotour, Mathis and Laskar 2017, equation 77:
+"""float: The share of its orbital rate over which a moon's torque on the planet changes sign ([R0199], equation 77:
 `sigma_S = 1e-2 n`). Source tier T2, tweak level L0."""
 HILL_ESCAPE_FRACTION = 0.4
 """float: The share of the planet's Hill radius beyond which a prograde moon is no longer bound for long (stable prograde orbits reach about a half of the Hill radius,
-a retrograde moon's about 0.7; Hamilton and Burns 1991, Domingos et al. 2006; recalled). Source tier T2, tweak level L1 (the prograde figure, a little under its half)."""
+a retrograde moon's about 0.7; [R1138, R1771]; recalled). Source tier T2, tweak level L1 (the prograde figure, a little under its half)."""
 RTOL = 1.0e-5
 """float: The integrator's relative tolerance. A spin held near a balance of the tides (a thermal tide against the rheology's) makes the system stiff, and at 1e-7 LSODA took
 tens of seconds to minutes on such a planet where 1e-5 takes one (the end spin agrees to 1e-6 with Radau at 1e-7); the distances are good to a part in 1e5.  Source tier T6, tweak level L0."""

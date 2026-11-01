@@ -10,7 +10,7 @@ the stored bodies plus the `remainder_kg` (everything below the cut, the L2 and 
 
 1. **The size law.** The cumulative number of bodies above a mass `m` is a piecewise power law, `N(>m) proportional to m^-b` with `b = q / 3` for a cumulative diameter exponent `q` (mass goes as diameter cubed), one exponent
    for each stretch between the breaks. The lowest stretch must have `q < 3` and the highest `q > 3`, so the mass is finite at both ends, and the belt's mass fixes the number at the top break: the mass of each stretch is
-   `m dN` integrated (`_table`). Two laws are held: the icy one from the hot Kuiper belt (`ICY_LAW`, Fraser et al. 2014, READ) and a rocky main-belt one (`ROCKY_LAW`, Ivezic et al. 2001, READ, and a stand-in top).
+   `m dN` integrated (`_table`). Two laws are held: the icy one from the hot Kuiper belt (`ICY_LAW`, [R1439], READ) and a rocky main-belt one (`ROCKY_LAW`, [R2108], READ, and a stand-in top).
    Ivezic et al. give the *differential* index of `dN/dD`: 2.3 below 5 km and 4 from 5 to 40 km; the cumulative exponents used here are one less, 1.3 and 3.0 (the size-law note had them as cumulative, corrected in GEN.1061).
 2. **The top end is an order statistic.** The bodies of a belt are a Poisson process in mass, so the heaviest is `m` with `N(>m) = G1`, the next `N(>m) = G2`, and so on, with `Gk` the sum of `k` unit exponential draws. The draw is
    inverse of the law, `mass_at_count`, so rank `k` always uses the `k`-th exponential: **ranks are stable**. The same stream with a lighter belt (an older one) gives the same bodies in the same order, each lighter by the same factor
@@ -22,7 +22,7 @@ the stored bodies plus the `remainder_kg` (everything below the cut, the L2 and 
    more) and the left mass rises with `Dc` more slowly than the body does, so the difference changes sign once and the root is found by bisection on `log Dc` to `SOLVE_TOLERANCE`. (Plain repetition of "mass from `Dc`, `Dc` from mass"
    converges too, at about a tenth of the gap per pass; the design note said "iterate once".) A young belt keeps the primordial mass whatever `Dc` is and is settled in one pass.
 
-The Solar System's main belt (about 10 to 30 bodies above 1e19 kg, Ceres 9.4e20 kg) and the Kuiper belt (the 31 largest bodies about 40 percent of 1.97e-2 Earth masses, Pitjeva and Pitjev 2018) are test targets, never inputs.
+The Solar System's main belt (about 10 to 30 bodies above 1e19 kg, Ceres 9.4e20 kg) and the Kuiper belt (the 31 largest bodies about 40 percent of 1.97e-2 Earth masses, [R3539]) are test targets, never inputs.
 
 Limits. One law for the whole belt: a belt of mixed populations (hot and cold classical, scattered) is a sum of these draws, which is the work of the outer-disc items (GEN.1071). The top of the rocky law (the break above 40 km and the slope past it) is a stand-in tuned
 to the count of the largest asteroids (BR20, L3). The top body is not limited by what a young disc can grow (Kenyon and Bromley's 1 750 km, BR10, is a check, not a cap). Nothing calls this yet: GEN.1069 stores the ledger and
@@ -85,10 +85,10 @@ class SizeLaw:
 
 ICY_LAW = SizeLaw(breaks_km=(121.0,), exponents=(1.0, 4.35), density_kg_m3=1000.0)
 """SizeLaw: The hot Kuiper belt's: bright-end slope alpha1 = 0.87 (q = 5 alpha = 4.35) and faint-end slope near 0.2 (q = 1.0), break H_B = 7.7, which is 121 km across for an albedo of 0.10 and 1 g/cm3
-(Fraser et al. 2014, arXiv:1401.2157, READ; the albedo is an assumption, 99 to 192 km across 0.04 to 0.15). [Stand-in BR19, tier T1, tweak L1.]"""
+([R1439], READ; the albedo is an assumption, 99 to 192 km across 0.04 to 0.15). [Stand-in BR19, tier T1, tweak L1.]"""
 
 ROCKY_LAW = SizeLaw(breaks_km=(5.0, 200.0), exponents=(1.3, 3.0, 4.0), density_kg_m3=belt_mass.GRAIN_DENSITY_KG_M3)
-"""SizeLaw: The rocky belt's: cumulative q = 1.3 below 5 km and 3.0 from 5 km up (Ivezic et al. 2001, astro-ph/0105511, READ: differential indices 2.3 and 4, measured over 0.4 to 5 km and 5 to 40 km), and a
+"""SizeLaw: The rocky belt's: cumulative q = 1.3 below 5 km and 3.0 from 5 km up ([R2108], astro-ph/0105511, READ: differential indices 2.3 and 4, measured over 0.4 to 5 km and 5 to 40 km), and a
 steeper q = 4 above a break at 200 km, a stand-in (a stretch of q = 3 holds equal mass in every doubling of size, so the law must steepen somewhere; the break is chosen so that a belt of the main belt's mass has
 some tens of bodies above 1e19 kg). [Stand-in BR20, tier T9, tweak L3.]"""
 

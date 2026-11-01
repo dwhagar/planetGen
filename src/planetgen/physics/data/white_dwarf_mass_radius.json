@@ -2,7 +2,7 @@
  "retrieved": "2026-10-17",
  "title": "The zero-temperature white dwarf mass-radius relation (GEN.439)",
  "sources": [
-  "Chandrasekhar's equation of state of a cold relativistic degenerate electron gas with mu_e = 2, integrated by scripts/build_white_dwarf_table.py (CODATA 2018 constants; scipy LSODA); Sirius B (Joyce et al. 2018, arXiv:1809.01240) is reproduced to 0.1 percent",
+  "Chandrasekhar's equation of state of a cold relativistic degenerate electron gas with mu_e = 2, integrated by scripts/build_white_dwarf_table.py ([R4361] constants; scipy LSODA); Sirius B ([R2208], [R2208]) is reproduced to 0.1 percent",
   "no Coulomb or temperature correction and no surface layer, so a real star is a few percent larger"
  ],
  "columns": [

@@ -76,7 +76,7 @@ def test_the_formation_efficiency_rises_with_the_rate_density():
     efficiency = evolution.cluster_formation_efficiency(sigma)
     assert np.all(np.diff(efficiency[:-1]) > 0.0)
     assert efficiency[-1] == 0.0 and efficiency[-2] < 1.0
-    assert efficiency[0] < 0.05      # Kruijssen 2012: a few per cent where the gas is thin
+    assert efficiency[0] < 0.05      # [R2502]: a few per cent where the gas is thin
 
 
 def test_the_initial_masses_follow_a_power_law_of_slope_minus_two():

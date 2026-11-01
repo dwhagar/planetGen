@@ -1,12 +1,12 @@
 # tests/test_helium_fractionation.py
 
-"""Helium enrichment of an envelope that loses hydrogen first (GEN.1045): Hu et al. 2015 and Malsky et al. 2023."""
+"""Helium enrichment of an envelope that loses hydrogen first (GEN.1045): Hu et al. 2015 and [R2839]."""
 
 import math
 
 from planetgen.physics import constants, envelope_escape, helium_fractionation as hf
 
-MASS = 10.0 * constants.EARTH_MASS_TO_KG                     # Malsky et al. 2023 Figure 3: 10 Earth masses, transit radius 2.14
+MASS = 10.0 * constants.EARTH_MASS_TO_KG                     # [R2839: Figure 3]: 10 Earth masses, transit radius 2.14
 RADIUS = 2.14 * constants.EARTH_RADIUS_KM * 1e3 * hf.HOMOPAUSE_RADIUS_OVER_TRANSIT
 ENVELOPE_KG = 3.0e23                                         # 0.5 percent of 10 Earth masses, 3.0e26 g (their B.4)
 YEAR = constants.SECONDS_PER_YEAR

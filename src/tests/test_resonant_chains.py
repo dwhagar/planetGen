@@ -72,7 +72,7 @@ def test_the_chain_indexes_the_input_whatever_its_order():
 
 def test_io_is_forced_by_europa_to_about_its_observed_eccentricity_and_europa_by_io_and_ganymede():
     e = rc.forced_eccentricities(GALILEAN_PERIODS, GALILEAN_MASSES, JUPITER)
-    # observed forced eccentricities 0.0041, 0.0094, 0.0013 (Yoder and Peale 1981); Io's precession, not in the formula, cuts its detuning's effect
+    # observed forced eccentricities 0.0041, 0.0094, 0.0013 [R4826]; Io's precession, not in the formula, cuts its detuning's effect
     assert e[0] == pytest.approx(0.0041, rel=0.35)
     assert e[1] == pytest.approx(0.0094, rel=0.25)
     assert e[2] < e[0] < e[1] and 0.0003 < e[2] < 0.003

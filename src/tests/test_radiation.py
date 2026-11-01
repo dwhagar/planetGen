@@ -26,15 +26,15 @@ from tests.test_db_persistence import _placed_nebula, _system_point_pc
 @pytest.mark.parametrize("column, expected", [
     (0.0, 500.0), (22.6, 232.0), (100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65)])
 def test_the_no_field_curve_passes_through_the_read_points(column, expected):
-    """The Moon (Chang'E-4), Mars (Hassler 2014) and the proton-primary showers of Atri 2013, as read."""
+    """The Moon (Chang'E-4), Mars [R1843] and the proton-primary showers of [R0187], as read."""
     assert rad.no_field_dose_msv_yr(column) == pytest.approx(expected, rel=1e-9)
 
 
 def test_the_curve_reproduces_the_aviation_point_and_sea_level_and_keeps_mars_in_its_range():
     earth = rad.EARTH_CUTOFF_GV
-    assert rad.gcr_dose_msv_yr(265.0, earth) == pytest.approx(47.9, rel=0.1)  # Roy 2021, 10 km: 5.46 uSv/h
+    assert rad.gcr_dose_msv_yr(265.0, earth) == pytest.approx(47.9, rel=0.1)  # [R3826], 10 km: 5.46 uSv/h
     assert rad.gcr_dose_msv_yr(1033.0, earth) == pytest.approx(0.32, rel=0.1)  # UNSCEAR 2008 sea level
-    assert 128.0 <= rad.gcr_dose_msv_yr(22.5) <= 420.0  # Guo 2015, Mars at 22.5 g/cm2
+    assert 128.0 <= rad.gcr_dose_msv_yr(22.5) <= 420.0  # [R1730], Mars at 22.5 g/cm2
     assert rad.gcr_dose_msv_yr(122.7) == pytest.approx(444.0, rel=0.01)  # the Pfotzer maximum, log interpolation
 
 
@@ -128,7 +128,7 @@ def test_the_modulation_scales_the_dose():
 
 def test_proxima_bs_thin_air_breaks_the_flare_shield():
     """GEN.747: the measured events give the Sun 265 mSv/yr in free space; Proxima's flares scale it by the square root of their rate and the
-    inverse square of the distance. A tenth of a bar lets 11 Sv a year through (Atri 2017: 5 to 10 Sv from one hard event at 700 g/cm2 or less),
+    inverse square of the distance. A tenth of a bar lets 11 Sv a year through ([R0183]: 5 to 10 Sv from one hard event at 700 g/cm2 or less),
     and a bar of air stops all but a few mSv."""
     free = rad.free_sep_msv_yr(2100.0 * 0.0485 ** 2, 0.0485)
     column = rad.column_g_cm2(10132.5, 1.07)

@@ -8,9 +8,9 @@ One function of position returns the potential and the pull of a galaxy, and one
 
 - **Hernquist spheres**, `Phi = -G M / (r + a)`: the bulge (the bar's three axes are not kept: a sphere of the bar's long
   axis), the stellar halo, the nuclear star cluster;
-- **Miyamoto-Nagai disks** (Miyamoto and Nagai 1975), `Phi = -G M / sqrt(R^2 + (a + sqrt(z^2 + b^2))^2)`: the thin and thick disks and the nuclear
+- **Miyamoto-Nagai disks** [R3103], `Phi = -G M / sqrt(R^2 + (a + sqrt(z^2 + b^2))^2)`: the thin and thick disks and the nuclear
   disc, with `a` the disk's scale length and `b` its scale height;
-- **an NFW halo** (Navarro, Frenk and White 1996) of the dark matter, `Phi = -G M_s ln(1 + r / r_s) / r`, of the mass chain's halo less the galaxy's
+- **an NFW halo** [R3248] of the dark matter, `Phi = -G M_s ln(1 + r / r_s) / r`, of the mass chain's halo less the galaxy's
   stars, its virial radius and its concentration (`enclosed_mass.dark_halo`).
 
 and the central black hole, a Plummer point of 1 pc softening, which is the only softened part. Every pull is finite at the origin.
@@ -20,7 +20,7 @@ and the central black hole, a Plummer point of 1 pc softening, which is the only
 of mass 0 (a galaxy without a disk, an elliptical) adds nothing and is legal. The matching of a Miyamoto-Nagai disk to the exponential disk of the density
 model (`a` the scale length, `b` the scale height) and of a Hernquist sphere to the bulge, the stellar halo and the nuclear cluster (`a` their scale radius,
 break radius and cluster scale) are stand-ins (registry rows GP1 to GP3 of 6.157 in `gap-filling-plan.md`); the three-term fit of the Milky Way's
-rotation curve in the literature (Bovy 2015's MWPotential2014: a Hernquist-like bulge, a Miyamoto-Nagai disk, an NFW halo) is the same kind of model with
+rotation curve in the literature ([R0496]'s MWPotential2014: a Hernquist-like bulge, a Miyamoto-Nagai disk, an NFW halo) is the same kind of model with
 its parameters fitted, not derived.
 
 Units: parsecs, solar masses and km/s. The pull is in (km/s)^2 per pc (`ACCELERATION_TO_SI` turns it into m/s^2); a time in Myr is `KMS_TO_PC_PER_MYR` (1.0227)

@@ -8,14 +8,14 @@ What a captured small body's orbit looks like, drawn before the stable zone (`ir
 
 * **Size.** The semi-major axis over the Hill radius, `a / r_H`, is log-normal (`SIGMA_LN`) about a median that falls with the planet's distance from its star (`MEDIAN_BEFORE_SURVIVAL`, interpolated in log against log): the farther
   the planet, the smaller the share of its Hill sphere the captured orbits fill. It is the median *before* the stable limits cut, and it is fitted so that what stays has the observed medians of 0.44, 0.29, 0.17 and 0.19 of the Hill radius
-  (Jewitt and Haghighipour 2007) for Jupiter, Saturn, Uranus and Neptune.
+  [R2158] for Jupiter, Saturn, Uranus and Neptune.
 * **Shape and plane.** The eccentricity is uniform to `ECCENTRICITY_MAX` (the known irregulars run from 0 to 0.7). The inclination is isotropic outside the Kozai band (`moon_composition.draw_inclination_deg`, so no body is drawn into it).
   The node, argument of periapsis and mean anomaly are uniform.
 * **What stays.** `irregular_zone.verdict`: the stable limit of its sense, the inner edge from the outermost regular moon, the Kozai band. Prograde orbits are stable out to 0.4 of the Hill radius and retrograde to 0.55, so at Jupiter, where the captured
   orbits reach beyond both, 4.5 retrograde stay for each prograde one (the known irregulars: 88 to 19), by stability alone. At the farther giants the captured orbits lie inside both limits and stability explains none of the excess (Uranus
   has 8 to 1): that part of the observed split is not modelled.
 * **Families.** An irregular moon that was broken by a collision after its capture leaves a family: fragments on orbits that differ from the parent's by the velocity they were thrown with (`family`), tens to hundreds of metres per second
-  (Nesvorny et al. 2003; Bottke et al. 2010, recalled), through the Gauss equations of a velocity change on an elliptic orbit. Fragments that no longer stay are lost like any other.
+  ([R0483, R3263], recalled), through the Gauss equations of a velocity change on an elliptic orbit. Fragments that no longer stay are lost like any other.
 
 All draws are from the unit's stream (`util.draw`). Stand-ins are IO1 to IO4 of `docs/design/research/gap-filling-plan.md` section 6.96. Nothing reads the module yet; the captured-moon wiring will.
 """
@@ -32,7 +32,7 @@ a planet beyond the ends takes the end value. Source tier T9 (needed output), tw
 SIGMA_LN = 0.44
 """float: The natural-log width of the `a / r_H` draw (fitted with the Jupiter row so that its survivors have a median of 0.44 and a retrograde to prograde ratio of 4.5). Source tier T9, tweak level L3."""
 ECCENTRICITY_MAX = 0.7
-"""float: The largest eccentricity drawn, uniform from 0 (Nesvorny, Vokrouhlicky and Deienno 2014 print captured orbits to 0.7; the known irregulars run from 0.1 to 0.7). Source tier T2, tweak level L1."""
+"""float: The largest eccentricity drawn, uniform from 0 ([R3264] print captured orbits to 0.7; the known irregulars run from 0.1 to 0.7). Source tier T2, tweak level L1."""
 FAMILY_SPEED_M_S = (20.0, 300.0)
 """tuple: The ejection speed of a fragment of a family, m/s, log-uniform (tens to a few hundred m/s). Source tier T4, tweak level L3."""
 

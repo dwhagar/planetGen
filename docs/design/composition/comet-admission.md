@@ -8,7 +8,7 @@ The comet volatile ratios (GEN.495, `comet_population`) and their heliocentric-d
 
 ## 2. The two parts
 
-**Admission.** The share of known comets that have a measured composition, by group (`jupiter_family`, `halley_type`, `long_period`; a parabolic comet, whose `period_class` is None, is long period) and perihelion bin (0.3 to 1, 1 to 2, 2 to 8 AU). The database of Robinson et al. 2024 (909 rows of 96 comets) is joined to the orbits of the 2,422 known comets with perihelion from 0.3 to 8 AU (JPL Small-Body Database); 93 of them have a composition. The probability is the Jeffreys estimate `(k + 1/2) / (n + 1)`, so a cell with no measured comet (Halley-type comets beyond 2 AU) is not zero.
+**Admission.** The share of known comets that have a measured composition, by group (`jupiter_family`, `halley_type`, `long_period`; a parabolic comet, whose `period_class` is None, is long period) and perihelion bin (0.3 to 1, 1 to 2, 2 to 8 AU). The database of [R3782] (909 rows of 96 comets) is joined to the orbits of the 2,422 known comets with perihelion from 0.3 to 8 AU (JPL Small-Body Database); 93 of them have a composition. The probability is the Jeffreys estimate `(k + 1/2) / (n + 1)`, so a cell with no measured comet (Halley-type comets beyond 2 AU) is not zero.
 
 | Group | 0.3 to 1 AU | 1 to 2 AU | 2 to 8 AU |
 |---|---|---|---|
@@ -32,4 +32,4 @@ The item is a mapping with `period_class` (or None) and `perihelion_distance_au`
 
 ## 5. Licence
 
-The database is CC BY 4.0 (doi 10.7488/ds/7723); only fitted numbers and counts are kept. See `DATA-LICENSE.md`.
+The database is CC BY 4.0 [R4972]; only fitted numbers and counts are kept. See `DATA-LICENSE.md`.

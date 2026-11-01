@@ -9,23 +9,23 @@ Sources actually read (all from reachable hosts):
 
 | Short name | Reference | How reached | Used for |
 |---|---|---|---|
-| HP22 | Harrington Pinto et al. 2022, arXiv:2209.09985 (CO, CO2, H2O in comets) | arXiv PDF | CO and CO2 ranges, dynamical-class split, bands |
-| Rub19 | Rubin et al. 2019, arXiv:1907.11044 (67P ROSINA, Table 2) | arXiv PDF | 67P bulk ratios |
-| Rob24 + DB | Robinson, Malamud, Opitom, Perets, arXiv:2403.15644, and its database (Edinburgh DataShare, doi 10.7488/ds/7723, `df_comp_all.csv`, 909 rows, 69 comets, CC BY 4.0) | arXiv PDF and CSV | per-species statistics; most CO values are Dello Russo et al. 2016, others Rubin 2019, Biver and Bockelee-Morvan papers |
-| Coch15 | Cochran et al. 2015, "The Composition of Comets", Space Sci. Rev. 197, 9, arXiv:1507.00761 | arXiv PDF | taxonomies (optical and IR), CN/OH bands |
-| Eis19 | Eistrup, Walsh, van Dishoeck 2019, arXiv:1907.11255 | arXiv PDF | chemical-evolution taxonomy |
-| Cro16 | Crovisier, Bockelee-Morvan, Colom, Biver 2016, "Comets at radio wavelengths", arXiv:1606.06020 | arXiv PDF | OH 18 cm, HCN 88.6 GHz, NH3 radio |
-| dVB13 | de Val-Borro et al. 2013, arXiv:1308.6282 (C/2001 Q4 and C/2002 T7 at mm wavelengths), Table 2 | arXiv PDF | photodissociation rates at 1 AU (quiet Sun), CO 230.538 GHz, r^-2 scaling |
-| Odin07 | Biver et al. 2007, Planet. Space Sci., arXiv:astro-ph/0610779 | arXiv PDF | NH3 572.498 GHz, NH3 lifetime 6700 s |
-| Hat05 | Hatchell, Bird, van der Tak, Sherwood 2005, arXiv:astro-ph/0505439 | arXiv PDF | NH3 inversion lines, lifetime 5400 to 5800 s |
-| Hea17 | Heays, Bosman, van Dishoeck 2017, A&A 602, A105, arXiv:1701.04459 | arXiv PDF | Tables 18, 19, 22: rates, ionisation, branching, spectral dependence |
-| sbpy | sbpy 0.6.0 source (PyPI), `activity/gas/data/__init__.py` and `core.py` | files.pythonhosted.org | Huebner and Mukherjee 2015 quiet/active values (2ND-HAND), Huebner 1992 |
-| Rag20 | Raghuram, arXiv:2001.03315, Table 6 | arXiv PDF | photodissociation frequencies into excited O and C |
+| HP22 | Harrington [R3535] (CO, CO2, H2O in comets) | arXiv PDF | CO and CO2 ranges, dynamical-class split, bands |
+| Rub19 | [R3835] (67P ROSINA, Table 2) | arXiv PDF | 67P bulk ratios |
+| Rob24 + DB | Robinson, Malamud, Opitom, Perets, [R3782], and its database (Edinburgh DataShare, [R4972], `df_comp_all.csv`, 909 rows, 69 comets, CC BY 4.0) | arXiv PDF and CSV | per-species statistics; most CO values are Dello [R1063], others [R3835], Biver and Bockelee-Morvan papers |
+| Coch15 | [R0835], "The Composition of Comets", Space Sci. Rev. 197, 9, [R0835] | arXiv PDF | taxonomies (optical and IR), CN/OH bands |
+| Eis19 | [R1234] | arXiv PDF | chemical-evolution taxonomy |
+| Cro16 | [R0937], "Comets at radio wavelengths", [R0937] | arXiv PDF | OH 18 cm, HCN 88.6 GHz, NH3 radio |
+| dVB13 | [R1088] (C/2001 Q4 and C/2002 T7 at mm wavelengths), Table 2 | arXiv PDF | photodissociation rates at 1 AU (quiet Sun), CO 230.538 GHz, r^-2 scaling |
+| Odin07 | [R0407], Planet. Space Sci., [R0407] | arXiv PDF | NH3 572.498 GHz, NH3 lifetime 6700 s |
+| Hat05 | Hatchell, Bird, van [R1844] | arXiv PDF | NH3 inversion lines, lifetime 5400 to 5800 s |
+| Hea17 | [R1873] | arXiv PDF | Tables 18, 19, 22: rates, ionisation, branching, spectral dependence |
+| sbpy | sbpy 0.6.0 source (PyPI), `activity/gas/data/__init__.py` and `core.py` | files.pythonhosted.org | [R2040] quiet/active values (2ND-HAND), [R2041] |
+| Rag20 | Raghuram, [R3647: Table 6] | arXiv PDF | photodissociation frequencies into excited O and C |
 | Tegler | Long-slit NH2 paper, NTRS 19930010041 | NTRS PDF | NH3 7.0e3 to 7.7e3 s |
-| Cor25 | Cordiner et al. 2025, arXiv:2508.18209 (JWST, 3I/ATLAS) | arXiv PDF | interstellar object |
-| Bel26 | Belyakov, Wong et al. 2026, arXiv:2601.22034 (JWST MIRI, 3I/ATLAS) | arXiv PDF | CH4 nu3 band |
+| Cor25 | [R0890] (JWST, 3I/ATLAS) | arXiv PDF | interstellar object |
+| Bel26 | [R4752, R4754], [R0336] (JWST MIRI, 3I/ATLAS) | arXiv PDF | CH4 nu3 band |
 
-Not reached: Bockelee-Morvan and Biver 2017 (Phil. Trans. R. Soc. A 375, 20160252; royalsocietypublishing.org returns 403, the HAL record has no PDF link, not on PMC), Dello Russo et al. 2016 (Icarus 278, 301), Mumma and Charnley 2011 (ARA&A), Huebner and Mukherjee 2015 (PSS 106, 11; ScienceDirect refused), Huebner et al. 1992, Crovisier 1994 (JGR), Biver 2022 (no single paper identified). Where a number from them is used below it came through one of the papers in the table above and is labelled 2ND-HAND.
+Not reached: [R0435] (Phil. Trans. R. Soc. A 375, 20160252; royalsocietypublishing.org returns 403, the HAL record has no PDF link, not on PMC), Dello [R1063, R2040, R3206] (PSS 106, 11; ScienceDirect refused), [R0410, R0934, R2041] (no single paper identified). Where a number from them is used below it came through one of the papers in the table above and is labelled 2ND-HAND.
 
 ## Verdicts
 
@@ -35,12 +35,12 @@ Rule used for G1.1: CONFIRMED when the observed range at heliocentric distance r
 
 | id | Claim as written | Verdict | The right figure (percent of H2O) | Source | Label |
 |---|---|---|---|---|---|
-| G1.1a | CO 0.5 to 30 | PARTLY | 0.3 to 26 within 2.5 AU (32 comets), median 3 +- 1 (3.3 +- 1.3 in the figure caption); mean 6.4 +- 1.3 (Dello Russo 2016 mean for 24 comets 5.2 +- 1.3). Lowest: 103P/Hartley 2 0.3 (Dello Russo 2016), 0.15 to 0.45; 8P/Tuttle 0.4, 2P/Encke 0.43. Highest at r_h at most 2 AU: Hale-Bopp 26. Values above 30 exist only far out (C/2010 G2 Hill 91 at 2.5 AU; C/2006 W3 230 at 3.4 AU; 29P 460 at 6.2 AU) and mostly reflect the water cut-off, not the nucleus. The lower bound 0.5 is too high; 30 is fine for r_h at most 2.5 AU | HP22 abstract, Sect. 3.1, Table 3; Rob24 DB (COMPUTED); Coch15 Sect. 2.3 | READ / COMPUTED |
-| G1.1b | CO2 2 to 20 | PARTLY | 2 to 30 within 2.5 AU (23 comets), median 12 +- 2 (HP22 Table 3). In the database at r_h at most 2 AU: 4 to 37 (N = 14, median 11). Hartley 2 about 20 (EPOXI, A'Hearn 2011 as quoted in Coch15). 67P bulk 4.7 +- 1.4. Upper bound 20 is too low; values near 87 at 6 AU are outside the usable regime | HP22; Rub19 Table 2; Rob24 DB | READ / COMPUTED |
+| G1.1a | CO 0.5 to 30 | PARTLY | 0.3 to 26 within 2.5 AU (32 comets), median 3 +- 1 (3.3 +- 1.3 in the figure caption); mean 6.4 +- 1.3 (Dello [R1063] mean for 24 comets 5.2 +- 1.3). Lowest: 103P/Hartley 2 0.3 (Dello [R1063]), 0.15 to 0.45; 8P/Tuttle 0.4, 2P/Encke 0.43. Highest at r_h at most 2 AU: Hale-Bopp 26. Values above 30 exist only far out (C/2010 G2 Hill 91 at 2.5 AU; C/2006 W3 230 at 3.4 AU; 29P 460 at 6.2 AU) and mostly reflect the water cut-off, not the nucleus. The lower bound 0.5 is too high; 30 is fine for r_h at most 2.5 AU | HP22 abstract, Sect. 3.1, Table 3; Rob24 DB (COMPUTED); Coch15 Sect. 2.3 | READ / COMPUTED |
+| G1.1b | CO2 2 to 20 | PARTLY | 2 to 30 within 2.5 AU (23 comets), median 12 +- 2 (HP22 Table 3). In the database at r_h at most 2 AU: 4 to 37 (N = 14, median 11). Hartley 2 about 20 ([R0047] as quoted in Coch15). 67P bulk 4.7 +- 1.4. Upper bound 20 is too low; values near 87 at 6 AU are outside the usable regime | HP22; Rub19 Table 2; Rob24 DB | READ / COMPUTED |
 | G1.1c | CH4 0.2 to 1.5 | CONFIRMED | 0.15 to 2.2 at r_h at most 2 AU (N = 12): C/2001 A2 LINEAR 0.15, 67P 0.34 (in situ), Hale-Bopp 1.22, 73P/Schwassmann-Wachmann 3 2.17; inter-quartile 0.36 to 1.08, median 0.95, geometric mean 0.68. (C/2010 G2 Hill 9 at 2.5 AU is an outlier.) The Les Houches table gives comets 0.2 to 1.2 | Rob24 DB (COMPUTED); Rub19; BM-slides | COMPUTED / READ |
 | G1.1d | C2H6 0.1 to 1.5 | CONFIRMED | 0.09 to 0.82 at r_h at most 2 AU (N = 17), median 0.39, geometric mean 0.37; 67P 0.29. Holmes 1.85 (2.5 AU) and Hill 3.8 (2.5 AU) are outliers. Slides: 0.4 to 1.2 | Rob24 DB (COMPUTED); Rub19; BM-slides | COMPUTED / READ |
 | G1.1e | NH3 0.2 to 1.5 | PARTLY | 0.125 to 0.9 (N = 14, r_h at most 2 AU), median 0.66; the lowest comet is 73P/Schwassmann-Wachmann 3 at 0.125, then Lulin 0.24. 67P bulk 0.67 +- 0.20 (the hemisphere values quoted from Le Roy are 0.06 to 0.15). Odin tentative detections 0.5 and 0.3. Upper bound 1.5 not reached in the database (slides: 0.6 to 1.8). Radio upper limits 0.13 to 0.74 (Hat05) | Rob24 DB (COMPUTED); Rub19; Odin07; Hat05; BM-slides | COMPUTED / READ |
-| G1.1f | HCN 0.05 to 0.5 | PARTLY | 0.03 to 0.36 at r_h at most 2 AU (N = 21), median 0.14, geometric mean 0.13; lowest 6P/d'Arrest 0.03, 19P/Borrelly 0.06; highest Hale-Bopp 0.36 (Holmes 0.54 after outburst at 2.5 AU). 67P 0.14 +- 0.04. Range is narrow (Crovisier 2009, via Coch15). Lower bound 0.05 too high by a factor 1.7 | Rob24 DB (COMPUTED); Rub19; Coch15 | COMPUTED / READ |
+| G1.1f | HCN 0.05 to 0.5 | PARTLY | 0.03 to 0.36 at r_h at most 2 AU (N = 21), median 0.14, geometric mean 0.13; lowest 6P/d'Arrest 0.03, 19P/Borrelly 0.06; highest Hale-Bopp 0.36 (Holmes 0.54 after outburst at 2.5 AU). 67P 0.14 +- 0.04. Range is narrow ([R0936], via Coch15). Lower bound 0.05 too high by a factor 1.7 | Rob24 DB (COMPUTED); Rub19; Coch15 | COMPUTED / READ |
 
 Added species for the weighted table T16 (not claims; same basis, r_h at most 2 AU, from the same database, geometric mean and 1-sigma scatter in dex):
 
@@ -61,17 +61,17 @@ All source values are for an optically thin coma and a stated solar activity; th
 
 | id | Claim | Verdict | Quiet Sun | Active Sun | Source | Label |
 |---|---|---|---|---|---|---|
-| G1.2a | H2O 8.0e4 | CONFIRMED (this is the quiet-Sun value) | 8.29e4 | 4.94e4 | Huebner and Mukherjee 2015 as coded in sbpy (`[8.294e4, 4.939e4] s`, ordered quiet, active); also Cochran and Schleicher 1993 5.2e4 "intermediate activity" in sbpy; Hea17 computed 1.13e5 (unshielded, factor 1.4 higher) | 2ND-HAND (sbpy), COMPUTED (Hea17) |
-| G1.2b | CO 1.5e6 | CONFIRMED (quiet Sun) | 1.5e6; dVB13 Table 2 beta0 = 6.5e-7 1/s from Crovisier 1994 gives 1.54e6 | not given | sbpy; dVB13 Table 2 | 2ND-HAND / READ |
+| G1.2a | H2O 8.0e4 | CONFIRMED (this is the quiet-Sun value) | 8.29e4 | 4.94e4 | [R2040] as coded in sbpy (`[8.294e4, 4.939e4] s`, ordered quiet, active); also [R0837] 5.2e4 "intermediate activity" in sbpy; Hea17 computed 1.13e5 (unshielded, factor 1.4 higher) | 2ND-HAND (sbpy), COMPUTED (Hea17) |
+| G1.2b | CO 1.5e6 | CONFIRMED (quiet Sun) | 1.5e6; dVB13 Table 2 beta0 = 6.5e-7 1/s from [R0934] gives 1.54e6 | not given | sbpy; dVB13 Table 2 | 2ND-HAND / READ |
 | G1.2c | CO2 5.0e5 | CONFIRMED (quiet Sun) | 4.95e5 (HM15), 5.0e5 (CE83) | 2.10e5 | sbpy. Hea17 computed 1.2e6 is 2.4 times longer; the CO2 to O(1D) channel alone is 1.6e-6 1/s (Rag20 Table 6), so 5e5 is the safer value | 2ND-HAND; COMPUTED |
 | G1.2d | CH4 1.2e5 | PARTLY | 1.2e5 appears in the 1976 table (Jac76 Table 1, from Samson cross sections) but no modern comet table was reached; Hea17 computed quiet-Sun total 1.9e5 (photodissociation 2.0e5, ionisation adds 7 percent) | active Sun about 1.7 to 2.4 times shorter (see below) | Jac76 (READ, OCR of exponent partly lost); Hea17 (COMPUTED) | READ / COMPUTED |
-| G1.2e | C2H6 1.0e5 | UNVERIFIABLE as stated | no 1 AU comet table found. Hea17 computed 1.45e5 (photodissociation 1.66e5, ionisation adds 13 percent). Tried: sbpy data (no C2H6), dVB13, Cro16, Odin07, Jac76 Table 1 (not listed), NTRS search; missing: Huebner et al. 1992 Table, Crovisier 1994 | | | COMPUTED |
-| G1.2f | NH3 2.5e4 | CONTRADICTED | 6.7e3 (Odin07, "6700 s at 1 AU"); 5.4e3 to 5.8e3 near solar minimum (Hat05); 7.0e3 to 7.7e3 (used in the Tegler paper); Hea17 computed 6.5e3. The 1976 table gives a value of order 2e3 (exponent garbled by OCR). Use 6.7e3 (range 5.4e3 to 7.7e3). Boss's value is about 3.7 times too long. Reconciliation with the atmosphere lane's 5.6e3 s (GEN.496, 6.5e3 to 5.6e3 range): their 5.6e3 comes from k = 1.8e-4 per s, the mean of quiet and active Sun (Huebner 1992 and HM15 as quoted by Drozdovskaya 2023); mine is the quiet Sun from Heays 2017 (rate 1.55e-4 per s from cross sections times the quiet solar field, 91.2 to 200 nm only, scale 37 700) and Biver 2007. Ratio 1.2, no disagreement in data; the HM15 quiet and active NH3 rates themselves were not read by either lane | | Odin07, Hat05, NTRS 19930010041, Hea17 | READ / COMPUTED |
-| G1.2g | HCN 7.0e4 | CONFIRMED (quiet Sun) | 6.7e4 (Crovisier 1994 via dVB13: beta0 = 1.5e-5 1/s). A search snippet puts the range at 3.2e4 to 7.7e4 over solar activity (Huebner 1992, not read). Hea17 computed 1.2e5 (lower rate) | likely 3.2e4 | dVB13 Table 2 | READ; SNIPPET for range |
+| G1.2e | C2H6 1.0e5 | UNVERIFIABLE as stated | no 1 AU comet table found. Hea17 computed 1.45e5 (photodissociation 1.66e5, ionisation adds 13 percent). Tried: sbpy data (no C2H6), dVB13, Cro16, Odin07, Jac76 Table 1 (not listed), NTRS search; missing: [R2041] [R0934] | | | COMPUTED |
+| G1.2f | NH3 2.5e4 | CONTRADICTED | 6.7e3 (Odin07, "6700 s at 1 AU"); 5.4e3 to 5.8e3 near solar minimum (Hat05); 7.0e3 to 7.7e3 (used in the Tegler paper); Hea17 computed 6.5e3. The 1976 table gives a value of order 2e3 (exponent garbled by OCR). Use 6.7e3 (range 5.4e3 to 7.7e3). Boss's value is about 3.7 times too long. Reconciliation with the atmosphere lane's 5.6e3 s (GEN.496, 6.5e3 to 5.6e3 range): their 5.6e3 comes from k = 1.8e-4 per s, the mean of quiet and active Sun ([R2041] and HM15 as quoted by [R1163]); mine is the quiet Sun from [R1873] (rate 1.55e-4 per s from cross sections times the quiet solar field, 91.2 to 200 nm only, scale 37 700) and [R0407]. Ratio 1.2, no disagreement in data; the HM15 quiet and active NH3 rates themselves were not read by either lane | | Odin07, Hat05, NTRS 19930010041, Hea17 | READ / COMPUTED |
+| G1.2g | HCN 7.0e4 | CONFIRMED (quiet Sun) | 6.7e4 ([R0934] via dVB13: beta0 = 1.5e-5 1/s). A search snippet puts the range at 3.2e4 to 7.7e4 over solar activity ([R2041], not read). Hea17 computed 1.2e5 (lower rate) | likely 3.2e4 | dVB13 Table 2 | READ; SNIPPET for range |
 
-Other species from the same sources (dVB13 Table 2, quiet Sun, 1 AU, from Crovisier 1994): CH3OH 1.3e-5 1/s (7.7e4 s), H2CO 2.0e-4 1/s (5.0e3 s; as a parent), HNC 1.9e-5, CS 2.5e-5 (parent), CN (Huebner 1992 via sbpy) 3.15e5 s quiet and 1.35e5 s active. Hea17 computed: H2CO 5.2e3 s, H2S 4.3e3 s, N2 2.2e6 s, CH3OH 1.2e5 s.
+Other species from the same sources (dVB13 Table 2, quiet Sun, 1 AU, from [R0934]): CH3OH 1.3e-5 1/s (7.7e4 s), H2CO 2.0e-4 1/s (5.0e3 s; as a parent), HNC 1.9e-5, CS 2.5e-5 (parent), CN ([R2041] via sbpy) 3.15e5 s quiet and 1.35e5 s active. Hea17 computed: H2CO 5.2e3 s, H2S 4.3e3 s, N2 2.2e6 s, CH3OH 1.2e5 s.
 
-Solar activity: sbpy's two-element arrays are (quiet Sun, active Sun); the active/quiet shortening is 1.68 for H2O, 2.35 for CO2, 2.33 for CN. Rag20 (quoting Huebner 1992) says rates vary by about a factor 2 between solar minimum and maximum. dVB13 and Biver 2024 note that rates for species absorbing at 130 to 200 nm vary little with activity; Lyman-alpha and the extreme UV drive the variation. Therefore: Boss's H2O, CO, CO2, HCN are all quiet-Sun values and must be labelled so.
+Solar activity: sbpy's two-element arrays are (quiet Sun, active Sun); the active/quiet shortening is 1.68 for H2O, 2.35 for CO2, 2.33 for CN. Rag20 (quoting [R2041]) says rates vary by about a factor 2 between solar minimum and maximum. dVB13 and [R0408] note that rates for species absorbing at 130 to 200 nm vary little with activity; Lyman-alpha and the extreme UV drive the variation. Therefore: Boss's H2O, CO, CO2, HCN are all quiet-Sun values and must be labelled so.
 
 ### G1.3 Photolysis products
 
@@ -96,7 +96,7 @@ Solar activity: sbpy's two-element arrays are (quiet Sun, active Sun); the activ
 | G1.4d | CH4 3.30 um (nu3) | CONFIRMED | nu3 asymmetric stretch "near 3.3 um" | Bel26 | READ |
 | G1.4e | C2H6 3.35 um (nu7) | PARTLY | The nu7 band lies in the 3.3 um region (NTRS 20110023457 title "nu7 Band at 3.3 Micrometers"); the 3.35 um head is not printed in any file read | NTRS 20110023457 | READ (3.3 um); 3.35 um SNIPPET |
 | G1.4f1 | NH3 1.15 mm sub-mm rotational | CONTRADICTED | The ground-state rotational line JK = 1_0 to 0_0 is at 572.498 GHz (0.524 mm), searched by Odin. The inversion lines (J, K = J, J = 1 to 4) are in the 18 to 26 GHz range (1.2 to 1.7 cm; 23.694 GHz for (1,1) is RECALLED); NH3 was detected at centimetre wavelengths with the Effelsberg 100-m telescope (Hale-Bopp). No NH3 line near 1.15 mm (261 GHz) exists in these sources | Odin07 (Sect. 2, 6); Hat05 abstract; Cro16 Sect. 3 | READ |
-| G1.4f2 | NH3 3.0 um | UNVERIFIABLE | iSHELL covers 2.8 to 5.3 um and detects NH3 (Faggi et al. 2018 abstract, SNIPPET); the band position was not read | | SNIPPET |
+| G1.4f2 | NH3 3.0 um | UNVERIFIABLE | iSHELL covers 2.8 to 5.3 um and detects NH3 ([R1312] abstract, SNIPPET); the band position was not read | | SNIPPET |
 | G1.4g | HCN 88.6 GHz (J = 1-0) | CONFIRMED | three hyperfine components of J = 1-0 at 88.6 GHz (IRAM) | Cro16 Fig. 3 | READ |
 | G1.4h | CN violet 388 nm | CONFIRMED | CN band at 3880 Angstrom | Coch15 Fig. 2 caption | READ |
 
@@ -114,7 +114,7 @@ Keep these on the species record (all PARAMETRISATION or table constants, not dr
 
 | Field | Source of the numbers | Note |
 |---|---|---|
-| `beta0_diss`, `beta0_ion` (1/s at 1 AU, quiet Sun, unshielded) | Hea17 Tables 18 and 19 times 37 700 (COMPUTED), cross-checked with HM15 via sbpy and with Crovisier 1994 via dVB13 | Values in the table in 2.2 |
+| `beta0_diss`, `beta0_ion` (1/s at 1 AU, quiet Sun, unshielded) | Hea17 Tables 18 and 19 times 37 700 (COMPUTED), cross-checked with HM15 via sbpy and with [R0934] via dVB13 | Values in the table in 2.2 |
 | `lifetime_1au_s` (quiet) and `activity_factor` (about 1.7 to 2.4 for the active Sun; PARAMETRISATION from HM15 and Rag20) | sbpy; Rag20 | H2O 1.68, CO2 2.35 |
 | `spectral_ratio_cool` and `spectral_ratio_hot` (rate for a 4000 K and a 10 000 K black body divided by the solar rate at equal 91.2 to 200 nm flux) | Hea17 Table 18 (COMPUTED) | See 2.2: the correction is species-specific and spans five orders of magnitude |
 | photolysis `branching` table | Hea17 Table 22 for H2O and NH3; Table 1 for the others | For C2H6 no source read |
@@ -158,7 +158,7 @@ Each species: log-normal in the ratio to water with the geometric mean and sigma
 | H2CO | 0.25 | 0.34 | 0.09 to 1.1 | 0.19 | 0.30 | COMPUTED |
 | H2S | 0.71 | 0.37 | 0.09 to 1.5 | 0.71 | 1.2 | COMPUTED |
 
-Limits of the database: it contains the comets that also have a measured nucleus size, mixes several instruments, and 67P enters with in situ data. The type split is Periodic (P: JFC and Halley type) against Long-period or Hyperbolic (C); it does not separate JFC from Halley type or dynamically new from old. Dello Russo 2016 itself was not read.
+Limits of the database: it contains the comets that also have a measured nucleus size, mixes several instruments, and 67P enters with in situ data. The type split is Periodic (P: JFC and Halley type) against Long-period or Hyperbolic (C); it does not separate JFC from Halley type or dynamically new from old. Dello [R1063] itself was not read.
 
 ### 2.4 Relations between species
 
@@ -175,12 +175,12 @@ The size relation is confounded: Oort-type comets are larger and have higher CO.
 
 | Statement | Number | Source | Label |
 |---|---|---|---|
-| Optical (daughter-species photometry and spectroscopy: A'Hearn 1995 85 comets, Langland-Shula and Smith 2011 130 comets, about 250 in total) | the majority are alike; 25 to 30 percent are different, mostly depleted in C2 and C3. Typical share quoted 75 to 91 percent and about 70 percent (Schleicher and Bair) | Coch15 Sect. 2.2; Eis19 | READ |
+| Optical (daughter-species photometry and spectroscopy: [R0049] 85 comets, [R2559] 130 comets, about 250 in total) | the majority are alike; 25 to 30 percent are different, mostly depleted in C2 and C3. Typical share quoted 75 to 91 percent and about 70 percent (Schleicher and Bair) | Coch15 Sect. 2.2; Eis19 | READ |
 | Number of optical classes | 7 (typical about 70 percent; strongly C2+C3 depleted; weakly C2+C3 depleted; C2 only; C3 only; NH only; CN-low) | Coch15 | READ |
 | Dynamical type of depleted comets | any type, "more common for Jupiter Family"; two thirds of depleted comets are JFC and one third long period; depleted fraction 37 percent of JFC against 18.5 percent of long-period | Coch15 | READ |
-| Infrared (primary parent volatiles, Mumma and Charnley 2011, Dello Russo 2016) | three groups: typical, organic-enriched, organic-severely-depleted; 8P/Tuttle is typical in the optical but peculiar in the IR | Coch15 Sect. 2.3 (Mumma and Charnley read second-hand) | 2ND-HAND |
-| Radio (Crovisier 2009, about 30 comets) | no evidence for the three IR categories; no JFC/other difference; wide spread for most species; HCN narrow | Coch15 | 2ND-HAND |
-| Dello Russo 2016 (30 comets, 8 volatiles) | JFCs depleted in volatiles relative to long-period (press summary only) | SNIPPET | SNIPPET |
+| Infrared (primary parent volatiles, [R3206], Dello [R1063]) | three groups: typical, organic-enriched, organic-severely-depleted; 8P/Tuttle is typical in the optical but peculiar in the IR | Coch15 Sect. 2.3 (Mumma and Charnley read second-hand) | 2ND-HAND |
+| Radio ([R0936], about 30 comets) | no evidence for the three IR categories; no JFC/other difference; wide spread for most species; HCN narrow | Coch15 | 2ND-HAND |
+| Dello [R1063] (30 comets, 8 volatiles) | JFCs depleted in volatiles relative to long-period (press summary only) | SNIPPET | SNIPPET |
 | Dynamical class against composition (G1 test, permutation on per-comet log ratios, r_h at most 2 AU) | share of variance explained by P against C: CO 0.28 (p = 0.035; N = 9 against 7), H2S 0.25 (p = 0.16), CO2 0.14 (p = 0.17), HCN 0.08, NH3 0.06, CH3OH 0.05, H2CO 0.05, C2H6 0.04, CH4 0.00 (all p above 0.2) | G1 script | COMPUTED |
 | CO against CO2 by family (HP22 Table 2) | JFC: 8 of 9 CO2-dominated; OCC: 5 CO2-dominated, 6 CO-dominated, 3 comparable; dynamically new Oort comets have more CO2 relative to CO than older ones | HP22 | READ |
 | A chemical taxonomy from formation location | 15 comets fall on a "trail" tracing the CO iceline at about 30 AU early to 12 AU later; proposed as an alternative taxonomy and a formation-time classification | Eis19 abstract | READ |
@@ -208,7 +208,7 @@ Constants of the species table (not per comet): `beta0_diss`, `beta0_ion`, quiet
 
 Draw composition first, then derive bulk density, as part D already recommends. For the hyper-volatile block I recommend a three-step draw that keeps the observed anticorrelation and the 18 percent carbon budget:
 
-1. S = (CO + CO2)/H2O: log-normal with median 18 percent and sigma 0.2 dex (GEN.629: the scatter among single comets from the Robinson 2024 database, 0.197 dex for 9 comets within 2.5 AU and 0.138 within 2.0 AU, the widest kept; the first draft took the +-4 of 18 in HP22, 0.1 dex, which is the median's uncertainty and not the comets' spread).
+1. S = (CO + CO2)/H2O: log-normal with median 18 percent and sigma 0.2 dex (GEN.629: the scatter among single comets from the [R3782] database, 0.197 dex for 9 comets within 2.5 AU and 0.138 within 2.0 AU, the widest kept; the first draft took the +-4 of 18 in HP22, 0.1 dex, which is the median's uncertainty and not the comets' spread).
 2. f = CO/(CO + CO2): logit-normal with class median 0.08 for JFC and 0.5 for Oort type (from P and C medians 1.2/(1.2 + 14.5) and 8.4/(8.4 + 8), computed from different comet subsets, so rough), logit sigma about 1.5 so that 0.01 to 0.9 is covered (PARAMETRISATION).
 3. All other species independent log-normals from 2.3.
 
@@ -228,7 +228,7 @@ A classification by CO/H2O and CH4/H2O alone is not supported as a taxonomy by w
 | Target | Value | Use |
 |---|---|---|
 | 67P bulk ratios (CO2 4.7, CO 3.1, CH4 0.34, C2H6 0.29, NH3 0.67, HCN 0.14, CH3OH 0.21, H2CO 0.32, H2S 1.10, N2 0.089 percent of H2O) | Rub19 Table 2 (READ) | the draw should be able to reach each value inside its 2-sigma |
-| 103P/Hartley 2: CO 0.3 (0.15 to 0.45), CO2 about 20 | Dello Russo 2016, A'Hearn 2011 | CO-poor, CO2-rich corner |
+| 103P/Hartley 2: CO 0.3 (0.15 to 0.45), CO2 about 20 | Dello [R0047, R1063] | CO-poor, CO2-rich corner |
 | Hale-Bopp: CO 26, CH4 1.22, HCN 0.36, H2S 1.5 | Rob24 DB | CO-rich corner |
 | Lifetimes | table G1.2 | species constants |
 
@@ -241,12 +241,12 @@ A classification by CO/H2O and CH4/H2O alone is not supported as a taxonomy by w
 
 ## Still unreachable (Boss must research)
 
-1. Dello Russo et al. 2016, Icarus 278, 301 (doi 10.1016/j.icarus.2016.05.039): the tier definitions, number of classes and fractions of the IR taxonomy. All of its per-comet values are in the Rob24 database but not the classes.
-2. Mumma and Charnley 2011, ARA&A 49, 471: the three-group IR taxonomy and abundance ranges for about 20 species (only second-hand here).
-3. Bockelee-Morvan and Biver 2017, Phil. Trans. R. Soc. A 375, 20160252: the range table for 28 molecules; HAL record obspm-02268099 shows a link only to the refused publisher PDF.
-4. Huebner and Mukherjee 2015 (PSS 106, 11) and Huebner et al. 1992 (Ap&SS 195, 1): quiet and active photo rates for CH4, C2H6, NH3, H2S, N2 and the full branching tables; Crovisier 1994 (JGR 99, 3777). The PHIDRATES site (phidrates.space.swri.edu) resets the connection.
-5. C2H6 photolysis branching at Lyman-alpha and the NH3 3.0 um band position in a comet paper (Faggi et al. 2018 AJ 156, 68).
-6. Biver 2022 (the note's reference): no single paper was identified; Biver et al. 2024 (arXiv:2408.10759) is read for HNCO, HCOOH, CO below 2 percent and H2S 0.15 percent in C/2021 A1 and C/2022 E3 only.
+1. Dello [R1063]: the tier definitions, number of classes and fractions of the IR taxonomy. All of its per-comet values are in the Rob24 database but not the classes.
+2. [R3206]: the three-group IR taxonomy and abundance ranges for about 20 species (only second-hand here).
+3. [R0435], Phil. Trans. R. Soc. A 375, 20160252: the range table for 28 molecules; HAL record obspm-02268099 shows a link only to the refused publisher PDF.
+4. [R2040] (PSS 106, 11) and [R2041] (Ap&SS 195, 1): quiet and active photo rates for CH4, C2H6, NH3, H2S, N2 and the full branching tables; [R0934]. The PHIDRATES site (phidrates.space.swri.edu) resets the connection.
+5. C2H6 photolysis branching at Lyman-alpha and the NH3 3.0 um band position in a comet paper [R1312].
+6. [R0410] (the note's reference): no single paper was identified; [R0408] is read for HNCO, HCOOH, CO below 2 percent and H2S 0.15 percent in C/2021 A1 and C/2022 E3 only.
 7. Solar System JWST comet papers (for example abundance tables for 12P/Pons-Brooks or C/2017 K2): searches returned only 3I/ATLAS papers and ground-based C/2017 K2.
 
 ## Counts

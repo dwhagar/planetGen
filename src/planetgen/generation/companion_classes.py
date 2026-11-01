@@ -11,7 +11,7 @@ log mass, held flat past the ends. Its share between three separation ranges is 
 
 - the close range, `CLOSE_RANGE_AU` (0.05 to 0.25 AU), where the pair is a P-type pair (`generation.binary`);
 - the inner range, 0.25 AU to `INNER_LIMIT_AU` (10 AU), an S-type pair that the metallicity trend of GEN.103 reaches
-  (Moe, Kratter and Badenes 2019 measured it for periods under 10^4 days, which is 10 AU for a pair of two solar
+  ([R3109] measured it for periods under 10^4 days, which is 10 AU for a pair of two solar
   masses: the trend belongs to the close and inner ranges together);
 - the outer range, from `INNER_LIMIT_AU` to the widest axis the place keeps (GEN.103), where the trend does not reach.
 
@@ -37,7 +37,7 @@ CLOSE_RANGE_AU = (0.05, 0.25)
 """tuple: The separations of a close (P-type) pair, `generation.binary.BinaryStarProxy`."""
 
 INNER_LIMIT_AU = 10.0
-"""float: Where the metallicity trend stops (Moe, Kratter and Badenes 2019: periods under 10^4 days, 10 AU)."""
+"""float: Where the metallicity trend stops ([R3109]: periods under 10^4 days, 10 AU)."""
 
 _GRID_POINTS = 801
 """int: Points of the grid over log P that the distribution is integrated and inverted on."""
@@ -105,7 +105,7 @@ class CompanionOdds:
             among the wide pair's separations (1 with no [Fe/H] or at the line's zero).
         wide_share (float): The wide kinds' share of the companions before the trend.
         within_10_au (float): The chance of a companion inside `INNER_LIMIT_AU` (close or wide), what the trend of
-            Moe, Kratter and Badenes 2019 measured.
+            [R3109] measured.
     """
     close: float
     wide: float

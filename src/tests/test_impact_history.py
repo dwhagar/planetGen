@@ -15,11 +15,11 @@ VENUS = dict(mass_kg=4.87e24, radius_m=6.052e6, temperature_k=2500.0, orbital_sp
 MARS = dict(mass_kg=6.39e23, radius_m=3.39e6, temperature_k=223.0, orbital_speed_ms=24070.0)
 M_EARTH = 5.97e24
 
-# the surface limits of Sakuraba et al. 2019 section 2.3 (pascals)
+# the surface limits of [R3872] section 2.3 (pascals)
 EARTH_CAPS = {"H2O": 1.7e-2 * 1e5, "CO2": 1.0 * 1e5}
 MARS_CAPS = {"H2O": 3.9e-6 * 1e5, "CO2": 3.0 * 1e5}
 
-EARTH_N2_AIR_KG = 3.9e18          # Marty 2012 (read, surface-pressure-supply-law.md)
+EARTH_N2_AIR_KG = 3.9e18          # [R2923] (read, surface-pressure-supply-law.md)
 EARTH_OCEAN_KG = 1.4e21
 VENUS_N2_AIR_KG = 1.08e19         # 4.77e20 kg of air, 3.5 percent N2 by volume
 MARS_N2_AIR_KG = 4.4e14           # 2.5e16 kg of air, 2.7 percent N2 by volume
@@ -36,7 +36,7 @@ def test_the_mean_late_accreted_mass_follows_the_four_means_of_brasser_et_al_201
     for name, (mass, percent, sd) in table.items():
         assert abs(ih.late_accreted_percent_mean(mass) - percent) < sd, name
     assert ih.late_accreted_percent_mean(1.0) == pytest.approx(0.7)
-    assert 0.5 <= ih.late_accreted_percent_mean(1.0) <= 0.8, "Walker 2009: the highly siderophile elements ask 0.5 to 0.8 percent"
+    assert 0.5 <= ih.late_accreted_percent_mean(1.0) <= 0.8, "[R4598]: the highly siderophile elements ask 0.5 to 0.8 percent"
 
 
 def test_the_drawn_fraction_is_recorded_scattered_and_capped():
@@ -49,7 +49,7 @@ def test_the_drawn_fraction_is_recorded_scattered_and_capped():
 
 
 def test_the_impact_speed_is_the_published_one_for_the_inner_planets():
-    """Brasser et al. 2016 Table 1: Venus 24.3, Earth 21.1, Mars 13.4 km/s (0.6 of the orbital speed for the approach)."""
+    """[R0518: Table 1]: Venus 24.3, Earth 21.1, Mars 13.4 km/s (0.6 of the orbital speed for the approach)."""
     for planet, published in ((VENUS, 24.3), (EARTH, 21.1), (MARS, 13.4)):
         speed = ih.impact_speed_ms(planet["mass_kg"], planet["radius_m"], planet["orbital_speed_ms"]) / 1e3
         assert speed == pytest.approx(published, rel=0.16)
@@ -98,7 +98,7 @@ def test_an_existing_air_is_eroded_toward_what_the_impactors_replace():
 
 
 def test_the_earth_twin_keeps_an_n2_air_that_the_observed_one_lies_inside_the_bracket_of_the_veneer_scale():
-    """Sakuraba et al. 2019 and this module: the veneer scale 0.1 (enstatite-like) to 1 (carbonaceous) brackets the Earth's N2."""
+    """[R3872] and this module: the veneer scale 0.1 (enstatite-like) to 1 (carbonaceous) brackets the Earth's N2."""
     low, high = (_balance(EARTH, scale, EARTH_CAPS)["air_kg"]["N2"] for scale in (0.1, 1.0))
     assert low < EARTH_N2_AIR_KG < high
     assert high / low > 5.0
@@ -117,7 +117,7 @@ def test_venus_with_no_ocean_and_no_carbonate_sink_holds_the_whole_delivery_that
 
 
 def test_mars_would_hold_far_more_n2_than_it_has_so_the_thin_air_is_the_escape_of_the_retention_rows_not_the_impacts():
-    """The check Sakuraba et al. 2019 report: impacts alone leave Mars with a larger share of N2 than Venus or the Earth."""
+    """The check [R3872] report: impacts alone leave Mars with a larger share of N2 than Venus or the Earth."""
     mars = _balance(MARS, 0.1, MARS_CAPS)["air_kg"]["N2"]
     assert mars > 100.0 * MARS_N2_AIR_KG
     assert mars / MARS["mass_kg"] > _balance(EARTH, 0.1, EARTH_CAPS)["air_kg"]["N2"] / EARTH["mass_kg"]

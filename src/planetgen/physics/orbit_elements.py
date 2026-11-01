@@ -10,7 +10,7 @@ and apoapsis), the room the neighbours need (apoapsis against periapsis) and a b
 This module draws the elements and holds the few functions of them the rest of the generator uses.
 
 **Planets.** The eccentricity of a planet of a system with two or more planets follows the positive half of a zero-mean Gaussian of
-dispersion 0.083 (Van Eylen et al. 2019, AJ 157, 61, the Kepler systems with several transiting planets: 0.083 +0.015 -0.020). A
+dispersion 0.083 ([R1307], the Kepler systems with several transiting planets: 0.083 +0.015 -0.020). A
 system with one planet is a mixture of that law and a broader one: 0.76 of single planets draw from a Rayleigh law peaking at 0.26,
 the rest from the multi-planet law (the same paper's mixture model: "a fraction of 0.76 +0.21 -0.12 ... a Rayleigh distribution that
 peaks at 0.26 +0.04 -0.06"). Both laws are read from the paper's abstract (source tier T1, tweak L0), but they describe small
@@ -22,7 +22,7 @@ planets closest in are circularised twice over, a small double count (the fit ha
 
 **Inclination.** A planet's plane lies above or below the system's reference plane (the star's equator) by an angle that follows a
 Rayleigh law. The mutual inclination of the planets of the Kepler multiples is Rayleigh with a dispersion of 1.0 to 2.2 degrees
-(Fabrycky et al. 2014, ApJ 790, 146); the mutual angle of two planets drawn independently from one law is `sqrt(2)` times the
+[R1311]; the mutual angle of two planets drawn independently from one law is `sqrt(2)` times the
 dispersion of that law, so the planet-to-plane dispersion is the mutual dispersion over `sqrt(2)`, here the middle of the range
 (source tier T2, tweak L0: the paper was read in an earlier session, not again).
 
@@ -34,7 +34,7 @@ stable part of its parent's Hill sphere (`MOON_PROGRADE_STABLE_HILL_FRACTION`, t
 
 **Tides.** Raised in the body by what it orbits, they circularise the orbit of a planet or a captured moon (a regular moon's forced
 eccentricity is renewed by its neighbours and stays, so the tide it raises keeps heating it, GEN.737) on `circularisation_time_yr`,
-`tau_e = (2 / 21) (Q / k2) (m / M) (a / R)^5 / n` (Goldreich and Soter 1966, the standard result for a synchronously rotating body;
+`tau_e = (2 / 21) (Q / k2) (m / M) (a / R)^5 / n` ([R1612], the standard result for a synchronously rotating body;
 `e` falls as `exp(-t / tau_e)`). Q and k2 are the body's own (`interior_heat.tidal_response`, GEN.731 and GEN.955: the Andrade k2 and Q of its mass, radius and
 mantle temperature for rock, the icy and the gas-giant values for the rest), the same that despin it (`tidal_spin`).
 
@@ -54,18 +54,18 @@ from planetgen.physics import constants, interior_heat, tidal_rheology
 from planetgen.util import draw
 
 MULTI_SIGMA = 0.083
-"""float: Dispersion of the half-Gaussian eccentricity law of a system with several planets (Van Eylen et al. 2019, abstract; T1, L0)."""
+"""float: Dispersion of the half-Gaussian eccentricity law of a system with several planets ([R1307], abstract; T1, L0)."""
 SINGLE_MODERATE_FRACTION = 0.76
-"""float: The share of single planets that draw from the broader Rayleigh law (Van Eylen et al. 2019, abstract; T1, L0)."""
+"""float: The share of single planets that draw from the broader Rayleigh law ([R1307], abstract; T1, L0)."""
 SINGLE_RAYLEIGH_MODE = 0.26
-"""float: Where the broader Rayleigh law peaks (its dispersion; Van Eylen et al. 2019, abstract; T1, L0)."""
+"""float: Where the broader Rayleigh law peaks (its dispersion; [R1307], abstract; T1, L0)."""
 MAX_ECCENTRICITY = 0.9
 """float: No planet or moon is drawn above this (a stand-in: the laws put almost nothing there; the Roche cut comes first for a close orbit; T4, L0)."""
 ROCHE_COEFFICIENT = 2.44
 """float: The fluid Roche limit is this times the primary's radius times the cube root of the density ratio (Chandrasekhar 1969; T5, L0)."""
 
 MUTUAL_INCLINATION_SIGMA_DEG = 1.6
-"""float: Rayleigh dispersion of the mutual inclination of two planets, degrees: the middle of the 1.0 to 2.2 of Fabrycky et al. 2014 (T2, L0)."""
+"""float: Rayleigh dispersion of the mutual inclination of two planets, degrees: the middle of the 1.0 to 2.2 of [R1311] (T2, L0)."""
 PLANET_INCLINATION_SIGMA_DEG = MUTUAL_INCLINATION_SIGMA_DEG / math.sqrt(2.0)
 """float: Rayleigh dispersion of a planet's inclination to the system's reference plane, degrees."""
 
@@ -194,7 +194,7 @@ def max_moon_eccentricity(semi_major_axis_au, hill_radius_au):
 def circularisation_time_yr(body, primary_mass_kg, semi_major_axis_au):
     """
     How long the tide raised in `body` by the body it orbits takes to cut its eccentricity by a factor of e, years:
-    `(2 / 21) (Q / k2) (m / M) (a / R)^5 / n` (Goldreich and Soter 1966). `inf` for a body with no size or mass.
+    `(2 / 21) (Q / k2) (m / M) (a / R)^5 / n` [R1612]. `inf` for a body with no size or mass.
     """
     if not body.mass or not body.radius or not primary_mass_kg:
         return math.inf

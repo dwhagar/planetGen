@@ -1,7 +1,7 @@
 # tests/test_datasets_catalogue_additions.py
 
 """The three datasets that setup now downloads for the sourcing chain (GEN.297, GEN.747, GEN.936 and GEN.948): the Harris globular
-cluster catalog, the NOAA solar proton events and the Baraffe 2015 isochrones. The parsers and the readers run on small fixtures
+cluster catalog, the NOAA solar proton events and the [R0254] isochrones. The parsers and the readers run on small fixtures
 built offline (`tests/datasets_support.py`); the real files are checked only on a machine that has fetched them."""
 
 import datetime

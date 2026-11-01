@@ -10,7 +10,7 @@ have not yet taken and what they cannot take.
 
 * **Sulfate.** Oxidised sulfur (SO2, SO3) is taken by calcium as anhydrite or gypsum, CaSO4. With liquid water the sulfur dioxide
   is scavenged by cloud and rain and oxidised to sulfate within days (the Earth's tropospheric lifetime is one to a few days);
-  on a dry surface the gas reacts with the calcium-bearing rock, the sulfation of calcite and silicates that Fegley and Prinn (1989)
+  on a dry surface the gas reacts with the calcium-bearing rock, the sulfation of calcite and silicates that [R1343]
   put at about two million years for the SO2 of Venus.
 * **Sulfide.** Reduced sulfur (H2S, S2, COS) is taken by iron as pyrite or troilite, FeS2 and FeS, on the same two lifetimes.
 * **The crust that holds them.** Calcium and iron are supplied by the crust the same volcanism built: the mass of crust is the
@@ -70,7 +70,7 @@ WET_LIFETIME_DAYS = (0.5, 7.0, "log")
 SO2 and H2S live one to a few days, the sulfate aerosol up to a week (read from memory, not re-checked: tier 3, tweak level 0)."""
 
 DRY_LIFETIME_YEARS = (5.0e5, 5.0e6, "log")
-"""tuple: The lifetime of atmospheric SO2 against sulfation of the surface rock when there is no liquid water, years: Fegley and Prinn (1989)
+"""tuple: The lifetime of atmospheric SO2 against sulfation of the surface rock when there is no liquid water, years: [R1343]
 for Venus give about 1.9 million years, here a factor of about three either side (second-hand, not opened: tier 3, tweak level 0)."""
 
 EARTH_MANTLE_KG = 4.0e24
@@ -84,11 +84,11 @@ CRUST_PER_PROCESSED_MANTLE = EARTH_CRUST_KG / (EARTH_MANTLE_KG * THETA_EARTH)
 `THETA_EARTH` mantle masses (a single calibration point: tier 6, tweak level 0)."""
 
 CRUST_CALCIUM_WT = 0.085
-"""float: The calcium mass fraction of the crust the volcanism builds: the basalt of mid-ocean ridges, 11.9 wt% CaO (White and Klein 2014, read
+"""float: The calcium mass fraction of the crust the volcanism builds: the basalt of mid-ocean ridges, 11.9 wt% CaO ([R4687], read
 from memory, not re-checked: tier 3, tweak level 0)."""
 
 CRUST_IRON_WT = 0.074
-"""float: The iron mass fraction of the crust the volcanism builds: the same basalt, 9.5 wt% FeO (White and Klein 2014, from memory: tier 3)."""
+"""float: The iron mass fraction of the crust the volcanism builds: the same basalt, 9.5 wt% FeO ([R4687], from memory: tier 3)."""
 
 
 @dataclass(frozen=True)

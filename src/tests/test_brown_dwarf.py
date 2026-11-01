@@ -1,11 +1,11 @@
 # tests/test_brown_dwarf.py
 
 """GEN.252, GEN.549: a brown dwarf as a star: its mass, how bright and hot it is at an age (the cooling track of Baraffe
-et al. 2015, continued at Burrows et al. 2001's old-age exponent), the L, T or Y type that temperature makes
-(Kirkpatrick et al. 2021, Table 13), and where those reach a page (a free-floating brown dwarf, a brown dwarf member of a
+et al. 2015, continued at [R0606]'s old-age exponent), the L, T or Y type that temperature makes
+([R2374: Table 13]), and where those reach a page (a free-floating brown dwarf, a brown dwarf member of a
 multi-star tree).
 
-The 20 pc census's densities (Kirkpatrick et al. 2021, Table 15) are test targets that show the cooling laws give a
+The 20 pc census's densities ([R2374: Table 15]) are test targets that show the cooling laws give a
 plausible spread of temperatures. None of them is an input of the generator."""
 
 
@@ -44,7 +44,7 @@ def test_the_mass_function_is_the_censuss_power_law():
 
 
 def test_the_track_gives_back_the_models_values_at_their_masses_and_ages():
-    """Baraffe et al. 2015's tabulated points: `(mass, age Gy, Teff K, radius Rsun)`."""
+    """[R0254]'s tabulated points: `(mass, age Gy, Teff K, radius Rsun)`."""
     for mass, age, temperature, radius in ((0.07, 10.0, 1626, 0.09), (0.05, 0.3, 2063, 0.109), (0.08, 3.0, 2343, 0.099),
                                            (0.04, 0.1, 2311, 0.13), (0.06, 1.0, 1584, 0.094)):
         assert brown_dwarf.effective_temperature_k(mass, age) == pytest.approx(temperature)
@@ -61,7 +61,7 @@ def test_the_temperature_falls_with_age_and_grows_with_mass():
 
 
 def test_a_track_that_ends_before_10_gy_cools_at_burrows_exponent_and_one_that_reaches_it_holds():
-    """Burrows et al. 2001, eq. 2: `Teff` falls as `t^-0.32` for an old brown dwarf. The 0.05 solar mass row ends at 0.625
+    """[R0606], eq. 2: `Teff` falls as `t^-0.32` for an old brown dwarf. The 0.05 solar mass row ends at 0.625
     Gy; the 0.075 row reaches 10 Gy and holds the hydrogen-burning plateau."""
     assert brown_dwarf.effective_temperature_k(0.05, 5.0) == pytest.approx(1555.0 * (5.0 / 0.625) ** -0.32)
     assert brown_dwarf.effective_temperature_k(0.075, 13.0) == pytest.approx(2037.0)
@@ -140,7 +140,7 @@ def test_the_type_is_drawn_about_the_mean_of_the_map_and_stays_with_the_temperat
 
 
 def test_dwarfs_of_one_temperature_spread_over_types_by_the_maps_scatter():
-    """Kirkpatrick et al. 2021: 134 K among L dwarfs, 79 K among T and Y. At 1600 K (L5) the types spread over about
+    """[R2374]: 134 K among L dwarfs, 79 K among T and Y. At 1600 K (L5) the types spread over about
     134 / 100 K per subtype, a few subtypes; the flat L/T transition spreads them over many more."""
     def spread(center):
         numbers = [brown_dwarf_types.drawn_number(center, draw.Stream(f"spread:{center}:{k}"))[0] for k in range(2000)]

@@ -93,8 +93,8 @@ listed here.
 | 3 | Astrodynamics, first guess | thresholds `alpha > 0.15`, `abs(alpha) <= 0.15` | `alpha` is 1/length, so 0.15 depends on the unit (AU or metres). Use the dimensionless `alpha r0` or e. A better start for every case is the real root of `((1 - alpha r0)/6) chi^3 + r0 chi = sqrt(mu) dt` (Cardano): 4 Laguerre iterations for ellipses, 3 to 8 for hyperbolas [C, research script]. It divides by zero for an exactly circular start at r0 = a, so guard `1 - alpha r0 == 0` |
 | 4 | Astrodynamics, hyperbolic first guess | missing `sign(dt)` | Already corrected in orbital-updates.md 10.6 |
 | 5 | Astrodynamics and Full Algorithm, local Hill radius | `dist * (m / 3M)^(1/3)` ("mutual Hill radius") | Against the exact L1 distance of the restricted three-body problem [C]: Earth +0.3%, Jupiter +2.4%, Moon/Earth +6%, m/M = 0.1 +14%, equal masses +39%. With `(m / (3 (M + m)))^(1/3)` the equal-mass error is +10%. Use `a (1 - e) (m / (3 (M + m)))^(1/3)` (pericentre side), not the instantaneous distance. For a star in the galaxy use the tidal radius (section 6.1) |
-| 6 | Full Algorithm, `CheckPlanetaryHillCrossings` | negative two-body energy inside the Hill sphere means a captured moon | Necessary, not sufficient. Satellites stay stable only out to roughly 0.5 R_H (prograde) and 0.9 R_H (retrograde) at e = 0, and a three-body capture is temporary without a dissipative event [R: Hamilton and Burns 1991; Domingos, Winter and Yokoyama 2006]. Use `mu = G (m1 + m2)` and a stability fraction as a setting. Roche test placement is in the collisions document |
-| 7 | Full Algorithm, Astrodynamics | velocity Verlet is "symplectic"; "energy-conserving 4th-order Hermite or Yoshida symplectic" | Verlet is symplectic only for a fixed step and a smooth force. Measured (Kepler, e = 0.5) [C, research script]: step P/50 gives a bounded energy error of 4.4e-2 over 2,000 orbits (no drift); step `0.03 r^1.5` gives 1.7e-3 after 200 orbits and 2.2e-2 after 2,000 (secular drift). A top-N force list that changes membership is a discontinuous force and breaks it further. Hermite is not symplectic [R: Makino and Aarseth 1992]; Yoshida's composition is, for fixed steps only. Verlet on a circular orbit goes unstable above a step of about P/pi (dE/E = 1.1 at P/4, 11.7 at P) |
+| 6 | Full Algorithm, `CheckPlanetaryHillCrossings` | negative two-body energy inside the Hill sphere means a captured moon | Necessary, not sufficient. Satellites stay stable only out to roughly 0.5 R_H (prograde) and 0.9 R_H (retrograde) at e = 0, and a three-body capture is temporary without a dissipative event [R: [R1138, R1771]]. Use `mu = G (m1 + m2)` and a stability fraction as a setting. Roche test placement is in the collisions document |
+| 7 | Full Algorithm, Astrodynamics | velocity Verlet is "symplectic"; "energy-conserving 4th-order Hermite or Yoshida symplectic" | Verlet is symplectic only for a fixed step and a smooth force. Measured (Kepler, e = 0.5) [C, research script]: step P/50 gives a bounded energy error of 4.4e-2 over 2,000 orbits (no drift); step `0.03 r^1.5` gives 1.7e-3 after 200 orbits and 2.2e-2 after 2,000 (secular drift). A top-N force list that changes membership is a discontinuous force and breaks it further. Hermite is not symplectic [R: [R2825]]; Yoshida's composition is, for fixed steps only. Verlet on a circular orbit goes unstable above a step of about P/pi (dE/E = 1.1 at P/4, 11.7 at P) |
 | 8 | Astrodynamics, macro step | 1-year step, "Phase A" Verlet for the star in the galaxy | Superseded by real time. Verlet is also a poor galactic integrator: after 1 Gyr the position error is 0.18 pc (0.1 Myr step), 4.6 pc (0.5 Myr), 18 pc (1 Myr), 74 pc (2 Myr). `DOP853` at rtol 1e-13 needs 5,270 evaluations for 1 Gyr (energy error 3e-14) [C, research script] |
 | 9 | Astrodynamics and Full Algorithm, softening | Plummer eps = 1 pc for all point masses | The pull is reduced by `(1 + eps^2 / r^2)^(-3/2)`: 15% less at 3 pc, 46% less at 1.4 pc, 1.5% less at 10 pc [C]. That removes the region GEN.109 cares about. Hernquist, Miyamoto-Nagai and NFW are already finite at the centre. Use eps = 1 pc for the central black hole only; between stars use none (or 1e-3 to 1e-2 pc) |
 | 10 | Update Algorithms, worst-case example | `Delta x_min = 0.01 pc = 3.086e14 m`, `a_min = 0.62 m/s^2` | Boss said 0.01 mpc = 3.086e11 m, 1,000 times smaller. The "0.18 AU" cell near the black hole (and 4.3e19 cells, 1 ZB) belongs to `a_min` of about 1e-6 m/s^2, not 0.62; with 0.62 the resolution is 1.7e16 m (0.55 pc) [C] |
@@ -105,9 +105,9 @@ listed here.
 | 15 | Collision document, Full Algorithm, Astrodynamics | straight-line sweep, discriminant form, `R_eff` as contact, 2.44 for every body, candidate set of 10 | See [collisions-and-mergers.md](collisions-and-mergers.md) sections 2.1 to 2.4: the discriminant form is wrong for 19% to 50% of geometries at long steps, `R_eff` is a capture cross-section, 2.44 is for fluid bodies only, partners come from a mass-blind distance query |
 | 16 | Kinetics, YORP | prose: obliquity driven "toward +-90 degrees"; procedure: near 10 or 170 degrees; conclusion: poles "perpendicular to orbital planes" | The document disagrees with itself. The usual statement is YORP toward 0 and 180 degrees, some toward 90 [R: Vokrouhlicky et al., Asteroids IV, 2015]; the 10 and 170 degree procedure matches it and orbital-updates.md section 6 follows it |
 | 17 | Kinetics, small-body period | text `LogNormal(mu = 2.1, sigma = 0.65)` hours; table `LogNormal(13 h, 0.65)` | Median e^2.1 = 8.2 h against 13 h [C]. Pick one and make it a setting |
-| 18 | Kinetics, gyrochronology | constants `n = 0.55, b = 0.31, c = 0.495, a = 0.40` credited to Barnes (2007) | They look like the Mamajek and Hillenbrand (2008) fit (0.407, 0.325, 0.495, 0.566) [R]. With those, a Sun-age star (4,600 Myr, B-V 0.65) has P = 26.3 d, not the document's 25.4 d [C] |
-| 19 | Kinetics, tidal lock | worked example `tau_lock ~ 1.2 Myr`, `P_orb = 2.1 d` at 0.03 AU | With the document's formula, Q = 100, k2 = 0.3, a one-day initial spin and I = 0.33 M R^2, tau is about 80 yr, and P_orb at 0.03 AU round 1 Msun is 1.90 d [C]; "locked" holds, the numbers do not reproduce. Gladman et al. (1996) have `omega a^6 I Q / (3 G m_p^2 k2 R^5)`, so 4/9 differs by a convention-dependent factor [R] |
-| 20 | Kinetics, citations | merger-remnant spin 0.69 cited to Gladman et al. 1996 | A planet-tides paper and a tidal-synchronisation paper cannot support a black hole spin; Lousto and Zlochower (2012), also listed, is the fitting source. The list was not checked against the papers |
+| 18 | Kinetics, gyrochronology | constants `n = 0.55, b = 0.31, c = 0.495, a = 0.40` credited to [R1429] | They look like the [R2846] fit (0.407, 0.325, 0.495, 0.566) [R]. With those, a Sun-age star (4,600 Myr, B-V 0.65) has P = 26.3 d, not the document's 25.4 d [C] |
+| 19 | Kinetics, tidal lock | worked example `tau_lock ~ 1.2 Myr`, `P_orb = 2.1 d` at 0.03 AU | With the document's formula, Q = 100, k2 = 0.3, a one-day initial spin and I = 0.33 M R^2, tau is about 80 yr, and P_orb at 0.03 AU round 1 Msun is 1.90 d [C]; "locked" holds, the numbers do not reproduce. [R1584] have `omega a^6 I Q / (3 G m_p^2 k2 R^5)`, so 4/9 differs by a convention-dependent factor [R] |
+| 20 | Kinetics, citations | merger-remnant spin 0.69 cited to [R1584] | A planet-tides paper and a tidal-synchronisation paper cannot support a black hole spin; [R2753], also listed, is the fitting source. The list was not checked against the papers |
 | 21 | Foundations, Wilkinson matrix | "well-conditioned ... `kappa_inf(W_n) ~ n 2^(n-1)` is modest" | Self-contradictory: `kappa_inf(W_n) = n` [C]. Growth 2^63 and the 1.31e5 backward error figure are right |
 | 22 | Foundations, summary table | "Reliability Bound Threshold" cells for Lanczos, tridiagonal QR and bidiagonal SVD end mid-sentence | Truncated in the source; nothing to carry |
 
@@ -291,7 +291,7 @@ A star at 220 km/s moves 0.127 AU in a day, 46 AU in a year, 0.0225 pc (0.56% of
 a sector) in 100 years and 225 pc in 1 Myr.
 
 **Time to leave a 4 pc sector** (straight line from a uniform start in a 4 pc
-cube, Gaussian velocities; dispersions from Bensby et al. 2003 as recalled [R]:
+cube, Gaussian velocities; dispersions from [R0347] as recalled [R]:
 thin disk (35, 20, 16) km/s, thick (67, 38, 35), halo (160, 90, 90)) [C, research
 script `thresholds.py`]:
 
@@ -613,12 +613,12 @@ orbital-updates.md section 6 unchanged apart from these choices:
 reruns named in the evidence paragraph at the top.
 
 [R] items to verify once paper access is allowed: the velocity dispersions
-(Bensby et al. 2003); local stellar density 0.1 pc^-3 (RECONS); the Jacobi radius
-formula (Binney and Tremaine 2008); satellite stability limits (Hamilton and Burns
-1991; Domingos, Winter and Yokoyama 2006); YORP obliquity behaviour (Asteroids IV);
-the tidal-locking coefficient (Gladman et al. 1996); Hermite not symplectic
-(Makino and Aarseth 1992); that poliastro was archived;
-the REBOUND integrator papers (Rein and Liu 2012; Rein and Tamayo 2015; Rein and), implemented
+[R0347]; local stellar density 0.1 pc^-3 (RECONS); the Jacobi radius
+formula [R0398, R0399]; satellite stability limits (Hamilton and Burns
+1991; [R1138]); YORP obliquity behaviour (Asteroids IV);
+the tidal-locking coefficient [R1584]; Hermite not symplectic
+[R2825]; that poliastro was archived;
+the REBOUND integrator papers ([R3716, R3718]; Rein and), implemented
 from memory and validated against mpmath, so the numbers stand even if a
 coefficient differs; the gyrochronology constants' origin; the Kinetics reference
 list; the FSF position on GPL and linking; the MariaDB write rate; the stellar

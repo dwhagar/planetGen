@@ -4,9 +4,9 @@ Status: module and registry rows, written 2026-10-30 (as the lane reported) by t
 
 ## 1. What replaces what
 
-Row b1 (a body that formed inside the snow line and took in little water) carried a log bracket of 0.018 to 0.1 weight percent CO2: the stored dry value of Ortenzi 2020 to its high case, chosen so that an Earth-distance draw's median sat at the bulk silicate Earth's 100 ppm of carbon (`volatile-inventory-against-planet-totals.md`, GEN.813). The Earth was the anchor. This model derives the bracket from the carbon of the building blocks and what core formation leaves, and uses the Earth as a test.
+Row b1 (a body that formed inside the snow line and took in little water) carried a log bracket of 0.018 to 0.1 weight percent CO2: the stored dry value of [R3378] to its high case, chosen so that an Earth-distance draw's median sat at the bulk silicate Earth's 100 ppm of carbon (`volatile-inventory-against-planet-totals.md`, GEN.813). The Earth was the anchor. This model derives the bracket from the carbon of the building blocks and what core formation leaves, and uses the Earth as a test.
 
-## 2. The three steps (all from Blanchard, Siebert, Badro, EPSL, arXiv:2202.06809; read in full text)
+## 2. The three steps (all from Blanchard, Siebert, Badro, EPSL, [R0419]; read in full text)
 
 | Step | Number | Where | Registry |
 |---|---|---|---|
@@ -24,4 +24,4 @@ Why the mantle keeps a fifth: Eq. 4 of the paper (carbon as C2+) is log K_D = 0.
 - The star's carbon (carbon per silicon of the disc) scales step 1 and is not in the model; the subject of the rocky mixture does not carry it yet.
 - The core's size, the ocean's depth and the oxygen fugacity enter step 3 through Eq. 4 and are not drawn; carbon becomes less siderophile with depth along a magma-ocean geotherm, which only raises the mantle's share.
 - Carbonaceous (wet) material is not handled here; rows b2 to b4 carry that.
-- Li, Bergin, Blake, Ciesla and Hirschmann 2021 (Science, arXiv:2104.02702; read) puts the carbon of the bulk Earth at 0.4 +/- 0.2 weight percent (upper bound 0.2 to 1.9) and has the refractory carbon of the disc sublimate near 500 K (the soot line) with a drop of more than a decade in condensed carbon inside it. It supports step 1's low carbon for material that formed hot but gives no formula for a planet's carbon against formation distance, so the soot line is not drawn.
+- Li, [R2664] (Science, [R2664]; read) puts the carbon of the bulk Earth at 0.4 +/- 0.2 weight percent (upper bound 0.2 to 1.9) and has the refractory carbon of the disc sublimate near 500 K (the soot line) with a drop of more than a decade in condensed carbon inside it. It supports step 1's low carbon for material that formed hot but gives no formula for a planet's carbon against formation distance, so the soot line is not drawn.

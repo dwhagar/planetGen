@@ -1,8 +1,7 @@
 # tests/test_nuclear_disc_law.py
 
 """
-GEN.628: the nuclear stellar disc's mass is drawn from the galaxy's stellar mass by the two fits of Gadotti and
-de Sa-Freitas 2025, not as a fixed multiple of the nuclear cluster, and only a barred galaxy has one.
+GEN.628: the nuclear stellar disc's mass is drawn from the galaxy's stellar mass by the two fits of [R1487], not as a fixed multiple of the nuclear cluster, and only a barred galaxy has one.
 """
 
 import math

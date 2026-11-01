@@ -72,7 +72,7 @@ def host_type_of(star):
 
 
 def runaway_ratio(insolation, star_temperature_k):
-    """The starlight over the runaway-greenhouse limit of the host (the inner edge of its habitable zone, Kopparapu et al. 2014), both
+    """The starlight over the runaway-greenhouse limit of the host (the inner edge of its habitable zone, [R2447]), both
     against the Earth's."""
     low, high = orbits.KOPPARAPU_TEFF_RANGE_K
     limit = orbits.kopparapu_flux(orbits.KOPPARAPU_RUNAWAY_GREENHOUSE, min(max(star_temperature_k, low), high))

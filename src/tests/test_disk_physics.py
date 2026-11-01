@@ -3,9 +3,8 @@ Disk-physics regression tests for `StarSystem.estimate_num_objects`.
 
 Covers the rework replacing the old `BASE_MAX_SYSTEM_OBJECTS *
 (1 + log10(solar_masses))` curve fit with a physically-derived ceiling: a
-protoplanetary-disk isolation-mass/mutual-Hill-radius walk (Lissauer 1993;
-Kokubo & Ida 2000, 2002) from real Minimum Mass Solar Nebula surface-density
-scaling (Hayashi 1981) -- see `formation.snow_line_au`,
+protoplanetary-disk isolation-mass/mutual-Hill-radius walk ([R2430, R2709], 2002) from real Minimum Mass Solar Nebula surface-density
+scaling [R1854] -- see `formation.snow_line_au`,
 `formation.disk_surface_density_scale`, `formation.mmsn_surface_density_gcm2`,
 `formation.isolation_mass_kg`, and
 `StarSystem._estimate_max_objects_from_disk_physics`'s own docstring for the
@@ -57,7 +56,7 @@ def _max_objects(star_type):
 
 def test_snow_line_scales_with_sqrt_luminosity():
     solar = snow_line_au(constants.SOLAR_LUMINOSITY)
-    # the 182 K blackbody position, (278.3 K / 182 K)^2 AU for the Sun (Lodders 2003 Table 10)
+    # the 182 K blackbody position, (278.3 K / 182 K)^2 AU for the Sun ([R2726: Table 10])
     assert solar == pytest.approx(2.339, abs=0.005)
     quadruple_lum = snow_line_au(4 * constants.SOLAR_LUMINOSITY)
     # L -> 4L should push the snow line out by sqrt(4) = 2x.

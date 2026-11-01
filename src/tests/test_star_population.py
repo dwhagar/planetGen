@@ -111,7 +111,7 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
     white_dwarfs = [state for _, _, state in states if state["yerkes_class"] == "VII"]
     assert white_dwarfs
     low, high = prog_c.WD_MASS_RANGE_SOL
-    # The heaviest the initial-final mass relation makes (1.33 solar masses, Cummings et al. 2018) is smaller than the
+    # The heaviest the initial-final mass relation makes (1.33 solar masses, [R0961]) is smaller than the
     # zero-temperature radius at the top of the range (2,700 km); a cold star is never smaller than that.
     smallest = stellar_abundances.white_dwarf_radius_solar(high) * phys_c.SOLAR_RADIUS_M / 1000.0
     for state in white_dwarfs:

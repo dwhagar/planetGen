@@ -2,7 +2,7 @@
  "retrieved": "2026-10-17",
  "title": "The decay chains of 238U, 235U and 232Th (GEN.438)",
  "sources": [
-  "NUBASE2020 (doi:10.1088/1674-1137/abddae): the decay modes and branchings, followed from the parent down every branch of at least 0.005% to the stable lead isotope",
+  "NUBASE2020 [R2443]: the decay modes and branchings, followed from the parent down every branch of at least 0.005% to the stable lead isotope",
   "q_kev is the energy of the step computed from the mass excesses of NUBASE2020 (the atomic mass evaluation AME2020): for alpha decay ME(parent) - ME(daughter) - ME(4He), otherwise ME(parent) - ME(daughter); for electron capture and beta-plus that is the electron-capture Q value"
  ],
  "notes": "Steps are between ground states; an isomer fed by a step (234mPa) is not listed, the chain's totals are the decay_energy_j of the parent in isotopes.json.",

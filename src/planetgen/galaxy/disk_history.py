@@ -13,13 +13,12 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
 
     d(gas)/dt = inflow(t) - (1 - R) * rate(gas),    rate = A * gas^n
 
-1. **The depletion** is the Kennicutt-Schmidt law (Kennicutt 1998, `tuning.STAR_FORMATION_LAW_COEFFICIENT` and
+1. **The depletion** is the Kennicutt-Schmidt law ([R2321], `tuning.STAR_FORMATION_LAW_COEFFICIENT` and
    `STAR_FORMATION_LAW_EXPONENT`): the star formation per area goes as the gas per area to the 1.4.
 2. **The return** `R` is the share of a stellar generation's mass that goes back into the gas (`return_fraction`),
-   worked out from the generator's own mass function with the remnant masses of Madau and Dickinson 2014.
+   worked out from the generator's own mass function with the remnant masses of [R2798].
 3. **The inflow** follows the stars the galaxy's halo builds. The halo grows at the mean rate of Fakhouri, Ma and
-   Boylan-Kolchin 2010, and the stars it holds at each age are those of the stellar-to-halo mass relation of Moster,
-   Naab and White 2013, which moves with redshift (`inflow_shape`): the gas comes in at the rate the stars are built.
+   [R0508], and the stars it holds at each age are those of the stellar-to-halo mass relation of [R3181], which moves with redshift (`inflow_shape`): the gas comes in at the rate the stars are built.
    Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's
    density gives it.
 4. **The stars.** The disk's stellar mass (its share of the galaxy's, which the mass chain drew from the seed) spread as
@@ -130,7 +129,7 @@ def _expansion_rate(redshift):
 
 def stellar_to_halo_ratio_at(halo_mass_solar, redshift):
     """
-    The median `M* / Mh` of a halo of `halo_mass_solar` at `redshift` (Moster, Naab and White 2013, eqs. 2 and 11 to
+    The median `M* / Mh` of a halo of `halo_mass_solar` at `redshift` ([R3181], eqs. 2 and 11 to
     14): the present relation of `galaxy.mass_chain`, its four parameters moved by `tuning.STELLAR_TO_HALO_EVOLUTION`
     times `z / (z + 1)`.
     """
@@ -148,7 +147,7 @@ def halo_track(halo_mass_solar, span_gy, steps):
     """
     The halo's mass back in time, over `span_gy` Gy on `steps` equal steps (oldest first, `steps + 1` values) and the
     redshift of each: the mean growth rate `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)` of Fakhouri, Ma and
-    Boylan-Kolchin 2010 (eq. 2) integrated back from today's mass.
+    [R0508] (eq. 2) integrated back from today's mass.
 
     Returns:
         tuple: `(mass, redshift)` arrays.
@@ -285,7 +284,7 @@ def history(thin_stellar_mass_solar, disk_scale_length_pc, halo_mass_solar, span
 
 def stellar_mass_for_scale_length(disk_scale_length_pc):
     """
-    The stellar mass of the galaxy whose median disk (Shen et al. 2003's size-mass relation for late types) has this
+    The stellar mass of the galaxy whose median disk ([R4048]'s size-mass relation for late types) has this
     scale length, solar masses, held to the mass chain's range. A galaxy with this disk scale length but a size
     drawn off the median differs by a fraction of a dex, which moves the shares by a few percent.
     """

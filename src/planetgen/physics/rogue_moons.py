@@ -8,7 +8,7 @@ A rocky rogue "that kept a moon" drew its tidal heat from a log-uniform range (`
 things decide it: whether the moon is still bound when the planet leaves, and how hard it then flexes the planet.
 
 **Survival.** A planet thrown out by a scatterer passes it at the closest approach `r_min` of the series of encounters that unbind it. A moon whose orbital time is shorter than the encounter
-time follows its planet through (Huang and Lai 2026, arXiv:2508.18239, eq. 4):
+time follows its planet through ([R2031], eq. 4):
 
     a_moon^3 / (G m_planet)  <  r_min^3 / (G (m_planet + m_scatterer))    that is    a_moon < r_min (m_planet / (m_planet + m_scatterer))^(1/3).
 
@@ -18,9 +18,9 @@ planet of 10 Jupiter masses ejecting one of 1 Jupiter mass round a solar-mass st
 inverts it for a draw. The ejection record of RP1 (GEN.1119) gives the real `r_min` and the criterion above is then exact (`moon_survives`). Closer encounters happen for small
 inclinations and weaker scatterers (their sections 4.2.1 to 4.2.4); those runs are not in the fit, which is the weakest part of this module.
 
-**The moon's orbit afterwards.** Debes and Sigurdsson 2007 (arXiv:0709.0945) threw Earth-Moon pairs out with a Jupiter: in 4.6 percent of 2,700 runs the pair left bound, the median eccentricity
+**The moon's orbit afterwards.** [R1032] threw Earth-Moon pairs out with a Jupiter: in 4.6 percent of 2,700 runs the pair left bound, the median eccentricity
 of the survivors was 0.13 (from 0.05 before) at a median axis of 30 Earth radii. A moon on an eccentric orbit flexes the planet and the flexing is heat; the circularisation term of their
-eq. 1 (the constant eccentricity tide, Peale, Cassen and Reynolds 1979 in the form of `tidal_heating.peale_power_w`) is `10.5 (k2/Q) G m_moon^2 n R_planet^5 e^2 / a^6` for the mean motion `n` of the pair. It
+eq. 1 (the constant eccentricity tide, [R3464] in the form of `tidal_heating.peale_power_w`) is `10.5 (k2/Q) G m_moon^2 n R_planet^5 e^2 / a^6` for the mean motion `n` of the pair. It
 gives about 5e-3 W/m2 for their median pair with their rheology (Q of 12) and 1e-3 with the rock of `tidal_heating` (Q of 100), both inside the old default's range of 1e-4 to 1e-2 and near Earth's own tide. The larger early term, the planet's spin being braked by the moon (their eq. 2, 100 times
 the Earth's radiogenic heat for a few hundred Myr), is not in this module: it needs the planet's spin and is part of the spin-down work (GEN.842). The flux is held constant over the age, as `tidal_heating` does.
 
@@ -34,11 +34,11 @@ from planetgen.physics import constants, tidal_heating
 from planetgen.util.checks import finite_domain
 
 SURVIVAL_AT_0P01_HILL = 0.82
-"""float: The share of ejections whose closest approach stayed beyond 0.01 mutual Hill radii (Huang and Lai 2026, fiducial runs). Source tier T2, tweak level L1 (their number, applied to every mass ratio)."""
+"""float: The share of ejections whose closest approach stayed beyond 0.01 mutual Hill radii ([R2031], fiducial runs). Source tier T2, tweak level L1 (their number, applied to every mass ratio)."""
 SURVIVAL_AT_0P1_HILL = 0.48
 """float: And beyond 0.1 mutual Hill radii (the same). Source tier T2, tweak level L1."""
 EJECTED_MOON_ECCENTRICITY = 0.13
-"""float: The median eccentricity of a moon carried out with its planet (Debes and Sigurdsson 2007, a lunar-mass moon at 30 Earth radii, a Jupiter as scatterer). Source tier T3, tweak level L1 (one setup, applied to every moon)."""
+"""float: The median eccentricity of a moon carried out with its planet ([R1032] lunar-mass moon at 30 Earth radii, a Jupiter as scatterer). Source tier T3, tweak level L1 (one setup, applied to every moon)."""
 
 
 class RogueMoonError(ValueError):
@@ -73,7 +73,7 @@ def closest_approach_hill(u):
 
 
 def survival_distance_m(r_min_m, planet_mass_kg, scatterer_mass_kg):
-    """The widest moon orbit that follows the planet through a closest approach of `r_min_m`, m (Huang and Lai 2026 eq. 4)."""
+    """The widest moon orbit that follows the planet through a closest approach of `r_min_m`, m ([R2031] eq. 4)."""
     if min(r_min_m, planet_mass_kg, scatterer_mass_kg) <= 0.0:
         raise RogueMoonError("the distance and masses must be positive")
     return r_min_m * (planet_mass_kg / (planet_mass_kg + scatterer_mass_kg)) ** (1.0 / 3.0)
@@ -97,7 +97,7 @@ def survival_probability(moon_axis_m, planet_mass_kg, scatterer_mass_kg, hill_ra
 @finite_domain()
 def circularisation_flux_w_m2(planet_mass_kg, planet_radius_m, moon_mass_kg, moon_axis_m, eccentricity=EJECTED_MOON_ECCENTRICITY, k2_over_q=None):
     """
-    The heat a moon on an eccentric orbit raises in its planet, spread over the planet's surface, W/m2: `10.5 (k2/Q) G m_moon^2 n R^5 e^2 / a^6` (Debes and Sigurdsson 2007 eq. 1).
+    The heat a moon on an eccentric orbit raises in its planet, spread over the planet's surface, W/m2: `10.5 (k2/Q) G m_moon^2 n R^5 e^2 / a^6` ([R1032] eq. 1).
 
     Args:
         planet_mass_kg, planet_radius_m (float): The planet's.

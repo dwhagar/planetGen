@@ -8,7 +8,7 @@ The stellar-particle dose of a body (`radiation.sep_dose_msv_yr`) used a free-sp
 proton's rigidity (`R0` 0.2 GV). This module replaces both with the particles of the events that were measured.
 
 **The events.** 47 Band-function fits of the event-integrated fluence of the solar proton events of 1997 to 2015 (`EVENTS`): 21 events that
-reached the ground (the ground-level enhancements, GLE, with four of them in a second, storm-shock fit, `esp`) and 26 that did not (sub-GLE; as fitted and tabulated in Vainio et al. 2017, A&A 604:A8, Tables A.1 and A.2; typed second-hand into
+reached the ground (the ground-level enhancements, GLE, with four of them in a second, storm-shock fit, `esp`) and 26 that did not (sub-GLE; as fitted and tabulated in [R4478]:A8, Tables A.1 and A.2; typed second-hand into
 `reports/secondhand-citations-2026-10-24-files/sep-band-parameters-vainio2017.csv`). Each is the integral rigidity spectrum of
 `surface_dose.BandSpectrum`, `J(>R) = J0 R^-g1 exp(-R/R0)` up to `R1 = (g2 - g1) R0` and a steeper power law above, `J` in cm-2 for the
 whole event at 1 AU and `R` in GV. The spectra are hard or soft, the fluences span five orders of magnitude, and a few events carry the dose.
@@ -29,7 +29,7 @@ cutoff averaged over the latitudes (area weighted, `Rc cos^4(latitude)`, the dip
 
 **What it does not do.** The star's flare rate and the distance scale it (`radiation.free_sep_msv_yr`, the activity module GEN.493); the dose is
 the primary protons' only (no cascade, no helium or heavier ions, no energy lost in the column: a proton that crosses it is taken to deposit its
-incident `S(T)`), and the 18 years are 1.6 solar cycles of one star. An event of 1e10 cm-2 above 30 MeV, bigger than any in the record (about 1 in 130 years, Usoskin and Kovaltsov 2012), adds about 8 percent of the mean fluence above 30 MeV (1e10 cm-2 in 130 years against 9e8 a year) and is left out. These are stand-ins and approximations stated in the gap-filling plan
+incident `S(T)`), and the 18 years are 1.6 solar cycles of one star. An event of 1e10 cm-2 above 30 MeV, bigger than any in the record (about 1 in 130 years, [R4475]), adds about 8 percent of the mean fluence above 30 MeV (1e10 cm-2 in 130 years against 9e8 a year) and is left out. These are stand-ins and approximations stated in the gap-filling plan
 (section 6.15).
 """
 
@@ -89,7 +89,7 @@ EVENTS = (
     ('subGLE', '', '2015-Oct-29', 1.1e9, 0.51, 4.51, 0.048),
 )
 """tuple: `(kind, event, date, J0 cm-2, gamma1, gamma2, R0 GV)` of the 47 fits: kind GLE or subGLE, the event number of the GLE ("58 esp" is the second
-fit of the storm-shock particles of GLE 58) or "" for a sub-GLE, the date of the event, and the four Band parameters (Vainio et al. 2017,
+fit of the storm-shock particles of GLE 58) or "" for a sub-GLE, the date of the event, and the four Band parameters ([R4478],
 Tables A.1 and A.2). The errors of the paper are not kept. Source tier T2 (the paper is read second-hand and the table typed from it)."""
 RECORD_YEARS = 18.0
 """float: The years the set covers: the events run from 1997-11-04 to 2015-10-29 (17.98 years). Source tier T3, tweak level L0."""
@@ -103,16 +103,16 @@ TAIL_ANCHOR_PFU = 1.2e5
 McCracken's for the Carrington event, recalled (reports/best-guess-standins-2026-10-24.md section 17). [Stand-in SE4, tier T3, tweak level L1.]"""
 TAIL_ANCHOR_RATE_PER_YEAR = 0.0077
 """float: The events a year with an annual fluence above 30 MeV of 1e10 cm-2: four in the 600 years of annual 10Be data, 0.0077 (+0.0073, -0.0045,
-90 percent) with Poisson errors (Usoskin and Kovaltsov 2012, ApJ 757, 92, section 4, READ). Nothing above 2e10 in 600 years (median 0.0012 a year,
+90 percent) with Poisson errors ([R4475], section 4, READ). Nothing above 2e10 in 600 years (median 0.0012 a year,
 one-sided 90 percent under 0.0027) and nothing above 5e10 in 11 400 years; the Carrington event itself is not supported by the isotope data.
 [Stand-in SE4, tier T1, tweak level L0.]"""
 EXTREME_SLOPE = 4.0
-"""float: The cumulative power-law slope of the events past `TAIL_ANCHOR_PFU`: Usoskin and Kovaltsov 2012 fit the tail above 7e9 cm-2 by
+"""float: The cumulative power-law slope of the events past `TAIL_ANCHOR_PFU`: [R4475] fit the tail above 7e9 cm-2 by
 p proportional to F30^-4 (an exponential fits as well; section 4, READ). [Stand-in SE4, tier T1, tweak level L1.]"""
 TAIL_SLOPE = math.log(NOAA_CUMULATIVE_COUNTS[-1][1] / NOAA_YEARS / TAIL_ANCHOR_RATE_PER_YEAR) / math.log(
     TAIL_ANCHOR_PFU / NOAA_CUMULATIVE_COUNTS[-1][0])
 """float: The cumulative slope of the number of events from 10 000 pfu to `TAIL_ANCHOR_PFU`, about 1.34: the straight line in log-log between the
-last NOAA node (9 events in 42 years) and the isotope-record rate at the anchor (Usoskin and Kovaltsov 2012). Replaces the 1.9 of GEN.747, which was
+last NOAA node (9 events in 42 years) and the isotope-record rate at the anchor [R4475]. Replaces the 1.9 of GEN.747, which was
 fitted to one Carrington-class event in 500 years. [Stand-in SE4, tier T3, tweak level L1.]"""
 
 BFO_DEPTH_G_CM2 = 5.0

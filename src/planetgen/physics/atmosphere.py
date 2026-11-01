@@ -10,8 +10,8 @@ the greenhouse that gives the temperature, solved together. This module keeps th
 below) and says it in words (`describe`).
 
 1. **Mantle redox.** The oxygen fugacity of the mantle that outgassed the air, in log units above the iron-wustite buffer (`delta_iw`,
-   on the one scale of `physics/oxygen_fugacity.py`, the Hirschmann 2021 buffer), is the mixture draw's (`MixtureDraw.redox_diw`:
-   the recipe rows a1 to a4, mass- and age-dependent, Sossi et al. 2020). Reduced at or below IW, oxidized from
+   on the one scale of `physics/oxygen_fugacity.py`, the [R1951] buffer), is the mixture draw's (`MixtureDraw.redox_diw`:
+   the recipe rows a1 to a4, mass- and age-dependent, [R4154]). Reduced at or below IW, oxidized from
    `REDOX_OXIDIZED_DELTA_IW`. Gas giants have no mantle redox (`None`).
 2. **Cold side.** No species can exceed its saturation pressure at the surface temperature (`physics/saturation.py`: the Fray and
    Schmitt solid curves below the triple point, the Wagner liquid curves above it, no limit above the critical point): the excess is

@@ -8,23 +8,23 @@ Silicate weathering (`surface_pressure.carbonate_pco2_bar`) needs land. A water-
 tallest mountain. What takes its carbon dioxide back out of the air depends on how deep the ocean is.
 
 * **A sealed world** (seafloor pressure at or above `SEAL_PRESSURE_PA`, 1 to 3 GPa). The weight of the water stops the mantle melting
-  (Kite and Ford 2018 appendix A: the solidus rises with pressure, the melt column shortens, the mantle under the lid
+  ([R2381] appendix A: the solidus rises with pressure, the melt column shortens, the mantle under the lid
   is colder) and high-pressure ice (ice VI and VII) sits on the seafloor, so the ocean and the mantle no longer exchange carbon. About
   `SEAL_TIME_GY` after the last giant impact the atmosphere, the ocean and the shallow crust are a closed system for carbon
-  (Kite and Ford 2018 section 2 item 4). Its pCO2 is set by ocean chemistry alone: the carbon inventory is shared between the air, the dissolved
+  ([R2381] section 2 item 4). Its pCO2 is set by ocean chemistry alone: the carbon inventory is shared between the air, the dissolved
   carbon dioxide, bicarbonate and carbonate, and calcite, and the cations the water leached from the crust early on (sodium and calcium,
   `leached_cations_mol_m2`) fix the alkalinity. Calcium that pairs one carbon with one calcium takes the carbon out; sodium raises the pH
   and so the share of the dissolved carbon that is bicarbonate (`ocean_pco2`). The pCO2 follows the temperature (the carbon dioxide
   leaves a warmer ocean), so a caller solves it with its greenhouse for the temperature, as Kite and Ford do.
 * **An unsealed world with no land** (seafloor pressure under the seal, no land above the sea). Volcanoes work and seafloor basalt
-  dissolves and precipitates carbonate in the pore space of the crust. The law is that of Krissansen-Totton and Catling (2017):
+  dissolves and precipitates carbonate in the pore space of the crust. The law is that of [R2489]:
   the dissolution rate is Arrhenius in the pore-water temperature, a power of the hydrogen ion molality (so of the pCO2) and a power of
   the spreading, which here is the heat flow like the outgassing. Its modern size is a small share of the modern outgassing
   (`seafloor_pco2_bar`), so the balance is set by the temperature far more than by the pressure (the pCO2 enters to the power 0.2, the Arrhenius law with 75 kJ/mol): at the modern heat flow a 300 K world balances at about half a bar, a 288 K one needs hundreds of bar.
 
 What this does not do (stated): the ocean is an ideal solution (no activity coefficients: seawater's first dissociation constant is
 about three times the fresh water's, so a real salty ocean holds more bicarbonate at a given pCO2), the constants of the carbonate system
-are the fresh-water fits of Plummer and Busenberg (1982) held to 273 to 373 K (warmer oceans use their 373 K value); only calcite
+are the fresh-water fits of [R3548] held to 273 to 373 K (warmer oceans use their 373 K value); only calcite
 precipitates (no magnesium or iron carbonate, which Kite and Ford find silicates take instead; no dolomite, no hydrous carbonates,
 no clathrates, no brucite or portlandite); the cations are a fixed leach of a basalt crust of a chosen thickness, not a reaction-transport
 model; the temperature is the surface ocean's (the gradient with depth is ignored); the seal is a pressure threshold, not a solidus
@@ -56,24 +56,24 @@ from planetgen.physics.surface_pressure import (CO2_MODERN_BAR, HEAT_FLUX_EARTH_
 # --- the seal ---------------------------------------------------------------------------------------------------------------
 
 SEAL_PRESSURE_PA = (1.0e9, 3.0e9, "uniform")
-"""tuple: The seafloor pressure from which the mantle no longer melts enough to exchange carbon with the ocean, Pa: Kite and Ford 2018 impose
-an abrupt 1 GPa cutoff and note it is smaller for stagnant-lid convection (about 1 to 3 GPa; Noack et al. 2016 put it
+"""tuple: The seafloor pressure from which the mantle no longer melts enough to exchange carbon with the ocean, Pa: [R2381] impose
+an abrupt 1 GPa cutoff and note it is smaller for stagnant-lid convection (about 1 to 3 GPa; [R3300] put it
 nearer 3 GPa). A bracket of the sources that differ (tier 3, tweak level 0)."""
 
 SEAL_TIME_GY = 0.1
-"""float: How long after the last giant impact a sealed world still exchanges carbon with its mantle, Gy: Kite and Ford 2018 start the closed
+"""float: How long after the last giant impact a sealed world still exchanges carbon with its mantle, Gy: [R2381] start the closed
 system at 0.1 Gy ("shuts down within O(1e8) yr"; READ, tier 1, tweak level 0). The caller takes the carbon degassed up to this age."""
 
 ROCK_DENSITY_KG_M3 = 3000.0
-"""float: The density of the crust, kg/m3 (Kite and Ford 2018 below their Eq. 4; READ, tier 1)."""
+"""float: The density of the crust, kg/m3 ([R2381] below their Eq. 4; READ, tier 1)."""
 
 ALTERED_CRUST_KM = (0.1, 50.0, "log")
-"""tuple: The thickness of crust the early ocean leaches completely, km of rock: Kite and Ford 2018 section 3.1 (2c) put the reasonable range at
+"""tuple: The thickness of crust the early ocean leaches completely, km of rock: [R2381] section 3.1 (2c) put the reasonable range at
 0.1 km (Earth-like alteration of the top of the extrusives) to 50 km (pervasive alteration of a thick stagnant-lid extrusive pile); this
 already takes the intrusive to extrusive ratio into account. A bracket of their argument (tier 3, tweak level 0)."""
 
 CRUST_SODIUM_WT = 0.028
-"""float: The sodium mass fraction of the crust that is leached (Gale et al. 2013 through Kite and Ford 2018 Eq. 4, Na0; READ, tier 1)."""
+"""float: The sodium mass fraction of the crust that is leached ([R1494] through [R2381: Eq. 4], Na0; READ, tier 1)."""
 
 
 @dataclass(frozen=True)
@@ -125,7 +125,7 @@ def leached_cations_mol_m2(altered_km):
     """
     The cations an early ocean leaches from `altered_km` of crust, mol per square metre: `(sodium, calcium)`.
 
-    Kite and Ford 2018 Eq. 4: `[Na] = Na0 / M_Na * z rho / (z_oc rho_w)`, here per square metre (the ocean's share is the division by its
+    [R2381: Eq. 4]: `[Na] = Na0 / M_Na * z rho / (z_oc rho_w)`, here per square metre (the ocean's share is the division by its
     mass in `ocean_pco2`). Calcium is the crust's calcium (`sulfur_balance.CRUST_CALCIUM_WT`, one value for both sinks).
     """
     mass = max(altered_km, 0.0) * 1.0e3 * ROCK_DENSITY_KG_M3
@@ -135,7 +135,7 @@ def leached_cations_mol_m2(altered_km):
 # --- the carbonate system ---------------------------------------------------------------------------------------------------
 
 TEMPERATURE_RANGE_K = (273.15, 373.15)
-"""tuple: The temperatures the carbonate constants are used at (Plummer and Busenberg 1982 give 0 to 90 C; hotter oceans use the 373 K values)."""
+"""tuple: The temperatures the carbonate constants are used at ([R3548] give 0 to 90 C; hotter oceans use the 373 K values)."""
 
 BAR_PA = 1.0e5
 """float: One bar, Pa."""
@@ -150,7 +150,7 @@ CARBONATE_FITS = {
 }
 """dict: `log10 K = a + b T + c / T + d log10 T + e / T^2` for the Henry constant of carbon dioxide (mol/(kg bar)), the first and second
 dissociation constants of carbonic acid, the solubility product of calcite and the ion product of water (mol and kg): the fresh-water fits
-of Plummer and Busenberg (1982) for the carbonate system and a standard fit for water, valid 0 to 90 C. They reproduce at 298.15 K
+of [R3548] for the carbonate system and a standard fit for water, valid 0 to 90 C. They reproduce at 298.15 K
 the known 0.0340, 4.45e-7 (pK 6.35), 4.69e-11 (pK 10.33), 3.3e-9 (pK 8.48) and 1.0e-14 (READ from memory, not re-checked against the papers;
 tier 3, tweak level 0)."""
 
@@ -282,27 +282,26 @@ SEAFLOOR_SHARE_OF_OUTGASSING = 0.45 / 6.6
 2017 Table 2 and their outgassing posterior; READ, tier 1, tweak level 0). It is the size of the modern sink against the volcanoes."""
 
 SEAFLOOR_ACTIVATION_KJ_MOL = (40.0, 110.0, "uniform")
-"""tuple: The activation energy of basalt dissolution, kJ/mol: the prior of Krissansen-Totton and Catling 2017 (posterior 75, 53 to 97; READ, tier 1)."""
+"""tuple: The activation energy of basalt dissolution, kJ/mol: the prior of [R2489] (posterior 75, 53 to 97; READ, tier 1)."""
 
 SEAFLOOR_PH_EXPONENT = (0.0, 0.5, "uniform")
-"""tuple: The exponent of the hydrogen ion molality, `gamma`: prior of Krissansen-Totton and Catling 2017 (posterior 0.27, 0.11 to 0.43; READ, tier 1)."""
+"""tuple: The exponent of the hydrogen ion molality, `gamma`: prior of [R2489] (posterior 0.27, 0.11 to 0.43; READ, tier 1)."""
 
 SEAFLOOR_SPREADING_EXPONENT = (0.0, 1.0, "uniform")
-"""tuple: The exponent of the spreading (here the heat flow) in the dissolution rate, `beta`: prior of Krissansen-Totton and Catling 2017
+"""tuple: The exponent of the spreading (here the heat flow) in the dissolution rate, `beta`: prior of [R2489]
 (posterior 0.47, 0.15 to 0.82; READ, tier 1)."""
 
 PH_PER_PCO2_EXPONENT = 1.34
-"""float: The hydrogen ion molality of seawater rises as the pCO2 to the 1/1.34 (the Brady and Gislason 1997 approximation of Krissansen-Totton and
-Catling 2017 Eq. 1, as restated: `beta_S = gamma / 1.34`; second-hand, tier 2)."""
+"""float: The hydrogen ion molality of seawater rises as the pCO2 to the 1/1.34 (the [R0512] approximation of [R0692: Eq. 1], as restated: `beta_S = gamma / 1.34`; second-hand, tier 2)."""
 
 DEEP_OCEAN_GRADIENT = 1.02
-"""float: The deep-ocean temperature rises 1.02 K per K of the surface's (Krissansen-Totton and Catling 2017 Eq. 12, best fit; READ, tier 1)."""
+"""float: The deep-ocean temperature rises 1.02 K per K of the surface's ([R2489: Eq. 12], best fit; READ, tier 1)."""
 
 DEEP_OCEAN_REFERENCE_K = 274.037
 """float: The deep ocean is 274.037 K when the surface is 285 K (the same equation; the line passes through it)."""
 
 PORE_OVER_DEEP_K = 9.0
-"""float: The pore water of the basalt is 9 K warmer than the deep ocean (Krissansen-Totton and Catling 2017; READ, tier 1)."""
+"""float: The pore water of the basalt is 9 K warmer than the deep ocean ([R2489]; READ, tier 1)."""
 
 REFERENCE_SURFACE_K = 285.0
 """float: The surface temperature the deep-ocean relation is anchored at, K."""

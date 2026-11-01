@@ -72,7 +72,7 @@ def sky_vectors(star_pc, observer_pc, star_vel_pc_yr=None):
 
 **2.3 Light-time in age and luminosity.** The star is seen at age `a' = age - tau`. A star whose lifespan ended less than `tau` ago is still seen alive; for a supernova remnant of age `A` at distance `d`, the explosion is visible only if `A > d/c`, otherwise the sky shows the progenitor. The stars affected have lifetimes under about 10 Myr (a light-travel of 3 kpc); the naked-eye ones sit at 1 to 3 kpc (an O star with M_V = -6 reaches V = 6.5 at 3.2 kpc). A correctness item rather than a visual one.
 
-**2.4 Magnitude.** `M_bol = 4.74 - 2.5 log10(L/L_sun)`, `M_V = M_bol - BC_V(T)`, `m = M_V - 5 + 5 log10(d_pc) + A_V`. BC_V is Flower's (1996) polynomial fit of the bolometric correction against log Teff in three ranges (below 3.70, 3.70 to 3.90, above 3.90), with the coefficients as Torres (2010, AJ 140, 1158, arXiv:1008.3913, Table 1) reprinted them; it is `photometry.bolometric_correction_v` (VIEW.9, read from the paper). Its zero point goes with `M_bol` of the Sun 4.74 (BC_V of the Sun -0.08, which with V = -26.76 and the distance modulus 31.572 of 1 au gives -0.068): the two are used together.
+**2.4 Magnitude.** `M_bol = 4.74 - 2.5 log10(L/L_sun)`, `M_V = M_bol - BC_V(T)`, `m = M_V - 5 + 5 log10(d_pc) + A_V`. BC_V is Flower's (1996) polynomial fit of the bolometric correction against log Teff in three ranges (below 3.70, 3.70 to 3.90, above 3.90), with the coefficients as [R4407: Table 1] reprinted them; it is `photometry.bolometric_correction_v` (VIEW.9, read from the paper). Its zero point goes with `M_bol` of the Sun 4.74 (BC_V of the Sun -0.08, which with V = -26.76 and the distance modulus 31.572 of 1 au gives -0.068): the two are used together.
 
 | T (K) | 3,500 | 4,000 | 5,000 | 5,772 | 7,000 | 10,000 | 20,000 | 30,000 | 45,000 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -88,7 +88,7 @@ def apparent_mag(lum_sol, teff_k, d_pc, a_v=0.0):
 
 Pitfall: HYG's `lum` column is V-band luminosity, not bolometric. Feeding it to the bolometric formula double counts BC and gave 6,651 stars at V <= 6.5 instead of 8,639 [C]. The project's `luminosity_w` is bolometric, so the formula applies as written.
 
-**2.5 Dust.** `A_V` is the dust density integrated along the line of sight, in three tiers: (a) the chord through each `nebulae` and remnant ball, scaled by `extinction_av` over the chord-to-radius ratio; (b) a smooth galactic law `a0 exp(-R/R_d) exp(-|z|/h_d)`; (c) nothing, for early versions. Averages are 0.7 to 1.0 mag/kpc near the Sun and about 1.8 mag/kpc in the plane over a few kpc [S, an encyclopedia mirror of Wikipedia "Extinction (astronomy)"; primary source not confirmed]. Default for (b): `a0` set so the local plane gives 1.0 mag/kpc, `R_d = 2.26 kpc`, `h_d = 134 pc` [R: Drimmel and Spergel 2001]. Reddening: `E(B-V) = A_V/3.1`, with the spectrum multiplied by `10^(-0.4 A_V (a(x) + b(x)/R_V))` using the Cardelli, Clayton and Mathis (1989) optical polynomials. The recalled coefficients give `A_B/A_V = 1.3245` against the defining 1.3226 for R_V = 3.1 [C]. A 5,772 K star at E(B-V) = 0.3 moves from #fff1ea to #ffe2c3; a 10,000 K star at E(B-V) = 1.0 from #cdd9ff to #ffdbad [C].
+**2.5 Dust.** `A_V` is the dust density integrated along the line of sight, in three tiers: (a) the chord through each `nebulae` and remnant ball, scaled by `extinction_av` over the chord-to-radius ratio; (b) a smooth galactic law `a0 exp(-R/R_d) exp(-|z|/h_d)`; (c) nothing, for early versions. Averages are 0.7 to 1.0 mag/kpc near the Sun and about 1.8 mag/kpc in the plane over a few kpc [S, an encyclopedia mirror of Wikipedia "Extinction (astronomy)"; primary source not confirmed]. Default for (b): `a0` set so the local plane gives 1.0 mag/kpc, `R_d = 2.26 kpc`, `h_d = 134 pc` [R: [R1158]]. Reddening: `E(B-V) = A_V/3.1`, with the spectrum multiplied by `10^(-0.4 A_V (a(x) + b(x)/R_V))` using the [R0651] optical polynomials. The recalled coefficients give `A_B/A_V = 1.3245` against the defining 1.3226 for R_V = 3.1 [C]. A 5,772 K star at E(B-V) = 0.3 moves from #fff1ea to #ffe2c3; a 10,000 K star at E(B-V) = 1.0 from #cdd9ff to #ffdbad [C].
 
 **2.6 Planet orientation (needs GEN.104).** Inputs: the spin axis `s` (unit vector, galactic frame) and the sidereal rotation rate. The kinetics document ([Observational Kinetics for Rotational Vectors.md](../research/imported/observational-kinetics-for-rotational-vectors.md), "IAU Cartographic Coordinate Systems") gives the standard form: pole `(alpha0, delta0)`, prime meridian `W(t) = W0 + Wdot d` with `Wdot = 360 / P_rot`, and `omega = (cos d0 cos a0, cos d0 sin a0, sin d0)`. [orbital-updates.md](orbital-updates.md) section 6 and [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md) section 9 take the pole in the galactic frame.
 
@@ -171,7 +171,7 @@ A sky is built from (i) `bright_stars` and generated stars within the sphere, (i
 
 ## 4. Colour
 
-Planck spectrum at `T_eff` into XYZ with the Wyman, Sloan and Shirley (2013, J. Computer Graphics Techniques 2(2)) multi-lobe Gaussian fit of the CIE 1931 curves, into linear sRGB with the D65 matrix, scaled so the maximum channel is 1. The recalled Gaussian coefficients match the tabulated CIE 1931 2-degree observer with a maximum absolute error of 0.015, 0.007 and 0.024 against peaks 1.06, 1.00 and 1.78 [C].
+Planck spectrum at `T_eff` into XYZ with the [R4788] (J. Computer Graphics Techniques 2(2)) multi-lobe Gaussian fit of the CIE 1931 curves, into linear sRGB with the D65 matrix, scaled so the maximum channel is 1. The recalled Gaussian coefficients match the tabulated CIE 1931 2-degree observer with a maximum absolute error of 0.015, 0.007 and 0.024 against peaks 1.06, 1.00 and 1.78 [C].
 
 ```python
 def _g(l, mu, s1, s2): return np.exp(-0.5 * ((l - mu) / np.where(l < mu, s1, s2)) ** 2)
@@ -206,7 +206,7 @@ Rules:
 
 - The hand-picked anchors in `_COLOR_NAME_RGB` are a map style, not sky colour; do not reuse them for the sky. `_kelvin_to_hex` may stay for the maps.
 - **Perception.** Faint stars look white to the eye (rods) and only the brightest, such as Betelgeuse and Antares, show colour [S, via search: CSIRO, Gresham College, Astronomy magazine]. Blend toward white by magnitude: `sat = clip(0.35 + 0.65 (5.5 - m)/4, 0.35, 1)`, `rgb' = 1 - (1 - rgb) sat`. The constant is a starting guess; tune by eye. Offer a "boost colour" option for the stronger map look.
-- **B-V to T_eff,** needed only when importing a real catalogue: Ballesteros (2012, EPL 97, 34008), `T = 4600 (1/(0.92 (B-V) + 1.7) + 1/(0.92 (B-V) + 0.62))`; the Sun's B-V 0.65 gives 5,778 K [C]. The generator has `temperature_k` directly.
+- **B-V to T_eff,** needed only when importing a real catalogue: [R0244] (EPL 97, 34008), `T = 4600 (1/(0.92 (B-V) + 1.7) + 1/(0.92 (B-V) + 0.62))`; the Sun's B-V 0.65 gives 5,778 K [C]. The generator has `temperature_k` directly.
 - Dust reddening is section 2.5. Atmosphere colour, the planet's own star's glare and twilight tint belong to the horizon stage.
 
 ## 5. Projections
@@ -340,14 +340,14 @@ Calibrate the generator against them (does a generated sky have about 9,000 star
 
 [R] items to verify when paper or catalogue access is allowed (the research environment could read only search-result text and raw GitHub files):
 
-- (Done, VIEW.9) The BC_V relation is now Flower 1996 with Torres 2010's coefficients, read from the paper.
-- The Cardelli, Clayton and Mathis (1989) and Wyman et al. (2013) coefficients were recalled and validated numerically (A_B/A_V = 1.3245 against 1.3226; colour-matching error at most 0.024 against peak 1.78), not read from the papers.
-- Dust scale length 2.26 kpc and height 134 pc (Drimmel and Spergel 2001); the 1.0 mag/kpc plane default; the 23 mag/arcsec^2 naked-eye limit; k = 0.2 mag per airmass; the real Milky Way band at 21 to 23 mag/arcsec^2; the local V luminosity density 0.05 L_sun/pc^3.
+- (Done, VIEW.9) The BC_V relation is now [R1392] with [R4407]'s coefficients, read from the paper.
+- The [R0651, R4788] coefficients were recalled and validated numerically (A_B/A_V = 1.3245 against 1.3226; colour-matching error at most 0.024 against peak 1.78), not read from the papers.
+- Dust scale length 2.26 kpc and height 134 pc [R1158]; the 1.0 mag/kpc plane default; the 23 mag/arcsec^2 naked-eye limit; k = 0.2 mag per airmass; the real Milky Way band at 21 to 23 mag/arcsec^2; the local V luminosity density 0.05 L_sun/pc^3.
 - Stellarium Web Engine's licence (probably AGPL-3.0) and Gaia DR3's exact licence name (a third-party page says CC BY-NC 3.0 IGO) are unconfirmed.
 - The ICRS to galactic matrix used for the demo images was recalled and matches astropy to 1.2e-7.
 - Backfill cost per cell is measured (see section 3.2); the cost of the middle 100 to 300 L_sun bands for a whole sky is not.
 - HYG is incomplete fainter than about V = 9, so "gained" star counts in the 20 ly parallax test are lower bounds; the "lost" counts and the shifts are unaffected. The unit of HYG's `vx/vy/vz` (pc/yr) was assumed; the median 29 km/s it gave is the only check.
-- The kinetics-document matrix check (section 2.6) is [C]; the IAU 2009 report (Archinal et al. 2011) itself was not read.
+- The kinetics-document matrix check (section 2.6) is [C]; the IAU 2009 report [R0135] itself was not read.
 
 ## Sources
 

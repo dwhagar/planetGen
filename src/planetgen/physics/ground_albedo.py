@@ -5,7 +5,7 @@ Ground albedo by band (GEN.462, docs/design/body-composition-parts/E-ground-radi
 ===========================================================================================================================
 
 The colour of a solid world's ground, as the reflectance in the three visible bands 0.4 to 0.5, 0.5 to 0.6 and 0.6 to 0.7 micrometre
-that the materials table holds for 26 rows (laboratory powders, slabs, ices, evaporites, clays, oxides and carbons; Paragas et al. 2025 and the USGS
+that the materials table holds for 26 rows (laboratory powders, slabs, ices, evaporites, clays, oxides and carbons; [R3425] and the USGS
 spectral library, averaged by band). A body's ground is a set of areas, each a row of the table (the ground types and the ice, from GEN.441 and GEN.442); the
 band albedo is the area-weighted mean. The caller states the shares of the table's rows; a cover with no band albedo in the table (the CO2, CH4, NH3, N2 and
 SO2 frosts: visible albedo not reached) is an error naming the row, never a guess, and a cover that is not a table row (open ocean) comes in as an explicit
@@ -13,7 +13,7 @@ SO2 frosts: visible albedo not reached) is an error naming the row, never a gues
 
 Space weathering darkens an airless surface that has not been refreshed: `A(t) = A_fresh [1 - d (1 - exp(-t / tau_w))]` with `t` the age of the surface
 since it was resurfaced, `tau_w` log-uniform in 1 to 2 Gyr and `d` uniform in 0.3 to 0.7 (a parametrisation of the design note, placeholders to fit against lunar and
-asteroid reflectance; the exponential decay of the unweathered fraction is Willman and Jedicke 2010). A surface under an atmosphere is not darkened here.
+asteroid reflectance; the exponential decay of the unweathered fraction is [R4713]). A surface under an atmosphere is not darkened here.
 
 A laboratory reflectance factor is neither a geometric nor a Bond albedo: `visible_mean` is the visible-band proxy that the temperature
 (GEN.412) and the colour model (GEN.418) read, and the conversion to a Bond albedo over the whole spectrum is an open gap (master section 8 rank 9).

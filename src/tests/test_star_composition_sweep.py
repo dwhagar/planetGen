@@ -527,8 +527,8 @@ def test_the_set_rules_fail_when_they_are_broken(galaxy):
 
 def test_the_solar_neighbourhood_mix_of_stars_has_the_ratios_the_survey_measured():
     """A-V2: the stars of a solar-neighbourhood-like draw ([Fe/H] normal about -0.10 with 0.22 dex, ages to 12 Gy), taken through the
-    generator's own derivation, against the medians of Brewer and Fischer 2016 (Fe/Si 1.81 within 0.2, Mg/Si 0.93 within 0.1, C/O 0.385
-    within 0.05) and inside the Thiabaud 2015 box (Fe/Si 1.34 to 2.81, Mg/Si 0.66 to 1.85, C/O 0.12 to 0.75) for 80 percent or more."""
+    generator's own derivation, against the medians of [R0535] (Fe/Si 1.81 within 0.2, Mg/Si 0.93 within 0.1, C/O 0.385
+    within 0.05) and inside the [R4336] box (Fe/Si 1.34 to 2.81, Mg/Si 0.66 to 1.85, C/O 0.12 to 0.75) for 80 percent or more."""
     generator = random.Random(2026)
     ratios = []
     for index in range(20000):

@@ -7,9 +7,9 @@ Status: built 2026-10-24 (lane "Source and tune atmosphere draws"). Code `src/pl
 A rocky planet's core was exactly its star's iron: `dry_partition` took the star's Fe/Mg, so two planets of one star had one core mass fraction (CMF) and no planet was ever iron-rich. Now `draw_terrestrial` draws, after the graphite and before the partition, one branch from `IRON_BRANCH_TABLE`:
 
 - **star-matched** (weight 0.99): the planet's Fe/Mg is the star's times 10 to a normal of `IRON_SCATTER_DEX` (0.05 dex), slope 1;
-- **iron-enriched** (weight `IRON_ENRICHED_WEIGHT`, 0.01): the CMF of the dry part is uniform from 0.5 to 0.8 (`RANGES["enriched_cmf"]`; the top is the cap of the observed iron-rich rocky planets, Plotnykov and Valencia 2020) and never below the star-matched CMF, and the Fe/Mg that gives it is solved by bisection.
+- **iron-enriched** (weight `IRON_ENRICHED_WEIGHT`, 0.01): the CMF of the dry part is uniform from 0.5 to 0.8 (`RANGES["enriched_cmf"]`; the top is the cap of the observed iron-rich rocky planets, [R3545]) and never below the star-matched CMF, and the Fe/Mg that gives it is solved by bisection.
 
-A moon and the classes D, S and C (icy, small, carbon) have no branch and draw nothing for it. A body given both a mass and a radius (the inverse route) infers its CMF from them and has no branch. The draw order is part of the generator epoch. The coreless branch has no count (no planet is known to lack a core) and is not drawn: derive it from the water fraction (Elkins-Tanton and Seager 2008) when that is built.
+A moon and the classes D, S and C (icy, small, carbon) have no branch and draw nothing for it. A body given both a mass and a radius (the inverse route) infers its CMF from them and has no branch. The draw order is part of the generator epoch. The coreless branch has no count (no planet is known to lack a core) and is not drawn: derive it from the water fraction [R1248] when that is built.
 
 ## 2. The tuning (COMPUTED through the harness)
 
@@ -17,8 +17,8 @@ The published statistic is about inferred CMF, not true CMF, so the simulated si
 
 | Target | Published | Simulated at the shipped knobs (3000 seeds) | Verdict |
 |---|---|---|---|
-| `t5-outlier-share`: planets 2 sigma more iron-rich than the star | 1 of 21 (Plotnykov et al. 2026, arXiv:2511.17717) | 0.053 | within 2 sigma (z 0.08) |
-| `t5-within-share`: planets within 1 sigma of the star | 15 of 20 (Brinkman et al. 2024, arXiv:2409.08361) | 0.61 | within 2 sigma (z -1.3) |
+| `t5-outlier-share`: planets 2 sigma more iron-rich than the star | 1 of 21 [R3546] | 0.053 | within 2 sigma (z 0.08) |
+| `t5-within-share`: planets within 1 sigma of the star | 15 of 20 [R0541] | 0.61 | within 2 sigma (z -1.3) |
 
 ## 3. What the tuning shows, and its limits
 

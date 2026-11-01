@@ -30,14 +30,14 @@ _pc_to_m = units.converter("pc", "m")
 
 RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
 """float: A pair's perturbers move past it with the *relative* velocity dispersion, root 2 times a population's own
-one-dimensional dispersion for two stars drawn from the same distribution (Jiang and Tremaine 2010, section 5: "the
+one-dimensional dispersion for two stars drawn from the same distribution ([R2166], section 5: "the
 relative velocity dispersion to be 2^(1/2) times this", 29 km/s becoming 40 km/s). The population dispersions of
 `tuning.STELLAR_POPULATION_DISPERSION_KMS` are one-dimensional, so `encounter_limit_au` multiplies by this (GEN.447)."""
 
 
 def mass_weighted_perturber_mass_solar(populations, remnants=True):
     """
-    The perturber mass of Jiang and Tremaine 2010's `rho_2` (their eq. 47): the second moment of the mass function over
+    The perturber mass of [R2166]'s `rho_2` (their eq. 47): the second moment of the mass function over
     its first, `<M^2> / <M>`, so that `rho_2 = rho * <M^2> / <M>` for a mass density `rho` (GEN.447). The mass function is
     the generator's own: its initial mass function, aged to each population's age range, with the remnants of what has
     left the main sequence.
@@ -122,7 +122,7 @@ def from_profile(profile):
 def encounter_limit_au(terms, total_mass_solar, age_gy):
     """
     The semi-major axis at which half the pairs of this age survive passing stars (Bahcall, Hut and Tremaine
-    1985, as Jiang and Tremaine 2010 restate it): `0.002 (M1 + M2) sigma / (G rho_2 t)`, with `rho_2` the mass
+    1985, as [R2166] restate it): `0.002 (M1 + M2) sigma / (G rho_2 t)`, with `rho_2` the mass
     density times the mass-weighted perturber mass (`<M^2> / <M>`) and `sigma` the dispersion of the relative velocity,
     `RELATIVE_VELOCITY_FACTOR` times the field's one-dimensional dispersion (their eq. 1 and section 5; GEN.447).
     Infinite where nothing passes (a zero density) or the pair has no age.

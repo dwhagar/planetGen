@@ -96,7 +96,7 @@ class StellarObject(LazySaladName, MassObject):
     `serialization.fields_from_dict`) -- still reads back `None` for any
     system saved before this field existed, rather than raising
     `AttributeError`. Populated only for a star that is one constituent of
-    an S-type (wide) binary: this star's own Holman & Wiegert (1999)
+    an S-type (wide) binary: this star's own [R1990]
     critical semi-major axis (see
     `orbits.holman_wiegert_critical_semimajor_axis`), the maximum orbit
     distance that stays long-term stable against its companion's

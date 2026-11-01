@@ -9,10 +9,10 @@ module holds what they share: the moment-of-inertia factor of a body and the win
 
 **The resonances.** On its way down the spin passes through the ratios `p/2` of the orbital rate; a resonance catches it when the orbit is
 eccentric enough to give its torque a strength to hold on to, and a rheology that responds to the frequency (a real mantle) makes the capture
-a certainty in a window of eccentricity, which Makarov 2012 (ApJ 752:73) finds: the 2:1 resonance for `0.34 < e < 0.49`, the 3:2 for `0.2 < e <
+a certainty in a window of eccentricity, which [R2823] (ApJ 752:73) finds: the 2:1 resonance for `0.34 < e < 0.49`, the 3:2 for `0.2 < e <
 0.41`, and the 1:1 (locked) for `e < 0.29`. A body that comes down through a window without being caught goes on to the next resonance whose window holds `e` (2:1, then 3:2, then
 the synchronous state), and one not reached in the age of the star (the spin has not fallen that far) does not. Mercury, whose `e` is 0.206, comes down into the 3:2. Capture inside a window is a chance (Makarov: 40 of
-40 simulations; Goldreich and Peale 1966 (constant torque) gave 7 percent at Mercury's eccentricity and Correia and Laskar 2004 (with the
+40 simulations; [R1611] (constant torque) gave 7 percent at Mercury's eccentricity and [R0897] (with the
 eccentricity's chaotic variation) 55 percent): `RESONANCE_CAPTURE_PROBABILITY` takes 0.3 for 3:2 and 0.1 for 2:1, decided by a draw the body keeps (GEN.1172).
 
 **What this does not do.** The eccentricity is the one stored with the body (a planet's was larger in its past, which would have caught more
@@ -28,10 +28,10 @@ GIANT_MOMENT_FACTOR = 0.25
 """float: And of a gas giant (Jupiter 0.254, Saturn 0.22; recalled, not opened). Source tier T2, tweak level L0."""
 RESONANCES = ((2.0, 0.34, 0.49), (1.5, 0.20, 0.41), (1.0, 0.0, 0.29))
 """tuple: `(spin / orbital rate, e_low, e_high)` of each resonance that takes the spin for sure inside its window of eccentricity, from the
-highest ratio down (Makarov 2012, ApJ 752:73; READ as a summary of the paper, not opened in full). Source tier T2, tweak level L0."""
+highest ratio down ([R2823]:73; READ as a summary of the paper, not opened in full). Source tier T2, tweak level L0."""
 RESONANCE_CAPTURE_PROBABILITY = {2.0: 0.1, 1.5: 0.3}
-"""dict: The chance that a spin sweeping down through the window of a resonance is caught in it, by spin over orbital rate (GEN.1172). The sources split: Makarov 2012 caught 40 of 40 with a
-frequency-dependent rheology, Goldreich and Peale 1966 give 0.07 at Mercury's eccentricity with a constant-torque tide, and Correia and Laskar 2004 give 0.55 with the eccentricity's chaotic
+"""dict: The chance that a spin sweeping down through the window of a resonance is caught in it, by spin over orbital rate (GEN.1172). The sources split: [R2823] caught 40 of 40 with a
+frequency-dependent rheology, [R1611] give 0.07 at Mercury's eccentricity with a constant-torque tide, and [R0897] give 0.55 with the eccentricity's chaotic
 history; 3:2 takes the geometric middle of 0.07 and 0.55 rounded down, and 2:1, which has the narrower basin of attraction at the eccentricities of its window, a third of that. The synchronous state is
 caught for sure. Source tier educated guess from the sources named (T3), tweak level L1; the bracket is 0.07 to 1."""
 

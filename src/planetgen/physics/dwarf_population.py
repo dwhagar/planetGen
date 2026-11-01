@@ -13,7 +13,7 @@ on the outer disc; the system page lists the dwarf planets as members of their b
 2. **Round.** A body is a dwarf planet candidate when its mass is above the mass of a fully relaxed hydrostatic body of its composition: `ROUND_MASS_ICE_KG` for ice and `ROUND_MASS_ROCK_KG` for rock, the geometric centres of the
    dwarf-planet bands (1e20 to 1e21 kg for ice, 1e21 to 1e22 kg for rock, `belt-sources.md` BR9), mixed log-linearly in the ice fraction up to `ICE_BODY_FRACTION` (`round_mass_kg`).
 3. **Cleared.** The body is a planet if it has cleared its orbit, a dwarf planet if not. Soter's `mu = M / m` (the body over the mass of everything else in its zone, here the rest of the belt) above `SOTER_MU_PLANET` (100) is a
-   planet (Soter 2006, READ); Margot's `Pi = M / M_clear` with `M_clear = 1.9e-4 C^(3/2) (a / au)^(9/8) (M* / Msun)^(5/2)` Earth masses and `C = 2 sqrt 3` (Margot 2015, READ) is the cross-check and is reported with every
+   planet ([R4159], READ); Margot's `Pi = M / M_clear` with `M_clear = 1.9e-4 C^(3/2) (a / au)^(9/8) (M* / Msun)^(5/2)` Earth masses and `C = 2 sqrt 3` ([R2871, R2874], READ) is the cross-check and is reported with every
    member (`Member.margot_pi`; Jupiter 4.0e4, Mars 54, as the paper prints). `status` is `minor body` below the round mass, `dwarf planet` if round and not cleared, `planet` if round and cleared.
 4. **Class D.** The class is the conditions rule of `physics/data/planet_classes.json` run on the body, not a table here: a body of a belt that holds no air (`AIRLESS_MAX_MASS_KG`, the mass under which the generator already
    treats a body as dwarf-sized, 5e22 kg) and at least 1 percent ice is Class D (`class_letter`). Bodies below `belt_ledger.L1_MASS_KG` are not stored and have no letter; the other letters a rocky member could take
@@ -48,10 +48,10 @@ ICE_BODY_FRACTION = 0.5
 """float: The ice mass fraction at and above which a body is as weak as pure ice (the round mass is the ice value); between zero and this it is mixed log-linearly. [Stand-in DWP2, tier T6, tweak L1.]"""
 
 SOTER_MU_PLANET = 100.0
-"""float: Soter's discriminant above which a body has cleared its zone and is a planet (Soter 2006, arXiv:astro-ph/0608359, READ; the gap between planets and the rest is four to five orders of magnitude). [Stand-in BR6, tier T1, tweak L0.]"""
+"""float: Soter's discriminant above which a body has cleared its zone and is a planet ([R4159], READ; the gap between planets and the rest is four to five orders of magnitude). [Stand-in BR6, tier T1, tweak L0.]"""
 
 MARGOT_COEFFICIENT_EARTH = 1.9e-4
-"""float: Margot's orbit-clearing mass at 1 au round a Sun-like star for `C = 1`, Earth masses (Margot 2015, arXiv:1507.06300, READ). [Stand-in BR7, tier T1, tweak L0.]"""
+"""float: Margot's orbit-clearing mass at 1 au round a Sun-like star for `C = 1`, Earth masses ([R2871, R2874], [R2871], READ). [Stand-in BR7, tier T1, tweak L0.]"""
 
 MARGOT_C = 2.0 * math.sqrt(3.0)
 """float: Margot's constant `C = 2 sqrt 3` (the clearing zone of 2 sqrt 3 Hill radii over the main-sequence lifetime, 10 Gyr; printed in the paper). [Stand-in BR7, tier T1, tweak L0.]"""

@@ -4,12 +4,12 @@
     "downloaded_at_setup": 12
   },
   "papers": {
-    "books": 30,
-    "datasets": 24,
-    "entries": 4923,
-    "with_arxiv": 1433,
-    "with_doi": 4715,
-    "without_doi": 208
+    "books": 31,
+    "datasets": 25,
+    "entries": 4951,
+    "with_arxiv": 1457,
+    "with_doi": 4738,
+    "without_doi": 213
   },
   "stand_ins": {
     "by_tier": {

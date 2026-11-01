@@ -29,8 +29,8 @@ _msun_to_kg = units.converter("Msun", "kg")
 
 _YEAR_S = units.converter("yr", "s")(1.0)
 
-PROTON_MASS_KG = 1.67262192369e-27  # CODATA 2018
-THOMSON_CROSS_SECTION_M2 = 6.6524587321e-29  # CODATA 2018
+PROTON_MASS_KG = 1.67262192369e-27  # [R4361]
+THOMSON_CROSS_SECTION_M2 = 6.6524587321e-29  # [R4361]
 
 MODES = ("wind", "disc", "overflow")
 """tuple: The ways the gas arrives."""

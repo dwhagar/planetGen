@@ -1,6 +1,6 @@
 # Neutron star structure: a TOV integration over the 21 equation-of-state tables (GEN.968)
 
-Status: built (GEN.968, parent GEN.743) and wired for the radius (GEN.969, rides the star-epoch merge train 3). The crust thickness has no consumer yet. Code: `physics/neutron_star_structure.py`, `scripts/build_neutron_star_table.py`. Data: `datasets/neutron_star_matter.py` (Malik, Pais and Providencia 2024, 21 unified equations of state, GEN.548) and the reduced `physics/data/neutron_star_curves.json`. Tests: `tests/test_neutron_star_structure.py` (synthetic polytropes and the committed table against NICER and the pulsar masses; no download) and `tests/test_neutron_star_structure_real.py` (the table against a fresh integration of the real tables).
+Status: built (GEN.968, parent GEN.743) and wired for the radius (GEN.969, rides the star-epoch merge train 3). The crust thickness has no consumer yet. Code: `physics/neutron_star_structure.py`, `scripts/build_neutron_star_table.py`. Data: `datasets/neutron_star_matter.py` ([R2834], 21 unified equations of state, GEN.548) and the reduced `physics/data/neutron_star_curves.json`. Tests: `tests/test_neutron_star_structure.py` (synthetic polytropes and the committed table against NICER and the pulsar masses; no download) and `tests/test_neutron_star_structure_real.py` (the table against a fresh integration of the real tables).
 
 ## What it does
 
@@ -14,10 +14,10 @@ A neutron star is fixed by its equation of state and one number, the pressure at
 
 | Quantity | The 21 tables | Measured |
 |---|---|---|
-| Maximum mass | 2.01 to 2.75 solar masses (19 of 21 above 2.08) | PSR J0740+6620, 2.08 +- 0.07 (Fonseca et al. 2021) |
-| R(1.4) | 11.8 to 13.8 km, median 12.9 | 12.45 +- 0.65 (Miller et al. 2021) |
-| R(1.34) | median 12.9 | 12.71 +1.14 -1.19 (J0030+0451, Riley et al. 2019) |
-| R(2.08) | 11.5 to 14.1 km, median 12.4 | 12.35 +- 0.75 (Miller et al. 2021); 13.7 +2.6 -1.5 (J0740) |
+| Maximum mass | 2.01 to 2.75 solar masses (19 of 21 above 2.08) | PSR J0740+6620, 2.08 +- 0.07 [R1404] |
+| R(1.4) | 11.8 to 13.8 km, median 12.9 | 12.45 +- 0.65 [R3075] |
+| R(1.34) | median 12.9 | 12.71 +1.14 -1.19 (J0030+0451, [R3766]) |
+| R(2.08) | 11.5 to 14.1 km, median 12.4 | 12.35 +- 0.75 [R3075]; 13.7 +2.6 -1.5 (J0740) |
 | Crust of a 1.4 solar mass star | 0.4 to 2 km thick | about 1 km |
 
 The stiffest tables (EOS 1 to 5) put R(1.4) above the Miller band by up to two of its widths. GEN.969 should draw a star's equation of state with a weight from these constraints (NICER radii, the 2.08 solar mass floor) and not uniformly; the module gives the radius of each table and leaves the weight to the wiring.
@@ -37,7 +37,7 @@ The crust-core density 0.08 fm^-3 and the neutron-drip density 2.6e-4 fm^-3 mark
 ## Wired (GEN.969, `physics/neutron_star.py`)
 
 - `neutron_star.radius_km(mass, deviation)` keeps its signature: the standard-normal `deviation` the caller draws (one `draw.gauss()` per star, `generation/phenomena/compact_remnant.py`) becomes a probability that picks a radius from the weighted radii of the equations of state that hold the star's mass (`supporting`), interpolated between neighbours. 0 gives the weighted median; the draw count is unchanged. `radius_limits_km` is the lowest and highest of those radii (the plausibility check reads it).
-- The weights (stand-in NS4, tier T2, tweak L1): a normal weight on each table's R(1.4) about 12.45 +- 0.65 km and R(2.08) about 12.35 +- 0.75 km (Miller et al. 2021), and for a table whose heaviest star is under 2.08 solar masses a normal weight on the shortfall in units of 0.07 (PSR J0740+6620). Result at 1.4 solar masses: weighted median 12.8 km, 68% of draws within 12.7 to 13.0 km, limits 11.8 to 13.8 km. The 21 tables are stiffer than the Miller interval's centre (their unweighted median is 12.9 km), so the weighting narrows the draw rather than centring it on 12.45; a star's radius is no longer drawn from a normal band, and its spread is smaller than the old 0.65 km.
+- The weights (stand-in NS4, tier T2, tweak L1): a normal weight on each table's R(1.4) about 12.45 +- 0.65 km and R(2.08) about 12.35 +- 0.75 km [R3075], and for a table whose heaviest star is under 2.08 solar masses a normal weight on the shortfall in units of 0.07 (PSR J0740+6620). Result at 1.4 solar masses: weighted median 12.8 km, 68% of draws within 12.7 to 13.0 km, limits 11.8 to 13.8 km. The 21 tables are stiffer than the Miller interval's centre (their unweighted median is 12.9 km), so the weighting narrows the draw rather than centring it on 12.45; a star's radius is no longer drawn from a normal band, and its spread is smaller than the old 0.65 km.
 - `tuning.NEUTRON_STAR_RADIUS_ANCHORS` and `NEUTRON_STAR_RADIUS_CLIP_SIGMA` are gone (no backward-compatibility shim).
 - The mass range of a neutron star (`tuning.NEUTRON_STAR_MASS_RANGE_SOLAR`, 1.1 to 2.2) stays; 15 of the 21 tables hold 2.2 solar masses. A mass no table holds raises.
 - This moves every neutron star's radius, so it is `--affects fill` and rides train 3.

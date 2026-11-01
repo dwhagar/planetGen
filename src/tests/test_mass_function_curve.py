@@ -2,7 +2,7 @@
 
 """
 TEST.454: the star mass function census (item 1 of the star mass function chain, GEN.922). The generator's stars, bin by bin in mass,
-against the published curves held as data in `tests/data/mass_function_curve.json` (Chabrier 2003, Kroupa 2001). The live census
+against the published curves held as data in `tests/data/mass_function_curve.json` [R0705, R2498]. The live census
 fails on a flag no known anomaly explains; a bin the chain's later items fix carries the item's number until it does.
 """
 
@@ -60,7 +60,7 @@ def test_the_system_function_peaks_higher_in_mass_than_the_single_star_function(
 
 
 def test_the_chabrier_individual_curve_is_the_shape_the_generator_rows_carry_today(spec):
-    """The curve file's copy of Chabrier 2003 (individual stars) is the function `tuning` holds (GEN.927), so a change of the
+    """The curve file's copy of [R0705] (individual stars) is the function `tuning` holds (GEN.927), so a change of the
     rows is seen against the published curve and not against itself: the generator's bins are the curve's, to the
     chord error of the segments."""
     shape = spec["curves"]["chabrier2003_individual"]
@@ -98,7 +98,7 @@ def test_every_curve_and_norm_says_where_it_comes_from(spec):
     for name, shape in spec["curves"].items():
         assert "T2" in shape["source"] or "recalled" in shape["source"], name
     assert spec["norms"]["white_dwarf_mean_mass_sol"]["source"]
-    assert any("Chabrier" in text for text in spec["reference"]["sources"])
+    assert any("[R0705]" in text for text in spec["reference"]["sources"])
 
 
 def test_every_known_anomaly_is_an_item_with_a_note(spec):

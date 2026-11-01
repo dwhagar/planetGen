@@ -282,4 +282,4 @@ Defaults the build proceeds on, each reversible:
 
 ## Sources
 
-See the sources of each folded note. Added for this note (search-result summaries only): [Perseus protostar multiplicity](https://arxiv.org/pdf/1601.00692), [Galactic Wolf-Rayet multiplicity](https://cris.iucc.ac.il/en/publications/the-multiplicity-of-galactic-wolf-rayet-stars/).
+See the sources of each folded note. Added for this note (search-result summaries only): [R4379], [Galactic Wolf-Rayet multiplicity](https://cris.iucc.ac.il/en/publications/the-multiplicity-of-galactic-wolf-rayet-stars/).

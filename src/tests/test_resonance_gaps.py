@@ -62,7 +62,7 @@ def test_a_gas_giants_zone_is_the_classical_law_at_low_eccentricity_and_the_exte
     assert half > 1.3 * mu ** (2 / 7)
     half, regime = rg.chaotic_zone(mu, 0.9)
     assert regime == "crossing" and half >= 0.9
-    # the two laws meet at the critical eccentricity (Mustill and Wyatt 2012)
+    # the two laws meet at the critical eccentricity [R3226]
     assert 1.8 * (critical * mu) ** 0.2 == pytest.approx(1.3 * mu ** (2 / 7), rel=0.05)
 
 

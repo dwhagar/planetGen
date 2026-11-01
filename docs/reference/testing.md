@@ -400,7 +400,7 @@ Part C, the star census (TEST.432, `src/tests/audit/prevalence_stars.py`, `src/t
 stars from the population model at the default galaxy's reference solar position and 2,500 planetless systems around each of M2V,
 K5V, G2V, F5V and A0V. It checks the star type mix (M, K, G, F, A, B, O, white dwarfs, evolved stars) as shares of all stars against
 the RECONS 10 parsec census and Mamajek's number densities, and the share of systems with a companion star (and, for G2V, with three
-or more) against Duchene and Kraus 2013, Raghavan 2010, and Moe and Di Stefano 2017
+or more) against [R1175, R3646], and [R3108]
 (`src/tests/data/prevalence_stars_expectations.json`, kind `observed` or `norm`). The file holds the norm range, never a generator
 run: where two sources differ the widest range stands, and the sampling slack of the run (four binomial sigma at its own draw count)
 is added when it is compared. A known fault carries its item as in the other parts. The report is `star-census-latest.md`; about 15
@@ -408,7 +408,7 @@ seconds on 4 cores. `python -m tests.audit.prevalence_stars` prints it without t
 
 The star mass function census (TEST.454, `src/tests/audit/mass_curve.py`, `src/tests/test_mass_function_curve.py`; item 1 of the star mass
 function chain, GEN.922) measures the same population bin by bin in mass against the published disk curves held as data in
-`src/tests/data/mass_function_curve.json` (Chabrier 2003's log-normal fits for single stars and for systems, Kroupa 2001's broken power law,
+`src/tests/data/mass_function_curve.json` ([R0705]'s log-normal fits for single stars and for systems, [R2498]'s broken power law,
 all recalled, tier T2, until a lane reads the papers). It draws 60,000 systems at the reference solar position and counts two samples below
 0.8 solar masses, where every star born is still alive: the primaries (held to the system function) and every star of the systems' member
 trees (held to the single-star functions), and reports the generator's primaries above 0.8 solar masses by phase (main sequence, subgiant,

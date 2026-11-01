@@ -42,7 +42,7 @@ def test_the_assembly_energy_of_an_earth_is_the_accretion_plus_the_iron_sinking(
     uniform = ih.binding_energy_j(mass, radius, 0.0, 0.0)
     assert uniform == pytest.approx(0.6 * constants.G * mass ** 2 / radius, rel=1e-12)
     differentiated = ih.binding_energy_j(mass, radius, 0.325 * mass, 0.55 * radius)
-    # the iron sinking releases 1 to 3e31 J on the Earth, a tenth of its accretion (Flasar and Birch 1973)
+    # the iron sinking releases 1 to 3e31 J on the Earth, a tenth of its accretion [R1388]
     assert 1.0e31 < differentiated - uniform < 3.0e31
     assert differentiated > uniform
 
@@ -77,7 +77,7 @@ def test_an_earth_twin_gives_a_heat_and_a_urey_ratio_in_the_published_ranges_wit
 
 
 def test_the_urey_ratio_is_about_the_stagnant_lids_of_guimond_et_al_2022():
-    """Their present-day Urey ratios are about 0.65 for planets of 0.1 to 5 Earth masses (arXiv:2201.05636 section 3.2.1)."""
+    """Their present-day Urey ratios are about 0.65 for planets of 0.1 to 5 Earth masses ([R1716] section 3.2.1)."""
     for mass_earth, radius_km in ((0.1, 3000.0), (1.0, 6371.0), (5.0, 9300.0)):
         found = _earth(mass=mass_earth * EARTH, radius=radius_km)
         assert 0.5 <= found.urey_ratio <= 0.85
@@ -273,7 +273,7 @@ def test_the_regime_is_one_draw_at_the_chance_of_the_old_coin_and_a_giant_has_no
 
 
 def test_the_liquidus_is_manskes_fit_and_the_ceiling_follows_the_pressure_in_the_mantle():
-    """Manske et al. 2025 Table 1: 1,874 K at the surface, 4,717 K at the Earth's core-mantle boundary (135 GPa). The Earth's mantle
+    """[R2857: Table 1]: 1,874 K at the surface, 4,717 K at the Earth's core-mantle boundary (135 GPa). The Earth's mantle
     ceiling is the liquidus at about 47 GPa, a Moon-sized body's is near the surface liquidus."""
     assert ih.liquidus_k(0.0) == pytest.approx(1874.0, abs=3.0)
     assert ih.liquidus_k(135.0) == pytest.approx(4717.0, abs=10.0)
@@ -318,7 +318,7 @@ SWEEP_MASSES_EARTH = (0.0004, 0.01, 0.1, 0.5, 1.0, 3.0, 10.0)
 def test_the_urey_ratio_of_a_bulk_silicate_earth_body_of_any_size_sits_between_the_published_extremes_once_it_is_a_gigayear_old():
     """GEN.763: a table of small and large bodies (design note, section 3.2). The bounds of the sweep over 0.0004 to 10 Earth masses, 1, 4.5
     and 10 Gy, both lids and the four rheology corners: a Urey ratio from 0.3 (a large stagnant lid, whose heat is mostly the
-    cooling) to 1.0 (the mantle held at its ceiling, losing exactly what is made). Guimond et al. 2022 have about 0.65 for 0.1 to 5
+    cooling) to 1.0 (the mantle held at its ceiling, losing exactly what is made). [R1716] have about 0.65 for 0.1 to 5
     Earth masses; for the Earth the geochemical estimate is about 0.3 and the geophysical view close to one."""
     found = []
     for mass_earth in SWEEP_MASSES_EARTH:

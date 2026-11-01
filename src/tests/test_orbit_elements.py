@@ -57,7 +57,7 @@ def test_the_eccentricities_of_a_single_planet_follow_the_published_mixture():
     scale = cdf(0.9)
     assert stats.kstest(values, lambda x: cdf(x) / scale).pvalue > 0.001
     multi = _draws(SAMPLES, lambda: oe.draw_planet_eccentricity(True, 0.9))
-    assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population (Van Eylen et al. 2019)
+    assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population [R1307]
 
 
 def test_a_cut_eccentricity_is_never_exceeded_and_a_cut_of_zero_is_a_circle():

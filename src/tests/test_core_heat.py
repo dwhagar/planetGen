@@ -40,7 +40,7 @@ def test_the_earths_core_has_an_inner_core_a_boundary_flow_and_a_running_dynamo(
     core = _heat().core
     assert 3800.0 < core.temperature_k < 4300.0           # 4,000 K or so at the top of the core
     assert 0.25 < core.inner_fraction < 0.5               # the inner core's 1,220 km of the core's 3,480 km
-    assert 4.0e12 < core.cmb_w < 1.5e13                   # 5 to 15 TW across the boundary (Lay et al. 2008, second-hand)
+    assert 4.0e12 < core.cmb_w < 1.5e13                   # 5 to 15 TW across the boundary ([R2589], second-hand)
     assert core.cmb_w > core.adiabatic_w > 0.0
     assert core.running and core.dynamo_ended_gy is None
     assert core.dipole_scale == pytest.approx(1.0, abs=0.15)

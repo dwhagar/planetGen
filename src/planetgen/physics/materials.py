@@ -21,7 +21,7 @@ registered as the table `materials` (`TABLE`, `generation.possibility_table.SHAR
 table refer to them and `REGISTRY.validate` checks it. Its weights are 1 and unused: nothing is drawn from this table.
 
 The data are `physics/data/materials.json`, built by `scripts/build_materials_table.py` from part E's materials table, part B's
-SLB phases and iron rows, part C's ice phases and the values in `scripts/materials_data.py` (Seager et al. 2007 Tables 1 to 3,
+SLB phases and iron rows, part C's ice phases and the values in `scripts/materials_data.py` ([R3992: Tables 1 to 3],
 the Handbook of Mineralogy, PubChem), and checked in. The loader refuses (`DataError`) a file without its sources, a
 row without a source and a state, a number without a source key, a partly verified row without its limit, a formula it
 cannot read, a gate it does not know, an equation of state without the constants of its model, an alias that is two rows' name,

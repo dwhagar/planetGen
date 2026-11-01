@@ -16,8 +16,8 @@ Boss's decision of 4:01 PM EDT on 2026-10-24 was to use the public line-list dat
 
 | Dataset | Fill | What | Source |
 |---|---|---|---|
-| `ir_ktables` | AD10 | Correlated-k tables of H2O, CO2 and CH4 at resolving power 1000, 0.3 to 50 micron, 22 pressures (1e-5 to 100 bar), 27 temperatures (100 to 3400 K), 20 g points | ExoMolOP (Chubb et al. 2021) from POKAZATEL, UCL-4000 and YT34to10 |
-| `ir_cia` | AD11 | Collision-induced absorption of 11 pairs: N2-N2, O2-O2, N2-O2, CO2-CO2, N2-CH4, N2-H2, CO2-CH4, CO2-H2, H2-H2, H2-CH4, H2-He | HITRAN CIA (Karman et al. 2019) |
+| `ir_ktables` | AD10 | Correlated-k tables of H2O, CO2 and CH4 at resolving power 1000, 0.3 to 50 micron, 22 pressures (1e-5 to 100 bar), 27 temperatures (100 to 3400 K), 20 g points | ExoMolOP [R0795] from POKAZATEL, UCL-4000 and YT34to10 |
+| `ir_cia` | AD11 | Collision-induced absorption of 11 pairs: N2-N2, O2-O2, N2-O2, CO2-CO2, N2-CH4, N2-H2, CO2-CH4, CO2-H2, H2-H2, H2-CH4, H2-He | HITRAN CIA [R2267] |
 
 Setup downloads each file, checks its sha256, reduces it and deletes it (`transient` pieces). The reduction keeps the band mean of the k-distribution:
 all the (wavenumber, g) values of a band are sorted by k, cut at the new g edges, and each interval's mean is the new k. The result is 129 bands (20 cm-1
@@ -36,7 +36,7 @@ is 0 to 200 cm-1, below the tables) by 10 g points:
 4. **Collision-induced absorption**: `k(T) x1 x2 n N` for each pair of the air, k the band mean at the layer's temperature.
 5. **Gases without a table** (stand-ins IR1, IR2): a plateau at each band of the gas table with exponential wings, sorted into a distribution.
 6. **The far wings** (rows FW1 to FW7): the tables cut every line at 25 cm-1, and a Venus-like air needs what lies beyond.
-   `physics/co2_far_wing.py` (GEN.1019, rows FW1 to FW5; it replaced the flat stand-in IR3): each carbon dioxide band's Lorentz tail beyond 25 cm-1 times the Perrin and Hartmann 1989 sub-Lorentzian factor, out to 500 cm-1, with the band strengths taken from the carbon dioxide table at its lowest pressure.
+   `physics/co2_far_wing.py` (GEN.1019, rows FW1 to FW5; it replaced the flat stand-in IR3): each carbon dioxide band's Lorentz tail beyond 25 cm-1 times the [R3490] sub-Lorentzian factor, out to 500 cm-1, with the band strengths taken from the carbon dioxide table at its lowest pressure.
    GEN.1020, wired into the column through `solve(..., cloud=(tau_550, radius_um))`: the acid cloud's infrared opacity (`cloud_infrared`, Mie droplets from the HITRAN sulfuric acid indices, rows CF1 to CF5) and the far wings of water, sulfur dioxide and carbon monoxide in a carbon dioxide air (rows FW6, FW7). With both, the clear-sky Venus-like test air reaches 757 K (measured 735 K); the wing alone gave 539 K.
 
 ## The column

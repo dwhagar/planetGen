@@ -1,8 +1,7 @@
 # tests/test_roundness.py
 
 """
-GEN.1158: the roundness engine and the binding energy of every kind of mass object. The bodies below are test targets (radii and densities from Lineweaver and Norman 2010 and
-Probsthain 2018, Proteus from the Neptunian-moon literature); the module takes none of them as input.
+GEN.1158: the roundness engine and the binding energy of every kind of mass object. The bodies below are test targets (radii and densities from [R2703, R3612], Proteus from the Neptunian-moon literature); the module takes none of them as input.
 """
 
 import copy

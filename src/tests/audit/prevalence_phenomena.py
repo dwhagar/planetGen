@@ -57,11 +57,11 @@ WR_CHUNK = 30000
 _STATE = {}
 
 MILKY_WAY_STELLAR_MASS_SOLAR = 5.2e10
-"""float: The Milky Way's stellar mass, solar masses (Licquia and Newman 2015, 5.17e10 +- 1.1e10, recalled)."""
+"""float: The Milky Way's stellar mass, solar masses ([R2680], 5.17e10 +- 1.1e10, recalled)."""
 MILKY_WAY_BULGE_TO_TOTAL = 0.2
-"""float: The share of the Milky Way's stars in its bulge and bar (Bland-Hawthorn and Gerhard 2016: about 1e10 of 5e10, recalled)."""
+"""float: The share of the Milky Way's stars in its bulge and bar ([R0422]: about 1e10 of 5e10, recalled)."""
 MILKY_WAY_STELLAR_HALO_SHARE = 0.02
-"""float: The share of the Milky Way's stars in its stellar halo (Bland-Hawthorn and Gerhard 2016: 4 to 7e8 of 5e10, recalled)."""
+"""float: The share of the Milky Way's stars in its stellar halo ([R0422]: 4 to 7e8 of 5e10, recalled)."""
 
 
 @functools.lru_cache(maxsize=1)

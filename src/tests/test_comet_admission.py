@@ -49,7 +49,7 @@ def test_the_model_holds_nine_cells_and_two_distance_lines_fitted_to_the_databas
     assert set(ca.MODEL.distance) == {"parent", "radical"}
     for line in ca.MODEL.distance.values():
         assert 0.2 < line.slope < 1.0 and line.scatter > 0 and line.rows > 100 and line.comets > 30
-    assert "Robinson" in ca.MODEL.source and ca.MODEL.retrieved
+    assert "[R3782]" in ca.MODEL.source and ca.MODEL.retrieved
     assert ca.validity() == {"perihelion_distance_au": (0.3, 8.0)}
 
 
@@ -160,7 +160,7 @@ def test_the_fit_script_joins_a_saved_database_to_the_orbits_and_reproduces_the_
 
 def target(**overrides):
     raw = {"id": "comet-mean", "row": "tab:r", "statistic": "mean heliocentric distance of the measured comets", "kind": "mean",
-           "value": 2.0, "sigma": 0.3, "n": 223, "source": "Robinson et al. 2024 database", "label": "DATA",
+           "value": 2.0, "sigma": 0.3, "n": 223, "source": "[R3782] database", "label": "DATA",
            "selection_model": ca.MODEL_ID, "field": "rh_au", "validity": {"perihelion_distance_au": [0.3, 8.0]}}
     raw.update(overrides)
     return th.TargetTable({"version": 1, "targets": [raw]}).get("comet-mean")

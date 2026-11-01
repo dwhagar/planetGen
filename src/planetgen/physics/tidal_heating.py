@@ -5,7 +5,7 @@ Tidal heating from the orbit's real eccentricity (GEN.737)
 ==========================================================
 
 A body on an eccentric orbit is flexed as its distance from what it goes round changes, and the flexing is dissipated as heat. For a
-body that keeps one face to its host (a moon, or a close planet) Peale, Cassen and Reynolds 1979 give the power as
+body that keeps one face to its host (a moon, or a close planet) [R3464] give the power as
 
     E = (21/2) (k2/Q) G Mh^2 n R^5 e^2 / a^6
 
@@ -28,7 +28,7 @@ temperature feed back, and the box is bistable (a warmer mantle is tidally weake
 
 The **heat pipe**. A mantle whose melt reaches `tidal_rheology.CRITICAL_MELT_FRACTION` (the crystals no longer touch: the mush is a
 suspension and the melt segregates) erupts: the melt carries the heat out at the surface as fast as the interior makes it (the heat pipe of
-Io, O'Reilly and Davies 1981, about 2 W/m2 for centimetres a year of resurfacing; Moore 2001). The mantle then stays at
+Io, [R3373], about 2 W/m2 for centimetres a year of resurfacing; [R3139]). The mantle then stays at
 `heat_pipe_temperature_k`, the temperature of that melt fraction, and the heat it radiates is the radiogenic heat plus the tide it is flexed with
 there. The pipe takes over where the radiogenic heat plus the tide at that temperature is more than the mantle's conduction can carry away
 (the box would otherwise pass it), so no tidal power is chosen: the melt state and the fitted `k2/Q` of Io are no longer numbers of ours.
@@ -46,15 +46,15 @@ GIANT_TIDAL_Q = 1.0e5
 GIANT_K2 = 0.3
 """float: And its Love number (Jupiter 0.49, Saturn 0.39, Neptune 0.13, Uranus 0.1). Source tier T3, tweak level L0."""
 SOLIDUS_SURFACE_K = 1393.0
-"""float: The peridotite solidus at the surface, K (Hirschmann 2000, recalled). Source tier T2, tweak level L0."""
+"""float: The peridotite solidus at the surface, K ([R1952], recalled). Source tier T2, tweak level L0."""
 SOLIDUS_PRESSURE_SCALE_GPA = 2.2
 """float: The pressure scale of the Simon-Glatzel curve `T_s = T_0 (1 + p / a)^b` that carries the solidus up from the surface to the core-mantle
-boundary. Source tier T3, tweak level L2: fitted through two recalled points, 2,200 K at 10 GPa (Hirschmann 2000) and 4,180 K at 135 GPa (Fiquet et
+boundary. Source tier T3, tweak level L2: fitted through two recalled points, 2,200 K at 10 GPa [R1952] and 4,180 K at 135 GPa (Fiquet et
 al. 2010), where it gives Hirschmann's 1,750 K at 3 GPa without being fitted to it."""
 SOLIDUS_EXPONENT = 0.267
 """float: And its exponent (see `SOLIDUS_PRESSURE_SCALE_GPA`). Source tier T3, tweak level L2."""
 MELT_RANGE_K = 450.0
-"""float: How far a mantle's liquidus lies above its solidus, K (a peridotite liquidus 400 to 500 K over its solidus, Hirschmann 2000, recalled).
+"""float: How far a mantle's liquidus lies above its solidus, K (a peridotite liquidus 400 to 500 K over its solidus, [R1952], recalled).
 Source tier T2, tweak level L0."""
 
 
@@ -70,7 +70,7 @@ def liquidus_k(pressure_gpa):
 
 def heat_pipe_temperature_k(pressure_gpa):
     """The mantle temperature a melt-limited body holds, K: that of the melt fraction `tidal_rheology.CRITICAL_MELT_FRACTION` at which the crystals stop
-    touching and the melt segregates and erupts (the heat pipe of Moore 2001). Derived from TR2, which replaces the chosen melt share of
+    touching and the melt segregates and erupts (the heat pipe of [R3139]). Derived from TR2, which replaces the chosen melt share of
     0.3 (TH7)."""
     return solidus_k(pressure_gpa) + tidal_rheology.CRITICAL_MELT_FRACTION * MELT_RANGE_K
 

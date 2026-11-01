@@ -4,8 +4,8 @@
 The saturation pressure of the gases and ices (GEN.470): `saturation(species, temperature_k)`, the pressure at which the
 solid and its vapour are in balance, with the standing of the answer.
 
-The curves are the Fray and Schmitt 2009 polynomials `ln P[bar] = A0 + sum Ai / T^i` (i = 1 to 6) as quoted in the
-supplementary table of Lisse et al. (arXiv:2009.02277), for water ice the Feistel and Wagner 2007 form that IAPWS
+The curves are the [R1445] polynomials `ln P[bar] = A0 + sum Ai / T^i` (i = 1 to 6) as quoted in the
+supplementary table of Lisse et al. [R2711], for water ice the [R1345] form that IAPWS
 R14-08 adopts, and the laboratory-corrected cold ends and the carbon dioxide equation described below.
 `data/saturation_pressure.json` holds the coefficients and says where each came from. This is the one place a
 vapour-pressure curve lives; the callers (GEN.452) read it.
@@ -20,7 +20,7 @@ vapour-pressure curve lives; the callers (GEN.452) read it.
   (docs/design/composition/atmosphere-composition.md, finding 11).
 * **The laboratory-corrected cold end (GEN.497)** replaces the polynomial for nitrogen (alpha, 20 to 35 K), carbon
   monoxide (25 to 54 K), methane (30 to 51 K), oxygen (beta, 30 to 43 K) and ammonia (80 to 162 K) with the quartz crystal
-  microbalance fits of Grundy et al. 2024 and Blakley et al. 2024, `ln P[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3`,
+  microbalance fits of [R0418, R1708], `ln P[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3`,
   up to the temperature at which they meet the Fray and Schmitt polynomial (nitrogen: the top of
   its window, where the Fray and Schmitt alpha fit is about 2.1 times higher, a step left as published). Inside its window
   the answer is `ok`. Below the window the curve is carried on by Clausius-Clapeyron with the latent heat the fit has at its
@@ -30,7 +30,7 @@ vapour-pressure curve lives; the callers (GEN.452) read it.
   answer is the 2026 set (A and B of the preprint, the other constants from the 2024 papers or fitted to them, max 0.6
   percent); off, the 2024 set (for nitrogen, carbon monoxide and methane the same curve divided by 1.19, because their 2024
   constants C to D4 are in no source read). Both sets are in the file.
-* **Carbon dioxide is Span and Wagner 1996 equation 3.12** (`span-wagner`): `ln(P/Pt) = (Tt/T)(a1 th + a2 th^1.9 + a3
+* **Carbon dioxide is [R4166] equation 3.12** (`span-wagner`): `ln(P/Pt) = (Tt/T)(a1 th + a2 th^1.9 + a3
   th^2.9)`, `th = 1 - T/Tt`, good to 0.1 percent at 150 to 200 K (842.65 Pa at 150 K, 103971 Pa at 195 K, 101325 Pa at
   194.6855 K). The equation was fitted to data above 154 K and matched to the laboratory data above 85 K; below 85 K the
   value is the equation's, flagged `below-fit`. It replaces the two Fray and Schmitt fits, which are 7 percent high at 125 K
@@ -140,7 +140,7 @@ class ColdEnd:
 @dataclass(frozen=True)
 class SpanWagner:
     """
-    Span and Wagner 1996 equation 3.12: `ln(P/Pt) = (Tt/T)(a1 th + a2 th^1.9 + a3 th^2.9)`, `th = 1 - T/Tt`.
+    [R4166] equation 3.12: `ln(P/Pt) = (Tt/T)(a1 th + a2 th^1.9 + a3 th^2.9)`, `th = 1 - T/Tt`.
 
     Attributes:
         t_t_k, p_t_pa (float): The triple point.

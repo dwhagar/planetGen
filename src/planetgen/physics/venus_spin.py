@@ -7,8 +7,8 @@ The Venus-type spin: the slow, non-synchronous (often retrograde) rotation of a 
 A rocky planet with a dense air is not driven to synchronous rotation. The star heats the air unevenly; the air's thermal bulge is pulled by the star the other way
 from the planet's solid tide, and the two torques balance at spin rates that are **not** the orbital rate. Add the friction between the core and the mantle, which
 drives the tilt of the axis to 0 or 180 degrees, and a planet can end up turning slowly backwards (Venus: 243 days retrograde on a 225 day orbit). The model is
-Correia and Laskar (2001, *Nature* 411:767; 2003, *Icarus* 163:1 and 24) as generalised to eccentric orbits and tilt by Cunha, Correia and Laskar (2015, *Int. J.
-Astrobiol.* 14:233, arXiv:1406.4544, read in full). This module is that closed-form result as a pure function; nothing calls it yet (GEN.1048 wires it into the
+[R0896] (*Nature* 411:767; 2003, *Icarus* 163:1 and 24) as generalised to eccentric orbits and tilt by [R0962] (*Int. J.
+Astrobiol.* 14:233, [R0962], read in full). This module is that closed-form result as a pure function; nothing calls it yet (GEN.1048 wires it into the
 planet's spin and tilt, `weird-worlds.md` W2).
 
 **The strength of the thermal tide.** The two tides are summed into one number, `ws`, the spin offset at which they cancel (their equation 57, circular orbit):
@@ -58,7 +58,7 @@ from planetgen.physics import constants, unit_registry as units
 _kg_to_msun = units.converter("kg", "Msun")
 
 VENUS_STRENGTH = 1.9255
-"""float: `ws / n` of Venus (Cunha, Correia and Laskar 2015 Table 1, from the 243 day retrograde spin). Source tier T1, tweak level L0."""
+"""float: `ws / n` of Venus ([R0962: Table 1], from the 243 day retrograde spin). Source tier T1, tweak level L0."""
 VENUS_DAMPING_TIME_GY = 2.3
 """float: The time Venus's slow-rotation tide takes to reach its equilibrium, Gy (the same table). Source tier T1, tweak level L0."""
 VENUS_MASS_KG = 4.8675e24

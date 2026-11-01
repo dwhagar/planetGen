@@ -15,7 +15,7 @@ planets (`physics.rogue_surface`) use the functions here.
    hydrosphere (every field `None`).
 2. **Land.** A toy hypsometry calibrated to Earth's 0.71 ocean fraction:
    `f_ocean = min(1, sqrt(2 D / L))`, `D` the global water layer and `L =
-   10.5 km * (g_E / g)` the relief (Cowan and Abbot 2014 put the threshold
+   10.5 km * (g_E / g)` the relief ([R0914] put the threshold
    for any land at about 0.2 percent water). `ocean_fraction` is the share
    the water covers, liquid or frozen; `land_fraction` the rest.
 3. **State.** Under water's triple-point pressure and warmer than
