@@ -1342,6 +1342,7 @@ anything.
 | `uv_c_share` | DOUBLE | nullable | Added in v145 (GEN.443). The share of the star's blackbody UV-C (100 to 280 nm) it gives off, log-uniform 0.1 to 1 (the Sun's measured 0.256 is one value of it), drawn once from the star's own stream (`physics/activity.py`); the radiation model's UV-B and UV-A shares follow from it (`physics/stellar_spectrum.py`). NULL for a remnant and for a row saved before v145, which the model reads as the blackbody (1). |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic centre; a binary's secondary shares its primary's. NULL on a row generated before v95. |
 | `nuclear_arrival_age_gy` | DOUBLE | nullable | Added in v198 (GEN.1174). For a pre-main-sequence star, the age in Gyr at which MIST's tracks put it on the main sequence (`physics/pre_main_sequence.py`, `nuclear_arrival_yr`). The star counts as pre-main-sequence only until its radius has settled (BHAC15), an earlier age, so both times are kept: that one in `bright_stars.phase_end_age_gy`, this one here. NULL for every other star and for a row made before v195; nothing is backfilled. |
+| `density_g_cm3`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The mean density in g/cm3 and the binding energy in J of the star, white dwarf or remnant standing in for one (`physics/body_strength.py`: the n = 3 polytrope for a star, n = 3/2 for a brown dwarf or white dwarf, [R2573] for a neutron star, -1 for a black hole). NULL for a row made before v196. |
 
 ### `planets`
 
@@ -1575,6 +1576,7 @@ standalone (no owning `StarSystem` at all).
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
 | `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
+| `density_g_cm3`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The mean density in g/cm3 (inside the event horizon for a black hole) and the binding energy in J. A black hole stores -1 for an infinite binding energy, since nothing can be pulled away from it. NULL for a row made before v196. |
 
 **`neutron_stars`**
 
@@ -1684,6 +1686,7 @@ from any star.
 | `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A planet's day for its type. The spin vector is the axis times 2 pi over this period. |
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbits/orbital-updates.md section 6. NULL on a row generated before v68. |
 | `log_lx_lbol`, `l_xuv_w`, `xuv_saturated`, `flare_n33_per_yr`, `flare_alpha`, `xuv_fluence_j` | DOUBLE (`xuv_saturated` BOOLEAN) | nullable | Added in v72 (GEN.86). Stellar activity: log10 of the coronal X-ray share of the luminosity (saturated at 7.4e-4 for G, K and M stars, decaying after a mass-dependent saturation age; NULL for a white dwarf or compact remnant), the X-ray plus EUV luminosity in W (a hot photosphere's output above 13.6 eV included; a neutron star's thermal or spin-down X-rays; a black hole's disk), whether the corona is still saturated, flares above 1e33 erg a year and their energy slope, and the XUV given off over the star's age, J. See `planetgen/physics/activity.py` and docs/design/habitability/activity-magnetism-radiation-hydrosphere.md section 2. NULL on a row generated before v72. |
+| `density_g_cm3`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The mean density in g/cm3, the roundness ratio and strength of a terrestrial rogue planet's rock and ice, and its binding energy in J. A giant or a brown dwarf keeps only the density and the binding energy. NULL for a row made before v196. |
 
 ### `quasars`
 
@@ -1729,6 +1732,7 @@ unbound from any star.
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 | `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A log-normal small-body period, never under the 2.2-hour spin barrier. The spin vector is the axis times 2 pi over this period. |
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole (YORP: near 10 or 170 degrees); see `planetgen/physics/spin.py` and docs/design/orbits/orbital-updates.md section 6. NULL on a row generated before v68. |
+| `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The same five values a `comets` row keeps (v195). NULL for a row made before v196. |
 
 ### `interstellar_comet_composition`
 
@@ -2233,6 +2237,8 @@ Migration 0191 adds three nullable columns at the end of `planets` and `moons`, 
 ### v199 (GEN.1159): the roundness ratio, the strength and the binding energy
 
 Migration 0195 adds `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` (DOUBLE, nullable) to `planets`, `moons` and `comets`, `density_g_cm3` and `ice_mass_fraction` to `comets`, `asteroid_belts` and `asteroid_fields`, skipping a column already there. All are NULL after the migration: they are worked out by `physics/body_strength.py` when a body is generated, so a row made before v195 gets them when the galaxy is regenerated. Nothing is backfilled.
+
+Migration 0200 adds `density_g_cm3` and `binding_energy_j` (DOUBLE, nullable) to `stars`, `black_holes` and `neutron_stars`; those with `roundness_ratio` and `yield_strength_pa` to `rogue_planets`; and `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` to `interstellar_comets`, skipping a column already there. All are NULL after the migration; a row made before v196 gets them when the galaxy is regenerated.
 
 ### v189 (GEN.1009): the largest radius and mass of a member
 

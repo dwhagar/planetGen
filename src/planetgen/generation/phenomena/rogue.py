@@ -23,7 +23,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import brown_dwarf as brownDwarf, bulk_structure, constants, planet_classes, planets as planetPhysics, relations, rings, rogue_habitability, small_body_composition, spin
+from planetgen.physics import body_strength, brown_dwarf as brownDwarf, bulk_structure, constants, planet_classes, planets as planetPhysics, relations, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -158,6 +158,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
     FIELD_UNITS = {
         "name": "text", "planet_type": "text", "planet_class": "text", "mass_bin": "text", "mass_kg": "kg",
         "radius_km": "km", "composition": "text", "has_internal_heat": "flag", "has_moons": "flag",
+        "density_g_cm3": "g_cm3", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
         **rings.UNITS,
         **ROGUE_SURFACE_UNITS, **rogue_habitability.ROGUE_UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
@@ -256,6 +257,11 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons,
             age_gy=brown_dwarf_age_gy if mass_bin == "brown-dwarf" else None))
         self.planet_class = rogue_class(self)    # from the surface its own heat gave it (GEN.687)
+        # GEN.1162: its mean density and binding energy, and for a terrestrial one the roundness ratio and strength of its rock and the water of its shell and ocean.
+        water = water_mass_fraction(self.mass_kg, self.radius_km, self.ice_shell_thickness_km, self.ocean_depth_km, getattr(self, "hp_ice_km", None)) \
+            if self.planet_type == "t" else 0.0
+        for name, value in body_strength.rogue_values(self, water).items():
+            setattr(self, name, value)
 
         rings.clear(self)  # GEN.1057: a ring is what a planet's history made, and a rogue planet's moons and comets are not followed
         self.set_galactic_motion()
@@ -392,6 +398,7 @@ class InterstellarComet(SmallBody):
 
     FIELD_UNITS = {
         "name": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
+        "density_g_cm3": "g_cm3", "ice_mass_fraction": "frac", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
         **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
@@ -428,6 +435,7 @@ class InterstellarComet(SmallBody):
         self.makeup = small_body_composition.draw_comet(interstellar=True)
         self.composition = small_body_composition.component_names(self.makeup)
         self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
+        body_strength.generate_comet(self)    # GEN.1162: its density, ice share, roundness ratio, strength and binding energy
 
         self.set_galactic_motion()
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.
