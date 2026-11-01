@@ -120,11 +120,12 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 5.2:BC20 | no data | - | the share of giants with a ring is now an output of the fall and passage histories (`ring_origin`); no ring census of exoplanets is held, and Cassini's ring age and mass are argued, so the history's own stand-ins RO1 to RO6 carry it |
 | 5.2:BC21 | no data | - | the edges of ring systems are measured for four giants only; the outer edge against the Roche limit and the inner edge in planet radii have no second sample |
 | 5.2:BC22 | no data | - | the kind limits are the middles of the gaps between four Solar System rings; a second sample of measured ring masses replaces them |
-| 5.2:BC23 | replace | GEN.1055 | the ice share and darkness follow from the ring's age and pollution by the snow line (GEN.1055) |
+| 5.2:BC23 | no data | - | the share a ring begins with is still drawn from this range (no measured ice share of a young ring exists); what the dust has done to it since is worked out (`rings.darken`, GEN.1055 R6) |
 | 6.70:RO1 | no data | - | no simulation table of the ring left by a disrupted moon by composition is in hand; Canup 2010 and Black and Mittal 2015 disagree on the share |
 | 6.70:RO2 | no data | - | the age of Saturn's rings is contested between 1e8 years and the age of the planet, and no other ring system is dated |
 | 6.70:RO3 | no data | - | no survey measures how often a ring-making comet passes inside a giant's Roche limit |
 | 6.70:RO5 | no data | - | no N-body table of the share of a torn comet that stays in orbit by speed and periapsis is in hand; Dones 1991 gives a range only |
+| 6.70:RO13 | no data | - | no impact-ejecta experiment on ring ice at ring meteoroid speeds gives the mass yield; the ejecta mass is argued over two decades |
 | 6.74:SH3 | no data | - | the pressure a given shoreline ratio allows is not measured as a table: only Mars's 6 mbar and Pluto's 10 micro-bar sit at ratios of 1.8 and 0.78; the caps stay the design note's steps until a survey of thin atmospheres fits them |
 | 6.78:GT3 | replace | GEN.1058 | the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor |
 | 6.96:IO2 | no data | - | fitted with the Jupiter row to the retrograde to prograde split; a capture simulation's width replaces it when one is held |
@@ -149,6 +150,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.108:TF3 | no data | - | nothing measures the spread of a field that was never observed; the dispersion of a real source (IF12) is the only thing that could replace it |
 | 6.108:TF4 | no data | - | the counts and masses are chosen to keep a sector's top-up to a dozen clouds; no measurement exists to replace them |
 | 6.114:RY1 | no data | - | no stagnant-lid eruption model yet; the one-box mantle temperature does not discriminate between bodies, so the cut stays a heat flow between Mars and the Earth |
+| 6.97:BG14 | no data | - | no survey gives the mass of the warm dust of an inner belt well enough to set the least mass a belt keeps; the value is set so the share of main-sequence systems with an inner belt lands near 9 percent, inside the 4 to 14 percent of GEN.1156, and a size law with each belt's own largest body (GEN.566) or a dust survey would replace it |
 | 6.117:BHS3 | no data | - | no source gives the share of a belt (as against a planet system) that a star's sudden mass loss destabilises; the value is set so the white dwarf pollution the model gives is in the observed range, and any N-body run of a belt round a mass-losing star replaces it |
 | 6.118:IP5 | no data | - | no paper gives the gas-drag share against the three-body channel (Pollack et al. 1979 only as an abstract, Cuk and Burns 2004 not reached); a gas-drag capture run of the generated envelope replaces it |
 | 6.118:IP8 | no data | - | no binary-exchange run gives the size of the captured body for a general disc; the design's few hundred km is the only guide |
@@ -158,7 +160,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.121:TJ5 | no data | - | no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them |
 | 6.41:TK6 | no data | - | the within-family shares are fixed fractions; the meteorite-group map of GEN.475 labels the group of a mix but gives no shares for the taxa of a family, and no table of asteroid taxa by mass in a belt exists to fit them to |
 | 6.130:AB1 | replace | GEN.804 | the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of Johnstone et al. 2021 (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it |
-| 6.43:LB1 | replace | GEN.1000 | the size law of GEN.566 gives each belt's largest body; until it is built the size is a range drawn per belt |
+| 6.43:LB1 | replaced | - | GEN.1000: each belt's largest body now comes from the size law (`belt_ledger.belt_state`: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone |
 | 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
 | 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |

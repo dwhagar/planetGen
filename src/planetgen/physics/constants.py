@@ -76,21 +76,6 @@ JUPITER_RADIUS_KM = 71_492.0  # Jupiter's mean equatorial radius in kilometers
 MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 = 7.0
 MMSN_SURFACE_DENSITY_EXPONENT = -1.5
 
-# Rotation-curve model for a star's circular orbit around the galactic
-# center (see `galactic_orbit.calculate_galactic_orbit`): v(r) = FLAT_VELOCITY * r /
-# sqrt(r^2 + CORE_RADIUS^2) -- a pseudo-isothermal-halo-style curve that
-# rises ~linearly (near-solid-body) inside the core radius and flattens to
-# the asymptotic velocity well outside it, the same qualitative shape real
-# spiral-galaxy rotation curves show (steep bulge rise, flat disk plateau)
-# and the standard explanation for why "flat rotation curve" is cited as
-# dark-matter evidence in the first place. At the Milky Way's 8.128 kpc (`mathcheck.SUN_REFERENCE_RADIUS_PC`, a test
-# reference only) it gives 206 km/s and a 242 million-year orbit: slower and longer than the measured ~230 km/s and
-# ~203 to 220 million years (the Sun's angular speed from the Sgr A* proper motion, and the circular period of the
-# potential model, docs/design/galaxy/galactic-potential.md section 2). A stand-in that the potential's circular speed replaces
-# (GEN.115), not a calibration to the real Sun.
-GALACTIC_ROTATION_FLAT_VELOCITY_KMS = 220.0  # Asymptotic circular velocity, km/s -- the IAU (1985) standard local-standard-of-rest value, still within the range of modern estimates (~220-236 km/s)
-GALACTIC_ROTATION_CORE_RADIUS_PC = 3000  # Turnover radius of the rotation curve (rise -> plateau), in parsecs -- approximates the real Milky Way's bulge/inner-disk transition
-
 LY_TO_M = LIGHTYEAR_M  # Light-year to meters conversion factor
 AU_TO_M = AU_M  # Astronomical Unit to meters conversion factor
 ISM_PRESSURE = 2.5e-13  # Pressure of the local interstellar medium in Pascals (N/m^2)

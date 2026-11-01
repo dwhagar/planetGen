@@ -12,7 +12,7 @@ parts of the design in order and names the first that fails:
    than `MASS_RATIO_LIMIT` (a tenth, the limit `physics.planets.moon_size_limits` already uses; equal-mass pairs are binary
    nodes, not satellites).
 2. **A stable orbit must exist.** Outside the host's radius plus the smallest satellite's (and outside the fluid Roche limit
-   (`relations.roche_limit`) when the host is fluid), inside `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` (0.4895) of the host's Hill radius at its
+   (`relations.roche_limit`) when the host is fluid), inside the Domingos limit (`clearance_ledger.moon_hill_fraction`, 0.4895 for a circular orbit) of the host's Hill radius at its
    pericentre, and, when the smallest satellite is comparable in mass to its host (`COMPARABLE_MASS_RATIO`), passing the
    hierarchical stability screen of `physics.stability`.
 3. **A chance that one exists at all.** Below `SIZE_CUT_M` (1 km across, Boss's card S5, a tunable stand-in) no body has satellites.
@@ -34,9 +34,8 @@ partly verified or stand-ins. A change to a row changes draws, so it needs a gen
 import math
 from dataclasses import dataclass
 
-from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants, relations, stability, unit_registry as units
+from planetgen.physics import clearance_ledger, constants, relations, stability, unit_registry as units
 
 _yr_to_s = units.converter("yr", "s")
 
@@ -58,9 +57,9 @@ SATELLITE_DENSITY_KG_M3 = 2000.0
 """float: The density assumed for the smallest satellite (the submoon density of Kollmeier and Raymond 2019); STAND-IN."""
 
 # Tidal survival of a submoon (Kollmeier and Raymond 2019, MNRAS, arXiv:1810.03304, equation 1)
-SUBMOON_HILL_FRACTION = tuning.MOON_PROGRADE_STABLE_HILL_FRACTION
-"""float: A submoon's orbit is stable out to this fraction of its moon's Hill sphere (Domingos et al. 2006, via
-Kollmeier and Raymond 2019); the project's own `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION`, 0.4895."""
+SUBMOON_HILL_FRACTION = clearance_ledger.moon_hill_fraction(0.0)[0]
+"""float: A submoon's orbit is stable out to this fraction of its moon's Hill sphere (Domingos et al. 2006, via Kollmeier and
+Raymond 2019); the circular-orbit value of `clearance_ledger.moon_hill_fraction`, 0.4895."""
 
 SUBMOON_LOVE_NUMBER = 0.25
 """float: The moon's tidal Love number k2 (via Kollmeier and Raymond 2019, their default)."""
@@ -163,13 +162,13 @@ def stable_zone_m(host):
     """
     The orbits a satellite can hold about `host`: `(inner_m, outer_m)` from the body's centre, `outer_m` `None` for a free
     body. The inner edge is the host's radius plus the smallest satellite's, or the fluid Roche limit when that is farther;
-    the outer edge is `SUBMOON_HILL_FRACTION` (0.4895) of the Hill radius.
+    the outer edge is the Domingos fraction of the Hill radius (`clearance_ledger.moon_hill_fraction`, 0.4895 for a circular orbit).
     """
     inner = (host.diameter_m + FLOOR_DIAMETER_M) / 2.0
     if host.fluid:
         inner = max(inner, relations.roche_limit(host.diameter_m / 2.0, host.density_kg_m3, SATELLITE_DENSITY_KG_M3))
     hill = hill_radius_m(host)
-    return inner, None if hill is None else tuning.MOON_PROGRADE_STABLE_HILL_FRACTION * hill
+    return inner, None if hill is None else clearance_ledger.moon_hill_fraction(0.0)[0] * hill
 
 
 def satellite_fits(host):

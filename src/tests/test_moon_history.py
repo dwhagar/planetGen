@@ -70,7 +70,7 @@ def test_the_ring_of_a_fallen_moon_is_disrupted_moon_spread_for_the_time_since_a
     for fallen in (1.0e19, 1.0e22, 1.0e30):
         found = ring_origin.ring_origin(planet, 4.0e9, (ring_origin.FallenMoon(fallen, 3.9e9),))
         assert found.exists and found.origin == "disrupted_moon"
-        assert found.mass_kg == pytest.approx(min(ring_origin.spread(ring_origin.RING_RETAINED_FRACTION * fallen, 1.0e8), rings.MAX_MASS_OVER_PLANET * EARTH))
+        assert found.mass_kg == pytest.approx(min(ring_origin.spread(ring_origin.RING_RETAINED_FRACTION * fallen, 1.0e8, planet), rings.MAX_MASS_OVER_PLANET * EARTH))
         assert found.age_yr == pytest.approx(1.0e8)
 
 

@@ -32,7 +32,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import constants, daylight, regional_temperature as rt
+from planetgen.physics import constants, daylight, regional_temperature as rt, ring_darkening
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
@@ -60,6 +60,12 @@ _STEPS = 12
 
 _SEASONS = 72
 """int: The points of the year the day share is averaged over."""
+
+_SHADOW_SEASONS = 12
+"""int: The points of the year the ring's shadow is averaged over (GEN.1055, R8: the shade is smooth in the season)."""
+
+_SHADOW_LONGITUDES = 24
+"""int: The longitudes that sample a turn of the planet for the shade at one latitude and season."""
 
 
 @dataclass(frozen=True)
@@ -150,6 +156,41 @@ def _band_insolation(tilt_deg):
     return out
 
 
+def ring_shade(values, tilt_deg):
+    """
+    The share of the sunlight a ringed planet's seven bands keep, as a list from the north band to the south band, or `None` for a body with no ring that shades (GEN.1055, R8).
+
+    The ring lies in the equatorial plane from `ring_inner_km` to `ring_outer_km` with the mean optical depth `ring_optical_depth`, and the planet's `radius_km` turns the edges
+    into radii. In each season, the Sun stands at declination `d` with `sin d = sin(tilt) sin(year angle)`; `ring_darkening.shadow_transmission` gives the daily light left at a
+    latitude. A band keeps the sum, over its latitudes (by area) and over the year, of the day's insolation times the light left, over the sum of the insolation: the shade
+    weighs most where and when the Sun gives most. A world with no tilt sees the ring edge on all year and keeps everything. A world that turns once an orbit has no latitude day,
+    and its ring lies along the line to the star, so it is left out (`compute` does not ask).
+    """
+    inner_km, outer_km = values.get("ring_inner_km"), values.get("ring_outer_km")
+    depth, radius_km = values.get("ring_optical_depth"), values.get("radius_km")
+    if not (inner_km and outer_km and depth and radius_km) or depth <= 0.0 or radius_km <= 0.0 or outer_km < inner_km:
+        return None
+    sin_tilt = math.sin(math.radians(daylight.folded_tilt_deg(tilt_deg or 0.0)))
+    if sin_tilt < 1.0e-9:
+        return None
+    inner, outer = inner_km / radius_km, outer_km / radius_km
+    declinations = [math.degrees(math.asin(sin_tilt * math.sin(2.0 * math.pi * (k + 0.5) / _SHADOW_SEASONS))) for k in range(_SHADOW_SEASONS)]
+    kept = []
+    for high, low in _bounds():
+        latitudes = _latitudes(high, low)
+        weights = _weights(latitudes)
+        total = through = 0.0
+        for latitude, weight in zip(latitudes, weights):
+            for declination in declinations:
+                insolation = weight * float(rt._daily_insolation(math.radians(latitude), math.radians(declination)))
+                if insolation <= 0.0:
+                    continue
+                total += insolation
+                through += insolation * ring_darkening.shadow_transmission(latitude, declination, inner, outer, depth, _SHADOW_LONGITUDES)
+        kept.append(float(through / total) if total > 0.0 else 1.0)
+    return kept
+
+
 def _ring_insolation():
     """Each ring's mean insolation over the planet's mean for a world locked to its star: a ring `i` of the angle `theta` from the point under the star gets `max(cos theta, 0)`."""
     out = []
@@ -218,6 +259,9 @@ def compute(values, alpha_deg=0.0):
     orbital_hours = _yr_to_h(period_years) if period_years else None
     solar_day = daylight.solar_day_hours(rotation, orbital_hours, tilt <= 90.0) if orbital_hours else None
     insolation = _band_insolation(tilt)
+    shade = ring_shade(values, tilt)
+    if shade:
+        insolation = [i * k for i, k in zip(insolation, shade)]       # GEN.1055 R8: the ring takes sunlight off the bands behind it; the world's mean stays what it was solved to be
     temperatures = _temperatures([i ** 0.25 for i in insolation], areas, mean, share)
     equator_swing = rt.swing_k(mean, pressure, gravity, rotation) * (1.0 - share)
     cosines = [_mean_cosine(high, low) for high, low in _bounds()]

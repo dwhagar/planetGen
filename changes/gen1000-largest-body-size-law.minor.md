@@ -1,0 +1,6 @@
+**Headline:** Every belt's largest body now comes from the size law of small bodies, so how much of a belt survives its star's age depends on the bodies it actually has.
+
+### Changed
+- **GEN.1000.** The mass a belt keeps after the star's age of collisions (Wyatt et al. 2007) depends on its largest body, and until now that body was a stand-in drawn between 100 and 1,000 km for every belt. It is now drawn from the belt's size law (`belt_ledger.ICY_LAW` for a belt beyond the snow line, `ROCKY_LAW` inside it) from the belt's own stream, and settled with the collisional mass (`belt_ledger.belt_state`, the step of GEN.1061: the largest body of the ledger of the mass that is left is the body the mass was worked out for). The density word (dense, typical, sparse) compares the belt's mass per area with the belt of the same stretch and age whose largest body is the median one. A belt whose largest body is small is ground down faster, so narrow inner belts hold less than before; a heavy disc whose largest body is too strong to be disrupted keeps its mass. The stand-in LB1 is retired. The state of a belt is kept in a cache so the same belt is settled once. A stretch the giants cleared of everything is no belt. Where a stored belt is read, nothing changes.
+
+generation-output: changed

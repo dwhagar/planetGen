@@ -22,13 +22,6 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 from planetgen import tuning
-from planetgen.physics import constants
-from planetgen.physics import unit_registry as units
-
-_kg_to_msun = units.converter("kg", "Msun")
-
-_km_to_m = units.converter("km", "m")
-_pc_to_m = units.converter("pc", "m")
 
 _X_FIRST = 1e-3
 """float: The first radius of a table, in King radii; the centre (mass 0) is added before it."""
@@ -155,14 +148,11 @@ def expected_systems(mass_solar, mean_system_mass_solar):
     return mass_solar / mean_system_mass_solar
 
 
-def jacobi_radius_pc(mass_solar, galactocentric_pc):
+def jacobi_radius_pc(mass_solar, galactocentric_pc, galaxy_mass_solar):
     """The largest radius a cluster of `mass_solar` can keep at `galactocentric_pc` from the galactic centre (use the
-    pericentre of an eccentric orbit): `R (M / (2 M_gal(<R)))^(1/3)` in an isothermal halo of circular speed
-    `tuning.CLUSTER_HALO_CIRCULAR_KMS`, where `M_gal(<R) = v^2 R / G`."""
-    speed = _km_to_m(tuning.CLUSTER_HALO_CIRCULAR_KMS)
-    radius_m = _pc_to_m(galactocentric_pc)
-    galaxy_mass = _kg_to_msun(speed * speed * radius_m / constants.G)
-    return galactocentric_pc * (mass_solar / (2.0 * galaxy_mass)) ** (1.0 / 3.0)
+    pericentre of an eccentric orbit): `R (M / (2 M_gal(<R)))^(1/3)`, where `galaxy_mass_solar` is the galaxy's own mass
+    inside `R` (`galaxy.enclosed_mass.enclosed_mass_solar`, GEN.339: it was an isothermal halo of the Milky Way's 220 km/s)."""
+    return galactocentric_pc * (mass_solar / (2.0 * galaxy_mass_solar)) ** (1.0 / 3.0)
 
 
 def limit_w0(w0, half_mass_radius_pc, jacobi_pc):

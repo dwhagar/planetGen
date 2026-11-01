@@ -1341,6 +1341,7 @@ anything.
 | `lethal_event_rate_per_gyr` | DOUBLE | nullable | Added in v75 (GEN.87). Supernovae within 8 pc per Gyr here: 1.5 at the Sun's 8 kpc, rising as exp((8 kpc - R) / 1.45 kpc) to at most 250 times that at the centre. NULL for a star with no galaxy placement and on a row generated before v75. |
 | `uv_c_share` | DOUBLE | nullable | Added in v145 (GEN.443). The share of the star's blackbody UV-C (100 to 280 nm) it gives off, log-uniform 0.1 to 1 (the Sun's measured 0.256 is one value of it), drawn once from the star's own stream (`physics/activity.py`); the radiation model's UV-B and UV-A shares follow from it (`physics/stellar_spectrum.py`). NULL for a remnant and for a row saved before v145, which the model reads as the blackbody (1). |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic centre; a binary's secondary shares its primary's. NULL on a row generated before v95. |
+| `nuclear_arrival_age_gy` | DOUBLE | nullable | Added in v198 (GEN.1174). For a pre-main-sequence star, the age in Gyr at which MIST's tracks put it on the main sequence (`physics/pre_main_sequence.py`, `nuclear_arrival_yr`). The star counts as pre-main-sequence only until its radius has settled (BHAC15), an earlier age, so both times are kept: that one in `bright_stars.phase_end_age_gy`, this one here. NULL for every other star and for a row made before v195; nothing is backfilled. |
 
 ### `planets`
 
@@ -1414,6 +1415,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `outside_hours_day`, `outside_hours_limit` | DOUBLE, VARCHAR(16) | nullable | Added in v187 (GEN.768). The hours of one local day a person can be outside in the equipment the survival rules list for the world, and the limit that sets them: `daylight`, `dose`, `heat`, `cold`, `air`, `uv` or `vehicle` (`physics/outside_hours.py`). A tidally locked world is judged in its terminator belt over a 24-hour shift. NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187. |
 | `day_night_state` | VARCHAR(24) | nullable | Added in v193 (GEN.1097). The state of the body's day and night (`physics/day_night.py`): `day and night`, `tidally locked`, `spin-orbit resonance`, `non-rotating`, `polar day and night` or `no solid surface` (a giant). NULL for a body whose spin is not stored and a row made before v188. |
 | `night_hours`, `days_per_year` | DOUBLE | nullable | Added in v193 (GEN.1097). The hours of night in one solar day at the equator (the solar day less `daylight_hours`) and the number of solar days in one orbit round the star (365.25 for Earth, 0.5 for Mercury). NULL for a world that turns once an orbit and for a row made before v188. |
+| `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v199 (GEN.1159, GEN.1178). The mean radius over the round radius of the body (1 or more is round, less is not; `physics/roundness.py`), the whole-body strength of its material mix in Pa, drawn from the range of each material by a quantile from a stream of the body's own seed, and the energy that assembling it releases in J (`physics/binding_energy.py`: two uniform shells for a rocky body with a core, the n = 1 polytrope for a gas giant). `physics/body_strength.py` sets them. A gas giant keeps only `binding_energy_j`; the other two are NULL for it. NULL for a row made before v195; nothing is backfilled. |
 | `temp_mean_swing_k` | DOUBLE | nullable | Added in v182 (GEN.848), kept in v196 (GEN.1108). The day and night swing of the whole surface, peak to peak, in kelvin of difference: the area-weighted mean of the swings of the seven bands (`band1_swing_k` to `band7_swing_k`). NULL for a gas giant, an unscored body and a row made before v195. |
 | `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The four likelihoods behind microbial life: `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation, each 0 to 1. (v76 also stored `phi_bio`, `phi_cpx` and `phi_tech`; v136 dropped them for the four life scores below.) |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | Added in v150 (GEN.649). The four life scores, 0 (none) to 9 (abundant), from the evolutionary path the body reached and its surface conditions ([habitability-index.md](../design/habitability/habitability-index.md) section 11). NULL for a gas giant or a body with no score. |
@@ -1479,6 +1481,7 @@ columns capture the facts the prose always states instead.
 | `orbital_index` | INTEGER | NOT NULL | |
 | `distance_km` | DOUBLE | NOT NULL | Average distance from the star. |
 | `lower_limit_km`, `upper_limit_km` | DOUBLE | NOT NULL | The belt's inner/outer boundary. |
+| `density_g_cm3`, `ice_mass_fraction` | DOUBLE | nullable | Added in v199 (GEN.1159). The mean bulk density of the members in g/cm3 and the mean share of their mass that is ice of any kind, from the drawn makeup (`physics/small_body_composition.py`). NULL for a row made before v195. The roundness ratio, strength and binding energy belong to a member, not to the population. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary built the same way as the prose sentence (`asteroidData.py:119-137`), e.g. `"high concentrations of iron, moderate concentrations of nickel, and trace amounts of platinum"` — searchable without a join, alongside the structured breakdown below. |
 
@@ -1514,6 +1517,7 @@ fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
 | `period_class` | TEXT | nullable, CHECK IN ('jupiter_family','halley_type','long_period') | Only set for `orbit_type = 'elliptical'` — flavor/plausibility metadata only. |
 | `nucleus_diameter_km` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Searchable summary; structured breakdown lives in `comet_composition`. |
+| `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v199 (GEN.1159, GEN.1178). The bulk density of the nucleus in g/cm3, the share of its mass that is ice of any kind, and the same three values a planet keeps (`physics/body_strength.py`). NULL for a row made before v195. |
 | `perihelion_distance_km` | DOUBLE | NOT NULL | |
 | `eccentricity`, `inclination_deg`, `arg_periapsis_deg`, `ascending_node_deg` | DOUBLE | NOT NULL | Full 3D orbit orientation. |
 | `orbital_period_years`, `mean_anomaly_deg` | DOUBLE | nullable | Only set for `orbit_type = 'elliptical'`. |
@@ -1756,6 +1760,7 @@ v18 gave it one.
 | `composition_family` | VARCHAR(16) | NOT NULL | Added in v38: `carbonaceous`, `stony`, `metallic`, `icy`, `basaltic`, `mixed`, `dust` or `collisional`. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | Same three levels `asteroid_belts.density` uses. |
 | `radius_ly` | DOUBLE | NOT NULL | |
+| `density_g_cm3`, `ice_mass_fraction` | DOUBLE | nullable | Added in v199 (GEN.1159). As on `asteroid_belts`: the mean bulk density of the members and the mean ice share of their mass. NULL for a row made before v195. |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary` — generated via the same shared `asteroidData.generate_asteroid_composition`/`format_composition_summary` helpers. |
 | `galactic_orbital_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Always populated (an asteroid field is always standalone). Its speed column was dropped in v103 (GEN.336): the speed is the length of `velocity_x/y/z_kms` (a star and a close pair read their system's). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 -- see `nebulae`'s identical "v18" column note above (an asteroid field's `radius_ly` tops out much smaller, `program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY` = 0.001-1.0 ly, so it usually stays within a single sector, but the same galaxy-frame-sphere model is used for consistency). |
@@ -1874,6 +1879,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `created_at` | TIMESTAMP | NOT NULL | |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex, drawn at scatter time from its population and position on a stream of its own seed; the fill that builds its system keeps it. NULL on older rows and on a cluster star until GEN.159. |
 | `rotation_period_hours` | DOUBLE | nullable | Added in v185 (GEN.846). The star's spin period in hours, drawn at scatter time by the same cascade a built star uses (`physics/spin.py`: a white dwarf about a day, a giant slow, a cool dwarf by gyrochronology, a hot star by a drawn speed under breakup) on a stream of its own seed; the fill that builds its system keeps it. NULL on rows made before v184, nothing is backfilled. |
+| `nuclear_arrival_age_gy` | DOUBLE | nullable | Added in v198 (GEN.1174). For a pre-main-sequence star, the age in Gyr at which MIST's tracks put it on the main sequence; its `phase_end_age_gy` is the earlier age its radius settles (BHAC15). NULL for every other star and for rows made before v195, nothing is backfilled. |
 | `off_plane` | TINYINT | virtual | Added in v57 (GEN.117): 1 when `|position_z_mpc|` is 250 pc or more. Computed; nothing writes it. |
 
 Indexes: the address (`shell_index`, `band_index`, `wedge_index`),
@@ -2224,10 +2230,17 @@ Migration 0192 adds `ring_age_yr` (DOUBLE, NULL) to `planets`, `moons` and `rogu
 ### v191 (GEN.1034): the open-ocean tide of a world with a sea
 
 Migration 0191 adds three nullable columns at the end of `planets` and `moons`, derived by `physics/ocean_tides.py` from the stored mass, radius, spin axis and rotation period, orbits, moons and hydrosphere: `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres: the equilibrium high-to-low range with every tide-raiser in line, and with the largest against the rest; `0` for an ice-covered ocean, NULL for a body without a free sea, that is any other hydrosphere, a gas giant, or a body with no spin on record) and `ocean_liquid` (VARCHAR(40): the liquid of that sea, `water` until the surface liquid inventory of GEN.1035 names others). They are the value a deep ocean would have if it followed the tidal potential freely; the range on a coast depends on the shape and depth of the basin and on its resonance and can exceed it many times. A row made before v187 keeps NULL; nothing is backfilled; a stopped run can be started again (a column already there is skipped).
+### v199 (GEN.1159): the roundness ratio, the strength and the binding energy
+
+Migration 0195 adds `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` (DOUBLE, nullable) to `planets`, `moons` and `comets`, `density_g_cm3` and `ice_mass_fraction` to `comets`, `asteroid_belts` and `asteroid_fields`, skipping a column already there. All are NULL after the migration: they are worked out by `physics/body_strength.py` when a body is generated, so a row made before v195 gets them when the galaxy is regenerated. Nothing is backfilled.
 
 ### v189 (GEN.1009): the largest radius and mass of a member
 
 Migration 0189 adds two nullable DOUBLE columns to `scatter_members`: `radius_max_au`, the largest radius the member has had (a white dwarf's red-giant or asymptotic-branch tip; the present radius for a member that has not left its main sequence), and `mass_max_solar`, the largest mass it has had (its birth mass). Both come from the member record (`generation/member_record.py`) that the tree and the build read. NULL on a row made before v187; nothing is backfilled, a row gets them when the galaxy is regenerated. A column already there is skipped, so a stopped run can be started again.
+
+### v197 (GEN.1215): what the surface liquids hold
+
+Migration 0197 adds `surface_liquid_acid_wt` (DOUBLE), `surface_liquid_acid_layer` (VARCHAR(8)) and `surface_liquid_ammonia_wt` (DOUBLE) to `planets` and `moons`, after `surface_liquid_depth_km`: the strength of the liquid sulfuric acid the air makes (percent of its mass) and where it is (`pool` at the ground or `cloud`), from `physics/acid_medium.py`, and the ammonia of a liquid water ocean (percent of the liquid's mass), from `physics/strange_solvents.py`. The life classes read them in place of working the same numbers out again. NULL for a body without such a liquid and for a row made before v197; nothing is backfilled.
 
 ### v196 (GEN.1108): the climate of a body in seven bands of latitude
 

@@ -24,9 +24,8 @@ of the function takes either by naming it. Systems per star born is the ratio of
 systems per solar mass the ratio of `P`'s number to `xi`'s mass (`systems_per_solar_mass`, GEN.929).
 
 What the derivation leaves out, and the reason: the companions past the seventh star of a system (`multistar.TAIL_RATIOS`, a
-chance of about 1e-5 of a system); the brown dwarf companion (below the hydrogen-burning limit, not in `xi`); the mergers and
-stripped stars of `multistar`, which move a star between mass bins after its birth; and a twin excess in the mass ratio
-(Moe and Di Stefano 2017), which the draw does not make either.
+chance of about 1e-5 of a system); the brown dwarf companion (below the hydrogen-burning limit, not in `xi`); and the mergers and
+stripped stars of `multistar`, which move a star between mass bins after its birth.
 """
 
 import functools
@@ -35,7 +34,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.generation import multistar
+from planetgen.generation import mass_ratio, multistar
 from planetgen.util import detmath
 from planetgen.generation.phenomena import hosts
 from planetgen.physics import imf, mass_boundaries
@@ -54,12 +53,6 @@ def companions_per_primary(mass_sol):
     return sum(weight * stars for stars, weight in enumerate(weights)) / sum(weights)
 
 
-def companion_window(mass_sol):
-    """`(low, high)` solar masses between which a primary's companions are drawn, uniform: `multistar.companion_ratio_range`."""
-    low_ratio, high_ratio = multistar.companion_ratio_range(mass_sol)
-    return low_ratio * mass_sol, high_ratio * mass_sol
-
-
 def _edges():
     low, high = imf.lowest_mass_sol(), imf.highest_mass_sol()
     cells = int(math.ceil(math.log10(high / low) / GRID_STEP_DEX))
@@ -74,18 +67,17 @@ def _solve():
     centre = np.sqrt(edges[:-1] * edges[1:])
     born = np.array([imf.integral(0.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
     n_c = np.array([companions_per_primary(m) for m in centre])
-    window = np.array([companion_window(m) for m in centre])
-    low, high = window[:, 0], window[:, 1]
-    width = high - low
+    ratios = mass_ratio.Ratios(centre)
     primaries = np.zeros(cells)
     for i in range(cells - 1, -1, -1):
-        lower = np.maximum(edges[i], low[i:])
-        upper = np.minimum(edges[i + 1], high[i:])
-        share = np.where(width[i:] > 1.0e-12, np.maximum(0.0, upper - lower) / np.maximum(width[i:], 1.0e-12),
-                         ((high[i:] >= edges[i]) & (high[i:] < edges[i + 1])).astype(float))
+        # A companion is no lighter than `tuning.BINARY_MASS_RATIO_RANGE`'s low end of its primary, so the primaries that put one
+        # in this cell are within that factor above it.
+        end = min(cells, int(np.searchsorted(centre, edges[i + 1] / tuning.BINARY_MASS_RATIO_RANGE[0])) + 1)
+        rows = slice(i, end)
+        share = (ratios.fraction_below(edges[i + 1] / centre[rows], rows) - ratios.fraction_below(edges[i] / centre[rows], rows))
         own = n_c[i] * share[0]
-        heavier = n_c[i + 1:] * share[1:]
-        from_heavier = float(detmath.matmul(primaries[i + 1:], heavier[:, None])[0]) if heavier.size else 0.0
+        heavier = n_c[i + 1:end] * share[1:]
+        from_heavier = float(detmath.matmul(primaries[i + 1:end], heavier[:, None])[0]) if heavier.size else 0.0
         primaries[i] = max(0.0, (born[i] - from_heavier) / (1.0 + own))
     return edges, primaries
 
@@ -111,7 +103,12 @@ def density_at(masses):
     edges, primaries = _solve()
     centre = np.sqrt(edges[:-1] * edges[1:])
     per_mass = primaries / (edges[1:] - edges[:-1])
-    return np.exp(np.interp(np.log(masses), np.log(centre), np.log(np.maximum(per_mass, 1.0e-300))))
+    where, log_density, at = np.log(masses), np.log(np.maximum(per_mass, 1.0e-300)), np.log(centre)
+    found = np.interp(where, at, log_density)
+    # Past the first and last cell centre the line of the nearest two continues (not flat: the density falls on).
+    found = np.where(where > at[-1], log_density[-1] + (where - at[-1]) * (log_density[-1] - log_density[-2]) / (at[-1] - at[-2]), found)
+    found = np.where(where < at[0], log_density[0] + (where - at[0]) * (log_density[1] - log_density[0]) / (at[1] - at[0]), found)
+    return np.exp(found)
 
 
 @functools.lru_cache(maxsize=None)

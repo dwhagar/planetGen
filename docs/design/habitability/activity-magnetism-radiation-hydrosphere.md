@@ -488,11 +488,13 @@ sphere 2.74 km [C]. Mantle water is perhaps 1 to 10 ocean masses and unmeasured
 **Land fraction.** Cowan and Abbot 2014: a tectonically active planet of any
 mass keeps continents if its water mass fraction is below about 0.2 percent;
 super-Earths store more water in the mantle, whose capacity is the largest
-unknown [S]. A toy hypsometry calibrated to Earth's 0.71 ocean fraction (relief
-10.5 km at Earth gravity): `f_ocean = min(1, sqrt(2 w M / (rho_w A L)))`,
-`L = 10.5 km * (g_E / g)`, `w` the water mass fraction, `A` surface area [C].
-It needs a mantle buffer (divide effective surface water by about 4) to reach
-the 0.2 percent threshold.
+unknown [S]. Since GEN.1147 the cover is a two-level hypsometry (Cowan and Abbot's idea):
+the surface is ocean crust (60 percent of it, at -4.5 km with a spread of 1.0 km) and continental crust (40 percent, at +0.45 km
+with 0.9 km), relief scaled as `g_E / g`; the global water layer `D = w M / (rho_w A)` fills the lowest ground to a level and
+`f_ocean` is the share of the surface under it. The four numbers are stand-ins (row HY2) tuned only so that Earth's 2.74 km layer
+covers 0.71. The mantle never holds more than it can store: 2 Earth oceans at 0.5 Earth masses to 8 at 5 (Guimond et al. 2023, row HY1).
+The old law `min(1, sqrt(2 D / L))` went from no land to all ocean over a factor of 16 in the water; the new one covers 0.27 at
+0.2 km, 0.50 at 0.64 km, 0.59 at 1.3 km, 0.71 at 2.7 km and everything at 5 km. The table below is the old law.
 
 | Water fraction w | Earth gravity | 2.2 g (5 Me, 1.5 Re) | Earth gravity, buffer x4 |
 |---|---|---|---|

@@ -11,13 +11,12 @@ planets (`physics.rogue_surface`) use the functions here.
    composition (`bulk_draw`, GEN.428) from the delivery law of its mass and where it formed
    (`delivered_water`, GEN.849; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
    keeps `w / b`, `b` log-uniform 1 to 8, but the mantle never holds more
-   than ten Earth oceans (`MANTLE_MAX_WATER_FRACTION`). Gas giants have no
+   than it can store (`mantle_max_water_fraction`: 2 Earth oceans at 0.5 Earth masses to 8 at 5, Guimond et al. 2023, GEN.1147). Gas giants have no
    hydrosphere (every field `None`).
-2. **Land.** A toy hypsometry calibrated to Earth's 0.71 ocean fraction:
-   `f_ocean = min(1, sqrt(2 D / L))`, `D` the global water layer and `L =
-   10.5 km * (g_E / g)` the relief (Cowan and Abbot 2014 put the threshold
-   for any land at about 0.2 percent water). `ocean_fraction` is the share
-   the water covers, liquid or frozen; `land_fraction` the rest.
+2. **Land.** A two-level hypsometry (GEN.1147, Cowan and Abbot 2014's idea): the surface is ocean crust and continental crust, each a
+   Gaussian of height (`HYPSOMETRY`: shares, mean height and spread in km), the relief scaled as `g_E / g`. `D`, the global water layer, fills the
+   lowest ground to a level `z`; the share of the surface under `z` is `ocean_fraction`, liquid or frozen, and `land_fraction` the rest. Earth's
+   2.7 km layer covers 0.71.
 3. **State.** Under water's triple-point pressure and warmer than
    `VACUUM_ICE_MAX_K` the water has sublimated away (`dry`); above the
    boiling curve it is in the air (`vapour`). Below freezing, an ice lid grows to
@@ -91,9 +90,17 @@ MELTING_SLOPE_K_PER_BAR = 0.0074
 """float: Ice Ih's melting point falls this much per bar."""
 
 EARTH_OCEAN_FRACTION = 2.34e-4
-MANTLE_MAX_WATER_FRACTION = 10 * EARTH_OCEAN_FRACTION
+MANTLE_CAP_OCEANS = ((0.5, 2.0), (5.0, 8.0))
+"""tuple: The most water a mantle stores, in Earth oceans, at two masses in Earth masses (`mantle_max_water_fraction` joins them as a power law and holds
+the ends outside): Guimond et al. 2023, whose mantle storage saturates at 2 to 8 Earth oceans for 0.5 to 5 Earth masses (read by way of the GEN.1146
+report). Stand-in row HY1."""
 MANTLE_BUFFER_RANGE = (1.0, 8.0)
-EARTH_RELIEF_KM = 10.5
+COVER_SNAP = 0.999
+"""float: A cover this high is all of the surface: the last tenth of a percent of a Gaussian tail is a seamount, not an island."""
+HYPSOMETRY = ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9))
+"""tuple: The surface of a rocky body as two Gaussians of height, each `(share of the area, mean height km, spread km)` at Earth's gravity: ocean crust and
+continental crust (Cowan and Abbot 2014: two levels, relief as 1 / g; Guimond et al.: continental crust is about 40 percent of Earth's surface).
+The four heights and spreads are stand-ins tuned only so that Earth's 2.7 km water layer covers 0.71 of the surface (L2). Stand-in row HY2."""
 
 BRINE_MAX_WATER_FRACTION = 2e-5
 ACID_SO2_SHARE = 0.01
@@ -145,12 +152,15 @@ def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATE
 
 def pressure_melted_shell_km(flux_w_m2, top_temperature_k, gravity_m_s2, melting_k=WATER_MELTING_K):
     """`ice_shell_thickness_km` with the base melting point (`melting_k`: pure water's, or a brine's eutectic) lowered by the
-    lid's own weight (fix 3 of section 5.3)."""
+    lid's own weight (fix 3 of section 5.3). The fall stops at the ice III triple point (`water_layer.LIQUIDUS_K_MPA`'s first point, 251.2 K): under
+    more pressure than that the base meets ice III, not a deeper Ih melt (GEN.1222: with no floor a thick lid of a cold, low-heat body pulled its own
+    base under the surface temperature, the shell came out 0 and the body a liquid ocean at 25 K)."""
     base_k = melting_k
+    floor_k = min(melting_k, water_layer.LIQUIDUS_K_MPA[0][0])
     shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     for _ in range(3):
         bar = ICE_DENSITY_KG_M3 * gravity_m_s2 * shell_km * 1000.0 / 1e5
-        base_k = melting_k - MELTING_SLOPE_K_PER_BAR * bar
+        base_k = max(melting_k - MELTING_SLOPE_K_PER_BAR * bar, floor_k)
         shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     return shell_km
 
@@ -164,18 +174,49 @@ def water_layer_depth_km(mass_kg, radius_km, water_mass_fraction):
     return water_mass_fraction * mass_kg / (LIQUID_WATER_DENSITY_KG_M3 * area_m2) / 1000.0
 
 
+def _normal_cdf(x):
+    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+
+
+def _normal_pdf(x):
+    return math.exp(-0.5 * x * x) / math.sqrt(2.0 * math.pi)
+
+
+def _filled_volume_km(level_km, scale):
+    """The water per unit area, km, that fills the surface of `HYPSOMETRY` (relief times `scale`) to `level_km`: the mean of `max(0, level - height)`."""
+    total = 0.0
+    for share, mean, spread in HYPSOMETRY:
+        mean, spread = mean * scale, spread * scale
+        a = (level_km - mean) / spread
+        total += share * ((level_km - mean) * _normal_cdf(a) + spread * _normal_pdf(a))
+    return total
+
+
 def ocean_fraction(layer_km, gravity_m_s2, icy=False):
     """
-    Section 5.1's `f_ocean = min(1, sqrt(2 D / L))`, with the relief `L` of a rock basin, `EARTH_RELIEF_KM` scaled as 1 / g. For
-    `icy` (GEN.833) `L` is `EARTH_RELIEF_KM` at most: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus,
-    Callisto, Iapetus), ice being strength-limited, so it does not grow as 1 / g below Earth's.
+    The share of the surface a global water layer of `layer_km` covers (GEN.1147): the level `z` at which the water fills the two-level surface of
+    `HYPSOMETRY` (found by bisection, the volume rising with the level), and the share of the surface under `z`. The relief is scaled as 1 / g.
+    For `icy` (GEN.833) it is at most Earth's: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus, Callisto, Iapetus), ice
+    being strength-limited, so it does not grow as 1 / g below Earth's.
     """
     if layer_km <= 0 or gravity_m_s2 <= 0:
         return 0.0
-    relief_km = EARTH_RELIEF_KM * constants.EARTH_GRAVITY / gravity_m_s2
+    scale = constants.EARTH_GRAVITY / gravity_m_s2
     if icy:
-        relief_km = min(relief_km, EARTH_RELIEF_KM)
-    return min(1.0, math.sqrt(2 * layer_km / relief_km))
+        scale = min(scale, 1.0)
+    low = min(mean - 6.0 * spread for _share, mean, spread in HYPSOMETRY) * scale
+    high = max(mean + 6.0 * spread for _share, mean, spread in HYPSOMETRY) * scale + layer_km
+    if _filled_volume_km(high, scale) <= layer_km:
+        return 1.0
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        if _filled_volume_km(middle, scale) < layer_km:
+            low = middle
+        else:
+            high = middle
+    level = 0.5 * (low + high)
+    covered = sum(share * _normal_cdf((level - mean * scale) / (spread * scale)) for share, mean, spread in HYPSOMETRY)
+    return 1.0 if covered >= COVER_SNAP else covered
 
 
 def frozen_cover(body, gravity_m_s2):
@@ -190,10 +231,19 @@ def frozen_cover(body, gravity_m_s2):
     return ocean_fraction(layer_km, gravity_m_s2, icy=True)
 
 
-def surface_water_fraction(water_mass_fraction, rng=draw):
-    """Rule 1: what the mantle leaves at the surface."""
+def mantle_max_water_fraction(mass_kg):
+    """The most water, as a mass fraction of the body, a mantle stores (GEN.1147): `MANTLE_CAP_OCEANS` joined as a power law of the mass, the ends held outside."""
+    (low_mass, low_oceans), (high_mass, high_oceans) = MANTLE_CAP_OCEANS
+    earths = mass_kg / constants.EARTH_MASS_TO_KG
+    exponent = math.log(high_oceans / low_oceans) / math.log(high_mass / low_mass)
+    oceans = low_oceans * (min(max(earths, low_mass), high_mass) / low_mass) ** exponent
+    return oceans * EARTH_OCEAN_FRACTION
+
+
+def surface_water_fraction(water_mass_fraction, mass_kg, rng=draw):
+    """Rule 1: what the mantle leaves at the surface of a body of `mass_kg`."""
     buffer = log_uniform(*MANTLE_BUFFER_RANGE, rng=rng)
-    return max(water_mass_fraction / buffer, water_mass_fraction - MANTLE_MAX_WATER_FRACTION)
+    return max(water_mass_fraction / buffer, water_mass_fraction - mantle_max_water_fraction(mass_kg))
 
 
 def ocean_class(body, hp_ice_km, surface_fraction, covered):
@@ -237,7 +287,7 @@ def draw_surface_water(body):
     w = body.water_mass_fraction
     if w is None:
         raise ValueError("the body has no water mass fraction: its bulk composition is drawn first")
-    surface_w = surface_water_fraction(w)
+    surface_w = surface_water_fraction(w, body.mass)
     lost_kg = water_loss_kg(body)
     if lost_kg:  # GEN.639: escape strips the air and the oceans, and volcanism later returns part of the mantle's water
         lost = min(surface_w, lost_kg / body.mass)
@@ -295,6 +345,8 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
                                     pressure_pa=pressure)
         h2 = atmosphere.partial_kpa(body, "h2")
         state = "hycean" if h2 > HYCEAN_MIN_H2_SHARE * pressure / 1000.0 else "surface ocean"
+        if not column.liquid_km:    # GEN.1222: under the pressure of a thick air the warm water is high-pressure ice all the way, not an ocean
+            state = "ice"
     else:
         flux = internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0)  # GEN.737: the tide stored with the heat model (GEN.700: the heat an ice-covered ocean's life can use)
         melting_k = WATER_MELTING_K
@@ -308,6 +360,8 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
         else:  # a brine warmer than its eutectic is liquid at the surface (GEN.762): no lid to cover it
             state = "ice-covered ocean" if column.ice_shell_km else "surface ocean"
     shell_km, liquid_km, hp_km = column.ice_shell_km, column.liquid_km or None, column.hp_ice_km
+    if state == "ice" and not shell_km:     # GEN.1222: water that is high-pressure ice all the way (no lid over a liquid): the ice is the shell
+        shell_km = hp_km
     body.hydrosphere = state
     if state in FROZEN_COVER_STATES:    # GEN.833: the ice covers what the water the body holds makes, not the toy ocean cover
         body.ocean_fraction = max(covered, frozen_cover(body, gravity))

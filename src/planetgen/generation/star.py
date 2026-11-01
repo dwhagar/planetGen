@@ -20,7 +20,7 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 import math
 import re
 
-from planetgen.generation import forced_star
+from planetgen.generation import forced_star, helium_core_draw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence,
@@ -429,6 +429,7 @@ class Star(StellarObject):
                     fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
                     fe_h=fe_h)
 
+        state = helium_core_draw.with_helium_core(state, initial_mass_sol, age)
         self._apply_params(star_params(initial_mass_sol, age, state))
         log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "
                                       f"age {age:.3g} Gyr")
@@ -444,6 +445,7 @@ class Star(StellarObject):
         self.luminosity = params["luminosity_w"]
         self.initial_mass_sol = params["initial_mass_sol"]
         self.phase_end_age_gy = params["phase_end_age_gy"]
+        self.nuclear_arrival_age_gy = params.get("nuclear_arrival_age_gy")
         self._model_age_lifespan = (params["age_gy"], params["lifespan_gy"])
         self._model_fe_h = params.get("metallicity_fe_h")
         self._model_rotation_hours = params.get("rotation_period_hours")

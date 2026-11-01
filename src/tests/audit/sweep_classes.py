@@ -37,11 +37,18 @@ def _conditions_letter(body):
     return None
 
 
+def _asteroid(body):
+    """Whether the conditions make the body an Asteroid (a terrestrial body under a roundness ratio of 1, GEN.1160): it is not a planet class and has no letter."""
+    return planet_classes.classify_values(planet_classes.values_from_body(body)) is planet_classes.ASTEROID
+
+
 def _check_assigned(entry):
     body = entry.body
     letter = getattr(body, "planet_class", None)
     if not letter:
-        return ["no class"]
+        return [] if _asteroid(body) else ["no class"]
+    if _asteroid(body):
+        return [f"class {letter!r} on an Asteroid, which has no letter"]
     if letter not in planet_classes.BY_LETTER:
         return [f"class {letter!r} is not one of the rule file's"]
     # GEN.1142: a letter can have a row of each kind (class T is the giant "gas dwarf" and, for a rocky body whose air is mostly hydrogen, a
@@ -66,6 +73,8 @@ def _check_total(entry):
     except planet_classes.ClassError as error:
         return [f"cannot be classified: {error}"]
     problems = []
+    if _asteroid(body):
+        return [] if first is None and again is None and mapping is None else [f"an Asteroid gave {first!r}, then {again!r}, and {mapping!r} from the stored columns"]
     if first not in planet_classes.BY_LETTER:
         problems.append(f"classify gave {first!r}, not a letter of the rule file")
     if not first == again == mapping:
@@ -81,6 +90,8 @@ def _break_total(entry):
 
 def _check_from_conditions(entry):
     body = entry.body
+    if _asteroid(body):
+        return []                   # no letter to compare; `class-assigned` checks that it has none
     try:
         letter = _conditions_letter(body)
     except planet_classes.ClassError as error:

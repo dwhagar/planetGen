@@ -148,9 +148,8 @@ def _wolf_rayets_of_system(primary, rng):
 
     found = 1 if primary["yerkes_class"] == wolf_rayet.CLASS else 0
     birth, age_gy = primary["initial_mass_sol"], primary["age_gy"]
-    low, high = multistar.companion_ratio_range(birth)
     for _companion in range(hosts.draw_star_count(multistar.companion_class(birth), 1.0, rng) - 1):
-        state = stellar_evolution.evolve_star(birth * rng.uniform(low, high), age_gy, rng, fe_h=primary["metallicity_fe_h"])
+        state = stellar_evolution.evolve_star(multistar.companion_mass(birth, rng), age_gy, rng, fe_h=primary["metallicity_fe_h"])
         found += 1 if state is not None and state["yerkes_class"] == wolf_rayet.CLASS else 0
     return found
 

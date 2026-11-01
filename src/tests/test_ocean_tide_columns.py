@@ -103,21 +103,24 @@ def test_the_unit_registry_knows_the_columns_in_metres():
 
 def test_a_finished_system_has_the_tide_of_its_final_water():
     """The final-age pass makes the water again (a brine seep can end as an ice-covered ocean), so the tides are made after it: every body
-    of a finished system holds what `ocean_tides.compute` gives for it now (seed 7100 had an ice-covered ocean on a class E planet with none)."""
+    of a finished system holds what `ocean_tides.compute` gives for it now (seed 7100 had an ice-covered ocean on a class E planet with none; GEN.1222 and GEN.1147 moved the water, so the test takes the first seed from 7100 that has one)."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
 
-    draw.set_run_seed(7100)
     config = SystemConfig()
     config.PLANETS = True
     config.MAX_PLANETS = True
-    system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
     checked = 0
-    for planet in system.all_planets:
-        if planet.body_type == "a":
-            continue
-        for body, parent in [(planet, None)] + [(moon, planet) for moon in planet.moons]:
-            assert {name: getattr(body, name) for name in ocean_tides.FIELDS} == ocean_tides.compute(body, parent)
-            checked += body.hydrosphere == "ice-covered ocean"
-    assert checked, "the seed made no ice-covered ocean"
+    for seed in range(7100, 7160):                # the first seed of the run that makes an ice-covered ocean; a change to the water moves which one it is
+        draw.set_run_seed(seed)
+        system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
+        for planet in system.all_planets:
+            if planet.body_type == "a":
+                continue
+            for body, parent in [(planet, None)] + [(moon, planet) for moon in planet.moons]:
+                assert {name: getattr(body, name) for name in ocean_tides.FIELDS} == ocean_tides.compute(body, parent)
+                checked += body.hydrosphere == "ice-covered ocean"
+        if checked:
+            break
+    assert checked, "no seed from 7100 made an ice-covered ocean"

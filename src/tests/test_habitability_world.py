@@ -163,7 +163,8 @@ def test_every_generated_body_is_scored_consistently():
         for body in _bodies(system):
             if body.body_type == "g":
                 seen["giant"] += 1
-                assert all(getattr(body, name) is None for name in hw.BODY_FIELDS)
+                # the two energy inputs the sheet shows for every body are set on a giant (GEN.784); every score is None
+                assert all(getattr(body, name) is None for name in hw.SCORE_FIELDS)
                 continue
             seen["rocky"] += 1
             assert 0 <= body.eq_body <= 6 and 0 <= body.eq_supply <= 4

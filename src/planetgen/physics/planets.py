@@ -22,8 +22,8 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -124,7 +124,14 @@ def apply_class(planet):
     text of that class (the composition text is written from the stored fractions, GEN.430). Called when the body is built (so a
     request can test it) and again once the system is final (the seasonal swing of its starlight, `flux_variation`, is known only then).
     """
+    planet.planet_class = None
+    body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     planet.planet_class = planet_classes.classify(planet)
+    if planet.planet_class is None:
+        # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+        planet.description = planet_classes.ASTEROID.sentence
+        return
+    body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
     data = tuning.PLANET_CLASSES[planet.planet_class]
     planet.description = data["description"]
     if planet.is_moon:
@@ -615,7 +622,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         hill_au = None
         if parent_distance_au is not None and primary_mass_kg and planet.star.mass:
             hill_au = _km_to_au(_m_to_km(calculate_hill_sphere(_au_to_m(parent_distance_au), primary_mass_kg, planet.star.mass)))
-        e_max = orbit_elements.max_moon_eccentricity(planet.distance, hill_au)
+        e_max = orbit_elements.max_moon_eccentricity(planet.distance, hill_au, getattr(planet, "host_eccentricity", None) or 0.0)
         birth = orbit_elements.draw_moon_eccentricity(planet.moon_origin, e_max)
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
@@ -921,8 +928,8 @@ def moon_orbit_bounds_km(planet):
     past the rigid-body Roche limit of ~1.26 planet radii for similar
     densities), plus 15 atmospheric scale heights (or 100 km with no
     atmosphere) of drag-free margin. Outermost: the prograde stability
-    limit, `MOON_PROGRADE_STABLE_HILL_FRACTION` of the Hill radius; past it
-    the star strips the moon.
+    limit of Domingos, Winter and Yokoyama (2006), a fraction of the Hill radius that the planet's eccentricity lowers
+    (0.4895 on a circular orbit, `clearance_ledger.moon_bounds_km`); past it the star strips the moon.
 
     Returns:
         tuple: `(low_km, high_km)`; `low_km >= high_km` means no room.
@@ -930,8 +937,15 @@ def moon_orbit_bounds_km(planet):
     max_moon_radius = planet.radius / (10 ** (1 / 3))
     atmosphere_margin_km = planet.scale_height * 15 if planet.scale_height else 100
     low_km = planet.radius + max_moon_radius + atmosphere_margin_km
-    high_km = planet.hill_radius * tuning.MOON_PROGRADE_STABLE_HILL_FRACTION
+    high_km = clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0)[1]
     return low_km, high_km
+
+
+def moon_stable_limit_km(planet, moon_eccentricity=0.0):
+    """The farthest semi-major axis, km from `planet`'s centre, a moon of this eccentricity keeps (Domingos, Winter and Yokoyama 2006: the
+    fit is for the semi-major axis, and the moon's own eccentricity lowers it)."""
+    return clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0,
+                                           moon_eccentricity or 0.0)[1]
 
 
 def drop_unstable_moons(planet):
@@ -946,10 +960,10 @@ def drop_unstable_moons(planet):
     Returns:
         int: How many moons were dropped.
     """
-    low_km, high_km = moon_orbit_bounds_km(planet)
+    low_km, _high_km = moon_orbit_bounds_km(planet)
     max_moon_radius, max_moon_mass = moon_size_limits(planet)
     kept = [moon for moon in planet.moons
-            if low_km <= _au_to_km(moon.distance) and _au_to_km(orbit_elements.apoapsis_au(moon.distance, moon.eccentricity)) <= high_km
+            if low_km <= _au_to_km(moon.distance) <= moon_stable_limit_km(planet, moon.eccentricity)
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept

@@ -66,7 +66,7 @@ def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHEL
     epoch = program_constants.SCATTER_PHASE_ORIGIN_UNIX
     with timer.step("the globular clusters"):
         count = clusters.cluster_count(galaxy_seed, drawn.chain.halo_mass_solar)
-        found = clusters.generate_clusters(galaxy_seed, count, epoch_unix=epoch, scale=scale)
+        found = clusters.generate_clusters(galaxy_seed, count, epoch_unix=epoch, scale=scale, shape=shape)
     with timer.step("the satellite galaxies"):
         dwarfs = satellites.draw_satellites(galaxy_seed, drawn.chain, epoch_unix=epoch)
     with timer.step("the young open clusters"):

@@ -49,13 +49,6 @@ DIRECTIVE_IMPOSSIBLE_BELOW = 1e-9
 either, is refused before any drawing (`generation.directives.impossible`)."""
 
 # --- Planet Generation Parameters ---
-# Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
-# around extrasolar giant planets" -- a prograde moon on a circular orbit
-# stays bound out to about 0.4895 of its planet's Hill radius; beyond that
-# the star strips it (physics.planets.generate_moons' outer limit).
-MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
-
-
 # Giant masses are drawn from dN/dlogM ~ M^-GIANT_MASS_FUNCTION_SLOPE inside
 # their class's range: Cumming et al. (2008, PASP 120:531) measured about
 # 0.31 for radial-velocity giants, so lighter giants are commoner but a
@@ -145,10 +138,6 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # evaporate, so the chain of a luminous star starts no closer than the distance of this temperature (a = (278.3 K / T)^2 sqrt(L / Lsun) AU).
 # About 1500 K (Dullemond and Monnier 2010, arXiv:1002.3056, secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
-# A belt takes the place of a planet in its slot only where the disc built a body lighter than this, in Earth masses: a belt is what a
-# feeding zone leaves when it did not build a planet, so a giant or a body of an Earth mass or more is never swapped for one. A
-# planetGen stand-in (tier T5, tweak L0).
-BELT_REPLACES_BELOW_EARTH = 1.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law (arXiv:1502.05449, read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
@@ -223,14 +212,9 @@ GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
 GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
 GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 
-# How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`, a forced habitable world) draws at its distance
-# before it keeps the last (GEN.688; `StarSystem.build_planet`).
+# How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`) draws at its distance before it keeps the last
+# (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
-# A request for a habitable world draws this many planets freely, then draws planets of an Earth-like mass (log-uniform between the two bounds,
-# Earth masses) for the rest: a planetGen stand-in (registry row CC10) found by the sweep, where a free draw in the ecosphere of an M5 dwarf
-# gave a life class in none of 30 and an Earth-like mass in 20 of 30.
-HABITABLE_REQUEST_FREE_ATTEMPTS = 8
-HABITABLE_REQUEST_MASS_EARTH = (0.5, 2.0)
 CLASS_REQUEST_FREE_ATTEMPTS = 8
 CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
 """int, tuple: A request for a planet class (a slot's `planet_class`, `FORCE_CLASS`) is first left to chance for this many draws; the draws
@@ -238,14 +222,21 @@ after it take a mass log-uniform over this range in Earth masses, so a class the
 one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in (tier T9, tweak L3; registry row PA14)."""
 # What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
 # class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
-# any (10 kPa), and the water a surface ocean; the target is the middle of the range, where a draw that missed by its temperature aims the
-# next (GEN.911).
+# any (10 kPa), and the water a surface ocean.
 REQUEST_TEMPERATURE_K = (273.15, 323.15)
 REQUEST_MIN_PRESSURE_PA = 10000.0
 REQUEST_HYDROSPHERES = ("surface ocean",)
-REQUEST_TARGET_K = 298.15
-# A habitable request leaves its first draws at the distance it was given, then aims each next draw by the temperature the last one solved.
-HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS = 2
+REQUEST_PLANET_DRAW_BUDGET = 60
+"""int: How many planets a request for a habitable world may draw again in all, over every try of one system (`StarSystem._planet_in_ecosphere`):
+a star that rarely or never gives a world with a surface ocean (a hot one's ecosphere) would draw ten for each planet it places. A planetGen
+stand-in, a time limit and not physics (tier "from needed output", tweak L3; registry row CC10)."""
+REQUEST_MAX_TIMELINE_TRIES = 200
+"""int: How many timelines a request for a technological civilization draws before the last stands (`life_timeline.raised_waits`)."""
+REQUEST_ODDS = 10.0
+"""float: What `+habitable_world` and `+intelligent_life` do (GEN.1130): they multiply the odds of the wanted outcome by this and never force it
+(`util.request_odds`). A host star too young to hold life or a white dwarf, a planet in the ecosphere without a surface ocean, a system with no such
+planet, a timeline that does not reach a civilization within the star's age and a world that has no civilization now are each kept one time
+in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
 
 # How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
 # from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
@@ -295,7 +286,6 @@ ALBEDO_FROZEN_BELOW_K = 230.0
 ALBEDO_REGIME_REFERENCE = 0.30
 
 # --- Star System Generation Parameters ---
-ASTEROID_BELT_PROBABILITY = 0.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
@@ -942,6 +932,27 @@ WD_ENGULFMENT_POINTS_AU = ((1.0, 2.7), (2.5, 3.8), (5.0, 10.0))
 """tuple: `(progenitor solar masses, AU)` points of the engulfment radius, Mustill and Villaver 2012 (Jovian planets). Source tier T3, tweak level L1 (GM1, GM2)."""
 WD_PROGENITOR_MASS_RANGE_SOL = (1.0, _boundaries.sol("core_collapse_limit"))
 
+# The helium-core white dwarf of a close binary (GEN.996, `physics/helium_core_white_dwarf.py`): a low-mass giant that fills
+# its Roche lobe on the red giant branch loses its envelope with the helium core it had then, so the white dwarf is the core,
+# 0.18 to 0.45 solar masses, and not the 0.55 or more the single-star relation gives.
+HELIUM_FLASH_CORE_MASS_SOL = 0.45
+"""float: The helium core mass at which a low-mass giant ignites helium with a flash (about 0.45 for all stars under 2.3 solar
+masses; Tauris and van den Heuvel 2006, section 16.2 of the review `astro-ph/0303456`). A star that loses its envelope with a
+core under it leaves a helium white dwarf. Source tier T1, tweak level L0 (HC1)."""
+HELIUM_CORE_PROGENITOR_MAX_SOL = 2.3
+"""float: The heaviest star whose helium core is degenerate on the red giant branch (and so follows the core mass and radius
+relation); a heavier star ignites helium quietly and leaves a carbon-oxygen white dwarf. Source tier T1, tweak level L0 (HC1)."""
+HELIUM_CORE_MIN_MASS_SOL = 0.18
+"""float: The lightest core the core mass and radius relation is used for (Tauris and Savonije 1999 fit the white dwarf mass and
+orbital period for 0.18 to 0.45 solar masses; below it the giant is a subgiant and the relation is not the Rappaport one). A
+pair that fills its lobe earlier than that is a contact or Algol pair (`classify_pair`), not a helium white dwarf. Source tier
+T2, tweak level L1 (HC3)."""
+GIANT_RADIUS_BY_CORE_MASS_RSUN = ((3.0, 3300.0), (1.699, 5500.0))
+"""tuple: `(-log10 Z, R0)` points of the constant of Rappaport et al. 1995's red giant radius, `R = R0 Mc^4.5 / (1 + 4 Mc^4) +
+0.5` solar radii for a core of `Mc` solar masses: 5500 at Z 0.02 (Population I) and 3300 at Z 0.001 (Population II), read second
+hand in Tauris and van den Heuvel 2006 (the review `astro-ph/0303456`), Chen et al. 2013 (`1203.3439`) and Li et al. 2024
+(`2410.14151`). Between them the constant is straight in log Z (HC2) and held beyond. Source tier T2, tweak level L0 (HC2)."""
+
 # A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
 # pair); such a pair still inside its ejecta holds a circumbinary disk and no planets (GEN.318, design note 1.3). A white
 # dwarf at least this hot (the coolest central star type, B0VII) belongs to such a pair; the disk's mass is a stand-in
@@ -982,10 +993,10 @@ POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 # to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
 # derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = _boundaries.sol("core_collapse_limit")
-# No star contracts longer than this: the track takes the lightest star (0.074 solar masses, the hydrogen-burning limit at solar
-# metallicity, GEN.936) 4.1 Gyr, against 0.94 Gyr for the 0.08 of before (GEN.652; the main sequence under 0.1 solar masses now is
-# Baraffe's, which arrives later). A shortcut for the old stars, which are nearly all of them; the test checks it against the track.
-PRE_MAIN_SEQUENCE_LONGEST_YR = 4.5e9
+# No star contracts longer than this: the radius of the lightest star (0.074 solar masses, the hydrogen-burning limit at solar
+# metallicity, GEN.936) settles in 0.94 Gyr (BHAC15, GEN.1174; MIST's nuclear arrival of such a star would be 4 Gyr or more). A shortcut for the
+# old stars, which are nearly all of them; the test checks it against the track.
+PRE_MAIN_SEQUENCE_LONGEST_YR = 1.1e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
 HAYASHI_TEMPERATURE_1_SOL_K = 4357.0
 HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.1815
@@ -1392,8 +1403,8 @@ STELLAR_BROWN_DWARF = {
 # stars: its profile is a King (1966) model of one of ten concentrations `KING_W0_RANGE` (inclusive), solved once
 # (`physics/king.py`) on `KING_TABLE_POINTS` log-spaced radii and scaled by length. A cluster's systems number its
 # mass over the mean mass of its systems, worked out from its age (`generation/system_mass.py`, GEN.598). The tidal
-# radius a cluster may not exceed is the Jacobi radius in an isothermal halo of circular speed
-# `CLUSTER_HALO_CIRCULAR_KMS`.
+# radius a cluster may not exceed is the Jacobi radius in the galaxy's own mass inside its distance from the centre
+# (`galaxy/enclosed_mass.py`, GEN.339: it used to be an isothermal halo of the Milky Way's 220 km/s).
 KING_W0_RANGE = (3, 12)
 KING_TABLE_POINTS = 2000
 # Satellite galaxies (GEN.237, docs/design/galaxy/intergalactic-and-halo-contents.md 5.5) are stored the same way: the Clouds
@@ -1403,7 +1414,6 @@ KING_TABLE_POINTS = 2000
 # 7.8 scale lengths 98%; the density is normalised so the cut profile holds the whole mass). The rows are real
 # objects, but their sizes are recalled from McConnachie (2012) and not checked (the sources were out of reach).
 SATELLITE_TIDAL_OVER_HALF_MASS = 6.0
-CLUSTER_HALO_CIRCULAR_KMS = 220.0
 
 # A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/galaxy/globular-clusters.md section 8):
 # the count from the halo mass (`CLUSTER_SYSTEM_FRACTION_RANGE`); masses lognormal about `CLUSTER_MASS_PEAK_SOL` with `CLUSTER_MASS_SIGMA_DEX`, truncated to
@@ -1414,7 +1424,7 @@ CLUSTER_HALO_CIRCULAR_KMS = 220.0
 # concentration c from a normal about `CLUSTER_CONCENTRATION_MEAN` (all recalled from Harris 1996, good to the shape of the distribution). [Fe/H] has two groups, `(fraction, mean, sigma)`: the
 # metal-poor halo clusters and the metal-rich ones of the bulge and disk (the two peaks near -1.5 and -0.5), the
 # metal-rich group sitting on flattened orbits about the centre (median `CLUSTER_BULGE_MEDIAN_PC`, rotating at
-# `CLUSTER_HALO_CIRCULAR_KMS`) and the halo group on a density falling as r**-3.5 between `CLUSTER_HALO_RADIUS_RANGE_PC`.
+# the circular speed of the galaxy's potential, `galaxy/potential.py`) and the halo group on a density falling as r**-3.5 between `CLUSTER_HALO_RADIUS_RANGE_PC`.
 CLUSTER_SYSTEM_FRACTION_RANGE = (2.9e-5, 6.0e-5)
 """float: The globular cluster system's mass over its halo's mass, `eta` (GEN.403): Harris, Blakeslee and Harris 2017
 (2.9e-5) to Harris, Harris and Alessi 2013 (6e-5), Hudson 2014 (4e-5) between them. The three disagree by a factor of two,
@@ -1792,9 +1802,47 @@ POISSON_REJECTION_MEAN = 10.0
 """float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
 below it, by Knuth's method (PERF.60)."""
 
-# Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
-# find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
+"""tuple: The ends of the mass ratio q = M2/M1 of a primary's companion (Moe and Di Stefano 2017, ApJS 230:15, who count
+companions with q > 0.1); the secondary shares the primary's age. The law over it is `generation/mass_ratio.py` (GEN.951)."""
+
+MASS_RATIO_BREAK = 0.3
+"""float: Where the mass ratio's small-q power law meets its large-q one (Moe and Di Stefano 2017, Eqn. 2); the density is continuous there."""
+
+MASS_RATIO_TWIN_FROM = 0.95
+"""float: The mass ratio from which the twin excess is spread, to 1 (Moe and Di Stefano 2017, Table 1)."""
+
+# The tables below are Moe and Di Stefano 2017, Table 13, one row per primary mass of `COMPANIONS_PER_DECADE_BY_PRIMARY_MASS` (straight
+# in log mass between them, flat past either end) and one column per `COMPANION_LOG_PERIODS_DAYS`; the mass ratio of a companion is
+# drawn from the mix of the four periods' laws in the shares of that table's companions per decade, the period itself being drawn
+# after the masses (`generation/mass_ratio.py`).
+MASS_RATIO_TWIN_EXCESS = (
+    (0.30, 0.20, 0.10, 0.0),
+    (0.22, 0.10, 0.0, 0.0),
+    (0.17, 0.0, 0.0, 0.0),
+    (0.14, 0.0, 0.0, 0.0),
+    (0.08, 0.0, 0.0, 0.0),
+)
+"""tuple: Per primary mass and period, the excess fraction of the companions with q > 0.3 that are twins, spread evenly over
+`MASS_RATIO_TWIN_FROM` to 1 (F_twin). Their upper limits (< 0.03) are read as none."""
+
+MASS_RATIO_LARGE_Q_SLOPE = (
+    (-0.5, -0.5, -0.5, -1.1),
+    (-0.5, -0.9, -1.4, -2.0),
+    (-0.5, -1.7, -2.0, -2.0),
+    (-0.5, -1.7, -2.0, -2.0),
+    (-0.5, -1.7, -2.0, -2.0),
+)
+"""tuple: Per primary mass and period, the power-law slope of the mass-ratio density over q = 0.3 to 1 (gamma_largeq)."""
+
+MASS_RATIO_SMALL_Q_SLOPE = (
+    (0.3, 0.3, 0.3, 0.3),
+    (0.2, 0.1, -0.5, -1.0),
+    (0.1, -0.2, -1.2, -1.5),
+    (0.1, -0.2, -1.2, -1.5),
+    (0.1, -0.2, -1.2, -1.5),
+)
+"""tuple: Per primary mass and period, the power-law slope of the mass-ratio density over q = 0.1 to 0.3 (gamma_smallq)."""
 
 BROWN_DWARF_COMPANION_CHANCE = 0.03
 """float: The chance a star heavier than the hydrogen-burning limit has a brown dwarf companion besides its stars (GEN.899).
@@ -1808,12 +1856,13 @@ SPECTROSCOPIC_MAX_AXIS_AU = 0.26
 """float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",
 design note 13.1); `MemberTree.spectroscopic_nodes`."""
 
-CONTACT_TERTIARY_KEEP_SHARE = 0.26
+CONTACT_TERTIARY_KEEP_SHARE = 0.48
 """float: The share of the contact binaries that hold the placed star and have a tertiary which keep it (GEN.270). The
-member-tree draw gives 94% of contact binaries a tertiary (84% before GEN.652 read the stars' radii from MIST), because
-the stability screen leaves the inner pair of a hierarchy only short periods; stripping the others from 74% of those where
-the pair holds the placed star brings the share to the catalogue's 60% (measured over 120,000 seeded disc systems: 48% with
-none kept, 94% with all kept; a stand-in until GEN.631's fill measures it again)."""
+member-tree draw gives 88% of contact binaries a tertiary (94% before the mass ratios of GEN.951, 84% before GEN.652 read the
+stars' radii from MIST), because the stability screen leaves the inner pair of a hierarchy only short periods; stripping the others
+from 52% of those where the pair holds the placed star brings the share to the catalogue's 60% (measured over 120,000 seeded disc
+systems: 34% with none kept, 88% with all kept, the twins of GEN.951 making more of the pairs that are alone; it was 26% kept
+before; a stand-in until GEN.631's fill measures it again)."""
 
 YOUNG_GROUP_AGE_MAX_YR = 3.0e5
 """float: A massive system (O or early B, a birth mass of `mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
@@ -2033,12 +2082,11 @@ PLANET_CLASSES = {
         "composition": 'anthracite, basalt, and hydrocarbons',
         "type": 't',
     },
-    # GEN.1091: the class is a rule over the finished body's conditions (`physics/data/planet_classes.json`): surface pressure under 10 Pa and at
-    # least 1 percent of the mass water or ice. Size is not in the rule; the intended scale is a dwarf planet or a moon (radius 50 to 500 km), and
-    # the class covers belt members and dwarf planets as well as moons (docs/design/systems/belt-origins.md).
+    # GEN.1160: Class D is a rule over the finished body's conditions (`physics/data/planet_classes.json`): no air, round (a roundness ratio of 1 or more) and under 0.1 Earth masses.
+    # Rock or ice, a dwarf planet or a moon; a body under a roundness ratio of 1 is an Asteroid and has no letter. At 0.1 Earth masses and over, an airless body is Class C.
     'D': {
-        "description": 'a small icy body',
-        "composition": 'frozen hydrocarbons and ice',
+        "description": 'a small airless world',
+        "composition": 'rock, ice, and frozen hydrocarbons',
         "type": 't',
     },
     'E': {
@@ -2230,9 +2278,6 @@ LIFE_PACE_SLOW_BELOW = 0.67
 """float: A world whose rate factor is above `LIFE_PACE_FAST_ABOVE` has the pace "fast", below `LIFE_PACE_SLOW_BELOW` "slow", else "normal"
 (the words the life sentence uses; the pace is a label of how warm the world is, not a table)."""
 
-LIFE_FORCED_TRIES = 4000
-"""int: How many timelines a forced technological civilization (`INTELLIGENT_LIFE`) tries before it falls back to squeezing the last one into the
-world's age (`life_timeline.forced_waits`)."""
 
 LIFE_SCORE_MAX = 9
 """int: The top of the four life scores (Microbial, Flora, Fauna, Sentient): 0 is none, 9 is abundant (GEN.649)."""
@@ -2288,30 +2333,30 @@ FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
 MAX_RECENT_FLAVOR_TEXTS = 5 # Maximum number of recent flavor texts to keep track of.
 
-SYSTEM_FLAVOR = [ # System-only flavor text.
-    "a derelict chain of deep-space platforms firing concentrated energy beams into the void for an unknown purpose.",
-    "an automated buoy equipped with a mass-driver that catches physical data pods and flings them toward inner-system hubs.",
-    "a massive, ultra-thin sheet of reflective foil drifting through the system, originally deployed to shade a now-dead world.",
-    "thousands of small, passive reflectors scattered across the system that reflect electromagnetic waves back and forth.",
-    "an ancient, nuclear-powered navigational beacon at the system's edge, driven and maintained by a local artificial intelligence.",
-    "a drifting, chaotic cloud of uncoordinated mirror tiles arrayed like a fragmented automated radiation collection swarm.",
-    "a system-wide network of navigational satellites that constantly shift and optimize their orbits using a decentralized swarm intelligence.",
-    "an invisible mass sitting in an empty orbit that clearly registers on navigation sensors, warping the local space-time.",
-    "a spherical dead-zone in deep space where all electromagnetic scans, communication signals, and radiation instantly drop to absolute zero.",
-    "a jagged, glowing fracture in space-time that continuously vents electromagnetic energy into the surrounding void.",
-    "a decentralized network of automated defensive satellites arrayed across the system.",
-    "an array of laser transceivers locked in continuous, high-bandwidth optical communication with one another.",
-    "a swarm of automated solar collectors skimming the star's corona, routing steady power into massive, fully charged battery arrays.",
-    "a partially built ring of solar collectors encircling the star, its gaps suggesting the project was abandoned mid-construction.",
-    "a cluster of dormant self-replicating probes holding formation, their fabrication cycles halted mid-sequence.",
-    "a derelict generation ship on a slow, decaying orbit, its hull dark and its drive cold after generations adrift.",
-    "a stellar mirror array angled to nudge the star's own light pressure into a gentle directional thrust, now drifting loose.",
-    "a pair of gravitational-lensing relays aimed at a target far beyond the system, still patiently listening.",
-    "a broken ring segment holding a stable orbit on its own, as if waiting for the rest of the structure to return.",
-    "a scattering of paired relay buoys still exchanging signals with a partner that fell silent long ago.",
-    "an automated probe holding station at the system's edge, its greeting message looping to no one.",
-    "a magnetic siphon rig drawing material from the star's outer layers, still running long after its operators left.",
-    "a shell of solar-collecting satellites in a wide, half-finished orbit, their construction drones nowhere to be found."
+SYSTEM_FLAVOR = [ # System-only flavor text. Stored as the line itself (GEN.1212: plain words, 23 lines, order fixed so the draw does not move).
+    "a derelict chain of deep-space platforms. They fire strong energy beams into the void for no known reason.",
+    "an automated buoy with a mass driver. It catches data pods and flings them toward the inner system.",
+    "a huge, thin sheet of reflective foil adrift in the system. It was once set up to shade a world.",
+    "thousands of small, passive reflectors scattered across the system. They bounce radio waves back and forth.",
+    "an ancient navigation beacon at the edge of the system. It runs on nuclear power and is kept up by a local artificial intelligence.",
+    "a drifting cloud of mirror tiles that no one steers. It looks like a broken solar collection swarm.",
+    "a network of navigation satellites across the system. They keep shifting their orbits, guided by a swarm intelligence with no single center.",
+    "an unseen mass in an empty orbit. Navigation sensors register it, and it bends the space around it.",
+    "a round dead zone in deep space. Every scan, signal and burst of radiation that enters it drops to nothing.",
+    "a jagged, glowing crack in space-time. It keeps venting energy into the void around it.",
+    "a network of automated defense satellites spread across the system.",
+    "an array of laser transceivers. They hold a steady, high-speed optical link with one another.",
+    "a swarm of automated solar collectors skimming the star's corona. They feed steady power to huge, fully charged battery arrays.",
+    "a half-built ring of solar collectors around the star. The gaps suggest the work was abandoned.",
+    "a cluster of dormant, self-replicating probes holding formation. Their fabrication cycles stopped partway through.",
+    "a derelict generation ship on a slow, decaying orbit. Its hull is dark, and its drive is cold after generations adrift.",
+    "a mirror array angled to turn the star's light pressure into a gentle push. It has come loose and is drifting.",
+    "a pair of gravitational lensing relays aimed at a target far beyond the system. They are still listening.",
+    "a broken ring segment holding a stable orbit by itself. It seems to wait for the rest of the structure to return.",
+    "a scattering of paired relay buoys. They still send signals to partners that fell silent long ago.",
+    "an automated probe holding station at the edge of the system. Its greeting message loops with no one to hear it.",
+    "a magnetic siphon rig drawing material from the star's outer layers. It is still running long after its operators left.",
+    "a shell of solar-collecting satellites in a wide, half-finished orbit. Their construction drones are nowhere to be found."
 ]
 
 PLANET_FLAVOR = [ # Flavor text for any planet.
@@ -3313,7 +3358,7 @@ PREVALENCE_DRAW_SHARES = {
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
-    "multi_star": 0.0044,       # systems with five or more stars (see below)
+    "multi_star": 0.0046,       # systems with five or more stars (see below)
 }
 # `multi_star` is not measured from generated systems: `StarSystem` builds only a
 # single star, a close pair or a wide pair until the member-tree host lands
@@ -4158,8 +4203,8 @@ has opened -- about one generated system in seven reaches it) actually has
 a civilization now. 1 in 1,000 gives about one civilization per 7,000
 systems, so spacefaring neighbors sit roughly 150-200 ly apart and their
 territories (`TERRITORY_REACH_CAP_LY`) just about meet. A system generated
-with intelligent life forced on (`system_configs.intelligent_life = 1`)
-always has one. The rest still get a named dominant species, with no
+with intelligent life requested (`system_configs.intelligent_life = 1`)
+has the odds of that chance multiplied by `REQUEST_ODDS` and no more (GEN.1130). The rest still get a named dominant species, with no
 civilization."""
 
 CIVILIZATION_MIN_AGE_YEARS = 100.0

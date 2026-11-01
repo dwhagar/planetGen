@@ -30,7 +30,7 @@ What is drawn (every number is a labelled stand-in; the registry rows are BC20 t
    of it (`disrupted_moon` or `captured_body`) and as old as that event (`ring_age_yr`). A dwarf planet with no such ring may still hold the narrow ring of its spin-orbit
    resonance (`small_body_rings`, R4).
 2. **Which kind.** From the ring's mass (`kind_of_mass`): a faint one is `dusty`, a middling one `narrow`, a massive one `broad` (Jupiter, Uranus and Neptune, Saturn).
-3. **Ice share, extent.** See `RANGES`.
+3. **Ice share, extent.** See `RANGES`. The ice share drawn is the one the ring began with; the share stored is the one it has now, after the dark dust that fell on it over its age (`darken`, GEN.1055, R6).
 
 The draw order is the order above and is part of the generator epoch.
 
@@ -218,7 +218,27 @@ def apply(planet, host=None):
     ring = build_ring(history.origin, history.mass_kg, history.age_yr, planet.radius, planet.mass, cold, distances) if history.exists else None
     if ring is None and resonance is not None:
         ring = resonance.ring
+    if ring is not None:
+        darken(ring, planet.mass, around.distance)
     return _store(planet, ring)
+
+
+def darken(ring, planet_mass_kg, distance_au):
+    """
+    Replaces the ice share a ring began with by the share it has now (GEN.1055, R6): the dark dust that fell on it over its age (`ring_darkening.ring_brightness`) lowers it, a thin
+    ring far more than a massive one. A ring with no age (a resonance ring) keeps its share. Draws nothing.
+
+    Args:
+        ring (Ring): The ring to change.
+        planet_mass_kg (float): The mass of the body the ring circles.
+        distance_au (float): The distance of that body (or of the planet a moon circles) from its star.
+    """
+    from planetgen.physics import ring_darkening   # this imports this module
+    if ring.ring_age_yr is None or ring.ring_ice_fraction <= 0.0 or distance_au <= 0.0:
+        return
+    flux = ring_darkening.pollution_flux(distance_au, planet_mass_kg, 0.5 * (ring.ring_inner_km + ring.ring_outer_km))
+    density = ring_darkening.surface_density_kg_m2(ring.ring_optical_depth, RANGES["particle_radius_m"][ring.ring_kind], ring.ring_ice_fraction)
+    ring.ring_ice_fraction = ring_darkening.ring_brightness(ring.ring_ice_fraction, ring.ring_age_yr, density, flux).ice_fraction
 
 
 def _store(body, ring):

@@ -132,7 +132,7 @@ def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg, separatio
     2000, 2002): the mass a growing embryo reaches once it has cleared its
     own feeding zone of width `b` mutual Hill radii
     (`tuning.MUTUAL_HILL_RADII_SEPARATION`) -- the same `b`
-    `StarSystem._mutual_min_distance_au` uses for adjacent-planet spacing,
+    `validation.min_distance_after_au` uses for adjacent-planet spacing,
     so this count estimate and that spacing rule are provably consistent.
 
     Derivation: M_iso = 2*pi*a*(b*R_H)*Sigma, where R_H = a*(M_iso /

@@ -29,16 +29,31 @@ the primaries of that mass plus the companions of the heavier primaries that fal
     xi(m) = P(m) + sum over primaries M >= m of P(M) n_c(M) (share of M's companions that land at m)
 
 `n_c(M)` is the mean count less one of the `star-count` table for the class of the star (`multistar.companion_class`), and a
-companion's mass is its primary's times a ratio uniform between `max(0.1, 0.08 / M)` and 1 (`multistar.companion_ratio_range`).
+companion's mass is its primary's times a ratio from the law of Moe and Di Stefano (2017, Table 13) between `max(0.1, 0.08 / M)` and 1
+(`multistar.companion_ratio_range`, `mass_ratio.py`, GEN.951, below).
 Companions are never heavier than the primary, so the equation is solved from the top mass down in one pass, with no
 iteration. The result peaks higher than `xi`, as the published systems' functions do (Chabrier's own for systems has its centre
-at 0.22). Systems per star born is 0.697 and systems per solar mass of stars born 1.128 (`systems_per_star`,
-`systems_per_solar_mass`).
+at 0.22). Systems per star born is 0.695 and systems per solar mass of stars born 1.124 (`systems_per_star`,
+`systems_per_solar_mass`; they were 0.697 and 1.128 with a flat mass ratio).
 
 What the derivation leaves out, and the reason: the companions past the seventh star of a system (a chance of about 1e-5 of
 a system); the brown dwarf companion (below the hydrogen-burning limit, outside `xi`); the mergers and stripped stars of
-`multistar`, which move a star between bins after its birth; and a twin excess in the mass ratio (Moe and Di Stefano 2017),
-which the draw does not make either.
+`multistar`, which move a star between bins after its birth.
+
+**The mass ratio of a companion (GEN.951).** At one orbital period the density of the ratio q = M2/M1 is a power law, `q ** gamma_smallq`
+over 0.1 to 0.3 and `q ** gamma_largeq` over 0.3 to 1, continuous at 0.3, with a fraction `F_twin` of the companions with q > 0.3
+spread evenly over 0.95 to 1 on top of it (Moe and Di Stefano 2017, ApJS 230:15, Eqn. 2 and Table 1). Their Table 13 gives the three
+numbers at log P = 1, 3, 5 and 7 for solar-type, A / late-B, mid-B, early-B and O-type primaries
+(`tuning.MASS_RATIO_*`, rows in the order of `COMPANIONS_PER_DECADE_BY_PRIMARY_MASS`, straight in log mass between them): a solar-type
+primary stays near flat (slopes -0.5 to +0.3) with a twin fraction 0.3, 0.2 and 0.1 at log P 1, 3 and 5; a massive one is flat at log P = 1
+(twins 0.08 to 0.17) and by log P = 3 to 5 leans to light companions (slopes -1.7 to -2.0), nearly random pairings from the mass
+function, with no twins. The draw puts the masses before the periods, so the law used is the mix of the four periods' laws in
+the shares of the primary's companions at them (the companions per decade of the same table); the link between one companion's ratio and its period is lost,
+the average over companions is the table's (MR3 in the stand-in registry). A companion under the hydrogen-burning limit is not a
+star of the `star-count` table, so the law is cut at the lowest ratio that keeps the star above it and renormalised. The primary function's
+equation takes the share of a primary's companions that land in a cell from the same law (`mass_ratio.Ratios.fraction_below`), so the stars of the
+systems together still follow the single-star function. The mean ratio of a solar-type primary's companions is 0.53 (0.55 flat), a massive
+one's (12 solar masses) 0.38; the share with q > 0.95 is 12% against 6% flat for a solar-type primary and 4% against 6% for an early-B one.
 
 ## Who reads which
 
