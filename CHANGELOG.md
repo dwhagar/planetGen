@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3053] - 2026-11-01
+
+**Headline:** Every body's galactic speed and period now come from its own galaxy's gravity, not from the Milky Way's 220 km/s curve.
+
+### Changed
+- **GEN.339 (part a).** `galactic_orbit.calculate_galactic_orbit` gave every galaxy the Milky Way's flat 220 km/s curve with a 3 kpc core, whatever the galaxy's mass. It now takes the circular speed from the galaxy's own potential (`potential.current_circular_speed_kms`: the bulge, the disks, the stellar halo, the nuclear cluster and disc, the dark halo and the central black hole of the galaxy the unit belongs to, GEN.338), and the period from that speed, so a galaxy of another mass or size has its own rotation curve and a body near the centre turns at a finite rate. `GALACTIC_ROTATION_FLAT_VELOCITY_KMS`, `GALACTIC_ROTATION_CORE_RADIUS_PC` and `tuning.CLUSTER_HALO_CIRCULAR_KMS` are gone. The metal-rich globular clusters (`generate_clusters`, now given the galaxy's shape), the open clusters of the disk and the central ring (whose own bulge-less nuclear estimate is replaced) rotate at the potential's speed at their radius, and a cluster's Jacobi radius (`king.jacobi_radius_pc`, `open_cluster_evolution.jacobi_radii_pc`) uses the galaxy's own enclosed mass, not an isothermal halo. The mathcheck Sun checks are measured in the Milky Way's measured shape (the reference galaxy), within 15%. No new stored value and no migration; the stored velocities of an existing database stay on the old curve until it is generated again.
+generation-output: changed
+
 ## [8.0.3052] - 2026-11-01
 
 **Headline:** A brown dwarf just under the hydrogen-burning limit is no longer far colder than one just over it.
