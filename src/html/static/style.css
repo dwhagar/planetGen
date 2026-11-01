@@ -184,6 +184,17 @@ a:visited {
   text-decoration: underline;
 }
 
+/* UX.257: the links of a prose paragraph (the species and the other bodies a description names) and the help links set in the
+   words of the Life section are running text too: the link colour alone is 2.49:1 (light) and 1.91:1 (dark) against the words
+   around it, so they are underlined as well. */
+.prose p a,
+.prose li a,
+.life-glance a.help-link,
+.life-summary a.help-link,
+.life-help-links a.help-link {
+  text-decoration: underline;
+}
+
 a:focus-visible,
 button:focus-visible,
 textarea:focus-visible {
