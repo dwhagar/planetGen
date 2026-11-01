@@ -14908,20 +14908,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation and which are load.
   Prerequisites: none.
 
-- [ ] **PERF.230 Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical**
-  From Star 2's PERF.224 work (as the lane reported, 12:14 AM EDT
-  2026-11-01). The bright-table build is dominated by the isochrone
-  interpolation (edge_point and end_state, about 60 percent of a build);
-  the caches are already 524,288 entries and building by bin gave no
-  change (47 s for 6 populations either way). Do: make edge_point and
-  end_state cheaper (vectorise or precompute per track) with output
-  byte-identical, checked by the golden and the star table tests.
-  Expected gain uncertain, perhaps 1.3 times, and since PERF.226 part 3
-  only star-stage workers build these tables. Done: build time measured
-  before and after, output identical. Lock-free. Low priority; Owner:
-  none yet.
-  Prerequisites: none.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
