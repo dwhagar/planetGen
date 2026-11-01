@@ -1070,6 +1070,26 @@ with `clamp()`.
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
 
+- [ ] **UX.256 Cancelling a job from its job page returns to the page the visitor came from, or the jobs page (bug)**
+  Boss (2026-10-31, 8:07 PM EDT, as the coordinator relayed): "if I
+  cancel a job that I'm viewing the job page for, take me back to the
+  jobs page or whatever page I got there from." Today the job page (the
+  admin Generate console's job view) stays on the cancelled job after
+  Cancel. Do: (1) find the cancel control and its handler on the job
+  page and the route it posts to; (2) after a successful cancel,
+  redirect to the page the visitor came from (a `next` or `return_to`
+  value carried from the page that linked to the job, checked to be a
+  same-site path so it cannot send anyone elsewhere), and to the jobs
+  page when none was given; (3) every link to a job page (jobs list, job
+  tree, Generate console, queue page) passes where it is. Done: a
+  browser or client test that cancels a job from its page after arriving
+  from the jobs page, from the job tree and by a direct link, and lands
+  on the jobs page, the job tree and the jobs page respectively; an
+  off-site return value is ignored. Lock-free, generation output
+  unchanged. Owner: the thread started for this bug (2026-10-31 8:07
+  PM EDT); no lane owned the Generate job pages. Version 8.1.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
