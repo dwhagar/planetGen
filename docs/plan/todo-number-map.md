@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.37 |
 | TEST | TEST.542 |
 | USR | USR.32 |
-| OPS | OPS.85 |
+| OPS | OPS.86 |
 | DOC | DOC.101 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
@@ -2513,6 +2513,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.82 | update.sh reloads the site and probes /api/health before the caches are warm, so the first requests after an update are slow or fail; run the cache warm-up in the foreground before the reload and let the probe wait after it (bug) | none | done, PR #4297 |
 | OPS.83 | update.sh waits on the whole cache warm-up before the reload; start it in the background once the code, database, permissions and Redis are ready, wait only for its opening phase (at most 20 minutes), then reload Apache, wait 10 seconds and check health (bug) | none | done, PR #4300 |
 | OPS.84 | update.sh says what every wait is for and for how long, the cluster-mass step shows a progress bar, and there are pauses of 5 seconds before and 10 seconds after the reload | none | done, PR #4303 |
+| OPS.85 | update.sh is silent while it records the version key after the migration, so it looks hung (bug) | none | done, PR #4658 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
