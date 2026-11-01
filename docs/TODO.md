@@ -15020,6 +15020,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   workers for the stages that need no tables (would allow more workers),
   and peaks for scatter-phenomena and the nebula draw. The deadlock seen
   in rescore-habitability is PERF.228.
+  Part 3 merged (#4666) (2026-10-31 8:48 PM EDT): Workers no longer
+  build the star tables at start: only units that draw stars build them,
+  and a worker holding them restarts itself before a unit that needs
+  none. Measured worker plus horse: link 601 MB (was 1,564) and 2.4
+  times faster, settle 588, re-score 552, map-luminosity 540. Figures:
+  lean stages 700 MB, scatters 1,700, sector stages 2,600;
+  warm-cluster-field sits at 1,700 until PERF.225 is measured. Still
+  open: peaks for scatter-phenomena and the nebula draw need a
+  full-galaxy run (they use the lean figure; the run report warns if a
+  stage goes over), and the 1,700 MB scatter and 2,600 MB sector workers
+  can still be made leaner.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 - [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
@@ -15050,6 +15061,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to a small fixed time. Owner: the investigating thread (named by the
   coordinator); it checks the overlap with PERF.225 and PERF.226 first.
   Lock-free unless the cause needs a migration. Version 8.1.
+  Fix merged (#4667), kept open for the gate (2026-10-31 8:50 PM EDT): A
+  stage whose workers read the galaxy shape now makes the cluster field
+  file once before the stage is cut (queue/wrapper._expand to
+  galaxy/field_job.ensure_file), instead of each worker building it
+  (hal: 10 workers, 7 GB, the run crawled). No epoch, generation output
+  unchanged. The gate was partial: field, queue, wrapper and guard tests
+  151 passed, and the full changed-files set stopped at 622 passed with
+  2 failures not identified, because the lane machine was too slow.
+  Retire this item when the full-suite thread or a lane names the 2
+  failures and they are not this change's. hal needs ./update.sh (it ran
+  8.0.3021) for this, PERF.225 and PERF.226, and Boss must cancel and
+  clear the stuck run.
   Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
 
 - [ ] **PERF.228 The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug)**
