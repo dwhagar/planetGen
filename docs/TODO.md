@@ -19979,37 +19979,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.86 The update uses the API address from config.json and never tries localhost unless that is the configured address (bug)**
-  Boss (2026-10-31, 8:35 PM EDT, as the coordinator relayed): "the
-  update should always use the configured api address from config.json
-  and never attempts local host unless that's the configured address for
-  API." Where it stands: scripts/deploy-common.sh waits for the site on
-  `PLANETGEN_HEALTH_URL`, else http://127.0.0.1/api/health or
-  http://127.0.0.1:8000/api/health (lines near 256, 276, 286) and only
-  falls back to the configured `base_url` through `site_health_target`,
-  which also pins the site's name to 127.0.0.1 with curl --resolve; the
-  `api_base_url` setting (src/planetgen/util/settings.py) defaults to
-  http://127.0.0.1/api; the warm-up and any other step of update.sh that
-  calls the API may do the same. Do: (1) list every address update.sh,
-  install.sh, scripts/deploy-common.sh and the warm-up use to reach the
-  API or the site, with the setting each one reads; (2) make each read
-  `api_base_url` (and `base_url` for the site) from config.json, with no
-  loopback address written into a script as the first choice and no
-  --resolve pin to 127.0.0.1 unless the configured address is itself
-  loopback; (3) when the configured address does not answer, the update
-  says which address it tried and from which setting, and does not try
-  another. Done: a test over the deploy scripts that no step reaches the
-  API on a literal loopback address unless config.json says so, and a
-  run with a non-loopback `api_base_url` that touches only that address.
-  Lock-free, generation output unchanged. Overlap to avoid: PERF.227
-  (the scatter start kills the web daemon; its thread is in the Generate
-  console and the web daemon, not the scripts), the update.sh progress
-  bar for the version key (#4660, scripts/deploy-common.sh
-  `record_version_key`, a different function), and PERF.225 (#4626 cache
-  refusal guard). Owner: the thread started for this bug (2026-10-31
-  8:35 PM EDT). Version 8.1. Prerequisites: none.
-  Prerequisites: none.
-
 ## DOC: Documentation
 
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
