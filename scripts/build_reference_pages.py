@@ -34,6 +34,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
+import build_references as refs  # noqa: E402
 import build_stand_in_values as stand_ins  # noqa: E402
 
 DATA = os.path.join(ROOT, "docs", "reference", "references-data.json")
@@ -123,7 +124,45 @@ def build_overview():
     }
 
 
-BUILDERS = {"overview.json": build_overview}
+def source_label(e, suffix):
+    """The words a citation link shows for a paper or a book: as `Family et al. 2019a`, `Family and Other 2017` or `Family 2005`."""
+    names = [family.title() if family.isupper() and len(family) > 3 else family for family, _ in e["authors"]]
+    if not names:
+        who = (e.get("title") or "").strip()
+    elif len(names) == 1:
+        who = names[0]
+    elif len(names) == 2:
+        who = names[0] + " and " + names[1]
+    else:
+        who = names[0] + " et al."
+    return ("%s %s%s" % (who, e.get("year") or "", suffix)).strip()
+
+
+def build_citations():
+    """
+    The citation links of the References pages (DOC.97): `{"sources": {id: {"label", "title", "kind"}}, "aliases": {merged id: id}}`.
+
+    A text on a References page cites `[R0123]`; `planetgen.web.lib.citations.link` turns it into the label and a link to the entry. The label
+    is built the way the reference list prints the author and year, with the same `a`, `b` letter, so the link and the entry cannot differ.
+    """
+    with open(DATA, encoding="utf-8") as handle:
+        cache = json.load(handle)
+    keyed, suffix = refs.sorted_entries({k: e for k, e in cache["entries"].items() if e.get("authors") or e.get("title")})
+    sources = {}
+    for key, e in keyed:
+        sources[refs.id_of(cache, key)] = {
+            "kind": "book" if e.get("type") in ("monograph", "book", "edited-book") else "paper",
+            "label": source_label(e, suffix.get(key, "")),
+            "title": e.get("title") or "",
+        }
+    for a in cache.get("archives", []):
+        sources[cache["ids"]["archive:" + a["url"].lower()]] = {"kind": "data", "label": a["name"], "title": a["name"]}
+    for d in cache.get("setup_datasets", []):
+        sources[cache["ids"]["setup:" + d["url"].lower()]] = {"kind": "data", "label": d["title"], "title": d["title"]}
+    return {"aliases": dict(sorted(cache.get("id_aliases", {}).items())), "sources": sources}
+
+
+BUILDERS = {"overview.json": build_overview, "citations.json": build_citations}
 """dict: `{file under docs/references/: function that returns its data}`."""
 
 

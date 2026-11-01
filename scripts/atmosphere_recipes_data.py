@@ -135,8 +135,8 @@ MACHINE = {
                correction="GEN.1005 (2026-10-30): the mean is the magma-ocean model's surface value plus the increment, in place of the straight line through three Solar System bodies; GEN.482b takes the larger of a2 and a1 in `draw_redox`."),
     "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)", kind="param", classes=["asteroid"], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
-               source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians ([R1152] Table "
-                      "1, [R1153: Table 4], via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); "
+               source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians ([R1152: Table "
+                      "1], [R1153: Table 4], via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); "
                       "the width 0.22 is the intrinsic spread of the 13 well-constrained stars (COMPUTED) and lies inside the "
                       "0 to 0.38 the detection model accepts (GEN.513, docs/design/composition/wd-redox-tuning.md); the meteoritic bracket "
                       "-1.4 to 0 ([R3944: Table 2], READ) is kept as a check",

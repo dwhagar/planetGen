@@ -16,6 +16,8 @@ import functools
 import json
 import os
 
+from . import citations
+
 DOCS = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "docs", "references"))
 """str: The folder the build writes (`docs/references/`)."""
 
@@ -43,6 +45,17 @@ def load(name, folder=None):
     except OSError:
         return None
     return _read(path, stamp)
+
+
+def cite(text, folder=None):
+    """
+    A sentence of a References page as HTML, each citation ID in it (`[R0123]`) replaced by a link to the source's entry (DOC.97). Only these pages
+    name a source; everywhere else a citation stays an ID. A source the list does not hold, or a name written out, raises `citations.CitationError`.
+    """
+    data = load("citations.json", folder)
+    if data is None:
+        raise citations.CitationError("docs/references/citations.json is missing: run python scripts/build_reference_pages.py")
+    return citations.link(text, data)
 
 
 def count(number):

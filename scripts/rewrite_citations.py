@@ -51,7 +51,7 @@ KEEP = (
     "docs/REFERENCES.", "docs/reference/references-data.json", "docs/references/",
     "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py",
     "DATA-LICENSE.md", "LICENSE.md", "CHANGELOG.md",
-    "src/tests/test_references.py", "src/tests/test_references_crawl.py", "src/tests/test_references_pages.py", "src/tests/test_citations_outside_the_registry.py",
+    "src/tests/test_references.py", "src/tests/test_citations_links.py", "src/tests/test_references_crawl.py", "src/tests/test_references_pages.py", "src/tests/test_citations_outside_the_registry.py",
     "src/planetgen/datasets/catalogue.py",
     "node_modules/", "vendor/", "three.min", ".min.js", "package-lock",
 )
