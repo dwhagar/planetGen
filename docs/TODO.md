@@ -15111,7 +15111,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unbounded retry), fix at the cause in code, and confirm the test
   finishes well inside its limit. The end-of-run alone re-run from the
   full-suite thread will confirm it is real. Done: all four types
-  generate in seconds and the test passes. Owner: none yet.
+  generate in seconds and the test passes. Owner: Bug 1, queued behind
+  the train 8 stored-tree fix (GEN.951).
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19448,8 +19449,8 @@ clears each one.
   the remnant count, then either fix a generator defect (rides an epoch)
   or, if the model counts are what changed, update the expected counts
   from the sourced model with the reason stated; never loosen the 1.5
-  factor to pass. Done: both tests pass on main. Owner: none yet (Bug 1
-  knows the star mass function work).
+  factor to pass. Done: both tests pass on main. Owner: Bug 1, queued
+  behind the train 8 stored-tree fix (GEN.951).
   Prerequisites: none.
 
 ## USR: User accounts
