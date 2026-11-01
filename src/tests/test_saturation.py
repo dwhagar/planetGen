@@ -14,7 +14,10 @@ from planetgen.physics import gases, saturation
 # The species whose triple-point pressure on the highest-temperature fit is further than 3 percent from the gas table's,
 # with the ratio (the module docstring says the same).
 OFF_BY_OVER_THREE_PERCENT = {"SO2": 1.038, "C6H6": 1.071, "C2H2": 0.964}
-NO_TRIPLE_PRESSURE = {"HCN"}
+NO_TRIPLE_PRESSURE = {"HCN", "HF"}
+NO_TRIPLE_POINT = {"HF"}
+"""set: Species whose curve is the critical-point correlation (GEN.524): the gas table holds no triple point for hydrogen fluoride."""
+NO_LIQUID_BRANCH = {"C2H2", "HCl", "HF"}
 
 
 def _triple_ratio(formula):
@@ -37,7 +40,7 @@ def test_every_species_is_in_the_gas_table_with_a_triple_point():
     assert saturation.formulas()
     for formula in saturation.formulas():
         assert gases.has(formula)
-        assert saturation.triple_point_k(formula) is not None
+        assert (saturation.triple_point_k(formula) is None) == (formula in NO_TRIPLE_POINT)
 
 
 @pytest.mark.parametrize("formula", sorted(set(saturation.formulas()) - {"H2O"} - NO_TRIPLE_PRESSURE))
@@ -113,7 +116,7 @@ def test_the_switch_points_are_near_the_known_solid_transitions():
 
 def test_each_curve_rises_with_temperature_from_one_kelvin_to_the_triple_point():
     for formula in saturation.formulas():
-        top = saturation.triple_point_k(formula)
+        top = saturation.triple_point_k(formula) or 300.0
         previous = 0.0
         t = 1.0
         while t <= top:
@@ -186,8 +189,8 @@ LIQUID_FORMULAS = sorted(f for f in saturation.formulas() if saturation.species(
 JOINS = {"N2": 0.9726, "CH4": 1.0165, "H2S": 1.0165, "NH3": 1.0190, "SO2": 1.0381, "HCN": 1.0333, "C6H6": 1.0707}
 
 
-def test_every_species_but_acetylene_has_a_liquid_branch():
-    assert set(saturation.formulas()) - set(LIQUID_FORMULAS) == {"C2H2"}
+def test_every_species_but_acetylene_and_the_halides_has_a_liquid_branch():
+    assert set(saturation.formulas()) - set(LIQUID_FORMULAS) == NO_LIQUID_BRANCH
     assert saturation.species("HCN").liquid.form == "dippr101"
 
 
@@ -451,3 +454,13 @@ def test_the_condensation_temperature_is_the_inverse_and_has_limits():
     assert saturation.condensation_temperature_k("N2", 1e8) is None
     with pytest.raises(ValueError):
         saturation.condensation_temperature_k("N2", 0.0)
+
+
+def test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_trace_gas_in_the_cold():
+    """GEN.524 part 2: hydrogen chloride (Clausius-Clapeyron from its triple point) is within 40 percent of one atmosphere at its normal boiling
+    point and hydrogen fluoride (Edmister) within 15 percent at its own; both are far under the partial pressure of a one part in a million trace of a
+    one bar air below 100 K, so a cold body condenses them."""
+    assert saturation.pressure_pa("HCl", gases.gas("HCl").boiling_point_k) == pytest.approx(101325.0, rel=0.4)
+    assert saturation.pressure_pa("HF", gases.gas("HF").boiling_point_k) == pytest.approx(101325.0, rel=0.15)
+    for formula in ("HCl", "HF"):
+        assert saturation.pressure_pa(formula, 68.0) < 1e-6 * 1e5 * 1e-3

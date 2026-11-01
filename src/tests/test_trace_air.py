@@ -42,8 +42,8 @@ def _drawn(body, seeds=range(60)):
     return seen
 
 
-def test_the_wired_rows_are_the_design_flag_rows_and_leave_hydrogen_chloride_and_fluoride_out():
-    assert set(mixture_trace.WIRED_ROWS) == {"m3", "m4", "m11"}
+def test_the_rows_are_the_design_flag_rows_and_hydrogen_chloride_and_fluoride_are_not_among_them():
+    assert set(mixture_trace.WIRED_ROWS) == {"m3", "m4", "m11"} == set(mixture_trace.ABUNDANCES)
     assert set(trace_air.TRACE_GASES) == {"N2O", "PH3", "NO2", "CH3Cl"}
     assert not {"HCl", "HF"} & set(trace_air.TRACE_GASES)
 

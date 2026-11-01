@@ -111,6 +111,10 @@ _DELTA = "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(l
 _P_ATM = "1/(1 + 10**(delta/0.247))"
 _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
+RETIRED = frozenset({"m5", "m6"})
+"""frozenset: The rows of the part-09 table that the generator no longer has (GEN.524 part 2: HCl and HF come from the halogen budget of the outgassing, not
+from a presence draw); the part keeps them as the record, the builder leaves them out of the data file."""
+
 MACHINE = {
     # ---- a. mantle redox ----
     "a1": dict(state="partly verified", kind="param", classes=ROCKY, sets="redox_diw",
@@ -353,10 +357,8 @@ MACHINE = {
                weight="c_m3 if (life_chemical or sep_reducing) else 0"),
     "m4": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures PH3, and the Venus claim is contested, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, when=AIR_WHEN, constants={"c_m4": [0.0, 0.05, "uniform"]},
                weight="c_m4 if life_chemical else 0"),
-    "m5": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
-               constants={"c_m5": [0.1, 0.5, "log"]}, weight="c_m5"),
-    "m6": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
-               constants={"c_m6": [0.1, 0.5, "log"]}, weight="c_m6"),
+    "m5": dict(state="retired", kind="binary", classes=ROCKY),         # GEN.524 part 2: HCl comes from the halogen budget (see RETIRED)
+    "m6": dict(state="retired", kind="binary", classes=ROCKY),         # the same for HF
     "m7": dict(kind="binary", classes=GIANT + BD + ROCKY, weight="phi((t_layer_k - 962)/33)"),
     "m8": dict(kind="binary", classes=GIANT + BD + ROCKY, weight="phi((t_layer_k - 775)/26)"),
     "m9": dict(kind="derived", classes=AIR + GIANT + BD, when=[c("gas_has_co_h2s", equals=True)],

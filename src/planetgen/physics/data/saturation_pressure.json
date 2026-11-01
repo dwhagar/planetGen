@@ -865,6 +865,21 @@
      0.04196
     ]
    }
+  },
+  "HCl": {
+   "name": "hydrogen chloride",
+   "form": "clausius-clapeyron",
+   "selection": "single",
+   "curves": [],
+   "sublimation_kj_mol": 19.65,
+   "note": "GEN.524 part 2: the solid by Clausius-Clapeyron from the gas table's triple point (159.07 K, 13828 Pa) with its sublimation heat (19.6 to 19.7 kJ/mol, the mean); above the triple point the solid's curve is carried on (status above-triple), about 36 percent over the normal boiling point's 1 atm at 188.17 K; a stand-in, tier 6, registered in GEN.725 (AM90)"
+  },
+  "HF": {
+   "name": "hydrogen fluoride",
+   "form": "edmister",
+   "selection": "single",
+   "curves": [],
+   "note": "GEN.524 part 2: Edmister 1958, ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T), from the gas table's critical point (461 K, 6.485 MPa) and acentric factor 0.382 (88.7 kPa at the normal boiling point 292.7 K against 101.3 true); the gas table has no triple point for HF, so one curve serves all temperatures and is unverified in the cold, where it only has to be far below the partial pressure of a trace gas; a stand-in, tier 8 (educated guess from physics), registered in GEN.725 (AM90)"
   }
  }
 }

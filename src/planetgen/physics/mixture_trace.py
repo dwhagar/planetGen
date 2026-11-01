@@ -14,8 +14,6 @@ measured value as its TEST anchor:
 |---|---|---|---|
 | m3 | N2O | 1e-8 to 1e-6 | Earth, about 3.3e-7 (Airapetian 2020: ~400 ppbv) |
 | m4 | PH3 | 1e-10 to 2e-8 | the 20 ppb Venus claim (Greaves 2020), a lifetime of hours (Sousa-Silva 2020) |
-| m5 | HCl | 1e-6 to 1e-2 | 1.4 percent at 1000 K and 100 bar over crust composition (Schaefer 2012) |
-| m6 | HF | 1e-7 to 1e-3 | 4.5 percent at 1000 K and 1e-6 bar (Schaefer 2012) |
 | m11 | NO2, CH3Cl | 1e-11 to 1e-8, 1e-11 to 1e-9 | none on any exoplanet |
 
 The rows that are not abundances of this module: the ozone rows m1 and m2 are the ozone column's (GEN.413: the draw is in the result,
@@ -33,15 +31,14 @@ from planetgen.physics.mixture_base import MixtureError, bracket
 ABUNDANCES = {
     "m3": {"N2O": (1e-8, 1e-6, "log")},
     "m4": {"PH3": (1e-10, 2e-8, "log")},
-    "m5": {"HCl": (1e-6, 1e-2, "log")},
-    "m6": {"HF": (1e-7, 1e-3, "log")},
     "m11": {"NO2": (1e-11, 1e-8, "log"), "CH3Cl": (1e-11, 1e-9, "log")},
 }
 """dict: Row -> gas -> (low, high, shape) of the mole fraction the gas has when the row draws it present."""
 
-WIRED_ROWS = ("m3", "m4", "m11")
-"""tuple: The rows whose gases are added to an air. Rows m5 and m6 (HCl, HF) keep their brackets but are not drawn into any air until
-GEN.524 part 2 replaces them with a halogen budget: as brackets they would put up to 1 percent HCl and 0.1 percent HF on every crust-class body."""
+WIRED_ROWS = tuple(ABUNDANCES)
+"""tuple: The rows whose gases are added to an air. HCl and HF are no longer rows (m5 and m6, GEN.524 part 2): they come from the halogen budget of the
+outgassing (`mixture_rocky`: the chlorine and fluorine of the rock, scaled by the host's iron, capped by the hydrogen free to pair with them, taken by an
+ocean and condensed in the cold), not from a presence draw."""
 
 
 def required_trace_inputs(body_class):
