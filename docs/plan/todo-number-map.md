@@ -2004,8 +2004,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1231 | White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent | none | open |
 | GEN.1232 | Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event) | none | open |
 | GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law | none | open |
-| GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | open |
-| GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | open |
+| GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
+| GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3771,7 +3771,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.540 | test_orbit_elements: an eccentric planet is as warm as a circular one, and a moon gets the light of its parent's orbit, both fail on main (bug) | none | done, PR #4618 |
 | TEST.541 | Four star tests fail on clean main: the population model, the hot white dwarf classes O5VII and B0VII, and the forced subdwarf (bug) | none | open |
 | TEST.542 | The life sweep expects 20 class letters and the rules give 19, since GEN.1135 retired Class Q (bug) | none | done, PR #4677 |
-| TEST.543 | The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug) | none | open |
+| TEST.543 | The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug) | none | done, PR #4699 |
 | TEST.544 | The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug) | none | done, PR #4677 |
 | TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) | none | open |
 | TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) | none | open |

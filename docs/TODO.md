@@ -14529,37 +14529,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changes stored ring columns, so it rides a train. Owner: Tides 1.
   Prerequisites: none. Related: GEN.1171, GEN.725.
 
-- [ ] **GEN.1234 Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug)**
-  Found by Aux 2 while fixing TEST.543 (as the lane reported, 11:22 PM
-  EDT 2026-10-31). Once the sweep reads the ozone spread correctly,
-  tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule
-  fails on four bodies whose stored ozone column is below the least the
-  oxygen allows: system3/Icilat Aobaris I (2000 K body, O2 1447 Pa,
-  column 19 DU, least 110), system3/Icilat Aobaris II, system10/Etamahua
-  II (life 4a, O2 3897 Pa, 10.8 DU against least 88) and
-  system18/Elogous II (life 4b). The cause is order: the oxygen is
-  changed after the column was drawn, so the column is not redrawn for
-  the final oxygen. Do: redraw (or derive) the column from the final
-  oxygen at the point the oxygen settles, keeping the sourced ozone fit;
-  this changes generator output, so it rides an epoch (lock item). Done:
-  the four bodies, and the whole sweep, obey the rule. Owner: Aux 2
-  (air), after TEST.543. Related: TEST.543.
-  Prerequisites: none.
-
-- [ ] **GEN.1235 The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug)**
-  Found by Aux 2 while fixing TEST.543 (as the lane reported, 11:22 PM
-  EDT 2026-10-31). system3/Icilat Aobaris I stores surface temperature
-  2000.0 K where its albedo and greenhouse give 2165 K: the generator
-  clamps the surface temperature at 2000 K, and the atmosphere sweep
-  rule does not know the clamp, so it reports a mismatch. Do: decide
-  whether the clamp is a real physical limit (then the rule reads the
-  clamp and a comment gives the source) or a stopgap (then raise or
-  remove it and register any stand-in in GEN.725). Done: the sweep rule
-  and the generator agree for hot bodies. Lock-free if only the rule
-  changes; an epoch if the clamp moves. Owner: Aux 2 (air), after
-  TEST.543. Related: TEST.543.
-  Prerequisites: none.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19408,24 +19377,6 @@ clears each one.
   for now (pool; the Train Manager proposes a star lane once train 8
   clears). Version 8.1.
   Prerequisites: none. Related: GEN.996.
-
-- [ ] **TEST.543 The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real. tests/audit/sweep_atmosphere.py line 154 uses
-  STRUCTURE_RANGE, which no longer exists;
-  test_every_body_of_the_sweep_obeys_every_rule,
-  test_every_rule_is_exercised_by_air_that_the_sweep_holds and
-  test_the_ozone_rule_holds_for_earth_air_and_fails_outside_the_fits_spread
-  fail. Do: express the ozone rule's allowed spread from STRUCTURE_KNOTS
-  (the range of its knots), say why in a comment, and keep the rule's
-  meaning. Done: the three tests pass. Lock-free, generation output
-  unchanged. Version 8.1. Prerequisites: none. Related: TEST.261. Owner:
-  Aux 2 (air). Progress (Aux 2, 11:22 PM EDT 2026-10-31 as the lane reported):
-  the sweep now reads the spread with ozone.structure_range and the air-holding
-  floor is 80 (merged, #4697); test_every_body_of_the_sweep_obeys_every_rule
-  stays red on main until GEN.1234 and GEN.1235 are fixed, so this item stays open.
-  Prerequisites: none.
 
 - [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
   The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
