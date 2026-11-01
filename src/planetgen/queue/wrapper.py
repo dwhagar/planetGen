@@ -110,6 +110,24 @@ def queued(steps):
     return [step for step in steps if not commands.spec(step.kind).inline]
 
 
+def _ensure_cluster_field(params):
+    """
+    Before a stage whose workers read the galaxy's shape (`CommandSpec.warm`) is cut: makes the cluster field a file in the
+    state folder (`galaxy.field_job.ensure_file`) so every worker reads it instead of building it again. Best effort: when
+    it cannot be made here, the workers build it themselves, as before.
+    """
+    named = params.get("database")
+    if not isinstance(named, dict):
+        return
+    try:
+        from planetgen.db import store
+        from planetgen.galaxy import field_job
+        field_job.ensure_file(store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
+                                                database=named["database"]))
+    except Exception as exc:  # noqa: BLE001 -- the workers meet the same problem themselves
+        log.warning(f"The cluster field could not be made ahead of the stage: {exc}")
+
+
 def _expand(conn, run_id, index):
     """
     Cuts stage `index` of the run into its units, records the cut, begins the stage and queues the units. The
@@ -128,6 +146,8 @@ def _expand(conn, run_id, index):
     if _is_referred_to(runrecord.read_steps(conn, run_id), key):
         runrecord.set_opened_clock(conn, run_id, index, _database_clock(step.params))
     params = resolve_params(conn, run_id, step.params)
+    if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
+        _ensure_cluster_field(params)
     prepare = commands.prepare_function(step.kind)
     if prepare is not None:
         prepare(params)
