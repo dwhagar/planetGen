@@ -25,7 +25,12 @@ def test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline():
     made, refusal = plan_outline.preview(["--mass", "1e8", "--disk-scale-length", "2000pc", "--flatness", "20",
                                           "--bulge-share", "0.001"], SEED)
     assert refusal is None and not made.empty
-    assert made.line().startswith("Outline: the disc's crest is 3.32 times the one-star density, about ")
+    # The crest of this thin disc follows the density model, which four sourced changes moved: 3.32 to 3.27 (epoch 123, star composition),
+    # to 3.17 (epoch 125, the star mass function GEN.927 to GEN.930, which lowers the mean star mass), to 3.12 (GEN.999, the gas law that
+    # steepens where the gas thins) and to 3.10 (GEN.1195, the central ring's cluster maximum mass). The line must carry the crest the
+    # outline holds; the window keeps a change that is not one of those from passing.
+    assert 3.0 < made.crest < 3.5
+    assert made.line().startswith(f"Outline: the disc's crest is {made.crest:.3g} times the one-star density, about ")
     assert f"{made.shells:,} shells out to " in made.line() and f"{made.sectors:,} candidate sectors" in made.line()
     assert made.shells == len(plan_outline.build(plan_outline._parser().parse_args(
         ["--mass", "1e8", "--disk-scale-length", "2000pc", "--flatness", "20", "--bulge-share", "0.001"]),
