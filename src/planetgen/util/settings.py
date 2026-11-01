@@ -859,8 +859,8 @@ class Settings(_Section):
                                       label="Admin login over plain HTTP",
                                       summary="Only for local development without TLS; never turn "
                                               "it on in production.")
-    secret_key: str = opt("", "Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a "
-                          "form open across a restart then fails once).", env="PLANETGEN_SECRET_KEY", restart=True,
+    secret_key: str = opt("", "Signs the CSRF tokens on the pages' forms. Empty makes one and keeps it in the state folder "
+                          "(mode 0600), so every worker and restart shares it.", env="PLANETGEN_SECRET_KEY", restart=True,
                           secret=True, editable=False, group="security",
                           label="Form signing key",
                           summary="Signs the security tokens on forms; empty makes a random one at "

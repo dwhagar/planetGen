@@ -280,6 +280,9 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
     || log_warning "the log setup didn't finish (see above); the update carries on."
 
+# Set the secret key if none is (never printed); as Apache's user so the web app can read it.
+set_secret_key
+
 echo
 UPDATE_STEP="step 9/9, checking that the web app imports"
 log_stage 9 9 "Checking that the web app imports"
