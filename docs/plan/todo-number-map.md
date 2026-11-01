@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.137 |
 | SEC | SEC.37 |
-| TEST | TEST.547 |
+| TEST | TEST.548 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.101 |
@@ -3772,6 +3772,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.544 | The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug) | none | done, PR #4677 |
 | TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) | none | open |
 | TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) | none | open |
+| TEST.547 | Dry-class carbon bracket test is red on main after GEN.1005 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
