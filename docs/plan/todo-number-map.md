@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.258 |
 | MAP | MAP.364 |
 | NAV | NAV.65 |
-| GEN | GEN.1236 |
+| GEN | GEN.1237 |
 | PERF | PERF.231 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.553 |
+| TEST | TEST.554 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.102 |
@@ -2008,6 +2008,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law | none | open |
 | GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
 | GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
+| GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3785,6 +3786,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.550 | Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug) | none | open |
 | TEST.551 | test_burn_down_register::BR20 is red on main: row 6.95:BR20 has a line but is no longer L3 or L4 (bug) | none | done, PR #4710 |
 | TEST.552 | test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug) | none | done, PR #4726 |
+| TEST.553 | test_every_author_year_citation_has_an_outcome in test_references.py is red on main (19 keys, bug) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
