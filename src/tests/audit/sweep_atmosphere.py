@@ -151,7 +151,8 @@ def _ozone_bounds(entry):
         low, high = ozone.abiotic_column_range_du(teff)
         return low, high
     median = ozone.median_column_du(teff, pal)
-    return median * ozone.STRUCTURE_RANGE[0], median * ozone.STRUCTURE_RANGE[1]
+    spread = ozone.structure_range(pal)      # the models' spread at this oxygen level (STRUCTURE_KNOTS)
+    return median * spread[0], median * spread[1]
 
 
 def _check_ozone(entry):
