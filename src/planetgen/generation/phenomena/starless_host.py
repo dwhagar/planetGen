@@ -12,6 +12,7 @@ distance takes it out of every one of them.
 """
 
 from planetgen.generation.planet import Planet
+from planetgen.physics import clearance_ledger, constants, rogue_moons
 
 FAR_AU = 1.0e5
 """float: Where the body sits from the donor's mass, AU. At this distance the donor's tide on the body, and its light, are below anything the chain
@@ -61,3 +62,29 @@ def build_ejected_planet(system_config, donor, age_gy, mass_kg, formation_au=Non
     """
     host = StarlessHost(donor, age_gy)
     return Planet(system_config, host, host.habitable_zone, FAR_AU, mass=mass_kg, moon_count=moon_count, formation_distance_au=formation_au)
+
+
+def ejected_moon_limit_km(loss, planet_mass_kg, donor_mass_kg, u, eccentricity=0.0):
+    """
+    The widest orbit a moon of a body thrown out as `loss` can have and still be with it, km (RP4): the closest approach of the ejection is drawn from the
+    published distribution (`rogue_moons.closest_approach_hill`, `u` uniform from 0 to 1) in the mutual Hill radius of the body and its scatterer
+    (`Loss.distance_au`, `perturber_au`, `perturber_mass_kg`, round the donor's mass), and the limit is `rogue_moons.moon_limit_km` of it with the
+    body's own Hill radius at the loss (`Loss.hill_radius_au`).
+
+    Args:
+        loss (planet_architecture.Loss): A 'thrown' loss (the others have no scatterer).
+        planet_mass_kg (float): One body of the loss (`Loss.mass_kg` is the total of its `count`).
+        donor_mass_kg (float): The star it was thrown from.
+        u (float): A uniform random number.
+        eccentricity (float): The planet's orbital eccentricity before the ejection, for the moon window's Hill fraction.
+
+    Raises:
+        ValueError: The loss has no scatterer.
+    """
+    if loss.perturber_au is None or loss.perturber_mass_kg is None or loss.distance_au is None:
+        raise ValueError(f"a {loss.kind!r} loss has no scatterer, so no moon limit")
+    mutual_m = rogue_moons.mutual_hill_radius_m(loss.distance_au * constants.AU_TO_M, loss.perturber_au * constants.AU_TO_M,
+                                                planet_mass_kg, loss.perturber_mass_kg, donor_mass_kg)
+    r_min_km = rogue_moons.closest_approach_hill(u) * mutual_m / 1000.0
+    fraction = clearance_ledger.moon_hill_fraction(eccentricity)[0]
+    return rogue_moons.moon_limit_km(loss.hill_radius_au * constants.AU_TO_KM, fraction, r_min_km, planet_mass_kg, loss.perturber_mass_kg)
