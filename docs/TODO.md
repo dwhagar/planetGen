@@ -14946,33 +14946,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after.
   Prerequisites: none.
 
-- [ ] **PERF.224 Cheaper bright-table bound: fewer compositions per bin, so the star tables build about 1.7 times faster**
-  From Star 2 (relayed 5:05 PM EDT 2026-10-31 as the lane reported):
-  since GEN.1024 (train 7) a table's per-cell bound reads five
-  compositions of the bin (was three), each on both branches' tracks
-  (thin and alpha-rich) wherever the age window reaches the thick disc,
-  so about ten distinct tracks per cell against three. One table build
-  (old population, solar bin) takes 7.0 s against 2.3 s before at 100
-  solar luminosities, and 3.3 s against 0.9 s at 2500;
-  test_backfilled_cells_get_band_stars_in_their_own_cell takes about 12
-  minutes. The cost is spread over MIST lookups
-  (main_sequence_bright_from_gy 54 percent), nothing hot to cache, and
-  memoising was tried for PERF.218 (3 to 28 percent). Do: bound each bin
-  with three compositions per branch, or the minimum and maximum of the
-  bin, about 1.7 times faster; this changes which draws are rejected, so
-  it is a lock item (epoch, golden, --affects scatter,fill,population),
-  and the bound must stay certified (never below the true maximum).
-  Done: the table build time is back near its old value, the
-  certified-bound test passes, and the census is unchanged within noise.
-  Owner: Star 2, train 9.
-  Star 2 finding (as the lane reported) (2026-11-01 12:12 AM EDT): Three
-  compositions per bin is NOT a certified bound: at 6,000 solar
-  luminosities the old population has cells where the three-point bound
-  is 0 while the true measure is positive (the 0.0 and 0.25 bins and
-  [Fe/H] -1.5); five are needed, so PERF.224 as written cannot be done.
-  Star 2 will propose another route; the item stays open until then.
-  Prerequisites: none. Related: GEN.1024, PERF.218.
-
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
   Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
   generation run on hal that began about 2:34 PM EDT failed after 11104
@@ -15127,6 +15100,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
+  Prerequisites: none.
+
+- [ ] **PERF.230 Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical**
+  From Star 2's PERF.224 work (as the lane reported, 12:14 AM EDT
+  2026-11-01). The bright-table build is dominated by the isochrone
+  interpolation (edge_point and end_state, about 60 percent of a build);
+  the caches are already 524,288 entries and building by bin gave no
+  change (47 s for 6 populations either way). Do: make edge_point and
+  end_state cheaper (vectorise or precompute per track) with output
+  byte-identical, checked by the golden and the star table tests.
+  Expected gain uncertain, perhaps 1.3 times, and since PERF.226 part 3
+  only star-stage workers build these tables. Done: build time measured
+  before and after, output identical. Lock-free. Low priority; Owner:
+  none yet.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -16899,6 +16886,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   derivation changes. Owner: none yet.
   Owner (2026-11-01 12:12 AM EDT): Core 2, after UX.255 (assigned by
   TODO).
+  Owner change (2026-11-01 12:15 AM EDT): Owner is now Star 2 (was Core
+  2); TODO reassigned it at 12:15 AM EDT.
   Prerequisites: none.
 
 ## SEC: Security
@@ -19395,24 +19384,6 @@ clears each one.
   guard fails on a line whose item is closed). Rule for every lane: a
   public function that only tests call needs a register line in the same
   change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real.
-  test_sweep_tables.py::test_every_class_of_every_table_reaches_a_row_and_every_gated_sum_is_one
-  raises 'temperature must be positive' for
-  small-body-taxa/asteroid-field at temperature_k 0.0, and
-  test_every_row_is_reached_for_every_class_it_names_or_has_a_note finds
-  small-body-taxa/taxon-E/asteroid-field and /belt never reached (likely
-  the same cause). Do: find which taxon function takes the temperature
-  (planetgen/physics/taxon_kernel.py raises it), make the sweep pass a
-  physical temperature or the table decline a 0 K asteroid field with a
-  plain rule, and add a sweep note if the row is unreachable on purpose.
-  Done: both tests pass. Lock-free, generation output unchanged. Version
-  8.1. Prerequisites: none. Related: TEST.261. Owner: unassigned (a
-  waiting lane may take it).
   Prerequisites: none.
 
 - [ ] **TEST.546 The object timing test finds a unit saved with the kind star where it expects system (bug)**

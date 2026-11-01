@@ -24,7 +24,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 |---|---|---|---|
 | GEN.40 | Weed out sectors by star density before the bright-star backfill |  | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands |  | Research: ledger size at full galaxy. |
-| PERF.224 | Cheaper bright-table bound: fewer compositions per bin, so the star tables build about 1.7 times faster |  |  |
 | PERF.229 | Every supergiant and bright-giant star type times out at 900 s in the fuzz test (bug) |  |  |
 | PERF.228 | The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug) |  |  |
 | PERF.227 | Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug) |  | Boss bug, scatter start kills the daemon. |
@@ -690,7 +689,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.550 | Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug) |  |  |
 | TEST.548 | Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug) |  |  |
 | TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) |  |  |
-| TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) |  |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
 | GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
