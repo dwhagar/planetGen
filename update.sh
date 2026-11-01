@@ -64,7 +64,8 @@
 # At the end it reloads what serves the site when that is running (OPS.8, OPS.29): Apache
 # (after its own configtest; restarted only when step 6 just installed mod_wsgi), the
 # planetgen-gunicorn unit on Linux, or the launchd gunicorn daemon on macOS, then checks
-# that /api/health answers. A failed step ends the update non-zero and prints the command
+# that /api/health answers, at config.json's api_base_url and nowhere else (OPS.86: no address is guessed; with none configured the
+# update stops before it changes the database). A failed step ends the update non-zero and prints the command
 # to run by hand; a reload that worked but whose /api/health probe never got a good answer only warns and the site opens; nothing running prints the command and ends zero. A reload aborts a
 # mod_wsgi request still running after about 4 seconds; touching src/html/wsgi.py does not.
 #
@@ -230,6 +231,10 @@ log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
 ensure_update_guard required
+# OPS.86: the address the update asks whether the site answers is config.json's api_base_url; missing, it stops here
+# (before the database is touched) and says so, instead of falling back to a loopback address.
+resolve_api_health || { log_error "set api_base_url in config.json, then run the update again."; exit 1; }
+log_info "The API address (api_base_url in config.json) is ${API_HEALTH_URL%/health}; the update asks only that address."
 
 echo
 UPDATE_STEP="step 3/9, checking the NLTK words corpus and the downloaded data"

@@ -38,8 +38,8 @@ from planetgen.util.settings import get_settings
 from planetgen.web.lib import pagecache, slowpages
 
 API_BASE_URL = get_settings().api_base_url
-"""str: Base URL of the planetGen API's `/api` mount point. Defaults to
-the same host (see `examples/apache/planetgen.conf.example`) -- only used
+"""str: Base URL of the planetGen API's `/api` mount point, empty when none is configured (there is no default, OPS.86:
+the HTTP transport then refuses instead of trying 127.0.0.1). Only used
 by the HTTP transport, not by the Flask pages' in-process one --
 override via the `PLANETGEN_API_BASE_URL` Apache `SetEnv` (or shell env,
 for local testing), or `config.json`'s `api_base_url` (see
@@ -171,7 +171,11 @@ def _cache_db(params):
 
 
 def _http_transport(method, target, data, headers, timeout):
-    """The default transport: a real HTTP request to `API_BASE_URL`."""
+    """The default transport: a real HTTP request to `API_BASE_URL` (OPS.86: with none configured it raises `ApiError`,
+    never reaching for a loopback address)."""
+    if not API_BASE_URL:
+        raise ApiError("No API address is configured: set api_base_url in config.json (or PLANETGEN_API_BASE_URL), "
+                       "for example https://example.org/api. Nothing is tried until it is set.")
     request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers={"User-Agent": user_agent(), **headers},
                                      method=method)
     try:
