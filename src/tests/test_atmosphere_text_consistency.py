@@ -43,6 +43,7 @@ def _table(body):
 
 def _phrase_gases(body):
     names = [atmosphere_physics.species_name(gas) for gas in atmosphere_physics.SPECIES] + ["helium", "sodium", "ammonia"]
+    names += [atmosphere_physics.gas_name(formula) for formula in ("HCl", "HF", "N2O", "PH3", "NO2", "CH3Cl")]       # the trace gases of GEN.524
     text, found = body.atmosphere, set()
     for name in sorted(names, key=len, reverse=True):  # "hydrogen sulfide" before "hydrogen"
         if name in text:

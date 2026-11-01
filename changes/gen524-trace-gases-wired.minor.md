@@ -1,0 +1,6 @@
+**Headline:** The air of a living rocky world can now hold nitrous oxide, phosphine, nitrogen dioxide and methyl chloride, drawn after its life stage.
+
+### Added
+- **Trace gases of table m drawn into the finished air (GEN.524 part 1).** `physics.mixture_trace.draw_trace_gases` was called by nothing. The new `physics.trace_air` builds the quantities its rows read from the finished body (the oxygen in present atmospheric levels from the stored partial pressure, whether carbon dioxide is the largest gas, whether hydrogen is below the share the air's text calls a trace, the life stage, the host type and the layer temperature), draws the rows on a stream of the body's own and gives the air the gases drawn present, at mole fractions in the design brackets of `mixture_trace.ABUNDANCES`. The other gases keep their ratios and the total pressure stays. Rows m3, m4 and m11 remain design flags (GEN.525): off unless the life stage allows them; lightning and stellar energetic particles have no model yet and stay false. HCl and HF (rows m5 and m6) are not drawn into any air until part 2 replaces their brackets with a halogen budget.
+- Generator epoch bump (numbered at merge): the stored gases of rocky bodies with life gain trace gases; no other stored value changes.
+generation-output: changed
