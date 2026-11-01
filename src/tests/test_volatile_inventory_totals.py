@@ -74,7 +74,11 @@ def test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it()
     low, high, shape = md.INVENTORY["co2_dry_wt_percent"]
     assert shape == "log"
     middle_ppm_c = math.sqrt(low * high) / 44.01 * C_G_MOL * 1e4
-    assert middle_ppm_c == pytest.approx(BSE_C_PPM, rel=0.2)
+    # GEN.1005 replaced the bracket tuned to the bulk silicate Earth (log middle 115 ppm C) with one derived from Blanchard et al. 2022 (80 to 294 ppm C of
+    # the body). The test followed the tuning: it asked the middle to sit within 20 percent of the 99 ppm of this table. The derived bracket's middle is the
+    # model's own answer for the mantle's carbon, which that paper gives as 140 +/- 40 ppm; the Earth's 99 ppm lies inside the bracket (next line) and
+    # inside the paper's spread of 100 to 180, which is what the derivation can be held to without tuning it back to one planet.
+    assert 100.0 <= middle_ppm_c <= 180.0, middle_ppm_c
     assert low / 44.01 * C_G_MOL * 1e4 < BSE_C_PPM < high / 44.01 * C_G_MOL * 1e4
     assert 0.6 / 44.01 * C_G_MOL * 1e4 > 10.0 * BSE_C_PPM, "the delivered 0.6 weight percent of Ortenzi's table is what the bracket replaces"
 
