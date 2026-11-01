@@ -1,0 +1,5 @@
+**Headline:** The data check in front of every Generate job no longer fails because another check holds the check place, and a refusal now names the run that holds it.
+
+### Fixed
+- **The data check failed with "run ... is running".** The check only reads files, so when the check place is taken it now logs a warning naming the holder and checks the data without a run record, instead of stopping the whole job.
+- **A refused run now says who blocks it.** The message gives the holder's run id, title, kind, start time (UTC) and the process that follows it, instead of the id alone.

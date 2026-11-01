@@ -255,7 +255,7 @@ def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENE
                     holder = runrecord.active_run(conn, kind) or holder
                     last = busy
             else:
-                last = runrecord.Busy(f"run {holder} is running")
+                last = runrecord.Busy(runrecord.busy_message(conn, holder))
             if clock() >= deadline:
                 raise runrecord.Busy(f"{last}; waited {limit_seconds / 60:g} minutes for it")
             if on_wait is not None and (holder, position) != shown:

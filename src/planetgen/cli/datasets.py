@@ -152,7 +152,11 @@ def run_status(keys, disregard_missing_data):
     try:
         wrapper.run("Data check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
                     kind=runrecord.CHECK, argv=sys.argv[1:])
-    except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+    except runrecord.Busy as exc:       # another check holds the check place: this one reads files only, so it just answers
+        log.warning(f"another data or database check is running ({exc}); checking the data here without a run record")
+        lines, absent = status_lines(_chosen(keys), bool(disregard_missing_data))
+        found.append({"lines": lines, "absent": absent})
+    except (redisqueue.Unavailable, units.RunStopped) as exc:
         log.error(f"error: the data check could not run: {exc}")
         return 1
     finally:
