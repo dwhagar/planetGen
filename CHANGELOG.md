@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3075] - 2026-11-01
+
+**Headline:** two star tests now follow the star model's own white dwarf mass range and parameter list
+
+### Changed
+
+The hot white dwarf central star test held the mass to 1.3 solar masses, where the model's white dwarf range runs to 1.35 (the initial-final relation of Cummings et al. 2018, clipped to it), and the star-parameters test did not list the nuclear arrival age the star parameters now carry. Both tests now read the model. The population-model and forced subdwarf tests failed only where the helium and hydrogen equation-of-state dataset (`hhe_eos`) was not downloaded. No generated output changes.
+
 ## [8.0.3074] - 2026-11-01
 
 **Headline:** The dry-carbon bracket test is held to the source's own mantle carbon instead of the old tuning to one planet.
