@@ -16837,6 +16837,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   state found, and a New galaxy job that starts after the stale holder
   is cleared. Lock-free, generation output unchanged. Owner: the thread
   that built #4675 (session on the data check). Version 8.1.
+  Partial fix merged (#4680) (2026-10-31 9:40 PM EDT): wrapper.run now
+  passes nested_guard=True to runline.start_when_free, so a run started
+  inside a run that the same process follows fails at once with Busy
+  naming the holder, and logs a stack. The root caller that nests runs
+  is not found yet: keep this item open until Boss's next job log shows
+  the stack. The new test in test_run_line.py was not run (no gate on
+  that lane); it goes in the next changed-files gate.
   Prerequisites: none. Related: ADM.95, PERF.227.
   Prerequisites: none.
 
