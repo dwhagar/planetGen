@@ -58,7 +58,7 @@ RANGES = {
     "xuv_index": (0.01, 100.0), "snow_ratio": (0.01, 100.0), "fe_h": (-2.0, 0.8), "redox_diw": (-4.0, 4.0), "c_over_o": (0.05, 3.0),
     "diameter_m": (1.0, 3e6), "x": (0.2, 6.0), "prevalence": (0.01, 1.0), "perihelion_au": (0.01, 1000.0), "o2_pal": (0.0, 2.0),
     "roche_ratio": (0.2, 20.0), "runaway_ratio": (0.01, 30.0), "sulfur_flux_earth": (0.0, 100.0), "u_star": (0.0, 5.0),
-    "u_star_threshold": (0.1, 2.0),
+    "u_star_threshold": (0.1, 2.0), "temperature_k": (10.0, 2500.0),
 }
 """dict: `{quantity: (low, high)}` for the numbers a table reads, drawn log-uniformly (uniformly where the low end is 0 or below)."""
 

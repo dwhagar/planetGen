@@ -155,7 +155,8 @@ def test_star_params_shape_and_units():
     state = stellar_evolution.evolve_star(1.0, 4.6)
     params = stellar_evolution.star_params(1.0, 4.6, state)
     assert set(params) == {"type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
-                           "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "metallicity_fe_h"}
+                           "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "metallicity_fe_h",
+                           "nuclear_arrival_age_gy"}
     assert params["temperature_k"] % 100 == 0
     assert params["mass_kg"] == pytest.approx(constants.SOLAR_MASS_TO_KG, rel=1e-3)      # MIST: the Sun has lost 1e-4 by now
     assert params["type"].endswith("Main Sequence Star")
@@ -468,13 +469,15 @@ def test_map_luminosity_is_within_a_factor_of_the_star_generators_main_sequence(
 
 @pytest.mark.parametrize("star_type", list(tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES))
 def test_hot_white_dwarf_central_stars_are_the_models_hot_white_dwarfs(star_type):
-    """A central star is a white dwarf the star model makes at that temperature (GEN.941): a remnant of 0.5 to 1.3 Msun
-    whose luminosity and radius follow from its cooling and mass, as hot as its letter says."""
+    """A central star is a white dwarf the star model makes at that temperature (GEN.941): a remnant of 0.5 to 1.35 Msun
+    whose luminosity and radius follow from its cooling and mass, as hot as its letter says. The mass is held to the model's white
+    dwarf range (`tuning.WD_MASS_RANGE_SOL`, 0.5 to 1.35 Msun: the initial-final relation of Cummings et al. 2018 clipped to it),
+    which the test held to 1.3 before the star model's remnants reached the top of it."""
     for _ in range(20):
         star = make_star(star_type)
         mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
         assert star.yerkes_class == "VII"
-        assert 0.5 <= mass_sol <= 1.3
+        assert tuning.WD_MASS_RANGE_SOL[0] <= mass_sol <= tuning.WD_MASS_RANGE_SOL[1] * (1 + 1e-9)
         assert star.temperature >= constants.COOL_WHITE_DWARF_BELOW_K
         assert star.lifespan == float("inf")
 

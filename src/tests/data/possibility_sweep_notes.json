@@ -40,6 +40,8 @@
   "atmosphere-e/e1/I": "GEN.903 (low priority, owner Aux 1, rides the class cut-over): group b has only row b4 for class I, so p('b4') is 1 and (1 - p('b4')) is 0: the table never gives an I planet bare rock or the retained H/He envelope. The generator draws an I planet's air from the giant mixture (H2 and He), so these rows are not on its path; whether the gate or the weight changes is for the table's owner",
   "atmosphere-e/e2/I": "GEN.903 (low priority, owner Aux 1, rides the class cut-over): same as e1/I: the retained-envelope row, and the envelope-metal rows e5 and e6 that follow it, are never reached for class I",
   "atmosphere-e/e3/T": "group b has no row for class T, so p('b4') is 0: the table never makes a gas giant a water world; probably intended",
-  "atmosphere-e/e4/T": "same as e3/T: no hycean gas giant"
+  "atmosphere-e/e4/T": "same as e3/T: no hycean gas giant",
+  "small-body-taxa/taxon-E/asteroid-field": "the taxon E (igneous, reduced) has no source of its own in the taxon kernel (taxon_kernel.py Limits: its weight is 0 whatever the temperature and aluminium-26), so no belt or field reaches it; it is unreachable on purpose until a source for the enstatite share is found",
+  "small-body-taxa/taxon-E/belt": "same as taxon-E/asteroid-field: the kernel gives the taxon E no weight"
  }
 }

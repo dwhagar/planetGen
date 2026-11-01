@@ -2,6 +2,394 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3085] - 2026-11-01
+
+**Headline:** Two object timing tests follow the Seconds per object table of the Stats page again.
+
+### Changed
+- **Test fix, no code change (TEST.546).** PERF.197 replaced `run_totals` and `type_means` with `kind_summaries`, which lists the kinds with the one that took the most time first. The unit test expected the system first, but a unit splits its time by each object's own time, so the stars (built inside the systems and alone) take more than the systems' own time, and the table puts the stars first. The test now expects that order and that the totals fall down the list. The galaxy run test called the removed `run_totals`; it now adds up the saved rows of the run. The Stats table and the saved rows are unchanged.
+generation-output: unchanged
+
+## [8.0.3084] - 2026-11-01
+
+**Headline:** The equilibrium temperature can now take a body's own heat, which is what sets the temperature of a planet with no star: the next piece of building a rogue through the planet code.
+
+### Changed
+- **The body's own heat in the equilibrium temperature (GEN.1111, TEST.498).** `climate_draws.equilibrium_temperature_k` takes an optional `internal_flux_w_m2` and adds it to the absorbed starlight as a flux (`T^4 = (1 - A) F / 4 sigma + F_int / sigma`), the way the giants' effective temperature already adds theirs. With none it is the old value exactly, so no body changes; under a star a rocky planet's heat moves it by less than a part in a thousand. A body with no light is then its heat's temperature, as the rogue chain has it, instead of the 2.725 K floor the bound chain returned for a body far from a star. Nothing passes it yet; the starless planet's temperature reads it in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3083] - 2026-11-01
+
+**Headline:** A rogue planet can now be built through the planet code against a host with no light: the first part of making a rogue the same planet as a bound one.
+
+### Changed
+- **The starless host (GEN.1111, TEST.498).** `generation/phenomena/starless_host.py` holds `StarlessHost`, the donor star a body was ejected from with no luminosity and the rogue's own age, and `build_ejected_planet`, which makes a `Planet` of a given mass against it (the donor's mass and snow line, the formation distance of the loss, where `FAR_AU` puts it). Nothing reads it yet; the rogue rows from the architecture's ejections will, after the table rule below. Two strict expected failures in `test_starless_host.py` record why a whole body cannot be built yet: the atmosphere table's shoreline row (d1) is a logistic in the log of the insolation and of the host's luminosity, which are zero for a body with no light, so the weight is not a number. The rule for the table rows that read the star (a body with no host keeps its air as the ejection left it) is the next part and changes the table, so it goes in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3082] - 2026-11-01
+
+**Headline:** The words a body sheet shows for the roundness rule no longer carry an item code.
+
+### Changed
+- **The roundness rule text on the body sheet (GEN.1160).** The plain-words line for a body under a roundness ratio of 1 ended with the item code; the code is gone, as no text the code shows may carry one.
+
+generation-output: unchanged
+
+TODO items resolved: none.
+
+## [8.0.3081] - 2026-11-01
+
+**Headline:** The table sweep now tests belts and asteroid fields at a physical disk temperature, and the two taxon E rows that no belt reaches are marked unreachable on purpose.
+
+### Changed
+- **The table sweep draws a disk temperature (TEST.545).** The sweep had no range for `temperature_k`, so the taxa table of a belt or asteroid field was tried at 0 K and raised "the temperature must be positive". It draws from 10 to 2,500 K now. The taxon E rows are never reached because the taxon kernel gives that taxon no weight at any temperature (its source is not found yet); the sweep notes say so.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.545.
+
+## [8.0.3080] - 2026-11-01
+
+**Headline:** A rogue planet can now be built through the planet code against a host with no light: the first part of making a rogue the same planet as a bound one.
+
+### Changed
+- **The starless host (GEN.1111, TEST.498).** `generation/phenomena/starless_host.py` holds `StarlessHost`, the donor star a body was ejected from with no luminosity and the rogue's own age, and `build_ejected_planet`, which makes a `Planet` of a given mass against it (the donor's mass and snow line, the formation distance of the loss, where `FAR_AU` puts it). Nothing reads it yet; the rogue rows from the architecture's ejections will, after the table rule below. Two strict expected failures in `test_starless_host.py` record why a whole body cannot be built yet: the atmosphere table's shoreline row (d1) is a logistic in the log of the insolation and of the host's luminosity, which are zero for a body with no light, so the weight is not a number. The rule for the table rows that read the star (a body with no host keeps its air as the ejection left it) is the next part and changes the table, so it goes in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3079] - 2026-11-01
+
+**Headline:** the belt-source stand-in table is whole again, so its fourteen lost rows are counted and checked
+
+### Changed
+
+A merge had left the belt-source table (6.95 of the gap-filling plan) with a duplicate of an old BR8 row, an old BR9 row that the roundness work retired, and a blank line between them and BR10 to BR23. The registry reader stopped at the blank line, so those fourteen rows were missing from the stand-in values list and one test (the burn-down register, row BR20 at L3) saw its line as stale. The blank line and the two old rows are gone, the list is rebuilt (1,044 rows), and the two body-status rows that now show (BR22 and BR23) have wiring lines under GEN.1092. No generated output changes.
+
+## [8.0.3078] - 2026-11-01
+
+**Headline:** The Shoelace primary-button hover and the dark theme's subtle background now meet the theme checks carried over from PR #800.
+
+### Fixed
+- **UX.82: the primary button's hover fill was 4.23:1 against its label in the light theme, and `--bg-subtle` was a colour with alpha in the dark theme.** The hover fill (`--sl-color-primary-500`) now mixes the accent with the text colour instead of the panel, which clears 4.5:1 in both themes; the placeholder (4.41 before #800) already measures above 6:1 in both. `--bg-subtle` in the dark blocks is the opaque blend of the old colour over the page, so what it sits on no longer changes its shade. The map viewports' token block also gained the two references tokens it lacked, which fixes `test_map_black.py`, red on main since the references colours were added.
+- **New checks (`test_theme_checks.py`):** every icon file draws in `currentColor`, both contrast figures hold, and `--bg-subtle` has no alpha. Nothing generated changes.
+
+## [8.0.3077] - 2026-11-01
+
+**Headline:** the star population test reads the bright share from the function that now carries it
+
+### Changed
+
+The test of a population's counts at its own composition passed six arguments to the sampling table, which no longer carries the share of bright stars (it moved to `_bright_fraction`, which needs no bounds). The test asks `_bright_fraction` for the share at the Sun's composition and checks the same thing as before. No generated output changes.
+
+## [8.0.3076] - 2026-11-01
+
+**Headline:** The rogue-planet parity test now draws a rogue and a bound planet of the same mass and compares them: same kind of body and size, and a strict expected failure for the one thing that differs today, the surface temperature far from light.
+
+### Changed
+- **A matched draw for the rogue parity contract (TEST.498).** `tests/test_rogue_planet_parity.py` builds a rogue planet of each mass bin and a bound planet of the same mass 1e5 AU from a star (until a starless host exists, GEN.1111) and checks that both are one kind of body, with a rocky radius inside the range its density gives. A strict expected failure records the difference found: far from light the bound chain returns the 2.725 K ambient floor, the rogue chain the temperature its own heat gives (270 K for a 5 Earth-mass body), because the bound chain's equilibrium temperature carries no internal heat. It comes off when the starless host is built through the planet code.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.498 stays open until GEN.1111).
+
+## [8.0.3075] - 2026-11-01
+
+**Headline:** two star tests now follow the star model's own white dwarf mass range and parameter list
+
+### Changed
+
+The hot white dwarf central star test held the mass to 1.3 solar masses, where the model's white dwarf range runs to 1.35 (the initial-final relation of Cummings et al. 2018, clipped to it), and the star-parameters test did not list the nuclear arrival age the star parameters now carry. Both tests now read the model. The population-model and forced subdwarf tests failed only where the helium and hydrogen equation-of-state dataset (`hhe_eos`) was not downloaded. No generated output changes.
+
+## [8.0.3074] - 2026-11-01
+
+**Headline:** The dry-carbon bracket test is held to the source's own mantle carbon instead of the old tuning to one planet.
+
+### Fixed
+- **TEST.547: the dry class's carbon test asked the log middle of the bracket to sit within 20 percent of the bulk silicate Earth's 99 ppm.** That was the bound of the bracket GEN.813 had tuned; GEN.1005 replaced it with one derived from Blanchard et al. 2022 (80 to 294 ppm C, middle 153), so the test failed on main. The test now holds the middle to the paper's own mantle carbon (140 plus or minus 40 ppm, so 100 to 180) and still requires the Earth's 99 ppm to lie inside the bracket. Not a generator defect; nothing generated changes.
+
+## [8.0.3073] - 2026-11-01
+
+**Headline:** Tiny cold moons no longer get a liquid water ocean at 25 K.
+
+### Changed
+
+- **Pressure-melted ice shell (GEN.1222).** The weight of an ice lid lowers the melting point at its base, but only down to the ice III triple point (251.2 K). With no floor, the thick lid of a cold, low-heat body pulled its own base under the surface temperature, the shell came out zero and the body was given a liquid surface ocean at 20 to 33 K. Such a body now has an ice shell.
+- **Warm water under a crushing air (GEN.1222).** A warm world whose air presses so hard that all its water is high-pressure ice was called a surface ocean with no ocean depth, chemistry or pH. Its hydrosphere is now ice.
+
+## [8.0.3072] - 2026-11-01
+
+**Headline:** A body now stores the strength of its liquid sulfuric acid and the ammonia of its ocean.
+
+### Changed
+
+- **Acid and ammonia of the surface liquids (GEN.1215).** `planets` and `moons` gain `surface_liquid_acid_wt` and `surface_liquid_acid_layer` (the strength in percent of mass and the place, pool or cloud, of the liquid sulfuric acid the air makes) and `surface_liquid_ammonia_wt` (the ammonia of a liquid water ocean, percent of the liquid's mass), schema v197. They are shown on the sheet, and the life classes 5, 8 and 9 read the stored values; the classes come out as before.
+
+## [8.0.3071] - 2026-11-01
+
+**Headline:** A ring lasts as long as its mass and its planet allow: light rings are worn away by meteoroids in thousands to millions of years, so far fewer planets keep one.
+
+### Changed
+- **GEN.1171.** `ring_origin.spread` no longer drops every ring by 1/e per half billion years. A ring now loses mass by viscous spreading (quicker the denser the ring, scaled from Saturn's rings, 2 Gyr e-fold at their mass) and by meteoroid erosion (Saturn's ring flux scaled by distance from the star and the planet's gravitational focusing, over the ring annulus from 1.24 radii to the Roche limit), `dM/dt = -k M^2 - b`, solved in closed form. A 1e13 kg ring of a fallen moon lasts about 1e5 years, a Saturn-mass ring most of the age of the Solar System. In a 60-system sweep rocky planets with a ring fall from 63 of 416 to 10 and ringed giants from 19 of 53 to 5; the median ring mass goes from 1.5e10 kg to 1e18. Stand-ins RO2 (changed) and RO9 to RO13 (new) in the registry; the old `RING_LIFETIME_YR` is gone. Dust rings fed by small moons (Jupiter's) are not modelled, a follow-up.
+
+generation-output: changed
+
+TODO items advanced: GEN.1171.
+
+## [8.0.3070] - 2026-11-01
+
+**Headline:** A star counts as pre-main-sequence until its radius has settled, as the BHAC15 tracks have it, not until MIST's later nuclear arrival.
+
+### Changed
+- **The pre-main-sequence clock now follows the radius (GEN.1174, Boss: both times, class by radius).** The age at which a star reaches the main sequence was MIST's nuclear arrival, 3 to 4 times longer than the age at which the radius settles for stars of 0.1 to 0.3 solar masses (0.2 solar masses: 727 Myr against 188). A star is now pre-main-sequence, and its contraction track runs, until the radius has settled to within 5 percent in the BHAC15 tracks (402 Myr at 0.1 solar masses, 130 at 0.3, 50 at 0.8; the model's own time scaled to the 0.8 value above), `phase_end_age_gy` of such a star is that age, and MIST's arrival is kept beside it as `pre_main_sequence.nuclear_arrival_yr` (and `nuclear_arrival_gy` of the state). The step of 718 to 1358 Myr between 0.105 and 0.11 solar masses (GEN.1173) goes with MIST's clock. The share of living stars that are pre-main-sequence falls to about a third (5.8 to 1.9 percent in the generator's own sampler). Registry row LM6.
+
+generation-output: changed
+
+## [8.0.3069] - 2026-11-01
+
+**Headline:** A star still contracting toward the main sequence now keeps both of its times, when its radius settles and when hydrogen burning arrives.
+
+### Changed
+- **The nuclear arrival age is stored (GEN.1174, schema v198).** `stars` and `bright_stars` gain `nuclear_arrival_age_gy`, the age at which MIST's tracks put a pre-main-sequence star on the main sequence. The star counts as pre-main-sequence only until its radius has settled (BHAC15), the earlier age `phase_end_age_gy` keeps, so the page of such a star can say both. The scatter writes the column, the fill that builds the system keeps it, the property sheet shows it ("Age it reaches hydrogen burning") only for a star that has one, and the uncharted-star API gives it. NULL for every star that is not pre-main-sequence and for rows made before v195; nothing is backfilled.
+
+generation-output: changed
+
+## [8.0.3068] - 2026-11-01
+
+**Headline:** A white dwarf made by a close companion is now a helium core of 0.18 to 0.45 solar masses, the one its giant had when it filled its lobe, instead of always 0.5 solar masses or more.
+
+### Changed
+- **The helium-core white dwarf of a close binary (GEN.996).** A star under 2.3 solar masses that fills its Roche lobe on the red giant branch leaves the helium core it then had, 0.18 to 0.45 solar masses, and not the 0.55 or more the single-star relation gives. `physics/helium_core_white_dwarf.py` holds Rappaport et al. 1995's core mass and radius relation (read second hand), the helium flash at a core of 0.45 solar masses and the lobe of Eggleton 1983. No rate is set; the share is what the generator's own period and mass-ratio laws leave in the window.
+- **A drawn white dwarf can be one.** `generation/helium_core_draw.py`, called by `Star` after the star is drawn, draws the pair a white dwarf's progenitor would have had (the `star-count` chance of a companion, the tree's mass-ratio law, the tree's period law) and, when the pair's axis is where the lobe was reached, makes the white dwarf that core. About 7 percent of the white dwarfs of a 3,000-draw census come out so, and their mean mass is 0.689 solar masses (0.705 before; the accepted range is 0.55 to 0.70, the 20 pc sample has 7.4 percent under 0.45 solar masses). The tree then gives such a white dwarf its companion, a star of the mass-ratio law on the circle at which its giant filled its lobe, labelled post-common-envelope, with the giant's radius at the overflow as the white dwarf's largest.
+- **A companion white dwarf can be one.** A white dwarf the tree draws as a companion, in a post-common-envelope pair, takes the core the pair's axis says (`multistar._Builder.helium_core`): the pair is lighter, its period longer, the node masses above it follow, and the orbit is circular.
+- **The stored member needs no flag.** A white dwarf lighter than 0.45 solar masses can only be a helium core (the single-star relation gives none under 0.5), so the rebuild of a stored tree makes it with the stored mass (`stored_trees.helium_core_mass_sol`, `member_record.make(white_dwarf_mass_sol=)`, `evolve_star(white_dwarf_mass_sol=)`). No migration.
+- The white dwarf cools from the end of its progenitor's whole life, as every white dwarf does, though its envelope left earlier (stand-in HC5). Stand-ins HC1 to HC7, section 6.163. The white dwarf mean-mass audit (`tests/audit/mass_curve.py`) draws the star as `Star` does.
+
+generation-output: changed
+
+TODO items advanced: GEN.996 (wired).
+
+## [8.0.3067] - 2026-11-01
+
+**Headline:** The disc's gas now thins out the way star formation does at low density, so a Milky Way mass disc keeps about twice as much gas, depletes it in 3.7 Gy instead of 2.2 and has 7.2 solar masses per pc2 at the Sun's radius instead of 4.3.
+
+### Changed
+- **The disc's gas law has a low-density factor (GEN.999).** The rings of `disk_history` spent gas by the plain Kennicutt-Schmidt law, so a thin outer ring used its gas as fast as a dense one. They now carry the factor the present-day star formation profile already used (GEN.450: `(gas / (gas + 9))^(2.1 - 1.4)`, Bigiel et al. 2008 and Kennicutt and Evans), with no new constant. For the Milky Way shape the disc depletes its gas in 3.7 Gy (measured 1.0 to 4.2), forms 1.70 solar masses a year now (1.65 measured), and holds 7.2 solar masses per pc2 at 8 kpc (11.9 atomic and molecular measured). The populations' shares move: the young share of a 5e10 galaxy goes 0.54 to 0.60% and its intermediate 25.0 to 26.8%. Every reader of the gas moves (aluminium-26, the central ring's inflow 0.50 to 0.62 solar masses a year, the star formation profile), so the stored stars and clusters of every drawn disc galaxy change and it needs an epoch.
+
+## [8.0.3066] - 2026-11-01
+
+**Headline:** A Titan-like air now gets its nitrogen from the ammonia ice of its body, so a Titan-sized ice moon holds an air of the order of Titan's.
+
+### Changed
+- **Ammonia nitrogen for the Titan-like air (GEN.821).** The nitrogen of a nitrogen-methane air was the little the rock degasses. It now adds the nitrogen of the body's ammonia ice, after Erkaev et al. 2020: 0.81 to 4.8 percent of the ammonia is outgassed and 10 to 100 percent of that ends as N2. A moon whose makeup holds only water takes the ammonia as 0.2 to 1.5 percent of its water (the comet value). A Titan-sized moon with 30 percent water comes out at 1e17 to 3e19 kg of N2 (Titan's air is about 9e18 kg). Moons rarely reach this air, because the retention rows of the recipe tables decide that first.
+- generation-output: changed
+
+## [8.0.3065] - 2026-11-01
+
+**Headline:** The air of a rocky planet now holds the carbon and nitrogen that the late accretion brought and did not blow away, so an Earth twin's nitrogen comes out near the Earth's.
+
+### Changed
+- **Late accretion in the air supply (GEN.819).** Every rocky planet or moon with a star draws how much leftover planetesimal mass it accreted after its giant impacts and how volatile it was (the veneer), balances what it delivered against what the impacts eroded (Sakuraba, Kurokawa and Genda 2019), and adds the carbon and the nitrogen to the gas the interior degasses. The carbonate cycle weathers the carbon of the impacts as it does the degassed. The Earth twin's nitrogen in the air has a median of 3.8e18 kg against 1.0e18 before (the Earth's is 3.9e18); Venus's rises from 3.3e18 to 5.2e18 kg (1.1e19 observed). The water stays the hydrosphere's, so oceans do not change. Every rocky planet's air moves a little; a planet's class can change with it.
+- **Gas solver retry.** An air that is nearly all nitrogen, with the other elements at 1e-9 to 1e-16 of it, can stall the equilibrium solve ("the element balance is off"); the solve is now tried again without the elements under 1e-12 of the commonest, so such a planet gets its nitrogen air instead of a crash.
+- generation-output: changed
+
+## [8.0.3064] - 2026-11-01
+
+**Headline:** A giant planet's page now shows the energy it radiates and the swing of its starlight, which were empty for every gas and ice giant.
+
+### Changed
+- **Energy flux and its swing for giants (GEN.784).** `energy_flux_w_m2` of a giant is the energy it radiates through its 1 bar level, the starlight it absorbs plus the heat of its own interior (`sigma T_eff^4`), and `flux_variation` is the peak-to-peak swing of its starlight that every planet already had. Both were left empty for classes I, J and T; the excuse in the sheet's open gaps is gone.
+- generation-output: changed
+
+## [8.0.3063] - 2026-11-01
+
+**Headline:** The 23 flavour lines a system can carry are rewritten in plain words: short sentences, one idea each, and no claim about a world the data could contradict.
+
+### Changed
+- **System flavour lines (GEN.1212).** `tuning.SYSTEM_FLAVOR` keeps its 23 lines in the same order, so the draw lands on the same line as before, but each line is now one or two short sentences ("Sensors show a derelict chain of deep-space platforms. They fire strong energy beams into the void for no known reason."). A line that called a world "now-dead" no longer does. A test reads every line after "Sensors show" against the style guide. A system's stored `system_flavor_text` is the new wording.
+
+No change to which systems get a line or which line they get.
+
+generation-output: changed
+
+The stored `system_flavor_text` wording is the only output that changes (epoch affects: fill). It rides a merge train, which takes the epoch.
+
+TODO items resolved: GEN.1212 (system flavour lines; the stored planet description copy is decided separately with Core 5).
+
+## [8.0.3062] - 2026-11-01
+
+**Headline:** A small body is now an Asteroid or a round Class D or C world by whether its own weight beats its strength, not by how much ice it holds.
+
+### Changed
+- Class D is now an airless, round body under 0.1 Earth masses, rock or ice; Class C is an airless body at 0.1 Earth masses or more. The 1 percent water rule is gone, and moons use the same classes (GEN.1160).
+- A body whose roundness ratio is under 1 is a new object type, the Asteroid. It has no class letter (its class is empty in the data, its pages say Asteroid), and it can be a moon. The ratio comes from the roundness engine (`physics/roundness.py`) at the body's own drawn strength (GEN.1159).
+- The round mass of a dwarf planet candidate, the round test of the body status words and Class D of a belt member now all read the roundness engine: an icy body turns round at a few 1e19 kg and rock at about 2e20 kg at the median strength. The typed round masses (BR9, DPM1) and the compaction-taper roundness (BR24) are retired; a Kuiper-type disc now lists a few hundred dwarf candidates at the median strength, about 20 at the strongest.
+- The class sweep and the temperate-ocean table count Asteroids as their own row.
+
+generation-output: changed
+
+## [8.0.3061] - 2026-11-01
+
+**Headline:** Every planet, moon and comet now keeps how round it is, how strong its material is and how tightly it is bound, and every belt and asteroid field keeps the mean density and ice share of its members.
+
+### Added
+- `physics/body_strength.py` (GEN.1159, GEN.1178): from a body's mass, radius, density and composition it works out `roundness_ratio` (the mean radius over the round radius, 1 or more is round), `yield_strength_pa` (the whole-body strength of its material mix) and `binding_energy_j` (two uniform shells for a rocky body with a core, the n = 1 polytrope for a gas giant), and sets them when a planet, a moon or a comet is made. A gas giant keeps only the binding energy. The strength is drawn from the range each material has (ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250) by a quantile from a stream of the body's own (its mass, radius, distance and whether it is a moon), so the run's stream does not move and the line between round and not round is fuzzy as it is in the Solar System. The strength is the cold strength: the engine's temperature is the one a body took its shape at, and no body stores that yet.
+- Schema v190 (migration 0190): `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` on `planets`, `moons` and `comets`; `density_g_cm3` and `ice_mass_fraction` on `comets`, `asteroid_belts` and `asteroid_fields` (the belt and field columns are the mean of the members, from the drawn makeup). The property sheet shows them; the API gains optional fields and its version stays. Rows made before v190 get them when the galaxy is regenerated.
+
+### Fixed
+- The olivine and ice creep laws returned an overflow error at a few kelvin; the stress is now infinite there, so cold rock keeps its whole-body strength.
+
+generation-output: changed
+
+## [8.0.3060] - 2026-11-01
+
+**Headline:** The share of a world's surface its ocean covers now follows a two-level surface (basins and continents) instead of a square-root law, and a mantle stores 2 to 8 Earth oceans by mass.
+
+### Changed
+- **Ocean cover (GEN.1147).** `hydrosphere.ocean_fraction` fills a surface of two Gaussians of height (ocean crust 60 percent, continental crust 40 percent, relief as 1 / g) with the body's water layer and returns the share under the water, in place of `min(1, sqrt(2 D / L))`. The four numbers are stand-ins tuned so Earth's 2.74 km layer covers 0.71 (row HY2). Icy bodies keep a relief of at most Earth's. The cover is now 0.27 at 0.2 km of water, 0.50 at 0.64 km and 0.59 at 1.3 km, so a world with a little less water than Earth has more land than before.
+- **Mantle store (GEN.1147).** The most water a mantle holds is 2 Earth oceans at 0.5 Earth masses up to 8 at 5 (Guimond et al. 2023, row HY1), where it was a flat 10 oceans. `surface_water_fraction` takes the body's mass.
+- **Not changed.** The Bern delivery law for the water a body is born with.
+
+generation-output: changed
+
+## [8.0.3059] - 2026-11-01
+
+**Headline:** `+habitable_world` and `+intelligent_life` now raise the odds of a habitable world or a civilization and never force one; a system may come out without and says so.
+
+### Changed
+- **Habitable world request (GEN.1130).** The request no longer places a planet in the ecosphere, aims its orbit, draws Earth-sized masses, adds an object to the system, replaces a neighbouring slot or settles for a lesser score. The star, the planets and the planet in the ecosphere are drawn as without it, and a rocky planet in the ecosphere without the wanted conditions (temperate, air, a surface ocean) is kept one time in `REQUEST_ODDS` (10) instead of always, so the odds of the outcome are multiplied by 10; a system with no rocky planet in the ecosphere is kept one time in 10 as well. A host star younger than the life limit or a white dwarf, and a close pair whose circumbinary limit covers the ecosphere, are kept one time in 10 as well. A system the request did not reach is no longer retried as a failed requirement: it is saved and its `habitable_request` says `unmet`.
+- **Intelligent life request (GEN.1130).** The request no longer forces a timeline to finish inside the star's age, squeezes one to fit, or reports a civilization stage the schedule did not reach. It multiplies the odds of a timeline that reaches the civilization stage inside the age by 10, and the odds of the civilization chance of the population pass (`CIVILIZATION_CHANCE`) by 10. A civilization is never forced.
+- **Removed.** The forced habitable slot and its fallbacks in `StarSystem._generate_planets`, `build_planet(life=...)`, `habitable_request.aimed_distance`, `life_timeline.forced_waits`, the forced milestone in `evolution.get_evolutionary_state`, and the tuning values `HABITABLE_REQUEST_FREE_ATTEMPTS`, `HABITABLE_REQUEST_MASS_EARTH`, `HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS`, `REQUEST_TARGET_K` and `LIFE_FORCED_TRIES`. No compatibility shim.
+- **Help and documents.** The command-line help, `docs/reference/cli.md` and `docs/reference/system-file-format.md` say the options raise the odds and never force.
+
+generation-output: changed
+
+## [8.0.3058] - 2026-11-01
+
+**Headline:** A system's belts are now the gaps and the unfinished tail of its planets, each with the cause that made it and the mass the giants and the collisions left.
+
+### Changed
+- Belts are no longer rolled for in a planet's slot (GEN.1068, GEN.1156). The planets are placed first, every planned body stays a planet, and `generation/belt_birth.py` reads the finished chain through `physics/belt_origin.py`: a gap, the tail past the last rocky planet, the snow-line pile-up, the outer disc or the rubble of a collision. Each belt keeps its cause, the other causes that coincide with it, the mass it formed with, what the giants cleared and what an instability scattered, whether a giant stirs it, and the sentence of what shaped it. The mass it holds is that formed mass ground down by the star's age of collisions (`belt_mass.belt_state` takes the starting mass). The slot roll and its constants `ASTEROID_BELT_PROBABILITY` and `BELT_REPLACES_BELOW_EARTH` (row PA13) are gone.
+- An outer disc swept by the outermost giant records the shares of its mass in the cold, resonant, scattered and hot populations and the sentence of what the giant did (`physics/scatter.py`); the mass is not subtracted twice.
+- A belt must hold at least `belt_birth.MIN_PRESENT_MASS_EARTH` (1e-9 Earth masses, row BG14) after the star's age to be kept, which puts the share of main-sequence systems with an inner belt (one ending within 1.2 snow lines, the asteroid belt kind) near 9 percent, inside the 4 to 14 percent the surveys leave; the outer and Kuiper belts count separately (rows BG14 to BG16).
+- A `SLOTS` list still names its belts, `ASTEROID_BELT` False still gives none, `NUM_ORBITS` and `MAX_PLANETS` False still fix the count of bodies unless `ASTEROID_BELT` is True, which now adds the belts it finds (the retries run again when a system has none).
+
+generation-output: changed
+
+## [8.0.3057] - 2026-11-01
+
+**Headline:** A planet's ring is now as icy as its age and the dust that fell on it leave it: Saturn-like rings stay bright, thin old rings go dark.
+
+### Changed
+- **The stored ring ice share is the share the ring has now (GEN.1055, R6).** `rings.apply` runs `rings.darken` after the ring is built: the dark dust that falls on the ring over its age (`physics/ring_darkening.py`, scaled from Saturn's infall by distance from the star and the planet's pull) lowers the ice share the ring began with, much further for a thin ring than for a massive one. A ring with no age (a resonance ring of a small body) and a ring with no ice are unchanged. No draw is added or moved; the values change.
+- The ring shadow (R8, `ring_darkening.shadow_transmission`) stays unread until the latitude-band climate (GEN.1108) is stored.
+
+generation-output: changed
+
+The stored ring ice share (and so the ring's albedo) changes; no new draw, no migration. Epoch affects: fill.
+
+TODO items resolved: GEN.1055 part R6 (R8 stays open until the climate reads the shadow).
+
+## [8.0.3056] - 2026-11-01
+
+**Headline:** A tilted rocky planet with a broad ring has cooler bands behind the ring and warmer bands at its poles, because the ring now takes sunlight off the latitudes it shades.
+
+### Changed
+- **The ring's shadow in the seven latitude bands (GEN.1055, R8).** `latitude_bands.ring_shade` reads the ring (`ring_inner_km`, `ring_outer_km`, `ring_optical_depth` and the radius) and, season by season, the share of the day's sunlight that reaches each latitude through it (`ring_darkening.shadow_transmission`). A band keeps the insolation-weighted mean of that share, and its temperature follows. A world with no tilt, no ring, or a spin-orbit lock is unchanged. The world's own mean temperature is not lowered (it is solved before the ring is drawn), so the shade moves heat between bands: the equator band of a Saturn-like ring on a 27 degree tilt is about 8 K cooler, the poles about 10 K warmer. A moon's ring does not shade its bands, because a moon's bands are made before its ring is drawn.
+- The climate values of a body (`habitability_world.values_from_body`) carry the three ring columns.
+
+No migration (the band columns already exist).
+
+generation-output: changed
+
+Epoch affects: fill. The band temperatures of ringed rocky planets change; no new draw.
+
+TODO items resolved: GEN.1055 part R8 (GEN.1055 is complete with this and R6).
+
+## [8.0.3055] - 2026-11-01
+
+**Headline:** Planets, moons and belts now take their room from one clearance ledger, so a planet after a belt keeps its distance from the planet before the belt.
+
+### Changed
+- **One ledger decides where a star's planets may sit (GEN.1014).** `StarSystem.ledger` holds the window of every star and of a close pair taken as one body: the engulfment floor, the Holman and Wiegert limits, and the tightest S-type limit at every level of the tree above it. `_orbit_floor_au`, the stars' `a_crit_au` (which `build_ledger` now writes, replacing `set_stability_limits` and the wide pair's own copy) and the planet spacing read it. A wide pair's stars and a triple's members no longer carry the 100 AU disk size as a stability limit.
+- **A planet after a belt is held to the planet before the belt too (GEN.1023).** The spacing pass checked a planet only against the body just inside it, so a giant, a belt and a small planet could stand 9.93 mutual Hill radii apart where ten is promised. `validation.min_distance_after_au` takes every inner body (the ledger's exclusions), and the two older copies of the rule are gone.
+- **A moon's stable limit follows Domingos, Winter and Yokoyama (2006).** The limit is 0.4895 of the planet's Hill radius lowered by 1.0305 times the planet's eccentricity and 0.2738 times the moon's, so a moon of an eccentric planet orbits closer in and a moon's eccentricity is cut where its orbit would leave the stable zone. `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` is retired; the retrograde limit (0.9309) is in the ledger but the generator draws no moon beyond the prograde one.
+
+## [8.0.3054] - 2026-11-01
+
+**Headline:** Every belt's largest body now comes from the size law of small bodies, so how much of a belt survives its star's age depends on the bodies it actually has.
+
+### Changed
+- **GEN.1000.** The mass a belt keeps after the star's age of collisions (Wyatt et al. 2007) depends on its largest body, and until now that body was a stand-in drawn between 100 and 1,000 km for every belt. It is now drawn from the belt's size law (`belt_ledger.ICY_LAW` for a belt beyond the snow line, `ROCKY_LAW` inside it) from the belt's own stream, and settled with the collisional mass (`belt_ledger.belt_state`, the step of GEN.1061: the largest body of the ledger of the mass that is left is the body the mass was worked out for). The density word (dense, typical, sparse) compares the belt's mass per area with the belt of the same stretch and age whose largest body is the median one. A belt whose largest body is small is ground down faster, so narrow inner belts hold less than before; a heavy disc whose largest body is too strong to be disrupted keeps its mass. The stand-in LB1 is retired. The state of a belt is kept in a cache so the same belt is settled once. A stretch the giants cleared of everything is no belt. Where a stored belt is read, nothing changes.
+
+generation-output: changed
+
+## [8.0.3053] - 2026-11-01
+
+**Headline:** Every body's galactic speed and period now come from its own galaxy's gravity, not from the Milky Way's 220 km/s curve.
+
+### Changed
+- **GEN.339 (part a).** `galactic_orbit.calculate_galactic_orbit` gave every galaxy the Milky Way's flat 220 km/s curve with a 3 kpc core, whatever the galaxy's mass. It now takes the circular speed from the galaxy's own potential (`potential.current_circular_speed_kms`: the bulge, the disks, the stellar halo, the nuclear cluster and disc, the dark halo and the central black hole of the galaxy the unit belongs to, GEN.338), and the period from that speed, so a galaxy of another mass or size has its own rotation curve and a body near the centre turns at a finite rate. `GALACTIC_ROTATION_FLAT_VELOCITY_KMS`, `GALACTIC_ROTATION_CORE_RADIUS_PC` and `tuning.CLUSTER_HALO_CIRCULAR_KMS` are gone. The metal-rich globular clusters (`generate_clusters`, now given the galaxy's shape), the open clusters of the disk and the central ring (whose own bulge-less nuclear estimate is replaced) rotate at the potential's speed at their radius, and a cluster's Jacobi radius (`king.jacobi_radius_pc`, `open_cluster_evolution.jacobi_radii_pc`) uses the galaxy's own enclosed mass, not an isothermal halo. The mathcheck Sun checks are measured in the Milky Way's measured shape (the reference galaxy), within 15%. No new stored value and no migration; the stored velocities of an existing database stay on the old curve until it is generated again.
+generation-output: changed
+
+## [8.0.3052] - 2026-11-01
+
+**Headline:** A brown dwarf just under the hydrogen-burning limit is no longer far colder than one just over it.
+
+### Changed
+- **The cooling track is continuous in mass (GEN.1137).** A body that cools out of the models' range and keeps cooling at Burrows' exponent (the old-age cooling law) used to sit hundreds of kelvin under the next heavier mass the table holds longer: 0.0699 solar masses at 5 Gy was 1,220 K beside 1,627 K at 0.07. The continuation past a mass's last age now runs from the power law at the lightest mass of that age's table to the heavier mass's own change since the same age, for the temperature and for the radius, so two masses a few percent apart have temperatures and radii that differ by a few percent. Brown dwarfs and rogues between 0.05 and 0.07 solar masses, when old, are warmer and slightly smaller than before; none is hotter than the 2,800 K ceiling.
+
+generation-output: changed
+
+TODO items resolved: GEN.1137.
+
+## [8.0.3051] - 2026-11-01
+
+**Headline:** A companion star stored with a system is rebuilt as the same star: the stored companions of massive stars no longer fall away when the system is filled in.
+
+### Changed
+- **A member's record is made from floats (GEN.951).** The companion mass law returned a numpy number, and the star model gives a slightly different star (about three parts in a hundred million) for a numpy number than for the float of the same value. The scatter stored the first star and the fill rebuilt the second, so the check that the built star is the stored member failed and the system was left a single star. The record and the companion mass are floats now, so both sides make one star.
+
+generation-output: changed
+
+TODO items resolved: GEN.951.
+
+## [8.0.3050] - 2026-11-01
+
+**Headline:** The stars that share a system now have the masses real binaries have, with a surplus of near-equal twins in close pairs and lighter companions for massive stars.
+
+### Changed
+- **A companion's mass is drawn from the measured mass-ratio law (GEN.951).** It was the primary's mass times a ratio uniform from 0.1 to 1. Moe and Di Stefano (2017, Table 13) find the ratio follows a power law that depends on how massive the primary is and how wide the pair is, with an excess of twins (ratio above 0.95) at short periods. A Sun-like primary keeps a near-flat ratio and gets 12% twins (it was 6%); a massive star's companions lean to light stars (the mean ratio is 0.38 for a 12 solar mass primary, it was 0.55) and have few twins. The period is still drawn after the masses, so the ratio is the average over the four periods the paper tabulates, each in the share of the star's companions that sit there.
+- **The stars of the systems still follow the single-star mass function.** The primary mass function is derived from the same law, so the share of primaries and companions at each mass is consistent with it: systems per star born moved from 0.697 to 0.695, and systems per solar mass from 1.128 to 1.124. Past the top cell of the mass grid the primary function continues the line of its last two cells, where it was held flat.
+- **The mean mass of a pair is worked out from the same law.** The widest wide-pair axis a place keeps (and the odds of a close or wide companion) use the mean ratio of the primary's companions instead of 0.55.
+
+generation-output: changed
+
+TODO items resolved: GEN.951.
+
+## [8.0.3049] - 2026-11-01
+
+**Headline:** A belt the giant branch reached keeps the part outside the envelope, and a white dwarf's belt records what its star did to it and how much rock the mass loss threw inward.
+
+### Changed
+- GEN.1072: `StarSystem._apply_star_history` used to drop a belt whose inner edge lay inside the progenitor's engulfment radius whole. The belt now goes through `remnant_orbits.engulf_belt` first: the part inside the radius is lost and the part outside keeps its share of the mass (`physics/belt_history.engulf`, the power-law surface density), so a belt that reaches past the envelope survives as its outer part; one wholly inside is still removed. `remnant_orbits.widen_for_mass_loss` widens a belt's edges as before and then runs `belt_history.mass_loss`: with a giant left in the system a share of the belt (half the fraction of the star's mass that was lost) is thrown inward and its mass falls by that much. The belt keeps its history sentences (`history`), the mass it formed with (`formed_mass_kg`) and the mass thrown inward (`scattered_mass_kg`); `remnant_orbits.pollution_rate_g_s(bodies)` turns that mass into the accretion rate on the white dwarf. The history and the scattered mass are worked out at build and are not stored. The `belt_history` module, rows BHS1 to BHS5 and CP2 leave the wiring register (read now). The independent white dwarf pollution draw is unchanged. Changes the belts of white dwarfs and of any star with a swallowing radius.
+
+generation-output: changed
+
+## [8.0.3048] - 2026-11-01
+
+**Headline:** A system now has a clearance ledger that says where a planet, moon or belt may sit, ready for the generator to draw from.
+
+### Added
+- **The clearance ledger (GEN.1014 part 1, `physics/clearance_ledger.py`).** For a star or a close pair taken as one body it holds the spans of distance where a new planet of a given mass and eccentricity may sit: the host's window (the engulfment floor, the Holman and Wiegert limits at every level above it), less the stretch round each planet where two planets would stand closer than ten mutual Hill radii (on both sides, and across a belt), less each belt with the planet's five Hill radii. A moon's window follows the Domingos, Winter and Yokoyama (2006) limit with the planet's and the moon's eccentricity terms and the retrograde case, which the generator does not yet use. A draw cut to the spans (`restricted_quantile`) needs no pushing afterwards. Nothing in the generator reads it yet, so no system changes; the wiring that replaces `_orbit_floor_au`, the per-star stability reads and the spacing pass, and fixes the pair of planets 9.93 mutual Hill radii apart in triple seed 208 (GEN.1023), rides merge train 10.
+
 ## [8.0.3047] - 2026-11-01
 
 **Headline:** The form signing key's one-line summary now says an empty key is made once and kept, not made at each start.

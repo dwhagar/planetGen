@@ -363,16 +363,6 @@ with `clamp()`.
   "coplanar-merged edge set" outline text above no longer applies.
     Prerequisites: UX.47. Related: MAP.237.
 
-- [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
-  Carry into UX.43 or a small follow-up: a check that every file under
-  `vendor/shoelace/assets` and `icons.svg` uses `currentColor`; recheck
-  the two light-theme Shoelace failures measured before #800 (primary
-  hover 4.23, placeholder 4.41, both below 4.5:1); `--bg-subtle` is
-  still a colour with alpha in the dark theme. UX.76's cause was
-  `a.btn:visited` out-specifying the secondary-button rules.
-  Prerequisites: none.
-  Design: [docs/design/interface/map-ui-and-frontend-libraries.md](design/interface/map-ui-and-frontend-libraries.md)
-
 - [ ] **UX.92 A Bookmark button for planets, moons and belts**
   Foundations lane 1 (2026-10-10, after NAV.8, PR #1095): bookmarks
   cover star systems only today. Add a Bookmark button on each body's
@@ -442,7 +432,7 @@ with `clamp()`.
   and the token files use the brief, a contrast test (the project
   checker) passes on both themes for every token pair, and nothing
   outside the shell changes shape yet.
-  Prerequisites: UX.130, UX.82. Related: UX.43.
+  Prerequisites: UX.130. Related: UX.43.
 
 - [ ] **UX.132 Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -14509,6 +14499,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lock-free and plain-words rules apply (Oxford comma, no
   out-of-universe words). The wiring-register lines for history_text and
   giant_event name this item. Owner: Star 2.
+  Star 2 re-scope (2026-11-01 12:05 AM EDT): Not lock-free as written. A
+  belt history is not stored (asteroid_belts has no history column) and
+  giant_event is not called by generation. Split: GEN.1232a (lock, one
+  epoch): store the belt history text in a new column on asteroid_belts
+  and show it on the belt page, engulfed or scattered by the giant
+  branch only (what #4430 computes); GEN.1232b (lock, after GEN.1068
+  belt birth): wire giant_event into generation. Owner: Star 2 for 1232a
+  once it has a train; 1232b waits for Aux 5.
   Prerequisites: none. Related: GEN.1072, GEN.1068.
 
 - [ ] **GEN.1233 Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law**
@@ -14948,27 +14946,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after.
   Prerequisites: none.
 
-- [ ] **PERF.224 Cheaper bright-table bound: fewer compositions per bin, so the star tables build about 1.7 times faster**
-  From Star 2 (relayed 5:05 PM EDT 2026-10-31 as the lane reported):
-  since GEN.1024 (train 7) a table's per-cell bound reads five
-  compositions of the bin (was three), each on both branches' tracks
-  (thin and alpha-rich) wherever the age window reaches the thick disc,
-  so about ten distinct tracks per cell against three. One table build
-  (old population, solar bin) takes 7.0 s against 2.3 s before at 100
-  solar luminosities, and 3.3 s against 0.9 s at 2500;
-  test_backfilled_cells_get_band_stars_in_their_own_cell takes about 12
-  minutes. The cost is spread over MIST lookups
-  (main_sequence_bright_from_gy 54 percent), nothing hot to cache, and
-  memoising was tried for PERF.218 (3 to 28 percent). Do: bound each bin
-  with three compositions per branch, or the minimum and maximum of the
-  bin, about 1.7 times faster; this changes which draws are rejected, so
-  it is a lock item (epoch, golden, --affects scatter,fill,population),
-  and the bound must stay certified (never below the true maximum).
-  Done: the table build time is back near its old value, the
-  certified-bound test passes, and the census is unchanged within noise.
-  Owner: Star 2, train 9.
-  Prerequisites: none. Related: GEN.1024, PERF.218.
-
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
   Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
   generation run on hal that began about 2:34 PM EDT failed after 11104
@@ -15113,6 +15090,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   full-suite thread will confirm it is real. Done: all four types
   generate in seconds and the test passes. Owner: Bug 1, queued behind
   the train 8 stored-tree fix (GEN.951).
+  Full-suite addition (as the lane reported) (2026-11-01 12:10 AM EDT):
+  More 900 s timeouts on main 7eef24a: test_fuzz_system_generation [IV]
+  and [V] as well as the supergiant types, test_extreme_orbit_counts,
+  test_every_forced_flag_on_together (1,628 s),
+  test_prevalence.py::test_measured_base_shares_still_hold and
+  test_a_measured_feature_moves_by_the_percentage[habitable_world-50,
+  habitable_world--50, asteroid_belt--60], and
+  test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
+  The alone re-run at the end of the run will say which are slow
+  generation and which are load.
+  Prerequisites: none.
+
+- [ ] **PERF.230 Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical**
+  From Star 2's PERF.224 work (as the lane reported, 12:14 AM EDT
+  2026-11-01). The bright-table build is dominated by the isochrone
+  interpolation (edge_point and end_state, about 60 percent of a build);
+  the caches are already 524,288 entries and building by bin gave no
+  change (47 s for 6 populations either way). Do: make edge_point and
+  end_state cheaper (vectorise or precompute per track) with output
+  byte-identical, checked by the golden and the star table tests.
+  Expected gain uncertain, perhaps 1.3 times, and since PERF.226 part 3
+  only star-stage workers build these tables. Done: build time measured
+  before and after, output identical. Lock-free. Low priority; Owner:
+  none yet.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -16862,6 +16863,31 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the stack. The new test in test_run_line.py was not run (no gate on
   that lane); it goes in the next changed-files gate.
   Prerequisites: none. Related: ADM.95, PERF.227.
+  Prerequisites: none.
+
+- [ ] **ADM.137 Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug)**
+  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
+  run on main 7eef24a) re-ran these alone, so they are real.
+  src/planetgen/admin/plans.py line 208 (_settle) calls
+  validation.stabilize_star_system(system, pinned=pinned), but the
+  function takes only (system, allow_removal=False); the keyword was
+  dropped when the class of a planet became derived from its stored
+  conditions (epoch 121, GEN.646), leaving only the docstring mention.
+  Every move, add, regenerate and rebase plan operation raises
+  TypeError. Fourteen tests in tests/test_plans.py fail (moving a
+  planet, a crowding move, a belt move, a moon move, adding a planet,
+  moon and belt, rebasing an approved plan, a plan through JSON, a
+  regeneration that keeps the class, and others). Do: decide whether a
+  moved body must keep its class (then the keep mark has to go through
+  the derived-class path) or the pin is meaningless now (then drop the
+  argument and the pinned parameter of _settle, and say so in the
+  tests); fix the docstring; run tests/test_plans.py and the admin
+  tests. Done: test_plans.py passes. Lock-free unless the class
+  derivation changes. Owner: none yet.
+  Owner (2026-11-01 12:12 AM EDT): Core 2, after UX.255 (assigned by
+  TODO).
+  Owner change (2026-11-01 12:15 AM EDT): Owner is now Star 2 (was Core
+  2); TODO reassigned it at 12:15 AM EDT.
   Prerequisites: none.
 
 ## SEC: Security
@@ -19360,42 +19386,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.541 Four star tests fail on clean main: the population model, the hot white dwarf classes O5VII and B0VII, and the forced subdwarf (bug)**
-  Found by Bug 1 while building GEN.996 (6:09 PM EDT 2026-10-31, as the
-  lane reported): in the core subset, 4 failures are not from its branch
-  and fail the same on plain main. `tests/test_gen_star_helpers.py` (the
-  population-model test and the hot-white-dwarf cases O5VII and B0VII)
-  and `tests/test_forced_star.py` (the subdwarf case). This TODO machine
-  lacks the datasets, so it cannot tell these from missing-data
-  failures; the first step is to run both files on a machine with the
-  downloads and name the real failures. Do: find the cause of each (a
-  stale expectation after the star mass function and remnant work, or a
-  real defect), fix at the cause with a sourced range when the test was
-  wrong, and never skip or loosen a test without saying why. Done: both
-  files pass on main with the downloads present. Lock-free unless the
-  cause is a generator defect, which then rides an epoch. Owner: none
-  for now (pool; the Train Manager proposes a star lane once train 8
-  clears). Version 8.1.
-  Prerequisites: none. Related: GEN.996.
-
-- [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real.
-  test_sweep_tables.py::test_every_class_of_every_table_reaches_a_row_and_every_gated_sum_is_one
-  raises 'temperature must be positive' for
-  small-body-taxa/asteroid-field at temperature_k 0.0, and
-  test_every_row_is_reached_for_every_class_it_names_or_has_a_note finds
-  small-body-taxa/taxon-E/asteroid-field and /belt never reached (likely
-  the same cause). Do: find which taxon function takes the temperature
-  (planetgen/physics/taxon_kernel.py raises it), make the sweep pass a
-  physical temperature or the table decline a 0 K asteroid field with a
-  plain rule, and add a sweep note if the row is unreachable on purpose.
-  Done: both tests pass. Lock-free, generation output unchanged. Version
-  8.1. Prerequisites: none. Related: TEST.261. Owner: unassigned (a
-  waiting lane may take it).
-  Prerequisites: none.
-
 - [ ] **TEST.546 The object timing test finds a unit saved with the kind star where it expects system (bug)**
   The full-suite thread (reported 2026-10-31 9:34 PM EDT as the lane
   reported) ran the suite on main 7eef24a;
@@ -19413,15 +19403,6 @@ clears each one.
   Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
   Prerequisites: none.
 
-- [ ] **TEST.547 Dry-class carbon bracket test is red on main after GEN.1005 (bug)**
-  src/tests/test_volatile_inventory_totals.py::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it
-  fails on main: the dry carbon bracket's log middle is 153 ppm C
-  against the bulk silicate Earth's 99 ppm, after GEN.1005. Found by
-  Core 4 (not from its branch). Decide whether the bracket or the test
-  bound moves (a sourced reading, not a hand tune), then fix and re-run
-  that file. Owner: none yet; Bug 1 or the next lane with room.
-  Prerequisites: none.
-
 - [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
   The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
   run on main 7eef24a) re-ran these alone, so they are real:
@@ -19436,6 +19417,28 @@ clears each one.
   from the sourced model with the reason stated; never loosen the 1.5
   factor to pass. Done: both tests pass on main. Owner: Bug 1, queued
   behind the train 8 stored-tree fix (GEN.951).
+  Prerequisites: none.
+
+- [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
+  Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
+  five prevalence census tests red on main on purpose: their baselines
+  are for epoch 128 and the one census re-tag covers epochs 129 and 130.
+  Do: the Train Manager runs the re-tag (as the lane reported, next
+  after the merge), then re-baselines; check the five go green and that
+  no other test moved. Done: the five census tests pass on main after
+  the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
+- [ ] **TEST.552 test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug)**
+  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
+  run on main 7eef24a):
+  tests/test_plan_outline.py::test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline
+  fails because the outline says 'crest is 3.18 times' and the test
+  expects '3.32 times'; the density model changed and the test was not
+  updated. Do: confirm the 3.18 comes from a sourced density change
+  (name the epoch or item), then update the expected figure with that
+  reason, or find the bug if the change was not intended. Done: the test
+  passes on main. Lock-free, test side. Owner: none yet.
   Prerequisites: none.
 
 ## USR: User accounts
