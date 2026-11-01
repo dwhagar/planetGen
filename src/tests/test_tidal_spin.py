@@ -107,7 +107,7 @@ def test_the_rheology_is_each_bodys_own():
 
 def test_a_hotter_mantle_dissipates_more_and_a_fast_tide_less():
     cool = rocky(EARTH_KG, 6371.0, eta0_pa_s=1.0e13, activation_kj_mol=300.0)
-    warm = rocky(EARTH_KG, 6371.0, eta0_pa_s=2.6e10, activation_kj_mol=200.0)
+    warm = rocky(EARTH_KG, 6371.0, eta0_pa_s=9.3e7, activation_kj_mol=260.0)
     assert interior_heat.tide_temperature_k(cool) != interior_heat.tide_temperature_k(warm)
     slow, fast = 1.0e-8, 1.0e-4
     assert interior_heat.tidal_response(cool, fast)[1] > interior_heat.tidal_response(cool, slow)[1]

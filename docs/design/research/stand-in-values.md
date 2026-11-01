@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1044 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1046 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 149 | 13 | 8 | 1 | 0 | 171 |
+| T1 | 149 | 14 | 8 | 1 | 0 | 172 |
 | T2 | 112 | 42 | 0 | 1 | 0 | 155 |
 | T3 | 83 | 38 | 7 | 9 | 0 | 137 |
-| T4 | 51 | 5 | 1 | 17 | 10 | 84 |
+| T4 | 51 | 5 | 1 | 18 | 10 | 85 |
 | T5 | 44 | 18 | 3 | 1 | 0 | 66 |
 | T6 | 96 | 82 | 20 | 51 | 0 | 249 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 23 | 14 | 5 | 46 | 21 | 109 |
-| All | 590 | 227 | 52 | 143 | 32 | 1044 |
+| All | 590 | 228 | 52 | 144 | 32 | 1046 |
 
 ## How the labels were given
 
@@ -1024,8 +1024,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RO8 | P | T6 | L0 | ring_origin.MIN_RING_MASS_KG 1e7, the least ring that counts | 1e6 to 1e8 | dust rings | a ring of dust seen below 1e6 kg | the smallest ring the painter and the sheet can show | Jupiter's dust ring holds 1e7 to 1e9 kg | - | - |
 | RO9 | P | T2 | L0 | ring_origin.SATURN_RING_MASS_KG 1.54e19, the mass of Saturn's rings | 1.4e19 to 1.7e19 | the reference of RO2 and RO10 | a ring mass of Saturn measured outside 1.3e19 to 1.8e19 kg | none needed | [R2077] from the Cassini Grand Finale gravity, recalled | - | - |
 | RO10 | P | T3 | L0 | ring_origin.RING_INNER_RADII 1.24, the inner edge of a ring in planet radii (the outer edge is the Roche limit) | 1.1 to 1.3 | the annulus area for erosion and spreading | a ring of a body seen closer than 1.1 radii | the ring edges from the ring's own physics (the inner edge from the planet's atmosphere and the particles' size) | the C ring of Saturn begins at 1.24 radii; the D ring at 1.11 | - | - |
-| RO11 | P | T3 | L0 | ring_origin.METEOROID_FLUX_KG_M2_S 1e-16, the meteoroid mass flux on Saturn's rings in kg per square metre per second | 3e-17 to 3e-16 | the erosion of rings at 1 to 30 AU | a measured meteoroid flux at Saturn's rings over 3 times or under a third of this | the meteoroid flux by distance and size from a dust-environment model (Poppe 2016) and the Cassini dust analyser | Cuzzi and Estrada 1998 give 1e-17 g per square cm per second, recalled; the Cassini dust analyser measures the same order | - | - |
-| RO12 | P | T6 | L1 | ring_origin.METEOROID_FLUX_EXPONENT 1.5, how the flux falls with distance from the star | 1.0 to 2.0 | planets at 0.1 to 30 AU | a dust-flux model whose slope between 1 and 10 AU is outside 1.0 to 2.0 | the interplanetary dust flux by distance (Poppe 2016) | the dust flux of the outer Solar System falls faster than the first power of the distance, recalled | - | - |
+| RO11 | P | T3 | L0 | ring_origin.METEOROID_FLUX_KG_M2_S 1e-16, the meteoroid mass flux on Saturn's rings in kg per square metre per second | 3e-17 to 3e-16 | the erosion of rings at 1 to 30 AU | a measured meteoroid flux at Saturn's rings over 3 times or under a third of this | the meteoroid flux by distance and size from a dust-environment model [R5000] and the Cassini dust analyser | [R5001] give 1e-17 g per square cm per second, recalled; the Cassini dust analyser measures the same order | - | - |
+| RO12 | P | T6 | L1 | ring_origin.METEOROID_FLUX_EXPONENT 1.5, how the flux falls with distance from the star | 1.0 to 2.0 | planets at 0.1 to 30 AU | a dust-flux model whose slope between 1 and 10 AU is outside 1.0 to 2.0 | the interplanetary dust flux by distance [R5000] | the dust flux of the outer Solar System falls faster than the first power of the distance, recalled | - | - |
 | RO13 | P | T4 | L3 | ring_origin.EROSION_YIELD 1.0, the ring mass an impactor takes away in impactor masses | 1 to 100 | icy and rocky rings | an impact-ejecta experiment on ring ice whose mass yield at 30 km/s is under 1 or over 100 | the ejecta yield by impact speed and ring material from impact experiments | the ejecta of a hypervelocity impact on ice are tens to thousands of impactor masses, most of it falling back; 1 is the least | - | no data |
 
 ## 6.71 Stand-ins of the resonance rings of small bodies
@@ -1457,6 +1457,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.165 Stand-ins of the interior viscosity ranges
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IHA1 | P | T4 | L3 | tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S 9.3e7 to 1.9e11 Pa s: the bounds of [R1716] times exp(-75 kJ/mol / (R 1600 K)) = 3.56e-3, so the middle of the viscosity at 1,600 K holds | factor of 10 either side | a mantle at 1,000 to 2,500 K | a viscosity of a mantle at 1,600 K, in a measured or modelled rocky planet, outside 3e16 to 1e24 Pa s | the prefactor from a creep law of the mantle's composition (the pre-exponential factor of the diffusion creep laws, grain size and water) | the retune keeps the viscosity at 1,600 K that the paper's two ranges gave; the lab prefactors are in the same range once grain size and water are chosen | - | no data |
+| IHA2 | P | T1 | L1 | tuning.INTERIOR_ACTIVATION_RANGE_KJ_MOL 260 to 390: the diffusion-creep activation energies, dry and wet | 261 to 387 | a rocky mantle | a measured diffusion creep activation energy of mantle rock outside 260 to 390 | an activation energy chosen by the mantle's water and iron content | [R2451: Table 3] (read): 261 to 375 kJ/mol dry and 335 to 387 wet | - | - |
 
 ## 6.164 Stand-ins of the mass ratio of a companion
 

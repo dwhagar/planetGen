@@ -76438,6 +76438,29 @@
    "volume": "129",
    "year": 1997
   },
+  "10.1006/icar.1997.5863": {
+   "authors": [
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Estrada",
+     "P. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1997.5863",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "1",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Compositional Evolution of Saturn's Rings Due to Meteoroid Bombardment",
+   "type": "journal-article",
+   "volume": "132",
+   "year": 1998
+  },
   "10.1006/icar.1998.5913": {
    "authors": [
     [
@@ -94154,6 +94177,25 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "270",
+   "year": 2016
+  },
+  "10.1016/j.icarus.2015.10.001": {
+   "authors": [
+    [
+     "Poppe",
+     "A. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2015.10.001",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "369",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "An improved model for interplanetary dust fluxes in the outer Solar System",
+   "type": "journal-article",
+   "volume": "264",
    "year": 2016
   },
   "10.1016/j.icarus.2015.12.031": {
@@ -276248,7 +276290,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5000,
+ "id_next": 5002,
  "ids": {
   "10.1002/0470033452": "R3877",
   "10.1002/14356007.a24_507.pub2": "R2764",
@@ -276346,6 +276388,7 @@
   "10.1006/icar.1997.5705": "R1978",
   "10.1006/icar.1997.5759": "R4708",
   "10.1006/icar.1997.5793": "R2201",
+  "10.1006/icar.1997.5863": "R5001",
   "10.1006/icar.1998.5913": "R2259",
   "10.1006/icar.1998.5915": "R3858",
   "10.1006/icar.1998.5938": "R1933",
@@ -276968,6 +277011,7 @@
   "10.1016/j.icarus.2015.05.004": "R1822",
   "10.1016/j.icarus.2015.06.024": "R3187",
   "10.1016/j.icarus.2015.09.039": "R1144",
+  "10.1016/j.icarus.2015.10.001": "R5000",
   "10.1016/j.icarus.2015.12.031": "R3558",
   "10.1016/j.icarus.2016.01.010": "R0558",
   "10.1016/j.icarus.2016.02.021": "R2829",

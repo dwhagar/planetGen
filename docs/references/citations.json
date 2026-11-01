@@ -24985,6 +24985,16 @@
       "kind": "paper",
       "label": "Stewart and Leinhardt 2011",
       "title": "Collisions between Gravity-Dominated Bodies: 2. The Diversity of Impact Outcomes during the End Stage of Planet Formation"
+    },
+    "R5000": {
+      "kind": "paper",
+      "label": "Poppe 2016",
+      "title": "An improved model for interplanetary dust fluxes in the outer Solar System"
+    },
+    "R5001": {
+      "kind": "paper",
+      "label": "Cuzzi and Estrada 1998",
+      "title": "Compositional Evolution of Saturn's Rings Due to Meteoroid Bombardment"
     }
   }
 }
