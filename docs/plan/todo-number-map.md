@@ -1770,7 +1770,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.996 | Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug) | none | open |
 | GEN.997 | A moon of a planet around a very young star (under 0.06 Gy) holds a life class: test_planets_respect_their_stars_age_and_history is red on main (bug) | none | done, PR #3887 |
 | GEN.998 | The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug) | none | open |
-| GEN.999 | Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy | none | open |
+| GEN.999 | Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy | none | done, PR #4549 |
 | GEN.1000 | Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass) | none | open |
 | GEN.1001 | A world whose star is younger than the first step of its life schedule is stored with a life class but no life stage, so the map markers, the object page line and the class filters show life that has not started (bug) | none | done, PR #3984 |
 | GEN.1002 | Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced | none | done, PR #4038 |
@@ -1971,7 +1971,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1197 | Faint gas-bearing dwarfs far from the host: the star formation threshold stops anything under 1e7 solar masses, so Leo T-like dwarfs are never made | none | done, research only, no change (gen1197-faint-gas-dwarfs-2026-10-31.md) |
 | GEN.1198 | The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count | none | done, PR #4436 |
 | GEN.1199 | A small moon of a giant carries a hydrogen air and is called class T: can a 0.1 Earth-mass moon keep a hydrogen air at all? | none | done, PR #4436 |
-| GEN.1200 | The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07 | none | open |
+| GEN.1200 | The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07 | none | done, PR #4549 |
 | GEN.1201 | A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today | none | open |
 | GEN.1202 | The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low | none | open |
 | GEN.1203 | Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants | none | open |

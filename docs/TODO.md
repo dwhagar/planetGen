@@ -11580,45 +11580,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator at 3:21 PM EDT; owner is now Core 3.
   Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
 
-- [ ] **GEN.999 Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy**
-  Sources 2 answer on GEN.998 (as the lane reported 11:33 PM EDT
-  2026-10-29). The default small galaxy (5.8e9 solar masses, 772 pc)
-  gives a gas depletion time of 0.85 Gy, and a Milky Way mass disc gives
-  1.46 Gy against 4.2 Gy measured, because the Kennicutt law the
-  generator uses has no low-density threshold. The quantity is right,
-  the value is about 3 times short; it is registered as stand-in row
-  6.49 AL1 for now. Do: replace the law with a threshold law (a
-  Kennicutt-Schmidt law with a low-density cut) fitted to the measured
-  depletion time, then re-measure every reader of gas_now: radiogenic
-  aluminium-26 (GEN.476), star_formation.py and core_gas.py, which all
-  move. Changes generated output: epoch, --affects
-  plan,scatter,fill,population and a census re-baseline; rides the
-  star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
-  Sources 2 with Bug 1. Version 8.1.
-  Owner change (2026-10-31 1:25 PM EDT): Core 3 measured (as the lane
-  reported, 1:22 PM EDT 2026-10-31) that GEN.1200 (ring inflow 0.50 a
-  year against 0.8 measured, plus or minus 0.6) and GEN.1202 (8 kpc gas
-  4.3 against 13 per pc2) are the same factor of 3 this item fixes. Core
-  3 takes GEN.999 (lock work, a branch off main, no merge); GEN.1202
-  then closes with it if the re-measured 8 kpc gas reads about 13, and
-  GEN.1200 follows with the inflow-time step (CORE_GAS_INFLOW_TIME_GY, a
-  stand-in, registered in GEN.725).
-  Ready for train 8 (2026-10-31 1:58 PM EDT): Core 3 (as the lane
-  reported, 1:54 PM EDT): draft PR #4549, branch gen999, head 8b9448957,
-  lock work (epoch, --affects plan,scatter,fill,population; no
-  migration; census re-baseline). The disc gas law steepens where the
-  gas thins, using the saturation 9 per pc2 and index 2.1 of GEN.450 (no
-  new constant). Milky Way shape: depletion 2.2 to 3.7 Gy, star
-  formation now 1.50 to 1.70 solar masses a year, ring inflow 0.50 to
-  0.62 a year. The thin disc population shares move (young 0.54 to 0.60
-  percent, intermediate 25.0 to 26.8 percent). Train 8 candidate.
-  GEN.1200 closes with it (the ring inflow test now passes, no
-  inflow-time step needed). GEN.1202 stays open: 8 kpc gas is 7.2
-  against 13.7 measured (all-phase total), the residual is registered
-  (AL1) and the disc cluster maximum is re-measured after GEN.1196
-  merges.
-  Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
-
 - [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
   Sources 2 finding (as the lane reported 11:53 PM EDT 2026-10-29): the
   belt mass of GEN.477 needs the belt's largest body, which nothing in
@@ -13467,24 +13428,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner Air 1.
   Prerequisites: none. Related: GEN.973, GEN.639, GEN.972, GEN.974,
   GEN.725.
-
-- [ ] **GEN.1200 The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07**
-  Finding from Core 3's GEN.1195 build (as the lane reported, 4:34 AM
-  EDT 2026-10-31), filed by the TODO thread. Kind: generation result
-  against observation. Object: the Milky Way shaped barred galaxy's
-  central molecular zone ring inflow (core gas module). Result:
-  test_core_gas Milky Way ring inflow reads 0.50 of the 0.8 target; the
-  generator's ring rate is 0.044 solar masses per year against the
-  measured 0.07. The ring's gas surface density (stand-in CMX4 of
-  GEN.1195) is the inflow times 50 Myr over the ring area and the
-  maximum cluster mass goes as its cube, so this rate matters for the
-  cluster maximum mass. Do: find the source of the 0.07 figure and the
-  inflow law, say why the generator's rate is low (law, bar torque or
-  ring area), and fix the law or document the stand-in in GEN.725 with
-  tier and tweak level; the Milky Way figure is the plausibility target,
-  never fixed content. Lock work (stored gas and clusters change); rides
-  after GEN.1195. Prerequisites: GEN.1195. Owner: Core 3 (proposed).
-  Prerequisites: GEN.1195.
 
 - [ ] **GEN.1201 A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today**
   Finding from Aux 5's GEN.1159 build (as the lane reported, 4:46 AM EDT
