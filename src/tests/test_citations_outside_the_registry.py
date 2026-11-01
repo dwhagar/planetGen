@@ -24,8 +24,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import rewrite_citations as rc  # noqa: E402
 
-TODO_OWNED = ("docs/TODO.md", "docs/plan/", "docs/generated/", "docs/archive/")
-"""tuple: Text that the sweep reaches through the TODO thread. Empty this tuple when that step has run, so the lock covers it too."""
+TODO_OWNED = ()
+"""tuple: Text kept out of the lock until the TODO thread has swept it. Empty now: the TODO, plan, generated and archive text is swept (2026-11-01), so the lock covers all of it."""
 
 SHOWN = 25
 """int: How many places a failure lists."""
