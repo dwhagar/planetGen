@@ -235,30 +235,18 @@ Phase 3: Core Architecture Refactoring (Persistence & Task Execution)
 
 Astropy Collaboration, Price-Whelan, A. M., Lim, P. L., Earl, N., Starkman, N., Bradley, L., Shupe, D. L., Patil, A. A., Corrales, L., Brasseur, C. E., Nöthe, M., Donath, A., Tollerud, E. J., Morris, B. M., Ginsburg, A., Vaher, E., Weaver, B. A., Tocknell, J., Jamieson, W., ... Sipőcz, B. M. (2022). The Astropy Project: Sustaining and growing a community-oriented open-source project and the latest major release (v5.0) of the core package. The Astrophysical Journal, 935(2), Article 167. [R4331]
 
-Bayer, M. (2012). SQLAlchemy. In A. Brown & G. Wilson (Eds.), The Architecture of Open Source Applications (Vol. 2, pp. 1–20). aosabook.org. http://aosabook.org/en/sqlalchemy.html
+[R1823]
 
-Bayer, M., & SQLAlchemy Contributors. (2026). SQLAlchemy: The Python SQL toolkit and Object Relational Mapper (Version 2.0) [Computer software]. https://www.sqlalchemy.org/
+[R3189]
 
-Colvin, S., & Pydantic Contributors. (2023). Pydantic: Data validation using Python type hints (Version 2.0) [Computer software]. https://pydantic.dev/
-
-Harris, C. R., Millman, K. J., van der Walt, S. J., Gommers, R., Virtanen, P., Cournapeau, D., Wieser, E., Taylor, J., Berg, S., Smith, N. J., Kern, R., Picus, M., Hoyer, S., van Kerkwijk, M. H., Brett, M., Haldane, A., del Río, F. A., Wiebe, M., Peterson, P., ... Oliphant, T. E. (2020). Array programming with NumPy. Nature, 585(7825), 357–362. [R1823]
-
-Jenks, G. (2021). DiskCache: Disk and file backed persistent cache in Python (Version 5.2) [Computer software]. https://grantjenks.com/docs/diskcache/
-
-Lissner, A., & PyOTP Maintainers. (2023). PyOTP: Python One-Time Password Library (Version 2.9.0) [Computer software]. Python Software Foundation. https://github.com/pyauth/pyotp
-
-MacFarlane, J. (2019). CommonMark specification (Version 0.29). CommonMark. https://spec.commonmark.org/0.29/
-
-M'Raihi, D., Machani, S., Pei, M., & Rydell, J. (2011). TOTP: Time-Based One-Time Password Algorithm (RFC No. 6238). Internet Engineering Task Force. [R3189]
-
-Murray, C. D., & Dermott, S. F. (1999). Solar system dynamics. Cambridge University Press. [R3220]
+[R3220]
 
 Nayuki Project. (2022). QR Code generator library [Computer software]. https://www.nayuki.io/page/qr-code-generator-library
 
 Python Markdown Developers. (2023). Python-Markdown (Version 3.5) [Computer software]. Python Software Foundation. https://python-markdown.github.io/
 
-Roy, A. E. (2004). Orbital motion (4th ed.). Institute of Physics Publishing. [R4976]
+[R4976]
 
 RQ Contributors. (2024). RQ: Simple job queues for Python (Version 1.16) [Computer software]. GitHub. https://python-rq.org/
 
-Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., van der Walt, S. J., Brett, M., Wilson, J., Millman, K. J., Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., ... SciPy 1.0 Contributors. (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. Nature Methods, 17(3), 261–272. [R4560]
+[R4560]

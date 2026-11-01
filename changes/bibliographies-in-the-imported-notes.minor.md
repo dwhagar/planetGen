@@ -1,0 +1,5 @@
+**Headline:** The reference lists at the end of the imported research notes now hold only source IDs, and unverifiable entries are gone.
+
+### Changed
+- **Bibliography lists of the imported research notes (DOC.98 follow-up).** 266 entries in APA form became source IDs like [R0123]; 21 of them were found at Crossref and added to the reference list. 155 entries that neither the list nor Crossref could verify (wrong year, authors or title for any real paper) were removed, following the rule that a paper which cannot be verified is not real; the removed entries are kept in a report. `scripts/rewrite_bibliographies.py` does this, and the citation lock test now also fails on an APA-form entry.
+- **Unused functions removed (TEST.520).** `magnetism.induced_moment`, `radiation_belts.dose_at_orbit_gy_yr` and `radiation_belts.equatorial_field_t` had only tests calling them; the induced moment is computed by `generate_induced_field`, and the belt dose by `moon_exposure_msv_yr`. The Europa and Callisto induction tests now go through `generate_induced_field`. Three duplicate lines of the wiring register were dropped. No change to generated output.

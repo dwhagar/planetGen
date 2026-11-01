@@ -272,18 +272,16 @@ Implementing these features via a unified vector field and volumetric voxel arch
 References
 ----------
 
-Ahmed, F. (2023). Gravitational lensing in a space-time with cosmic string within the Eddington-inspired Born-Infeld gravity. _arXiv preprint [R0050]_.
+[R0050]
 
-Alcubierre, M. (1994). The warp drive: hyper-fast travel within general relativity. _Classical and Quantum Gravity_, 11(5), L73–L77.
+[R0063]
 
-Boyer, R. H., & Lindquist, R. W. (1967). Maximal analytic extension of the Kerr metric. _Journal of Mathematical Physics_, 8(2), 265–281.
+[R0506]
 
-Joseph, A. (2022). Alcubierre warp drive metric coupled to quantum mechanical scalar matter field. _arXiv preprint [R2200]_.
+[R2200]
 
 Memory Alpha. (n.d.). _Star Trek wiki_. Fandom. https://memory-alpha.fandom.com
 
-Randall, L., & Sundrum, R. (1999). An alternative to compactification. _Physical Review Letters_, 83(23), 4690–4693.
+[R4515]
 
-Santos, L., & Castro, P. (2012). Conformal gravity and the Alcubierre warp drive metric. _arXiv preprint [R4515]_.
-
-Vilenkin, A. (1985). Cosmic strings and domain walls. _Physics Reports_, 121(5), 263–315.
+[R4547]
