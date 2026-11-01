@@ -3775,7 +3775,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.544 | The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug) | none | done, PR #4677 |
 | TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) | none | open |
 | TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) | none | open |
-| TEST.547 | Dry-class carbon bracket test is red on main after GEN.1005 (bug) | none | open |
+| TEST.547 | Dry-class carbon bracket test is red on main after GEN.1005 (bug) | none | done, PR #4701 |
 | TEST.548 | Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug) | none | open |
 | TEST.549 | test_star_population passes the removed bounds_only argument to _bright_table and is red on main (bug) | none | open |
 | TEST.550 | Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug) | none | open |
