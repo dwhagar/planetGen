@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3033] - 2026-11-01
+
+**Headline:** The update shows a progress bar while it records the version key, so the quiet stretch after the migration is no longer a blank wait.
+
+### Changed
+
+Recording the version key runs the generator's fixed test cases once to fingerprint the code, and the update printed nothing while it did. It now shows a bar with the cases done and the time left on a terminal, and one line per case without one. No generated output changes.
+
 ## [8.0.3032] - 2026-11-01
 
 **Headline:** The update says what it is doing while it records the version key, so the quiet stretch after the migration no longer looks hung.
