@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3047] - 2026-11-01
+
+**Headline:** The form signing key's one-line summary now says an empty key is made once and kept, not made at each start.
+
+### Fixed
+- The settings page's summary for `secret_key` still said an empty key makes a random one at each start; since the key is kept in the state folder, it now says so.
+
 ## [8.0.3046] - 2026-11-01
 
 **Headline:** The warm-up now says which chunk of how many it is on, and shows a timed progress bar on a terminal.
