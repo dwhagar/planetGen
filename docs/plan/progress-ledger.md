@@ -2283,3 +2283,4 @@ Baseline: PR #1817.
 | DOC.6 | 8.7 | Help section |
 | UX.256 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | OPS.85 | 8.2 | Robust tile caching |
+| OPS.87 | 8.2 | Robust tile caching |
