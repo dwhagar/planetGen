@@ -20,6 +20,7 @@ from planetgen.admin import maintenance
 from planetgen.api.config import Config
 from planetgen.cli import generate as generate_cli
 from planetgen.cli import warm as warm_cli
+from planetgen.cli import warm_progress
 from planetgen.db import block_stats, dataversion, store
 from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
@@ -934,8 +935,8 @@ def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
 
 def test_the_progress_bar_counts_families():
     """update.sh shows this line while it waits for the warm-up."""
-    assert warm_cli.progress_bar(1, 4, "lists", width=8) == "[##------] 1/4 lists"
-    assert warm_cli.progress_bar(4, 4, "search", width=8) == "[########] 4/4 search"
+    assert warm_progress.text_bar(1, 4, "lists", width=8) == "[##------] 1/4 lists"
+    assert warm_progress.text_bar(4, 4, "search", width=8) == "[########] 4/4 search"
 
 
 def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):
