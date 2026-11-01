@@ -73389,6 +73389,25 @@
   }
  },
  "entries": {
+  "10.1001/archinte.1945.00210280021003": {
+   "authors": [
+    [
+     "MORITZ",
+     "A. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1001/archinte.1945.00210280021003",
+   "editors": [],
+   "journal": "Arch Intern Med (Chic)",
+   "page": "233",
+   "publisher": "American Medical Association (AMA)",
+   "src": "crossref-search",
+   "title": "EFFECTS OF COLD AIR ON THE AIR PASSAGES AND LUNGS",
+   "type": "journal-article",
+   "volume": "75",
+   "year": 1945
+  },
   "10.1002/0470033452": {
    "authors": [
     [
@@ -77747,6 +77766,25 @@
    "volume": "",
    "year": 2013
   },
+  "10.1007/978-3-030-11452-7_1": {
+   "authors": [
+    [
+     "Linsky",
+     "J."
+    ]
+   ],
+   "book": "Lecture Notes in Physics",
+   "doi": "10.1007/978-3-030-11452-7_1",
+   "editors": [],
+   "journal": "Lecture Notes in Physics",
+   "page": "1",
+   "publisher": "Springer International Publishing",
+   "src": "crossref-search",
+   "title": "Why Are Host Stars Important for Understanding Exoplanet Atmospheres?",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2019
+  },
   "10.1007/978-3-030-19219-8_12": {
    "authors": [
     [
@@ -77842,6 +77880,25 @@
    "type": "book-chapter",
    "volume": "",
    "year": 1976
+  },
+  "10.1007/978-3-319-09749-7_11": {
+   "authors": [
+    [
+     "Grießmeier",
+     "J. M."
+    ]
+   ],
+   "book": "Astrophysics and Space Science Library",
+   "doi": "10.1007/978-3-319-09749-7_11",
+   "editors": [],
+   "journal": "Astrophysics and Space Science Library",
+   "page": "213",
+   "publisher": "Springer International Publishing",
+   "src": "crossref-search",
+   "title": "Detection Methods and Relevance of Exoplanetary Magnetic Fields",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2014
   },
   "10.1007/978-3-319-09749-7_6": {
    "authors": [
@@ -79899,6 +79956,49 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "64",
    "year": 2025
+  },
+  "10.1007/s00421-022-04939-x": {
+   "authors": [
+    [
+     "Stenfors",
+     "N."
+    ],
+    [
+     "Persson",
+     "H."
+    ],
+    [
+     "Tutt",
+     "A."
+    ],
+    [
+     "Tufvesson",
+     "E."
+    ],
+    [
+     "Andersson",
+     "E. P."
+    ],
+    [
+     "Ainegren",
+     "M."
+    ],
+    [
+     "Hanstock",
+     "H. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s00421-022-04939-x",
+   "editors": [],
+   "journal": "Eur J Appl Physiol",
+   "page": "1473",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref-search",
+   "title": "A breathing mask attenuates acute airway responses to exercise in sub-zero environment in healthy subjects",
+   "type": "journal-article",
+   "volume": "122",
+   "year": 2022
   },
   "10.1007/s00445-009-0288-4": {
    "authors": [
@@ -84384,6 +84484,25 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "42",
    "year": 1989
+  },
+  "10.1016/0024-3795(80)90167-6": {
+   "authors": [
+    [
+     "Paige",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0024-3795(80)90167-6",
+   "editors": [],
+   "journal": "Linear Algebra and its Applications",
+   "page": "235",
+   "publisher": "Elsevier BV",
+   "src": "crossref-search",
+   "title": "Accuracy and effectiveness of the Lanczos algorithm for the symmetric eigenproblem",
+   "type": "journal-article",
+   "volume": "34",
+   "year": 1980
   },
   "10.1016/0027-5107(93)90211-w": {
    "authors": [
@@ -89118,6 +89237,33 @@
    "via": "openalex search on author, year and the citing sentences",
    "volume": "441",
    "year": 2016
+  },
+  "10.1016/j.freeradbiomed.2011.12.028": {
+   "authors": [
+    [
+     "Beall",
+     "C. M."
+    ],
+    [
+     "Laskowski",
+     "D."
+    ],
+    [
+     "Erzurum",
+     "S. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.freeradbiomed.2011.12.028",
+   "editors": [],
+   "journal": "Free Radical Biology and Medicine",
+   "page": "1123",
+   "publisher": "Elsevier BV",
+   "src": "crossref-search",
+   "title": "Nitric oxide in adaptation to altitude",
+   "type": "journal-article",
+   "volume": "52",
+   "year": 2012
   },
   "10.1016/j.gca.2006.06.262": {
    "authors": [
@@ -103946,6 +104092,45 @@
    "volume": "19",
    "year": 2019
   },
+  "10.1017/s1473550425100025": {
+   "authors": [
+    [
+     "Atri",
+     "D."
+    ],
+    [
+     "Kamenetskiy",
+     "M."
+    ],
+    [
+     "May",
+     "M."
+    ],
+    [
+     "Kalra",
+     "A."
+    ],
+    [
+     "Castelblanco",
+     "A."
+    ],
+    [
+     "Quiñones-Camacho",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s1473550425100025",
+   "editors": [],
+   "journal": "IJAsB",
+   "page": "e9",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref-search",
+   "title": "Estimating the potential of ionizing radiation-induced radiolysis for microbial metabolism on terrestrial planets and satellites with rarefied atmospheres",
+   "type": "journal-article",
+   "volume": "24",
+   "year": 2025
+  },
   "10.1017/s1539299600013289": {
    "authors": [
     [
@@ -109449,6 +109634,37 @@
    "type": "journal-article",
    "volume": "33",
    "year": 2006
+  },
+  "10.1029/2006gl027494": {
+   "authors": [
+    [
+     "Dartnell",
+     "L. R."
+    ],
+    [
+     "Desorgher",
+     "L."
+    ],
+    [
+     "Ward",
+     "J. M."
+    ],
+    [
+     "Coates",
+     "A. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2006gl027494",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "2006GL027494",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref-search",
+   "title": "Modelling the surface and subsurface Martian radiation environment: Implications for astrobiology",
+   "type": "journal-article",
+   "volume": "34",
+   "year": 2007
   },
   "10.1029/2006gl028779": {
    "authors": [
@@ -121887,6 +122103,133 @@
    "volume": "7",
    "year": 2016
   },
+  "10.1038/ncomms12808": {
+   "authors": [
+    [
+     "Hashimoto",
+     "T."
+    ],
+    [
+     "Horikawa",
+     "D. D."
+    ],
+    [
+     "Saito",
+     "Y."
+    ],
+    [
+     "Kuwahara",
+     "H."
+    ],
+    [
+     "Kozuka-Hata",
+     "H."
+    ],
+    [
+     "Shin-I",
+     "T."
+    ],
+    [
+     "Minakuchi",
+     "Y."
+    ],
+    [
+     "Ohishi",
+     "K."
+    ],
+    [
+     "Motoyama",
+     "A."
+    ],
+    [
+     "Aizu",
+     "T."
+    ],
+    [
+     "Enomoto",
+     "A."
+    ],
+    [
+     "Kondo",
+     "K."
+    ],
+    [
+     "Tanaka",
+     "S."
+    ],
+    [
+     "Hara",
+     "Y."
+    ],
+    [
+     "Koshikawa",
+     "S."
+    ],
+    [
+     "Sagara",
+     "H."
+    ],
+    [
+     "Miura",
+     "T."
+    ],
+    [
+     "Yokobori",
+     "S. I."
+    ],
+    [
+     "Miyagawa",
+     "K."
+    ],
+    [
+     "Suzuki",
+     "Y."
+    ],
+    [
+     "Kubo",
+     "T."
+    ],
+    [
+     "Oyama",
+     "M."
+    ],
+    [
+     "Kohara",
+     "Y."
+    ],
+    [
+     "Fujiyama",
+     "A."
+    ],
+    [
+     "Arakawa",
+     "K."
+    ],
+    [
+     "Katayama",
+     "T."
+    ],
+    [
+     "Toyoda",
+     "A."
+    ],
+    [
+     "Kunieda",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/ncomms12808",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "12808",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref-search",
+   "title": "Extremotolerant tardigrade genome and improved radiotolerance of human cultured cells by tardigrade-unique protein",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2016
+  },
   "10.1038/ncomms13262": {
    "authors": [
     [
@@ -125225,6 +125568,65 @@
    "type": "journal-article",
    "volume": "",
    "year": 2022
+  },
+  "10.1038/s41550-023-02158-8": {
+   "authors": [
+    [
+     "Cockell",
+     "C. S."
+    ],
+    [
+     "Simons",
+     "M."
+    ],
+    [
+     "Castillo-Rogez",
+     "J."
+    ],
+    [
+     "Higgins",
+     "P. M."
+    ],
+    [
+     "Kaltenegger",
+     "L."
+    ],
+    [
+     "Keane",
+     "J. T."
+    ],
+    [
+     "Leonard",
+     "E. J."
+    ],
+    [
+     "Mitchell",
+     "K. L."
+    ],
+    [
+     "Park",
+     "R. S."
+    ],
+    [
+     "Perl",
+     "S. M."
+    ],
+    [
+     "Vance",
+     "S. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41550-023-02158-8",
+   "editors": [],
+   "journal": "NatAs",
+   "page": "30",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref-search",
+   "title": "Sustained and comparative habitability beyond Earth",
+   "type": "journal-article",
+   "volume": "8",
+   "year": 2023
   },
   "10.1038/s41550-023-02160-0": {
    "arxiv": "2301.05259",
@@ -149938,6 +150340,45 @@
    "type": "journal-article",
    "volume": "122",
    "year": 2025
+  },
+  "10.1073/pnas.252649199": {
+   "authors": [
+    [
+     "Beall",
+     "C. M."
+    ],
+    [
+     "Decker",
+     "M. J."
+    ],
+    [
+     "Brittenham",
+     "G. M."
+    ],
+    [
+     "Kushner",
+     "I."
+    ],
+    [
+     "Gebremedhin",
+     "A."
+    ],
+    [
+     "Strohl",
+     "K. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1073/pnas.252649199",
+   "editors": [],
+   "journal": "PNAS",
+   "page": "17215",
+   "publisher": "National Academy of Sciences",
+   "src": "crossref-search",
+   "title": "An Ethiopian pattern of human adaptation to high-altitude hypoxia",
+   "type": "journal-article",
+   "volume": "99",
+   "year": 2002
   },
   "10.1073/pnas.71.9.3363": {
    "authors": [
@@ -176320,6 +176761,65 @@
    "volume": "7",
    "year": 2007
   },
+  "10.1089/ast.2006.0128": {
+   "authors": [
+    [
+     "Lammer",
+     "H."
+    ],
+    [
+     "Lichtenegger",
+     "H. I."
+    ],
+    [
+     "Kulikov",
+     "Y. N."
+    ],
+    [
+     "Grießmeier",
+     "J. M."
+    ],
+    [
+     "Terada",
+     "N."
+    ],
+    [
+     "Erkaev",
+     "N. V."
+    ],
+    [
+     "Biernat",
+     "H. K."
+    ],
+    [
+     "Khodachenko",
+     "M. L."
+    ],
+    [
+     "Ribas",
+     "I."
+    ],
+    [
+     "Penz",
+     "T."
+    ],
+    [
+     "Selsis",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ast.2006.0128",
+   "editors": [],
+   "journal": "AsBio",
+   "page": "185",
+   "publisher": "SAGE Publications",
+   "src": "crossref-search",
+   "title": "Coronal Mass Ejection (CME) Activity of Low Mass M Stars as An Important Factor for The Habitability of Terrestrial Exoplanets. II. CME-Induced Ion Pick Up of Earth-like Exoplanets in Close-In Habitable Zones",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2007
+  },
   "10.1089/ast.2006.0129": {
    "arxiv": "astro-ph/0702622",
    "authors": [
@@ -178035,6 +178535,25 @@
    "volume": "24",
    "year": 2024
   },
+  "10.1089/ham.2009.10401": {
+   "authors": [
+    [
+     "West",
+     "J. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ham.2009.10401",
+   "editors": [],
+   "journal": "High Altitude Medicine &amp; Biology",
+   "page": "311",
+   "publisher": "SAGE Publications",
+   "src": "crossref-search",
+   "title": "VIII World Congress on High Altitude Medicine and Physiology, Arequipa, Peru, August 8–12, 2010",
+   "type": "journal-article",
+   "volume": "10",
+   "year": 2009
+  },
   "10.1090/s0025-5718-1966-0234618-4": {
    "authors": [
     [
@@ -178487,6 +179006,25 @@
    "type": "journal-article",
    "volume": "195",
    "year": 2013
+  },
+  "10.1093/imamat/18.3.341": {
+   "authors": [
+    [
+     "PAIGE",
+     "C. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/imamat/18.3.341",
+   "editors": [],
+   "journal": "IMA J Appl Math",
+   "page": "341",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref-search",
+   "title": "Error Analysis of the Lanczos Algorithm for Tridiagonalizing a Symmetric Matrix",
+   "type": "journal-article",
+   "volume": "18",
+   "year": 1976
   },
   "10.1093/imamat/6.3.222": {
    "authors": [
@@ -200729,6 +201267,33 @@
    "volume": "378",
    "year": 2020
   },
+  "10.1098/rstb.2024.0101": {
+   "authors": [
+    [
+     "Seager",
+     "S."
+    ],
+    [
+     "Petkowski",
+     "J. J."
+    ],
+    [
+     "Bains",
+     "W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1098/rstb.2024.0101",
+   "editors": [],
+   "journal": "Phil. Trans. R. Soc. B",
+   "page": "20240101",
+   "publisher": "The Royal Society",
+   "src": "crossref-search",
+   "title": "The diversity of exoplanetary environments and the search for signs of life beyond Earth",
+   "type": "journal-article",
+   "volume": "380",
+   "year": 2025
+  },
   "10.1101/cshperspect.a012765": {
    "authors": [
     [
@@ -212055,6 +212620,81 @@
    "volume": "15",
    "year": 2012
   },
+  "10.1111/1462-2920.12598": {
+   "authors": [
+    [
+     "Stevenson",
+     "A."
+    ],
+    [
+     "Burkhardt",
+     "J."
+    ],
+    [
+     "Cockell",
+     "C. S."
+    ],
+    [
+     "Cray",
+     "J. A."
+    ],
+    [
+     "Dijksterhuis",
+     "J."
+    ],
+    [
+     "Fox‐Powell",
+     "M."
+    ],
+    [
+     "Kee",
+     "T. P."
+    ],
+    [
+     "Kminek",
+     "G."
+    ],
+    [
+     "McGenity",
+     "T. J."
+    ],
+    [
+     "Timmis",
+     "K. N."
+    ],
+    [
+     "Timson",
+     "D. J."
+    ],
+    [
+     "Voytek",
+     "M. A."
+    ],
+    [
+     "Westall",
+     "F."
+    ],
+    [
+     "Yakimov",
+     "M. M."
+    ],
+    [
+     "Hallsworth",
+     "J. E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/1462-2920.12598",
+   "editors": [],
+   "journal": "Environmental Microbiology",
+   "page": "257",
+   "publisher": "Wiley",
+   "src": "crossref-search",
+   "title": "Multiplication of microbes below 0.690 water activity: implications for terrestrial and extraterrestrial life",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 2014
+  },
   "10.1111/1468-0289.12076_34": {
    "authors": [
     [
@@ -223328,6 +223968,77 @@
    "volume": "313",
    "year": 2006
   },
+  "10.1126/science.1127376": {
+   "authors": [
+    [
+     "Lin",
+     "L. H."
+    ],
+    [
+     "Wang",
+     "P. L."
+    ],
+    [
+     "Rumble",
+     "D."
+    ],
+    [
+     "Lippmann-Pipke",
+     "J."
+    ],
+    [
+     "Boice",
+     "E."
+    ],
+    [
+     "Pratt",
+     "L. M."
+    ],
+    [
+     "Lollar",
+     "B. S."
+    ],
+    [
+     "Brodie",
+     "E. L."
+    ],
+    [
+     "Hazen",
+     "T. C."
+    ],
+    [
+     "Andersen",
+     "G. L."
+    ],
+    [
+     "DeSantis",
+     "T. Z."
+    ],
+    [
+     "Moser",
+     "D. P."
+    ],
+    [
+     "Kershaw",
+     "D."
+    ],
+    [
+     "Onstott",
+     "T. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1127376",
+   "editors": [],
+   "journal": "Science",
+   "page": "479",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref-search",
+   "title": "Long-Term Sustainability of a High-Energy, Low-Diversity Crustal Biome",
+   "type": "journal-article",
+   "volume": "314",
+   "year": 2006
+  },
   "10.1126/science.1152110": {
    "authors": [
     [
@@ -223745,6 +224456,301 @@
    "title": "Genetic Evidence for High-Altitude Adaptation in Tibet",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "329",
+   "year": 2010
+  },
+  "10.1126/science.1190371": {
+   "authors": [
+    [
+     "Yi",
+     "X."
+    ],
+    [
+     "Liang",
+     "Y."
+    ],
+    [
+     "Huerta-Sanchez",
+     "E."
+    ],
+    [
+     "Jin",
+     "X."
+    ],
+    [
+     "Cuo",
+     "Z. X. P."
+    ],
+    [
+     "Pool",
+     "J. E."
+    ],
+    [
+     "Xu",
+     "X."
+    ],
+    [
+     "Jiang",
+     "H."
+    ],
+    [
+     "Vinckenbosch",
+     "N."
+    ],
+    [
+     "Korneliussen",
+     "T. S."
+    ],
+    [
+     "Zheng",
+     "H."
+    ],
+    [
+     "Liu",
+     "T."
+    ],
+    [
+     "He",
+     "W."
+    ],
+    [
+     "Li",
+     "K."
+    ],
+    [
+     "Luo",
+     "R."
+    ],
+    [
+     "Nie",
+     "X."
+    ],
+    [
+     "Wu",
+     "H."
+    ],
+    [
+     "Zhao",
+     "M."
+    ],
+    [
+     "Cao",
+     "H."
+    ],
+    [
+     "Zou",
+     "J."
+    ],
+    [
+     "Shan",
+     "Y."
+    ],
+    [
+     "Li",
+     "S."
+    ],
+    [
+     "Yang",
+     "Q."
+    ],
+    [
+     "Asan",
+     ""
+    ],
+    [
+     "Ni",
+     "P."
+    ],
+    [
+     "Tian",
+     "G."
+    ],
+    [
+     "Xu",
+     "J."
+    ],
+    [
+     "Liu",
+     "X."
+    ],
+    [
+     "Jiang",
+     "T."
+    ],
+    [
+     "Wu",
+     "R."
+    ],
+    [
+     "Zhou",
+     "G."
+    ],
+    [
+     "Tang",
+     "M."
+    ],
+    [
+     "Qin",
+     "J."
+    ],
+    [
+     "Wang",
+     "T."
+    ],
+    [
+     "Feng",
+     "S."
+    ],
+    [
+     "Li",
+     "G."
+    ],
+    [
+     "Huasang",
+     ""
+    ],
+    [
+     "Luosang",
+     "J."
+    ],
+    [
+     "Wang",
+     "W."
+    ],
+    [
+     "Chen",
+     "F."
+    ],
+    [
+     "Wang",
+     "Y."
+    ],
+    [
+     "Zheng",
+     "X."
+    ],
+    [
+     "Li",
+     "Z."
+    ],
+    [
+     "Bianba",
+     "Z."
+    ],
+    [
+     "Yang",
+     "G."
+    ],
+    [
+     "Wang",
+     "X."
+    ],
+    [
+     "Tang",
+     "S."
+    ],
+    [
+     "Gao",
+     "G."
+    ],
+    [
+     "Chen",
+     "Y."
+    ],
+    [
+     "Luo",
+     "Z."
+    ],
+    [
+     "Gusang",
+     "L."
+    ],
+    [
+     "Cao",
+     "Z."
+    ],
+    [
+     "Zhang",
+     "Q."
+    ],
+    [
+     "Ouyang",
+     "W."
+    ],
+    [
+     "Ren",
+     "X."
+    ],
+    [
+     "Liang",
+     "H."
+    ],
+    [
+     "Zheng",
+     "H."
+    ],
+    [
+     "Huang",
+     "Y."
+    ],
+    [
+     "Li",
+     "J."
+    ],
+    [
+     "Bolund",
+     "L."
+    ],
+    [
+     "Kristiansen",
+     "K."
+    ],
+    [
+     "Li",
+     "Y."
+    ],
+    [
+     "Zhang",
+     "Y."
+    ],
+    [
+     "Zhang",
+     "X."
+    ],
+    [
+     "Li",
+     "R."
+    ],
+    [
+     "Li",
+     "S."
+    ],
+    [
+     "Yang",
+     "H."
+    ],
+    [
+     "Nielsen",
+     "R."
+    ],
+    [
+     "Wang",
+     "J."
+    ],
+    [
+     "Wang",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1190371",
+   "editors": [],
+   "journal": "Science",
+   "page": "75",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref-search",
+   "title": "Sequencing of 50 Human Exomes Reveals Adaptation to High Altitude",
+   "type": "journal-article",
    "volume": "329",
    "year": 2010
   },
@@ -234986,6 +235992,65 @@
    "volume": "25",
    "year": 2000
   },
+  "10.1371/journal.pbio.0050092": {
+   "authors": [
+    [
+     "Daly",
+     "M. J."
+    ],
+    [
+     "Gaidamakova",
+     "E. K."
+    ],
+    [
+     "Matrosova",
+     "V. Y."
+    ],
+    [
+     "Vasilenko",
+     "A."
+    ],
+    [
+     "Zhai",
+     "M."
+    ],
+    [
+     "Leapman",
+     "R. D."
+    ],
+    [
+     "Lai",
+     "B."
+    ],
+    [
+     "Ravel",
+     "B."
+    ],
+    [
+     "Li",
+     "S. M. W."
+    ],
+    [
+     "Kemner",
+     "K. M."
+    ],
+    [
+     "Fredrickson",
+     "J. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1371/journal.pbio.0050092",
+   "editors": [],
+   "journal": "PLoS Biol",
+   "page": "e92",
+   "publisher": "Public Library of Science (PLoS)",
+   "src": "crossref-search",
+   "title": "Protein Oxidation Implicated as the Primary Determinant of Bacterial Radioresistance",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2007
+  },
   "10.1371/journal.pone.0000457": {
    "authors": [
     [
@@ -237718,6 +238783,53 @@
    "volume": "8",
    "year": 2025
   },
+  "10.3357/asem.3468.2013": {
+   "authors": [
+    [
+     "Murray",
+     "D. H."
+    ],
+    [
+     "Pilmanis",
+     "A. A."
+    ],
+    [
+     "Blue",
+     "R. S."
+    ],
+    [
+     "Pattarini",
+     "J. M."
+    ],
+    [
+     "Law",
+     "J."
+    ],
+    [
+     "Bayne",
+     "C. G."
+    ],
+    [
+     "Turney",
+     "M. W."
+    ],
+    [
+     "Clark",
+     "J. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3357/asem.3468.2013",
+   "editors": [],
+   "journal": "aviat space environ med",
+   "page": "89",
+   "publisher": "Aerospace Medical Association",
+   "src": "crossref-search",
+   "title": "Pathophysiology, Prevention, and Treatment of Ebullism",
+   "type": "journal-article",
+   "volume": "84",
+   "year": 2013
+  },
   "10.3357/asem.3485.2014": {
    "authors": [
     [
@@ -238397,6 +239509,25 @@
    "type": "journal-article",
    "volume": "8",
    "year": 2022
+  },
+  "10.3390/w3010235": {
+   "authors": [
+    [
+     "Le Caër",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3390/w3010235",
+   "editors": [],
+   "journal": "Water",
+   "page": "235",
+   "publisher": "MDPI AG",
+   "src": "crossref-search",
+   "title": "Water Radiolysis: Influence of Oxide Surfaces on H2 Production under Ionizing Radiation",
+   "type": "journal-article",
+   "volume": "3",
+   "year": 2011
   },
   "10.3410/f.1001090.17080": {
    "authors": [
@@ -276248,8 +277379,9 @@
   }
  },
  "id_aliases": {},
- "id_next": 5000,
+ "id_next": 5021,
  "ids": {
+  "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
   "10.1002/14356007.a24_507.pub2": "R2764",
   "10.1002/2013gl058955": "R3812",
@@ -276403,11 +277535,13 @@
   "10.1007/978-1-4757-4363-0": "R1091",
   "10.1007/978-1-4939-3023-4_2": "R0499",
   "10.1007/978-1-84800-322-4": "R3124",
+  "10.1007/978-3-030-11452-7_1": "R5010",
   "10.1007/978-3-030-19219-8_12": "R1725",
   "10.1007/978-3-030-19219-8_14": "R1723",
   "10.1007/978-3-030-19219-8_6": "R1724",
   "10.1007/978-3-031-29003-9_30": "R3833",
   "10.1007/978-3-0348-5793-2_9": "R0442",
+  "10.1007/978-3-319-09749-7_11": "R5007",
   "10.1007/978-3-319-09749-7_6": "R4045",
   "10.1007/978-3-319-13186-3_34": "R2790",
   "10.1007/978-3-319-19336-6_8": "R1352",
@@ -276493,6 +277627,7 @@
   "10.1007/s00220-005-1452-0": "R0656",
   "10.1007/s00392-011-0331-2": "R3223",
   "10.1007/s00411-025-01143-1": "R3386",
+  "10.1007/s00421-022-04939-x": "R5020",
   "10.1007/s00445-009-0288-4": "R2953",
   "10.1007/s00542-012-1595-9": "R2717",
   "10.1007/s10143-017-0937-6": "R1178",
@@ -276644,6 +277779,7 @@
   "10.1016/0022-4073(81)90057-1": "R0384",
   "10.1016/0022-4073(85)90040-8": "R2920",
   "10.1016/0022-4073(89)90077-0": "R3490",
+  "10.1016/0024-3795(80)90167-6": "R5012",
   "10.1016/0027-5107(93)90211-w": "R0481",
   "10.1016/0030-4018(71)90211-2": "R0017",
   "10.1016/0030-4018(73)90289-7": "R0383",
@@ -276809,6 +277945,7 @@
   "10.1016/j.epsl.2022.117894": "R4158",
   "10.1016/j.epsl.2025.119441": "R4754",
   "10.1016/j.fluid.2016.12.014": "R3261",
+  "10.1016/j.freeradbiomed.2011.12.028": "R5014",
   "10.1016/j.gca.2006.06.262": "R4320",
   "10.1016/j.gca.2006.06.482": "R1859",
   "10.1016/j.gca.2006.06.925": "R3367",
@@ -277255,6 +278392,7 @@
   "10.1017/s1473550416000252": "R1362",
   "10.1017/s1473550418000423": "R0999",
   "10.1017/s1473550419000132": "R0052",
+  "10.1017/s1473550425100025": "R5004",
   "10.1017/s1539299600013289": "R4213",
   "10.1017/s1742058x14000320": "R4195",
   "10.1017/s1743921304002170": "R2911",
@@ -277444,6 +278582,7 @@
   "10.1029/2006gl025948": "R2005",
   "10.1029/2006gl026284": "R2427",
   "10.1029/2006gl026789": "R3202",
+  "10.1029/2006gl027494": "R5006",
   "10.1029/2006gl028779": "R0727",
   "10.1029/2006je002845": "R4553",
   "10.1029/2006je002882": "R4912",
@@ -277800,6 +278939,7 @@
   "10.1038/nature24625": "R0818",
   "10.1038/nature25029": "R1749",
   "10.1038/ncomms11201": "R2772",
+  "10.1038/ncomms12808": "R5008",
   "10.1038/ncomms13262": "R3900",
   "10.1038/ncomms15423": "R2489",
   "10.1038/news.2011.205": "R4645",
@@ -277858,6 +278998,7 @@
   "10.1038/s41550-022-01702-2": "R4157",
   "10.1038/s41550-022-01823-8": "R2839",
   "10.1038/s41550-022-01835-4": "R3515",
+  "10.1038/s41550-023-02158-8": "R5000",
   "10.1038/s41550-023-02160-0": "R3494",
   "10.1038/s41550-023-02183-7": "R0600",
   "10.1038/s41550-024-02204-z": "R0843",
@@ -278343,6 +279484,7 @@
   "10.1073/pnas.1916109117": "R4399",
   "10.1073/pnas.2006177117": "R2379",
   "10.1073/pnas.2425520122": "R0043",
+  "10.1073/pnas.252649199": "R5013",
   "10.1073/pnas.71.9.3363": "R4035",
   "10.1073/pnas.77.12.6973": "R3157",
   "10.1073/pnas.96.7.3455": "R3309",
@@ -278995,6 +280137,7 @@
   "10.1089/ast.2006.0108": "R2344",
   "10.1089/ast.2006.0124": "R4308",
   "10.1089/ast.2006.0127": "R2339",
+  "10.1089/ast.2006.0128": "R5015",
   "10.1089/ast.2006.0129": "R1680",
   "10.1089/ast.2006.6.377": "R3366",
   "10.1089/ast.2007.0128": "R3799",
@@ -279040,6 +280183,7 @@
   "10.1089/ast.2022.0070": "R2000",
   "10.1089/ast.2023.0082": "R3989",
   "10.1089/ast.2024.0004": "R0232",
+  "10.1089/ham.2009.10401": "R5003",
   "10.1090/s0025-5718-1966-0234618-4": "R2238",
   "10.1090/s0025-5718-1970-0258249-6": "R1609",
   "10.1090/s0025-5718-1970-0274029-x": "R4038",
@@ -279058,6 +280202,7 @@
   "10.1093/gji/ggaf131": "R2808",
   "10.1093/gji/ggs023": "R0474",
   "10.1093/gji/ggt167": "R1010",
+  "10.1093/imamat/18.3.341": "R5011",
   "10.1093/imamat/6.3.222": "R0557",
   "10.1093/medlaw/fwu036": "R3362",
   "10.1093/mnras/108.3.292": "R4762",
@@ -279631,6 +280776,7 @@
   "10.1098/rsta.2014.0259": "R4330",
   "10.1098/rsta.2016.0252": "R0435",
   "10.1098/rsta.2019.0474": "R1892",
+  "10.1098/rstb.2024.0101": "R5017",
   "10.1101/cshperspect.a012765": "R2487",
   "10.1101/gr.7.10.959": "R1807",
   "10.1103/physrev.148.526": "R2044",
@@ -279814,6 +280960,7 @@
   "10.1109/tro.2010.2052170": "R2387",
   "10.1109/tvcg.2004.1": "R4513",
   "10.1111/1462-2920.12018": "R0915",
+  "10.1111/1462-2920.12598": "R5001",
   "10.1111/1468-0289.12076_34": "R3254",
   "10.1111/bre.12066": "R4531",
   "10.1111/cgf.13202": "R0207",
@@ -280133,6 +281280,7 @@
   "10.1126/science.1104474": "R2645",
   "10.1126/science.1105533": "R2254",
   "10.1126/science.1127173": "R4055",
+  "10.1126/science.1127376": "R5009",
   "10.1126/science.1152110": "R0505",
   "10.1126/science.11538074": "R0798",
   "10.1126/science.11538492": "R2999",
@@ -280143,6 +281291,7 @@
   "10.1126/science.1172466": "R1878",
   "10.1126/science.1187535": "R2655",
   "10.1126/science.1189406": "R4104",
+  "10.1126/science.1190371": "R5018",
   "10.1126/science.1191127": "R0760",
   "10.1126/science.1192448": "R1375",
   "10.1126/science.1204054": "R0047",
@@ -280398,6 +281547,7 @@
   "10.1364/oam.1985.wy5": "R3635",
   "10.1364/ol.24.001699": "R1685",
   "10.1364/ol.25.000347": "R3246",
+  "10.1371/journal.pbio.0050092": "R5005",
   "10.1371/journal.pone.0000457": "R0973",
   "10.1371/journal.pone.0064793": "R2003",
   "10.1371/journal.pone.0074988": "R0952",
@@ -280487,6 +281637,7 @@
   "10.33232/001c.116675": "R1239",
   "10.33232/001c.121261": "R1237",
   "10.33232/001c.144859": "R3400",
+  "10.3357/asem.3468.2013": "R5002",
   "10.3357/asem.3485.2014": "R1808",
   "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
@@ -280507,6 +281658,7 @@
   "10.3390/rs15030702": "R4753",
   "10.3390/sym16081007": "R3643",
   "10.3390/universe8070381": "R0430",
+  "10.3390/w3010235": "R5016",
   "10.3410/f.1001090.17080": "R2555",
   "10.3410/f.1001739.17081": "R2554",
   "10.3410/f.1005203.60957": "R3949",
