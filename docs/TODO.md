@@ -19378,21 +19378,6 @@ clears each one.
   clears). Version 8.1.
   Prerequisites: none. Related: GEN.996.
 
-- [ ] **TEST.543 The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real. tests/audit/sweep_atmosphere.py line 154 uses
-  STRUCTURE_RANGE, which no longer exists;
-  test_every_body_of_the_sweep_obeys_every_rule,
-  test_every_rule_is_exercised_by_air_that_the_sweep_holds and
-  test_the_ozone_rule_holds_for_earth_air_and_fails_outside_the_fits_spread
-  fail. Do: express the ozone rule's allowed spread from STRUCTURE_KNOTS
-  (the range of its knots), say why in a comment, and keep the rule's
-  meaning. Done: the three tests pass. Lock-free, generation output
-  unchanged. Version 8.1. Prerequisites: none. Related: TEST.261. Owner:
-  Aux 2 (air).
-  Prerequisites: none.
-
 - [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
   The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
   reported) ran the suite on main 7eef24a and re-ran these alone, so

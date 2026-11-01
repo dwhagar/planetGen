@@ -26,7 +26,7 @@ Rules (names as `RULES` lists them):
 import math
 
 from planetgen.describe import build as describe_build
-from planetgen.physics import aerosols, air_column, atmosphere, climate_draws, constants, gases, ozone, orbit_elements
+from planetgen.physics import aerosols, air_column, atmosphere, climate_draws, constants, gases, ozone, orbit_elements, radiation, surface_air
 from tests.audit.sweep import Rule, broken_copy
 from tests.test_atmosphere_text_consistency import _text_names
 
@@ -127,8 +127,9 @@ def _check_temperature(entry):
         return [f"no air but a greenhouse quantity of {body.greenhouse_factor!r}"]
     sigma = constants.STEFAN_BOLTZMANN_CONSTANT
     flux = _starlight_w_m2(entry)
-    expected = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K,
-                   ((1.0 - body.bond_albedo) * flux * (1.0 + body.greenhouse_factor) / (4.0 * sigma)) ** 0.25)
+    expected = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K,
+                       ((1.0 - body.bond_albedo) * flux * (1.0 + body.greenhouse_factor) / (4.0 * sigma)) ** 0.25),
+                   surface_air.MAX_SURFACE_TEMPERATURE_K)      # the air solve stops a runaway greenhouse at the molten surface (stand-in CC7)
     return [] if _close(body.surface_temperature, expected) else [f"temperature {body.surface_temperature!r}, the albedo and greenhouse give {expected!r} K"]
 
 
@@ -141,17 +142,20 @@ def _o2_pa(body):
 
 
 def _ozone_bounds(entry):
-    """`(low, high)` the stored column may take in DU for this body's oxygen and star, the low edge only for a body that kept its air."""
+    """`(low, high)` the stored column may take in DU for this body's oxygen and star, the low edge only for a body that kept its air. A body whose star's
+    flares hold the ozone flag keeps `OZONE_LOSS_REMAINING` of its column (GEN.808), so its low edge falls by that."""
     body = entry.body
     pal = ozone.o2_level_pal(_o2_pa(body), body.gravity)
     teff = entry.star.temperature
     if pal <= 0.0:
         return 0.0, 0.0
+    kept = radiation.OZONE_LOSS_REMAINING if getattr(body, "ozone_loss_flag", False) else 1.0
     if pal < ozone.PAL_MIN:
         low, high = ozone.abiotic_column_range_du(teff)
-        return low, high
+        return low * kept, high
     median = ozone.median_column_du(teff, pal)
-    return median * ozone.STRUCTURE_RANGE[0], median * ozone.STRUCTURE_RANGE[1]
+    spread = ozone.structure_range(pal)      # the models' spread at this oxygen level (STRUCTURE_KNOTS)
+    return median * spread[0] * kept, median * spread[1]
 
 
 def _check_ozone(entry):
