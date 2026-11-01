@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3043] - 2026-11-01
+
+**Headline:** The update's cache warm-up no longer fails on the Galaxy Map page while the site is held in maintenance mode.
+
+### Changed
+- **Warm-up stage 1 failed with "/galaxy answered 302".** The update holds the site closed while it warms the caches, and `/galaxy` sent the warm-up's own visit to the maintenance page, which counted as a failed page. The warm-up's visits are now let through, so stage 1 gets through on an empty galaxy and with maintenance mode on. Visitors are still sent to the maintenance page.
+
 ## [8.0.3042] - 2026-11-01
 
 **Headline:** The data check in front of every Generate job no longer fails because another check holds the check place, and a refusal now names the run that holds it.
