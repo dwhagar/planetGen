@@ -136,8 +136,7 @@ def _remnants(component, shape, seeds, monkeypatch):
 
 def test_a_satellites_remnants_scale_with_its_star_formation(monkeypatch):
     """GEN.1191: the remnant count is the systems times the rate per system times the factor of the satellite's young and old share against the solar
-    circle's (`supernova_remnant_factor`), not cut by a gas profile: the Large Cloud's row gets the order of the 59 remnants listed in it (Maggi et al. 2016,
-    arXiv:1509.09223, read), the Small Cloud fewer in proportion to its star formation."""
+    circle's (`supernova_remnant_factor`), not cut by a gas profile: the Large Cloud's row gets the order of the 59 remnants listed in it ([R2810], read), the Small Cloud fewer in proportion to its star formation."""
     rate = dict(((k, s), r) for k, s, r in component_pass.satellite_rates(tuning.PHENOMENON_MIN_MASS_SOLAR))[
         ("supernova-remnant", None)]
     seeds = range(40)

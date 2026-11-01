@@ -10,7 +10,7 @@ SUN_L = 0.72        # Kepler-51, from 0.87 solar radii at about 5700 K
 
 
 def test_kepler_51_d_is_a_thick_envelope_at_the_density_measured():
-    # 5.6 Earth masses, 9.32 Earth radii, 3.5 Earth fluxes (350 K), 0.5 Gyr (Libby-Roberts et al. 2025): "an envelope of over 30 percent"
+    # 5.6 Earth masses, 9.32 Earth radii, 3.5 Earth fluxes (350 K), 0.5 Gyr [R2673]: "an envelope of over 30 percent"
     envelope = super_puff.envelope_for_radius(5.6, 9.32, 3.5, 0.5)
     assert 0.3 < envelope < 0.5
     assert abs(super_puff.density_g_cm3(5.6, 9.32) - 0.038) < 0.009
@@ -24,7 +24,7 @@ def test_kepler_51_b_is_inside_the_envelope_range_of_lee_and_chiang():
 
 
 def test_wasp_107_b_leaves_the_envelope_law_for_the_giant_tables():
-    # 30.5 Earth masses, 0.96 Jupiter radii (10.7 Earth radii), 0.134 g/cc, core under 4.6 Earth masses (Piaulet et al. 2021)
+    # 30.5 Earth masses, 0.96 Jupiter radii (10.7 Earth radii), 0.134 g/cc, core under 4.6 Earth masses [R3516]
     assert not super_puff.covers(30.5, 0.88)
     radius = super_puff.radius_earth(30.5, 1.0 - 3.7 / 30.5, 70.0, 3.4)
     assert abs(radius - 0.96 * constants.JUPITER_RADIUS_KM / constants.EARTH_RADIUS_KM) < 0.05 * radius

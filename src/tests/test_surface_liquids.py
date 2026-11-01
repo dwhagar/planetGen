@@ -13,7 +13,7 @@ from planetgen.physics import saturation, surface_liquids as sl
 
 def test_the_table_loads_with_every_row_sourced_and_graded():
     assert len(sl.LIQUIDS) >= 50
-    assert len(set(sl.liquid_ids())) == len(sl.LIQUIDS)
+    assert len({row.id for row in sl.LIQUIDS}) == len(sl.LIQUIDS)
     for row in sl.LIQUIDS:
         assert row.kind in sl.KINDS and row.tier in sl.TIERS and row.tweak in sl.TWEAKS and row.source
         assert row.density_kg_m3 > 0 and row.viscosity_mpa_s and (row.saturation or row.boiling_k > row.melting_k)

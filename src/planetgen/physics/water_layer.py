@@ -19,7 +19,7 @@ surface area onto the smaller sphere at depth (the column mass per area grows as
 Four-step Runge-Kutta in `s`.
 
 The liquid ends where the pressure reaches the **liquidus** of the temperature at the bottom (`liquidus_pressure_pa`): the
-melting curve of ice III, V and VI recomputed from the Journaux et al. 2020 Gibbs-energy splines (design doc 2.3). Below it the
+melting curve of ice III, V and VI recomputed from the [R2204] Gibbs-energy splines (design doc 2.3). Below it the
 water is high-pressure ice, ice VI and then VII (`Column.hp_ice_km`), and an ocean with ice under it is sealed off from the
 rock.
 
@@ -51,7 +51,7 @@ LIQUIDUS_K_MPA = (
     (347.0, 2000.0), (353.8, 2200.0),
 )
 """tuple: Where liquid water stops being stable, `(K, MPa)`: ice III (251.2 K at 210 MPa), ice V (256.2 K at 350 MPa) and ice
-VI (272.1 K at 620 MPa to 353.8 K at 2200 MPa) melting, COMPUTED from the Journaux et al. 2020 splines (design doc 2.3). Liquid
+VI (272.1 K at 620 MPa to 353.8 K at 2200 MPa) melting, COMPUTED from the [R2204] splines (design doc 2.3). Liquid
 is stable below the line. The three published sets of triple points agree within 1 to 3 percent."""
 
 LIQUIDUS_SLOPE_ABOVE_MPA_PER_K = (LIQUIDUS_K_MPA[-1][1] - LIQUIDUS_K_MPA[-2][1]) / (LIQUIDUS_K_MPA[-1][0] - LIQUIDUS_K_MPA[-2][0])
@@ -96,7 +96,7 @@ MIN_RADIUS_SHARE = 0.05
 less keeps the integration finite; the caller's radius and water fraction are then inconsistent)."""
 
 ICE_LID_DENSITY_KG_M3 = 917.0
-"""float: Ice Ih at the melting point (Journaux et al. 2020: 916.72 kg/m3), the lid's density."""
+"""float: Ice Ih at the melting point ([R2204]: 916.72 kg/m3), the lid's density."""
 
 
 def surface_gravity_m_s2(mass_kg, radius_km):

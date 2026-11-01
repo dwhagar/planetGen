@@ -8,7 +8,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import system_mass as galaxy_system_mass
-from planetgen.generation import close_binary_trend, companion_classes, place_terms, system_mass
+from planetgen.generation import close_binary_trend, companion_classes, mass_ratio, place_terms, system_mass
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import imf, remnant_progenitors
@@ -84,8 +84,8 @@ def test_the_remnants_raise_the_perturber_mass_and_the_black_holes_do_most_of_it
 
 def test_the_black_hole_inputs_lie_inside_the_published_ranges():
     """GEN.541 (docs/design/generation/placement-by-population.md): the share of core-collapse stars that leave a hole
-    (the failed share, GEN.554: inside the verified 0 to 45 percent, Sukhbold et al. 2016, Table 4), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
-    Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
+    (the failed share, GEN.554: inside the verified 0 to 45 percent, [R4251: Table 4]), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
+    [R3348]: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
     1.3e8; the older estimates they list: 1e8 to 1e9)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
     collapse = imf.integral(0.0, low, high)
@@ -196,7 +196,7 @@ def test_a_g_dwarfs_chance_inside_10_au_follows_the_pooled_line_on_the_odds(fe_h
 
 
 def test_a_g_dwarfs_chance_inside_10_au_falls_with_metallicity_and_stays_below_moe_kratter_badenes_ranges():
-    # Moe, Kratter & Badenes 2019: 53, 40, 24 and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 (+-12, 6, 4, 3). Moe & Di
+    # [R3109]: 53, 40, 24 and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 (+-12, 6, 4, 3). Moe & Di
     # Stefano's Table 13 puts 0.15 +-0.03 companions inside logP 3.7 for solar-type stars, so the level is about 0.6 of
     # the pooled line's (both are in the design note); the shape follows it.
     found = [companion_classes.odds(1.0, 0.44, x, 11_400.0).within_10_au for x in (-3.0, -1.0, -0.2, 0.5)]
@@ -221,11 +221,14 @@ def test_the_chances_never_pass_one_and_a_massive_star_changes_by_the_odds_not_t
     assert m_low > 2 * m_high
 
 
-def _widest_limit(terms, system, ratio):
+def _widest_limit(terms, system):
     """The widest axis the place keeps for any star of `system` as the placed one (the heavier companion may take the primary's
     place, the limit was drawn for the star placed)."""
-    return max(place_terms.wide_axis_limit_au(
-        terms, (star.initial_mass_sol or star.mass / 1.98841e30) * ratio, system.primary_star.age) for star in system.stars)
+    def pair_mass(star):
+        birth = star.initial_mass_sol or star.mass / 1.98841e30
+        return birth * (1.0 + mass_ratio.mean_ratio(birth))
+
+    return max(place_terms.wide_axis_limit_au(terms, pair_mass(star), system.primary_star.age) for star in system.stars)
 
 
 def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
@@ -235,12 +238,11 @@ def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
     assert here.close == pytest.approx(companion_classes.odds(1.0, 0.44, 0.0, 11_400.0).close)
     # The tree of stars keeps no axis the place cannot (GEN.631): a dense place has a pair or none, and no wide one beyond.
     pairs = [system for system in _systems(terms=dense, count=400) if system.binary_type == "wide"]
-    ratio = 1.0 + sum(tuning.BINARY_MASS_RATIO_RANGE) / 2.0
-    assert all(system.wide_binary.separation_au <= _widest_limit(dense, system, ratio) for system in pairs)
+    assert all(system.wide_binary.separation_au <= _widest_limit(dense, system) for system in pairs)
     # A forced companion in a place that keeps little still keeps the place's limit.
     crowded = place_terms.PlaceTerms(60_000.0, 150.0)
     forced = [system for system in _systems(terms=crowded, BINARY_SYSTEM=True, count=60) if system.binary_type == "wide"]
-    assert all(system.wide_binary.separation_au <= _widest_limit(crowded, system, ratio) for system in forced)
+    assert all(system.wide_binary.separation_au <= _widest_limit(crowded, system) for system in forced)
 
 
 def test_the_ranges_of_separation_share_the_companions_by_moe_and_di_stefanos_lines():

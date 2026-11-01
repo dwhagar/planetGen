@@ -5,10 +5,10 @@ The Harris catalog of parameters for Milky Way globular clusters (GEN.297): 157 
 metallicities, integrated magnitudes and colours, radial velocities, velocity dispersions and structural parameters.
 
 The file is `mwgc.dat`, the December 2010 revision of the catalog, from Harris's page at McMaster
-(https://physwww.mcmaster.ca/~harris/mwgc.dat; Harris 1996, AJ 112, 1487; cite it as "Harris 1996 (2010 edition)"). It is three
+(https://physwww.mcmaster.ca/~harris/mwgc.dat; [R1827]; cite it as "[R1827] (2010 edition)"). It is three
 fixed-width tables, one per part (positions; metallicity and photometry; velocities and structure), each row a cluster. The reader
 joins them by cluster name into one `Cluster` per row; a blank cell is None. Until now the cluster laws of `tuning.py` were
-"recalled from Harris 1996"; this is the table they are checked against and fitted to.
+"recalled from [R1827]"; this is the table they are checked against and fitted to.
 
 The reader raises `fetch.DataMissing` when the file has not been downloaded.
 """
@@ -25,10 +25,10 @@ FILE = "mwgc.dat"
 DATASET = fetch.Dataset(
     key="harris_clusters",
     title="Harris catalog of parameters for Milky Way globular clusters (2010 edition)",
-    source="Harris 1996, AJ 112, 1487 (2010 edition), McMaster University",
+    source="[R1827] (2010 edition), McMaster University",
     pieces=(fetch.Piece(FILE, "https://physwww.mcmaster.ca/~harris/mwgc.dat",
                         "b457a690adc422fb2e8e05a23e1de50b62d1d5ac10dce99963c956c1b17ca658", 49364),),
-    replaces="the globular cluster laws of tuning.py, recalled from Harris 1996",
+    replaces="the globular cluster laws of tuning.py, recalled from [R1827]",
     fill="SC4",
     fallback="the recalled medians of the cluster laws in tuning.py",
 )

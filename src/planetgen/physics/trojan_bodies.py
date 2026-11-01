@@ -20,7 +20,7 @@ Class M world is terrestrial, so it has the mass of a terrestrial world (`CLASS_
 
 The formation gate (inputs named for the planet architecture oligarch chain, `physics/planet_architecture.py`): a trojan grows from the solids in the 1:1 zone of the
 secondary, so the draw needs `solids_in_zone_earth` (the solids the oligarch chain leaves in the secondary's co-orbital feeding zone, Earth masses) and the disc lifetime
-(`disc_lifetime_myr`; the trojan must grow while gas is present, Cresswell and Nelson 2009). `can_form` is true when the zone holds `FORMATION_EFFICIENCY` times
+(`disc_lifetime_myr`; the trojan must grow while gas is present, [R0919]). `can_form` is true when the zone holds `FORMATION_EFFICIENCY` times
 the trojan's mass in solids and the disc lasted `MIN_DISC_LIFETIME_MYR`. It is a gate, not a rate: whether a trojan appears is whatever the generated disc allows.
 
 Use:

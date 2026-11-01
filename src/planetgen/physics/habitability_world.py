@@ -46,13 +46,16 @@ section 8):
   the heaviest survival equipment and a note naming the host. No X-ray binaries
   are generated yet; the rule is by the host's class.
 
-A gas giant has no surface and no score (every field `None`).
+A gas giant has no surface and no score (every field `None`), except the two energy inputs the sheet shows for every body (GEN.784):
+`energy_flux_w_m2` is the energy a giant radiates through its 1 bar level, the starlight it absorbs (its Bond albedo, `giant_draw.BOND_ALBEDO`)
+plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma T_eff^4`; `flux_variation` is the swing of its starlight that
+`insolation` gives every planet.
 """
 
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -175,11 +178,16 @@ def values_from_body(body):
         "daylight_hours": getattr(body, "daylight_hours", None),
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
         "period_years": getattr(body, "period", None),
+        "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
+        "ring_outer_km": getattr(body, "ring_outer_km", None),
+        "ring_optical_depth": getattr(body, "ring_optical_depth", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "native_life": native_life(getattr(body, "life_class", None), getattr(body, "life_stage", None),
                                    getattr(body, "life_system_age_gyr", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
+        "surface_liquid_acid_layer": getattr(body, "surface_liquid_acid_layer", None),
+        "surface_liquid_ammonia_wt": getattr(body, "surface_liquid_ammonia_wt", None),
         "life_class": getattr(body, "life_class", None),
         "life_class_variant": getattr(body, "life_class_variant", None),
         "life_animal_grade": getattr(body, "life_animal_grade", None),
@@ -295,6 +303,14 @@ def inventories(values):
     carbon, nitrogen = air_inventories_kg(values)
     return {"H": hydrogen, "C": max(hydrogen, carbon / EARTH_CARBON_KG),
             "N": max(hydrogen, nitrogen / EARTH_NITROGEN_KG)}
+
+
+def giant_energy_flux_w_m2(body):
+    """The energy a giant radiates through its 1 bar level, W/m2 (GEN.784): `sigma T_eff^4` of the starlight it absorbs and the heat of its own
+    interior (`giant_draw.effective_temperature_k`). A giant that is a moon has no starlight of its own here (`giant_draw.starlight_w_m2`) and
+    radiates its own heat."""
+    starlight = giant_draw.starlight_w_m2(body) or 0.0
+    return constants.STEFAN_BOLTZMANN_CONSTANT * giant_draw.effective_temperature_k(starlight, giant_draw.own_flux_w_m2(body)) ** 4
 
 
 def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2):
@@ -480,6 +496,8 @@ def generate(body, internal_flux_w_m2):
     swing = getattr(body, "flux_variation", None)
     _clear(body)
     if body.body_type == "g":
+        body.flux_variation = swing
+        body.energy_flux_w_m2 = giant_energy_flux_w_m2(body)
         return
     body.flux_variation = swing
     values = values_from_body(body)

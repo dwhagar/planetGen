@@ -4,8 +4,8 @@
 The star mass function census (TEST.454, item 1 of the star mass function chain, GEN.922): the generator's stars, bin by bin in
 mass, against the published curves of the Galactic disk.
 
-`tests/data/mass_function_curve.json` holds the curves as data (Chabrier 2003's log-normal fits for single stars and for systems,
-Kroupa 2001's broken power law), the mass bins, and which curves each sample is held to. Two samples, drawn at the default galaxy's
+`tests/data/mass_function_curve.json` holds the curves as data ([R0705]'s log-normal fits for single stars and for systems,
+[R2498]'s broken power law), the mass bins, and which curves each sample is held to. Two samples, drawn at the default galaxy's
 reference solar position by the population model the generator fills a sector with (`stellar_evolution.sample_living_star`):
 
 - **Primaries.** The star the generator draws as the primary of a system. Held to the system function (the curve of systems, not of
@@ -117,7 +117,7 @@ def draw_stars(count, label="primaries", edges=None, report_edges=None):
     "brown_dwarfs", "phase_bins", "wd_mass_sum", "wd_count", "errors", "error_count"}`. `edges` are the mass bins the norms bind and
     `report_edges` those above them the sample only reports.
     """
-    from planetgen.generation import multistar, star_population
+    from planetgen.generation import helium_core_draw, multistar, star_population
     from planetgen.physics.stellar_evolution import sample_living_star
     from planetgen.util import draw
 
@@ -133,6 +133,7 @@ def draw_stars(count, label="primaries", edges=None, report_edges=None):
         try:
             population = star_population.pick_population(populations, rng=draw)
             initial, age_gy, state = sample_living_star(population=population)
+            state = helium_core_draw.with_helium_core(state, initial, age_gy)    # the star as `Star` makes it (GEN.996)
             white_dwarf = state["yerkes_class"] == "VII"
             placed = multistar.Placed("white-dwarf" if white_dwarf else "star", state["mass_sol"], initial,
                                       fe_h=state["metallicity_fe_h"])

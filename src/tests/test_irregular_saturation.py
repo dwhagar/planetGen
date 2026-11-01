@@ -84,7 +84,7 @@ def test_a_single_scalar_on_the_collision_probability_cannot_fix_the_counts_abov
 
 
 def test_the_repos_belt_law_does_not_describe_an_irregular_zone():
-    """`belt_mass_earth` (Wyatt et al. 2007) for a zone round a planet, the planet as the central mass: far under the mass the giants hold, and a factor 100 across them."""
+    """`belt_mass_earth` [R4785] for a zone round a planet, the planet as the central mass: far under the mass the giants hold, and a factor 100 across them."""
     left = {}
     for name, (distance, mass, _) in GIANTS.items():
         zone = irregular_zone.zone(distance, mass, SUN)

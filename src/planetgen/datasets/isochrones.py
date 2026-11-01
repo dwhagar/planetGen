@@ -4,8 +4,7 @@
 The main sequence of the MIST isochrone grid, against [Fe/H] (GEN.548), and the tracks after it (GEN.935).
 
 Source: MESA Isochrones and Stellar Tracks (MIST) v1.2, the "basic" isochrones with rotation v/vcrit = 0.4, solar-scaled
-([a/Fe] = 0), 15 values of [Fe/H] from -4.00 to +0.50 and 107 ages from 10^5 to 10^10.3 years (Choi et al. 2016, ApJ 823,
-102, doi:10.3847/0004-637X/823/2/102; Dotter 2016, ApJS 222, 8, doi:10.3847/0067-0049/222/1/8; mist.science). The
+([a/Fe] = 0), 15 values of [Fe/H] from -4.00 to +0.50 and 107 ages from 10^5 to 10^10.3 years ([R0773, R1150]; mist.science). The
 archive is 220 MB and holds every phase; setup downloads it once, checks its sha256, keeps the main-sequence rows
 (phase 0) of each isochrone (initial mass, log L, log Teff, log R and the present mass: about 340,000 rows, 5 MB) in
 `main_sequence.npz` and, in `post_main_sequence.npz`, the tracks from the end of the main sequence on that
@@ -40,10 +39,10 @@ POST_DERIVED = "post_main_sequence.npz"
 DATASET = fetch.Dataset(
     key="isochrones",
     title="MIST v1.2 isochrones, main sequence (v/vcrit 0.4, solar-scaled)",
-    source="Choi et al. 2016 (ApJ 823, 102) and Dotter 2016 (ApJS 222, 8), MIST v1.2, mist.science",
+    source="[R0773, R1150], MIST v1.2, mist.science",
     pieces=(fetch.Piece(ARCHIVE, "https://mist.science/data/tarballs_v1.2/" + ARCHIVE,
                         "bb3f42743f75676fa8bf6ca63c4cb2723a0839b77204efebcae39fa4610a92c8", 221507784, transient=True),),
-    replaces="the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note",
+    replaces="the [R0254] track at solar metallicity and the fitted relations of the stellar-composition note",
     fill="SC1",
     fallback="no MIST point, so no luminosity, temperature, radius or lifetime for a star (an open item on the star)",
     derived=(DERIVED, POST_DERIVED),
@@ -394,19 +393,6 @@ def pre_main_sequence_arrival_yr(mass_sol, fe_h):
     if found[0] is None or found[1] is None:
         return None
     return 10.0 ** (found[0] + (found[1] - found[0]) * weight)
-
-
-def lowest_arrival_mass_sol(fe_h):
-    """The lightest initial mass, solar masses, for which `pre_main_sequence_arrival_yr` has an age at `fe_h`: the lightest star still contracting in the
-    oldest isochrone that has one, the larger of the two grid metallicities' (GEN.1173), or None when the rows have no contracting star."""
-    below, above, _ = _bracket(_grid(), fe_h)
-    lowest = []
-    for isochrone in (below, above):
-        edge = isochrone.pre_edge
-        if edge is None or len(edge) < 2:
-            return None
-        lowest.append(float(np.log10(edge[:, 1]).min()))
-    return float(10.0 ** max(lowest)) * (1.0 + 1e-9)
 
 
 def main_sequence_point(mass_sol, age_gy, fe_h, clamp=False):

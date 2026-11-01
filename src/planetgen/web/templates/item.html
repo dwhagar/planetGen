@@ -5,6 +5,7 @@
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/formerly.html" import formerly %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
+{% from "partials/day_counter.html" import day_counter_panel %}
 {#- The Admin menu of this one body (Regenerate, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
 {%- set groups = [] %}
 {%- if edit %}
@@ -20,6 +21,7 @@
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 <script type="module" src="{{ static_url('objecttree.js') }}"></script>
 {% if example %}<script type="module" src="{{ static_url('bodyview.js') }}"></script>{% endif %}
+{% if day_counter and day_counter.ticks %}<script type="module" src="{{ static_url('daycounter.js') }}"></script>{% endif %}
 {% endblock %}
 {% block subhead %}
 <div class="page-subhead">
@@ -97,6 +99,7 @@
   </figure>
 </section>
 {%- endif %}
+{{ day_counter_panel(day_counter) if day_counter else "" }}
 {%- set symbols = habitability_symbol_row(habitability, page=page_url('object_page', ref=object_ref)) if habitability else "" %}
 {%- if planet %}
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
@@ -116,7 +119,7 @@
   {%- if planet.life_class %}
   {%- if planet.life_class.paragraph %}<p class="life-summary">{{ planet.life_class.paragraph }}</p>{% endif %}
   {%- if planet.life_class.readings %}
-  <table class="life-readings">
+  <div class="table-scroll" tabindex="0"><table class="life-readings">
     <caption class="sr-only">Each kind of life on this {{ kind_label|lower }}</caption>
     <thead><tr><th scope="col">Kind <a class="help-link help-mark" href="{{ page_url('life_help_page') }}" aria-label="What the kinds of life are">?</a></th><th scope="col">How much <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='abundance') }}" aria-label="What the words for how much mean">?</a></th><th scope="col">Trend <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='trend') }}" aria-label="What the words for trend mean">?</a></th><th scope="col">Security <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='security') }}" aria-label="What the words for security mean">?</a></th>{% if planet.life_class.readings|selectattr("left")|list %}<th scope="col">Conditions last</th>{% endif %}</tr></thead>
     <tbody>
@@ -124,7 +127,7 @@
       <tr><th scope="row">{{ r.kind }}</th><td>{{ r.abundance }}</td><td>{{ r.trend }}</td><td>{{ r.security }}</td>{% if planet.life_class.readings|selectattr("left")|list %}<td>{{ r.left }}</td>{% endif %}</tr>
       {%- endfor %}
     </tbody>
-  </table>
+  </table></div>
   {%- endif %}
   {%- if planet.life_class.facts %}
   <dl class="life-facts">

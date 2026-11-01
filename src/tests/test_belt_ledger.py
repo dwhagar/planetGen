@@ -10,7 +10,7 @@ import pytest
 from planetgen.physics import belt_ledger as bl, belt_mass, constants, formation
 
 EARTH_KG = constants.EARTH_MASS_TO_KG
-MAIN_BELT_KG = 4.008e-4 * EARTH_KG        # Pitjeva and Pitjev 2018; a test point only
+MAIN_BELT_KG = 4.008e-4 * EARTH_KG        # [R3538, R3539]; a test point only
 KUIPER_BELT_KG = 1.97e-2 * EARTH_KG       # the same, with the 31 largest objects; a test point only
 KENYON_BROMLEY_MAX_KG = 4.0 / 3.0 * math.pi * (1.75e6) ** 3 * 1000.0     # the largest icy body of a young disc: 1 750 km radius, 1 g/cm3
 

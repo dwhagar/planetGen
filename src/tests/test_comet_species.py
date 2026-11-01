@@ -6,7 +6,7 @@ import pytest
 
 from planetgen.physics import comet_species as cs
 
-MEASURED_67P = {"N2": 8.9e-4, "Ar": 5.8e-6, "OCS": 4.1e-4, "SO2": 1.3e-3}      # Rubin et al. 2019, per water
+MEASURED_67P = {"N2": 8.9e-4, "Ar": 5.8e-6, "OCS": 4.1e-4, "SO2": 1.3e-3}      # [R3835], per water
 
 
 def test_the_carbon_in_co_is_half_of_the_nebulas():

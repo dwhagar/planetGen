@@ -55,7 +55,7 @@ def test_the_stellar_masses_of_10000_seeds_follow_the_double_schechter_function(
 
 
 def test_the_function_is_the_papers_per_dex_density():
-    """Baldry et al. 2012 Eq. 6 per dex: at M = M* the density is ln(10) e^-1 (phi1 + phi2)."""
+    """[R0238: Eq. 6] per dex: at M = M* the density is ln(10) e^-1 (phi1 + phi2)."""
     at_knee = mass_chain.stellar_mass_density_per_dex(mass_chain.LOG_M_CHARACTERISTIC)
     assert at_knee == pytest.approx(math.log(10.0) * math.exp(-1.0) * (mass_chain.PHI_1 + mass_chain.PHI_2))
 
@@ -133,7 +133,7 @@ def test_the_halo_function_is_tinkers_and_the_variance_is_normalised_to_sigma_8(
     assert 0.218 < a_norm < 0.248
     with pytest.raises(ValueError):
         halo_function.tinker_parameters(100.0)
-    # the number of halos per Mpc^3 per dex: about 4e-3 at 1e12 and 4e-5 at 1e14 solar masses (Tinker et al. 2008 Fig. 5)
+    # the number of halos per Mpc^3 per dex: about 4e-3 at 1e12 and 4e-5 at 1e14 solar masses ([R4367: Fig. 5])
     assert halo_function.mass_function_per_dex(12.0, 630.0) == pytest.approx(3.6e-3, rel=0.1)
     assert halo_function.mass_function_per_dex(14.0, 630.0) == pytest.approx(3.8e-5, rel=0.15)
     assert halo_function.sigma(1.0e12) == pytest.approx(2.29, abs=0.03)

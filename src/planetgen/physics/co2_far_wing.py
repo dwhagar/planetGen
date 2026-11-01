@@ -6,7 +6,7 @@ The far wings of carbon dioxide (GEN.1019, docs/design/composition/line-opacity.
 
 The ExoMolOP k-tables cut every line at 25 cm-1 from its centre, so a dense carbon dioxide air (Venus: 92 bar) is too clear between its
 bands. This module is the opacity of what the cutoff leaves out: for every band `j` of strength `S_j`, the Lorentz tail of its lines beyond
-the cutoff, times the sub-Lorentzian factor `chi` of Perrin and Hartmann 1989 (JQSRT 42, 311), out to a reach.
+the cutoff, times the sub-Lorentzian factor `chi` of [R3490] (JQSRT 42, 311), out to a reach.
 
     kappa_i = sum_j S_j  < (1/pi) [x_c gamma_c chi_cc(d) + (1 - x_c) gamma_f chi_cn(d)] / (gamma^2 + d^2) >    for cutoff <= d <= reach
 

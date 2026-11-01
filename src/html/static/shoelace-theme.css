@@ -36,7 +36,7 @@
   --sl-color-primary-200: color-mix(in srgb, var(--accent) 32%, var(--bg-elevated));
   --sl-color-primary-300: color-mix(in srgb, var(--accent) 52%, var(--bg-elevated));
   --sl-color-primary-400: color-mix(in srgb, var(--accent) 75%, var(--bg-elevated));
-  --sl-color-primary-500: color-mix(in srgb, var(--accent) 90%, var(--bg-elevated));
+  --sl-color-primary-500: color-mix(in srgb, var(--accent) 92%, var(--text));
   --sl-color-primary-600: var(--accent);
   --sl-color-primary-700: color-mix(in srgb, var(--accent) 85%, var(--text));
   --sl-color-primary-800: color-mix(in srgb, var(--accent) 70%, var(--text));

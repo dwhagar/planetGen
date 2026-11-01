@@ -23,7 +23,7 @@ import pytest
 
 from planetgen.describe import build as describe_build
 from planetgen.describe.quantity import inline_text as describe_inline
-from planetgen.galaxy import enclosed_mass, scales
+from planetgen.galaxy import enclosed_mass, mass_chain, scales, seed as galaxySeed
 from planetgen.physics.units import pc_to_ly
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
@@ -263,12 +263,13 @@ def test_galactic_orbit_is_independent_of_stellar_mass():
 
 def test_sun_like_star_galactic_orbit_matches_real_measurements():
     """
-    At the Sun's own galactocentric distance (8.128 kpc), a star's circular orbital
-    speed/period should land near the Sun's own measured values: ~220-240
-    km/s circular velocity and a ~225-250 million-year "galactic year".
+    At the Sun's own galactocentric distance (8.128 kpc) in the Milky Way's measured shape (`mathcheck._reference_galaxy_shape`), a star's circular orbital
+    speed/period should land near the Sun's own measured values: ~220-240 km/s circular velocity and a ~225-250 million-year "galactic year". (The model's
+    potential gives about 208 km/s and 240 Myr there; a generated galaxy has its own rotation curve, GEN.339, so only the Milky Way's shape is held to the Sun.)
     """
     s = make_star("G2V")
-    speed_kms, period_gy = s.calculate_galactic_orbit(pc_to_ly(mathcheck.SUN_REFERENCE_RADIUS_PC))
+    with galaxySeed.seeded(mass_chain.FALLBACK_SEED, "test", "sun", shape=mathcheck._reference_galaxy_shape()):
+        speed_kms, period_gy = s.calculate_galactic_orbit(pc_to_ly(mathcheck.SUN_REFERENCE_RADIUS_PC))
     assert 150 <= speed_kms <= 260
     assert 0.15 <= period_gy <= 0.30
 

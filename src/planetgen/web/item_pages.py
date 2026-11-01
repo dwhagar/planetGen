@@ -26,7 +26,7 @@ from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
 from planetgen.web import formerly
 from planetgen.web.lib import apiclient
-from planetgen.web.lib import bodyview, facility_display, life_air_chart, planet_layout, planet_summary
+from planetgen.web.lib import bodyview, day_counter, facility_display, life_air_chart, planet_layout, planet_summary
 from planetgen.web.lib.habitability_chips import chips_html
 from planetgen.web.lib.fmt import esc
 from planetgen.web.lib.systempage import facilities_by_host, facilities_html
@@ -708,6 +708,7 @@ def render_item(kind, printed_id):
         former=formerly.view(found.get("former_designations")),
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
+        day_counter=day_counter.counter(row, kind) if kind in ("planet", "moon") and row is not None else None,
         life_air=life_air_view(db, kind, printed_id, row),
         **with_region(sheet_context(sheet), found),
         **({"planet": planet_sections(name, row, sheet, species, piece, life_readings_view(db, kind, printed_id, row))} if kind in ("planet", "moon") else {}),

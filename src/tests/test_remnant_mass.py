@@ -11,7 +11,7 @@ from planetgen.util import draw
 
 
 def _cummings_2018_mist(initial):
-    """Cummings et al. 2018, equations 4, 5 and 6, written out here: the end pieces carried beyond their ranges, held inside the range."""
+    """[R0961], equations 4, 5 and 6, written out here: the end pieces carried beyond their ranges, held inside the range."""
     if initial < 2.85:
         mass = 0.080 * initial + 0.489
     elif initial < 3.60:
@@ -62,7 +62,7 @@ def test_a_black_hole_mass_is_one_uniform_draw_over_the_range():
 
 
 def test_a_neutron_star_mass_is_the_slow_pulsar_gaussian_held_to_its_range():
-    """Ozel and Freire 2016: slow pulsars 1.49 +- 0.19 (`tuning.STELLAR_NS_MASS_GAUSSIANS`); few are above 1.9 solar masses."""
+    """[R3396]: slow pulsars 1.49 +- 0.19 (`tuning.STELLAR_NS_MASS_GAUSSIANS`); few are above 1.9 solar masses."""
     assert remnant_mass.mass_range_sol("neutron-star") == tuning.NEUTRON_STAR_MASS_RANGE_SOLAR
     low, high = tuning.NEUTRON_STAR_MASS_RANGE_SOLAR
     with draw.bound(3):

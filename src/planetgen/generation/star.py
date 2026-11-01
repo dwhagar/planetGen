@@ -20,7 +20,7 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 import math
 import re
 
-from planetgen.generation import forced_star
+from planetgen.generation import forced_star, helium_core_draw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence,
@@ -124,7 +124,7 @@ class Star(StellarObject):
         This function employs a tiered approach to model the stellar wind's
         mass-loss rate and velocity, which are highly dependent on the star's
         evolutionary stage (Yerkes luminosity class) and spectral type. Three
-        physical models are applied: the Nieuwenhuijzen & de Jager (1990)
+        physical models are applied: an
         empirical mass-loss fit for every evolved star (giants through
         hypergiants), a radiation-driven-wind power law for hot O/B dwarfs,
         and an empirical coronal-wind scaling for cool main-sequence dwarfs
@@ -167,8 +167,8 @@ class Star(StellarObject):
         # plus Reimers' Law with two different eta values for "giants" vs
         # "supergiants") stitched together at Yerkes-class boundaries -- the
         # exact structure that let the old hypergiant constant drift ~9
-        # orders of magnitude out of calibration unnoticed. Nieuwenhuijzen &
-        # de Jager (1990) is a single empirical mass-loss fit spanning this
+        # orders of magnitude out of calibration unnoticed. An
+        # empirical mass-loss fit spanning this
         # whole regime, so one formula and one continuous curve now covers
         # all of it (see constants.py for the correction applied
         # above its known high-luminosity overestimation threshold).
@@ -203,7 +203,7 @@ class Star(StellarObject):
         else:
             # For cool main-sequence stars, mass loss is driven by magnetic activity, not
             # radiation pressure. The Reimers' law scaling (L*R/M) is inaccurate here.
-            # We use a more modern, empirically-derived formula from Wood et al. (2005),
+            # We use a more modern, empirically-derived formula from [R4756],
             # which relates mass-loss rate to surface X-ray flux.
             # M-dot ~ R^2 * F_x^1.34, and F_x ~ L^-0.5
             # This results in a scaling relationship of M-dot ~ R^2 * L^-0.5
@@ -429,6 +429,7 @@ class Star(StellarObject):
                     fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
                     fe_h=fe_h)
 
+        state = helium_core_draw.with_helium_core(state, initial_mass_sol, age)
         self._apply_params(star_params(initial_mass_sol, age, state))
         log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "
                                       f"age {age:.3g} Gyr")
@@ -444,6 +445,7 @@ class Star(StellarObject):
         self.luminosity = params["luminosity_w"]
         self.initial_mass_sol = params["initial_mass_sol"]
         self.phase_end_age_gy = params["phase_end_age_gy"]
+        self.nuclear_arrival_age_gy = params.get("nuclear_arrival_age_gy")
         self._model_age_lifespan = (params["age_gy"], params["lifespan_gy"])
         self._model_fe_h = params.get("metallicity_fe_h")
         self._model_rotation_hours = params.get("rotation_period_hours")

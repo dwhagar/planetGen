@@ -6,17 +6,17 @@ The Kepler transit multiplicity of a simulated sky (GEN.728, GEN.503 and GEN.504
 
 How many stars Kepler would have seen with one, two, three, ... transiting planets if the sky were the generated one, so that the
 number of planets per star and the way they are spread over the systems can be checked against the multiplicity the survey saw
-(`planet_occurrence.TRANSIT_MULTIPLICITY`, Zhu et al. 2018). The planets-per-star statistics of the intrinsic population need no
+(`planet_occurrence.TRANSIT_MULTIPLICITY`, [R4898]). The planets-per-star statistics of the intrinsic population need no
 selection model. The multiplicity does, twice over: whether a planet transits depends on the whole system's orientation, and whether
 the pipeline finds it on `kepler_recovery`.
 
 A system is a mapping with `host_mass_solar`, `host_radius_solar` and `planets`, each planet a mapping with `period_d` and
-`radius_earth`, and optionally `inclination_deg` (its orbit's angle to the system's plane; else drawn from the Zhu et al. 2018
+`radius_earth`, and optionally `inclination_deg` (its orbit's angle to the system's plane; else drawn from the [R4898]
 dispersion law for a system of that many planets). One orientation of the plane is drawn per observation (isotropic: the cosine of the
 angle to the line of sight is uniform), each planet gets a phase about it, and a planet is found if its impact parameter is under 1
 and the recovery chance of `kepler_recovery.recovery_at` is drawn in its favour. Circular orbits, as the recovery model is.
 
-Law of the dispersion (Zhu et al. 2018, arXiv:1802.09526, READ): the rms inclination of a system of `k` planets about its plane is
+Law of the dispersion ([R4898], READ): the rms inclination of a system of `k` planets about its plane is
 `SIGMA_DEG_AT_FIVE (k / 5) ** INCLINATION_POWER`, 0.8 degrees at five planets and a power between -4 and -2 (1 sigma: below -3).
 
 Use:
@@ -31,14 +31,14 @@ from planetgen.physics import kepler_recovery
 from planetgen.util import draw
 
 SIGMA_DEG_AT_FIVE = 0.8
-"""float: The rms mutual inclination of a five-planet system, degrees (Zhu et al. 2018: 0.8, 1 sigma 0.65 to 0.96)."""
+"""float: The rms mutual inclination of a five-planet system, degrees ([R4898]: 0.8, 1 sigma 0.65 to 0.96)."""
 
 INCLINATION_POWER = -3.0
-"""float: The dispersion goes as the number of planets to this power (Zhu et al. 2018: between -4 and -2 at 2 sigma, below -3 at 1 sigma)."""
+"""float: The dispersion goes as the number of planets to this power ([R4898]: between -4 and -2 at 2 sigma, below -3 at 1 sigma)."""
 
 MAX_DISPERSION_DEG = 20.0
 """float: A system of one or two planets is not held flat by the law: it is capped here (a stand-in; the single planets of Kepler are
-the hottest systems, Zhu et al. 2018)."""
+the hottest systems, [R4898])."""
 
 
 def inclination_sigma_deg(planet_count):

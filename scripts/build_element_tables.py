@@ -13,16 +13,16 @@ them are. Sources, all read on the day the files were built:
 * `ciaaw-standard.html` and `ciaaw-abridged.html`: CIAAW, Standard Atomic Weights and Abridged Standard Atomic Weights
   (https://ciaaw.org/atomic-weights.htm, https://www.ciaaw.org/abridged-atomic-weights.htm), the "Atomic Weights 2021"
   report with the 2024 revisions of Gd, Lu and Zr (Prohaska et al., Pure Appl. Chem. 94, 573, 2022,
-  doi:10.1515/pac-2019-0603).
+  [R3615]).
 * `nist-compositions.txt`: NIST, Atomic Weights and Isotopic Compositions with Relative Atomic Masses (the ASCII listing
   of https://physics.nist.gov/cgi-bin/Compositions/stand_alone.pl, `isotype=some` for the natural composition and
   `isotype=all` for every isotope's mass); the isotopic compositions are IUPAC's, the masses the atomic mass evaluation's.
-* `nubase2020.txt`: NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, doi:10.1088/1674-1137/abddae), from
+* `nubase2020.txt`: NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, [R2443]), from
   https://www-nds.iaea.org/amdc/ame2020/nubase_4.mas20.txt: half-lives, decay modes and branchings, and the mass
   excesses of the atomic mass evaluation AME2020 (Wang et al., Chin. Phys. C 45, 030003, 2021).
 * The decay energies of the radionuclides come from Lugaro, Ott and Kereszturi, Prog. Part. Nucl. Phys. 102, 1 (2018),
-  doi:10.1016/j.ppnp.2018.05.002, Table 4 (arXiv:1808.00233), and the heat constants of the four long-lived parents
-  from Dye, Rev. Geophys. 50, RG3007 (2012), doi:10.1029/2012RG000400, Table 2 (arXiv:1111.6099), typed in below.
+  [R2768: Table 4] [R2768], and the heat constants of the four long-lived parents
+  from Dye, Rev. Geophys. 50, RG3007 (2012), [R1203: Table 2] [R1203], typed in below.
 """
 
 import argparse
@@ -80,7 +80,7 @@ LUGARO_ERG = {
     "Cm-247": 2.67e-5, "Nb-92": 2.03e-6, "Sm-146": 4.05e-6, "Cl-36": 3.95e-7, "Fe-60": 4.16e-6, "Pu-244": 2.50e-5,
     "Be-7": 7.99e-8, "Ca-41": 4.31e-9, "Pb-205": 8.35e-9, "K-40": 1.05e-6, "Rb-87": 1.31e-7, "Sm-147": 3.70e-6,
     "Lu-176": 1.24e-6, "Re-187": 9.90e-10, "Th-232": 6.46e-5, "U-235": 7.10e-5, "U-238": 7.64e-5}
-"""dict: Energy released per decay (erg), Table 4 of Lugaro et al. 2018: the full Q value for alpha decays, the electrons'
+"""dict: Energy released per decay (erg), Table 4 of [R2768]: the full Q value for alpha decays, the electrons'
 and radiation's energies without the neutrinos for beta decays; for a parent with a chain, the whole chain to the stable
 end."""
 
@@ -94,7 +94,7 @@ DYE_2012 = {
     "K-40": {"abundance_percent": 0.0117, "decay_constant_per_s": 17.200e-18, "neutrinos": 0.893, "q_pj": 0.213,
              "q_neutrino_pj": 0.103, "q_heat_pj": 0.110, "heat_uw_per_kg": 28.47},
 }
-"""dict: Dye 2012 Table 2: the four parents of the Earth's radiogenic heat, per decay (the whole chain for U and Th)."""
+"""dict: [R1203: Table 2]: the four parents of the Earth's radiogenic heat, per decay (the whole chain for U and Th)."""
 
 
 def _clean(value):
@@ -349,7 +349,7 @@ def build(source_dir=None):
         **common, "title": "The elements: atomic number, symbol, name and atomic weight (GEN.438)",
         "sources": [
             "CIAAW, Standard Atomic Weights (ciaaw.org/atomic-weights.htm): the 'Atomic Weights 2021' report (Prohaska et al., "
-            "Pure Appl. Chem. 94, 573, 2022, doi:10.1515/pac-2019-0603) with the 2024 revisions of Gd, Lu and Zr",
+            "Pure Appl. Chem. 94, 573, 2022, [R3615]) with the 2024 revisions of Gd, Lu and Zr",
             "CIAAW, Abridged Standard Atomic Weights (ciaaw.org/abridged-atomic-weights.htm): the weight to five digits and "
             "its uncertainty, the one value an element with an interval standard weight has"],
         "notes": "atomic_weight is the abridged conventional value in g/mol and atomic_weight_uncertainty its stated "
@@ -362,20 +362,20 @@ def build(source_dir=None):
         "sources": [
             "NIST, Atomic Weights and Isotopic Compositions with Relative Atomic Masses (physics.nist.gov/Comp): the "
             "relative atomic mass (u) of each isotope and its natural isotopic composition (IUPAC)",
-            "NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, doi:10.1088/1674-1137/abddae), "
+            "NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, [R2443]), "
             "www-nds.iaea.org/amdc/ame2020/nubase_4.mas20.txt: ground-state half-lives (the year is the Julian year of "
             "365.25 days), decay modes and their branchings in percent",
-            "Lugaro, Ott and Kereszturi, Prog. Part. Nucl. Phys. 102, 1 (2018), doi:10.1016/j.ppnp.2018.05.002, Table 4: "
+            "Lugaro, Ott and Kereszturi, Prog. Part. Nucl. Phys. 102, 1 (2018), [R2768: Table 4]: "
             "decay_energy_j, the energy released per decay (the whole chain for a parent that has one), without the "
             "neutrinos",
-            "Dye, Rev. Geophys. 50, RG3007 (2012), doi:10.1029/2012RG000400, Table 2: dye_2012, the heat constants of "
+            "Dye, Rev. Geophys. 50, RG3007 (2012), [R1203: Table 2]: dye_2012, the heat constants of "
             "238U, 235U, 232Th and 40K (kept as the cross-check: the newer evaluation wins where they differ)"],
         "notes": "abundance is an atom fraction of the element in normal material, null for an isotope that is not "
                  "primordial; modes are NUBASE2020's [mode, percent] pairs; masses are of the neutral atom.",
         "isotopes": isotopes}
     series_file = {
         **common, "title": "The decay chains of 238U, 235U and 232Th (GEN.438)",
-        "sources": ["NUBASE2020 (doi:10.1088/1674-1137/abddae): the decay modes and branchings, followed from the parent "
+        "sources": ["NUBASE2020 [R2443]: the decay modes and branchings, followed from the parent "
                     f"down every branch of at least {MIN_BRANCH_PERCENT}% to the stable lead isotope",
                     "q_kev is the energy of the step computed from the mass excesses of NUBASE2020 (the atomic mass "
                     "evaluation AME2020): for alpha decay ME(parent) - ME(daughter) - ME(4He), otherwise "

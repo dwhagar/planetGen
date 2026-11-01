@@ -1,6 +1,6 @@
 {
  "title": "Potassium depletion of the bulk silicate of differentiated bodies against CI chondrites (GEN.492)",
- "source": "Dauphas et al. 2022, Planetary Science Journal 3:29 (arXiv-free open access, doi 10.3847/PSJ/ac2e09), Table 1: weight ratios K/U of the bulk silicate Earth, Moon, Mars and Vesta, the angrite parent body (ADOR angrite) and the Mercury surface (MESSENGER), with CI chondrites from Barrat et al. 2012",
+ "source": "[R1003], Planetary Science Journal 3:29 (arXiv-free open access, [R1003]), Table 1: weight ratios K/U of the bulk silicate Earth, Moon, Mars and Vesta, the angrite parent body (ADOR angrite) and the Mercury surface (MESSENGER), with CI chondrites from [R0270]",
  "label": "READ",
  "reference": {"name": "CI chondrites", "k_ppm": 550.0, "u_ppm": 0.0077, "k_over_u": 71429.0},
  "bodies": [

@@ -36,11 +36,17 @@ LAST_SEED = 80
 """int: The seed after which the sample stops growing (the tests then fail on the missing oxygenic worlds)."""
 
 
+def _makes_oxygen(world):
+    """Whether the world has oxygenic life that can build the oxygen (a delay): a request for a habitable world only raises the odds (GEN.1130), so
+    a sample of them holds worlds that cannot, and the tests read the ones that can."""
+    return bool(world.life_class_id and evolution.releases_oxygen(world.life_class_id)) and bo.profile_of(world).delay_gyr is not None
+
+
 @pytest.fixture(scope="module")
 def worlds():
     held = list(_worlds(range(0, FIRST_SEEDS)))
     seed = FIRST_SEEDS
-    while seed < LAST_SEED and sum(1 for w in held if w.life_class_id and evolution.releases_oxygen(w.life_class_id)) < OXYGENIC_WORLDS_WANTED:
+    while seed < LAST_SEED and sum(1 for w in held if _makes_oxygen(w)) < OXYGENIC_WORLDS_WANTED:
         held += list(_worlds([seed]))
         seed += 1
     return held

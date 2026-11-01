@@ -7,15 +7,15 @@ What happens to a belt over a system's life: giant-planet events, the star's gia
 A belt is the surviving part of what formed, and each event that acts on it is a pure function from a `BeltState` to a new one that keeps what is left, what was scattered inward and a line of text the page can show. Nothing calls it yet
 (the belt wiring, GEN.1069 and later, runs the events a system's history holds in order). Mass is a share of the belt as formed; the ledger (`belt_ledger.py`) and the grinding (`belt_mass.py`) turn it into kilograms.
 
-1. **A giant-planet event** (`giant_event`). A Grand Tack-type migration through the belt leaves `GRAND_TACK_SURVIVAL` of it (2e-3 to 1e-2, Walsh et al. 2011 and Morbidelli et al. 2015, READ), a giant-planet instability alone
-   `INSTABILITY_SURVIVAL` (0.1 to 0.5; 50 to 90 percent lost, Walsh 2011). The share is drawn log-uniform over the range (the widest range until a population synthesis narrows it) from a stream, so a system's history is reproducible.
+1. **A giant-planet event** (`giant_event`). A Grand Tack-type migration through the belt leaves `GRAND_TACK_SURVIVAL` of it (2e-3 to 1e-2, [R3150, R4603], READ), a giant-planet instability alone
+   `INSTABILITY_SURVIVAL` (0.1 to 0.5; 50 to 90 percent lost, [R4603]). The share is drawn log-uniform over the range (the widest range until a population synthesis narrows it) from a stream, so a system's history is reproducible.
 2. **The giant branch** (`engulf`). A belt that overlaps the radius the star's envelope reaches (`mass_loss.engulfment_radius_au`) is not lost whole: the part inside is, and the part outside keeps its share of the mass
    (the surface density goes as `a^-SURFACE_DENSITY_SLOPE`, so the mass between two distances goes as `a^(2 - slope)`). Only a belt entirely inside is lost.
-3. **Mass loss** (`mass_loss`). When the star loses mass slowly every orbit widens by `M_before / M_after` (adiabatic invariance; Debes and Sigurdsson 2002, READ: a planet beyond 5 au survives and widens), the belt with them.
+3. **Mass loss** (`mass_loss`). When the star loses mass slowly every orbit widens by `M_before / M_after` (adiabatic invariance; [R1031], READ: a planet beyond 5 au survives and widens), the belt with them.
    If giants remain, the sudden change moves their resonances through the belt and a share `MASS_LOSS_SCATTER_SHARE` times the fraction of mass lost is thrown inward; with no giants nothing destabilises it.
-4. **A companion** (`limit`). A close companion truncates a belt outside the stability limit (Holman and Wiegert 1999, in `orbits.holman_wiegert_critical_semimajor_axis`) and a circumbinary belt starts beyond the inner one
+4. **A companion** (`limit`). A close companion truncates a belt outside the stability limit ([R1990], in `orbits.holman_wiegert_critical_semimajor_axis`) and a circumbinary belt starts beyond the inner one
    (`holman_wiegert_circumbinary_a_crit_au`); the part outside the limit is lost.
-5. **White dwarf pollution** (`pollution_rate_g_s`, `is_polluted`). The scattered rock falls on the white dwarf over `DELIVERY_MYR`; the rate is the scattered mass over that time. Koester, Gaensicke and Farihi (2014, READ) measure rates from a few 1e5 to a few 1e8 g/s;
+5. **White dwarf pollution** (`pollution_rate_g_s`, `is_polluted`). The scattered rock falls on the white dwarf over `DELIVERY_MYR`; the rate is the scattered mass over that time. [R2415] (READ) measure rates from a few 1e5 to a few 1e8 g/s;
    a white dwarf is polluted when the rate is at least `MIN_POLLUTION_RATE_G_S` (their lowest, which is also about what can be detected). So a belt of 1e18 to 1e21 kg scattered over 100 Myr spans the observed range.
 
 The Solar System is a test target (a main-belt-mass belt scattered at a white dwarf makes a rate at the top of the observed range). The fractions of white dwarfs polluted (27 to 50 percent accreting now, 56 percent with metals, BR14) are checks on the population this gives, not inputs.
@@ -42,10 +42,10 @@ GRAND_TACK = "grand tack"
 INSTABILITY = "instability"
 
 GRAND_TACK_SURVIVAL = (2.0e-3, 1.0e-2)
-"""tuple: The share of a belt left after a giant migrates through it (Walsh et al. 2011, arXiv:1201.5177, and Morbidelli et al. 2015, arXiv:1501.06204, READ: depleted by a factor of several hundred). [Stand-in BR4 of 6.95, row BHS1, tier T2, tweak L1.]"""
+"""tuple: The share of a belt left after a giant migrates through it ([R4603], and [R3150], READ: depleted by a factor of several hundred). [Stand-in BR4 of 6.95, row BHS1, tier T2, tweak L1.]"""
 
 INSTABILITY_SURVIVAL = (0.1, 0.5)
-"""tuple: The share of a belt left after a giant-planet instability alone (Walsh 2011, READ: 50 to 90 percent lost). [Stand-in BR5 of 6.95, row BHS1, tier T2, tweak L1.]"""
+"""tuple: The share of a belt left after a giant-planet instability alone ([R4603], READ: 50 to 90 percent lost). [Stand-in BR5 of 6.95, row BHS1, tier T2, tweak L1.]"""
 
 SURFACE_DENSITY_SLOPE = 1.5
 """float: The belt's solids go as `a^-slope` (the minimum-mass nebula, as `scatter.DISC_SLOPE`), so the mass between two distances goes as `a^(2 - slope)`. [Stand-in BHS2, tier T6, tweak L1.]"""
@@ -54,10 +54,10 @@ MASS_LOSS_SCATTER_SHARE = 0.5
 """float: The share of a belt thrown inward by the sudden mass loss of the star, per unit fraction of the star's mass lost, if giants remain. [Stand-in BHS3, tier T9, tweak L3.]"""
 
 DELIVERY_MYR = 100.0
-"""float: How long the scattered rock takes to fall on the white dwarf (Koester et al. 2014's cooling ages are 20 to 200 Myr; the middle in the log). [Stand-in BHS4, tier T6, tweak L1.]"""
+"""float: How long the scattered rock takes to fall on the white dwarf ([R2415]'s cooling ages are 20 to 200 Myr; the middle in the log). [Stand-in BHS4, tier T6, tweak L1.]"""
 
 MIN_POLLUTION_RATE_G_S = 1.0e5
-"""float: The lowest accretion rate seen on a polluted white dwarf (Koester, Gaensicke and Farihi 2014, arXiv:1404.2617, READ: a few 1e5 to a few 1e8 g/s). [Stand-in BHS5, tier T2, tweak L0.]"""
+"""float: The lowest accretion rate seen on a polluted white dwarf ([R2415], READ: a few 1e5 to a few 1e8 g/s). [Stand-in BHS5, tier T2, tweak L0.]"""
 
 _SECONDS_PER_MYR = 3.15576e13
 

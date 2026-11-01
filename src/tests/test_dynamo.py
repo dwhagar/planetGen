@@ -42,7 +42,7 @@ def test_a_dead_mars_has_no_field_however_it_turns():
 
 def test_jupiter_is_driven_by_a_tenth_of_its_heat_and_gives_its_moment_and_four_gauss():
     jupiter = dynamo.field(dynamo.giant_power_w(3.35e17), 0.84 * 7.1492e7, 0.0, 2000.0, _spin(9.925))
-    assert jupiter.moment_a_m2 == pytest.approx(1.5e27, rel=0.15)                         # 1.5e27 A m2 (Connerney et al. 2018, second-hand)
+    assert jupiter.moment_a_m2 == pytest.approx(1.5e27, rel=0.15)                         # 1.5e27 A m2
     assert jupiter.dipole_fraction > 0.99 and jupiter.rossby < 0.05                      # a fast, strongly driven dynamo is dipolar
     assert jupiter.surface_equatorial_t(7.1492e7) == pytest.approx(4.2e-4, rel=0.15)      # 4.2 gauss
 

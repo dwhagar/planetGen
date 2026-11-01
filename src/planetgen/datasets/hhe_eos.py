@@ -3,8 +3,8 @@
 """
 The hydrogen-helium equation of state of giant planets and brown dwarfs (GEN.733, registry fill GS1).
 
-Source: Chabrier and Debras 2021 (ApJ, "A new equation of state for dense hydrogen-helium mixtures II: taking into account
-hydrogen-helium interactions") and Chabrier, Mazevet and Soubiran 2019 (ApJ 872, 51), the (T, P) tables of `DirEOS2021.tar.gz`
+Source: [R0708] (ApJ, "A new equation of state for dense hydrogen-helium mixtures II: taking into account
+hydrogen-helium interactions") and [R0709], the (T, P) tables of `DirEOS2021.tar.gz`
 (16 MB, 12 text files) on Gilles Chabrier's page at the ENS Lyon (perso.ens-lyon.fr/gilles.chabrier/DirEOS). Three tables are
 read, each a rectangular grid of 121 isotherms (log T = 2.0 to 8.0, step 0.05) of 441 pressures (log P = -9.0 to 13.0, P in GPa,
 step 0.05), with columns log T, log P, log rho [g/cm3], log U [MJ/kg], log S [MJ/kg/K], the response functions and the adiabatic
@@ -18,7 +18,7 @@ for a change of helium (`ivl_slope`, below) in `hhe_eos.npz` (about 0.5 MB) and 
 in the solid phase, beyond the first-order quantum correction of the ions and at very low density are unphysical, and the
 interactions are uncertain outside the temperature-density range of the simulations they come from (the README of the archive).
 
-The reader gives the density at any helium mass fraction by the ideal volume law, the way Chabrier et al. 2019 mix hydrogen
+The reader gives the density at any helium mass fraction by the ideal volume law, the way [R0709] mix hydrogen
 and helium: the mixture table at 0.275 with its specific volume moved by `(Y - 0.275)` times `ivl_slope`, the volume the two pure
 fluids differ by over the mixture's, which keeps the interaction term of the 0.275 table (a stand-in of the structure model, GS3).
 The slope is held to `IVL_SLOPE_RANGE`, since the pure tables hold unphysical values where a fluid is solid or the density is
@@ -61,12 +61,12 @@ DIATOMIC_ADIABATIC_GRADIENT = 2.0 / 7.0
 under the table's 100 K edge."""
 
 TABLE_HELIUM_SHARE = 0.275
-"""float: The helium mass fraction Y of the mixture table (Chabrier and Debras 2021)."""
+"""float: The helium mass fraction Y of the mixture table [R0708]."""
 
 DATASET = fetch.Dataset(
     key="hhe_eos",
-    title="Chabrier and Debras 2021 hydrogen-helium equation of state, (T, P) tables",
-    source="Chabrier and Debras 2021 (ApJ) and Chabrier, Mazevet and Soubiran 2019 (ApJ 872, 51), DirEOS2021, ENS Lyon",
+    title="[R0708] hydrogen-helium equation of state, (T, P) tables",
+    source="[R0708, R0709], DirEOS2021, ENS Lyon",
     pieces=(fetch.Piece(ARCHIVE, "https://perso.ens-lyon.fr/gilles.chabrier/DirEOS/" + ARCHIVE,
                         "45f316790ce20d5d1ce0abee4db308521b5bfdc5526d0997141a2784834feeff", 16367726, transient=True),),
     replaces="the n = 1 polytrope of a gas giant, the n = 3/2 polytrope of a brown dwarf and the constant-density layers of an ice giant",
