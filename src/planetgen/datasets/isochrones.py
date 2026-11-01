@@ -288,6 +288,7 @@ def _grid():
     stat = os.stat(path)
     _SEEN.clear()
     _EDGES.clear()
+    _EDGE_BRACKETS.clear()
     _LIMITS.clear()
     _SEEN.update(grid=grid, dataset=DATASET, env=os.environ.get(fetch.CACHE_DIR_ENV), path=path, checked=now,
                  stamp=(stat.st_mtime_ns, stat.st_size), token=next(_TOKENS))
@@ -339,13 +340,43 @@ def _edge_table(isochrone):
     return cached
 
 
+_EDGE_BRACKETS = {}
+"""dict: For a birth [Fe/H] already asked about, the arrival and departure tables of the two isochrones that bracket it and the weight between them
+(`_edge_bracket`), by [Fe/H]. Cleared with `_EDGES` when `_grid` reads a different grid, and when it holds `_EDGE_BRACKETS_LIMIT` values."""
+
+_EDGE_BRACKETS_LIMIT = 4096
+"""int: How many birth [Fe/H] values `_EDGE_BRACKETS` holds before it starts over (a million stars each ask for their own)."""
+
+
+def _edge_bracket(grid, fe_h):
+    """`(arrival below, departure below, arrival above, departure above, weight, below is above)`: the tables of the isochrones that bracket `fe_h`
+    (`_bracket`, `_edge_table`) and the weight of the upper one, kept for the next star of the same [Fe/H]."""
+    found = _EDGE_BRACKETS.get(fe_h)
+    if found is None:
+        if len(_EDGE_BRACKETS) >= _EDGE_BRACKETS_LIMIT:
+            _EDGE_BRACKETS.clear()
+        below, above, weight = _bracket(grid, fe_h)
+        low, high = _edge_table(below), (_edge_table(above) if above is not below else None)
+        found = _EDGE_BRACKETS[fe_h] = (low[0], low[1], low[0] if high is None else high[0], low[1] if high is None else high[1], weight,
+                                        high is None)
+    return found
+
+
+def _along_rows(near, far, along):
+    """The row `along` of the way from `near` to `far` (each component `n + (f - n) * along`)."""
+    n0, n1, n2, n3 = near
+    f0, f1, f2, f3 = far
+    return (n0 + (f0 - n0) * along, n1 + (f1 - n1) * along, n2 + (f2 - n2) * along, n3 + (f3 - n3) * along)
+
+
 def edge_point(mass_sol, fe_h, departure):
     """
     `(log10 L/Lsun, log10 Teff/K, log10 R/Rsun, present mass in Msun)` of a star of initial mass `mass_sol` and `fe_h` as it arrives on the
     main sequence (`departure` False) or leaves it (True): `main_sequence_point(..., clamp=True)` at its first and last
     age, read from a table of 3000 masses, interpolated in log mass and in [Fe/H] (GEN.652: a table build and every
     star's record read these a million times; the rows themselves cost a few hundred microseconds each). None for a mass
-    off the table or between two the grid holds no row for.
+    off the table or between two the grid holds no row for. The two isochrones' tables and the weight are kept for each [Fe/H]
+    asked (PERF.230), and the interpolation is written out component by component with the same arithmetic.
     """
     low, high = EDGE_MASS_RANGE_SOL
     if not low <= mass_sol <= high:
@@ -353,16 +384,22 @@ def edge_point(mass_sol, fe_h, departure):
     position = (math.log10(mass_sol) - _EDGE_LOW_LOG) * _EDGE_STEPS_PER_DEX
     index = min(int(position), EDGE_MASS_STEPS - 1)
     along = position - index
-    below, above, weight = _bracket(_grid(), fe_h)
-    found = []
-    for isochrone in (below, above):
-        rows = _edge_table(isochrone)[1 if departure else 0]
+    arrival_below, departure_below, arrival_above, departure_above, weight, single = _edge_bracket(_grid(), fe_h)
+    rows = departure_below if departure else arrival_below
+    near, far = rows[index], rows[index + 1]
+    if near is None or far is None:
+        return None
+    first = _along_rows(near, far, along)
+    if single:
+        second = first
+    else:
+        rows = departure_above if departure else arrival_above
         near, far = rows[index], rows[index + 1]
         if near is None or far is None:
             return None
-        found.append(tuple(n + (f - n) * along for n, f in zip(near, far)))
-    first, second = found
-    return tuple(a + (b - a) * weight for a, b in zip(first, second))
+        second = _along_rows(near, far, along)
+    return (first[0] + (second[0] - first[0]) * weight, first[1] + (second[1] - first[1]) * weight,
+            first[2] + (second[2] - first[2]) * weight, first[3] + (second[3] - first[3]) * weight)
 
 
 def _arrival_log_age(isochrone, log_mass):
