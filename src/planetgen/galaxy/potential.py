@@ -235,7 +235,3 @@ def current():
         shape = shape_draw.default_shape(seed)
     return for_galaxy(shape, seed)
 
-
-def current_circular_speed_kms(radius_pc):
-    """The circular speed, km/s, at cylindrical `radius_pc` in the plane of the galaxy the running unit belongs to (`current`); a float for a float."""
-    return circular_speed_kms(current(), radius_pc)
