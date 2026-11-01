@@ -22,6 +22,7 @@ import sys
 
 from planetgen.db import store
 from planetgen.galaxy import version_history
+from planetgen.generation import generator_battery
 from planetgen.util import log
 
 
@@ -43,15 +44,29 @@ def _galaxy_databases(config):
     return found
 
 
-def record_all(config):
+def record_all(config, progress=None):
     """Adds a history row for every planned galaxy; returns `[(database, Recorded)]` (OPS.15: the key and whether the
-    generated output changed)."""
+    generated output changed). `progress(done, total)` is called as the generator battery's cases are worked out."""
     control = store.get_control_connection(store.control_mysql_config(config), ensure_schema=False)
     try:
-        return [(name, version_history.record(control, name, seed))
-                for name, seed in _galaxy_databases(config) if seed is not None]
+        planned = [(name, seed) for name, seed in _galaxy_databases(config) if seed is not None]
+        battery = generator_battery.running_digest(progress) if planned else None
+        return [(name, version_history.record(control, name, seed, battery=battery)) for name, seed in planned]
     finally:
         control.close()
+
+
+def _record_with_bar(config):
+    """`record_all` with a bar on a terminal (the cases done and the time left), a line per case without one."""
+    if not sys.stdout.isatty():
+        return record_all(config, progress=lambda done, total: print(f"  {done} of {total} generator test cases done") if done else None)
+    from rich.progress import BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeRemainingColumn
+    with Progress(TextColumn("  generator test cases"), BarColumn(), MofNCompleteColumn(), TimeRemainingColumn(), transient=True) as bar:
+        task = bar.add_task("cases", total=None)
+
+        def advance(done, total):
+            bar.update(task, completed=done, total=total)
+        return record_all(config, progress=advance)
 
 
 def format_history(config):
@@ -89,7 +104,7 @@ def main():
     log.apply_debug_arguments(args, parser)
     config = store.mysql_config_from_args(args)
     try:
-        recorded = record_all(config)
+        recorded = _record_with_bar(config)
     except Exception as exc:  # noqa: BLE001
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
