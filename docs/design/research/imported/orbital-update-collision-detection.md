@@ -140,8 +140,6 @@ This ensures that regardless of whether time steps are one day or ten years, obj
 
 ### Refrences
 
-* Brent, R. P. (1973). _Algorithms for Minimization without Derivatives_. Prentice-Hall.
-* Higham, N. J. (2002). _Accuracy and Stability of Numerical Algorithms_ (2nd ed.). Society for Industrial and Applied Mathematics.
-* Ortega, J. M., & Rheinboldt, W. C. (1970). _Iterative Solution of Nonlinear Equations in Several Variables_. Academic Press.
+* [R1936]
 
 

@@ -49,7 +49,7 @@ JS_FILES = (".js", ".mjs")
 
 KEEP = (
     "docs/REFERENCES.", "docs/reference/references-data.json", "docs/references/",
-    "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py",
+    "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py", "scripts/rewrite_bibliographies.py", "src/tests/test_rewrite_bibliographies.py",
     "DATA-LICENSE.md", "LICENSE.md", "CHANGELOG.md",
     "src/tests/test_references.py", "src/tests/test_citations_links.py", "src/tests/test_references_crawl.py", "src/tests/test_references_pages.py", "src/tests/test_citations_outside_the_registry.py",
     "src/planetgen/datasets/catalogue.py",
