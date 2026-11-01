@@ -16821,6 +16821,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
 
+- [ ] **ADM.136 A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug)**
+  Boss (2026-10-31, 9:25 PM EDT, as the lane reported 01:25:37 UTC): a
+  New galaxy job stalled waiting on a generation run started by another
+  process, and the run that holds the machine is not yet identified.
+  #4675 now names the holder in the log. Do: (1) read the holder's run
+  record (title, kind, start, process) from the job log of the stalled
+  job and from the run page, and say whether it is a live run, a dead
+  run whose owner process is gone, or the same job's own earlier run;
+  (2) if the holder is dead, make the run line free it (the existing
+  dead-holder check, `_free_dead_holder`, must cover this case: a run
+  whose process no longer exists, a run killed by the host, or a run
+  left by an update); (3) if it is live, say who started it and why it
+  counts as a generation run. Done: a test that reproduces the holder
+  state found, and a New galaxy job that starts after the stale holder
+  is cleared. Lock-free, generation output unchanged. Owner: the thread
+  that built #4675 (session on the data check). Version 8.1.
+  Prerequisites: none. Related: ADM.95, PERF.227.
+  Prerequisites: none.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
