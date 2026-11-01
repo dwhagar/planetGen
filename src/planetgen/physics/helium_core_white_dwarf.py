@@ -5,14 +5,14 @@ The Helium-Core White Dwarf of a Close Binary (GEN.996)
 =======================================================
 
 A star under about 2.3 solar masses climbs the red giant branch with a degenerate helium core, and its radius is set by the core
-and hardly at all by the envelope on top of it (Refsdal and Weigert 1971; Webbink, Rappaport and Savonije 1983), Rappaport et
+and hardly at all by the envelope on top of it [R5077], Rappaport et
 al. 1995's fit: `R = R0 Mc^4.5 / (1 + 4 Mc^4) + 0.5` solar radii for a core of `Mc` solar masses, with `R0` 5500 at Pop I
 metallicity (Z 0.02) and 3300 at Pop II (Z 0.001). The core grows to about 0.45 solar masses before the helium flash. A giant in
 a close pair fills its Roche lobe when its radius reaches the lobe's, and the envelope it then loses (stable overflow, or a
 common envelope that is ejected) leaves the helium core it had at that moment: a helium-core white dwarf of 0.18 to 0.45 solar
 masses, where the single-star relation (`remnant_mass.white_dwarf_mass_sol`) gives 0.55 or more. About a tenth of the white
-dwarfs of the solar neighbourhood are such low-mass objects (Liebert et al. 2005, as quoted by Brown et al. 2011, ApJ 737, 23);
-the 20 pc sample has 7.4 percent under 0.45 solar masses (Giammichele et al. 2012).
+dwarfs of the solar neighbourhood are such low-mass objects [R5072];
+the 20 pc sample has 7.4 percent under 0.45 solar masses [R1547].
 
 This module is the physics only: the radius of a giant with a given core, the core a lobe of a given size is reached at, and the
 white dwarf a pair leaves. The pair's size and masses are the generator's own (the period law and the mass-ratio law), so the share
@@ -31,7 +31,7 @@ _LOG_Z_SUN = math.log10(0.02)
 
 
 def giant_radius_rsun(core_mass_sol, fe_h=0.0):
-    """The radius, solar radii, of a red giant with a helium core of `core_mass_sol` solar masses (Rappaport et al. 1995) at
+    """The radius, solar radii, of a red giant with a helium core of `core_mass_sol` solar masses [R5071] at
     birth [Fe/H] `fe_h`. Rises with the core; 1.6 at 0.15, 24 at 0.3 and 154 at 0.45 solar masses for Pop I."""
     m = core_mass_sol
     return _radius_constant(fe_h) * m ** 4.5 / (1.0 + 4.0 * m ** 4) + 0.5

@@ -32,42 +32,6 @@ This report details the notable biological extremes, physiological oddities, and
 
 ### References
 
-Alderac Entertainment Group. (2003). *Stargate SG-1 roleplaying game: Core rulebook*. Alderac Entertainment Group.
-
-Andorian. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Andorian](https://memory-alpha.fandom.com/wiki/Andorian)
-
-Antedean. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Antedean](https://memory-alpha.fandom.com/wiki/Antedean)
-
-Benzite. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Benzite](https://memory-alpha.fandom.com/wiki/Benzite)
-
-Denobulan. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Denobulan](https://memory-alpha.fandom.com/wiki/Denobulan)
-
-Drayan. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Drayan](https://memory-alpha.fandom.com/wiki/Drayan)
-
-Ferengi. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Ferengi](https://memory-alpha.fandom.com/wiki/Ferengi)
-
-Goa'uld. (n.d.). In *Stargate Wiki*. Retrieved October 2, 2026, from [https://stargate.fandom.com/wiki/Goa%27uld](https://stargate.fandom.com/wiki/Goa%27uld)
-
-Horta. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Horta](https://memory-alpha.fandom.com/wiki/Horta)
-
-Illyrian. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Illyrian](https://memory-alpha.fandom.com/wiki/Illyrian)
-
-Klingon. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Klingon](https://memory-alpha.fandom.com/wiki/Klingon)
-
-Nox. (n.d.). In *Stargate Wiki*. Retrieved October 2, 2026, from [https://stargate.fandom.com/wiki/Nox](https://stargate.fandom.com/wiki/Nox)
-
-Ocampa. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Ocampa](https://memory-alpha.fandom.com/wiki/Ocampa)
-
 [R3502]
-Cited by: 137
 
 [R3965]
-Cited by: 312
-
-Sith abomination. (n.d.). In *Wookieepedia*. Retrieved October 2, 2026, from [https://starwars.fandom.com/wiki/Sith_abomination](https://starwars.fandom.com/wiki/Sith_abomination)
-
-Tholian. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Tholian](https://memory-alpha.fandom.com/wiki/Tholian)
-
-Vulcan. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Vulcan](https://memory-alpha.fandom.com/wiki/Vulcan)
-
-Wraith. (n.d.). In *Stargate Wiki*. Retrieved October 2, 2026, from [https://stargate.fandom.com/wiki/Wraith](https://stargate.fandom.com/wiki/Wraith)
