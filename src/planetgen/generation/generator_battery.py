@@ -247,8 +247,8 @@ def case_value(name):
 
 def generator_battery_digest(progress=None):
     """
-    Runs the battery and returns its `BatteryDigest`. No database, no network, no clock; about 3 to 5 seconds, most
-    of it the first sector.
+    Runs the battery and returns its `BatteryDigest`. No database, no network, no clock; most of the time is the bright-star scatter
+    case, which builds the sampling tables of the stellar populations.
 
     Args:
         progress (callable, optional): Called as `progress(done, total)` before the first case (`done` 0) and after each

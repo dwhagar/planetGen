@@ -294,3 +294,15 @@ def test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns
         own = sp.bright_star_fraction(500.0, population)
         assert own > least * solar, (population, own, solar)
     assert sp.massive_star_fraction(8.0, "young") > 0.0
+
+
+def test_a_bright_share_is_worked_out_without_a_sampling_tables_bounds(monkeypatch):
+    """The share of stars that are bright needs the measure of a few stars a cell and no bound: the version-key battery
+    asks it of 23 populations, and building a table's bounds for each took minutes."""
+    def refuse(*_args, **_kwargs):
+        raise AssertionError("a bright share read a measure bound")
+    monkeypatch.setattr(sp, "_bright_measure_bound", refuse)
+    sp._bright_fraction.cache_clear()
+    share = sp.bright_star_fraction(2500.0, "old")
+    assert 0.0 < share < 1.0
+    assert sp.bright_star_fraction(2500.0, "old", mass_range=(8.0, None)) <= share
