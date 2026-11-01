@@ -48,7 +48,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | TEST.553 | test_every_author_year_citation_has_an_outcome in test_references.py is red on main (19 keys, bug) (bug) |  |  |
 | GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) |  |  |
 | DOC.101 | Imported research notes: about 140 web-page, standards and fan-wiki lines in 8 notes have no home in the reference registry |  |  |
-| PERF.230 | Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical |  |  |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 
 ## Phase 2: What a signed-in user gets
