@@ -8,7 +8,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.physics import life_timeline as timeline
-from planetgen.util import draw
+from planetgen.util import draw, request_odds
 
 UNIT = (1.0,) * timeline.STEPS
 
@@ -68,28 +68,37 @@ def test_a_world_that_never_makes_oxygen_stops_at_photosynthesis():
     assert ages[2:] == (None,) * (timeline.STEPS - 2) and None not in ages[:2]
 
 
-def test_a_forced_civilization_finishes_inside_the_age_and_moves_the_run_by_one_draw():
-    with draw.bound("forced-a"):
-        waits = timeline.forced_waits(4.0, 1.0, 1.0)
+def test_a_requested_civilization_moves_the_run_by_one_draw():
+    with draw.bound("request-a"):
+        timeline.raised_waits(4.0, 1.0, 1.0)
         after = draw.random()
-    ages = timeline.schedule(waits, 1.0, 1.0)
-    assert ages[-1] <= 4.0 + 1e-9
-    with draw.bound("forced-a"):
+    with draw.bound("request-a"):
         draw.random()
         assert draw.random() == after, "one draw of the run's stream however many tries it took"
 
 
-def test_a_forced_timeline_that_cannot_fit_is_squeezed_to_fit():
-    with draw.bound("forced-b"):
-        waits = timeline.forced_waits(1.0, 0.25, 0.5, tries=3)
-    assert timeline.schedule(waits, 0.25, 0.5)[-1] <= 1.0 + 1e-6
+def test_a_request_raises_the_odds_of_a_timeline_that_finishes_and_forces_none():
+    """The odds of finishing inside the age are multiplied by `tuning.REQUEST_ODDS` (a chance of c becomes `raised_chance(c)`), and some timelines
+    still do not finish: nothing is squeezed to fit."""
+    age, factor, delay = 4.0, 1.0, 1.0
+    runs = 1500
+    with draw.bound("request-b"):
+        plain = sum(timeline.schedule(timeline.unit_waits(), factor, delay)[-1] <= age for _ in range(runs)) / runs
+        raised = [timeline.schedule(timeline.raised_waits(age, factor, delay), factor, delay)[-1] for _ in range(runs)]
+    share = sum(last is not None and last <= age for last in raised) / runs
+    expected = request_odds.raised_chance(plain)
+    assert 4 * plain < share
+    assert share == pytest.approx(expected, abs=0.04)
+    assert share < 1.0
 
 
-def test_a_forced_timeline_has_none_when_the_oxygen_never_comes_or_comes_too_late():
-    with draw.bound("forced-c"):
-        assert timeline.forced_waits(5.0, 1.0, None) is None
-        assert timeline.forced_waits(5.0, 1.0, 5.0) is None
-        assert timeline.forced_waits(5.0, 1.0, None, oxygen_at_start=True) is not None
+def test_a_request_on_a_world_that_cannot_fit_a_civilization_leaves_it_without_one():
+    with draw.bound("request-c"):
+        waits = timeline.raised_waits(1.0, 0.25, 0.5, tries=3)
+        assert timeline.schedule(waits, 0.25, 0.5)[-1] > 1.0
+        for _ in range(30):                        # it never makes oxygen: no timeline reaches a civilization, and the call still answers
+            waits = timeline.raised_waits(5.0, 1.0, None)
+        assert timeline.schedule(waits, 1.0, None)[-1] is None
 
 
 def test_the_shares_of_the_stages_stay_where_the_tuning_says():

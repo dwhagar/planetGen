@@ -6,7 +6,7 @@ The Initial Mass Function (GEN.926, GEN.927, GEN.928)
 
 The one place the generator's initial mass function lives: `xi(M) dM`, the number of stars born in `dM` solar masses, a
 continuous piecewise power law `k M^-alpha` between the edges in `tuning.IMF_BREAKS_SOL` with the slopes in
-`tuning.IMF_SLOPES`. Those rows are the Chabrier (2003) function for individual stars of the Galactic disk (GEN.927): the
+`tuning.IMF_SLOPES`. Those rows are the [R0705] function for individual stars of the Galactic disk (GEN.927): the
 log-normal below one solar mass (`tuning.IMF_BELL_*`) cut into segments 0.05 dex wide, each a power law through the log-normal
 at both ends, and a `M^-2.3` power law above one solar mass up to 150.
 
@@ -22,7 +22,7 @@ out in six modules (the draw and the count in `stellar_evolution`, the moments i
 in `hii`, the mass return in `galaxy.disk_history`, the grid in `star_population`, the cluster check in `mathcheck`), each
 joining the segments its own way; a change of the curve is now a change of the rows and of this module.
 
-`mathcheck` keeps its own written-out copy of the Chabrier (2003) function on purpose: it is the check that this one still
+`mathcheck` keeps its own written-out copy of the [R0705] function on purpose: it is the check that this one still
 is what the literature says.
 """
 

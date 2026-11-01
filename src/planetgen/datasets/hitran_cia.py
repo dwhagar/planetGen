@@ -4,7 +4,7 @@
 Collision-induced absorption of the gas pairs the greenhouse model needs (GEN.715, AD11): the binary absorption coefficient
 `k(nu, T)` in cm5 per molecule2, reduced to the band means of the infrared opacity.
 
-Source: the HITRAN collision-induced absorption files (Karman et al. 2019, Icarus 328, 160, doi:10.1016/j.icarus.2019.02.034; the
+Source: the HITRAN collision-induced absorption files ([R2267]; the
 2011, 2021 and 2024 releases named below), from hitran.org/data/CIA/main:
 
 - N2-N2 (2021), O2-O2 (2024), N2-O2 (2024), CO2-CO2 (2024), N2-CH4 (2024), N2-H2 (2024), CO2-CH4 (2024), CO2-H2 (2024),
@@ -30,7 +30,7 @@ import numpy as np
 from planetgen.datasets import fetch, ir_ktables
 
 DERIVED = "ir_cia.npz"
-SOURCE = "HITRAN collision-induced absorption (Karman et al. 2019)"
+SOURCE = "HITRAN collision-induced absorption [R2267]"
 URL = "https://hitran.org/data/CIA/main/"
 
 FILES = {
@@ -139,7 +139,7 @@ def derive(folder):
 DATASET = fetch.Dataset(
     key="ir_cia",
     title="Collision-induced absorption of N2, O2, CO2, H2, He and CH4 pairs (HITRAN CIA, 2011 to 2024 releases)",
-    source="Karman et al. 2019 (Icarus 328, 160), HITRAN collision-induced absorption files from hitran.org",
+    source="[R2267], HITRAN collision-induced absorption files from hitran.org",
     pieces=tuple(fetch.Piece(name, URL + name, sha, size, transient=True) for name, sha, size in FILES.values()),
     replaces="the coarse pair coefficients of the grey infrared opacity, read at six temperatures from a part-03 table",
     fill="AD11",

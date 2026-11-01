@@ -28,11 +28,11 @@ def test_hydrogen_escapes_from_an_earth_like_body_and_the_heavy_gases_stay():
     assert result.constants["escape_kept"]["H2"] < 1e-3
     assert result.mole_fractions["N2"] == pytest.approx(0.78 / 0.9974, rel=0.02)
     assert sum(result.mole_fractions.values()) == pytest.approx(1.0)
-    assert result.constants["exobase_k"] == pytest.approx(1155.0, rel=0.08)       # the neutral exobase of Johnstone et al. 2018
+    assert result.constants["exobase_k"] == pytest.approx(1155.0, rel=0.08)       # the neutral exobase of [R2184]
 
 
 def test_an_air_with_no_carbon_dioxide_has_a_hotter_thermosphere_and_still_keeps_its_nitrogen():
-    """Without the CO2 that cools it the thermosphere of the Earth is 1,300 K and more; Johnstone et al. 2018 find the same atmosphere
+    """Without the CO2 that cools it the thermosphere of the Earth is 1,300 K and more; [R2184] find the same atmosphere
     never hydrodynamic and its heavy species lost only by the very small Jeans rates of their Fig. 13."""
     result = escape.apply(Subject("terrestrial", dict(EARTH, xuv_flux_earth=1.0)), made({"N2": 0.78, "O2": 0.21, "Ar": 0.01}))
     assert result.constants["exobase_k"] > 1250.0
@@ -48,7 +48,7 @@ def test_a_hydrogen_rich_air_drags_the_heavy_gases_only_while_it_has_the_hydroge
 
 
 def test_a_cold_carbon_dioxide_air_keeps_the_hydrogen_a_hot_nitrogen_air_loses():
-    """The carbon dioxide cools the thermosphere (Johnstone et al. 2018, Fig. 12): the old filter fixed the ratio of the exobase to the
+    """The carbon dioxide cools the thermosphere ([R2184: Fig. 12]): the old filter fixed the ratio of the exobase to the
     equilibrium temperature by a threshold at half carbon dioxide; the model has the rise fall smoothly with the carbon dioxide."""
     cold = escape.apply(Subject("terrestrial", EARTH), made({"H2": 0.1, "N2": 0.4, "CO2": 0.5}))
     hot = escape.apply(Subject("terrestrial", EARTH), made({"H2": 0.1, "N2": 0.9}))

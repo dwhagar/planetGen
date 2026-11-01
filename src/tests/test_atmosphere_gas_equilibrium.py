@@ -146,3 +146,15 @@ def test_water_with_a_trace_of_argon_at_726_k_converges(abundances):
     assert result.iterations < 150
     balance = sum(result.moles[name] * st.SPECIES[name].elements.get("H", 0) for name in result.moles) / abundances["H"]
     assert balance == pytest.approx(1.0, abs=1e-8)
+
+
+def test_a_nitrogen_gas_with_1e_15_of_everything_else_leaves_the_rarest_elements_out_when_it_will_not_settle_with_them():
+    """GEN.819: the late nitrogen leaves an air of N2 with the carbon, hydrogen, oxygen, sulfur and argon at 1e-9 to 1e-16 of it; the Newton step
+    of that gas stalls with all five in ("the element balance is off"), and settles when the two rarest (under `TRACE_ELEMENT_FRACTION`) are out."""
+    abundances = {"H": 3.735440154784931e-16, "Ar": 3.379812146652516e-21, "O": 6.93043683615438e-15, "C": 6.583546815986791e-15,
+                  "N": 1.1914940104724934e-05, "S": 6.894484200178456e-20}
+    with pytest.raises(ge.EquilibriumError):
+        ge._solve(abundances, 434.2659729417367, 1.0000000000000002)
+    result = ge.solve(abundances, 434.2659729417367, 1.0000000000000002)
+    assert result.mole_fractions["N2"] > 0.999999
+    assert "Ar" not in result.moles and "H2S" not in result.moles and "SO2" not in result.moles

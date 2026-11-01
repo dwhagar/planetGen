@@ -4,7 +4,7 @@ Status: built 2026-10-23 by lane M. Rows a3 (building blocks of asteroids, C and
 
 ## 1. What was tuned
 
-Both rows drew `dIW ~ N(mu, 0.45)` with the centre -1.26 (a3) or -1.25 (a4). The 0.45 is the spread of the 22 *reported* medians of Doyle 2020 and 2023, which is the spread of the bodies plus the abundance error of each star, cut by the papers' reporting rule. Drawing the bodies as wide as the reported medians counts the measurement twice.
+Both rows drew `dIW ~ N(mu, 0.45)` with the centre -1.26 (a3) or -1.25 (a4). The 0.45 is the spread of the 22 *reported* medians of [R1152] and 2023, which is the spread of the bodies plus the abundance error of each star, cut by the papers' reporting rule. Drawing the bodies as wide as the reported medians counts the measurement twice.
 
 The rows now draw `N(-1.25, 0.22)`. The centre is the mean of the 22 values (standard error 0.10) for both rows; the detection model shows it survives the selection to within that error. The width 0.22 is the intrinsic spread the worker report computed from the 13 well-constrained stars (the least selection-biased subset).
 

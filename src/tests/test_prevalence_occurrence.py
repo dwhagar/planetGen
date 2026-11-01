@@ -82,7 +82,7 @@ def test_every_observed_range_has_a_kind_a_source_and_a_known_measure():
     for group, spec in expectations["types"].items():
         assert group in occurrence.GROUPS
         for name, bounds in spec["measures"].items():
-            assert name in occurrence.MEASURES and bounds["kind"] == "observed" and "arXiv" in bounds["source"], (group, name)
+            assert name in occurrence.MEASURES and bounds["kind"] == "observed" and "[R" in bounds["source"], (group, name)
             assert 0.0 <= bounds["min"] < bounds["max"], (group, name)
             if name in occurrence.SHARE_MEASURES:
                 assert bounds["max"] <= 1.0

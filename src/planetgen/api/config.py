@@ -32,25 +32,24 @@ request rate exceed the configured limit by roughly a factor of the
 worker count.
 """
 
-import secrets
+import logging
 
+from planetgen.util import secret_key
 from planetgen.db.store import MySQLConfig, control_mysql_config
 from planetgen.util.settings import get_settings
 
 _settings = get_settings()
+log = logging.getLogger(__name__)
 
 
 def _secret_key():
     """
-    `secret_key` (`PLANETGEN_SECRET_KEY`), else a random per-process key
-    (`SECRET_KEY_IS_EPHEMERAL` is then True and `create_app` logs a
-    warning). Used to sign the Flask-served pages' CSRF tokens
-    (`planetgen/web/csrf.py`); nothing else in the app signs anything
-    with it today.
+    `secret_key` (`PLANETGEN_SECRET_KEY`), else the key kept in the state folder (made there
+    when missing, `planetgen.util.secret_key`). `SECRET_KEY_IS_EPHEMERAL` is True only when
+    the state folder can't be written. Signs the Flask-served pages' CSRF tokens.
     """
-    if _settings.secret_key:
-        return _settings.secret_key, False
-    return secrets.token_hex(32), True
+    key, kind = secret_key.ensure(_settings.secret_key, announce=lambda message: log.warning("%s", message))
+    return key, kind == "ephemeral"
 
 
 _SECRET_KEY, _SECRET_KEY_IS_EPHEMERAL = _secret_key()

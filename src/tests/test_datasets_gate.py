@@ -170,3 +170,18 @@ def test_update_sh_says_that_generation_refuses_without_the_data():
     with open(os.path.join(REPO, "update.sh"), encoding="utf-8") as handle:
         update = handle.read()
     assert "DATASETS_MISSING" in update and "bulk generation refuses to start" in update
+
+
+def test_the_data_check_answers_when_another_check_holds_the_check_place(monkeypatch, caplog):
+    """A read-only data check is never refused for a busy check place: it checks inline and logs the blocker."""
+    from planetgen.cli import datasets as datasets_cli
+    from planetgen.queue import runrecord, wrapper
+
+    def busy(*args, **kwargs):
+        raise runrecord.Busy("run 20261101-000000-abcdef12 is running (Check the database, check kind)")
+
+    monkeypatch.setattr(wrapper, "run", busy)
+    monkeypatch.setattr(datasets_cli, "status_lines", lambda chosen, disregard: (["line"], 0))
+    monkeypatch.setattr(datasets_cli, "_chosen", lambda keys: [])
+    assert datasets_cli.run_status([], False) == 0
+    assert "Check the database" in caplog.text

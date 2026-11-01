@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Builds `src/planetgen/physics/data/quadruple_stability_3p1_weights.json` (GEN.1029) and `quadruple_stability_2p2_weights.json` (GEN.1031): the weights
-of the 3+1 and 2+2 quadruple stability classifiers of Vynatheya, Mardling and Hamers 2023 (MNRAS 525, 3 ; arXiv 2301.09930) as plain numbers, so the
+of the 3+1 and 2+2 quadruple stability classifiers of [R4575] as plain numbers, so the
 generator needs no machine-learning library.
 
     python scripts/build_quadruple_stability.py 3p1 /path/to/mlp_model_3p1_ghost_v1.2.2.pkl

@@ -4,7 +4,7 @@
 The time to each stage of life on a world: five hard steps (GEN.750, docs/design/habitability/life-timeline-and-oxygen.md)
 ==========================================================================================================================
 
-Nothing predicts when life takes each step, so the generator does what the statistics of rare events allow (Carter 1983; Watson 2008): each
+Nothing predicts when life takes each step, so the generator does what the statistics of rare events allow [R4642]: each
 stage, in the order of `tuning.LIFE_MILESTONES`, is a step with an exponential waiting time whose mean (`tuning.LIFE_STEP_MEANS_GYR` times the
 overall `tuning.LIFE_STEP_SCALE`) is set by hand and is often longer than the world is old. The waiting for a step starts when the one before
 it is done, and for the first step at `tuning.LIFE_START_AGE_GYR`, after the surface has settled. So a world has its own schedule, one age for
@@ -19,15 +19,15 @@ Two things change a world's clock:
 * **Oxygen.** Complex cells need free oxygen, so the wait for them starts only when the air has some: at once if it already does, else when
   the world's oxygenic photosynthesis has built it (`biogenic_oxygen`), and never if it cannot (`oxygen_age_gyr` is `None`).
 
-A forced technological civilization (`INTELLIGENT_LIFE`) is a timeline conditioned on finishing inside the world's age: `forced_waits` draws
-timelines until one does (the draw is made on a stream of its own, so the run's stream moves by one draw however many tries it takes).
+A request for a technological civilization (`INTELLIGENT_LIFE`) raises the odds of a timeline that finishes inside the world's age and forces none
+(`raised_waits`; the draw is made on a stream of its own, so the run's stream moves by one draw however many tries it takes).
 """
 
 import math
 
 from planetgen import tuning
 from planetgen.physics import constants
-from planetgen.util import draw
+from planetgen.util import draw, request_odds
 
 STEPS = len(tuning.LIFE_MILESTONES)
 OXYGEN_STEP = tuning.LIFE_MILESTONES.index("complex_cells")
@@ -82,27 +82,19 @@ def schedule(waits, factor, oxygen_delay_gyr=0.0, oxygen_at_start=False):
     return tuple(ages)
 
 
-def forced_waits(age_gyr, factor, oxygen_delay_gyr=0.0, oxygen_at_start=False, tries=None):
+def raised_waits(age_gyr, factor, oxygen_delay_gyr=0.0, oxygen_at_start=False, tries=None):
     """
-    The waiting times of a timeline that reaches the last stage by `age_gyr` (a forced technological civilization): timelines are drawn
-    from one stream until one finishes in time, and when none does in `tries` (`tuning.LIFE_FORCED_TRIES`) the last one is shortened,
-    every wait by the same share, until it does. The stream is seeded by a single draw of the run's, so the run moves by one draw
-    whatever the outcome. `None` when the world cannot get there: it never makes the oxygen, or only after the age is gone.
+    The waiting times of a world under a request for a technological civilization (`INTELLIGENT_LIFE`, GEN.1130): timelines are drawn
+    from one stream, and one that reaches the last stage inside `age_gyr` is kept, any other one time in `tuning.REQUEST_ODDS`
+    (`util.request_odds.keeps`), else another is drawn, up to `tries` (`tuning.REQUEST_MAX_TIMELINE_TRIES`); the last stands, so the
+    world may never get there (it never makes the oxygen, or only after the age is gone). The stream is seeded by a single draw of the
+    run's, so the run moves by one draw whatever the outcome.
     """
     seed = draw.random()
-    if not oxygen_at_start and (oxygen_delay_gyr is None or oxygen_delay_gyr >= age_gyr - tuning.LIFE_START_AGE_GYR):
-        return None
-    stream = draw.Stream(f"life-timeline-forced:{seed!r}")
-    waits = None
-    for _ in range(tries if tries is not None else tuning.LIFE_FORCED_TRIES):
+    stream = draw.Stream(f"life-timeline-request:{seed!r}")
+    for _ in range(tries if tries is not None else tuning.REQUEST_MAX_TIMELINE_TRIES):
         waits = unit_waits(stream)
-        if schedule(waits, factor, oxygen_delay_gyr, oxygen_at_start)[-1] <= age_gyr:
-            return waits
-    low, high = 0.0, 1.0                                   # the last timeline, every wait shortened by one share that makes it fit
-    for _ in range(60):
-        middle = 0.5 * (low + high)
-        if schedule(tuple(w * middle for w in waits), factor, oxygen_delay_gyr, oxygen_at_start)[-1] <= age_gyr:
-            low = middle
-        else:
-            high = middle
-    return tuple(w * low for w in waits)
+        last = schedule(waits, factor, oxygen_delay_gyr, oxygen_at_start)[-1]
+        if request_odds.keeps(last is not None and last <= age_gyr, stream):
+            break
+    return waits

@@ -8,7 +8,7 @@ from the ionizing photon rate" and "Lifetimes by class":
 
 1. **Photons.** Each hot main-sequence star gives off `Q` photons a second
    above 13.6 eV (`log_q_of_type`, `log_q_of_mass`): the recalled
-   Martins, Schaerer and Hillier (2005) values for O3V to B5V, which fall by
+   [R2915] values for O3V to B5V, which fall by
    about a decade per subclass from B0 to B2. Stars under 5.5 Msun and
    cooler than B5 ionize nothing (`Q` 0).
 2. **Radius.** The Stromgren sphere, `R_S = 3.1 pc (Q / 1e49)^(1/3) (n /

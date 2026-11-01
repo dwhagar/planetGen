@@ -39,7 +39,7 @@ def test_a_column_needs_pressure_and_gravity():
 
 
 def test_earth_air_scatters_with_a_depth_of_0_097_at_550_nm():
-    # Bucholtz 1995 Table 4 gives 0.09721 for the standard atmosphere; the cross-section table is 0.3 percent below it
+    # [R0575: Table 4] gives 0.09721 for the standard atmosphere; the cross-section table is 0.3 percent below it
     assert rayleigh.optical_depth(_earth_air(), 550.0) == pytest.approx(0.09721, rel=0.01)
 
 

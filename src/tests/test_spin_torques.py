@@ -198,7 +198,7 @@ def _venus(factor=1.5, q=100.0, k2=0.25):
 
 
 def test_venus_thermal_torque_is_the_size_of_the_gravitational_one():
-    """Leconte et al. 2015 (supplement section 3): Venus's thermal torque is roughly equal to the gravitational one for Q of about 100."""
+    """[R2606] (supplement section 3): Venus's thermal torque is roughly equal to the gravitational one for Q of about 100."""
     torques, star, thermal = _venus()
     peak_thermal = torques.atmospheric(star.orbital_rate + thermal.relaxation_rate)
     gravitational = abs(torques.gravitational(star.orbital_rate + thermal.relaxation_rate, star))

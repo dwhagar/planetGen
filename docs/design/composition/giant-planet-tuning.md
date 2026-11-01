@@ -4,7 +4,7 @@ Status: built 2026-10-23 by lane M (builder B8, `docs/design/composition/tunable
 
 ## 1. f5: the enrichment follows the later, larger fit
 
-The row drew `log10(Zp/Z*) ~ N(log10(9.7 M^-0.45), 0.3)`: the Thorngren 2016 relation (47 giants) and a recalled design width. The 147 warm giants of Chachan 2025 give `Zp/Z* = 2.6/M + 3.3` (M in Jupiter masses; errors 0.3 and 0.5) from 0.03 to 12 M_J and say the earlier relation is 1.4 to 1.6 times too high from 0.3 to 3 M_J. The later, larger sample wins (Boss's rule for two verified sources). The width is the intrinsic spread of the heavy-element mass, 0.26 dex (band 0.24 to 0.28), not 0.3.
+The row drew `log10(Zp/Z*) ~ N(log10(9.7 M^-0.45), 0.3)`: the [R4352] relation (47 giants) and a recalled design width. The 147 warm giants of [R0710] give `Zp/Z* = 2.6/M + 3.3` (M in Jupiter masses; errors 0.3 and 0.5) from 0.03 to 12 M_J and say the earlier relation is 1.4 to 1.6 times too high from 0.3 to 3 M_J. The later, larger sample wins (Boss's rule for two verified sources). The width is the intrinsic spread of the heavy-element mass, 0.26 dex (band 0.24 to 0.28), not 0.3.
 
 | M (M_J) | Earlier relation | 147-giant fit (target) | Shipped draw (median) |
 |---|---|---|---|

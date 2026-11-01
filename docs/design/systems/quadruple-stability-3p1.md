@@ -4,7 +4,7 @@ Part of GEN.1006 (overlap-free multi-star systems, [overlap-free-systems.md](ove
 
 ## 1. The problem
 
-A 3+1 quadruple is an inner binary `(m1 >= m2)`, a third star `m3` on the intermediate orbit around the binary and a fourth star `m4` on the outer orbit. `physics/stability.py` tests a triple at each node (Mardling and Aarseth 2001, Eggleton and Kiseleva 1995, Vynatheya and others 2022 Equation 4). Applied to a quadruple as two nested triples that is right for 66 percent of 3+1 systems (88 percent of 2+2) and calls too many of them stable (precision 0.59): the outer star excites the eccentricity of the intermediate orbit, which destabilises the inner triple, and a triple test cannot see that (Vynatheya, Mardling and Hamers 2023, arXiv 2301.09930, Tables 3 and 4).
+A 3+1 quadruple is an inner binary `(m1 >= m2)`, a third star `m3` on the intermediate orbit around the binary and a fourth star `m4` on the outer orbit. `physics/stability.py` tests a triple at each node ([R1221, R2868], Vynatheya and others 2022 Equation 4). Applied to a quadruple as two nested triples that is right for 66 percent of 3+1 systems (88 percent of 2+2) and calls too many of them stable (precision 0.59): the outer star excites the eccentricity of the intermediate orbit, which destabilises the inner triple, and a triple test cannot see that ([R4575: Tables 3 and 4]).
 
 ## 2. The form chosen: the authors' network as plain numbers
 
@@ -51,7 +51,7 @@ What it shows and does not show:
 2. **Training range.** Masses within a factor 10, eccentricities to 0.95, isotropic angles, systems kept near the Mardling-Aarseth boundary of the two nested triples (20 percent of the MA01-unstable draws kept). Far from the boundary (very wide or very tight) the network extrapolates; `outside_range` flags mass ratios above 3 (`q_mid`) and 2 (`q_out`) as the authors' script advises. The axis ratios are not given a range by the paper.
 3. **Only 3+1.** The 2+2 network is a separate module function set (`*_2p2`, GEN.1031, [quadruple-stability-2p2.md](quadruple-stability-2p2.md)).
 4. **No arguments of periapsis or mean anomalies** are inputs, so two systems that differ only in them get the same verdict (the paper says they can matter).
-5. **Licence.** The authors' repository has no licence file (the raw `LICENSE` returned 404 on 10-30). The weights are numbers from a published, citable model; Boss handles DATA-LICENSE.md. Cite Vynatheya, Mardling and Hamers 2023 wherever the rule is used.
+5. **Licence.** The authors' repository has no licence file (the raw `LICENSE` returned 404 on 10-30). The weights are numbers from a published, citable model; Boss handles DATA-LICENSE.md. Cite [R4575] wherever the rule is used.
 
 ## 5. For the wiring (GEN.1016)
 

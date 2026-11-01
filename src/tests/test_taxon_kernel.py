@@ -9,7 +9,7 @@ import pytest
 from planetgen.physics import condensate_shares, small_body_composition as sb, taxon_kernel as tk
 
 SUN_W = 3.828e26
-SOLAR_SYSTEM_RATIO = 5.23e-5      # a test point (Jacobsen et al. 2008 via Lugaro et al. 2018), never an input
+SOLAR_SYSTEM_RATIO = 5.23e-5      # a test point ([R2128] via [R2768]), never an input
 
 FAMILY_OF = {"E": "dry", "S": "dry", "A": "dry", "L": "dry", "K": "dry", "V": "dry", "M": "dry", "C": "hydrated", "B": "hydrated",
              "P": "primitive", "D": "ice-rich"}
@@ -64,7 +64,7 @@ def test_a_belt_round_a_star_born_without_aluminium_26_has_no_igneous_taxa():
 
 
 def test_the_solar_systems_zones_come_back_as_one_realisation_of_the_derived_kernel():
-    """Table 6 of DeMeo and Carry 2013, summed by family, against the derived families at each zone's temperature (rms of the shares under 0.2)."""
+    """Table 6 of [R1065], summed by family, against the derived families at each zone's temperature (rms of the shares under 0.2)."""
     errors = []
     for name, low, high, shares in sb.ZONES:
         x = math.sqrt(low * high)

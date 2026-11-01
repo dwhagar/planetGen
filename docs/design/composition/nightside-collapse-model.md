@@ -10,13 +10,13 @@ On a tidally locked rocky planet with thin air, the night side can get cold enou
 
 | Piece | Source | Registry |
 |---|---|---|
-| CO2 critical pressure, a cubic in the flux, for one and ten Earth masses | Wordsworth 2015 (arXiv 1412.5575), Eq. 43 and Table 2: 3D runs of a pure CO2 air, 0.2 to 3.0 times 1366 W/m2, 0.01 to 10 bar, albedo 0.2. 0.14 bar at Earth's flux. | NC1, NC2 |
+| CO2 critical pressure, a cubic in the flux, for one and ten Earth masses | [R4767: Eq. 43] and Table 2: 3D runs of a pure CO2 air, 0.2 to 3.0 times 1366 W/m2, 0.01 to 10 bar, albedo 0.2. 0.14 bar at Earth's flux. | NC1, NC2 |
 | Night-side temperature under a thin air | The same paper, Eq. 10 and 25: `tau = kappa p / (g cos alpha)`, kappa 5e-5 m2/kg, the night side radiates `tau / (2 - tau)` of a quarter of the absorbed flux. 125 K at 0.1 bar. | NC3 |
 | What stays | The vapour pressure of the gas (`physics/saturation.py`) at the night side's temperature | none (physics) |
 | Calibration of the grey estimate to the fit | One factor on the night-side temperature (1.24 at Earth's flux) so the balance first loses gas at the fit's critical pressure; the retained share then rises continuously to 1 there | NC4 |
 | Other gases | The same balance, uncalibrated; the paper leaves N2 and CO to later work | NC5 |
 
-The 0.1 bar of the design note's table is the paper's own figure (collapse "for any stellar flux given p < 0.1 bar"); the 0.03 bar found by Joshi, Haberle and Reynolds 1997 was a grey-gas estimate and the paper explains the difference by windows in the CO2 spectrum and by a weaker coupling of the air to the night-side surface than grey gas gives. Leconte 2013 (listed in the work item) was not read: the paper found in the search is about land planets and moist bistability, not collapse.
+The 0.1 bar of the design note's table is the paper's own figure (collapse "for any stellar flux given p < 0.1 bar"); the 0.03 bar found by [R2201] was a grey-gas estimate and the paper explains the difference by windows in the CO2 spectrum and by a weaker coupling of the air to the night-side surface than grey gas gives. [R2605] (listed in the work item) was not read: the paper found in the search is about land planets and moist bistability, not collapse.
 
 ## 3. What it does and does not claim
 

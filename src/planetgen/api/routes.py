@@ -457,7 +457,12 @@ def health():
     if state["enabled"]:
         # Open to anyone while the site is closed (`maintenance_gate.OPEN_PATHS`): the update's own reload check
         # asks while its maintenance mode is still on (OPS.75).
-        body["maintenance"] = {"enabled": True, "cause": state["cause"], "reason": state["reason"]}
+        # The reason is the line visitors see: the one given when it was turned on, else the gate's standard message
+        # (a switch turned on by the update or the map rebuild carries a cause but no reason of its own).
+        from planetgen.web.maintenance_gate import MESSAGE
+
+        body["maintenance"] = {"enabled": True, "cause": state["cause"], "reason": state["reason"] or MESSAGE,
+                               "eta": state["eta"] or None, "since": state["since"]}
     if schema_version is not None and schema_version > store.SCHEMA_VERSION:
         body["detail"] = (
             f"Database schema is at v{schema_version}, newer than this code's v{store.SCHEMA_VERSION} -- "
@@ -2604,7 +2609,7 @@ def galaxy_uncharted_sector():
     if shell < 0:
         raise ApiError("shell must be >= 0")
     conn = get_db()
-    skeleton = get_galaxy_shape(conn)
+    skeleton = get_galaxy_shape(conn, light=True)
     edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
     try:
         cell = describe_sector_cell(shell, band, wedge, edge_pc)

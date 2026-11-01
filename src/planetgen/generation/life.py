@@ -320,15 +320,15 @@ def _set_best(planet, scores):
 def _set_description(planet):
     """The class's own description. It claims no life and no planet, so a moon reads it as it stands; what the index
     allows is said by the life sentences."""
-    planet.description = tuning.PLANET_CLASSES[planet.planet_class]["description"]
+    planet.description = planet_classes.ASTEROID.sentence if planet.planet_class is None else tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
 def _draw_waits(planet, row, stream=None):
     """
     Draws the five waiting times of the schedule of `planet` of life class `row` (GEN.750): one exponential wait for each step, the first scaled by the
     class's (`life.first_step_scale`: anoxygenic photosynthesis comes before the oxygenic kind). `stream` is the class's own (a minor class); the
-    dominant class draws on the body's. A forced technological civilization draws waits that finish in the star's age, for the dominant class
-    (`life_timeline.forced_waits`, with the delay the class's own oxygen takes).
+    dominant class draws on the body's. A request for a technological civilization raises the odds of waits that finish in the star's age (GEN.1130, `life_timeline.raised_waits`), for the
+    dominant class, with the delay the class's own oxygen takes.
     """
     factor = life_timeline.rate_factor(getattr(planet, "surface_temperature", None))
     waits = None
@@ -336,7 +336,7 @@ def _draw_waits(planet, row, stream=None):
         needs_oxygen = row.oxidant == "o2"
         at_start = (not needs_oxygen) or atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
         delay = biogenic_oxygen.profile_of(planet).delay_gyr if needs_oxygen and row.releases_oxygen else None
-        waits = life_timeline.forced_waits(planet.star.age, factor, delay, at_start)
+        waits = life_timeline.raised_waits(planet.star.age, factor, delay, at_start)
     if waits is None:
         waits = life_timeline.unit_waits(stream)
     return (waits[0], waits[1] * row.life["first_step_scale"], *waits[2:])

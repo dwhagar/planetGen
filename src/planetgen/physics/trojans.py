@@ -8,7 +8,7 @@ A secondary (a giant, a brown dwarf, a large moon) of mass `m2` orbits a host of
 60 degrees ahead (L4) or behind (L5) when the pair is lopsided enough. L1, L2 and L3 are saddles: no natural body stays there, and this module has none.
 
 * The rule: L4 and L5 are linearly stable when `m2 / (m1 + m2)` is under `MU_CRIT = (1 - sqrt(23 / 27)) / 2 = 0.0385` (Gascheau 1843, Routh 1875; the text
-  of Schwarz et al. 2016). With a finite trojan the secondary plus the trojan must stay under that share of the three (`stable`, `max_trojan_mass`).
+  of [R3984]). With a finite trojan the secondary plus the trojan must stay under that share of the three (`stable`, `max_trojan_mass`).
   Two stars never pass; a star and a companion under about 4 percent of it do; a Class J or a Class M world passes at a star-and-giant when the
   sum of the giant and the trojan stays under that share of the star (a Class M world always does beside a giant).
 * The motion: a tadpole librates about the point; its slow period is `2 pi / s` with `s^2 = (n^2 / 2) (1 - sqrt(1 - 27 mu (1 - mu)))` (`libration_period`;

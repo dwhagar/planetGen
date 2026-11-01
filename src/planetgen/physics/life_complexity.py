@@ -14,7 +14,7 @@ what it breathes, times the temperature rate factor of its clock (`life_timeline
   A2 (small mobile) and A3 (large, active). A civilization needs A3.
 
 An oxygen-breathing class also needs oxygen for the grade, whatever its C: `oxygen_floor_kpa`, about 0.1 to 0.8 kPa for sponge-grade animals
-rising with body size (GEN.877; Mills et al. 2014 and Catling et al. 2005, recalled). A few anoxic worlds get animals that have lost aerobic
+rising with body size (GEN.877; [R3084] and [R0689, R0691], recalled). A few anoxic worlds get animals that have lost aerobic
 respiration (route R4, GEN.884): the draw is `generation/life.py`'s and the result a grade of 1.
 
 Chemosymbiotic animals (Class 4, route R2) and sponge-grade animals on thin air (route R3) are not special cases: they are what C and the

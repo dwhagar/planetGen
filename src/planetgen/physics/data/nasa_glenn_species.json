@@ -1,6 +1,6 @@
 {
  "title": "NASA Glenn 9-coefficient thermodynamic fits of the gases and condensed phases of the atmosphere chemistry (ideal gas, 1 bar standard state)",
- "source": "McBride, Zehe and Gordon 2002, NASA/TP-2002-211556 (NASA Glenn 9-coefficient fits), as released in the thermo.inp of NASA CEA (github.com/nasa/cea, data/thermo.inp)",
+ "source": "[R2968], NASA/TP-2002-211556 (NASA Glenn 9-coefficient fits), as released in the thermo.inp of NASA CEA (github.com/nasa/cea, data/thermo.inp)",
  "form": "H/RT = -a1/T^2 + a2 ln(T)/T + a3 + a4 T/2 + a5 T^2/3 + a6 T^3/4 + a7 T^4/5 + b1/T; S/R = -a1/(2 T^2) - a2/T + a3 ln T + a4 T + a5 T^2/2 + a6 T^3/3 + a7 T^4/4 + b2; G/RT = H/RT - S/R",
  "species": {
   "H": {

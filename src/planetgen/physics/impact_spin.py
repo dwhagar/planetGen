@@ -4,8 +4,8 @@
 The birth spin of a rocky planet from the mass ratio of its last impacts (GEN.978)
 ==================================================================================
 
-Before GEN.979 `spin.accretion_spin` drew a rocky planet's birth spin as three Gaussian components of one width fixed by Kokubo and Genda 2010 (ApJ 714:L21,
-arXiv:1003.4384): 0.41 of the breakup spin per component, whatever the planet's mass, which put every planet at a 2 to 3 hour day. That width is the
+Before GEN.979 `spin.accretion_spin` drew a rocky planet's birth spin as three Gaussian components of one width fixed by [R2431] (ApJ 714:L21,
+[R2431]): 0.41 of the breakup spin per component, whatever the planet's mass, which put every planet at a 2 to 3 hour day. That width is the
 average over the planets of their N-body runs, whose last impacts were collisions between protoplanets of comparable mass. The paper's equation 4 says what
 sets the spin: the angular momentum the last one or few collisions leave,
 
@@ -15,7 +15,7 @@ sets the spin: the angular momentum the last one or few collisions leave,
 with `gamma = m_impactor / (m_impactor + m_target)`, `theta` the angle of the impact, `nu = v_impact / v_escape` and `omega_cr = sqrt(G M / R^3)` the breakup spin
 (read in full text, 10-29). A planet hit by a body of its own size has `g = 0.315` and spins near breakup; one built from small bodies (`g` is about `gamma`)
 spins slowly, which is how Mars (24.6 h, 0.07 of breakup) comes about without a fitted scale. This module is that law and a **stand-in for the
-distribution of `gamma` by planet mass**, which the papers do not publish in a form we hold (Kokubo and Ida 2007 and Agnor, Canup and Levison 1999 hold
+distribution of `gamma` by planet mass**, which the papers do not publish in a form we hold ([R0639, R2432] hold
 the N-body statistics; Boss accepted a registered stand-in for it, 10-29 8:48 PM EDT). `spin.accretion_spin` calls it (GEN.979).
 
 **The vector rms.** With the impact parameter uniform in area, `<sin^2 theta> = 1/2`; with the impact velocity a little above the escape velocity,
@@ -26,13 +26,13 @@ the paper's own runs are protoplanet-on-protoplanet impacts of mass ratio near 0
 **The distribution of gamma (stand-in).** A planet either had a giant impact of embryos near its end or was built by planetesimals alone:
 
 * The chance of a giant impact is `1 / (1 + (M_iso / M)^2)`, `M` the planet's mass and `M_iso = ISOLATION_MASS_EARTH` (0.1 Earth masses, the isolation
-  mass of oligarchic growth at 1 AU, Kokubo and Ida 2000): well under it a body is an embryo that never met an equal, well over it the planet is made of them.
-* With a giant impact `gamma` is log-uniform over `GIANT_GAMMA_RANGE` (0.02 to 0.5; the last impactors of Agnor et al. 1999 and Kokubo and Ida 2007 run from
+  mass of oligarchic growth at 1 AU, [R2430]): well under it a body is an embryo that never met an equal, well over it the planet is made of them.
+* With a giant impact `gamma` is log-uniform over `GIANT_GAMMA_RANGE` (0.02 to 0.5; the last impactors of [R0036, R2432] run from
   a few percent of the planet to its own size).
 * Without one it is log-uniform over `PLANETESIMAL_GAMMA_RANGE` (0.001 to 0.03: the effective ratio of the planetesimals that spun the embryo up).
 
 The resulting periods run from 1.3 hours (a near-breakup spin) to some thousand hours: the widest range of the two sources in question, Kokubo and Genda's 2 to 3 hours and Miguel and Brunini
-2010's 10 to 10,000 hours (arXiv:1004.1406, read in full), as Boss's rule for two sources in question asks. The tilt is `spin.accretion_spin`'s: isotropic after a giant impact (the paper), prograde on the planetesimal branch (Schlichting and Sari 2007). The stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.26.
+2010's 10 to 10,000 hours ([R3058], read in full), as Boss's rule for two sources in question asks. The tilt is `spin.accretion_spin`'s: isotropic after a giant impact (the paper), prograde on the planetesimal branch [R3959]. The stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.26.
 """
 
 import math
@@ -45,17 +45,17 @@ MEAN_SIN2_THETA = 0.5
 """float: `<sin^2 theta>` for an impact parameter uniform in area (`b = sin theta`, `p(b) = 2 b`). Source tier T5, tweak level L0."""
 ISOLATION_MASS_EARTH = 0.1
 """float: The mass below which a body is an embryo that never had a giant impact, Earth masses (the isolation mass of oligarchic growth at 1 AU, 0.1
-to 0.2 in Kokubo and Ida 2000, recalled; the planets of the same disc past it are made by giant impacts). Source tier T6, tweak level L3 (chosen so
+to 0.2 in [R2430], recalled; the planets of the same disc past it are made by giant impacts). Source tier T6, tweak level L3 (chosen so
 that a Mars-sized planet is as likely to have had one as not)."""
 ISOLATION_STEEPNESS = 2.0
 """float: The exponent of the logistic in `log M` that gives the chance of a giant impact. Source tier T6, tweak level L3."""
 GIANT_GAMMA_RANGE = (0.02, 0.5)
-"""tuple: The mass ratio of the last giant impact, log-uniform (impactors of a few percent of the planet to its own size; Agnor et al. 1999, Kokubo and Ida 2007,
+"""tuple: The mass ratio of the last giant impact, log-uniform (impactors of a few percent of the planet to its own size; [R0036, R2432],
 recalled; `g` is symmetric about 1/2, so the larger of the two bodies is the target). Source tier T6, tweak level L3 (the lower end is chosen so that the median free
 day of 0.1 to 5 Earth masses is 7 hours, the Vesta, Ceres and Earth-Moon range)."""
 PLANETESIMAL_GAMMA_RANGE = (0.001, 0.03)
 """tuple: The effective `gamma` of an embryo built by planetesimals alone, log-uniform (spins from a tenth of a percent to 3 percent of breakup per unit
-of `C`; Mars at 0.07 of breakup needs 0.03). Source tier T6, tweak level L3 (the upper end is Mars; the lower end gives the slow spins of Miguel and Brunini 2010)."""
+of `C`; Mars at 0.07 of breakup needs 0.03). Source tier T6, tweak level L3 (the upper end is Mars; the lower end gives the slow spins of [R3058])."""
 
 
 def g_function(gamma):

@@ -13,9 +13,9 @@ A body captured by a planet is a body of the reservoir it came from, so it is ma
    is near the inner edge (the mass up to `a` goes as `a^0.5`; `draw_source_distance`).
 2. **The taxon and the grains** are `belt_member.member` at that distance and the body's mass: the dry, hydrated, primitive or ice-rich family from the temperature there, the differentiated taxa only if the star's aluminium-26 allowed
    them, the density from the compaction taper or the family's porosity. At 5 AU round a Sun-like star the kernel gives the primitive and ice-rich taxa (P and D); at 2.5 AU a mix with carbonaceous and rocky ones.
-3. **What capture takes away.** The existing rule for a captured moon (`moon_composition.CAPTURE_ICE_LOSS`, a parametrisation; Barr and Schwamb 2016 qualitative) removes a share of the water ice, uniform from 0 to 0.5. The
+3. **What capture takes away.** The existing rule for a captured moon (`moon_composition.CAPTURE_ICE_LOSS`, a parametrisation; [R0269] qualitative) removes a share of the water ice, uniform from 0 to 0.5. The
    grains are renormalised; the porosity stays.
-4. **A family shares a parent, but not one composition.** A body broken by a collision after capture leaves fragments that are not alike: the Himalia group's members differ in phyllosilicate content (Sharkey et al. 2025, JWST
+4. **A family shares a parent, but not one composition.** A body broken by a collision after capture leaves fragments that are not alike: the Himalia group's members differ in phyllosilicate content ([R4041], JWST
    abstract, read), and the parent was a heterogeneous rubble. A `Parent` is `PARENT_LUMPS` lumps, each from its own distance in the source annulus (so its own taxon), and the same capture (one ice loss for the whole parent). A
    fragment is one of the lumps (`fragment_lump`), with its own mass and porosity, so a family has the parent's taxa in the parent's proportions and its members differ from each other where the kernel's weights differ across
    the annulus and by the kernel's implanted share. A parent whose annulus is narrow and whose kernel is one-sided (D at 20 to 35 AU is 92 percent) gives a nearly uniform family, which is the physics asking for it.

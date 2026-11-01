@@ -6,11 +6,11 @@ The galactic potential as one pure module (GEN.338; docs/design/orbits/orbital-s
 
 One function of position returns the potential and the pull of a galaxy, and one the circular speed in its plane, from three kinds of mass:
 
-- **Hernquist spheres** (Hernquist 1990), `Phi = -G M / (r + a)`: the bulge (the bar's three axes are not kept: a sphere of the bar's long
+- **Hernquist spheres**, `Phi = -G M / (r + a)`: the bulge (the bar's three axes are not kept: a sphere of the bar's long
   axis), the stellar halo, the nuclear star cluster;
-- **Miyamoto-Nagai disks** (Miyamoto and Nagai 1975), `Phi = -G M / sqrt(R^2 + (a + sqrt(z^2 + b^2))^2)`: the thin and thick disks and the nuclear
+- **Miyamoto-Nagai disks** [R3103], `Phi = -G M / sqrt(R^2 + (a + sqrt(z^2 + b^2))^2)`: the thin and thick disks and the nuclear
   disc, with `a` the disk's scale length and `b` its scale height;
-- **an NFW halo** (Navarro, Frenk and White 1996) of the dark matter, `Phi = -G M_s ln(1 + r / r_s) / r`, of the mass chain's halo less the galaxy's
+- **an NFW halo** [R3248] of the dark matter, `Phi = -G M_s ln(1 + r / r_s) / r`, of the mass chain's halo less the galaxy's
   stars, its virial radius and its concentration (`enclosed_mass.dark_halo`).
 
 and the central black hole, a Plummer point of 1 pc softening, which is the only softened part. Every pull is finite at the origin.
@@ -20,7 +20,7 @@ and the central black hole, a Plummer point of 1 pc softening, which is the only
 of mass 0 (a galaxy without a disk, an elliptical) adds nothing and is legal. The matching of a Miyamoto-Nagai disk to the exponential disk of the density
 model (`a` the scale length, `b` the scale height) and of a Hernquist sphere to the bulge, the stellar halo and the nuclear cluster (`a` their scale radius,
 break radius and cluster scale) are stand-ins (registry rows GP1 to GP3 of 6.157 in `gap-filling-plan.md`); the three-term fit of the Milky Way's
-rotation curve in the literature (Bovy 2015's MWPotential2014: a Hernquist-like bulge, a Miyamoto-Nagai disk, an NFW halo) is the same kind of model with
+rotation curve in the literature ([R0496]'s MWPotential2014: a Hernquist-like bulge, a Miyamoto-Nagai disk, an NFW halo) is the same kind of model with
 its parameters fitted, not derived.
 
 Units: parsecs, solar masses and km/s. The pull is in (km/s)^2 per pc (`ACCELERATION_TO_SI` turns it into m/s^2); a time in Myr is `KMS_TO_PC_PER_MYR` (1.0227)
@@ -30,11 +30,12 @@ numbers.
 
 import collections
 import dataclasses
+import functools
 import math
 
 import numpy as np
 
-from planetgen.galaxy import density, enclosed_mass
+from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw
 from planetgen.physics import constants
 
 G_PC_KMS2_PER_MSUN = constants.G * constants.SOLAR_MASS_TO_KG / (constants.PARSEC_M * 1.0e6)
@@ -169,6 +170,14 @@ def circular_speed_kms(pot, radius_pc):
     return float(speed) if speed.ndim == 0 else speed
 
 
+def circular_speed_slope_kms_per_pc(pot, radius_pc):
+    """`dV/dR` of the circular speed at cylindrical `radius_pc`, (km/s) per pc, by a central difference over 1/1000 of the radius, which the epicyclic frequency needs."""
+    radius = np.asarray(radius_pc, dtype=float)
+    step = 1.0e-3 * radius
+    slope = (circular_speed_kms(pot, radius + step) - circular_speed_kms(pot, radius - step)) / (2.0 * step)
+    return float(slope) if np.ndim(slope) == 0 else slope
+
+
 def vertical_force(pot, radius_pc, height_pc):
     """`K_z`, the vertical pull on a star at `(R, z)` in (km/s)^2 per pc (positive towards the plane), for the vertical force of the disk near the Sun."""
     _, _, pull_z = acceleration(pot, radius_pc, 0.0, height_pc)
@@ -192,3 +201,41 @@ def from_shape(shape, galaxy_seed=None):
     dark = enclosed_mass.dark_halo(shape, galaxy_seed)
     return Potential(tuple(spheres), tuple(disks), Halo(dark.dark_solar, dark.concentration, dark.virial_radius_pc),
                      density.central_black_hole_mass_solar(shape))
+
+
+@functools.lru_cache(maxsize=16)
+def _for_galaxy(shape, galaxy_seed):
+    return from_shape(shape, galaxy_seed)
+
+
+def seed_bytes(galaxy_seed):
+    """`galaxy_seed` as the 16 bytes the galaxy's draws take, or `None` (the median halo concentration) for a seed that is not that: a number or a short
+    byte string a test or a stand-alone call passes to a generator that only needs it for its own stream."""
+    if isinstance(galaxy_seed, (bytes, bytearray)) and len(galaxy_seed) == galaxySeed.SEED_BYTES:
+        return bytes(galaxy_seed)
+    return None
+
+
+def for_galaxy(shape, galaxy_seed):
+    """
+    The `Potential` of the galaxy of `shape` and `galaxy_seed`, built once and kept (the star clusters and satellites the shape's `components` add are not
+    read, as in `enclosed_mass.mass_model`, so the same galaxy with or without them is one entry). `galaxy_seed` `None` takes the median halo concentration.
+    """
+    return _for_galaxy(shape._replace(components=None), None if galaxy_seed is None else bytes(galaxy_seed))
+
+
+def current():
+    """
+    The `Potential` of the galaxy the running unit belongs to: its stored shape and seed when `galaxy.seed.seeded` was given them, else the galaxy the seed
+    draws with every shape option at its default (the fallback seed's outside any unit), the same galaxy `enclosed_mass.current_enclosed_mass_kg` reads.
+    """
+    seed = galaxySeed.current_galaxy_seed() or mass_chain.FALLBACK_SEED
+    shape = galaxySeed.current_galaxy_shape()
+    if shape is None:
+        shape = shape_draw.default_shape(seed)
+    return for_galaxy(shape, seed)
+
+
+def current_circular_speed_kms(radius_pc):
+    """The circular speed, km/s, at cylindrical `radius_pc` in the plane of the galaxy the running unit belongs to (`current`); a float for a float."""
+    return circular_speed_kms(current(), radius_pc)

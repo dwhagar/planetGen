@@ -4,9 +4,9 @@ Status: module, rows and flip, written 2026-10-30 (as the lane reported) by the 
 
 ## 1. What replaces what
 
-Row k7 drew N2, O2, OCS, SO2, Ar, Kr and Xe of a comet as log-normals about the values of 67P (Rubin et al. 2019), with a design width of 0.6 dex. Those seven species have a population of one comet, so no median can be taken from a population; the other four species of the row (CH4, C2H6, H2CO, H2S, 9 to 18 comets each) are unchanged.
+Row k7 drew N2, O2, OCS, SO2, Ar, Kr and Xe of a comet as log-normals about the values of 67P [R3835], with a design width of 0.6 dex. Those seven species have a population of one comet, so no median can be taken from a population; the other four species of the row (CH4, C2H6, H2CO, H2S, 9 to 18 comets each) are unchanged.
 
-For N2, Ar, OCS and SO2 the median is now a chain: the molecules of the species per CO in the nebula of the comet's host (its own N/C, Ar/C and S/C over the proto-solar ones, new subject quantities `n_over_c`, `ar_over_c`, `s_over_c`, 1 for a host of solar composition), times the share of that which is in the ice, times the population's median CO/H2O (10^-1.602, row k5). The carbon in CO is the 1.5 per 10^4 hydrogen of Oberg, Murray-Clay and Bergin 2011 over the proto-solar carbon (0.52). O2, Kr and Xe have no host ratio here and keep the value of 67P. The width of every species is 0.4 dex.
+For N2, Ar, OCS and SO2 the median is now a chain: the molecules of the species per CO in the nebula of the comet's host (its own N/C, Ar/C and S/C over the proto-solar ones, new subject quantities `n_over_c`, `ar_over_c`, `s_over_c`, 1 for a host of solar composition), times the share of that which is in the ice, times the population's median CO/H2O (10^-1.602, row k5). The carbon in CO is the 1.5 per 10^4 hydrogen of [R3322] over the proto-solar carbon (0.52). O2, Kr and Xe have no host ratio here and keep the value of 67P. The width of every species is 0.4 dex.
 
 | Species | Nebular, per CO (solar host) | Share in the ice (CK1, CK2) | Median per water | 67P (calibration) |
 |---|---|---|---|---|

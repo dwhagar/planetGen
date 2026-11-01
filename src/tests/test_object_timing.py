@@ -134,7 +134,10 @@ def test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up(mysql_config
         assert rows["system"]["objects"] == 2 and rows["star"]["objects"] == 4
         assert rows["star"]["total_seconds"] > 0.012 and 0.003 < rows["star"]["mean_seconds"] < 0.008
         assert rows["star"]["fastest_seconds"] <= rows["star"]["mean_seconds"] <= rows["star"]["slowest_seconds"]
-        assert [row["kind"] for row in object_timing.kind_summaries(conn)][0] == "system"
+        # the kind that took the most time first; a unit counts each object's own time: the four stars take 0.016 s, the two systems 0.008 s
+        ordered = object_timing.kind_summaries(conn)
+        assert [row["kind"] for row in ordered] == ["star", "system"]
+        assert ordered[0]["total_seconds"] > ordered[1]["total_seconds"]
         assert conn.execute("SELECT COUNT(*) AS n FROM object_timing_samples WHERE run_id = ?",
                             (run_id,)).fetchone()["n"] == 6
     finally:
@@ -170,7 +173,9 @@ def test_a_galaxy_run_saves_each_sectors_timings_under_its_run(mysql_config, mon
         rows = conn.execute("SELECT sector_id, kind, object_count FROM object_timing_stats WHERE run_id = ?",
                             (run_id,)).fetchall()
         assert {row["sector_id"] for row in rows} == sectors
-        totals = object_timing.run_totals(conn, run_id)
-        assert totals["system"].count == 4 and totals["star"].count >= 4
+        counts = {}
+        for row in rows:
+            counts[row["kind"]] = counts.get(row["kind"], 0) + row["object_count"]
+        assert counts["system"] == 4 and counts["star"] >= 4
     finally:
         conn.close()

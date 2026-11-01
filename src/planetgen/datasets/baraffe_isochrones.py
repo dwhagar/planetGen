@@ -1,9 +1,9 @@
 # planetgen/datasets/baraffe_isochrones.py
 
 """
-The Baraffe et al. 2015 (BHAC15) isochrones for low-mass stars and brown dwarfs (GEN.936, GEN.948): at each of 30 ages from
+The [R0254] (BHAC15) isochrones for low-mass stars and brown dwarfs (GEN.936, GEN.948): at each of 30 ages from
 0.5 Myr to 10 Gyr, the effective temperature, luminosity, surface gravity and radius of stars from 0.01 to 1.4 solar masses at
-solar metallicity (Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42).
+solar metallicity [R0254].
 
 The file is `BHAC15_iso.2mass`, from Isabelle Baraffe's page at ENS Lyon
 (https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass). It is one block per age, headed `! t (Gyr) = ...`,
@@ -32,8 +32,8 @@ FILE = "BHAC15_iso.2mass"
 
 DATASET = fetch.Dataset(
     key="baraffe_isochrones",
-    title="Baraffe et al. 2015 (BHAC15) isochrones of low-mass stars and brown dwarfs",
-    source="Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42",
+    title="[R0254] (BHAC15) isochrones of low-mass stars and brown dwarfs",
+    source="[R0254]",
     pieces=(fetch.Piece(FILE, "https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass",
                         "e86198b15e0f28437f7ee83bcebe93cbbf2b02ee2ab6097295eee3155a28bcf2", 64951),),
     replaces="the nine brown dwarf radius points and the power-law extension of the main sequence under 0.1 solar masses (the three "
@@ -128,7 +128,9 @@ def cooling_track(mass_sol, age_gyr):
     where the table holds the mass, the first age's values before it. The table loses a mass at the age it has cooled below the
     models' range (the lightest after 0.01 Gyr, 0.05 solar masses after 0.625 Gyr): past that age a mass the table still holds
     at `tuning.BROWN_DWARF_TRACK_END_GY` holds its last values (the objects near the hydrogen-burning limit settle on a plateau),
-    and one that ended sooner cools on at Burrows et al. 2001's `tuning.BROWN_DWARF_TEMPERATURE_AGE_EXPONENT` with its last radius.
+    and one that ended sooner cools on at [R0606]'s `tuning.BROWN_DWARF_TEMPERATURE_AGE_EXPONENT` with its last radius at the lightest
+    mass of the table of its last age, and between that mass and the next heavier one (which the table keeps longer) by the heavier mass's own change
+    since the same age, so the track has no jump in mass (GEN.1137).
 
     Raises:
         ValueError: The mass is outside the table (0.01 to 1.4 solar masses).
@@ -136,9 +138,18 @@ def cooling_track(mass_sol, age_gyr):
     grid = isochrones()
     if not grid[0].mass_solar[0] <= mass_sol <= grid[0].mass_solar[-1]:
         raise ValueError(f"no cooling track for {mass_sol} solar masses (the models run {grid[0].mass_solar[0]} to {grid[0].mass_solar[-1]})")
-    last_age = grid[max(index for index, iso in enumerate(grid) if iso.mass_solar[0] <= mass_sol)].age_gyr
+    index = max(index for index, iso in enumerate(grid) if iso.mass_solar[0] <= mass_sol)
+    last_age = grid[index].age_gyr
     state = interpolate(mass_sol, min(max(age_gyr, grid[0].age_gyr), last_age), grid)
-    temperature = state["teff_k"]
+    temperature, radius = state["teff_k"], state["radius_solar"]
     if age_gyr > last_age and last_age < tuning.BROWN_DWARF_TRACK_END_GY:
-        temperature *= (age_gyr / last_age) ** tuning.BROWN_DWARF_TEMPERATURE_AGE_EXPONENT
-    return temperature, state["radius_solar"]
+        # Past its last age the body cools on at the power law, but the next heavier mass the table keeps longer does not (the
+        # objects near the hydrogen-burning limit settle on a plateau), so the continuation goes from the power law at the lightest
+        # mass of this age's table to the heavier mass's own change since this age at its edge: the track is continuous in mass.
+        low, edge = grid[index].mass_solar[0], grid[index + 1].mass_solar[0]
+        power = (edge - mass_sol) / (edge - low)
+        edge_temperature, edge_radius = cooling_track(edge, age_gyr)
+        edge_last_temperature, edge_last_radius = cooling_track(edge, last_age)
+        temperature *= power * (age_gyr / last_age) ** tuning.BROWN_DWARF_TEMPERATURE_AGE_EXPONENT + (1.0 - power) * edge_temperature / edge_last_temperature
+        radius *= power + (1.0 - power) * edge_radius / edge_last_radius
+    return temperature, radius

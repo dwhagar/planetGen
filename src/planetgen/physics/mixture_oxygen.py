@@ -7,7 +7,7 @@ The most oxygen an air can hold (GEN.693's companion; Boss, 10-24: biotic worlds
 No natural air is pure oxygen: nitrogen, argon (radiogenic argon alone is 0.93 percent of Earth's air after 4.5 Gyr) and carbon
 dioxide are always there, and a living world is held near its fire limit (a Phanerozoic peak of about 30 to 35 percent; above 25 to
 30 percent fires spread so easily that plants would struggle). An air that lost several oceans to photolysis and hydrogen escape can
-reach 90 percent or more (Wordsworth and Pierrehumbert 2014, Luger and Barnes 2015) but is capped. `cap_oxygen` applies a cap and a
+reach 90 percent or more [R2769, R4771] but is capped. `cap_oxygen` applies a cap and a
 floor of nitrogen plus argon to mole fractions; the abiotic cap is applied by `mixture_evolved` to the abiotic-oxygen family and the
 biotic one is for the life stage (`BIOTIC_O2_MAX`), which sets the oxygen a living world has.
 

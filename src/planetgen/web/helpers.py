@@ -35,14 +35,22 @@ these:
 - `pager(...)`: `lib/pagination.render_pagination`, as Markup.
 - `bookmark(kind, value, name, url, sector_id=None)`: what a page's
   ☆ Bookmark button saves (`templates/partials/bookmark.html`).
+- `reference_link(kind, entry=None, label="Where this comes from")`: the
+  quiet link from an in-universe page to the References entry that says
+  where a number came from (DOC.87). The only way a page points at
+  References; the addresses live in `lib/reference_urls.py`. Templates
+  call it as a global.
 """
+
+import logging
 
 from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
 
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, autolink, help_registry
 from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
+from planetgen.web.lib.reference_urls import reference_path
 
 from . import csrf
 
@@ -92,6 +100,17 @@ def crumb(label, name=None, _anchor=None, **params):
     """One breadcrumb: `{"label", "url"}`. Leave `name` out for the
     current page (the last crumb), which is shown as text."""
     return {"label": label, "url": page_url(name, _anchor=_anchor, **params) if name else None}
+
+
+def reference_link(kind, entry=None, label="Where this comes from"):
+    """
+    The link from an in-universe page to the References entry that answers "where does this come from" (DOC.87), as Markup:
+    `<a class="reference-link" href="...">Where this comes from</a>`. `kind` and `entry` are those of
+    `reference_urls.reference_path` (`reference_link("method", "atmospheres/surface_pressure")`, `reference_link("papers",
+    "R0123")`); a kind or id that does not exist raises `ValueError`, so a typo in a template fails the page and the crawl test.
+    The link adds no sentence to the page: the label is a small phrase or an icon (`label` may be changed for a short form).
+    """
+    return Markup('<a class="reference-link" href="{}">{}</a>').format(reference_path(kind, entry), label)
 
 
 def trusted_html(html):
@@ -190,18 +209,16 @@ NAV_MENU = (
 Nav section is current on both (a page names `section="nav"` or
 `section="nearby"`)."""
 
-HELP_MENU = (
-    # (endpoint name, label)
-    ("classes", "Classes"),
-    ("habitability_levels", "Habitability"),
-    ("property_help_page", "Properties"),
-    ("life_help_page", "Life"),
-)
-"""tuple: What the Help menu beside the search button opens (UX.180), in order. The menu is current on these pages and
-on the class pages under Classes (a page names `section="classes"` or `section="help"`)."""
+def help_menu():
+    """What the Help menu beside the search button opens (UX.180), in order: the help index, then every page registered with
+    `web/lib/help_registry.py`. References registers itself last (order 1000) and the template puts a divider before it (DOC.88). The menu is current on these pages and on the class pages under Classes (a page names
+    `section="classes"` or `section="help"`)."""
+    return (("help_index", "All help"),) + help_registry.menu()
 
-HELP_SECTIONS = ("classes", "help")
-"""tuple: The `section` names that mark the Help menu current."""
+
+
+HELP_SECTIONS = ("classes", "help", "references")
+"""tuple: The `section` names that mark the Help menu current: the class pages, the help pages and the References pages."""
 
 POPULATION_SECTIONS = {"species"}
 """set: Sections shown only once population data exists
@@ -250,11 +267,22 @@ def render_page(template, *, title, section=None, breadcrumbs=(), description=No
     Returns:
         tuple: `(html, status)`, ready to return from a view.
     """
-    return render_template(
+    html = render_template(
         template,
         title=title,
         section=section,
         breadcrumbs=list(breadcrumbs),
         description=description,
         **context,
-    ), status
+    )
+    return _with_help_links(html), status
+
+
+def _with_help_links(html):
+    """`html` with the help links of `web/lib/autolink.py` added to its main content: the first two mentions of each term the program's
+    parts registered (`help_registry.terms()`), counting links already there. A failure leaves the page as it was."""
+    try:
+        return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
+    except Exception:    # a missing link must never take a page down
+        logging.getLogger(__name__).exception("the help links could not be added to %s", request.path)
+        return html

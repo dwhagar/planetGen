@@ -9,7 +9,8 @@ so a test can read the generated text (`tests/test_plain_words.py`) and the rewr
 against. Standard library and `physics.life_classes` only; nothing here changes a value, it only reads text.
 
 `check_sentence(text)` returns the rules a sentence breaks and `check_label(label)` the rules a table label breaks, each as
-`(rule, detail)`. `sentences(text)` splits a paragraph the way the checks count.
+`(rule, detail)`. `sentences(text)` splits a paragraph the way the checks count. `out_of_universe(text)` reads rule 16 (DOC.87): the
+words that belong only on the References pages (`/references`), which `exempt(path)` names along with the other pages that keep them.
 """
 
 import re
@@ -50,6 +51,25 @@ BANNED = {
 """dict: Words and phrases that do not belong in the site's text, each with what to write instead."""
 
 _BANNED = [(re.compile(r"(?<![\w-])" + re.escape(phrase) + r"(?![\w-])", re.IGNORECASE), phrase, plain) for phrase, plain in BANNED.items()]
+
+OUT_OF_UNIVERSE = (
+    "speculative", "stand-in", "standin", "tweak", "tweaks", "tweaked", "fitted", "tuned", "tuning", "educated guess",
+    "tier", "tiers", "generator", "generated", "random seed", "random seeds", "seeded", "seed value", "seed number", "simulated", "simulation", "model", "models", "modeled", "modelled",
+    "modeling", "modelling", "version", "versions", "placeholder", "epoch",
+)
+"""tuple: The words that tell a reader the site is a model (rule 16, DOC.87). The site speaks in universe: a working navigation system that
+simply knows things. Where a number came from, what is a stand-in, what was fitted to a result and how sure a part is are said only on
+the References pages (`/references`); every other page says the thing in universe and, where a reader may want the why, links to the
+References entry (`web/helpers.reference_link`). "Level" is not on the list: "sea level" and "ground level" are in universe, and the
+provenance sense ("tier and level") always comes with "tier" or "tweak", which are. A bare "seed" is not on it either: a seed vault, or the
+seeds of a plant, is in universe; only the generator's random seed is out of it."""
+
+_OUT_OF_UNIVERSE = re.compile(r"(?<![\w-])(" + "|".join(re.escape(word) for word in sorted(OUT_OF_UNIVERSE, key=len, reverse=True)) + r")(?![\w-])",
+                              re.IGNORECASE)
+
+EXEMPT_PATHS = ("/references", "/admin")
+"""tuple: The page paths where the out-of-universe words are allowed: the References pages, which carry the Out of universe banner, and the
+admin pages. (The Debug view is a query option of a page, not a path, and the API reference and `docs/design` are not site pages.)"""
 
 _ABBREVIATIONS = ("e.g.", "i.e.", "etc.", "vs.", "approx.", "Dr.", "St.", "No.")
 """tuple: Where a full stop does not end a sentence."""
@@ -132,9 +152,11 @@ def words(sentence):
     return sentence.split()
 
 
-def check_sentence(sentence):
+def check_sentence(sentence, references=False):
     """
-    The rules one sentence breaks, as `[(rule, detail)]` (empty when it keeps them all). The rules:
+    The rules one sentence breaks, as `[(rule, detail)]` (empty when it keeps them all). `references=True` reads a sentence of a References
+    page (`/references`, DOC.88), where the process words of `OUT_OF_UNIVERSE` (stand-in, tweak, epoch, placeholder) are allowed and every
+    other rule still holds. The rules:
 
     * `length`: more than `MAX_WORDS` words;
     * `ideas`: more than `MAX_SEMICOLONS` semicolons;
@@ -150,6 +172,8 @@ def check_sentence(sentence):
     if sentence.count(";") > MAX_SEMICOLONS:
         found.append(("ideas", f"{sentence.count(';')} semicolons (the most is {MAX_SEMICOLONS})"))
     for pattern, phrase, plain in _BANNED:
+        if references and phrase in OUT_OF_UNIVERSE:
+            continue
         if pattern.search(sentence):
             found.append(("banned", f"{phrase!r}: write {plain}"))
     for digits, letter in _CLASS_NAME.findall(sentence):
@@ -174,3 +198,21 @@ def check_label(label):
             continue
         found.append(("label-case", f"{label!r}: write '{bare.lower()}' in lower case"))
     return found
+
+
+def out_of_universe(text):
+    """
+    The out-of-universe words in `text` (rule 16, DOC.87) as `[("out-of-universe", detail)]`, one for each different word, in the order
+    they first stand. Text in quotation marks is read too: a quoted source is still a hint that the site is a model.
+    """
+    seen = []
+    for match in _OUT_OF_UNIVERSE.finditer(text):
+        word = match.group(1).lower()
+        if word not in seen:
+            seen.append(word)
+    return [("out-of-universe", f"'{word}': say it in universe, or link to the References entry") for word in seen]
+
+
+def exempt(path):
+    """True when the page at `path` may use the out-of-universe words: a References page or an admin page (`EXEMPT_PATHS`)."""
+    return any(path == prefix or path.startswith(prefix + "/") for prefix in EXEMPT_PATHS)

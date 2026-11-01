@@ -130,7 +130,7 @@ class Stream:
     normal = gauss
 
     def gamma(self, shape):
-        """A gamma draw of the given `shape` and scale 1 (Marsaglia and Tsang 2000; a shape under 1 is raised by one and
+        """A gamma draw of the given `shape` and scale 1 (a shape under 1 is raised by one and
         scaled by a uniform to the power 1 / shape). Built on `random()` and `gauss` here, so it is ours and stays put."""
         if not shape > 0.0:
             raise ValueError("the shape of a gamma draw must be positive")

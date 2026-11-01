@@ -13,7 +13,7 @@
    "value": 1.0,
    "tier": "T7",
    "tweak": "L2",
-   "basis": "The molar Mg/Si of the rock at or under which the crust counts as silicon-rich: under 1 the magnesium cannot take all the silicon into olivine and pyroxene, and the rest is free silica (Bond et al. 2010 and Carter-Bond et al. 2012 on the stellar Mg/Si of 0.4 to 3, recalled); Earth's bulk is 1.07 (recalled)"
+   "basis": "The molar Mg/Si of the rock at or under which the crust counts as silicon-rich: under 1 the magnesium cannot take all the silicon into olivine and pyroxene, and the rest is free silica ([R0455, R0671] on the stellar Mg/Si of 0.4 to 3, recalled); Earth's bulk is 1.07 (recalled)"
   }
  }
 }

@@ -43,6 +43,7 @@ from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
 from planetgen.util import chem
+from planetgen.web.lib import help_registry
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
 """dict: Yerkes codes that are another spelling of a class
@@ -542,3 +543,15 @@ def star_type_split(star_type):
     letter, subclass, yerkes = STAR_TYPE_PATTERN.fullmatch(code.upper()).groups()
     cut = len(code) - len(yerkes)
     return code[:cut], code[cut:], f" {tail}" if tail else ""
+
+
+def help_children():
+    """The class types, alphabetically, as the pages under Classes in the help index."""
+    from planetgen.web.lib.help_registry import Child
+    rows = alphabetical([{"name": entry["name"], "slug": slug, "summary": entry["summary"]} for slug, entry in catalog().items()])
+    return [Child("class_type_page", {"type_slug": row["slug"]}, row["name"], row["summary"]) for row in rows]
+
+
+help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
+help_registry.register_topic("classes", "Classes", "objects", "Every class of star, planet, nebula and other object the survey assigns.",
+                             order=10, children=help_children)

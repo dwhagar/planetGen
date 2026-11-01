@@ -1,10 +1,10 @@
 # planetgen/physics/substellar_ceiling.py
 
 """
-The hottest a brown dwarf can be at its age, from the Baraffe et al. 2015 (BHAC15) isochrones (GEN.494, part 1).
+The hottest a brown dwarf can be at its age, from the [R0254] (BHAC15) isochrones (GEN.494, part 1).
 
 A body below the hydrogen-burning limit cools for ever, so the hottest brown dwarf of an age is the one at the limit, and its
-temperature falls as the population ages. Baraffe et al. 2015 (A&A 577, A42, section 3.3) place the limit at 0.07 solar masses and
+temperature falls as the population ages. [R0254] (A&A 577, A42, section 3.3) place the limit at 0.07 solar masses and
 give its temperature as about 2900 K at 1 Myr and 2950 K at 10 Myr; the table has it at 2897 K and 2946 K and then falling, 2794 K at
 100 Myr, 2047 K at 1 Gyr and 1626 K at 10 Gyr. So a "late-M-like" brown dwarf (the row g1 of the atmosphere recipes, 2238 K to the
 top of the map) exists only while it is young, and an old brown dwarf cannot be hotter than the mid-L dwarfs.
@@ -26,7 +26,7 @@ from planetgen.datasets import baraffe_isochrones, fetch
 from planetgen.util.checks import finite_domain
 
 LIMIT_MASS_SOLAR = 0.07
-"""float: The hydrogen-burning limit of the table's solar-metallicity models (Baraffe et al. 2015, section 3.3: M = 0.07 solar masses,
+"""float: The hydrogen-burning limit of the table's solar-metallicity models ([R0254], section 3.3: M = 0.07 solar masses,
 Teff about 2900 K at 1 Myr and 2950 K at 10 Myr). [Stand-in SC1 of GEN.494, tier T1, tweak L0.]"""
 
 HOTTEST_K = 2950.0

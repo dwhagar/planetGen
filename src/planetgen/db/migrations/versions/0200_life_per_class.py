@@ -1,6 +1,6 @@
 """Several life classes on one body (GEN.1209).
 
-Schema v197. `planet_life` and `moon_life` are new: one row for each life class that lives on a planet or moon (the class id, its share of the food
+Schema v200. `planet_life` and `moon_life` are new: one row for each life class that lives on a planet or moon (the class id, its share of the food
 production, the stage its own schedule reached, its animal grade and complexity, the five ages of its schedule and the four kind scores it gives). A body
 stored before has no rows: its one class is the dominant one in the body's own columns, and nothing is backfilled (the next regeneration makes the rows).
 A table already there is skipped, so a stopped run can be started again.
@@ -11,8 +11,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0197"
-down_revision = "0196"
+revision = "0200"
+down_revision = "0199"
 branch_labels = None
 depends_on = None
 
