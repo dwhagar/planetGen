@@ -53,7 +53,7 @@ ICE_LIQUID = {"CH4": "methane", "N2": "nitrogen", "CO2": "carbon_dioxide", "CO":
 AMMONIA_WATER_LIQUID = "ammonia_water"
 """str: The liquid the ammonia ice makes with the water ice of a cold body (GEN.1218a): the eutectic of the table, liquid from 176 K."""
 AMMONIA_WATER_MASS_PERCENT = 32.0
-"""float: The ammonia in `AMMONIA_WATER_LIQUID`, percent of its mass (Kargel 1991 eutectic, the table's 32 percent). Source tier T2, tweak level L0 (registry LQ15)."""
+"""float: The ammonia in `AMMONIA_WATER_LIQUID`, percent of its mass ([R2248] eutectic, the table's 32 percent). Source tier T2, tweak level L0 (registry LQ15)."""
 
 LAVA_OF_GROUND = (("ultramafic", "komatiite_melt"), ("felsic", "rhyolite_melt"), ("basaltic", "basalt_melt"))
 """tuple: The lava a ground type of the surface melts to; every other ground (and a ground not drawn) melts to basalt. STAND-IN LQ12."""
