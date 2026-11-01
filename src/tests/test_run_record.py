@@ -350,3 +350,12 @@ def test_a_stage_keeps_the_largest_worker_memory_and_its_finish_line_says_it(con
     runrecord.unit_done(conn, run_id, 1, 1, now=202.0)
     last = [fields["message"] for _id, fields in runrecord.read_events(conn, run_id) if fields.get("kind") == logrecord.STAGE_FINISH][-1]
     assert "largest worker" not in last
+
+
+def test_a_refusal_names_the_run_that_holds_the_machine(conn):
+    first = runrecord.start_run(conn, "Check the data sets", _stages(), kind=runrecord.CHECK, now=100)
+    with pytest.raises(runrecord.Busy) as refused:
+        runrecord.start_run(conn, "Another", _stages(), kind=runrecord.CHECK)
+    text = str(refused.value)
+    assert f"run {first} is running" in text and "Check the data sets" in text and "check kind" in text
+    assert "1970-01-01 00:01:40 UTC" in text and runrecord._owner() in text
