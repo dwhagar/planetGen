@@ -15098,6 +15098,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1. Prerequisites: none. Related: PERF.226.
   Prerequisites: none.
 
+- [ ] **PERF.229 Every supergiant and bright-giant star type times out at 900 s in the fuzz test (bug)**
+  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
+  run on main 7eef24a) saw
+  tests/test_fuzz_system_generation.py::test_every_star_type_generates_a_sane_system
+  time out at 900 s for the types IAB, IB, II, and III, the same pattern
+  as the last run. Every supergiant and bright-giant type timing out
+  suggests generating those stars is very slow or hangs on main, not
+  load; each timeout costs a worker 15 minutes, which stretches the full
+  run by many hours. Do: generate one system of each of those types by
+  hand with timing, find where the time goes (a loop, a table build, an
+  unbounded retry), fix at the cause in code, and confirm the test
+  finishes well inside its limit. The end-of-run alone re-run from the
+  full-suite thread will confirm it is real. Done: all four types
+  generate in seconds and the test passes. Owner: none yet.
+  Prerequisites: none.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -19418,6 +19434,22 @@ clears each one.
   Core 4 (not from its branch). Decide whether the bracket or the test
   bound moves (a sourced reading, not a hand tune), then fix and re-run
   that file. Owner: none yet; Bug 1 or the next lane with room.
+  Prerequisites: none.
+
+- [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
+  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
+  run on main 7eef24a) re-ran these alone, so they are real:
+  tests/test_phenomenon_scatter.py::test_each_kind_follows_its_rate_per_star
+  (line 95) and
+  ::test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_model_counts
+  (line 536) both fail on assert 29689 > 1.5 * 20059. A remnant count
+  ratio moved, probably from the star mass function epoch (Bug 1);
+  TEST.541 covers different tests, not these. Do: find which epoch moved
+  the remnant count, then either fix a generator defect (rides an epoch)
+  or, if the model counts are what changed, update the expected counts
+  from the sourced model with the reason stated; never loosen the 1.5
+  factor to pass. Done: both tests pass on main. Owner: none yet (Bug 1
+  knows the star mass function work).
   Prerequisites: none.
 
 ## USR: User accounts
