@@ -938,34 +938,38 @@ def test_the_update_says_so_before_the_silent_version_key_step():
     assert body.index("Recording the version key") < body.index("run_cli version_history")
 
 
-def test_the_update_starts_the_warm_up_early_and_reloads_after_its_opening_phase():
-    """The warm-up starts in the background once everything it needs is in place; the reload and the health check wait
-    for its opening phase, then the probe waits for the workers to start."""
+def test_the_warm_up_runs_in_two_stages_around_the_reload():
+    """Stage 1 (the opening phase, with a progress bar) comes before the reload, stage 2 (the full warm-up) after the
+    reload and the health check, with the update guard released so the site is open while the update waits for it."""
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
     common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
-    assert update.index("\nwarm_galaxy_map\n") < update.index("\n    wait_for_warm_opening\n") < update.index("reload_web_if_running ||")
-    assert update.index("check_app_imports") < update.index("\nwarm_galaxy_map\n")
-    assert "--opening-done" in common
+    stage1 = update.index('run_warm_stage "stage 1 of 2')
+    reload = update.index("reload_web_if_running ||")
+    stage2 = update.index('run_warm_stage "stage 2 of 2')
+    assert update.index("check_app_imports") < stage1 < reload < stage2
+    assert update.index('update_guard end --pid "$$" && UPDATE_GUARD_HELD=0') < stage2
+    assert 'run_warm_stage "stage 1 of 2, what the reload and the health check need" opening' in update
+    assert "--progress" in common and "--opening-done" not in common
     assert 'sleep "${HEALTH_SETTLE_SECONDS:-10}"' in common
 
 
-def test_wait_for_warm_opening_returns_when_the_file_appears_or_the_warm_up_ends(tmp_path):
+def test_run_warm_stage_shows_the_bar_and_never_fails_the_update(tmp_path):
     common = pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh"
     script = f"""
 source {common}
-WARM_OPENING_FILE={tmp_path}/opening
-sleep 30 & WARM_PID=$!
-( sleep 1; touch "$WARM_OPENING_FILE" ) &
-wait_for_warm_opening
-kill $WARM_PID
-rm -f "$WARM_OPENING_FILE"
-sleep 0.2 & WARM_PID=$!
-wait $WARM_PID
-WARM_OPENING_WAIT_SECONDS=5 wait_for_warm_opening
+SCRIPT_DIR={tmp_path}
+WARM_MAP_LOG={tmp_path}/warm.log
+fake={tmp_path}/fake.sh
+printf '#!/bin/bash\necho "args: $*"\necho "[###---] 1/2 lists"\nexit 3\n' > $fake
+chmod +x $fake
+PYTHON=$fake
+run_warm_stage "stage 1 of 2" opening
+echo "returned $?"
 """
     result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
-    assert "The opening phase is built" in result.stdout
-    assert "ended before its opening phase" in result.stderr
+    assert "-m planetgen.cli.generate warm opening --progress" in result.stdout
+    assert "1/2 lists" in result.stdout and "returned 0" in result.stdout
+    assert "did not finish" in result.stderr
 
 
 def test_every_wait_in_the_update_says_what_it_waits_for_and_for_how_long():

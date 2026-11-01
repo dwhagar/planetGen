@@ -70,11 +70,12 @@
 # mod_wsgi request still running after about 4 seconds; touching src/html/wsgi.py does not.
 #
 # Once the code, the database, the permissions and Redis are in place it starts building
-# the site's caches in the background (`planetgen warm`, MAP.134, PERF.104 and PERF.127):
-# the Galaxy Map's opening view, the lists, the sector, system and phenomenon pages and
-# the search, so the first visit after the update is fast. Before it reloads it waits
-# (at most 20 minutes) until the first phase, the opening views, is built, waits 5 seconds (UPDATE_SETTLE_SECONDS), reloads,
-# waits 10 seconds (HEALTH_SETTLE_SECONDS) and checks /api/health; the other phases go on after the update ends.
+# the site's caches (`planetgen warm`, MAP.134, PERF.104 and PERF.127) in two stages, each in the
+# foreground with a progress bar: stage 1 builds only the opening phase (the cluster field, the object index, the
+# opening views, the first page of each list), what the reload and the health check need, then it waits 5 seconds
+# (UPDATE_SETTLE_SECONDS), reloads, waits 10 seconds (HEALTH_SETTLE_SECONDS) and checks /api/health; stage 2 is the
+# full warm-up (the sector, system and phenomenon pages, the search and the rest), which the update waits for, showing
+# its bar, so the reload cannot interrupt it.
 #
 # Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo
@@ -290,9 +291,6 @@ ensure_redis
 check_redis_settings
 
 echo
-warm_galaxy_map
-
-echo
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     log_warning "the math check failed (step 4): charted data may be wrong until it is fixed."
@@ -308,8 +306,8 @@ log_info "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     log_notice "Done. Nothing new was pulled."
 else
-    UPDATE_STEP="waiting for the cache warm-up's opening phase"
-    wait_for_warm_opening
+    UPDATE_STEP="building what the reload and the health check need (cache warm-up, stage 1)"
+    run_warm_stage "stage 1 of 2, what the reload and the health check need" opening
     echo "The update steps are finished: waiting ${UPDATE_SETTLE_SECONDS:-5} seconds before reloading the site."
     sleep "${UPDATE_SETTLE_SECONDS:-5}"
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
@@ -334,3 +332,13 @@ else
         print_reload_commands
     fi
 fi
+
+# Stage 2 (Boss, 11-01 EDT): the full warm-up, after the reload and the health check, so nothing can interrupt it; the
+# update stays up, showing its bar, until it ends. The update is over as far as the site goes (the guard is released and
+# the site opens) before it starts, so the site is not closed for the length of the warm-up.
+if (( UPDATE_GUARD_HELD )); then
+    update_guard end --pid "$$" && UPDATE_GUARD_HELD=0
+fi
+echo
+UPDATE_STEP="building the site's caches (cache warm-up, stage 2)"
+run_warm_stage "stage 2 of 2, the full warm-up"

@@ -659,24 +659,18 @@ finish_update_guard() {
     fi
 }
 
-# Builds the site's caches (MAP.134, PERF.104, PERF.127): the Galaxy Map's opening view,
-# the lists, every sector, system and phenomenon page (up to the warm-up cap)
-# and the search, as Apache's user (the caches belong to it). It starts as soon as
-# the code, the database, the permissions and Redis are in place (Boss, 10-30 EDT),
-# in the background, and `wait_for_warm_opening` holds the update until its first
-# phase (the opening views and the first page of each list) is built, before the
-# reload and the /api/health check; the other phases go on after the update ends.
-# `planetgen warm` builds the list of the warm-* commands (one per family) and
-# hands it to the wrapper, which runs them in order on the Redis queue and prints
-# one line per family; the update's own commands pass the update guard. At most
-# 30 minutes; the output goes to $WARM_MAP_LOG. Never fails the update: the first
-# visit builds what the warm-up did not.
-warm_galaxy_map() {
-    local user="" runner=()
+# Builds the site's caches (MAP.134, PERF.104, PERF.127) in two stages (Boss, 11-01 EDT), as Apache's user (the caches
+# belong to it), in the foreground with a progress bar (`planetgen warm --progress`; the update's own commands pass the
+# update guard). Stage 1, `opening` (the galaxy's cluster field, the object index, the opening views and the first page
+# of each list), is just what the Apache reload and the /api/health check need and runs BEFORE the reload, so the reload
+# cannot interrupt it; it starts no other phase. Stage 2, the full warm-up (the opening phase is already stored), runs
+# AFTER the reload and the health check, and update.sh stays up showing its bar until it ends. Args: the stage's
+# name, then what `planetgen warm` is asked to build (nothing: every phase). At most 30 minutes; the output also goes to
+# $WARM_MAP_LOG. A stage that fails only warns: the first visit builds what it did not.
+run_warm_stage() {
+    local name="$1" user="" runner=() limit=() status=0
+    shift
     WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
-    WARM_OPENING_FILE="${WARM_OPENING_FILE:-/tmp/planetgen-warm-opening.$$}"
-    WARM_PID=""
-    rm -f "$WARM_OPENING_FILE"
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
         # shellcheck source=../examples/apache/apache-identity.sh
         source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
@@ -687,39 +681,17 @@ warm_galaxy_map() {
     elif [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && is_macos; then
         runner=(sudo -u "$user" --)
     fi
-    local limit=()
     if command -v timeout >/dev/null 2>&1; then
         limit=(timeout 1800)
     fi
-    WARM_PID="$(cd / && nohup ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm \
-        --opening-done "$WARM_OPENING_FILE" >"$WARM_MAP_LOG" 2>&1 </dev/null & echo $!)" || WARM_PID=""
-    echo "Building the site's caches in the background (log: $WARM_MAP_LOG)."
-}
-
-# Waits (at most WARM_OPENING_WAIT_SECONDS, default 1200) until the warm-up's opening phase is built, or the warm-up
-# ends, whichever comes first, so the reload and the health check come after the data the site opens with exists.
-# Says what happened and never fails the update.
-wait_for_warm_opening() {
-    [[ -n "${WARM_PID:-}" ]] || return 0
-    local end=$(( SECONDS + ${WARM_OPENING_WAIT_SECONDS:-1200} )) next=$(( SECONDS + 30 )) last
-    echo "Waiting for the cache warm-up's opening phase (the opening views and the first page of each list) before reloading the site, at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes:"
-    while [[ ! -e "$WARM_OPENING_FILE" ]]; do
-        if ! kill -0 "$WARM_PID" 2>/dev/null; then
-            [[ -e "$WARM_OPENING_FILE" ]] || echo "warning: the cache warm-up ended before its opening phase was reported (see $WARM_MAP_LOG); the site is reloaded anyway." >&2
-            return 0
-        fi
-        if (( SECONDS >= end )); then
-            echo "warning: the cache warm-up's opening phase was not built in ${WARM_OPENING_WAIT_SECONDS:-1200} seconds; the site is reloaded anyway, the warm-up goes on." >&2
-            return 0
-        fi
-        if (( SECONDS >= next )); then
-            last="$(tail -n 1 "$WARM_MAP_LOG" 2>/dev/null | cut -c1-110)"
-            echo "  still building, $(( end - SECONDS )) s left at most${last:+; last line of the warm-up log: $last}"
-            next=$(( SECONDS + 30 ))
-        fi
-        sleep 1
-    done
-    echo "The opening phase is built; the rest of the warm-up goes on after the update."
+    echo "Building the site's caches, $name (log: $WARM_MAP_LOG):"
+    (cd / && ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm "$@" --progress \
+        </dev/null 2>&1) | tee "$WARM_MAP_LOG"
+    status=${PIPESTATUS[0]}
+    if (( status != 0 )); then
+        echo "warning: the cache warm-up ($name) did not finish (see $WARM_MAP_LOG); the first visit builds what it did not." >&2
+    fi
+    return 0
 }
 
 # Tells the admin when an update changed an example config they copied

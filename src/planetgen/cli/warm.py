@@ -3,8 +3,9 @@
 """
 `planetgen warm`: builds the site's caches ahead of the first visitor (MAP.134, PERF.104, PERF.127): the Galaxy Map's
 opening view, every list, every sector, system and phenomenon page, and the search, so the first visit after a release
-(or after a cache was cleared) isn't the one who waits for it. update.sh runs it inside the update, before the reload and the health check;
-run it by hand after clearing a cache. Run it as the web server's user so the files it writes are readable by Apache.
+(or after a cache was cleared) isn't the one who waits for it. update.sh runs it in two stages (`planetgen warm opening --progress` before the Apache
+reload, so the reload and the health check find what the site opens with, then `planetgen warm --progress` after the
+health check, which update.sh waits for); run it by hand after clearing a cache. Run it as the web server's user so the files it writes are readable by Apache.
 
     planetgen warm [FAMILY|PHASE ...] [--cap N]
 
@@ -36,7 +37,6 @@ that opens the site after the sector-grid switch closed it (`maintenance.SECTOR_
 only while the maps are being rebuilt.
 """
 
-import os
 import signal
 import sys
 import time
@@ -60,9 +60,9 @@ def add_warm_arguments(parser):
                              "its families; see 'planetgen commands' for the warm-* commands)")
     parser.add_argument("--cap", type=int, default=None,
                         help="most sector, system and phenomenon pages to warm (default page_cache.warm_max_objects)")
-    parser.add_argument("--opening-done", metavar="FILE", default=None,
-                        help="create FILE when the opening phase has finished (update.sh waits for it before it "
-                             "reloads Apache; the other phases go on)")
+    parser.add_argument("--progress", action="store_true",
+                        help="print a progress bar after each family (update.sh shows it while it waits for the "
+                             "warm-up)")
     parser.add_argument("--on-change", metavar="DATABASE", default=None,
                         help="what a change starts (warmstart.request): wait cache.warm_settle_seconds, then warm once "
                              "for each time DATABASE was changed meanwhile; does nothing when DATABASE is not the one "
@@ -96,17 +96,10 @@ def _stop_on_sigterm():
     signal.signal(signal.SIGTERM, on_term)
 
 
-def _mark_opening_done(path):
-    """Creates the file `--opening-done` names (the update waits for it); a file that can't be made only means the
-    update waits for the whole run or its time limit."""
-    if not path:
-        return
-    try:
-        with open(path, "w", encoding="utf-8"):
-            pass
-        os.chmod(path, 0o644)
-    except OSError as exc:
-        log.normal(f"Could not create {path}: {exc}")
+def progress_bar(done, total, label, width=30):
+    """One line of the `--progress` bar: `[#####-----] 3/10 label`."""
+    filled = width * done // total if total else width
+    return f"[{'#' * filled}{'-' * (width - filled)}] {done}/{total} {label}"
 
 
 def _warm_once(args, reason=None):
@@ -134,8 +127,6 @@ def _warm_once(args, reason=None):
             def report_ended():
                 for name in tally.ended:
                     warmphases.finish_phase(args.database, name, tally.result(name))
-                    if name == "opening":
-                        _mark_opening_done(getattr(args, "opening_done", None))
 
             def on_plan(index, _plan):
                 for line in tally.start(steps[index].key):
@@ -148,6 +139,8 @@ def _warm_once(args, reason=None):
                 if steps[index].key in tally.totals:
                     tally.add(steps[index].key, result)
                 log.normal(result["line"])
+                if getattr(args, "progress", False):
+                    log.normal(progress_bar(index + 1, len(steps), steps[index].key))
 
             wrapper.run("Cache warm-up", steps, on_plan, on_result, database=args.database,
                         argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
