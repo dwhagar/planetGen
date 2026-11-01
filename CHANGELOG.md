@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3093] - 2026-11-01
+
+**Headline:** the admin plan operations no longer call the class-editing functions the derived-class work removed, so moves, additions and regenerations work again
+
+### Changed
+
+A body's class has been derived from its conditions since epoch 121, but the admin plan operations still asked the stabiliser to pin a moved planet's class, set a class by hand, keep a class through a regeneration, and pick a class for a new moon. Every move, addition and regeneration of a planet failed with a TypeError or an AttributeError (14 plan tests). The operations now stabilise without a pin, a moved or added planet takes the class its new conditions give, a new moon is drawn and takes its own, and the class is no longer an aspect a plan can set or a regeneration can keep (a plan that names it is refused as unknown). No generated output changes.
+
 ## [8.0.3092] - 2026-11-01
 
 **Headline:** The icon library has a simple vector outline for each galaxy family, ready for the Generate page's Shape row and the Galaxy Map key.
