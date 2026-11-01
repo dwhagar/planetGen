@@ -1767,7 +1767,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.993 | Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12 | none | open |
 | GEN.994 | Wire the hot-giant regime edges (equilibrium_edges) into the atmosphere row for hot giants | none | open |
 | GEN.995 | Draw the binary-stripped Wolf-Rayet channel so the Galaxy Wolf-Rayet count reaches the observed range (bug) | none | open |
-| GEN.996 | Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug) | none | open |
+| GEN.996 | Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug) | none | done, PR #4655 |
 | GEN.997 | A moon of a planet around a very young star (under 0.06 Gy) holds a life class: test_planets_respect_their_stars_age_and_history is red on main (bug) | none | done, PR #3887 |
 | GEN.998 | The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug) | none | open |
 | GEN.999 | Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy | none | done, PR #4549 |
@@ -1908,7 +1908,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1134 | Rogue radiogenic inputs from the ejecting star's composition: the long-lived heat (Th, U, K) and 26Al of an ejected planet from the parent star's stored composition, replacing the sigma 0.22 dex offsets and ROGUE_ACTIVE_HEAT_FLUX_W_M2 | none | done, PR #4215 |
 | GEN.1135 | Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high | none | done, PR #4385 |
 | GEN.1136 | Move the Class V gravity line from 1.25 g to 2 g so Earth-sized and super-Earth temperate worlds can land in Class M, and register the line in GEN.725 | none | done, PR #4385 |
-| GEN.1137 | cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug) | none | open |
+| GEN.1137 | cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug) | none | done, PR #4655 |
 | GEN.1138 | Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history | none | open |
 | GEN.1139 | Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes) | none | open |
 | GEN.1140 | Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name | none | open |

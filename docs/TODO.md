@@ -11531,31 +11531,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1 (reassignable to Star 1). Version 8.1.
   Prerequisites: none. Related: GEN.932, GEN.935, GEN.940.
 
-- [ ] **GEN.996 Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug)**
-  Bug 1's star-epoch census note (as the lane reported 10:53 PM EDT
-  2026-10-29). The white dwarf mean mass is 0.703 solar masses against
-  an accepted 0.55 to 0.70, a 0.4 percent miss: the [R0961]
-  initial-final mass relation applied to the generator's age mix gives
-  0.703. The generator has no binary-made low-mass white dwarfs (helium
-  cores near 0.4 solar masses, made when a companion strips the giant
-  before the helium flash). Do: add the helium-core channel from a
-  published binary fraction, register every stand-in in GEN.725 with
-  tier and tweak level, and test that the mean mass lands inside the
-  accepted range. Changes generated output: epoch, --affects fill, rides
-  the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
-  1). Version 8.1.
-  Sources 2 finding (GEN.1168) (2026-10-30 11:14 PM EDT): The 20 pc
-  sample ([R1547: Table 4], 136 rows; [R4421] counts 8 of
-  105 under 0.45) has 7.4 percent of white dwarfs under 0.45 solar
-  masses and 10 percent from 0.45 to 0.56; the generator has 0.3 percent
-  under 0.57 and its floor is the [R0961] relation (0.555 at the
-  lightest progenitor 0.83). Target the shares, not only the mean: about
-  7 percent helium-core white dwarfs near 0.4 (a cap, since some are
-  unresolved double degenerates with underestimated mass) and a thinner
-  0.45 to 0.56 band (Giammichele say 0.50 to 0.55 is thin, so under 5
-  percent). Report reports/gen1168-low-mass-white-dwarfs-2026-10-31.md.
-  Prerequisites: none. Related: GEN.932, GEN.995.
-
 - [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
   Sources 2 finding (as the lane reported 11:22 PM EDT 2026-10-29),
   found while wiring GEN.476: birth_radioisotopes reads the disc gas
@@ -12837,19 +12812,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects, golden). Where we think it belongs (best guess, can move):
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
-
-- [ ] **GEN.1137 cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug)**
-  Sources 2, 6:35 PM EDT 2026-10-30 (as the lane reported), found while
-  wiring GEN.494: the track extrapolates at t^-0.32 from the age at
-  which the table drops the mass, so a body just below the lowest held
-  mass is far too cool and the cap for brown dwarfs and rogues does not
-  bind there. Do: extend the table down in mass or extrapolate in mass
-  as well as in age so the temperature at a fixed age is continuous
-  across the table edge; test that 0.0699 and 0.07 solar masses at 5 Gy
-  differ by a few percent, not 25 percent. Lock work if stored
-  temperatures change (epoch, golden). Where we think it belongs (best
-  guess, can move): Bug 1 (owner of GEN.948), train 6.
-  Prerequisites: none. Related: GEN.948, GEN.494.
 
 - [ ] **GEN.1138 Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history**
   Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
