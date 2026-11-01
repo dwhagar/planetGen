@@ -124,6 +124,10 @@ def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False,
     are the stable late-M and L dwarfs of the census); the limit is the one of the member's [Fe/H] (GEN.936). A star that is a white
     dwarf by the age is one of `white_dwarf_mass_sol` solar masses when given (a helium core, GEN.996); any other star ignores it.
     """
+    # A numpy scalar gives the star model another result than the float of its value (a birth mass of the companion law, a mass read
+    # back from the database): the record is made from floats, so the tree's member and the build's are one star.
+    initial_mass_solar, age_yr = float(initial_mass_solar), float(age_yr)
+    fe_h = None if fe_h is None else float(fe_h)
     if substellar or initial_mass_solar < stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h):
         return _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed)
     rng = stream(seed)

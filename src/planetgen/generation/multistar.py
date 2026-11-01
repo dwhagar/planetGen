@@ -1689,7 +1689,7 @@ def companion_mass(birth, rng, fe_h=None):
     """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth` times a ratio from the
     law of `mass_ratio.py` (Moe and Di Stefano 2017: a power law by primary mass and period, with a twin excess), no lighter than the
     floor of the place's [Fe/H] (`companion_floor_solar`)."""
-    return birth * mass_ratio.draw(birth, rng.random(), companion_floor_solar(fe_h))
+    return float(birth * mass_ratio.draw(birth, rng.random(), companion_floor_solar(fe_h)))
 
 
 def _is_helium_core(leaf):

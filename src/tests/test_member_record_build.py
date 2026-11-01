@@ -62,3 +62,13 @@ def test_the_primarys_record_is_the_primarys_own_radius():
     assert record.radius_au == pytest.approx(_radius_au(primary), rel=1.0e-9)
     assert record.radius_max_au >= record.radius_au
     assert record.mass_max_solar >= record.mass_solar
+
+
+def test_a_numpy_birth_mass_makes_the_record_of_its_float():
+    """The tree's companion mass is a numpy scalar and the build's is the float read back from the database: one star either way
+    (a numpy scalar gave the star model another result, ~3e-8 apart, and the build dropped the stored companion)."""
+    import numpy as np
+    seed, initial, age_yr, fe_h = 684414092153559341, 3.56995407203725, 11547593.532707972, 0.12437279044768212
+    plain = member_record.make(seed, initial, age_yr, fe_h)
+    numpy_scalar = member_record.make(seed, np.float64(initial), np.float64(age_yr), np.float64(fe_h))
+    assert (numpy_scalar.mass_solar, numpy_scalar.radius_au) == (plain.mass_solar, plain.radius_au)
