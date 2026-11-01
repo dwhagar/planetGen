@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3058] - 2026-11-01
+
+**Headline:** A system's belts are now the gaps and the unfinished tail of its planets, each with the cause that made it and the mass the giants and the collisions left.
+
+### Changed
+- Belts are no longer rolled for in a planet's slot (GEN.1068, GEN.1156). The planets are placed first, every planned body stays a planet, and `generation/belt_birth.py` reads the finished chain through `physics/belt_origin.py`: a gap, the tail past the last rocky planet, the snow-line pile-up, the outer disc or the rubble of a collision. Each belt keeps its cause, the other causes that coincide with it, the mass it formed with, what the giants cleared and what an instability scattered, whether a giant stirs it, and the sentence of what shaped it. The mass it holds is that formed mass ground down by the star's age of collisions (`belt_mass.belt_state` takes the starting mass). The slot roll and its constants `ASTEROID_BELT_PROBABILITY` and `BELT_REPLACES_BELOW_EARTH` (row PA13) are gone.
+- An outer disc swept by the outermost giant records the shares of its mass in the cold, resonant, scattered and hot populations and the sentence of what the giant did (`physics/scatter.py`); the mass is not subtracted twice.
+- A belt must hold at least `belt_birth.MIN_PRESENT_MASS_EARTH` (1e-9 Earth masses, row BG14) after the star's age to be kept, which puts the share of main-sequence systems with an inner belt (one ending within 1.2 snow lines, the asteroid belt kind) near 9 percent, inside the 4 to 14 percent the surveys leave; the outer and Kuiper belts count separately (rows BG14 to BG16).
+- A `SLOTS` list still names its belts, `ASTEROID_BELT` False still gives none, `NUM_ORBITS` and `MAX_PLANETS` False still fix the count of bodies unless `ASTEROID_BELT` is True, which now adds the belts it finds (the retries run again when a system has none).
+
+generation-output: changed
+
 ## [8.0.3057] - 2026-11-01
 
 **Headline:** A planet's ring is now as icy as its age and the dust that fell on it leave it: Saturn-like rings stay bright, thin old rings go dark.
