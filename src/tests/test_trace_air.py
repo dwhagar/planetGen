@@ -125,9 +125,7 @@ def test_the_subject_holds_every_quantity_table_m_reads(world):
     subject = trace_air.subject_of(world, partials)
     needed = set(mixture_trace.required_trace_inputs("terrestrial"))
     assert needed <= set(subject.quantities)
-    assert subject.quantities["o2_pal"] == pytest.approx(partials["O2"] / (21.2e3 * world.gravity), rel=0.05)
     assert subject.quantities["life_chemical"] is True
-    assert subject.quantities["co2_rich"] is False
     assert subject.quantities["lightning"] is False
 
 

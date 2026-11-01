@@ -15,14 +15,13 @@ Rows m3, m4 and m11 are design flags (GEN.525, `physics.design_flags`): off unle
 and never tuned. No code models lightning or the stellar energetic particle flux of an air yet, so both are false here and the rows run only
 through the life stage; a sourced rate would replace them. HCl and HF are not rows of the table (GEN.524 part 2): the halogen budget of the outgassing gives them.
 
-The words of the rows are read from the air without a number of their own: an air is *CO2-rich* when carbon dioxide is its largest gas and
-*H2-poor* when hydrogen is below the share the air's text calls a trace (`atmosphere.TRACE_FRACTION`).
+The ozone rows m1 and m2 are retired (part 3): the ozone column is `physics.ozone`, so the oxygen level and the air's character are not read here.
 
 A body that is drawn again (an edit, `validation.reapply_life`) loses the trace gases it had before the new ones are drawn, so applying twice gives the same air.
 """
 
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import atmosphere, mixture_subject, mixture_trace, ozone
+from planetgen.physics import atmosphere, mixture_subject, mixture_trace
 from planetgen.util import draw
 
 TRACE_GASES = tuple(sorted({formula for row in mixture_trace.WIRED_ROWS for formula in mixture_trace.ABUNDANCES[row]}))
@@ -48,12 +47,7 @@ def subject_of(body, partials):
     pressure_pa = sum(partials.values())
     quantities = mixture_subject.quantities_of_body(
         body, ts_k=body.surface_temperature, pressure_bar=pressure_pa / 1.0e5, star_distance_au=getattr(body, "_star_distance_au", None))
-    total = pressure_pa or 1.0
-    largest = max(partials, key=partials.get)
     quantities.update({
-        "o2_pal": ozone.o2_level_pal(partials.get("O2", 0.0), body.gravity),
-        "co2_rich": largest == "CO2",
-        "h2_poor": partials.get("H2", 0.0) / total < atmosphere.TRACE_FRACTION,
         "has_solid_ground": getattr(body, "body_type", "t") == "t",
         "gas_has_co_h2s": partials.get("CO", 0.0) > 0.0 and partials.get("H2S", 0.0) > 0.0,
         "life_chemical": getattr(body, "life_stage", None) is not None,

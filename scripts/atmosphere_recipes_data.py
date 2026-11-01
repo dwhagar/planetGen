@@ -111,9 +111,11 @@ _DELTA = "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(l
 _P_ATM = "1/(1 + 10**(delta/0.247))"
 _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
-RETIRED = frozenset({"m5", "m6"})
-"""frozenset: The rows of the part-09 table that the generator no longer has (GEN.524 part 2: HCl and HF come from the halogen budget of the outgassing, not
-from a presence draw); the part keeps them as the record, the builder leaves them out of the data file."""
+RETIRED = frozenset({"m1", "m2", "m5", "m6"})
+"""frozenset: The rows of the part-09 table that the generator no longer has: m5 and m6 (GEN.524 part 2: HCl and HF come from the halogen budget of the
+outgassing, not from a presence draw) and m1 and m2 (GEN.524 part 3: the ozone column is `physics.ozone`, a fit by the host's temperature and the oxygen level
+with the abiotic branch below 0.01 percent PAL, registered as OZ1 to OZ3; nothing read the two presence rows); the part keeps them as the record, the builder
+leaves them out of the data file."""
 
 MACHINE = {
     # ---- a. mantle redox ----

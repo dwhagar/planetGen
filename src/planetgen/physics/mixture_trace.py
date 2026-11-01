@@ -16,8 +16,8 @@ measured value as its TEST anchor:
 | m4 | PH3 | 1e-10 to 2e-8 | the 20 ppb Venus claim (Greaves 2020), a lifetime of hours (Sousa-Silva 2020) |
 | m11 | NO2, CH3Cl | 1e-11 to 1e-8, 1e-11 to 1e-9 | none on any exoplanet |
 
-The rows that are not abundances of this module: the ozone rows m1 and m2 are the ozone column's (GEN.413: the draw is in the result,
-`TraceDraw.recipe.binaries`), the alkali rows m7 and m8 decide the sodium and potassium gas of a giant and are read by `mixture_giant`, m9 (OCS)
+The rows that are not abundances of this module: the ozone rows m1 and m2 are retired (GEN.524 part 3): the ozone column is `physics.ozone`
+(a fit by the host's temperature and the oxygen level, with an abiotic branch below 0.01 percent PAL), the alkali rows m7 and m8 decide the sodium and potassium gas of a giant and are read by `mixture_giant`, m9 (OCS)
 is a formation equilibrium the solver already gives, and m10 (radon) is the ground source of the radiation chain.
 """
 

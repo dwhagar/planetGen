@@ -121,7 +121,7 @@ def test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage():
     life = dict(o2_pal=1.0, life_chemical=True, sep_reducing=False, lightning=True, co2_rich=False, h2_poor=True,
                 has_solid_ground=True, h2o_present=True, carbon_bearing=True, gas_has_co_h2s=False, t_layer_k=280.0)
     needed = mt.required_trace_inputs("terrestrial")
-    assert {"o2_pal", "life_chemical", "lightning", "co2_rich", "h2_poor", "has_solid_ground"} <= set(needed)
+    assert {"life_chemical", "lightning", "sep_reducing", "has_solid_ground"} <= set(needed)
     seen = set()
     for seed in range(40):
         subject = Subject("terrestrial", {**BASE, **life})
@@ -134,5 +134,5 @@ def test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage():
             if gas in result.mole_fractions and gas not in first.mole_fractions:
                 seen.add(gas)
         assert set(first.mole_fractions) <= set(result.mole_fractions)
-        assert "m1" in result.recipe.binaries                     # the ozone rows are in the result for the ozone code
+        assert "m1" not in result.recipe.binaries and "m2" not in result.recipe.binaries       # the ozone rows are retired: `physics.ozone` is the column
     assert {"N2O", "PH3"} & seen
