@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3045] - 2026-11-01
+
+**Headline:** The version-key step of an update no longer spends minutes building bounds nobody reads.
+
+### Fixed
+- **The bright-star scatter test case of the version key took minutes (case 5 of 8 in the update's progress bar).**
+  The share of a population's stars that are bright was read from a full sampling table, whose per-cell bounds are most
+  of the cost of a table and are never used for a share. It is now worked out from the quadrature alone
+  (`star_population._bright_fraction`), to the same numbers, so every case digest and every version key is unchanged.
+
 ## [8.0.3044] - 2026-11-01
 
 **Headline:** A missing secret key is now generated and kept, instead of a new random one for every process.
