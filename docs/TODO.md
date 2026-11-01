@@ -19438,6 +19438,28 @@ clears each one.
   behind the train 8 stored-tree fix (GEN.951).
   Prerequisites: none.
 
+- [ ] **TEST.549 test_star_population passes the removed bounds_only argument to _bright_table and is red on main (bug)**
+  The Train Manager reported (as the lane reported, 11:59 PM EDT
+  2026-10-31) that
+  tests/test_star_population.py::test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns
+  (line about 293) still passes 6 arguments to
+  star_population._bright_table, whose bounds_only argument PR #4688
+  removed. Do: update the test to the new signature and keep what it
+  checks (counts at the population's own composition, not the Sun's).
+  Done: the test passes on main. Lock-free, test-only. Owner: Star 2,
+  with TEST.541.
+  Prerequisites: none.
+
+- [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
+  Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
+  five prevalence census tests red on main on purpose: their baselines
+  are for epoch 128 and the one census re-tag covers epochs 129 and 130.
+  Do: the Train Manager runs the re-tag (as the lane reported, next
+  after the merge), then re-baselines; check the five go green and that
+  no other test moved. Done: the five census tests pass on main after
+  the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
