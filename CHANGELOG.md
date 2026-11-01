@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3046] - 2026-11-01
+
+**Headline:** The warm-up now says which chunk of how many it is on, and shows a timed progress bar on a terminal.
+
+### Changed
+- `planetgen warm --progress` (update.sh stages 1 and 2): a stage cut into chunks, such as `galaxy-deep-nodes`, shows `chunk N of M` with the total known up front, and the overall bar advances with the chunks instead of standing still until the stage ends.
+- With a terminal the rich bars show elapsed time, time left and seconds per chunk. In a log (`/tmp/planetgen-warm-map.log`, cron) each chunk leaves one line with its number, the nodes it held (the 64 is per chunk), the built and already stored counts so far, elapsed and time left, one line per chunk up to 20 chunks and every few chunks beyond that, then one summary line for the stage.
+
 ## [8.0.3045] - 2026-11-01
 
 **Headline:** The version-key step of an update no longer spends minutes building bounds nobody reads.
