@@ -328,6 +328,7 @@ class StarSystem:
         self.primary_star = self.star # For single star systems, the primary is the star
         self.placed_star = self.star
         self.planets = []
+        self.architectures = {}  # GEN.1111: `{id(star): (star, Architecture)}` of the plan each star's planets were built from; not stored (see `ejected_losses`)
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
         self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
@@ -1239,6 +1240,7 @@ class StarSystem:
 
         planets = []
         plan, system_objects = self._plan_architecture(star, orbit_ceiling_au)
+        self.architectures[id(star)] = (star, plan.architecture)   # the last attempt's plan is the one the kept planets came from
 
         forced_class = self.system_config.FORCE_CLASS if apply_guarantees else None
         if forced_class and self.system_config.SLOTS:
@@ -2186,6 +2188,17 @@ class StarSystem:
         if comets is None:
             comets = self.comets + self.secondary_comets
         return len(comets)
+
+    def ejected_losses(self):
+        """
+        What the planet architecture of each star of this system threw out, as `(star, Loss)` pairs (GEN.1119, GEN.1111): the `thrown` losses of the
+        plan each star's kept planets were built from, with the share of each that ends ejected (`Loss.ejected`). Empty for a system rebuilt from
+        storage (`from_dict` has no plan; a donor's rogues are made and saved when it is generated) and for a star with no plan.
+        """
+        found = []
+        for star, architecture in getattr(self, "architectures", {}).values():
+            found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind == "thrown" and loss.ejected > 0.0)
+        return found
 
     def _plan_architecture(self, star, orbit_ceiling_au):
         """

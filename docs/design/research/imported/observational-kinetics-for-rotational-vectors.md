@@ -244,38 +244,14 @@ Celestial rotational velocities are fundamentally constrained by mechanical brea
 
 ## References
 
-* Abbott, B. P., et al. (LIGO Scientific Collaboration, Virgo Collaboration, & KAGRA Collaboration). (2023). Gravitational-wave observations of compact binary black hole spin distributions. _Physical Review X_, 13(4), 041039.
+* [R0135]
 
-* Archinal, B. A., A'Hearn, M. F., Bowell, E., Conrad, A., Consolmagno, G. J., Courtin, R., ... & Williams, I. P. (2011). Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. _Celestial Mechanics and Dynamical Astronomy_, 109(2), 101–135.
-
-* Banerjee, S. (2021). Stellar-mass black holes in young massive and open stellar clusters and their role in gravitational-wave generation. _Monthly Notices of the Royal Astronomical Society_, 500(3), 3000–3026.
-
-* Barnes, S. A. (2007). Ages for F, G, K, and M stars from rotation and color: The gyrochronology of cool stars. _The Astrophysical Journal_, 669(2), 1167–1189.
-
-* Gilbert, E. A., Barclay, T., Quintana, E. V., et al. (2020). The TOI-700 system: Spin-orbit evolution and tidal despinning. _The Astronomical Journal_, 160(3), 116.
-
-* Gladman, B., Quinn, D. D., Nicholson, P. D., & Rand, R. H. (1996). Synchronous rotation and tidal dissipation in close binary systems. _Icarus_, 122(1), 166–192.
-
-* Glebocki, R., & Gnaciński, P. (2005). Catalog of Stellar Rotational Velocities. _Centre de Données Astronomiques de Strasbourg_.
-
-* Gosset, E., et al. (2025). Binary RGB candidates within 500 pc from Gaia DR3 and spectroscopic observations. _Astronomy & Astrophysics_.
-
-* Kim, B., Cooper, A. P., Koposov, S. E., et al. (2025). Kinematic analysis of Galactic halo and disk stars in DESI and Gaia DR3. _Monthly Notices of the Royal Astronomical Society_, 540(1), 264–288.
-
-* Li, X., Ding, M., Viswanathan, A., & Yao, S. (2024). Projected stellar rotational velocities from LAMOST medium-resolution spectra. _arXiv preprint [R1056]_.
-
-* Lloyd-Ronning, N. M. (2022). Black hole spin parameters and tidal interaction timescales in binary collapse models. _Astrophysical Journal Supplement Series_.
-
-* Lousto, C. O., & Zlochower, Y. (2012). Remnant spins and recoil velocities from hierarchical black hole mergers. _Physical Review D_, 85(8), 084017.
-
-* Riello, M., et al. (2021). Gaia photometric observations of active Be stars in open clusters. _MDPI Astronomy_, 11(1), 37.
+* [R1056]
 
 * Roche, É. (1873). Critical rotation velocity and equilibrium shapes of self-gravitating fluid bodies. _Académie des Sciences et Lettres de Montpellier_.
 
-* Skumanich, A. (1972). Time scales for Ca II emission decay, rotational braking, and lithium depletion. _The Astrophysical Journal_, 171, 265–270.
+* [R4114]
 
-* Vidotto, A. A., Gregory, S. G., Jardine, M., et al. (2014). Stellar magnetism and magnetized wind braking in cool main-sequence stars. _Monthly Notices of the Royal Astronomical Society_, 444(4), 3761–3778.
+* [R4568]
 
-* Vokrouhlický, D., Bottke, W. F., Chesley, S. R., Scheeres, D. J., & Statler, T. S. (2015). The Yarkovsky and YORP effects in asteroid dynamics. _Asteroids IV_, 509–531.
-
-* Warner, B. D., Harris, A. W., & Pravec, P. (2009). The Asteroid Lightcurve Database. _Icarus_, 202(1), 134–146.
+* [R4623]
