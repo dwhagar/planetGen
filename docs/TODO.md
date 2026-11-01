@@ -19271,22 +19271,6 @@ clears each one.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
-- [ ] **TEST.501 Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out"**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Study sections
-  5 and 8.2. The sector digest is split into "made here" and "arrived
-  here" so an unrelated region being charted never changes a sector's
-  own digest. Done: the test on a small sphere, run in the merge gate of
-  the sector fill. Lock-free (test). Where we think it belongs (best
-  guess, can move): Core 1 (reproducible galaxies), after the region run
-  command.
-  Prerequisites: none. Related: GEN.1118.
-
 - [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
   Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
   and read; no more building something and not using it. Filed by the
@@ -19351,18 +19335,6 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
-  Prerequisites: none.
-
-- [ ] **TEST.552 test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug)**
-  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
-  run on main 7eef24a):
-  tests/test_plan_outline.py::test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline
-  fails because the outline says 'crest is 3.18 times' and the test
-  expects '3.32 times'; the density model changed and the test was not
-  updated. Do: confirm the 3.18 comes from a sourced density change
-  (name the epoch or item), then update the expected figure with that
-  reason, or find the bug if the change was not intended. Done: the test
-  passes on main. Lock-free, test side. Owner: none yet.
   Prerequisites: none.
 
 ## USR: User accounts
