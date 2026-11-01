@@ -57,7 +57,7 @@
   :root:not([data-theme="light"]) {
     --bg: #14151e;
     --bg-elevated: #1c1e2b;
-    --bg-subtle: #23253470;
+    --bg-subtle: #1b1c28;
     --text: #e7e9f3;
     --text-muted: #9a9fb5;
     --border: #333650;
@@ -84,7 +84,7 @@
   color-scheme: dark;
   --bg: #14151e;
   --bg-elevated: #1c1e2b;
-  --bg-subtle: #23253470;
+  --bg-subtle: #1b1c28;
   --text: #e7e9f3;
   --text-muted: #9a9fb5;
   --border: #333650;
@@ -115,7 +115,7 @@
   color-scheme: dark;
   --bg: #14151e;
   --bg-elevated: #1c1e2b;
-  --bg-subtle: #23253470;
+  --bg-subtle: #1b1c28;
   --text: #e7e9f3;
   --text-muted: #9a9fb5;
   --border: #333650;
@@ -129,6 +129,8 @@
   --tier-green: #5fcf86;
   --tier-yellow: #e8c24a;
   --tier-red: #ff6b7a;
+  --references-bg: #1b2733;
+  --references-border: #3d5873;
   --poi-brown: #9c6b3f;
   --poi-grey: #6f7486;
   --poi-gas: #4fc3cc;
