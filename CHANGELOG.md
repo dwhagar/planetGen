@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3049] - 2026-11-01
+
+**Headline:** A belt the giant branch reached keeps the part outside the envelope, and a white dwarf's belt records what its star did to it and how much rock the mass loss threw inward.
+
+### Changed
+- GEN.1072: `StarSystem._apply_star_history` used to drop a belt whose inner edge lay inside the progenitor's engulfment radius whole. The belt now goes through `remnant_orbits.engulf_belt` first: the part inside the radius is lost and the part outside keeps its share of the mass (`physics/belt_history.engulf`, the power-law surface density), so a belt that reaches past the envelope survives as its outer part; one wholly inside is still removed. `remnant_orbits.widen_for_mass_loss` widens a belt's edges as before and then runs `belt_history.mass_loss`: with a giant left in the system a share of the belt (half the fraction of the star's mass that was lost) is thrown inward and its mass falls by that much. The belt keeps its history sentences (`history`), the mass it formed with (`formed_mass_kg`) and the mass thrown inward (`scattered_mass_kg`); `remnant_orbits.pollution_rate_g_s(bodies)` turns that mass into the accretion rate on the white dwarf. The history and the scattered mass are worked out at build and are not stored. The `belt_history` module, rows BHS1 to BHS5 and CP2 leave the wiring register (read now). The independent white dwarf pollution draw is unchanged. Changes the belts of white dwarfs and of any star with a swallowing radius.
+
+generation-output: changed
+
 ## [8.0.3048] - 2026-11-01
 
 **Headline:** A system now has a clearance ledger that says where a planet, moon or belt may sit, ready for the generator to draw from.

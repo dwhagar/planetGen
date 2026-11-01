@@ -774,8 +774,7 @@
     },
     {
       "epoch": 130,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3049",
       "reason": "Train 8: gas law and velocities of the disc, giants, belts and the clearance ledger, cooling track, companion mass ratio, liquid solutes, ring darkening, hydrosphere, nuclear arrival age and body strength",
       "affects": ["plan", "population", "fill", "scatter"]
     }
