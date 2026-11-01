@@ -14965,6 +14965,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the table build time is back near its old value, the
   certified-bound test passes, and the census is unchanged within noise.
   Owner: Star 2, train 9.
+  Star 2 finding (as the lane reported) (2026-11-01 12:12 AM EDT): Three
+  compositions per bin is NOT a certified bound: at 6,000 solar
+  luminosities the old population has cells where the three-point bound
+  is 0 while the true measure is positive (the 0.0 and 0.25 bins and
+  [Fe/H] -1.5); five are needed, so PERF.224 as written cannot be done.
+  Star 2 will propose another route; the item stays open until then.
   Prerequisites: none. Related: GEN.1024, PERF.218.
 
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
@@ -16891,6 +16897,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tests); fix the docstring; run tests/test_plans.py and the admin
   tests. Done: test_plans.py passes. Lock-free unless the class
   derivation changes. Owner: none yet.
+  Owner (2026-11-01 12:12 AM EDT): Core 2, after UX.255 (assigned by
+  TODO).
   Prerequisites: none.
 
 ## SEC: Security
@@ -19448,18 +19456,6 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
-  Prerequisites: none.
-
-- [ ] **TEST.551 test_burn_down_register::BR20 is red on main: row 6.95:BR20 has a line but is no longer L3 or L4 (bug)**
-  Found by Tides 1 (as the lane reported, 12:04 AM EDT 2026-11-01) while
-  rebasing GEN.1185 and GEN.1218a.
-  tests/test_burn_down_register.py::BR20 fails on main: the stand-in
-  registry row 6.95:BR20 still has a burn-down line but its tweak level
-  is no longer L3 or L4 (probably retuned by a train 8 lane). Do: either
-  drop the burn-down line for BR20 if the row is now L0 to L2, or
-  restore the level if the row is still hand-tuned; the register and the
-  test must agree with the stand-in values file. Done: the test passes
-  on main. Lock-free, docs and test side. Owner: none yet.
   Prerequisites: none.
 
 - [ ] **TEST.552 test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug)**
