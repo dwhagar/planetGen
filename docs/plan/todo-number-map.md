@@ -1592,10 +1592,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.818 | Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up) | none | done, PR #3264 |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet | none | open |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample | none | open |
-| GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure | none | open |
+| GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure | none | done, PR #4655 |
 | GEN.822 | Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii | none | done, PR #3354 |
 | GEN.823 | Wire the water-world carbon sink (GEN.814, waterworld_carbon) into the air solve and show the water-world temperatures sit inside the published range | none | done, PR #3504 |
-| GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 | none | open |
+| GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 | none | done, PR #4655 |
 | GEN.825 | Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1) | none | done, PR #3375 |
 | GEN.826 | Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c) | none | done, PR #3490 |
 | GEN.827 | Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d) | none | done, PR #3375 |

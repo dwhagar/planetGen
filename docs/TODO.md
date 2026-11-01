@@ -10547,50 +10547,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   elements.json are in the repo. Catalog sections 3 and 4.
   Prerequisites: none. Related: GEN.512, GEN.725.
 
-- [ ] **GEN.821 Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure**
-  The GEN.813 lane (Citations, 11:09 PM EDT 2026-10-24 as the lane
-  reported) found that Titan has no volatile inventory in the code: the
-  titan family takes its pressure. Add an ice-moon nitrogen inventory
-  from ammonia ice ([R1282: Table 2]) so the supply law and
-  the air fixed point (GEN.411, GEN.422) derive a Titan-like moon's
-  nitrogen and methane. Done: a Titan sample lands near 1.5 bar of N2
-  with methane, with the source and tier in the GEN.725 registry. Owner:
-  the Citations lane. Rules: no backward-compat shims; stand-ins get
-  registry rows; a changed generated value carries `tests.golden_update
-  --reason ... --affects <stage>` and the next epoch.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  [R4529] as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-  Prerequisites: GEN.422. Related: GEN.813, GEN.725.
-
-- [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
-  Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
-  inventory bracket reaches 0.2, above the 0.1 in [R2381].
-  Either cap it at 0.1 with the source or document why 0.2 holds (a
-  verified source or a registry row with its tier and tweak level).
-  Done: the bracket matches its cited source or carries a GEN.725 row
-  that says why not. Owner: Aux 3 (bulk composition) with Aux 8. Rules:
-  no backward-compat shims; a changed generated value carries the next
-  epoch.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  [R4529] as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.814, GEN.823.
-
 - [ ] **GEN.835 The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule**
   Found by Blocker 4 while merging GEN.441 (3:57 AM EDT 2026-10-25):
   tidal_flux_w_m2 is available once GEN.778 fills it, but the ground

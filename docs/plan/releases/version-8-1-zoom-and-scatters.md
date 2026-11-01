@@ -670,10 +670,8 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.972 | Climate feedback 1: ice-albedo on the surface temperature fixed point (ice cover grows as the planet cools and raises the albedo) |  |  |
 | GEN.974 | Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share) |  |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
-| GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure |  |  |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet |  |  |
-| GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 |  |  |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) |  |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) |  |  |
