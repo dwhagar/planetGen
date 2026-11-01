@@ -60,3 +60,5 @@ Registry (GEN.725): AM13 keeps the wet classes (tier 1, tweak level 0); AM14 is 
 ## 6. What waits on the fixed point
 
 GEN.411 and GEN.422 (the air fixed point) are not in the repository yet. The "Done" line of GEN.813 asks that the four bodies reproduce within the stated spread. At the level of the inventory this is done and tested here. The full check (an Earth twin at about 1 bar of N2, a Venus twin at about 3 bar, a Mars twin thin and a Titan at 1.467 bar) is a run of the fixed point; it is the same run GEN.819 needs, and it will be done there.
+
+- TEST.547 (2026-10-31, as the lane reported): GEN.1005 replaced the bracket tuned to the bulk silicate Earth with the one derived from Blanchard et al. 2022 (0.029 to 0.108 weight percent CO2, 80 to 294 ppm C of the body, log middle 153 ppm C). The test of the middle now holds it to the paper's own mantle carbon, 140 +/- 40 ppm (100 to 180), and still asks that the Earth's 99 ppm lie inside the bracket; the old bound of 20 percent about 99 was the tuning, not a measurement.
