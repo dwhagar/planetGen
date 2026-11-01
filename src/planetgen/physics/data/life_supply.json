@@ -7,7 +7,7 @@
    "value": 0.087,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "Earth's mean surface heat flow, 0.087 W/m2 (Davies and Davies 2010, recalled): the heat a supply of 1 stands for"
+   "basis": "Earth's mean surface heat flow, 0.087 W/m2 ([R1015], recalled): the heat a supply of 1 stands for"
   },
   "heat_share_max": {
    "value": 10.0,
@@ -119,7 +119,7 @@
    "value": 2.5,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "Thermal conductivity of crustal rock, 2 to 3 W/m/K (Clauser and Huenges 1995, recalled): the temperature of an aquifer below the surface rises with its depth by the heat flow over this"
+   "basis": "Thermal conductivity of crustal rock, 2 to 3 W/m/K: the temperature of an aquifer below the surface rises with its depth by the heat flow over this"
   },
   "habitat_max_k": {
    "value": 420.0,

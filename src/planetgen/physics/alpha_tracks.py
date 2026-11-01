@@ -5,8 +5,7 @@ Alpha-enhanced stars on solar-scaled tracks (GEN.744, part 1).
 
 The MIST isochrones of `datasets.isochrones` are solar-scaled ([alpha/Fe] = 0); the thick disc and the halo are alpha-enhanced. A
 star rich in the alpha elements (O, Mg, Si, Ca, Ti) burns and looks like a solar-scaled star of a higher [Fe/H]: the alpha elements
-carry most of the opacity and the CNO catalysts, and the same total metal content is reached with less iron. The rule of Salaris,
-Chieffi and Straniero 1993 (ApJ 414, 580) is
+carry most of the opacity and the CNO catalysts, and the same total metal content is reached with less iron. The rule of [R3878] is
 
     [M/H] = [Fe/H] + log10(0.638 f_alpha + 0.362),        f_alpha = 10 ** [alpha/Fe],
 
@@ -14,7 +13,7 @@ with 0.638 the alpha elements' share of the metals by number in the solar mixtur
 [alpha/Fe] = +0.4 therefore reads the grid at [Fe/H] + 0.29. `equivalent_fe_h` gives the [Fe/H] a track lookup takes.
 
 The star's own [alpha/Fe] is the mean of the [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] of its branch at its [Fe/H]
-(`stellar_abundances.mean_xfe`, the hinge fits of Bensby et al. 2014 and Nissen 2014 that `composition` already uses), so the track
+(`stellar_abundances.mean_xfe`, the hinge fits of [R0349, R3294] that `composition` already uses), so the track
 and the composition of one star agree. Nothing in generation calls this yet: the wiring is GEN.744's second step.
 """
 
@@ -28,8 +27,8 @@ ALPHA_SYMBOLS = ("O", "Mg", "Si", "Ca")
 """tuple: The alpha elements that the branch fits hold; their mean is the star's [alpha/Fe]."""
 
 ALPHA_SHARE = 0.638
-"""float: The alpha elements' share of the metals in the solar mixture (Salaris et al. 1993). [Stand-in AL1, tier T2, tweak L0: read
-second-hand (Salaris and Cassisi 2005), not in a paper opened here.]"""
+"""float: The alpha elements' share of the metals in the solar mixture [R3878]. [Stand-in AL1, tier T2, tweak L0: read
+second-hand [R3877], not in a paper opened here.]"""
 
 
 def alpha_fe(fe_h, branch):
@@ -44,7 +43,7 @@ reference track and only the excess the fits give above it shifts a star (the fi
 
 
 def metallicity_shift(alpha_fe_dex):
-    """The [M/H] excess over [Fe/H] of a star of this [alpha/Fe]: `log10(0.638 f_alpha + 0.362)` (Salaris et al. 1993)."""
+    """The [M/H] excess over [Fe/H] of a star of this [alpha/Fe]: `log10(0.638 f_alpha + 0.362)` [R3878]."""
     return math.log10(ALPHA_SHARE * 10.0 ** alpha_fe_dex + (1.0 - ALPHA_SHARE))
 
 

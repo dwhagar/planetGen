@@ -5,7 +5,7 @@ The light a star puts on a planet, band by band (GEN.443; docs/design/radiation-
 
 The star's spectrum is a blackbody of its effective temperature scaled to the bolometric flux at the planet, with the
 ultraviolet cut by a per-star share. The blackbody overpredicts the Sun's measured ultraviolet by 3.9 times in UV-C, 1.6 in
-UV-B and 1.27 in UV-A (radiation-model.md section 12; ATLAS-1, Thuillier et al. 2004), and the research has no source for the
+UV-B and 1.27 in UV-A (radiation-model.md section 12; ATLAS-1, [R4354]), and the research has no source for the
 ultraviolet against effective temperature and activity. So the shares are an **open, seeded bracket (R17, Boss 9:54 PM EDT
 2026-10-17: "UV-C share 0.1 to 1 of the blackbody")**: `uv_c_share` is drawn once per star in `[UV_C_SHARE_RANGE]` and the UV-B and UV-A
 shares follow it on one family, `share_b = share_c ** UV_B_EXPONENT`, `share_a = share_c ** UV_A_EXPONENT`, fitted to the Sun's

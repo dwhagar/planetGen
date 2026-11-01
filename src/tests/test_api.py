@@ -182,6 +182,23 @@ def test_health_ok(mysql_config, client):
 
 
 @pytest.mark.fresh_database
+def test_health_reports_the_reason_for_maintenance(mysql_config, client, tmp_path, monkeypatch):
+    from planetgen.admin import maintenance
+    from planetgen.web.maintenance_gate import MESSAGE
+
+    monkeypatch.setenv(maintenance.FILE_ENV, str(tmp_path / "maintenance.json"))
+    _db.get_connection(mysql_config).close()
+    assert "maintenance" not in client.get("/api/health").get_json()
+    maintenance.turn_on("about two hours", reason="Rebuilding the sector maps", cause="update")
+    body = client.get("/api/health").get_json()
+    assert body["status"] == "ok" and body["schema_current"] is True
+    assert body["maintenance"] == {"enabled": True, "cause": "update", "reason": "Rebuilding the sector maps",
+                                   "eta": "about two hours", "since": body["maintenance"]["since"]}
+    maintenance.turn_on()
+    assert client.get("/api/health").get_json()["maintenance"]["reason"] == MESSAGE
+
+
+@pytest.mark.fresh_database
 def test_health_reports_an_uninitialized_schema_without_erroring(client):
     """
     `client`'s own database starts completely empty -- no `schema_migrations`

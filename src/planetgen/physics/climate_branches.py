@@ -3,7 +3,7 @@
 """
 The branches of a climate with an ice-albedo feedback (GEN.1046, W20 of `docs/design/systems/weird-worlds.md`; design in `docs/design/composition/climate-branches.md`).
 
-A world with an ocean cools, freezes, and so reflects more of the light, which cools it further (Budyko 1969, Sellers 1969). Written as a fixed point
+A world with an ocean cools, freezes, and so reflects more of the light, which cools it further [R0580, R4008]. Written as a fixed point
 `T = response(albedo(T))` the feedback can leave three answers for one flux: a warm one, a snowball, and an unstable one between them. This module is pure
 numbers: it holds the albedo law of the ice and finds the fixed points of any `response`, which is the surface temperature the rest of the physics gives for a
 held Bond albedo (the surface-air fixed point, or a toy in the tests). It reads no body and draws nothing; choosing a branch is the caller's draw.
@@ -25,7 +25,7 @@ ICE_COVERED_BELOW_K = 240.0
 """float: The mean surface temperature below which the ice reaches the equator (row CC16)."""
 ICE_FRACTION_EXPONENT = 3.0
 """float: The ice cover grows as this power of the way down the ramp: slowly while the ice is at the poles, faster as the ice line comes to the tropics, which is what a
-one-dimensional ice-line balance does (North 1975). Cubic puts the surface albedo feedback of the Earth at 288 K at 0.34 W/m2 per K, inside the very likely range of
+one-dimensional ice-line balance does [R3312]. Cubic puts the surface albedo feedback of the Earth at 288 K at 0.34 W/m2 per K, inside the very likely range of
 0.10 to 0.60 of IPCC AR6 (2021) table 7.10 (central 0.35). Row CC16."""
 
 SCAN_RANGE_K = (150.0, 700.0)

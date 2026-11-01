@@ -1,6 +1,6 @@
-# VizieR search for Courteau 2007 and Comerón thick-disc tables (GR5 and GR3 rank 2)
+# VizieR search for [R0908] and Comerón thick-disc tables (GR5 and GR3 rank 2)
 
-Status: research result. Written 11:40 AM EDT on 2026-10-17 as the VizieR search thread's clock reported (the thread "VizieR table search (2026-10-17)", started 11:29 AM EDT and finished 11:39 AM EDT as the coordinator reported; read-only) and filed by the TODO thread on 2026-10-17. It answers Boss's decision 6 of the gap-filling plan ([gap-filling-plan.md](gap-filling-plan.md) section 8): the plan's GR5 fill stays, and GR3 rank 2 becomes the Comeron 2018 fit. The scripts and downloaded copies sit in `/mnt/project-files/reports/vizier-courteau-comeron-2026-10-17-files/`. The replacement of the stand-ins in GEN.401 and GEN.402 is a new stand-in version after GEN.401 merges (Core 1's gate ends about 12:20 PM EDT).
+Status: research result. Written 11:40 AM EDT on 2026-10-17 as the VizieR search thread's clock reported (the thread "VizieR table search (2026-10-17)", started 11:29 AM EDT and finished 11:39 AM EDT as the coordinator reported; read-only) and filed by the TODO thread on 2026-10-17. It answers Boss's decision 6 of the gap-filling plan ([gap-filling-plan.md](gap-filling-plan.md) section 8): the plan's GR5 fill stays, and GR3 rank 2 becomes the [R0865] fit. The scripts and downloaded copies sit in `/mnt/project-files/reports/vizier-courteau-comeron-2026-10-17-files/`. The replacement of the stand-ins in GEN.401 and GEN.402 is a new stand-in version after GEN.401 merges (Core 1's gate ends about 12:20 PM EDT).
 
 Written 11:40 AM EDT on 2026-10-17 for the coordinator and TODO. Serves GEN.401 and GEN.402. Nothing here changes code, TODO.md or docs/plan. The result replaces the plan's fills only after GEN.401 merges (Core 1's gate runs until about 12:20 PM EDT).
 
@@ -8,12 +8,12 @@ Scripts, the downloaded copies and the raw outputs are in `/mnt/project-files/re
 
 ## 1. Answer in short
 
-1. **Courteau 2007: the 64-galaxy table is not on VizieR and not reachable anywhere I could open.** The paper in the plan, astro-ph/0610721, is the Letter ApJ 655, L21 (not ApJ 671, 203), and its own text uses 154 spirals, 24 ellipticals, 54 lenticulars and 11 dwarfs in Fig. 1 and concentrations for 77 galaxies in Fig. 2. The number 64 does not appear in it. The authors' file (www.astro.queensu.ca/~courteau/data/VSigmaC28.txt) is refused by the proxy (connection reset, HTTP 503). The residual scatter about Eq. 5 (which needs the SDSS concentration C28 of each galaxy) therefore **cannot be computed**.
-2. **What I could compute instead is the raw scatter of log10(Vc/σ0) for the spirals that feed Courteau's compilation**, from two of its source samples that are reachable: Prugniel, Maubon and Simien 2001 (VizieR J/A+A/366/68, table1; 69 usable spirals) and Pizzella et al. 2005 (Table 1 of astro-ph/0503649, transcribed from the PDF; 40 high-surface-brightness plus 8 low-surface-brightness spirals). The standard deviation of log10(Vc/σ0) is **0.114 dex (PMS01, N = 69), 0.119 dex (P05 HSB, N = 40), 0.123 dex for the 113 de-duplicated spirals, 0.118 dex without the LSB galaxies (N = 105)**. About Hubble-type means (a weak stand-in for concentration) it is **0.104 dex** (PMS01, five type groups).
+1. **[R0908]: the 64-galaxy table is not on VizieR and not reachable anywhere I could open.** The paper in the plan, astro-ph/0610721, is the Letter ApJ 655, L21 (not ApJ 671, 203), and its own text uses 154 spirals, 24 ellipticals, 54 lenticulars and 11 dwarfs in Fig. 1 and concentrations for 77 galaxies in Fig. 2. The number 64 does not appear in it. The authors' file (www.astro.queensu.ca/~courteau/data/VSigmaC28.txt) is refused by the proxy (connection reset, HTTP 503). The residual scatter about Eq. 5 (which needs the SDSS concentration C28 of each galaxy) therefore **cannot be computed**.
+2. **What I could compute instead is the raw scatter of log10(Vc/σ0) for the spirals that feed Courteau's compilation**, from two of its source samples that are reachable: [R3619] (VizieR J/A+A/366/68, table1; 69 usable spirals) and [R3540] (Table 1 of astro-ph/0503649, transcribed from the PDF; 40 high-surface-brightness plus 8 low-surface-brightness spirals). The standard deviation of log10(Vc/σ0) is **0.114 dex (PMS01, N = 69), 0.119 dex (P05 HSB, N = 40), 0.123 dex for the 113 de-duplicated spirals, 0.118 dex without the LSB galaxies (N = 105)**. About Hubble-type means (a weak stand-in for concentration) it is **0.104 dex** (PMS01, five type groups).
 3. **Against the plan's GR5 fill (log-normal 0.09 dex, bracket 0.06 to 0.12): the raw data sit at the top edge of the bracket and above the centre.** The values 0.104 to 0.123 are inside or within 0.003 dex of the 0.12 edge, so the plan's rule ("the table gives an RMS outside 0.06 to 0.12") is **not triggered**, but 0.09 is below every number I could measure. These numbers include measurement error and the unexplained concentration dependence, so the true scatter about Eq. 5 is smaller and unknown (see section 3.4).
-4. **Comerón thick discs: the usable table is Comerón, Salo and Knapen 2018 (A&A 610, A5), on VizieR as J/A+A/610/A5** (tableb.dat 124 galaxies with at least two distinct discs, tablec.dat 17 without; per-galaxy circular velocity, gas, thin, thick and central-mass masses, scale heights and scale lengths). It supersedes the 2011 sample (47 galaxies) and the 2012 sample (70) by re-fitting them with a better point spread function and more than doubling the sample to 141.
+4. **Comerón thick discs: the usable table is [R0865], on VizieR as J/A+A/610/A5** (tableb.dat 124 galaxies with at least two distinct discs, tablec.dat 17 without; per-galaxy circular velocity, gas, thin, thick and central-mass masses, scale heights and scale lengths). It supersedes the 2011 sample (47 galaxies) and the 2012 sample (70) by re-fitting them with a better point spread function and more than doubling the sample to 141.
 5. **Fit for GR3 rank 2 (table B, N = 124): log10(M_thick/M_thin) = 2.113 − 1.086 log10(Vc), scatter 0.268 dex** (slope error ± 0.178, correlation coefficient r = −0.48). Against the plan's 0.2 dex scatter the data give **0.27 dex, outside the plan's value** (0.32 dex if the 17 single-disc galaxies of table C are added).
-6. **The plan's hot-component bound does not hold galaxy by galaxy.** Built from Comerón 2021 Eq. 1 on each galaxy's own stellar mass, the bound is exceeded by **48 of 124 galaxies (39 percent)**; the median galaxy sits 0.10 dex below it, the 84th percentile 0.18 dex above it, the maximum 0.57 dex above. The bound is a statement about the mean hot-component mass, which has 0.13 dex scatter itself. The plan's "any seed breaks the bound (a test, not a tolerance)" would reject 39 percent of real galaxies, so the test needs a margin or should be applied to the mean relation only (section 4.4).
+6. **The plan's hot-component bound does not hold galaxy by galaxy.** Built from [R0860: Eq. 1] on each galaxy's own stellar mass, the bound is exceeded by **48 of 124 galaxies (39 percent)**; the median galaxy sits 0.10 dex below it, the 84th percentile 0.18 dex above it, the maximum 0.57 dex above. The bound is a statement about the mean hot-component mass, which has 0.13 dex scatter itself. The plan's "any seed breaks the bound (a test, not a tolerance)" would reject 39 percent of real galaxies, so the test needs a margin or should be applied to the mean relation only (section 4.4).
 
 ## 2. What I checked and what is not reachable
 
@@ -26,25 +26,25 @@ Scripts, the downloaded copies and the raw outputs are in `/mnt/project-files/re
 | Authors' page (www.astro.queensu.ca/~courteau/data/VSigmaC28.txt) | not reachable: connection reset (https) and HTTP 503 (http) |
 | J/ApJ/671/203 | not found in VizieR (the relay's journal reference is for a different paper; the Letter is ApJ 655, L21) |
 | J/ApJ/655/L21 (the actual Letter) | not found in VizieR |
-| Keyword and author searches for "Courteau" | only Courteau 1997 (J/AJ/114/2402, 304 Sb-Sc galaxies, no σ0) and unrelated catalogues |
-| J/ApJ/631/785 (Pizzella 2005), J/ApJ/578/90 (Ferrarese 2002), J/MNRAS/341/L44 (Baes 2003), J/MNRAS/371/1912 (Bedregal 2006), J/A+AS/144/53 (Kronawitter 2000) | none in VizieR (all 404 on the archive) |
-| J/A+A/366/68 (Prugniel, Maubon and Simien 2001) | found: table1 (93 rows), table3 (155 rows) |
-| Comerón 2011 (ApJ 741, 28; arXiv:1108.0037) and 2012 (ApJ 759, 98; arXiv:1209.1513) | no VizieR table (J/ApJ/741/28 and J/ApJ/759/98 not found, archive 404); the tables exist only in the papers and are superseded by 2018 |
-| Comerón 2014 as named in the brief (A&A 562, A121) | that id is **ARRAKIS**, the atlas of resonance rings (J/A+A/562/A121, 1343 features), not thick discs. The thick-disc paper of 2014 is A&A 571, A58 (arXiv:1409.0466); it has no VizieR table (archive 404) |
-| Comerón 2018 | **found**: J/A+A/610/A5 (Comerón, Salo, Knapen, "The reports of thick discs' deaths are greatly exaggerated"), arXiv:1709.00457 |
+| Keyword and author searches for "Courteau" | only [R0906] (J/AJ/114/2402, 304 Sb-Sc galaxies, no σ0) and unrelated catalogues |
+| J/ApJ/631/785 [R3540], J/ApJ/578/90 [R1357], J/MNRAS/341/L44 [R0227], J/MNRAS/371/1912 [R0311], J/A+AS/144/53 [R2494] | none in VizieR (all 404 on the archive) |
+| J/A+A/366/68 [R3619] | found: table1 (93 rows), table3 (155 rows) |
+| [R0861] and 2012 (ApJ 759, 98; [R0863]) | no VizieR table (J/ApJ/741/28 and J/ApJ/759/98 not found, archive 404); the tables exist only in the papers and are superseded by 2018 |
+| [R0864] as named in the brief (A&A 562, A121) | that id is **ARRAKIS**, the atlas of resonance rings (J/A+A/562/A121, 1343 features), not thick discs. The thick-disc paper of 2014 is A&A 571, A58 [R0864]; it has no VizieR table (archive 404) |
+| [R0865] | **found**: J/A+A/610/A5 (Comerón, Salo, Knapen, "The reports of thick discs' deaths are greatly exaggerated"), [R0865] |
 
-The relay named "Courteau, Dutton, van den Bosch et al. 2007 ApJ 671, 203". That is a different paper ("Scaling relations of spiral galaxies"). The Vc/σ0 work in the plan is the Letter by Courteau, McDonald, Widrow and Holtzman, ApJ 655, L21 (2007), arXiv:astro-ph/0610721. I did not look for a VizieR table of the other paper because the plan's equation and citation are the Letter's.
+The relay named "Courteau, Dutton, van [R4492]". That is a different paper ("Scaling relations of spiral galaxies"). The Vc/σ0 work in the plan is the Letter by Courteau, McDonald, Widrow and Holtzman, ApJ 655, L21 (2007), [R0908]. I did not look for a VizieR table of the other paper because the plan's equation and citation are the Letter's.
 
 ## 3. GR5: scatter of log10(Vc/σ0)
 
 ### 3.1 Where the Letter's data come from (read from astro-ph/0610721 section 2)
 
-Courteau's compilation is built on the P05 list (40 HSB and 8 LSB spirals, 20 ellipticals with dynamical-model Vc and 5 ellipticals with HI Vc), extended by the 66 spirals of Prugniel, Maubon and Simien 2001 (PMS01), plus Bedregal et al. 2006 and the Southern galaxies of Baes et al. 2003. Fig. 1 shows 154 spirals, 24 ellipticals, 54 lenticulars and 11 dwarf irregulars. Concentrations C28 were measured from SDSS i-band images for 32 spirals, 12 ellipticals and 33 lenticulars. The Letter prints no scatter, no per-galaxy table and no "64".
+Courteau's compilation is built on the P05 list (40 HSB and 8 LSB spirals, 20 ellipticals with dynamical-model Vc and 5 ellipticals with HI Vc), extended by the 66 spirals of [R3619] (PMS01), plus [R0311] and the Southern galaxies of [R0227]. Fig. 1 shows 154 spirals, 24 ellipticals, 54 lenticulars and 11 dwarf irregulars. Concentrations C28 were measured from SDSS i-band images for 32 spirals, 12 ellipticals and 33 lenticulars. The Letter prints no scatter, no per-galaxy table and no "64".
 
 ### 3.2 Data used
 
 - **PMS01, VizieR J/A+A/366/68 table1**, columns `Vmrot` (bytes 43 to 45, km/s, "maximum velocity of rotation, from PGC96") and `Sig0` (bytes 47 to 49, km/s, "central velocity dispersion from Hypercat"), plus `MType`. 93 rows, of which 69 have both values positive (the Letter says 66 spirals; the three extra galaxies may have been dropped by Courteau's cuts, which are not stated).
-- **P05, Table 1 of arXiv:astro-ph/0503649** (Pizzella et al. 2005, ApJ 631, 785), columns σc and Vc for the 40 HSB and the first 8 LSB rows. Parsed from pdftotext output; the 48 rows are in `parse_p05.py` output form and the excerpts are saved.
+- **P05, Table 1 of [R3540]** [R3540], columns σc and Vc for the 40 HSB and the first 8 LSB rows. Parsed from pdftotext output; the 48 rows are in `parse_p05.py` output form and the excerpts are saved.
 - Four galaxies appear in both samples (NGC 2844, NGC 5055, NGC 7331, NGC 7606); the union takes the P05 row for them (113 galaxies).
 
 ### 3.3 Numbers (log10 of Vc over σ0, standard deviation with N − 1)
@@ -71,7 +71,7 @@ Further PMS01 results (`analyse_pms01.out.txt`): the 16th to 84th percentile of 
 
 The file `VSigmaC28.txt` from the authors' page (blocked here) or the 77-galaxy concentration list; or SDSS i-band r20 and r80 for the 113 spirals above. Neither is reachable from this session.
 
-## 4. GR3 rank 2: thick-to-thin ratios from Comerón 2018
+## 4. GR3 rank 2: thick-to-thin ratios from [R0865]
 
 ### 4.1 Table and columns (J/A+A/610/A5, ReadMe in `c18/ReadMe`)
 
@@ -102,32 +102,32 @@ These agree with the statements printed in the 2018 paper (comparable masses bel
 
 ### 4.3 Comparison with the plan's fills (gap-filling-plan section 4.4 and the GR3 row)
 
-Values at the three masses of the plan's table (plan Vc about 89, 181, 255 km/s). The "upper bound" is the plan's M_h/(M* − M_h) with Eq. 1 of Comerón 2021, recomputed here (0.98, 0.64, 0.53; the plan prints 0.96, 0.64, 0.54).
+Values at the three masses of the plan's table (plan Vc about 89, 181, 255 km/s). The "upper bound" is the plan's M_h/(M* − M_h) with Eq. 1 of [R0860], recomputed here (0.98, 0.64, 0.53; the plan prints 0.96, 0.64, 0.54).
 
-| M* | Plan upper bound (no classical bulge) | Plan, Yoachim and Dalcanton formula | **Comerón 2018 fit** | Comerón fit, 1-sigma range (× or ÷ 1.86) |
+| M* | Plan upper bound (no classical bulge) | Plan, Yoachim and Dalcanton formula | **[R0865] fit** | Comerón fit, 1-sigma range (× or ÷ 1.86) |
 |---|---|---|---|---|
 | 3e9 (Vc 89) | 0.98 | 0.69 | **0.99** | 0.53 to 1.84 |
 | 5e10 (Vc 181) | 0.64 | 0.14 | **0.46** | 0.25 to 0.86 |
 | 2e11 (Vc 255) | 0.53 | 0.06 | **0.32** | 0.17 to 0.60 |
 
-- **The fit lies close to the bound with B/T about 0.1** (plan values 0.76, 0.48, 0.38 at the three masses), not with the Yoachim and Dalcanton formula at high mass (0.14 and 0.06 are 3 to 5 times lower than the measured 0.46 and 0.32). That resolves the conflict the plan describes in favour of Comerón 2018 on the data side, and the plan's morphology explanation (high B/T early-type spirals have small thick discs) is consistent with the fact that Comerón's central mass concentration is a separate component from the thick disc (it carries the bulge mass), so a large bulge leaves less for the thick disc in the bound.
+- **The fit lies close to the bound with B/T about 0.1** (plan values 0.76, 0.48, 0.38 at the three masses), not with the Yoachim and Dalcanton formula at high mass (0.14 and 0.06 are 3 to 5 times lower than the measured 0.46 and 0.32). That resolves the conflict the plan describes in favour of [R0865] on the data side, and the plan's morphology explanation (high B/T early-type spirals have small thick discs) is consistent with the fact that Comerón's central mass concentration is a separate component from the thick disc (it carries the bulge mass), so a large bulge leaves less for the thick disc in the bound.
 - **Scatter: 0.27 dex measured, 0.2 dex in the plan.** The plan's fill is therefore too narrow; 0.27 dex (0.32 with the single-disc galaxies) is the data value. This falls outside the plan's value of 0.2 dex, so the plan's own rule ("a published fit equation with scatter replaces the scatter only") applies and this is that fit, with the caveats in 4.4 and the Υ ratio of 1.2.
-- **Length ratio:** the plan uses 1.15 (Vc/100)^−0.2 from Yoachim and Dalcanton; the Comerón 2018 outermost-section median is 1.46 with 0.32 dex scatter, rising with Vc (slope 0.82 ± 0.23). These differ in direction of the Vc trend (Yoachim falls, Comerón rises). The Comerón numbers depend on the section choice, so I do not recommend replacing the Yoachim length ratio without a decision on that choice.
-- **Height ratio:** the plan uses 2.5 ± 30 percent (Yoachim and Dalcanton). Comerón 2018 gives a median of 4.24 (scatter 0.13 dex, which is 35 percent). These differ by a factor 1.7; the Comerón heights are from edge-on 3.6 µm decompositions with their own definition of the scale height, so the two are not the same measurement.
+- **Length ratio:** the plan uses 1.15 (Vc/100)^−0.2 from Yoachim and Dalcanton; the [R0865] outermost-section median is 1.46 with 0.32 dex scatter, rising with Vc (slope 0.82 ± 0.23). These differ in direction of the Vc trend (Yoachim falls, Comerón rises). The Comerón numbers depend on the section choice, so I do not recommend replacing the Yoachim length ratio without a decision on that choice.
+- **Height ratio:** the plan uses 2.5 ± 30 percent (Yoachim and Dalcanton). [R0865] gives a median of 4.24 (scatter 0.13 dex, which is 35 percent). These differ by a factor 1.7; the Comerón heights are from edge-on 3.6 µm decompositions with their own definition of the scale height, so the two are not the same measurement.
 
 ### 4.4 The hot-component bound against the same galaxies
 
-- The thick disc plus the central mass concentration (the hot component in Comerón 2021's sense) of these 124 galaxies matches Comerón 2021 Eq. 1 on M* on average (mean deviation 0.000 dex, standard deviation 0.132 dex, median +0.016). That is **not an independent check**, since the 2021 relation was built from the same family of fits; it only shows that the plan transcribed Eq. 1 correctly.
+- The thick disc plus the central mass concentration (the hot component in [R0860]'s sense) of these 124 galaxies matches [R0860: Eq. 1] on M* on average (mean deviation 0.000 dex, standard deviation 0.132 dex, median +0.016). That is **not an independent check**, since the 2021 relation was built from the same family of fits; it only shows that the plan transcribed Eq. 1 correctly.
 - Taking the bound **galaxy by galaxy** with that mean relation, 48 of 124 galaxies (39 percent) have M_thick/M_thin above the bound, 22 percent by more than the 0.13 dex scatter of the hot component itself, and the worst case is 0.57 dex above. The median is 0.10 dex below. So the plan's test text "any seed breaks the bound" will fail for roughly four draws in ten if the generator reproduces the observed scatter. Options for the plan (not my decision): apply the bound to the mean ratio only; add a 0.13 dex margin to the bound (then 22 percent of real galaxies still exceed it); or bound the hot-component fraction instead of the ratio. The bound as a mean statement is supported.
 
 ## 5. Corrections to the plan's references
 
 | In the plan or brief | What I found |
 |---|---|
-| Courteau 2007 = ApJ 671, 203, "64 galaxies" | arXiv:astro-ph/0610721 is ApJ 655, L21; no "64" in its text; samples are 154/24/54/11 (Fig. 1) and 32/12/33 with concentrations (Fig. 2). `docs/design/galaxy/galaxy-laws-research.md` row "(64 galaxies)" and R5 should drop the number |
-| Comerón 2014 = A&A 562, A121 | ARRAKIS ring atlas; the thick-disc paper is A&A 571, A58 (arXiv:1409.0466) |
-| Comerón 2011, 2012 tables on VizieR | not on VizieR; superseded by J/A+A/610/A5 (2018, 141 galaxies) |
-| Comerón 2018 "prints ranges only" | the numbers are in the VizieR table J/A+A/610/A5 with per-galaxy masses, so a fit with scatter is possible |
+| [R0908] = ApJ 671, 203, "64 galaxies" | [R0908] is ApJ 655, L21; no "64" in its text; samples are 154/24/54/11 (Fig. 1) and 32/12/33 with concentrations (Fig. 2). `docs/design/galaxy/galaxy-laws-research.md` row "(64 galaxies)" and R5 should drop the number |
+| [R0864] = A&A 562, A121 | ARRAKIS ring atlas; the thick-disc paper is A&A 571, A58 [R0864] |
+| [R0861], 2012 tables on VizieR | not on VizieR; superseded by J/A+A/610/A5 (2018, 141 galaxies) |
+| [R0865] "prints ranges only" | the numbers are in the VizieR table J/A+A/610/A5 with per-galaxy masses, so a fit with scatter is possible |
 
 ## 6. Limits
 
@@ -141,9 +141,9 @@ Values at the three masses of the plan's table (plan Vc about 89, 181, 255 km/s)
 
 | File | What |
 |---|---|
-| `c18/ReadMe`, `c18/tableb.dat`, `c18/tablec.dat` | Comerón 2018, J/A+A/610/A5, copied from cdsarc.cds.unistra.fr |
+| `c18/ReadMe`, `c18/tableb.dat`, `c18/tablec.dat` | [R0865], J/A+A/610/A5, copied from cdsarc.cds.unistra.fr |
 | `c18_meta.xml`, `c14_meta.xml` | VizieR metadata queries (the second shows 562/A121 is ARRAKIS) |
-| `pms01/ReadMe`, `pms01/table1.dat`, `pms01/table3.dat` | Prugniel, Maubon and Simien 2001, J/A+A/366/68 |
+| `pms01/ReadMe`, `pms01/table1.dat`, `pms01/table3.dat` | [R3619], J/A+A/366/68 |
 | `p05/pizzella2005-astro-ph-0503649.txt`, `p05/table1-hsb-excerpt.txt`, `p05/table1-lsb-excerpt.txt` | text of the arXiv PDF and the two Table 1 excerpts |
 | `parse_c18.py`, `analyse_c18.py`, `analyse_c18.out.txt` | parsing and fits for GR3 |
 | `analyse_pms01.py`, `analyse_pms01.out.txt` | PMS01 scatter, type groups |

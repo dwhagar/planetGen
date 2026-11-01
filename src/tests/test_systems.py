@@ -108,14 +108,14 @@ def _assert_no_overlap_within(objects):
         else:
             # `cur.star.mass` (not `system.star.mass`): for an S-type (wide)
             # binary's secondary list, `system.star` is still the primary --
-            # see `StarSystem._mutual_min_distance_au`'s own docstring for
+            # see `validation.min_distance_after_au`'s own docstring for
             # why the owning planet's own `.star` is used instead.
             mutual_radius_m = mutual_hill_radius_m(
                 cur.distance * constants.AU_TO_M, prev.distance * constants.AU_TO_M,
                 cur.mass, prev.mass, cur.star.mass,
             )
             min_gap = (mutual_radius_m / constants.AU_TO_M) * prog_c.MUTUAL_HILL_RADII_SEPARATION
-            # validation.mutual_min_distance_au clamps kappa (the gap over
+            # validation.min_distance_after_au clamps kappa (the gap over
             # the mean distance) at 1.8 for a pair heavy next to its star.
             min_gap = min(min_gap, 1.8 * (cur.distance + prev.distance) / 2)
 

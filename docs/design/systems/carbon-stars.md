@@ -6,7 +6,7 @@ Nothing is stored and nothing in generation changes: the sheet reads the star's 
 
 ## The model
 
-1. **Pulses.** A star of initial mass `M` runs `pulses_in_branch(M)` thermal pulses over the asymptotic window (17 at 1.5 solar masses to 25 at 2.75, Karakas and Lugaro 2016 Table 1), and has run that number times the share of the window it has used.
+1. **Pulses.** A star of initial mass `M` runs `pulses_in_branch(M)` thermal pulses over the asymptotic window (17 at 1.5 solar masses to 25 at 2.75, [R2244: Table 1]), and has run that number times the share of the window it has used.
 2. **Dredge-up.** A star at or above `tdu_minimum_mass_sol` (1.5 solar masses at solar [Fe/H], 0.2 lower per dex of [Fe/H] below it, never under 1.0) dredges up at pulse `n` the share `lambda(n) = lambda_max(M) (1 - exp(-n/4))` of the core growth of the pulse (0.004 solar masses); 22 percent of what is dredged is carbon.
 3. **Surface C/O.** The dredged carbon over the oxygen of the envelope, the envelope being the mean of its mass at the start of the branch and now, less a 0.6 solar-mass core. The envelope's own C/O is the A21 photospheric one (0.59 at solar).
 4. **Hot bottom burning.** A star of 4.0 solar masses or more burns the carbon again and is never one.

@@ -190,7 +190,7 @@ def test_the_layers_carry_the_materials_optics():
     assert haze.omega[1] < haze.omega[2] < haze.omega[3]                                       # tholin absorbs blue: darker in the blue
     dust = aerosols.layers(aerosols.Aerosols(0.0, 1.0, 0.0, 0.0, 0.0), centres)[0]
     assert dust.tau == pytest.approx(np.ones(5))
-    assert dust.omega[1] == pytest.approx(0.7725, abs=1e-6) and dust.omega[3] == pytest.approx(0.9545, abs=1e-6)       # Wolff 2009, 1.2 micron: 450 and 650 nm
+    assert dust.omega[1] == pytest.approx(0.7725, abs=1e-6) and dust.omega[3] == pytest.approx(0.9545, abs=1e-6)       # [R4743], 1.2 micron: 450 and 650 nm
     assert dust.omega[0] < dust.omega[1] < dust.omega[3]
     assert aerosols.layers(aerosols.NONE, centres) == (None, None)
 
@@ -283,7 +283,7 @@ def test_a_cool_active_star_is_not_given_the_blackbody_templates_small_methane_r
 # --- GEN.1229: the haze depth from the mass flux, the grain it grows to and the time it takes to fall ----------------------------------
 
 TITAN_MASS_FLUX_KG_M2_S = 3.5e-13
-"""float: Titan's haze production, 3.5e-14 g/cm2/s (Podolak and Bar-Nun, in Horst 2017); later work gives about 1e-14."""
+"""float: Titan's haze production, 3.5e-14 g/cm2/s (Podolak and Bar-Nun, in [R2008]); later work gives about 1e-14."""
 TITAN_MONOMER_M = 5.0e-8
 
 

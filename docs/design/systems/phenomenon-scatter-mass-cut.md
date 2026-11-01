@@ -82,7 +82,7 @@ Three figures disagreed; this fixes them.
 **Decided (Boss, 2026-10-10 18:44Z, GEN.169): keep the regional factors and the 0.1% intermediate-mass share as they are.** Against the nominal rates the neutron stars come out 0.80 times and the black
 holes 1.49 times [C], because the regional factors of GEN.132 (`remnant_distribution.placement_factor`,
 vertical scale-height ratios 3.0 and 2.5, the black holes' core excess) multiply the bin weights without
-renormalising. His 2026-10-09 retune said "1e9 neutron stars and 1e8 black holes"; the scatter yields
+renormalising. His retune of 2026-10-09 said "1e9 neutron stars and 1e8 black holes"; the scatter yields
 9.5e8 and 2.2e8, so the black holes are 2.2 times his stated total. If "the rate is the total" is the
 intent, divide each kind's weights by their mean factor. The cut below does not depend on it, except that
 the intermediate-mass black holes (0.1% of the black holes) would drop from 2.2e5 to 1e5.

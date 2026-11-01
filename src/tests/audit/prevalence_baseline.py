@@ -54,7 +54,7 @@ def zone_barred(zone, kind):
 GAS_DWARF_RANGE = {
     "min": 0.02, "max": 0.45, "kind": "stand-in",
     "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed "
-              "(Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the "
+              "([R1459, R3499], recalled, unverified, tier T2/T3), so class T must appear among cold planets; the "
               "pre-cut-over spine drew it almost never"}
 """dict: The one range not taken from the reference: class T among cold planets (Boss: 'a class missing where expected, class T
 today'). A stand-in at design tier, tweak level L3 (hand-set against the observed abundance of sub-Neptunes)."""

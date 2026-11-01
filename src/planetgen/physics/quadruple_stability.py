@@ -7,7 +7,7 @@ Stability of a 3+1 or a 2+2 quadruple star system (GEN.1029 and GEN.1031, docs/d
 A 3+1 quadruple is an inner binary (`m1 >= m2`), a third star `m3` on the intermediate orbit around the binary, and a fourth star `m4` on the
 outer orbit around those three. Testing it as two nested triples (`physics/stability.py`) is right for 66 percent of such systems and calls
 too many of them stable (precision 0.59), because the outer star excites the eccentricity of the intermediate orbit and that destabilises the
-inner triple, which a triple test cannot see. Vynatheya, Mardling and Hamers 2023 (arXiv 2301.09930) trained a small neural network on 5e5
+inner triple, which a triple test cannot see. [R4575] trained a small neural network on 5e5
 N-body integrations and got 93 percent. This module is that network as plain numbers: 11 inputs, four hidden layers of 50 logistic units, one
 logistic output, the probability that the system is *unstable*. The 8,301 numbers (weights and biases) are in `data/quadruple_stability_3p1_weights.json`, made from the
 authors' scikit-learn model file by `scripts/build_quadruple_stability.py` (read without running the pickle); the forward pass here is numpy

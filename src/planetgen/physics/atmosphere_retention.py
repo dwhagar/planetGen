@@ -7,7 +7,7 @@ When a body can hold an atmosphere (GEN.355, docs/design/habitability/atmosphere
 The answer the design note gives, as functions. Three gates and one loss:
 
 1. **The cosmic shoreline** (`shoreline_ratio`, `verdict_of`, `pressure_cap_pa`): bodies with and without air separate along the
-   cumulative insolation over the fourth power of the escape velocity (Zahnle and Catling 2017). The ratio `r = I / (K v^4)` is under 0.7 for
+   cumulative insolation over the fourth power of the escape velocity [R4862]. The ratio `r = I / (K v^4)` is under 0.7 for
    a body that holds a dense atmosphere and over 30 for one that holds none; `K` is the middle of the window the 13 bodies of the design
    table allow (3.0e-4 to 6.6e-4). `I` is the insolation in Earth's, or for a star that stays active for long the insolation times the star's
    cumulative XUV over the Sun's to 4.5 Gyr. The shoreline caps the pressure and does not set it.
@@ -53,7 +53,7 @@ PRESSURE_CAPS_PA = (None, 1.0e4, 1.0e3, 1.0, 0.0)
 (1 Pa), none (row SH3)."""
 
 JEANS_KEEP = 30.0
-"""float: A gas of this Jeans parameter or more at the exobase stays for the age of a body (Catling and Kasting 2017); one under 15 is gone within
+"""float: A gas of this Jeans parameter or more at the exobase stays for the age of a body [R0692]; one under 15 is gone within
 about 1 Gyr (row SH4)."""
 
 EARTH_TEQ_K = 278.6

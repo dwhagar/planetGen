@@ -1,5 +1,5 @@
 """
-Ozone column against oxygen and host star (GEN.413, `planetgen.physics.ozone`): the Kozakis et al. 2022 fit against the
+Ozone column against oxygen and host star (GEN.413, `planetgen.physics.ozone`): the [R2466] fit against the
 values the research read from its Table 3, the host mix, the spread and the abiotic branch.
 """
 

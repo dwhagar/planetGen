@@ -17,7 +17,7 @@ from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
 COMETS = {
-    # percent of H2O; 67P bulk (Rubin 2019 Table 2), 103P (Dello Russo 2016, A'Hearn 2011), Hale-Bopp (Rob24 database)
+    # percent of H2O; 67P bulk ([R3835: Table 2]), 103P (Dello [R0047, R1063]), Hale-Bopp (Rob24 database)
     "67P": {"CO": 3.1, "CO2": 4.7, "CH4": 0.34, "C2H6": 0.29, "NH3": 0.67, "HCN": 0.14, "CH3OH": 0.21, "H2CO": 0.32,
             "H2S": 1.10},
     "103P": {"CO": 0.3, "CO2": 20.0},

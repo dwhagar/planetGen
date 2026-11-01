@@ -13,15 +13,15 @@ of the one shared materials table (GEN.427), a porosity, and from them `physics.
   water line, hydrated carbonaceous below it, primitive and ice-rich colder still. Each taxon's mix of materials is a meteorite analogue,
   so every taxon row stays a flagged `stand-in` that GEN.475 replaces, and the Dirichlet concentration is open (Boss, 1:43 and 1:44 AM EDT on 2026-10-17). Each taxon is a mix of the shared table's
   rows (the chemistry of its meteorite analogue), a porosity from its family's range, and an albedo.
-* **A comet** (`draw_comet`). A refractory-to-ice ratio (Choukroun et al. 2020), the organic share of the refractories, a
+* **A comet** (`draw_comet`). A refractory-to-ice ratio [R0776], the organic share of the refractories, a
   porosity (65 to 79 percent, Choukroun), and the volatile percentages of water of the population of GEN.495
   (`comet_population.draw_volatiles`), turned into mass fractions of the ice. The mass is the density times the nucleus sphere.
 * **An icy body** (`draw_icy_body`): a Kuiper belt object, a dwarf planet or a class D body. Its rock fraction is a truncated
-  normal about 0.70 (Bierson and Nimmo 2019: 70 percent rock matches 14 of 17 Kuiper belt objects within 2 sigma; the width and
+  normal about 0.70 ([R0390]: 70 percent rock matches 14 of 17 Kuiper belt objects within 2 sigma; the width and
   limits are the repository's), or for a dwarf planet that lost its ice in a collision a second row (the weights are open); the bulk density is the
   tapered brittle law of `physics.compaction`.
 * **A ring** (`draw_ring`): material of a circumplanetary disk, whose ice fraction rises with the formation distance past the
-  disk's ice line (`disk_ice_fraction`, decision S8; Cilibrasi 2018 sets the bracket 0.5 to 0.85 for the moons).
+  disk's ice line (`disk_ice_fraction`, decision S8; [R0804] sets the bracket 0.5 to 0.85 for the moons).
 
 What each draw returns is a `SmallBodyMakeup`: the mass fractions by component, their sums in four groups (metal, rock, water,
 other ice: the shape of lane I's `BulkFractions`), the porosity, the grain and bulk density. The draws read only `util.draw` in a
@@ -176,7 +176,7 @@ def makeup_from_components(kind, components, porosity, detail=None):
 # The taxa of a belt or field
 
 ZONES = (
-    # name, x from, x to, percent of the zone's mass by taxon (DeMeo and Carry 2013, Table 6, read in part D 2.4)
+    # name, x from, x to, percent of the zone's mass by taxon ([R1065: Table 6], read in part D 2.4)
     ("hungaria", 0.66, 0.76, {"E": 50, "C": 21, "S": 9, "A": 7, "L": 7, "K": 5}),
     ("inner belt", 0.76, 0.93, {"V": 69, "S": 21, "C": 6}),
     ("middle belt", 0.93, 1.04, {"C": 70, "B": 15, "S": 8, "P": 4}),
@@ -194,7 +194,7 @@ TAXA = ("E", "C", "B", "S", "A", "L", "K", "V", "P", "M", "D")
 CARBONACEOUS = "carbonaceous"
 ROCKY = "rocky"
 POROSITY_RANGES = {CARBONACEOUS: (0.25, 0.55), ROCKY: (0.10, 0.35)}
-"""dict: The surface porosity ranges by family (Britt and Consolmagno 2003, Carry 2012; parametrisations)."""
+"""dict: The surface porosity ranges by family ([R0544, R0666]; parametrisations)."""
 
 
 @dataclass(frozen=True)
@@ -206,7 +206,7 @@ class Taxon:
         name (str): The Bus and DeMeo class letter.
         analogue (str): The meteorite group whose chemistry the mix follows (proposed links, part D 2.3).
         family (str): `carbonaceous` or `rocky`, which sets the porosity range.
-        albedo (float): The mean albedo of the class (DeMeo and Carry 2013 Table 4, SDSS).
+        albedo (float): The mean albedo of the class ([R1065: Table 4], SDSS).
         fractions (dict): Row of the shared table -> mass fraction of the grains.
     """
 
@@ -219,7 +219,7 @@ class Taxon:
 
 TAXON_DATA = {
     # The mixes are the analogue meteorite's modal chemistry written in rows of the shared table: a stand-in at every row
-    # (GEN.473), checked in the tests against the grain densities of Britt and Consolmagno 2003 (part D 2.2).
+    # (GEN.473), checked in the tests against the grain densities of [R0544] (part D 2.2).
     "C": Taxon("C", "CI/CM chondrite", CARBONACEOUS, 0.083,
                {"serpentine": 0.56, "forsterite": 0.09, "fayalite": 0.07, "enstatite": 0.05, "magnetite": 0.07, "troilite": 0.06,
                 "calcite": 0.03, "complex_organics": 0.06, "kamacite": 0.01}),
@@ -261,7 +261,7 @@ def _taxon_row(taxon):
     data = TAXON_DATA[taxon]
     return pt.Row(
         name=f"taxon-{taxon}", classes=(BELT, FIELD), weight=lambda subject, taxon=taxon: taxon_kernel.kernel(subject["temperature_k"], subject["al26_ratio"])[taxon],
-        source="the belt's taxa from the disk's ice lines and the early heating by aluminium-26 (taxon_kernel); the mix of each taxon is a meteorite analogue (DeMeo and Carry 2013, arXiv:1307.2424)",
+        source="the belt's taxa from the disk's ice lines and the early heating by aluminium-26 (taxon_kernel); the mix of each taxon is a meteorite analogue [R1065]",
         state=pt.STAND_IN, replacement=REPLACEMENT, fractions=data.fractions, concentration=None,
         notes=f"{data.analogue}; {data.family} family; albedo {data.albedo}")
 
@@ -437,24 +437,23 @@ def draw_field(family, concentration=DIRICHLET_CONCENTRATION):
 # Comets
 
 REFRACTORY_ICE_RATIO_RANGE = (0.5, 8.0)
-"""tuple: The refractory-to-ice mass ratio, log-uniform (Choukroun et al. 2020: Rosetta RSI 3 to 7, CONSERT above 3, Fulle 7.5,
+"""tuple: The refractory-to-ice mass ratio, log-uniform ([R0776]: Rosetta RSI 3 to 7, CONSERT above 3, Fulle 7.5,
 COSIMA 0.2 to 3; a verified range, a parametrised shape)."""
 ORGANIC_SHARE = (0.60, 0.15)
 """tuple: The organic share of the refractories, normal (mean, sd) clipped to 0 to 1: a labelled stand-in at the widest bracket
 (Boss, 1:23 PM EDT on 2026-10-17: no measurement exists; COSIMA's 0.45 lies inside it)."""
 COMET_POROSITY_RANGE = (0.5, 0.8)
-"""tuple: A comet nucleus' porosity, uniform (Choukroun et al. 2020: 65 to 79 percent)."""
+"""tuple: A comet nucleus' porosity, uniform ([R0776]: 65 to 79 percent)."""
 KUIPER_POROSITY_RANGE = (0.3, 0.6)
 """tuple: The porosity of a Kuiper belt object under 100 km, uniform (design note section 5.2)."""
 REFRACTORY_DENSITIES = {"silicate_dust": 3500.0}
-"""dict: The grain density of a comet's silicate dust, kg/m3 (the shared table holds none for the row). A labelled stand-in: Blum and
-Bischoff 2022 (arXiv:2207.12731) say the density of cometary refractory material "is not known and can only be constrained within a
+"""dict: The grain density of a comet's silicate dust, kg/m3 (the shared table holds none for the row). A labelled stand-in: [R0430] say the density of cometary refractory material "is not known and can only be constrained within a
 range", 2600 to 5000 for the minerals; 3500 is the value the design note took from the Rosetta reviews and sits in that range. The
 organics take the row of the shared table (1.5 g/cm3, the middle of Blum and Bischoff's 1000 to 2000; GEN.712)."""
 ICE_STAND_IN_DENSITIES = {"ch4_ice": 500.0, "nh3_ice": 850.0, "c2h6_ice": 920.0, "hcn_ice": 920.0, "formaldehyde": 920.0,
                           "so2_ice": 920.0}
 """dict: Grain densities of ices the shared table holds no number for (kg/m3): the bracket of the design note (bulk-composition.md
-section 6: other ices are close to water ice; NH3 850, CH4 500), a labelled stand-in until Fray and Schmitt 2009 is read. These
+section 6: other ices are close to water ice; NH3 850, CH4 500), a labelled stand-in until [R1445] is read. These
 ices are a few percent of a comet's mass at most, so the density moves by under 1 percent."""
 COMET_DENSITIES = {**REFRACTORY_DENSITIES, **ICE_STAND_IN_DENSITIES}
 VOLATILE_ROWS = {"CO": "co_ice", "CO2": "co2_ice", "CH4": "ch4_ice", "C2H6": "c2h6_ice", "NH3": "nh3_ice", "HCN": "hcn_ice",
@@ -513,16 +512,16 @@ ROCK_FRACTION_LAWS = {
     "icy-stripped": (0.88, 0.05, 0.75, 0.98),
 }
 """dict: The rock fraction of an icy body by row. The centre of the first is Bierson and Nimmo's 70 percent (verified); its width
-and limits are the repository's. The second is the collisional tail of Barr and Schwamb 2016 (Haumea, Eris), whose weight is open."""
+and limits are the repository's. The second is the collisional tail of [R0269] (Haumea, Eris), whose weight is open."""
 
 ICY_TABLE = pt.REGISTRY.register(pt.Table(
     "icy-body-rock-fraction", 1, [
         pt.Row("icy-intact", ICY_KINDS, pt.OPEN, "open", state=pt.OPEN_STATE,
-               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the centre is Bierson and Nimmo 2019 (Icarus 326, 10: a "
+               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the centre is [R0390] (Icarus 326, 10: a "
                      "constant 70 percent matches 14 of 17 Kuiper belt objects within 2 sigma), the width and limits are the "
                      "repository's; the weight against the second row is open"),
         pt.Row("icy-stripped", (DWARF_PLANET,), pt.OPEN, "open", state=pt.OPEN_STATE,
-               notes="a dwarf planet whose ice a collision removed (Barr and Schwamb 2016: Haumea, Eris): rock fraction toward 0.9; "
+               notes="a dwarf planet whose ice a collision removed ([R0269]: Haumea, Eris): rock fraction toward 0.9; "
                      "the weight is open"),
     ], description="The rock mass fraction of a Kuiper belt object, dwarf planet or class D body, gated by kind."))
 """Table: The icy-body rock fraction rows."""

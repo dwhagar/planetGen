@@ -10,7 +10,7 @@ placement (option D) needs: where the rogue is relative to the star it was eject
 (GEN.1111 and GEN.1115 place rogues with it). The kick is an input, so the open questions about its direction and about storage do not hold the module.
 
 **The equations.** In the frame that turns with the star's circular orbit at `Omega = A - B` (Oort's constants), `x` outward, `y` along the rotation and `z` up, a body near the
-star obeys Hill's equations (Binney and Tremaine 2008, *Galactic Dynamics*, section 3.2; the same as the tidal-stream and epicycle derivations):
+star obeys Hill's equations ([R0398, R0399], *Galactic Dynamics*, section 3.2; the same as the tidal-stream and epicycle derivations):
 
     x'' = 2 Omega y' + 4 Omega A x,    y'' = -2 Omega x',    z'' = -nu^2 z,    kappa^2 = -4 B (A - B).
 
@@ -29,7 +29,7 @@ that the along-orbit offset is an arc: `ring_drift` turns `y` into an azimuth `y
 is fully mixed), with `x` and `z` from the closed form, both bounded, so no integrator is needed even at 10 Gyr. A bar, spiral arms or a halo would change the large
 excursions; the orbit integrator behind `docs/design/galaxy/galactic-potential.md` replaces this with the same interface when it exists.
 
-**What it does not do.** No secular heating of the floaters by encounters (Lau and Lai 2026, `rogue-planet-drift.md` section 2), no dependence of the Oort constants and the
+**What it does not do.** No secular heating of the floaters by encounters ([R2575], `rogue-planet-drift.md` section 2), no dependence of the Oort constants and the
 vertical frequency on galactocentric radius (the caller passes them for the star's position; `Galaxy.from_frequencies` takes the potential's own `Omega`, `kappa` and `nu`),
 no star-planet gravity after the kick (the planet is gone). Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.89.
 """
@@ -41,9 +41,9 @@ from planetgen.physics import constants
 from planetgen.util.checks import finite_domain
 
 OORT_A_KM_S_KPC = 15.3
-"""float: Oort's constant A, km/s/kpc (Bovy 2017, quoted in `rogue-planet-drift.md` section 3.1). Source tier T1, tweak level L0."""
+"""float: Oort's constant A, km/s/kpc ([R0497], quoted in `rogue-planet-drift.md` section 3.1). Source tier T1, tweak level L0."""
 OORT_B_KM_S_KPC = -11.9
-"""float: Oort's constant B, km/s/kpc (Bovy 2017). Source tier T1, tweak level L0."""
+"""float: Oort's constant B, km/s/kpc [R0497]. Source tier T1, tweak level L0."""
 VERTICAL_FREQUENCY_KM_S_KPC = 76.0
 """float: The vertical oscillation frequency `nu = sqrt(4 pi G rho)` for a midplane density of 0.1 solar masses per cubic parsec, km/s/kpc. Source tier T6, tweak level L1."""
 LINEAR_LIMIT_PC = 1500.0

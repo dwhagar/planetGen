@@ -1,6 +1,6 @@
 # tests/test_cluster_unbinding.py
 
-"""GEN.1112 RP7: the planets a birth cluster strips from their stars (`planetgen.physics.cluster_unbinding`, Spurzem et al. 2009 eqs. 36 and 37)."""
+"""GEN.1112 RP7: the planets a birth cluster strips from their stars (`planetgen.physics.cluster_unbinding`, [R4184] eqs. 36 and 37)."""
 
 import math
 

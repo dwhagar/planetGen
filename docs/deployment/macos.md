@@ -126,6 +126,8 @@ installs the monthly orbit update (and update.sh, unless
        sudo launchctl bootstrap system /Library/LaunchDaemons/org.planetgen.gunicorn.plist
        curl -s http://127.0.0.1:8000/api/health
 
+   Set `api_base_url` in `config.json` to `http://127.0.0.1:8000/api` here (gunicorn's own address); the update asks that address and no other.
+
    The plist runs `gunicorn --pythonpath /var/lib/planetGen/src/html
    wsgi:application` as `_www`, with one process and five threads (like
    Apache's daemon), on 127.0.0.1:8000, and restarts it if it exits.

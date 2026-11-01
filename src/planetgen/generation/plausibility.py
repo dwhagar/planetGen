@@ -296,7 +296,7 @@ def analyze(records, metrics=STATISTICAL_METRICS, k=3.0):
         by_class[record["planet_class"]].append(record)
 
     report = {}
-    for cls, recs in sorted(by_class.items()):
+    for cls, recs in sorted(by_class.items(), key=lambda item: (item[0] is None, item[0] or "")):    # a body with no letter is an Asteroid, last
         hard_violations = []
         for record in recs:
             issues = check_hard_invariants(record)

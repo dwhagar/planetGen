@@ -172,3 +172,12 @@ def test_a_run_is_not_held_up_by_a_job_waiting_ahead_of_it(conn):
     runline.join(conn, runline.JOB, "Waiting job", fields={"root": "/jobs"})
     run_id = runline.start_when_free(conn, _take(conn), 60)
     assert runrecord.active_run(conn) == run_id
+
+
+def test_a_run_started_inside_a_run_of_the_same_process_fails_instead_of_waiting_for_itself(conn):
+    """ADM.136: the second run would wait at position 1 behind the first, which its own process is following."""
+    runrecord.start_run(conn, "Generate job", [runrecord.Stage("a", "A")])
+    with pytest.raises(runrecord.Busy, match="would wait for itself"):
+        runline.start_when_free(
+            conn, lambda: runrecord.start_run(conn, "Nested", [runrecord.Stage("a", "A")]), 600, title="Nested",
+            nested_guard=True)

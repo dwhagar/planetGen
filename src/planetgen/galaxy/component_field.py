@@ -50,6 +50,17 @@ FAMILY_OF_POPULATION = {"cluster": "cluster", "satellite": "satellite", "satelli
 KIND_OF_POPULATION = FAMILY_OF_POPULATION
 
 
+def gate_components(found):
+    """The components of `found` that put systems in a cell (a kind of `KINDS_IN_THE_GATE`), in order."""
+    return [c for c in found if c.kind in KINDS_IN_THE_GATE]
+
+
+def age_key(component):
+    """The age a component's mean system mass is looked up at (`components.Component.mean_system_mass_solar`): Gy, rounded
+    to 6 places."""
+    return round(component.age_gy, 6)
+
+
 def family_of(component):
     """A component's family: its kind, except that a `cluster` with the `plummer` profile is a young `open_cluster`
     (a globular cluster is a `king`)."""
@@ -92,14 +103,19 @@ class ComponentField:
             `KINDS_IN_THE_GATE` count here.
         edge_pc (float): The sector edge, parsecs: the cube a cell's density is integrated over.
         expected_at_density_1 (float): The systems a cell holds at `relative_density` 1.
+        mean_by_age (dict, optional): Age (Gy, rounded to 6 places) -> the mean system mass there, solar masses
+            (`components.Component.mean_system_mass_solar`), for every component's age. Left out, each is worked out
+            here; that is almost all the time a field takes (about half a millisecond per distinct age, so tens of seconds
+            for a galaxy of many young clusters), which is why `galaxy.field_job` works them out ahead, in small parts,
+            and hands them in.
     """
 
     __slots__ = ("edge_pc", "expected_at_density_1", "names", "kinds", "families", "fe_h", "shares", "_centers", "_reach",
                  "_scale_pc", "_central", "_tables", "_index", "_big", "_small", "_small_by_cyl", "_small_cyl",
                  "_small_by_dist", "_small_dist", "_small_window", "_density_reach", "_density_window", "_encloses_origin")
 
-    def __init__(self, found, edge_pc, expected_at_density_1):
-        held = [c for c in found if c.kind in KINDS_IN_THE_GATE]
+    def __init__(self, found, edge_pc, expected_at_density_1, mean_by_age=None):
+        held = gate_components(found)
         self.edge_pc = float(edge_pc)
         self.expected_at_density_1 = float(expected_at_density_1)
         self.names = tuple(c.name for c in held)
@@ -110,11 +126,12 @@ class ComponentField:
         self._centers = np.array([c.center_pc for c in held], dtype=float).reshape(-1, 3)
         self._reach = np.array([c.tidal_radius_pc for c in held], dtype=float)
         self._scale_pc = np.array([component_profiles.scale_radius_pc(c) for c in held], dtype=float)
+        means = [c.mean_system_mass_solar if mean_by_age is None else mean_by_age[age_key(c)] for c in held]
         # Systems per pc3 at the centre: the central density of the mass over the component's mean system mass.
-        self._central = np.array([component_profiles.central_density_per_pc3(c) / c.mean_system_mass_solar
-                                  for c in held], dtype=float)
+        self._central = np.array([component_profiles.central_density_per_pc3(c) / mean for c, mean in zip(held, means)],
+                                 dtype=float)
         self._tables = tuple(component_profiles.table_for(c) for c in held)
-        self._density_reach = self._qualifying_reach([c.mass_solar / c.mean_system_mass_solar for c in held])
+        self._density_reach = self._qualifying_reach([c.mass_solar / mean for c, mean in zip(held, means)])
         self._index = self._build_index()
         self._group_by_reach()
 

@@ -109,7 +109,7 @@ def test_the_published_threshold_alone_is_a_factor_of_two_off_that_run_as_marcus
 # --- Kepler-107 b and c ---------------------------------------------------------------------------------------------------------------------
 
 def test_kepler_107_c_is_what_two_ten_earth_mass_bodies_leave_and_its_radius_follows():
-    """c: 9.39 +- 1.77 Earth masses, 1.597 +- 0.026 Earth radii, about 70 percent iron (Bonomo 2019)."""
+    """c: 9.39 +- 1.77 Earth masses, 1.597 +- 0.026 Earth radii, about 70 percent iron [R0456]."""
     result = ms.impact(SPH_MASS, 0.30, SPH_MASS, SPH_SPEED)
     radius = bulk_structure.radius_fit_earth(result.mass_kg / EARTH, result.core_mass_fraction)
     assert abs(result.mass_kg / EARTH - 9.39) < 1.77
@@ -142,7 +142,7 @@ def test_the_repository_reads_kepler_107_c_as_the_paper_does():
 # --- Mercury --------------------------------------------------------------------------------------------------------------------------------
 
 def test_mercury_is_the_remnant_of_an_impact_at_the_speed_marcus_gives():
-    """About 70 percent iron; Marcus: 10 to 20 km/s for planets near Mercury's mass (Benz 2007: about 20 km/s)."""
+    """About 70 percent iron; Marcus: 10 to 20 km/s for planets near Mercury's mass ([R0351]: about 20 km/s)."""
     total = 2.74 * MERCURY
     projectile = total / 7.0
     target = total - projectile

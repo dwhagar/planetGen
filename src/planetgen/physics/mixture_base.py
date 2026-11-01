@@ -43,7 +43,7 @@ class MixtureDraw:
             `coma`).
         drawn (dict): Recipe group -> the row drawn (`{"a": "a6", "b": "b2", "c": "c3"}`).
         redox_diw (float or None): log10 fO2 above the iron-wuestite buffer of the mantle the gas is in contact with
-            (Hirschmann 2021 scale); `None` for a gas that has no mantle (a giant).
+            ([R1951] scale); `None` for a gas that has no mantle (a giant).
         temperature_k (float): The temperature of the equilibrium the mixture is the result of.
         pressure_bar (float): The pressure of the equilibrium.
         inventory (dict): The element budget the chemistry read (atoms per 100 g of body for a rocky body, per hydrogen atom for a

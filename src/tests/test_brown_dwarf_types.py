@@ -1,8 +1,7 @@
 # tests/test_brown_dwarf_types.py
 
 """
-GEN.517: the effective temperature against spectral type of brown dwarfs (`planetgen.physics.brown_dwarf_types`, Kirkpatrick et al. 2021
-Table 13): the map and its refusals, the temperatures of the type boundaries, the chance of each class at a temperature, and the
+GEN.517: the effective temperature against spectral type of brown dwarfs (`planetgen.physics.brown_dwarf_types`, [R2374: Table 13]): the map and its refusals, the temperatures of the type boundaries, the chance of each class at a temperature, and the
 agreement of rows g1 to g5 of the atmosphere recipes with it.
 """
 

@@ -11,10 +11,10 @@ tables that need a star's brightness at the end of its main sequence, and the co
 `end_state` here. The mass-only piecewise laws they used to read (luminosity by mass in pieces, a radius by mass to a
 power) are gone.
 
-The phase times (`ms_lifetime`, Hurley, Pols and Tout 2000) are a second source that does not agree with MIST's own end
+The phase times (`ms_lifetime`, [R2055]) are a second source that does not agree with MIST's own end
 of the main sequence to the year: a star the lifetime keeps on the main sequence a little past MIST's edge, or not yet
 on it, takes the row at that edge (`isochrones.main_sequence_point(..., clamp=True)`). A mass lighter than the grid's
-lowest (0.1 solar masses; the generator makes stars from 0.08) is read from the Baraffe et al. 2015 isochrones
+lowest (0.1 solar masses; the generator makes stars from 0.08) is read from the [R0254] isochrones
 (`datasets/baraffe_isochrones.py`, GEN.936) at its age, held to the age it arrives on the main sequence (its radius within 2% of
 the least it reaches: 0.6 to 3 Gy) and to the table's last (10 Gy). The two tables do not agree at 0.1 solar masses (the
 Baraffe star is 12% fainter and 3% cooler than MIST's there), so the Baraffe luminosity and radius are scaled by the ratio of
@@ -40,7 +40,7 @@ _EDGE_STEP = 1.2
 
 LOW_MASS_BLEND_FLOOR_SOL = 0.07
 """float: The mass at which a star under the MIST grid takes the Baraffe table's luminosity and radius as they are: the table's
-own hydrogen-burning limit at solar metallicity (Baraffe et al. 2015, section 3.3: 0.07 solar masses). Between it and the grid's edge
+own hydrogen-burning limit at solar metallicity ([R0254], section 3.3: 0.07 solar masses). Between it and the grid's edge
 the ratio of the two tables at the edge fades out linearly in mass (GEN.936). [Stand-in ST1 of GEN.936, tier T7, tweak L0.]"""
 
 

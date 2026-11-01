@@ -13,7 +13,7 @@ rows stand in for the real 157. How many it draws follows the galaxy's halo mass
 import math
 
 from planetgen import tuning
-from planetgen.galaxy import components
+from planetgen.galaxy import components, enclosed_mass, potential, shape_draw
 from planetgen.physics import king
 from planetgen.util import draw
 from planetgen.util import detmath
@@ -63,9 +63,9 @@ def _bulge_distance(stream):
     return max(tuning.CLUSTER_BULGE_MEDIAN_PC * 10.0 ** stream.gauss(0.0, 0.3), low / 3.0)
 
 
-def _place(stream, group):
-    """`(position, velocity)` in the galaxy frame: a halo cluster on an isotropic orbit, a metal-rich one flattened
-    towards the plane and rotating with the disk."""
+def _place(stream, group, scale, pot):
+    """`(position, velocity)` in the galaxy frame (the position before `scale` is applied): a halo cluster on an isotropic orbit, a metal-rich one
+    flattened towards the plane and rotating with the disk at the circular speed of the galaxy's own potential `pot` at its (scaled) radius (GEN.339)."""
     if group == _GROUP_HALO:
         dx, dy, dz = _direction(stream)
         distance = _halo_distance(stream)
@@ -76,9 +76,11 @@ def _place(stream, group):
         distance = _bulge_distance(stream)
         dz *= tuning.CLUSTER_BULGE_FLATTENING
         dispersion = tuning.CLUSTER_BULGE_DISPERSION_KMS
-        rotation = tuning.CLUSTER_HALO_CIRCULAR_KMS
+        rotation = None
     x, y, z = distance * dx, distance * dy, distance * dz
     cylindrical = detmath.hypot(x, y) or 1.0
+    if rotation is None:
+        rotation = potential.circular_speed_kms(pot, cylindrical * scale)
     velocity = (
         -rotation * y / cylindrical + stream.gauss(0.0, dispersion),
         rotation * x / cylindrical + stream.gauss(0.0, dispersion),
@@ -150,7 +152,7 @@ def cluster_count(galaxy_seed, halo_mass_solar, family_factor=1.0):
     return whole + (1 if stream.random() < expected - whole else 0)
 
 
-def generate_clusters(galaxy_seed, count, epoch_unix=0.0, scale=1.0):
+def generate_clusters(galaxy_seed, count, epoch_unix=0.0, scale=1.0, shape=None):
     """
     Draws a galaxy's globular clusters from its seed.
 
@@ -161,21 +163,27 @@ def generate_clusters(galaxy_seed, count, epoch_unix=0.0, scale=1.0):
         scale (float): How much larger than the Milky Way the galaxy is, by its disk scale length: every distance from
             the centre is multiplied by it, so a toy galaxy keeps its clusters inside itself. The clusters themselves
             (mass, size, concentration) do not scale.
+        shape (GalaxyShape, optional): The galaxy's shape, whose potential and enclosed mass set a metal-rich cluster's rotation speed and every
+            cluster's Jacobi radius (GEN.339); `None` takes the shape the seed draws with every lever on Auto (`shape_draw.default_shape`).
 
     Returns:
         list[Component]: `count` clusters named "Generated cluster 001" and on, in drawing order.
     """
     stream = _stream(galaxy_seed)
+    seed_bytes = potential.seed_bytes(galaxy_seed)
+    if shape is None:
+        shape = shape_draw.default_shape(seed_bytes)
+    pot = potential.for_galaxy(shape, seed_bytes)
     halo_fraction = tuning.CLUSTER_FE_H_GROUPS[0][0]
     clusters = []
     for index in range(count):
         group = _GROUP_HALO if stream.random() < halo_fraction else 1
-        position, velocity = _place(stream, group)
+        position, velocity = _place(stream, group, scale, pot)
         position = tuple(c * scale for c in position)
         distance = math.sqrt(sum(c * c for c in position))
         mass = _mass(stream)
         radius, w0, collapsed = _structure(stream, distance, scale)
-        w0 = king.limit_w0(w0, radius, king.jacobi_radius_pc(mass, distance))
+        w0 = king.limit_w0(w0, radius, king.jacobi_radius_pc(mass, distance, enclosed_mass.enclosed_mass_solar(shape, seed_bytes, max(distance, 1.0))))
         clusters.append(components.Component(
             kind="cluster", name=f"Generated cluster {index + 1:03d}", source="generated",
             center_pc=position, velocity_kms=velocity, epoch_unix=epoch_unix, mass_solar=mass,

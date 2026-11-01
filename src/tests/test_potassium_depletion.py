@@ -1,7 +1,7 @@
 # tests/test_potassium_depletion.py
 
 """
-GEN.492: the potassium depletion of a rocky body against CI chondrites (`planetgen.physics.potassium_depletion`, Dauphas et al. 2022 Table 1):
+GEN.492: the potassium depletion of a rocky body against CI chondrites (`planetgen.physics.potassium_depletion`, [R1003: Table 1]):
 the table and its refusals, the two classes, and the draw.
 """
 
