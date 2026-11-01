@@ -2,6 +2,41 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3029] - 2026-10-31
+
+**Headline:** The Help menu now has an index page that lists every help page, the class types, and the life topics and classes, all read from the program's own tables.
+
+### Changed
+- **DOC.6.** A new help registry (`web/lib/help_registry.py`) holds no list of its own: each part of the program registers its own help page, category and link terms (classes, life, properties and habitability do so now). The Help menu, the new `/help` index and the sitemap read what is registered. The pages under a topic (the class types, the life topics and life classes) come from `classref.catalog()` and `life_classes.CLASSES`, so a new class appears with no edit.
+- The habitability page no longer carries typed-in numbers: the gear limits, the score edges, the life class count on the map row and the temperature bands with their shares of the surface are read from `protection_limits`, `habitability`, `life_classes` and `regional_temperature`. The text the page shows is unchanged.
+- `tests/test_help_registry.py` fails when a `/help` route is missing from the registry, the menu or the index differs from it, or a number on the habitability page drifts from the code. Display only, no stored value changes.
+- **DOC.57.** An auto-linker (`web/lib/autolink.py`) runs on every page's main content. It links the first two mentions of each term the parts of the program registered (the life class ids so far, such as "4c" and "Class 2"), counting links already on the page, and leaves headings, existing links, the site header and the page's own address alone. Every life class id links only after "Class" (or in a list that starts with it), never when a unit follows, so a measurement ("4c" as a speed, "4 C", "3 g", "15 Mpc") is never taken for a class. About 450 adversarial and generated-page tests (fixed seeds) guard it.
+generation-output: unchanged
+
+## [8.0.3028] - 2026-10-31
+
+**Headline:** Every paper, book, dataset, and archive in the reference list has one fixed citation ID, shown on the References pages.
+
+### Changed
+- **Citation IDs (DOC.100).** Each source in `docs/reference/references-data.json` gets an ID such as `R0123`, given once and never reused. A preprint that later gets a DOI keeps its ID. `docs/REFERENCES.md` and `.html` print the ID before every entry with the anchor `#paper-r0123`, and `web/lib/reference_urls.py` addresses the Papers page by it. The in-line citation style (a bracketed ID, `[R0123]`, after the words it supports) is written into the References design and the plain-words guide. Display only: no schema change.
+
+## [8.0.3027] - 2026-10-31
+
+**Headline:** Gas and ice giants are painted with belts, zones, wavy edges and storms, colored by their cloud chemistry.
+
+### Added
+- **Banded giants on the System Map, the 3D system view and the body page.** `static/giantpaint.js` replaces the old fixed stripe texture. The band
+  count follows the spin and the size, the contrast follows the cloud-top temperature (ammonia-cloud giants show the most, methane ice giants are nearly
+  plain), and the palette follows the stored methane, ammonia, water and hydrogen sulfide. Each giant looks the same on every visit (seeded from its ID).
+  The look record gains a `gas` field. Display only: no schema change.
+
+## [8.0.3026] - 2026-10-31
+
+**Headline:** A planet's surface is now seen through its air: the ground takes on the sky's color, hazy worlds look softer, and cloud cover shows.
+
+### Added
+- **Surface tint, softening, and clouds from the atmosphere (MAP.350).** The look record of a solid world with air carries `veil` (from the air's optical depth at 550 nm), `haze` (from the stored haze and dust depths), and `cloudCover` and `cloudTau` (from the stored cloud). The solid-world painter tints the ground toward the sky color at the same brightness, lowers its contrast, blurs it a second time under a thick haze, and lays a seeded whitish cloud layer over it. A world with thin air, or with none of those values stored, is drawn exactly as before.
+
 ## [8.0.3025] - 2026-10-31
 
 **Headline:** The galaxy's cluster field is now built ahead by the warm-up, in small saved parts, and the web only reads it.

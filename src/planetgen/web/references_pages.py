@@ -14,7 +14,7 @@ The pages are static: no database, no script. Their numbers are read from `docs/
 takes another tint (`body.references-mode`), so a reader always knows they have left the story.
 """
 
-from planetgen.web.lib import references_site
+from planetgen.web.lib import help_registry, references_site
 
 from . import bp
 from .helpers import crumb, render_page
@@ -33,3 +33,8 @@ def references_page():
         banner=references_site.BANNER,
         banner_text=references_site.BANNER_TEXT,
     )
+
+
+help_registry.register_category("references", "Sources", "Where the numbers come from, and how sure each part is.", order=1000)
+help_registry.register_topic("references_page", "References", "references",
+                             "The papers and data sets behind the numbers, and how sure each part is.", order=1000)

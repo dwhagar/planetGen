@@ -146,35 +146,6 @@ function hexToRgba(THREE, hex, alpha) {
   return "rgba(" + Math.round(c.r * 255) + "," + Math.round(c.g * 255) + "," + Math.round(c.b * 255) + "," + alpha + ")";
 }
 
-// A gas giant's banding is turbulent, not a mechanical stripe grid --
-// layered sine waves at different frequencies/phases give each band a
-// slightly irregular width/edge, closer to a real Jupiter/Saturn photo's
-// look than evenly-spaced rings would. Height-only (width 4px, repeated)
-// since SphereGeometry's default UVs vary banding by latitude (v), not
-// longitude (u) -- a real horizontally-banded planet has no longitude
-// dependence to texture in the first place.
-export function makeBandTexture(THREE, baseColorHex) {
-  var width = 4;
-  var height = 256;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = width;
-  canvasEl.height = height;
-  var ctx = canvasEl.getContext("2d");
-  var base = new THREE.Color(baseColorHex);
-  for (var y = 0; y < height; y++) {
-    var t = y / height;
-    var shade = 0.85 + 0.15 * Math.sin(t * Math.PI * 10) + 0.08 * Math.sin(t * Math.PI * 23 + 1.7);
-    var r = Math.min(255, Math.round(base.r * 255 * shade));
-    var g = Math.min(255, Math.round(base.g * 255 * shade));
-    var b = Math.min(255, Math.round(base.b * 255 * shade));
-    ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-    ctx.fillRect(0, y, width, 1);
-  }
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
 // A ring's own inner-to-outer alpha profile, painted along
 // RingGeometry's `v` axis (0 at the inner radius, 1 at the outer) -- a
 // plain vertical gradient, not a 2D radial one, since that's the axis its

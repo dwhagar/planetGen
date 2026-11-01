@@ -1070,6 +1070,26 @@ with `clamp()`.
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
 
+- [ ] **UX.256 Cancelling a job from its job page returns to the page the visitor came from, or the jobs page (bug)**
+  Boss (2026-10-31, 8:07 PM EDT, as the coordinator relayed): "if I
+  cancel a job that I'm viewing the job page for, take me back to the
+  jobs page or whatever page I got there from." Today the job page (the
+  admin Generate console's job view) stays on the cancelled job after
+  Cancel. Do: (1) find the cancel control and its handler on the job
+  page and the route it posts to; (2) after a successful cancel,
+  redirect to the page the visitor came from (a `next` or `return_to`
+  value carried from the page that linked to the job, checked to be a
+  same-site path so it cannot send anyone elsewhere), and to the jobs
+  page when none was given; (3) every link to a job page (jobs list, job
+  tree, Generate console, queue page) passes where it is. Done: a
+  browser or client test that cancels a job from its page after arriving
+  from the jobs page, from the job tree and by a direct link, and lands
+  on the jobs page, the job tree and the jobs page respectively; an
+  off-site return value is ignored. Lock-free, generation output
+  unchanged. Owner: the thread started for this bug (2026-10-31 8:07
+  PM EDT); no lane owned the Generate job pages. Version 8.1.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -15011,7 +15031,69 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage's data before the next, fewer workers when the free memory is
   low at start). Nothing in the fix may ask the user to change an
   operating system setting.
+  Progress (2026-10-31 8:10 PM EDT): #4637 (first cut) and #4652 merged.
+  Every stage with units now has a figure, measured as worker plus horse
+  together (Pss): sector stages 2,600 MB, every other stage 1,700 MB, so
+  a 16 GB host runs 3 sector workers or 4 of the others where it ran 36.
+  The cause is that every bulk worker holds about 1.4 GB of sampling
+  tables and datasets from the moment it starts. Still open here: leaner
+  workers for the stages that need no tables (would allow more workers),
+  and peaks for scatter-phenomena and the nebula draw. The deadlock seen
+  in rescore-habitability is PERF.228.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
+
+- [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
+  Boss (2026-10-31, 7:38 PM EDT, as the coordinator relayed): "On a
+  fresh download, I tried to create a new scatter on a plan, testing the
+  individual parts... But it's not working...." The Apache error log on
+  hal shows, at 6:23:48 PM EDT and again at 7:35:49 PM EDT, five lines
+  each of `Truncated or oversized response headers received from daemon
+  process 'planetgen-api': /var/lib/planetGen/src/html/wsgi.py` (five
+  requests cut off at the same second, so the daemon died or was killed,
+  not one slow request). The browser showed a generic error 500; after a
+  refresh the console had no log and said "The job stopped without
+  finishing (the server may have restarted)." Do: (1) reproduce: a fresh
+  checkout, plan a galaxy, start one scatter part (a single stage) from
+  the Generate console, and watch the daemon, the web request and the
+  worker; (2) find why the daemon dies: the request limit (the same 60 s
+  ending as PERF.225, which now builds the cluster field ahead and
+  refuses a visitor's build), memory (PERF.226 caps the stage workers;
+  check whether the start request itself builds a big table in the
+  daemon), or a crash in the start path; Apache's own error log lines
+  before the first Truncated line and the kernel log say which; (3) fix
+  at the cause so the start request answers in a second and the work
+  runs in the queue, not in the daemon; (4) make a stopped job say why
+  in one plain line (killed by memory, restarted, daemon limit), not
+  only "may have restarted". Done: starting each single scatter part
+  from the console on a fresh plan answers at once, the job runs and
+  finishes or fails with a plain reason, and a test holds the start path
+  to a small fixed time. Owner: the investigating thread (named by the
+  coordinator); it checks the overlap with PERF.225 and PERF.226 first.
+  Lock-free unless the cause needs a migration. Version 8.1.
+  Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
+
+- [ ] **PERF.228 The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug)**
+  Star 2 (reported 2026-10-31 8:04 PM EDT as the lane reported): while
+  measuring PERF.226 on its populated test database, the
+  rescore-habitability stage failed with a MySQL deadlock (error 1213,
+  'Deadlock found when trying to get lock; try restarting transaction')
+  in unit 4, with 4 workers running at once. A deadlock between units of
+  one stage means two workers update overlapping rows in a different
+  order, or one holds a range lock the other needs. Do: (1) reproduce on
+  a populated database with 4 workers and capture `SHOW ENGINE INNODB
+  STATUS` for the latest detected deadlock, naming the two statements
+  and the index; (2) make the units touch disjoint rows in one fixed
+  order (update by primary key in ascending order, or per-unit key
+  ranges that do not share a gap lock), or retry the unit transaction on
+  1213 a bounded number of times as the repository's other stages do,
+  whichever the statements show is the cause; (3) check the other stages
+  that update stored rows from several workers for the same pattern.
+  Done: a test that runs two overlapping units against one database and
+  finishes without error, and a populated run with 4 workers that
+  finishes the stage. Lock-free, generation output unchanged. Owner:
+  unassigned (Star 2 has PERF.226; a waiting lane may take it). Version
+  8.1. Prerequisites: none. Related: PERF.226.
+  Prerequisites: none.
 
 ## DB: Database and schema
 
@@ -19919,34 +20001,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 
 ## DOC: Documentation
 
-- [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
-  Boss (2026-10-09 23:53Z): "Add to-do items to build static
-  documentation pages for all features accessible through the web
-  interface." Done: the web interface serves a Help section of static
-  pages (no database, no JavaScript needed to read them), with one
-  shared template that matches the site shell, an index page that groups
-  the pages below by feature, a "?" link in the header of every
-  interface page that opens the matching help page, a search box over
-  the help text, and a plain page of the current version. The pages are
-  written as Markdown files in the repository (docs/help/) and built
-  into HTML by the update script, so they can be edited without touching
-  code. A test lists every user-facing route and fails when a route has
-  no help page or a help page has no route, and a second test checks
-  that every link inside the help section resolves. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; default: Phase 2, after the
-  features they describe have settled;
-  Markdown source in docs/help/, built at update time, served at /help):
-  other?
-  Prerequisites: DOC.57, DOC.58. Related: DOC.7, DOC.8, DOC.9, DOC.10,
-  DOC.11,
-  DOC.12, DOC.13, DOC.14, DOC.15, DOC.16.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DOC.57, DOC.58. DOC.6 bundles the framework
-  (template, index, '?' link, help search, version page, link test) with
-  a coverage test that fails when any user-facing route lacks a help
-  page.
-
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
@@ -20173,7 +20227,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and regen screen.
   Needs the help framework (first child of DOC.6, built in 8.6 phase 2),
   so the headline can close (2026-10-16 review).
-  Prerequisites: TEST.175, ADM.68, DOC.57. Related: ADM.57, DOC.6.
+  Prerequisites: TEST.175, ADM.68. Related: ADM.57, DOC.6.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **DOC.55 Help: roles, edit requests and how an approval works**
@@ -20205,38 +20259,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the help page, linked from the settings page and the repair page.
   Prerequisites: TEST.180. Related: ADM.91, DOC.6.
 
-- [ ] **DOC.57 Help section framework: page template, index, '?' links, help search and the link check**
-  Split from DOC.6 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). The web interface serves a Help
-  section of static pages (no database, no JavaScript needed to read
-  them): one shared template that matches the site shell, an index page
-  that groups pages by feature, a '?' link in the header of every
-  interface page that opens the matching help page (a route-to-page map
-  in docs/help), a search box over the help text, a plain page of the
-  current version, and the pages written as Markdown in docs/help/ and
-  built into HTML by the update script (served at /help, as decided by
-  Boss on 2026-10-10). Ship it with one placeholder page. Done: /help
-  renders the index and a page in both themes, the '?' link works on
-  every page, the update script builds docs/help, and a test checks
-  every link inside the help section resolves.
-  Template, index, the "?" link, search, the version page, the link
-  check and the route-to-help coverage test with an allowlist of routes
-  still without a page (DOC.7 to DOC.16 burn it down); a feature item is
-  not done until its help text is, which needs the framework before 8.7
-  (2026-10-16 review).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): this item ships the
-  route-to-help coverage test together with the burn-down allowlist of
-  routes still without a page; DOC.58 removes that allowlist.
-  Prerequisites: none. Related: DOC.6.
-
 - [ ] **DOC.58 Help coverage test: every user-facing route has a help page and every help page has a route**
   Split from DOC.6 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A test lists every user-facing route
   (the route map the app already has) and fails when a route has no help
   page or a help page has no route; admin routes are covered by the
   admin pages. It runs in the gate. Done: the burn-down allowlist that DOC.57 ships is removed once DOC.7 to DOC.16 and DOC.54 exist, leaving only the allow-list file for routes that are deliberately undocumented (each entry needs a reason); the test itself is DOC.57's.
-  Prerequisites: DOC.57, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12,
+  Prerequisites: DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12,
   DOC.13, DOC.14, DOC.15, DOC.16, DOC.54. Related: DOC.6.
   The coverage test runs without the allowlist once every page exists
   (2026-10-16 review).
@@ -20868,6 +20897,123 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
   Prerequisites: none. Related: VIEW.1, MAP.167, GEN.421.
+
+- [ ] **DOC.97 Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information**
+  Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
+  references to the registry and references documentation, oh and let's
+  build a citation system for the whole references section so that a
+  user can click a link in that section (only in references section
+  under help) to go to the references list and the document information.
+  I don't want references anywhere else, all citations and references go
+  in our central registry and references.md file." Design:
+  docs/design/interface/references.md. Do: give every source one stable
+  key in the central registry (docs/reference/references-data.json,
+  which builds docs/REFERENCES.md and the Papers and Datasets pages of
+  DOC.89), and have the page generator
+  (`scripts/build_reference_pages.py`) turn each citation written on a
+  /references page (a stand-in row, a method page, the speculative page)
+  into a link that goes to the source's entry on the reference list and
+  from there to its document information (DOI, arXiv or ADS link, where
+  it is used, how it was verified). A citation that matches no key, or
+  two keys, fails the build and `--check`, never a dead link. Links
+  exist only inside the References section; no other page links a
+  citation. The visible form of a citation is the NASA-style in-line
+  form decided on DOC.98, the same everywhere. Done: tests that every
+  citation on every References page is a link, that every link resolves,
+  that the build fails on an unknown or ambiguous citation, and a crawl
+  of the section. Lock-free, display only. Owner: the Citations thread
+  (it works with Sources 1 and Core 1). Version 8.1. Prerequisites:
+  DOC.89, DOC.100. Related: DOC.87, DOC.88, DOC.89, DOC.90.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
+
+- [ ] **DOC.98 Citations live only in the central registry and references.md: move them out of every other page, design document and code comment**
+  Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
+  references to the registry and references documentation, oh and let's
+  build a citation system for the whole references section so that a
+  user can click a link in that section (only in references section
+  under help) to go to the references list and the document information.
+  I don't want references anywhere else, all citations and references go
+  in our central registry and references.md file." Design:
+  docs/design/interface/references.md. Do, in three steps with a plain
+  check after each: (1) user pages (class pages, help pages, maps,
+  sector text, API docs strings): no citation, only the quiet "Where
+  this comes from" link of DOC.93 to the References entry; (2) design
+  documents, stand-in rows and the TODO text under docs: a citation
+  becomes the short key of the registry (or a link to the reference
+  list) instead of author and year, with any note about the source moved
+  into the registry entry; (3) code comments, docstrings, tuning notes
+  and data-file headers under src: the same, with the key. The registry
+  and docs/REFERENCES.md are the only place that spell out author, year
+  and journal. Step 3 (code comments, docstrings, tuning notes,
+  data-file headers, TODO text) is confirmed in scope. Decided (Boss,
+  2026-10-31, 7:27 PM EDT, as the coordinator relayed): "Yes lets be
+  consistent use whatever in line citation style is standard for NASA
+  documentation" - code comments and the TODO text also lose author-year
+  names, and the in-line style is the one NASA documentation uses, the
+  same everywhere (numbered bracket references such as [12] that resolve
+  to the registry ID, as the coordinator understood it); the Citations
+  thread confirms the exact style it picks (NASA STI style guidance) and
+  writes it into docs/design/interface/references.md and the text-style
+  guide before the sweep starts. Sources 1 already removed the citations
+  that did not resolve (DOC.96), so what remains are the real ones.
+  Done: a search shows no author-year citation outside the registry,
+  docs/REFERENCES.md and the References pages (the DOC.94 crawl and the
+  new lock of the next item hold it), and every citation that was moved
+  still resolves to a registry entry. Lock-free, no generator output
+  change. Owner: the Citations thread, with Core 5 for the user pages
+  (DOC.93) and Sources 1 for the registry. Version 8.1. Prerequisites:
+  DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
+
+- [ ] **DOC.99 Test lock: a citation written outside the registry and references.md fails the gate**
+  Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
+  references to the registry and references documentation, oh and let's
+  build a citation system for the whole references section so that a
+  user can click a link in that section (only in references section
+  under help) to go to the references list and the document information.
+  I don't want references anywhere else, all citations and references go
+  in our central registry and references.md file." Design:
+  docs/design/interface/references.md. Do: a test that also checks every
+  in-line citation is in the one NASA-style form decided on DOC.98
+  (bracket number or the style the Citations thread confirms), and a
+  test (and a line in `scripts/test.py changed`) that scans the files a
+  change touches and fails on an author-year citation, a DOI or an arXiv
+  number written anywhere except the registry, docs/REFERENCES.md and
+  the References pages, naming the file, the line and the registry key
+  it should use. The words list is the registry's own; a short
+  allow-list names the files that must keep one (changelog history,
+  data-license, downloaded source texts). Done: the test passes on main
+  after the previous item, fails on a planted citation, and runs in the
+  gate for changed files. Lock-free. Owner: the Citations thread.
+  Version 8.1. Prerequisites: DOC.98. Related: DOC.94.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
 
 ## POP: Population and politics
 

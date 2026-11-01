@@ -28,6 +28,13 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
                 thin air has almost none, a thick one the most, and a body with no air has no glow fields at all
     glowWidth   how far the glow reaches past the limb, in radii: the air's scale height over the radius, exaggerated
                 (`GLOW_EXAGGERATION`) and held to `GLOW_WIDTH_RANGE`; left out when the air's composition is not stored
+    veil        (solid world with air, MAP.350) how far the surface is tinted toward the sky colour `glow`, 0 to 1: `1 - exp(-tau_550)`,
+                the vertical optical depth of the air at 550 nm (gas and aerosol, `AtmosphereColour.tau_550`); a thin air leaves the ground as
+                it is, a thick one drowns it in its own colour
+    haze        the washing-out of the ground's contrast by haze and dust, 0 to 1: `1 - exp(-(tau_haze + tau_dust))`; left out when neither is stored
+    cloudCover  the share of the sky the cloud covers (the stored `cloud_cover`), left out when none is stored
+    cloudTau    the vertical optical depth of the cloud at 550 nm (the stored `tau_cloud`), left out when none is stored; the painter
+                draws a cloud layer over the ground, thicker and whiter with the depth
     twilight    how far past the day and night line the light of the star is carried by the air, as a cosine of the light
                 on the ground (0 for no air to `TWILIGHT_MAX` for a thick one): the terminator of a world with air is softer
                 and lies a little onto the night side
@@ -47,6 +54,9 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     lumSolar    a star's luminosity in solar units
     spec        a star's `star_type`
     yerkes      a star's Yerkes luminosity class (V dwarf, III giant, VII white dwarf, ...)
+    gas         a giant's cloud-forming gases as mole fractions of its stored mixture, `{"CH4": .., "NH3": .., "H2O": .., "H2S": ..}`
+                (`GIANT_CLOUD_GASES`, rounded to 4 significant digits, a gas the mixture lacks is left out); `static/giantpaint.js` reads it for the
+                palette. Left out when the row stores no mixture, and the painter then goes by temperature alone
     spinH       rotation period, hours (MAP.328); left out when none is stored, and the body is drawn still
     axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
                 orbit's normal)
@@ -88,6 +98,12 @@ GLOW_WIDTH_RANGE = (0.03, 0.2)
 """tuple: The least and most the glow reaches past the limb, in radii."""
 TWILIGHT_MAX = 0.2
 """float: The twilight (a cosine of the light on the ground) of the thickest air."""
+GIANT_CLOUD_GASES = ("CH4", "NH3", "H2O", "H2S")
+"""tuple: The gases whose mole fractions go on a giant's look record: the ones whose clouds and absorption set its colours."""
+VEIL_TAU_SCALE = 1.0
+"""float: The air's vertical optical depth at 550 nm over which the surface is half-way to the sky colour: `veil = 1 - exp(-tau / VEIL_TAU_SCALE)`."""
+HAZE_TAU_SCALE = 1.0
+"""float: The same for the haze and dust depths, which wash out the ground's contrast: `haze = 1 - exp(-(tau_haze + tau_dust) / HAZE_TAU_SCALE)`."""
 _BOLTZMANN = 1.380649e-23
 
 _SOLAR_LUMINOSITY_W = 3.828e26
@@ -260,6 +276,23 @@ def _rounded(value, digits):
     return None if value is None else round(float(value), digits)
 
 
+def _put_veil(look, row, colour):
+    """
+    What the air does to the ground seen through it (MAP.350): `veil` from the air's optical depth, `haze` from the stored haze and dust depths, and
+    `cloudCover` and `cloudTau` as stored. Each is left out when its input is not stored, and the painter then leaves the ground as it was.
+    """
+    if colour is not None and colour.tau_550 is not None and math.isfinite(colour.tau_550):
+        look["veil"] = round(-math.expm1(-max(0.0, colour.tau_550) / VEIL_TAU_SCALE), 3)
+    depths = [row.get(name) for name in ("tau_haze", "tau_dust")]
+    depths = [d for d in depths if d is not None and math.isfinite(d)]
+    if depths:
+        look["haze"] = round(-math.expm1(-max(0.0, math.fsum(depths)) / HAZE_TAU_SCALE), 3)
+    cover, depth = row.get("cloud_cover"), row.get("tau_cloud")
+    if cover is not None and depth is not None and math.isfinite(cover) and math.isfinite(depth) and cover > 0.0 and depth > 0.0:
+        look["cloudCover"] = round(min(1.0, cover), 3)
+        look["cloudTau"] = round(depth, 3)
+
+
 def _put_spin(look, row):
     """The spin the row stores, for `static/spin.js` (MAP.328): `spinH` (rotation period, hours), `axis` (the unit spin
     axis, right-handed, in the system's frame) and `tiltDeg` (axial tilt, 0 to 180; past 90 the body turns backwards).
@@ -276,6 +309,15 @@ def _put_spin(look, row):
     _put(look, "tiltDeg", _rounded(row.get("axial_tilt_deg"), 2))
     if regional_temperature.is_locked(period, row.get("period_years")):
         look["locked"] = True
+
+
+def giant_gas_fractions(planet):
+    """The mole fractions of `GIANT_CLOUD_GASES` in a row's stored mixture (a gas it lacks left out); `None` with no stored mixture."""
+    partials = atmosphere.gas_partials_pa(planet)
+    total = sum(value for value in partials.values() if value and value > 0.0)
+    if total <= 0.0:
+        return None
+    return {gas: float(f"{partials[gas] / total:.4g}") for gas in GIANT_CLOUD_GASES if partials.get(gas, 0.0) > 0.0}
 
 
 def planet_look(planet, kind="planet"):
@@ -297,6 +339,8 @@ def planet_look(planet, kind="planet"):
             look["quality"] = "composition"
             look["landKnown"] = round(known_land, 3)
     _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
+    if gas:
+        _put(look, "gas", giant_gas_fractions(planet))
     _put_spin(look, planet)
     if has_atmosphere:
         look["atm"] = True
@@ -305,6 +349,8 @@ def planet_look(planet, kind="planet"):
         if colour is not None:
             look["glow"] = (colour.atmosphere if gas else colour).hex
         look.update(glow)
+        if not gas:
+            _put_veil(look, planet, colour)
     pressure_pa = planet.get("atmospheric_pressure_pa")
     _put(look, "pkpa", _rounded(_pa_to_kpa(pressure_pa) if pressure_pa is not None else None, 3))
     _put(look, "tempK", _rounded(temp_k, 1))
