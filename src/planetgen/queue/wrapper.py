@@ -570,6 +570,22 @@ def waiting_text(holder, position):
     return f"Waiting at position {position} for run {holder}"
 
 
+def report_wait_for(conn, holder, position):
+    """`report_wait`, and under it who holds the machine (`runrecord.busy_message`: title, start, process), saying so
+    when the holder is a run this very job started, so a wait on a stale blocker can be told from a real queue."""
+    report_wait(holder, position)
+    if holder is None:
+        return
+    log.normal(runrecord.busy_message(conn, holder))
+    job = os.environ.get(JOB_ENV)
+    if job and _s(conn.hget(runrecord.run_key(holder), "job")) == job:
+        log.normal(f"Run {holder} belongs to this same job: it is not another job's run.")
+
+
+def _s(value):
+    return value.decode("utf-8") if isinstance(value, bytes) else value
+
+
 def report_wait(holder, position):
     """
     `runline.start_when_free`'s `on_wait`: shows that this run waits, where its bar is read (the Generate page's
@@ -667,7 +683,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
         job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes)
     if kind == runrecord.GENERATION:
-        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait,
+        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60,
+                                         on_wait=lambda holder, position: report_wait_for(conn, holder, position),
                                          title=title, who=who, database=database,
                                          admitted=bool(os.environ.get(JOB_ENV)))
     else:
