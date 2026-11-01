@@ -588,7 +588,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1140 | Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name | GEN.1138 |  |
 | GEN.1139 | Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes) | GEN.1138 |  |
 | GEN.1138 | Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history |  |  |
-| GEN.1137 | cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug) |  |  |
 | GEN.1186 | Small evidence updates to registered stand-ins from the strength papers review |  |  |
 | GEN.1185 | Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned |  |  |
 | GEN.1179 | Optional: Hoek-Brown geological strength index as a body parameter for rock |  |  |
@@ -611,7 +610,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | GEN.1150 | Trojans T3, epoch lock, train 8 or 9 |
 | MAP.354 | Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer | GEN.1150 | Trojans T4, with T2 |
 | UX.255 | Remove the light-theme branches in the map scripts that black map backgrounds left unused |  | Boss, black maps; #4633 follow-up. |
-| UX.257 | Object page life text: the life readings table overflows a phone and the species link fails contrast (bug) |  |  |
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | GEN.1006 | Trojans T2, epoch lock, train 8 |
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest |  |  |
@@ -661,7 +659,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin), W10 (iron-rich cores) and W15 (super-puffs) into the bulk, spin and climate inputs | GEN.1047 |  |
 | GEN.1047 | Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off) |  |  |
 | GEN.998 | The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug) |  |  |
-| GEN.996 | Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug) |  |  |
 | GEN.995 | Draw the binary-stripped Wolf-Rayet channel so the Galaxy Wolf-Rayet count reaches the observed range (bug) |  |  |
 | GEN.962 | Rocky planets hold 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets): ground the moon rate in giant-impact and capture frequency |  |  |
 | GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs | GEN.968 |  |
@@ -673,10 +670,8 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.972 | Climate feedback 1: ice-albedo on the surface temperature fixed point (ice cover grows as the planet cools and raises the albedo) |  |  |
 | GEN.974 | Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share) |  |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
-| GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure |  |  |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet |  |  |
-| GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 |  |  |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) |  |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) |  |  |

@@ -1020,19 +1020,6 @@ with `clamp()`.
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
 
-- [ ] **UX.257 Object page life text: the life readings table overflows a phone and the species link fails contrast (bug)**
-  Found by Planets 1 in the axe check of the object page (UX.243,
-  2026-11-01 12:46 AM EDT as the lane reported), neither caused by that
-  panel. (1) table.life-readings is 438 px wide on a 390 px phone: wrap
-  it in a focusable scroll region like the other tables or let its
-  columns wrap. (2) The species link inside the life text fails
-  link-in-text-block contrast: 2.49:1 in the light theme and 1.91:1 in
-  the dark theme; give it the theme link colour or an underline plus
-  enough contrast. Done when src/tests/test_web_a11y.py passes the
-  object page of a body with life text in both themes at phone width.
-  Related: UX.252.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -10560,50 +10547,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   elements.json are in the repo. Catalog sections 3 and 4.
   Prerequisites: none. Related: GEN.512, GEN.725.
 
-- [ ] **GEN.821 Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure**
-  The GEN.813 lane (Citations, 11:09 PM EDT 2026-10-24 as the lane
-  reported) found that Titan has no volatile inventory in the code: the
-  titan family takes its pressure. Add an ice-moon nitrogen inventory
-  from ammonia ice ([R1282: Table 2]) so the supply law and
-  the air fixed point (GEN.411, GEN.422) derive a Titan-like moon's
-  nitrogen and methane. Done: a Titan sample lands near 1.5 bar of N2
-  with methane, with the source and tier in the GEN.725 registry. Owner:
-  the Citations lane. Rules: no backward-compat shims; stand-ins get
-  registry rows; a changed generated value carries `tests.golden_update
-  --reason ... --affects <stage>` and the next epoch.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  [R4529] as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-  Prerequisites: GEN.422. Related: GEN.813, GEN.725.
-
-- [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
-  Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
-  inventory bracket reaches 0.2, above the 0.1 in [R2381].
-  Either cap it at 0.1 with the source or document why 0.2 holds (a
-  verified source or a registry row with its tier and tweak level).
-  Done: the bracket matches its cited source or carries a GEN.725 row
-  that says why not. Owner: Aux 3 (bulk composition) with Aux 8. Rules:
-  no backward-compat shims; a changed generated value carries the next
-  epoch.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  [R4529] as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.814, GEN.823.
-
 - [ ] **GEN.835 The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule**
   Found by Blocker 4 while merging GEN.441 (3:57 AM EDT 2026-10-25):
   tidal_flux_w_m2 is available once GEN.778 fills it, but the ground
@@ -11530,31 +11473,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch, --affects fill, rides the star-side train after GEN.932. Owner:
   Bug 1 (reassignable to Star 1). Version 8.1.
   Prerequisites: none. Related: GEN.932, GEN.935, GEN.940.
-
-- [ ] **GEN.996 Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug)**
-  Bug 1's star-epoch census note (as the lane reported 10:53 PM EDT
-  2026-10-29). The white dwarf mean mass is 0.703 solar masses against
-  an accepted 0.55 to 0.70, a 0.4 percent miss: the [R0961]
-  initial-final mass relation applied to the generator's age mix gives
-  0.703. The generator has no binary-made low-mass white dwarfs (helium
-  cores near 0.4 solar masses, made when a companion strips the giant
-  before the helium flash). Do: add the helium-core channel from a
-  published binary fraction, register every stand-in in GEN.725 with
-  tier and tweak level, and test that the mean mass lands inside the
-  accepted range. Changes generated output: epoch, --affects fill, rides
-  the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
-  1). Version 8.1.
-  Sources 2 finding (GEN.1168) (2026-10-30 11:14 PM EDT): The 20 pc
-  sample ([R1547: Table 4], 136 rows; [R4421] counts 8 of
-  105 under 0.45) has 7.4 percent of white dwarfs under 0.45 solar
-  masses and 10 percent from 0.45 to 0.56; the generator has 0.3 percent
-  under 0.57 and its floor is the [R0961] relation (0.555 at the
-  lightest progenitor 0.83). Target the shares, not only the mean: about
-  7 percent helium-core white dwarfs near 0.4 (a cap, since some are
-  unresolved double degenerates with underestimated mass) and a thinner
-  0.45 to 0.56 band (Giammichele say 0.50 to 0.55 is thin, so under 5
-  percent). Report reports/gen1168-low-mass-white-dwarfs-2026-10-31.md.
-  Prerequisites: none. Related: GEN.932, GEN.995.
 
 - [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
   Sources 2 finding (as the lane reported 11:22 PM EDT 2026-10-29),
@@ -12837,19 +12755,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects, golden). Where we think it belongs (best guess, can move):
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
-
-- [ ] **GEN.1137 cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug)**
-  Sources 2, 6:35 PM EDT 2026-10-30 (as the lane reported), found while
-  wiring GEN.494: the track extrapolates at t^-0.32 from the age at
-  which the table drops the mass, so a body just below the lowest held
-  mass is far too cool and the cap for brown dwarfs and rogues does not
-  bind there. Do: extend the table down in mass or extrapolate in mass
-  as well as in age so the temperature at a fixed age is continuous
-  across the table edge; test that 0.0699 and 0.07 solar masses at 5 Gy
-  differ by a few percent, not 25 percent. Lock work if stored
-  temperatures change (epoch, golden). Where we think it belongs (best
-  guess, can move): Bug 1 (owner of GEN.948), train 6.
-  Prerequisites: none. Related: GEN.948, GEN.494.
 
 - [ ] **GEN.1138 Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history**
   Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
