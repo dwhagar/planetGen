@@ -914,13 +914,10 @@ def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
     warm_cli._wait_for_update()
 
 
-def test_the_opening_done_file_is_created(tmp_path):
-    """update.sh waits for this file before it reloads Apache."""
-    path = tmp_path / "opening"
-    warm_cli._mark_opening_done(None)
-    warm_cli._mark_opening_done(str(path))
-    assert path.exists()
-    warm_cli._mark_opening_done(str(tmp_path / "no" / "such" / "opening"))
+def test_the_progress_bar_counts_families():
+    """update.sh shows this line while it waits for the warm-up."""
+    assert warm_cli.progress_bar(1, 4, "lists", width=8) == "[##------] 1/4 lists"
+    assert warm_cli.progress_bar(4, 4, "search", width=8) == "[########] 4/4 search"
 
 
 def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):

@@ -260,7 +260,7 @@ def test_update_sh_names_every_step_for_the_failure_message():
 
 def test_update_sh_never_edits_the_redis_config_or_the_apache_site():
     text = update_sh() + open(os.path.join(REPO, "scripts", "deploy-common.sh"), encoding="utf-8").read()
-    guard = text[text.index("UPDATE_GUARD_HELD=0"):text.index("warm_galaxy_map() {")]
+    guard = text[text.index("UPDATE_GUARD_HELD=0"):text.index("run_warm_stage() {")]
     assert "redis.conf" not in guard and "sites-available" not in guard and "sed -i" not in guard
 
 
