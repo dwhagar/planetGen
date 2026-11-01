@@ -16831,31 +16831,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.95, PERF.227.
   Prerequisites: none.
 
-- [ ] **ADM.137 Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug)**
-  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
-  run on main 7eef24a) re-ran these alone, so they are real.
-  src/planetgen/admin/plans.py line 208 (_settle) calls
-  validation.stabilize_star_system(system, pinned=pinned), but the
-  function takes only (system, allow_removal=False); the keyword was
-  dropped when the class of a planet became derived from its stored
-  conditions (epoch 121, GEN.646), leaving only the docstring mention.
-  Every move, add, regenerate and rebase plan operation raises
-  TypeError. Fourteen tests in tests/test_plans.py fail (moving a
-  planet, a crowding move, a belt move, a moon move, adding a planet,
-  moon and belt, rebasing an approved plan, a plan through JSON, a
-  regeneration that keeps the class, and others). Do: decide whether a
-  moved body must keep its class (then the keep mark has to go through
-  the derived-class path) or the pin is meaningless now (then drop the
-  argument and the pinned parameter of _settle, and say so in the
-  tests); fix the docstring; run tests/test_plans.py and the admin
-  tests. Done: test_plans.py passes. Lock-free unless the class
-  derivation changes. Owner: none yet.
-  Owner (2026-11-01 12:12 AM EDT): Core 2, after UX.255 (assigned by
-  TODO).
-  Owner change (2026-11-01 12:15 AM EDT): Owner is now Star 2 (was Core
-  2); TODO reassigned it at 12:15 AM EDT.
-  Prerequisites: none.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -19350,23 +19325,6 @@ clears each one.
   guard fails on a line whose item is closed). Rule for every lane: a
   public function that only tests call needs a register line in the same
   change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.546 The object timing test finds a unit saved with the kind star where it expects system (bug)**
-  The full-suite thread (reported 2026-10-31 9:34 PM EDT as the lane
-  reported) ran the suite on main 7eef24a;
-  test_object_timing.py::test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up
-  fails alone with "assert 'star' == 'system'": the kind saved for a
-  unit is 'star' and the test expects 'system'.
-  test_a_galaxy_run_saves_each_sectors_timings_under_its_run in the same
-  file also failed, probably the same cause. Do: find which side changed
-  (src/planetgen/generation/object_timing.py and run_galaxy.py record
-  the kind; the Seconds per object table of PERF.197 reads it), decide
-  by what the Stats page needs which kind is right, and fix the code or
-  the test with the reason in the change note. Done: both tests pass and
-  the Stats table still shows the same rows. Lock-free, generation
-  output unchanged. Owner: unassigned (a waiting lane may take it).
-  Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
   Prerequisites: none.
 
 - [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
