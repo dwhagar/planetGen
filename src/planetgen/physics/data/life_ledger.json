@@ -7,13 +7,13 @@
    "value": 10.0,
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The methane, Tmol a year, that the anoxygenic communities of an Earth-sized world give when its donor supply is Earth's: photoferrotrophs on 80 Tmol of Fe2+ a year fix 20 Tmol of carbon and the food web returns 0.5 methane per carbon, 10 Tmol (Ozaki et al. 2018, read; 0.37e11 molecules/cm2/s), inside the 9 to 67 Tmol of Kharecha et al. 2005 (read)"
+   "basis": "The methane, Tmol a year, that the anoxygenic communities of an Earth-sized world give when its donor supply is Earth's: photoferrotrophs on 80 Tmol of Fe2+ a year fix 20 Tmol of carbon and the food web returns 0.5 methane per carbon, 10 Tmol ([R3394, R3395], read; 0.37e11 molecules/cm2/s), inside the 9 to 67 Tmol of [R2336] (read)"
   },
   "earth_h2_tmol_yr": {
    "value": 2.3,
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The hydrogen, Tmol a year, an Earth-sized world's hydrogenotrophs have when its hydrogen supply is Earth's: Earth's outgassing of 1.7 to 2.9 Tmol a year (Ozaki et al. 2018, read); four hydrogen make one methane, so the methane is a quarter of it"
+   "basis": "The hydrogen, Tmol a year, an Earth-sized world's hydrogenotrophs have when its hydrogen supply is Earth's: Earth's outgassing of 1.7 to 2.9 Tmol a year ([R3394, R3395], read); four hydrogen make one methane, so the methane is a quarter of it"
   },
   "h2_per_methane": {
    "value": 4.0,
@@ -31,13 +31,13 @@
    "value": 30000.0,
    "tier": "T6",
    "tweak": "L3",
-   "basis": "The life of methane in an air with no free oxygen, years: Kharecha et al. 2005 give 100 ppmv to 3.5 percent of methane for 9 to 67 Tmol a year, which is 2e3 to 9e4 years, and Catling and Zahnle 2020 (read) call it long-lived where hydroxyl is scarce; the geometric middle"
+   "basis": "The life of methane in an air with no free oxygen, years: [R2336] give 100 ppmv to 3.5 percent of methane for 9 to 67 Tmol a year, which is 2e3 to 9e4 years, and [R0693] (read) call it long-lived where hydroxyl is scarce; the geometric middle"
   },
   "methane_max_share": {
    "value": 0.035,
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The most methane of an anoxic air, as a share of its molecules: 3.5 percent (Kharecha et al. 2005, read abstract)"
+   "basis": "The most methane of an anoxic air, as a share of its molecules: 3.5 percent ([R2336], read abstract)"
   },
   "carbon_left_share": {
    "value": 0.1,
@@ -55,7 +55,7 @@
    "value": 0.0001,
    "tier": "T3",
    "tweak": "L1",
-   "basis": "The most hydrogen an air holds where hydrogen-eating life lives, as a mole share: at or below 1e-4 (Catling and Zahnle 2020, read; Kharecha et al. 2005)"
+   "basis": "The most hydrogen an air holds where hydrogen-eating life lives, as a mole share: at or below 1e-4 ([R0693], read; [R2336])"
   },
   "apply_rise": {
    "value": 1.01,
@@ -101,7 +101,7 @@
    "note": "Carbon is fixed with H2, Fe2+ or H2S for electrons; the food web makes the methane, donor-limited at 1e-4 to 1e-2 of today's biosphere. Never any oxygen.",
    "tier": "T3",
    "tweak": "L2",
-   "basis": "The byproducts report section 4 (Kharecha et al. 2005; Ozaki et al. 2018; Catling and Zahnle 2020)"
+   "basis": "The byproducts report section 4 ([R2336]; [R3394, R3395]; [R0693])"
   },
   "3": {
    "name": "Hydrogen eaters",

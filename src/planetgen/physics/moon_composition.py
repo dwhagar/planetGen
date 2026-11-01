@@ -7,10 +7,10 @@ Where a moon came from and what it is made of (GEN.466, docs/design/small-bodies
 A moon takes an origin from a gated table (`ORIGIN_TABLE`), and the origin leaves a composition:
 
 * **disk**: a regular moon of a giant planet, formed in its circumplanetary disk. The ice fraction rises with the formation
-  distance past the disk's ice line (`ice_line_km`, Sasaki et al. 2010; the ramp of decision S8, `disk_ice_fraction`), and the rock
+  distance past the disk's ice line (`ice_line_km`, [R3922]; the ramp of decision S8, `disk_ice_fraction`), and the rock
   turns from anhydrous through partly hydrated to carbonaceous with the same distance. A disk system (`draw_disk_system`) holds the
-  disk lifetime, the total moon mass of Canup and Ward 2009 and its partition among the large moons.
-* **impact**: a terrestrial planet's moon from a giant impact (Lock et al. 2018): the condensate has little metal, no ice and the
+  disk lifetime, the total moon mass of [R0643] and its partition among the large moons.
+* **impact**: a terrestrial planet's moon from a giant impact [R2724]: the condensate has little metal, no ice and the
   planet's rock.
 * **captured**: a body caught on an irregular orbit, prograde or retrograde (`draw_inclination_deg`): the icy-body rule (`draw_icy_body`) with ice lost by U(0, 0.5).
 * **ring**: a moon that formed from a massive ring near the Roche radius: ice-rich rock and ice.
@@ -50,8 +50,7 @@ DWARF_PLANET_MAX_MASS_KG = 5e22
 """float: A parent without an envelope below this mass is a dwarf planet (a stand-in: Pluto and Eris are 1.3e22 and 1.7e22)."""
 KOZAI_FORBIDDEN_DEG = (55.0, 130.0)
 """tuple: The inclinations (to the parent's equator, degrees) at which a distant orbit is unstable and no irregular moon is found:
-between them the Kozai resonance stretches the eccentricity until the moon escapes or hits something (Nesvorny et al. 2003, Icarus
-126, 398; the 55 to 130 degree bounds as used by Jewitt's group for Jupiter, arXiv:0805.3733; Shen and Tremaine 2008 give 60 to
+between them the Kozai resonance stretches the eccentricity until the moon escapes or hits something ([R3263]; the 55 to 130 degree bounds as used by Jewitt's group for Jupiter, [R1747, R4049] give 60 to
 130). Partly verified: the bounds are a recalled range, not a measured edge."""
 RING_MAX_ROCHE_RATIO = 3.0
 """float: A moon forms from a ring only within this many Roche radii (a parametrisation)."""
@@ -78,15 +77,15 @@ def _row(name, classes, conditions, rule, source):
 ORIGIN_TABLE = pt.REGISTRY.register(pt.Table(
     "moon-origin", 2, [
         _row("disk", (GIANT,), (), "regular moon of a circumplanetary disk, composition by the ice-line ramp",
-             "Canup and Ward 2009, Sasaki et al. 2010, Cilibrasi et al. 2018"),
+             "[R0643, R0804, R3922]"),
         _row("impact", (TERRESTRIAL,), (), "giant-impact moon: little metal, no ice, the parent's rock",
-             "Lock et al. 2018 (verified for the rule; the metal range is a parametrisation)"),
+             "[R2724] (verified for the rule; the metal range is a parametrisation)"),
         _row("captured", (pt.ANY_CLASS,), (),
-             "captured body: the icy-body rule with ice lost by U(0, 0.5)", "Barr and Schwamb 2016 (qualitative); the factor is a parametrisation"),
+             "captured body: the icy-body rule with ice lost by U(0, 0.5)", "[R0269] (qualitative); the factor is a parametrisation"),
         _row("ring", (GIANT,), (pt.Condition("has_ring", equals=1), pt.Condition("roche_ratio", maximum=RING_MAX_ROCHE_RATIO)),
-             "ring-born moon: ice-rich near the Roche radius", "Crida and Charnoz 2012 (abstract only, recalled for the composition)"),
+             "ring-born moon: ice-rich near the Roche radius", "[R0920] (abstract only, recalled for the composition)"),
         _row("binary", (DWARF_PLANET,), (), "partner of a dwarf planet: the icy-body rule, mass ratio 5e-4 to 0.11",
-             "Barr and Schwamb 2016 Table 2"),
+             "[R0269: Table 2]"),
     ], description="The origin of a moon, gated by the parent's kind, the parent's ring and the distance in Roche radii."))
 """Table: The moon origin rows (every weight open)."""
 
@@ -147,7 +146,7 @@ def draw_inclination_deg(origin):
     the generator's long-standing bound (the regular satellites of the giants lie within a degree or so of the equator, the
     Galilean moons within 0.5 degrees, so the bound is wider than what is observed: a stand-in). A captured moon takes an
     isotropic orbit, the cosine of its inclination uniform from -1 to 1, outside the Kozai-unstable band `KOZAI_FORBIDDEN_DEG`,
-    so it is prograde below the band or retrograde above it (Nesvorny et al. 2003). The draw is one number either way: the
+    so it is prograde below the band or retrograde above it [R3263]. The draw is one number either way: the
     uniform number is mapped onto the allowed cosines, so no value is rejected.
 
     Args:
@@ -173,7 +172,7 @@ JUPITER_RADIUS_KM = 71492.0
 DISK_LIFETIME_MYR = (1.0, 10.0)
 """tuple: The disk lifetime, log-uniform (Sasaki used 5 Myr as the reference)."""
 ALPHA_OVER_F = (1e-6, 5e-4)
-"""tuple: The ratio of the viscosity parameter to the disk's gas-to-solid factor, log-uniform (Canup and Ward 2009)."""
+"""tuple: The ratio of the viscosity parameter to the disk's gas-to-solid factor, log-uniform [R0643]."""
 ICE_LINE_VALID_MASS_JUPITER = (0.1, 3.0)
 """tuple: The parent masses, in Jupiter masses, inside which the ice-line formula is not outside what it was fitted for."""
 LARGE_MOONS = (1, 5)
@@ -182,7 +181,7 @@ LARGE_MOONS = (1, 5)
 
 def ice_line_km(parent_mass_kg, lifetime_myr):
     """
-    The ice line of a circumplanetary disk, km: `20 R_J (M_p / M_J)^(2/3) (tau / 5 Myr)^(-1/3)` (Sasaki et al. 2010). The formula was
+    The ice line of a circumplanetary disk, km: `20 R_J (M_p / M_J)^(2/3) (tau / 5 Myr)^(-1/3)` [R3922]. The formula was
     fitted for a Jupiter-like disk; outside `ICE_LINE_VALID_MASS_JUPITER` it is an extrapolation (partly verified, limit named).
     """
     if not parent_mass_kg > 0.0 or not lifetime_myr > 0.0:
@@ -191,7 +190,7 @@ def ice_line_km(parent_mass_kg, lifetime_myr):
 
 
 def total_moon_mass_ratio(alpha_over_f):
-    """The mass of all the large moons over the parent's: `2.5e-4 (alpha/f / 3e-5)^(1/3)` (Canup and Ward 2009, Eq. 4.15)."""
+    """The mass of all the large moons over the parent's: `2.5e-4 (alpha/f / 3e-5)^(1/3)` ([R0643: Eq. 4.15])."""
     return 2.5e-4 * (alpha_over_f / 3e-5) ** (1.0 / 3.0)
 
 
@@ -266,13 +265,13 @@ HYDRATION_END = 1.0
 IMPACT_METAL = (0.01, 0.05)
 """tuple: The metal mass fraction of an impact moon, uniform (a parametrisation: the condensate has no metal phase, iron enters as FeO)."""
 IMPACT_WATER_PPM = (1.0, 1000.0)
-"""tuple: The water of an impact moon, ppm by mass, log-uniform (Lock et al. 2018)."""
+"""tuple: The water of an impact moon, ppm by mass, log-uniform [R2724]."""
 CAPTURE_ICE_LOSS = (0.0, 0.5)
 """tuple: The share of its ice a captured body loses, uniform (a parametrisation)."""
 RING_ICE = (0.5, 0.95)
 """tuple: The ice mass fraction of a ring-born moon, uniform (a parametrisation, recalled)."""
 BINARY_MASS_RATIO = (5e-4, 0.11)
-"""tuple: The mass ratio of a dwarf planet's partner, log-uniform (Barr and Schwamb 2016 Table 2)."""
+"""tuple: The mass ratio of a dwarf planet's partner, log-uniform ([R0269: Table 2])."""
 
 _ANHYDROUS = sb.TAXON_DATA["S"].fractions
 _HYDRATED = {name: value for name, value in sb.TAXON_DATA["C"].fractions.items()}

@@ -6,11 +6,11 @@
  "negative_fraction_limit_only": 0.5,
  "sources": {
   "doyle20": {
-   "citation": "Doyle, Klein, Schlichting and Young 2020, 'Where are the extrasolar Mercuries?' (arXiv:2008.05992), Table 1; the negative-draw rule is section 2.3",
+   "citation": "[R3961], 'Where are the extrasolar Mercuries?' [R1152: Table 1]; the negative-draw rule is section 2.3",
    "label": "READ"
   },
   "doyle23": {
-   "citation": "Doyle, Klein, Dufour et al. 2023, 'New chondritic bodies identified in eight oxygen-bearing white dwarfs' (arXiv:2303.00063), Table 4; effective temperatures are Table 2 (typical error 500 K)",
+   "citation": "[R1153], 'New chondritic bodies identified in eight oxygen-bearing white dwarfs' [R1153: Table 4]; effective temperatures are Table 2 (typical error 500 K)",
    "label": "READ"
   }
  },

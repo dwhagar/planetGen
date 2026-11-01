@@ -18,7 +18,7 @@ from planetgen.physics import elements
 from planetgen.physics import stellar_abundances as sa
 
 SUN = {"x": 0.7121, "y": 0.2725, "z": 0.0154}
-"""dict: The proto-solar X, Y and Z of Asplund et al. 2021 (a test target, section 11)."""
+"""dict: The proto-solar X, Y and Z of [R0168] (a test target, section 11)."""
 
 ZERO = {symbol: 0.0 for symbol in sa.METAL_SYMBOLS}
 NORMALS_ZERO = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -262,7 +262,7 @@ def test_the_solar_neighbourhood_mix_reproduces_the_research_ranges():
         mg_si.append(sa.mass_ratio(star, "Mg", "Si"))
         c_o.append(sa.mass_ratio(star, "C", "O"))
     median = lambda values: sorted(values)[len(values) // 2]  # noqa: E731
-    # The medians of Brewer and Fischer 2016 (Fe/Si 1.81, Mg/Si 0.93, C/O 0.385), which the thin Mg and Si were refitted to (GEN.989).
+    # The medians of [R0535] (Fe/Si 1.81, Mg/Si 0.93, C/O 0.385), which the thin Mg and Si were refitted to (GEN.989).
     assert median(fe_si) == pytest.approx(1.81, abs=0.2) and median(mg_si) == pytest.approx(0.93, abs=0.1)
     assert median(c_o) == pytest.approx(0.385, abs=0.05)
     assert high / 6000 == pytest.approx(0.216, abs=0.03), "the high-alpha share with the age gate off, as part A drew it"
@@ -338,7 +338,7 @@ def test_the_white_dwarf_core_by_mass():
 
 def test_the_neutron_star_constants():
     low, high = tuning.STELLAR_NS_RADIUS_BAND_KM
-    assert (low, high) == (11.6, 13.1) and low < 12.45 < high, "Miller 2021's R(1.4)"
+    assert (low, high) == (11.6, 13.1) and low < 12.45 < high, "[R3075]'s R(1.4)"
     assert tuning.STELLAR_NS_MASS_FLOOR_SOL < tuning.STELLAR_NS_MAXIMUM_NONROTATING_MASS_SOL[0]
     assert (tuning.STELLAR_NS_MASS_HEAVIEST_SOL, tuning.STELLAR_NS_MASS_HEAVIEST_SIGMA_SOL) == (2.35, 0.17)
     # Mean density of example K: 1.36 solar masses within 12.45 km is 1.22 times saturation.

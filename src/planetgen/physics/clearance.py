@@ -16,22 +16,22 @@ the generator itself promises is broken; an **advisory** is a physical limit the
 (GEN.1006 parts P4 to P8 are what turn them into promises), counted so the work to come has its baseline.
 
 1. **Stars (`roche`, hard)**: two single members of a node must clear each other at the pair's closest approach: neither
-   fills more than `MAX_FILL_FACTOR` of its Roche lobe there (Eggleton 1983), except a pair the record marks as a merger
+   fills more than `MAX_FILL_FACTOR` of its Roche lobe there [R1222], except a pair the record marks as a merger
    product or a post-common-envelope pair.
 2. **Subtrees (`overlap`, hard)**: for a node with a sub-node as a child, the pericentre must exceed the sum of its
    children's extents (a star's radius; a sub-node's greatest distance from its own barycentre to the surface of any star
    below it, at the node's apocentre): the bounding spheres of the two sides do not meet.
 3. **Stability (`stability`, hard)**: for every node with a sub-node as a child, the triple of the sub-node's two sides and the
-   other child must pass at least one of Mardling and Aarseth 2001, Eggleton and Kiseleva 1995 or Equation 4 of
-   Vynatheya et al. 2022 (a triple the generator drew by any of them passes its own; one that fails all three is unstable
+   other child must pass at least one of [R1221, R2868] or Equation 4 of
+   [R4574] (a triple the generator drew by any of them passes its own; one that fails all three is unstable
    whichever it used).
 4. **Masses (`mass`, hard)**: each node's mass is the sum of its two children's.
 5. **Planets**: the closest approach is outside the host star (`planet-in-star`, hard) and, if the density says so, outside its
    rigid-body Roche limit (`planet-roche`, advisory); the semi-major axis lies inside the S-type critical axis of its host
-   toward each companion above it (`s-type`, hard, Holman and Wiegert 1999, equation 1) or outside the P-type one of the pair
+   toward each companion above it (`s-type`, hard, [R1990], equation 1) or outside the P-type one of the pair
    it goes round (`p-type`, hard, equation 3; both are fits for the semi-major axis of a test particle); two planets of one host
    do not cross (`planet-crossing`, hard) and are `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii apart (`planet-spacing`, hard).
-6. **Moons**: inside 0.4895 of the planet's Hill radius (`moon-hill`, hard, Domingos, Winter and Yokoyama 2006), not touching the
+6. **Moons**: inside 0.4895 of the planet's Hill radius (`moon-hill`, hard, [R1138]), not touching the
    planet (`moon-in-planet`, hard) and outside its rigid-body Roche limit for the two densities (`moon-roche`, advisory).
 7. **Belts**: the annulus does not hold a planet's orbit (`belt-planet`, hard) and lies inside the host's S-type critical axis
    (`belt-s-type`, hard).
@@ -58,10 +58,10 @@ MUTUAL_HILL_RADII_SEPARATION = 10.0
 """float: Neighbouring planets of one host are at least this many mutual Hill radii apart (Chambers, Wetherill and Boss 1996)."""
 
 MOON_PROGRADE_HILL_FRACTION = 0.4895
-"""float: A prograde moon is stable inside this fraction of its planet's Hill radius (Domingos, Winter and Yokoyama 2006)."""
+"""float: A prograde moon is stable inside this fraction of its planet's Hill radius [R1138]."""
 
 RIGID_ROCHE_COEFFICIENT = 1.26
-"""float: A rigid satellite breaks up inside `1.26 R (rho_host / rho_body)^(1/3)` of its host (Roche 1849, in Murray and Dermott 1999);
+"""float: A rigid satellite breaks up inside `1.26 R (rho_host / rho_body)^(1/3)` of its host (Roche 1849, in [R3220]);
 the fluid coefficient 2.44 would flag a rocky body the generator is entitled to place."""
 
 LIMIT_TOLERANCE = 1.0e-4
@@ -75,7 +75,7 @@ NO_FILL_CHECK = ("merger-product", "post-common-envelope")
 """tuple: The `orbit_nodes.interaction` values whose pair was shaped by a past interaction, so the detached Roche rule does not hold."""
 
 HW_S_MU_RANGE = (0.1, 0.9)
-"""tuple: The mass ratios Holman and Wiegert 1999 fitted their S-type critical axis on (the companion's share of the pair)."""
+"""tuple: The mass ratios [R1990] fitted their S-type critical axis on (the companion's share of the pair)."""
 
 HW_S_E_MAX = 0.8
 """float: The largest eccentricity their S-type fit covers."""
@@ -110,26 +110,26 @@ class Violation:
 
 
 def roche_lobe_fraction(mass_self, mass_other):
-    """Eggleton 1983: the Roche-lobe radius of the first body over the separation, `0.49 q^(2/3) / (0.6 q^(2/3) + ln(1 + q^(1/3)))`."""
+    """[R1222]: the Roche-lobe radius of the first body over the separation, `0.49 q^(2/3) / (0.6 q^(2/3) + ln(1 + q^(1/3)))`."""
     q = mass_self / mass_other
     return 0.49 * q ** (2.0 / 3.0) / (0.6 * q ** (2.0 / 3.0) + math.log(1.0 + q ** (1.0 / 3.0)))
 
 
 def mardling_aarseth_axis_ratio(q_out, e_out, inclination):
-    """Mardling and Aarseth 2001: the smallest stable `a_out / a_in`, `q_out = m3 / (m1 + m2)`, mutual `inclination` in radians."""
+    """[R2868]: the smallest stable `a_out / a_in`, `q_out = m3 / (m1 + m2)`, mutual `inclination` in radians."""
     peri = 2.8 * ((1.0 + q_out) * (1.0 + e_out) / math.sqrt(1.0 - e_out)) ** 0.4 * (1.0 - 0.3 * inclination / math.pi)
     return peri / (1.0 - e_out)
 
 
 def eggleton_kiseleva_axis_ratio(q_out, q_in, e_in, e_out):
-    """Eggleton and Kiseleva 1995: the smallest stable `a_out / a_in`; `q_in = m2 / m1` of the inner pair."""
+    """[R1221]: the smallest stable `a_out / a_in`; `q_in = m2 / m1` of the inner pair."""
     q13 = q_out ** (1.0 / 3.0)
     y_crit = 1.0 + 3.7 / q13 - 2.2 / (1.0 + q13) + 1.4 / q_in ** (1.0 / 3.0) * (q13 - 1.0) / (q13 + 1.0)
     return y_crit * (1.0 + e_in) / (1.0 - e_out)
 
 
 def vynatheya_axis_ratio(q_out, e_in, e_out, inclination):
-    """Vynatheya, Hamers and Mardling 2022, equation 4 with the effective inner eccentricity of equation 3."""
+    """[R4574], equation 4 with the effective inner eccentricity of equation 3."""
     window = 1.0 - 5.0 / 3.0 * math.cos(inclination) ** 2
     e_max = math.sqrt(window) if window > 0.0 else 0.0
     e_eff = max(e_in, 0.5 * e_max ** 2)
@@ -139,12 +139,12 @@ def vynatheya_axis_ratio(q_out, e_in, e_out, inclination):
 
 
 def holman_wiegert_s_axis_ratio(mu, e):
-    """Holman and Wiegert 1999, equation 1: the largest stable `a / a_b` of a test particle about the heavier star (`mu = m2 / (m1 + m2)`)."""
+    """[R1990], equation 1: the largest stable `a / a_b` of a test particle about the heavier star (`mu = m2 / (m1 + m2)`)."""
     return 0.464 - 0.380 * mu - 0.631 * e + 0.586 * mu * e + 0.150 * e ** 2 - 0.198 * mu * e ** 2
 
 
 def holman_wiegert_p_axis_ratio(mu, e):
-    """Holman and Wiegert 1999, equation 3: the smallest stable `a / a_b` of a test particle about the pair."""
+    """[R1990], equation 3: the smallest stable `a / a_b` of a test particle about the pair."""
     return 1.60 + 5.10 * e - 2.22 * e ** 2 + 4.12 * mu - 4.27 * e * mu - 5.09 * mu ** 2 + 4.61 * e ** 2 * mu ** 2
 
 

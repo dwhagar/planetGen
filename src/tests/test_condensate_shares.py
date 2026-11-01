@@ -1,6 +1,6 @@
 # tests/test_condensate_shares.py
 
-"""GEN.950: the condensates of Lodders 2003 Tables 10 and 11 by disk temperature and the water share of the solids (`physics/condensate_shares.py`)."""
+"""GEN.950: the condensates of [R2726: Tables 10 and 11] by disk temperature and the water share of the solids (`physics/condensate_shares.py`)."""
 
 import pytest
 
@@ -17,7 +17,7 @@ def test_nothing_but_rock_is_whole_above_the_water_line():
 
 
 def test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints():
-    """Lodders 2003 Table 11: rock 0.489, water 0.571, ammonia 0.097, methane 0.330 (water over rock 1.17, all ices over rock 2.04)."""
+    """[R2726: Table 11]: rock 0.489, water 0.571, ammonia 0.097, methane 0.330 (water over rock 1.17, all ices over rock 2.04)."""
     assert shares.water_share_of_solids(150.0) == pytest.approx(0.571 / (0.489 + 0.571))
     assert shares.water_share_of_solids(100.0) == pytest.approx(0.571 / (0.489 + 0.571 + 0.097))
     assert shares.water_share_of_solids(30.0) == pytest.approx(0.571 / 1.487)

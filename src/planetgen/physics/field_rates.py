@@ -29,12 +29,12 @@ import math
 from planetgen.physics import constants, field_dispersal, rogue_collision
 
 GALAXY_CORE_COLLAPSE_RATE_PER_YEAR = 0.02
-"""float: Core-collapse supernovae in the Galaxy per year, 2 per century (Diehl et al. 2006 from 26Al gives 1.9 +/- 1.1 per century, recalled). IF19, tier T2, L0."""
+"""float: Core-collapse supernovae in the Galaxy per year, 2 per century ([R1108, R1109] from 26Al gives 1.9 +/- 1.1 per century, recalled). IF19, tier T2, L0."""
 PROGENITOR_BELT_SHARE_BY_AGE = ((3.0e7, 0.41), (1.89e8, 0.25), (4.0e8, 0.15), (math.inf, 0.02))
 """tuple: `(upper age, share)` of A stars of 2 to 3 solar masses with a 24 micron excess by age, years (Su et al. 2006, Table 4, row IF9); the progenitors of a core-collapse supernova
 live 10 to 40 Myr, so nearly all of them take the first row."""
 TRUNCATION_FRACTION = 0.3
-"""float: A flyby of periastron `q` truncates a disc at about `0.3 q` (Holman and Wiegert style cut; Breslau et al. 2014, recalled); a belt of radius `a` is stripped by `q < a / 0.3`. IF20,
+"""float: A flyby of periastron `q` truncates a disc at about `0.3 q` (Holman and Wiegert style cut; [R0527], recalled); a belt of radius `a` is stripped by `q < a / 0.3`. IF20,
 tier T2, L1."""
 CLUSTER_BELT_SHARE = 0.32
 """float: The share of the stars of a young cluster that hold a debris belt: the overall 32 +/- 5 percent of the Spitzer sample of A stars (IF9), used for solar-type stars too until a sample is

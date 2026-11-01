@@ -7,10 +7,10 @@ showed no bulge, and GEN.119 the density model had no thick disk
 
 The math check's reference shape (the Milky Way's, kept for the checks; `planetgen plan` draws its own, GEN.401)
 against the Milky Way's published
-structure: Bland-Hawthorn & Gerhard 2016 (ARA&A 54:529, "BHG16") for the
-masses, scale lengths and heights; Dwek et al. 1995 (ApJ 445:716) for the
+structure: [R0422] (ARA&A 54:529, "BHG16") for the
+masses, scale lengths and heights; [R1202] (ApJ 445:716) for the
 bulge's boxy shape, fitted to the COBE/DIRBE edge-on image; Wegg & Gerhard
-2013 (MNRAS 435:1874) for the bar's angle; McKee et al. 2015 (ApJ 814:13)
+2013 (MNRAS 435:1874) for the bar's angle; [R3002] (ApJ 814:13)
 for the stars' surface density at the Sun. Each tolerance is the published
 uncertainty, or the spread between the sources.
 """
@@ -111,7 +111,7 @@ def _bulge_half_density_pc(direction):
 
 
 def test_the_bulge_is_cobes_boxy_bar():
-    # Dwek et al. 1995 G2: exp(-r_s^2/2) halves at r_s = sqrt(2 ln 2), so
+    # [R1202] G2: exp(-r_s^2/2) halves at r_s = sqrt(2 ln 2), so
     # at 1.177 x (1.58, 0.62, 0.43) kpc along, across and above the bar.
     reach = math.sqrt(2 * math.log(2))
     assert _bulge_half_density_pc((1, 0, 0)) == pytest.approx(reach * 1580.0, rel=0.01)
@@ -125,7 +125,7 @@ def test_the_bulge_is_cobes_boxy_bar():
 
 
 def test_the_bar_leads_the_sun_by_27_degrees():
-    # Wegg & Gerhard 2013: 27 +- 2 degrees, its near end at positive
+    # [R4649]: 27 +- 2 degrees, its near end at positive
     # galactic longitude: ahead of the Sun in the direction of rotation
     # (counterclockwise from galactic north, increasing theta).
     angles = [2 * math.pi * i / 3600 for i in range(3600)]
@@ -139,7 +139,7 @@ def test_the_bars_central_density_matches_its_mass_and_the_suns_disk():
     # Sun. Published: 1.55e10 M_sun (BHG16) in Dwek's G2 shape, whose
     # volume is x0 y0 z0 times 20.65, gives 1.78 M_sun/pc^3 at the center;
     # the stars' surface density at the Sun is about 33 M_sun/pc^2
-    # (McKee et al. 2015). So 0.054 per parsec, with the bulge mass's
+    # [R3002]. So 0.054 per parsec, with the bulge mass's
     # +-10% and the surface density's +-10%.
     center = density._components((0.0, 0.0, 0.0), SHAPE)[0]
     sun = _at(SOLAR_RADIUS_PC, 0.3)
@@ -175,7 +175,7 @@ def _edge_on_column(x, z):
 
 def test_the_bulge_stands_out_edge_on():
     # 1 kpc above the plane, edge on, the center outshines the disk 4 kpc
-    # out. The old 200 pc bulge gave 2.5 (a flat disk); McMillan 2017's
+    # out. The old 200 pc bulge gave 2.5 (a flat disk); [R3009]'s
     # Milky Way model gives 3.8.
     assert _edge_on_column(0.0, 1000.0) > 3.8 * _edge_on_column(4000.0, 1000.0)
     # And 600 pc up, most of the center's light is the bulge's.

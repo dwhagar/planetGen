@@ -5,7 +5,7 @@ Builds the species thermodynamics file (GEN.451, GEN.454, GEN.499) from the NASA
     python scripts/build_species_thermo.py PATH_TO_THERMO_INP           # write src/planetgen/physics/data/nasa_glenn_species.json
     python scripts/build_species_thermo.py PATH_TO_THERMO_INP --check   # build in memory and fail if the committed file differs
 
-`thermo.inp` is the NASA Glenn thermodynamic database of the CEA program (McBride, Zehe and Gordon 2002, NASA/TP-2002-211556,
+`thermo.inp` is the NASA Glenn thermodynamic database of the CEA program ([R2968], NASA/TP-2002-211556,
 9-coefficient fits; the file at https://github.com/nasa/cea/blob/main/data/thermo.inp, a work of the United States
 Government). The raw file (1.2 MB, 2111 species) is never in the repository: this script reads the rows of the species
 `WANTED` lists, by their exact names in that file, and writes only those. A name that is not in the file stops the build.
@@ -27,7 +27,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "src", "planetgen", "physics", "data", "nasa_glenn_species.json")
 
 SOURCE = (
-    "McBride, Zehe and Gordon 2002, NASA/TP-2002-211556 (NASA Glenn 9-coefficient fits), as released in the thermo.inp "
+    "[R2968], NASA/TP-2002-211556 (NASA Glenn 9-coefficient fits), as released in the thermo.inp "
     "of NASA CEA (github.com/nasa/cea, data/thermo.inp)"
 )
 

@@ -3,7 +3,7 @@
 """
 GEN.579: the hosting gate (`planetgen.physics.hosting_gate`): the three parts in order (a satellite must fit, a stable
 orbit must exist, a chance that one exists at all), the size cut, the share table with its sources, a moon that has no row,
-and the tidal-survival radius of a submoon (Kollmeier and Raymond 2019, equation 1) against the moons the paper names.
+and the tidal-survival radius of a submoon ([R2437], equation 1) against the moons the paper names.
 """
 
 import math

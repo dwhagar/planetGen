@@ -12,7 +12,7 @@ of its air) and the flow of a spin under them; this module fills it from a body'
   temperature is `interior_heat.tide_temperature_k`, the same that sets the circularisation and the heat) and the solidus of its pressure. A
   gas giant and an icy body keep their fixed `k2` and `Q` (`tidal_heating`, GEN.960 gives ice its own).
 * **The star.** The first raiser is what the body goes round, a star for a planet and the planet for a moon, on the body's own orbit.
-* **The air.** A rocky planet with an atmosphere feels the thermal tide of its star on it (Leconte et al. 2015): `spin_torques.ThermalTide` with the
+* **The air.** A rocky planet with an atmosphere feels the thermal tide of its star on it [R2606]: `spin_torques.ThermalTide` with the
   amplitude and relaxation time of the stored surface pressure and the starlight at the body's orbit. Where the thermal and gravitational tides
   balance away from synchronism the planet keeps a spin of its own (Venus, retrograde; the non-synchronous planets of the inner habitable zone).
 * **The state.** The spin is carried from its birth spin until a synchronous state, a spin-orbit resonance whose window holds the orbit's

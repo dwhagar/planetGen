@@ -8,7 +8,7 @@ a uniform-composition sphere in hydrostatic balance.
 
 Each layer holds ice grains (920 kg/m3 at zero pressure) and silicate grains (3500 kg/m3), both compressed by a third-order
 Birch-Murnaghan equation of state (ice K0 9.2 GPa, K' 5.5; silicate K0 110 GPa, K' 4.0: the design note's stand-ins for the
-solver's equation of state, not measurements), and each with the brittle porosity of Bierson and Nimmo (2019, Icarus 326,
+solver's equation of state, not measurements), and each with the brittle porosity of [R0390] (Icarus 326,
 Table 1 and Eqs. 1 and 2, P in MPa): ice phi = max(0.60 exp(-0.1 P), 0.20), silicate phi = min(0.6 P^-0.11, 0.6). The two
 porosities are weighted by the grain volumes of the mixture. Between the masses `TAPER_START_KG` (1e19) and `TAPER_END_KG`
 (1e21) the porosity is multiplied by a weight that falls from 1 to 0 in log mass (Boss's card of 8:13 PM EDT on 2026-10-21,
@@ -129,13 +129,13 @@ def build():
         "method": "uniform sphere in hydrostatic balance, third-order Birch-Murnaghan grains, brittle porosity laws mixed by "
                   "volume, porosity tapered to zero between 1e19 and 1e21 kg",
         "sources": {
-            "bierson-nimmo-2019": "Bierson and Nimmo 2019, Icarus 326, 10 (accepted manuscript Table 1 and Eqs. 1 and 2): ice "
+            "bierson-nimmo-2019": "[R0390] (accepted manuscript Table 1 and Eqs. 1 and 2): ice "
                                   "grains 920 and silicate grains 3500 kg/m3, ice phi = max(0.60 exp(-0.1 P), 0.20), silicate "
                                   "phi = min(0.6 P^-0.11, 0.6), P in MPa",
             "stand-in-eos": "the third-order Birch-Murnaghan constants (ice K0 9.2 GPa K' 5.5, silicate K0 110 GPa K' 4.0) are "
                             "the design note's stand-ins for the structure solver's equation of state (GEN.429)",
             "taper": "the 1e19 to 1e21 kg taper is Boss's decision S9 (8:13 PM EDT on 2026-10-21); its endpoints are two numbers "
-                     "read off Carry 2012's statements and are a stand-in until viscous compaction replaces them",
+                     "read off [R0666]'s statements and are a stand-in until viscous compaction replaces them",
         },
         "taper_start_kg": TAPER_START_KG,
         "taper_end_kg": TAPER_END_KG,

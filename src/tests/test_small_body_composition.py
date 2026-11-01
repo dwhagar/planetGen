@@ -55,9 +55,9 @@ def test_the_taxa_are_mixes_of_the_shared_table_with_grain_densities_near_their_
         for name in data.fractions:
             assert materials.has(name), (taxon, name)
     grain = {t: compaction.grain_density_kg_m3(sb.TAXON_DATA[t].fractions) for t in sb.TAXA}
-    # Britt and Consolmagno 2003 grain densities (part D 2.2): CI 2.26, CM 2.71, ordinary chondrites 3.48 to 3.64
+    # [R0544] grain densities (part D 2.2): CI 2.26, CM 2.71, ordinary chondrites 3.48 to 3.64
     assert 2400 <= grain["C"] <= 3100 and 3300 <= grain["S"] <= 3800
-    # bulk density at the middle of the family's porosity range against Carry 2012 Table 3 (part D 2.3): C 1.57, S 2.66, M 3.85+,
+    # bulk density at the middle of the family's porosity range against [R0666: Table 3] (part D 2.3): C 1.57, S 2.66, M 3.85+,
     # P 1.4 to 1.5, D 1.0 to 1.1 g/cm3 (the Carry values are rho_inf means with large scatter)
     def mid(taxon):
         low, high = sb.POROSITY_RANGES[sb.TAXON_DATA[taxon].family]
@@ -145,7 +145,7 @@ def test_a_comet_density_reaches_a_measured_nucleus_and_the_mass_follows_the_siz
     comets = _comets(2000, seed=7, period_class="jupiter_family")
     density = sorted(c.bulk_density_kg_m3 for c in comets)
     assert 250 < statistics.median(density) < 900
-    # a 67P-like nucleus (537.8 kg/m3, Choukroun 2020; 1.6 km mean radius) is reachable: at least one draw in 14 is within 100
+    # a 67P-like nucleus (537.8 kg/m3, [R0776]; 1.6 km mean radius) is reachable: at least one draw in 14 is within 100
     assert sum(abs(d - 537.8) < 100.0 for d in density) / len(density) > 0.07
     comet = comets[0]
     assert comet.mass_kg(3.4) == pytest.approx(4.0 / 3.0 * math.pi * (1700.0) ** 3 * comet.bulk_density_kg_m3)
@@ -245,15 +245,15 @@ def test_the_same_seed_gives_the_same_bodies_at_one_and_four_workers():
 
 
 def test_a_comets_organics_take_the_shared_tables_density_not_a_separate_one():
-    """GEN.712: complex organics are 1.5 g/cm3 in the materials table (the middle of 1.0 to 2.0, Blum and Bischoff 2022) and a comet
+    """GEN.712: complex organics are 1.5 g/cm3 in the materials table (the middle of 1.0 to 2.0, [R0430]) and a comet
     states no other density for them; only the silicate dust, which the table holds none for, carries a stand-in."""
     from planetgen.physics import materials
     row = materials.material("complex_organics")
     prop = row.props["rho_grain_g_cm3"]
     assert prop.value == 1.5
     assert tuple(prop.measured_range) == (1.0, 2.0)
-    # GEN.660: the 2 g/cm3 that Choukroun et al. 2020 gives (section 3.3, read) is the top of the table's range, and the row says so.
-    assert prop.measured_range[1] >= 2.0 and "Choukroun" in row.note
+    # GEN.660: the 2 g/cm3 that [R0776] gives (section 3.3, read) is the top of the table's range, and the row says so.
+    assert prop.measured_range[1] >= 2.0 and "[R0776]" in row.note
     comet = sb.draw_comet()
     assert "complex_organics" not in comet.densities
     assert sb.REFRACTORY_DENSITIES == {"silicate_dust": 3500.0}

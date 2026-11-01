@@ -4,7 +4,7 @@
 The white-dwarf pollution detection model (GEN.508, docs/design/composition/tunable-gaps.md sections 3.2 and 4, docs/design/composition/wd-pollution-detection.md)
 ===========================================================================================================================
 
-What the 24 polluted white dwarfs with an oxygen fugacity (Doyle et al. 2020 Table 1, Doyle et al. 2023 Table 4) can and cannot show.
+What the 24 polluted white dwarfs with an oxygen fugacity ([R1152: Table 1], [R1153: Table 4]) can and cannot show.
 The measured quantity is dIW = 2 log10(x_FeO / x_Fe,metal) of the parent body, with x_Fe,metal = 0.85 and x_FeO the mole fraction of
 FeO in the rock, found by Monte Carlo draws of the measured abundances. Those papers' own rule decides what is reported:
 
@@ -24,7 +24,7 @@ and not with the bodies. The model:
 3. the model's selection (`reported_median`) keeps a star whose class is `both` or `upper` and drops a `limit`.
 
 Validity: effective temperatures 10,120 to 21,200 K, hydrogen and helium atmospheres (DA, DB, DZ), parent bodies with oxygen measured.
-Not modelled: the settling of the elements out of the atmosphere (Doyle 2020 section 3.2, Figs. 8 to 11), which can make a body in
+Not modelled: the settling of the elements out of the atmosphere ([R1152] section 3.2, Figs. 8 to 11), which can make a body in
 a declining phase look more reduced; a body observed in its build-up or steady-state phase is the model's case. A tuned width is
 an upper bound where the sample may hold stars observed after accretion has waned.
 
@@ -178,7 +178,7 @@ def load(path=DATA_FILE):
 
 
 SAMPLE = load()
-"""Sample: The 24 polluted white dwarfs of Doyle et al. 2020 and 2023."""
+"""Sample: The 24 polluted white dwarfs of [R1152] and 2023."""
 
 
 def x_of(diw, x_metal=None):

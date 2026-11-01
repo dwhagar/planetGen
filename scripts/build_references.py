@@ -5,6 +5,7 @@ that NASA journals use (author-year, alphabetical, journal, volume, page, DOI or
 
     python scripts/build_references.py harvest [--extra DIR ...]   # scan the repo (and extra folders) for citations -> candidates file
     python scripts/build_references.py resolve [--offline]         # look up each candidate (arXiv API, Crossref), update the cache
+    python scripts/build_references.py add DOI_OR_ARXIV ...        # look a new source up, list it, print its citation ID (DOC.98)
     python scripts/build_references.py render                      # write the .md and .html from the cache
     python scripts/build_references.py match                       # tie author-year mentions to papers by first author, year and second author
     python scripts/settle_references.py triage|local|search|report # label non-papers, tie the rest by identifier and Crossref (DOC.95)
@@ -37,7 +38,7 @@ OUT_HTML = os.path.join(ROOT, "docs", "REFERENCES.html")
 MAILTO = "david.hagar@gmail.com"
 
 TEXT_EXT = (".md", ".py", ".js", ".mjs", ".html", ".json", ".sh", ".txt", ".csv", ".tsv", ".bib", ".yml", ".yaml", ".rst", ".toml")
-SKIP_PARTS = ("docs/REFERENCES", "docs/reference/references-data", "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "/node_modules/", "/vendor/",
+SKIP_PARTS = ("docs/REFERENCES", "docs/references/", "src/tests/test_citations_links.py", "docs/reference/references-data", "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py", "/node_modules/", "/vendor/",
               "three.min", ".min.js", "package-lock")
 MAX_BYTES = 4_000_000
 
@@ -994,6 +995,70 @@ def cmd_render(args):
     log("wrote", OUT_MD, OUT_HTML)
 
 
+def same_title(a, b):
+    """True when two titles have most of their longer words in common (a preprint and its journal version differ in capitals and small words)."""
+    wa, wb = (set(re.findall(r"[a-z]{4,}", (t or "").lower())) for t in (a, b))
+    return bool(wa and wb) and len(wa & wb) / len(wa | wb) >= 0.6
+
+
+def cmd_add(args):
+    """Adds sources to the list by DOI or arXiv number and prints the citation ID to write in the text (`[R0123]`). A source Crossref, DataCite or
+    arXiv does not know is refused: it is not listed, so it is not cited."""
+    c = load_cache()
+    ents = c["entries"]
+    bad = 0
+    for raw in args.ids:
+        raw = raw.strip()
+        ax = ARXIV.search(raw) if not raw.lower().startswith("10.") else None
+        doi = None if ax else re.sub(r"(?i)^(?:doi:\s*|https?://(?:dx\.)?doi\.org/)", "", raw).rstrip(".,;").lower()
+        doi = doi if doi and re.fullmatch(r"10\.\d{4,9}/\S+", doi) else None
+        if ax:
+            a = ax.group(1)
+            got = fetch_arxiv([a]).get(a)
+            if not got:
+                log("not found at arXiv:", a)
+                bad += 1
+                continue
+            key = got["doi"] if got["doi"] else "arXiv:" + a
+            if got["doi"] and key in ents and not same_title(ents[key].get("title"), got["title"]):
+                key, got = "arXiv:" + a, dict(got, doi="")  # the preprint's DOI field names another paper
+            if key not in ents:
+                if got["doi"] and key == got["doi"]:
+                    r = fetch_crossref(got["doi"]) or fetch_datacite(got["doi"])
+                    if r and not same_title(r.get("title"), got["title"]):
+                        r, key, got = None, "arXiv:" + a, dict(got, doi="")
+                    if r:
+                        r["src"] = "crossref"
+                        r["arxiv"] = a
+                        ents[key] = r
+                if key not in ents:
+                    ents["arXiv:" + a] = {"authors": got["authors"], "year": got["year"], "title": got["title"], "arxiv": a, "doi": got["doi"], "journal": "",
+                                         "volume": "", "page": "", "type": "preprint", "src": "arxiv", "journal_ref": got["journal_ref"]}
+                    key = "arXiv:" + a
+        else:
+            if not doi:
+                log("not a DOI or arXiv number:", raw)
+                bad += 1
+                continue
+            key = doi
+            if key not in ents:
+                r = fetch_crossref(doi) or fetch_datacite(doi)
+                if not r:
+                    log("not found at Crossref or DataCite:", doi)
+                    bad += 1
+                    continue
+                r["src"] = "crossref"
+                ents[key] = r
+        if ax and not ents[key].get("arxiv"):
+            ents[key]["arxiv"] = ax.group(1)
+        assign_ids(c)
+        print("%s  [%s]  %s" % (raw, id_of(c, key), ents[key].get("title")))
+    save_cache(c)
+    log("run python scripts/build_references.py render to print the new entries")
+    if bad:
+        sys.exit(1)
+
+
 def cmd_match(args):
     """Tie author-year mentions to resolved entries by first author, year and (for pairs) second author. The decisions made later by
     scripts/settle_references.py (searches, labels, review notes) are kept; mentions the last harvest no longer finds are dropped."""
@@ -1034,6 +1099,7 @@ if __name__ == "__main__":
         p = sub.add_parser(n)
         p.add_argument("--extra", nargs="*", default=[])
     sub.add_parser("match")
+    sub.add_parser("add").add_argument("ids", nargs="+")
     sub.add_parser("render").add_argument("--check", action="store_true")
     sub.add_parser("resolve").add_argument("--offline", action="store_true")
     a = ap.parse_args()
@@ -1043,5 +1109,7 @@ if __name__ == "__main__":
         cmd_resolve(a)
     elif a.cmd == "match":
         cmd_match(a)
+    elif a.cmd == "add":
+        cmd_add(a)
     elif a.cmd == "render":
         cmd_render(a)

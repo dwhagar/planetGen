@@ -13,7 +13,7 @@ section 6):
 1. A body tidally locked to what it orbits turns once an orbit, with its
    axis on the orbit normal (no tilt).
 2. Cool main-sequence stars (up to 1.3 solar masses) take their period
-   from gyrochronology, `P = a t^n (B - V - c)^b` (Barnes 2007, with the
+   from gyrochronology, `P = a t^n (B - V - c)^b` ([R1429], with the
    document's fit), with 10% log-normal scatter.
 3. Hot stars draw an equatorial speed log-normal round 180 km/s, capped
    at 85% of breakup, `sqrt(2/3 G M / R)`. Between 6450 and 6650 K (the Kraft
@@ -66,14 +66,14 @@ GYRO_B = 0.31
 GYRO_C = 0.495
 GYRO_SCATTER = 0.10
 """Gyrochronology, `P[days] = a (t[Myr])^n (B - V - c)^b exp(N(0, 0.1))`
-(the document's fit to Barnes 2007): the Sun (4.6 Gyr, B - V 0.65) comes
+(the document's fit to [R1429]): the Sun (4.6 Gyr, B - V 0.65) comes
 out 23 days."""
 
 KRAFT_BREAK_LOW_K = 6450.0
 KRAFT_BREAK_HIGH_K = 6650.0
 """float: The Kraft break (GEN.1163): below `KRAFT_BREAK_LOW_K` a dwarf has a convective envelope deep enough to brake (gyrochronology); above
-`KRAFT_BREAK_HIGH_K` it keeps the speed it was born with; between them the median speed passes from one to the other. Beyer and White 2024
-(arXiv:2408.02638, read in full): centred on 6550 K, about 200 K wide (6450 to 6650 K, 1.32 to 1.41 solar masses)."""
+`KRAFT_BREAK_HIGH_K` it keeps the speed it was born with; between them the median speed passes from one to the other. [R0378]
+([R0378], read in full): centred on 6550 K, about 200 K wide (6450 to 6650 K, 1.32 to 1.41 solar masses)."""
 
 GYRO_MIN_COLOUR_EXCESS = 0.05
 """float: The least `B - V - c` the gyrochronology law is given: a star bluer than c + 0.05 (about 6200 K) has the period of that colour, not the
@@ -89,12 +89,12 @@ HOT_STAR_BREAK_SPEED_KMS = 80.0
 KRAFT_BREAK_TOP_MASS_SOL = 1.41
 BREAKUP_FRACTION = 0.85
 """Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup. The 180 km/s is the mean equatorial speed of the 1.6 to 2.0 solar mass bin
-(Zorec and Royer 2012, Table 4: the Maxwellian mode 160 km/s, mean 2 / sqrt(pi) times it), so it holds from `HOT_STAR_FULL_SPEED_MASS_SOL`
-up; just above the Kraft break the stars' mean v sin i is 63 km/s (Beyer and White 2024), a mean equatorial speed of 63 * 4 / pi, about
+([R4914: Table 4]: the Maxwellian mode 160 km/s, mean 2 / sqrt(pi) times it), so it holds from `HOT_STAR_FULL_SPEED_MASS_SOL`
+up; just above the Kraft break the stars' mean v sin i is 63 km/s [R0378], a mean equatorial speed of 63 * 4 / pi, about
 `HOT_STAR_BREAK_SPEED_KMS`, and between `KRAFT_BREAK_TOP_MASS_SOL` and the full-speed mass the median runs between the two, linear in ln v over mass.
-Above it the median keeps rising with mass to `HOT_STAR_PEAK_SPEED_KMS` at `HOT_STAR_PEAK_MASS_SOL` (Zorec and Royer 2012: mode 238 km/s in their 3.15 to 3.85 solar mass
+Above it the median keeps rising with mass to `HOT_STAR_PEAK_SPEED_KMS` at `HOT_STAR_PEAK_MASS_SOL` ([R4914]: mode 238 km/s in their 3.15 to 3.85 solar mass
 bin, mean 1.128 times it), then falls back to `HOT_STAR_SPEED_KMS` at `HOT_STAR_FALL_MASS_SOL` and stays there (GEN.1170: the B stars of 8 solar masses and more are mostly
-slow, 84% under half the critical speed, Huang, Gies and McSwain 2010). A rocky planet's birth spin is held at the same share
+slow, 84% under half the critical speed, [R2030]). A rocky planet's birth spin is held at the same share
 (`accretion_spin`; about 14 percent of the Gaussian vectors lie above it; planetGen's choice)."""
 
 GIANT_SPEED_RANGE_KMS = (1.0, 10.0)
@@ -302,12 +302,12 @@ def critical_spin_rad_s(mass_kg, radius_km):
 
 def accretion_spin(mass_kg, radius_km):
     """
-    A rocky planet's birth spin from the last impacts that built it (GEN.979, Kokubo and Genda 2010 equation 4 through `impact_spin`): the mass ratio
+    A rocky planet's birth spin from the last impacts that built it (GEN.979, [R2431] equation 4 through `impact_spin`): the mass ratio
     `gamma` of the last impacts is drawn for the planet's mass (a giant impact of embryos, or planetesimals alone), the three components of the
     spin vector are Gaussian with the width that `gamma` gives as a share of this body's breakup rate, and the rate is held under `BREAKUP_FRACTION` of
     it. Returns `(rate, tilt_deg)`: the spin rate, rad/s, and its angle from the vector's own z axis (taken as the orbit normal). After a giant
     impact the axis is isotropic, `p(e) = sin(e) / 2`, as the paper finds; a planet built by planetesimals alone spins prograde (`z` folded positive,
-    the sense of the shear that feeds it: Schlichting and Sari 2007, recalled). Three draws beyond the components: the branch and the place in its range.
+    the sense of the shear that feeds it: [R3959], recalled). Three draws beyond the components: the branch and the place in its range.
     """
     critical = critical_spin_rad_s(mass_kg, radius_km)
     mass_earth = _kg_to_mearth(mass_kg)

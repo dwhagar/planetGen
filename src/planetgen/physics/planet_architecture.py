@@ -7,19 +7,19 @@ Planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920, docs/
 How many planets a star has, where they sit and how heavy they are, from the star's disc alone. A pure law over the star and its disc;
 it reads no class, writes none and draws only from the stream it is given.
 
-1. **The disc.** A disc's solids scatter about the median of its star's mass (`DISC_SOLIDS_SCATTER_DEX`, Andrews et al. 2013). A light
+1. **The disc.** A disc's solids scatter about the median of its star's mass (`DISC_SOLIDS_SCATTER_DEX`, [R0114]). A light
    disc builds nothing the size of a planet; a heavy one builds a chain. No coin flip decides whether a star has planets.
-2. **The chain.** From an inner edge (a period near 5 days, Mulders et al. 2015) outwards oligarchs form one feeding zone after another, each
+2. **The chain.** From an inner edge (a period near 5 days, [R3193, R3196]) outwards oligarchs form one feeding zone after another, each
    at the isolation mass (`formation.isolation_mass_kg`) and `separation` mutual Hill radii from the last (`OLIGARCH_SEPARATION_MEDIAN`,
    drawn per system). The outer disc has built less (`PLANET_OUTER_GROWTH_AU`).
-3. **The thinning.** Pu and Wu 2015 (arXiv:1502.05449) integrated tight chains and fitted the chance that one survives: a pair of spacing
+3. **The thinning.** Pu and Wu 2015 [R3621] integrated tight chains and fitted the chance that one survives: a pair of spacing
    `K` mutual Hill radii lasts `tau` orbits of its inner planet with probability `1 - exp(-x^2)`, `x = 0.5 K - 0.6 - 0.35 log10 tau`. Each
    pair of the chain gets an instability time drawn from that law; the earliest to go collides (the two merge, keeping their angular
    momentum), the new neighbours get new times, and the chain is thinned until no pair fails inside `SCULPT_AGE_YR`. What is left is
    the observed pattern: spacings clustered near 12 to 20 mutual Hill radii, fewer and heavier planets than the oligarchs.
 4. **The gas.** A core of `GIANT_CORE_CRITICAL_MASS_EARTH` or more beyond the snow line may find gas (`planet_mass.gas_outcome`).
    A giant may then migrate in to a hot Jupiter orbit (`GIANT_MIGRATION_SHARE`, rising with [Fe/H] faster than giants do); the chain inside
-   its new orbit is gone, which is why hot Jupiters rarely have companions (Zhu and Dong 2021).
+   its new orbit is gone, which is why hot Jupiters rarely have companions [R4897].
 
 The number of planets is the length of the list this returns. It replaces the uniform count between 0 and a ceiling, the uniform ratio
 between 1.3 and 1.8 and the constant 0.4 survival share. Every constant is a row of the stand-in registry (section 6.36 of the gap
@@ -44,18 +44,18 @@ _kg_to_msun = units.converter("kg", "Msun")
 _EARTH_KG = constants.EARTH_MASS_TO_KG
 _G = constants.G
 _DAY_S = 86400.0
-_SOLAR_BLACKBODY_1AU_K = 278.3      # a blackbody at 1 AU from the Sun (Lodders 2003 Table 10)
+_SOLAR_BLACKBODY_1AU_K = 278.3      # a blackbody at 1 AU from the Sun ([R2726: Table 10])
 _YEAR_S = 365.25 * _DAY_S
 
 SURVIVAL_K_OFFSET = 0.6
 SURVIVAL_K_SLOPE = 0.5
 SURVIVAL_LOG_TIME_SLOPE = 0.35
-"""float: The three coefficients of Pu and Wu's survival law, `x = SLOPE K - OFFSET - LOG_TIME_SLOPE log10(tau)` (arXiv:1502.05449 eq. 11, READ).
+"""float: The three coefficients of Pu and Wu's survival law, `x = SLOPE K - OFFSET - LOG_TIME_SLOPE log10(tau)` ([R3621] eq. 11, READ).
 They fitted 7-planet systems of 3 to 9 Earth masses round a Sun-like star, so the law is used well outside its range here (registry row)."""
 
 SURVIVAL_K_MINIMUM = 1.2
 SURVIVAL_K_MINIMUM_SLOPE = 0.7
-"""float: Below `SURVIVAL_K_MINIMUM + SURVIVAL_K_MINIMUM_SLOPE log10(tau)` no system survives (arXiv:1502.05449 eq. 11)."""
+"""float: Below `SURVIVAL_K_MINIMUM + SURVIVAL_K_MINIMUM_SLOPE log10(tau)` no system survives ([R3621] eq. 11)."""
 
 MAX_LOG_TAU = 40.0
 """float: An instability time beyond this many decades of orbits is never (the draw is capped so the power cannot overflow)."""
@@ -85,7 +85,7 @@ formed beyond the snow line, and the shares `ejected`, `collided` and `bound` (s
 
 
 def mutual_hill_radius_au(a1_au, m1_kg, a2_au, m2_kg, star_mass_kg):
-    """The mutual Hill radius of two planets (Chambers et al. 1996), in AU."""
+    """The mutual Hill radius of two planets [R0721], in AU."""
     return 0.5 * (a1_au + a2_au) * ((m1_kg + m2_kg) / (3.0 * star_mass_kg)) ** (1.0 / 3.0)
 
 
@@ -127,8 +127,8 @@ def period_to_au(period_d, star_mass_kg):
 def inner_system_fraction(star_mass_kg):
     """
     The share of stars of this mass with a Kepler-like inner system (a planet of an Earth radius or more with a period under 400 days):
-    log-linear in the star's mass between `INNER_SYSTEM_FRACTION_MASSES` and `INNER_SYSTEM_FRACTION_SHARES`, held at the ends. Zhu et al. 2018
-    find 30 percent of Sun-like stars and Yang et al. 2020 about 75 percent of stars under 5000 K and 35 percent over 6500 K.
+    log-linear in the star's mass between `INNER_SYSTEM_FRACTION_MASSES` and `INNER_SYSTEM_FRACTION_SHARES`, held at the ends. [R4898]
+    find 30 percent of Sun-like stars and [R4812] about 75 percent of stars under 5000 K and 35 percent over 6500 K.
     """
     mass = _kg_to_msun(star_mass_kg)
     anchors = list(zip(tuning.INNER_SYSTEM_FRACTION_MASSES, tuning.INNER_SYSTEM_FRACTION_SHARES))
@@ -161,7 +161,7 @@ def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sig
     mass about the scale and its spacing from the last. The first planet is no closer than `floor_au`. `force` gives the star an inner system whatever the share (it then draws no
     uniform for it), and `extra_sigmas` raises the mean of the starting count by that many widths of its spread (the most a star can
     hold, `build`'s `maximum`). Neighbours are alike in mass (`INNER_NEIGHBOUR_SIGMA_DEX`, peas in a pod,
-    Weiss et al. 2018) and the outer one is on average a little heavier (`INNER_OUTWARD_MASS_DEX_PER_PLANET`).
+    [R4660]) and the outer one is on average a little heavier (`INNER_OUTWARD_MASS_DEX_PER_PLANET`).
     """
     source = stream or draw
     if not force and source.random() >= inner_system_fraction(star_mass_kg):
@@ -250,7 +250,7 @@ def sculpt(chain, star_mass_kg, age_yr, stream=None):
 
 def migration_probability(fe_h):
     """The chance a giant migrates in to a hot Jupiter orbit: `GIANT_MIGRATION_SHARE` at solar metallicity, rising with [Fe/H] by the extra
-    exponent hot Jupiters have over giants (Petigura et al. 2018 against Johnson et al. 2010), never above 1."""
+    exponent hot Jupiters have over giants ([R3499] against [R2172]), never above 1."""
     return min(1.0, tuning.GIANT_MIGRATION_SHARE * 10.0 ** (tuning.GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT * fe_h))
 
 
@@ -324,7 +324,7 @@ def sublimation_au(luminosity_w):
 
 def first_distance_au(star_mass_kg, stream=None, floor_au=0.0):
     """Where a chain that has to start from nothing begins: the inner edge of the disc, a period near `OLIGARCH_INNER_EDGE_PERIOD_DAYS`
-    (log-normal in dex by `OLIGARCH_INNER_EDGE_SIGMA_DEX`, Mulders et al. 2015), no closer than `floor_au`. One normal from the stream."""
+    (log-normal in dex by `OLIGARCH_INNER_EDGE_SIGMA_DEX`, [R3193, R3196]), no closer than `floor_au`. One normal from the stream."""
     source = stream or draw
     return max(period_to_au(tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS * 10.0 ** (tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX * source.gauss(0.0, 1.0)),
                             star_mass_kg), floor_au)
@@ -438,7 +438,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
 
 
 def _seed_radius_earth(seed):
-    """A planet's radius, Earth radii, for its Safronov number: Jupiter's for a runaway giant, a core under its envelope (Lopez and Fortney 2014) otherwise."""
+    """A planet's radius, Earth radii, for its Safronov number: Jupiter's for a runaway giant, a core under its envelope [R2741] otherwise."""
     if seed.runaway:
         return constants.JUPITER_RADIUS_KM / constants.EARTH_RADIUS_KM
     mass_earth = seed.mass_kg / _EARTH_KG

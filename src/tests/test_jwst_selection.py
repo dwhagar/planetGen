@@ -2,7 +2,7 @@
 
 """
 GEN.506: the JWST atmosphere target-selection model (`planetgen.physics.jwst_selection`): the fitted model and its refusals, the
-transmission and emission metrics of Kempton et al. 2018, the chance a planet has a published JWST spectrum, host magnitudes for a
+transmission and emission metrics of [R2315], the chance a planet has a published JWST spectrum, host magnitudes for a
 generated planet, the fit script recovering a planted selection, and the registration as the selection model the harness reads.
 """
 
@@ -92,7 +92,7 @@ def test_the_transmission_metric_follows_equation_1_with_the_scale_factor_of_the
 
 
 def test_the_emission_metric_follows_equation_4_and_scales_with_the_dayside_blackbody():
-    # GJ 1132 b, the benchmark of Kempton et al. 2018, has an ESM of 7.5 by construction (their section 3.2)
+    # GJ 1132 b, the benchmark of [R2315], has an ESM of 7.5 by construction (their section 3.2)
     gj1132b = {"radius_earth": 1.13, "teq_k": 529.0, "host_radius_solar": 0.207, "host_teff_k": 3270.0, "k_mag": 8.32}
     assert js.esm(gj1132b) == pytest.approx(7.5, rel=0.25)
     assert js.esm(dict(gj1132b, k_mag=gj1132b["k_mag"] + 5)) == pytest.approx(js.esm(gj1132b) / 10.0)

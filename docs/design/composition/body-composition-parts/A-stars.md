@@ -2,7 +2,7 @@
 
 Lane A (STARS) of the v9.0 body-composition research. Read-only research: nothing in the repo, `docs/` or `TODO.md` was touched. Scratch scripts and downloaded catalogues are outside the repo; every COMPUTED row states its inputs and method. Labels are the brief's: READ, 2ND-HAND, COMPUTED, SNIPPET, RECALLED, NOT REACHED.
 
-Abbreviations for sources (arXiv id in brackets): A21 Asplund, Amarsi, Grevesse 2021 [2105.01661]; A09 Asplund, Grevesse, Sauval, Scott 2009 [0909.0948]; L19 Lodders 2019 [1912.00844]; L09 Lodders, Palme, Gail 2009 [0901.1149]; BF16 Brewer and Fischer 2016 [1608.06286] with catalogue Brewer et al. 2016 [1606.07929]; B14 Bensby, Feltzing, Oey 2014 [1309.2631] (CDS table c3); N14 Nissen et al. 2014, A&A 568 A25 (CDS J/A+A/568/A25); BB16 Battistini and Bensby 2016 [1511.00966] (CDS J/A+A/586/A49); H15 Hayden et al. 2015 [1503.02110]; Hk14 Hinkel et al. 2014 [1405.6719]; T15 Thiabaud et al. 2015 [1507.01343].
+Abbreviations for sources (arXiv id in brackets): A21 [R0168] [2105.01661]; A09 [R0169] [0909.0948]; L19 [R2728] [1912.00844]; L09 [R2733] [0901.1149]; BF16 [R0535] [1608.06286] with catalogue [R0535] [1606.07929]; B14 [R0349] [1309.2631] (CDS table c3); N14 [R3294] A25 (CDS J/A+A/568/A25); BB16 [R0285] [1511.00966] (CDS J/A+A/586/A49); H15 [R1856] [1503.02110]; Hk14 [R1943] [1405.6719]; T15 [R4336] [1507.01343].
 
 ## 1 Scope and interfaces
 
@@ -18,7 +18,7 @@ Abbreviations for sources (arXiv id in brackets): A21 Asplund, Amarsi, Grevesse 
 - To the atmosphere lane (interface only, nothing designed here): a star's photospheric composition is the stored X, Y, Z plus the [X/Fe] vector; spectral-class chemistry of stellar atmospheres belongs to that lane.
 - To the compact-remnant design notes: remnant composition class (WD core type, NS crust sequence), radius laws, mass distributions.
 
-**Current code (checked in `/home/user/planetGen/src/planetgen`).** Only [Fe/H] is stored per star (`generation/star.py` `metallicity_fe_h`, drawn by `physics/metallicity.py:sample_fe_h`). Mean is population offset + disc gradient, normal scatter, clamp to `METALLICITY_RANGE_FE_H = (-3.5, 0.6)` (`tuning.py` lines 661-700): young (0.00, sigma 0.10), intermediate (0.00, 0.15), old (-0.20, 0.25), bulge (-0.05, 0.40, no gradient), nuclear cluster (+0.20, 0.40), nuclear disc (+0.20, 0.30), halo (-1.6 inside 25 kpc, -2.2 outside, sigma 0.5); gradient 0.06 dex/kpc zero at the Sun's distance, marked "recalled, to verify" in the source. [Fe/H] is used only for planet occurrence (`solids_factor` = 10^[Fe/H], giant factor 10^(2[Fe/H])) and disk surface density (`formation.py`). There is no X, Y, Z, no alpha enhancement, no element ratios, no age-metallicity link. White dwarfs already use the Kalirai 2008 IFMR (`tuning.py` 600-610, verified below); NS mass 1.1-2.2 Msun and radius 10-13 km, BH 5-20 Msun spin 0-0.998 are plain ranges (`tuning.py` 2023-2091).
+**Current code (checked in `/home/user/planetGen/src/planetgen`).** Only [Fe/H] is stored per star (`generation/star.py` `metallicity_fe_h`, drawn by `physics/metallicity.py:sample_fe_h`). Mean is population offset + disc gradient, normal scatter, clamp to `METALLICITY_RANGE_FE_H = (-3.5, 0.6)` (`tuning.py` lines 661-700): young (0.00, sigma 0.10), intermediate (0.00, 0.15), old (-0.20, 0.25), bulge (-0.05, 0.40, no gradient), nuclear cluster (+0.20, 0.40), nuclear disc (+0.20, 0.30), halo (-1.6 inside 25 kpc, -2.2 outside, sigma 0.5); gradient 0.06 dex/kpc zero at the Sun's distance, marked "recalled, to verify" in the source. [Fe/H] is used only for planet occurrence (`solids_factor` = 10^[Fe/H], giant factor 10^(2[Fe/H])) and disk surface density (`formation.py`). There is no X, Y, Z, no alpha enhancement, no element ratios, no age-metallicity link. White dwarfs already use the [R2230] IFMR (`tuning.py` 600-610, verified below); NS mass 1.1-2.2 Msun and radius 10-13 km, BH 5-20 Msun spin 0-0.998 are plain ranges (`tuning.py` 2023-2091).
 
 ## 2 Findings
 
@@ -35,10 +35,10 @@ Counting rule for section 7: one label per table row; a row that carries two lab
 | L09 present-day | Z/X, X, Y, Z, A(He) | 0.0191, 0.7390, 0.2469, 0.0141, 10.925 | mass fraction | L09 Table 7 (X from Basu and Antia helioseismology) | READ |
 | L09 proto-solar | Z0/X0, X0, Y0, Z0, A(He)0 | 0.0215, 0.7112, 0.2735, 0.0153, 10.986 | mass fraction | L09 Table 9; offsets A(He)0 = A(He)+0.061, A(X)0 = A(X)+0.053 dex | READ |
 | L19 present-day | X, Y, Z | 0.7389, 0.2463, 0.0148 | mass fraction | L19 Tables 7-8 log eps summed; reproduces L19 Table 7 | READ+COMPUTED |
-| GS98 (Grevesse and Sauval 1998) | X, Y, Z, Z/X | 0.7347, 0.2483, 0.0169, 0.0231 | mass fraction | L09 Table 7 (primary Space Sci. Rev. 85, 161 not opened) | 2ND-HAND |
+| GS98 [R1683] | X, Y, Z, Z/X | 0.7347, 0.2483, 0.0169, 0.0231 | mass fraction | L09 Table 7 (primary Space Sci. Rev. 85, 161 not opened) | 2ND-HAND |
 | GS98 proto-solar | X0, Y0, Z0 | 0.7086, 0.2750, 0.0163 | mass fraction | L09 Table 9 | 2ND-HAND |
-| Lodders 2003 | log eps table (Fe/Si mass 1.69 quoted in the GEN.425 sources check) | not opened: the IOP page returned a bot-check page and was not routed around; L09 is its documented successor and gives 1.692 for the same ratio | | Lodders 2003, ApJ 591, 1220 | NOT REACHED |
-| Solar initial helium | Y_ini | 0.278 +- 0.006 (standard models); 0.273 +- 0.006 (extra mixing) | mass fraction | Serenelli and Basu 2010 [1006.0244] abstract | READ |
+| [R2726] | log eps table (Fe/Si mass 1.69 quoted in the GEN.425 sources check) | not opened: the IOP page returned a bot-check page and was not routed around; L09 is its documented successor and gives 1.692 for the same ratio | | [R2726] | NOT REACHED |
+| Solar initial helium | Y_ini | 0.278 +- 0.006 (standard models); 0.273 +- 0.006 (extra mixing) | mass fraction | [R4025] [1006.0244] abstract | READ |
 | Solar surface helium (helioseismic) | Y_surf | 0.2485 +- 0.0035 | mass fraction | same abstract | READ |
 
 Which to use: A21 (log eps per element, 83 elements, Table 2) as the scale; L09 and L19 as the cross-check and as the CI-chondrite link. Photosphere values describe the Sun now; the birth composition of a star is the "proto" row.
@@ -96,7 +96,7 @@ The spread among sets for the Sun itself is 1.69-1.94 in Fe/Si (mass), 0.89-1.07
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Primordial Y_P (Planck 2018, PArthENoPE) | 0.24672 (+0.00011 / -0.00012 from omega_b; +-0.00061 incl. theory, 95%) | mass fraction | Planck 2018 VI [1807.06209] eq. 72a | READ |
+| Primordial Y_P ([R3544], PArthENoPE) | 0.24672 (+0.00011 / -0.00012 from omega_b; +-0.00061 incl. theory, 95%) | mass fraction | [R3544] VI [1807.06209] eq. 72a | READ |
 | Primordial Y_P (PRIMAT) | 0.24714 (+-0.00049, 95%) | mass fraction | same, eq. 72b | READ |
 | Delta Y / Delta Z, solar calibration, A21 proto, Y_P = 0.24672 | (0.2725 - 0.24672) / 0.0154 = 1.68 | dimensionless | A21 proto values above + Planck | COMPUTED |
 | Same, L09 proto (0.2735, 0.0153) | 1.75 | dimensionless | L09 Table 9 + Planck | COMPUTED |
@@ -149,10 +149,10 @@ Reading: the project's rule "solids scale as 10^[Fe/H]" underestimates the metal
 | Fraction of stars kinematically thick (TD/D>1) by age 0-2, 2-4, 4-6, 6-8, 8-10, 10-12, 12-15 Gyr | 0.08, 0.11, 0.17, 0.35, 0.33, 0.54, 0.68 | fraction | B14; sample over-represents the thick disk, shape only | COMPUTED |
 | Chemically high-alpha fraction (mean of [Mg,Si,Ca,Ti/Fe] > 0.1) vs [Fe/H] bins -1..-0.7, -0.7..-0.5, -0.5..-0.35, -0.35..-0.2, -0.2..-0.1, -0.1..0, 0..0.1, 0.1..0.2 | 1.00, 0.84, 0.66, 0.41, 0.18, 0.05, 0.01, 0.00 | fraction | B14 | COMPUTED |
 | Logistic fit to the above: P(high-alpha) = 1 / (1 + exp(([Fe/H] + 0.350) / 0.132)) | f0 = -0.350, w = 0.132 | dex | B14 fit | COMPUTED |
-| Bulge [Fe/H] distribution (90 microlensed dwarfs and subgiants) | peaks at -1.09, -0.63, -0.20, +0.12, +0.41 | dex | Bensby et al. 2017 [1702.02971] abstract | READ |
+| Bulge [Fe/H] distribution (90 microlensed dwarfs and subgiants) | peaks at -1.09, -0.63, -0.20, +0.12, +0.41 | dex | [R0346] [1702.02971] abstract | READ |
 | Bulge ages | at [Fe/H] > 0 more than 35% younger than 8 Gyr; at [Fe/H] <~ -0.5 most stars 10 Gyr or older; star-formation episodes 3, 6, 8, 11 Gyr ago | | same | READ |
 | Bulge alpha knee | tentatively at slightly higher [Fe/H] than in the local thick disk | | same | READ |
-| Very metal-poor stars carbon-rich ([C/Fe] > +0.7) | 20-30% for -4 < [Fe/H] < -2; most stars below -4 | fraction | Frebel and Norris 2015 [1501.06921] sect. on C-rich stars | READ |
+| Very metal-poor stars carbon-rich ([C/Fe] > +0.7) | 20-30% for -4 < [Fe/H] < -2; most stars below -4 | fraction | [R1448] [1501.06921] sect. on C-rich stars | READ |
 | CEMP stars below [Fe/H] -3 | almost all CEMP-no | | same | READ |
 
 ### 2.7 [X/Fe] versus [Fe/H] by population (drawable models)
@@ -196,8 +196,8 @@ BF16 values are number-ratio abundances [X/H]; I rebuilt log eps with A21 as ref
 | Observed BF16 Fe/Si | 1.81 [1.17, 2.39] | BF16 catalogue, A21 scale | COMPUTED |
 | Observed BF16 Mg/Si | 0.93 [0.79, 1.12] | same | COMPUTED |
 | Observed BF16 C/O | 0.385 [0.24, 0.47] | same | COMPUTED |
-| Thiabaud 2015 envelope (mass ratios) | Fe/Si 1.34-2.81, Mg/Si 0.66-1.85, C/O 0.12-0.75 | T15 [1507.01343] as quoted in the GEN.425 sources check | 2ND-HAND |
-| Hinkel 2014 catalogue-to-catalog spread of the same star | mean 0.14 dex, median 0.11 dex over all elements | Hk14 sect. 3.2 | READ |
+| [R4336] envelope (mass ratios) | Fe/Si 1.34-2.81, Mg/Si 0.66-1.85, C/O 0.12-0.75 | T15 [1507.01343] as quoted in the GEN.425 sources check | 2ND-HAND |
+| [R1943] catalogue-to-catalog spread of the same star | mean 0.14 dex, median 0.11 dex over all elements | Hk14 sect. 3.2 | READ |
 | Model draw, solar-neighbourhood-like [Fe/H] ~ N(-0.10, 0.22), high-alpha share 0.21, Fe/Si | 1.63 [1.09, 2.02] | model of 2.7 with the BF16 residual correlations of 2.7, n = 2e5 | COMPUTED |
 | Same, Mg/Si | 1.02 [0.80, 1.36] | same | COMPUTED |
 | Same, C/O | 0.40 [0.26, 0.54] | same | COMPUTED |
@@ -215,11 +215,11 @@ Reading. (0) Against BF16 the thin-branch model medians are 8% low in Fe/Si, 5% 
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Th follows Eu: [Th/Eu] at ZAMS vs age | +0.014 mean, sd 0.045; slope +0.0042 +-0.0016 dex/Gyr | dex | Botelho et al. 2019 [1810.10413] Tab. 4 and text | READ |
+| Th follows Eu: [Th/Eu] at ZAMS vs age | +0.014 mean, sd 0.045; slope +0.0042 +-0.0016 dex/Gyr | dex | [R0479] [1810.10413] Tab. 4 and text | READ |
 | [Th/Fe] at ZAMS vs age | +0.086 - 0.0009 t (+-0.0015); sd 0.047 | dex | same Tab. 4 | READ |
 | [Th/H] at ZAMS vs age | +0.138 - 0.0117 t; mean +0.080, sd 0.058, range -0.117 to +0.257 | dex | same | READ |
 | Th decay correction used | half-life 14.05 Gyr, t_sun = 4.56 Gyr | | same | READ |
-| Th abundance spread in solar twins and analogues | 59% to 251% of solar (log eps Th) | | Unterborn et al. 2015 [1505.00280] abstract | READ |
+| Th abundance spread in solar twins and analogues | 59% to 251% of solar (log eps Th) | | [R4469] [1505.00280] abstract | READ |
 | Photospheric Th, U in the Sun | Th 0.03, U -0.54 (log eps) | | A21 (meteoritic for U) | READ |
 | Present atomic U/Th, Sun | 0.269 | | A21 eps | COMPUTED |
 | Birth atomic U/Th, Sun (4.567 Gyr back; 238U 4.468 Gyr, 235U 0.7038 Gyr, 232Th 14.05 Gyr; 235U fraction 0.7204%) | 0.572 (log -0.242) | | A21 eps with decay factors 1.253 (Th), 2.031 (238U), 89.8 (235U) | COMPUTED |
@@ -233,91 +233,91 @@ Reading. (0) Against BF16 the thin-branch model medians are 8% low in Fe/Si, 5% 
 
 | Class / phase | Fact | Value | Source | Label |
 |---|---|---|---|---|
-| Main sequence, interior | Fully convective below | 0.35 Msun (minimum mass for a radiative core, all [M/H] -2 to 0) | Chabrier and Baraffe 1997 [astro-ph/9704118] | READ |
+| Main sequence, interior | Fully convective below | 0.35 Msun (minimum mass for a radiative core, all [M/H] -2 to 0) | [R0706] [astro-ph/9704118] | READ |
 | Main sequence, mixed star | Interior is homogeneous in fully convective stars; surface = birth composition | | same | READ |
 | MS, Sun as a model of the process | Central H fraction X_c: 0.708 (ZAMS), 0.340 (4.57 Gyr), 0.145 (6.5 Gyr), 0.008 (8 Gyr) | mass fraction | [astro-ph/0010346] sect. 3.4 | READ |
 | MS, fit to the three post-ZAMS points | X_c / X_0 = 1 - (t / t_x)^1.15 with t_x = 8.0 Gyr for 1 Msun | | three points above | COMPUTED |
 | MS, convective core above about 1.2 Msun; CNO overtakes pp near 1.3 Msun | mass thresholds | | not checked | RECALLED |
-| Red giant branch, first dredge-up (Z = 0.02, initial Y = 0.28) | Y 0.2800 -> 0.3001 (0.85 Msun), 0.3025 (1.0), 0.2957 (1.5), 0.2888 (2.0), 0.2915 (2.5) | mass fraction | Boothroyd and Sackmann 1999 [astro-ph/9512121] Table 2 | READ |
+| Red giant branch, first dredge-up (Z = 0.02, initial Y = 0.28) | Y 0.2800 -> 0.3001 (0.85 Msun), 0.3025 (1.0), 0.2957 (1.5), 0.2888 (2.0), 0.2915 (2.5) | mass fraction | [R0467] [astro-ph/9512121] Table 2 | READ |
 | Same, C/Z and N/Z | C/Z 0.1733 -> 0.1530 (1.0 Msun), 0.1273 (1.5), 0.1167 (2.0), 0.1143 (2.5); N/Z 0.0531 -> 0.0771, 0.1073, 0.1197, 0.1324 | | same | READ |
 | Same, 12C/13C | 90 -> 29.8 (1.0), 23.5 (1.5), 21.7 (2.0), 21.1 (2.5); O/Z unchanged to 2 Msun | number ratio | same | READ |
 | Same, Z = 0.001 (Y 0.2400) | Y -> 0.2598 (1.0 Msun), 0.2606 (1.5), 0.2545 (2.0); C/Z 0.0765 -> 0.0654, 0.0518, 0.0449 | | same, Table 4 | READ |
 | Extra mixing on the RGB (cool bottom processing) | lowers 12C/13C to 11-15 for 1-2 Msun at solar Z; strength rises roughly as M^-2 and Z^-1 | | same, abstract and Table 2 | READ |
 | Horizontal branch, red clump | core He burning, core C/O grows from the 3-alpha reaction; surface Y after RGB; colour set by [Fe/H] and mass loss (already in `stellar_evolution.py`) | | project tables checked in `stellar-evolution-tables-check-2026-10-17.md`; core C/O values | RECALLED |
-| AGB, carbon stars | Third dredge-up makes C/O > 1 above a minimum initial mass: 1.5-1.6 Msun (solar Z), 1.5 Msun at Z=0.02 and 1.4 Msun at Z=0.01 (Cristallo 2011) | Msun | Karakas and Lugaro 2016 [1604.02178] sect. 2 | 2ND-HAND |
+| AGB, carbon stars | Third dredge-up makes C/O > 1 above a minimum initial mass: 1.5-1.6 Msun (solar Z), 1.5 Msun at Z=0.02 and 1.4 Msun at Z=0.01 [R0925] | Msun | [R2244] [1604.02178] sect. 2 | 2ND-HAND |
 | AGB, hot bottom burning | Base of envelope hot enough for proton capture in intermediate-mass AGB stars (grid 1-7.5/8 Msun, Z = 0.007, 0.014, 0.03); raises He and N; produces Li; threshold mass not extracted | | same, abstract | READ |
 | AGB, s-process | Slow neutron capture enriches Sr-Ba-Pb peaks in the envelope, yields tabulated C to Bi for 1-8 Msun | | same; yield tables are not extracted here | READ |
-| Wolf-Rayet WN (H-free early type) | X_H ~ 0, X_N ~ 1% by mass, X_C ~ 0.05% | mass fraction | Crowther 2007 [astro-ph/0610356] sect. 3.5 | READ |
+| Wolf-Rayet WN (H-free early type) | X_H ~ 0, X_N ~ 1% by mass, X_C ~ 0.05% | mass fraction | [R0948] [astro-ph/0610356] sect. 3.5 | READ |
 | WN late type | X_H ~ 15 +- 10% | | same | READ |
 | WN/C transition | X_C ~ 5%, X_N ~ 1% | | same | READ |
 | WC | C/He = 0.04-0.7 by number (10-60% C by mass); refined 0.1-0.5 (20-55%) | | same | READ |
 | WO | rare, oxygen-rich, the most advanced He-burning stage; strong O v-vi lines; mass fractions not extracted, so the code's carbon 30-55% and oxygen 10-40% are a stand-in (BC24) | | same, sect. 2.1 | READ |
 | WR progenitor and WR masses | typical masses 10-25 Msun, up to 80 for H-rich WN; progenitors above ~25 (H-free WN), ~40 (WC), ~75 Msun (H-rich WN) | | same abstract | READ |
-| Population III | initial mass 10-1000 Msun in a sample of 100 first stars | Msun | Hirano et al. 2014 [1308.4456] abstract | READ |
+| Population III | initial mass 10-1000 Msun in a sample of 100 first stars | Msun | [R1949] [1308.4456] abstract | READ |
 | Pop III composition | pure BBN: X = 1 - Y_P = 0.7533, Y = 0.2467, Z = 0 | | Planck eq. 72a | COMPUTED |
-| Extremely metal-poor stars | C-rich fraction 20-30% for [Fe/H] -4 to -2 | | Frebel and Norris 2015 | READ |
+| Extremely metal-poor stars | C-rich fraction 20-30% for [Fe/H] -4 to -2 | | [R1448] | READ |
 | Core He fraction vs age | Y_c = 1 - X_c - Z_c; no table beyond the Sun | | derived from X_c above | COMPUTED |
 
 ### 2.11 White dwarfs
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| IFMR currently in the project | M_f = (0.109 +- 0.007) M_i + 0.394 +- 0.025 | Msun | Kalirai et al. 2008 [0706.3894] line 895; matches `tuning.py` | READ |
-| IFMR, PARSEC-based, piecewise | M_f = 0.0873 M_i + 0.476 (0.87-2.80); 0.181 M_i + 0.210 (2.80-3.65); 0.0835 M_i + 0.565 (3.65-8.20) | Msun | Cummings et al. 2018 [1809.01673] eqs. 1-3 | READ |
+| IFMR currently in the project | M_f = (0.109 +- 0.007) M_i + 0.394 +- 0.025 | Msun | [R2230] [0706.3894] line 895; matches `tuning.py` | READ |
+| IFMR, PARSEC-based, piecewise | M_f = 0.0873 M_i + 0.476 (0.87-2.80); 0.181 M_i + 0.210 (2.80-3.65); 0.0835 M_i + 0.565 (3.65-8.20) | Msun | [R0961] [1809.01673] eqs. 1-3 | READ |
 | IFMR, MIST-based, piecewise | 0.080 M_i + 0.489 (0.83-2.85); 0.187 M_i + 0.184 (2.85-3.60); 0.107 M_i + 0.471 (3.60-7.20) | Msun | same, eqs. 4-6 | READ |
 | Difference between Kalirai and Cummings PARSEC at M_i = 1, 2, 3, 4, 6, 8 | M_f 0.503/0.563, 0.612/0.651, 0.721/0.753, 0.830/0.899, 1.048/1.066, 1.266/1.233 | Msun | both relations | COMPUTED |
-| DA mass distribution | extremely narrow peak at 0.59 Msun, shoulder at 0.7-0.9, near absence of M > 1 among cool DAs | Msun | Kilic et al. 2020 [2006.00323] abstract | READ |
-| Spectral types | about 80% of white dwarfs are DA | | Xu, Rogers, Blouin 2024 [2404.15425] sect. 2 | READ |
+| DA mass distribution | extremely narrow peak at 0.59 Msun, shoulder at 0.7-0.9, near absence of M > 1 among cool DAs | Msun | [R2348] [2006.00323] abstract | READ |
+| Spectral types | about 80% of white dwarfs are DA | | Xu, [R0426] [2404.15425] sect. 2 | READ |
 | Polluted fraction | 25-50% of white dwarfs show heavy elements | | same | READ |
-| Core types | He core for very low mass; C/O core for typical; O/Ne core above about 1.05 Msun | Msun | Althaus et al. 2010 [1007.2659] text on core composition | READ |
-| Ultra-massive WD | O/Ne cores from the super-AGB phase; crystallisation affects the majority below 40 000 K | | Camisassa et al. 2019 [1807.03894] abstract | READ |
-| C/O split in the core | lower oxygen abundance is expected in more massive progenitors (Althaus); the numeric C:O split by mass was not extracted | | Althaus 2010 text | RECALLED |
-| Mass-radius, zero temperature, mu_e = 2 | M = 0.223, 0.510, 0.897, 1.096, 1.273, 1.395 Msun at central x = 0.5, 1, 2, 3, 5, 10; R = 14049, 9707, 6477, 4998, 3513, 2071 km | | relativistic degenerate electron gas (Chandrasekhar EOS), CODATA 2018 constants, hydrostatic equilibrium integrated with SciPy; no Coulomb or temperature corrections | COMPUTED |
+| Core types | He core for very low mass; C/O core for typical; O/Ne core above about 1.05 Msun | Msun | [R0085] [1007.2659] text on core composition | READ |
+| Ultra-massive WD | O/Ne cores from the super-AGB phase; crystallisation affects the majority below 40 000 K | | [R0627] [1807.03894] abstract | READ |
+| C/O split in the core | lower oxygen abundance is expected in more massive progenitors (Althaus); the numeric C:O split by mass was not extracted | | [R0085] text | RECALLED |
+| Mass-radius, zero temperature, mu_e = 2 | M = 0.223, 0.510, 0.897, 1.096, 1.273, 1.395 Msun at central x = 0.5, 1, 2, 3, 5, 10; R = 14049, 9707, 6477, 4998, 3513, 2071 km | | relativistic degenerate electron gas (Chandrasekhar EOS), [R4361] constants, hydrostatic equilibrium integrated with SciPy; no Coulomb or temperature corrections | COMPUTED |
 | Same, interpolated | R(0.5) = 0.01411, R(0.6) = 0.01271, R(1.0) = 0.00821, R(1.2) = 0.00599, R(1.3) = 0.00466 Rsun; limiting mass 5.83/mu_e^2 = 1.457 Msun | Rsun | same | COMPUTED |
-| Sirius B test | dynamical mass 1.018 +- 0.011 Msun (Bond 2017), radius 0.803 +- 0.011 x 10^-2 Rsun, gravitational redshift mass 1.017 +- 0.025 | | Joyce et al. 2018 [1809.01240] | READ |
+| Sirius B test | dynamical mass 1.018 +- 0.011 Msun [R0454], radius 0.803 +- 0.011 x 10^-2 Rsun, gravitational redshift mass 1.017 +- 0.025 | | [R2208] [1809.01240] | READ |
 | Model for Sirius B | R(1.018) = 0.00802 Rsun (within 0.1% of the measurement; real stars have thin H/He layers and Coulomb corrections, so a 3-5% tolerance is the honest test limit) | Rsun | my integration | COMPUTED |
-| Polluted WD geochemistry, six WDs | accreted rocks have oxygen fugacities like Earth, Mars and typical asteroids | | Doyle et al. 2019 [1910.12989] abstract | READ |
-| Polluted WD geochemistry, 16 WDs with Al, Ca, Si, Mg, Fe, O all detected | most oxidising; about 25% consistent with more reduced parent bodies | | Doyle et al. 2020 as reported in Xu et al. 2024 sect. 4 | 2ND-HAND |
-| Mass of heavy elements in a polluted WD convection zone (bulk-Earth composition) | 1e20 to 1e25 g; parent-body masses 1e23 to 7e25 g | g | Xu et al. 2024 (citing Harrison 2021) | 2ND-HAND |
+| Polluted WD geochemistry, six WDs | accreted rocks have oxygen fugacities like Earth, Mars and typical asteroids | | [R1154] [1910.12989] abstract | READ |
+| Polluted WD geochemistry, 16 WDs with Al, Ca, Si, Mg, Fe, O all detected | most oxidising; about 25% consistent with more reduced parent bodies | | [R1152] as reported in Xu et al. 2024 sect. 4 | 2ND-HAND |
+| Mass of heavy elements in a polluted WD convection zone (bulk-Earth composition) | 1e20 to 1e25 g; parent-body masses 1e23 to 7e25 g | g | Xu et al. 2024 (citing [R1832]) | 2ND-HAND |
 
 ### 2.12 Neutron stars
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Precisely measured masses | about 35 stars from 1.17 to 2.0 Msun; companion of J0453+1559 1.174 +- 0.004 | Msun | Ozel and Freire 2016 [1603.02698] sect. 2 | READ |
+| Precisely measured masses | about 35 stars from 1.17 to 2.0 Msun; companion of J0453+1559 1.174 +- 0.004 | Msun | [R3396] [1603.02698] sect. 2 | READ |
 | Mass populations | double NS 1.33 +- 0.09; recycled 1.54 +- 0.23; slow pulsars 1.49 +- 0.19 (Gaussians); two-peak recycled fit 1.388 +- 0.058 and 1.814 +- 0.152 | Msun | same | READ |
-| Heaviest | 2.35 +- 0.17 (J0952-0607); 2.14 +0.10 -0.09 (J0740+6620 first); 2.08 +- 0.07 (J0740 refined); 2.01 +- 0.04 (J0348+0432) | Msun | Romani 2022 [2207.05124]; Cromartie 2020 [1904.06759]; Fonseca 2021 [2104.00880]; Antoniadis 2013 [1304.6875] (as quoted in Cromartie) | READ |
-| Maximum nonrotating mass | 2.01 <= M_TOV <= 2.16 +0.17 -0.15 (GW170817 argument); causality bound 4.09 Msun | Msun | Rezzolla et al. 2018 [1711.00314]; Lattimer and Prakash 2016 [1512.07820] eq. 10 | READ |
-| Radii | R(1.4) = 12.45 +- 0.65 km and R(2.08) = 12.35 +- 0.75 km (full range of the 1-sigma intervals over three EOS frameworks); J0740+6620 R_eq = 13.7 +2.6 -1.5 km (68%) | km | Miller et al. 2021 [2105.06979] abstract | READ |
-| J0030+0451 NICER | M = 1.34 +0.15 -0.16 Msun, R_eq = 12.71 +1.14 -1.19 km | | Riley et al. 2019 [1912.05702] abstract | READ |
-| Minimum mass | no sharp minimum; forecast: with 50 merging binary NS the lower mass cutoff can be measured to about 0.2 Msun and the upper to 0.1 Msun | Msun | Chatziioannou and Farr 2020 [2005.00482] abstract | READ |
-| Outer crust ground-state sequence (nucleus, density at which it stops, g/cm3) | 56Fe 8.02e6; 62Ni 2.71e8; 64Ni 1.33e9; 66Ni 1.50e9; 86Kr 3.09e9; 84Se 1.06e10; 82Ge 2.79e10; 80Zn 6.07e10; 82Zn 8.46e10; 128Pd 9.67e10; 126Ru 1.47e11; 124Mo 2.11e11; 122Zr 2.89e11; 120Sr 3.97e11; 118Kr 4.27e11 | | Chamel and Haensel 2008 [0812.3955] Table 2 (Ruster et al. data + BSk8) | READ |
+| Heaviest | 2.35 +- 0.17 (J0952-0607); 2.14 +0.10 -0.09 (J0740+6620 first); 2.08 +- 0.07 (J0740 refined); 2.01 +- 0.04 (J0348+0432) | Msun | [R3804] [2207.05124]; [R0931] [1904.06759]; [R1404] [2104.00880]; [R0127] [1304.6875] (as quoted in Cromartie) | READ |
+| Maximum nonrotating mass | 2.01 <= M_TOV <= 2.16 +0.17 -0.15 (GW170817 argument); causality bound 4.09 Msun | Msun | [R3746] [1711.00314]; [R2574] [1512.07820] eq. 10 | READ |
+| Radii | R(1.4) = 12.45 +- 0.65 km and R(2.08) = 12.35 +- 0.75 km (full range of the 1-sigma intervals over three EOS frameworks); J0740+6620 R_eq = 13.7 +2.6 -1.5 km (68%) | km | [R3075] [2105.06979] abstract | READ |
+| J0030+0451 NICER | M = 1.34 +0.15 -0.16 Msun, R_eq = 12.71 +1.14 -1.19 km | | [R3766] [1912.05702] abstract | READ |
+| Minimum mass | no sharp minimum; forecast: with 50 merging binary NS the lower mass cutoff can be measured to about 0.2 Msun and the upper to 0.1 Msun | Msun | [R0750] [2005.00482] abstract | READ |
+| Outer crust ground-state sequence (nucleus, density at which it stops, g/cm3) | 56Fe 8.02e6; 62Ni 2.71e8; 64Ni 1.33e9; 66Ni 1.50e9; 86Kr 3.09e9; 84Se 1.06e10; 82Ge 2.79e10; 80Zn 6.07e10; 82Zn 8.46e10; 128Pd 9.67e10; 126Ru 1.47e11; 124Mo 2.11e11; 122Zr 2.89e11; 120Sr 3.97e11; 118Kr 4.27e11 | | [R0722] [0812.3955] Table 2 (Ruster et al. data + BSk8) | READ |
 | Neutron drip | about 4e11 g/cm3 (SLy), 6e11 (FPS) | | same | READ |
 | Inner crust clusters (Negele and Vautherin) | Z = 40 (Zr) at 4.67e11-2.66e12; Z = 50 (Sn) 6.24e12-3.41e13; Zr 7.94e13; Ge (Z = 32) 1.32e14 g/cm3, cluster counts N 140 to 1460 | | same Table 3 | READ |
-| Nuclear saturation density | 2.7-2.8e14 g/cm3, 0.16 fm^-3 | | Miller et al. 2021 [2105.06979] intro | READ |
+| Nuclear saturation density | 2.7-2.8e14 g/cm3, 0.16 fm^-3 | | [R3075] [2105.06979] intro | READ |
 | Crust thickness about 1 km, mass about 0.01 Msun | | | typical values, not checked | RECALLED |
-| Core | n, p, e, mu in beta equilibrium; hyperons or quarks unconstrained; EOS family fixed by M-R | | Lattimer and Prakash 2016 | 2ND-HAND |
+| Core | n, p, e, mu in beta equilibrium; hyperons or quarks unconstrained; EOS family fixed by M-R | | [R2574] | 2ND-HAND |
 
 ### 2.13 Black holes (no composition)
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Stationary black holes are described by mass, angular momentum and charge only (Kerr-Newman family) | no hair | | Chrusciel, Costa, Heusler 2012 [1205.6112] | READ |
-| Schwarzschild radius r_s = 2GM/c^2 | 8.86 (3 Msun), 14.77 (5), 29.53 (10), 59.07 (20) | km | CODATA 2018 constants | COMPUTED |
+| Stationary black holes are described by mass, angular momentum and charge only (Kerr-Newman family) | no hair | | [R0790] [1205.6112] | READ |
+| Schwarzschild radius r_s = 2GM/c^2 | 8.86 (3 Msun), 14.77 (5), 29.53 (10), 59.07 (20) | km | [R4361] constants | COMPUTED |
 | Hawking temperature T = hbar c^3 / (8 pi G M k) | 2.06e-8 (3 Msun), 1.23e-8 (5), 6.17e-9 (10), 3.09e-9 (20) | K | same | COMPUTED |
 | Kerr horizon r_+ = M (1 + sqrt(1 - a^2)) and prograde ISCO | a* = 0, 0.5, 0.9, 0.998: r_+ = 2.000, 1.866, 1.436, 1.063; ISCO = 6.000, 4.233, 2.321, 1.237 (GM/c^2); radiative efficiency 0.057, 0.082, 0.156, 0.321 | | Bardeen formulae | COMPUTED |
-| Spin cap 0.998 | in `BLACK_HOLE_SPIN_RANGE` | | Thorne 1974 | RECALLED |
+| Spin cap 0.998 | in `BLACK_HOLE_SPIN_RANGE` | | [R4349] | RECALLED |
 | Astrophysical charge | effectively zero (store 0) | | standard argument | RECALLED |
 
 ### 2.14 Brown dwarfs and the lowest-mass stars
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Deuterium burning mass | about 13 MJ; 50% of D burns at 13.0 +- 0.8 MJ; full range 11.0 MJ (3x solar Z, 10% burned) to 16.3 MJ (Z = 0, 90% burned) | MJ | Spiegel, Burrows, Milsom 2011 [1008.5150] abstract | READ |
+| Deuterium burning mass | about 13 MJ; 50% of D burns at 13.0 +- 0.8 MJ; full range 11.0 MJ (3x solar Z, 10% burned) to 16.3 MJ (Z = 0, 90% burned) | MJ | [R4170] [1008.5150] abstract | READ |
 | For He 0.25-0.30, D/H 1-2e-5, 0.5-2 solar Z | narrower range, 50% criterion | | same | READ |
-| Lithium burning mass | about 0.06 Msun (63 MJ) | Msun | Burrows et al. 2001 [astro-ph/0103383] sect. IV | READ |
-| Hydrogen burning limit, solar metallicity | edge mass near 0.075 Msun; BHAC15 models start at 0.07 Msun as the H-burning limit | Msun | Burrows 2001; Baraffe et al. 2015 [1503.04107] | READ |
-| Fully convective | all brown dwarfs and stars below 0.35 Msun | | Chabrier and Baraffe 1997 | READ |
+| Lithium burning mass | about 0.06 Msun (63 MJ) | Msun | [R0606] [astro-ph/0103383] sect. IV | READ |
+| Hydrogen burning limit, solar metallicity | edge mass near 0.075 Msun; BHAC15 models start at 0.07 Msun as the H-burning limit | Msun | [R0254, R0606] [1503.04107] | READ |
+| Fully convective | all brown dwarfs and stars below 0.35 Msun | | [R0706] | READ |
 | Radius (Rsun) at log t = 7 (10 Myr) | 0.157 (0.010 Msun), 0.245 (0.020), 0.284 (0.030), 0.292 (0.040), 0.315 (0.050), 0.337 (0.060), 0.359 (0.070), 0.383 (0.080), 0.416 (0.100) | Rsun | BHAC15 track file, interpolated | COMPUTED |
 | Radius (Rsun) at 100 Myr | 0.125 (0.020), 0.124 (0.030), 0.130 (0.040), 0.139 (0.050), 0.148 (0.060), 0.158 (0.070), 0.167 (0.080), 0.186 (0.100) | Rsun | same | COMPUTED |
 | Radius (Rsun) at 1 Gyr | 0.0960 (0.050), 0.0940 (0.060), 0.0944 (0.070), 0.0971 (0.075), 0.102 (0.080), 0.113 (0.090), 0.124 (0.100), 0.174 (0.150), 0.291 (0.300), 0.460 (0.500) | Rsun | same | COMPUTED |
@@ -365,7 +365,7 @@ Reading. (0) Against BF16 the thin-branch model medians are 8% low in Fe/Si, 5% 
 - **Main sequence.** Surface = birth composition (X, Y, Z). Interior: fully convective and homogeneous below 0.35 Msun; above that the core burns H. Central hydrogen: `X_c = X (1 - (t / t_x)^1.15)` with `t_x` the hydrogen-exhaustion time (use the project's `main_sequence_lifetime_gy` scaled so that 1 Msun gives 8 Gyr, or keep 10 Gyr and re-fit the exponent; this is a decision item because the project's 10 Gyr and the Sun's 8 Gyr differ by 25%). Core helium `Y_c = 1 - X_c - Z`. Valid for roughly solar-mass stars; no mass-dependence is read.
 - **Red giant branch.** After first dredge-up the surface Y rises by +0.01 to +0.023 (0.85 to 1.5 Msun), C/Z falls by 12-34%, N/Z rises by 45-145%, 12C/13C falls from 90 to 21-30 (table 2.10). Parametrise by interpolating the table in mass and scaling with Z (the Z = 0.001 table gives the low-Z behaviour). Store nothing: apply as an additive shift to Y, C, N when the evolved-star class is III.
 - **Horizontal branch / red clump.** Surface equals post-RGB composition; core is He-burning; values of core C/O are not read (RECALLED, flag).
-- **AGB and carbon stars.** If M exceeds the carbon-star minimum (1.4-1.6 Msun at solar Z, lower at low Z) and the star is on the thermally pulsing AGB, set C/O > 1 (carbon star). Hot bottom burning in intermediate-mass AGB stars raises He and N and produces Li. Amounts from Karakas and Lugaro 2016 tables are not extracted here (work item).
+- **AGB and carbon stars.** If M exceeds the carbon-star minimum (1.4-1.6 Msun at solar Z, lower at low Z) and the star is on the thermally pulsing AGB, set C/O > 1 (carbon star). Hot bottom burning in intermediate-mass AGB stars raises He and N and produces Li. Amounts from [R2244] tables are not extracted here (work item).
 - **Wolf-Rayet.** Use section 2.10 mass fractions: early WN H-free, X_N ~ 1%; late WN X_H ~ 15%; WN/C X_C ~ 5%; WC C 10-60% by mass; draw within the quoted ranges.
 - **Population III.** X = 1 - Y_P, Y = Y_P, Z = 0 exactly; mass 10-1000 Msun; no planets.
 - **White dwarfs.** Final mass from the IFMR (keep Kalirai, which the project already uses and which is READ; Cummings PARSEC is 0.03 to 0.07 Msun higher below 4 Msun, see 2.11). Core type from mass: He for very low mass remnants (threshold not read; about 0.45 Msun is RECALLED), CO for the typical case, ONe above about 1.05 Msun. Atmosphere type DA with probability 0.8, else DB/DC/DZ (atmosphere detail is another lane). Radius: interpolate the 11-point zero-temperature Chandrasekhar table in 2.11 in log mass (or fit it once and store the fit); it reproduces Sirius B to 0.1%. Pollution: 25-50% of old WDs carry accreted rock; the planet lanes supply the accreted composition.
@@ -405,36 +405,36 @@ Solar System or measured bodies used only to test the law, never as defaults.
 | Sun's central H fraction | 0.340 at 4.57 Gyr, 1 Msun | 0.03 | no source | READ |
 | First dredge-up | 1 Msun, Z = 0.02: Y +0.0225, C/Z x0.88, N/Z x1.45, 12C/13C 29.8 | 10% | Boothroyd and Sackmann | READ |
 | Carbon star minimum mass | 1.4-1.6 Msun at Z = 0.01-0.02 | 0.2 Msun | Karakas and Lugaro | 2ND-HAND |
-| Sirius B | M = 1.018 Msun gives R = 0.0080 Rsun | 5% | Joyce 2018 | READ |
-| WD mass peak | 0.59 Msun for cool DA | 0.05 | Kilic 2020 | READ |
-| Heaviest NS | 2.35 +- 0.17 Msun must be reachable by the draw tail | | Romani 2022 | READ |
-| J0030 radius | 12.7 km at 1.34 Msun lies inside the model band | 1 km | Riley 2019 | READ |
+| Sirius B | M = 1.018 Msun gives R = 0.0080 Rsun | 5% | [R2208] | READ |
+| WD mass peak | 0.59 Msun for cool DA | 0.05 | [R2348] | READ |
+| Heaviest NS | 2.35 +- 0.17 Msun must be reachable by the draw tail | | [R3804] | READ |
+| J0030 radius | 12.7 km at 1.34 Msun lies inside the model band | 1 km | [R3766] | READ |
 | BH r_s | 29.5 km at 10 Msun | 1e-3 | COMPUTED | COMPUTED |
 | Brown dwarf radius | 0.0944 Rsun at 0.07 Msun, 1 Gyr | 5% | BHAC15 | COMPUTED |
-| Th/Eu constancy | [Th/Eu] flat in age, 0.014 +- 0.045 | | Botelho 2019 | READ |
+| Th/Eu constancy | [Th/Eu] flat in age, 0.014 +- 0.045 | | [R0479] | READ |
 
 ## 5 Gaps
 
 ### 5.1 Boss must research (still unreachable)
 
-1. Lodders 2003, ApJ 591, 1220, Table 1 (log eps and CI): the IOP page returned a bot-check page and was not routed around. It gives the exact L03 set the GEN.425 report quotes (Fe/Si 1.69 mass). L09 Table 4 here supersedes it, so this is low priority. Label NOT REACHED.
-2. Grevesse and Sauval 1998, Space Sci. Rev. 85, 161: only its X, Y, Z via L09 (2ND-HAND). Needed only if the project wants GS98 as a selectable set. NOT REACHED.
+1. [R2726: Table 1] (log eps and CI): the IOP page returned a bot-check page and was not routed around. It gives the exact L03 set the GEN.425 report quotes (Fe/Si 1.69 mass). L09 Table 4 here supersedes it, so this is low priority. Label NOT REACHED.
+2. [R1683]: only its X, Y, Z via L09 (2ND-HAND). Needed only if the project wants GS98 as a selectable set. NOT REACHED.
 
 ### 5.2 To verify (RECALLED items, ranked by impact)
 
 1. The O plateau and Ne choice that drive Z at low [Fe/H] (2.5): check [O/Fe] in the halo/thick disk from forbidden-line (6300 A) and NLTE triplet work (N14 supplies both columns; I used the NLTE triplet) and a measured [Ne/Fe] trend. Impact: factor 1.4 in Z at [Fe/H] <= -1.
-2. Salaris et al. 1993 alpha-enhancement factor (RECALLED), used only as a comparison.
+2. [R3878] alpha-enhancement factor (RECALLED), used only as a comparison.
 3. Mass thresholds: convective core above ~1.2 Msun; CNO over pp near 1.3 Msun. Solar Fusion II [1004.2318] is downloaded but I did not extract a crossover value.
 4. Half-lives of 238U, 235U, 40K and the isotopic fractions 235U 0.72%, 40K 0.0117% (232Th 14.05 Gyr is READ in Botelho).
-5. Horizontal-branch core C/O and CO white-dwarf core C/O split (Althaus 2010 text; table values not extracted).
-6. Black hole spin cap 0.998 (Thorne 1974), zero charge, and NS crust thickness (1 km) and mass (0.01 Msun).
+5. Horizontal-branch core C/O and CO white-dwarf core C/O split ([R0085] text; table values not extracted).
+6. Black hole spin cap 0.998 [R4349], zero charge, and NS crust thickness (1 km) and mass (0.01 Msun).
 7. K abundance trend with [Fe/H] (needed for 40K heating): not fitted.
 
 ### 5.3 Reachable but not yet read or extracted (agent time-box)
 
-- Karakas and Lugaro 2016 yield and surface-abundance tables (C/O and [s/Fe] vs thermal pulse) [1604.02178]; Lagarde et al. 2012 grid [1204.5193] for thermohaline/rotation effects.
-- Low-alpha halo Mg, Si (Nissen and Schuster 2010, not located by arXiv id); Eu in the halo.
-- Hydrogen-burning limit vs metallicity (Chabrier and Baraffe 1997 has it; not extracted).
+- [R2244] yield and surface-abundance tables (C/O and [s/Fe] vs thermal pulse) [1604.02178]; [R2531] grid [1204.5193] for thermohaline/rotation effects.
+- Low-alpha halo Mg, Si ([R3295], not located by arXiv id); Eu in the halo.
+- Hydrogen-burning limit vs metallicity ([R0706] has it; not extracted).
 - NS mass-radius relation functions; Lattimer and Prakash [1512.07820] tables of EOS families.
 - Mass-dependent X_c(t) for stars other than the Sun (needs a track grid with central abundances; BHAC15 files have Mrad and Rrad but no X_c).
 - Hayden et al. [1503.02110] alpha distribution functions (Table 2) for the alpha side of the gradient.
@@ -468,12 +468,12 @@ Counts of table rows by label (a row with two labels counts once under each; cou
 | Label | Section 2 rows | Section 4 targets | Meaning for this part |
 |---|---|---|---|
 | READ | 92 | 8 | paper table, equation or abstract read in the arXiv PDF or CDS table (includes 19 element rows and 2 solar-set rows counted also under COMPUTED) |
-| 2ND-HAND | 9 | 1 | GS98 and A05 sets through L09, Jimenez via Casagrande, Thiabaud envelope via the GEN.425 report, Doyle 2020 via Xu 2024, WD pollution masses, NS core, carbon-star minimum mass |
+| 2ND-HAND | 9 | 1 | GS98 and A05 sets through L09, Jimenez via Casagrande, Thiabaud envelope via the GEN.425 report, [R1152] via Xu 2024, WD pollution masses, NS core, carbon-star minimum mass |
 | COMPUTED | 103 | 7 | re-derived with Python from READ inputs (mass fractions, ratios, fits to CDS catalogues, simulations, Chandrasekhar integration, BH formulas, BHAC15 interpolation) |
 | SNIPPET | 0 | 0 | no search-result-only numbers |
 | RECALLED | 9 | 0 | Salaris factor, half-lives, 40K fraction, MS mass thresholds, HB core C/O, WD core C:O split, BH spin cap, BH charge, NS crust thickness (all listed in 5.2) |
-| NOT REACHED | 1 row (Lodders 2003) plus GS98 primary named in 5.1 | 0 | IOP page gave a bot-check page; GS98 primary not opened |
+| NOT REACHED | 1 row [R2726] plus GS98 primary named in 5.1 | 0 | IOP page gave a bot-check page; GS98 primary not opened |
 
 Totals: 193 labelled rows in section 2 and 16 in section 4. Grounded labels (READ + 2ND-HAND + COMPUTED) are 204 label uses against 10 for RECALLED + NOT REACHED in section 2. Every RECALLED item is either a comparison number (Salaris), a standard constant (half-lives), or a threshold the generator can leave as a stored tunable until checked.
 
-Cross-check with the GEN.425 sources check (`/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md`): agree that Thiabaud's ranges are mass ratios and that Lodders 2003 gives Fe/Si 1.69 (L09 1.692); differ in that this part shows the Thiabaud box is a compilation envelope (Hk14 spread 0.11-0.14 dex) wider than the homogeneous-catalogue spread of BF16, and that metal-poor stars fall outside its Fe/Si lower edge.
+Cross-check with the GEN.425 sources check (`/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md`): agree that Thiabaud's ranges are mass ratios and that [R2726] gives Fe/Si 1.69 (L09 1.692); differ in that this part shows the Thiabaud box is a compilation envelope (Hk14 spread 0.11-0.14 dex) wider than the homogeneous-catalogue spread of BF16, and that metal-poor stars fall outside its Fe/Si lower edge.

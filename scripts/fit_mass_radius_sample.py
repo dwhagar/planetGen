@@ -6,7 +6,7 @@ Fits src/planetgen/physics/data/mass_radius_sample.json (GEN.505)
 =================================================================
 
 The error model of the sample of precisely measured planets (mass better than 25 percent, radius better than 8 percent;
-Luque and Palle 2022), fitted to the NASA Exoplanet Archive's table of composite planetary parameters (`pscomppars`): the transiting
+[R2774]), fitted to the NASA Exoplanet Archive's table of composite planetary parameters (`pscomppars`): the transiting
 planets with a radius, a mass from a measurement (`pl_bmassprov == "Mass"`) and both errors. Only the fitted numbers are written:
 the archive's rows are not kept.
 
@@ -118,7 +118,7 @@ def build(text, retrieved):
         "retrieved": retrieved,
         "label": "DATA, COMPUTED",
         "cut": {"mass_error_share": MASS_CUT, "radius_error_share": RADIUS_CUT,
-                "source": "Luque and Palle 2022, Science 377, 1211 (the planets with mass better than 25 percent and radius better than 8 percent)"},
+                "source": "[R2774] (the planets with mass better than 25 percent and radius better than 8 percent)"},
         "k_per_earth_mass_ms": K_PER_EARTH_MASS,
         "subsamples": {name: fit(rows, spec) for name, spec in SUBSAMPLES.items()},
     }

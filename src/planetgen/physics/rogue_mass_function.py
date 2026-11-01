@@ -8,17 +8,17 @@ The rogue planets drew their mass from one fitted power law, `dN/dlogM ~ M^-0.65
 system does not eject a fitted law; it ejects what it has, and only what the scatterer can lift out. This module gives the ejected masses as the two things that decide them.
 
 **What there is to eject.** The small bodies of a disc are a collisional cascade, and a steady-state cascade has a power-law size spectrum `dN/dD ~ D^-q` with `q = 3.5` for bodies held
-by their strength (`n(m) ~ m^-11/6` as quoted by Belyaev and Rafikov 2011, arXiv:1012.3220 eq. 1, and `q = 3.5` by Pan and Schlichting 2012, arXiv:1111.0667 abstract), steepening to `q` up to 4 when the bodies' velocities evolve with the cascade (Pan and Schlichting 2012).
+by their strength (`n(m) ~ m^-11/6` as quoted by [R0335] eq. 1, and `q = 3.5` by [R3421] abstract), steepening to `q` up to 4 when the bodies' velocities evolve with the cascade [R3421].
 For a body of density that does not depend on size, `M ~ D^3` and the number per logarithm of mass is
 
     dN/dlogM ~ M^-(q - 1)/3,
 
-so 0.83 at `q = 3.5` and 1.0 at `q = 4`. Sumi et al. 2023 measure `0.96 (+0.47 -0.27)` for the free-floating planets (arXiv:2303.08280, the short events of the MOA and OGLE surveys, 0.33 to 6,660 Earth masses): the supply
+so 0.83 at `q = 3.5` and 1.0 at `q = 4`. [R4254, R4255] measure `0.96 (+0.47 -0.27)` for the free-floating planets ([R4254], the short events of the MOA and OGLE surveys, 0.33 to 6,660 Earth masses): the supply
 of a cascade sits inside the measurement, and no number was tuned to it.
 
 **What the scatterer lifts out.** A body is thrown out by the planet it scatters off only if that planet has the Safronov number to eject (`rogue_kick.ejects`; below it the body is stirred), and
 only if it is the lighter of the pair: the energy that unbinds the body comes out of the scatterer's orbit, so a body heavier than the scatterer is the one that stays (the architecture already throws out
-the lighter of a crowded pair, `planet_architecture._scatter_crowded_giants`; Barclay et al. 2017 eject only embryos of at most a Mars mass to an Earth mass in the same runs). The ejected spectrum is
+the lighter of a crowded pair, `planet_architecture._scatter_crowded_giants`; [R0258] eject only embryos of at most a Mars mass to an Earth mass in the same runs). The ejected spectrum is
 the supply's, cut at the scatterer's mass.
 
 The normalisation (how many, how much mass) comes from the ejection record (RP1, GEN.1119), not from here; this module gives the shape, the share of the ejected bodies in a mass range, and a draw from it.
@@ -31,7 +31,7 @@ from planetgen.physics import rogue_kick
 from planetgen.util.checks import finite_domain
 
 SUPPLY_DIFFERENTIAL_INDEX = 3.5
-"""float: `q` of the supply, `dN/dD ~ D^-q`: Dohnanyi's steady-state cascade of bodies held by their strength. Source tier T1, tweak level L0 (the velocity-evolved cascade of Pan and Schlichting 2012 gives up to 4)."""
+"""float: `q` of the supply, `dN/dD ~ D^-q`: Dohnanyi's steady-state cascade of bodies held by their strength. Source tier T1, tweak level L0 (the velocity-evolved cascade of [R3421] gives up to 4)."""
 MAX_EJECTED_OVER_SCATTERER = 1.0
 """float: The heaviest body a scatterer ejects, as a multiple of its own mass: the lighter of a pair is the one thrown out. Source tier T6, tweak level L0."""
 
@@ -119,7 +119,7 @@ def sample_mass_kg(u, mass_min_kg, scatterer_mass_kg, q=SUPPLY_DIFFERENTIAL_INDE
 
 @finite_domain()
 def log_slope(mass_low_kg, mass_high_kg, scatterer_mass_kg, q=SUPPLY_DIFFERENTIAL_INDEX):
-    """The index `alpha` of `dN/dlogM ~ M^-alpha` the ejected spectrum shows between two masses (compare Sumi et al. 2023's 0.96), 0 when either is above the scatterer's mass."""
+    """The index `alpha` of `dN/dlogM ~ M^-alpha` the ejected spectrum shows between two masses (compare [R4254, R4255]'s 0.96), 0 when either is above the scatterer's mass."""
     if not 0.0 < mass_low_kg < mass_high_kg:
         raise RogueMassFunctionError("the masses must be positive and in order")
     f_low = mass_function(mass_low_kg, scatterer_mass_kg, q)

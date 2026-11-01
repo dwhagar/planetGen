@@ -2,7 +2,7 @@
 
 Research lane for the atmosphere-composition work (v9.0). Read-only research; nothing in the repo was edited. Solar System bodies appear only as labelled TEST points. Status labels follow `_worker-rules.md`: READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED. A row may carry two labels (for example DATA then COMPUTED) when a data file was read and a number was derived from it.
 
-This part extends, and does not redo, sections 2 to 4 of `/mnt/project-files/reports/atmosphere-sources-check-2026-10-17.md` (verified Rayleigh law, per-gas refractivity of N2, O2, Ar, CO2, CO, CH4, H2O, NH3, H2, He; Earth test tau_R(550 nm) = 0.0969; ozone fit of Kozakis 2022) and `docs/design/composition/atmosphere-colour.md`.
+This part extends, and does not redo, sections 2 to 4 of `/mnt/project-files/reports/atmosphere-sources-check-2026-10-17.md` (verified Rayleigh law, per-gas refractivity of N2, O2, Ar, CO2, CO, CH4, H2O, NH3, H2, He; Earth test tau_R(550 nm) = 0.0969; ozone fit of [R2466]) and `docs/design/composition/atmosphere-colour.md`.
 
 Reachability record: worked were export.arxiv.org PDFs, PyPI packages (photochem_clima_data, musica/TUV-x, colour-science), the Mainz UV/VIS atlas data files (under `/uvvis_data/`), the IUP Bremen ozone page, physics.nist.gov ASD, archive.stsci.edu (BT-Settl), sbuv.gsfc.nasa.gov (solar spectrum), Wikipedia and Optica abstract pages (citation only). Failed or paywalled: ScienceDirect, Cloudflare and Radware challenge pages, archive.org lending texts (HTTP 401), the NTRS search for Kasting and Donahue.
 
@@ -57,7 +57,7 @@ Definitions: sigma in cm2 per molecule; F_K = (6 + 3 rho)/(6 - 7 rho) with rho t
 Findings (COMPUTED unless stated):
 
 - H2/N2 is 0.202 by Dalgarno and Williams but 0.217 by the Peck and Huang refractivity with F_K 1.038 (0.215 with the DFT rho); both give n - 1 = 1.37e-4 at 1 um, so the difference is dispersion shape. Draw 0.20 to 0.22.
-- N2 depolarization: F_K 1.034 (rho 0.0199, report), rho 0.0305 (Penndorf 1957 via Ranjan and Sasselov, 2ND-HAND, F_K 1.057), rho 0.0221 (my DFT); a 2.2 percent spread in sigma. Ranjan and Sasselov (arXiv:1610.06223, READ, appendix A) use rho(O2) = 0.054 and rho(CO2) = 0.0774, consistent with the report (0.057, 0.0747).
+- N2 depolarization: F_K 1.034 (rho 0.0199, report), rho 0.0305 ([R3480] via Ranjan and Sasselov, 2ND-HAND, F_K 1.057), rho 0.0221 (my DFT); a 2.2 percent spread in sigma. Ranjan and Sasselov ([R3661], READ, appendix A) use rho(O2) = 0.054 and rho(CO2) = 0.0774, consistent with the report (0.057, 0.0747).
 - He 2021 Table 2 (BBCES, READ) confirms CO2, N2O, CH4 and O2 n-based values to within about 2 percent at 330 to 710 nm. Ne, Kr, Xe, CO and NH3 have no direct measurement reached.
 
 **2.1b Polarizability route for the gases without a reachable refractivity.** alpha is the CCCBDB orientation-averaged static polarizability (NIST CCCBDB table, public domain, file `web/pol.json`); rho is from my DFT anisotropy (2.2); sigma uses section 3.1 with B = 0.0075 um^2; the "B range" column shows sigma(550) at B = 0.0045 and 0.0105.
@@ -81,7 +81,7 @@ Findings (COMPUTED unless stated):
 Notes on 2.1b:
 
 - O3: Ranjan and Sasselov (READ, appendix A.8) use KCF = 1.06 and alpha = 3.21 A^3; my DFT anisotropy gives F_K 1.21 (a multi-reference molecule, where PBE0 is least trustworthy). The two O3 results differ by 5 percent in sigma; use 1.5e-26 to 1.75e-26 at 550 nm; O3 Rayleigh is minor because O3 is a trace gas.
-- For SO2 and H2S Ranjan and Sasselov (appendix A.5, A.6, READ) use the same formula with alpha and delta from Bogaard et al. 1978 at 488, 514.5 and 632.8 nm but print no numbers, so Bogaard stays NOT REACHED; my values are independent of it.
+- For SO2 and H2S Ranjan and Sasselov (appendix A.5, A.6, READ) use the same formula with alpha and delta from [R0443] at 488, 514.5 and 632.8 nm but print no numbers, so Bogaard stays NOT REACHED; my values are independent of it.
 - The generic formula errs by -9 to +6 percent on the 13 verified gases (3.1), so each value here carries about +-8 percent. CH4, CO2 and NH3 come out 7 to 9 percent low, so similar molecules (C2H6, HCl, H2S) may too.
 
 ### 2.2 Depolarization ratios and polarizability anisotropy (DFT-computed)
@@ -95,7 +95,7 @@ Method (COMPUTED, my own calculation): PySCF finite field, PBE0, geometry optimi
 | CO | 1.941 | 1.953 | 0.0093 | F_K 1.016 gives 0.0095 | -2 percent | COMPUTED |
 | CO2 | 2.524 | 2.507 | 0.0732 | F_K 1.1364 gives 0.0747; Shemansky 0.0774 (Ranjan) | -2 percent | COMPUTED |
 | N2O | 2.860 | 2.998 | 0.1107 | He 2021 F_K 1.2237 gives 0.116 | -5 percent | COMPUTED |
-| H2O | 1.422 | 1.501 | 0.00083 | 0.000299 (Murphy 1977 via report) | 2.8 times larger, both tiny | COMPUTED |
+| H2O | 1.422 | 1.501 | 0.00083 | 0.000299 ([R3218, R3219] via report) | 2.8 times larger, both tiny | COMPUTED |
 | CH4 | 2.534 | 2.448 | 0 | 0.0002 assumed by Ranjan (as CCl4) | consistent | COMPUTED |
 | NH3 | 2.122 | 2.103 | 0.0016 | none reached | unverified | COMPUTED |
 | H2S | 3.677 | 3.631 | 0.00004 | none reached (Bogaard NOT REACHED) | unverified | COMPUTED |
@@ -113,9 +113,9 @@ Validation reading: for gases whose F_K is known from n-based work the DFT F_K i
 
 ### 2.3 UV and visible absorption cross sections as coarse band tables (embeddable)
 
-Source of every number in the three tables: `photochem_clima_data` 0.3.4 (PyPI; GNU GPL v3 for the package, while each dataset keeps the licence of its origin, which I did not find stated per file; the data origins are Heays et al. 2017 (arXiv:1701.04459; commonly called the Leiden VUV database, RECALLED name), Huebner 2015, Schmidt 2013 for CO2, Karkoschka 1994 for CH4, Keller-Rudek 2013 for NH3 and others as listed below), file `data/xsections/<species>.h5`, dataset `photoabsorption` (total photoabsorption, cm2 per molecule). I averaged the file onto 35 bins (COMPUTED): each cell is the mean over the part of the bin the data cover; `-` means the bin lies outside the data (the package treats cross sections as zero there); `*` means under 50 percent of the bin is covered; `0` means the file holds zero. Bins below 100 nm are photoabsorption in the X-ray and EUV (smooth, 1e-18 to 1e-16 cm2). The file also has `photodissociation` and `photoionisation` datasets; use photodissociation times the quantum yield (also in the file) for a photolysis rate j.
+Source of every number in the three tables: `photochem_clima_data` 0.3.4 (PyPI; GNU GPL v3 for the package, while each dataset keeps the licence of its origin, which I did not find stated per file; the data origins are [R1873] ([R1873]; commonly called the Leiden VUV database, RECALLED name), [R2040, R3966] for CO2, [R2258] for CH4, [R2302, R2303] for NH3 and others as listed below), file `data/xsections/<species>.h5`, dataset `photoabsorption` (total photoabsorption, cm2 per molecule). I averaged the file onto 35 bins (COMPUTED): each cell is the mean over the part of the bin the data cover; `-` means the bin lies outside the data (the package treats cross sections as zero there); `*` means under 50 percent of the bin is covered; `0` means the file holds zero. Bins below 100 nm are photoabsorption in the X-ray and EUV (smooth, 1e-18 to 1e-16 cm2). The file also has `photodissociation` and `photoionisation` datasets; use photodissociation times the quantum yield (also in the file) for a photolysis rate j.
 
-Provenance (DATA; `metadata.yaml`): coverage in nm is O2 4.2 to 239.9; O3 0.06 to 1099.9 (Huebner 2015 below 52.7 nm, Heays 2017 above); SO2 1.7 to 416.6; H2O 0.1 to 230.4 (Ranjan 2020 for 192 to 230 nm); CO2 0.2 to 212.8 (Schmidt 2013 at 270 K, reduced resolution, above 138.9 nm); CO 0.1 to 166.5; CH4 5.7 to 1000 (**Karkoschka 1994 for 152 to 1000 nm, so all visible CH4 bands rest on a paper that was NOT REACHED**); NH3 0.1 to 230; H2S 0.06 to 316; N2O 91.3 to 209.9; NO2 0.06 to 660; HCN 0.1 to 187.9; C2H2 6.3 to 299.4; C2H6 15.4 to 149.5; H2CO 6.3 to 375.9; HCl 4.5 to 229.9; OCS 3.5 to 279.4; H2O2 65.1 to 349.9; N2 11.6 to 99.9 (Ranjan and Sasselov, READ, quote no N2 extinction detected longward of 108 nm); NO 0.1 to 229.3; C2H4 0.1 to 194.9; H2 0.1 to 119.9. Unlisted origins are Heays 2017 or Huebner 2015.
+Provenance (DATA; `metadata.yaml`): coverage in nm is O2 4.2 to 239.9; O3 0.06 to 1099.9 ([R2040] below 52.7 nm, [R1873] above); SO2 1.7 to 416.6; H2O 0.1 to 230.4 ([R3662] for 192 to 230 nm); CO2 0.2 to 212.8 ([R3966] at 270 K, reduced resolution, above 138.9 nm); CO 0.1 to 166.5; CH4 5.7 to 1000 (**[R2258] for 152 to 1000 nm, so all visible CH4 bands rest on a paper that was NOT REACHED**); NH3 0.1 to 230; H2S 0.06 to 316; N2O 91.3 to 209.9; NO2 0.06 to 660; HCN 0.1 to 187.9; C2H2 6.3 to 299.4; C2H6 15.4 to 149.5; H2CO 6.3 to 375.9; HCl 4.5 to 229.9; OCS 3.5 to 279.4; H2O2 65.1 to 349.9; N2 11.6 to 99.9 (Ranjan and Sasselov, READ, quote no N2 extinction detected longward of 108 nm); NO 0.1 to 229.3; C2H4 0.1 to 194.9; H2 0.1 to 119.9. Unlisted origins are [R1873] or [R2040].
 
 Cross sections in cm2 per molecule (COMPUTED from DATA):
 
@@ -243,7 +243,7 @@ Reading the tables (all COMPUTED from the file unless stated):
 - **SO2.** Two strong systems, 190 to 230 nm (bin means to 7.3e-18) and 260 to 330 nm (7.5e-19 at 280 to 300), weak forbidden absorption to 400 nm; SO2 shields 190 to 330 nm in a volcanic atmosphere.
 - **H2O** bands near 120 to 140 and 150 to 185 nm (1.0e-17 at 120 to 123 nm, 5.3e-18 at 160 to 170); below 2e-21 beyond 190 nm, so water vapour does not shield the ground UV. **CO2** is below 1e-24 beyond 200 nm at 270 K but rises by decades when hot (2.4).
 - **NO2** is the only listed species with a broad visible band: 5.6e-19 cm2 at 360 to 450 nm, 6.2e-20 at 550 to 600, 9e-21 at 650 to 700; a column of 1e17 cm^-2 gives tau = 0.056 at 400 to 450 nm, a yellow-brown tint.
-- **CH4** visible and near-IR: 4.4e-26 cm2 at 600 to 650 nm, 2.4e-25 at 700 to 800, 1.6e-24 at 800 to 1100 (Karkoschka 1994). Giant-planet methane bands (near 619, 725, 890 nm, RECALLED) are one to two decades stronger than these bin means and need a band model (part 03).
+- **CH4** visible and near-IR: 4.4e-26 cm2 at 600 to 650 nm, 2.4e-25 at 700 to 800, 1.6e-24 at 800 to 1100 [R2258]. Giant-planet methane bands (near 619, 725, 890 nm, RECALLED) are one to two decades stronger than these bin means and need a band model (part 03).
 - **H2S, NH3, HCN, C2H2, H2CO, HCl, OCS, H2O2** absorb below about 230 to 350 nm only; H2CO has a weak band 250 to 360 nm (2.8e-20 at 300 to 320 nm).
 - **N2, H2, He, Ne, Ar, Kr, Xe, CO, C2H6** are transparent above 150 to 170 nm and never shield the surface.
 - Compounds the project text mentions that have no table here: HF (Mainz `HF.spc` exists, file not read), CH3Cl, SiO, Na, K, perchlorates, carbonates, radon, NOx other than NO and NO2. They are listed in section 4.
@@ -255,7 +255,7 @@ Reading the tables (all COMPUTED from the file unless stated):
 | O3 Hartley, 215 to 285 nm | Serdyuchenko, 11 temperatures 193 to 293 K | ratio 193 K to 293 K within 0.97 to 1.04 (Hartley peak +1.6 percent at 193 K) | DATA (Bremen file, no licence stated on the page; citation required), COMPUTED |
 | O3 Huggins, 295 to 400 nm | same | ratio 193/293 K: 0.89 (295 to 305), 0.82 (305 to 315), 0.75 (315 to 325), 0.66 (325 to 335), 0.54 (335 to 345), 0.34 (345 to 355), 0.17 (355 to 375), 0.35 (375 to 400) | DATA, COMPUTED |
 | O3 Chappuis, Serdyuchenko | same | 193/293 K: 0.85 (400 to 450), 0.95 (450 to 500), 0.99 (500 to 550), 1.01 (550 to 600), 1.00 (600 to 650), 0.97 (650 to 700), 0.95 (700 to 800); above 900 nm the file is noise-dominated | DATA, COMPUTED |
-| O3 Chappuis, Burkholder and Talukdar 1994 | Mainz atlas files `O3_BurkholderTalukdar(1994)_{220,240,260,280,298}K_407-762nm.txt` (the atlas notes the cross sections were rebuilt from sigma(T)/sigma(298 K) ratios received from J. B. Burkholder in January 2005) | 220 K to 298 K ratio: 0.682 at 420 nm, 0.843 at 450, 0.974 at 500, 0.994 at 550, 1.007 at 602, 0.986 at 650, 0.935 at 700, 0.944 at 750; peak 5.163e-21 cm2 at 602 nm (298 K) | DATA (the 1994 paper itself NOT REACHED), COMPUTED |
+| O3 [R0599] | Mainz atlas files `O3_BurkholderTalukdar(1994)_{220,240,260,280,298}K_407-762nm.txt` (the atlas notes the cross sections were rebuilt from sigma(T)/sigma(298 K) ratios received from J. B. Burkholder in January 2005) | 220 K to 298 K ratio: 0.682 at 420 nm, 0.843 at 450, 0.974 at 500, 0.994 at 550, 1.007 at 602, 0.986 at 650, 0.935 at 700, 0.944 at 750; peak 5.163e-21 cm2 at 602 nm (298 K) | DATA (the 1994 paper itself NOT REACHED), COMPUTED |
 | N2O, 200 to 230 nm | Mainz, 240 K and 296 K, 2 nm means | 240 K to 296 K ratio 0.81 (200 nm), 0.68 (210), 0.54 (220), 0.44 (230) | DATA, COMPUTED |
 | SO2, 250 to 320 nm | Mainz, 203 K and 293 K, 2 nm means | no change at 250 to 300 nm (1.06e-19 against 1.05e-19 at 250; 7.69e-19 against 7.66e-19 at 280); 0.91 at 320 nm; above 340 nm the 203 K file is noise dominated | DATA, COMPUTED |
 | SO2 hot | Mainz, 800 K (a few points) | 1.9e-19 at 250 nm against 1.1e-19 in the 293 K 240 to 260 nm bin (about 1.7 times); 6.9e-19 at 300 nm | DATA, coarse |
@@ -281,18 +281,18 @@ Rule of thumb (design choice): O3 and NO2 need no temperature correction above 4
 | Ca II K | 393.366 | 0.682 | 1.47e8 | 9.3e-15 | 6.2e-12 | 4.4e-12 | 3 | DATA (NIST accuracy C), COMPUTED |
 | Mg I | 285.213 | 1.80 | 4.91e8 | 1.30e-14 | 9.3e-12 | 6.6e-12 | 3 | DATA, COMPUTED |
 
-Profile physics (Burrows and Volobuyev 2003, arXiv:astro-ph/0210086, READ): a Lorentzian core holds only to about 20 A detuning; beyond it the wings of Na D (5890 A) and K I (7700 A) pressure-broadened by H2 and He form the "continuum" of T dwarfs between 0.4 and 1.0 um, with natural red and blue cutoffs, and "rainbow" satellite features in the blue wings predicted at 0.515 um (Na) and 0.69 um (K) against the measured 0.55 um and 0.72 um (Na+He and K+He). Numerical widths are NOT REACHED here (section 4). Li I 670.8 nm is a substellarity test line; the L-dwarf optical-spectra paper astro-ph/0001060 (READ) finds its equivalent width is changed more by the added opacity of other absorbers than by Li depletion. Rb I and Cs I appear in L dwarfs (Cushing et al. 2005, astro-ph/0412313, READ).
+Profile physics ([R0609], READ): a Lorentzian core holds only to about 20 A detuning; beyond it the wings of Na D (5890 A) and K I (7700 A) pressure-broadened by H2 and He form the "continuum" of T dwarfs between 0.4 and 1.0 um, with natural red and blue cutoffs, and "rainbow" satellite features in the blue wings predicted at 0.515 um (Na) and 0.69 um (K) against the measured 0.55 um and 0.72 um (Na+He and K+He). Numerical widths are NOT REACHED here (section 4). Li I 670.8 nm is a substellarity test line; the L-dwarf optical-spectra paper astro-ph/0001060 (READ) finds its equivalent width is changed more by the added opacity of other absorbers than by Li depletion. Rb I and Cs I appear in L dwarfs ([R0969], astro-ph/0412313, READ).
 
 **2.5b Molecular band systems (positions only; no cross sections reached).**
 
 | Molecule | System and band heads (um) | Where it matters | Source | Status |
 |---|---|---|---|---|
-| TiO | gamma (A 3Phi-X 3Delta), gamma' (B 3Pi-X 3Delta), delta, epsilon, phi systems; red-optical heads near 0.705, 0.76 and 0.84 um; phi 0-0 head predicted near 1.104 um but not seen in M or L dwarfs | M dwarfs and hot giants (pM class) | Cushing et al. 2005 (system list and the 1.104 um non-detection, READ); the optical head positions RECALLED | READ, RECALLED |
-| VO | B 4Pi-X 4Sigma red-optical bands; A 4Pi-X 4Sigma: 1-0 at 0.96, 0-0 at 1.06, 0-1 at 1.18 um | late M dwarfs, hot giants | Cushing et al. 2005 (READ) | READ |
-| FeH | F 4Delta-X 4Delta Wing-Ford band, 0-0 head at 0.9969 um with a Q branch at 1.0060 um (Cushing 2005); the same head is quoted as 989.6 nm by Lodders and Fegley 2006 quoting Burgasser: spread 0.9896 to 0.9969 um, unresolved; 0-1 head 1.1939 um, Q branch 1.2221 um, 1-2 head 1.2389 um | L and T dwarfs, cool giants | Cushing et al. 2005 (READ); Lodders and Fegley 2006, astro-ph/0601381 (READ, Fig. 2 and spectral-type table) | READ, 2ND-HAND |
-| CrH | A 6Sigma+-X 6Sigma+: 0-0 head 0.8611 um (defines the L class), 0-1 head 0.9969 um (but many features there are FeH), 0-2 near 1.18 um, 0-3 near 1.4 um; Burrows et al. 2002 computed line lists for 12 bands | L dwarfs, brown dwarfs | Cushing et al. 2005 (READ); Burrows, IAU 211 (astro-ph/0207399, READ, only the list of the bands) | READ |
+| TiO | gamma (A 3Phi-X 3Delta), gamma' (B 3Pi-X 3Delta), delta, epsilon, phi systems; red-optical heads near 0.705, 0.76 and 0.84 um; phi 0-0 head predicted near 1.104 um but not seen in M or L dwarfs | M dwarfs and hot giants (pM class) | [R0969] (system list and the 1.104 um non-detection, READ); the optical head positions RECALLED | READ, RECALLED |
+| VO | B 4Pi-X 4Sigma red-optical bands; A 4Pi-X 4Sigma: 1-0 at 0.96, 0-0 at 1.06, 0-1 at 1.18 um | late M dwarfs, hot giants | [R0969] (READ) | READ |
+| FeH | F 4Delta-X 4Delta Wing-Ford band, 0-0 head at 0.9969 um with a Q branch at 1.0060 um [R0969]; the same head is quoted as 989.6 nm by [R2731] quoting Burgasser: spread 0.9896 to 0.9969 um, unresolved; 0-1 head 1.1939 um, Q branch 1.2221 um, 1-2 head 1.2389 um | L and T dwarfs, cool giants | [R0969] (READ); [R2731], astro-ph/0601381 (READ, Fig. 2 and spectral-type table) | READ, 2ND-HAND |
+| CrH | A 6Sigma+-X 6Sigma+: 0-0 head 0.8611 um (defines the L class), 0-1 head 0.9969 um (but many features there are FeH), 0-2 near 1.18 um, 0-3 near 1.4 um; [R0606] computed line lists for 12 bands | L dwarfs, brown dwarfs | [R0969] (READ); Burrows, IAU 211 (astro-ph/0207399, READ, only the list of the bands) | READ |
 
-**2.5c Which regime applies (hot-Jupiter classes and condensation).** Fortney et al. 2008 (arXiv:0710.2558, READ): planets warm enough to keep Ti and V in the gas, so TiO and VO bands dominate the optical and drive a thermal inversion, are "pM class"; cooler ones, where Ti and V are condensed, are "pL class", and their visible spectrum is set by alkali lines and water. At 1 mbar and 1700 K (before Ti/V condensation) the V-band opacity is about log kappa = -0.5 in cm2 g^-1; at 1600 K, only 33 K below the 90 percent Ti-condensation curve, it is still an order of magnitude above the value at 1400 K, where the strong TiO and VO bands have given way to alkali lines and water. The first Ti condensate (solar metallicity) depends on pressure: TiN above about 30 bar, Ca3Ti2O7 for 5 to 30 bar, Ca4Ti3O10 for 0.03 to 5 bar, CaTiO3 below 0.03 bar (Fortney quoting Lodders and Fegley 2006); my own reading of Lodders and Fegley 2006 gives different boundaries (CaTiO3 below 0.03 bar, Ca4Ti3O10 from 0.03 to 3.2 bar, Ca3Ti2O7 3.2 to about 10 bar, TiN above about 10 bar). The spread in the pressure boundaries is a factor of 2 to 3 and should be drawn. Na and K condense as Na2S and KCl at lower temperature (Lodders and Fegley 2006 Fig. 2a; curves in part 06). All READ.
+**2.5c Which regime applies (hot-Jupiter classes and condensation).** [R1428] ([R1428], READ): planets warm enough to keep Ti and V in the gas, so TiO and VO bands dominate the optical and drive a thermal inversion, are "pM class"; cooler ones, where Ti and V are condensed, are "pL class", and their visible spectrum is set by alkali lines and water. At 1 mbar and 1700 K (before Ti/V condensation) the V-band opacity is about log kappa = -0.5 in cm2 g^-1; at 1600 K, only 33 K below the 90 percent Ti-condensation curve, it is still an order of magnitude above the value at 1400 K, where the strong TiO and VO bands have given way to alkali lines and water. The first Ti condensate (solar metallicity) depends on pressure: TiN above about 30 bar, Ca3Ti2O7 for 5 to 30 bar, Ca4Ti3O10 for 0.03 to 5 bar, CaTiO3 below 0.03 bar (Fortney quoting [R2731]); my own reading of [R2731] gives different boundaries (CaTiO3 below 0.03 bar, Ca4Ti3O10 from 0.03 to 3.2 bar, Ca3Ti2O7 3.2 to about 10 bar, TiN above about 10 bar). The spread in the pressure boundaries is a factor of 2 to 3 and should be drawn. Na and K condense as Na2S and KCl at lower temperature ([R2731: Fig. 2a]; curves in part 06). All READ.
 
 ### 2.6 Action spectra for surface UV
 
@@ -302,9 +302,9 @@ Profile physics (Burrows and Volobuyev 2003, arXiv:astro-ph/0210086, READ): a Lo
 | Values of S_er | 0.649 at 300 nm, 0.220 at 305, 0.0745 at 310, 0.0086 at 320, 1.41e-3 at 330, 7.1e-4 at 350, 3.1e-4 at 380 | evaluated from the formula | COMPUTED |
 | UV index | UVI = (integral of E(lambda) S_er(lambda) dlambda) / (25 mW m^-2) = 40 m2 W^-1 times the erythemally weighted irradiance; designed so that typical midday summer sunlight was about 250 mW m^-2, hence 0 to about 11 | Wikipedia UV Index article (reachable page, cites EPA/WHO) | 2ND-HAND |
 | UV band names | UV-A 315 to 400 nm, UV-B 280 to 315 nm, UV-C 100 to 280 nm | same page | 2ND-HAND |
-| Setlow 1974 DNA-damage action spectrum | digitised from the hand-drawn Setlow plot (received from R. Setlow in 1995), per quantum (multiply by lambda/300 for an irradiance in energy units). Weights: 1.07 (256 nm), 1.12 (260), 1.23 (266 to 268), 1.13 (270), 0.933 (276), 0.791 (280), 0.530 (286), 0.309 (290), 0.163 (294), 0.0552 (298), 0.0333 (300), 0.00901 (304), 0.00115 (310), 2.5e-4 (314), 4.3e-5 (320), 1.1e-5 (328), 4.6e-6 (340), 2.6e-6 (350), 1.8e-6 (360). The file header says the curve is normalised to unity at 300 nm but the stored weight at 300 nm is 0.0333; this inconsistency is reported, not resolved (ratio 260 to 300 nm is 33.6 in the file) | TUV-x data `DNA_damage_in_vitro(Setlow,1974)_spectral_wght_1.nc`, in `musica` 0.17.1 (Apache-2.0 for the package; data licence not found) | DATA |
-| Other action spectra shipped with TUV-x | Anders 1995 erythema (minimal doses, a different quantity), CIE 2006 non-melanoma skin cancer, previtamin D3 (CIE 2006), SCUP-human, plant, phytoplankton and cataract weights | same package, folder `spectral_weights` | DATA (names read, values not extracted) |
-| Solar reference | ATLAS-1 (Thuillier et al. 2004, GM 141) spectrum at 1 au, 26150 points, moderately high activity | `photochem_clima_data` `stellar_spectra/ATLAS1_2004.h5`, source sbuv.gsfc.nasa.gov | DATA |
+| [R4033] DNA-damage action spectrum | digitised from the hand-drawn Setlow plot (received from R. Setlow in 1995), per quantum (multiply by lambda/300 for an irradiance in energy units). Weights: 1.07 (256 nm), 1.12 (260), 1.23 (266 to 268), 1.13 (270), 0.933 (276), 0.791 (280), 0.530 (286), 0.309 (290), 0.163 (294), 0.0552 (298), 0.0333 (300), 0.00901 (304), 0.00115 (310), 2.5e-4 (314), 4.3e-5 (320), 1.1e-5 (328), 4.6e-6 (340), 2.6e-6 (350), 1.8e-6 (360). The file header says the curve is normalised to unity at 300 nm but the stored weight at 300 nm is 0.0333; this inconsistency is reported, not resolved (ratio 260 to 300 nm is 33.6 in the file) | TUV-x data `DNA_damage_in_vitro(Setlow,1974)_spectral_wght_1.nc`, in `musica` 0.17.1 (Apache-2.0 for the package; data licence not found) | DATA |
+| Other action spectra shipped with TUV-x | [R0099] erythema (minimal doses, a different quantity), CIE 2006 non-melanoma skin cancer, previtamin D3 (CIE 2006), SCUP-human, plant, phytoplankton and cataract weights | same package, folder `spectral_weights` | DATA (names read, values not extracted) |
+| Solar reference | ATLAS-1 ([R4354], GM 141) spectrum at 1 au, 26150 points, moderately high activity | `photochem_clima_data` `stellar_spectra/ATLAS1_2004.h5`, source sbuv.gsfc.nasa.gov | DATA |
 
 ### 2.7 Surface UV demonstration (Beer-Lambert, computed)
 
@@ -325,7 +325,7 @@ Readings (COMPUTED): the direct UVI falls as DU^-1.08 from 100 to 500 DU at over
 
 ### 2.8 Air mass and scattering checks (COMPUTED)
 
-**Chapman function Ch(X, chi)** by direct numerical integration of exp(-(r - R)/H) along the slant ray for an exponential atmosphere, X = R/H, normalised to 1 at the zenith (Earth-like X is 757 for H = 8.4 km, a TEST value; gas giants 3000 or more; small moons 50 or less). Compare plane-parallel sec(chi) and the Kasten and Young 1989 fit (Earth only; formula AM = 1/(cos z + 0.50572 (96.07995 - z)^-1.6364), z in degrees; the same formula is in pvlib and on the Wikipedia air-mass page, both 2ND-HAND).
+**Chapman function Ch(X, chi)** by direct numerical integration of exp(-(r - R)/H) along the slant ray for an exponential atmosphere, X = R/H, normalised to 1 at the zenith (Earth-like X is 757 for H = 8.4 km, a TEST value; gas giants 3000 or more; small moons 50 or less). Compare plane-parallel sec(chi) and the [R2274] fit (Earth only; formula AM = 1/(cos z + 0.50572 (96.07995 - z)^-1.6364), z in degrees; the same formula is in pvlib and on the Wikipedia air-mass page, both 2ND-HAND).
 
 | chi (deg) | sec chi | X = 50 | X = 200 | X = 757 | X = 3000 | Kasten and Young |
 |---|---|---|---|---|---|---|
@@ -337,7 +337,7 @@ Readings (COMPUTED): the direct UVI falls as DU^-1.08 from 100 to 500 DU at over
 | 88 | 28.65 | 7.421 | 12.48 | 18.44 | 23.87 | 19.43 |
 | 90 | infinite | 8.928 | 17.76 | 34.50 | 68.66 | 37.92 |
 
-At 90 degrees the limit is sqrt(pi X/2) = 34.48 for X = 757, agreeing with the integral (34.50). The Kasten and Young fit is 10 percent above the exponential-atmosphere value at the horizon and cannot be reused for other worlds. Rule: use the Chapman integral (or the Chapman 1931 approximation) with X = R/H, never sec(chi) beyond chi = 75 degrees. Status: COMPUTED.
+At 90 degrees the limit is sqrt(pi X/2) = 34.48 for X = 757, agreeing with the integral (34.50). The Kasten and Young fit is 10 percent above the exponential-atmosphere value at the horizon and cannot be reused for other worlds. Rule: use the Chapman integral (or the [R0739] approximation) with X = R/H, never sec(chi) beyond chi = 75 degrees. Status: COMPUTED.
 
 **Rayleigh phase function with depolarization** (COMPUTED by orientation-averaged Monte Carlo of random molecules; matches the formula to 4 digits): p(theta) = 3/(4 (1 + 2 g)) [(1 + 3 g) + (1 - g) cos^2 theta], g = rho_n/(2 - rho_n), normalised so that (1/2) integral of p over mu = 1. Forward-to-side ratio I(0)/I(90) = 1.8006 for rho = 0.022 (Monte Carlo 1.8009), 1.9569 for rho = 0.0004 (1.9566) and 2.0 for rho = 0; the 90-degree depolarization of the simulation equalled the input.
 
@@ -391,15 +391,15 @@ Reading: the offset reaches 0.05 in x at 2500 K and 0.018 at 4000 K and is irreg
 
 | Source | Result | Label |
 |---|---|---|
-| Peck and Huang 1977, JOSA 67, 1550 | Optica page gives only the citation (Edson R. Peck and Shiezen Huang, pp. 1550-1554). Dispersion constants READ in refractiveindex.info `H2_nk_Peck.yml` (CC0; spells the second author "Hung"): 0.0148956, 180.7, 0.0049037, 92 at 273.15 K, 0.168 to 1.6945 um | DATA (constants); paper NOT REACHED |
-| Burkholder and Talukdar 1994, GRL 21, 581 | Mainz files for 220, 240, 260, 280, 298 K, 407 to 762 nm READ (356 points each); peak 5.163e-21 cm2 at 602 nm; the atlas says the cross sections were rebuilt from ratios supplied by the authors in 2005 | DATA; paper NOT REACHED |
-| Serdyuchenko 2014 (AMT 7, 625) | Bremen data file READ (11 temperatures 193 to 293 K, 213 to 1100 nm, 0.01 nm grid, systematic uncertainty under 0.5 percent); the page asks users to check for updates and states no licence | DATA; licence NOT REACHED |
-| Sneep and Ubachs 2005; Bates 1984 | ScienceDirect error page for both | still 2ND-HAND (He 2021 eq. 1 and Table 1; five codes in the report) |
-| Bucholtz 1995 Table 3 | Optica page gives citation and tags only; PDF behind a captcha | NOT REACHED |
-| Penndorf 1957; Hulburt 1953 | Optica pages confirm the citations (Penndorf JOSA 47, 176-182; Hulburt JOSA 43, 113-118, "Explanation of the Brightness and Color of the Sky, Particularly the Twilight Sky"); full text paywalled | NOT REACHED (text); Penndorf formula stays 2ND-HAND |
-| Kasting and Donahue 1980 | Cloudflare pages; NTRS search zero hits | still 2ND-HAND (through Cooke 2022) |
+| [R3470], JOSA 67, 1550 | Optica page gives only the citation (Edson R. Peck and Shiezen Huang, pp. 1550-1554). Dispersion constants READ in refractiveindex.info `H2_nk_Peck.yml` (CC0; spells the second author "Hung"): 0.0148956, 180.7, 0.0049037, 92 at 273.15 K, 0.168 to 1.6945 um | DATA (constants); paper NOT REACHED |
+| [R0599] | Mainz files for 220, 240, 260, 280, 298 K, 407 to 762 nm READ (356 points each); peak 5.163e-21 cm2 at 602 nm; the atlas says the cross sections were rebuilt from ratios supplied by the authors in 2005 | DATA; paper NOT REACHED |
+| [R4023] (AMT 7, 625) | Bremen data file READ (11 temperatures 193 to 293 K, 213 to 1100 nm, 0.01 nm grid, systematic uncertainty under 0.5 percent); the page asks users to check for updates and states no licence | DATA; licence NOT REACHED |
+| [R0282, R4138] | ScienceDirect error page for both | still 2ND-HAND (He 2021 eq. 1 and Table 1; five codes in the report) |
+| [R0575: Table 3] | Optica page gives citation and tags only; PDF behind a captcha | NOT REACHED |
+| [R2047, R3480] | Optica pages confirm the citations (Penndorf JOSA 47, 176-182; Hulburt JOSA 43, 113-118, "Explanation of the Brightness and Color of the Sky, Particularly the Twilight Sky"); full text paywalled | NOT REACHED (text); Penndorf formula stays 2ND-HAND |
+| [R2279] | Cloudflare pages; NTRS search zero hits | still 2ND-HAND (through [R0875]) |
 | no source | archive.org finds three items, lending copies return HTTP 401. The ground-bounce factor R_tot = R + T A (1 - s)/(1 - A s) was instead re-derived and checked by Monte Carlo (2.8) | NOT REACHED; formula COMPUTED |
-| Kasten and Young 1989 | Optica captcha; the Wikipedia air-mass page prints the formula and the citation | 2ND-HAND (formula) |
+| [R2274] | Optica captcha; the Wikipedia air-mass page prints the formula and the citation | 2ND-HAND (formula) |
 
 ---
 
@@ -453,7 +453,7 @@ with m(chi) from the Chapman function (section 3.5), O3 column from part 05 or t
 
 ### 3.7 Rule for alkali and oxides on hot giants (GEN.419)
 
-If T at 1 mbar to 0.1 bar exceeds the Ti condensation curve (about 1700 K at 1 mbar per Fortney 2008), use pM class: strong TiO/VO bands in 0.4 to 1.1 um (colour: dark, red-brown); between roughly 1400 and 1700 K use mixed; below, Na D and K I wings (S = 2e-14 and 3.5e-14 cm2 nm, section 2.5) set the 0.4 to 1.0 um absorption, with cloud and haze optical depths from part 06. Numerical cross sections for the molecules are NOT REACHED (section 4).
+If T at 1 mbar to 0.1 bar exceeds the Ti condensation curve (about 1700 K at 1 mbar per [R1428]), use pM class: strong TiO/VO bands in 0.4 to 1.1 um (colour: dark, red-brown); between roughly 1400 and 1700 K use mixed; below, Na D and K I wings (S = 2e-14 and 3.5e-14 cm2 nm, section 2.5) set the 0.4 to 1.0 um absorption, with cloud and haze optical depths from part 06. Numerical cross sections for the molecules are NOT REACHED (section 4).
 
 ---
 
@@ -461,17 +461,17 @@ If T at 1 mbar to 0.1 bar exceeds the Ti condensation curve (about 1700 K at 1 m
 
 Ranked by how much the sky/colour/UV chain depends on it.
 
-1. **Bogaard, Buckingham, Pierens and White 1978, J. Chem. Soc. Faraday Trans. 1, 74, 3008** (via Ranjan and Sasselov 2017 reference list): measured polarizability and depolarization ratio of SO2, H2S and other gases at 488, 514.5 and 632.8 nm. It would replace my DFT depolarization (unverified for NH3, H2S, SO2, HCN, C2H2, C2H4, C2H6, OCS, HCl, H2CO; O3 off by a factor 3). Pays off: the 2.1b table.
-2. **Direct Rayleigh or refractivity measurements** of NH3 (King factor), CO, H2S, SO2, Ne, Kr, Xe: Sneep and Ubachs 2005 (JQSRT 92, 293), Bates 1984 (Planet. Space Sci. 32, 785); both behind ScienceDirect. Pays off: removes the +-5 percent generic error and the CH4/CO/NH3 spreads.
-3. **Absorption by hot giants:** numerical line lists for TiO, VO, FeH, CrH, Na, K, Li, Rb, Cs (candidate names Toto, VOMYT, MoLLIST, VALD, RECALLED) (the ExoMol site is reachable but the large line lists were not downloaded), plus the Allard et al. Na-H2 and K-H2 pressure-broadened line profiles and Burrows and Volobuyev 2003 tables of widths; resolve the FeH/CrH 0.9896 to 0.9969 um head. Pays off: numeric opacity for the pM/pL colour, and the titanium-cloud pressure boundaries (factor 2 to 3 spread, 2.5c).
+1. **[R0443], J. Chem. Soc. Faraday Trans. 1, 74, 3008** (via [R3661] reference list): measured polarizability and depolarization ratio of SO2, H2S and other gases at 488, 514.5 and 632.8 nm. It would replace my DFT depolarization (unverified for NH3, H2S, SO2, HCN, C2H2, C2H4, C2H6, OCS, HCl, H2CO; O3 off by a factor 3). Pays off: the 2.1b table.
+2. **Direct Rayleigh or refractivity measurements** of NH3 (King factor), CO, H2S, SO2, Ne, Kr, Xe: [R4138] (JQSRT 92, 293), [R0282] (Planet. Space Sci. 32, 785); both behind ScienceDirect. Pays off: removes the +-5 percent generic error and the CH4/CO/NH3 spreads.
+3. **Absorption by hot giants:** numerical line lists for TiO, VO, FeH, CrH, Na, K, Li, Rb, Cs (candidate names Toto, VOMYT, MoLLIST, VALD, RECALLED) (the ExoMol site is reachable but the large line lists were not downloaded), plus the Allard et al. Na-H2 and K-H2 pressure-broadened line profiles and [R0609] tables of widths; resolve the FeH/CrH 0.9896 to 0.9969 um head. Pays off: numeric opacity for the pM/pL colour, and the titanium-cloud pressure boundaries (factor 2 to 3 spread, 2.5c).
 4. **Schumann-Runge band transmission:** a published parameterisation (opacity distribution or effective cross section for 175 to 205 nm; a Minschwaner et al. type scheme is a candidate, RECALLED) because band means fail for thick O2 columns (2.3). Pays off: correct UV-C at the surface and mesospheric O3 production in the ozone lane (GEN.413).
-5. **Licences and provenance** for the embedded tables: per-dataset licence of Heays 2017 (Leiden database), Huebner 2015 and of the Serdyuchenko and Mainz files (Mainz asks for a citation of Keller-Rudek et al. 2013, ESSD 5, 365; Bremen gives no licence text). The embedded 35-bin table should be regenerated from a source with a clear licence or the licences confirmed.
-6. **Visible absorbers for giants and haze worlds** (earlier report item 3): Karkoschka 1994 (Icarus 111, 174; the Photochem CH4 data above 152 nm rest on it); NH3 visible bands; SO2 and NO2 visible tails; S2, S3, S4, S8, SO3, H2SO4, HNO3 and CS2 cross sections exist as Photochem files and were not binned.
+5. **Licences and provenance** for the embedded tables: per-dataset licence of [R1873] (Leiden database), [R2040] and of the Serdyuchenko and Mainz files (Mainz asks for a citation of [R2303], ESSD 5, 365; Bremen gives no licence text). The embedded 35-bin table should be regenerated from a source with a clear licence or the licences confirmed.
+6. **Visible absorbers for giants and haze worlds** (earlier report item 3): [R2258] (Icarus 111, 174; the Photochem CH4 data above 152 nm rest on it); NH3 visible bands; SO2 and NO2 visible tails; S2, S3, S4, S8, SO3, H2SO4, HNO3 and CS2 cross sections exist as Photochem files and were not binned.
 7. **Species with no table here:** HF, CH3Cl, SiO, SO, CS2 (Mainz pages exist for HF, CS2, SO, not read), perchlorates, carbonates, radon, atomic Na and K below 100 nm.
 8. **Stellar UV for non-solar stars:** measured UV spectra of M, K and F dwarfs (MUSCLES or similar) and flare-time UV; the only measured spectrum used here is the ATLAS-1 Sun.
 9. **O3 Huggins temperature fit** (quadratic coefficients 300 to 370 nm, a file on the Bremen page) and O2 and H2O high-temperature UV cross sections (Mainz inventory lists them, values not extracted), needed for hot and lava worlds.
-10. **CIE 1998 / ISO 17166 erythemal text and Setlow 1974 (PNAS 71, 3363)** themselves, to confirm the exponent and the normalisation puzzle in 2.6.
-11. **Bucholtz 1995 Table 3, Penndorf 1957, Hulburt 1953, Kasten and Young 1989, Kasting and Donahue 1980**: still behind paywalls or captchas (2.10).
+10. **CIE 1998 / ISO 17166 erythemal text and [R4035] (PNAS 71, 3363)** themselves, to confirm the exponent and the normalisation puzzle in 2.6.
+11. **[R0575: Table 3], [R2047, R2274, R2279, R3480]**: still behind paywalls or captchas (2.10).
 12. A measured **depolarization of N2** that settles 0.0199 against 0.0305 (a 2 percent sigma issue).
 
 ---
@@ -484,11 +484,11 @@ Every value below is RECALLED (not read in a source) and appears in the text wit
 |---|---|---|
 | Starting bond lengths and angles for the DFT geometries | 2.2 method | irrelevant to the result because the geometries were optimized, but not independently checked |
 | TiO band heads near 0.705, 0.76 and 0.84 um | 2.5b | spectroscopic constants from a TiO line list |
-| Methane bands near 619, 725 and 890 nm | 2.3 notes | Karkoschka 1994 |
+| Methane bands near 619, 725 and 890 nm | 2.3 notes | [R2258] |
 | Radiation amplification factor for erythema near 1.1 | 2.7 | UNEP or WMO ozone assessment |
 | Minschwaner et al. type Schumann-Runge parameterisation as a candidate | section 4 item 4 | exact reference |
 | Names of the line lists (Toto, VOMYT, MoLLIST) and the Allard profile papers | section 4 item 3 | ExoMol site |
-| Leiden VUV database as the common name of the Heays 2017 data | 2.3 | A&A 602, A105 |
+| Leiden VUV database as the common name of the [R1873] data | 2.3 | A&A 602, A105 |
 
 SNIPPET-level items were not used.
 

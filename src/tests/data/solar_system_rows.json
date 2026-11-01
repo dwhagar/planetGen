@@ -33,7 +33,7 @@
    "carbon-chain-normal-long_period": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here"
   },
   "satellite-share": {
-   "inner rubble pile with a satellite": "near-Earth is the name of the asteroid population the binary fraction is measured in (Pravec 2006), a survey class, and the gate's cut is the survey's own"
+   "inner rubble pile with a satellite": "near-Earth is the name of the asteroid population the binary fraction is measured in [R3604], a survey class, and the gate's cut is the survey's own"
   },
   "atmosphere-b": {
    "b1": "the dry carbon bracket is derived from the carbon of non-carbonaceous building blocks, the share already differentiated and the core's share (dry_carbon, GEN.1005); the bulk silicate Earth in the row's text is a test value the bracket is compared with, no longer its anchor (GEN.813)"
@@ -50,30 +50,30 @@
    "no satellites": "the rest of the captured-moon row above it (1 minus the chance of a moon)"
   },
   "satellite-share": {
-   "belt rubble pile with a satellite": "the binary fraction measured in near-Earth and main-belt asteroids, modelled by Jacobson 2016 (a measured small-body binary fraction replaces it)"
+   "belt rubble pile with a satellite": "the binary fraction measured in near-Earth and main-belt asteroids, modelled by [R2131] (a measured small-body binary fraction replaces it)"
   },
   "small-body-taxa": {
-   "taxon-A": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-B": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-C": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-D": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-E": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-K": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-L": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-M": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-P": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-S": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
-   "taxon-V": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk"
+   "taxon-A": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-B": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-C": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-D": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-E": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-K": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-L": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-M": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-P": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-S": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk",
+   "taxon-V": "the Solar System's belt zone kernel ([R1065: Table 6]); GEN.473 derives it from the star's own disk"
   },
   "atmosphere-k": {
-   "k7": "N2, Ar, OCS and SO2 follow the host's ratios to carbon with a trapping share tuned to one measured comet (67P, Rubin 2019), and O2, Kr and Xe keep that comet's values; flagged stand-in, replaced by GEN.1021 (GEN.1005)"
+   "k7": "N2, Ar, OCS and SO2 follow the host's ratios to carbon with a trapping share tuned to one measured comet (67P, [R3835]), and O2, Kr and Xe keep that comet's values; flagged stand-in, replaced by GEN.1021 (GEN.1005)"
   },
   "surface-ground-types": {
-   "anorthositic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "basaltic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "felsic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "oxidised": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
-   "ultramafic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired"
+   "anorthositic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "basaltic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "felsic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "oxidised": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "ultramafic": "the assemblage is one of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired"
   }
  }
 }

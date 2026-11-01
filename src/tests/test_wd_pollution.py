@@ -215,7 +215,7 @@ def test_the_published_spread_lies_between_the_two_error_models_at_zero_width():
 
 def target(**overrides):
     raw = {"id": "wd-mean", "row": "tab:r", "statistic": "mean of dIW over the polluted white dwarfs", "kind": "mean",
-           "value": -1.25, "sigma": 0.1, "n": 22, "source": "Doyle 2020 Table 1 and Doyle 2023 Table 4", "label": "COMPUTED",
+           "value": -1.25, "sigma": 0.1, "n": 22, "source": "[R1152: Table 1] and [R1153: Table 4]", "label": "COMPUTED",
            "selection_model": wd.MODEL_ID, "field": "diw", "validity": {"teff_k": list(wd.VALIDITY["teff_k"])}}
     raw.update(overrides)
     return th.TargetTable({"version": 1, "targets": [raw]}).get("wd-mean")

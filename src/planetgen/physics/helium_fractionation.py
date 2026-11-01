@@ -6,7 +6,7 @@ Helium enrichment of an envelope that loses hydrogen first (GEN.1045, W16 of doc
 
 Audit of `envelope_escape` (GEN.822): it follows the *mass* of a hydrogen-helium envelope that the XUV removes (the hydro-based rate of Kubyshkina
 et al. 2018), and its composition never changes: the envelope is solar at every step, so a planet that has lost 95 percent of its envelope
-still has a solar mix and the helium-dominated air of Hu et al. 2015 and Malsky et al. 2023 cannot come out of it. This module adds the missing
+still has a solar mix and the helium-dominated air of Hu et al. 2015 and [R2839] cannot come out of it. This module adds the missing
 step as a pure function of the loss history. It changes nothing in `envelope_escape` and no generated output.
 
 Hydrogen drags helium out only while the escape flux is large enough; a smaller flux lets hydrogen leave and helium stay. With the homopause
@@ -24,9 +24,9 @@ hydrogen share falls and the threshold falls with it: a thin envelope that is st
 The total loss comes from outside: a history of `(age, envelope)` pairs, which `envelope_escape.envelope_left_earth` gives at a set of ages.
 
 What the papers give and the module reproduces: a planet must lose at least half of its starting envelope to reach a helium mass fraction of 0.4
-and be about 2 Gyr old (Malsky et al. 2023, Introduction and B.1); with a thin envelope (10^-3 of the planet's mass or less) hydrogen falls by
+and be about 2 Gyr old ([R2839], Introduction and B.1); with a thin envelope (10^-3 of the planet's mass or less) hydrogen falls by
 orders of magnitude in a few billion years (Hu et al. 2015); a 10 Earth-mass planet with 0.5 percent envelope has lost just over half of it
-after 5 Gyr at 1e9 g/s (Malsky et al. 2023, B.4).
+after 5 Gyr at 1e9 g/s ([R2839], B.4).
 
 Use:
 
@@ -42,21 +42,21 @@ from planetgen.physics import bulk_structure, constants, envelope_escape, unit_r
 _mearth_to_kg = units.converter("Mearth", "kg")
 
 SOLAR_ENVELOPE_HELIUM = 0.245
-"""float: The helium share of the mass of a hydrogen-helium envelope at the start, `Y / (X + Y)` of the solar mix (Malsky et al. 2023, A: X = 0.74,
+"""float: The helium share of the mass of a hydrogen-helium envelope at the start, `Y / (X + Y)` of the solar mix ([R2839], A: X = 0.74,
 Y = 0.24; row HF3)."""
 
 HOMOPAUSE_TEMPERATURE_K = 1.0e4
-"""float: The temperature at the homopause, K. Malsky et al. 2023 run 3,000 and 10,000 K and find helium-rich planets at both; Hu et al. 2015 use
+"""float: The temperature at the homopause, K. [R2839] run 3,000 and 10,000 K and find helium-rich planets at both; Hu et al. 2015 use
 10^4 K, the weaker fractionation (the diffusion-limited flux goes as T^-0.27), row HF2."""
 
 IONISED_SHARE = 0.1
-"""float: The hydrogen ionised share `x` at the homopause (Hu et al. 2015 Sec. 2.1 and Malsky and Rogers 2020: 0.1), row HF2."""
+"""float: The hydrogen ionised share `x` at the homopause (Hu et al. 2015 Sec. 2.1 and [R2840]: 0.1), row HF2."""
 
 HOMOPAUSE_RADIUS_OVER_TRANSIT = 1.1
-"""float: The homopause radius over the transit radius ("approximately 10 percent larger", Malsky et al. 2023 A.1), row HF2."""
+"""float: The homopause radius over the transit radius ("approximately 10 percent larger", [R2839] A.1), row HF2."""
 
 DIFFUSION_A_CM = 1.04e18
-"""float: `b = A T^0.732` in cm^-1 s^-1 (as used by Hu et al. 2015 and Malsky et al. 2023), row HF1."""
+"""float: `b = A T^0.732` in cm^-1 s^-1 (as used by Hu et al. 2015 and [R2838, R2839]), row HF1."""
 
 DIFFUSION_EXPONENT = 0.732
 """float: The temperature exponent of `b`, row HF1."""
@@ -65,7 +65,7 @@ HELIUM_ATOM_MASS_RATIO = 3.9726
 """float: The mass of a helium atom over a hydrogen atom."""
 
 MIN_HELIUM_FOR_ENHANCED = 0.4
-"""float: A planet is helium-enhanced from this helium mass fraction (Malsky et al. 2023, Introduction, row HF3)."""
+"""float: A planet is helium-enhanced from this helium mass fraction ([R2839], Introduction, row HF3)."""
 
 STEP_SHARE = 0.02
 """float: The largest share of the envelope one step of `evolve` removes (numerical)."""

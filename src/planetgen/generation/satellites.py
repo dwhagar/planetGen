@@ -8,26 +8,26 @@ Milky Way's own rows are reference data for the plausibility tests (`tests/refer
 The chain, each link from the one before it and each scatter drawn through `unit_seed(galaxy_seed, "satellites", <link>)`:
 
 1. **Subhaloes** of the host's halo mass `Mh` (200 times critical, `galaxy.mass_chain`): the number above a mass fraction
-   `mu = Msub / Mh` is `N(> mu) = (mu / MU1)^A exp[-(mu / MU_CUT)^B]` (Boylan-Kolchin et al. 2010, arXiv:0911.4484, Eqs. 7
+   `mu = Msub / Mh` is `N(> mu) = (mu / MU1)^A exp[-(mu / MU_CUT)^B]` ([R0508], Eqs. 7
    and 8; about 640 above `mu = 1e-5`), the count drawn as a Poisson number and each mass from that law. The mass is taken
    as the peak mass, the one a galaxy forms by.
 2. **Occupation**: a subhalo hosts a galaxy with the probability `0.5 [1 + erf((log Mpeak - log M50) / (sqrt(2) sigma))]`
-   (Nadler et al. 2020, arXiv:1912.03303, Eq. 3: `M50` at its 95 percent upper limit, 8.5e7 solar masses, `sigma` 0.03 dex).
-3. **Stellar mass** from the peak mass by the stellar-to-halo relation of the mass chain (Moster, Naab and White 2013,
+   ([R3232: Eq. 3]: `M50` at its 95 percent upper limit, 8.5e7 solar masses, `sigma` 0.03 dex).
+3. **Stellar mass** from the peak mass by the stellar-to-halo relation of the mass chain ([R3181],
    `mass_chain.median_stellar_mass`, extrapolated down to the dwarf end, which the research note marks as an underestimate
    of the faintest galaxies), scattered by 0.19 dex (Nadler's 95 percent upper limit for satellites). A galaxy under
    `MIN_STELLAR_MASS_SOLAR` is not made.
-4. **Size** from the stellar mass: Carlsten et al. 2021 (ELVES I, arXiv:2105.03435, Eq. 5) `log r_e = 1.071 + 0.247 log M*`
-   with 0.181 dex below `log M* = 8.5`, and above it the late-type size-mass law of the galaxy shape (Shen et al. 2003,
+4. **Size** from the stellar mass: [R0655] (ELVES I, [R0655: Eq. 5]) `log r_e = 1.071 + 0.247 log M*`
+   with 0.181 dex below `log M* = 8.5`, and above it the late-type size-mass law of the galaxy shape ([R4048],
    `galaxy.shape_draw.size_median_kpc`), which meets it there to 5 percent.
-5. **Metallicity**: `<[Fe/H]> = -1.69 + 0.30 log(M* / 1e6)` (Kirby et al. 2013, ApJ 779, 102) with 0.17 dex about it (0.09
+5. **Metallicity**: `<[Fe/H]> = -1.69 + 0.30 log(M* / 1e6)` [R2368] with 0.17 dex about it (0.09
    for the gas-rich ones).
 6. **Profile and age**: exponential for a gas-rich galaxy (`M*` over `EXPONENTIAL_MIN_STELLAR_MASS_SOLAR`), Plummer for a
    dwarf spheroidal; the mean age falls with mass along `AGE_AT_1E5_GY` and `AGE_SLOPE_GY_PER_DEX`, STAND-INS anchored on
-   the quenching times of Weisz et al. 2015 (arXiv:1503.05195: the faintest quenched 10 Gyr ago, a few-1e8 galaxy still
+   the quenching times of [R4661] ([R4661]: the faintest quenched 10 Gyr ago, a few-1e8 galaxy still
    forming).
 7. **Gas by distance (GEN.1193)**: dwarfs of the Local Group within about 270 kpc of the Milky Way or Andromeda mostly hold no
-   HI (under 1e5 solar masses) and those beyond mostly do, 1e5 to 1e8 (Grcevich and Putman 2009, arXiv:0901.4975, abstract and
+   HI (under 1e5 solar masses) and those beyond mostly do, 1e5 to 1e8 ([R1671], abstract and
    section 3.4 read: the cutoff lies between 250 and 280 kpc, 14 of the 16 dwarfs beyond 280 kpc are detected, and the ram
    pressure of the host's halo gas is the likely cause). The cutoff scales with the host's virial radius
    (`STRIPPING_RADIUS_MILKY_WAY_KPC`). Inside it a satellite lighter than `STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR` (the
@@ -36,7 +36,7 @@ The chain, each link from the one before it and each scatter drawn through `unit
    satellites keeps its gas: its mean age is lowered to the oldest at which it still forms stars, if it forms at any.
    The age is drawn first from the mass law (6), so this moves only those near the star formation threshold.
 8. **Place**: the distance from the host's centre from an Einasto profile far less concentrated than the dark matter
-   (`EINASTO_ALPHA`, `EINASTO_R_MINUS2_OVER_R200`: Nadler 2020, a calibration on one halo), between `INNER_OVER_R200` of
+   (`EINASTO_ALPHA`, `EINASTO_R_MINUS2_OVER_R200`: [R3232] calibration on one halo), between `INNER_OVER_R200` of
    the virial radius (STAND-IN: the host's disc destroys what comes closer) and the virial radius, in an isotropic
    direction. Nothing lies beyond the virial radius, and the radius is the halo's, not the disc's.
 
@@ -58,7 +58,7 @@ SUBHALO_MU1 = 0.01
 SUBHALO_MU_CUT = 0.096
 SUBHALO_SLOPE = -0.935
 SUBHALO_CUTOFF_EXPONENT = 1.29
-"""float: The constants of the subhalo count `N(> mu) = (mu / MU1)^a exp[-(mu / MU_CUT)^b]` (Boylan-Kolchin 2010 Eqs. 7, 8)."""
+"""float: The constants of the subhalo count `N(> mu) = (mu / MU1)^a exp[-(mu / MU_CUT)^b]` ([R0508] Eqs. 7, 8)."""
 
 SUBHALO_MU_MAX = 0.2
 """float: STAND-IN: the heaviest subhalo drawn, as a fraction of the host's halo: a satellite is the lighter of a pair, and a
@@ -70,9 +70,9 @@ tenth of the Milky Way's): a host drawn light for its halo would otherwise out-w
 
 OCCUPATION_M50_SOLAR = 8.5e7
 OCCUPATION_SIGMA_DEX = 0.03
-"""float: The centre and width of the peak-mass occupation curve (Nadler 2020)."""
+"""float: The centre and width of the peak-mass occupation curve [R3232]."""
 OCCUPATION_FLOOR_SOLAR = 1.0e6
-"""float: The lightest peak mass a detectable galaxy needs (Nadler 2020, section 7.5)."""
+"""float: The lightest peak mass a detectable galaxy needs ([R3232], section 7.5)."""
 
 STELLAR_SCATTER_DEX = 0.19
 MIN_STELLAR_MASS_SOLAR = 1.0e3
@@ -91,7 +91,7 @@ KIRBY_SCATTER_DEX = 0.17
 KIRBY_IRREGULAR_SCATTER_DEX = 0.09
 
 EXPONENTIAL_MIN_STELLAR_MASS_SOLAR = 1.0e8
-"""float: STAND-IN: the stellar mass from which a satellite is a gas-rich, still star-forming exponential disc (Weisz 2015:
+"""float: STAND-IN: the stellar mass from which a satellite is a gas-rich, still star-forming exponential disc ([R4661]:
 about 40 percent of the galaxies near 1e8 are quenched today, all of the fainter ones)."""
 AGE_AT_1E5_GY = 11.5
 AGE_SLOPE_GY_PER_DEX = -1.2
@@ -103,7 +103,7 @@ MILKY_WAY_STELLAR_MASS_SOLAR = 5.0e10
 """float: The Milky Way's stellar mass (as `galaxy.structure` takes it), whose median halo sets the stripping radius's scale."""
 STRIPPING_RADIUS_MILKY_WAY_KPC = 270.0
 """float: The distance from a host inside which its dwarfs have lost their gas, for the Milky Way's halo: Grcevich and Putman
-2009 (arXiv:0901.4975, abstract and section 3.4 read) put the cutoff between 250 and 280 kpc. Scaled with the host's virial
+2009 ([R1671], abstract and section 3.4 read) put the cutoff between 250 and 280 kpc. Scaled with the host's virial
 radius [I]: the ram pressure that strips them is the halo gas's."""
 STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR = 4.0e8
 """float: STAND-IN: the lightest satellite that keeps its gas inside the stripping radius. The Small Magellanic Cloud (4.6e8
@@ -113,7 +113,7 @@ STRIPPING_AGE_MARGIN_GY = 0.01
 """float: How far past the oldest age that forms stars a stripped satellite's age is put, Gy."""
 GAS_DETECTED_BEYOND_STRIPPING = 0.875
 """float: The share of satellites beyond the stripping radius that hold gas: 14 of the 16 dwarfs beyond 280 kpc are detected
-(Tucana and Cetus are not; Grcevich and Putman 2009, section 3.4 read)."""
+(Tucana and Cetus are not; [R1671], section 3.4 read)."""
 
 EINASTO_ALPHA = 0.678
 EINASTO_R_MINUS2_OVER_R200 = 0.81
@@ -127,7 +127,7 @@ def subhalo_count_above(mu):
 
 
 def occupation_probability(peak_mass_solar):
-    """The probability that a subhalo of this peak mass hosts a galaxy (Nadler 2020 Eq. 3)."""
+    """The probability that a subhalo of this peak mass hosts a galaxy ([R3232: Eq. 3])."""
     if peak_mass_solar < OCCUPATION_FLOOR_SOLAR:
         return 0.0
     along = (math.log10(peak_mass_solar) - math.log10(OCCUPATION_M50_SOLAR)) / (math.sqrt(2.0) * OCCUPATION_SIGMA_DEX)
@@ -204,7 +204,7 @@ def half_light_radius_pc(stellar_mass_solar, deviation):
 
 
 def mean_fe_h(stellar_mass_solar):
-    """The mean [Fe/H] of a satellite of this stellar mass (Kirby et al. 2013)."""
+    """The mean [Fe/H] of a satellite of this stellar mass [R2368]."""
     return KIRBY_FE_H_AT_1E6 + KIRBY_FE_H_SLOPE * math.log10(stellar_mass_solar / 1.0e6)
 
 

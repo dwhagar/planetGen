@@ -4,7 +4,7 @@
 Rock types from a bulk composition: the normative minerals of its oxides, what it melts to, and the ground type of the result (GEN.474, part 1;
 docs/design/composition/surface-composition.md, "Rock types from the oxides").
 
-`surface_composition.GROUND_TYPES` is a library of the Earth's and the Moon's crusts (Hu, Ehlmann and Seager 2012 Table 2): each ground type is a
+`surface_composition.GROUND_TYPES` is a library of the Earth's and the Moon's crusts (Hu, [R2024: Table 2]): each ground type is a
 fixed mineral list. Here the ground type is worked out from the oxides of the body's own mantle:
 
 1. **The norm** (`cipw_norm`). The CIPW norm (Cross, Iddings) allocates the oxides of a rock to an ideal set of minerals by mass
@@ -20,10 +20,10 @@ fixed mineral list. Here the ground type is worked out from the oxides of the bo
    coefficient, taken as zero).
 3. **The ground type** (`ground_type_of`), from the oxides of the melt or of the rock: anorthositic when the plagioclase is 90 percent or more of the norm
    (IUGS anorthosite), ultramafic when silica is under 45 percent (ultrabasic) or magnesia over 18 percent (komatiite), then by the silica of the total alkali-silica
-   diagram's bands (Le Bas et al. 1986): basic (45 to 52 percent, basaltic), intermediate (52 to 63) and acid (63 or more, felsic).
+   diagram's bands [R0277]: basic (45 to 52 percent, basaltic), intermediate (52 to 63) and acid (63 or more, felsic).
 
 The Earth's oxide analyses are test points and never inputs: the bulk silicate Earth (McDonough and Sun 1995, `mixture_lava.OXIDES`) melted by a tenth is a
-basalt; the upper continental crust (Rudnick and Gao 2014 Table 11) is felsic and the lower crust intermediate; a lunar highland anorthosite is anorthositic.
+basalt; the upper continental crust ([R3842: Table 11]) is felsic and the lower crust intermediate; a lunar highland anorthosite is anorthositic.
 
 Limits. The norm has no hydrous or carbonate minerals, no sulfur and no peralkaline allocation (acmite and sodium metasilicate): a rock whose alkalis exceed its
 alumina is refused. The melt is a staged allocation, not a phase-equilibrium calculation (MELTS or pMELTS would give the real liquid at a pressure; the real
@@ -81,7 +81,7 @@ ULTRABASIC_SILICA = 45.0
 KOMATIITE_MAGNESIA = 18.0
 BASIC_SILICA = 52.0
 ACID_SILICA = 63.0
-"""float: The silica bands of the total alkali-silica diagram (Le Bas et al. 1986: ultrabasic under 45, basic to 52, intermediate to 63, acid above) and the
+"""float: The silica bands of the total alkali-silica diagram ([R0277]: ultrabasic under 45, basic to 52, intermediate to 63, acid above) and the
 18 percent magnesia of a komatiite. [Stand-in RT2, tier T2, tweak L0.]"""
 
 INCOMPATIBLE_D = 0.0

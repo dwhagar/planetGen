@@ -1,5 +1,5 @@
 {
- "source": "the Brion team's 1992 to 1998 measurements, 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 (Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
+ "source": "the Brion team's 1992 to 1998 measurements, 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 ([R2303], Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
  "temperature_k": 295.0,
  "wavelength_nm": [
   380.0,
@@ -167,7 +167,7 @@
   2.92675e-22,
   3.15685e-22
  ],
- "ratio_source": "Burkholder and Talukdar (1994), Geophys. Res. Lett. 21, 581, 407 to 762 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 (Keller-Rudek et al. 2013); cell means on 5 nm cells over the 298 K table, 1 outside 407 to 762 nm",
+ "ratio_source": "[R0599], Geophys. Res. Lett. 21, 581, 407 to 762 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 [R2302, R2303]; cell means on 5 nm cells over the 298 K table, 1 outside 407 to 762 nm",
  "ratio_temperatures_k": [
   220.0,
   240.0,

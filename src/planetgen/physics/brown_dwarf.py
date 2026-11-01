@@ -5,15 +5,15 @@ A brown dwarf as a star (GEN.252, GEN.549): its mass, how bright and hot it is a
 that temperature makes.
 
 A brown dwarf is too light to hold hydrogen fusion, so it only cools. Its temperature and radius at a mass and an age
-come from the evolutionary models of Baraffe, Homeier, Allard and Chabrier 2015 (A&A 577:A42, the 30 ages of `datasets/baraffe_isochrones.py`, GEN.948):
+come from the evolutionary models of [R0254] (A&A 577:A42, the 30 ages of `datasets/baraffe_isochrones.py`, GEN.948):
 one cooling track per mass, interpolated in the logarithms of mass and age. The models stop where an object has cooled
-below their range (about 1,500 K); a track that ends before 10 Gy continues at the old-age cooling of Burrows et al. 2001
+below their range (about 1,500 K); a track that ends before 10 Gy continues at the old-age cooling of [R0606]
 (Rev. Mod. Phys. 73:719, eq. 2, `Teff` falling as `t^-0.32`) with its last radius, and a track that reaches 10 Gy holds its
 last values: the objects at the hydrogen-burning limit settle on a plateau, which is why L dwarfs hotter than 1,500 K
 exist in the numbers the 20 pc census counts. The temperature is capped at the temperature of the
 hydrogen-burning limit at the age (`substellar_ceiling.cap_k`, BHAC15: 2,950 K at the peak, 2,050 K at 1 Gy), the hottest a brown dwarf of that age can be. The luminosity is `4 pi R^2 sigma Teff^4` of the two.
 
-The spectral type is the map of Kirkpatrick et al. 2021 (ApJS 253:7, Table 13, from 525 L, T and Y dwarfs within 20 pc,
+The spectral type is the map of [R2374] (ApJS 253:7, Table 13, from 525 L, T and Y dwarfs within 20 pc,
 `brown_dwarf_types`): L0 is 2,238 K, T0 1,255 K, Y0 461 K. The map has a scatter of 134 K among L dwarfs and 79 K among T
 and Y dwarfs, and a dwarf's type is drawn with it (GEN.760) on a stream of its temperature, so a given dwarf always has the
 one type but dwarfs of one temperature do not all share it. Above L0 it is a late-M dwarf, named by the stellar scale
@@ -80,7 +80,7 @@ def luminosity_sol(mass_sol, age_gy):
 def spectral_type(temperature_k):
     """
     The spectral type of a brown dwarf of this effective temperature: `"M8"` (a late-M dwarf), `"L5"`, `"T2"` or `"Y0"`
-    (GEN.760). The map of Kirkpatrick et al. 2021 (`brown_dwarf_types`) gives the type's mean temperature with a scatter
+    (GEN.760). The map of [R2374] (`brown_dwarf_types`) gives the type's mean temperature with a scatter
     of 134 K among L dwarfs and 79 K among T and Y dwarfs, and the type is drawn with it (`brown_dwarf_types.drawn_number`)
     on a stream of the temperature alone, so the same dwarf has the same type wherever it is read from its stored
     temperature. A temperature that reads as L0 or hotter after the offset is a late-M dwarf, named by the stellar scale.

@@ -1,6 +1,6 @@
 # tests/test_saturation_time.py
 
-"""GEN.493: the X-ray saturation time by stellar mass and rotation percentile (`physics/saturation_time.py`), read off Johnstone et al. 2021 Fig. 10."""
+"""GEN.493: the X-ray saturation time by stellar mass and rotation percentile (`physics/saturation_time.py`), read off [R2183: Fig. 10]."""
 
 import pytest
 
@@ -34,7 +34,7 @@ def test_the_published_curves_are_reproduced_at_their_anchors():
 
 
 def test_the_mid_to_late_m_dwarfs_stay_saturated_for_gigayears_as_medina_2022_finds():
-    """Medina et al. 2022: the saturated to unsaturated flaring transition of 0.1 to 0.3 solar mass stars is at 2.4 +- 0.3 Gyr on average (kinematic ages)."""
+    """[R3017]: the saturated to unsaturated flaring transition of 0.1 to 0.3 solar mass stars is at 2.4 +- 0.3 Gyr on average (kinematic ages)."""
     masses = [0.1 + 0.01 * i for i in range(21)]
     weights = [m ** -1.3 for m in masses]       # a Kroupa-like mass function below half a solar mass
     mean = sum(w * sat.saturation_time_myr(m, 50.0) for m, w in zip(masses, weights)) / sum(weights)

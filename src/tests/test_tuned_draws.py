@@ -115,7 +115,7 @@ def test_the_thorium_to_uranium_ratio_grows_with_the_planets_age_and_follows_the
 
 def test_the_enriched_aluminium_share_bracket_is_the_published_one():
     constant = RECIPES.entry("o6").constants["c_o6"]
-    assert (constant[0], constant[1]) == (0.04, 0.66), "at least 4 percent of systems (Curry 2022) to the white-dwarf upper estimate"
+    assert (constant[0], constant[1]) == (0.04, 0.66), "at least 4 percent of systems [R0967] to the white-dwarf upper estimate"
 
 
 # --- retention and lava worlds (GEN.511) ---------------------------------------------------------------------------------------
@@ -127,7 +127,7 @@ def test_the_shoreline_is_the_published_logistic():
     def bare(insolation, v_esc_kms=11.186, luminosity=1.0):
         s = Subject("terrestrial", {"insolation": insolation, "v_esc_kms": v_esc_kms, "luminosity_solar": luminosity})
         return dict(RECIPES.probabilities("d", s)).get("d1", 0.0)
-    # log10 f0 = 2.62 at the Earth's escape velocity and a solar luminosity (Berta-Thompson 2025): half the planets keep an atmosphere
+    # log10 f0 = 2.62 at the Earth's escape velocity and a solar luminosity [R0364]: half the planets keep an atmosphere
     assert bare(10 ** 2.62) == pytest.approx(0.5, abs=1e-6)
     assert bare(10 ** (2.62 + 0.247)) == pytest.approx(1.0 / (1.0 + 10 ** -1.0), abs=1e-6), "one width above the line"
     assert bare(10 ** 2.62 * 10 ** 5.9, v_esc_kms=11.186 * 10.0) == pytest.approx(0.5, abs=1e-6), "p = 5.9 in the escape velocity"
@@ -199,7 +199,7 @@ def test_the_saturation_time_follows_the_mass_and_agrees_with_tu_2015_at_one_sol
         return RECIPES.derive("p6", Subject("terrestrial", {"drawn.p": "p5", "host_mass_solar": mass}), value=u)["t_sat_myr"]
     assert (t_sat(0.1), t_sat(0.5), t_sat(0.9)) == pytest.approx((5.7, 23.0, 226.0), rel=0.1), "Tu 2015: the 10th, 50th and 90th percentile tracks"
     assert t_sat(0.02) < 5.7 < 23.0 < t_sat(0.98), "a monotonic run through the tail percentiles"
-    assert t_sat(0.3, 0.3) == pytest.approx(saturation_time.saturation_time_myr(0.3, 30.0)) and t_sat(0.5, 0.3) > 50 * t_sat(0.5, 1.0), "Johnstone 2021: low-mass stars stay saturated longer"
+    assert t_sat(0.3, 0.3) == pytest.approx(saturation_time.saturation_time_myr(0.3, 30.0)) and t_sat(0.5, 0.3) > 50 * t_sat(0.5, 1.0), "[R2183]: low-mass stars stay saturated longer"
     spec = RECIPES.entry("p6").spec["dist"]
     assert (spec["kind"], spec["lo"], spec["hi"]) == ("uniform", 0.02, 0.98), "no paper weights the tracks"
 
@@ -209,7 +209,7 @@ def test_the_m_dwarf_saturation_time_passes_through_the_three_measured_masses():
 
     def tau(mass):
         return RECIPES.derive("p4", Subject("terrestrial", {"host_type": "M", "host_mass_solar": mass, "age_gy": 1.0}))["tau_sat_gy"]
-    assert (tau(0.55), tau(0.25), tau(0.15)) == pytest.approx((0.162, 0.6, 2.3)), "Jackson 2012 and Medina 2022"
+    assert (tau(0.55), tau(0.25), tau(0.15)) == pytest.approx((0.162, 0.6, 2.3)), "[R2118, R3017]"
     assert tau(0.55) < tau(0.4) < tau(0.25) < tau(0.2) < tau(0.15), "later saturation end for lower masses"
 
 

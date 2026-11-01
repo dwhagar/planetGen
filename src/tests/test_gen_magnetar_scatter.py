@@ -85,7 +85,7 @@ def test_a_milky_way_holds_about_a_hundred_magnetars():
     young, _every = _young_and_total_integrals(MILKY_WAY)
     e_value = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
     expected = scatter.class_rate_per_star(*MAGNETAR) * e_value * young / EDGE_PC ** 3
-    assert 30.0 <= expected <= 250.0     # about 100 active, 30 to 600 (Olausen & Kaspi 2014)
+    assert 30.0 <= expected <= 250.0     # about 100 active, 30 to 600 [R3346]
     # Against the neutron stars the same arithmetic gives the 1e9 of the Galaxy.
     stars = e_value * (young / tuning.MAGNETAR_YOUNG_STAR_SHARE) / EDGE_PC ** 3
     assert 3.0e8 <= scatter.class_rate_per_star("neutron-star", None) * stars <= 3.0e9

@@ -4,7 +4,7 @@
 A disintegrating rocky planet: its wind, its lifetime and when a body can be one (GEN.1041, W14 of docs/design/systems/weird-worlds.md, registry 6.73)
 =======================================================================================================================================================
 
-Kepler-1520 b (KIC 12557548 b), K2-22 b and KOI-2700 b dim by a changing fraction with a dust tail. Perez-Becker and Chiang 2013 (arXiv:1302.2147)
+Kepler-1520 b (KIC 12557548 b), K2-22 b and KOI-2700 b dim by a changing fraction with a dust tail. [R3487]
 show the dayside of a rocky planet under about 0.1 Earth mass at over 2000 K lifts a wind of its own rock vapour, and the gravity of such a small body is
 too weak to hold it: the mass loss goes as the vapour density at the surface times the exponential of the escape energy over the thermal energy.
 

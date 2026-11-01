@@ -39,7 +39,7 @@ def test_earth_like_air_under_a_sun_like_star_is_the_blue_of_the_worked_example(
     assert result.hex == "#99bfff"
     assert (result.colour.x, result.colour.y) == pytest.approx((0.2452, 0.2521), abs=0.001)
     assert result.word == "pale blue"
-    assert result.tau_rayleigh_550 == pytest.approx(0.09721, rel=0.02)         # Bucholtz 1995 Table 4
+    assert result.tau_rayleigh_550 == pytest.approx(0.09721, rel=0.02)         # [R0575: Table 4]
     assert result.regime == "thin"
     assert not result.aerosol_dominated and result.aerosol_shift == 0.0
     assert result.label == "pale blue"
@@ -144,7 +144,7 @@ def test_ozone_matters_more_when_the_sun_is_low_and_the_table_is_the_chappuis_ba
 
 
 def test_the_chappuis_band_is_weaker_in_the_cold_at_its_blue_edge_and_unchanged_at_its_peak():
-    """GEN.748: the ratio of Burkholder and Talukdar (1994) at 220 K to 298 K is 0.64 to 0.8 between 410 and 450 nm, within 2 percent of 1 near
+    """GEN.748: the ratio of [R0599] at 220 K to 298 K is 0.64 to 0.8 between 410 and 450 nm, within 2 percent of 1 near
     the 600 nm peak, and the table at 298 K is the Brion-team one."""
     cold, warm, default = ac.chappuis_cross_section_cm2(220.0), ac.chappuis_cross_section_cm2(298.0), ac.chappuis_cross_section_cm2()
     nm = ac.WAVELENGTHS_NM

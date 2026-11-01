@@ -11,10 +11,10 @@ A = pi m_e^4 c^5 / (3 h^3), B = 8 pi m_u mu_e (m_e c)^3 / (3 h^3) and
 f(x) = x (2x^2 - 3) sqrt(1 + x^2) + 3 asinh(x). Hydrostatic equilibrium dP/dr = -G m rho / r^2 and dm/dr = 4 pi r^2 rho are
 integrated outward from the centre (central x_c) to the radius where x falls to 1e-4. There is no Coulomb correction, no
 temperature and no hydrogen or helium layer, so a real white dwarf is a few percent larger; Sirius B (1.018 solar masses,
-0.00803 +- 0.00011 solar radii, Joyce et al. 2018) comes out within 0.1 percent, and the honest test limit is 5 percent.
+0.00803 +- 0.00011 solar radii, [R2208]) comes out within 0.1 percent, and the honest test limit is 5 percent.
 
 Run it from the repository root with scipy installed: `python scripts/build_white_dwarf_table.py`. The constants are
-CODATA 2018; the solar mass and radius are those of `physics/constants.py`.
+[R4361]; the solar mass and radius are those of `physics/constants.py`.
 """
 
 import json
@@ -71,8 +71,8 @@ def main():
         "title": "The zero-temperature white dwarf mass-radius relation (GEN.439)",
         "sources": [
             "Chandrasekhar's equation of state of a cold relativistic degenerate electron gas with mu_e = 2, integrated by "
-            "scripts/build_white_dwarf_table.py (CODATA 2018 constants; scipy LSODA); Sirius B (Joyce et al. 2018, "
-            "arXiv:1809.01240) is reproduced to 0.1 percent",
+            "scripts/build_white_dwarf_table.py ([R4361] constants; scipy LSODA); Sirius B [R2208] is "
+            "reproduced to 0.1 percent",
             "no Coulomb or temperature correction and no surface layer, so a real star is a few percent larger"],
         "columns": ["central_x", "mass_solar", "radius_solar"],
         "limiting_mass_solar": round(5.83 / MU_E ** 2, 4),

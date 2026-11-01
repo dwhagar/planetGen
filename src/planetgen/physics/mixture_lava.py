@@ -6,7 +6,7 @@ The vapour over a molten surface: lava worlds and the silicate exosphere of a wh
 
 A surface hot enough to be molten (`MELT_MIN_K`) holds a vapour whose species are fixed by the melt's own chemistry, not by an element
 budget: the melt is an infinite reservoir, and every gas that its atoms can make stands at the pressure the melt's chemical potentials
-give it. The melt is an ideal solution of its oxides (Schaefer and Fegley 2004, 2009; Miguel et al. 2011 treat the BSE the same way
+give it. The melt is an ideal solution of its oxides ([R3942], 2009; [R3059] treat the BSE the same way
 to first order) whose liquid free energies are NASA Glenn's (`physics/species_thermo.py`, extended below their melting points as
 supercooled liquids), and the oxygen fugacity of the vapour is held at the redox the recipe tables drew (a1, the magma-ocean
 stage, or a4, the white-dwarf debris), in units of the iron-wuestite buffer. With each element's potential
@@ -16,7 +16,7 @@ stage, or a4, the white-dwarf debris), in units of the iron-wuestite buffer. Wit
 
 the partial pressure of any gas j of those elements follows with no iteration: `ln p_j = sum_el nu_el m_el - g(j)`, the standard
 state being 1 bar. The mole fractions are the partial pressures over their sum; the pressure the vapour sums to is the vapour pressure
-over the melt (Kite et al. 2016's `p_eq_bar` of the recipe row `i6`, which this reproduces within a factor 10; it is the generator's
+over the melt ([R2380]'s `p_eq_bar` of the recipe row `i6`, which this reproduces within a factor 10; it is the generator's
 to use, not this module's). The oxides are all in the vapour's elements, aluminium included (GEN.818): its gases are Al, AlO, Al2O, AlO2 and Al2O2 of the
 species table, from an Al2O3 activity that is its mole fraction (`ALUMINA_ACTIVITY_COEFFICIENT`).
 
@@ -34,7 +34,7 @@ from planetgen.physics.mixture_base import MixtureError, bracket, finish, requir
 from planetgen.util import draw
 
 MELT_MIN_K = 1400.0
-"""float: The least surface temperature of a molten surface (Kite et al. 2016's range starts here); a hotter-zone body below it
+"""float: The least surface temperature of a molten surface ([R2380]'s range starts here); a hotter-zone body below it
 outgasses and is not a lava world."""
 
 SUPERCOOLED_BELOW_K = 1000.0
@@ -60,13 +60,13 @@ ELEMENTS = ("O", "Na", "K", "Mg", "Si", "Fe", "Ca", "Ti", "Al")
 ALKALI_ACTIVITY_COEFFICIENT = (3e-9, 3e-8, "log")
 """tuple: The activity coefficient of Na2O and K2O in the silicate melt (an ideal solution has 1; the alkali oxides are held in the
 silicate network and their activities are many orders of magnitude below their mole fractions). A stand-in: this bracket is the one
-that reproduces Kite et al. 2016's vapour pressure over a BSE melt (2e-4 bar at 2000 K, 8e-3 bar at 2500 K; READ) and the sequence
-of Miguel et al. 2011 (sodium first, SiO, Mg and Fe from the 2000 to 2500 K range up; READ, tables not reached), which the ideal
+that reproduces [R2380]'s vapour pressure over a BSE melt (2e-4 bar at 2000 K, 8e-3 bar at 2500 K; READ) and the sequence
+of [R3059] (sodium first, SiO, Mg and Fe from the 2000 to 2500 K range up; READ, tables not reached), which the ideal
 solution misses by a factor 1e4 at 2000 K. The research item that replaces it is the melt activity model of GEN.499."""
 
 ALUMINA_ACTIVITY_COEFFICIENT = 1.0
 """float: The activity coefficient of Al2O3 in the silicate melt, so that its activity is its mole fraction (the liquid at the melt's
-temperature is the standard state). A stand-in (tier 3, tweak level 0): Fegley, Lodders and Jacobson (2023) compare activity-coefficient
+temperature is the standard state). A stand-in (tier 3, tweak level 0): [R1341] compare activity-coefficient
 models of the bulk silicate Earth melt with an ideal solution and find them agreeing except for the alkali elements, with aluminium
 not named among the sensitive ones and its condensation temperature the same for the dry and the wet melt (read in the abstract only;
 the paper and its Al2O3 value are not opened). The alkalis are the exception that `ALKALI_ACTIVITY_COEFFICIENT` carries. The research

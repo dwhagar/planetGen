@@ -34,7 +34,7 @@ CALIBRATION_TARGETS = (
     ("europa", "mean density 3013 kg/m3"),
     ("ganymede", "mean density 1942 kg/m3"),
     ("callisto", "mean density 1834 kg/m3"),
-    ("sirius-b", "1.018 solar masses at 5,840 km (Bond 2017)"),
+    ("sirius-b", "1.018 solar masses at 5,840 km [R0454]"),
 )
 """tuple: The measured bodies' target rows, as a test would hold them (a test point, never a table source)."""
 

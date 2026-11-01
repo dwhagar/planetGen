@@ -13,7 +13,7 @@ the bands of R6 (UV-C, UV-B, UV-A, visible, near infrared), the CIE erythemal UV
 them, a Lambertian ground below):
 
 1. the air above the ozone layer: the mixture's Rayleigh scattering (`physics/rayleigh`) and the absorption of every gas the
-   gas table has ultraviolet cross sections for (`physics/uv_cross_sections`, band means of Heays 2017 and Huebner 2015:
+   gas table has ultraviolet cross sections for (`physics/uv_cross_sections`, band means of [R1873, R2040]:
    O2, CO2, H2O, SO2, H2S, NH3, CH4 ...), a share `p_ozone / P` of the whole column;
 2. the ozone (a pure absorber): the column in Dobson units times the high-resolution cross section at the layer's temperature;
 3. the rest of the air, with the haze that is mixed with it;
@@ -55,7 +55,7 @@ SETLOW_NM = (256.0, 260.0, 266.0, 268.0, 270.0, 276.0, 280.0, 286.0, 290.0, 294.
              340.0, 350.0, 360.0)
 SETLOW_WEIGHT = (1.07, 1.12, 1.23, 1.23, 1.13, 0.933, 0.791, 0.530, 0.309, 0.163, 0.0552, 0.0333, 0.00901, 0.00115, 2.5e-4, 4.3e-5,
                  1.1e-5, 4.6e-6, 2.6e-6, 1.8e-6)
-"""The Setlow 1974 DNA-damage action spectrum, per quantum (TUV-x data; the file says it is normalised at 300 nm but stores 0.0333 there,
+"""The [R4033, R4035] DNA-damage action spectrum, per quantum (TUV-x data; the file says it is normalised at 300 nm but stores 0.0333 there,
 reported not resolved: part 02 2.6). Multiplied by `lambda / 300` for an energy irradiance."""
 
 CLOUD_OMEGA = 1.0 - 1e-6

@@ -15,8 +15,8 @@ One reference solver and three fast forms:
   section 3.8, verified there against a scipy reference built from the full mantle tables: 0.20 percent in radius, 0.28 in
   the moment of inertia, 0.93 in the core-mantle pressure over 90 cases) extended with a water layer on top whose
   density is the 300 K isotherm of liquid water (IAPWS-95 through the NIST WebBook, to 950 MPa), the ice VI, VII and X
-  reference points of the materials table (GEN.427) and Seager et al. 2007's polytrope above 1 TPa (the way part C built its
-  three-layer reference, within 1.5 percent of Zeng and Sasselov 2013 for water-bearing cases from 0.5 to 50 Earth masses).
+  reference points of the materials table (GEN.427) and [R3992]'s polytrope above 1 TPa (the way part C built its
+  three-layer reference, within 1.5 percent of [R4881] for water-bearing cases from 0.5 to 50 Earth masses).
   Hydrostatic balance in s = m^(1/3), fourth-order Runge-Kutta, shooting on the central pressure to 1 bar at the surface.
   Validated 0.1 to 20 Earth masses; it is also used out of the closed forms' ranges (a moon, a dwarf planet) with the
   same equations, and then the caller reads `Structure.method`.
@@ -26,7 +26,7 @@ One reference solver and three fast forms:
   fraction 0 to 1, core fraction of the dry part 0 to 0.5; rms 1.2 and at most 3.6 percent.
 - **Small differentiated bodies**: `small_body_radius_earth`, a fit to the solver for 1.5e-4 to 0.3 Earth masses (rms 0.57,
   at most 2.0 percent), so a Mars, a Mercury or a Ganymede has a radius without running the solver.
-- **An envelope on a core**: `envelope_radius_earth`, Lopez and Fortney 2014 Eqs. 1 and 3 (1 to 20 Earth masses, envelope
+- **An envelope on a core**: `envelope_radius_earth`, [R2741] Eqs. 1 and 3 (1 to 20 Earth masses, envelope
   0.01 to 20 percent, flux 0.1 to 1000 Earth's, age 0.1 to 10 Gyr; rms 6.3 percent at 1 Gyr against their tables), at the
   20 mbar level; the 1 bar radius adds ln(50) scale heights.
 
@@ -79,7 +79,7 @@ GIANT_ENVELOPE_FRACTION = 0.5
 # ---------------------------------------------------------------------------------------------------------------------
 
 CORE = (8264.2, 157.07e9, 5.6167)
-"""tuple: The core's Vinet fit to hcp iron, (rho0 kg/m3, K0 Pa, K0'), Dewaele 2006 below 234.4 GPa, Hakim 2018 above,
+"""tuple: The core's Vinet fit to hcp iron, (rho0 kg/m3, K0 Pa, K0'), [R1096] below 234.4 [R1752] above,
 0.3 percent in density from 1 to 1000 GPa (part B 3.8)."""
 
 _MANTLE_LOG_P = (5.5, 8.0, 9.0, 9.4, 9.7, 9.95, 10.1, 10.25, 10.35, 10.45, 10.6, 10.8, 11.0, 11.15, 11.3,
@@ -87,14 +87,14 @@ _MANTLE_LOG_P = (5.5, 8.0, 9.0, 9.4, 9.7, 9.95, 10.1, 10.25, 10.35, 10.45, 10.6,
 _MANTLE_RHO = (3055, 3060, 3097, 3154, 3234, 3361, 3457, 3880, 4049, 4351, 4494, 4748, 5091, 5534, 5951,
                7042, 8560, 10631, 12902)
 """The mantle's density along a 1600 K adiabat at Fe/(Fe+Mg) = 0 and Mg/Si = 1 by log10 P (Pa), from a Gibbs minimisation with
-the Stixrude and Lithgow-Bertelloni 2024 end-members (part B 3.8)."""
+the [R4233] end-members (part B 3.8)."""
 _MANTLE_LN_RHO = tuple(math.log(rho) for rho in _MANTLE_RHO)
 _MANTLE_TOP_SLOPE = (_MANTLE_LN_RHO[-1] - _MANTLE_LN_RHO[-2]) / (_MANTLE_LOG_P[-1] - _MANTLE_LOG_P[-2])
 MANTLE_IRON_FACTOR = 0.264
 """float: The mantle's density rises by 1 + this times Fe/(Fe+Mg)."""
 
 # The water layer, the 300 K isotherm: (P Pa, rho kg/m3). Liquid water from IAPWS-95 (NIST WebBook fluid properties, read
-# 2026-10-23), ice VI and VII and X from the materials table's reference points (Journaux et al. 2020 splines), the
+# 2026-10-23), ice VI and VII and X from the materials table's reference points ([R2204] splines), the
 # Seager polytrope above 1 TPa scaled to join (part C 2.4).
 _WATER_POINTS = (
     (1.0e5, 996.56), (5.01e7, 1017.9), (1.001e8, 1037.2), (1.501e8, 1054.9), (2.001e8, 1071.1), (2.501e8, 1086.2),
@@ -103,7 +103,7 @@ _WATER_POINTS = (
     (9.001e8, 1222.2), (9.501e8, 1230.0),
 )
 _SEAGER_WATER = (1460.0, 0.00311, 0.513)
-"""tuple: rho0 (kg/m3), c, n of Seager et al. 2007 Table 3 for H2O, rho = rho0 + c P^n (P in Pa)."""
+"""tuple: rho0 (kg/m3), c, n of [R3992: Table 3] for H2O, rho = rho0 + c P^n (P in Pa)."""
 
 ICE_OTHER_DENSITY_KG_M3 = 1000.0
 """float: The grain density of the other ices (N2 950, NH3 850, CO 1000, CO2 1000 to 1600, CH4 500; bulk-composition.md section 6:
@@ -379,7 +379,7 @@ def water_world_radius_earth(mass_earth, cmf, water):
     """
     Part C's closed form of a body with water mass fraction `water` of the whole body and iron share `cmf` of the dry part,
     in Earth radii, cold, 1 bar. Valid 0.3 to 20 Earth masses; cold: a planet above the runaway-greenhouse limit holds its water
-    as a steam atmosphere and is larger (Turbet et al. 2020, not coded).
+    as a steam atmosphere and is larger ([R4448], not coded).
     """
     a, b, c, d = WATER_FIT
     return (a - b * cmf * (1.0 - water)) * mass_earth ** WATER_FIT_EXPONENT * (1.0 + c * water + d * water * water)
@@ -440,19 +440,18 @@ def small_body_radius_earth(mass_earth, cmf, water=0.0):
 
 
 def core_radius_earth(core_mass_earth):
-    """Lopez and Fortney 2014 Eq. 1: the radius of a rock and iron core of 2:1 rock to iron, within about 2 percent."""
+    """[R2741: Eq. 1]: the radius of a rock and iron core of 2:1 rock to iron, within about 2 percent."""
     return core_mass_earth ** 0.25
 
 
 def envelope_thickness_earth(mass_earth, envelope, flux_earth, age_gy):
-    """Lopez and Fortney 2014 Eq. 3: the envelope's thickness in Earth radii, to the 20 mbar level."""
+    """[R2741: Eq. 3]: the envelope's thickness in Earth radii, to the 20 mbar level."""
     return 2.06 * mass_earth ** -0.21 * (envelope / 0.05) ** 0.59 * flux_earth ** 0.044 * (age_gy / 5.0) ** -0.18
 
 
 def envelope_radius_earth(mass_earth, envelope, flux_earth=1.0, age_gy=4.5, temperature_k=None, gravity_m_s2=None):
     """
-    A rock and iron core of mass M(1 - envelope) under an H/He envelope of mass fraction `envelope`: R_core + R_env (Lopez and
-    Fortney 2014 Eqs. 1 and 3), in Earth radii, at the 20 mbar level, or at the 1 bar level when `temperature_k` and
+    A rock and iron core of mass M(1 - envelope) under an H/He envelope of mass fraction `envelope`: R_core + R_env ([R2741] Eqs. 1 and 3), in Earth radii, at the 20 mbar level, or at the 1 bar level when `temperature_k` and
     `gravity_m_s2` are given (the radius moves by ln(50) scale heights H = R T / (mu g), part C and bulk-composition.md 4.1).
     """
     radius = core_radius_earth(mass_earth * (1.0 - envelope)) + envelope_thickness_earth(mass_earth, envelope, flux_earth, age_gy)

@@ -2,7 +2,7 @@
 
 """
 GEN.463, GEN.969: the radius of a neutron star from its mass (`physics/neutron_star.py`): a weighted quantile over the radii of the
-21 equations of state of `neutron_star_structure`, weighted by the NICER and Miller et al. 2021 constraints. The measurements it must
+21 equations of state of `neutron_star_structure`, weighted by the [R3075] constraints. The measurements it must
 contain, that a star's radius lies between the lowest and highest equation of state at its mass, monotonicity in the draw,
 and determinism.
 """
@@ -34,8 +34,8 @@ def test_the_centre_is_the_weighted_median_and_lies_in_the_miller_range_with_the
 
 
 @pytest.mark.parametrize("mass, radius", [
-    (1.34, 12.71),  # PSR J0030+0451, Riley et al. 2019
-    (2.08, 13.7),  # PSR J0740+6620, Miller et al. 2021
+    (1.34, 12.71),  # PSR J0030+0451, [R3766]
+    (2.08, 13.7),  # PSR J0740+6620, [R3075]
 ])
 def test_the_measured_radii_lie_inside_the_limits(mass, radius):
     lowest, highest = neutron_star.radius_limits_km(mass)

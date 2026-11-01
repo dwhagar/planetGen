@@ -18,7 +18,7 @@ parts of the design in order and names the first that fails:
 3. **A chance that one exists at all.** Below `SIZE_CUT_M` (1 km across, Boss's card S5, a tunable stand-in) no body has satellites.
    Above it, the share of bodies of that population and size that have one comes from the gated table `satellite-share`
    (GEN.472 format), whose rows carry their source state. A moon has no row: it passes only through the tidal-survival gate
-   (`tidal_survival_radius_m`, Kollmeier and Raymond 2019, equation 1) *and* a row that does not exist yet (the odds start at
+   (`tidal_survival_radius_m`, [R2437], equation 1) *and* a row that does not exist yet (the odds start at
    zero, Boss's card S6), so no moon draws a satellite until a sourced row is added.
 
 A population is named for what the body is, never for a place in the Solar System: `inner-small-body` (rubble piles on orbits
@@ -54,18 +54,18 @@ COMPARABLE_MASS_RATIO = 0.01
 STAND-IN."""
 
 SATELLITE_DENSITY_KG_M3 = 2000.0
-"""float: The density assumed for the smallest satellite (the submoon density of Kollmeier and Raymond 2019); STAND-IN."""
+"""float: The density assumed for the smallest satellite (the submoon density of [R2437]); STAND-IN."""
 
-# Tidal survival of a submoon (Kollmeier and Raymond 2019, MNRAS, arXiv:1810.03304, equation 1)
+# Tidal survival of a submoon ([R2437], MNRAS, [R2437], equation 1)
 SUBMOON_HILL_FRACTION = clearance_ledger.moon_hill_fraction(0.0)[0]
-"""float: A submoon's orbit is stable out to this fraction of its moon's Hill sphere (Domingos et al. 2006, via Kollmeier and
+"""float: A submoon's orbit is stable out to this fraction of its moon's Hill sphere ([R1138], via Kollmeier and
 Raymond 2019); the circular-orbit value of `clearance_ledger.moon_hill_fraction`, 0.4895."""
 
 SUBMOON_LOVE_NUMBER = 0.25
-"""float: The moon's tidal Love number k2 (via Kollmeier and Raymond 2019, their default)."""
+"""float: The moon's tidal Love number k2 (via [R2437], their default)."""
 
 SUBMOON_TIDAL_Q = 100.0
-"""float: The moon's tidal quality factor (Lainey 2016, via Kollmeier and Raymond 2019, their default)."""
+"""float: The moon's tidal quality factor ([R2534], via [R2437], their default)."""
 
 SUBMOON_AGE_YR = 4.6e9
 """float: The time a submoon has to survive (their default: the age of the Solar System)."""
@@ -81,7 +81,7 @@ PHOTOMETRIC_BINARY_MAX_DIAMETER_M = 13_000.0
 2015); above it the share is that of a large body (adaptive optics and imaging)."""
 
 LARGE_BODY_MIN_DIAMETER_M = 100_000.0
-"""float: The size of the 'large' main-belt surveys (about 300 asteroids over 100 km, Margot et al. 2015)."""
+"""float: The size of the 'large' main-belt surveys (about 300 asteroids over 100 km, [R2874])."""
 
 TRANS_NEPTUNIAN_MIN_DIAMETER_M = 100_000.0
 """float: The smallest trans-Neptunian body the binary frequency was measured for (HST search at wide separations)."""
@@ -193,7 +193,7 @@ def tidal_survival_radius_m(moon_density_kg_m3, planet_mass_kg, moon_orbit_radiu
                             submoon_mass_kg=None, love_number=SUBMOON_LOVE_NUMBER, tidal_q=SUBMOON_TIDAL_Q,
                             age_yr=SUBMOON_AGE_YR):
     """
-    The smallest moon radius that can hold a submoon of `submoon_mass_kg` for `age_yr`, metres (Kollmeier and Raymond 2019,
+    The smallest moon radius that can hold a submoon of `submoon_mass_kg` for `age_yr`, metres ([R2437],
     equation 1, adapted):
 
         R_moon >= [ 39 M_sub k2 T sqrt(G) / (2 (4 pi rho_moon)^(8/3) Q) * (3 M_p / (f a_moon)^3)^(13/6) ]^(1/3)
@@ -228,30 +228,30 @@ _no_satellites_weight.__qualname__ = "no_satellites_weight[satellite-share]"
 SATELLITE_SHARE = pt.REGISTRY.register(pt.Table(
     "satellite-share", 1, [
         pt.Row("inner rubble pile with a satellite", ("inner-small-body",), 0.15,
-               source="Pravec et al. 2006 (Icarus) via Margot et al. 2015 (Asteroids IV, arXiv:1504.00034): 15 +- 4 percent of "
+               source="[R3604] via [R2874] (Asteroids IV, [R2874]): 15 +- 4 percent of "
                       "near-Earth asteroids over 0.3 km are binary",
                state=pt.PARTLY_VERIFIED,
                limit="second-hand (the 2006 paper was not read); measured above 0.3 km and radar down to 0.12 km, the gate's "
                      "cut is 1 km; 0.11 to 0.19 within the quoted error",
                conditions=(pt.Condition("diameter_m", SIZE_CUT_M, PHOTOMETRIC_BINARY_MAX_DIAMETER_M),)),
         pt.Row("belt rubble pile with a satellite", ("belt-small-body",), 0.16,
-               source="Jacobson et al. 2016 (arXiv:1605.06157): the modelled steady-state binary fraction 16 +- 6 percent; "
-                      "Margot et al. 2015: small main-belt binaries are discovered about as often as near-Earth ones",
+               source="[R2131]: the modelled steady-state binary fraction 16 +- 6 percent; "
+                      "[R2874]: small main-belt binaries are discovered about as often as near-Earth ones",
                state=pt.STAND_IN, replacement="a measured small-body binary fraction",
                conditions=(pt.Condition("diameter_m", SIZE_CUT_M, PHOTOMETRIC_BINARY_MAX_DIAMETER_M),)),
         pt.Row("large small body with a satellite", ("inner-small-body", "belt-small-body"), 0.05,
-               source="Margot et al. 2015: 16 satellites among over 300 large main-belt asteroids surveyed (about 0.05), "
+               source="[R2874]: 16 satellites among over 300 large main-belt asteroids surveyed (about 0.05), "
                       "detectability-limited, 'substantially smaller than 16 percent'",
                state=pt.STAND_IN, replacement="a debiased satellite fraction of large asteroids",
                conditions=(pt.Condition("diameter_m", PHOTOMETRIC_BINARY_MAX_DIAMETER_M, None),)),
         pt.Row("cold trans-neptunian binary", ("trans-neptunian-cold",), 0.22,
-               source="Stephens and Noll 2006 via Noll et al. 2008 (astro-ph/0703134): 22 +10 -5 percent of classical "
+               source="[R4207] via [R3304] (astro-ph/0703134): 22 +10 -5 percent of classical "
                       "trans-neptunian objects under 5 degrees inclination have detectable binaries",
                state=pt.PARTLY_VERIFIED,
                limit="separations over 60 mas and primaries over about 100 km only; the share below that size is not measured",
                conditions=(pt.Condition("diameter_m", TRANS_NEPTUNIAN_MIN_DIAMETER_M, None),)),
         pt.Row("hot trans-neptunian binary", ("trans-neptunian-hot",), 0.055,
-               source="Stephens and Noll 2006 via Noll et al. 2008: 5.5 +4 -2 percent of the other dynamical classes",
+               source="[R4207] via [R3304]: 5.5 +4 -2 percent of the other dynamical classes",
                state=pt.PARTLY_VERIFIED,
                limit="same detection limits as the cold row",
                conditions=(pt.Condition("diameter_m", TRANS_NEPTUNIAN_MIN_DIAMETER_M, None),)),

@@ -260,7 +260,7 @@ def test_solid_carbon_dioxide_is_as_cold_as_its_latent_heat_allows():
 
 # --- the cold ends and carbon dioxide (GEN.497) ---------------------------------------------------------------------
 
-# Span and Wagner 1996 equation 3.12 (body-composition-parts/G4-ices-brines-licences.md, the test targets) in Pa
+# [R4166] equation 3.12 (body-composition-parts/G4-ices-brines-licences.md, the test targets) in Pa
 SPAN_WAGNER_PA = {100.0: 1.3408e-2, 120.0: 3.736, 150.0: 842.65, 170.0: 9960.4, 185.0: 43935.0, 195.0: 103971.0, 210.0: 327089.0}
 
 
@@ -281,7 +281,7 @@ def test_carbon_dioxide_is_flagged_under_the_data_it_was_matched_to():
     assert saturation.saturation("CO2", 230.0).phase == saturation.LIQUID
 
 
-# Grundy et al. 2024 fits as tabulated in G4_qcm_corrected_vapor_pressure.csv (bar; two or three figures), inside the window
+# [R1708] fits as tabulated in G4_qcm_corrected_vapor_pressure.csv (bar; two or three figures), inside the window
 # of each set (the corrected set meets Fray and Schmitt at 35, 54.4 and 51.0 K, the uncorrected at 35, 59.4 and 68.5 K)
 GRUNDY_2024_BAR = {
     "N2": {26.0: 2.34e-10, 28.0: 2.54e-9, 30.0: 2.01e-8, 32.0: 1.22e-7, 34.0: 6.0e-7},
@@ -317,7 +317,7 @@ def test_the_switch_is_a_factor_of_1_19_for_nitrogen_carbon_monoxide_and_methane
         assert on / saturation.pressure_pa(formula, temperature_k) == pytest.approx(1.19, rel=1e-5), formula
 
 
-# Blakley et al. 2024 Table 1 (the "old" set) and the same with the A and B of Grundy 2026 Table 3 (the "new" one), bar
+# [R0418: Table 1] (the "old" set) and the same with the A and B of [R1707: Table 3] (the "new" one), bar
 BLAKLEY_BAR = {
     "O2": {30.0: (7.067e-11, 8.632e-11), 35.0: (2.029e-8, 2.262e-8), 40.0: (1.400e-6, 1.457e-6)},
     "NH3": {80.0: (2.496e-14, 3.229e-14), 90.0: (5.301e-12, 6.533e-12), 100.0: (3.907e-10, 4.631e-10),

@@ -4,19 +4,19 @@
 Collisional mantle stripping: how a giant impact leaves a planet richer in iron (GEN.1040; oddity W10 of docs/design/systems/weird-worlds.md)
 =========================================================================================================================================
 
-Mercury is about 70 percent iron by mass, Kepler-107 c about 70 percent (Bonomo et al. 2019), where an Earth-like planet is a third. A head-on,
+Mercury is about 70 percent iron by mass, Kepler-107 c about 70 percent [R0456], where an Earth-like planet is a third. A head-on,
 fast impact between two differentiated planets blows off mostly the outer rock, because the shock is weaker at depth and the iron is the
 heaviest and the most tightly bound. This module is that one step as pure functions, from the bodies and the speed to the mass and core mass
 fraction of the largest remnant. It reads no database, draws no random number and moves nothing; GEN.1047 calls it for the planets the oddity
 table picks (row W10, `physics/data/oddities.json`), with the impacts the planet architecture recorded.
 
-**The law** (Marcus, Stewart, Sasselov and Hernquist 2010, ApJL 712, L73, read; arXiv:0907.0234). With `M_tot` the mass of both bodies, `mu`
+**The law** ([R2867], read; [R2867]). With `M_tot` the mass of both bodies, `mu`
 their reduced mass and `V` the impact speed:
 
 - `Q_R = 0.5 mu V^2 / M_tot`, the specific energy of the impact, and `Q*_RD = 1e-4 R_C1^1.2 V^0.8` (erg/g; cm and cm/s) the catastrophic
-  disruption threshold of Stewart and Leinhardt (2009) in the gravity regime, where `R_C1` is the radius of `M_tot` at a density of 1 g/cm3
+  disruption threshold of [R4225] in the gravity regime, where `R_C1` is the radius of `M_tot` at a density of 1 g/cm3
   (equation 4). Marcus found their simulated threshold below it by less than a factor of 2; `Q_STAR_SCALE` is that factor, taken from the
-  one published giant-impact run for which the masses, speed and result are all printed (Bonomo 2019, Fig. 3: two 10.5 Earth mass bodies,
+  one published giant-impact run for which the masses, speed and result are all printed ([R0456: Fig. 3]: two 10.5 Earth mass bodies,
   62.5 km/s, a remnant of 8.2 Earth masses and 64 percent iron); 0.6 gives 8.28 Earth masses and 64.2 percent (`MT4`).
 - The largest remnant is `M_lr / M_tot = 1 - 0.5 x`, `x = Q_R / Q*_RD` (equation 2), for `x` from 0 to 2; at `x = 1` half the mass is lost.
 - The iron fraction of that remnant is `M_Fe / M_lr = 0.33 + 0.25 x^1.65` (equation 3), for bodies that began 33 percent iron.
@@ -27,7 +27,7 @@ and `r_rock = (0.67 - 0.25 x^1.65)(1 - x/2) / 0.67` of its rock, and a body that
 `r_rock` of its rock (`MT5`); it is the 33 percent fit exactly where Marcus fitted it, and is never worse than the conservation of iron.
 
 **What is not modelled.** Only head-on and near head-on impacts strip. From 30 to 45 degrees the impact is a hit-and-run (the target is left
-nearly whole, Marcus 2010 section 3.2), so `strip_probability` gives the share of random impacts that are inside `IMPACT_ANGLE_DEG`
+nearly whole, [R2866] section 3.2), so `strip_probability` gives the share of random impacts that are inside `IMPACT_ANGLE_DEG`
 and the caller applies it to each impact it counts. The remnant is not cooled or relaxed, a mass of less than a tenth of the target's is not
 tracked as debris, and nothing is said about the composition of the lost mass.
 
@@ -48,10 +48,10 @@ Q_STAR_SCALE = 0.6
 """float: The factor on the Stewart and Leinhardt threshold for planet-sized bodies (MT4)."""
 
 X_MAX = 2.0
-"""float: The largest `x = Q_R / Q*_RD` equation 2 holds for; at 2 nothing is left (Marcus 2010 section 3.1)."""
+"""float: The largest `x = Q_R / Q*_RD` equation 2 holds for; at 2 nothing is left ([R2866] section 3.1)."""
 
 MAX_CORE_MASS_FRACTION = 0.85
-"""float: The core fraction no remnant is allowed to pass (MT6): the most iron-rich rocky planet read is about 0.8 (Plotnykov and Valencia 2020)."""
+"""float: The core fraction no remnant is allowed to pass (MT6): the most iron-rich rocky planet read is about 0.8 [R3545]."""
 
 CORE_FRACTION_CEILING = math.nextafter(MAX_CORE_MASS_FRACTION, 0.0)
 """float: What a remnant past `MAX_CORE_MASS_FRACTION` is held to: the largest float under it, so the strict limit of the W10 row (`lt 0.85`) holds."""

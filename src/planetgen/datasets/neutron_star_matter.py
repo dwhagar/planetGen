@@ -5,13 +5,13 @@ Neutron-star matter: the equation of state and the outer-crust composition (GEN.
 
 Two sets, both on Zenodo under CC BY 4.0:
 
-- Twenty-one unified cold-matter equations of state, from the compilation of Malik, Pais and Providência 2024 (A&A 689,
-  A242, doi:10.1051/0004-6361/202449292; Zenodo 10.5281/zenodo.10950421): relativistic mean-field cores constrained by
+- Twenty-one unified cold-matter equations of state, from the compilation of [R2834] (A&A 689,
+  A242, [R4970]; Zenodo [R2834]): relativistic mean-field cores constrained by
   nuclear properties and chiral effective field theory, spanning a range of the symmetry-energy slope, with the BSk22
   outer crust and a compressible-liquid-drop inner crust. Each file lists baryon density (fm^-3), energy density and
   pressure (MeV fm^-3); a draw of the equation of state gives the spread of the maximum mass and radius.
-- The ground-state outer-crust composition for twenty nuclear mass models, from Servais and Chamel 2026 (A&A 710, A322,
-  doi:10.1051/0004-6361/202660688; Zenodo 10.5281/zenodo.20085135): for each model the sequence of nuclei with the
+- The ground-state outer-crust composition for twenty nuclear mass models, from [R4028] (A&A 710, A322,
+  [R4971]; Zenodo [R4028]): for each model the sequence of nuclei with the
   baryon density and pressure at which one gives way to the next, ending at neutron drip. Only the unmagnetised
   (`B0`) files are read.
 
@@ -58,19 +58,19 @@ _EOS_SHA = {
 
 DATASET = fetch.Dataset(
     key="neutron_star_matter",
-    title="Neutron-star equations of state (Malik et al. 2024) and outer-crust compositions (Servais and Chamel 2026)",
-    source="Malik, Pais and Providência 2024 (A&A 689, A242) and Servais and Chamel 2026 (A&A 710, A322), Zenodo",
+    title="Neutron-star equations of state [R2834] and outer-crust compositions [R4028]",
+    source="[R2834, R4028], Zenodo",
     pieces=(fetch.Piece(COMPOSITIONS, "https://zenodo.org/records/20085135/files/compositions.zip?download=1",
                         "b98680f3b1d55786aea7db077e8be9e00f1949925d5b8858104eea4c9839a39c", 1830018),)
     + tuple(fetch.Piece(f"EOS{n}.txt", f"https://zenodo.org/records/10950421/files/EOS{n}.txt?download=1", sha, size)
             for n, (sha, size) in _EOS_SHA.items()),
     replaces="the nickel-to-krypton crust table and the 10 km radius floor of the stellar-composition note",
     fill="SC3",
-    fallback="the one outer-crust sequence of Chamel and Haensel 2008 Table 2, in place of the 20 nuclear mass models",
+    fallback="the one outer-crust sequence of [R0722: Table 2], in place of the 20 nuclear mass models",
 )
 
 _AMU_G = 1.66053906660e-24
-"""float: The atomic mass unit in grams (CODATA 2018), the baryon mass for the density conversion."""
+"""float: The atomic mass unit in grams [R4361], the baryon mass for the density conversion."""
 
 _FM3_PER_CM3 = 1e-39
 

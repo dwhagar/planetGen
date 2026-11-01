@@ -18,8 +18,7 @@ refuses a file that does not (`DataError`):
   standard weight (H, Li, B, C, N, O, Mg, Si, S, Cl, Ar, Br, Tl) also has; the full standard weight or interval is kept.
 * `isotopes.json`: every isotope of natural composition (NIST, from IUPAC and the atomic mass evaluation) and the
   radioactive isotopes the heat, the dose and the short-lived-radionuclide heating need, with the ground-state
-  half-life, the decay modes and their branchings (NUBASE2020), and the energy released per decay (Lugaro et al. 2018,
-  Table 4), with Dye 2012's heat constants of the four long-lived parents beside it as a cross-check.
+  half-life, the decay modes and their branchings (NUBASE2020), and the energy released per decay ([R2768: Table 4]), with [R1203]'s heat constants of the four long-lived parents beside it as a cross-check.
 * `decay_series.json`: the decay chains of uranium-238, uranium-235 and thorium-232 down every branch of 0.005 percent or
   more to the stable lead isotope, each step with the energy computed from the mass excesses.
 
@@ -122,7 +121,7 @@ class Isotope:
         modes (tuple): `(mode, percent)` pairs from NUBASE2020 (`"A"` alpha, `"B-"`, `"B+"` beta plus or electron
             capture, `"SF"`, `"EC"`, ...); a branch NUBASE2020 gives as approximately 100 percent has the remainder
             after the others and a third item `"~"`.
-        decay_energy_j (float or None): The energy released per decay, joules, without the neutrinos (Lugaro et al. 2018);
+        decay_energy_j (float or None): The energy released per decay, joules, without the neutrinos [R2768];
             for U-238, U-235 and Th-232 the whole chain to lead.
         dye_2012 (dict or None): Dye's heat constants where he gives them (U-238, U-235, Th-232, K-40).
         mass_estimated (bool): The mass is NIST's estimate from systematic trends, not a measurement.
@@ -370,7 +369,7 @@ def heat_per_kg_of_isotope(name):
     """
     The power of one kilogram of the isotope itself, W/kg: Avogadro's constant times the decay constant times the energy
     released per decay (`Isotope.decay_energy_j`, the neutrinos left out, the whole chain for a parent that has one) over
-    the molar mass (Dye 2012, equation 6). Multiply by the isotope's mass in the rock; the radiogenic heat module
+    the molar mass ([R1203], equation 6). Multiply by the isotope's mass in the rock; the radiogenic heat module
     (GEN.459) does that with the abundances it draws.
 
     Raises:

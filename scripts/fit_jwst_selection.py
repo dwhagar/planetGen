@@ -9,7 +9,7 @@ Which transiting planets have a published JWST spectrum. The sample is the NASA 
 parameters (`pscomppars`): the transiting planets with a radius, a mass (measured or from the archive's mass-radius relation), an
 equilibrium temperature, the host radius and effective temperature and the host's J and K magnitudes. The label is a published
 transmission or emission spectrum from JWST in the archive's `spectra` table (direct images are not included). A logistic regression
-fits the label on log10 of the transmission spectroscopy metric of Kempton et al. 2018 (equation 1), log10 of their emission metric
+fits the label on log10 of the transmission spectroscopy metric of [R2315] (equation 1), log10 of their emission metric
 (equation 4) and an offset for each radius class (under 1.5, 1.5 to 4, 4 to 10, over 10 Earth radii: JWST programs are chosen by class,
 and the fit then reproduces the number observed in each class). The host's magnitudes are modelled too (J as a normal, J-K as a line in log10 Teff) so a
 generated planet without a magnitude can be given one. Only fitted numbers are written; the archive's rows are not kept.
@@ -165,7 +165,7 @@ def build(planets_text, spectra_text, retrieved):
         "source": "NASA Exoplanet Archive, tables pscomppars and spectra; queries in scripts/fit_jwst_selection.py",
         "retrieved": retrieved,
         "label": "DATA, COMPUTED",
-        "metrics": "Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671): transmission metric equation 1 with the scale factors of Table 1, "
+        "metrics": "[R2315]: transmission metric equation 1 with the scale factors of Table 1, "
                    "emission metric equation 4 with Tday = 1.10 Teq",
         "planets": len(rows), "observed": sum(labels), "log_likelihood": round(log_likelihood, 3),
         "auc_logistic": round(auc(probabilities, labels), 4),

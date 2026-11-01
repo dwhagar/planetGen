@@ -10,21 +10,20 @@ scatterer's mass and orbit, the survival of the ejected planet's moons, and the 
 (`rogue_drift`) for the years between. Nothing calls it yet (GEN.1111 creates the rogue rows, and GEN.1119 gives each ejection its scatterer and orbit). The reading behind
 every number is in `docs/design/research/rogue-ejection-kick.md`.
 
-**The speed** (GEN.1113 replaced the earlier energy-step guess). Huang and Lai 2025 (arXiv:2508.18239, Eq. 19, 24 and 26) find from N-body runs of scattering planets that
+**The speed** (GEN.1113 replaced the earlier energy-step guess). [R2031] ([R2031: Eq. 19], 24 and 26) find from N-body runs of scattering planets that
 the speeds at infinity peak near
 
     v_c = 3 km/s (m_p / M_Jup)^(1/2) (a / 1 AU)^(-1/2) m_p / (m_p + m_ej)
 
 for a scatterer of mass `m_p` on an orbit `a` ejecting a body of mass `m_ej`, independent of the star's mass for stars 100 to 1000 times the scatterer's. Kramer and Profumo
-2026 (arXiv:2608.02945, Sec. 4.1 to 4.2) find a mean of 3.4 to 3.6 km/s for a 10 Jupiter-mass scatterer at 5.2 AU with no trend over four decades in the ejected mass, and 1.15
+2026 ([R2470: Sec. 4.1] to 4.2) find a mean of 3.4 to 3.6 km/s for a 10 Jupiter-mass scatterer at 5.2 AU with no trend over four decades in the ejected mass, and 1.15
 km/s for 1 Jupiter mass at 5.2 AU: the mean is 0.87 of `v_c` at both. The speeds spread from zero to about 2.5 `v_c` (Huang and Lai Sec. 4.3), so `v_inf = v_c X` with `X`
-log-normal of mean `MEAN_OVER_SCALE` and 99th percentile 2.5 (`SPEED_SIGMA_LN`), drawn by the inverse of the normal distribution from a uniform number `u`. Sayed, Profumo
-and Smyth 2026 (arXiv:2609.21027) assume a kick falling with the ejected mass as `M^-1/2` instead (a stated prescription, not a result), and the two N-body papers contradict it;
+log-normal of mean `MEAN_OVER_SCALE` and 99th percentile 2.5 (`SPEED_SIGMA_LN`), drawn by the inverse of the normal distribution from a uniform number `u`. [R3937] assume a kick falling with the ejected mass as `M^-1/2` instead (a stated prescription, not a result), and the two N-body papers contradict it;
 their medians of 0.7 to 10.7 km/s bracket the speeds of giants scattering between 1 and 30 AU here. The tail that eccentric giants and three-planet systems add (Kramer and
 Profumo: up to 7 km/s mean, 80 km/s at the first outbound step for a giant of eccentricity 0.9; Huang and Lai: 5 to 8 `v_c` for three planets) is **not** modelled yet.
 A scatterer whose Safronov number (`ejects`) is under 1 only stirs.
 
-**Moons.** Huang and Lai 2025 (Sec. 1 and Eq. 4) judge a moon by how close the planets came: it stays bound if its orbital radius is under `MOON_LOSS_FRACTION` of the Hill
+**Moons.** [R2031] (Sec. 1 and Eq. 4) judge a moon by how close the planets came: it stays bound if its orbital radius is under `MOON_LOSS_FRACTION` of the Hill
 sphere that the closest approach `r_min` leaves it, `r_moon < f r_min (m_ej / m_12)^(1/3)`. Their runs give `r_min` in units of the mutual Hill radius with a median of
 0.089 for a 10 Jupiter-mass scatterer ejecting a 1 Jupiter-mass planet, falling as the scatterer's mass to the 1.13 (0.034 at 5, 0.0066 at 1 Jupiter masses at a fixed ratio
 of 10), and a spread that puts 48 percent of runs above 0.1 and 82 percent above 0.01 (a log-normal of ln-width `CLOSEST_APPROACH_SIGMA_LN`). `closest_approach_m` draws it and `moon_survival_probability` is
@@ -50,11 +49,11 @@ _kg_to_mjup = units.converter("kg", "Mjup")
 
 SCATTER_SPEED_KM_S = 3.0
 """float: The scale of the ejection speed for a scatterer of one Jupiter mass at 1 AU, km/s: `v_c = SCATTER_SPEED_KM_S (m_p / M_Jup)^(1/2) (a / 1 AU)^(-1/2) m_p / (m_p + m_ej)`
-(Huang and Lai 2025, Eq. 26, read first-hand). Source tier T1, tweak level L0."""
+([R2031: Eq. 26], read first-hand). Source tier T1, tweak level L0."""
 MEAN_OVER_SCALE = 0.87
-"""float: The mean ejection speed in units of `v_c`: Kramer and Profumo 2026 give 1.15 km/s for 1 Jupiter mass and 3.4 to 3.6 for 10 at 5.2 AU, where `v_c` is 1.32 and 4.16 (0.87 and 0.84). Source tier T1, tweak level L1."""
+"""float: The mean ejection speed in units of `v_c`: [R2470] give 1.15 km/s for 1 Jupiter mass and 3.4 to 3.6 for 10 at 5.2 AU, where `v_c` is 1.32 and 4.16 (0.87 and 0.84). Source tier T1, tweak level L1."""
 SPEED_SIGMA_LN = 0.51
-"""float: The ln-width of the ejection speed in units of `v_c`, set so the 99th percentile is 2.5 `v_c`, the top of the range of Huang and Lai 2025 (Sec. 4.3, a figure reading, not a table). Source tier T6, tweak level L2."""
+"""float: The ln-width of the ejection speed in units of `v_c`, set so the 99th percentile is 2.5 `v_c`, the top of the range of [R2031] (Sec. 4.3, a figure reading, not a table). Source tier T6, tweak level L2."""
 MOON_LOSS_FRACTION = 0.5
 """float: `f` of Huang and Lai's Eq. 4: a moon stays bound if its orbital radius is under `f` times the Hill sphere that the closest approach leaves it ("a high survival probability requires f ~ 1/2"). Source tier T1, tweak level L1."""
 CLOSEST_APPROACH_MEDIAN_HILL = 0.089
@@ -66,7 +65,7 @@ CLOSEST_APPROACH_MASS_INDEX = 1.13
 CLOSEST_APPROACH_SIGMA_LN = 2.35
 """float: The ln-width of the closest approach: 48 percent of runs above 0.1 and 82 percent above 0.01 mutual Hill radii at a median of 0.089 give 2.3 to 2.4 (Huang and Lai Sec. 7). Source tier T1, tweak level L1."""
 EJECTION_SAFRONOV_NUMBER = 1.0
-"""float: The Safronov number above which a scatterer ejects what it scatters and below which it only stirs (Safronov 1972; Ford and Rasio 2008 use the same cut). Source tier T6, tweak level L0."""
+"""float: The Safronov number above which a scatterer ejects what it scatters and below which it only stirs ([R1417, R3867] use the same cut). Source tier T6, tweak level L0."""
 _KM = 1.0e3
 
 

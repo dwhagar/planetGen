@@ -686,7 +686,7 @@
    "surface_tension_mn_m": 45.0,
    "tier": "T6",
    "tweak": "L4",
-   "source": "Kargel 1991 eutectic 176 K (recalled); density, viscosity and boiling point are stand-ins fitted to a plausible range",
+   "source": "[R2248] eutectic 176 K (recalled); density, viscosity and boiling point are stand-ins fitted to a plausible range",
    "note": "the cryolava of icy moons; the boiling point is where the ammonia leaves the solution at one bar, argued not read"
   },
   {

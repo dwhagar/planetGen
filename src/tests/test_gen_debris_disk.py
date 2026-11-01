@@ -2,7 +2,7 @@
 
 """
 GEN.787: a main-sequence star may hold a cold debris disk, at the share the Herschel DEBRIS survey found for its kind
-(Sibthorpe et al. 2018), as a ring whose radius follows the blackbody law for dust of a drawn temperature.
+[R4081], as a ring whose radius follows the blackbody law for dust of a drawn temperature.
 """
 
 import math

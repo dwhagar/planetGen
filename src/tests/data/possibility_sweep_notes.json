@@ -1,8 +1,8 @@
 {
  "open_rows": {
   "icy-body-rock-fraction": {
-   "icy-intact": "the width and limits of the rock fraction are not sourced; the centre is Bierson and Nimmo 2019",
-   "icy-stripped": "a dwarf planet whose ice a collision removed (Barr and Schwamb 2016); the share of such bodies is not measured"
+   "icy-intact": "the width and limits of the rock fraction are not sourced; the centre is [R0390]",
+   "icy-stripped": "a dwarf planet whose ice a collision removed [R0269]; the share of such bodies is not measured"
   },
   "moon-origin": {
    "disk": "regular moon of a circumplanetary disk; the odds of each origin share the probability equally until a population study gives them",
@@ -12,8 +12,8 @@
    "binary": "partner of a dwarf planet; the odds are shared equally until a population study gives them"
   },
   "giant-compact-core": {
-   "compact core": "formation models predict one (Helled and Stevenson 2024); gravity cannot see one under about 10 Earth masses, so the share is a placeholder",
-   "no compact core": "convective mixing or a giant impact removed it, or it never formed (Helled and Stevenson 2024); the share is a placeholder"
+   "compact core": "formation models predict one [R1895]; gravity cannot see one under about 10 Earth masses, so the share is a placeholder",
+   "no compact core": "convective mixing or a giant impact removed it, or it never formed [R1895]; the share is a placeholder"
   }
  },
  "all_zero_allowed": {

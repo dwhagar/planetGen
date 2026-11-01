@@ -30,7 +30,7 @@ def test_a_metal_poor_star_is_hotter_than_a_metal_rich_one_of_the_same_mass_and_
 
 
 def test_the_sequences_give_sirius_b_its_radius():
-    """Sirius B: 1.018 solar masses, 25,000 K, 0.0080 solar radii (Joyce et al. 2018)."""
+    """Sirius B: 1.018 solar masses, 25,000 K, 0.0080 solar radii [R2208]."""
     assert white_dwarf_models.radius_solar(1.018, 25000.0) == pytest.approx(0.0080, rel=0.06)
 
 
@@ -54,7 +54,7 @@ def test_a_neutron_star_from_the_real_tables_has_an_iron_surface():
 
 
 def test_hydrogen_helium_at_a_megabar_is_a_little_under_one_gram_per_cubic_centimetre():
-    """Chabrier and Debras 2021 at 100 GPa and 5,000 K, Y = 0.275 (Jupiter's mid-envelope is near 1 g/cm3)."""
+    """[R0708] at 100 GPa and 5,000 K, Y = 0.275 (Jupiter's mid-envelope is near 1 g/cm3)."""
     assert 600.0 < hhe_eos.density_kg_m3(5000.0, 100e9) < 1100.0
     assert hhe_eos.density_kg_m3(5000.0, 100e9, 0.5) > hhe_eos.density_kg_m3(5000.0, 100e9, 0.1)      # helium is the denser fluid
     assert hhe_eos.entropy_mj_kg_k(8000.0, 100e9) > hhe_eos.entropy_mj_kg_k(4000.0, 100e9)
@@ -70,7 +70,7 @@ def _fit(mass_earth, radius_km, heavy_earth, z, t1bar, y=0.27, ice=0.0, core_ice
 
 
 def test_the_ice_giants_close_on_adiabats_near_their_measured_one_bar_temperatures():
-    """Uranus (76 K at one bar, Lindal et al. 1987) and Neptune (72 K): the model has the radius and finds the adiabat itself, so
+    """Uranus (76 K at one bar, [R2699]) and Neptune (72 K): the model has the radius and finds the adiabat itself, so
     for a heavy-element mass and an ice share inside the range of the interior models the adiabat is within a third of what was
     measured (the tables and the radius decide it; the shares are the only choice, and it moves the answer by tens of kelvin)."""
     uranus = _fit(14.54, 25362.0, 12.5, 0.1, 76.0, ice=0.8, core_ice=0.8)

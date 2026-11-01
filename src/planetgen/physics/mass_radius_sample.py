@@ -5,7 +5,7 @@ The mass-radius sample selection model (GEN.505, docs/design/composition/tunable
 =================================================================================================================================
 
 Which planets enter the sample of precisely measured planets, mass better than 25 percent and radius better than 8 percent
-(Luque and Palle 2022), so that a density distribution (the water-rich share of B2, the iron branch of B4) is compared with planets that
+[R2774], so that a density distribution (the water-rich share of B2, the iron branch of B4) is compared with planets that
 could be measured and not with the whole drawn population.
 
 The model is an error model. A transiting planet with a published mass has two measurement errors that decide the cut: the error of the

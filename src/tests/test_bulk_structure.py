@@ -29,7 +29,7 @@ def test_the_solver_limits_are_the_coreless_and_the_pure_iron_planet():
 
 
 def test_the_solver_water_layer_matches_part_cs_integration():
-    # C 2.4: pure water at 1 Earth mass 1.401 (Zeng 2016: 1.41); 50 percent water on CMF 0.325 rock 1.2301
+    # C 2.4: pure water at 1 Earth mass 1.401 ([R4882]: 1.41); 50 percent water on CMF 0.325 rock 1.2301
     assert bs.layered_structure(1.0, 0.0, 0.0, 1.0)["radius"] == pytest.approx(1.401, rel=0.01)
     assert bs.layered_structure(1.0, 0.1625, 0.3375, 0.5)["radius"] == pytest.approx(1.2301, rel=0.01)
 

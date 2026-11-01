@@ -1,6 +1,6 @@
 # tests/test_nightside_collapse.py
 
-"""GEN.1044: whether the air of a tidally locked planet freezes onto its night side (`physics/nightside_collapse.py`). The numbers checked are the ones Wordsworth 2015 prints; Mars is a test point, never an input."""
+"""GEN.1044: whether the air of a tidally locked planet freezes onto its night side (`physics/nightside_collapse.py`). The numbers checked are the ones [R4767] prints; Mars is a test point, never an input."""
 
 import pytest
 

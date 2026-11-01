@@ -30,7 +30,7 @@ def test_chi_is_one_inside_sigma1_and_falls_beyond():
 
 
 def test_chi_matches_the_hand_calculation_at_300_k():
-    """b1 = 0.0888 - 0.160 exp(-0.0041 T), b2 = 0.0526 exp(-0.00152 T), b3 = 0.0232 (the HELIOS-K file of Perrin and Hartmann 1989)."""
+    """b1 = 0.0888 - 0.160 exp(-0.0041 T), b2 = 0.0526 exp(-0.00152 T), b3 = 0.0232 (the HELIOS-K file of [R3490])."""
     t = 300.0
     b1 = 0.0888 - 0.160 * np.exp(-0.0041 * t)
     b2 = 0.0526 * np.exp(-0.00152 * t)

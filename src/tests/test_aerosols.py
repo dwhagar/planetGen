@@ -186,7 +186,7 @@ def test_the_layers_carry_the_materials_optics():
     assert haze.omega[1] < haze.omega[2] < haze.omega[3]                                       # tholin absorbs blue: darker in the blue
     dust = aerosols.layers(aerosols.Aerosols(0.0, 1.0, 0.0, 0.0, 0.0), centres)[0]
     assert dust.tau == pytest.approx(np.ones(5))
-    assert dust.omega[1] == pytest.approx(0.7725, abs=1e-6) and dust.omega[3] == pytest.approx(0.9545, abs=1e-6)       # Wolff 2009, 1.2 micron: 450 and 650 nm
+    assert dust.omega[1] == pytest.approx(0.7725, abs=1e-6) and dust.omega[3] == pytest.approx(0.9545, abs=1e-6)       # [R4743], 1.2 micron: 450 and 650 nm
     assert dust.omega[0] < dust.omega[1] < dust.omega[3]
     assert aerosols.layers(aerosols.NONE, centres) == (None, None)
 

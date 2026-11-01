@@ -35,7 +35,7 @@ def _without_ring(monkeypatch):
 def test_the_milky_ways_ring_matches_the_measured_inflow_and_star_formation_rate():
     ring = core_gas.core_gas(_shape())
     assert ring.inflow_msun_yr == pytest.approx(0.8, rel=0.3)          # 0.8 +- 0.6
-    assert ring.rate_msun_yr == pytest.approx(0.07, rel=0.3)           # 0.07 (Henshaw et al. 2023, Table 1)
+    assert ring.rate_msun_yr == pytest.approx(0.07, rel=0.3)           # 0.07 ([R1910: Table 1])
     assert ring.rate_msun_yr == pytest.approx(tuning.CORE_STAR_FORMATION_PER_INFLOW * ring.inflow_msun_yr)
     assert 0.0 < ring.bound_share < 1.0
     assert ring.radius_pc == pytest.approx(100.0)
@@ -147,7 +147,7 @@ def test_the_young_stars_bound_covers_the_rings_young_stars():
 
 def test_the_rings_gas_is_the_inflow_over_its_residence_and_its_cluster_maximum_is_a_few_ten_thousand_solar_masses():
     """GEN.1195: the central molecular zone's gas is about 3e7 to 5e7 solar masses at about 1e3 per pc2, and its most massive
-    cluster is a few 1e4 (the Arches and the Quintuplet 2e4), certainly under 1e5 (Reina-Campos and Kruijssen 2017)."""
+    cluster is a few 1e4 (the Arches and the Quintuplet 2e4), certainly under 1e5 [R3720]."""
     shape = _shape()
     ring = core_gas.core_gas(shape)
     area = 2.0 * math.pi * ring.radius_pc * 2.0 * math.sqrt(2.0 * math.log(2.0)) * ring.sigma_pc
@@ -174,7 +174,7 @@ def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_
 
 
 def test_the_milky_way_shapes_disc_rings_change_from_shear_to_feedback_limited_at_about_four_kiloparsecs():
-    """GEN.1196: Reina-Campos and Kruijssen 2017 (section 4.1) find the Milky Way's disc shear-limited inside 4.3 (3.5 to 6.3)
+    """GEN.1196: [R3720] (section 4.1) find the Milky Way's disc shear-limited inside 4.3 (3.5 to 6.3)
     kpc and feedback-limited beyond, the cloud maximum there about 1e6; the rings of the Milky Way's shape, with their own
     gas and the flat curve, change over in the same band, and the cluster maximum stays under the observed 1e4 to 4e4."""
     from planetgen.galaxy import disk_history

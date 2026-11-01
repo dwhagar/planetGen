@@ -1,6 +1,6 @@
 # tests/test_companion_classes.py
 
-"""GEN.448: the companion distribution over period (Moe and Di Stefano 2017, Table 13) and the ranges of separation
+"""GEN.448: the companion distribution over period ([R3108: Table 13]) and the ranges of separation
 it shares a star's companion chances between."""
 
 import math

@@ -8,8 +8,8 @@ The total heat of the interior is **radiogenic heat plus primordial heat**, and 
 body's primordial heat is the energy it kept from its making: the gravitational energy of assembling it (accretion) and of sinking
 its iron into a core (differentiation), less what the magma ocean radiated away. It leaves as the mantle cools.
 
-The model is the one-box parameterised convection of Thiriet et al. 2019 as used by Guimond, Rudge and Shorttle 2022
-(arXiv:2201.05636, section 2.2; READ) for stagnant-lid planets of 0.1 to 5 Earth masses. The mantle (with the core at its
+The model is the one-box parameterised convection of [R4339] as used by [R1716]
+([R1716], section 2.2; READ) for stagnant-lid planets of 0.1 to 5 Earth masses. The mantle (with the core at its
 temperature, `Tc` follows `Tm` in that paper's own runs) has one temperature `Tm`:
 
     (Mm cm + Mc cc) dTm/dt = -qu Au + Mm h(t)
@@ -21,17 +21,17 @@ heat flux out of the top is conductive across the upper boundary layer:
     qu = km dT / delta,   delta = d (Ra_crit / Ra)^(1/3),   Ra = alpha rho g dT d^3 / (kappa eta(Tm)),
     dT = a_rh R Tm^2 / Ea,   eta(Tm) = eta0 exp(Ea / R Tm)
 
-with `d` the mantle's thickness, `Ra_crit` 450, `a_rh` 2.44 (Thiriet et al. 2019, from 3D spherical convection runs) and `dT` the
+with `d` the mantle's thickness, `Ra_crit` 450, `a_rh` 2.44 ([R4339], from 3D spherical convection runs) and `dT` the
 temperature drop across the upper boundary layer, the viscous temperature scale times `a_rh`. Mass enters through the gravity, the
 thickness, the area and the heat capacity; composition through the heat sources, the core share and, via the radius, the water
 (the dry part's radius is `bulk_structure.radius_fit_earth` or `small_body_radius_earth`, the core's `R CMF^0.5`,
-Zeng and Jacobsen 2017 as Guimond et al. use them).
+[R4879] as Guimond et al. use them).
 
 Two things are drawn, the rest follows (`draw_interior`): the viscosity prefactor `eta0` and activation energy `Ea` (the paper's own
 uncertainty on the mantle's rheology, uniform over its ranges). The heat the body is born with is computed, not drawn: it starts at
 `Ts + E / C` (`E` the gravitational binding energy of the differentiated body, `binding_energy_j`: two uniform shells, the accretion
 of the whole and the sinking of the iron; `C` the heat capacity above) and never above the liquidus at the middle of the mantle
-(`mantle_ceiling_k`, Manske et al. 2025: a magma ocean radiates away what is above its liquidus, as does the 26Al of the first million
+(`mantle_ceiling_k`, [R2857]: a magma ocean radiates away what is above its liquidus, as does the 26Al of the first million
 years). The surface is the body's own surface temperature once its climate is known (`update_heat`), 273 K otherwise. A planet starts at the ceiling, a
 planetesimal cold (its `E / C` is a kelvin), a moon-sized body in between. The model is nearly memoryless (the paper primes it for 5
 Gy and finds the paths parallel), so the start matters for a young body and fades for an old one: a younger body gives more heat.
@@ -39,12 +39,12 @@ Gy and finds the paths parallel), so the start matters for a young body and fade
 The lid (GEN.721). Above is a **stagnant lid**: one rigid plate, the convection under it working with the drop `dT` across the
 boundary layer above. A **mobile lid** (plate tectonics, `lid_regime`, drawn once after the hydrosphere: `generate_lid`) carries the whole
 drop from the mantle to the surface, `dT = Tm - Ts`, through plates that move, with the same `Ra` and a mobile `beta` of 1/3 (boundary-layer
-theory, Gurnis 1989 as read in O'Neill 2020; the exponent and the critical Rayleigh number are stand-ins, see `MOBILE_HEAT_FLOW_EXPONENT`).
+theory, [R1736] as read in [R3363]; the exponent and the critical Rayleigh number are stand-ins, see `MOBILE_HEAT_FLOW_EXPONENT`).
 At the same mantle temperature a mobile lid loses about ten times the heat of a stagnant one, so it cools to a lower temperature (an Earth
 twin: about 1,430 K against 1,950 K for the stagnant lid at 4.568 Gy, with the Earth's potential temperature near 1,600 K) and gives more
 heat in the first few hundred million years at the middle of the paper's rheologies and less afterwards, when the heat it was born with is spent. Over the paper's rheologies an Earth twin
 gives 25 to 32 TW and a Urey ratio of 0.66 to 0.83 with a mobile lid and 27 to 36 TW and 0.59 to 0.76 with a stagnant one, where the
-Earth's measured values are 42 to 47 TW and 0.47 to 0.52 (Nimmo et al. 2020): this one box holds the radiogenic heat (about 21 TW) and
+Earth's measured values are 42 to 47 TW and 0.47 to 0.52 [R3293]: this one box holds the radiogenic heat (about 21 TW) and
 the cooling of one temperature and does not reach the measured total with either lid (the heat inside the geoneutrino range, 38.2 +13.6
 -12.7 TW). The paper holds the surface at 273 K (a mild effect for its boundary layer); here a body's own surface temperature is used when known. The lid is thin
 against the mantle and is not followed, so its radiogenic heat counts with the mantle's. A body whose regime has not been drawn yet (the
@@ -80,7 +80,7 @@ GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
 """float: Seconds in a gigayear."""
 
 MANTLE_DENSITY = 3500.0
-"""float: kg/m3 (Thiriet et al. 2019 via Guimond et al. 2022 Table 2; READ)."""
+"""float: kg/m3 ([R4339] via [R1716: Table 2]; READ)."""
 MANTLE_SPECIFIC_HEAT = 1142.0
 """float: J/(kg K), the same table."""
 CORE_SPECIFIC_HEAT = 840.0
@@ -92,14 +92,14 @@ MANTLE_EXPANSIVITY = 2.5e-5
 MANTLE_DIFFUSIVITY = 1.0e-6
 """float: m2/s, the same table."""
 CRITICAL_RAYLEIGH = 450.0
-"""float: The upper boundary layer's, the same table (Thiriet et al. 2019)."""
+"""float: The upper boundary layer's, the same table [R4339]."""
 VISCOSITY_SCALE_COEFFICIENT = 2.44
 """float: `a_rh`, the same table: the boundary layer's temperature drop in viscous temperature scales."""
 HEAT_FLOW_EXPONENT = 1.0 / 3.0
 """float: `beta`, the same table."""
 MOBILE_HEAT_FLOW_EXPONENT = 1.0 / 3.0
-"""float: `beta` of a mobile lid: boundary-layer theory, and what Gurnis 1989 found for systems whose lid is viscous with weak zones to
-let plates move (read in O'Neill 2020, arXiv:2006.05654 section 1; Moresi and Solomatov 1998 find 0.224 to 0.293 for a yielding lid, and
+"""float: `beta` of a mobile lid: boundary-layer theory, and what [R1736] found for systems whose lid is viscous with weak zones to
+let plates move (read in [R3363] section 1; [R3154] find 0.224 to 0.293 for a yielding lid, and
 O'Neill's own runs 0.26). STAND-IN in the gap registry: the paper-range 1/3 is used and the mobile `Ra_crit` below is the stagnant one."""
 MOBILE_CRITICAL_RAYLEIGH = CRITICAL_RAYLEIGH
 """float: STAND-IN: the mobile lid's critical Rayleigh number (not read from a source for this model; the stagnant lid's)."""
@@ -189,7 +189,7 @@ class Heat:
 
 
 def draw_interior(rng=draw):
-    """A body's `Interior`: eta0 and Ea uniform over the ranges of Guimond et al. 2022 (`tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S`,
+    """A body's `Interior`: eta0 and Ea uniform over the ranges of [R1716] (`tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S`,
     `INTERIOR_ACTIVATION_RANGE_KJ_MOL`). Always two draws."""
     return Interior(rng.uniform(*tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S), rng.uniform(*tuning.INTERIOR_ACTIVATION_RANGE_KJ_MOL))
 
@@ -233,7 +233,7 @@ def dry_radius_km(mass_kg, radius_km, rock):
 
 
 def liquidus_k(pressure_gpa):
-    """The mantle's liquidus at `pressure_gpa`, K: `a_l (p + p_l)^c_l` (Manske et al. 2025, `tuning.INTERIOR_LIQUIDUS_*`)."""
+    """The mantle's liquidus at `pressure_gpa`, K: `a_l (p + p_l)^c_l` ([R2857], `tuning.INTERIOR_LIQUIDUS_*`)."""
     return tuning.INTERIOR_LIQUIDUS_COEFFICIENT_K_GPA * (pressure_gpa + tuning.INTERIOR_LIQUIDUS_OFFSET_GPA) ** tuning.INTERIOR_LIQUIDUS_EXPONENT
 
 

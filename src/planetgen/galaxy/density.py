@@ -460,7 +460,7 @@ def nuclear_bound(r_cyl, z, shape):
 
 
 def _bulge(x, y, z, shape, terms):
-    """The bulge, a bar when the galaxy has one (`galaxy.structure`; the form of Dwek et al. 1995 G2):
+    """The bulge, a bar when the galaxy has one (`galaxy.structure`; the form of [R1202] G2):
     `bulge_amplitude * exp(-r_s^2 / 2)`, `r_s^4 = ((x'/x0)^2 +
     (y'/y0)^2)^2 + (z/z0)^4` in the bar's own frame."""
     if not shape.bulge_amplitude:

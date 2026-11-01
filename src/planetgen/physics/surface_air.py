@@ -119,7 +119,7 @@ FREEZE_PASSES = 100
 
 IMPACT_CO2_CAP_BAR = 1.0
 """float: The most CO2 the air of a body with a water reservoir keeps through the late accretion, bar: the rest is held in the ground, the ocean or an ice
-cap and is not eroded (Sakuraba et al. 2019 section 2.3 take 1 bar for the Earth and 3 for Mars). It sets only how much the later impacts erode, not
+cap and is not eroded ([R3872] section 2.3 take 1 bar for the Earth and 3 for Mars). It sets only how much the later impacts erode, not
 how much carbon the surface holds. Stand-in, tier 6, tweak level 1; registry row AM85."""
 
 REFERENCE_PRESSURE_BAR = 1.0
@@ -139,7 +139,7 @@ LONG_LIVED_FLUX_FRACTION = 0.5
 inferred physics, tweak level L0)."""
 
 RELATIVE_HUMIDITY = 0.77
-"""float: The relative humidity of the air over a surface with water (the fixed value of Manabe and Wetherald 1967, 0.77, the Earth's
+"""float: The relative humidity of the air over a surface with water (the fixed value of [R2848], 0.77, the Earth's
 mean; tier: verified, tweak level L0): the water vapour stands at this share of its saturation pressure while the ocean or ice lasts."""
 
 GIANT_FAMILIES = ("giant", "brown-dwarf", "hot-jupiter", "envelope")

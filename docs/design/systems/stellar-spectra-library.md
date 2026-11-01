@@ -8,9 +8,9 @@ Status: built (GEN.970, parent GEN.745) and wired (GEN.971, rides the star-epoch
 
 ## Sources
 
-- ATLAS9 fluxes of Castelli and Kurucz 2003 (`fp00k2odfnew`, solar metallicity), 476 models, 3500 to 50000 K, log g 0 to 5, from Fiorella Castelli's page at INAF Trieste. This is the hot half (3500 K up).
-- PHOENIX-ACES-AGSS-COND-2011 of Husser et al. 2013, from the Goettingen server (ftp.gwdg.de), 2300 to 3500 K in 200 K steps at log g 4.5, 5.0 and 5.5: the M dwarfs.
-- The MUSCLES Treasury Survey (France et al. 2016, ApJ 820, 89), eleven M and K stars, for what the photosphere lacks. BT-Settl itself (phoenix.ens-lyon.fr) resets the connection from the cloud machines and the MUSCLES HLSP files (archive.stsci.edu) fail their TLS chain there, so PHOENIX-ACES stands for BT-Settl (same code, different dust treatment, the same family) and the MUSCLES numbers are the paper's Tables 1 and 3. Neither is a loss for the question asked: the tests below hold the result to the measured stars.
+- ATLAS9 fluxes of [R0681] (`fp00k2odfnew`, solar metallicity), 476 models, 3500 to 50000 K, log g 0 to 5, from Fiorella Castelli's page at INAF Trieste. This is the hot half (3500 K up).
+- PHOENIX-ACES-AGSS-COND-2011 of [R2058], from the Goettingen server (ftp.gwdg.de), 2300 to 3500 K in 200 K steps at log g 4.5, 5.0 and 5.5: the M dwarfs.
+- The MUSCLES Treasury Survey [R1435], eleven M and K stars, for what the photosphere lacks. BT-Settl itself (phoenix.ens-lyon.fr) resets the connection from the cloud machines and the MUSCLES HLSP files (archive.stsci.edu) fail their TLS chain there, so PHOENIX-ACES stands for BT-Settl (same code, different dust treatment, the same family) and the MUSCLES numbers are the paper's Tables 1 and 3. Neither is a loss for the question asked: the tests below hold the result to the measured stars.
 
 Setup downloads 130 MB (transient pieces, sha256 and size pinned), reduces each model to the share of its bolometric power in 1500 log-spaced bins from 9 nm to 100 micron (`stellar_spectra.npz`, 2.5 MB), and deletes the sources. Dataset id SL1.
 
@@ -22,10 +22,10 @@ Setup downloads 130 MB (transient pieces, sha256 and size pinned), reduces each 
 
 | Check | Library | Measured |
 |---|---|---|
-| Sun, UV-C / UV-B / UV-A as a share of the blackbody's | 0.29 / 0.71 / 0.77 | 0.256 / 0.625 / 0.787 (ATLAS-1, Thuillier et al. 2004) |
-| Near-ultraviolet (170 to 320 nm) of the eleven MUSCLES stars | within 0.33 dex for all eleven | France et al. 2016 Table 3 |
+| Sun, UV-C / UV-B / UV-A as a share of the blackbody's | 0.29 / 0.71 / 0.77 | 0.256 / 0.625 / 0.787 (ATLAS-1, [R4354]) |
+| Near-ultraviolet (170 to 320 nm) of the eleven MUSCLES stars | within 0.33 dex for all eleven | [R1435: Table 3] |
 | Far-ultraviolet (91.2 to 170 nm) of the seven M dwarfs | photosphere 1e-8 to 1e-15 of bolometric, measured 1e-4.2 to 1e-4.8 | the chromosphere, not the model, supplies it |
-| Far-ultraviolet with the corona (XUV times 1.12) | within 0.55 dex for all eleven | France et al. 2016 Table 3 |
+| Far-ultraviolet with the corona (XUV times 1.12) | within 0.55 dex for all eleven | [R1435: Table 3] |
 | Closure (integrated flux over sigma T^4) | 0.97 to 1.00 | |
 
 ## Wired (GEN.971)

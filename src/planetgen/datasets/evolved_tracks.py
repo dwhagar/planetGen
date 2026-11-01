@@ -7,7 +7,7 @@ white dwarf or its collapse, read from the same isochrone archive as the main se
 An isochrone file lists, for each of 107 ages, the stars of every initial mass in one list of equivalent evolutionary
 points (EEPs, integers: 454 is the end of the main sequence, 605 the tip of the red giant branch, 707 the end of core
 helium burning, 808 the start of the thermal pulses, 1409 the end of the asymptotic giant branch, 1710 the white dwarf
-cooling sequence; Dotter 2016, Choi et al. 2016). At one EEP the initial mass falls as the age rises, so for a mass `m`
+cooling sequence; [R0773, R1150]). At one EEP the initial mass falls as the age rises, so for a mass `m`
 the age it reaches that EEP is found by interpolating across the isochrone ages in log mass. Doing that for every EEP
 gives the star's own track: it resolves the Hertzsprung gap, the blue loops and the thermal-pulse stages, which the
 isochrones (0.05 dex apart in age) cannot show as ages, because the EEPs are the isochrones' rows.

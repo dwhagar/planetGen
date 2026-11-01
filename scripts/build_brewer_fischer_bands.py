@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Reduces the Brewer and Fischer 2016 table of 1,615 FGK dwarfs (VizieR J/ApJS/225/32, SPOCS) to the bands the generated stellar
+Reduces the [R0535] table of 1,615 FGK dwarfs (VizieR J/ApJS/225/32, SPOCS) to the bands the generated stellar
 abundances are held to (TEST.456): per [Fe/H] bin, the number of stars, the share older than 8 Gyr (the thick-disc age of
 `tuning.STELLAR_THICK_START_GY`), and for [C/Fe], [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] the median, the standard deviation and the 16th
 and 84th percentiles.
@@ -69,7 +69,7 @@ def main(argv=None):
         print(__doc__.strip().splitlines()[0], file=sys.stderr)
         return 2
     table = read(argv[0])
-    document = {"source": "Brewer and Fischer 2016, ApJS 225, 32 (VizieR J/ApJS/225/32), 1,615 SPOCS dwarfs; [X/Fe] = [X/H] - [Fe/H]",
+    document = {"source": "[R0535] (VizieR J/ApJS/225/32), 1,615 SPOCS dwarfs; [X/Fe] = [X/H] - [Fe/H]",
                 "thick_start_gy": THICK_AGE_GY, "bins": bands(table)}
     with open(OUT, "w", encoding="utf-8") as handle:
         json.dump(document, handle, indent=1)

@@ -122,11 +122,11 @@ def _star_count_row(count):
     return pt.Row(
         name=f"{count} star{'s' if count > 1 else ''}", classes=tuple(by_class),
         weight=ClassWeight(by_class, _prevalence_for_five_or_more if count >= FIVE_OR_MORE else None),
-        source="docs/design/systems/multistar-and-compact-systems.md 3.3; B-mid and B-early from Moe & Di Stefano 2017 "
+        source="docs/design/systems/multistar-and-compact-systems.md 3.3; B-mid and B-early from [R3108] "
                "(ApJS 230:15) Table 13 (the B-mid and B-early rows)",
         state=pt.PARTLY_VERIFIED,
         limit="the A to M rows are the design note's and were moved here unchanged; they were not rechecked against "
-              "Raghavan 2010 or Duchene & Kraus 2013 when the tables were built",
+              "[R3646] or [R1175] when the tables were built",
         notes="A system of 7 stars may have more (`multistar.TAIL_RATIOS`, to 12); the five-or-more columns are scaled by "
               "the subject's `prevalence`.")
 
@@ -137,8 +137,7 @@ STAR_COUNT = pt.REGISTRY.register(pt.Table(
                 "node and of a star-like object)."))
 
 MILLISECOND_PULSAR_PLANETS = 0.007
-"""float: The chance a millisecond pulsar holds planets: the 0.7% of PSR B1257+12-like systems (Wolszczan & Frail 1992;
-Wolszczan 2012). The magnetars, young pulsars, intermediate-mass and supermassive holes, brown dwarfs, comets and asteroid
+"""float: The chance a millisecond pulsar holds planets: the 0.7% of PSR B1257+12-like systems [R4750, R4751]. The magnetars, young pulsars, intermediate-mass and supermassive holes, brown dwarfs, comets and asteroid
 fields hold none; white dwarfs and stars take their planets from the star model."""
 
 ROGUE_PLANET_MOON = 0.2
@@ -157,7 +156,7 @@ def _no_satellites_weight(table_name):
 REMNANT_SATELLITES = pt.REGISTRY.register(pt.Table(
     "remnant-satellites", 1, [
         pt.Row("planets", ("neutron-star:millisecond",), MILLISECOND_PULSAR_PLANETS,
-               source="Wolszczan & Frail 1992 (Nature 355:145); Wolszczan 2012 (Acta Astronomica 62:3)", state=pt.PARTLY_VERIFIED,
+               source="[R4751] (Nature 355:145); [R4750] (Acta Astronomica 62:3)", state=pt.PARTLY_VERIFIED,
                limit="the 0.7% is the share of known millisecond pulsars with planets; a recalled figure, not "
                      "rechecked against the papers when the tables were built",
                notes="Zone rule: the planet model's orbit ceiling (the object's galactic Hill sphere), "

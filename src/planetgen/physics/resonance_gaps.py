@@ -9,15 +9,15 @@ enough to be moved by sunlight drift into those places and go. This is a pure fu
 
 1. **Resonance zones.** A body whose period is a small-number ratio of a giant's sits at a resonance. The label `p:q` has the longer period first: `3:1` is the giant's period over the body's for a body inside the giant's orbit
    (`a = a_giant (q / p)^(2/3)`; Jupiter's gives 2.50 AU) and the body's over the giant's for a body outside it (`a = a_giant (p / q)^(2/3)`; Neptune's `3:2` gives 39.4 AU). `order` is `p - q`. Only resonances of `MAX_ORDER` or less are listed.
-2. **Width.** A first-order resonance has the width `(da / a)_res = 3.2 mu^(2/3) j^(1/3)` for particles of low eccentricity and `7.78 (e mu j)^(1/2)` above (Mustill and Wyatt 2012, arXiv:1110.1282, READ, their Eqs. 3 and 9; `j` is the larger number
+2. **Width.** A first-order resonance has the width `(da / a)_res = 3.2 mu^(2/3) j^(1/3)` for particles of low eccentricity and `7.78 (e mu j)^(1/2)` above ([R3226], READ, their Eqs. 3 and 9; `j` is the larger number
    of the ratio, `mu` the giant over the star); the larger of the two is taken. A resonance of higher order is narrower by a factor `e^((order - 1) / 2)`, the order dependence of a resonance's libration width (`RGP2`, a stand-in: no paper was opened for the coefficient).
-3. **Chaotic zones.** A giant clears the zone round its orbit of half-width `da / a = 1.3 mu^(2/7)` for particles of low eccentricity (Wisdom 1980, as Mustill and Wyatt confirm by numerical integration: 1.35 mu^0.278) and `1.8 (e mu)^(1/5)` above the
+3. **Chaotic zones.** A giant clears the zone round its orbit of half-width `da / a = 1.3 mu^(2/7)` for particles of low eccentricity ([R4727], as Mustill and Wyatt confirm by numerical integration: 1.35 mu^0.278) and `1.8 (e mu)^(1/5)` above the
    critical eccentricity `0.21 mu^(3/7)` (their Eq. 10 and 11); above `e_max = 2.1 mu^(1/4)` the zone is where orbits cross, `da / a = e`. The belt's `survivors` are its intervals outside every giant's zone.
-4. **Clearing time.** A resonance zone is empty once the belt is older than `RESONANCE_CLEARING_MYR` (the design's "1 to 10 Myr", Minton and Malhotra 2010 for the later, logarithmic tail, `belt-sources.md` BR3); a younger belt keeps them.
-5. **The Yarkovsky cut.** Sunlight moves a body by `da/dt = 9.3e-4 au km / My / D x (1.1 au / a)^2` (Vokrouhlicky et al. 2015, READ: Bennu's measured drift scaled with 1/D and the flux, `belt-sources.md` BR1). Bodies that drift as far as half the spacing between
+4. **Clearing time.** A resonance zone is empty once the belt is older than `RESONANCE_CLEARING_MYR` (the design's "1 to 10 Myr", [R3093] for the later, logarithmic tail, `belt-sources.md` BR3); a younger belt keeps them.
+5. **The Yarkovsky cut.** Sunlight moves a body by `da/dt = 9.3e-4 au km / My / D x (1.1 au / a)^2` ([R4568], READ: Bennu's measured drift scaled with 1/D and the flux, `belt-sources.md` BR1). Bodies that drift as far as half the spacing between
    the belt's barriers (its edges after the chaotic zones, and the resonance zones) within the belt's age are fed into them and lost: `cut_diameter_km` is the diameter at which that distance is just reached, so it grows with the age (`D_cut` proportional to `t`)
    and a body above it stays. The Solar System's belt gives about 5 km; bodies above 40 km do not move in 4.5 Gyr.
-6. **Stirring.** A giant on an eccentric orbit forces eccentricity on the belt: `e_forced = (5/4) (a / a_giant) e_giant / (1 - e_giant^2)` (the leading secular term; Wyatt et al. 1999, recalled, not opened, `RGP5`), the strongest giant's at the belt's middle (`min(a / a_giant, a_giant / a)` stands for the ratio on either side). The belt's eccentricity
+6. **Stirring.** A giant on an eccentric orbit forces eccentricity on the belt: `e_forced = (5/4) (a / a_giant) e_giant / (1 - e_giant^2)` (the leading secular term; [R4784], recalled, not opened, `RGP5`), the strongest giant's at the belt's middle (`min(a / a_giant, a_giant / a)` stands for the ratio on either side). The belt's eccentricity
    is the larger of that and the width of its own annulus `(upper - lower) / (upper + lower)` (what `belt_mass` already uses); the zones and resonance widths are worked out for the giants' forcing alone (at least `ZONE_ECCENTRICITY_FLOOR`), not for the annulus's spread, which for a wide belt is not a free eccentricity.
 
 The Solar System is a test target: Jupiter's 3:1, 5:2, 7:3 and 2:1 at 2.50, 2.82, 2.96 and 3.27 AU, and Neptune's chaotic zone (27.7 to 32.4 AU) and 3:2 and 2:1 at 39.4 and 47.7 AU, are checked in `tests/test_resonance_gaps.py`, never fed in.
@@ -39,22 +39,22 @@ from dataclasses import dataclass
 from planetgen.util.checks import finite_domain
 
 CHAOTIC_ZONE_COEFFICIENT = 1.3
-"""float: The half-width of a giant's chaotic zone over its distance is this times `mu^(2/7)` for particles of low eccentricity (Wisdom 1980; Mustill and Wyatt 2012: 1.3, numerically 1.35). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The half-width of a giant's chaotic zone over its distance is this times `mu^(2/7)` for particles of low eccentricity ([R3226, R4727]: 1.3, numerically 1.35). [Stand-in RGP1, tier T1, tweak L0.]"""
 
 EXTENDED_ZONE_COEFFICIENT = 1.8
-"""float: The same above the critical eccentricity: `1.8 (e mu)^(1/5)` (Mustill and Wyatt 2012, Eq. 10). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The same above the critical eccentricity: `1.8 (e mu)^(1/5)` ([R3226: Eq. 10]). [Stand-in RGP1, tier T1, tweak L0.]"""
 
 CRITICAL_ECCENTRICITY_COEFFICIENT = 0.21
-"""float: The critical eccentricity is this times `mu^(3/7)` (Mustill and Wyatt 2012, Eq. 11). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The critical eccentricity is this times `mu^(3/7)` ([R3226: Eq. 11]). [Stand-in RGP1, tier T1, tweak L0.]"""
 
 MAX_ECCENTRICITY_COEFFICIENT = 2.1
-"""float: Above this times `mu^(1/4)` particles are removed by close encounters (Mustill and Wyatt 2012, Eq. 12). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: Above this times `mu^(1/4)` particles are removed by close encounters ([R3226: Eq. 12]). [Stand-in RGP1, tier T1, tweak L0.]"""
 
 LOW_ECCENTRICITY_WIDTH = 3.2
-"""float: A first-order resonance's width over its distance is this times `mu^(2/3) j^(1/3)` for low eccentricity (Wisdom 1980; Mustill and Wyatt 2012, Eq. 3). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: A first-order resonance's width over its distance is this times `mu^(2/3) j^(1/3)` for low eccentricity ([R3226, R4727], Eq. 3). [Stand-in RGP1, tier T1, tweak L0.]"""
 
 HIGH_ECCENTRICITY_WIDTH = 7.78
-"""float: The same above the critical eccentricity: this times `(e mu j)^(1/2)` (Mustill and Wyatt 2012, Eq. 9). [Stand-in RGP1, tier T1, tweak L0.]"""
+"""float: The same above the critical eccentricity: this times `(e mu j)^(1/2)` ([R3226: Eq. 9]). [Stand-in RGP1, tier T1, tweak L0.]"""
 
 ORDER_WIDTH_EXPONENT = 0.5
 """float: A resonance of order `k` is narrower than a first-order one by `e^(EXPONENT (k - 1))`: the libration width of a resonance goes as `e^(k/2)`. [Stand-in RGP2, tier T6, tweak L1.]"""
@@ -69,16 +69,16 @@ MAX_P = 12
 """int: The largest `p` of a listed resonance; a bound on the list for a belt close to a giant, where the chaotic zone is the better description. [Numerical, stand-in RGP4, tier T9, tweak L0.]"""
 
 RESONANCE_CLEARING_MYR = 10.0
-"""float: A belt older than this has emptied its resonance zones (the design note's "1 to 10 Myr"; Minton and Malhotra 2010 for the tail after it). [Stand-in RGP3, tier T2, tweak L1.]"""
+"""float: A belt older than this has emptied its resonance zones (the design note's "1 to 10 Myr"; [R3093] for the tail after it). [Stand-in RGP3, tier T2, tweak L1.]"""
 
 YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR = 9.3e-4
-"""float: `da/dt` times the diameter, au km/Myr, at `YARKOVSKY_REFERENCE_AU` (Bennu: 493 m across, 18.95e-4 au/Myr at 1.10 au; Vokrouhlicky et al. 2015, arXiv:1502.01249, READ). [Stand-in BR1 of 6.95, tier T2, tweak L1; row RGP6.]"""
+"""float: `da/dt` times the diameter, au km/Myr, at `YARKOVSKY_REFERENCE_AU` (Bennu: 493 m across, 18.95e-4 au/Myr at 1.10 au; [R4568], READ). [Stand-in BR1 of 6.95, tier T2, tweak L1; row RGP6.]"""
 
 YARKOVSKY_REFERENCE_AU = 1.1
 """float: The distance the drift coefficient is measured at; the drift is taken to go as the flux, `1/a^2`. [Stand-in RGP6, tier T2, tweak L1.]"""
 
 FORCED_ECCENTRICITY_COEFFICIENT = 1.25
-"""float: The eccentricity a giant forces on a belt: this times `(a / a_giant) e_giant / (1 - e_giant^2)` (the leading secular term; Wyatt et al. 1999, recalled, not opened). [Stand-in RGP5, tier T2, tweak L0.]"""
+"""float: The eccentricity a giant forces on a belt: this times `(a / a_giant) e_giant / (1 - e_giant^2)` (the leading secular term; [R4784], recalled, not opened). [Stand-in RGP5, tier T2, tweak L0.]"""
 
 INTERIOR = "interior"
 EXTERIOR = "exterior"

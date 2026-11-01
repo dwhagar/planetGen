@@ -109,7 +109,7 @@ def test_the_reference_says_which_galaxy_and_which_papers(expectations):
 def test_the_reference_galaxy_holds_the_stars_its_history_forms_and_forms_the_milky_ways_rate():
     """GEN.900 to GEN.902: the totals of the remnants, magnetars and Wolf-Rayet stars follow the young stars, so the reference galaxy's
     density, disk history and mass must agree, and its star formation must be the Milky Way's (1.65 +- 0.19 solar masses a year,
-    Licquia and Newman 2015, recalled): the old fixture held a bulge as heavy as its thin disk and ran its history on a larger galaxy."""
+    [R2680, R2681], recalled): the old fixture held a bulge as heavy as its thin disk and ran its history on a larger galaxy."""
     import numpy as np
 
     from planetgen.galaxy import density, disk_history

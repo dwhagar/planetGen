@@ -20,12 +20,12 @@ outside 400 to 700 nm that holds from 200 nm up to 1100 nm for the gases whose f
 (the research: no use within about 80 nm of a strong absorption band, so SO2, H2S and O3 are scattering stand-ins
 below 300 nm, where their absorption is a hundred times larger anyway).
 
-Checks against the sources, in `tests/test_rayleigh.py`: dry Earth air at 550 nm gives 0.0970 (Bucholtz 1995 Table 4:
+Checks against the sources, in `tests/test_rayleigh.py`: dry Earth air at 550 nm gives 0.0970 ([R0575: Table 4]:
 0.09721, 1 percent); Venus-like air (96.5 percent CO2) at 92 bar gives tau 16.4 at 550 nm (radiation-model.md section 11,
 world C); 1 bar of 86/14 H2/He gives 0.089 at 550 nm (part 03 7.1, the giant reference level).
 
 The cross sections are good to 2.5 to 4 percent for N2 and Ar, 7 for CO2 and 10 to 18 for CO, CH4 and N2O
-(Sneep and Ubachs 2005, a measurement at 532 nm); the generic polarizability route is good to -9 to +6 percent.
+([R4138] measurement at 532 nm); the generic polarizability route is good to -9 to +6 percent.
 `Rayleigh.state` and `Rayleigh.limit` of each row say which a gas is. Nothing here draws a value: it is a function of the
 stored mixture and gravity.
 
