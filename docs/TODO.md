@@ -14509,6 +14509,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lock-free and plain-words rules apply (Oxford comma, no
   out-of-universe words). The wiring-register lines for history_text and
   giant_event name this item. Owner: Star 2.
+  Star 2 re-scope (2026-11-01 12:05 AM EDT): Not lock-free as written. A
+  belt history is not stored (asteroid_belts has no history column) and
+  giant_event is not called by generation. Split: GEN.1232a (lock, one
+  epoch): store the belt history text in a new column on asteroid_belts
+  and show it on the belt page, engulfed or scattered by the giant
+  branch only (what #4430 computes); GEN.1232b (lock, after GEN.1068
+  belt birth): wire giant_event into generation. Owner: Star 2 for 1232a
+  once it has a train; 1232b waits for Aux 5.
   Prerequisites: none. Related: GEN.1072, GEN.1068.
 
 - [ ] **GEN.1233 Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law**
@@ -19360,24 +19368,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.541 Four star tests fail on clean main: the population model, the hot white dwarf classes O5VII and B0VII, and the forced subdwarf (bug)**
-  Found by Bug 1 while building GEN.996 (6:09 PM EDT 2026-10-31, as the
-  lane reported): in the core subset, 4 failures are not from its branch
-  and fail the same on plain main. `tests/test_gen_star_helpers.py` (the
-  population-model test and the hot-white-dwarf cases O5VII and B0VII)
-  and `tests/test_forced_star.py` (the subdwarf case). This TODO machine
-  lacks the datasets, so it cannot tell these from missing-data
-  failures; the first step is to run both files on a machine with the
-  downloads and name the real failures. Do: find the cause of each (a
-  stale expectation after the star mass function and remnant work, or a
-  real defect), fix at the cause with a sourced range when the test was
-  wrong, and never skip or loosen a test without saying why. Done: both
-  files pass on main with the downloads present. Lock-free unless the
-  cause is a generator defect, which then rides an epoch. Owner: none
-  for now (pool; the Train Manager proposes a star lane once train 8
-  clears). Version 8.1.
-  Prerequisites: none. Related: GEN.996.
-
 - [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
   The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
   reported) ran the suite on main 7eef24a and re-ran these alone, so
@@ -19429,18 +19419,6 @@ clears each one.
   behind the train 8 stored-tree fix (GEN.951).
   Prerequisites: none.
 
-- [ ] **TEST.549 test_star_population passes the removed bounds_only argument to _bright_table and is red on main (bug)**
-  The Train Manager reported (as the lane reported, 11:59 PM EDT
-  2026-10-31) that
-  tests/test_star_population.py::test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns
-  (line about 293) still passes 6 arguments to
-  star_population._bright_table, whose bounds_only argument PR #4688
-  removed. Do: update the test to the new signature and keep what it
-  checks (counts at the population's own composition, not the Sun's).
-  Done: the test passes on main. Lock-free, test-only. Owner: Star 2,
-  with TEST.541.
-  Prerequisites: none.
-
 - [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
   Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
   five prevalence census tests red on main on purpose: their baselines
@@ -19449,6 +19427,18 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
+- [ ] **TEST.551 test_burn_down_register::BR20 is red on main: row 6.95:BR20 has a line but is no longer L3 or L4 (bug)**
+  Found by Tides 1 (as the lane reported, 12:04 AM EDT 2026-11-01) while
+  rebasing GEN.1185 and GEN.1218a.
+  tests/test_burn_down_register.py::BR20 fails on main: the stand-in
+  registry row 6.95:BR20 still has a burn-down line but its tweak level
+  is no longer L3 or L4 (probably retuned by a train 8 lane). Do: either
+  drop the burn-down line for BR20 if the row is now L0 to L2, or
+  restore the level if the row is still hand-tuned; the register and the
+  test must agree with the stand-in values file. Done: the test passes
+  on main. Lock-free, docs and test side. Owner: none yet.
   Prerequisites: none.
 
 ## USR: User accounts
