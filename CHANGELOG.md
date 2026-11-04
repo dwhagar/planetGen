@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3125] - 2026-11-04
+
+**Headline:** The resonant-chain tide test calls the tide functions that exist now.
+
+### Changed
+- **TEST.559.** `test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon` called `tidal_heating.molten_power_w` and `solid_power_w`, which the tides chain (GEN.955 and GEN.778) replaced. Io's forced eccentricity now goes through the box's melt-limited tide (`interior_heat.heat_flow`, 1e13 to 5e13 W, the band `test_tidal_heating` holds) and TRAPPIST-1 d through `peale_power_w` with the rigid-sphere `k2` over a Q of 100, with its zero for a circular orbit. Test only.
+
+generation-output: unchanged
+
+TODO items advanced: TEST.559.
+
+## [8.0.3124] - 2026-11-04
+
+**Headline:** The settings test knows the two test-run cache switches, so it passes on main again.
+
+### Changed
+- **Test fix, no code change (TEST.560).** `test_the_code_reads_no_variable_the_model_does_not_name` fails on any `PLANETGEN_*` variable the code reads and the settings model does not name. `PLANETGEN_BAND_TABLE_CACHE` (`generation/band_table_cache.py`, PERF.218) and `PLANETGEN_BATTERY_DIGEST_CACHE` (`generation/battery_digest_cache.py`, PERF.209) are read in code and set only by the test suite, so they are not `config.json` options; they are now listed with the other non-option variables, with their meaning (test-run switches).
+generation-output: unchanged
+
+## [8.0.3123] - 2026-11-04
+
+**Headline:** The forced-fill test for a sector directive no longer fails on the draws that happen to hold six habitable worlds in three systems.
+
+### Changed
+- **Test fix, no code change (TEST.555 part 3).** `test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill` asked for `habitable>=6` in a sector of three systems, which it took to happen about 1 time in 10,000. A habitable world is a body of a life class since epoch 121 and a system holds one about 7 times in 10, so the first draw met the directive on a large share of runs (one of four in a sample) and the test, which expects the fill after a missed draw, failed with "directives met on the first draw". The test now fixes the count the directive measures: the drawn sector of three counts no habitable world, the filled sector counts one per system, so the run always takes the path the test is about. `HABITABLE_COUNT_PMF` in `generation/directives.py`, which sizes the fill and the "impossible" check, was measured before epoch 121 and is stale; it is filed for a remeasure, not changed here.
+generation-output: unchanged
+
 ## [8.0.3122] - 2026-11-04
 
 **Headline:** Two tests of the neutron star to black hole ratio now check it against the remnant model instead of a fixed 1.5.

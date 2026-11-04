@@ -14160,6 +14160,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level. TEST.533 widened the bound to a factor of three with the reason
   in the test; tighten it back when this lands. Interacts with GEN.999
   (adds 10 percent), so look at it after train 8. Lock work (epoch).
+  Core 3 (9:20 AM EST on 2026-11-04): as the lane reported 9:16 AM EST
+  on 2026-11-04: GEN.1242 (exponential inside-out infall, Chiappini line
+  time scale, stopped at 2 and 8 Gy) brings the reference galaxy to 2.8
+  solar masses a year and present over mean to 0.45; the 0.20 to 0.3 aim
+  is not reached. The disc beyond 10 kpc and inside 4 kpc still forms
+  more than observed. This item stays open for that residual after
+  GEN.1242 merges; GEN.1202 also stays open (8 kpc gas 10.3 against
+  13.7).
   Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
   Prerequisites: none.
 
@@ -14337,6 +14345,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   moons and the belt dose afterwards. Changes generated output: epoch
   with --affects fill, rides a train. Owner: Bug 1. Version 8.1.
   Prerequisites: none. Related: GEN.1157, GEN.962, GEN.921, TEST.557,
+  GEN.725.
+
+- [ ] **GEN.1245 Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale**
+  Found by Aux 3 with TEST.555 part 3 (as the lane reported 8:58 AM EST
+  on 2026-11-04). generation/directives.py sizes the forced fill of a
+  sector directive such as habitable>=6 and its impossible check from
+  HABITABLE_COUNT_PMF, the spread of habitable bodies per system. A
+  habitable body is a body of a life class since epoch 121 and about 7
+  systems in 10 hold one, a spread the table does not hold. Do: measure
+  the habitable count per system on the current generator (about 3 s a
+  system, so a few thousand systems as a background job), replace the
+  table with the measured spread and register it in GEN.725 with tier
+  and tweak level, read the table from the measurement script rather
+  than a typed number, and check that the forced fill and the impossible
+  check agree with a sector drawn on the new epoch. Changes how a
+  directive run fills a sector, not a system: epoch with --affects fill
+  if the stored output moves, rides a train. Owner: Aux 3. Version 8.1.
+  Prerequisites: none. Related: GEN.180, GEN.1130, TEST.555, GEN.725.
+
+- [ ] **GEN.1246 The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source**
+  Found by Core 3 with GEN.1242 (as the lane reported 9:16 AM EST on
+  2026-11-04). GEN.1242 replaces the growth-of-stars inflow with an
+  exponential inside-out infall whose time scale is the Milky Way's in
+  scale lengths (stand-in GI1, tier from the source, tweak level L0),
+  the same for a 1e10 and a 5e10 galaxy. Smaller galaxies form their
+  stars later and slower, so the time scale should depend on the stellar
+  mass. Do: read published star formation history or chemical evolution
+  models across disc mass (secondary sources accepted), derive the mass
+  dependence of the infall time scale, register the stand-in in GEN.725
+  with tier and tweak level, and check the young share by mass against
+  the census. Changes stored ages and populations: epoch with --affects
+  plan,scatter,fill,population, census re-baseline; lock work, rides a
+  train after GEN.1242. Owner: Core 3. Version 8.1.
+  Prerequisites: GEN.1242. Related: GEN.1242, GEN.1230, GEN.1202,
   GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19128,27 +19170,32 @@ clears each one.
   the re-tag. Owner: Train Manager.
   Prerequisites: none.
 
-- [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
-  Found by the full-suite thread (first pass on main 7eef24a, to 53
-  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
-  Failures re-run alone and real on 7eef24a, none diagnosed: (1)
-  tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
-  (the /search page shows H2, N2, O2, H2O, CO2, CH4 formulas unwritten);
-  (2)
-  tests/test_web_fresh_after_cli.py::test_galaxy_map_and_nodes_show_sectors_the_cli_placed
-  and ::test_sector_page_and_nodes_show_a_phenomenon_the_cli_added
-  (CLI-placed sectors missing from the map and nodes); (3)
-  tests/test_bughunt_cli_edges.py::test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill;
-  (4) the 900 s timeouts in test_prevalence.py (asteroid_belt-30,
-  large_star-100, large_star--100, planets--40, comets-0.3 plus or minus
-  100, no binaries at minus 100 and more at plus 50), already tracked by
-  PERF.229 for the fuzz case. Do: re-run each on current main first
-  (many commits since 7eef24a), keep only those that still fail,
-  root-cause each, and file or fix. Done: each failing test has a cause
-  and an owner or a fix. Owner: full-suite thread, with Bug 1.
-  Prerequisites: none.
-  Prerequisites: none.
+- [ ] **TEST.558 test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main in 6 cases: the component density differs from the stored one by about 0.6 percent (bug)**
+  Found by Core 3 while building GEN.1242 (as the lane reported 9:16 AM
+  EST on 2026-11-04, not from its change) and reproduced on main
+  d132b7661 by TODO: tests/test_density_components.py line 182, the
+  four_arms case first. The density written as components differs from
+  the one the spiral gave before by about 0.6 percent in every grid
+  cell, where the test expects equality to its tolerance. Do: find
+  whether a component weight, a constant moved by a recent epoch, or the
+  test's reference is stale (git bisect on the file), fix the cause, and
+  say in the change note which it was. No generated change if the
+  reference is stale. Owner: Core 4 (stand-by).
+  Prerequisites: none. Related: GEN.1242.
+
+- [ ] **TEST.561 Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug)**
+  Found by the full-suite run on 7eef24a (as the lane reported 9:17 AM
+  EST on 2026-11-04) and reproduced on main d22d767df by TODO. Both
+  tests pin a count that depends on the derived mean system mass
+  (GEN.927 and later epochs): tests/test_galaxy_shell_outline.py and
+  tests/test_gen_halo.py. Do: decide for each whether the move is
+  expected (the single-star mass function and the new old-population
+  window moved the mean system mass) and re-pin it with the reason in
+  the test, or whether a defect moved it; if the pin keeps moving each
+  epoch, make the test compare against a value derived from the model
+  (as TEST.548 did for the remnant ratio). Test only, no generated
+  change unless a defect is found. Owner: Star 2.
+  Prerequisites: none. Related: GEN.927, GEN.1025.
 
 ## USR: User accounts
 

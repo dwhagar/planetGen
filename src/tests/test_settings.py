@@ -217,6 +217,10 @@ NON_OPTION_VARIABLES = {
                           "datasets command read the same variable, and it is a path of the install, not a site setting",
     "PLANETGEN_UPDATE_LOCK_FILE": "where the update's lock lives (OPS.41; the test suite points it at a temporary folder)",
     "PLANETGEN_UPDATE_PID": "set by update.sh for the commands it runs: the update that holds the lock",
+    "PLANETGEN_BAND_TABLE_CACHE": "the folder the bright-star band tables are kept in across processes (PERF.218; a test-run "
+                                  "switch: the test suite sets it, nothing else does)",
+    "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209; a test-run switch: the "
+                                      "test suite sets it, nothing else does)",
 }
 
 
