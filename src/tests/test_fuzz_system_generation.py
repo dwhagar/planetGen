@@ -364,12 +364,28 @@ def test_random_valid_configs_generate_sane_systems(seed, cfg):
     assert render_support.text(system)
 
 
+HEAVY_YERKES = ("IAB", "IB", "II", "III")
+"""tuple: The classes whose systems are heavy with every orbit-producing flag forced on (PERF.229): a bright giant or supergiant has a zone so wide
+that `MAX_PLANETS` makes about 60 planets and 270 moons, each costing a few tenths of a second of air, impact and climate work (an O6IAB system
+took 236 s, a G2V one 5 s). Seventy of them in one test passed the 900 s limit by hours, so those classes run the subclasses `HEAVY_SUBCLASSES` of
+each letter, three tests of a few minutes each per letter in place of one of hours."""
+HEAVY_SUBCLASSES = (0, 5, 9)
+
+
+def _types_of_class(yerkes, letter):
+    """`[(index, star_type)]` of the star types of one letter and Yerkes class, `index` being the place in the class's whole list of 70 (the seed's)."""
+    every = [t for t in ALL_STAR_TYPES if t[2:] == yerkes]
+    found = [(index, t) for index, t in enumerate(every) if t[0] == letter]
+    return [(index, t) for index, t in found if yerkes not in HEAVY_YERKES or int(t[1]) in HEAVY_SUBCLASSES]
+
+
+@pytest.mark.parametrize("letter", SPECTRAL)
 @pytest.mark.parametrize("yerkes", YERKES)
-def test_every_star_type_generates_a_sane_system(yerkes):
-    """All 70 spectral-letter x subclass combinations for one Yerkes class,
-    each with every orbit-producing flag forced on (the most bodies, the
-    most chances to break an invariant)."""
-    for index, star_type in enumerate(t for t in ALL_STAR_TYPES if t[2:] == yerkes):
+def test_every_star_type_generates_a_sane_system(yerkes, letter):
+    """The 10 subclasses of one spectral letter and one Yerkes class (all 70 combinations of a class over its 7 letters), each with every
+    orbit-producing flag forced on (the most bodies, the most chances to break an invariant). A bright giant or supergiant class runs
+    three subclasses of a letter (`HEAVY_YERKES`)."""
+    for index, star_type in _types_of_class(yerkes, letter):
         cfg = SystemConfig()
         cfg.STAR_TYPE = star_type
         cfg.BINARY_SYSTEM = False

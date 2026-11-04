@@ -187,6 +187,7 @@ class AsteroidBelt:
         self.cleared_mass_earth *= share
         self.scattered_mass_earth *= share
         self.upper_limit = upper_limit
+        self.distance = min(self.distance, upper_limit)     # a belt whose middle lay past the cut keeps it inside its limits (PERF.229: A2VII)
         left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
         _, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, upper_limit, left_earth)
         return True

@@ -192,9 +192,45 @@ def _diameter_grid_m(bins=48):
 _GRID, _WEIGHTS = _diameter_grid_m()
 
 
+_SQRT_IMPACTOR_DENSITY = math.sqrt(IMPACTOR_DENSITY)
+_ONE_MINUS_X2_TOTAL = (1.0 - 5.0 / 3.0 + 2.0 - 10.0 / 7.0 + 5.0 / 9.0 - 1.0 / 11.0)
+"""float: `_plume_fraction`'s denominator, the antiderivative at 1 (the same arithmetic, once)."""
+_GRID_FACTORS = tuple((d, w, 0.75 * d ** 2 * _SQRT_IMPACTOR_DENSITY, d ** 2, d ** 3) for d, w in zip(_GRID, _WEIGHTS))
+"""tuple: For each size of the grid its diameter, weight and the parts of `erosion_efficiency` that depend on the diameter alone."""
+
+
 def erosion_per_impactor_mass(density_kg_m3, scale_height_m, speed_ms, escape_ms):
-    """`eta` averaged over the size distribution (weighted by impactor mass)."""
-    return math.fsum(w * erosion_efficiency(density_kg_m3, scale_height_m, d, speed_ms, escape_ms) for d, w in zip(_GRID, _WEIGHTS))
+    """
+    `eta` averaged over the size distribution (weighted by impactor mass): `erosion_efficiency` summed over the grid with what does not depend on
+    the diameter taken out of the loop (the same arithmetic in the same order, so the same numbers; a planet's air balance asks it
+    400 times for each of a system's bodies, and it was most of the time of a system of a hundred of them).
+    """
+    rho, h = density_kg_m3, scale_height_m
+    if rho <= 0.0:
+        return math.fsum(0.0 for _ in _GRID_FACTORS)
+    rho_i = IMPACTOR_DENSITY
+    sqrt_rho = math.sqrt(rho)
+    exp, sqrt = math.exp, math.sqrt
+    ratio = rho / rho_i
+    slow_a = 2.0 * h ** 2 * sqrt_rho
+    column_b = 16.0 * h ** 2 * sqrt_rho
+    column_c = 16.0 * h ** 3 * rho
+    gamma_root = sqrt(4.0 * SVETSOV_GAMMA / (SVETSOV_GAMMA - 1.0))
+    front = 3.0 * rho / (4.0 * rho_i)
+    terms = []
+    for d, weight, slow_den, d_squared, d_cubed in _GRID_FACTORS:
+        slowing = ratio * (h / d + slow_a / slow_den)
+        plume = speed_ms * exp(-slowing) * gamma_root
+        x_lower = min(1.0, escape_ms / plume) if plume > 0.0 else 1.0
+        column = 2.0 * h / d + column_b / (3.0 * d_squared * _SQRT_IMPACTOR_DENSITY) + column_c / (d_cubed * rho_i)
+        x = min(max(x_lower, 0.0), 1.0)
+        fraction = (_ONE_MINUS_X2_TOTAL - _antiderivative(x)) / _ONE_MINUS_X2_TOTAL
+        terms.append(weight * (front * column * fraction * ANGLE_FACTOR))
+    return math.fsum(terms)
+
+
+def _antiderivative(x):
+    return x - 5.0 * x ** 3 / 3.0 + 2.0 * x ** 5 - 10.0 * x ** 7 / 7.0 + 5.0 * x ** 9 / 9.0 - x ** 11 / 11.0
 
 
 # --- the balance ------------------------------------------------------------------------------------------------------------------------
