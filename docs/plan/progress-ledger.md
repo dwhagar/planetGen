@@ -2367,3 +2367,16 @@ Baseline: PR #1817.
 | TEST.568 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.670 | 8.1 | Descriptions and maps |
 | DOC.89 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.615 | 8.1 | Admin control suite |
+| DOC.90 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.111 | 8.1 | Bugs and flaky tests |
+| TEST.116 | 8.1 | Bugs and flaky tests |
+| TEST.307 | 8.1 | Bugs and flaky tests |
+| TEST.341 | 8.1 | Bugs and flaky tests |
+| TEST.320 | 8.1 | Bugs and flaky tests |
+| TEST.127 | 8.1 | Bugs and flaky tests |
+| TEST.128 | 8.1 | Bugs and flaky tests |
+| TEST.140 | 8.1 | Bugs and flaky tests |
+| TEST.141 | 8.1 | Bugs and flaky tests |
+| TEST.254 | 8.1 | Bugs and flaky tests |
+| TEST.289 | 8.1 | Bugs and flaky tests |

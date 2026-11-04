@@ -1,7 +1,0 @@
-**Headline:** Help > References now has a page for every stand-in, a filterable list of them all, and a page of the values that were fitted to a result.
-
-### Changed
-- **Stand-in pages (DOC.90).** `/references/stand-ins` lists every row of the stand-in registry (GEN.725) by section, with filters for the source tier, the tweak level, the section and words in the row. Each row has its own page at `/references/stand-ins/<section>-<id>` (`5.1:GR1` is `/references/stand-ins/5-1-gr1`) that says what it is, how it was made and decided, its tier and tweak level in words, what would show it wrong, what replaces it, the item that will wire it and what a hand-tuned row needs (`burn-down-register.md`). Every citation on these pages is a link to the Papers or Data page.
-- **Fitted to a result (DOC.90).** `/references/fitted` lists the rows at tweak levels L2, L3 and L4 and the published statistics (tuning targets) the L2 rows were tuned to.
-- **The address of a stand-in is its section and its id.** The plan reuses an id in several sections, so `reference_link("stand-in", "5.1:GR1")` takes the registry key and an id alone is an error.
-- **Four registry rows were missing (fixed).** The plan numbers two tables 6.127 and two tables 6.134; the list read the first of each twice and never read the second. The giant structure rows (GS2 to GS8) and the high-gravity class line row GV1 are now in the list, and the row count is 1,049.

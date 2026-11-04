@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3152] - 2026-11-04
+
+**Headline:** The two system tests that force a habitable world now check what the request promises since GEN.1130, so the A0V test no longer fails on about half its trials.
+
+### Changed
+- **Test fix, no code change (TEST.307).** `test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V]` and the habitable case of `test_each_tristate_flag_forced` required a habitable world "or `unmet_requirements` says so". Since GEN.1130 a request for a habitable world raises the odds and never forces one, and it is no longer a requirement, so `unmet_requirements` never names it: a white A0V star (a life of about a billion years) came out without one in about half the trials and the test failed (it read as "1 run in 5 to 8" because of the number of trials per run). The belt is still required and still checked. The habitable request must now be answered (`habitable_request` is `aim`, `fallback` or `unmet`) and the 15 trials must give a world at least once.
+- **Found, not fixed here:** the system's `habitable_request` answer still reads the old PHI-6 index (`StarSystem.habitable_request_status`) while the request now steers by conditions (`habitable_request.count`, `meets`), so they disagree: in a probe of 14 A0V systems, 4 had a world by the conditions and said `unmet`, and 1 had none and said `fallback`. Changing the answer changes a stored column, so it is filed as lock work.
+generation-output: unchanged
+
+## [8.0.3151] - 2026-11-04
+
+**Headline:** The Galaxy Map has the density its nebulae will be drawn from, shaped by the galaxy's own gas and star-forming density: bulbous outlines with soft, wispy edges, a dense core, and more filaments the closer you zoom.
+
+### Added
+- `galaxy.nebula_density.density_at(galaxy_seed, shape, points_pc, field, detail)` (MAP.365, the shape side): a value in 0..1 at any point in the galaxy, for `"gas"` (dark and molecular clouds) or `"young"` (emission and reflection nebulae). It is a pure function of the position, the seed and the stored shape, so every node and sector reads the same value at the same point and the shapes meet without a seam; the object ID is never read. A point is inside a nebula at `FORM_LEVEL` (0.35) or more.
+- `"gas"` is anchored on the seeded cloud field, leans with the model gas (the arms and the thin layer), and a superbubble clears it. `"young"` follows the young-star density. A coarse warp makes the outline bulbous at the coarsest level; each further octave of gradient noise (`wavelength_pc(detail)`, 64 pc halving up to `MAX_DETAIL` 8) adds filaments at the edge and leaves a dense core, and changes a value by at most `octave_bound`, so the coarse blobs stay where they were as the map zooms in.
+- Wiring register line for the module until the node response and the drawing (MAP.365 parts b to e, Core 2) read it.
+
+generation-output: unchanged
+TODO items resolved: MAP.365 (part a, the shape field; the node response, drawing, tint and blend are Core 2's)
+
+## [8.0.3150] - 2026-11-04
+
+**Headline:** Help > References now has a page for every stand-in, a filterable list of them all, and a page of the values that were fitted to a result.
+
+### Changed
+- **Stand-in pages (DOC.90).** `/references/stand-ins` lists every row of the stand-in registry (GEN.725) by section, with filters for the source tier, the tweak level, the section and words in the row. Each row has its own page at `/references/stand-ins/<section>-<id>` (`5.1:GR1` is `/references/stand-ins/5-1-gr1`) that says what it is, how it was made and decided, its tier and tweak level in words, what would show it wrong, what replaces it, the item that will wire it and what a hand-tuned row needs (`burn-down-register.md`). Every citation on these pages is a link to the Papers or Data page.
+- **Fitted to a result (DOC.90).** `/references/fitted` lists the rows at tweak levels L2, L3 and L4 and the published statistics (tuning targets) the L2 rows were tuned to.
+- **The address of a stand-in is its section and its id.** The plan reuses an id in several sections, so `reference_link("stand-in", "5.1:GR1")` takes the registry key and an id alone is an error.
+- **Four registry rows were missing (fixed).** The plan numbers two tables 6.127 and two tables 6.134; the list read the first of each twice and never read the second. The giant structure rows (GS2 to GS8) and the high-gravity class line row GV1 are now in the list, and the row count is 1,049.
+
 ## [8.0.3149] - 2026-11-04
 
 **Headline:** The Papers page tests no longer write a source by name, and the Papers data catches up with the new sources; nothing a visitor sees changes beyond the new sources appearing.
