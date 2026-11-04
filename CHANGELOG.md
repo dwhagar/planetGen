@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3176] - 2026-11-04
+
+**Headline:** Which parts of the galaxy are charted now has one record, and deleting or regenerating a sector no longer takes drifted-in objects with it.
+
+### Changed
+- **A chart ledger.** One row for each charted sector cell (the run, the epoch, when, and when the rogue top-up filled it) replaces the "filled" time kept on the sector's stats. Existing galaxies are copied across when the update runs.
+- **Deleting or regenerating a sector takes only what was born there.** Rogue planets, comets, supernova remnants, and facilities that drifted into a sector from another no longer vanish with it. A sector that still holds such objects cannot be deleted (the page says so), and a regenerated one keeps its row.
+
 ## [8.0.3175] - 2026-11-04
 
 **Headline:** A belt now keeps where it came from: what formed it, what the giants cleared from it, the sentences of what shaped it, and its largest body, stored with the belt.
