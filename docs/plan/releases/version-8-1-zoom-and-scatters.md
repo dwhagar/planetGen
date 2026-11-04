@@ -676,7 +676,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule |  |  |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) |  |  |
 | TEST.550 | Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug) |  |  |
-| TEST.548 | Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug) |  |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
 | GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |

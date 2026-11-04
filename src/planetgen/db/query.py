@@ -6296,6 +6296,13 @@ def _timestamp_literal(digits):
     return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
 
 
+# The `galaxy_shape` columns every sector fill moves (the decaying average of fill against expected systems, PERF.11).
+# Only the fill estimate in `db.stats` reads them: no node, tile or density cloud depends on them, and counting them as
+# shape made every new sector change `tile_base`, so the Galaxy Map's node cache answered "everything" (a full reload)
+# instead of the sectors that changed (TEST.555).
+_SHAPE_LEARNED_COLUMNS = frozenset({"density_ratio_avg", "density_ratio_samples"})
+
+
 def galaxy_shape_inputs(conn):
     """
     What the stored galaxy shape is made from, as plain values: the `galaxy_shape` row, the levers it was told
@@ -6313,7 +6320,8 @@ def galaxy_shape_inputs(conn):
         components = dict(conn.execute(
             "SELECT COUNT(*) AS n, MIN(id) AS first_id, MAX(id) AS last_id, SUM(mass_solar) AS mass, SUM(age_gy) AS age, "
             "SUM(metallicity_fe_h) AS fe_h FROM galaxy_components").fetchone())
-    return {"row": {key: (value.hex() if isinstance(value, (bytes, bytearray)) else value) for key, value in dict(row).items()},
+    return {"row": {key: (value.hex() if isinstance(value, (bytes, bytearray)) else value) for key, value in dict(row).items()
+                    if key not in _SHAPE_LEARNED_COLUMNS},
             "pins": {pin["name"]: pin["value"] for pin in conn.execute("SELECT name, value FROM galaxy_shape_pins").fetchall()},
             "components": components}
 
