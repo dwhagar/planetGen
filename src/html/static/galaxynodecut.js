@@ -16,7 +16,7 @@ const {
 export const HANDOVER_PX = [70, 140];
 export const FETCH_FROM_PX = 56;
 export const CONE_HALF_ANGLE_DEG = 50;
-export const MAX_NODES = 1200;
+export const MAX_NODES = 1200;    // MAP.367 left it alone on purpose (see planetgen/galaxy/nodecut.py)
 export const DEFAULT_FOCAL_PX = 800 / (2 * Math.tan((25 * Math.PI) / 180));
 const SQRT3_HALF = Math.sqrt(3) / 2;
 const TOP = DRILL_LEVELS[0];

@@ -39,7 +39,7 @@ def _article(word):
 
 def _orbit(obj):
     """The galactic-orbit sentence every free-floating object shares."""
-    return inline("It is bound to no star, and it orbits the galactic centre at ",
+    return inline("It is bound to no star, and it orbits the galactic center at ",
                   build._galactic_orbit(obj.galactic_orbital_speed_kms, obj.galactic_orbital_period_gy), ".")
 
 
@@ -97,7 +97,7 @@ def _quasar(quasar):
         inline(f"{quasar.name} is the galaxy's active nucleus: a supermassive black hole swallowing gas, with an accretion "
                "disk that outshines every star in a galaxy like the Milky Way by a factor of ",
                qty("count", round(quasar.galaxy_luminosity_multiple)), "."),
-        inline("Gas in its broad-line region orbits fast enough to smear its emission lines thousands of kilometres per "
+        inline("Gas in its broad-line region orbits fast enough to smear its emission lines thousands of kilometers per "
                "second wide."),
         inline("Twin relativistic jets punch out of the galaxy entirely and feed its radio lobes." if quasar.is_radio_loud
                else "It is radio-quiet, with no large-scale jets."),
@@ -158,7 +158,7 @@ def _rogue_planet(planet):
 def _interstellar_comet(comet):
     rows = [
         fact("type", "Type", "Interstellar Comet"),
-        fact("nucleus", "Nucleus Diameter", build._km(comet.nucleus_diameter_km)),
+        fact("nucleus", "Nucleus diameter", build._km(comet.nucleus_diameter_km)),
         fact("speed", "Excess Speed", build._kms(comet.velocity_kms)),
         fact("activity", "Activity", "Active" if comet.is_active else "Dormant"),
         _orbit_fact(comet),
@@ -204,14 +204,14 @@ def _supernova_remnant(remnant):
     ]
     sentences = [inline(f"{remnant.name} is {_article(remnant.morphology)} {remnant.morphology} supernova remnant, the "
                         f"expanding wreckage of a {remnant.progenitor_type} supernova ", _years(remnant.age_years),
-                        " ago. It now reaches ", _ly(remnant.radius_ly), " from its centre."), _orbit(remnant)]
+                        " ago. It now reaches ", _ly(remnant.radius_ly), " from its center."), _orbit(remnant)]
     children = []
     centre = remnant.compact_remnant
     if centre is not None:
-        sentences.append(inline(f"At its centre lies the collapsed core of the progenitor star, {centre.name}."))
+        sentences.append(inline(f"At its center lies the collapsed core of the progenitor star, {centre.name}."))
         children.append(_compact(centre))
     elif getattr(remnant, "compact_remnant_name", None):    # a stored remnant: the centre has a page of its own
-        sentences.append(inline(f"At its centre lies the collapsed core of the progenitor star, {remnant.compact_remnant_name}."))
+        sentences.append(inline(f"At its center lies the collapsed core of the progenitor star, {remnant.compact_remnant_name}."))
     elif remnant.progenitor_type == "core-collapse":
         sentences.append(inline("Whatever compact remnant the collapse left behind, if any, has not been found in the "
                                 "debris."))

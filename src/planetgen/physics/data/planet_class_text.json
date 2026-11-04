@@ -1,0 +1,24 @@
+{
+  "descriptions": {
+    "A": "a small, barren, and volcanic world, occasionally scarred by intense, toxic eruptions",
+    "B": "a small, molten world, occasionally the stripped core of a former gas giant",
+    "C": "a dead world",
+    "D": "a small icy body",
+    "E": "a deep-frozen world",
+    "F": "a volcanic world with shallow seas",
+    "G": "a rocky, barren world",
+    "H": "a desert world with little liquid water",
+    "I": "an ice giant with a tilted magnetic field",
+    "J": "a gas giant with a turbulent atmosphere and rings",
+    "K": "an adaptable world",
+    "L": "a marginally habitable world",
+    "M": "a temperate terrestrial world",
+    "N": "a hot world",
+    "O": "an ocean world with most of its surface covered in liquid water",
+    "P": "a cold, glaciated world",
+    "S": "a barren, rocky Super-Earth, its surface molten when it orbits close to its star",
+    "T": "a gas dwarf with a thick atmosphere",
+    "V": "a Super-Earth with high gravity"
+  },
+  "asteroid": "an asteroid, a body too small for its own weight to pull it round"
+}

@@ -84,7 +84,7 @@ test("an item with its own size is hidden while it is under two pixels", () => {
 });
 
 test("the legend line carries the kind's color", () => {
-  assert.deepEqual(M.legendOf(M.BLACK_HOLE_KIND), { text: "Black holes", swatch: M.BLACK_HOLE_KIND.color, swatchClass: "map-marker-swatch" });
+  assert.deepEqual(M.legendOf(M.BLACK_HOLE_KIND), { text: "Black hole marks", swatch: M.BLACK_HOLE_KIND.color, swatchClass: "map-marker-swatch" });
 });
 
 test("every glyph draws without error on a recording context", () => {
@@ -469,4 +469,9 @@ test("the card names the most advanced species' band of a civilization (MAP.344)
   const [item] = kind.source({ interests: [system] });
   assert.equal(kind.describe(item), "Forge, 2 worlds with a civilization, most advanced Industrial");
   assert.equal(item.tech, 2.1);
+});
+
+test("the black hole kind starts off (MAP.368): a stored choice still wins, so the registry's default is the only thing it sets", () => {
+  assert.equal(M.BLACK_HOLE_KIND.defaultOn, false);
+  assert.equal(M.BLACK_HOLE_KIND.id, "marker-black-hole");
 });

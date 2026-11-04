@@ -6,7 +6,7 @@ stages and animal grades, and a page for each of the nine life classes. Every nu
 and every sentence keeps the plain-words style guide.
 """
 
-import ast
+import json
 import os
 import re
 
@@ -17,8 +17,6 @@ from planetgen.physics import life_air, life_classes, life_readings
 from planetgen.util import plainwords
 from planetgen.web.lib import life_help
 from tests.test_class_pages import _html, app, client  # noqa: F401
-
-LEVEL_CHECK = {key: name.lower() for key, name in life_help.LEVEL_NAMES.items()}
 
 ALL_PAGES = [("kinds", None)] + [(slug, None) for slug, _t, _s in life_help.TOPICS if slug != "kinds"] + \
             [("classes", number) for number in range(1, 10)]
@@ -107,18 +105,21 @@ def test_every_class_has_a_page_with_all_its_variants_and_the_rule_files_words()
             facts = dict(next(s for s in page["sections"] if s["id"] == f"class-{row.id}")["facts"])
             assert facts["Drinks"] == row.drinks and facts["Eats"] == row.eats and facts["Breathes"] == row.breathes
             assert facts["Gives off"] == row.gives_off and facts["How far it can go"] == row.reaches
-            assert facts["Confidence it can exist"].startswith(row.tier)
+            assert "Confidence it can exist" not in facts
+            assert next(s for s in page["sections"] if s["id"] == f"class-{row.id}")["reference"] == ("speculative", row.id)
             assert isinstance(facts["Needs"], list) and facts["Needs"]
 
 
-def test_a_class_is_marked_speculative_when_its_air_chemistry_is_at_level_l3_or_l4():
+def test_the_speculative_chemistry_is_on_the_references_page_and_the_life_pages_link_to_it():
+    """DOC.92: the life pages no longer carry the tier and level words; each class links to its References section."""
     for number in range(1, 10):
-        entry = life_air.CLASSES[str(number)]
-        text = " ".join(next(s for s in life_help.page("classes", number)["sections"] if s["id"] == "sources")["paragraphs"])
-        assert text.startswith("Speculative chemistry") == (entry["tweak"] in ("L3", "L4"))
-        assert entry["tier"] in text and entry["tweak"] in text and LEVEL_CHECK[entry["tweak"]] in text.lower()
-    rows = next(s for s in life_help.page("classes")["sections"] if s["id"] == "sources")["table"]["rows"]
-    assert [row[3] for row in rows] == ["Yes" if life_air.CLASSES[str(n)]["tweak"] in ("L3", "L4") else "No" for n in range(1, 10)]
+        page = life_help.page("classes", number)
+        assert not any(section["id"] == "sources" and "Speculative chemistry" in " ".join(section.get("paragraphs", [])) for section in page["sections"])
+    sources = next(s for s in life_help.page("classes")["sections"] if s["id"] == "reference")
+    assert sources["reference"] == ("speculative", None)
+    data = json.load(open(os.path.join(os.path.dirname(__file__), "..", "..", "docs", "references", "speculative.json"), encoding="utf-8"))
+    assert {row["id"]: row["speculative"] for row in data["classes"]} == {
+        row.id: life_air.CLASSES[str(row.number)]["tweak"] in ("L3", "L4") for row in life_classes.CLASSES}
 
 
 def test_the_needs_of_a_class_come_from_its_rule_row():
@@ -129,10 +130,3 @@ def test_the_needs_of_a_class_come_from_its_rule_row():
     assert any("hydrogen" in need for need in life_help.needs(life_classes.BY_ID["3a"]))
 
 
-def test_the_tier_names_are_the_registrys():
-    path = os.path.join(os.path.dirname(__file__), "..", "..", "scripts", "build_stand_in_values.py")
-    with open(path, encoding="utf-8") as handle:
-        tree = ast.parse(handle.read())
-    tiers = next(ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign) and node.targets[0].id == "TIERS")
-    for key, name, _meaning in tiers:
-        assert life_help.TIER_NAMES[key].startswith(name.split(" (")[0]), key

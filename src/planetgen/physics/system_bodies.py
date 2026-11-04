@@ -34,6 +34,7 @@ import math
 from collections import namedtuple
 
 from planetgen.physics.kepler import solve_eccentric_anomaly
+from planetgen.util import detmath
 
 Body = namedtuple(
     "Body",
@@ -199,7 +200,7 @@ def belt_wobble_au(bodies, kinds=("belt_member", "extended")):
     """
     with_belts = central_offset_au(bodies)
     without = central_offset_au(bodies, kinds)
-    return math.dist(with_belts, without)
+    return detmath.dist(with_belts, without)
 
 
 def relative_position_au(a_au, e, i_deg, node_deg, argument_deg, mean_anomaly_deg):

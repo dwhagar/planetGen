@@ -42,7 +42,7 @@ def test_the_return_fraction_reproduces_madau_and_dickinsons_salpeter_value():
 
 
 def test_the_infall_time_scale_is_the_milky_ways_line_between_its_two_models_limits():
-    """[R5082] section 3: `tau = 1.033 R - 1.267` Gy, 7 Gy at the Sun; [R5081]: 2 Gy inside and 8 Gy at 20 kpc."""
+    """[R5095] section 3: `tau = 1.033 R - 1.267` Gy, 7 Gy at the Sun; [R5094]: 2 Gy inside and 8 Gy at 20 kpc."""
     sun = 8.0 / tuning.DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC
     assert disk_history.infall_time_gy(sun) == pytest.approx(7.0, abs=0.05)
     assert disk_history.infall_time_gy(0.1) == tuning.DISK_INFALL_MIN_GY
@@ -63,7 +63,7 @@ def test_the_inflow_of_each_ring_decays_with_that_rings_time_scale():
 
 
 def test_a_disc_slower_than_the_milky_ways_is_fed_ever_more_slowly_and_a_faster_one_the_other_way():
-    """[R5083] equation 21: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per Gy, so it is the Milky Way's at 220 km/s."""
+    """[R5096] equation 21: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per Gy, so it is the Milky Way's at 220 km/s."""
     rings = np.array([3.0])
     reference = disk_history.inflow_shapes(rings, 10.0, 800, 220.0)
     slow = disk_history.inflow_shapes(rings, 10.0, 800, 100.0)
@@ -78,7 +78,7 @@ def test_the_speed_of_a_disc_is_the_cube_root_of_its_mass_from_the_milky_ways_tw
 
 
 def test_light_discs_rise_to_the_present_and_heavy_ones_fall():
-    """[R5084] section 4.1: a disc of 100 km/s has a rising star formation, one of 360 km/s a falling one; the Milky Way's is near constant."""
+    """[R5097] section 4.1: a disc of 100 km/s has a rising star formation, one of 360 km/s a falling one; the Milky Way's is near constant."""
     light, milky_way, heavy = (disk_history.history_of(_shape(stellar_mass=mass)).present_over_mean() for mass in (5.0e9, 5.0e10, 2.0e11))
     assert light > 1.0 > milky_way > heavy
 
@@ -122,7 +122,7 @@ def test_a_shape_without_masses_takes_the_median_galaxy_of_its_disk():
 
 
 def test_lighter_galaxies_have_more_recent_stars():
-    """Downsizing: a spiral of 1e10 solar masses is fed more slowly (the infall of [R5083] equation 21) and spends its thinner gas more slowly, so it forms its
+    """Downsizing: a spiral of 1e10 solar masses is fed more slowly (the infall of [R5096] equation 21) and spends its thinner gas more slowly, so it forms its
     stars later than one of 5e10. The shares fall with mass from 1e10 to 5e10 (the chain's range is 3e9 to 2e11): 2.3 times between them (GEN.1246; 7.5 times
     with the halo-growth inflow, which kept the Milky Way's own disc forming 2.7 times the stars per year it does)."""
     young = [disk_history.population_shares(_shape(stellar_mass=mass))["young"] for mass in (1.0e10, 3.0e10, 5.0e10)]
@@ -152,7 +152,7 @@ def _observed_present_over_mean():
 def test_the_present_rate_over_the_mean_is_within_a_factor_of_two_and_a_half_of_the_milky_ways():
     """TEST.533, tightened by GEN.1230. The bound was a factor of three while the inflow followed the stars a halo builds, which for the
     lighter median halo of GEN.1154 (1.57e12 solar masses for 5e10 of stars) rose to the present: the ratio was 0.55 against the observed
-    0.20. The infall time scale of the Milky Way's chemical evolution model ([R5082], limited by [R5081]) gives 0.45, 2.3 times the observed
+    0.20. The infall time scale of the Milky Way's chemical evolution model ([R5095], limited by [R5094]) gives 0.45, 2.3 times the observed
     figure, which also counts the thick disc's stars over a ten-Gy life, so it is low for the thin disc alone."""
     found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0, disk_history.disc_speed_kms(MILKY_WAY_MASS))
     observed = _observed_present_over_mean()

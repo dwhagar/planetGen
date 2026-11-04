@@ -57,6 +57,7 @@ class FakeData:
         self.uncharted = []
         self.calls = []
         self.asked = []
+        self.asked_ranges = []
         self.admin = None
 
     def get_sectors(self, db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False, after=None):
@@ -69,9 +70,10 @@ class FakeData:
         return body
 
     def get_systems(self, db, star_type=None, sector_id=None, limit=None, offset=None, sort=None,
-                    descending=False, binary=None, placement=None, octants=(), facets=False, after=None, start=None):
+                    descending=False, binary=None, placement=None, octants=(), facets=False, after=None, start=None, ranges=None):
         self.calls.append(("get_systems", db, sector_id, limit, offset))
         self.asked.append(("systems", sort, descending, binary, placement, list(octants)))
+        self.asked_ranges.append(ranges)
         body = {"items": self.systems[offset:offset + limit], "total": len(self.systems),
                 "limit": limit, "offset": offset}
         if facets:
@@ -605,6 +607,25 @@ def test_sectors_table_default_sort_is_distance(client, fake):
     html = client.get("/sectors").get_data(as_text=True)
     assert ("sectors", "distance", False, []) in fake.asked
     assert '<th scope="col" data-col="distance" aria-sort="ascending">' in html
+
+
+def test_systems_page_takes_the_search_ranges_and_says_so(client, fake):
+    """UX.228: the Systems list filters by what a system holds, with the search page's fields, chips and short address."""
+    html = client.get("/systems?planet_min_gravity=0.8&planet_max_gravity=1.2&star_max_age=5&star_age_unit=yr", follow_redirects=True).get_data(as_text=True)
+    table_ranges = [ranges for ranges in fake.asked_ranges if ranges is not None]       # the page's other reads (the standalone count) ask for none
+    assert table_ranges[-1] == {"planet": {"gravity": (0.8, 1.2, None)}, "star": {"age": (None, 5.0, "yr")}}
+    assert "Planet surface gravity: 0.8–1.2 g" in html and "Star age: ≤ 5 yr" in html and "Filter by what the system holds" in html
+    assert "planet_min_gravity=0.8" in html                       # the table's own address carries the range
+    assert 'name="planet_value_sort"' not in html                 # there is no order by a value on a list of systems
+    client.get("/systems")
+    assert [ranges for ranges in fake.asked_ranges if ranges is not None][-1] == {}
+
+
+def test_a_submitted_systems_form_is_redirected_to_the_short_address(client, fake):
+    response = client.get("/systems?planet_min_gravity=0.8&planet_max_gravity=&planet_gravity_unit=g0&star_age_unit=Gyr&planet_value_sort=")
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/systems?planet_min_gravity=0.8#all-systems")
+    assert client.get("/systems?planet_min_gravity=0.8").status_code == 200
 
 
 def test_systems_table_takes_its_sort_and_filters(client, fake):

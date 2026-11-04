@@ -152,7 +152,7 @@ def test_a_live_run_stops_the_update_without_the_word_and_is_cancelled_with_it(c
     sure_nothing_changed()
     assert begin(sources=sources, yes=True, write=say, timeout=30, poll=0.1)
     run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "cancelled" and run["error"] == "cancelled by update"
+    assert run["state"] == "cancelled" and run["error"] == "canceled by update"
     assert runrecord.active_run(conn) is None
     assert redisqueue.queue(redisqueue.BULK_QUEUE, conn).count == 0
 

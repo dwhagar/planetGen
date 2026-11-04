@@ -29,7 +29,7 @@
   </form>
   {%- endif %}
   {%- if stopped.stopped %}
-  <p class="error"><strong>Everything is stopped</strong>{% if stopped.by %} by {{ stopped.by }}{% endif %}{% if stopped.at %} since {{ utc_time(stopped.at) }}{% endif %}: nothing starts, not a run, a job, a worker or the map's background work, until you resume.</p>
+  <p class="error"><strong>Everything is stopped</strong>{% if stopped.by %} by {{ stopped.by }}{% endif %}{% if stopped.at %} since {{ utc_time(stopped.at) }}{% endif %}: nothing starts, not a run, a job, a worker, or the map's background work, until you resume.</p>
   <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume-all') }}">Resume</a></p>
   {%- else %}
   <p><a class="btn btn-danger" href="{{ url_for('web.admin_queue_confirm', action='queue-stop-all') }}">Stop everything</a>

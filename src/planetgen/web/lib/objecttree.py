@@ -41,7 +41,7 @@ COUNT_LABELS = (
 """tuple: The kinds a row counts below it, in the order it names them, with their singular and plural."""
 
 CHILD_NOUNS = {
-    "sector": "systems and phenomena", "system": "stars and bodies", "star": "planets, belts and comets",
+    "sector": "systems and phenomena", "system": "stars and bodies", "star": "planets, belts, and comets",
     "planet": "moons", "rogue_planet": "moons",
 }
 """dict: What a parent kind's children are called, for the list's label."""

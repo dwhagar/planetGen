@@ -82,15 +82,15 @@ PAGES = (
           "admin_settings", "options", "config", "configuration"),
     _page("settings-backups", "Settings backups", "Earlier copies of the settings file, with restore.", "settings",
           "admin_backups", "restore", "backup", "undo", danger="rewrites"),
-    _page("settings-images", "Site images", "Upload the logo, icons and link-preview image.", "settings",
+    _page("settings-images", "Site images", "Upload the logo, icons, and link-preview image.", "settings",
           "admin_images", "logo", "icon", "favicon", "preview", "upload", danger="rewrites"),
     _page("jobs", "Jobs and queue", "Background work waiting and running, and the cache warm-up.", "jobs",
           "admin_queue", "queue", "workers", "cache", "warm", "redis"),
-    _page("stats", "Stats", "Counts, names, lockouts and sign-in failures.", "data", "admin_stats",
+    _page("stats", "Stats", "Counts, names, lockouts, and sign-in failures.", "data", "admin_stats",
           "statistics", "lockouts", "login failures", "duplicate names"),
     _page("facility-types", "Facility types", "The facility types the generator may place.", "data",
           "admin_facility_types", "facilities", "types", danger="rewrites"),
-    _page("account", "Account", "Your sign-in, password, two-factor codes and API keys.", "account", "account",
+    _page("account", "Account", "Your sign-in, password, two-factor codes, and API keys.", "account", "account",
           "password", "two factor", "2fa", "api key", "profile"),
 )
 

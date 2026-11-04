@@ -208,7 +208,7 @@ def colour_from_xyz(xyz):
     rgb = [max(c, 0.0) for c in xyz_to_linear_srgb(xyz)]
     peak = max(rgb)
     if not peak > 0:
-        raise ValueError("the colour is outside the sRGB gamut on every channel")
+        raise ValueError("the color is outside the sRGB gamut on every channel")
     linear = tuple(c / peak for c in rgb)
     rgb8 = tuple(int(round(255.0 * srgb_encode(c))) for c in linear)
     x, y = chromaticity(xyz)

@@ -37,7 +37,10 @@ from collections import namedtuple
 from planetgen import tuning
 from planetgen.datasets.fetch import DataMissing
 from planetgen.physics import (atmosphere, constants, habitability_world, life_classes, life_supply, main_sequence, orbits,
-                               stellar_evolution)
+                               stellar_evolution, unit_registry)
+
+_kg_to_msun = unit_registry.converter("kg", "Msun")
+_kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 KINDS = (("microbial", "Microbes"), ("flora", "Flora"), ("fauna", "Fauna"), ("sentient", "Sentient life"))
 """tuple: Each kind of life, `(stored name, label)`, in the order a page lists them; the score is the body's `life_<name>`."""
@@ -67,7 +70,7 @@ STEP_GYR = 0.1
 DYING_GYR = 0.1
 PRECARIOUS_GYR = 0.5
 MARGINAL_GYR = 2.0
-"""float: Time left, Gyr, within which the security is Dying out (one step), Precarious and Marginal."""
+"""float: Time left, Gyr, within which the security is Dying out (one step), Precarious, and Marginal."""
 
 MARGINAL_SCORE = 2
 """int: A living class that scores this or less on its world's conditions today is Marginal at best."""
@@ -113,7 +116,7 @@ def star_of(star):
     mass, age = getattr(star, "mass", None), getattr(star, "age", None)
     if not mass or not age:
         return None
-    return {"mass_sol": mass / constants.SOLAR_MASS_TO_KG, "age_gyr": age, "fe_h": getattr(star, "metallicity_fe_h", None) or 0.0}
+    return {"mass_sol": _kg_to_msun(mass), "age_gyr": age, "fe_h": getattr(star, "metallicity_fe_h", None) or 0.0}
 
 
 def _luminosity_ratio(star, years_gyr):
@@ -138,7 +141,7 @@ def _ocean_lost(values):
         return False
     earth_light = constants.SOLAR_LUMINOSITY / (4.0 * math.pi * constants.AU_TO_M ** 2)
     insolation = flux / habitability_world.LIGHT_SHARE / earth_light
-    return insolation > orbits.runaway_greenhouse_flux(teff, mass / constants.EARTH_MASS_TO_KG)
+    return insolation > orbits.runaway_greenhouse_flux(teff, _kg_to_mearth(mass))
 
 
 def _likelihood(values, row, ratio):

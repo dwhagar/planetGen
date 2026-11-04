@@ -143,9 +143,9 @@ def _build(values, position):
     if position and len(position) not in (2, 3):
         raise CommandError("A position is x y or x y z, in parsecs.")
     if position and (values.keys() - {"radius"}):
-        raise CommandError("A position cannot be combined with a shell, band, wedge or sector.")
+        raise CommandError("A position cannot be combined with a shell, band, wedge, or sector.")
     if "sector" in values and (values.keys() & {"shell", "band", "wedge"} or grid):
-        raise CommandError("A sector cannot be combined with a shell, band or wedge.")
+        raise CommandError("A sector cannot be combined with a shell, band, or wedge.")
     if grid and (values.keys() & {"shell", "band", "wedge", "sector", "radius", "density"}):
         raise CommandError("A range (shells, bands, wedges) cannot be combined with a place or a radius.")
     if position:

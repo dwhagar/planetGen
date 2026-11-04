@@ -25,8 +25,8 @@ BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
-    "orbit_nodes", "dark_members", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
-    "orbital_events", "orbital_event_bodies",
+    "orbit_nodes", "dark_members", "designations", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
+    "orbital_events", "orbital_event_bodies", "chart_ledger",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
 the name registries, generation progress, and the galaxy skeleton and
@@ -183,7 +183,7 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "system_config_slots", "system_configs")},
+        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
         ("asteroid_field_composition", "field_id"),
@@ -195,6 +195,7 @@ NEVER_READ = {
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},
     ("stars", "cluster_id"): "read when a star's cluster is shown (DB.61 adds the column only)",
+    **{("stars", column): "stored by GEN.1162; the page and the API line for it follow" for column in ("density_g_cm3", "binding_energy_j")},
     **{("sectors", column): "read by the rebuild of a density override (DB.60 adds the columns only)"
        for column in ("density_multiplier_used", "override_id")},
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",

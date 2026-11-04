@@ -52,7 +52,7 @@ subhead (badges or actions under the <h1>). -#}
 <sl-icon-button class="site-search-link" name="search" label="Search" title="Search" href="{{ url_for('web.search') }}"></sl-icon-button>
 {%- endif -%}
 {%- endmacro -%}
-{#- The Help menu (UX.180), beside the search button: the reference pages, Classes and Habitability. It is current on
+{#- The Help menu (UX.180), beside the search button: the reference pages, Classes, and Habitability. It is current on
     both, and on every class page. -#}
 {%- macro help_dropdown() -%}
 <sl-dropdown class="site-help-menu" placement="bottom-end" distance="6">
@@ -70,7 +70,7 @@ subhead (badges or actions under the <h1>). -#}
 <li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
 {%- endmacro -%}
 {#- The settings gear (UX.72): Lists (UX.146), Preferences (UX.236), the theme switch, and either
-    Account, Admin and Logout or Login. The admin's other pages are one level
+    Account, Admin, and Logout or Login. The admin's other pages are one level
     down, behind Admin and its tab row. -#}
 {%- macro gear_menu() -%}
 {%- set admin = current_admin() -%}
@@ -222,7 +222,7 @@ subhead (badges or actions under the <h1>). -#}
   <p class="error maintenance-banner" role="status">Maintenance mode is on: visitors see a "being updated" page and only admins can use the site. <a href="{{ url_for('web.admin') }}#maintenance">Switch</a></p>
   {%- endif %}
   {%- if current_admin() and stop_state().stopped %}
-  <p class="error stopall-banner" role="alert">Everything is stopped: no run, job, worker or background work starts until you resume. <a href="{{ page_url('admin_queue') }}">Resume on the Queue page</a></p>
+  <p class="error stopall-banner" role="alert">Everything is stopped: no run, job, worker, or background work starts until you resume. <a href="{{ page_url('admin_queue') }}">Resume on the Queue page</a></p>
   {%- endif %}
   {%- set waiting = pending_restart_options() if current_admin() else [] %}
   {%- if waiting %}

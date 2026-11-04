@@ -268,7 +268,7 @@ def read_extras(types):
         body["affiliation_polity_id"] = int(values["affiliation"][7:])
     ratings = {name: values[f"rating_{name}"] for name in facility_ratings.RATINGS if values[f"rating_{name}"]}
     if any(color not in facility_ratings.COLORS for color in ratings.values()):
-        errors.append("A rating is Green, Yellow or Red.")
+        errors.append("A rating is Green, Yellow, or Red.")
     elif ratings:
         body["ratings"] = ratings
     if values["ratings_note"]:

@@ -7,12 +7,12 @@ The interior layers of a giant planet, an ice giant or a brown dwarf (GEN.642, d
 What a giant is made of, layer by layer from the top: a molecular hydrogen and helium envelope, a metallic hydrogen
 envelope under it, a helium-rich zone where helium has rained out, a dilute ("fuzzy") core where the heavy elements are
 mixed with metallic hydrogen, and a compact core of rock and iron; an ice giant has a molecular envelope over a mantle of
-water, ammonia and methane over a rock and iron core. Each layer carries its pressures, its mass, the mass of each
+water, ammonia, and methane over a rock and iron core. Each layer carries its pressures, its mass, the mass of each
 material in it (rows of the shared materials table, GEN.427) and its state.
 
 This module places and fills the layers from the quantities the radius and heavy-element laws (GEN.460) and the bulk
 draw (GEN.428) already give: the mass, the radius, the heavy-element mass M_Z, the envelope metallicity, the natal helium
-share, the one-bar temperature and the split of the heavy elements into iron, rock and ices. It draws only what those do
+share, the one-bar temperature and the split of the heavy elements into iron, rock, and ices. It draws only what those do
 not decide, with `util.draw`: the molecular-to-metallic pressure, whether a compact core exists and its mass, and the mass
 of the dilute core. It changes no mass, radius or fraction the caller fixed: the layer masses add up to the body's mass
 and the layers hold exactly M_Z of heavy elements and the natal helium (tested to 1e-9).
@@ -57,6 +57,7 @@ from planetgen.datasets import fetch, hhe_eos
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import constants, giant_structure, unit_registry as units
 from planetgen.util import draw
+from planetgen.util.wordlist import join_words
 
 _mearth_to_kg = units.converter("Mearth", "kg")
 
@@ -510,7 +511,7 @@ class GiantSubject:
         if not (0.0 <= self.heavy_mass_earth < self.mass_earth):
             raise InteriorError("the heavy-element mass must be under the body's mass")
         if not (0.0 <= self.envelope_z < 1.0 and 0.0 < self.helium_share < 1.0 and 0.0 <= self.iron_share_of_refractory <= 1.0):
-            raise InteriorError("an envelope metallicity, helium share or iron share is outside its range")
+            raise InteriorError("an envelope metallicity, helium share, or iron share is outside its range")
         if any(v < 0 for v in self.ice_shares.values()) or sum(self.ice_shares.values()) >= 1.0 + 1e-12:
             raise InteriorError("the ice shares of the heavy elements must be positive and add up to at most 1")
 
@@ -629,7 +630,7 @@ def _structure(subject, polytrope_index):
     radius_m = subject.radius_km * 1e3
     if fetch.locate(hhe_eos.DATASET).use_stand_in(STAND_IN_POLYTROPE):
         return Polytrope(polytrope_index, mass_kg, radius_m)
-    heavy_kg = subject.heavy_mass_earth * constants.EARTH_MASS_TO_KG
+    heavy_kg = _mearth_to_kg(subject.heavy_mass_earth)
     if subject.is_brown_dwarf:
         z, core, env_ice, core_ice = subject.heavy_mass_earth / subject.mass_earth, 0.0, 0.0, 0.0
     else:
@@ -1065,7 +1066,7 @@ LAYER_NAMES = {
     "helium_shell": "helium-rich shell",
     "dilute_core": "dilute core",
     "compact_core": "compact core of rock and iron",
-    "ice_mantle": "mantle of water, ammonia and methane",
+    "ice_mantle": "mantle of water, ammonia, and methane",
     "rock_core": "core of rock and iron",
 }
 """dict: What each layer kind is called in prose."""
@@ -1098,8 +1099,8 @@ def _pressure_text(pressure_gpa):
 
 def describe_interior(body, min_share=0.02):
     """
-    The layers of `body` (a `GiantInterior`) as prose, one sentence per layer from the top down: its name, state,
-    mass, the pressures it spans, and the materials that make up at least `min_share` of it, largest first.
+    The layers of `body` (a `GiantInterior`) as prose, two sentences per layer from the top down: its name, state, mass, and the pressures it
+    spans; then the materials that make up at least `min_share` of it, largest first.
 
     Returns:
         list of str: The sentences.
@@ -1111,26 +1112,26 @@ def describe_interior(body, min_share=0.02):
         name = LAYER_NAMES[layer.kind]
         sentences.append(
             f"The {name} ({STATE_NAMES[layer.state]}) holds {_mass_text(layer.mass_earth)}, from "
-            f"{_pressure_text(layer.top_pressure_gpa)} down to {_pressure_text(layer.bottom_pressure_gpa)}; it is "
-            f"{', '.join(made)}.")
+            f"{_pressure_text(layer.top_pressure_gpa)} down to {_pressure_text(layer.bottom_pressure_gpa)}.")
+        sentences.append(f"It is {join_words(made)}.")
     return sentences
 
 
 INTERIOR_KIND_WORDING = {
-    "gas_giant": "Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core",
-    "ice_giant": "Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia and methane",
-    "brown_dwarf": "Soundings read a brown dwarf: a body too massive to stay a planet, hydrogen all the way down to a small core",
+    "gas_giant": "Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core.",
+    "ice_giant": "Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia, and methane.",
+    "brown_dwarf": "Soundings read a brown dwarf: a body too massive to stay a planet, hydrogen all the way down to a small core.",
 }
-"""dict: The opening clause for each kind of interior (`INTERIOR_KINDS`); a test pins that every kind has one."""
+"""dict: The opening sentence for each kind of interior (`INTERIOR_KINDS`); a test pins that every kind has one."""
 
 INTERIOR_FEATURE_WORDING = {
-    "metallic_envelope": "hydrogen squeezed to a liquid metal below {pressure}, where the planet's magnetic field is made",
-    "dilute_core": "a dilute core, rock and ice mixed into the hydrogen instead of sitting in a ball at the centre",
-    "helium_shell": "a shell of helium the rain left behind",
-    "helium_rain": "an envelope short of helium, which has sunk into the deep",
-    "ice_mantle": "a conducting mantle of ionic water where the planet's magnetic field is made",
+    "metallic_envelope": "Hydrogen is squeezed to a liquid metal below {pressure}, where the planet's magnetic field is made.",
+    "dilute_core": "It has a dilute core of rock and ice mixed into the hydrogen, not sitting in a ball at the center.",
+    "helium_shell": "It has a shell of helium the rain left behind.",
+    "helium_rain": "The envelope is short of helium, which has sunk into the deep.",
+    "ice_mantle": "A conducting mantle of ionic water is where the planet's magnetic field is made.",
 }
-"""dict: The clause for each feature a giant's interior can have, in the voice of the pages. A test pins the keys."""
+"""dict: The sentence for each feature a giant's interior can have, in the voice of the pages. A test pins the keys."""
 
 HELIUM_RAIN_BELOW = 0.97
 """float: A `helium_depletion` under this reads as an envelope the helium has rained out of."""
@@ -1150,16 +1151,14 @@ def interior_wording_keys(body):
 
 def summarize_interior(body):
     """
-    One sentence that says what a giant's interior is: its kind, then the metallic layer, the dilute core, the helium shell and the helium rain it has.
+    The sentences that say what a giant's interior is: its kind, then one sentence for each of the metallic layer, the dilute core, the helium shell,
+    and the helium rain it has.
 
     Returns:
-        str: The sentence.
+        str: The sentences.
     """
     keys = interior_wording_keys(body)
     kind, features = keys[0], keys[1:]
     pressure = body.metallization_pressure_gpa
-    clauses = [INTERIOR_FEATURE_WORDING[key].format(pressure=_pressure_text(pressure)) for key in features]
-    if not clauses:
-        return INTERIOR_KIND_WORDING[kind] + "."
-    joined = clauses[0] if len(clauses) == 1 else ", ".join(clauses[:-1]) + " and " + clauses[-1]
-    return f"{INTERIOR_KIND_WORDING[kind]}, with {joined}."
+    sentences = [INTERIOR_KIND_WORDING[kind]] + [INTERIOR_FEATURE_WORDING[key].format(pressure=_pressure_text(pressure)) for key in features]
+    return " ".join(sentences)

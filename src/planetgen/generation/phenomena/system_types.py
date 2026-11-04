@@ -102,7 +102,7 @@ SYSTEM_TYPE_RATES = {
         "13.1", "Intermediate binary, 0.26 to 50 AU", "binaries", 0.433, "C", ANY, _TREE, 261, "S+F"),
     "wide-binary": _t(
         "13.1", "Wide binary, 50 to 10,000 AU", "binaries", 0.436, "C", ANY, _TREE, 261, "S+F", (10, 11),
-        note="Thinned in the bulge, clusters and halo."),
+        note="Thinned in the bulge, clusters, and halo."),
     "ultra-wide-pair": _t(
         "13.1", "Ultra-wide pair, 10,000 to 20,000 AU (0.05 to 0.1 pc)", "binaries", 0.065, "C",
         ("young", "intermediate", "old"), _TREE, 261, "S+F", (10, 11),
@@ -268,7 +268,7 @@ SYSTEM_TYPE_RATES = {
         note="More at low metallicity (halo, clusters, the Clouds)."),
     "dormant-black-hole-star": _t(
         "13.4", "Dormant black hole with a star", "black holes", 0.010, "S,C", ("intermediate", "old", "halo"),
-        _TREE, 261, "S+F", (10,), low=1e-3, high=2.2e-2, note="Gaia BH1, BH2 and BH3."),
+        _TREE, 261, "S+F", (10,), low=1e-3, high=2.2e-2, note="Gaia BH1, BH2, and BH3."),
     "dormant-neutron-star-star": _t(
         "13.4", "Dormant neutron star with a star", "young neutron stars", None, "S", ("intermediate", "old", "halo"),
         _TREE, 261, "S+F", (10,),

@@ -66,7 +66,7 @@ def test_the_seven_bands_show_their_temperature_and_their_day_and_night_beside_i
 
 def test_a_world_that_turns_once_an_orbit_shows_its_rings():
     row = _row(day_night.LOCKED, **{f"band{n}_state": s for n, s in enumerate(RING_STATES, start=1)})
-    assert [band["label"] for band in day_counter.counter(row, "planet")["bands"]][0] == "Day centre"
+    assert [band["label"] for band in day_counter.counter(row, "planet")["bands"]][0] == "Day center"
 
 
 def test_a_body_with_no_bands_shows_none():
@@ -106,7 +106,7 @@ def test_the_panel_sits_between_the_sensor_view_and_the_facts(with_row):
 def test_a_locked_planet_page_says_so_and_has_no_clock_or_script(with_row):
     page = with_row(_row(day_night.LOCKED, **{f"band{n}_state": s for n, s in enumerate(RING_STATES, start=1)})).get(f"/object/{PLANET}").get_data(as_text=True)
     assert "Tidally locked" in page and "data-day-counter" not in page and "daycounter.js" not in page
-    assert "Day centre" in page
+    assert "Day center" in page
 
 
 def test_a_page_with_no_stored_state_has_no_panel(client):  # noqa: F811

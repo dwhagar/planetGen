@@ -41,6 +41,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import constants as physical_constants, rings
+from planetgen.util import detmath
 from planetgen.util.checks import finite_domain
 
 CLEAN_ICE_ALBEDO = 0.9
@@ -215,7 +216,7 @@ def shadow_transmission(latitude_deg, declination_deg, inner_radii, outer_radii,
             t = -pz / sin_delta
             hx = px + t * cos_delta
             hy = py
-            if inner_radii <= math.hypot(hx, hy) <= outer_radii:
+            if inner_radii <= detmath.hypot(hx, hy) <= outer_radii:
                 through = math.exp(-optical_depth / abs(sin_delta))
         kept += weight * through
     return 1.0 if lit <= 0.0 else kept / lit

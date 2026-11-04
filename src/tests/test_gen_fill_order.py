@@ -133,7 +133,7 @@ def test_a_local_neighborhood_generates_its_sectors_in_the_fill_order_and_says_h
     assert [tuple(items[place:place + 3]) for place in range(0, len(items), 3)] == [cell[:3] for cell in expected]
     assert len(suffixes) == len(expected) and suffixes[0].startswith(", ") and f"pc from sector_id={seed['id']}" in suffixes[0]
     (line,) = [m for m in messages if m.startswith("Fill order: ")]
-    assert f"{len(expected) + 1:,} sector(s)" in line and "between neighbouring sectors" in line
+    assert f"{len(expected) + 1:,} sector(s)" in line and "between neighboring sectors" in line
     assert "jump(s)" in line
 
 

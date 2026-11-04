@@ -25,8 +25,6 @@ NEEDS_NO_ROW = {
     "tuning.LIFE_WORLD_STAGES": "which milestones make a world's life stage: structure",
     "habitability.TIERS": "the four colour names: structure",
     "habitability.POTENTIALLY_HABITABLE_TIERS": "which colours count as habitable: structure",
-    "habitability.FALLBACK_TIERS": "which colours a fallback request accepts: structure",
-    "habitability.FALLBACK_SUITABILITY_TIERS": "which Suitability colours a fallback accepts: structure",
     "habitability.LIFE_STAGES": "the names of the four life stages: structure",
     "habitability.CORE_DOMAINS": "the names of the five core domains: structure",
     "habitability.DOMAINS": "the names of the six domains: structure",

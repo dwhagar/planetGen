@@ -158,7 +158,8 @@ def test_a_subject_without_a_quantity_the_tables_read_is_refused_by_name():
 def test_every_quantity_of_the_mixture_draw_is_in_the_result_for_the_record():
     result = mixture(7)
     assert {"magmatic_temperature_k", "quench_temperature_k", "nitrogen_per_carbon", "sulfur_per_carbon"} <= set(result.constants)
-    assert set(result.inventory) == {"H", "C", "N", "S", "Ar"}
+    assert set(result.inventory) == {"H", "C", "N", "S", "Ar", "Cl", "F"}       # the halogens of GEN.524 part 2
+    assert {"chlorine_wt_percent", "fluorine_wt_percent"} <= set(result.constants)
     assert result.drawn["a"] in ("a5", "a6", "a7")
     assert math.isfinite(result.redox_diw)
     assert result.family == "rocky"
