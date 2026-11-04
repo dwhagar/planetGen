@@ -1,6 +1,6 @@
 """American spelling of the stored values and one column (DOC.103).
 
-Schema v210. The stored words that kept a British spelling after the visible text was fixed (DOC.102) take the American one, with no alias:
+Schema v211. The stored words that kept a British spelling after the visible text was fixed (DOC.102) take the American one, with no alias:
 `planets.hydrosphere`, `moons.hydrosphere` and `rogue_planets.hydrosphere` `vapour` becomes `vapor`; `bright_stars.population` `nuclear_disc` becomes `nuclear_disk`;
 `asteroid_belts.origin_cause` and the `co_causes` list `outer-disc` become `outer-disk`; and the column `ground_oxidised_fraction` of `planets`,
 `moons` and `rogue_planets` is renamed `ground_oxidized_fraction`. The CHECKs that list a renamed value (`planets_chk_5`, `moons_chk_5` and the rogue table's for the hydrosphere,
@@ -15,8 +15,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0210"
-down_revision = "0209"
+revision = "0211"
+down_revision = "0210"
 branch_labels = None
 depends_on = None
 

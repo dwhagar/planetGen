@@ -287,6 +287,7 @@ _BODY_GROUPS = (
 _PLANET = _MOON = _BODY_GROUPS
 
 _BELT = (
+    *_rows("identity", ("history_text", "What the star did to it", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_km", "Largest body", "radius"),
@@ -958,12 +959,17 @@ _COMET_RULES = [
      "a comet on a parabolic path comes by once, so it has no period, period class, or place on an orbit to give"),
 ]
 
+_BELT_RULES = [
+    (("history_text",), lambda klass, row: row is None or row.get("history_text") is not None,
+     "only a belt the star's evolution acted on (the giant branch engulfed part of it, or the mass loss threw some of it inward) has a history to tell; a belt it left alone has none"),
+]
+
 _ROGUE_RULES = [
     (("roundness_ratio", "yield_strength_pa"), lambda klass, row: row is None or row.get("planet_type") != "g",
      "a giant or a brown dwarf is a fluid held up by its own pressure, so it has no strength to measure against its weight and no round radius"),
 ]
 
-APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES}
+APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES, "belt": _BELT_RULES}
 """dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
 function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
 apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the

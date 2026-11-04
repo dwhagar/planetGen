@@ -1499,6 +1499,7 @@ columns capture the facts the prose always states instead.
 | `distance_km` | DOUBLE | NOT NULL | Average distance from the star. |
 | `lower_limit_km`, `upper_limit_km` | DOUBLE | NOT NULL | The belt's inner/outer boundary. |
 | `density_g_cm3`, `ice_mass_fraction` | DOUBLE | nullable | Added in v199 (GEN.1159). The mean bulk density of the members in g/cm3 and the mean share of their mass that is ice of any kind, from the drawn makeup (`physics/small_body_composition.py`). NULL for a row made before v195. The roundness ratio, strength and binding energy belong to a member, not to the population. |
+| `history_text` | TEXT | nullable | Added in v210 (GEN.1232). What the star's evolution did to the belt, as one paragraph of plain sentences (`physics/belt_history.py`: the part the giant branch engulfed, the share the mass loss threw inward). NULL for a belt nothing happened to and for a row made before v205. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary built the same way as the prose sentence (`asteroidData.py:119-137`), e.g. `"high concentrations of iron, moderate concentrations of nickel, and trace amounts of platinum"` — searchable without a join, alongside the structured breakdown below. |
 | `origin_cause`, `co_causes` | VARCHAR(24), TEXT | nullable | Added in v204 (GEN.1069). What formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet` or `collisional-debris`, `physics/belt_origin.py`) and the other formation causes that coincide with it, a JSON list. NULL for a belt made without an origin. |
@@ -2276,6 +2277,10 @@ Migration 0191 adds three nullable columns at the end of `planets` and `moons`, 
 ### v208 (GEN.1212): a body keeps no description text
 
 Migration 0208 drops `description` from `planets` and `moons`. It held the sentence of the body's class, copied from `tuning.PLANET_CLASSES`; the words are now read at view time from `physics/data/planet_class_text.json` (`physics/planet_class_text.py`, `description(letter, moon=False)`; `description(None)` for the Asteroid type), so a change to the wording reaches every stored body without a regeneration. A column already gone is skipped.
+
+### v210 (GEN.1232): the history of a belt
+
+Migration 0210 adds `history_text` (TEXT, nullable) to `asteroid_belts`: the sentences `physics/belt_history.py` wrote for the events the star's evolution put a belt through (engulfed in part by the giant branch, thrown inward by the mass loss), as one paragraph for the belt's page. A belt nothing happened to keeps NULL, and so does a row made before v210; nothing is backfilled, and a column already there is skipped, so a stopped run can be started again.
 
 ### v203 (GEN.1209): several life classes on one body
 

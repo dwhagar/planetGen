@@ -1,7 +1,7 @@
 # tests/test_migration_american_spelling.py
 
 """
-DOC.103: migration 0210 gives the stored words that kept a British spelling the American one, with no alias: the hydrosphere `vapour` of a planet
+DOC.103: migration 0211 gives the stored words that kept a British spelling the American one, with no alias: the hydrosphere `vapour` of a planet
 or moon becomes `vapor`, a bright star's population `nuclear_disc` becomes `nuclear_disk`, a belt's origin `outer-disc` becomes `outer-disk`
 (in its list of causes too), and the ground column `ground_oxidised_fraction` is renamed `ground_oxidized_fraction`. The CHECKs that list a
 renamed value are replaced by ones that list the new word, and a row keeps every other value.
