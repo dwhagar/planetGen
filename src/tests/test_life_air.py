@@ -349,12 +349,12 @@ def _per_class_flux(monkeypatch, fluxes):
     monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: fluxes.get(life_class.number, 0.0))
 
 
-def test_the_methane_of_two_classes_is_their_fluxes_times_their_shares(world, monkeypatch):
+def test_the_methane_of_two_classes_on_different_fuels_is_the_sum_of_their_fuel_fluxes_whatever_their_shares(world, monkeypatch):
     _per_class_flux(monkeypatch, {2: 1.0e12, 8: 3.0e11})
     before = bo.air_moles(world)
     assert life_air.apply_gases(world, [life_air.Living(_class(2), 0.6), life_air.Living(_class(8), 0.4)], False)
     after = bo.air_moles(world)
-    assert after["CH4"] == pytest.approx(life_air.methane_target_mol(0.6e12 + 0.12e12, before), rel=1e-6)
+    assert after["CH4"] == pytest.approx(life_air.methane_target_mol(1.0e12 + 3.0e11, before), rel=1e-6)
 
 
 def test_a_class_whose_producers_are_not_yet_begun_adds_nothing(world, monkeypatch):
@@ -430,3 +430,22 @@ def test_the_history_of_two_classes_steps_at_each_start_and_at_the_rise(world, m
     assert methane[2][1] == pytest.approx(_methane(world), rel=1e-3)
     assert [(entry["life_class"], entry["share"]) for entry in history["classes"]] == [(2, 0.5), (8, 0.5)]
     assert history["producers_gyr"] == 0.5
+
+
+def test_the_burial_methane_goes_with_the_food_share_and_a_fuel_limited_row_does_not(world, monkeypatch):
+    """GEN.1252: an oxygenic class (burial methane) with 90 percent of the food and an anoxygenic one (donor supply) with 10 percent."""
+    monkeypatch.setattr(life_air.life_supply, "supplies", lambda values: {"donor_supply": 1.0, "h2_supply": 1.0})
+    burial = life_air.methane_flux_mol_yr(world, _class(1))
+    donor = life_air.methane_flux_mol_yr(world, _class(2), {"donor_supply": 1.0})
+    both = [life_air.Living(_class(1), 0.9, 0.5), life_air.Living(_class(2), 0.1, 0.5)]
+    assert life_air.summed_methane_flux_mol_yr(world, both) == pytest.approx(0.9 * burial + donor)
+    assert life_air.summed_methane_flux_mol_yr(world, [life_air.Living(_class(2), 0.1, 0.5)]) == pytest.approx(donor)
+
+
+def test_classes_that_burn_the_same_fuel_make_its_methane_once(world, monkeypatch):
+    monkeypatch.setattr(life_air.life_supply, "supplies", lambda values: {"donor_supply": 1.0, "h2_supply": 1.0})
+    hydrogen = life_air.methane_flux_mol_yr(world, _class(3, "a"), {"h2_supply": 1.0})
+    pair = [life_air.Living(_class(3, "a"), 0.5, 0.5), life_air.Living(_class(8), 0.5, 0.5)]
+    assert life_air.summed_methane_flux_mol_yr(world, pair) == pytest.approx(hydrogen)
+    mixed = [*pair, life_air.Living(_class(2), 0.0, 0.5)]
+    assert life_air.summed_methane_flux_mol_yr(world, mixed) > hydrogen        # the donor fuel is a different fuel
