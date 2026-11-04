@@ -1003,23 +1003,6 @@ with `clamp()`.
   template global; use it for links into References.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
-- [ ] **UX.255 Remove the light-theme branches in the map scripts that black map backgrounds left unused**
-  Follow-up to #4633 (maps are drawn on black in either theme; Boss,
-  2026-10-31, as the coordinator relayed, low priority). That change
-  made `mapcore.isLightBackground()` always false and left the
-  light-background branches in the map scripts dead. Do: delete
-  `isLightBackground` and every caller (for example `galaxymap3d.js`
-  `nebulaLooks(isLightBackground())` and its `FILLED_TINT` light shade),
-  the light looks in `nebulalook.js`, the glow layer's `light` option,
-  and `sectorscene.js`'s `lightBackground` uniform, with the shader and
-  test code that only they used, and keep the dark paths exactly as they
-  are. Done: no reference to a light map background is left in
-  `src/html/static`, a search shows it, and the map browser tests pass
-  unchanged. Display only: no schema, API, generator output or epoch
-  change, so lock-free. Owner: none for now (pool; any web lane that is
-  waiting). Version 8.1.
-  Prerequisites: none. Related: MAP.210.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14303,25 +14286,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **GEN.1237 An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug)**
-  Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
-  2026-11-01 on main b153f0209; 40 seeds per twin, G2V star), filed by
-  the TODO thread. The Earth twin's N2 is good (median 3.7e18 kg against
-  3.9e18 observed) but its climate is not: only 1 of 40 is temperate
-  (260 to 330 K); the median is 376 K at 3.7 bar, and the classes drawn
-  are H, M, N and O. The one temperate twin holds about 1e23 kg of ocean
-  (a rough estimate, ocean fraction times depth) against Earth's 1.4e21.
-  Do: separate the causes (water inventory and delivery, the greenhouse
-  at 3.7 bar of mostly N2 and CO2, the albedo, the class rules) with a
-  sweep of the same 40 seeds, print temperate count and ocean mass per
-  class, and fix the weakest law or register a stand-in in GEN.725 with
-  tier and tweak level. Earth is a plausibility target here, never fixed
-  content. Lock work if stored values change (epoch, census). Related:
-  GEN.819, GEN.909 (cold ecosphere), GEN.822, GEN.830, GEN.837 (class
-  N), GEN.1236. Owner: none yet.
-  Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **GEN.1238 A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug)**
   Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
   2026-11-01 on main b153f0209; 40 seeds), filed by the TODO thread. The
@@ -14337,6 +14301,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fixed content. Lock work if stored values change. Related: GEN.819,
   GEN.1236, GEN.909. Owner: none yet.
   Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1240 The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug)**
+  Found by Aux 7's GEN.1238 work (as the lane reported, 6:50 AM EST on
+  2026-11-04), filed by the TODO thread. Once a wet body past the
+  runaway limit starts the air fixed point hot (GEN.1238), the
+  water-rich third of such bodies end as steam worlds of 1e4 to 2e5 bar,
+  but the greenhouse table is held at 1000 bar, so those airs read 700
+  to 1300 K, which is too cool for that column. Do: extend the
+  greenhouse opacity table beyond 1000 bar from the source
+  (collision-induced and pressure-broadened water and CO2 opacity at
+  high pressure; find the source first) or register a stand-in in
+  GEN.725 with tier and tweak level; check Venus (92 bar, 737 K) stays
+  put. Lock work (stored temperature changes). Related: GEN.1238,
+  GEN.974 (cloud albedo). Owner: Aux 7.
+  Prerequisites: GEN.1238.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19127,6 +19107,41 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
+- [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
+  Found by the full-suite thread (first pass on main 7eef24a, to 53
+  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
+  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
+  Failures re-run alone and real on 7eef24a, none diagnosed: (1)
+  tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
+  (the /search page shows H2, N2, O2, H2O, CO2, CH4 formulas unwritten);
+  (2)
+  tests/test_web_fresh_after_cli.py::test_galaxy_map_and_nodes_show_sectors_the_cli_placed
+  and ::test_sector_page_and_nodes_show_a_phenomenon_the_cli_added
+  (CLI-placed sectors missing from the map and nodes); (3)
+  tests/test_bughunt_cli_edges.py::test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill;
+  (4) the 900 s timeouts in test_prevalence.py (asteroid_belt-30,
+  large_star-100, large_star--100, planets--40, comets-0.3 plus or minus
+  100, no binaries at minus 100 and more at plus 50), already tracked by
+  PERF.229 for the fuzz case. Do: re-run each on current main first
+  (many commits since 7eef24a), keep only those that still fail,
+  root-cause each, and file or fix. Done: each failing test has a cause
+  and an owner or a fix. Owner: full-suite thread, with Bug 1.
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **TEST.556 test_db_column_round_trip fails on main: stars.nuclear_arrival_age_gy is NULL in every row of the test fixture (bug)**
+  Found by Core 1 (as the lane reported, 6:49 AM EST on 2026-11-04) while
+  running the slow suites on its designations stack:
+  tests/test_db_column_round_trip.py::test_every_column_is_written fails
+  with "NULL in every row (never written?):
+  stars.nuclear_arrival_age_gy". The column is GEN.1174's (merged with
+  train 8, migration 0198); the suite passed before train 8. Do: write
+  the column in the test's star fixture with a real value, or exempt it
+  with a stated reason if it is only set for some stars. Done: the round
+  trip test passes on main. Lock-free. Owner: Aux 7 (GEN.1174's lane).
+  Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts

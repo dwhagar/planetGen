@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.258 |
+| UX | UX.259 |
 | MAP | MAP.364 |
 | NAV | NAV.65 |
-| GEN | GEN.1239 |
+| GEN | GEN.1241 |
 | PERF | PERF.231 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.554 |
+| TEST | TEST.557 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.102 |
@@ -2009,8 +2009,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
 | GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
 | GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) | none | open |
-| GEN.1237 | An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug) | none | open |
+| GEN.1237 | An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug) | none | dropped (not a bug (Aux 3, 2026-11-04): the twin setup put the planet inside the inner edge of its star habitable zone; at Earth insolation 25 of 40 are temperate and the ocean mass follows the Bern water law of GEN.849) |
 | GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) | none | open |
+| GEN.1239 | The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug) | none | dropped (already settled (Aux 3, 2026-11-04): the red test read main before #4701; GEN.1005 replaced the Earth-tuned bracket with a source-derived one and the test holds the middle to the source range; all 8 tests pass on main) |
+| GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3128,9 +3130,10 @@ Parents marked "new parent" had no old number of their own.
 | UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | open |
 | UX.253 | Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages | none | done, PR #4496 |
 | UX.254 | Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup | none | done, PR #4540 |
-| UX.255 | Remove the light-theme branches in the map scripts that black map backgrounds left unused | none | open |
+| UX.255 | Remove the light-theme branches in the map scripts that black map backgrounds left unused | none | done, PR #4751 |
 | UX.256 | Cancelling a job from its job page returns to the page the visitor came from, or the jobs page (bug) | none | done, PR #4656 |
 | UX.257 | Object page life text: the life readings table overflows a phone and the species link fails contrast (bug) | none | done, PR #4734 |
+| UX.258 | The describer writes the hours outside in a day with a raw format (build.py line 516), failing the wording-agrees-with-the-index test (bug) | none | done, PR #4749 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3789,6 +3792,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.551 | test_burn_down_register::BR20 is red on main: row 6.95:BR20 has a line but is no longer L3 or L4 (bug) | none | done, PR #4710 |
 | TEST.552 | test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug) | none | done, PR #4726 |
 | TEST.553 | test_every_author_year_citation_has_an_outcome in test_references.py is red on main (19 keys, bug) (bug) | none | done, PR #4744 |
+| TEST.554 | test_web_old_urls_errors has no test value for the new route /help/life/<topic>, so the HEAD and OPTIONS route tests fail (bug) | none | done, PR #4750 |
+| TEST.555 | Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug) | none | open |
+| TEST.556 | test_db_column_round_trip fails on main: stars.nuclear_arrival_age_gy is NULL in every row of the test fixture (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
