@@ -15071,26 +15071,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1 (PERF.229 owner). Filed by the TODO thread.
   Prerequisites: none. Related: PERF.229, TEST.430.
 
-- [ ] **PERF.237 The warm-up's galaxy-nodes chunks took 37 s each right after an update although the nodes were already stored, against 4 s a chunk before it: find what a chunk does when nothing is built (bug)**
-  Boss, 6:03 PM EST on 2026-11-04, ran ./update.sh to 8.0.3206 on his
-  server. All 9 stages passed, but after the Apache reload
-  https://starmap.moltenaether.com/api/health gave HTTP 000 (no answer
-  at all) for 20 s and update.sh opened the site with the warning; then
-  stage 2 of 2 started and its galaxy-nodes chunks read 0 built, already
-  stored, yet took 37 to 38 s each, against 4.0 s a chunk in his earlier
-  run. Possible causes to measure, none confirmed: the workers compile
-  numba code again after new source files; the site's workers and the
-  warm-up share the machine right after the reload; the stored-node
-  check reads every node from the disk cache cold after the Apache
-  reload and the update's file change; a lock or a Redis wait. Do: time
-  one chunk of already-stored nodes on a real galaxy twice (just after a
-  reload, and ten minutes later), split into the stored check, the read
-  and the unit overhead; fix the largest share, or say why the time is
-  the machine's. Done: the figure in the note, and a chunk of stored
-  nodes costing a small multiple of 4 s after an update. Proposed owner:
-  Aux 3 (PERF.233 and PERF.234 are the same measurement). Filed by the
-  TODO thread.
-  Prerequisites: none. Related: PERF.233, PERF.234, PERF.235.
+- [ ] **PERF.237 The warm-up's log line 'this chunk 64 nodes in 37 s' reads like a slowdown but is one worker's time for one chunk while about ten run side by side: say so in the line (bug)**
+  Boss, 6:27 PM EST on 2026-11-04, pasted the full warm-up log after
+  ./update.sh to 8.0.3206: every 23rd galaxy-nodes line says 'this chunk
+  64 nodes in 35 to 42 s', yet 184 chunks took 11:30 elapsed, which is
+  3.7 s a chunk, the same 4.0 s a chunk as his earlier run. So nothing
+  slowed down. The 'this chunk' figure
+  (src/planetgen/cli/warm_progress.py chunk_line, result seconds) is one
+  worker's own time for one chunk, and about ten chunks run side by side
+  (37 s divided by 3.7 s), so the line reads ten times slower than the
+  rate the bar and the time left use. Do: word the line so the two
+  numbers cannot be confused (for example 'this chunk took 37 s on its
+  worker; about 10 at a time, so 3.7 s a chunk overall'), taking the
+  count of chunks in flight from the run, and make the time left come
+  from the overall rate only. Done: a test of the line with several
+  chunks in flight. Proposed owner: Aux 3, with PERF.234. This replaces
+  the first reading of a slowdown after an update (no slowdown). Filed
+  by the TODO thread.
 
 ## DB: Database and schema
 
