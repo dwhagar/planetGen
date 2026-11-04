@@ -107,7 +107,7 @@ EQUIPMENT_ANCHORS = (
     ("equipment-self-contained-air", ("self-contained",)),
     ("equipment-mixed-gas", ("mixed-gas", "isolated air")),
     ("equipment-pressure-suit", ("pressure suit",)),
-    ("equipment-armoured-suit", ("armoured",)),
+    ("equipment-armored-suit", ("armored",)),
     ("equipment-vehicle", ("vehicle",)),
     ("equipment-sealed-suit", ("sealed suit", "chemical-barrier", "heat-shielded")),
     ("equipment-thermal-suit", ("insulated", "liquid-cooled", "diving", "full-cover")),

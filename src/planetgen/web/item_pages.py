@@ -601,7 +601,7 @@ def _container_facts(container, found, listing):
              "in radius.</p>"]
     centre = found["positions"]["galaxy_pc"]
     if centre:
-        lines.append("<p>Its centre lies at (" + ", ".join(f"{value:,.0f}" for value in centre)
+        lines.append("<p>Its center lies at (" + ", ".join(f"{value:,.0f}" for value in centre)
                      + ") parsecs in the galaxy frame.</p>")
     component = container.get("component")
     if component:

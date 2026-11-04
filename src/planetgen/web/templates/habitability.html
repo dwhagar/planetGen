@@ -30,7 +30,7 @@
       {%- endfor %}
     </tbody>
   </table></div>
-  <p>Left to right: Blue, Green, Yellow, and Red. The overall symbol takes the colour of the planet's PHI-6 score.</p>
+  <p>Left to right: Blue, Green, Yellow, and Red. The overall symbol takes the color of the planet's PHI-6 score.</p>
 </section>
 
 <section class="panel" aria-labelledby="where-heading">
@@ -55,9 +55,9 @@
 
 <section class="panel" id="map-symbols" aria-labelledby="map-symbols-heading">
   <div class="panel-header"><h2 id="map-symbols-heading">Map symbols</h2></div>
-  <p>The marks the maps draw for points of interest, each with its own shape so that colour is never the only sign.
-  A habitable or inhabited world takes the colour of its overall habitability score; an uninhabitable world is brown or
-  grey, never red.</p>
+  <p>The marks the maps draw for points of interest, each with its own shape so that color is never the only sign.
+  A habitable or inhabited world takes the color of its overall habitability score; an uninhabitable world is brown or
+  gray, never red.</p>
   {{ poi_key("map-symbols-heading") }}
 </section>
 
@@ -91,11 +91,11 @@
 
 <section class="panel" aria-labelledby="domains-heading">
   <div class="panel-header"><h2 id="domains-heading">The six PHI-6 domains</h2></div>
-  <p>The chip's colour comes from six domains: pressure, temperature, air, water, radiation, and suitability, held under
+  <p>The chip's color comes from six domains: pressure, temperature, air, water, radiation, and suitability, held under
   the gates below. Each domain is Blue, Green, Yellow, or Red.</p>
   <dl>
-    {%- for colour, meaning in domain_tiers %}
-    <dt>{{ colour }}</dt><dd>{{ meaning }}</dd>
+    {%- for color, meaning in domain_tiers %}
+    <dt>{{ color }}</dt><dd>{{ meaning }}</dd>
     {%- endfor %}
   </dl>
   <p id="{{ overall_id }}">{{ score_rule }}</p>

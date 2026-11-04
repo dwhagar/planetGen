@@ -65,7 +65,7 @@ def pressure_need(world):
         return "none", None, why
     if p <= limit("pressure_hyperbaric_max_kpa"):
         return "suit", "a hyperbaric pressure suit", why
-    return "suit", "a rigid armoured pressure suit", why
+    return "suit", "a rigid armored pressure suit", why
 
 
 def temperature_need(world):

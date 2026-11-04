@@ -8,7 +8,7 @@ Four slots, each a ladder of levels, and every item is **required** (past the ph
 (the fuzzy band before it, where a person survives but is impaired or at risk):
 
 * **Body Protection**, the lowest suit that fits: 0 none, 1 clothing, 2 thermal suit, 3 sealed suit, 4 pressure suit,
-  5 armoured suit, 6 vehicle only, with the stress that set it (`BODY_KINDS`) and a powered frame for high gravity.
+  5 armored suit, 6 vehicle only, with the stress that set it (`BODY_KINDS`) and a powered frame for high gravity.
 * **Air Filter or Scrubber**, three parts that combine: dust, a gas filter of three grades and a CO2 scrubber.
 * **Air Supply**: 0 ambient, 1 gas-mix mask, 2 own gas, 3 mixed gas, 4 isolated.
 * **Radiation Protection**, a five-step ladder (`protection_limits.RADIATION_STEPS`): shielded garment, storm vest,
@@ -55,12 +55,12 @@ BODY_NAMES = {
     (2, "cold"): "insulated suit", (2, "heat"): "liquid-cooled suit", (2, "diving"): "heated diving suit",
     (2, "uv"): "full-cover suit",
     (3, "cold"): "heated sealed suit", (3, "heat"): "heat-shielded suit", (3, "chemical"): "chemical-barrier suit",
-    (4, "pressure"): "pressure suit", (5, "pressure"): "armoured suit", (5, "heat"): "armoured suit",
+    (4, "pressure"): "pressure suit", (5, "pressure"): "armored suit", (5, "heat"): "armored suit",
     (6, "heat"): "vehicle only", (6, "gravity"): "vehicle only", (6, "pressure"): "vehicle only",
 }
 """dict: The body word of `(level, kind)`."""
 
-BODY_DEFAULT = {1: "weather clothing", 2: "thermal suit", 3: "sealed suit", 4: "pressure suit", 5: "armoured suit",
+BODY_DEFAULT = {1: "weather clothing", 2: "thermal suit", 3: "sealed suit", 4: "pressure suit", 5: "armored suit",
                 6: "vehicle only"}
 SUPPLY_NAMES = {1: "gas-mix mask", 2: "self-contained air", 3: "mixed-gas rig", 4: "isolated air"}
 GAS_FILTER_NAMES = {1: "gas filter", 2: "full-face gas filter", 3: "powered gas filter"}
@@ -399,7 +399,7 @@ def compute(world, limits=habitability.HUMAN):
     The stored levels (`FIELDS`) of a world, for a visitor whose limits are `limits` (`habitability.bands`; a species'
     own for its fit).
 
-    Cross-slot rules, in this order: a pressure suit carries its own loop (Supply 2 at least); an armoured suit or a
+    Cross-slot rules, in this order: a pressure suit carries its own loop (Supply 2 at least); an armored suit or a
     vehicle carries its own isolated air (Supply 4); an open mask that is also wanted with a filter becomes a sealed
     supply; with a sealed supply the gas filter and the CO2 scrubber drop out (the person breathes own gas) and the
     dust part stays as seals.
@@ -438,7 +438,7 @@ def compute(world, limits=habitability.HUMAN):
 TICKS = (
     ("clothing", "Weather clothing", "{a}.eq_body = 1"), ("thermal_suit", "Thermal suit", "{a}.eq_body = 2"),
     ("sealed_suit", "Sealed suit", "{a}.eq_body = 3"), ("pressure_suit", "Pressure suit", "{a}.eq_body = 4"),
-    ("armoured_suit", "Armoured suit", "{a}.eq_body = 5"), ("vehicle_only", "Vehicle only", "{a}.eq_body = 6"),
+    ("armoured_suit", "Armored suit", "{a}.eq_body = 5"), ("vehicle_only", "Vehicle only", "{a}.eq_body = 6"),
     ("powered_frame", "Powered frame", "{a}.eq_mobility = 2"),
     ("shielded_garment", "Shielded garment", "{a}.eq_rad_suit = 1"), ("storm_vest", "Storm vest", "{a}.eq_rad_suit = 2"),
     ("hardened_suit", "Hardened suit", "{a}.eq_rad_suit = 3"),

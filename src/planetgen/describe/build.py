@@ -420,21 +420,21 @@ def _planet_facts(planet):
         fact("mass", "Mass", _mass(planet.mass)),
     ]
     if planet.reflex_offset_x or planet.reflex_offset_y or planet.reflex_offset_z:
-        rows.append(fact("moon_wobble", "Moon Wobble",
+        rows.append(fact("moon_wobble", "Moon wobble",
                          _au(_offset(planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z)),
                          " from its nominal position, pulled by its own moons"))
     if not planet.is_moon:
         rows.append(fact("moon_count", "Moons", qty("count", len(planet.moons))))
     if planet.body_type == "g":
         rows.append(fact("temperature", "Temperature", _kelvin(planet.surface_temperature)))
-        rows.append(fact("internal_pressure", "Internal Pressure", _pascal(planet.atmospheric_pressure)))
+        rows.append(fact("internal_pressure", "Internal pressure", _pascal(planet.atmospheric_pressure)))
     else:
-        rows.append(fact("temperature", "Surface Temperature", _kelvin(planet.surface_temperature)))
+        rows.append(fact("temperature", "Surface temperature", _kelvin(planet.surface_temperature)))
         airless = planet.atmosphere in (None, "None")
-        rows.append(fact("pressure", "Surface Pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
+        rows.append(fact("pressure", "Surface pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
         colour = None if airless else atmosphere_colour.body_atmosphere_colour(planet)
         if colour is not None:
-            rows.append(fact("atmosphere_colour", "Atmosphere Colour", swatch(colour.hex, colour.label)))
+            rows.append(fact("atmosphere_colour", "Atmosphere color", swatch(colour.hex, colour.label)))
     return facts("Moon" if planet.is_moon else "Planet", rows)
 
 
@@ -552,13 +552,13 @@ def meteorite_group_fact(body):
     group = body.chondrite_group
     if group is None:
         return None
-    return fact("meteorite-group", "Nearest Meteorite Group", "None fits (not a chondrite mix)" if group == meteorite_groups.NONE else f"{group} chondrites")
+    return fact("meteorite-group", "Nearest meteorite group", "None fits (not a chondrite mix)" if group == meteorite_groups.NONE else f"{group} chondrites")
 
 
 def _belt_section(belt):
     rows = [
-        fact("inner", "Inner Edge", _au(belt.lower_limit)),
-        fact("outer", "Outer Edge", _au(belt.upper_limit)),
+        fact("inner", "Inner edge", _au(belt.lower_limit)),
+        fact("outer", "Outer edge", _au(belt.upper_limit)),
         fact("density", "Density", belt.density),
         fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
@@ -573,14 +573,14 @@ def _comet_section(comet):
     parabolic = comet.orbit_type == "parabolic"
     rows = [
         fact("type", "Type", "Parabolic Comet" if parabolic else "Comet"),
-        fact("nucleus", "Nucleus Diameter", _km(comet.nucleus_diameter_km)),
+        fact("nucleus", "Nucleus diameter", _km(comet.nucleus_diameter_km)),
         fact("perihelion", "Perihelion", _au(comet.perihelion_distance_au)),
         fact("eccentricity", "Eccentricity", qty("ratio", comet.eccentricity, note=ECCENTRICITY_NOTE)),
     ]
     if not parabolic:
         rows.append(fact("period", "Period", _years(comet.orbital_period_years)))
     rows += [
-        fact("distance", "Distance from the Star", _au(comet.distance_au)),
+        fact("distance", "Distance from the star", _au(comet.distance_au)),
         fact("speed", "Speed", _kms(comet.orbital_speed_kms)),
         fact("activity", "Activity", "Active" if comet.is_active else "Dormant"),
     ]

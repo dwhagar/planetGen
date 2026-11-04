@@ -228,7 +228,7 @@ def _planet():
         "notes": [
             "A class is never drawn first: once a planet or moon is complete, its class is the first class in the check "
             "order whose rule its mass, gravity, temperature, air, water, and starlight satisfy. All the rules must hold.",
-            "Habitable is not a class. It is the overall habitability colour (Blue or Green); a world of any class can "
+            "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
             "A rogue planet, adrift with no star, gets a class too, from the classes that list "

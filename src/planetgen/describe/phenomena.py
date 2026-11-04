@@ -158,7 +158,7 @@ def _rogue_planet(planet):
 def _interstellar_comet(comet):
     rows = [
         fact("type", "Type", "Interstellar Comet"),
-        fact("nucleus", "Nucleus Diameter", build._km(comet.nucleus_diameter_km)),
+        fact("nucleus", "Nucleus diameter", build._km(comet.nucleus_diameter_km)),
         fact("speed", "Excess Speed", build._kms(comet.velocity_kms)),
         fact("activity", "Activity", "Active" if comet.is_active else "Dormant"),
         _orbit_fact(comet),

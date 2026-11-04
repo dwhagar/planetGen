@@ -174,7 +174,7 @@ _STAR = (
            ("galactic_orbital_phase_deg", "Galactic orbital phase")),
     *_rows("disk", ("disk_kind", "Kind", TEXT), ("disk_mass_solar", "Mass"), ("disk_inner_au", "Inner edge"),
            ("disk_outer_au", "Outer edge")),
-    *_rows("orbit", ("offset_x_au", "Offset from the system's centre, x"), ("offset_y_au", "Offset, y"),
+    *_rows("orbit", ("offset_x_au", "Offset from the system's center, x"), ("offset_y_au", "Offset, y"),
            ("offset_z_au", "Offset, z")),
 )
 
@@ -268,7 +268,7 @@ _BODY_GROUPS = (
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
            ("l_rad", "Radiation tolerance")),
     *_rows("radiogenic", ("c_k0_ppm", "Potassium at formation"), ("c_th0_ppm", "Thorium at formation"),
-           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 at formation"), ("urey_ratio", "Share of the interior heat that is radiogenic (Urey ratio)"),
+           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminum-26 at formation"), ("urey_ratio", "Share of the interior heat that is radiogenic (Urey ratio)"),
            ("internal_heat_flux_w_m2", "Heat flowing out of the interior"), ("mantle_eta0_pa_s", "Mantle viscosity prefactor"),
            ("mantle_activation_kj_mol", "Mantle viscosity activation energy"), ("lid_regime", "Tectonic regime", TEXT)),
     *_rows("composition", ("interior_kind", "Kind of interior", TEXT), ("core_mass_earth", "Compact core mass"),
@@ -306,7 +306,7 @@ _COMET = (
 
 _GALACTIC_ORBIT = _rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),
                         ("galactic_orbital_phase_deg", "Galactic orbital phase"))
-_DISTANCE = _rows("galactic", ("galactic_radius_pc", "Distance from the galactic centre"))
+_DISTANCE = _rows("galactic", ("galactic_radius_pc", "Distance from the galactic center"))
 
 _NEBULA = (
     *_rows("identity", ("nebula_class", "Class", TEXT), ("nebula_type", "Type", TEXT),
@@ -440,9 +440,9 @@ _BOOKKEEPING = {
     "min_update_interval_years": "how often the orbit is worked out; bookkeeping",
     "galactic_min_update_interval_years": "how often the galactic orbit is worked out; bookkeeping",
     "name": "the page title",
-    "orbital_index": "the order out from the star; the page's neighbours show it",
+    "orbital_index": "the order out from the star; the page's neighbors show it",
 }
-_VECTORS = "a component of the orbit state vector (position, velocity or spin axis); the Orbit and Rotation rows summarise it"
+_VECTORS = "a component of the orbit state vector (position, velocity or spin axis); the Orbit and Rotation rows summarize it"
 _EQUIPMENT = "a survival equipment level; the Required and Recommended lines of the description say it in words"
 
 
@@ -469,7 +469,7 @@ _PHENOMENON_BOOKKEEPING = {
     "next_update_due": "when the galactic orbit is next worked out; bookkeeping",
     "galactic_min_update_interval_years": "how often the galactic orbit is worked out; bookkeeping",
     **{f"center_{axis}_pc": "its position in the galaxy frame; the Location block and the maps show it" for axis in "xyz"},
-    **{f"velocity_{axis}_kms": "a component of its galactic motion; the galactic orbit rows summarise it" for axis in "xyz"},
+    **{f"velocity_{axis}_kms": "a component of its galactic motion; the galactic orbit rows summarize it" for axis in "xyz"},
     **{f"spin_axis_{axis}": _VECTORS for axis in "xyz"},
 }
 _SHAPE = "a parameter of the cloud's drawn 3D shape; bookkeeping for the 3D view"
@@ -489,10 +489,10 @@ _BODY_NOT_SHOWN = {
     "description": "the page's paragraph text",
     "atmosphere": "described in the paragraph text and the Atmosphere rows",
     "composition": "described in the paragraph text",
-    "flavor_text_count": "how many flavour lines exist; bookkeeping",
-    "flavor_key": "which flavour line the text uses; bookkeeping",
+    "flavor_text_count": "how many flavor lines exist; bookkeeping",
+    "flavor_key": "which flavor line the text uses; bookkeeping",
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
-    "atmosphere_colour": "shown as the Atmosphere Colour swatch by the description builder, a colour rather than a number",
+    "atmosphere_colour": "shown as the Atmosphere color swatch by the description builder, a color rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
     **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
                "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
@@ -548,7 +548,7 @@ NOT_SHOWN = {
     "comet": {
         **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                    "min_update_interval_years", "name")),
-        "parabolic_mean_anomaly": "the anomaly of an unbound orbit, which the Orbit rows summarise",
+        "parabolic_mean_anomaly": "the anomaly of an unbound orbit, which the Orbit rows summarize",
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
@@ -588,7 +588,7 @@ NOT_SHOWN = {
         "created_at": "when the row was written; bookkeeping",
         "modified_at": "when the row last changed; bookkeeping",
         **{f"center_{axis}_pc": "its position in the galaxy frame; the Location block and the maps show it" for axis in "xyz"},
-        **{f"velocity_{axis}_kms": "a component of its galactic motion; the orbit rows summarise it" for axis in "xyz"},
+        **{f"velocity_{axis}_kms": "a component of its galactic motion; the orbit rows summarize it" for axis in "xyz"},
     },
 }
 """dict: For each kind, the columns of its table the sheet does not show, each with why."""
@@ -834,7 +834,7 @@ _BODY_RULES = [
     (("outside_hours",), lambda klass, row: row is None or row.get("outside_hours") is not None,
      "the hours a person can work outside in a year are limited by dose only where the dose is a limit; a suit that allows a full working year outside has none"),
     (("ice_shell_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
-     "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapour world have none"),
+     "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapor world have none"),
     (_RING_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _RING_COLUMNS),
      "only a body with a ring system has ring columns; a body without rings stores none"),
     (("ring_age_yr",), lambda klass, row: row is None or row.get("ring_age_yr") is not None,
@@ -851,14 +851,14 @@ _BODY_RULES = [
      "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
     (("hp_ice_km",), lambda klass, row: row is None or (row.get("hydrosphere") in ICE_SHELL_STATES
                                                          and (row.get("water_base_pressure_pa") or 0.0) >= HP_ICE_MIN_BASE_PA),
-     "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 620 MPa: a dry body, an open ocean, a vapour world and a "
+     "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 620 MPa: a dry body, an open ocean, a vapor world and a "
      "body whose ice or ocean is too shallow for that pressure have none"),
     (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH, and water activity exist only where there is a liquid ocean"),
     (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean"),
-     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapour world store none"),
+     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
