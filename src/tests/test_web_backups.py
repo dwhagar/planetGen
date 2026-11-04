@@ -356,7 +356,7 @@ def test_the_new_pages_need_an_admin(site):
     anonymous = site.application.test_client()
     assert anonymous.get("/admin/settings/backups").status_code == 302
     assert anonymous.get("/admin/settings/export").status_code == 403      # a download: a plain 403
-    assert "Backups, restore, export and import" in site.get("/admin/settings").get_data(as_text=True)
+    assert "Backups, restore, export, and import" in site.get("/admin/settings").get_data(as_text=True)
 
 
 def test_export_with_no_config_file_is_an_empty_export(site, config):
