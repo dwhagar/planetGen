@@ -1500,6 +1500,10 @@ columns capture the facts the prose always states instead.
 | `density_g_cm3`, `ice_mass_fraction` | DOUBLE | nullable | Added in v199 (GEN.1159). The mean bulk density of the members in g/cm3 and the mean share of their mass that is ice of any kind, from the drawn makeup (`physics/small_body_composition.py`). NULL for a row made before v195. The roundness ratio, strength and binding energy belong to a member, not to the population. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary built the same way as the prose sentence (`asteroidData.py:119-137`), e.g. `"high concentrations of iron, moderate concentrations of nickel, and trace amounts of platinum"` — searchable without a join, alongside the structured breakdown below. |
+| `origin_cause`, `co_causes` | VARCHAR(24), TEXT | nullable | Added in v201 (GEN.1069). What formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet` or `collisional-debris`, `physics/belt_origin.py`) and the other formation causes that coincide with it, a JSON list. NULL for a belt made without an origin. |
+| `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` | DOUBLE | nullable | Added in v201 (GEN.1069). The star's snow line when the system formed (AU), the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses). |
+| `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` | TINYINT(1), TEXT | nullable | Added in v201 (GEN.1069). Whether a giant stirs the belt; the sentences of what shaped it (a JSON list); the sentence of where it came from; for an outer disc the share of its mass in each population after the scatter step (a JSON object, `physics/scatter.py`). |
+| `largest_body_km` | DOUBLE | nullable | Added in v201 (GEN.1069). The largest body of the belt (Dc), km, settled with its mass (`physics/belt_ledger.py`, GEN.1000). |
 
 ### `asteroid_belt_composition`
 
@@ -2273,6 +2277,8 @@ Migration 0203 creates `planet_life` and `moon_life` (a table already there is k
 Migration 0195 adds `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` (DOUBLE, nullable) to `planets`, `moons` and `comets`, `density_g_cm3` and `ice_mass_fraction` to `comets`, `asteroid_belts` and `asteroid_fields`, skipping a column already there. All are NULL after the migration: they are worked out by `physics/body_strength.py` when a body is generated, so a row made before v195 gets them when the galaxy is regenerated. Nothing is backfilled.
 
 Migration 0200 adds `density_g_cm3` and `binding_energy_j` (DOUBLE, nullable) to `stars`, `black_holes` and `neutron_stars`; those with `roundness_ratio` and `yield_strength_pa` to `rogue_planets`; and `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` to `interstellar_comets`, skipping a column already there. All are NULL after the migration; a row made before v196 gets them when the galaxy is regenerated.
+
+Migration 0201 adds `origin_cause`, `co_causes`, `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth`, `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` and `largest_body_km` (nullable) to `asteroid_belts`, the origin a belt carries and the largest body settled with its mass (GEN.1069). A belt made before v201 gets them when the galaxy is regenerated.
 
 ### v189 (GEN.1009): the largest radius and mass of a member
 
