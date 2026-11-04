@@ -105,6 +105,7 @@
   "/api/near GET",
   "/api/nebulae/<uid:nebula_id>/shape GET",
   "/api/nebulae/<uid:nebula_id>/surroundings GET",
+  "/api/nebulae/<uid:nebula_id>/volume GET",
   "/api/object-lists/<kind> GET",
   "/api/objects/<ref> GET",
   "/api/objects/<ref>/children GET",

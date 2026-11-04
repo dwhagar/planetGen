@@ -625,6 +625,10 @@ connectivity to that specific schema rather than the default one.
   its center (multiply by `radius_ly`), the faces triples of vertex
   indexes. `low` (the default) is coarse, for the Galaxy Map. 404 for an
   unknown nebula or level.
+- `GET /api/nebulae/<id>/volume` (MAP.142) — the points that draw one nebula alone, for the Sector Map and the
+  nebula page: `{id, format: "NVOL1", level, count, data}`, `data` the base64 of the same packed volume as
+  `GET /api/galaxy/nebula-volume`, over this nebula's sphere only. Nothing is stored; `count` is 0 for a nebula
+  never placed. 404 for an unknown nebula.
 - `GET /api/nebulae/<id>/surroundings` — the brightest stars round a
   nebula, for its page's 3D view (MAP.105): `{radius_pc, half_width_pc,
   stars: [{x, y, z, luminosity_sol, temperature_k}]}`, positions in

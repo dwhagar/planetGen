@@ -1523,7 +1523,7 @@ export function createStageView(host) {
     accentColor: host.accentColor || "#4f5fe8",
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, fetchUnchartedScene: host.fetchUnchartedScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
-    hideCell: host.hideCell || function () {}, preview: host.preview || null,
+    hideCell: host.hideCell || function () {}, preview: host.preview || null, volumeSingles: host.volumeSingles || null,
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
@@ -4015,6 +4015,8 @@ export function createStageView(host) {
   function selectBodyRef(ref) { systemStage.select(ref); }
 
   return {
+    // MAP.142: the nebulae of the sector that is up which the map draws from their own points (nebulavolume.singleSource).
+    sectorNebulaSources: function () { return sectorStage.nebulaSources(); },
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,

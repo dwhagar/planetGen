@@ -161,6 +161,10 @@ Sentient is the rarest outcome and most life ends at microbes, plants or animals
 
 The census (TEST.435) measures the animal and sentient bands on the oxygenic life worlds of systems made around G2V and K5V stars, because the default galaxy holds almost none (4 in 1,246 life worlds on 10-29, chlorophyll chemistries being listed for G and K stars only). The numbers are re-taken and re-baselined after epoch 120 (GEN.867) lands; none are changed before.
 
+Several living classes (GEN.1209): the census also takes the share of life worlds on which two or more classes live, with a band of 0.6 to 1.0 (registry row LC1, T9, L3: a guard on the measurement of 0.857 of 727 life worlds at epoch 131, not a researched target), and reports the share of the life worlds each class lives on (3a 83 percent, 4b 77 percent, 3b 12 percent, 4c 9 percent, 1a 3 percent at epoch 131) and the worlds where a class beside the dominant one reached a civilization (none of 727).
+
+Re-taken at epoch 131 (train 9) on 400 default systems and 150 around each of G2V and K5V: stops before animals 0.725 of 727 life worlds, reaches animals 0.109 of 46 oxygenic life worlds (5; the band stands, the sampling slack covers it), no civilization among them; none of the bands changed.
+
 Per class, the build thread sets a target band from the class's speed and energy and records it in the registry. Class 1 carries almost all the animals and all the sentient worlds in 8.1. Class 4 animals are chemosymbiotic and small. Classes 5 to 9 are expected to show a low single-digit share of animals at most, and that is an outcome to measure (TEST.435 reports it), not to force.
 
 ---

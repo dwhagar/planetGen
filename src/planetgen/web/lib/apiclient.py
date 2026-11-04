@@ -853,6 +853,13 @@ def get_nebula_shape(db, nebula_id, lod="low"):
     return _request(f"/nebulae/{nebula_id}/shape", {"db": db, "lod": lod})
 
 
+def get_nebula_volume(db, nebula_id):
+    """Returns `GET /api/nebulae/<id>/volume`'s payload (`id`/`format`/`level`/`count`/`data`, the base64 of the packed points that draw
+    one nebula alone, MAP.142 -- see `db.nebula_volumes.single_nebula_volume`)."""
+    _require_db(db)
+    return _request(f"/nebulae/{nebula_id}/volume", {"db": db})
+
+
 def get_nebula_surroundings(db, nebula_id):
     """Returns `GET /api/nebulae/<id>/surroundings`' payload: the brightest
     stars round one nebula, for its page's 3D view (MAP.105)."""

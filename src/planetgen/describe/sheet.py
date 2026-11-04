@@ -28,7 +28,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
 from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, outside_hours, regional_temperature,
-                               stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
+                               life_classes, stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -287,7 +287,8 @@ _BELT = (
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_km", "Largest body", "radius"),
-           ("primordial_mass_earth", "Mass it formed with"), ("cleared_mass_earth", "Mass the giants cleared"), ("scattered_mass_earth", "Mass an instability scattered")),
+           ("primordial_mass_earth", "Mass it formed with"), ("cleared_mass_earth", "Mass the giants cleared"), ("scattered_mass_earth", "Mass an instability scattered"),
+           ("stirred", "Stirred by a giant", FLAG)),
     *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
            ("chondrite_group", "Nearest meteorite group", TEXT)),
     *_rows("identity", ("origin_cause", "Formed as", TEXT), ("origin_sentence", "Where it came from", TEXT), ("formation_snow_line_au", "Snow line when it formed")),
@@ -554,6 +555,9 @@ NOT_SHOWN = {
                    "orbital_index")),
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                    "velocity_z_kms"), _VECTORS),
+        "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
+        "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
+        "scatter_fates": "the share of an outer disc in each population after the scatter step, a mapping; the scatter rows come with the scatter step wiring",
     },
     "comet": {
         **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
@@ -802,6 +806,7 @@ _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_cla
                 "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
                 "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
                 "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
+_CLASSES_WITH_VARIANTS = frozenset(row.number for row in life_classes.CLASSES if row.variant)
 _LIFE_AFTER_OXYGEN = ("life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
 _STAGES_AFTER_OXYGEN = tuple(tuning.LIFE_MILESTONES[tuning.LIFE_MILESTONES.index("complex_cells"):])
 _DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours", "night_hours", "days_per_year")
@@ -877,6 +882,8 @@ _BODY_RULES = [
      "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") in _CLASSES_WITH_VARIANTS,
+     "only some life classes come in variants, a letter for the pigment or habitat; the others have one form and no letter"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,

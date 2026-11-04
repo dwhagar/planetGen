@@ -25,15 +25,17 @@ beside the key so an admin sees when names were made under another one.
 """
 
 import datetime
+import functools
 import hashlib
 import re
 
+from planetgen.galaxy import object_uid
 from planetgen.generation.phenomena import registry
 from planetgen.names import object_id
 from planetgen.names.gated_phoneme_codec import GatedPhonemeCodec
 
-CODEC_VERSION = 1
-"""int: The codec's version; see the module docstring."""
+CODEC_VERSION = 2
+"""int: The codec's version; see the module docstring. 2: local names from the Object ID (GEN.1255)."""
 
 KEY_DIGITS = 8
 """int: A naming key's length in hex digits (32 bits)."""
@@ -93,6 +95,123 @@ def codec_name(object_id, kind, key):
 def object_id_of(name, kind, key):
     """The 19-digit hex ID a `codec_name` stands for (its inverse)."""
     return _CODEC.decode(name.lower(), codec_domain(key, kind), length=OBJECT_ID_DIGITS)
+
+
+# ---------------------------------------------------------------------
+# Local names from the Object ID (GEN.1255)
+# ---------------------------------------------------------------------
+#
+# A local name spells the serial and body number of an Object ID (`galaxy.object_uid`: 28 + 12 bits, 10 hex digits) and nothing of
+# the birth sector, as two words of about 12 letters ("Banhunm Finkap"). Inside a sector it is exact (the spelling is a bijection of the
+# 40 bits); on its own it can be shared with an object of another sector, so the sector is shown beside it
+# (`local_name_with_sector`) and the object ID stays the identity.
+#
+# Spelled directly, serials 0, 1, 2 ... share their first word, so the 26 count bits of the serial are first scrambled by a keyed
+# bijection, `y = (a * x + b) mod 2**26` with `a` odd, both drawn from the naming key and the sector. `a` is also required to
+# keep any two of the first `SPREAD_SERIALS` serials at least `SPREAD_GAP` apart after the scramble, which is what makes their
+# first words differ (a first word holds all but the lowest eight bits of the scramble).
+
+LOCAL_DOMAIN = "local"
+"""str: The codec domain's kind of a local name; it is not one of `KINDS` (no object ID of that kind exists)."""
+
+LOCAL_DIGITS = (object_uid.LAYOUT.serial_bits + object_uid.LAYOUT.body_bits) // 4
+"""int: Hex digits a local name spells: the serial (7) and the body number (3)."""
+
+SPREAD_SERIALS = 4096
+"""int: How many of a sector's first serials are guaranteed first words of their own."""
+
+SPREAD_GAP = 256
+"""int: The least distance, after the scramble, between any two of the first `SPREAD_SERIALS` serials (the first word drops the low 8 bits)."""
+
+_SCRAMBLE_BITS = object_uid.LAYOUT.serial_count_bits
+_SCRAMBLE_MASK = (1 << _SCRAMBLE_BITS) - 1
+
+
+def local_domain(key):
+    """The codec domain of local names under `key`."""
+    return f"{parse_key(key)}:{LOCAL_DOMAIN}"
+
+
+@functools.lru_cache(maxsize=4096)
+def _scramble_params(key, sector):
+    """The multiplier `a` (odd) and offset `b` of the scramble for `sector` (its 56-bit address as an integer) under `key`: the first
+    multiplier drawn from SHA-256(key, sector, attempt) that keeps the first `SPREAD_SERIALS` serials `SPREAD_GAP` apart."""
+    sector_text = f"{sector:0{object_uid.LAYOUT.sector_bits // 4}X}"
+    attempt = 0
+    while True:
+        digest = hashlib.sha256(f"local-name:{parse_key(key)}:{sector_text}:{attempt}".encode()).digest()
+        a = int.from_bytes(digest[:8], "big") & _SCRAMBLE_MASK | 1
+        b = int.from_bytes(digest[8:16], "big") & _SCRAMBLE_MASK
+        spread = min(min(value, (1 << _SCRAMBLE_BITS) - value)
+                     for value in ((a * step) & _SCRAMBLE_MASK for step in range(1, SPREAD_SERIALS + 1)))
+        if spread >= SPREAD_GAP:
+            return a, b
+        attempt += 1
+
+
+def scramble(count, sector, key):
+    """The count of a serial after the keyed scramble of its sector (`sector` is the 56-bit address as an integer)."""
+    a, b = _scramble_params(parse_key(key), sector)
+    return (a * count + b) & _SCRAMBLE_MASK
+
+
+def unscramble(scrambled, sector, key):
+    """The count a `scramble` result came from (its inverse)."""
+    a, b = _scramble_params(parse_key(key), sector)
+    return (pow(a, -1, 1 << _SCRAMBLE_BITS) * (scrambled - b)) & _SCRAMBLE_MASK
+
+
+def _sector_of(uid):
+    layout = object_uid.LAYOUT
+    return uid >> (layout.serial_bits + layout.body_bits)
+
+
+def sector_text(uid):
+    """The birth sector of an Object ID (an integer) as it is shown beside a local name: its 14 hex digits, `00FA0FFFE9E240`."""
+    return f"{_sector_of(uid):0{object_uid.LAYOUT.sector_bits // 4}X}"
+
+
+def local_name(uid, key):
+    """
+    The local name of the object whose Object ID (`galaxy.object_uid`, an integer) is `uid`, under naming key `key`: two capitalized
+    words spelling its serial and body number.
+    """
+    layout = object_uid.LAYOUT
+    fields = object_uid.unpack(uid, layout)
+    count = scramble(fields.serial, _sector_of(uid), key)
+    number = (fields.serial_kind << layout.serial_count_bits) | count
+    spelled = f"{(number << layout.body_bits) | fields.body:0{LOCAL_DIGITS}X}"
+    return _CODEC.encode(spelled, domain=local_domain(key)).title()
+
+
+def local_name_with_sector(uid, key):
+    """The local name followed by its sector, the way a name that stands alone is shown: `Banhunm Finkap, sector 00FA0FFFE9E240`."""
+    return f"{local_name(uid, key)}, sector {sector_text(uid)}"
+
+
+def uid_of_local_name(name, sector, key):
+    """
+    The Object ID (an integer) a local name stands for in `sector`, under `key` (the inverse of `local_name`). `sector` is the birth
+    sector's 56-bit address as an integer or as its 14 hex digits.
+
+    Raises:
+        ValueError: A name the codec cannot read as a local name, or a sector that is not 56 bits.
+    """
+    layout = object_uid.LAYOUT
+    if isinstance(sector, str):
+        digits = sector.strip().upper().removeprefix("SECTOR").strip()
+        if not re.fullmatch(r"[0-9A-F]{%d}" % (layout.sector_bits // 4), digits):
+            raise ValueError(f"a sector is {layout.sector_bits // 4} hex digits, not {sector!r}")
+        sector = int(digits, 16)
+    if not isinstance(sector, int) or not 0 <= sector < (1 << layout.sector_bits):
+        raise ValueError(f"a sector address is {layout.sector_bits} bits, not {sector!r}")
+    spelled = int(_CODEC.decode(" ".join(name.lower().split()), local_domain(key), length=LOCAL_DIGITS), 16)
+    body = spelled & ((1 << layout.body_bits) - 1)
+    number = spelled >> layout.body_bits
+    kind = number >> layout.serial_count_bits
+    count = unscramble(number & _SCRAMBLE_MASK, sector, key)
+    serial = (kind << layout.serial_count_bits) | count
+    return (((sector << layout.serial_bits) | serial) << layout.body_bits) | body
 
 
 # ---------------------------------------------------------------------
