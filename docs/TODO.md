@@ -17717,6 +17717,20 @@ clears each one.
   by the TODO thread.
   Prerequisites: none.
 
+- [ ] **TEST.576 test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug)**
+  Found by Core 5, about 4:45 PM EST on 2026-11-04 (as the lane
+  reported), red on clean main, not from DOC.103. The plain-words test
+  builds a corpus of the site's text and requires at least 1500 words;
+  it finds 1306, so either the corpus lost text (DOC.93 or DOC.94 moved
+  source lines and templates out of the pages it reads) or the floor is
+  stale. Do: find which text left the corpus, and either restore it to
+  the scan or lower the floor to what the in-universe pages hold with
+  the reason written beside it; do not weaken what the test checks.
+  Done: test_plain_words passes on main in 3 runs. Lock-free (test
+  only). Owner Core 1, who built the DOC.94 crawl (proposed by the TODO
+  thread). Filed by the TODO thread.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
