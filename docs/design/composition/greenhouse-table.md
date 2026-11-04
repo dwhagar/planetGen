@@ -89,7 +89,7 @@ A hazy air is cooler at the ground than the same air clear (the anti-greenhouse 
 ## What moves
 
 Every planet and moon with an air: the surface temperature, and with it the class, the habitability and the life draw. 28 percent of the airs the generator makes shift by more than 5 K against the
-grey closure, the dense ones by 60 to 190 K (the closure was too cold); the worlds with a haze are cooler. The Earth twin of the fixed point stays at 288 K. Airs above 1000 bar are held at the table's edge.
+grey closure, the dense ones by 60 to 190 K (the closure was too cold); the worlds with a haze are cooler. The Earth twin of the fixed point stays at 288 K. Airs above 1000 bar (the pressure the table and the model stop at) rise past the table's top value by the adiabat, `ln(T_s / T_e)` gaining `(1 - 1/gamma) ln(P / P_top)` with the air's own heat-capacity ratio (GEN.1240, stand-in IR16): a convective air is as warm as its adiabat takes it from a radiating level the opacity sets and the column does not move, so a steam air of 1e5 bar reads 1,800 K where the held table read 700 K. It is not fitted to the model, which does not converge there, and the solver's own ceiling (2,000 K) still bounds it.
 
 ## Limits
 
