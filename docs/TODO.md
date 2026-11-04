@@ -19444,6 +19444,427 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   goes in the same sweep.
   Prerequisites: none.
 
+- [ ] **VIEW.19 System sky S1: measure the backfill cost of a 6.5 and a 7.5 magnitude sky on a real galaxy, and settle the luminosity-versus-mass ledger question**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S1 of S1 to S22 in section 7. Do: run backfill_cells and
+  backfill_mass_cells on a real galaxy for a 6.5 and a 7.5 sky; report
+  per-star and per-cell cost, stars per sky, and which of the two
+  ledgers (luminosity or mass) the tier floor should use; write it in
+  reports/. This replaces every [E] estimate in the plan. Done: the
+  report with measured numbers. Read-only script. Proposed owner: the
+  scatter and fill lane (Core 3 or Star 2). Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.20 System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S2 of S1 to S22 in section 7. Do: the lighter 8.2
+  version of the photometry of VIEW.11 and the dust of VIEW.8, on numpy
+  arrays: apparent_magnitude, the galactic extinction law along a line
+  of sight from the galaxy's density (sourced in the references
+  registry), and a colour rule for stars under 3,500 K (VIEW.9 left that
+  open). Reddening, desaturation of faint stars and nebula extinction
+  stay with VIEW.11 and VIEW.8 in 9.1. Done: array functions with tests
+  against hand-worked cases and published columns. No prerequisite
+  (VIEW.9 merged). Proposed owner: the photometry lane that built
+  VIEW.9. Related: VIEW.8, VIEW.9, VIEW.11. Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.21 System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S3 of S1 to S22 in section 7. Do: wire
+  physics/light_travel.py (built, no production caller) into production
+  on arrays: advance each star to the sky's time, solve the retarded
+  position in two or three passes, apply the age-at-retarded-time rule
+  with a phase-boundary flag (a star too young to have been seen yet, or
+  one that died within the light time), and the remnant visibility rule
+  (an explosion not yet visible). Done: tests for a star at rest 1 ly
+  away, a receding one, a hypervelocity one, an analytic case and the
+  curvature bound; light_travel.py leaves the wiring-guard list. No
+  prerequisite. Lock-free, no migration. Boss decided at 5:29 PM EST on
+  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
+  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  item can reuse it); the limiting magnitude is a setting with default
+  7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.22 System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S4 of S1 to S22 in section 7. Do: a query that returns,
+  as arrays, every star and phenomenon inside a sphere above a
+  luminosity floor from the charted stars, bright_stars,
+  phenomenon_scatter and cluster members, plus the cell levels it
+  reached. Done: tests against a small galaxy, and a measured query
+  time. No prerequisite. Lock-free, no migration. Boss decided at 5:29
+  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.23 System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S5 of S1 to S22 in section 7. Do: galaxy/sky.py joining
+  S2, S3 and S4: sky_from(observer, limit) returns each visible star's
+  direction, apparent magnitude, colour and light-time position from the
+  STORED stars only (charted stars, bright_stars, phenomena, cluster
+  members); the observer's own system is excluded; it reports which
+  tiers it reached and uses the unbuilt-velocity stand-in (registered in
+  GEN.725 with tier and tweak level) for stars with no stored velocity.
+  The limit is a parameter (default 7.5). Overlaps VIEW.12 (9.1), which
+  later adds built tiers; build it so VIEW.12 extends it. Done: tests;
+  the calibration against HYG is S12. Related: VIEW.12. Lock-free, no
+  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
+  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
+  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  limiting magnitude is a setting with default 7.5, lower on phones;
+  missing stars are built when a system is charted, no visit job. Goal
+  #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.20, VIEW.21, VIEW.22.
+
+- [ ] **VIEW.24 System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S6 of S1 to S22 in section 7. Do: the table of how deep
+  the sky must be built at each distance (mass or luminosity floor, per
+  the ledger S1 chose) for a limiting magnitude of 7.5 from the
+  visibility physics and the dust of S2; stand-ins registered in
+  GEN.725. Overlaps the first half of VIEW.7 (9.1). Done: table with
+  tests and registry rows. Related: VIEW.7. Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: VIEW.19, VIEW.20.
+
+- [ ] **VIEW.25 System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S7 of S1 to S22 in section 7. Do: when a system is
+  charted, build the bright_stars rows and cell levels its sky needs
+  (the tier table of S6, a limiting magnitude of 7.5) with the existing
+  backfill_cells and backfill_mass_cells, and record the cell levels.
+  This is a LOCK item: more bright_stars rows and cell levels, so the
+  fill golden and the census change and charting gets slower; the census
+  line reports the added rows and seconds per sector. Boss chose this
+  over a visit job (3.3). Done: tests; the golden regenerated with
+  --affects fill; a census line. Rides a train. Proposed owner: the
+  scatter and fill lane (Core 3). No migration. Boss decided at 5:29 PM
+  EST on 2026-11-04 (1.2, 2.1, 3.3) as in the parent plan. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: VIEW.19, VIEW.24.
+
+- [ ] **VIEW.26 System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI)**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S7b of S1 to S22 in section 7. Do: a command in the
+  Generate console and the CLI that builds the S7 sky tiers for sectors
+  that were charted before S7 landed, by sector or region, with a
+  progress line. Uses the S7 function and changes no generated value
+  beyond what S7 does for a newly charted sector. Done: tests.
+  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
+  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.25.
+
+- [ ] **VIEW.27 System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S9 of S1 to S22 in section 7. Do: the glow of the stars
+  too faint to resolve, ray-marched over the density with the dust law
+  of S2 (galactic dust only; nebula dust stays with VIEW.13) and with
+  the resolved stars subtracted, cached per 50 pc cell, as a small glow
+  image per system. Overlaps VIEW.13 (9.1). Faint stars past the limit
+  are this glow with shader grain, not invented individual stars. Done:
+  tests of the cache key and of the subtraction. Related: VIEW.13.
+  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
+  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.20.
+
+- [ ] **VIEW.28 System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S10 of S1 to S22 in section 7. Do: for each nebula and
+  supernova remnant in view, its angular size, surface brightness and
+  extinction, from S3's retarded geometry. Done: tests. Lock-free, no
+  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
+  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
+  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  limiting magnitude is a setting with default 7.5, lower on phones;
+  missing stars are built when a system is charted, no visit job. Goal
+  #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.21.
+
+- [ ] **VIEW.29 System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S11 of S1 to S22 in section 7. Do: observer-relative
+  positions and velocities in double precision, packed to about 30 bytes
+  a star, with the writer in Python, the reader in JS and one test that
+  holds the two to each other (as tilepack does). Done: the shared test.
+  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
+  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.23.
+
+- [ ] **VIEW.30 System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S12 of S1 to S22 in section 7. Do: a developer-machine
+  test (skipped when the dataset is absent) that a sky generated for the
+  Sun's position gives about 9,000 stars at a limiting magnitude of 6.5,
+  within a stated band. Raw datasets never enter the repo; the dataset
+  is fetched at setup. Done: the test and the band. Lock-free, no
+  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
+  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
+  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  limiting magnitude is a setting with default 7.5, lower on phones;
+  missing stars are built when a system is charted, no visit job. Goal
+  #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.23, VIEW.25.
+
+- [ ] **VIEW.31 System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit=**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S13 of S1 to S22 in section 7. Do: the endpoint builds
+  the packed list, caches it (the PERF.129 cache, clearable on its admin
+  page; key is system, version key, limit), and reports the tier state
+  and the counts. Done: API tests; wire-format doc; API version bump if
+  the rule needs it. Lock-free, no migration. Boss decided at 5:29 PM
+  EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.27, VIEW.29.
+
+- [ ] **VIEW.32 System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S14 of S1 to S22 in section 7. Do: the browser
+  arithmetic for the sky: magnitude to opacity and size, colour, and the
+  matching GLSL, reusing starmagnitude.js and starlight.js. Done: a node
+  test. No prerequisite. Proposed owner: Core 2 (map lane). Lock-free,
+  no migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1,
+  3.3): a lighter 8.2 backdrop (stored stars and glow only; VIEW.7,
+  VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.33 System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S15 of S1 to S22 in section 7. Do: draw the packed list
+  as one points object centred on the camera; the vertex shader moves
+  every star to its light-time position each frame from the orbit clock;
+  fade at the cut; a cap on phones. Done: a browser fixture test.
+  Proposed owner: Core 2. Lock-free, no migration. Boss decided at 5:29
+  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.29, VIEW.32.
+
+- [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S16 of S1 to S22 in section 7. Do: the glow band as a
+  sphere shader sampling the S9 glow image with dither and grain. Done:
+  a screenshot test. Proposed owner: Core 2. Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: VIEW.31, VIEW.32.
+
+- [ ] **VIEW.35 System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S17 of S1 to S22 in section 7. Do: the System View
+  background becomes this sky; a preference switches it; while the tiers
+  are still filling the page shows a 'filling in' note and polls; no
+  WebGL falls back to the old backdrop. Done: browser fixture test.
+  Proposed owner: Core 2. Lock-free, no migration. Boss decided at 5:29
+  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.31, VIEW.33, VIEW.34.
+
+- [ ] **VIEW.36 System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S18 of S1 to S22 in section 7. Do: draw S10's data as
+  sprites and the other luminous phenomena as points. Done: browser
+  test. Proposed owner: Core 2. Lock-free, no migration. Boss decided at
+  5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop
+  (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and
+  VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where noted,
+  build it so the 9.1 item can reuse it); the limiting magnitude is a
+  setting with default 7.5, lower on phones; missing stars are built
+  when a system is charted, no visit job. Goal #4907. Filed by the TODO
+  thread.
+  Prerequisites: VIEW.28, VIEW.33.
+
+- [ ] **VIEW.37 System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S19 of S1 to S22 in section 7. Do: pick a star in the
+  sky; the hover text says how long ago the light left it; charted stars
+  link to their page; scatter stars link through their Object ID (needs
+  GEN.1254 and GEN.1255, goal #4899). Done: browser test. Prerequisites
+  outside this chain: GEN.1254, GEN.1255. Lock-free, no migration. Boss
+  decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2
+  backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12
+  and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where
+  noted, build it so the 9.1 item can reuse it); the limiting magnitude
+  is a setting with default 7.5, lower on phones; missing stars are
+  built when a system is charted, no visit job. Goal #4907. Filed by the
+  TODO thread.
+  Prerequisites: VIEW.35.
+
+- [ ] **VIEW.38 System sky S20: design note, help text, citations and GEN.725 rows for the system sky**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S20 of S1 to S22 in section 7. Do:
+  docs/design/orbits/sky-system-view.md with the numbers of the plan,
+  the help page text, the sources in the references registry (citations
+  only there, [R0123] style) and the GEN.725 stand-in rows. Done: the
+  note, the help page and the rows. Lock-free, no migration. Boss
+  decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2
+  backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12
+  and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where
+  noted, build it so the 9.1 item can reuse it); the limiting magnitude
+  is a setting with default 7.5, lower on phones; missing stars are
+  built when a system is charted, no visit job. Goal #4907. Filed by the
+  TODO thread.
+  Prerequisites: VIEW.35.
+
+- [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S21 of S1 to S22 in section 7. Do: two lines of GLSL for
+  the aberration of the observer's own motion, off by default. Done: a
+  shader test. Lock-free, no migration. Boss decided at 5:29 PM EST on
+  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
+  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  item can reuse it); the limiting magnitude is a setting with default
+  7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.33.
+
+- [ ] **VIEW.40 System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S22 of S1 to S22 in section 7. Do: after the zoom
+  redesign (MAP.334 to MAP.338, all done), cross-fade the Galaxy Map's
+  star points into this sky as the camera enters a system. Done: browser
+  test. Lock-free, no migration. Boss decided at 5:29 PM EST on
+  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
+  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  item can reuse it); the limiting magnitude is a setting with default
+  7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.35.
+
 ## POP: Population and politics
 
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
