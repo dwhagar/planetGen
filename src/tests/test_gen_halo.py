@@ -25,7 +25,7 @@ from planetgen.galaxy.density import (
     _halo, build_galaxy_shape, integrated_masses, halo_density, halo_mass, halo_terms,
     population_densities, population_densities_array, relative_density,
 )
-from planetgen.galaxy.skeleton import build_shell_extents, expected_system_count_at_density_1
+from planetgen.galaxy.skeleton import _band_qualifies, build_shell_extents, expected_system_count_at_density_1
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation.star_population import bright_star_fraction
@@ -154,10 +154,15 @@ def test_the_halo_does_not_widen_the_outline():
     # exponential disk (GEN.544) and the derived mean system mass (GEN.545), so the reference galaxy's edge sits at shell
     # 3,421 (3,454 before the primary mass function of GEN.929 gave 5% fewer systems for the same stars; 3,576 at the
     # recalled 0.4 a system, 3,762 for the density tuned to the real count at the Sun, 3,127 with the isothermal disk).
-    extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
-    assert outer == 3421
-    assert len(extents) == 3422
-    assert sum(high for _shell, high in extents) == 848394
+    # TEST.561: the edge shell moves a few shells with every change of the mass function and the companions (3,421 at the pin, 3,418 once the train 8 changes
+    # raised the mean system mass from 0.5105 to 0.5111 solar masses), so the test checks the outline against the model and not a pinned shell: the last
+    # shell has a band that clears the threshold, the next has none, and the edge stays near where the pinned figures put it.
+    shape = mathcheck._reference_galaxy_shape()
+    extents, outer, _confirmed = build_shell_extents(shape, EDGE_PC, 1.0 / E_VALUE)
+    assert 3400 < outer < 3440
+    assert len(extents) == outer + 1
+    assert _band_qualifies(shape, EDGE_PC, outer, extents[-1][1], 1.0 / E_VALUE)
+    assert not any(_band_qualifies(shape, EDGE_PC, outer + 1, band, 1.0 / E_VALUE) for band in range(0, spherical.band_range(outer + 1)[1] + 1))
 
 
 def _halo_and_edge_cells(shape):

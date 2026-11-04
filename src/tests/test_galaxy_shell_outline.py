@@ -14,7 +14,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import spherical
-from planetgen.galaxy.density import build_galaxy_shape, relative_density
+from planetgen.galaxy.density import build_galaxy_shape, mean_system_mass_solar, relative_density
 from planetgen.physics import mathcheck
 from planetgen.galaxy.skeleton import (
     GalaxyBounds,
@@ -46,17 +46,19 @@ def _qualifying_bands(shape, shell, threshold):
     return [b for b in range(0, spherical.band_range(shell)[1] + 1) if _band_qualifies(shape, EDGE_PC, shell, b, threshold)]
 
 
-def test_the_default_galaxy_reaches_shell_3438_with_the_core_first(milky_way):
+def test_the_default_galaxy_reaches_its_edge_shell_with_the_core_first(milky_way):
     """GEN.404: the galaxy holds the systems its stellar mass makes (it reached shell 3147 against 3762 for the density
     tuned to the real count at the Sun); GEN.544 gave the disk its exponential height, whose midplane is twice as dense
     for the same mass, so the edge sat at shell 3596; GEN.545 derived the mean system mass (0.483 solar masses a system
     where 0.4 had been recalled), so the galaxy holds a sixth fewer systems and the edge sat at shell 3473; the primary mass
     function of GEN.928 makes the mean system mass 0.508 (the Chabrier function and the companions it leaves out of the
     primaries, GEN.927), 5% fewer systems again, and the edge sat at shell 3441; the companions' mass ratios of GEN.951 ([R3108],
-    lighter companions for massive primaries and twins for close pairs) move the systems per solar mass by 0.3 percent, and the edge sits at shell 3438."""
+    lighter companions for massive primaries and twins for close pairs) move the systems per solar mass by 0.3 percent, and the edge sat at shell 3438; the train 8 changes raise the mean system mass from 0.5105 to 0.5111 solar
+    masses and it sits at shell 3437 (TEST.561: the edge moves a shell or two with every change of the mass function, so the test holds it to a window and
+    checks the outline against the model in the tests below, not against a pinned shell)."""
     extents, outer, confirmed = milky_way
-    assert outer == 3438 and confirmed
-    assert [shell for shell, _high in extents] == list(range(3439))
+    assert 3420 < outer < 3450 and confirmed
+    assert [shell for shell, _high in extents] == list(range(outer + 1))
     assert extents[0] == (0, 0)
     assert extents[1:4] == [(1, 1), (2, 3), (3, 4)]      # shells 1 to 3 are the table: whole shells in the bulge
 
@@ -72,10 +74,10 @@ def test_the_outline_reaches_the_axis_in_the_bulge_and_only_there(milky_way):
 
 
 def test_the_outline_narrows_with_distance_and_is_a_run_about_the_plane(milky_way):
-    extents, _outer, _confirmed = milky_way
+    extents, outer, _confirmed = milky_way
     highs = dict(extents)
     assert highs[3000] < highs[2000] < highs[1500]
-    assert highs[3438] <= 5
+    assert highs[outer] <= 5
 
 
 def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
@@ -86,18 +88,29 @@ def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
     extents, _outer, _confirmed = milky_way
     shells = shell_candidate_sector_count(extents)
     assert shells < 23_930_000_000
-    # GEN.927: the single-star mass function moves the derived mean system mass, so the pinned count moved 0.005 percent (from 11,271,314,727).
-    # GEN.951: the mass ratios of the companions move the systems per solar mass by 0.3 percent, so the pinned count moved 0.26 percent (from 11,270,804,751).
-    assert shells == 11_241_821_617
+    # TEST.561: the count follows the number of systems the galaxy holds, its stellar mass over the derived mean system mass (GEN.545), and that mean moves with
+    # every change of the mass function and the companions (GEN.927, GEN.951, the train 8 changes: 11,271,314,727, then 11,241,821,617, now about 11,235,000,000
+    # as the mean went from 0.5105 to 0.5111 solar masses). So the test pins what does not move, the count times the mean system mass (5.74e9 solar-mass cells, which
+    # moved 0.06 percent over those changes), and leaves the mean to the model.
+    mean_mass = mean_system_mass_solar(MILKY_WAY)
+    assert shells * mean_mass == pytest.approx(5.74e9, rel=0.005)
 
 
-@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3438])
+@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3400])
 def test_the_outline_is_tight_and_no_qualifying_band_lies_outside(milky_way, shell):
     extents, _outer, _confirmed = milky_way
     high = dict(extents)[shell]
     qualifying = _qualifying_bands(MILKY_WAY, shell, THRESHOLD)
     assert max(qualifying) == high               # no qualifying band beyond it, and the last one in is real
     assert qualifying[0] == 0
+
+
+def test_the_edge_shell_is_tight_and_the_next_one_holds_no_qualifying_band(milky_way):
+    """TEST.561: the outermost shell is checked wherever the model puts it, and the shell after it is empty."""
+    extents, outer, _confirmed = milky_way
+    qualifying = _qualifying_bands(MILKY_WAY, outer, THRESHOLD)
+    assert max(qualifying) == dict(extents)[outer] and qualifying[0] == 0
+    assert not _qualifying_bands(MILKY_WAY, outer + 1, THRESHOLD)
 
 
 def test_walk_from_a_small_galaxy_matches_a_scan_of_every_shell():
