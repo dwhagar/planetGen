@@ -62,6 +62,7 @@ def restore(body):
         return
     for name, value in formed.items():
         setattr(body, name, value)
+    delattr(body, _FORMED)      # the next fill takes the fractions of the air solved again as the drawn ones
 
 
 def fill(body):
