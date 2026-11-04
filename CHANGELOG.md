@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3123] - 2026-11-04
+
+**Headline:** The forced-fill test for a sector directive no longer fails on the draws that happen to hold six habitable worlds in three systems.
+
+### Changed
+- **Test fix, no code change (TEST.555 part 3).** `test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill` asked for `habitable>=6` in a sector of three systems, which it took to happen about 1 time in 10,000. A habitable world is a body of a life class since epoch 121 and a system holds one about 7 times in 10, so the first draw met the directive on a large share of runs (one of four in a sample) and the test, which expects the fill after a missed draw, failed with "directives met on the first draw". The test now fixes the count the directive measures: the drawn sector of three counts no habitable world, the filled sector counts one per system, so the run always takes the path the test is about. `HABITABLE_COUNT_PMF` in `generation/directives.py`, which sizes the fill and the "impossible" check, was measured before epoch 121 and is stale; it is filed for a remeasure, not changed here.
+generation-output: unchanged
+
 ## [8.0.3122] - 2026-11-04
 
 **Headline:** Two tests of the neutron star to black hole ratio now check it against the remnant model instead of a fixed 1.5.
