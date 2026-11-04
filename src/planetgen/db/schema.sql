@@ -1525,8 +1525,10 @@
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
--- v200 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss; `physics/belt_history.py`), as one paragraph
---   of plain sentences for the belt page. NULL for a belt nothing happened to and for a row made before v200, nothing is backfilled.
+-- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
+-- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
+-- v205 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss, `physics/belt_history.py`), as one paragraph
+--   of plain sentences for the belt page. NULL for a belt nothing happened to and for a row made before v205, nothing is backfilled.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -1543,6 +1545,8 @@
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
 --   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
 -- v198 (GEN.1174): `stars` and `bright_stars` gain `nuclear_arrival_age_gy` (Gyr, NULL), the age at which MIST's tracks put a pre-main-sequence star on the main sequence (hydrogen burning settled), kept beside `phase_end_age_gy` of `bright_stars`, which for such a star is the earlier age its radius settles (BHAC15). NULL for every star that is not pre-main-sequence and for a row made before v195; nothing is backfilled.
+-- v202 (GEN.1138): `designations`, one row for each ID or name an object stopped having (`designation_uid` or `designation_name`, `object_kind` and `object_row_id`, `valid_from_epoch`, `retired_epoch`, `reason`, `gone_epoch`). A retired ID is reserved for ever (unique), a retired name is not. A designation that changed before has none; nothing is backfilled.
+-- v203 (GEN.1209): `planet_life` and `moon_life`, one row for each life class that lives on a planet or moon (class id, share of the food production, stage, animal grade, complexity, the five schedule ages and the four kind scores of the class). A body stored before has none: its one class is the dominant one in its own columns; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1592,6 +1596,10 @@
 --     rather than MySQL's legacy 3-byte `utf8`).
 -- v197 (GEN.1215): `planets` and `moons` also keep what their surface liquids hold: `surface_liquid_acid_wt` and `surface_liquid_acid_layer` (the strength of the liquid sulfuric acid the air makes,
 --   percent of its mass, and where it is, pool or cloud (`physics/acid_medium.py`)) and `surface_liquid_ammonia_wt` (the ammonia of a liquid water ocean, percent of the liquid's mass). NULL for a body without such a liquid and a row made before v197.
+-- v201 (GEN.1127): `chart_ledger`, one row for each sector cell that has been charted (generated): the cell's address, the run and generator epoch that charted it, when, and when its
+--   rogue top-up ran (`topped_up_at`, NULL until it does); it replaces `sector_stats.filled_at` and is written by the same save, so a cell's charted state is a row here, not a column of the
+--   stats. The `ON DELETE CASCADE` of `rogue_planets`, `interstellar_comets`, `supernova_remnants` and `facilities` on `sector_id` became `RESTRICT`: `sector_id` is the sector that holds an object
+--   now (the orbital update refiles it), so a sector row cannot vanish while a resident points at it, and deleting or regenerating a sector removes only what was born there (the first 56 bits of `uid`).
 
 
 -- v39: star_systems and several phenomenon tables point at nebulae and
@@ -2236,6 +2244,8 @@ CREATE TABLE IF NOT EXISTS stars (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J (-1 for a black hole: infinite)
 
     UNIQUE KEY uq_stars_uid (uid),
     KEY idx_stars_parent (parent_type, parent_id),
@@ -2671,6 +2681,34 @@ CREATE TABLE IF NOT EXISTS planet_life_class_scores (
     KEY idx_planet_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The life classes that live on a planet (v203, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
+-- the five ages of its schedule and the four kind scores it gives (0 to 9). The planet's own `life_class` columns are the dominant class and its own kind scores the highest of each over these rows.
+CREATE TABLE IF NOT EXISTS planet_life (
+    id                                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id                               BIGINT UNSIGNED NOT NULL,
+    life_class                              VARCHAR(2) NOT NULL,
+    share                                   DOUBLE NOT NULL CHECK (share > 0 AND share <= 1),
+    life_stage                              VARCHAR(32) NULL,
+    life_milestone_age_gyr                  DOUBLE NULL,
+    life_system_age_gyr                     DOUBLE NULL,
+    life_animal_grade                       TINYINT UNSIGNED NULL,
+    life_complexity                         DOUBLE NULL,
+    life_age_abiogenesis_gyr                DOUBLE NULL,
+    life_age_photosynthesis_gyr             DOUBLE NULL,
+    life_age_complex_cells_gyr              DOUBLE NULL,
+    life_age_multicellularity_gyr           DOUBLE NULL,
+    life_age_technological_civilization_gyr DOUBLE NULL,
+    life_microbial                          TINYINT UNSIGNED NULL,
+    life_flora                              TINYINT UNSIGNED NULL,
+    life_fauna                              TINYINT UNSIGNED NULL,
+    life_sentient                           TINYINT UNSIGNED NULL,
+
+    CONSTRAINT fk_planet_life_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_planet_life (planet_id, life_class),
+    KEY idx_planet_life_class (life_class, life_stage)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- moons -- one row per moon, as of schema v2 (see the header comment's
 -- "v2" note). Exactly the same column shape as `planets` (moons are
@@ -3077,6 +3115,34 @@ CREATE TABLE IF NOT EXISTS moon_life_class_scores (
     KEY idx_moon_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The life classes that live on a moon (v203, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
+-- the five ages of its schedule and the four kind scores it gives (0 to 9). The moon's own `life_class` columns are the dominant class and its own kind scores the highest of each over these rows.
+CREATE TABLE IF NOT EXISTS moon_life (
+    id                                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id                               BIGINT UNSIGNED NOT NULL,
+    life_class                              VARCHAR(2) NOT NULL,
+    share                                   DOUBLE NOT NULL CHECK (share > 0 AND share <= 1),
+    life_stage                              VARCHAR(32) NULL,
+    life_milestone_age_gyr                  DOUBLE NULL,
+    life_system_age_gyr                     DOUBLE NULL,
+    life_animal_grade                       TINYINT UNSIGNED NULL,
+    life_complexity                         DOUBLE NULL,
+    life_age_abiogenesis_gyr                DOUBLE NULL,
+    life_age_photosynthesis_gyr             DOUBLE NULL,
+    life_age_complex_cells_gyr              DOUBLE NULL,
+    life_age_multicellularity_gyr           DOUBLE NULL,
+    life_age_technological_civilization_gyr DOUBLE NULL,
+    life_microbial                          TINYINT UNSIGNED NULL,
+    life_flora                              TINYINT UNSIGNED NULL,
+    life_fauna                              TINYINT UNSIGNED NULL,
+    life_sentient                           TINYINT UNSIGNED NULL,
+
+    CONSTRAINT fk_moon_life_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_moon_life (moon_id, life_class),
+    KEY idx_moon_life_class (life_class, life_stage)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- asteroid_belts -- belts have no properties-dict data table
 -- (asteroidData.py:93-141 is prose only), so their searchable columns are
@@ -3121,7 +3187,18 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
     chondrite_group             VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v190
-    history_text                TEXT NULL,  -- v200 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v200
+    origin_cause                VARCHAR(24) NULL,  -- v204 (GEN.1069): what formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), NULL for a belt made without an origin
+    co_causes                   TEXT NULL,  -- v204 (GEN.1069): the other formation causes that coincide with it, a JSON list of codes
+    formation_snow_line_au      DOUBLE NULL,  -- v204 (GEN.1069): the star's snow line when the system formed, AU
+    primordial_mass_earth       DOUBLE NULL,  -- v204 (GEN.1069): the mass the belt formed with, Earth masses
+    cleared_mass_earth          DOUBLE NULL,  -- v204 (GEN.1069): what the giants cleared from it, Earth masses
+    scattered_mass_earth        DOUBLE NULL,  -- v204 (GEN.1069): what an instability scattered from it, Earth masses
+    stirred                     TINYINT(1) NULL,  -- v204 (GEN.1069): whether a giant stirs the belt
+    origin_history              TEXT NULL,  -- v204 (GEN.1069): the sentences of what shaped the belt, a JSON list
+    origin_sentence             TEXT NULL,  -- v204 (GEN.1069): the sentence of where the belt came from, for its page
+    scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disc, the share of its mass in each population after the scatter step, a JSON object
+    largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
+    history_text                TEXT NULL,  -- v205 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -3330,6 +3407,8 @@ CREATE TABLE IF NOT EXISTS black_holes (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J (-1 for a black hole: infinite)
 
     UNIQUE KEY uq_black_holes_uid (uid),
     KEY idx_black_holes_parent (parent_type, parent_id),
@@ -3420,6 +3499,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J (-1 for a black hole: infinite)
 
     UNIQUE KEY uq_neutron_stars_uid (uid),
     KEY idx_neutron_stars_parent (parent_type, parent_id),
@@ -3657,7 +3738,7 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     ),
 
     CONSTRAINT fk_supernova_remnants_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v201 (GEN.1127): a sector row cannot go while a resident points at it
     CONSTRAINT fk_supernova_remnants_black_hole
         FOREIGN KEY (compact_remnant_black_hole_id) REFERENCES black_holes(id) ON DELETE SET NULL,
     CONSTRAINT fk_supernova_remnants_neutron_star
@@ -3846,6 +3927,10 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     eq_supply_rec               TINYINT NULL,  -- v153
     eq_shelter                  TINYINT NULL,  -- v153
     eq_shelter_rec              TINYINT NULL,  -- v153
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    roundness_ratio             DOUBLE,  -- v200 (GEN.1162): the mean radius over the round radius, 1 or more is round, NULL for a giant or a brown dwarf
+    yield_strength_pa           DOUBLE,  -- v200 (GEN.1162): the strength of the rock and ice, Pa, NULL for a giant or a brown dwarf
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J
     shelter_column_g_cm2        DOUBLE NULL,  -- v153
     energy_flux_w_m2            DOUBLE NULL,  -- v153
 
@@ -3864,7 +3949,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ),
 
     CONSTRAINT fk_rogue_planets_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v201 (GEN.1127): a sector row cannot go while a resident points at it
     KEY idx_rogue_planets_sector_id (sector_id),
     -- v28: see the header comment's "v28" note.
     KEY idx_rogue_planets_galactic_radius_pc (galactic_radius_pc),
@@ -3939,6 +4024,11 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the bulk density of the nucleus, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v200 (GEN.1162): the share of the nucleus mass that is ice of any kind
+    roundness_ratio             DOUBLE,  -- v200 (GEN.1162): the mean radius over the round radius, 1 or more is round
+    yield_strength_pa           DOUBLE,  -- v200 (GEN.1162): the strength of the material mix of the nucleus, Pa
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling the nucleus releases, J
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
     KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
@@ -3953,7 +4043,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     ),
 
     CONSTRAINT fk_interstellar_comets_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v201 (GEN.1127): a sector row cannot go while a resident points at it
     KEY idx_interstellar_comets_sector_id (sector_id),
     KEY idx_interstellar_comets_next_update_due (next_update_due),
     -- v28: see the header comment's "v28" note.
@@ -4275,11 +4365,33 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     total_luminosity_sol   DOUBLE,
     habitable_worlds       INT,   -- v139 (MAP.143): planets and moons in the sector's systems that are Blue or Green overall (PHI-6)
     total_mass_kg          DOUBLE,   -- v168 (DB.108): the mass of the sector's stars, planets, moons, belts, comets and phenomena (not nebulae), NULL when a body has no stored mass
-    filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (shell_index, band_index, wedge_index),
     KEY idx_sector_stats_level (bright_level_sol)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- chart_ledger (v201, GEN.1127): which sector cells have been charted. A cell is a whole sector (the unit of randomness,
+-- docs/design/systems/region-object-store.md), so it is charted or it is not, and the uncharted remainder is the cells with no row.
+-- `run_id` is the generation run that charted it and `generator_epoch` the epoch it was charted under (a cell charted under an older
+-- epoch is stale, `galaxy/epoch_record.py`), `charted_at` when, `topped_up_at` when the rogue top-up of its region run filled it (NULL
+-- until it does; a cell keeps one top-up, GEN.1120). Keyed by the address, not by `sectors.id`, so it outlives a sector row that is
+-- replaced. Written by the save of a sector (`store.save_sector`); a deleted sector's row goes with it (`store.forget_sector_fill`).
+CREATE TABLE IF NOT EXISTS chart_ledger (
+    shell_index       INT NOT NULL,
+    band_index        INT NOT NULL,
+    wedge_index       INT NOT NULL,
+    run_id            BIGINT UNSIGNED NULL,
+    generator_epoch   SMALLINT UNSIGNED NULL,
+    charted_at        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    topped_up_at      TIMESTAMP(3) NULL,
+
+    PRIMARY KEY (shell_index, band_index, wedge_index),
+    KEY idx_chart_ledger_run (run_id),
+    CONSTRAINT fk_chart_ledger_run
+        FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -4541,6 +4653,36 @@ CREATE TABLE IF NOT EXISTS dark_members (
     CONSTRAINT fk_dark_members_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT chk_dark_members_kind CHECK (kind IN ('brown-dwarf', 'neutron-star', 'black-hole', 'stripped-helium'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- designations (v202, GEN.1138): the IDs and names an object used to have, one row each (docs/design/architecture/designation-history.md). `object_kind` is the
+-- table that held the object and `object_row_id` its row number, which never changes (the `uid` is the thing that does). A retired ID is reserved for ever:
+-- `uq_designations_uid` and the objects' own unique `uid` columns keep it from being given again. A retired name is not reserved (the collision bump hands a
+-- stored object's name to another), so it has a plain index. `valid_from_epoch` is NULL for the birth designation; `gone_epoch` is NULL while the object exists.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS designations (
+    id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    designation_kind     VARCHAR(4) NOT NULL,
+    designation_uid      BINARY(12) NULL,
+    designation_name     VARCHAR(255) NULL,
+    object_kind          VARCHAR(24) NOT NULL,
+    object_row_id        BIGINT UNSIGNED NOT NULL,
+    valid_from_epoch     SMALLINT UNSIGNED NULL,
+    retired_epoch        SMALLINT UNSIGNED NOT NULL,
+    reason               VARCHAR(16) NOT NULL,
+    gone_epoch           SMALLINT UNSIGNED NULL,
+    retired_at           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_designations_uid (designation_uid),
+    KEY idx_designations_name (designation_name, retired_epoch),
+    KEY idx_designations_object (object_kind, object_row_id, retired_epoch),
+    CONSTRAINT chk_designations_kind CHECK (designation_kind IN ('uid', 'name')),
+    CONSTRAINT chk_designations_reason CHECK (reason IN ('collision bump', 'rename', 'regeneration', 'parent change', 'admin renumber')),
+    CONSTRAINT chk_designations_shape CHECK (
+        (designation_kind = 'uid' AND designation_uid IS NOT NULL AND designation_name IS NULL)
+        OR (designation_kind = 'name' AND designation_name IS NOT NULL AND designation_uid IS NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -5073,7 +5215,7 @@ CREATE TABLE IF NOT EXISTS facilities (
     CONSTRAINT fk_facilities_asteroid_field
         FOREIGN KEY (asteroid_field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
     CONSTRAINT fk_facilities_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v201 (GEN.1127): a sector row cannot go while a resident points at it
     CONSTRAINT fk_facilities_type
         FOREIGN KEY (type_id) REFERENCES facility_types(id) ON DELETE RESTRICT,
     CONSTRAINT fk_facilities_affiliation_polity

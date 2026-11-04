@@ -107,6 +107,14 @@ def _click_body(marker):
     marker.locator("circle.sysmap-body-fill").click()
 
 
+def _collapse_info(page):
+    """Presses Expand again on the info card when it is open, so the card shrinks back off the map: the expanded card of a planet is
+    as tall as the window and covers whatever body of the scene lies under it, which the next click would then land on (TEST.194)."""
+    button = page.locator("#sysmap-info .map-info-expand")
+    if button.count() and button.is_visible() and button.get_attribute("aria-expanded") == "true":
+        button.click()
+
+
 def _expand_info(page):
     """Presses Expand on the info card (MAP.347) when it has one that is closed: what is behind it is drawn only then."""
     button = page.locator("#sysmap-info .map-info-expand")
@@ -154,6 +162,7 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()
     assert "Radius" in info and "Mass" in info, info
+    _collapse_info(page)
     _click_body(page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first)
     _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()

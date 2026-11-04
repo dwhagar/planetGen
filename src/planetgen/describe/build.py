@@ -563,9 +563,13 @@ def _belt_section(belt):
         fact("density", "Density", belt.density),
         fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
+    if belt.largest_body_km:
+        rows.append(fact("largest-body", "Largest Body", _km(belt.largest_body_km)))
     rows.append(meteorite_group_fact(belt))
     parts = [{"name": component, "level": level} for component, level in belt.composition]
     blocks = [facts("Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
+    if belt.origin_sentence:      # GEN.1069: where the belt came from and what shaped it, as the generator wrote it
+        blocks.append(prose("summary", belt.origin_sentence, *belt.origin_history))
     if belt.history:
         blocks.append(prose("history", *belt.history))     # GEN.1232: what the giant branch and the mass loss did to it
     return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)

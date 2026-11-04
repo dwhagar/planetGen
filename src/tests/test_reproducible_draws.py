@@ -41,6 +41,8 @@ ALLOWED = {
     "util/draw.py": {"random", "secrets", "numpy.random"},  # the one wrapper, the run stream's first seed, and the
     # hand-over of the stream's state to NumPy's MT19937 for a bulk draw (PERF.91)
     "galaxy/seed.py": {"secrets"},  # a brand-new galaxy seed (`new_seed`)
+    "util/secret_key.py": {"secrets"},  # the web form-signing key (token_hex); it never feeds a draw, and a key made twice
+    # would differ by design
 }
 """Modules allowed one of the forbidden imports, and which."""
 

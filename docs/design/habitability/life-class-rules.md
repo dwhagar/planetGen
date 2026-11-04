@@ -8,21 +8,21 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 | Class | Name | Drinks | Eats | Breathes | Gives off | Reaches | Tier |
 |---|---|---|---|---|---|---|---|
-| 1a | Oxygenic light-eaters: visible pigment (Chlorophyll a) | water | light 400 to 700 nm, carbon dioxide and water, plus nitrogen, phosphorus and iron | oxygen once it exists (aerobes); before that nothing | oxygen (net, after the sinks fill) and buried organic carbon; methane only through a small food web | Animals | T1 |
-| 1b | Oxygenic light-eaters: blue and UV tuned (Blue-Optimized Porphyrins) | water | light 300 to 500 nm, carbon dioxide and water | oxygen once it exists | oxygen and buried organic carbon | Animals | T6 |
-| 1c | Oxygenic light-eaters: far-red (chlorophyll d and f) | water | light 700 to 800 nm and beyond, carbon dioxide and water | oxygen once it exists | oxygen and buried organic carbon | Animals | T5 |
+| 1a | Oxygenic light-eaters: visible pigment (Chlorophyll a) | water | light 400 to 700 nm, carbon dioxide, and water, plus nitrogen, phosphorus, and iron | oxygen once it exists (aerobes); before that nothing | oxygen (net, after the sinks fill) and buried organic carbon; methane only through a small food web | Animals | T1 |
+| 1b | Oxygenic light-eaters: blue and UV adapted (Blue-Optimized Porphyrins) | water | light 300 to 500 nm, carbon dioxide, and water | oxygen once it exists | oxygen and buried organic carbon | Animals | T6 |
+| 1c | Oxygenic light-eaters: far-red (chlorophyll d and f) | water | light 700 to 800 nm and beyond, carbon dioxide, and water | oxygen once it exists | oxygen and buried organic carbon | Animals | T5 |
 | 2 | Anoxygenic light-eaters (Bacteriochlorophylls) | water | near-infrared light 800 to 1050 nm, carbon dioxide and a donor: hydrogen, ferrous iron or hydrogen sulfide | nothing (anaerobes); free oxygen poisons them | sulfate, sulfur, Fe(III), organic carbon; methane from their food web | Microbial mats; animals only if another oxidant source exists | T1 |
 | 3a | Hydrogen eaters: geochemical hydrogen (serpentinisation, vents) | water | hydrogen from rock and water, and carbon dioxide | carbon dioxide (methanogens, acetogens) | methane and acetate | Microbial | T2 |
 | 3b | Hydrogen eaters: radiolytic hydrogen and sulfate (deep crust, aquifers) | water | hydrogen from the radiolysis of water, and carbon dioxide or sulfate | carbon dioxide or sulfate | methane, acetate, sulfide | Microbial | T2 |
-| 4a | Sulfur, iron and nitrogen eaters: oxygen as the oxidant | water | hydrogen sulfide, ferrous iron, ammonium or methane | oxygen | sulfate, Fe(III), nitrogen, carbon dioxide | Animals (chemosymbiotic tubeworm, clam and mussel communities) | T2 |
-| 4b | Sulfur, iron and nitrogen eaters: nitrate and nitrogen oxides as the oxidant | water | hydrogen sulfide, ferrous iron, ammonium or methane | nitrate and nitrogen oxides | sulfate, Fe(III), nitrogen, carbon dioxide | Animals (small) | T2 |
-| 4c | Sulfur, iron and nitrogen eaters: chlorate and perchlorate as the oxidant | water | hydrogen sulfide, ferrous iron, ammonium or methane | chlorate and perchlorate | sulfate, Fe(III), nitrogen, carbon dioxide, chloride | Microbial; animals are speculative (T8) | T8 |
-| 5a | Acid-world life: cloud-deck plankton | concentrated sulfuric acid (81 to 100 percent) | reduced sulfur, organic carbon, blue and UV light | the acid itself (reduced to SO2 and sulfur); traces of oxygen | SO2, sulfur, carbon dioxide, water | Mats and aerial plankton; at most simple colonial forms | T6 |
+| 4a | Sulfur, iron, and nitrogen eaters: oxygen as the oxidant | water | hydrogen sulfide, ferrous iron, ammonium, or methane | oxygen | sulfate, Fe(III), nitrogen, carbon dioxide | Animals (chemosymbiotic tubeworm, clam and mussel communities) | T2 |
+| 4b | Sulfur, iron, and nitrogen eaters: nitrate and nitrogen oxides as the oxidant | water | hydrogen sulfide, ferrous iron, ammonium, or methane | nitrate and nitrogen oxides | sulfate, Fe(III), nitrogen, carbon dioxide | Animals (small) | T2 |
+| 4c | Sulfur, iron, and nitrogen eaters: chlorate and perchlorate as the oxidant | water | hydrogen sulfide, ferrous iron, ammonium, or methane | chlorate and perchlorate | sulfate, Fe(III), nitrogen, carbon dioxide, chloride | Microbial; animals are doubtful | T8 |
+| 5a | Acid-world life: cloud-deck plankton | concentrated sulfuric acid (81 to 100 percent) | reduced sulfur, organic carbon, blue, and UV light | the acid itself (reduced to SO2 and sulfur); traces of oxygen | SO2, sulfur, carbon dioxide, water | Mats and aerial plankton; at most simple colonial forms | T6 |
 | 5b | Acid-world life: pool and crust mats | concentrated sulfuric acid | reduced sulfur, organic carbon | the acid itself | SO2, sulfur, carbon dioxide, water | Mats | T6 |
 | 6 | Dense-CO2 life | liquid or supercritical carbon dioxide | hydrogen as fuel | carbon dioxide (the solvent is the oxidant) | methane, water (which separates out) | Microbial, at most mats | T7 |
 | 7 | Cold hydrocarbon-sea life | liquid methane and ethane | hydrogen and acetylene (hydrogenation) | nothing | methane | Microbial mats | T8 |
 | 8 | Ammonia-water life | water with ammonia | hydrogen and chemical gradients in cold alkaline brine | carbon dioxide or carbonate | methane, nitrogen | Microbial | T8 |
-| 9 | Silicon-bearing life in acid | concentrated sulfuric acid | as Class 5, with organosilicon chemistry | the acid itself | SO2, silica (solid SiO2) | Microbial | T9 |
+| 9 | Silicon-bearing life in acid | concentrated sulfuric acid | as Class 5a and 5b, with organosilicon chemistry | the acid itself | SO2, silica (solid SiO2) | Microbial | T9 |
 
 ## What each class needs
 
@@ -78,7 +78,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - life oxygenic: T1, L0. Chlorophyll a splits water and makes the oxygen; the first step to light is the reference 1 (physics/life_timeline.py, GEN.750)
 - note: Class 1a on an Earth-like world is exactly today's PHI_bio (life-classes.md 8.1). The old oxygen gate of Chlorophyll a is gone: Class 1 makes the oxygen (GEN.855).
 
-### Class 1b: Oxygenic light-eaters: blue and UV tuned (Blue-Optimized Porphyrins)
+### Class 1b: Oxygenic light-eaters: blue and UV adapted (Blue-Optimized Porphyrins)
 
 - solvent water: T9, L3. Liquid water
 - energy light: T7, L3. Hot bright stars: late B to F; a UV shield from fluorescent proteins (life-classes.md 3.1); tier T6 to T7: a reasoned invention
@@ -131,7 +131,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - supply radiolytic_h2_supply: T9, L4. Radiolytic hydrogen (GEN.887): a tenth of Earth's is enough
 - life hydrogenotroph: T7, L3. Sulfate reducers of the deep crust: the anaerobic yield 0.11, first step 1
 
-### Class 4a: Sulfur, iron and nitrogen eaters: oxygen as the oxidant
+### Class 4a: Sulfur, iron, and nitrogen eaters: oxygen as the oxidant
 
 - solvent water: T9, L3. Liquid water
 - energy chemical: T9, L3. The energy of the fuel meeting the oxidant, scored on the share of the heat flow life can use
@@ -140,7 +140,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - supply donor_supply: T9, L4. The reduced fuel supply (H2S, Fe2+, NH4+, CH4, GEN.887): a twentieth of Earth's is enough
 - life chemolithotroph: T2, L2. Sulfur, iron and nitrogen oxidisers breathe oxygen: the yield follows the oxygen of the air (as Class 1); first step 1
 
-### Class 4b: Sulfur, iron and nitrogen eaters: nitrate and nitrogen oxides as the oxidant
+### Class 4b: Sulfur, iron, and nitrogen eaters: nitrate and nitrogen oxides as the oxidant
 
 - solvent water: T9, L3. Liquid water
 - energy chemical: T9, L3. The energy of the fuel meeting the oxidant
@@ -150,7 +150,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - supply donor_supply: T9, L4. The reduced fuel supply: a twentieth of Earth's is enough
 - life chemolithotroph: T6, L4. Denitrification yields about 0.6 of aerobic respiration per electron (recalled); first step 1
 
-### Class 4c: Sulfur, iron and nitrogen eaters: chlorate and perchlorate as the oxidant
+### Class 4c: Sulfur, iron, and nitrogen eaters: chlorate and perchlorate as the oxidant
 
 - solvent water: T9, L3. Liquid water
 - energy chemical: T9, L3. The energy of the fuel meeting the oxidant
@@ -164,7 +164,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; the existing SOLVENT_FACTOR of sulfuric acid, 0.1 (planetGen's choice)
 - energy chemical: T9, L3. Chemical energy of the acid medium; light too in the cloud layer
-- gate acid_medium: T6, L4. A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser and water of the air and the temperature profile
+- gate acid_medium: T6, L4. A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser, and water of the air and the temperature profile
 - supply sulfur_supply: T9, L4. Reduced sulfur (GEN.894): the air's sulfur dioxide over Venus's 150 ppm (physics/life_supply.py sulfur_supply); full score at a tenth of Venus's
 - life acidophile: T6, L4. The acid itself is the oxidant: the anaerobic yield 0.11 (the climates report's own bookkeeping, no source gives rates)
 
@@ -184,7 +184,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate share_co2: T7, L3. A dense CO2 air or sea: carbon dioxide at least half of the air (life-classes.md 3.1, Class 6 window)
 - gate pressure_pa: T2, L0. Liquid CO2 needs above 5.2 bar (the triple point is 5.18 bar)
 - gate co2_phase: T2, L0. The CO2 is liquid or supercritical at the surface
-- window temperature_k: T8, L3. Liquid below 304 K, supercritical above that and about 73 bar (life-classes.md 3.1)
+- window temperature_k: T8, L3. Liquid below 304 K, supercritical above that, and about 73 bar (life-classes.md 3.1)
 - supply h2_supply: T9, L4. Hydrogen as fuel (GEN.887): enough at 0.3 of Earth's
 - life hydrogenotroph: T8, L4. Carbon dioxide is the solvent and the oxidant: the anaerobic yield 0.11
 
@@ -218,4 +218,4 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 ## Classes that do not drink water
 
-The hydrogen inventory of the chemistry term is held at 1 Earth units: T9, L4. The index's chemistry term needs carbon, nitrogen and hydrogen in Earth units, and hydrogen comes from the water; a class that does not drink water gets its hydrogen from the supply term (GEN.887), so its inventory is held at this floor, and phosphate is the index's NON_AQUEOUS_PHOSPHATE_UMOL_L.
+The hydrogen inventory of the chemistry term is held at 1 Earth units: T9, L4. The index's chemistry term needs carbon, nitrogen, and hydrogen in Earth units, and hydrogen comes from the water; a class that does not drink water gets its hydrogen from the supply term (GEN.887), so its inventory is held at this floor, and phosphate is the index's NON_AQUEOUS_PHOSPHATE_UMOL_L.

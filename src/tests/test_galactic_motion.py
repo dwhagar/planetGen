@@ -12,7 +12,7 @@ from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.frame import local_to_galaxy_pc
 from planetgen.galaxy.spherical import band_center_pc, sector_address_at, sector_position_pc, wedge_longitude_bounds
-from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
+from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit, circular_orbit
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.straight_line import scatter_position_mpc, straight_line_position_pc
 from planetgen.generation.system import StarSystem
@@ -61,11 +61,9 @@ def test_a_system_that_drifts_across_a_boundary_is_refiled(mysql_config):
     try:
         mover, stay = [r["id"] for r in conn.execute(
             "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY position_y_mpc DESC", (first,)).fetchall()]
-        with conn:
-            conn.execute("UPDATE stars SET galactic_orbital_period_gy = 1.0")
-        # Turn far enough to carry the mover about a light-year forward.
-        radius_pc = math.hypot(*sector_position_pc(SHELL, 0, 0, EDGE_PC))
-        elapsed = 1e9 * (1.0 / 3.2616) / (2 * math.pi * radius_pc)
+        # Run far enough to carry the mover about a light-year forward at the speed it stores (the stepper moves a system by its velocity, GEN.340).
+        speed_kms = store._speed_kms(conn.execute("SELECT velocity_x_kms, velocity_y_kms, velocity_z_kms FROM star_systems WHERE id = ?", (mover,)).fetchone())
+        elapsed = 1.0 * physical_constants.LIGHTYEAR_M / (speed_kms * 1000.0) / physical_constants.SECONDS_PER_YEAR
         with conn:
             motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, elapsed))
             rewritten = store.refresh_after_motion(conn, motion["sectors"])["locations"]
@@ -97,16 +95,17 @@ def test_phenomena_and_facilities_move_and_the_quasar_stays(mysql_config):
         center = (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
         with conn:
             nebula = Nebula(SystemConfig())
-            nebula.galactic_orbital_period_gy = 1.0
             nebula_id = store.insert_nebula(conn, nebula, sector_id=sector_id, placement={
                 "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
                 "galactic_radius_pc": math.hypot(*center)})
             facility_id = store.add_facility(conn, "Drifter", "station", "standalone", "space", sector_id)
-            motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, 1e6))
+            speed_kms = store._speed_kms(conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone())
+            motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, 1e3))
         assert motion["moved"] >= 3
-        row = conn.execute("SELECT center_x_pc, center_y_pc FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
-        angle = math.atan2(row["center_y_pc"], row["center_x_pc"]) - math.atan2(center[1], center[0])
-        assert angle == pytest.approx(2 * math.pi * 1e6 / 1e9)
+        row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
+        # A thousand years is a short way: the stepper carries the nebula its speed times the time (GEN.340; it was the angle its period sweeps).
+        flown = math.dist((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), center)
+        assert flown == pytest.approx(speed_kms * physical_constants.SECONDS_PER_YEAR * 1e3 / physical_constants.PARSEC_M * 1000.0, rel=0.02)
         moved = conn.execute("SELECT center_x_pc FROM facilities WHERE id = ?", (facility_id,)).fetchone()
         assert moved["center_x_pc"] != pytest.approx(center[0], abs=1e-12)
     finally:
@@ -317,6 +316,7 @@ def test_every_kind_of_scatter_point_moves_and_is_refiled_and_built_or_nucleus_p
             built = _insert_scatter_point(conn, "phenomenon_scatter", point, "black-hole", built=True)
             nucleus = _insert_scatter_point(conn, "phenomenon_scatter", point, "quasar")
             motion = store.advance_scatter_points(conn, store.orbit_clock(conn, elapsed))
+            pot = store._galactic_potential(conn)
             rows = {
                 "bright_stars": conn.execute("SELECT * FROM bright_stars WHERE id = ?",
                                              (ids["bright_stars"],)).fetchone(),
@@ -328,11 +328,11 @@ def test_every_kind_of_scatter_point_moves_and_is_refiled_and_built_or_nucleus_p
     finally:
         conn.close()
     assert motion["counts"] == {"bright_stars": 1, "phenomenon_scatter": 2} and motion["moved"] == 3
-    _speed, period_gy = calculate_galactic_orbit(pc_to_ly(SCATTER_RADIUS_PC))
+    _speed, period_gy = circular_orbit(pot, pc_to_ly(SCATTER_RADIUS_PC))
     angle = 2 * math.pi * (elapsed / (period_gy * 1e9))
     for name, row in rows.items():
         moved = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
-        assert moved == pytest.approx((point[0] * math.cos(angle), point[0] * math.sin(angle), 0.0), abs=1e-6), name
+        assert moved == pytest.approx((point[0] * math.cos(angle), point[0] * math.sin(angle), 0.0), abs=0.5), name   # the stepper's circle, not the exact turn: a part in 1e4 of the radius
         assert row["epoch_unix"] is not None and row["next_update_due"] is not None, name
         assert math.hypot(row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) > 1.0, name
         assert sector_address_at(moved, EDGE_PC) == (row["shell_index"], row["band_index"], row["wedge_index"]), name
