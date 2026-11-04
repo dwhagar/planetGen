@@ -19721,30 +19721,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.91 References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Method pages come from the sheet sources
-  and data files. Related: GEN.725, DOC.57. Owner: Core 5.
-  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
-  References crawl test (tests/test_references_crawl.py) lists today's
-  out-of-universe hits in its KNOWN table; this item's are the
-  properties page: generator, model. Delete those entries in the same PR
-  that removes the words: an entry that no longer happens fails the
-  test.
-  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
-  EDT): Help > References is live at /references. To add a page: add a
-  file to BUILDERS in scripts/build_reference_pages.py and a route in
-  web/references_pages.py, and check every sentence with
-  plainwords.check_sentence(s, references=True). Editing
-  gap-filling-plan.md stand-in rows now also needs python
-  scripts/build_reference_pages.py.
-  Prerequisites: DOC.90.
-
 - [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
