@@ -50,6 +50,9 @@ _yr_to_h = units.converter("yr", "h")
 _au_yr_to_kms = units.converter("au_yr", "km_s")
 _TWO_PI_RAD = 2.0 * math.pi
 
+CAP_TOLERANCE = 1e-9
+"""float: How far above the stored temperature the air's uncapped warming must reach to count as held at `surface_air.MAX_SURFACE_TEMPERATURE_K` (GEN.1236)."""
+
 
 def uses_giant_mass_radius(planet):
     """Whether `planet` gets its mass and radius from the giant-planet mass-radius relation (GEN.34): a giant."""
@@ -542,7 +545,11 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
         factor = air.greenhouse_factor
-        if giant:
+        # GEN.1236: the fixed point holds the surface at `surface_air.MAX_SURFACE_TEMPERATURE_K` (a stand-in guard, the equilibrium of the gas does
+        # not converge far above it), but the warming it keeps is the uncapped one, so a body at the cap kept a greenhouse factor that gave 2370 K
+        # or 2600 K; its stored G is taken from the stored temperature too, so the three numbers agree.
+        capped = air.warming is not None and air.warming.surface_temperature_k > air.temperature_k * (1.0 + CAP_TOLERANCE)
+        if giant or capped:
             # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
             # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
             factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo, solar_output_at_orbit)
