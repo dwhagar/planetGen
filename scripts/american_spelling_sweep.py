@@ -24,7 +24,7 @@ import sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
 SKIP_PREFIX = (
-    "docs/TODO.md", "docs/plan/", "docs/design/", "docs/generated/", "docs/references/", "docs/REFERENCES.md", "docs/reference/references-data.json",
+    "docs/TODO.md", "docs/plan/", "docs/design/", "docs/generated/", "docs/references/", "docs/REFERENCES.md", "docs/REFERENCES.html", "docs/reference/references-data.json",
     "docs/reference/api-versions.json", "docs/reference/api-compatibility.md", "CHANGELOG.md", "changes/", "DATA-LICENSE.md", ".github/",
     "src/planetgen/db/migrations/versions/", "src/tests/fixtures/", "src/tests/golden/", "src/html/static/vendor/",
 )
@@ -36,7 +36,7 @@ SKIP_FILES = (
 )
 """tuple: The files that hold the British words on purpose (the word list, its tests, this script)."""
 
-SKIP_LINES = re.compile(r"old spelling|^- \*\*13\*\* \(DOC\.103\)|unified-system-barycentre")
+SKIP_LINES = re.compile(r"old spelling|^- \*\*13\*\* \((?:GEN\.1212, )?DOC\.103\)|unified-system-barycentre")
 """re.Pattern: A line that tells what a word was, or names a file that keeps its name, is left as it is."""
 
 EXTENSIONS = (".py", ".js", ".json", ".html", ".md", ".sql", ".txt", ".sh", ".css", ".yml", ".yaml", ".cfg", ".toml", ".ini", ".mjs")
