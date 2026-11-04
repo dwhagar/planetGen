@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.258 |
 | MAP | MAP.364 |
 | NAV | NAV.65 |
-| GEN | GEN.1237 |
+| GEN | GEN.1239 |
 | PERF | PERF.231 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1591,7 +1591,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.816 | A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5) | none | done, PR #3920 |
 | GEN.817 | Rogue and starless bodies: their air goes through the same fixed point (finding 7) | none | folded into GEN.557 |
 | GEN.818 | Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up) | none | done, PR #3264 |
-| GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet | none | open |
+| GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet | none | done, PR #4655 |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample | none | open |
 | GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure | none | done, PR #4655 |
 | GEN.822 | Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii | none | done, PR #3354 |
@@ -2009,6 +2009,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
 | GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
 | GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) | none | open |
+| GEN.1237 | An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug) | none | open |
+| GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
