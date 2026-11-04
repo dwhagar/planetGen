@@ -18,6 +18,7 @@ import json
 import pathlib
 import re
 import sys
+import urllib.parse
 
 import pytest
 
@@ -224,7 +225,8 @@ def test_the_a_to_z_list_has_a_letter_index_and_the_links_of_each_source(client)
     html = _html(client, "/references/papers")
     assert 'href="#letter-a"' in html and 'id="letter-a"' in html
     assert html.count('class="reference-entry reference-compact"') == len(PAPERS["rows"])
-    assert "https://doi.org/10.1093/mnras/276.1.268" in html
+    first = next(row for row in PAPERS["rows"] if row.get("doi"))
+    assert references_site.paper_links(first)[0]["url"] in html
     assert 'aria-current="page">A to Z</a>' in html
 
 
@@ -283,11 +285,18 @@ def test_the_totals_view_shows_the_builds_numbers_and_the_sources_we_cite_most(c
     assert {row["cells"][0]["text"] for row in by_area} >= {"Stars", "Atmospheres", "Life"}
 
 
-@pytest.mark.parametrize("query, ident", [("abundances at high redshift", "R0001"), ("R0006", "R0006"), ("10.1093/mnras/276.1.268", "R0001"),
-                                          ("Abbot Switzer steppenwolf", "R0010"), ("2508.18083", "R0006")])
+def _search_cases():
+    """One source with a DOI and an arXiv id, found by each of its parts; the words are read from the registry, never written here."""
+    row = next(row for row in PAPERS["rows"] if row.get("doi") and row.get("arxiv") and len(row["title"].split()) >= 3 and "," in row.get("who", ""))
+    surname = row["who"].split(",")[0]
+    return [(" ".join(row["title"].split()[:3]), row["id"]), (row["id"], row["id"]), (row["doi"], row["id"]), (surname + " " + row["title"].split()[0], row["id"]),
+            (row["arxiv"], row["id"])]
+
+
+@pytest.mark.parametrize("query, ident", _search_cases())
 def test_the_search_finds_a_source_by_title_author_doi_or_id(client, query, ident):
-    html = _html(client, "/references/papers?q=" + query.replace(" ", "+"))
-    assert f'id="{reference_urls.paper_anchor(ident)}"' in html and "sources match" in html or "1 sources match" in html
+    html = _html(client, "/references/papers?q=" + urllib.parse.quote_plus(query))
+    assert f'id="{reference_urls.paper_anchor(ident)}"' in html and "sources match" in html
 
 
 def test_a_search_with_no_match_says_so_and_a_broad_one_is_cut(client):
