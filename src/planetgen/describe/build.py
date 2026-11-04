@@ -513,7 +513,7 @@ def _equipment_block(planet):
     day, limit = getattr(planet, "outside_hours_day", None), getattr(planet, "outside_hours_limit", None)
     if day is not None:
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
-        rows.append(fact("outside-hours-day", "Hours outside in a day", f"{day:.1f} hours", f", set by {cause}"))
+        rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
     return facts("Survival equipment", rows) if rows else None
 
 
