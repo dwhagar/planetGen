@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3155] - 2026-11-04
+
+**Headline:** A system that was asked for a habitable world now answers `aim` when it holds a body that meets the request's conditions and `unmet` when it does not, where the answer used to disagree with the world count.
+
+### Changed
+- **Habitable request answer (GEN.1248).** `StarSystem.habitable_request` was worked out from the PHI-6 index of each body (`habitability.habitable_request_result`) while the request steers by conditions (`habitable_request.count`: temperate, air, a surface ocean) since GEN.1130, so a probe of 14 A0V systems found 4 with a world that said `unmet` and 1 with none that said `fallback`. It is now `aim` when `count` finds a body (a moon of a giant counts) and `unmet` otherwise. The `fallback` answer is gone: the request has settled for nothing since GEN.1130. The code that gave it (`habitable_request_result`, `FALLBACK_TIERS`, `FALLBACK_SUITABILITY_TIERS` in `physics/habitability.py`) is deleted, with no shim, and the design text and the tests that quoted it are changed (a new test builds 12 requested systems and checks the answer against `count`).
+- **Not stored.** The answer is an attribute of the finished system, worked out again when a system is read back from the database; no column, golden file or draw reads it, so no migration, epoch or census change is needed.
+generation-output: unchanged
+
+## [8.0.3154] - 2026-11-04
+
+**Headline:** The References section now explains how each area is worked out, what we lack, and how well known each part is.
+
+### Changed
+- New References pages: a method page for each of the 11 areas, a page that says what we have and lack, and a scorecard counted from the stand-in registry.
+- The Properties help page moved into the method pages, with the same unit, who-has-it and source lines for each value. Its address, /help/properties, is gone with no redirect, and the body pages link to the method pages instead.
+- The References start page now links to every References page.
+
+## [8.0.3153] - 2026-11-04
+
+**Headline:** The speculative chemistry notes moved out of the life pages into a References page.
+
+### Changed
+- The life help pages and the Life and air chart no longer explain how sure each class is. A "Where this comes from" link on each leads to a new References page, Speculative chemistry, with one section per life class.
+- The class "Oxygenic light-eaters: blue and UV tuned" is now "blue and UV adapted".
+
 ## [8.0.3152] - 2026-11-04
 
 **Headline:** The two system tests that force a habitable world now check what the request promises since GEN.1130, so the A0V test no longer fails on about half its trials.

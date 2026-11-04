@@ -1,7 +1,7 @@
 # planetgen/web/lib/property_help.py
 
 """
-The text of the properties page (`/help/properties`, UX.187): for each physics value of a star, planet, or moon page, what it is
+The rows of the method pages (`/references/method/<area>`, DOC.91; before that the properties page of UX.187): for each physics value of a star, planet, or moon page, what it is
 called, the unit it is shown in, which bodies have it, and the one-line source the page shows under it. The rows are read from
 the property sheet (`describe/sheet.py`) and its source table (`describe/sheet_sources.py`), so this page and the pages it
 explains cannot disagree.
@@ -11,7 +11,7 @@ from planetgen.db import column_units
 from planetgen.describe import sheet
 from planetgen.describe.sheet_sources import source_of
 from planetgen.physics import unit_registry
-from planetgen.web.lib import help_registry
+from planetgen.web.lib import reference_urls
 
 KINDS = (("planet", "Planets"), ("moon", "Moons"), ("star", "Stars"))
 """tuple: The kinds with source lines, in the order the page lists them, and what the page calls them."""
@@ -60,18 +60,18 @@ def rows():
     return [{**entry, "applies": ", ".join(entry["applies"])} for entry in sorted(found.values(), key=lambda e: e["order"])]
 
 
-def page():
-    """The template variables of the properties page: `rows`, grouped by the sheet's headings in `groups`
-    (`[{"label", "rows"}]`, in the order of `describe.sheet.GROUPS`)."""
-    listed = rows()
-    groups = []
-    for key, label in sheet.GROUPS.items():
-        members = [row for row in listed if row["group"] == label]
-        if members:
-            groups.append({"label": label, "rows": members})
-    return {"groups": groups}
+GROUP_AREA = {
+    "Identity": "bodies", "Orbit": "orbits", "Physical": "bodies", "Rotation": "orbits", "Composition": "bodies", "Atmosphere": "atmospheres",
+    "Climate": "climate", "Water": "climate", "Magnetic field": "rings-magnetism", "Radiation": "radiation", "Habitability": "life", "Life": "life",
+    "Zones and limits": "climate", "Stellar activity": "stars", "Galactic orbit": "galaxy", "Disk": "orbits", "Radiogenic heat": "radiation",
+    "Gas and light": "appearance", "Compact object": "stars", "Activity": "stars", "Ratings": "life",
+}
+"""dict: The area of the method pages (`reference_urls.AREAS`) that holds the rows of each heading of the property sheet (DOC.91)."""
 
 
-help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
-help_registry.register_topic("property_help_page", "Properties", "objects",
-                             "Where the orbit, heat, spin, field, ring, and life values on a star, planet, or moon page come from.", order=30)
+def by_area():
+    """`{area: [rows]}` for every area of the method pages: the rows of `rows()` whose sheet heading `GROUP_AREA` puts there (a value only stars have is in `stars`), in the sheet's order."""
+    found = {area: [] for area in reference_urls.AREAS}
+    for row in rows():
+        found["stars" if row["applies"] == "Stars" else GROUP_AREA[row["group"]]].append(row)
+    return found

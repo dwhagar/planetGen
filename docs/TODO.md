@@ -2091,6 +2091,103 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: none.
 
+- [ ] **MAP.366 Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug)**
+  Boss, 1:03 PM EST on 2026-11-04 (live observation): "how we cut stars
+  off instead of the view ... one segment of stars would disappear but
+  another one right next to it would stay there and they're about the
+  same distance away. It would make the star map look like it was
+  missing these square chunks of the tiles. I understand that tiles have
+  to do that but can you investigate and see if there is a way to make
+  what is visible a little more consistent when you're at the same
+  view?" He will send screenshots after train 10 is done to check
+  whether it is still true. Do: (1) reproduce on a seeded galaxy: fly to
+  a view where two neighbouring nodes at about the same distance differ
+  in what is drawn (the per-node cut in the node budget and the star
+  fade, NODE_CUT_CONFIG maxNodes, the block hand-down to children, the
+  per-node star limit); (2) find the rule that cuts a whole node's stars
+  while its neighbour keeps them (a budget spent in node order, a
+  distance test on the node centre rather than the star, a tile fetched
+  later than its neighbour); (3) change the rule so what is shown
+  depends on the star and the view, not on which tile it sits in: cut by
+  star brightness or distance for the whole view (one global threshold),
+  keep the cut smooth over tile borders, and fade rather than drop; (4)
+  a browser test with a seeded galaxy that two adjacent nodes at the
+  same distance show the same share of stars, and that the visible count
+  follows a smooth rule as the camera moves. Owner Core 2 (Boss's
+  request relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at
+  a time, behind MAP.365 unless Core 2 says it clashes). Filed by the
+  TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.367 Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown**
+  Boss, 1:03 PM EST on 2026-11-04: "lower the number of stars and other
+  objects viewed from what it is now. Let's cut it about half for the
+  max number of items on the screen unless you're in sector view, and in
+  sector view we'll display everything." Do: find every cap on what the
+  Galaxy Map and the star/object layers draw at once (the node budget
+  data.nodeBudget with its 1200 default, the marker budget, the star and
+  point caps, the per-layer limits for markers, regions and labels) and
+  set each to about half its present value everywhere except an opened
+  sector (SECTOR_MARKER_BUDGET and the sector-open path keep showing
+  every system that fits, merged only when marks touch). Keep the cut
+  consistent with the MAP.366 rule (no square chunks). Done: a test per
+  cap that the value is about half the old one and a browser test that
+  an opened sector still shows everything. Lock-free. Related: MAP.366, MAP.339.
+  Owner Core 2 (Boss's request relayed 1:03 PM EST on 2026-11-04; 8.1,
+  one lock-free item at a time, behind MAP.365 unless Core 2 says it
+  clashes). Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.368 Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on**
+  Boss, 1:03 PM EST on 2026-11-04: "let's have black holes off by
+  default. We'll still show them as purple dots. I think cyan or purpley
+  dots are what we went through for pulsars and neutron stars." Do: the
+  black-hole layer in the layer menu starts off (the stored choice still
+  wins for a viewer who set it); when on, black holes draw as purple
+  dots (today black_hole is #a43cff, a purple; keep it); neutron stars
+  and pulsars keep the colour already chosen for them (today
+  neutron_star is #3200ff, a deep blue; Boss recalls cyan or purple:
+  Core 2 checks the decision in MAP.80 and MAP.208 and asks Boss only if
+  the code differs from what was decided). Done: default-off test,
+  on-state test, and the legend matches. Lock-free. Related: MAP.80,
+  MAP.208, MAP.339. Owner Core 2 (Boss's request relayed 1:03 PM EST on
+  2026-11-04; 8.1, one lock-free item at a time, behind MAP.365 unless
+  Core 2 says it clashes). Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
+  Boss, 1:03 PM EST on 2026-11-04 (live observation): "right now we're
+  still not showing a region label as a POI that I can click on and zoom
+  in to the region of the galaxy that's been charted." What is on main:
+  the regions chain is built and retired (MAP.314 to MAP.322 named
+  regions, MAP.336 Go to a region, MAP.357 "every far-apart filled
+  region is a point of interest", MAP.356 to MAP.362 in #4393, which
+  added the region points of interest with a zoom link and merged nearby
+  ones). Why Boss may not see it: unknown from the code alone; those
+  items were closed on a browser test over a fixture, and Boss's own
+  galaxy may differ (a region needs a charted cell group that the node
+  payload names, the labels are domain-sliced and budgeted so far
+  regions may be cut, the layer may be off or hidden at his zoom, or a
+  later change such as the node budget or the nebula sprites hides
+  them). Do: (1) open Boss's kind of galaxy (a seeded galaxy with one
+  charted region far from another, then the default view) and find why
+  no region label draws or is clickable: payload (does the node list the
+  region?), layer default, label budget, selection (selectMarkers),
+  z-order under another layer, or a click target too small; (2) fix the
+  cause so that, at the default Galaxy Map view, each charted region far
+  enough from the others shows a label as a point of interest; clicking
+  it flies in to frame the charted part of the region (MAP.336 "frame");
+  (3) a browser test on a galaxy made like Boss's (a region generated
+  through the normal Generate page and a sector run) that the label is
+  present at the default zoom and the click flies in and frames the
+  region; (4) if it works on a fresh galaxy but not on Boss's, ask Boss
+  for the galaxy's region listing (planetgen regions) and check it.
+  Related: MAP.357, MAP.336, MAP.176. Owner Core 2 (Boss's request
+  relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at a time,
+  behind MAP.365 unless Core 2 says it clashes). Filed by the TODO
+  thread.
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -13344,7 +13441,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
-  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1222, GEN.1214.
+  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
@@ -13926,47 +14023,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
 
-- [ ] **GEN.1222 Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug)**
-  From the Class M research thread's handoff
-  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
-  in class-type-and-domain-scoring-design-2026-10-31.md,
-  class-families-and-positions-design-2026-10-31.md,
-  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
-  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
-  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
-  TODO thread. Found by the Class M thread. In the seed-5 sample 60 of
-  2,071 bodies are tiny airless moons with hydrosphere 'surface ocean'
-  and surface_liquid water at 20 to 33 K, which is frozen solid.
-  Reproduce: class_sweep_cli.sample_bodies(300, 5, 0.25), moons with
-  surface_temperature under 250 K and hydrosphere 'surface ocean'. Do:
-  find which step gives a liquid water state to a moon with no air and a
-  surface far under 273 K (the hydrosphere rule, a moon path that skips
-  the phase gate, or the surface liquid step reading the stored
-  hydrosphere), fix at the cause with the phase gate, and print the
-  census before and after. Changes stored output: epoch with --affects
-  on a train. Where we think it belongs (best guess, can move): Tides 1
-  (owns the surface liquid step) or the Class M thread.
-  Fixed by Tides 1 (as the lane reported, 11:25 AM EDT 2026-10-31)
-  (2026-10-31 11:35 AM EDT): pressure_melted_shell_km had no floor on
-  the melting-point fall, so a thick lid on a cold low-heat body gave a
-  shell of 0 and a water ocean at 25 K (124 of 370 water seas in its
-  sample). Fix: floor at the ice III triple point, 251.2 K. Branch
-  claude/gen1214-volatile-seas head e6af56ae1 off train 7, a lock item
-  (changes stored output), change note included. Stays open until it
-  merges on a train.
-  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
-  and GEN.1222 as one lock branch (as the lane reported):
-  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
-  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
-  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
-  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
-  seas in its sample were wrong), and warm water under crushing air (4.5
-  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
-  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
-  classes read them, classes unchanged on 404 bodies. Goes after train 7
-  merges.
-  Prerequisites: none. Related: GEN.1035, GEN.1214.
-
 - [ ] **GEN.1226 Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly**
   Boss, 11:57 AM EDT 2026-10-31 (via the Class M thread): store the
   envelope share (hydrogen-helium envelope mass fraction) for every
@@ -14305,23 +14361,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   masses change: epoch with --affects fill, lock work. Owner: Aux 5
   (belt owner, GEN.1068 and GEN.1156). Version 8.1.
   Prerequisites: none. Related: GEN.1068, GEN.1156, GEN.477.
-
-- [ ] **GEN.1248 The stored habitable-request answer (habitable_request_status) disagrees with the world count: answer from habitable_request.count and meets (bug)**
-  Found by Aux 3 while fixing TEST.307, 1:10 PM EST on 2026-11-04 (as
-  the lane reported). StarSystem.habitable_request_status still reads
-  the old PHI-6 index while the request now steers by conditions
-  (GEN.1130, odds-only), so the stored answer disagrees with what was
-  drawn: in a probe of 14 A0V systems 4 had a world and said unmet, 1
-  had none and said fallback. Do: compute the status from
-  habitable_request.count and meets (a world the conditions rate
-  habitable, found or not); delete the PHI-6 index read (no shim);
-  update the sheet and any text that quotes the status; add a test over
-  several seeds that the answer matches the world count. Done: no system
-  says unmet with a habitable world present or fallback with none. This
-  changes a stored column (migration, epoch, golden, census re-tag), so
-  it rides a train. Related: GEN.1130, TEST.307. Owner Aux 3 (proposed
-  by the TODO thread). Filed by the TODO thread.
-  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17814,53 +17853,6 @@ clears each one.
   Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
 
-- [ ] **TEST.295 test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug)**
-  Found by Core 5 (relayed 10:15 AM EDT 2026-10-23 as the lane reported)
-  in a loaded 4-worker gate; filed by the TODO thread. Kind: slow flaky
-  test, the same family as TEST.293 (a draw at 1, 2 and 4 workers).
-  Test:
-  src/tests/test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw.
-  Failure: it hit the 900 s pytest-timeout at load 10; alone it passes
-  in about 5 minutes. Fails on main: unknown. Frequency: 1 in 1 loaded
-  gate. Reproducer: run it while another gate is running. Do: find what
-  the 5 minutes alone are spent on (building the galaxy, three draws),
-  cut the cost with a smaller fixture if the check keeps its meaning,
-  and check whether it forks a threaded process as the TEST.293 tests
-  did (TEST.293's fix made the four-worker draw tests spawn their
-  workers). Done: the test takes well under a minute alone and passes 20
-  times in a row at -n 4 under load. Owner: Bug Hunt (proposed by the
-  TODO thread).
-  Finding (Bug Hunt, relayed 10:40 AM EDT 2026-10-23 as the lane reported):
-  7 s alone on its machine (the three runs of the queue take 0 s, 4 s and
-  4.6 s); it does not fork, the workers are subprocesses
-  (`redisqueue.RQExecutor` uses subprocess.Popen), so it is not TEST.293's
-  family. Stack at the timeout (Core 5, relayed 10:45 AM EDT as the lane
-  reported): the second `_run_queue(2)` was leaving its WorkQueue block,
-  work.py `__exit__` -> `drain` -> `_collect(block=True)` ->
-  `RQExecutor.wait` (redisqueue.py:411) in `time.sleep(POLL_SECONDS)`,
-  waiting for its 2 futures, not on a Redis call; Redis was
-  redis://127.0.0.1:6379/0, flushed before the gate, no stale keys; 4
-  cores at load about 10 (4 xdist workers, a second 2-worker scan on
-  Redis port 6390, headless Chromium at 100 to 150 percent CPU).
-  Progress (Bug Hunt, #2683 merged about 1:16 PM EDT 2026-10-23 as the
-  lane reported, gate green at 22,724 passed): the original hang did not
-  reproduce (17 loops beside 8 CPU burners, all clean), but Core 5's
-  stack fits a real gap that Bug Hunt reproduced: RQExecutor restarted a
-  worker the moment it exited while tasks waited, so workers that die at
-  start (an import error, out of memory, an unreachable Redis; their
-  output is discarded) were started without limit (752 in 21 s). The run
-  now fails after 10 workers in a row die, with the exit code and the
-  command to see why. This item stays open as 'cause of the dying
-  workers unknown': if it recurs, the error now names the exit code.
-  Done is unchanged except that a recurrence is now diagnosable.
-  Research (2026-10-09, Update): Update 1:17 AM EDT 2026-10-24 (as Core
-  5 reported): the test ran `galaxy` with all stages; after PERF.123
-  (#2865) `galaxy` always does every stage, so Core 5 changed
-  test_parallel_generation.py to run `sectors` instead. Recheck whether
-  the 900 s timeout still happens, and close this item if not. Owner:
-  Bug Hunt.
-  Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
-
 - [ ] **TEST.297 The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug)**
   Found by Core 2 (relayed 12:46 PM EDT 2026-10-23 as the lane reported)
   in its gate for ADM.126 (#2677); filed by the TODO thread. Kind: tests
@@ -18552,6 +18544,23 @@ clears each one.
   detmath may differ in the last bit), in which case it rides a train
   with an epoch under its own item. Owner Core 1 (free; found them).
   Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.570 test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug)**
+  Found by Core 5 and confirmed on main by the TODO thread
+  (test_no_generated_page_contradicts_itself_about_its_life fails), 1:15
+  PM EST on 2026-11-04. tests/test_life_text_consistency.py has 49
+  failures of the form "the text says [], the body has
+  ['hyper-accelerated']": a generated page's life text omits the pace
+  (hyper-accelerated) that the body carries. Not from DOC.92. Do: find
+  the change that made the text drop the pace term (the life text
+  builder against the pace/timeline rules of GEN.750, or a recently
+  merged life or class change), fix the text builder or the test's
+  expectation at the cause (the page must say what the body has), and
+  run the file 3 times. Done: the file passes on main. Lock-free (text
+  only) unless the body value is the wrong one. Owner Aux 2 (life;
+  proposed by the TODO thread, it says if it clashes). Filed by the TODO
+  thread.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -19647,56 +19656,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
-
-- [ ] **DOC.91 References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Method pages come from the sheet sources
-  and data files. Related: GEN.725, DOC.57. Owner: Core 5.
-  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
-  References crawl test (tests/test_references_crawl.py) lists today's
-  out-of-universe hits in its KNOWN table; this item's are the
-  properties page: generator, model. Delete those entries in the same PR
-  that removes the words: an entry that no longer happens fails the
-  test.
-  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
-  EDT): Help > References is live at /references. To add a page: add a
-  file to BUILDERS in scripts/build_reference_pages.py and a route in
-  web/references_pages.py, and check every sentence with
-  plainwords.check_sentence(s, references=True). Editing
-  gap-filling-plan.md stand-in rows now also needs python
-  scripts/build_reference_pages.py.
-  Prerequisites: DOC.90.
-
-- [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Cut it from `life_help.py` and
-  `life_air_chart.py`. GEN.1209 itself does not cover the help rewrite;
-  this item does. The API field `speculative` stays. Related: GEN.1209,
-  GEN.1210, GEN.1213, UX.237, DOC.84. Owner: Core 5.
-  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
-  References crawl test (tests/test_references_crawl.py) lists today's
-  out-of-universe hits in its KNOWN table; this item's are the life
-  help: speculative, fitted, tier, tuned, generated, educated guess.
-  Delete those entries in the same PR that removes the words: an entry
-  that no longer happens fails the test.
-  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
-  EDT): Help > References is live at /references. To add a page: add a
-  file to BUILDERS in scripts/build_reference_pages.py and a route in
-  web/references_pages.py, and check every sentence with
-  plainwords.check_sentence(s, references=True). Editing
-  gap-filling-plan.md stand-in rows now also needs python
-  scripts/build_reference_pages.py.
-  Prerequisites: DOC.88.
 
 - [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
   Boss (2026-10-31, as the coordinator relayed): a Help > References

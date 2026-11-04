@@ -388,8 +388,8 @@ def test_each_tristate_flag_forced(star_type, value, attr):
 
         if attr == "HABITABLE_WORLD" and value is True:
             # GEN.1130: the request raises the odds and never forces, so a system may have none; it answers the request all the same
-            assert system.habitable_request in ("aim", "fallback", "unmet"), \
-                f"{star_type}: HABITABLE_WORLD=True was not answered (habitable_request {system.habitable_request!r})"
+            assert system.habitable_request == ("aim" if habitable_request.count(system.all_planets) > 0 else "unmet"), \
+                f"{star_type}: HABITABLE_WORLD=True was answered {system.habitable_request!r} with {habitable_request.count(system.all_planets)} worlds"
         if attr == "ASTEROID_BELT" and value is True:
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
         if attr == "COMETS" and value is True:
@@ -471,7 +471,7 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
             failures_belt += 1
         if habitable_request.count(system.all_planets) > 0:
             with_world += 1
-        assert system.habitable_request in ("aim", "fallback", "unmet")
+        assert system.habitable_request == ("aim" if habitable_request.count(system.all_planets) > 0 else "unmet")
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
     assert with_world >= 1, f"{star_type}: HABITABLE_WORLD=True gave no habitable world in any of {trials} trials"
