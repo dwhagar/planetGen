@@ -1003,37 +1003,6 @@ with `clamp()`.
   template global; use it for links into References.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
-- [ ] **UX.255 Remove the light-theme branches in the map scripts that black map backgrounds left unused**
-  Follow-up to #4633 (maps are drawn on black in either theme; Boss,
-  2026-10-31, as the coordinator relayed, low priority). That change
-  made `mapcore.isLightBackground()` always false and left the
-  light-background branches in the map scripts dead. Do: delete
-  `isLightBackground` and every caller (for example `galaxymap3d.js`
-  `nebulaLooks(isLightBackground())` and its `FILLED_TINT` light shade),
-  the light looks in `nebulalook.js`, the glow layer's `light` option,
-  and `sectorscene.js`'s `lightBackground` uniform, with the shader and
-  test code that only they used, and keep the dark paths exactly as they
-  are. Done: no reference to a light map background is left in
-  `src/html/static`, a search shows it, and the map browser tests pass
-  unchanged. Display only: no schema, API, generator output or epoch
-  change, so lock-free. Owner: none for now (pool; any web lane that is
-  waiting). Version 8.1.
-  Prerequisites: none. Related: MAP.210.
-
-- [ ] **UX.258 The describer writes the hours outside in a day with a raw format (build.py line 516), failing the wording-agrees-with-the-index test (bug)**
-  Found by the full-suite thread (first pass on main 7eef24a, to 53
-  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
-  src/planetgen/describe/build.py line 516 writes f"{day:.1f} hours" for
-  the outside-hours-day fact, so
-  tests/test_wording_agrees_with_the_index.py::test_no_quantity_in_the_describer_is_written_with_a_raw_format
-  fails. Do: write the quantity through the unit registry formatter like
-  the other describer facts (units beside every number), keep the
-  wording, update any text test. Done: the wording test passes and the
-  page shows the same figure with its unit. Lock-free. Owner: none yet.
-  Prerequisites: none.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14334,18 +14303,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **GEN.1239 The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug)**
-  Found by the full-suite thread (first pass on main 7eef24a, to 53
-  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
-  tests/test_volatile_inventory_totals.py::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it
-  reads 153.1 against 98.8 plus or minus 19.8 (Core 4 also reported it
-  red on main, 2026-11-01). Do: find what lifted the dry-class carbon
-  bracket (a stand-in or a recent change to the outgassing inventory),
-  correct the bracket or the test with the reason stated, and register
-  any stand-in in GEN.725 with tier and tweak level. Lock work if stored
-  values change. Related: GEN.524. Owner: none yet.
-  Prerequisites: none.
+- [ ] **GEN.1240 The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug)**
+  Found by Aux 7's GEN.1238 work (as the lane reported, 6:50 AM EST on
+  2026-11-04), filed by the TODO thread. Once a wet body past the
+  runaway limit starts the air fixed point hot (GEN.1238), the
+  water-rich third of such bodies end as steam worlds of 1e4 to 2e5 bar,
+  but the greenhouse table is held at 1000 bar, so those airs read 700
+  to 1300 K, which is too cool for that column. Do: extend the
+  greenhouse opacity table beyond 1000 bar from the source
+  (collision-induced and pressure-broadened water and CO2 opacity at
+  high pressure; find the source first) or register a stand-in in
+  GEN.725 with tier and tweak level; check Venus (92 bar, 737 K) stays
+  put. Lock work (stored temperature changes). Related: GEN.1238,
+  GEN.974 (cloud albedo). Owner: Aux 7.
+  Prerequisites: GEN.1238.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19136,19 +19107,6 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
-  Prerequisites: none.
-
-- [ ] **TEST.554 test_web_old_urls_errors has no test value for the new route /help/life/<topic>, so the HEAD and OPTIONS route tests fail (bug)**
-  Found by the full-suite thread (first pass on main 7eef24a, to 53
-  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
-  tests/test_web_old_urls_errors.py: test_head_matches_get_with_no_body
-  and test_options_answers_allow_with_no_body fail (anonymous and admin)
-  with "no test value for /help/life/<topic>" (route in
-  web/class_pages.py line 155). Do: add the route and a real topic to
-  the test's value table. Done: the four tests pass. Lock-free. Owner:
-  none yet.
-  Prerequisites: none.
   Prerequisites: none.
 
 - [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
