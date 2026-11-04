@@ -5,23 +5,22 @@ Late accretion, impact delivery and impact erosion of an air (GEN.739; docs/desi
 ===================================================================================================================================
 
 After the giant impacts a rocky planet goes on accreting leftover planetesimals (the late veneer and the late accretion). They bring
-volatiles and they erode the air that is already there. The balance for each volatile species `i` is the one of Sakuraba, Kurokawa and
-Genda 2019 (arXiv:1805.07094, Eq. 1 and 2), in the cumulative impactor mass `S`:
+volatiles and they erode the air that is already there. The balance for each volatile species `i` is the one of [R3872: Eq. 1 and 2], in the cumulative impactor mass `S`:
 
     d m_i / dS = (1 - zeta) x_i - eta m_i / m_air
 
-where `x_i` is the mass fraction of the species in the impactor, `zeta` the share of the impactor's vapour that escapes (Shuvalov 2009),
+where `x_i` is the mass fraction of the species in the impactor, `zeta` the share of the impactor's vapour that escapes [R4079],
 and `eta` the air mass an impactor removes per unit of its own mass.
 
 * *How much accretes.* `late_accreted_fraction`: 0.7 weight percent of an Earth mass times `(M / M_earth)^(-1/3)` (the geometric cross
-  section over the mass), log-normal with the width of the N-body scatter. Walker 2009 (0.5 to 0.8 weight percent for the Earth from the
-  highly siderophile elements) and Table 1 of Brasser et al. 2016 (arXiv:1609.01785: Mercury 2.7, Venus 0.8, Earth 0.7, Mars 1.4) give the
+  section over the mass), log-normal with the width of the N-body scatter. [R4598] (0.5 to 0.8 weight percent for the Earth from the
+  highly siderophile elements) and Table 1 of [R0518] ([R0518]: Mercury 2.7, Venus 0.8, Earth 0.7, Mars 1.4) give the
   scale and the law.
 * *What it brings.* `VENEER_VOLATILES`, the carbonaceous reference of Sakuraba et al. times a drawn scale (0.01 to 1; 0.1 is the
   enstatite-chondrite-like veneer that studies find for the Earth).
 * *How hard it hits.* `impact_speed_ms`: `sqrt(v_esc^2 + v_inf^2)` with `v_inf = 0.6 v_orbit` (Table 1 of Brasser et al. gives 0.51 to 0.71).
 * *What it removes.* `erosion_per_impactor_mass` (Svetsov's Eq. 5 and 6 as written by Sakuraba et al., averaged over a size distribution
-  whose mass is flat in the diameter between 10^-1.5 and 10^3 km, Bottke et al. 2005, as they use it).
+  whose mass is flat in the diameter between 10^-1.5 and 10^3 km, [R0484], as they use it).
 
 The gas that a species can hold is capped by the surface (`caps_pa`): an ocean holds the water above its vapour pressure, the
 carbonate cycle the CO2 above its balance, an ice cap the rest; the excess is kept, not eroded (Sakuraba et al. section 2.3). The caller
@@ -53,12 +52,12 @@ SPECIES = tuple(MOLAR_MASS)
 
 LATE_ACCRETED_PERCENT_EARTH = 0.7
 """float: Mass accreted after the last giant impact, weight percent of an Earth mass planet at 1 AU of a solar mass star (Brasser et al.
-2016 Table 1: 0.7 plus or minus 0.5 from the N-body runs; Walker 2009: 0.5 to 0.8 from the highly siderophile elements). Tier 1 for the
+2016 Table 1: 0.7 plus or minus 0.5 from the N-body runs; [R4598]: 0.5 to 0.8 from the highly siderophile elements). Tier 1 for the
 Solar System, a stand-in for any other system (the leftover planetesimal mass of 1e-3 Earth masses is the Solar System's)."""
 
 LATE_ACCRETED_MASS_EXPONENT = -1.0 / 3.0
 """float: The accreted fraction goes as the cross section over the mass, `R^2 / M` with `R` going as `M^(1/3)`. Checked against the four means of
-Brasser et al. 2016 Table 1 (Mercury, Venus, Earth, Mars: 1.9, 0.75, 0.7 and 1.5 predicted against 2.7, 0.8, 0.7 and 1.4). Tier 5 (derived)."""
+[R0518: Table 1] (Mercury, Venus, Earth, Mars: 1.9, 0.75, 0.7 and 1.5 predicted against 2.7, 0.8, 0.7 and 1.4). Tier 5 (derived)."""
 
 LATE_ACCRETED_LN_SIGMA = 0.65
 """float: The scatter of the accreted fraction, the natural-log standard deviation (the Earth's 0.7 plus or minus 0.5 of Brasser et al. is
@@ -69,33 +68,33 @@ LATE_ACCRETED_PERCENT_MAX = 3.0
 
 VENEER_VOLATILES = {"H2O": 0.10, "CO2": 0.02, "N2": 0.002}
 """dict: Mass fraction of a carbonaceous-chondrite-like impactor: 10 percent water, 2 percent CO2 and
-0.2 percent N2 (Grady and Wright 2003), as used by Sakuraba et al. 2019 section 2.4 (read second-hand: tier 2, Confident Unverified)."""
+0.2 percent N2 [R1652], as used by [R3872] section 2.4 (read second-hand: tier 2, Confident Unverified)."""
 
 VENEER_VOLATILE_SCALE = (0.01, 1.0, "log")
 """tuple: The scale of `VENEER_VOLATILES`, drawn: 1 is carbonaceous, 0.1 enstatite-chondrite-like (the nominal value of Sakuraba et al.), 0.01 their lower value. Stand-in, tier 6, tweak level 1."""
 
 V_INF_OVER_V_ORBIT = 0.6
-"""float: The approach speed of the leftover planetesimals over the orbital speed. Brasser et al. 2016 Table 1 give impact speeds of 34.2, 24.3,
+"""float: The approach speed of the leftover planetesimals over the orbital speed. [R0518: Table 1] give impact speeds of 34.2, 24.3,
 21.1 and 13.4 km/s for Mercury, Venus, Earth and Mars, which with the escape speeds are 0.71, 0.63, 0.60 and 0.51 of the orbital speed. Tier 5."""
 
 DIAMETER_RANGE_KM = (10.0 ** -1.5, 1000.0)
-"""tuple: The impactor diameters, km: the main-belt size distribution of Bottke et al. 2005 (cumulative number as D^-3, so the mass per unit
-diameter is flat) between the limits Sakuraba et al. 2019 use. Second-hand, tier 2."""
+"""tuple: The impactor diameters, km: the main-belt size distribution of [R0484] (cumulative number as D^-3, so the mass per unit
+diameter is flat) between the limits [R3872] use. Second-hand, tier 2."""
 
 IMPACTOR_DENSITY = 3320.0
-"""float: kg/m^3, Shuvalov 2009 (as used by Sakuraba et al.)."""
+"""float: kg/m^3, [R4079] (as used by Sakuraba et al.)."""
 
 TARGET_DENSITY = 2630.0
-"""float: kg/m^3, the planet's crust material in Shuvalov 2009."""
+"""float: kg/m^3, the planet's crust material in [R4079]."""
 
 SVETSOV_K = 5
-"""int: The expansion exponent of the vapour plume for an adiabatic index of 13/11 (Svetsov 2007)."""
+"""int: The expansion exponent of the vapour plume for an adiabatic index of 13/11 [R4273]."""
 
 SVETSOV_GAMMA = 13.0 / 11.0
-"""float: The adiabatic index of the vapour plume (Svetsov 2007)."""
+"""float: The adiabatic index of the vapour plume [R4273]."""
 
 ANGLE_FACTOR = 5.0 + math.pi - 4.0 / 3.0
-"""float: The correction for the distribution of the impact angle (Svetsov 2007, Eq. 7 of Sakuraba et al.), 6.81."""
+"""float: The correction for the distribution of the impact angle ([R4273: Eq. 7] of Sakuraba et al.), 6.81."""
 
 IMPACTOR_ESCAPE_COEFFICIENT = 0.07
 """float: The upper branch of Shuvalov's escaping share of the impactor, `0.07 (rho_t / rho_imp) (V / v_esc)` (Eq. 8 of Sakuraba et al.); the
@@ -158,7 +157,7 @@ def _plume_fraction(x_lower):
 
 def erosion_efficiency(density_kg_m3, scale_height_m, diameter_m, speed_ms, escape_ms):
     """
-    The air mass one impactor removes over its own mass (Eq. 5 and 6 of Sakuraba et al. 2019).
+    The air mass one impactor removes over its own mass (Eq. 5 and 6 of [R3872]).
 
     Args:
         density_kg_m3 (float): The air's density at the ground.

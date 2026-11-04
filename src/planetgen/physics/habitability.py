@@ -51,7 +51,7 @@ still gives 8.0 kPa inspired O2 (the inspired-gas equation with F = 1);
 below it a pressure suit has to add the rest."""
 
 WET_BULB_CRIT_C = limit("wet_bulb_c")
-"""float: Uncompensable wet-bulb temperature for people (Vecellio et al., 2022)."""
+"""float: Uncompensable wet-bulb temperature for people [R4521]."""
 
 # --- Tier bands ---------------------------------------------------------------------------
 #
@@ -78,7 +78,7 @@ PRESSURE_BAND = (limit("pressure_low_outer_kpa"), ARMSTRONG_KPA, limit("mask_min
 """Total pressure, kPa (log). Blue 50 to 250 (no ebullism, no extra work of
 breathing: the PHI-4 doc and Atmospheric Toxicity agree); Green down to the
 14.3 kPa pure-O2 mask limit and up to 400 kPa, where nitrogen narcosis
-starts (320 to 400 kPa, Bennett & Rostain 2003); Yellow down to the
+starts (320 to 400 kPa, [R0343]); Yellow down to the
 Armstrong limit (counterpressure suit) and up to 10 MPa (the PHI-4 doc's
 hyperbaric edge, past the 7 MPa COMEX Hydra X record); Red beyond, falling to
 0 a decade further out."""
@@ -87,7 +87,7 @@ TEMPERATURE_BAND = (limit("cold_outer_c"), limit("cold_suit_c"), limit("cold_clo
                     limit("comfort_high_c"), limit("heat_garment_c"), limit("heat_max_c"), limit("hot_outer_c"))
 """Dry-bulb temperature, deg C (linear). Blue 0 to 31, Green -20 to 45
 (ordinary clothing or cooling garments), Yellow -50 (eutectic brines) to
-122 (the limit of carbon-based life, Takai et al. 2008; the PHI-4 doc's Red
+122 (the limit of carbon-based life, [R4295]; the PHI-4 doc's Red
 edge), Red beyond. A wet bulb at or above 31 deg C makes Blue or Green
 Yellow (see `temperature_score`)."""
 
@@ -145,7 +145,7 @@ HUMAN = bands()
 """Bands: The human visitor's limits."""
 
 # Gas limits, kPa partial pressure: (chronic, acute), from the Atmospheric
-# Toxicity table (Schwieterman et al. 2019).
+# Toxicity table [R3986, R3987].
 GAS_LIMITS_KPA = {
     "CO2": (0.93, 5.0),
     "CO": (0.005, 0.1),
@@ -165,19 +165,19 @@ pCO2_tox), Yellow to its 5.0 kPa acute limit (closed-loop amine scrubbers;
 it can't be filtered), Red above."""
 
 WATER_ACTIVITY_CRIT = 0.605
-"""float: Lowest water activity for cell division (Stevenson et al., 2015)."""
+"""float: Lowest water activity for cell division [R4222]."""
 
 WATER_ACTIVITY_GREEN = 0.75
 """float: Halite saturation (aw 0.75): water below it is a brine."""
 
 CHAOTROPICITY_CRIT_KJ_KG = 73.8
-"""float: Chaotropicity that dismantles hydration shells (Ball & Hallsworth, 2015)."""
+"""float: Chaotropicity that dismantles hydration shells [R0242]."""
 
 # --- PHI_bio, PHI_cpx -------------------------------------------------------------------
 
 K_W = 50.0
 """float: Steepness of f(aw) round 0.605: f is 0.12 at 0.565 and 0.88 at
-0.645, the spread of measured growth limits (Stevenson et al., 2015). The
+0.645, the spread of measured growth limits [R4222]. The
 doc leaves k_w open; planetGen's choice."""
 
 SIGMA_CHI_KJ_KG = 10.0
@@ -186,7 +186,7 @@ SIGMA_CHI_KJ_KG = 10.0
 SOLVENT_FACTOR = {"water": 1.0, "hydrocarbon": 0.2, "sulfuric": 0.1, None: 0.0}
 """dict: L_solv's factor by solvent. Water 1; liquid methane/ethane 0.2 and
 concentrated sulfuric acid 0.1 (possible but unproven solvents, Bains et
-al. 2024, Petkowski et al. 2020: planetGen's choice); no stable liquid 0,
+al. 2024, [R3502]: planetGen's choice); no stable liquid 0,
 a hard gate."""
 
 X_REF_EARTH = 0.25
@@ -197,7 +197,7 @@ Planetgen's choice (the doc leaves it open)."""
 K_P_UMOL_L = 0.1
 """float: Phosphate half-saturation, umol/L: the order of microbial and
 phytoplankton phosphate uptake (0.01 to 0.1 umol/L). The doc's 1.0 umol/L
-(Toner & Catling 2020) would score Earth's 2.3 umol/L ocean only 0.70."""
+[R4399] would score Earth's 2.3 umol/L ocean only 0.70."""
 
 ENERGY_FLUX_MIN_W_M2 = 1.0e-6
 ENERGY_FLUX_REF_W_M2 = 10.0
@@ -215,11 +215,11 @@ minimises the error against the Master doc's own worked table, 0.046 RMS
 
 DOSE_THRESH_GY = 10.0
 SIGMA_DOSE_GY = 100.0
-"""float: L_rad's threshold and fall-off, Gy/yr (Daly, 2012; the doc)."""
+"""float: L_rad's threshold and fall-off, Gy/yr ([R0986]; the doc)."""
 
 SV_PER_GY = 3.06
 """float: Sv per Gy of the cosmic-ray and particle dose a surface takes:
-Mars's surface is 0.236 Sv/yr in 0.077 Gy/yr (MSL/RAD, Hassler et al. 2014).
+Mars's surface is 0.236 Sv/yr in 0.077 Gy/yr (MSL/[R1843]).
 `L_rad` reads absorbed dose in Gy/yr and a person's bands read effective dose
 in Sv/yr (`World.dose_gy_yr`); a gamma-only dose (weighting 1) is 3 times
 higher in Gy than this says, which no world near the 10 Gy/yr line notices."""
@@ -375,7 +375,7 @@ def habitable_request_result(overall_score, suitability_score):
 
 
 def wet_bulb_c(temperature_c, relative_humidity):
-    """Wet-bulb temperature, deg C (Stull, 2011; fitted for -20 to 50 deg C
+    """Wet-bulb temperature, deg C ([R4246]; fitted for -20 to 50 deg C
     and 5 to 99% humidity, clamped to those)."""
     t = temperature_c
     rh = min(max(relative_humidity, 0.05), 0.99) * 100.0

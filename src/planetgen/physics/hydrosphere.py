@@ -11,9 +11,9 @@ planets (`physics.rogue_surface`) use the functions here.
    composition (`bulk_draw`, GEN.428) from the delivery law of its mass and where it formed
    (`delivered_water`, GEN.849; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
    keeps `w / b`, `b` log-uniform 1 to 8, but the mantle never holds more
-   than it can store (`mantle_max_water_fraction`: 2 Earth oceans at 0.5 Earth masses to 8 at 5, Guimond et al. 2023, GEN.1147). Gas giants have no
+   than it can store (`mantle_max_water_fraction`: 2 Earth oceans at 0.5 Earth masses to 8 at 5, [R1717], GEN.1147). Gas giants have no
    hydrosphere (every field `None`).
-2. **Land.** A two-level hypsometry (GEN.1147, Cowan and Abbot 2014's idea): the surface is ocean crust and continental crust, each a
+2. **Land.** A two-level hypsometry (GEN.1147, [R0914]'s idea): the surface is ocean crust and continental crust, each a
    Gaussian of height (`HYPSOMETRY`: shares, mean height and spread in km), the relief scaled as `g_E / g`. `D`, the global water layer, fills the
    lowest ground to a level `z`; the share of the surface under `z` is `ocean_fraction`, liquid or frozen, and `land_fraction` the rest. Earth's
    2.7 km layer covers 0.71.
@@ -92,14 +92,14 @@ MELTING_SLOPE_K_PER_BAR = 0.0074
 EARTH_OCEAN_FRACTION = 2.34e-4
 MANTLE_CAP_OCEANS = ((0.5, 2.0), (5.0, 8.0))
 """tuple: The most water a mantle stores, in Earth oceans, at two masses in Earth masses (`mantle_max_water_fraction` joins them as a power law and holds
-the ends outside): Guimond et al. 2023, whose mantle storage saturates at 2 to 8 Earth oceans for 0.5 to 5 Earth masses (read by way of the GEN.1146
+the ends outside): [R1717], whose mantle storage saturates at 2 to 8 Earth oceans for 0.5 to 5 Earth masses (read by way of the GEN.1146
 report). Stand-in row HY1."""
 MANTLE_BUFFER_RANGE = (1.0, 8.0)
 COVER_SNAP = 0.999
 """float: A cover this high is all of the surface: the last tenth of a percent of a Gaussian tail is a seamount, not an island."""
 HYPSOMETRY = ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9))
 """tuple: The surface of a rocky body as two Gaussians of height, each `(share of the area, mean height km, spread km)` at Earth's gravity: ocean crust and
-continental crust (Cowan and Abbot 2014: two levels, relief as 1 / g; Guimond et al.: continental crust is about 40 percent of Earth's surface).
+continental crust ([R0914]: two levels, relief as 1 / g; Guimond et al.: continental crust is about 40 percent of Earth's surface).
 The four heights and spreads are stand-ins tuned only so that Earth's 2.7 km water layer covers 0.71 of the surface (L2). Stand-in row HY2."""
 
 BRINE_MAX_WATER_FRACTION = 2e-5

@@ -1,7 +1,7 @@
 # tests/test_mass_ratio.py
 
 """
-GEN.951: the mass ratio of a companion is drawn from the law Moe and Di Stefano (2017, ApJS 230:15, Eqn. 2 and Table 13) measured:
+GEN.951: the mass ratio of a companion is drawn from the law [R3108] (ApJS 230:15, Eqn. 2 and Table 13) measured:
 a power law by primary mass and period with a twin excess, not a flat one.
 """
 

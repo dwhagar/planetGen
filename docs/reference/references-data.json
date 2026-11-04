@@ -6219,6 +6219,11 @@
    ],
    "n": 4
   },
+  "Chen||etal|2013": {
+   "matched": [
+    "arXiv:1203.3439"
+   ]
+  },
   "Chen||one|1991": {
    "matched": [
     "10.1016/0895-6111(91)90085-a"
@@ -7917,6 +7922,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Cuzzi|Estrada|pair|1998": {
+   "matched": [
+    "10.1006/icar.1997.5863"
    ]
   },
   "Cuzzi||etal|2018": {
@@ -12100,6 +12110,11 @@
    ],
    "n": 1
   },
+  "Giammichele||etal|2012": {
+   "matched": [
+    "10.1088/0067-0049/199/2/29"
+   ]
+  },
   "Giammichele||one|2012": {
    "matched": [
     "10.1088/0067-0049/199/2/29"
@@ -14245,6 +14260,11 @@
     "crossref"
    ]
   },
+  "Heiles|Troland|pair|2003": {
+   "matched": [
+    "10.1086/367828"
+   ]
+  },
   "Heimpel||one|2005": {
    "matched": [
     "10.1016/j.epsl.2005.04.032",
@@ -14530,6 +14550,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Heuvel||one|2006": {
+   "matched": [
+    "arXiv:astro-ph/0303456"
    ]
   },
   "Heyer|Dame|pair|2015": {
@@ -14836,6 +14861,11 @@
     "crossref"
    ]
   },
+  "Hoening|Spohn|pair|2022": {
+   "matched": [
+    "10.5194/epsc2022-506"
+   ]
+  },
   "Hoffmann|Pauldrach|pair|2003": {
    "evidence": "a record already in the list has this author, year and (for a pair) second author",
    "matched": [
@@ -14952,6 +14982,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Hollenbach||one|2015": {
+   "matched": [
+    "10.1088/0004-637x/814/1/13"
    ]
   },
   "Holloway|Blank|pair|1994": {
@@ -16228,6 +16263,11 @@
     "10.1029/2018jb016558"
    ],
    "n": 3
+  },
+  "Janson||etal|2012": {
+   "matched": [
+    "10.1088/0004-637x/754/1/44"
+   ]
   },
   "Janson||one|2013": {
    "matched": [
@@ -19526,6 +19566,11 @@
    ],
    "n": 14
   },
+  "Liebert||etal|2005": {
+   "matched": [
+    "10.1086/425738"
+   ]
+  },
   "Lierle|Schmidt|pair|2025": {
    "matched": [
     "arXiv:2505.23915"
@@ -19979,6 +20024,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Lorenz||etal|2008": {
+   "matched": [
+    "10.1029/2007gl032118"
    ]
   },
   "Lorenz||etal|2014": {
@@ -21420,6 +21470,11 @@
     "10.1029/jz070i006p01553"
    ],
    "n": 2
+  },
+  "McDonough|Sun|pair|1995": {
+   "matched": [
+    "10.1016/0009-2541(94)00140-4"
+   ]
   },
   "McDonough||one|1992": {
    "matched": [
@@ -24924,6 +24979,11 @@
    ],
    "n": 2
   },
+  "Parravano|Hollenbach|pair|2015": {
+   "matched": [
+    "10.1088/0004-637x/814/1/13"
+   ]
+  },
   "Parviainen||one|2024": {
    "matched": [
     "10.1051/0004-6361/202347431"
@@ -25957,6 +26017,11 @@
    ],
    "n": 1
   },
+  "Poppe||one|2016": {
+   "matched": [
+    "10.1016/j.icarus.2015.10.001"
+   ]
+  },
   "Porter||one|1976": {
    "matched": [
     "10.1038/264745a0"
@@ -26530,6 +26595,16 @@
    "n": 1,
    "searched": true
   },
+  "Rappaport|Savonije|pair|1983": {
+   "matched": [
+    "10.1086/161159"
+   ]
+  },
+  "Rappaport||etal|1995": {
+   "matched": [
+    "10.1093/mnras/273.3.731"
+   ]
+  },
   "Rappaport||one|2012": {
    "evidence": "first author and year agree, and title words appear in the citing sentences: period, short",
    "matched": [
@@ -26602,6 +26677,11 @@
     "10.1088/0004-637x/699/2/l88"
    ],
    "n": 1
+  },
+  "Raymond||one|2019": {
+   "matched": [
+    "10.1093/mnrasl/sly219"
+   ]
   },
   "Read||etal|2009": {
    "matched": [
@@ -26770,6 +26850,11 @@
     "10.1029/2001gl014092"
    ],
    "n": 1
+  },
+  "Reid||etal|2014": {
+   "matched": [
+    "10.1088/0004-637x/783/2/130"
+   ]
   },
   "Reid||one|1973": {
    "matched": [
@@ -30912,6 +30997,11 @@
    ],
    "n": 1
   },
+  "Tauris|Savonije|pair|1999": {
+   "matched": [
+    "arXiv:astro-ph/9909147"
+   ]
+  },
   "Tauris||one|2015": {
    "evidence": "first author and year agree, and a title word (ejected) and the journal appear in the citing sentences",
    "matched": [
@@ -33759,6 +33849,11 @@
     "10.1029/2012gl053230"
    ],
    "n": 1
+  },
+  "Wetherill|Boss|pair|1996": {
+   "matched": [
+    "10.1006/icar.1996.0019"
+   ]
   },
   "Wetzel||one|2013": {
    "matched": [
@@ -73389,6 +73484,25 @@
   }
  },
  "entries": {
+  "10.1001/archinte.1945.00210280021003": {
+   "authors": [
+    [
+     "MORITZ",
+     "A. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1001/archinte.1945.00210280021003",
+   "editors": [],
+   "journal": "Arch Intern Med (Chic)",
+   "page": "233",
+   "publisher": "American Medical Association (AMA)",
+   "src": "crossref-search",
+   "title": "EFFECTS OF COLD AIR ON THE AIR PASSAGES AND LUNGS",
+   "type": "journal-article",
+   "volume": "75",
+   "year": 1945
+  },
   "10.1002/0470033452": {
    "authors": [
     [
@@ -76438,6 +76552,29 @@
    "volume": "129",
    "year": 1997
   },
+  "10.1006/icar.1997.5863": {
+   "authors": [
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Estrada",
+     "P. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1997.5863",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "1",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Compositional Evolution of Saturn's Rings Due to Meteoroid Bombardment",
+   "type": "journal-article",
+   "volume": "132",
+   "year": 1998
+  },
   "10.1006/icar.1998.5913": {
    "authors": [
     [
@@ -77747,6 +77884,25 @@
    "volume": "",
    "year": 2013
   },
+  "10.1007/978-3-030-11452-7_1": {
+   "authors": [
+    [
+     "Linsky",
+     "J."
+    ]
+   ],
+   "book": "Lecture Notes in Physics",
+   "doi": "10.1007/978-3-030-11452-7_1",
+   "editors": [],
+   "journal": "Lecture Notes in Physics",
+   "page": "1",
+   "publisher": "Springer International Publishing",
+   "src": "crossref-search",
+   "title": "Why Are Host Stars Important for Understanding Exoplanet Atmospheres?",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2019
+  },
   "10.1007/978-3-030-19219-8_12": {
    "authors": [
     [
@@ -77842,6 +77998,25 @@
    "type": "book-chapter",
    "volume": "",
    "year": 1976
+  },
+  "10.1007/978-3-319-09749-7_11": {
+   "authors": [
+    [
+     "Grießmeier",
+     "J. M."
+    ]
+   ],
+   "book": "Astrophysics and Space Science Library",
+   "doi": "10.1007/978-3-319-09749-7_11",
+   "editors": [],
+   "journal": "Astrophysics and Space Science Library",
+   "page": "213",
+   "publisher": "Springer International Publishing",
+   "src": "crossref-search",
+   "title": "Detection Methods and Relevance of Exoplanetary Magnetic Fields",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2014
   },
   "10.1007/978-3-319-09749-7_6": {
    "authors": [
@@ -79899,6 +80074,49 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "64",
    "year": 2025
+  },
+  "10.1007/s00421-022-04939-x": {
+   "authors": [
+    [
+     "Stenfors",
+     "N."
+    ],
+    [
+     "Persson",
+     "H."
+    ],
+    [
+     "Tutt",
+     "A."
+    ],
+    [
+     "Tufvesson",
+     "E."
+    ],
+    [
+     "Andersson",
+     "E. P."
+    ],
+    [
+     "Ainegren",
+     "M."
+    ],
+    [
+     "Hanstock",
+     "H. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s00421-022-04939-x",
+   "editors": [],
+   "journal": "Eur J Appl Physiol",
+   "page": "1473",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref-search",
+   "title": "A breathing mask attenuates acute airway responses to exercise in sub-zero environment in healthy subjects",
+   "type": "journal-article",
+   "volume": "122",
+   "year": 2022
   },
   "10.1007/s00445-009-0288-4": {
    "authors": [
@@ -82254,6 +82472,29 @@
    "volume": "57",
    "year": 1986
   },
+  "10.1016/0009-2541(94)00140-4": {
+   "authors": [
+    [
+     "McDonough",
+     "W."
+    ],
+    [
+     "Sun",
+     "S. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0009-2541(94)00140-4",
+   "editors": [],
+   "journal": "Chemical Geology",
+   "page": "223",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The composition of the Earth",
+   "type": "journal-article",
+   "volume": "120",
+   "year": 1995
+  },
   "10.1016/0009-2614(83)87118-8": {
    "authors": [
     [
@@ -84384,6 +84625,25 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "42",
    "year": 1989
+  },
+  "10.1016/0024-3795(80)90167-6": {
+   "authors": [
+    [
+     "Paige",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0024-3795(80)90167-6",
+   "editors": [],
+   "journal": "Linear Algebra and its Applications",
+   "page": "235",
+   "publisher": "Elsevier BV",
+   "src": "crossref-search",
+   "title": "Accuracy and effectiveness of the Lanczos algorithm for the symmetric eigenproblem",
+   "type": "journal-article",
+   "volume": "34",
+   "year": 1980
   },
   "10.1016/0027-5107(93)90211-w": {
    "authors": [
@@ -89119,6 +89379,33 @@
    "volume": "441",
    "year": 2016
   },
+  "10.1016/j.freeradbiomed.2011.12.028": {
+   "authors": [
+    [
+     "Beall",
+     "C. M."
+    ],
+    [
+     "Laskowski",
+     "D."
+    ],
+    [
+     "Erzurum",
+     "S. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.freeradbiomed.2011.12.028",
+   "editors": [],
+   "journal": "Free Radical Biology and Medicine",
+   "page": "1123",
+   "publisher": "Elsevier BV",
+   "src": "crossref-search",
+   "title": "Nitric oxide in adaptation to altitude",
+   "type": "journal-article",
+   "volume": "52",
+   "year": 2012
+  },
   "10.1016/j.gca.2006.06.262": {
    "authors": [
     [
@@ -92917,6 +93204,30 @@
    "volume": "217",
    "year": 2012
   },
+  "10.1016/j.icarus.2011.10.014": {
+   "arxiv": "1101.0691",
+   "authors": [
+    [
+     "Zuluaga",
+     "J. I."
+    ],
+    [
+     "Cuartas",
+     "P. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2011.10.014",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "88",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The role of rotation in the evolution of dynamo-generated magnetic fields in Super Earths",
+   "type": "journal-article",
+   "volume": "217",
+   "year": 2012
+  },
   "10.1016/j.icarus.2011.11.018": {
    "authors": [
     [
@@ -94130,6 +94441,25 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "270",
+   "year": 2016
+  },
+  "10.1016/j.icarus.2015.10.001": {
+   "authors": [
+    [
+     "Poppe",
+     "A. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2015.10.001",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "369",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "An improved model for interplanetary dust fluxes in the outer Solar System",
+   "type": "journal-article",
+   "volume": "264",
    "year": 2016
   },
   "10.1016/j.icarus.2015.12.031": {
@@ -103135,6 +103465,26 @@
    "volume": "213",
    "year": 2004
   },
+  "10.1017/s0074180900196731": {
+   "arxiv": "astro-ph/0311162",
+   "authors": [
+    [
+     "Nicastro",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s0074180900196731",
+   "editors": [],
+   "journal": "Symp. - Int. Astron. Union",
+   "page": "297",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "Chandra and FUSE View of the WHIM: the Local Group and Beyond",
+   "type": "journal-article",
+   "volume": "216",
+   "year": 2005
+  },
   "10.1017/s007418090020096x": {
    "authors": [
     [
@@ -103902,6 +104252,45 @@
    "volume": "19",
    "year": 2019
   },
+  "10.1017/s1473550425100025": {
+   "authors": [
+    [
+     "Atri",
+     "D."
+    ],
+    [
+     "Kamenetskiy",
+     "M."
+    ],
+    [
+     "May",
+     "M."
+    ],
+    [
+     "Kalra",
+     "A."
+    ],
+    [
+     "Castelblanco",
+     "A."
+    ],
+    [
+     "Quiñones-Camacho",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s1473550425100025",
+   "editors": [],
+   "journal": "IJAsB",
+   "page": "e9",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref-search",
+   "title": "Estimating the potential of ionizing radiation-induced radiolysis for microbial metabolism on terrestrial planets and satellites with rarefied atmospheres",
+   "type": "journal-article",
+   "volume": "24",
+   "year": 2025
+  },
   "10.1017/s1539299600013289": {
    "authors": [
     [
@@ -104280,6 +104669,42 @@
    "title": "White dwarfs as astrophysical probes",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "4",
+   "year": 2008
+  },
+  "10.1017/s1743921309031986": {
+   "arxiv": "0812.1223",
+   "authors": [
+    [
+     "West",
+     "A. A."
+    ],
+    [
+     "Hawley",
+     "S. L."
+    ],
+    [
+     "Bochanski",
+     "J. J."
+    ],
+    [
+     "Covey",
+     "K. R."
+    ],
+    [
+     "Burgasser",
+     "A. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s1743921309031986",
+   "editors": [],
+   "journal": "Proc. IAU",
+   "page": "327",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "Using magnetic activity and Galactic dynamics to constrain the ages of M dwarfs",
+   "type": "journal-article",
    "volume": "4",
    "year": 2008
   },
@@ -109369,6 +109794,37 @@
    "type": "journal-article",
    "volume": "33",
    "year": 2006
+  },
+  "10.1029/2006gl027494": {
+   "authors": [
+    [
+     "Dartnell",
+     "L. R."
+    ],
+    [
+     "Desorgher",
+     "L."
+    ],
+    [
+     "Ward",
+     "J. M."
+    ],
+    [
+     "Coates",
+     "A. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2006gl027494",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "2006GL027494",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref-search",
+   "title": "Modelling the surface and subsurface Martian radiation environment: Implications for astrobiology",
+   "type": "journal-article",
+   "volume": "34",
+   "year": 2007
   },
   "10.1029/2006gl028779": {
    "authors": [
@@ -121807,6 +122263,133 @@
    "volume": "7",
    "year": 2016
   },
+  "10.1038/ncomms12808": {
+   "authors": [
+    [
+     "Hashimoto",
+     "T."
+    ],
+    [
+     "Horikawa",
+     "D. D."
+    ],
+    [
+     "Saito",
+     "Y."
+    ],
+    [
+     "Kuwahara",
+     "H."
+    ],
+    [
+     "Kozuka-Hata",
+     "H."
+    ],
+    [
+     "Shin-I",
+     "T."
+    ],
+    [
+     "Minakuchi",
+     "Y."
+    ],
+    [
+     "Ohishi",
+     "K."
+    ],
+    [
+     "Motoyama",
+     "A."
+    ],
+    [
+     "Aizu",
+     "T."
+    ],
+    [
+     "Enomoto",
+     "A."
+    ],
+    [
+     "Kondo",
+     "K."
+    ],
+    [
+     "Tanaka",
+     "S."
+    ],
+    [
+     "Hara",
+     "Y."
+    ],
+    [
+     "Koshikawa",
+     "S."
+    ],
+    [
+     "Sagara",
+     "H."
+    ],
+    [
+     "Miura",
+     "T."
+    ],
+    [
+     "Yokobori",
+     "S. I."
+    ],
+    [
+     "Miyagawa",
+     "K."
+    ],
+    [
+     "Suzuki",
+     "Y."
+    ],
+    [
+     "Kubo",
+     "T."
+    ],
+    [
+     "Oyama",
+     "M."
+    ],
+    [
+     "Kohara",
+     "Y."
+    ],
+    [
+     "Fujiyama",
+     "A."
+    ],
+    [
+     "Arakawa",
+     "K."
+    ],
+    [
+     "Katayama",
+     "T."
+    ],
+    [
+     "Toyoda",
+     "A."
+    ],
+    [
+     "Kunieda",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/ncomms12808",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "12808",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref-search",
+   "title": "Extremotolerant tardigrade genome and improved radiotolerance of human cultured cells by tardigrade-unique protein",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2016
+  },
   "10.1038/ncomms13262": {
    "authors": [
     [
@@ -125145,6 +125728,65 @@
    "type": "journal-article",
    "volume": "",
    "year": 2022
+  },
+  "10.1038/s41550-023-02158-8": {
+   "authors": [
+    [
+     "Cockell",
+     "C. S."
+    ],
+    [
+     "Simons",
+     "M."
+    ],
+    [
+     "Castillo-Rogez",
+     "J."
+    ],
+    [
+     "Higgins",
+     "P. M."
+    ],
+    [
+     "Kaltenegger",
+     "L."
+    ],
+    [
+     "Keane",
+     "J. T."
+    ],
+    [
+     "Leonard",
+     "E. J."
+    ],
+    [
+     "Mitchell",
+     "K. L."
+    ],
+    [
+     "Park",
+     "R. S."
+    ],
+    [
+     "Perl",
+     "S. M."
+    ],
+    [
+     "Vance",
+     "S. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41550-023-02158-8",
+   "editors": [],
+   "journal": "NatAs",
+   "page": "30",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref-search",
+   "title": "Sustained and comparative habitability beyond Earth",
+   "type": "journal-article",
+   "volume": "8",
+   "year": 2023
   },
   "10.1038/s41550-023-02160-0": {
    "arxiv": "2301.05259",
@@ -132220,6 +132862,7 @@
    "year": 2012
   },
   "10.1051/0004-6361/201116853": {
+   "arxiv": "1104.5445",
    "authors": [
     [
      "Padovani",
@@ -143251,6 +143894,33 @@
    "volume": "686",
    "year": 2024
   },
+  "10.1051/0004-6361/202449292": {
+   "authors": [
+    [
+     "Malik",
+     "T."
+    ],
+    [
+     "Pais",
+     "H."
+    ],
+    [
+     "Providência",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202449292",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A242",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Unified neutron star equations of state calibrated to nuclear properties",
+   "type": "journal-article",
+   "volume": "689",
+   "year": 2024
+  },
   "10.1051/0004-6361/202449911": {
    "arxiv": "2406.04311",
    "authors": [
@@ -143653,6 +144323,38 @@
    "title": "Population synthesis of Thorne-Żytkow objects",
    "type": "journal-article",
    "volume": "694",
+   "year": 2025
+  },
+  "10.1051/0004-6361/202451548": {
+   "arxiv": "2504.02090",
+   "authors": [
+    [
+     "Laversveiler",
+     "M."
+    ],
+    [
+     "Gonçalves",
+     "D. R."
+    ],
+    [
+     "Rocha-Pinto",
+     "H. J."
+    ],
+    [
+     "Merc",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202451548",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A155",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "The local group symbiotic star population and its tenuous link with type Ia supernovae",
+   "type": "journal-article",
+   "volume": "698",
    "year": 2025
   },
   "10.1051/0004-6361/202451621": {
@@ -144441,6 +145143,29 @@
    "title": "Hot subdwarf stars from the Hamburg Quasar Survey",
    "type": "journal-article",
    "volume": "708",
+   "year": 2026
+  },
+  "10.1051/0004-6361/202660688": {
+   "authors": [
+    [
+     "Servais",
+     "J."
+    ],
+    [
+     "Chamel",
+     "N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202660688",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A322",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Internal constitution of the outer crust of non-accreted neutron stars and magnetars",
+   "type": "journal-article",
+   "volume": "710",
    "year": 2026
   },
   "10.1051/0004-6361:20000009": {
@@ -149776,6 +150501,45 @@
    "volume": "122",
    "year": 2025
   },
+  "10.1073/pnas.252649199": {
+   "authors": [
+    [
+     "Beall",
+     "C. M."
+    ],
+    [
+     "Decker",
+     "M. J."
+    ],
+    [
+     "Brittenham",
+     "G. M."
+    ],
+    [
+     "Kushner",
+     "I."
+    ],
+    [
+     "Gebremedhin",
+     "A."
+    ],
+    [
+     "Strohl",
+     "K. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1073/pnas.252649199",
+   "editors": [],
+   "journal": "PNAS",
+   "page": "17215",
+   "publisher": "National Academy of Sciences",
+   "src": "crossref-search",
+   "title": "An Ethiopian pattern of human adaptation to high-altitude hypoxia",
+   "type": "journal-article",
+   "volume": "99",
+   "year": 2002
+  },
   "10.1073/pnas.71.9.3363": {
    "authors": [
     [
@@ -150979,6 +151743,33 @@
    "title": "A modification of the Newtonian dynamics - Implications for galaxies",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "270",
+   "year": 1983
+  },
+  "10.1086/161159": {
+   "authors": [
+    [
+     "Webbink",
+     "R. F."
+    ],
+    [
+     "Rappaport",
+     "S."
+    ],
+    [
+     "Savonije",
+     "G. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/161159",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "678",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "On the evolutionary status of bright, low-mass X-ray sources",
+   "type": "journal-article",
    "volume": "270",
    "year": 1983
   },
@@ -154112,6 +154903,7 @@
    "year": 2003
   },
   "10.1086/346127": {
+   "arxiv": "astro-ph/0211361",
    "authors": [
     [
      "Gehrels",
@@ -154149,6 +154941,29 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "585",
+   "year": 2003
+  },
+  "10.1086/367828": {
+   "authors": [
+    [
+     "Heiles",
+     "C."
+    ],
+    [
+     "Troland",
+     "T. H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/367828",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1067",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Millennium Arecibo 21 Centimeter Absorption‐Line Survey. II. Properties of the Warm and Cold Neutral Media",
+   "type": "journal-article",
+   "volume": "586",
    "year": 2003
   },
   "10.1086/374331": {
@@ -154931,6 +155746,33 @@
    "volume": "619",
    "year": 2005
   },
+  "10.1086/425738": {
+   "authors": [
+    [
+     "Liebert",
+     "J."
+    ],
+    [
+     "Bergeron",
+     "P."
+    ],
+    [
+     "Holberg",
+     "J. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/425738",
+   "editors": [],
+   "journal": "ApJS",
+   "page": "47",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Formation Rate and Mass and Luminosity Functions of DA White Dwarfs from the Palomar Green Survey",
+   "type": "journal-article",
+   "volume": "156",
+   "year": 2005
+  },
   "10.1086/426329": {
    "arxiv": "astro-ph/0410059",
    "authors": [
@@ -155165,6 +156007,46 @@
    "title": "Terrestrial Ozone Depletion due to a Milky Way Gamma-Ray Burst",
    "type": "journal-article",
    "volume": "622",
+   "year": 2005
+  },
+  "10.1086/429936": {
+   "arxiv": "astro-ph/0502420",
+   "authors": [
+    [
+     "Aguerri",
+     "J. A. L."
+    ],
+    [
+     "Gerhard",
+     "O. E."
+    ],
+    [
+     "Arnaboldi",
+     "M."
+    ],
+    [
+     "Napolitano",
+     "N. R."
+    ],
+    [
+     "Castro-Rodriguez",
+     "N."
+    ],
+    [
+     "Freeman",
+     "K. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/429936",
+   "editors": [],
+   "journal": "AJ",
+   "page": "2585",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Intracluster Stars in the Virgo Cluster Core",
+   "type": "journal-article",
+   "volume": "129",
    "year": 2005
   },
   "10.1086/430056": {
@@ -155505,6 +156387,62 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "630",
+   "year": 2005
+  },
+  "10.1086/496914": {
+   "arxiv": "astro-ph/0505472",
+   "authors": [
+    [
+     "Thomas",
+     "B. C."
+    ],
+    [
+     "Melott",
+     "A. L."
+    ],
+    [
+     "Jackman",
+     "C. H."
+    ],
+    [
+     "Laird",
+     "C. M."
+    ],
+    [
+     "Medvedev",
+     "M. V."
+    ],
+    [
+     "Stolarski",
+     "R. S."
+    ],
+    [
+     "Gehrels",
+     "N."
+    ],
+    [
+     "Cannizzo",
+     "J. K."
+    ],
+    [
+     "Hogan",
+     "D. P."
+    ],
+    [
+     "Ejzak",
+     "L. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/496914",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "509",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Gamma‐Ray Bursts and the Earth: Exploration of Atmospheric, Biological, Climatic, and Biogeochemical Effects",
+   "type": "journal-article",
+   "volume": "634",
    "year": 2005
   },
   "10.1086/497030": {
@@ -158531,6 +159469,46 @@
    "volume": "178",
    "year": 2008
   },
+  "10.1086/589960": {
+   "arxiv": "0712.0612",
+   "authors": [
+    [
+     "Thom",
+     "C."
+    ],
+    [
+     "Peek",
+     "J. E. G."
+    ],
+    [
+     "Putman",
+     "M. E."
+    ],
+    [
+     "Heiles",
+     "C."
+    ],
+    [
+     "Peek",
+     "K. M. G."
+    ],
+    [
+     "Wilhelm",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/589960",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "364",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "An Accurate Distance to High‐Velocity Cloud Complex C",
+   "type": "journal-article",
+   "volume": "684",
+   "year": 2008
+  },
   "10.1086/590142": {
    "arxiv": "0805.2259",
    "authors": [
@@ -159533,6 +160511,30 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "WHAT IS DRIVING THE H I VELOCITY DISPERSION?",
+   "type": "journal-article",
+   "volume": "137",
+   "year": 2009
+  },
+  "10.1088/0004-6256/137/5/4478": {
+   "arxiv": "0903.3040",
+   "authors": [
+    [
+     "Kunder",
+     "A."
+    ],
+    [
+     "Chaboyer",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-6256/137/5/4478",
+   "editors": [],
+   "journal": "AJ",
+   "page": "4478",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "DISTANCE TO THE SAGITTARIUS DWARF GALAXY USING MACHO PROJECT RR LYRAE STARS",
    "type": "journal-article",
    "volume": "137",
    "year": 2009
@@ -163791,6 +164793,61 @@
    "volume": "753",
    "year": 2012
   },
+  "10.1088/0004-637x/754/1/44": {
+   "authors": [
+    [
+     "Janson",
+     "M."
+    ],
+    [
+     "Hormuth",
+     "F."
+    ],
+    [
+     "Bergfors",
+     "C."
+    ],
+    [
+     "Brandner",
+     "W."
+    ],
+    [
+     "Hippler",
+     "S."
+    ],
+    [
+     "Daemgen",
+     "S."
+    ],
+    [
+     "Kudryavtseva",
+     "N."
+    ],
+    [
+     "Schmalzl",
+     "E."
+    ],
+    [
+     "Schnupp",
+     "C."
+    ],
+    [
+     "Henning",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/754/1/44",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "44",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "THE ASTRALUX LARGE M-DWARF MULTIPLICITY SURVEY",
+   "type": "journal-article",
+   "volume": "754",
+   "year": 2012
+  },
   "10.1088/0004-637x/754/2/124": {
    "arxiv": "1205.7001",
    "authors": [
@@ -164905,6 +165962,38 @@
    "title": "TESTING GALAXY FORMATION MODELS WITH THE GHOSTS SURVEY: THE COLOR PROFILE OF M81's STELLAR HALO",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "766",
+   "year": 2013
+  },
+  "10.1088/0004-637x/766/2/136": {
+   "arxiv": "1302.2549",
+   "authors": [
+    [
+     "Bahramian",
+     "A."
+    ],
+    [
+     "Heinke",
+     "C. O."
+    ],
+    [
+     "Sivakoff",
+     "G. R."
+    ],
+    [
+     "Gladstone",
+     "J. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/766/2/136",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "136",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "STELLAR ENCOUNTER RATE IN GALACTIC GLOBULAR CLUSTERS",
+   "type": "journal-article",
    "volume": "766",
    "year": 2013
   },
@@ -166181,6 +167270,85 @@
    "title": "THE MASSES OF LOCAL GROUP DWARF SPHEROIDAL GALAXIES: THE DEATH OF THE UNIVERSAL MASS PROFILE",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "783",
+   "year": 2014
+  },
+  "10.1088/0004-637x/783/2/130": {
+   "authors": [
+    [
+     "Reid",
+     "M. J."
+    ],
+    [
+     "Menten",
+     "K. M."
+    ],
+    [
+     "Brunthaler",
+     "A."
+    ],
+    [
+     "Zheng",
+     "X. W."
+    ],
+    [
+     "Dame",
+     "T. M."
+    ],
+    [
+     "Xu",
+     "Y."
+    ],
+    [
+     "Wu",
+     "Y."
+    ],
+    [
+     "Zhang",
+     "B."
+    ],
+    [
+     "Sanna",
+     "A."
+    ],
+    [
+     "Sato",
+     "M."
+    ],
+    [
+     "Hachisuka",
+     "K."
+    ],
+    [
+     "Choi",
+     "Y. K."
+    ],
+    [
+     "Immer",
+     "K."
+    ],
+    [
+     "Moscadelli",
+     "L."
+    ],
+    [
+     "Rygl",
+     "K. L. J."
+    ],
+    [
+     "Bartkiewicz",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/783/2/130",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "130",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "TRIGONOMETRIC PARALLAXES OF HIGH MASS STAR FORMING REGIONS: THE STRUCTURE AND KINEMATICS OF THE MILKY WAY",
+   "type": "journal-article",
    "volume": "783",
    "year": 2014
   },
@@ -167617,6 +168785,41 @@
    "title": "HOW ROCKY ARE THEY? THE COMPOSITION DISTRIBUTION OFKEPLER’S SUB-NEPTUNE PLANET CANDIDATES WITHIN 0.15 AU",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "806",
+   "year": 2015
+  },
+  "10.1088/0004-637x/806/2/249": {
+   "authors": [
+    [
+     "Gao",
+     "P."
+    ],
+    [
+     "Hu",
+     "R."
+    ],
+    [
+     "Robinson",
+     "T. D."
+    ],
+    [
+     "Li",
+     "C."
+    ],
+    [
+     "Yung",
+     "Y. L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/806/2/249",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "249",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "STABILITY OF CO 2 ATMOSPHERES ON DESICCATED M DWARF EXOPLANETS",
+   "type": "journal-article",
    "volume": "806",
    "year": 2015
   },
@@ -169383,6 +170586,25 @@
    "via": "a full citation written in the text, title matched at Crossref",
    "volume": "11",
    "year": 1994
+  },
+  "10.1088/0264-9381/31/24/244006": {
+   "authors": [
+    [
+     "Diederik Kruijssen",
+     "J. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0264-9381/31/24/244006",
+   "editors": [],
+   "journal": "CQGra",
+   "page": "244006",
+   "publisher": "IOP Publishing",
+   "src": "crossref",
+   "title": "Globular cluster formation in the context of galaxy formation and evolution",
+   "type": "journal-article",
+   "volume": "31",
+   "year": 2014
   },
   "10.1088/0264-9381/31/24/244007": {
    "authors": [
@@ -172484,6 +173706,34 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "10",
    "year": 2010
+  },
+  "10.1088/1742-6596/131/1/012044": {
+   "arxiv": "0810.0204",
+   "authors": [
+    [
+     "Schödel",
+     "R."
+    ],
+    [
+     "Merritt",
+     "D."
+    ],
+    [
+     "Eckart",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/1742-6596/131/1/012044",
+   "editors": [],
+   "journal": "J. Phys.: Conf. Ser.",
+   "page": "012044",
+   "publisher": "IOP Publishing",
+   "src": "crossref",
+   "title": "The nuclear star cluster of the Milky Way",
+   "type": "journal-article",
+   "volume": "131",
+   "year": 2008
   },
   "10.1088/1751-8121/aa7953": {
    "arxiv": "1706.04625",
@@ -175882,6 +177132,65 @@
    "volume": "7",
    "year": 2007
   },
+  "10.1089/ast.2006.0128": {
+   "authors": [
+    [
+     "Lammer",
+     "H."
+    ],
+    [
+     "Lichtenegger",
+     "H. I."
+    ],
+    [
+     "Kulikov",
+     "Y. N."
+    ],
+    [
+     "Grießmeier",
+     "J. M."
+    ],
+    [
+     "Terada",
+     "N."
+    ],
+    [
+     "Erkaev",
+     "N. V."
+    ],
+    [
+     "Biernat",
+     "H. K."
+    ],
+    [
+     "Khodachenko",
+     "M. L."
+    ],
+    [
+     "Ribas",
+     "I."
+    ],
+    [
+     "Penz",
+     "T."
+    ],
+    [
+     "Selsis",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ast.2006.0128",
+   "editors": [],
+   "journal": "AsBio",
+   "page": "185",
+   "publisher": "SAGE Publications",
+   "src": "crossref-search",
+   "title": "Coronal Mass Ejection (CME) Activity of Low Mass M Stars as An Important Factor for The Habitability of Terrestrial Exoplanets. II. CME-Induced Ion Pick Up of Earth-like Exoplanets in Close-In Habitable Zones",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2007
+  },
   "10.1089/ast.2006.0129": {
    "arxiv": "astro-ph/0702622",
    "authors": [
@@ -177597,6 +178906,25 @@
    "volume": "24",
    "year": 2024
   },
+  "10.1089/ham.2009.10401": {
+   "authors": [
+    [
+     "West",
+     "J. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ham.2009.10401",
+   "editors": [],
+   "journal": "High Altitude Medicine &amp; Biology",
+   "page": "311",
+   "publisher": "SAGE Publications",
+   "src": "crossref-search",
+   "title": "VIII World Congress on High Altitude Medicine and Physiology, Arequipa, Peru, August 8–12, 2010",
+   "type": "journal-article",
+   "volume": "10",
+   "year": 2009
+  },
   "10.1090/s0025-5718-1966-0234618-4": {
    "authors": [
     [
@@ -178049,6 +179377,25 @@
    "type": "journal-article",
    "volume": "195",
    "year": 2013
+  },
+  "10.1093/imamat/18.3.341": {
+   "authors": [
+    [
+     "PAIGE",
+     "C. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/imamat/18.3.341",
+   "editors": [],
+   "journal": "IMA J Appl Math",
+   "page": "341",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref-search",
+   "title": "Error Analysis of the Lanczos Algorithm for Tridiagonalizing a Symmetric Matrix",
+   "type": "journal-article",
+   "volume": "18",
+   "year": 1976
   },
   "10.1093/imamat/6.3.222": {
    "authors": [
@@ -179015,6 +180362,41 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "272",
+   "year": 1995
+  },
+  "10.1093/mnras/273.3.731": {
+   "authors": [
+    [
+     "Rappaport",
+     "S."
+    ],
+    [
+     "Podsiadlowski",
+     "P."
+    ],
+    [
+     "Joss",
+     "P. C."
+    ],
+    [
+     "Di Stefano",
+     "R."
+    ],
+    [
+     "Han",
+     "Z."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/273.3.731",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "731",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "The relation between white dwarf mass and orbital period in wide binary radio pulsars",
+   "type": "journal-article",
+   "volume": "273",
    "year": 1995
   },
   "10.1093/mnras/273.4.1097": {
@@ -181478,6 +182860,34 @@
    "title": "New constraints on the minimum mass for thermonuclear lithium burning in brown dwarfs",
    "type": "journal-article",
    "volume": "510",
+   "year": 2021
+  },
+  "10.1093/mnras/stab3009": {
+   "arxiv": "2110.07601",
+   "authors": [
+    [
+     "Brouwers",
+     "M. G."
+    ],
+    [
+     "Bonsor",
+     "A."
+    ],
+    [
+     "Malamud",
+     "U."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stab3009",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "stab3009",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "A road-map to white dwarf pollution: Tidal disruption, eccentric grind-down, and dust accretion",
+   "type": "journal-article",
+   "volume": "",
    "year": 2021
   },
   "10.1093/mnras/stab323": {
@@ -192876,6 +194286,7 @@
    "year": 2016
   },
   "10.1093/mnras/stw2759": {
+   "arxiv": "1608.00971",
    "authors": [
     [
      "McMillan",
@@ -200261,6 +201672,33 @@
    "type": "journal-article",
    "volume": "378",
    "year": 2020
+  },
+  "10.1098/rstb.2024.0101": {
+   "authors": [
+    [
+     "Seager",
+     "S."
+    ],
+    [
+     "Petkowski",
+     "J. J."
+    ],
+    [
+     "Bains",
+     "W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1098/rstb.2024.0101",
+   "editors": [],
+   "journal": "Phil. Trans. R. Soc. B",
+   "page": "20240101",
+   "publisher": "The Royal Society",
+   "src": "crossref-search",
+   "title": "The diversity of exoplanetary environments and the search for signs of life beyond Earth",
+   "type": "journal-article",
+   "volume": "380",
+   "year": 2025
   },
   "10.1101/cshperspect.a012765": {
    "authors": [
@@ -211588,6 +213026,81 @@
    "volume": "15",
    "year": 2012
   },
+  "10.1111/1462-2920.12598": {
+   "authors": [
+    [
+     "Stevenson",
+     "A."
+    ],
+    [
+     "Burkhardt",
+     "J."
+    ],
+    [
+     "Cockell",
+     "C. S."
+    ],
+    [
+     "Cray",
+     "J. A."
+    ],
+    [
+     "Dijksterhuis",
+     "J."
+    ],
+    [
+     "Fox‐Powell",
+     "M."
+    ],
+    [
+     "Kee",
+     "T. P."
+    ],
+    [
+     "Kminek",
+     "G."
+    ],
+    [
+     "McGenity",
+     "T. J."
+    ],
+    [
+     "Timmis",
+     "K. N."
+    ],
+    [
+     "Timson",
+     "D. J."
+    ],
+    [
+     "Voytek",
+     "M. A."
+    ],
+    [
+     "Westall",
+     "F."
+    ],
+    [
+     "Yakimov",
+     "M. M."
+    ],
+    [
+     "Hallsworth",
+     "J. E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/1462-2920.12598",
+   "editors": [],
+   "journal": "Environmental Microbiology",
+   "page": "257",
+   "publisher": "Wiley",
+   "src": "crossref-search",
+   "title": "Multiplication of microbes below 0.690 water activity: implications for terrestrial and extraterrestrial life",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 2014
+  },
   "10.1111/1468-0289.12076_34": {
    "authors": [
     [
@@ -222861,6 +224374,77 @@
    "volume": "313",
    "year": 2006
   },
+  "10.1126/science.1127376": {
+   "authors": [
+    [
+     "Lin",
+     "L. H."
+    ],
+    [
+     "Wang",
+     "P. L."
+    ],
+    [
+     "Rumble",
+     "D."
+    ],
+    [
+     "Lippmann-Pipke",
+     "J."
+    ],
+    [
+     "Boice",
+     "E."
+    ],
+    [
+     "Pratt",
+     "L. M."
+    ],
+    [
+     "Lollar",
+     "B. S."
+    ],
+    [
+     "Brodie",
+     "E. L."
+    ],
+    [
+     "Hazen",
+     "T. C."
+    ],
+    [
+     "Andersen",
+     "G. L."
+    ],
+    [
+     "DeSantis",
+     "T. Z."
+    ],
+    [
+     "Moser",
+     "D. P."
+    ],
+    [
+     "Kershaw",
+     "D."
+    ],
+    [
+     "Onstott",
+     "T. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1127376",
+   "editors": [],
+   "journal": "Science",
+   "page": "479",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref-search",
+   "title": "Long-Term Sustainability of a High-Energy, Low-Diversity Crustal Biome",
+   "type": "journal-article",
+   "volume": "314",
+   "year": 2006
+  },
   "10.1126/science.1152110": {
    "authors": [
     [
@@ -223278,6 +224862,301 @@
    "title": "Genetic Evidence for High-Altitude Adaptation in Tibet",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "329",
+   "year": 2010
+  },
+  "10.1126/science.1190371": {
+   "authors": [
+    [
+     "Yi",
+     "X."
+    ],
+    [
+     "Liang",
+     "Y."
+    ],
+    [
+     "Huerta-Sanchez",
+     "E."
+    ],
+    [
+     "Jin",
+     "X."
+    ],
+    [
+     "Cuo",
+     "Z. X. P."
+    ],
+    [
+     "Pool",
+     "J. E."
+    ],
+    [
+     "Xu",
+     "X."
+    ],
+    [
+     "Jiang",
+     "H."
+    ],
+    [
+     "Vinckenbosch",
+     "N."
+    ],
+    [
+     "Korneliussen",
+     "T. S."
+    ],
+    [
+     "Zheng",
+     "H."
+    ],
+    [
+     "Liu",
+     "T."
+    ],
+    [
+     "He",
+     "W."
+    ],
+    [
+     "Li",
+     "K."
+    ],
+    [
+     "Luo",
+     "R."
+    ],
+    [
+     "Nie",
+     "X."
+    ],
+    [
+     "Wu",
+     "H."
+    ],
+    [
+     "Zhao",
+     "M."
+    ],
+    [
+     "Cao",
+     "H."
+    ],
+    [
+     "Zou",
+     "J."
+    ],
+    [
+     "Shan",
+     "Y."
+    ],
+    [
+     "Li",
+     "S."
+    ],
+    [
+     "Yang",
+     "Q."
+    ],
+    [
+     "Asan",
+     ""
+    ],
+    [
+     "Ni",
+     "P."
+    ],
+    [
+     "Tian",
+     "G."
+    ],
+    [
+     "Xu",
+     "J."
+    ],
+    [
+     "Liu",
+     "X."
+    ],
+    [
+     "Jiang",
+     "T."
+    ],
+    [
+     "Wu",
+     "R."
+    ],
+    [
+     "Zhou",
+     "G."
+    ],
+    [
+     "Tang",
+     "M."
+    ],
+    [
+     "Qin",
+     "J."
+    ],
+    [
+     "Wang",
+     "T."
+    ],
+    [
+     "Feng",
+     "S."
+    ],
+    [
+     "Li",
+     "G."
+    ],
+    [
+     "Huasang",
+     ""
+    ],
+    [
+     "Luosang",
+     "J."
+    ],
+    [
+     "Wang",
+     "W."
+    ],
+    [
+     "Chen",
+     "F."
+    ],
+    [
+     "Wang",
+     "Y."
+    ],
+    [
+     "Zheng",
+     "X."
+    ],
+    [
+     "Li",
+     "Z."
+    ],
+    [
+     "Bianba",
+     "Z."
+    ],
+    [
+     "Yang",
+     "G."
+    ],
+    [
+     "Wang",
+     "X."
+    ],
+    [
+     "Tang",
+     "S."
+    ],
+    [
+     "Gao",
+     "G."
+    ],
+    [
+     "Chen",
+     "Y."
+    ],
+    [
+     "Luo",
+     "Z."
+    ],
+    [
+     "Gusang",
+     "L."
+    ],
+    [
+     "Cao",
+     "Z."
+    ],
+    [
+     "Zhang",
+     "Q."
+    ],
+    [
+     "Ouyang",
+     "W."
+    ],
+    [
+     "Ren",
+     "X."
+    ],
+    [
+     "Liang",
+     "H."
+    ],
+    [
+     "Zheng",
+     "H."
+    ],
+    [
+     "Huang",
+     "Y."
+    ],
+    [
+     "Li",
+     "J."
+    ],
+    [
+     "Bolund",
+     "L."
+    ],
+    [
+     "Kristiansen",
+     "K."
+    ],
+    [
+     "Li",
+     "Y."
+    ],
+    [
+     "Zhang",
+     "Y."
+    ],
+    [
+     "Zhang",
+     "X."
+    ],
+    [
+     "Li",
+     "R."
+    ],
+    [
+     "Li",
+     "S."
+    ],
+    [
+     "Yang",
+     "H."
+    ],
+    [
+     "Nielsen",
+     "R."
+    ],
+    [
+     "Wang",
+     "J."
+    ],
+    [
+     "Wang",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1190371",
+   "editors": [],
+   "journal": "Science",
+   "page": "75",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref-search",
+   "title": "Sequencing of 50 Human Exomes Reveals Adaptation to High Altitude",
+   "type": "journal-article",
    "volume": "329",
    "year": 2010
   },
@@ -232876,6 +234755,37 @@
    "volume": "",
    "year": 2005
   },
+  "10.1167/jov.24.2.13": {
+   "authors": [
+    [
+     "March",
+     "J. G."
+    ],
+    [
+     "Krishnan",
+     "A."
+    ],
+    [
+     "Mantiuk",
+     "R. K."
+    ],
+    [
+     "Watt",
+     "S. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1167/jov.24.2.13",
+   "editors": [],
+   "journal": "Journal of Vision",
+   "page": "13",
+   "publisher": "Association for Research in Vision and Ophthalmology (ARVO)",
+   "src": "crossref",
+   "title": "Impact of focus cue presentation on perceived realism of 3-D scene structure: Implications for scene perception and for display technology",
+   "type": "journal-article",
+   "volume": "24",
+   "year": 2024
+  },
   "10.1175/1520-0450(1969)008<0392:agcmbo>2.0.co;2": {
    "authors": [
     [
@@ -233127,6 +235037,57 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "50",
    "year": 2011
+  },
+  "10.1177/0146645320911864": {
+   "authors": [
+    [
+     "Harrison",
+     "J."
+    ],
+    [
+     "Balonov",
+     "M."
+    ],
+    [
+     "Bochud",
+     "F."
+    ],
+    [
+     "Martin",
+     "C."
+    ],
+    [
+     "Menzel",
+     "H. G."
+    ],
+    [
+     "Ortiz-Lopez",
+     "P."
+    ],
+    [
+     "Smith-Bindman",
+     "R."
+    ],
+    [
+     "Simmonds",
+     "J."
+    ],
+    [
+     "Wakeford",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1177/0146645320911864",
+   "editors": [],
+   "journal": "AnICRP",
+   "page": "9",
+   "publisher": "SAGE Publications",
+   "src": "crossref",
+   "title": "ICRP Publication 147: Use of Dose Quantities in Radiological Protection",
+   "type": "journal-article",
+   "volume": "50",
+   "year": 2021
   },
   "10.1177/1028315306286930": {
    "authors": [
@@ -233416,6 +235377,25 @@
    "type": "book-chapter",
    "volume": "",
    "year": 2001
+  },
+  "10.1201/9781420056884": {
+   "authors": [
+    [
+     "Roy",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1201/9781420056884",
+   "editors": [],
+   "journal": "",
+   "page": "",
+   "publisher": "Taylor & Francis",
+   "src": "crossref",
+   "title": "Orbital Motion, Fourth Edition",
+   "type": "monograph",
+   "volume": "",
+   "year": 2004
   },
   "10.1201/b12356-6": {
    "authors": [
@@ -234208,6 +236188,25 @@
    "volume": "53",
    "year": 2014
   },
+  "10.1364/aop.5.000456": {
+   "authors": [
+    [
+     "Geng",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1364/aop.5.000456",
+   "editors": [],
+   "journal": "Adv. Opt. Photon.",
+   "page": "456",
+   "publisher": "Optica Publishing Group",
+   "src": "crossref",
+   "title": "Three-dimensional display technologies",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2013
+  },
   "10.1364/fts.1999.fwe21": {
    "authors": [
     [
@@ -234448,6 +236447,65 @@
    "type": "journal-article",
    "volume": "25",
    "year": 2000
+  },
+  "10.1371/journal.pbio.0050092": {
+   "authors": [
+    [
+     "Daly",
+     "M. J."
+    ],
+    [
+     "Gaidamakova",
+     "E. K."
+    ],
+    [
+     "Matrosova",
+     "V. Y."
+    ],
+    [
+     "Vasilenko",
+     "A."
+    ],
+    [
+     "Zhai",
+     "M."
+    ],
+    [
+     "Leapman",
+     "R. D."
+    ],
+    [
+     "Lai",
+     "B."
+    ],
+    [
+     "Ravel",
+     "B."
+    ],
+    [
+     "Li",
+     "S. M. W."
+    ],
+    [
+     "Kemner",
+     "K. M."
+    ],
+    [
+     "Fredrickson",
+     "J. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1371/journal.pbio.0050092",
+   "editors": [],
+   "journal": "PLoS Biol",
+   "page": "e92",
+   "publisher": "Public Library of Science (PLoS)",
+   "src": "crossref-search",
+   "title": "Protein Oxidation Implicated as the Primary Determinant of Bacterial Radioresistance",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2007
   },
   "10.1371/journal.pone.0000457": {
    "authors": [
@@ -237181,6 +239239,53 @@
    "volume": "8",
    "year": 2025
   },
+  "10.3357/asem.3468.2013": {
+   "authors": [
+    [
+     "Murray",
+     "D. H."
+    ],
+    [
+     "Pilmanis",
+     "A. A."
+    ],
+    [
+     "Blue",
+     "R. S."
+    ],
+    [
+     "Pattarini",
+     "J. M."
+    ],
+    [
+     "Law",
+     "J."
+    ],
+    [
+     "Bayne",
+     "C. G."
+    ],
+    [
+     "Turney",
+     "M. W."
+    ],
+    [
+     "Clark",
+     "J. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3357/asem.3468.2013",
+   "editors": [],
+   "journal": "aviat space environ med",
+   "page": "89",
+   "publisher": "Aerospace Medical Association",
+   "src": "crossref-search",
+   "title": "Pathophysiology, Prevention, and Treatment of Ebullism",
+   "type": "journal-article",
+   "volume": "84",
+   "year": 2013
+  },
   "10.3357/asem.3485.2014": {
    "authors": [
     [
@@ -237207,6 +239312,34 @@
    "type": "journal-article",
    "volume": "85",
    "year": 2014
+  },
+  "10.3367/ufne.2025.05.039904": {
+   "arxiv": "2506.01106",
+   "authors": [
+    [
+     "Cherepashchuk",
+     "A. M."
+    ],
+    [
+     "Dodin",
+     "A. V."
+    ],
+    [
+     "Postnov",
+     "K. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3367/ufne.2025.05.039904",
+   "editors": [],
+   "journal": "Phys. Usp.",
+   "page": "1042",
+   "publisher": "Uspekhi Fizicheskikh Nauk (UFN) Journal",
+   "src": "crossref",
+   "title": "Unique microquasar SS433: new results, new issues",
+   "type": "journal-article",
+   "volume": "68",
+   "year": 2025
   },
   "10.3367/ufnr.0089.196607g.0483": {
    "authors": [
@@ -237448,6 +239581,41 @@
    "title": "Cybersickness in Head-Mounted Displays Is Caused by Differences in the User's Virtual and Physical Head Pose",
    "type": "journal-article",
    "volume": "1",
+   "year": 2020
+  },
+  "10.3390/app10207357": {
+   "authors": [
+    [
+     "Ezcurdia",
+     "I."
+    ],
+    [
+     "Arregui",
+     "A."
+    ],
+    [
+     "Ardaiz",
+     "O."
+    ],
+    [
+     "Ortiz",
+     "A."
+    ],
+    [
+     "Marzo",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3390/app10207357",
+   "editors": [],
+   "journal": "Applied Sciences",
+   "page": "7357",
+   "publisher": "MDPI AG",
+   "src": "crossref",
+   "title": "Content Adaptation and Depth Perception in an Affordable Multi-View Display",
+   "type": "journal-article",
+   "volume": "10",
    "year": 2020
   },
   "10.3390/biology10100970": {
@@ -237765,6 +239933,33 @@
    "volume": "15",
    "year": 2023
   },
+  "10.3390/s21124006": {
+   "authors": [
+    [
+     "Hussain",
+     "R."
+    ],
+    [
+     "Chessa",
+     "M."
+    ],
+    [
+     "Solari",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3390/s21124006",
+   "editors": [],
+   "journal": "Sensors",
+   "page": "4006",
+   "publisher": "MDPI AG",
+   "src": "crossref",
+   "title": "Mitigating Cybersickness in Virtual Reality Systems through Foveated Depth-of-Field Blur",
+   "type": "journal-article",
+   "volume": "21",
+   "year": 2021
+  },
   "10.3390/sym16081007": {
    "arxiv": "2405.05476",
    "authors": [
@@ -237832,6 +240027,25 @@
    "type": "journal-article",
    "volume": "8",
    "year": 2022
+  },
+  "10.3390/w3010235": {
+   "authors": [
+    [
+     "Le Caër",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3390/w3010235",
+   "editors": [],
+   "journal": "Water",
+   "page": "235",
+   "publisher": "MDPI AG",
+   "src": "crossref-search",
+   "title": "Water Radiolysis: Influence of Oxide Surfaces on H2 Production under Ionizing Radiation",
+   "type": "journal-article",
+   "volume": "3",
+   "year": 2011
   },
   "10.3410/f.1001090.17080": {
    "authors": [
@@ -239951,6 +242165,37 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "222",
+   "year": 2016
+  },
+  "10.3847/0067-0049/225/2/32": {
+   "authors": [
+    [
+     "Brewer",
+     "J. M."
+    ],
+    [
+     "Fischer",
+     "D. A."
+    ],
+    [
+     "Valenti",
+     "J. A."
+    ],
+    [
+     "Piskunov",
+     "N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/0067-0049/225/2/32",
+   "editors": [],
+   "journal": "ApJS",
+   "page": "32",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "SPECTRAL PROPERTIES OF COOL STARS: EXTENDED ABUNDANCE ANALYSIS OF 1,617 PLANET-SEARCH STARS",
+   "type": "journal-article",
+   "volume": "225",
    "year": 2016
   },
   "10.3847/1538-3881/aa5c8a": {
@@ -242165,6 +244410,226 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "WASP-107b’s Density Is Even Lower: A Case Study for the Physics of Planetary Gas Envelope Accretion and Orbital Migration",
+   "type": "journal-article",
+   "volume": "161",
+   "year": 2021
+  },
+  "10.3847/1538-3881/abddb5": {
+   "arxiv": "2101.03433",
+   "authors": [
+    [
+     "Powell",
+     "B. P."
+    ],
+    [
+     "Kostov",
+     "V. B."
+    ],
+    [
+     "Rappaport",
+     "S. A."
+    ],
+    [
+     "Borkovits",
+     "T."
+    ],
+    [
+     "Zasche",
+     "P."
+    ],
+    [
+     "Tokovinin",
+     "A."
+    ],
+    [
+     "Kruse",
+     "E."
+    ],
+    [
+     "Latham",
+     "D. W."
+    ],
+    [
+     "Montet",
+     "B. T."
+    ],
+    [
+     "Jensen",
+     "E. L. N."
+    ],
+    [
+     "Jayaraman",
+     "R."
+    ],
+    [
+     "Collins",
+     "K. A."
+    ],
+    [
+     "Mašek",
+     "M."
+    ],
+    [
+     "Hellier",
+     "C."
+    ],
+    [
+     "Evans",
+     "P."
+    ],
+    [
+     "Tan",
+     "T. G."
+    ],
+    [
+     "Schlieder",
+     "J. E."
+    ],
+    [
+     "Torres",
+     "G."
+    ],
+    [
+     "Smale",
+     "A. P."
+    ],
+    [
+     "Friedman",
+     "A. H."
+    ],
+    [
+     "Barclay",
+     "T."
+    ],
+    [
+     "Gagliano",
+     "R."
+    ],
+    [
+     "Quintana",
+     "E. V."
+    ],
+    [
+     "Jacobs",
+     "T. L."
+    ],
+    [
+     "Gilbert",
+     "E. A."
+    ],
+    [
+     "Kristiansen",
+     "M. H."
+    ],
+    [
+     "Colón",
+     "K. D."
+    ],
+    [
+     "LaCourse",
+     "D. M."
+    ],
+    [
+     "Olmschenk",
+     "G."
+    ],
+    [
+     "Omohundro",
+     "M."
+    ],
+    [
+     "Schnittman",
+     "J. D."
+    ],
+    [
+     "Schwengeler",
+     "H. M."
+    ],
+    [
+     "Barry",
+     "R. K."
+    ],
+    [
+     "Terentev",
+     "I. A."
+    ],
+    [
+     "Boyd",
+     "P."
+    ],
+    [
+     "Schmitt",
+     "A. R."
+    ],
+    [
+     "Quinn",
+     "S. N."
+    ],
+    [
+     "Vanderburg",
+     "A."
+    ],
+    [
+     "Palle",
+     "E."
+    ],
+    [
+     "Armstrong",
+     "J."
+    ],
+    [
+     "Ricker",
+     "G. R."
+    ],
+    [
+     "Vanderspek",
+     "R."
+    ],
+    [
+     "Seager",
+     "S."
+    ],
+    [
+     "Winn",
+     "J. N."
+    ],
+    [
+     "Jenkins",
+     "J. M."
+    ],
+    [
+     "Caldwell",
+     "D. A."
+    ],
+    [
+     "Wohler",
+     "B."
+    ],
+    [
+     "Shiao",
+     "B."
+    ],
+    [
+     "Burke",
+     "C. J."
+    ],
+    [
+     "Daylan",
+     "T."
+    ],
+    [
+     "Villaseñor",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-3881/abddb5",
+   "editors": [],
+   "journal": "AJ",
+   "page": "162",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "TIC 168789840: A Sextuply Eclipsing Sextuple Star System",
    "type": "journal-article",
    "volume": "161",
    "year": 2021
@@ -245182,6 +247647,7 @@
    "year": 2018
   },
   "10.3847/1538-4357/aab264": {
+   "arxiv": "1802.08868",
    "authors": [
     [
      "Quarles",
@@ -248485,6 +250951,54 @@
    "type": "journal-article",
    "volume": "903",
    "year": 2020
+  },
+  "10.3847/1538-4357/abc8f5": {
+   "arxiv": "2011.02117",
+   "authors": [
+    [
+     "Okamoto",
+     "S."
+    ],
+    [
+     "Notsu",
+     "Y."
+    ],
+    [
+     "Maehara",
+     "H."
+    ],
+    [
+     "Namekata",
+     "K."
+    ],
+    [
+     "Honda",
+     "S."
+    ],
+    [
+     "Ikuta",
+     "K."
+    ],
+    [
+     "Nogami",
+     "D."
+    ],
+    [
+     "Shibata",
+     "K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/abc8f5",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "72",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Statistical Properties of Superflares on Solar-type Stars: Results Using All of the Kepler Primary Mission Data",
+   "type": "journal-article",
+   "volume": "906",
+   "year": 2021
   },
   "10.3847/1538-4357/abcc04": {
    "authors": [
@@ -253437,6 +255951,42 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "H − Opacity and Water Dissociation in the Dayside Atmosphere of the Very Hot Gas Giant WASP-18b",
+   "type": "journal-article",
+   "volume": "855",
+   "year": 2018
+  },
+  "10.3847/2041-8213/aab2af": {
+   "arxiv": "1802.09453",
+   "authors": [
+    [
+     "Li",
+     "J. T."
+    ],
+    [
+     "Bregman",
+     "J. N."
+    ],
+    [
+     "Wang",
+     "Q. D."
+    ],
+    [
+     "Crain",
+     "R. A."
+    ],
+    [
+     "Anderson",
+     "M. E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/2041-8213/aab2af",
+   "editors": [],
+   "journal": "ApJL",
+   "page": "L24",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Baryon Budget of the Hot Circumgalactic Medium of Massive Spiral Galaxies",
    "type": "journal-article",
    "volume": "855",
    "year": 2018
@@ -266248,6 +268798,29 @@
    "volume": "",
    "year": 2022
   },
+  "10.5194/epsc2022-506": {
+   "authors": [
+    [
+     "Spohn",
+     "T."
+    ],
+    [
+     "Hoening",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5194/epsc2022-506",
+   "editors": [],
+   "journal": "",
+   "page": "",
+   "publisher": "Copernicus GmbH",
+   "src": "crossref",
+   "title": "Land/Ocean Surface Diversity on Earth-like (Exo)planets: Implications for Habitability",
+   "type": "posted-content",
+   "volume": "",
+   "year": 2022
+  },
   "10.5194/epsc2024-501": {
    "authors": [
     [
@@ -267193,6 +269766,25 @@
    "volume": "158",
    "year": 2013
   },
+  "10.7488/ds/7723": {
+   "authors": [
+    [
+     "Robinson",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.7488/ds/7723",
+   "editors": [],
+   "journal": "",
+   "page": "",
+   "publisher": "University of Edinburgh. School of Physics and Astronomy. Institute for Astronomy",
+   "src": "crossref",
+   "title": "Supplementary data for the manuscript \"A link between the size and composition of comets\"",
+   "type": "dataset",
+   "volume": "",
+   "year": 2024
+  },
   "10.7554/elife.47682": {
    "authors": [
     [
@@ -267466,6 +270058,50 @@
    "type": "preprint",
    "volume": "",
    "year": 2011
+  },
+  "arXiv:1109.4588": {
+   "arxiv": "1109.4588",
+   "authors": [
+    [
+     "Stewart",
+     "S. T."
+    ],
+    [
+     "Leinhardt",
+     "Z. M."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "The Astrophysical Journal, 745:79 (27pp), 2012 January 20",
+   "page": "",
+   "src": "arxiv",
+   "title": "Collisions between Gravity-Dominated Bodies: 2. The Diversity of Impact Outcomes during the End Stage of Planet Formation",
+   "type": "preprint",
+   "volume": "",
+   "year": 2011
+  },
+  "arXiv:1203.3439": {
+   "arxiv": "1203.3439",
+   "authors": [
+    [
+     "De Vito",
+     "M. A."
+    ],
+    [
+     "Benvenuto",
+     "O. G."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Evolution of low mass close binary systems with a neutron star: its dependence with the initial neutron star mass",
+   "type": "preprint",
+   "volume": "",
+   "year": 2012
   },
   "arXiv:1204.0275": {
    "arxiv": "1204.0275",
@@ -272003,6 +274639,36 @@
    "volume": "",
    "year": 2024
   },
+  "arXiv:2412.07089": {
+   "arxiv": "2412.07089",
+   "authors": [
+    [
+     "Sun",
+     "W."
+    ],
+    [
+     "Shen",
+     "H."
+    ],
+    [
+     "Jiang",
+     "B."
+    ],
+    [
+     "Liu",
+     "X."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "The Age-velocity Dispersion Relations of the Galactic Disk as Revealed by the LAMOST-Gaia Red Clump Stars",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
   "arXiv:2501.06613": {
    "arxiv": "2501.06613",
    "authors": [
@@ -272259,6 +274925,28 @@
    "page": "",
    "src": "arxiv",
    "title": "A census of OB stars within 1 kpc and the star formation and core collapse supernova rates of the Milky Way",
+   "type": "preprint",
+   "volume": "",
+   "year": 2025
+  },
+  "arXiv:2503.11597": {
+   "arxiv": "2503.11597",
+   "authors": [
+    [
+     "Yee",
+     "J. C."
+    ],
+    [
+     "Kenyon",
+     "S. J."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Microlensing Constraints on the Stellar and Planetary Mass Functions",
    "type": "preprint",
    "volume": "",
    "year": 2025
@@ -273885,6 +276573,36 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2601.16159": {
+   "arxiv": "2601.16159",
+   "authors": [
+    [
+     "Pardo-Araujo",
+     "C."
+    ],
+    [
+     "Rea",
+     "N."
+    ],
+    [
+     "Ronchi",
+     "M."
+    ],
+    [
+     "Graber",
+     "V."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Magnetar fraction in Core-Collapse Supernovae",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:2602.11923": {
    "arxiv": "2602.11923",
    "authors": [
@@ -274761,6 +277479,28 @@
    "volume": "",
    "year": 2002
   },
+  "arXiv:astro-ph/0303456": {
+   "arxiv": "astro-ph/0303456",
+   "authors": [
+    [
+     "Tauris",
+     "T. M."
+    ],
+    [
+     "van den Heuvel",
+     "E."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Formation and Evolution of Compact Stellar X-ray Sources",
+   "type": "preprint",
+   "volume": "",
+   "year": 2003
+  },
   "arXiv:astro-ph/0402475": {
    "arxiv": "astro-ph/0402475",
    "authors": [
@@ -274913,6 +277653,24 @@
    "volume": "",
    "year": 2005
   },
+  "arXiv:astro-ph/0702257": {
+   "arxiv": "astro-ph/0702257",
+   "authors": [
+    [
+     "Serpico",
+     "M."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Cosmological Voids: Observational Evidence and Models",
+   "type": "preprint",
+   "volume": "",
+   "year": 2007
+  },
   "arXiv:astro-ph/9512121": {
    "arxiv": "astro-ph/9512121",
    "authors": [
@@ -275037,6 +277795,28 @@
    "page": "",
    "src": "arxiv",
    "title": "Horizontal-Branch Stars as an Age Indicator",
+   "type": "preprint",
+   "volume": "",
+   "year": 1999
+  },
+  "arXiv:astro-ph/9909147": {
+   "arxiv": "astro-ph/9909147",
+   "authors": [
+    [
+     "Tauris",
+     "T. M."
+    ],
+    [
+     "Savonije",
+     "G. J."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Formation of millisecond pulsars. I. Evolution of low-mass X-ray binaries with P > 2 days",
    "type": "preprint",
    "volume": "",
    "year": 1999
@@ -275206,8 +277986,9 @@
   }
  },
  "id_aliases": {},
- "id_next": 4970,
+ "id_next": 5081,
  "ids": {
+  "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
   "10.1002/14356007.a24_507.pub2": "R2764",
   "10.1002/2013gl058955": "R3812",
@@ -275304,6 +278085,7 @@
   "10.1006/icar.1997.5705": "R1978",
   "10.1006/icar.1997.5759": "R4708",
   "10.1006/icar.1997.5793": "R2201",
+  "10.1006/icar.1997.5863": "R5074",
   "10.1006/icar.1998.5913": "R2259",
   "10.1006/icar.1998.5915": "R3858",
   "10.1006/icar.1998.5938": "R1933",
@@ -275361,11 +278143,13 @@
   "10.1007/978-1-4757-4363-0": "R1091",
   "10.1007/978-1-4939-3023-4_2": "R0499",
   "10.1007/978-1-84800-322-4": "R3124",
+  "10.1007/978-3-030-11452-7_1": "R5010",
   "10.1007/978-3-030-19219-8_12": "R1725",
   "10.1007/978-3-030-19219-8_14": "R1723",
   "10.1007/978-3-030-19219-8_6": "R1724",
   "10.1007/978-3-031-29003-9_30": "R3833",
   "10.1007/978-3-0348-5793-2_9": "R0442",
+  "10.1007/978-3-319-09749-7_11": "R5007",
   "10.1007/978-3-319-09749-7_6": "R4045",
   "10.1007/978-3-319-13186-3_34": "R2790",
   "10.1007/978-3-319-19336-6_8": "R1352",
@@ -275451,6 +278235,7 @@
   "10.1007/s00220-005-1452-0": "R0656",
   "10.1007/s00392-011-0331-2": "R3223",
   "10.1007/s00411-025-01143-1": "R3386",
+  "10.1007/s00421-022-04939-x": "R5020",
   "10.1007/s00445-009-0288-4": "R2953",
   "10.1007/s00542-012-1595-9": "R2717",
   "10.1007/s10143-017-0937-6": "R1178",
@@ -275515,6 +278300,7 @@
   "10.1007/s41116-022-00033-8": "R0825",
   "10.1016/0009-2541(85)90023-3": "R2313",
   "10.1016/0009-2541(86)90053-7": "R1837",
+  "10.1016/0009-2541(94)00140-4": "R5076",
   "10.1016/0009-2614(83)87118-8": "R4269",
   "10.1016/0009-2614(93)87097-m": "R1979",
   "10.1016/0010-2180(93)90121-i": "R4188",
@@ -275602,6 +278388,7 @@
   "10.1016/0022-4073(81)90057-1": "R0384",
   "10.1016/0022-4073(85)90040-8": "R2920",
   "10.1016/0022-4073(89)90077-0": "R3490",
+  "10.1016/0024-3795(80)90167-6": "R5012",
   "10.1016/0027-5107(93)90211-w": "R0481",
   "10.1016/0030-4018(71)90211-2": "R0017",
   "10.1016/0030-4018(73)90289-7": "R0383",
@@ -275767,6 +278554,7 @@
   "10.1016/j.epsl.2022.117894": "R4158",
   "10.1016/j.epsl.2025.119441": "R4754",
   "10.1016/j.fluid.2016.12.014": "R3261",
+  "10.1016/j.freeradbiomed.2011.12.028": "R5014",
   "10.1016/j.gca.2006.06.262": "R4320",
   "10.1016/j.gca.2006.06.482": "R1859",
   "10.1016/j.gca.2006.06.925": "R3367",
@@ -275885,6 +278673,7 @@
   "10.1016/j.icarus.2011.09.007": "R2015",
   "10.1016/j.icarus.2011.09.016": "R1891",
   "10.1016/j.icarus.2011.10.013": "R2710",
+  "10.1016/j.icarus.2011.10.014": "R4986",
   "10.1016/j.icarus.2011.11.018": "R2080",
   "10.1016/j.icarus.2011.12.003": "R1666",
   "10.1016/j.icarus.2011.12.010": "R0833",
@@ -275925,6 +278714,7 @@
   "10.1016/j.icarus.2015.05.004": "R1822",
   "10.1016/j.icarus.2015.06.024": "R3187",
   "10.1016/j.icarus.2015.09.039": "R1144",
+  "10.1016/j.icarus.2015.10.001": "R5070",
   "10.1016/j.icarus.2015.12.031": "R3558",
   "10.1016/j.icarus.2016.01.010": "R0558",
   "10.1016/j.icarus.2016.02.021": "R2829",
@@ -276189,6 +278979,7 @@
   "10.1017/s0074180900183354": "R0899",
   "10.1017/s007418090018550x": "R4688",
   "10.1017/s0074180900193118": "R0069",
+  "10.1017/s0074180900196731": "R4995",
   "10.1017/s007418090020096x": "R4757",
   "10.1017/s0074180900209352": "R1520",
   "10.1017/s0074180900212436": "R1879",
@@ -276211,6 +279002,7 @@
   "10.1017/s1473550416000252": "R1362",
   "10.1017/s1473550418000423": "R0999",
   "10.1017/s1473550419000132": "R0052",
+  "10.1017/s1473550425100025": "R5004",
   "10.1017/s1539299600013289": "R4213",
   "10.1017/s1742058x14000320": "R4195",
   "10.1017/s1743921304002170": "R2911",
@@ -276227,6 +279019,7 @@
   "10.1017/s1743921308027038": "R2806",
   "10.1017/s174392130802841x": "R0793",
   "10.1017/s1743921309031949": "R2230",
+  "10.1017/s1743921309031986": "R4984",
   "10.1017/s1743921310000621": "R0529",
   "10.1017/s1743921310009968": "R2185",
   "10.1017/s1743921311000457": "R1041",
@@ -276399,6 +279192,7 @@
   "10.1029/2006gl025948": "R2005",
   "10.1029/2006gl026284": "R2427",
   "10.1029/2006gl026789": "R3202",
+  "10.1029/2006gl027494": "R5006",
   "10.1029/2006gl028779": "R0727",
   "10.1029/2006je002845": "R4553",
   "10.1029/2006je002882": "R4912",
@@ -276755,6 +279549,7 @@
   "10.1038/nature24625": "R0818",
   "10.1038/nature25029": "R1749",
   "10.1038/ncomms11201": "R2772",
+  "10.1038/ncomms12808": "R5008",
   "10.1038/ncomms13262": "R3900",
   "10.1038/ncomms15423": "R2489",
   "10.1038/news.2011.205": "R4645",
@@ -276813,6 +279608,7 @@
   "10.1038/s41550-022-01702-2": "R4157",
   "10.1038/s41550-022-01823-8": "R2839",
   "10.1038/s41550-022-01835-4": "R3515",
+  "10.1038/s41550-023-02158-8": "R5000",
   "10.1038/s41550-023-02160-0": "R3494",
   "10.1038/s41550-023-02183-7": "R0600",
   "10.1038/s41550-024-02204-z": "R0843",
@@ -277101,6 +279897,7 @@
   "10.1051/0004-6361/202348536": "R0717",
   "10.1051/0004-6361/202348690": "R3200",
   "10.1051/0004-6361/202349088": "R4529",
+  "10.1051/0004-6361/202449292": "R4970",
   "10.1051/0004-6361/202449911": "R3430",
   "10.1051/0004-6361/202450369": "R3151",
   "10.1051/0004-6361/202450531": "R2091",
@@ -277108,6 +279905,7 @@
   "10.1051/0004-6361/202450921": "R0408",
   "10.1051/0004-6361/202450992": "R4489",
   "10.1051/0004-6361/202451531": "R3243",
+  "10.1051/0004-6361/202451548": "R4993",
   "10.1051/0004-6361/202451621": "R0046",
   "10.1051/0004-6361/202451986": "R0761",
   "10.1051/0004-6361/202452442": "R3201",
@@ -277122,6 +279920,7 @@
   "10.1051/0004-6361/202557704": "R4893",
   "10.1051/0004-6361/202557721": "R3596",
   "10.1051/0004-6361/202558636": "R1876",
+  "10.1051/0004-6361/202660688": "R4971",
   "10.1051/0004-6361:20000009": "R3619",
   "10.1051/0004-6361:20000346": "R0429",
   "10.1051/0004-6361:20010090": "R4539",
@@ -277295,6 +280094,7 @@
   "10.1073/pnas.1916109117": "R4399",
   "10.1073/pnas.2006177117": "R2379",
   "10.1073/pnas.2425520122": "R0043",
+  "10.1073/pnas.252649199": "R5013",
   "10.1073/pnas.71.9.3363": "R4035",
   "10.1073/pnas.77.12.6973": "R3157",
   "10.1073/pnas.96.7.3455": "R3309",
@@ -277346,6 +280146,7 @@
   "10.1086/160871": "R1941",
   "10.1086/160960": "R1222",
   "10.1086/161131": "R3066",
+  "10.1086/161159": "R5077",
   "10.1086/161332": "R4040",
   "10.1086/161495": "R4189",
   "10.1086/161872": "R1368",
@@ -277444,6 +280245,7 @@
   "10.1086/344684": "R0641",
   "10.1086/345412": "R0609",
   "10.1086/346127": "R1530",
+  "10.1086/367828": "R5068",
   "10.1086/374331": "R4249",
   "10.1086/374879": "R0705",
   "10.1086/375461": "R3263",
@@ -277468,6 +280270,7 @@
   "10.1086/424372": "R1346",
   "10.1086/424937": "R0956",
   "10.1086/425251": "R4337",
+  "10.1086/425738": "R5072",
   "10.1086/426329": "R4053",
   "10.1086/427082": "R3023",
   "10.1086/427977": "R3753",
@@ -277476,6 +280279,7 @@
   "10.1086/428488": "R2850",
   "10.1086/429527": "R1324",
   "10.1086/429799": "R4340",
+  "10.1086/429936": "R4996",
   "10.1086/430056": "R0590",
   "10.1086/430512": "R0423",
   "10.1086/430513": "R3540",
@@ -277486,6 +280290,7 @@
   "10.1086/444620": "R4031",
   "10.1086/468179": "R3185",
   "10.1086/491472": "R4435",
+  "10.1086/496914": "R4997",
   "10.1086/497030": "R3061",
   "10.1086/497092": "R2193",
   "10.1086/497422": "R0582",
@@ -277560,6 +280365,7 @@
   "10.1086/589283": "R0213",
   "10.1086/589500": "R4801",
   "10.1086/589653": "R3894",
+  "10.1086/589960": "R4982",
   "10.1086/590142": "R0214",
   "10.1086/590227": "R0747",
   "10.1086/590552": "R1497",
@@ -277588,6 +280394,7 @@
   "10.1088/0004-6256/136/6/2782": "R2651",
   "10.1088/0004-6256/136/6/2846": "R0392",
   "10.1088/0004-6256/137/5/4424": "R4298",
+  "10.1088/0004-6256/137/5/4478": "R4985",
   "10.1088/0004-6256/137/6/4744": "R2652",
   "10.1088/0004-6256/137/6/5134": "R3857",
   "10.1088/0004-6256/138/5/1243": "R1826",
@@ -277695,6 +280502,7 @@
   "10.1088/0004-637x/752/2/97": "R4825",
   "10.1088/0004-637x/753/2/138": "R3642",
   "10.1088/0004-637x/753/2/160": "R4779",
+  "10.1088/0004-637x/754/1/44": "R5069",
   "10.1088/0004-637x/754/2/124": "R4848",
   "10.1088/0004-637x/755/1/41": "R3945",
   "10.1088/0004-637x/756/2/172": "R3165",
@@ -277722,6 +280530,7 @@
   "10.1088/0004-637x/765/2/120": "R4707",
   "10.1088/0004-637x/765/2/131": "R2446",
   "10.1088/0004-637x/766/2/106": "R3129",
+  "10.1088/0004-637x/766/2/136": "R4980",
   "10.1088/0004-637x/766/2/81": "R1459",
   "10.1088/0004-637x/768/1/45": "R3266",
   "10.1088/0004-637x/769/1/6": "R2027",
@@ -277755,6 +280564,7 @@
   "10.1088/0004-637x/782/1/7": "R1071",
   "10.1088/0004-637x/782/2/100": "R1439",
   "10.1088/0004-637x/783/1/7": "R0854",
+  "10.1088/0004-637x/783/2/130": "R5073",
   "10.1088/0004-637x/784/1/22": "R3264",
   "10.1088/0004-637x/784/1/63": "R2025",
   "10.1088/0004-637x/785/1/28": "R2405",
@@ -277794,6 +280604,7 @@
   "10.1088/0004-637x/806/1/36": "R1830",
   "10.1088/0004-637x/806/1/96": "R2680",
   "10.1088/0004-637x/806/2/183": "R4746",
+  "10.1088/0004-637x/806/2/249": "R4973",
   "10.1088/0004-637x/806/2/267": "R4908",
   "10.1088/0004-637x/807/2/181": "R0892",
   "10.1088/0004-637x/808/2/132": "R1856",
@@ -277831,6 +280642,7 @@
   "10.1088/0067-0049/219/1/3": "R3212",
   "10.1088/0067-0049/221/2/26": "R0108",
   "10.1088/0264-9381/11/5/001": "R0063",
+  "10.1088/0264-9381/31/24/244006": "R4977",
   "10.1088/0264-9381/31/24/244007": "R3967",
   "10.1088/0953-4075/31/5/003": "R0543",
   "10.1088/0954-3899/41/6/063101": "R3686",
@@ -277851,6 +280663,7 @@
   "10.1088/1674-1137/abddae": "R2443",
   "10.1088/1674-4527/10/9/006": "R3036",
   "10.1088/1674-=": "R0796",
+  "10.1088/1742-6596/131/1/012044": "R4983",
   "10.1088/1751-8121/aa7953": "R1098",
   "10.1088/2041-8205/710/2/l156": "R3851",
   "10.1088/2041-8205/712/1/l73": "R2866",
@@ -277939,6 +280752,7 @@
   "10.1089/ast.2006.0108": "R2344",
   "10.1089/ast.2006.0124": "R4308",
   "10.1089/ast.2006.0127": "R2339",
+  "10.1089/ast.2006.0128": "R5015",
   "10.1089/ast.2006.0129": "R1680",
   "10.1089/ast.2006.6.377": "R3366",
   "10.1089/ast.2007.0128": "R3799",
@@ -277984,6 +280798,7 @@
   "10.1089/ast.2022.0070": "R2000",
   "10.1089/ast.2023.0082": "R3989",
   "10.1089/ast.2024.0004": "R0232",
+  "10.1089/ham.2009.10401": "R5003",
   "10.1090/s0025-5718-1966-0234618-4": "R2238",
   "10.1090/s0025-5718-1970-0258249-6": "R1609",
   "10.1090/s0025-5718-1970-0274029-x": "R4038",
@@ -278002,6 +280817,7 @@
   "10.1093/gji/ggaf131": "R2808",
   "10.1093/gji/ggs023": "R0474",
   "10.1093/gji/ggt167": "R1010",
+  "10.1093/imamat/18.3.341": "R5011",
   "10.1093/imamat/6.3.222": "R0557",
   "10.1093/medlaw/fwu036": "R3362",
   "10.1093/mnras/108.3.292": "R4762",
@@ -278043,6 +280859,7 @@
   "10.1093/mnras/267.4.871": "R0649",
   "10.1093/mnras/270.3.523": "R0658",
   "10.1093/mnras/272.1.l35": "R4545",
+  "10.1093/mnras/273.3.731": "R5071",
   "10.1093/mnras/273.4.1097": "R2196",
   "10.1093/mnras/275.1.31": "R2904",
   "10.1093/mnras/276.1.268": "R0001",
@@ -278113,6 +280930,7 @@
   "10.1093/mnras/stab287": "R1768",
   "10.1093/mnras/stab2897": "R3796",
   "10.1093/mnras/stab2969": "R2899",
+  "10.1093/mnras/stab3009": "R4990",
   "10.1093/mnras/stab323": "R1236",
   "10.1093/mnras/stab3624": "R0573",
   "10.1093/mnras/stab370": "R0458",
@@ -278574,6 +281392,7 @@
   "10.1098/rsta.2014.0259": "R4330",
   "10.1098/rsta.2016.0252": "R0435",
   "10.1098/rsta.2019.0474": "R1892",
+  "10.1098/rstb.2024.0101": "R5017",
   "10.1101/cshperspect.a012765": "R2487",
   "10.1101/gr.7.10.959": "R1807",
   "10.1103/physrev.148.526": "R2044",
@@ -278757,6 +281576,7 @@
   "10.1109/tro.2010.2052170": "R2387",
   "10.1109/tvcg.2004.1": "R4513",
   "10.1111/1462-2920.12018": "R0915",
+  "10.1111/1462-2920.12598": "R5001",
   "10.1111/1468-0289.12076_34": "R3254",
   "10.1111/bre.12066": "R4531",
   "10.1111/cgf.13202": "R0207",
@@ -279076,6 +281896,7 @@
   "10.1126/science.1104474": "R2645",
   "10.1126/science.1105533": "R2254",
   "10.1126/science.1127173": "R4055",
+  "10.1126/science.1127376": "R5009",
   "10.1126/science.1152110": "R0505",
   "10.1126/science.11538074": "R0798",
   "10.1126/science.11538492": "R2999",
@@ -279086,6 +281907,7 @@
   "10.1126/science.1172466": "R1878",
   "10.1126/science.1187535": "R2655",
   "10.1126/science.1189406": "R4104",
+  "10.1126/science.1190371": "R5018",
   "10.1126/science.1191127": "R0760",
   "10.1126/science.1192448": "R1375",
   "10.1126/science.1204054": "R0047",
@@ -279275,6 +282097,7 @@
   "10.1161/01.res.0000038114.17939.c8": "R2422",
   "10.1161/01.res.0000107195.13573.e4": "R2421",
   "10.1163/9789047416050_011": "R4756",
+  "10.1167/jov.24.2.13": "R5064",
   "10.1175/1520-0450(1969)008<0392:agcmbo>2.0.co;2": "R4008",
   "10.1175/1520-0469(1967)024<0241:teotaw>2.0.co;2": "R2848",
   "10.1175/1520-0469(1969)026<1191:trgaho>2.0.co;2": "R2085",
@@ -279286,6 +282109,7 @@
   "10.1175/1520-0469(1980)037<0630:tsatrt>2.0.co;2": "R3013",
   "10.1175/1520-0469(1992)049<2256:asotge>2.0.co;2": "R3236",
   "10.1175/jamc-d-11-0143.1": "R4246",
+  "10.1177/0146645320911864": "R4979",
   "10.1177/1028315306286930": "R2052",
   "10.1186/1741-7007-8-30": "R0992",
   "10.1186/1759-2208-3-2": "R4287",
@@ -279295,6 +282119,7 @@
   "10.1186/s40668-019-0028-x": "R3258",
   "10.1192/j.eurpsy.2021.1611": "R2206",
   "10.1201/9781420033304.pt2": "R0005",
+  "10.1201/9781420056884": "R4976",
   "10.1201/b12356-6": "R4315",
   "10.1209/0295-5075/97/34008": "R0244",
   "10.1210/jendso/bvab048.1760": "R1114",
@@ -279328,6 +282153,7 @@
   "10.1364/ao.34.002765": "R0575",
   "10.1364/ao.38.003423": "R3245",
   "10.1364/ao.53.001808": "R1225",
+  "10.1364/aop.5.000456": "R5066",
   "10.1364/fts.1999.fwe21": "R1686",
   "10.1364/josa.28.000027": "R2305",
   "10.1364/josa.43.000113": "R2047",
@@ -279339,6 +282165,7 @@
   "10.1364/oam.1985.wy5": "R3635",
   "10.1364/ol.24.001699": "R1685",
   "10.1364/ol.25.000347": "R3246",
+  "10.1371/journal.pbio.0050092": "R5005",
   "10.1371/journal.pone.0000457": "R0973",
   "10.1371/journal.pone.0064793": "R2003",
   "10.1371/journal.pone.0074988": "R0952",
@@ -279428,7 +282255,9 @@
   "10.33232/001c.116675": "R1239",
   "10.33232/001c.121261": "R1237",
   "10.33232/001c.144859": "R3400",
+  "10.3357/asem.3468.2013": "R5002",
   "10.3357/asem.3485.2014": "R1808",
+  "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
   "10.3389/feart.2023.1197363": "R2089",
   "10.3389/fmicb.2017.01212": "R4346",
@@ -279436,6 +282265,7 @@
   "10.3389/fmicb.2019.00780": "R3040",
   "10.3389/fmicb.2020.01284": "R4576",
   "10.3389/frvir.2020.587698": "R3419",
+  "10.3390/app10207357": "R5067",
   "10.3390/biology10100970": "R3755",
   "10.3390/galaxies12040039": "R2525",
   "10.3390/ijms24119321": "R4015",
@@ -279445,8 +282275,10 @@
   "10.3390/ma18061211": "R0083",
   "10.3390/polym15102312": "R4235",
   "10.3390/rs15030702": "R4753",
+  "10.3390/s21124006": "R5065",
   "10.3390/sym16081007": "R3643",
   "10.3390/universe8070381": "R0430",
+  "10.3390/w3010235": "R5016",
   "10.3410/f.1001090.17080": "R2555",
   "10.3410/f.1001739.17081": "R2554",
   "10.3410/f.1005203.60957": "R3949",
@@ -279510,6 +282342,7 @@
   "10.3847/0004-637x/832/1/38": "R1650",
   "10.3847/0004-637x/832/2/122": "R2902",
   "10.3847/0067-0049/222/1/8": "R1150",
+  "10.3847/0067-0049/225/2/32": "R4978",
   "10.3847/1538-3881/aa5c8a": "R1274",
   "10.3847/1538-3881/aa6af6": "R2596",
   "10.3847/1538-3881/aa6faf": "R2523",
@@ -279555,6 +282388,7 @@
   "10.3847/1538-3881/abba18": "R1869",
   "10.3847/1538-3881/abc418": "R0572",
   "10.3847/1538-3881/abcd3c": "R3516",
+  "10.3847/1538-3881/abddb5": "R4989",
   "10.3847/1538-3881/abe38b": "R2786",
   "10.3847/1538-3881/abf561": "R2357",
   "10.3847/1538-3881/abfdb7": "R2708",
@@ -279696,6 +282530,7 @@
   "10.3847/1538-4357/abb36f": "R2706",
   "10.3847/1538-4357/abbf58": "R0968",
   "10.3847/1538-4357/abc074": "R4103",
+  "10.3847/1538-4357/abc8f5": "R4988",
   "10.3847/1538-4357/abcc04": "R1914",
   "10.3847/1538-4357/abd0f0": "R2756",
   "10.3847/1538-4357/abd62f": "R4363",
@@ -279787,6 +282622,7 @@
   "10.3847/2041-8213/aaab57": "R0836",
   "10.3847/2041-8213/aaae67": "R1124",
   "10.3847/2041-8213/aab272": "R0134",
+  "10.3847/2041-8213/aab2af": "R4987",
   "10.3847/2041-8213/aab42b": "R1865",
   "10.3847/2041-8213/aac171": "R3358",
   "10.3847/2041-8213/aacaf3": "R2014",
@@ -279888,6 +282724,7 @@
   "10.5194/bg-4-545-2007": "R0996",
   "10.5194/cpd-10-2011-2014": "R0620",
   "10.5194/egusphere-egu22-11313": "R4153",
+  "10.5194/epsc2022-506": "R5075",
   "10.5194/epsc2024-501": "R3750",
   "10.5194/essd-5-365-2013": "R2303",
   "10.5194/esurf-9-379-2021": "R3474",
@@ -279920,6 +282757,7 @@
   "10.7185/gold2023.18983": "R2693",
   "10.7202/1037041ar": "R3434",
   "10.7326/0003-4819-158-2-201301150-02005": "R3118",
+  "10.7488/ds/7723": "R4972",
   "10.7554/elife.47682": "R0751",
   "10.7566/jpsj.87.064402": "R4036",
   "10.9734/bpi/castr/v13/2522f": "R2205",
@@ -279977,6 +282815,7 @@
   "arxiv:0710.5466": "R3033",
   "arxiv:0710.5523": "R3818",
   "arxiv:0712.0553": "R2654",
+  "arxiv:0712.0612": "R4982",
   "arxiv:0712.1563": "R1574",
   "arxiv:0712.1590": "R4668",
   "arxiv:0712.3555": "R4338",
@@ -280011,12 +282850,14 @@
   "arxiv:0809.0898": "R4181",
   "arxiv:0809.2603": "R1149",
   "arxiv:0809.3006": "R3971",
+  "arxiv:0810.0204": "R4983",
   "arxiv:0810.1953": "R1485",
   "arxiv:0810.2541": "R0392",
   "arxiv:0810.2556": "R2651",
   "arxiv:0811.0175": "R2632",
   "arxiv:0811.4611": "R0919",
   "arxiv:0812.0505": "R0526",
+  "arxiv:0812.1223": "R4984",
   "arxiv:0812.3093": "R3629",
   "arxiv:0812.3126": "R1705",
   "arxiv:0812.3405": "R0090",
@@ -280030,6 +282871,7 @@
   "arxiv:0902.3995": "R4172",
   "arxiv:0903.0183": "R4298",
   "arxiv:0903.1855": "R4565",
+  "arxiv:0903.3040": "R4985",
   "arxiv:0903.3554": "R4013",
   "arxiv:0903.4206": "R2821",
   "arxiv:0903.4479": "R3857",
@@ -280118,6 +282960,7 @@
   "arxiv:1011.5655": "R4456",
   "arxiv:1012.3220": "R0335",
   "arxiv:1012.3224": "R1828",
+  "arxiv:1101.0691": "R4986",
   "arxiv:1101.3561": "R4042",
   "arxiv:1101.4228": "R4139",
   "arxiv:1102.0063": "R3177",
@@ -280131,6 +282974,7 @@
   "arxiv:1104.2131": "R0887",
   "arxiv:1104.4501": "R2646",
   "arxiv:1104.5394": "R2018",
+  "arxiv:1104.5445": "R3402",
   "arxiv:1105.0024": "R3077",
   "arxiv:1105.3936": "R1214",
   "arxiv:1106.3564": "R0909",
@@ -280149,6 +282993,7 @@
   "arxiv:1109.0996": "R1143",
   "arxiv:1109.4096": "R2931",
   "arxiv:1109.4330": "R1532",
+  "arxiv:1109.4588": "R4999",
   "arxiv:1109.4634": "R4780",
   "arxiv:1110.1282": "R3226",
   "arxiv:1110.1726": "R1466",
@@ -280180,6 +283025,7 @@
   "arxiv:1202.5581": "R1547",
   "arxiv:1203.2621": "R3089",
   "arxiv:1203.2626": "R2630",
+  "arxiv:1203.3439": "R5080",
   "arxiv:1203.4286": "R2572",
   "arxiv:1203.4336": "R0666",
   "arxiv:1204.0275": "R4920",
@@ -280233,6 +283079,7 @@
   "arxiv:1301.4521": "R4707",
   "arxiv:1301.6674": "R2446",
   "arxiv:1302.2147": "R3487",
+  "arxiv:1302.2549": "R4980",
   "arxiv:1302.6603": "R2027",
   "arxiv:1302.6981": "R3787",
   "arxiv:1302.7140": "R1010",
@@ -280506,6 +283353,7 @@
   "arxiv:1607.03906": "R3946",
   "arxiv:1607.04654": "R2595",
   "arxiv:1608.00784": "R3984",
+  "arxiv:1608.00971": "R3009",
   "arxiv:1608.01435": "R2679",
   "arxiv:1608.03064": "R3692",
   "arxiv:1608.03621": "R3444",
@@ -280648,6 +283496,8 @@
   "arxiv:1802.02576": "R0309",
   "arxiv:1802.03664": "R1947",
   "arxiv:1802.06241": "R1512",
+  "arxiv:1802.08868": "R3633",
+  "arxiv:1802.09453": "R4987",
   "arxiv:1802.09526": "R4898",
   "arxiv:1802.10223": "R2724",
   "arxiv:1803.00072": "R4081",
@@ -280905,6 +283755,7 @@
   "arxiv:2010.12922": "R2285",
   "arxiv:2010.14305": "R4549",
   "arxiv:2010.14812": "R0572",
+  "arxiv:2011.02117": "R4988",
   "arxiv:2011.04791": "R3293",
   "arxiv:2011.08075": "R0126",
   "arxiv:2011.08893": "R3978",
@@ -280917,6 +283768,7 @@
   "arxiv:2012.07337": "R0736",
   "arxiv:2012.11477": "R1081",
   "arxiv:2101.01225": "R1985",
+  "arxiv:2101.03433": "R4989",
   "arxiv:2101.04211": "R1055",
   "arxiv:2101.04478": "R0860",
   "arxiv:2101.05282": "R1236",
@@ -280968,6 +283820,7 @@
   "arxiv:2109.09766": "R2294",
   "arxiv:2109.10362": "R2078",
   "arxiv:2110.02971": "R3194",
+  "arxiv:2110.07601": "R4990",
   "arxiv:2110.07934": "R0415",
   "arxiv:2110.08029": "R0501",
   "arxiv:2110.11702": "R4102",
@@ -281173,6 +284026,7 @@
   "arxiv:2411.17076": "R0761",
   "arxiv:2412.03652": "R0104",
   "arxiv:2412.05220": "R0094",
+  "arxiv:2412.07089": "R4991",
   "arxiv:2412.11627": "R1176",
   "arxiv:2501.06613": "R4493",
   "arxiv:2501.07869": "R1064",
@@ -281188,10 +284042,12 @@
   "arxiv:2503.02451": "R0978",
   "arxiv:2503.08286": "R3637",
   "arxiv:2503.08347": "R2195",
+  "arxiv:2503.11597": "R4992",
   "arxiv:2503.17772": "R3702",
   "arxiv:2503.21936": "R4551",
   "arxiv:2503.23856": "R2845",
   "arxiv:2504.01182": "R3445",
+  "arxiv:2504.02090": "R4993",
   "arxiv:2504.19872": "R2162",
   "arxiv:2504.20428": "R0051",
   "arxiv:2505.02641": "R2986",
@@ -281200,6 +284056,7 @@
   "arxiv:2505.13407": "R2775",
   "arxiv:2505.21358": "R2673",
   "arxiv:2505.23915": "R2683",
+  "arxiv:2506.01106": "R4994",
   "arxiv:2506.02487": "R2522",
   "arxiv:2506.18718": "R2857",
   "arxiv:2506.20937": "R1598",
@@ -281242,6 +284099,7 @@
   "arxiv:2512.09785": "R1718",
   "arxiv:2512.22685": "R1056",
   "arxiv:2601.00650": "R3422",
+  "arxiv:2601.16159": "R4981",
   "arxiv:2601.22034": "R0336",
   "arxiv:2602.11923": "R0715",
   "arxiv:2602.12017": "R2575",
@@ -281301,11 +284159,14 @@
   "arxiv:astro-ph/0208422": "R3478",
   "arxiv:astro-ph/0210086": "R0609",
   "arxiv:astro-ph/0210501": "R4201",
+  "arxiv:astro-ph/0211361": "R1530",
   "arxiv:astro-ph/0301527": "R4048",
   "arxiv:astro-ph/0301540": "R2530",
+  "arxiv:astro-ph/0303456": "R5079",
   "arxiv:astro-ph/0308388": "R1270",
   "arxiv:astro-ph/0308467": "R0362",
   "arxiv:astro-ph/0310667": "R4694",
+  "arxiv:astro-ph/0311162": "R4995",
   "arxiv:astro-ph/0312232": "R4216",
   "arxiv:astro-ph/0401024": "R2702",
   "arxiv:astro-ph/0402475": "R1621",
@@ -281324,12 +284185,14 @@
   "arxiv:astro-ph/0411453": "R0563",
   "arxiv:astro-ph/0412253": "R3753",
   "arxiv:astro-ph/0412641": "R2850",
+  "arxiv:astro-ph/0502420": "R4996",
   "arxiv:astro-ph/0503176": "R1654",
   "arxiv:astro-ph/0503346": "R2915",
   "arxiv:astro-ph/0503488": "R0423",
   "arxiv:astro-ph/0503649": "R3540",
   "arxiv:astro-ph/0505216": "R1289",
   "arxiv:astro-ph/0505439": "R1844",
+  "arxiv:astro-ph/0505472": "R4997",
   "arxiv:astro-ph/0505558": "R2542",
   "arxiv:astro-ph/0506008": "R0749",
   "arxiv:astro-ph/0506357": "R1563",
@@ -281367,6 +284230,7 @@
   "arxiv:astro-ph/0612757": "R4184",
   "arxiv:astro-ph/0701748": "R3239",
   "arxiv:astro-ph/0701877": "R0465",
+  "arxiv:astro-ph/0702257": "R4998",
   "arxiv:astro-ph/0702302": "R1564",
   "arxiv:astro-ph/0702496": "R2194",
   "arxiv:astro-ph/0702622": "R1680",
@@ -281392,6 +284256,7 @@
   "arxiv:astro-ph/9904017": "R1908",
   "arxiv:astro-ph/9906303": "R2620",
   "arxiv:astro-ph/9907411": "R3141",
+  "arxiv:astro-ph/9909147": "R5078",
   "manual:bennett-rostain-pair-2003": "R0343",
   "manual:binney-tremaine-pair-2008": "R0399",
   "manual:burke-catanzarite-pair-2017": "R0594",
@@ -281408,7 +284273,50 @@
   "setup:https://warwick.ac.uk/": "R4961",
   "setup:https://www.pas.rochester.edu/": "R4969",
   "setup:https://wwwuser.oats.inaf.it/": "R4968",
-  "setup:https://zenodo.org/": "R4962"
+  "setup:https://zenodo.org/": "R4962",
+  "web:http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html": "R5055",
+  "web:http://endavid.com/index.php?entry=76": "R5047",
+  "web:https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/": "R5036",
+  "web:https://alextardif.com/taa.html": "R5061",
+  "web:https://bartwronski.com/page/3/": "R5063",
+  "web:https://beltoforion.de/en/dithering/": "R5039",
+  "web:https://castle-engine.io/occlusion_culling": "R5040",
+  "web:https://catlikecoding.com/unity/tutorials/custom-srp/particles/": "R5041",
+  "web:https://cesium.com/blog/2022/10/20/smoother-lod-transitions-in-cesium-for-unreal/": "R5042",
+  "web:https://danieru.com/2018/07/04/dither-based-transparency-in-unreal-engines-material-editor/": "R5037",
+  "web:https://dev.epicgames.com/documentation/unreal-engine/stylized-rendering-materials?application_version=4.27": "R5048",
+  "web:https://dev.epicgames.com/documentation/unreal-engine/utility-expressions?application_version=4.27": "R5049",
+  "web:https://developers.meta.com/vr/blog/tech-note-shader-snippets-for-efficient-2d-dithering/": "R5056",
+  "web:https://digitalrune.github.io/digitalrune-documentation/html/fa431d48-b457-4c70-a590-d44b0840ab1e.htm": "R5045",
+  "web:https://docs.celeryq.dev/": "R5030",
+  "web:https://docs.ogc.org/cs/22-025r4/22-025r4.html": "R5031",
+  "web:https://docs.python.org/3/library/concurrent.futures.html": "R5032",
+  "web:https://docs.unity3d.com/packages/com.unity.visualeffectgraph@10.3/manual/block-camerafade.html": "R5062",
+  "web:https://elib.dlr.de/203153/1/final.pdf": "R5046",
+  "web:https://hedgedocs.com/index.php/transparency_dithering": "R5050",
+  "web:https://interplayoflight.wordpress.com/2022/07/10/order-independent-transparency-endgame/": "R5052",
+  "web:https://learnopengl.com/guest-articles/2020/oit/weighted-blended": "R5053",
+  "web:https://learnopengl.com/guest-articles/2021/scene/frustum-culling": "R5054",
+  "web:https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/": "R5058",
+  "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
+  "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
+  "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
+  "web:https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/": "R5059",
+  "web:https://shoelace.style/": "R5033",
+  "web:https://tanstack.com/table/": "R5034",
+  "web:https://therealmjp.github.io/posts/weighted-blended-oit/": "R5057",
+  "web:https://www.cdc.gov/niosh/docs/2005-100/": "R5025",
+  "web:https://www.cdc.gov/niosh/docs/2016-106/": "R5026",
+  "web:https://www.cryengine.com/docs/static/engines/cryengine-3/categories/1638401/pages/1605709": "R5043",
+  "web:https://www.cyanilux.com/tutorials/depth/": "R5044",
+  "web:https://www.ecfr.gov/current/title-29/section-1910.120": "R5022",
+  "web:https://www.ecfr.gov/current/title-29/section-1910.134": "R5021",
+  "web:https://www.henry-vfx.com/blog/math-dot-product": "R5051",
+  "web:https://www.nfpa.org/codes-and-standards/nfpa-1981-standard-development/1981": "R5024",
+  "web:https://www.nfpa.org/codes-and-standards/nfpa-1991-standard-development/1991": "R5023",
+  "web:https://www.seeles.ai/resources/blogs/unreal-engine-dither-temporal-aa-lod-fade-guide": "R5060",
+  "web:https://xtermjs.org/": "R5035",
+  "web:https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/": "R5038"
  },
  "setup_datasets": [
   {
@@ -281508,5 +284416,394 @@
   "10.1177/anib_37_2-4": "DOI not found at Crossref or DataCite",
   "10.3847/1538-4357/ace1f8": "DOI not found at Crossref or DataCite",
   "10.7185/geochemlet.1512": "DOI not found at Crossref or DataCite"
- }
+ },
+ "web_sources": [
+  {
+   "checked": "2026-11-01",
+   "identifier": "29 CFR 1910.134",
+   "kind": "regulation",
+   "name": "Respiratory protection",
+   "provider": "Occupational Safety and Health Administration",
+   "url": "https://www.ecfr.gov/current/title-29/section-1910.134",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "29 CFR 1910.120",
+   "kind": "regulation",
+   "name": "Hazardous waste operations and emergency response",
+   "provider": "Occupational Safety and Health Administration",
+   "url": "https://www.ecfr.gov/current/title-29/section-1910.120",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NFPA 1991",
+   "kind": "standard",
+   "name": "Standard on vapor-protective ensembles for hazardous materials emergencies and CBRN terrorism incidents",
+   "provider": "National Fire Protection Association",
+   "url": "https://www.nfpa.org/codes-and-standards/nfpa-1991-standard-development/1991",
+   "year": "2018"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NFPA 1981",
+   "kind": "standard",
+   "name": "Standard on open-circuit self-contained breathing apparatus (SCBA) for emergency services",
+   "provider": "National Fire Protection Association",
+   "url": "https://www.nfpa.org/codes-and-standards/nfpa-1981-standard-development/1981",
+   "year": "2013"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "DHHS (NIOSH) Publication No. 2005-100",
+   "kind": "government report",
+   "name": "NIOSH respirator selection logic",
+   "provider": "National Institute for Occupational Safety and Health",
+   "url": "https://www.cdc.gov/niosh/docs/2005-100/",
+   "year": "2004"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "DHHS (NIOSH) Publication No. 2016-106",
+   "kind": "government report",
+   "name": "Criteria for a recommended standard: occupational exposure to heat and hot environments",
+   "provider": "National Institute for Occupational Safety and Health",
+   "url": "https://www.cdc.gov/niosh/docs/2016-106/",
+   "year": "2016"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NASA-STD-3001 Vol. 2",
+   "kind": "standard",
+   "name": "NASA-STD-3001 Volume 2, Revision E, NASA spaceflight human-system standard: human factors, habitability, and environmental health",
+   "provider": "National Aeronautics and Space Administration",
+   "url": "https://ntrs.nasa.gov/citations/20250004555",
+   "year": "2025"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NTRS 20260005907",
+   "kind": "government report",
+   "name": "Martian dust exposure limits: permissible exposure limits, toxicological risks, and health standards for Martian dust as discussed by the Mars Dust Working Group",
+   "provider": "National Aeronautics and Space Administration",
+   "url": "https://ntrs.nasa.gov/citations/20260005907",
+   "year": "2026"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NASA/TP-2015-218570",
+   "kind": "government report",
+   "name": "Life support baseline values and assumptions document",
+   "provider": "National Aeronautics and Space Administration",
+   "url": "https://ntrs.nasa.gov/citations/20150002905",
+   "year": "2015"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Celery: distributed task queue",
+   "provider": "Celery Project",
+   "url": "https://docs.celeryq.dev/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "OGC 22-025r4",
+   "kind": "standard",
+   "name": "3D Tiles specification, version 1.1",
+   "provider": "Open Geospatial Consortium",
+   "url": "https://docs.ogc.org/cs/22-025r4/22-025r4.html",
+   "year": "2023"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "concurrent.futures: managing pools of concurrent tasks",
+   "provider": "Python Software Foundation",
+   "url": "https://docs.python.org/3/library/concurrent.futures.html",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Shoelace: web components for building modern web applications",
+   "provider": "Shoelace",
+   "url": "https://shoelace.style/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "TanStack Table: headless UI for building powerful tables and datagrids",
+   "provider": "TanStack",
+   "url": "https://tanstack.com/table/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Xterm.js: a terminal for the web",
+   "provider": "Xterm.js",
+   "url": "https://xtermjs.org/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "The art and science of dithering",
+   "provider": "Albumentations",
+   "url": "https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/",
+   "year": "2025"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Dither based transparency in Unreal Engine's material editor",
+   "provider": "Barakat, Z",
+   "url": "https://danieru.com/2018/07/04/dither-based-transparency-in-unreal-engines-material-editor/",
+   "year": "2018"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Temporal anti-aliasing step by step",
+   "provider": "Barakat, Z",
+   "url": "https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/",
+   "year": "2020"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Dithering",
+   "provider": "Beltoforion",
+   "url": "https://beltoforion.de/en/dithering/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Occlusion culling",
+   "provider": "Castle Game Engine",
+   "url": "https://castle-engine.io/occlusion_culling",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Custom SRP Particles",
+   "provider": "Catlike Coding",
+   "url": "https://catlikecoding.com/unity/tutorials/custom-srp/particles/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Smoother LOD transitions in Cesium for Unreal",
+   "provider": "Cesium",
+   "url": "https://cesium.com/blog/2022/10/20/smoother-lod-transitions-in-cesium-for-unreal/",
+   "year": "2022"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Culling explained",
+   "provider": "Crytek",
+   "url": "https://www.cryengine.com/docs/static/engines/cryengine-3/categories/1638401/pages/1605709",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Depth",
+   "provider": "Cyanilux",
+   "url": "https://www.cyanilux.com/tutorials/depth/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Screen-door transparency",
+   "provider": "DigitalRune",
+   "url": "https://digitalrune.github.io/DigitalRune-Documentation/html/fa431d48-b457-4c70-a590-d44b0840ab1e.htm",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Causes of cybersickness",
+   "provider": "DLR",
+   "url": "https://elib.dlr.de/203153/1/final.pdf",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "New weight function for weighted-blended order independent transparency",
+   "provider": "EnDavid",
+   "url": "http://endavid.com/index.php?entry=76",
+   "year": "2017"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Stylized rendering materials",
+   "provider": "Epic Games",
+   "url": "https://dev.epicgames.com/documentation/unreal-engine/stylized-rendering-materials?application_version=4.27",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Utility expressions",
+   "provider": "Epic Games",
+   "url": "https://dev.epicgames.com/documentation/unreal-engine/utility-expressions?application_version=4.27",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Transparency dithering",
+   "provider": "HedgeDocs",
+   "url": "https://hedgedocs.com/index.php/Transparency_Dithering",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Math: Dot product",
+   "provider": "Henry VFX",
+   "url": "https://www.henry-vfx.com/blog/math-dot-product",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Order independent transparency: Endgame",
+   "provider": "Interplay of Light",
+   "url": "https://interplayoflight.wordpress.com/2022/07/10/order-independent-transparency-endgame/",
+   "year": "2022"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Weighted Blended OIT",
+   "provider": "LearnOpenGL",
+   "url": "https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended",
+   "year": "2020"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Frustum Culling",
+   "provider": "LearnOpenGL",
+   "url": "https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling",
+   "year": "2021"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Implementing weighted, blended OIT",
+   "provider": "McGuire, M",
+   "url": "http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html",
+   "year": "2014"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Tech note: Shader snippets for efficient 2D dithering",
+   "provider": "Meta Developers",
+   "url": "https://developers.meta.com/vr/blog/tech-note-shader-snippets-for-efficient-2d-dithering/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Weighted blended OIT",
+   "provider": "MJP",
+   "url": "https://therealmjp.github.io/posts/weighted-blended-oit/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Third-person camera systems: How it works",
+   "provider": "Moonjump",
+   "url": "https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Triplanar dither biplanar",
+   "provider": "RyanDowlingSoka",
+   "url": "https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Unreal Engine DitherTemporalAA LOD fade guide",
+   "provider": "Seeles.ai",
+   "url": "https://www.seeles.ai/resources/blogs/unreal-engine-dither-temporal-aa-lod-fade-guide",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Temporal anti-aliasing",
+   "provider": "Tardif, A",
+   "url": "https://alextardif.com/TAA.html",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Camera fade block",
+   "provider": "Unity Technologies",
+   "url": "https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@10.3/manual/Block-CameraFade.html",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Part three – dithering in quantization of 2D images",
+   "provider": "Wronski, B",
+   "url": "https://bartwronski.com/page/3/",
+   "year": ""
+  }
+ ]
 }

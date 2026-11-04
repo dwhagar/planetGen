@@ -23,7 +23,7 @@ def _earth_torques(k2_over_q):
 
 
 def test_the_moon_recedes_at_the_rate_lunar_laser_ranging_measures():
-    """3.82 cm a year (Dickey et al. 1994, recalled): the Earth's effective k2/Q of 0.025 and the standard 3/2 torque give it to 10 percent."""
+    """3.82 cm a year ([R1107], recalled): the Earth's effective k2/Q of 0.025 and the standard 3/2 torque give it to 10 percent."""
     rate = moon_orbits.drift_rate_m_s(_earth_torques(0.025), EARTH_SPIN, EARTH.mass_kg, MOON)
     assert rate * YEAR == pytest.approx(0.0382, rel=0.1)
     assert rate > 0.0
@@ -66,7 +66,7 @@ def test_the_heat_in_the_planet_is_the_work_the_tide_does():
 
 
 def test_phobos_spirals_in_at_a_rate_of_the_order_measured():
-    """Phobos: Mars turns slower than Phobos goes round, so it falls, about 1.8 cm a year (Bills et al. 2005, recalled; Q of 88 and k2 of 0.14)."""
+    """Phobos: Mars turns slower than Phobos goes round, so it falls, about 1.8 cm a year ([R0394], recalled; Q of 88 and k2 of 0.14)."""
     mars = spin_torques.Planet(6.417e23, 3.3895e6)
     phobos = moon_orbits.Moon(1.066e16, 9.376e6, 1876.0)
     torques = spin_torques.Torques(mars, (), spin_torques.constant_dissipation(0.14, 88.0), None, 1.5, moon_orbits.COROTATION_SOFTNESS)

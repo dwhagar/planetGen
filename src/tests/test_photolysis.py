@@ -140,7 +140,7 @@ def test_a_species_with_no_read_cross_section_refuses_rather_than_assume_one():
 
 
 def test_the_methane_the_sun_can_break_over_the_earths_area_is_within_the_range_of_the_anoxic_methane_fluxes():
-    """Tens of Tmol a year: the same order as the 9 to 67 Tmol a year that Kharecha et al. (2005) give for the anoxic Earth's methane (which is a net flux,
+    """Tens of Tmol a year: the same order as the 9 to 67 Tmol a year that [R2336] give for the anoxic Earth's methane (which is a net flux,
     the products recombining, so the gross loss is the larger)."""
     tmol_per_year = photolysis.photon_limited_flux_mol_m2_s("CH4") * EARTH_AREA_M2 * SECONDS_PER_YEAR / 1.0e12
     assert 30.0 < tmol_per_year < 150.0

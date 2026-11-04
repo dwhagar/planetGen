@@ -1,7 +1,7 @@
 # planetgen/physics/cluster_maximum_mass.py
 
 """
-The most massive cluster a ring of gas can form (GEN.1195; Reina-Campos and Kruijssen 2017, MNRAS 469, 1282, arXiv:1704.00732).
+The most massive cluster a ring of gas can form (GEN.1195; [R3720]).
 Pure functions of the gas surface density `Sigma_g`, the epicyclic frequency `kappa` and the one-dimensional velocity
 dispersion `sigma` of the gas (the Toomre parameter is `Q = kappa sigma / (pi G Sigma_g)`, Eq 5):
 

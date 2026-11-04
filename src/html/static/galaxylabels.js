@@ -52,7 +52,6 @@ export function createGalaxyLabels(options) {
   const container = document.createElement("div");
   container.className = "map-labels";
   container.setAttribute("aria-hidden", "true");
-  if (options.light) container.dataset.light = "";
   options.parent.appendChild(container);
   const point = new THREE.Vector3();
   const reduced = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;

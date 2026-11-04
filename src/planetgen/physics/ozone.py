@@ -5,7 +5,7 @@ Ozone column against oxygen and the host star (GEN.413, docs/design/atmosphere-c
 ==================================================================================================
 
 The ozone column of a planet with oxygen, in Dobson units (1 DU = 2.687e16 molecules/cm2), from its oxygen and its star's
-temperature. The median is the fifth-degree polynomial of Kozakis et al. 2022 (A&A, arXiv:2208.09415, Table 3, read): the
+temperature. The median is the fifth-degree polynomial of [R2466] (A&A, [R2466: Table 3], read): the
 column in cm-2 against `x`, the log10 of the oxygen mixing ratio at 1 bar and Earth gravity, one row for each of the five
 hosts the paper modelled (G0V, Sun, K2V, K5V and M5V with the model temperatures of its Table 1), valid for 0.01 to 150
 percent of the present oxygen level (PAL) and held at its ends outside. The column does not follow a power of the oxygen:
@@ -15,16 +15,16 @@ hot hosts peak at a quarter of the present level, cooler hosts rise to the highe
   (21.2 kPa / 1 g)` (a stand-in until the Chapman layer depth, part 04 section 3.3 of the atmosphere research, replaces it).
 - **Other stars.** Between two hosts the column is the linear mix in temperature of their columns at the same oxygen level;
   cooler than the M5V row (3000 K) takes the M5V row. Hotter than G0V (6000 K) there is no fit: the G0V curve is scaled to the
-  100 percent columns of F7V (8.62e18 cm-2, 321 DU, 6240 K) and F0V (1.15e19, 428 DU, 7000 K) of Rugheimer et al. 2015
+  100 percent columns of F7V (8.62e18 cm-2, 321 DU, 6240 K) and F0V (1.15e19, 428 DU, 7000 K) of [R3845]
   (Table 1, read; the 6240 K of F7V is the spectral-type temperature, recalled), a stand-in labelled in the gap plan.
-- **Spread (GEN.748).** The models differ, and the fit is the lowest of them (the Sun at Earth oxygen: 192 DU here, 279 DU Cooke 2022, 296
-  to 327 Grenfell 2007, 313 Segura 2005; at a tenth of the oxygen the models run from 0.85 (Cooke) to 1.34 of the fit). The draw
+- **Spread (GEN.748).** The models differ, and the fit is the lowest of them (the Sun at Earth oxygen: 192 DU here, 279 DU [R0875], 296
+  to 327 [R1680], 313 [R3999]; at a tenth of the oxygen the models run from 0.85 (Cooke) to 1.34 of the fit). The draw
   multiplies the median by a structure factor, log-uniform between the lowest and highest ratio the models give at that oxygen level
   (`structure_range`): 1.45 to 1.70 at the present level and above (Earth air: 278 to 326 DU, the models' own range), 0.85 to 1.34 at a tenth, and
   the whole of the earlier 0.85 to 1.71 at a hundredth and below, where no model narrows it; between those levels the two ends are straight
   lines in the log of the level. The ratios are those of the Sun host and are used for every host. The Earth range of 279 to 300 DU is a test.
 - **Below 0.01 percent PAL** (abiotic oxygen) the column is 0.01 to 0.1 percent of the same host's 100 percent column,
-  log-uniform, and 15 percent for an F host (Domagal-Goldman 2014, Table 3, read second-hand). No oxygen gives none.
+  log-uniform, and 15 percent for an F host ([R1137: Table 3], read second-hand). No oxygen gives none.
 
 Use:
 
@@ -48,7 +48,7 @@ PAL_MIN = 1e-4
 PAL_MAX = 1.5
 """float: The oxygen levels the fit covers, fractions of the present level (0.01 to 150 percent)."""
 
-# (name, model temperature K, (a, b, c, d, e, f)) of Kozakis et al. 2022, Table 3 (column in cm-2 against x)
+# (name, model temperature K, (a, b, c, d, e, f)) of [R2466: Table 3] (column in cm-2 against x)
 HOSTS = (
     ("M5V", 3000.0, (-2.144e16, -3.381e17, -1.933e18, -4.458e18, -1.941e18, 4.542e18)),
     ("K5V", 4500.0, (6.826e15, 2.379e16, -3.424e17, -1.848e18, -9.440e17, 4.898e18)),
@@ -58,13 +58,13 @@ HOSTS = (
 )
 """tuple: The five fitted hosts, coolest first."""
 F_STARS = ((6000.0, None), (6240.0, 8.62e18), (7000.0, 1.15e19))
-"""tuple: `(temperature K, 100 percent column cm-2)`: the G0V fit is the first point (`None`), then F7V and F0V (Rugheimer 2015)."""
+"""tuple: `(temperature K, 100 percent column cm-2)`: the G0V fit is the first point (`None`), then F7V and F0V [R3845, R3846]."""
 F_HOST_K = 6240.0
 """float: From F7V on, the abiotic branch is the F share."""
 
 STRUCTURE_KNOTS = ((0.01, 0.85, 1.71), (0.1, 0.85, 1.34), (1.0, 1.45, 1.70))
 """tuple: `(oxygen level PAL, lowest ratio, highest ratio)` of the published models to the fit (the Sun host): at 100 percent the 3-D model of
-Cooke 2022 (279 DU, 1.45) and the 1-D models of Grenfell 2007 (296 to 327 DU) and Segura 2005 (313 DU), highest 1.70; at 10 percent Cooke (0.85) to
+[R0875] (279 DU, 1.45) and the 1-D models of [R1680] (296 to 327 DU) and [R3999] (313 DU), highest 1.70; at 10 percent Cooke (0.85) to
 another model (1.34); at 1 percent and below the earlier range of the atmosphere colour design (decision 19), kept as no model narrows it. Held
 outside the first and last level. Source tier T3 (the models are read second-hand through the sources check), tweak level L1 (the ends between the
 levels are straight lines in log PAL)."""
@@ -103,7 +103,7 @@ def _fit_column_cm2(teff_k, pal):
 
 
 def _f_scale(teff_k):
-    """The 100 percent column of a host hotter than G0V over G0V's, from the F7V and F0V columns of Rugheimer 2015."""
+    """The 100 percent column of a host hotter than G0V over G0V's, from the F7V and F0V columns of [R3845, R3846]."""
     base = _polynomial_cm2(HOSTS[-1][2], 1.0)
     points = [(F_STARS[0][0], base)] + list(F_STARS[1:])
     if teff_k >= points[-1][0]:

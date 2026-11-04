@@ -9,13 +9,13 @@ air is the gas of the host's element mixture, enriched in the metals by a drawn 
 ratio, in equilibrium at the temperature and pressure of its 0.1 to 1 bar layer, after three things the research names:
 
 1. *Clouds take their elements out.* Iron, the magnesium silicates, titanium, vanadium, calcium and chromium condense at the
-   temperatures of Visscher, Lodders and Fegley (2006, 2010; part 05 section 7.2) and leave the gas above the cloud deck,
+   temperatures of [R2731] (2010; part 05 section 7.2) and leave the gas above the cloud deck,
    taking about a fifth of the oxygen with the silicates; sodium takes its sulfur as Na2S and potassium goes with it; ammonia
    and hydrogen sulfide form NH4SH; and whatever ice of the gas table has a saturation curve (`physics/saturation.py`: water,
    ammonia, methane, hydrogen sulfide, hydrogen cyanide) is capped at its saturation pressure, the excess raining out. The
    ratio of hydrogen to helium is the host's and does not move.
 2. *Quench.* Carbon monoxide and methane stop exchanging where the mixing time of the atmosphere (`H^2 / Kzz`) falls below
-   the chemical time (Zahnle and Marley 2014: `t_q1 = 1.5e-6 p^-1 m^-0.7 exp(42000/T)`, `t_q2 = 40 p^-2 exp(25000/T)`, seconds,
+   the chemical time ([R4863]: `t_q1 = 1.5e-6 p^-1 m^-0.7 exp(42000/T)`, `t_q2 = 40 p^-2 exp(25000/T)`, seconds,
    p in bar, m the metallicity in solar units). The mixing ratio at the quench level, on an adiabat down from the layer, sets the
    share of the carbon that is carbon monoxide up in the layer, so a cold giant keeps some CO (1e-9 to 1e-5) and a hot one has
    no more methane than equilibrium gives. The generator evaluates the formula with the object's own gravity, metallicity and
@@ -26,7 +26,7 @@ ratio, in equilibrium at the temperature and pressure of its 0.1 to 1 bar layer,
    own temperature.
 
 The recipe rows (`f1` to `f8`, `g1` to `g6`, `h1` to `h5`) give the regime and the draws the chemistry reads: the metallicity
-`f5` (Thorngren et al. 2016 mass-metallicity relation with 0.3 dex scatter), the carbon to oxygen ratio `f7`, whether titanium
+`f5` ([R4352] mass-metallicity relation with 0.3 dex scatter), the carbon to oxygen ratio `f7`, whether titanium
 and vanadium oxides stay in the gas `h4`, whether sodium and potassium are in the gas `m7` and `m8`. `f8`, `g6` are the
 recipe's summary of the carbon carrier; the chemistry here decides it by the quench.
 """
@@ -63,12 +63,12 @@ QUENCH_DEEPEST_BAR = 1.0e5
 
 KZZ_CM2_S = {"giant": (1.0e6, 1.0e11, "log"), "envelope": (1.0e6, 1.0e11, "log"), "hot-jupiter": (1.0e7, 1.0e11, "log"),
              "brown-dwarf": (1.0e2, 1.0e5, "log")}
-"""dict: The vertical mixing coefficient by object, cm^2/s. The hot Jupiter's is the bracket of row h4 (Spiegel et al. 2009); the
+"""dict: The vertical mixing coefficient by object, cm^2/s. The hot Jupiter's is the bracket of row h4 [R4171, R4172]; the
 other planets' is that widened down to 1e6 and a brown dwarf's, whose gravity is 30 times higher, is the lowest decades of the
 literature's 1e2 to 1e6; design, to be replaced by the research item that tabulates Kzz by object."""
 
 PHOTOSPHERE_LOG_EPS = {"He": 10.914, "P": 5.41, "Ti": 4.97, "Kr": 3.12, "Xe": 2.22, "V": 3.90, "Cr": 5.62}
-"""dict: Asplund, Amarsi and Grevesse 2021 photospheric log eps (H = 12) of the elements `tuning.STELLAR_SOLAR_LOG_EPS` lacks. He, P,
+"""dict: [R0168] photospheric log eps (H = 12) of the elements `tuning.STELLAR_SOLAR_LOG_EPS` lacks. He, P,
 Ti, Kr and Xe are the part 05 section 2.1 table (READ); V and Cr are RECALLED from the same paper and carry the stand-in label."""
 
 METALS = ("C", "N", "O", "Ne", "Na", "Mg", "Si", "S", "Ar", "K", "Ca", "Fe", "P", "Ti", "V", "Cr", "Kr", "Xe")
@@ -199,7 +199,7 @@ def remove_clouds(budget, temperature_k, pressure_bar, log_enrichment, *, keep_t
 
 def remove_ammonium_hydrosulfide(budget, temperature_k, pressure_bar, log_enrichment):
     """
-    NH4SH forms where `log P + 0.5 [N/H] + 0.5 [S/H] >= (48.91 - 10^4/T) / 4.15` (Visscher et al. 2006, part 05 section 7.2); it
+    NH4SH forms where `log P + 0.5 [N/H] + 0.5 [S/H] >= (48.91 - 10^4/T) / 4.15` ([R4562], part 05 section 7.2); it
     takes the nitrogen and sulfur out until the gas above the cloud is at that boundary, `(N - x)(S - x) = Kc`.
 
     Returns:
@@ -266,7 +266,7 @@ def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=
 # --- the quench -------------------------------------------------------------------------------------------------------------
 
 def log_carbon_monoxide_time(temperature_k, pressure_bar, metallicity):
-    """ln of the chemical time of the CO to CH4 conversion in seconds (Zahnle and Marley 2014: `1/t = 1/t_q1 + 1/t_q2`), in logs so
+    """ln of the chemical time of the CO to CH4 conversion in seconds ([R4863]: `1/t = 1/t_q1 + 1/t_q2`), in logs so
     that a cold layer does not overflow."""
     log_t1 = math.log(1.5e-6) - math.log(pressure_bar) - 0.7 * math.log(metallicity) + 42000.0 / temperature_k
     log_t2 = math.log(40.0) - 2.0 * math.log(pressure_bar) + 25000.0 / temperature_k

@@ -4,12 +4,11 @@
 The tilt of an ice giant from a giant impact, and the planes that follow it (GEN.1053, G1 of docs/design/systems/weird-worlds.md, registry 6.78)
 ===================================================================================================================================================
 
-Uranus lies on its side (98 degrees) with its rings and its five large moons in the equator. The explanation of Slattery et al. 1992,
-Morbidelli et al. 2012 and Kegerreis et al. 2018 is a giant impact: the impactor adds its orbital angular momentum to the spin of the planet, and the
+Uranus lies on its side (98 degrees) with its rings and its five large moons in the equator. The explanation of [R2300, R3149, R4118] is a giant impact: the impactor adds its orbital angular momentum to the spin of the planet, and the
 planet's axis turns to the sum. This module is that sum and the tail of the draw it makes.
 
 **The angular momentum an impact brings.** Two bodies in contact at the sum of their radii, `R_c`, at the angle `theta` from head-on, arrive at
-`v_c = sqrt(v_inf^2 + 2 G (M + m) / R_c)` and carry `L = mu v_c R_c sin(theta)`, with `mu = M m / (M + m)`. Kegerreis et al. 2018 run an impactor of 1, 2 and 3
+`v_c = sqrt(v_inf^2 + 2 G (M + m) / R_c)` and carry `L = mu v_c R_c sin(theta)`, with `mu = M m / (M + m)`. [R2300] run an impactor of 1, 2 and 3
 Earth masses on a proto-Uranus of `14.536 - m` at `v_inf` of 5 km/s, with L from 1 to 10e36 kg m^2/s, and find that 2 and 3 Earth masses spin the planet at least as fast as
 Uranus (17.24 h) from L of 2e36, and 1 Earth mass never does. A 2 Earth-mass impactor on a 12.5 Earth-mass target grazing gives 7e36 here, inside their range (a 1 Earth-mass one gives 3.7e36, and in their runs does not spin the planet up: the module's contact point is cruder than their SPH bodies).
 
@@ -24,9 +23,9 @@ uniform in area (`sin(theta) = sqrt(u)`), the geometry of a random hit. The rate
 ice giants of 5 to 30 Earth masses that have such a merger is the stand-in `MERGER_SHARE`.
 
 **The planes.** The rings and the moons form from the debris the impact puts around the planet, which orbits in the new equator: the plane of both is the equator,
-so their tilt to the orbit is the planet's own (R3 and G1 of the design). Slattery et al. 1992 (quoted by Morbidelli et al. 2012) make an equatorial debris disk of
-1 to 3 percent of the planet's mass; Kegerreis et al. 2018 find the debris clouds "quite spherical" (axis ratios 0.7 to 1), so the module takes the equator by
-construction and does not model the disk. Morbidelli et al. 2012 add that the prograde moons need an obliquity of 4 to 8 degrees or more before the last impact, so Uranus took at least two impacts;
+so their tilt to the orbit is the planet's own (R3 and G1 of the design). [R4118] (quoted by [R3149]) make an equatorial debris disk of
+1 to 3 percent of the planet's mass; [R2300] find the debris clouds "quite spherical" (axis ratios 0.7 to 1), so the module takes the equator by
+construction and does not model the disk. [R3149] add that the prograde moons need an obliquity of 4 to 8 degrees or more before the last impact, so Uranus took at least two impacts;
 the module is one impact, and the earlier tilt is the `initial_tilt_deg` that the caller gives (the draw of `spin.rayleigh_tilt_deg`).
 
 Use:
@@ -42,18 +41,18 @@ from planetgen.physics import constants
 from planetgen.util import draw
 
 MOMENT_OF_INERTIA_FACTOR = 0.225
-"""float: `I / (M R^2)` of an ice giant: Uranus 0.225, Neptune 0.23 (recalled from the Helled et al. 2010 interior models, row GT2)."""
+"""float: `I / (M R^2)` of an ice giant: Uranus 0.225, Neptune 0.23 (recalled from the [R1890] interior models, row GT2)."""
 
 RETAINED_SHARE = 0.9
-"""float: The share of the impact's angular momentum the planet keeps (the rest leaves with the debris and the ejected atmosphere; Kegerreis et al. 2018 find at least
+"""float: The share of the impact's angular momentum the planet keeps (the rest leaves with the debris and the ejected atmosphere; [R2300] find at least
 90 percent of the atmosphere stays and the debris is a few percent of the mass, row GT2)."""
 
 DEFAULT_IMPACT_SPEED_KM_S = 5.0
-"""float: The speed at infinity, km/s (Kegerreis et al. 2018 Sec. 2.3, tested between 1 and 9: "does not significantly affect the results", row GT1)."""
+"""float: The speed at infinity, km/s ([R2300: Sec. 2.3], tested between 1 and 9: "does not significantly affect the results", row GT1)."""
 
 PRE_IMPACT_SPIN_BREAKUP = 0.2
 """float: The spin of the planet before the impact over its breakup spin: 0.2 is a day of 15 hours for an ice giant (Uranus has 0.17 of breakup today, 17.24 h, and Neptune 0.18).
-Kegerreis et al. 2018 start from none ("the impacts we consider are violent enough to dominate"); a spin only makes a larger impactor needed (row GT2)."""
+[R2300] start from none ("the impacts we consider are violent enough to dominate"); a spin only makes a larger impactor needed (row GT2)."""
 
 MERGER_SHARE = 0.55
 """float: The share of ice giants of 5 to 30 Earth masses that have a recorded giant merger of the outer chain in their history. Stand-in: tuned so that the share of
@@ -61,7 +60,7 @@ all such giants tilted over 60 degrees is 0.2 (0.36 of the mergers do it for the
 Rayleigh body of the tilt, row GT3, source tier T4, tweak level L3)."""
 
 IMPACTOR_SHARE = (0.02, 0.25)
-"""tuple: The impactor's mass over the planet's, log-uniform: 0.3 to 3.6 Earth masses on Uranus's 14.5 (Kegerreis et al. 2018: 1, 2 and 3 Earth masses; Morbidelli et al. 2012:
+"""tuple: The impactor's mass over the planet's, log-uniform: 0.3 to 3.6 Earth masses on Uranus's 14.5 ([R2300]: 1, 2 and 3 Earth masses; [R3149]:
 giant impacts "rather common" in the growth of the ice giants, no distribution; row GT3)."""
 
 MASS_RANGE_EARTH = (5.0, 30.0)

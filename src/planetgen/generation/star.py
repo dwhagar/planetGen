@@ -203,7 +203,7 @@ class Star(StellarObject):
         else:
             # For cool main-sequence stars, mass loss is driven by magnetic activity, not
             # radiation pressure. The Reimers' law scaling (L*R/M) is inaccurate here.
-            # We use a more modern, empirically-derived formula from Wood et al. (2005),
+            # We use a more modern, empirically-derived formula from [R4756],
             # which relates mass-loss rate to surface X-ray flux.
             # M-dot ~ R^2 * F_x^1.34, and F_x ~ L^-0.5
             # This results in a scaling relationship of M-dot ~ R^2 * L^-0.5

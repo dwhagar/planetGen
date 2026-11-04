@@ -105,7 +105,7 @@ class AsteroidBelt:
         upper_limit (float): The outer boundary of the asteroid belt in AU.
         body_type (str): Always 'a' for an asteroid belt.
         density (str): The density of the asteroid belt ('dense', 'sparse', 'typical'): its mass per area against the median belt of its age (GEN.477).
-        mass_kg (float): What its disc's solids leave after the star's age of collisions (`belt_ledger.belt_state`, Wyatt et al. 2007).
+        mass_kg (float): What its disc's solids leave after the star's age of collisions (`belt_ledger.belt_state`, [R4785]).
         chondrite_group (str): The nearest meteorite group of the mean composition (`small_body_composition.chondrite_group`, GEN.475): `CI`, `CM`, `H`, `L` ..., or `none` far from every group.
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,

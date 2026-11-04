@@ -14,26 +14,25 @@ gas and the way a disc's dispersion grows with age:
 
 - A thin-disc star of age `t` has a vertical dispersion `sigma_z(t)^2 = sigma_gas^2 + sigma_age^2 (t / tau)^(2 beta)`:
   the dispersion of the gas it was born from (molecular, 6.5 +/- 1 km/s inside the CO widths of 7.3 +/- 1.7 km/s, Mogotsi et al.
-  2016, and 4.4 to 7.5 km/s, Sun et al. 2020, GEN.536; the atomic gas's is 10 +/- 2 km/s: Tamburro et al. 2009, arXiv:0903.0183) plus a heating that grows as `t^beta` (`beta` = 0.441 +/- 0.007:
-  Sharma and Hayden 2020, arXiv:2004.06556 Table 2; 0.5 +/- 0.1: Mackereth et al. 2019, arXiv:1901.04502).
+  2016, and 4.4 to 7.5 km/s, Sun et al. 2020, GEN.536; the atomic gas's is 10 +/- 2 km/s: [R4298]) plus a heating that grows as `t^beta` (`beta` = 0.441 +/- 0.007:
+  [R4043: Table 2]; 0.5 +/- 0.1: [R2795]).
 - `sigma_age` is fixed by the disc's central vertical dispersion, which is a fraction of the circular speed
-  (`0.248 +/- 0.038 V`, Martinsson et al. 2013, arXiv:1307.8130, 30 spirals): the root mean square of `sigma_z` over
+  (`0.248 +/- 0.038 V`, [R2917], 30 spirals): the root mean square of `sigma_z` over
   a star formation flat in age from 0 to `tau` is that central value.
-- The dispersion falls as `exp(-R / 2 h_R)` (Martinsson 2013); the model's profiles are at the reference radius
+- The dispersion falls as `exp(-R / 2 h_R)` [R2917]; the model's profiles are at the reference radius
   (`tuning.REFERENCE_RADIUS_SCALE_LENGTHS` scale lengths), where every population is taken.
 - A population's scale height goes as its dispersion squared (an isothermal sheet: `h = sigma^2 / (pi G Sigma)`, one
   surface density for all), so its ratio to the old disc's is `sigma_z(population)^2 / sigma_z(old)^2`.
 - The profile's dispersion is the three-axis total: the gas part is isotropic (`3 sigma_gas^2`), the heated part has
-  the radial dispersion `sigma_z / 0.54` (Sharma and Hayden 2020: `sigma_z / sigma_R` = 0.54 at 10 Gyr, inside the
-  0.5 to 0.6 of Aumer, Binney and Schonrich 2016, arXiv:1607.01972) and the azimuthal `sigma_R / sqrt(2)` (a flat
+  the radial dispersion `sigma_z / 0.54` ([R4043]: `sigma_z / sigma_R` = 0.54 at 10 Gyr, inside the
+  0.5 to 0.6 of [R0201]) and the azimuthal `sigma_R / sqrt(2)` (a flat
   rotation curve). STAND-IN: one anisotropy for every age (Aumer and Binney give 0.41 at 1 Gyr to 0.57 at 10 Gyr).
 
 The bulge's dispersion is the central one, from the circular speed and the bulge share: `Vc / sigma_0 = 2 (1 - B/T)`
-for spirals (Courteau et al. 2007, ApJ 655, L21, arXiv:astro-ph/0610721, Eq. 5 and the section after it), scattered
+for spirals ([R0908: Eq. 5] and the section after it), scattered
 by 0.097 dex (the scatter of the relation about its fit read from the paper's Fig. 2, Gemini check, gap plan 7.2a);
 the profile uses its three-axis total, `sqrt(3) sigma_0`. The stellar halo's is the Jeans equation for a tracer of
-density slope `alpha` in a flat rotation curve with isotropic orbits, `sigma_r = Vc / sqrt(alpha)` (Courteau 2007
-Eq. 2; Xue et al. 2008, arXiv:0801.1232), three-axis total `sqrt(3) sigma_r`. Clusters, satellites and the nuclear
+density slope `alpha` in a flat rotation curve with isotropic orbits, `sigma_r = Vc / sqrt(alpha)` ([R0908: Eq. 2]; [R4801]), three-axis total `sqrt(3) sigma_r`. Clusters, satellites and the nuclear
 structures keep the one-axis `tuning.STELLAR_POPULATION_DISPERSION_KMS` (GEN.403, GEN.369, GEN.280), which the profile
 states as a three-axis total like the others (GEN.284).
 
@@ -84,7 +83,7 @@ those ejected neutron stars have far out (`natal_kick.ejecta_speeds_kms`), empty
 REFERENCE_RADIUS_OVER_TWO_LENGTHS = tuning.REFERENCE_RADIUS_SCALE_LENGTHS / 2.0
 """float: `R / 2 h_R` at the reference radius, the exponent of the fall of the dispersion."""
 ANISOTROPY_SIGMA_Z_OVER_SIGMA_R = 0.54
-"""float: The heated part's vertical over radial dispersion (Sharma and Hayden 2020; a stand-in for every age)."""
+"""float: The heated part's vertical over radial dispersion ([R4043]; a stand-in for every age)."""
 AZIMUTHAL_OVER_RADIAL = math.sqrt(0.5)
 """float: `sigma_phi / sigma_R` for a flat rotation curve (the epicycle ratio `kappa / 2 Omega`)."""
 HEATED_TOTAL_OVER_VERTICAL = math.sqrt(
@@ -134,10 +133,9 @@ REFERENCE_STRUCTURE = Structure(
     neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(_MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC),
 )
 """Structure: The Milky Way's published structure, the check target of the math check and the structure of a shape
-built with no seed. The thick disk and the bar are the Bland-Hawthorn and Gerhard 2016 (ARA&A 54:529) and Dwek et al.
-1995 (ApJ 445:716, fit G2) numbers, the bar's angle Wegg and Gerhard 2013 (MNRAS 435:1874) 27 degrees from the
-Sun-centre line (BHG16: 28 to 33), the halo 1.4e9 solar masses of the 5e10 of stars (Deason et al. 2019,
-arXiv:1908.02763), the disc's motions the laws above at `Vc` = 220 km/s, the neutron stars' unbound share the kick law's at
+built with no seed. The thick disk and the bar are the [R0422] (ARA&A 54:529) and Dwek et al.
+1995 (ApJ 445:716, fit G2) numbers, the bar's angle [R4649] (MNRAS 435:1874) 27 degrees from the
+Sun-centre line (BHG16: 28 to 33), the halo 1.4e9 solar masses of the 5e10 of stars [R1026], the disc's motions the laws above at `Vc` = 220 km/s, the neutron stars' unbound share the kick law's at
 the median halo of 5e10 solar masses of stars and a 2.6 kpc disc, and the black hole shares the middle of the draws (a
 stand-in: no measurement gives a galaxy's)."""
 
@@ -191,14 +189,14 @@ def halo_dispersion_kms(structure):
 
 def bulge_dispersion_kms(structure, bulge_to_total):
     """The bulge's three-axis total dispersion: `sqrt(3) sigma_0`, `sigma_0 = Vc / (2 (1 - B/T))` times the draw's
-    scatter (Courteau et al. 2007)."""
+    scatter [R0908]."""
     sigma_0 = structure.vc_kms / (2.0 * (1.0 - bulge_to_total)) * 10.0 ** structure.bulge_dispersion_scatter_dex
     return math.sqrt(3.0) * sigma_0
 
 
 BLACK_HOLE_BULGE_MASS_AT_1E11 = 0.49e9
 """float: The black hole's mass, solar masses, in a classical bulge of 1e11 solar masses (Kormendy and Ho 2013,
-arXiv:1304.7762, Eq. 10: `M_BH / 1e9 = 0.49 (M_bulge / 1e11)^1.16`)."""
+[R2456: Eq. 10]: `M_BH / 1e9 = 0.49 (M_bulge / 1e11)^1.16`)."""
 BLACK_HOLE_BULGE_SLOPE = 1.16
 BLACK_HOLE_BULGE_SCATTER_DEX = 0.29
 """float: The scatter of that relation, dex (Kormendy and Ho 2013, classical bulges and ellipticals)."""
@@ -206,7 +204,7 @@ BLACK_HOLE_STELLAR_INTERCEPT = 7.45
 BLACK_HOLE_STELLAR_SLOPE = 1.05
 BLACK_HOLE_STELLAR_SCATTER_DEX = 0.24
 """float: The relation of a galaxy without a classical bulge, `log M_BH = 7.45 + 1.05 log(M* / 1e11)`, intrinsic
-scatter 0.24 dex (Reines and Volonteri 2015, Eq. 5, broad-line active nuclei: virial masses, a different population
+scatter 0.24 dex ([R3723: Eq. 5], broad-line active nuclei: virial masses, a different population
 from the bulge relation's dynamical ones)."""
 M_SIGMA_INTERCEPT = -0.510
 M_SIGMA_SLOPE = 4.377
@@ -216,7 +214,7 @@ M_SIGMA_SLOPE = 4.377
 def black_hole_mass_solar(structure, bulge_to_total):
     """
     The galaxy's central black hole, solar masses: the mass in a classical bulge's `bulge_to_total` share of the stars
-    (Kormendy and Ho 2013), or the stellar mass without one (Reines and Volonteri 2015), times the galaxy's draw about
+    (Kormendy and Ho 2013), or the stellar mass without one [R3723], times the galaxy's draw about
     the law.
     """
     if structure.classical_bulge:

@@ -61,9 +61,9 @@ Zero-pressure (about 1 bar) crystal or solid densities at the stated temperature
 | Pyrope | 3.563 | g/cm3 | same | 2ND-HAND |
 | Calcite / dolomite / siderite | 2.713 / 2.868 / 3.936 | g/cm3 | same | 2ND-HAND |
 | Quartz | 2.648 | g/cm3 | same | 2ND-HAND |
-| Fe (alpha), enstatite, FeS, graphite (Seager 2007 constants) | 7.86 / 3.22 / 4.77 / 2.25 | g/cm3 | taken from the GEN.425 report, not re-verified | 2ND-HAND |
+| Fe (alpha), enstatite, FeS, graphite ([R3992] constants) | 7.86 / 3.22 / 4.77 / 2.25 | g/cm3 | taken from the GEN.425 report, not re-verified | 2ND-HAND |
 
-Note: the burnman values are tabulated thermodynamic-database densities, not a primary measurement; the primary papers (Holland and Powell 2011) were not read.
+Note: the burnman values are tabulated thermodynamic-database densities, not a primary measurement; the primary papers [R1981] were not read.
 
 ### 2.2 Meteorite grain density, bulk density, porosity (rock analogues for asteroids)
 
@@ -71,7 +71,7 @@ Grain density is the density of the solid with pores removed. Bulk density inclu
 
 | Group | Grain | Bulk | Mean porosity | Unit | Source | Label |
 |---|---|---|---|---|---|---|
-| CI | 2.26 | 2.11 | 8.7-11.3 | g/cm3, g/cm3, % | Britt and Consolmagno 2003, MAPS 38:1161, Table 2 (ADS scan read as images) | READ |
+| CI | 2.26 | 2.11 | 8.7-11.3 | g/cm3, g/cm3, % | [R0544]:1161, Table 2 (ADS scan read as images) | READ |
 | CM | 2.71 | 2.12 | 9.3 measured, 23 model | same | same | READ |
 | CR | 3.23 | 3.10 | not given | same | same | READ |
 | CO | 3.48 | 2.95 | 19.8 model | same | same | READ |
@@ -90,43 +90,43 @@ Grain density is the density of the solid with pores removed. Bulk density inclu
 | Mesosiderite | 4.40 | 4.25 | n/a | same | same | READ |
 | Conclusion: average porosity of most classes about 10 % | 10 | % | same | READ |
 
-Carry 2012 (A&A 537:A94, arXiv:1203.4336, Table 2) meteorite bulk densities, independent compilation, g/cm3: H 3.42+-0.18, L 3.36+-0.16, LL 3.22+-0.22, CI 1.60+-0.03 (differs from Britt 2.11; Carry's CI is a lower set, see failure modes), CM 2.25+-0.08, CR 3.10, CO 3.03+-0.19, CV 2.79+-0.06, CK 2.85+-0.08, EH 3.47, EL 3.46, HED 3.25+-0.26, pallasite 4.76, mesosiderite 4.35, hexahedrite 7.37, octahedrite 7.14, ataxite 4.01. Label READ for all values in this paragraph.
+[R0666] (A&A 537:A94, [R0666: Table 2]) meteorite bulk densities, independent compilation, g/cm3: H 3.42+-0.18, L 3.36+-0.16, LL 3.22+-0.22, CI 1.60+-0.03 (differs from Britt 2.11; Carry's CI is a lower set, see failure modes), CM 2.25+-0.08, CR 3.10, CO 3.03+-0.19, CV 2.79+-0.06, CK 2.85+-0.08, EH 3.47, EL 3.46, HED 3.25+-0.26, pallasite 4.76, mesosiderite 4.35, hexahedrite 7.37, octahedrite 7.14, ataxite 4.01. Label READ for all values in this paragraph.
 
-Porosity definition (Carry 2012 Eq. 2): P(%) = 100 (1 - rho_bulk / rho_grain). READ. Reproducible: it follows from the definition (COMPUTED check: CI Britt, 100(1-2.11/2.26) = 6.6 %, below Britt's quoted 8.7-11.3 % because Britt's mean uses different specimen sets; do not recompute porosity from the table means).
+Porosity definition ([R0666: Eq. 2]): P(%) = 100 (1 - rho_bulk / rho_grain). READ. Reproducible: it follows from the definition (COMPUTED check: CI Britt, 100(1-2.11/2.26) = 6.6 %, below Britt's quoted 8.7-11.3 % because Britt's mean uses different specimen sets; do not recompute porosity from the table means).
 
 ### 2.3 Asteroid taxonomy, density, albedo, mass share
 
-Taxonomy gives composition only through the analogue link. Class is not composition: Carry 2012 shows large density scatter inside one class. Use class to choose an analogue family and the density distribution, not a fixed mineral list.
+Taxonomy gives composition only through the analogue link. Class is not composition: [R0666] shows large density scatter inside one class. Use class to choose an analogue family and the density distribution, not a fixed mineral list.
 
 | Class | Mean albedo (SDSS) | Mean density rho_inf | Share of main-belt mass | Analogue (proposed link, parametrisation) | Source | Label |
 |---|---|---|---|---|---|---|
-| C | 0.083 | 1.57 (rho_20 1.33) g/cm3 | 52.53 % | CI/CM (some CO/CV) | DeMeo and Carry 2013 (arXiv:1307.2424) Tables 4, 5; Carry 2012 Table 3 | READ |
+| C | 0.083 | 1.57 (rho_20 1.33) g/cm3 | 52.53 % | CI/CM (some CO/CV) | [R1065: Tables 4], 5; [R0666: Table 3] | READ |
 | B | 0.071 | 2.19 (rho_20 2.38) | 11.10 % | CM/CI-like | same | READ |
-| Cb / Ch | not tabulated | 1.88 / 1.96 (rho_20 1.41) | in C complex | CM | Carry 2012 Table 3 | READ |
-| P | 0.053 | 1.4-1.5 (Sylvia 1.4+-0.2, Camilla 1.5+-0.2) | 11.02 % | ice-rich, anhydrous silicate | Vernazza and Beck 2016 (arXiv:1611.08731); DeMeo and Carry Table 5 | READ |
+| Cb / Ch | not tabulated | 1.88 / 1.96 (rho_20 1.41) | in C complex | CM | [R0666: Table 3] | READ |
+| P | 0.053 | 1.4-1.5 (Sylvia 1.4+-0.2, Camilla 1.5+-0.2) | 11.02 % | ice-rich, anhydrous silicate | [R4540]; DeMeo and Carry Table 5 | READ |
 | D | 0.098 | Trojans: Patroclus 1.1+-0.3, Hektor 1.0+-0.3 (Carry table value about 9.6 discarded as unreliable) | 2.03 % | ice-rich, organic-rich | same | READ |
 | S | 0.258 | 2.66 (rho_20 2.72) | 8.41 % | H/L/LL ordinary chondrite | same | READ |
-| Sq | not tabulated | 2.78 | in S complex | ordinary chondrite | Carry 2012 Table 3 | READ |
+| Sq | not tabulated | 2.78 | in S complex | ordinary chondrite | [R0666: Table 3] | READ |
 | V | 0.352 | 1.93 (poor; Vesta itself 3.46) | 9.59 % | HED | DeMeo and Carry Tables 4, 5; Vernazza and Beck | READ |
 | M | 0.143 | Xk 3.85, K 4.25, Xc 4.96 (X-complex entries scatter) | 3.26 % | iron, enstatite, mesosiderite | same | READ |
-| X (complex) | not tabulated | 2.87 (rho_20 1.85), Xe 2.94 | in M/P/E | EH/EL, aubrite | Carry 2012 Table 3 | READ |
+| X (complex) | not tabulated | 2.87 (rho_20 1.85), Xe 2.94 | in M/P/E | EH/EL, aubrite | [R0666: Table 3] | READ |
 | E | 0.536 | n/a | 0.05 % | aubrite (EL/EH) | DeMeo and Carry | READ |
 | K | 0.178 | 4.25 | 0.95 % | CO/CV (K-class) | same | READ |
 | L | 0.183 | 3.24 | 0.68 % | CV with CAIs | same | READ |
 | A | 0.274 | 3.73 | 0.37 % | olivine-rich (brachinite/pallasite mantle) | same | READ |
 | Total main-belt mass | 2.70e21 | kg | Table 5 | READ |
-| Ceres / Pallas / Vesta / Hygiea share | about 35 / 10 / 8 / 3 | % of belt mass | DeMeo and Carry 2013 | READ |
-| Ch/Cgh density | 1.9-2.4 | g/cm3 | Vernazza and Beck 2016 | READ |
+| Ceres / Pallas / Vesta / Hygiea share | about 35 / 10 / 8 / 3 | % of belt mass | [R1065] | READ |
+| Ch/Cgh density | 1.9-2.4 | g/cm3 | [R4540] | READ |
 | B/C/Cb/Cg group density | 0.8-1.5 | g/cm3 | same | READ |
 | Ceres density (rock/ice about 1) | about 2.13 | g/cm3 | same | READ |
 | Lutetia | 3.4 | g/cm3 | same | READ |
-| NEO population: S/Sq/Q about 50 %, C about 20 % | 50, 20 | % | Binzel et al. MITHNEOS (arXiv:2004.05090) | READ |
+| NEO population: S/Sq/Q about 50 %, C about 20 % | 50, 20 | % | Binzel et al. MITHNEOS [R0400] | READ |
 | Ordinary chondrites among falls | about 81 | % | same | READ |
 | Bennu bulk density | 1190 | kg/m3 | search snippet only | SNIPPET |
 
 ### 2.4 Heliocentric type distribution (calibration kernel for the generator)
 
-Percent of zone mass by class (DeMeo and Carry 2013, Table 6, READ for every row). Zone bounds in AU: Hungaria 1.78-2.05, main belt 2.05-3.27 (inner / middle / outer split near 2.5 and 2.8), Cybele 3.27-3.7, Hilda 3.7-4.2, Trojans 5.05-5.4. READ.
+Percent of zone mass by class ([R1065: Table 6], READ for every row). Zone bounds in AU: Hungaria 1.78-2.05, main belt 2.05-3.27 (inner / middle / outer split near 2.5 and 2.8), Cybele 3.27-3.7, Hilda 3.7-4.2, Trojans 5.05-5.4. READ.
 
 | Zone | Dominant classes (percent of zone mass) | Unit | Source | Label |
 |---|---|---|---|---|
@@ -140,11 +140,11 @@ Percent of zone mass by class (DeMeo and Carry 2013, Table 6, READ for every row
 
 Interpretation for a random system: the sequence is an ordering by temperature at formation (dry, high-albedo, igneous inside; hydrated C in the middle; anhydrous ice-rich P and D beyond). The Solar System positions are not portable. The portable variable is x = a / a_snow with the snow-line scaling below. Scaling is a parametrisation; nothing in the sources tests it for other stars.
 
-Snow line scaling already in the code: `snow_line_au = 2.7 AU * sqrt(L/Lsun)` (`SNOW_LINE_AU_AT_1_LSUN = 2.7`, the 170 K blackbody value per the coordinator). Sibling formula: a_snow = (278.3 / T_ice)^2 sqrt(L/Lsun) AU (COMPUTED check: T_ice 170 K gives 2.68 AU). Real scatter is about 0.2 dex (Mulders 2015, quoted by the coordinator; not re-verified here, RECALLED). In this part the scatter becomes a per-system multiplicative draw: a_snow,sys = a_snow x 10^N(0, 0.2). Because the scatter is larger than the zone widths, the type mix should be sampled from smooth weights in x, not from sharp edges.
+Snow line scaling already in the code: `snow_line_au = 2.7 AU * sqrt(L/Lsun)` (`SNOW_LINE_AU_AT_1_LSUN = 2.7`, the 170 K blackbody value per the coordinator). Sibling formula: a_snow = (278.3 / T_ice)^2 sqrt(L/Lsun) AU (COMPUTED check: T_ice 170 K gives 2.68 AU). Real scatter is about 0.2 dex ([R3193, R3196], quoted by the coordinator; not re-verified here, RECALLED). In this part the scatter becomes a per-system multiplicative draw: a_snow,sys = a_snow x 10^N(0, 0.2). Because the scatter is larger than the zone widths, the type mix should be sampled from smooth weights in x, not from sharp edges.
 
 ### 2.5 Chondrite chemistry and radiogenic heating
 
-Lodders 2021 (Space Sci. Rev. 217:44), Table 1, ppm by mass, READ for every entry (accessed through the NSF PAR copy of the paper).
+[R2729] (Space Sci. Rev. 217:44), Table 1, ppm by mass, READ for every entry (accessed through the NSF PAR copy of the paper).
 
 | Group | H | C | Fe | Mg | Si | S | Al | K | Th | U | Label |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -160,7 +160,7 @@ Lodders 2021 (Space Sci. Rev. 217:44), Table 1, ppm by mass, READ for every entr
 
 The full element tables for CI, CM, CV, CO, CK, CR, H, L, LL, EH, EL exist in the paper; only the entries needed here are tabulated. "n/a" means I did not extract it, not that it does not exist. The generator table should be loaded from the paper by the work item in section 6.
 
-Specific heat production (Ruedas 2017, arXiv:1710.06721, Table 2), READ:
+Specific heat production ([R3843: Table 2]), READ:
 
 | Isotope | Half-life | Isotopic abundance | Heat production | Unit | Label |
 |---|---|---|---|---|---|
@@ -181,7 +181,7 @@ Computed heating (inputs: Lodders ppm times Ruedas rates; K, Th, U decayed back 
 Consequences:
 - Al-26 at t0 is roughly 3500-12600 times the long-lived rate (COMPUTED from the table above).
 - Total Al-26 decay energy per kg: CI 4.95e6 J/kg, H 6.57e6 J/kg. With specific heat 900 J/kg/K and no heat loss, the temperature rise is 5500-7500 K (COMPUTED), so retained Al-26 heat melts or dehydrates any planetesimal that forms early and is big enough to hold the heat.
-- Canonical ratio 5.25e-5 and the 0.1-10 times variation across systems come from Lichtenberg et al. 2019 (arXiv:1902.04026); planetesimal radii 1-100 km; high Al-26 dehydrates bodies. READ.
+- Canonical ratio 5.25e-5 and the 0.1-10 times variation across systems come from [R2678]; planetesimal radii 1-100 km; high Al-26 dehydrates bodies. READ.
 
 Water upper bound from hydrogen (all H counted as H2O, so organic H is included): CI 16.6 wt %, CM 10.3 %, CV 2.5 %, CO 0.9 %, H 0.7 %. COMPUTED from the Lodders H entries above (CV, CO, H need their H values, which I did not extract: those three numbers are not reproducible from this file; treat them as RECALLED until the Lodders table is loaded). Hence CI and CM rows are COMPUTED, CV, CO, H rows are RECALLED (listed in section 5).
 
@@ -189,7 +189,7 @@ Water upper bound from hydrogen (all H counted as H2O, so organic H is included)
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| 67P mass | 9.982e12 | kg | Choukroun et al. 2020 (Space Sci. Rev., Springer PDF) | READ |
+| 67P mass | 9.982e12 | kg | [R0776] (Space Sci. Rev., Springer PDF) | READ |
 | 67P volume | 18.56 | km3 | same | READ |
 | 67P bulk density | 537.8+-0.6 (post-perihelion 537.3) | kg/m3 | same | READ |
 | Refractory-to-ice mass ratio, RSI estimate | 3-7 | none | same | READ |
@@ -205,19 +205,19 @@ Water upper bound from hydrogen (all H counted as H2O, so organic H is included)
 | Organic density / silicate density | about 2 / about 3.5 | g/cm3 | same | READ |
 | Organics in dust (COSIMA) | about 45 | % by mass | same | READ |
 | Relation | delta_RI = rho_P / (rho_67P - rho_P) | none | Choukroun Eq. 4 (rho_P: refractory-plus-pore-free density term) | READ |
-| 67P CO2 / CO / O2 / CH4 / NH3 (relative to H2O = 100) | 4.7+-1.4 / 3.1+-0.9 / 3.1+-1.1 / 0.34 / 0.67+-0.20 | % | Rubin et al. 2019 (arXiv:1907.11044) Table 2 | READ |
+| 67P CO2 / CO / O2 / CH4 / NH3 (relative to H2O = 100) | 4.7+-1.4 / 3.1+-0.9 / 3.1+-1.1 / 0.34 / 0.67+-0.20 | % | [R3835: Table 2] | READ |
 | 67P C2H6 / CH3OH / H2CO / N2 / HCN | 0.29 / 0.21 / 0.32 / 0.089 / 0.14 | % | same | READ |
 | 67P H2S / SO2 / Ar | 1.10+-0.46 / 0.127 / 0.00058 | % | same | READ |
-| CO/H2O across comets | median 3.3+-1.3, range 0.3-26 | % | Harrington Pinto et al. 2022 (arXiv:2209.09985) | READ |
+| CO/H2O across comets | median 3.3+-1.3, range 0.3-26 | % | Harrington [R3535] | READ |
 | CO2/H2O across comets | median 12+-2, range 2-30 | % | same | READ |
 | CO + CO2 | 18+-4 | % of H2O | same | READ |
 | C/O | about 13 | % | same | READ |
-| Interstellar comet 2I/Borisov CO/H2O | 0.7+-0.3 (Cordiner) or 1.3-1.6 (Bodewits), mean of Solar System comets about 0.04 | none (ratio) | Jewitt and Seligman 2023 (arXiv:2209.08182) | READ |
-| Borisov CO as share of water (abstract) | 35-105 | % | Cordiner et al. 2020 (arXiv:2004.09586) abstract | SNIPPET |
-| 1I/'Oumuamua: no coma, nominal radius | about 80 | m | Jewitt and Seligman 2023 | READ |
-| Arrokoth (MU69) density, fiducial 500, range 250-500 | 250-500 | kg/m3 | McKinnon et al. 2020 (arXiv:2003.05576) | READ |
-| TNO average density / comet average density | 0.77+-0.80 / 0.47+-0.25 | g/cm3 | Carry 2012 Table 3 | READ |
-| TNO density range, small (below 400 km) | 0.5-3, mostly below 1.0 | g/cm3 | Vernazza and Beck 2016 | READ |
+| Interstellar comet 2I/Borisov CO/H2O | 0.7+-0.3 (Cordiner) or 1.3-1.6 (Bodewits), mean of Solar System comets about 0.04 | none (ratio) | [R2159] | READ |
+| Borisov CO as share of water (abstract) | 35-105 | % | [R0889] abstract | SNIPPET |
+| 1I/'Oumuamua: no coma, nominal radius | about 80 | m | [R2159] | READ |
+| Arrokoth (MU69) density, fiducial 500, range 250-500 | 250-500 | kg/m3 | [R3008] | READ |
+| TNO average density / comet average density | 0.77+-0.80 / 0.47+-0.25 | g/cm3 | [R0666: Table 3] | READ |
+| TNO density range, small (below 400 km) | 0.5-3, mostly below 1.0 | g/cm3 | [R4540] | READ |
 
 Note on 67P density: a refractory-to-ice ratio of 3-7 with porosity 65-79 % means rock is about 75-88 % of the solid mass, so cometary "icy bodies" are mostly rock by mass but mostly pores by volume.
 
@@ -225,13 +225,13 @@ Note on 67P density: a refractory-to-ice ratio of 3-7 with porosity 65-79 % mean
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Rock mass fraction matching 14 of 17 KBO densities within 2 sigma | 70 (constant) | % | Bierson and Nimmo 2019 (Icarus 326:10), abstract | READ (abstract only) |
+| Rock mass fraction matching 14 of 17 KBO densities within 2 sigma | 70 (constant) | % | [R0390] (Icarus 326:10), abstract | READ (abstract only) |
 | Minimum formation time for KBOs (Al-26 removes too much porosity before) | 4 | Myr | same | READ (abstract only) |
 | Fully compact at about 1500 km | 1500 | km | search snippet | SNIPPET |
-| 2002 UX25: diameter about 650 km, density 0.82+-0.11, porosity unlikely above 20 % | 650, 0.82, 20 | km, g/cm3, % | Brown 2013 (arXiv:1311.0553) | READ |
+| 2002 UX25: diameter about 650 km, density 0.82+-0.11, porosity unlikely above 20 % | 650, 0.82, 20 | km, g/cm3, % | [R0553] | READ |
 | Small KBO weighted density 0.6; porosity-free about 1.2 (about one third rock) with asteroid-like porosity | 0.6, 1.2 | g/cm3 | same | READ |
 | Asteroid compaction transition at diameter about 350 km | 350 | km | same | READ |
-| Eris radius / density | 1163 / 2.52+-0.05 | km / g/cm3 | Barr and Schwamb 2016 (arXiv:1603.06224) Table 1 | READ |
+| Eris radius / density | 1163 / 2.52+-0.05 | km / g/cm3 | [R0269: Table 1] | READ |
 | Pluto | 1187 / 1.86+-0.01 | km / g/cm3 | same | READ |
 | Triton | 1353.4 / 2.061 | km / g/cm3 | same | READ |
 | Haumea | 620 / 2.6 | km / g/cm3 | same | READ |
@@ -240,7 +240,7 @@ Note on 67P density: a refractory-to-ice ratio of 3-7 with porosity 65-79 % mean
 | Orcus | 430-450 / 1.605-1.747 | km / g/cm3 | same | READ |
 | Satellite-to-system mass ratio q: Pluto / Eris / Orcus / Haumea / Quaoar | 0.1086 / 0.0253 / 0.03-0.08 / 0.0049 / 0.00053 | none | same, Table 2 | READ |
 | Primordial KBO density suggested | about 1.8 | g/cm3 | same | READ |
-| Gonggong density / size | 1.75+-0.07 / 1230 | g/cm3 / km | Kiss et al. 2019 (arXiv:1903.05439), abstract level | SNIPPET |
+| Gonggong density / size | 1.75+-0.07 / 1230 | g/cm3 / km | [R2376], abstract level | SNIPPET |
 | Rock mass fraction from density, rock grain 2700 / 3500, ice 917: Pluto | 0.77 / 0.69 | none | COMPUTED from Barr and Schwamb densities | COMPUTED |
 | Charon | 0.70 / 0.63 | none | same | COMPUTED |
 | Orcus (density 1.7 mid) | 0.65 / 0.58 | none | same | COMPUTED |
@@ -254,42 +254,42 @@ These agree with the Bierson-Nimmo constant rock fraction of 70 %. Barr and Schw
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Total satellite mass ratio M_T / M_p, Jupiter / Saturn | 2.1e-4 / 2.5e-4 | none | Canup and Ward 2009 (arXiv:0812.4995) | READ |
+| Total satellite mass ratio M_T / M_p, Jupiter / Saturn | 2.1e-4 / 2.5e-4 | none | [R0643] | READ |
 | Scaling | M_T / M_p about 2.5e-4 (alpha/f / 3e-5)^(1/3) times other factors, valid 1e-6 < alpha/f < 5e-4 | none | same, Eq. 4.15 | READ |
 | Resulting M_T/M_p range over that alpha/f range | 0.8e-4 to 6.4e-4 | none | COMPUTED from Eq. 4.15 | COMPUTED |
-| Disk temperature | T_d about 160 K (M_p/M_J)^(1/2) (tau_G / 5 Myr)^(-1/4) (r / 20 R_J)^(-3/4) | K | Sasaki, Stewart and Ida 2010 (arXiv:1003.5737) Eq. A3 | READ |
+| Disk temperature | T_d about 160 K (M_p/M_J)^(1/2) (tau_G / 5 Myr)^(-1/4) (r / 20 R_J)^(-3/4) | K | [R3922: Eq. A3] | READ |
 | Ice line | T_d = 160 K | K | same | READ |
 | Ice-line radius | r_ice = 20 R_J (M_p/M_J)^(2/3) (tau_G/5 Myr)^(-1/3) | R_J (R_J = 71492 km, absolute length, not planet radius) | COMPUTED by solving Eq. A3 for T_d = 160 K | COMPUTED |
 | r_ice for 1 M_J, tau 5 Myr / 1 Myr | 20 / 34 | R_J | COMPUTED | COMPUTED |
 | r_ice for 3 / 0.3 / 0.1 M_J, tau 5 Myr | 41.6 / 9.0 / 4.3 | R_J | COMPUTED | COMPUTED |
-| Solids surface density step at the ice line | about 3 | none | Heller and Pudritz 2015 (arXiv:1410.5802) | 2ND-HAND (abstract-level reading) |
+| Solids surface density step at the ice line | about 3 | none | [R1899] | 2ND-HAND (abstract-level reading) |
 | Giant icy moons form at about 15-30 R_J; M_T about 1e-4 M_p | 15-30 | R_J | same | 2ND-HAND |
-| Formation timescale of regular satellites | 1e5-1e6 | yr | Canup and Ward 2009 | READ |
+| Formation timescale of regular satellites | 1e5-1e6 | yr | [R0643] | READ |
 | Ice stable for r >= 15 R_J if inflow F < 5e-5 M_E/yr | 15, 5e-5 | R_J, M_E/yr | same | READ |
-| Jovian-type disk runs (39 runs): four large satellites, inner two rocky, outer two icy; Saturn-type: one dominant icy body | n/a | n/a | Sasaki et al. 2010 | READ |
+| Jovian-type disk runs (39 runs): four large satellites, inner two rocky, outer two icy; Saturn-type: one dominant icy body | n/a | n/a | [R3922] | READ |
 | Sum of the four large-moon mass ratios in Sasaki Table 1 | 20.7e-5 (4.70+2.53+7.80+5.69) | none | COMPUTED | COMPUTED |
-| Composition gradient: Ganymede rock fraction about 0.55, Callisto about 0.44 | 0.55, 0.44 | none | quoted in Canup and Ward 2009 | 2ND-HAND |
+| Composition gradient: Ganymede rock fraction about 0.55, Callisto about 0.44 | 0.55, 0.44 | none | quoted in [R0643] | 2ND-HAND |
 | Europa about 8 % ice and water | 8 | % | same | 2ND-HAND |
 
 Failure modes of the circumplanetary-disk law:
 - r_ice in the formula does not scale with the planet radius; it was fitted to Sasaki's Jupiter-like disk. Applying it to a planet far from 1 M_J is an extrapolation (section 5).
 - Moons migrate. Present distance is not formation distance. Sasaki et al. find inner moons are rocky and outer moons icy at the end of formation (READ), not that composition equals the local present distance.
-- Saturn's small inner moons are icy although they sit well inside any disk ice line. This is the ring-origin (Crida and Charnoz 2012, arXiv:1301.3808) case: abstract-level reading says spreading of a planetary ring beyond the Roche radius forms a retinue of satellites with masses increasing with distance, which fits Saturn, Uranus and Neptune; with fast spreading a single large satellite forms, as for Pluto and Earth. READ for the abstract; the PDF text is garbled, so the composition details are NOT REACHED.
+- Saturn's small inner moons are icy although they sit well inside any disk ice line. This is the ring-origin [R0920] case: abstract-level reading says spreading of a planetary ring beyond the Roche radius forms a retinue of satellites with masses increasing with distance, which fits Saturn, Uranus and Neptune; with fast spreading a single large satellite forms, as for Pluto and Earth. READ for the abstract; the PDF text is garbled, so the composition details are NOT REACHED.
 
 ### 2.9 Moon composition by origin
 
 | Origin | Composition rule from sources | Source | Label |
 |---|---|---|---|
-| Disk-formed regular moons, inside ice line | rocky, anhydrous; Io 3.53 g/cm3 | Canup and Ward 2009; Sasaki Table 1 | READ |
-| Disk-formed regular moons, beyond ice line | ice plus rock; Ganymede 1.94, Callisto 1.83, Titan 1.88 g/cm3 (Sasaki Table 1) | Sasaki et al. 2010 | READ |
-| Impact-formed moon (synestia condensate) | no metal phase in the condensate; iron enters as FeO; a few wt % metal exsolves; moderately volatile elements depleted by silicate-vapour equilibration; vapour holds about 10 wt % Si; pressures of tens of bar; H in the Moon 1-1000 ppm H2O-equivalent | Lock et al. 2018 (arXiv:1802.10223) | READ |
-| Captured KBO-like moon (Triton) | KBO composition (rock fraction about 70 %), ice partly lost in capture | Barr and Schwamb 2016 | READ |
-| Ring-origin moon | ice-rich (rings mostly water ice) | Crida and Charnoz 2012 | RECALLED |
+| Disk-formed regular moons, inside ice line | rocky, anhydrous; Io 3.53 g/cm3 | [R0643]; Sasaki Table 1 | READ |
+| Disk-formed regular moons, beyond ice line | ice plus rock; Ganymede 1.94, Callisto 1.83, Titan 1.88 g/cm3 (Sasaki Table 1) | [R3922] | READ |
+| Impact-formed moon (synestia condensate) | no metal phase in the condensate; iron enters as FeO; a few wt % metal exsolves; moderately volatile elements depleted by silicate-vapour equilibration; vapour holds about 10 wt % Si; pressures of tens of bar; H in the Moon 1-1000 ppm H2O-equivalent | [R2724] | READ |
+| Captured KBO-like moon (Triton) | KBO composition (rock fraction about 70 %), ice partly lost in capture | [R0269] | READ |
+| Ring-origin moon | ice-rich (rings mostly water ice) | [R0920] | RECALLED |
 | Binary dwarf-planet partner | mass ratio q in 5e-4 to 0.11 | Barr and Schwamb Table 2 | READ |
 | Volcanic moon (Io-type) | tidal heating flux about 2 W/m2; SO2 frost albedo about 0.6 | Io albedo from NASA fact sheet; flux not verified | RECALLED |
-| Enceladus ocean | Na-Cl-CO3 solution, pH about 11-12; Cl- 0.05-1.2 molal (preferred about 0.2); dissolved inorganic C 0.04-0.1 molal | Glein, Baross and Waite 2015 (arXiv:1502.01946) | READ |
-| Europa ocean | trailing-hemisphere MgSO4 is a radiation product; ocean predicted chloride-rich (MgCl2, NaCl, KCl) | Brown and Hand 2013 (arXiv:1303.0894) | READ |
-| Plume salts NaCl and NaHCO3/Na2CO3 | n/a | Postberg 2009/2011 quoted by Glein 2015 | 2ND-HAND |
+| Enceladus ocean | Na-Cl-CO3 solution, pH about 11-12; Cl- 0.05-1.2 molal (preferred about 0.2); dissolved inorganic C 0.04-0.1 molal | [R1596] | READ |
+| Europa ocean | trailing-hemisphere MgSO4 is a radiation product; ocean predicted chloride-rich (MgCl2, NaCl, KCl) | [R0554] | READ |
+| Plume salts NaCl and NaHCO3/Na2CO3 | n/a | [R3585]/2011 quoted by [R1596] | 2ND-HAND |
 
 Existing generator: `hydrosphere.py` constants `ICY_MOON_K2_Q = 3e-4`, `ICY_MIN_WATER_FRACTION = 0.01`, `ICE_DENSITY_KG_M3 = 917`, `HP_ICE_DENSITY_KG_M3 = 1300` (read from the repo, READ).
 
@@ -297,11 +297,11 @@ Existing generator: `hydrosphere.py` constants `ICY_MOON_K2_Q = 3e-4`, `ICY_MIN_
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Silicate grain-fracture pressure (compaction threshold) | about 1e7 | Pa | Carry 2012; Britt et al. 2002 (cited) | 2ND-HAND |
-| Compact-to-rubble transition | 1e19-1e20 | kg | Carry 2012 | READ |
-| Bodies below about 1e20 kg are porous (rubble piles, P 40-60 %); dwarf planets near zero macroporosity | n/a | n/a | Carry 2012 | READ |
-| S-complex macroporosity typically below 30 % | 30 | % | Carry 2012 | READ |
-| Psyche macroporosity | about 18 | % | Carry 2012 | READ |
+| Silicate grain-fracture pressure (compaction threshold) | about 1e7 | Pa | [R0544, R0666] (cited) | 2ND-HAND |
+| Compact-to-rubble transition | 1e19-1e20 | kg | [R0666] | READ |
+| Bodies below about 1e20 kg are porous (rubble piles, P 40-60 %); dwarf planets near zero macroporosity | n/a | n/a | [R0666] | READ |
+| S-complex macroporosity typically below 30 % | 30 | % | [R0666] | READ |
+| Psyche macroporosity | about 18 | % | [R0666] | READ |
 | Toy compaction law | phi(P) = phi0 exp(-P/P0), a parametrisation | none | my proposal, tuned so the silicate case transitions near 1e20 kg | COMPUTED |
 | Total porosity | phi_tot = 1 - (1 - phi_micro)(1 - phi_macro) | none | definition | COMPUTED |
 | P0 for ices | about 1e6 (guess) | Pa | no source reached | RECALLED |
@@ -386,7 +386,7 @@ Inputs per body: mass fractions f_ice, f_rock, f_metal (sum 1), phase grain dens
 Given the drawn rho_bulk and radius R:
 1. Draw phi0 and P0 (distribution below), compute phi_macro(R). If the body is comet-like (nucleus under 20 km), use phi from the comet distribution (3.5).
 2. Grain density rho_g = rho_bulk / (1 - phi).
-3. Pick the rock analogue (family) from x = a/a_snow (or r/r_ice for moons) via the zone-weight table (3.4); its dry grain density rho_d (Britt 2003 grain) and metal content give the rock+metal block.
+3. Pick the rock analogue (family) from x = a/a_snow (or r/r_ice for moons) via the zone-weight table (3.4); its dry grain density rho_d ([R0544] grain) and metal content give the rock+metal block.
 4. Ice fraction (two-component solve): f_ice = (1/rho_d - 1/rho_g) / (1/rho_d - 1/rho_ice), clamp to [0, f_ice,max]. Here f_ice,max = 0.6 (PARAMETRISATION from section 2.7: Pluto-like rock fraction 0.7 with the tail up to 0.4 ice for ice-rich bodies).
 5. If rho_g exceeds rho_d the body is denser than its rock analogue: set f_ice = 0 and raise the metal fraction: f_metal = (1/rho_r - 1/rho_g) / (1/rho_r - 1/rho_metal) (rho_r = rock block excluding metal), clamp to the family range.
 6. If rho_g is below rho_ice: infeasible; raise phi until rho_g = rho_ice and warn (invariant test).
@@ -403,7 +403,7 @@ Because the composition then follows from density, Route 1 can only reproduce de
 2. For each belt or field (distance a, width), compute x = a / a_snow,sys.
 3. Taxon weights: smooth functions of x calibrated to the DeMeo-Carry Table 6 kernel (2.4) (PARAMETRISATION): for x well below the Solar-System-calibrated inner boundary, mostly igneous and ordinary classes (S, V, E, K, L, A); for x around the middle, C and B; beyond, P and D. The kernel gives the sequence, not the edges.
 4. Draw the taxonomic mass fractions as a Dirichlet sample centred on the kernel weights (PARAMETRISATION, concentration parameter as an adjustable input).
-5. For each taxon, draw rho_bulk from the Carry 2012 Table 3 mean and scatter (normal, truncated), the analogue group, and Britt grain density.
+5. For each taxon, draw rho_bulk from the [R0666: Table 3] mean and scatter (normal, truncated), the analogue group, and Britt grain density.
 6. Albedo per taxon: DeMeo-Carry mean (Table 4) times a log-normal scatter (sigma in log10 to be fitted; none published in what I read).
 7. Aggregate: mean albedo, mean bulk density, mean porosity, ice fraction, metal fraction (mass-weighted).
 8. Existing families (carbonaceous, stony, metallic, icy, basaltic, mixed, dust, collisional) map to taxon bundles: carbonaceous = C+B(+P), stony = S+Q+L, metallic = M+X, icy = P+D, basaltic = V, mixed = Dirichlet over all, dust = no fixed taxon (sub-mm grains; use CI/CM chemistry at porosity 0), collisional = fragments of the dominant taxon. This is a re-labelling, not a new draw. Keep existing family frequencies as the prior.
@@ -411,7 +411,7 @@ Because the composition then follows from density, Route 1 can only reproduce de
 3.4.2 Comets and KBOs
 1. Draw delta_RI (refractory-to-ice mass ratio) log-uniform on [0.5, 8] (PARAMETRISATION from 2.6: COSIMA 0.2-3 to Fulle 7.5).
 2. f_ice = 1 / (1 + delta_RI); the refractory share splits into silicate (about 55 %), organics (about 45 %, COSIMA via Choukroun) of the dust.
-3. Volatiles by species as percent of H2O from Rubin 2019 / Harrington Pinto 2022: CO and CO2 log-normal with medians 3.3 % and 12 %, ranges 0.3-26 % and 2-30 %; the other species as lognormal around the 67P table with sigma 0.5 dex (PARAMETRISATION). CO/H2O formation-temperature dependence is not sourced here (section 5).
+3. Volatiles by species as percent of H2O from [R3835] / Harrington [R3535]: CO and CO2 log-normal with medians 3.3 % and 12 %, ranges 0.3-26 % and 2-30 %; the other species as lognormal around the 67P table with sigma 0.5 dex (PARAMETRISATION). CO/H2O formation-temperature dependence is not sourced here (section 5).
 4. Porosity: comet nuclei phi ~ U(0.5, 0.8) (Choukroun 65-79 %); KBOs under 100 km phi ~ U(0.3, 0.6); apply the compaction law for larger bodies.
 5. rho_bulk from the mixing rule.
 6. Interstellar objects: same draw, but the CO/H2O ratio is drawn from a wider log-uniform on [0.01, 1.6] (Borisov exceeded Solar-System comets by a factor of 15-40 in CO/H2O; one object only, so the width is a PARAMETRISATION).
@@ -430,7 +430,7 @@ Because the composition then follows from density, Route 1 can only reproduce de
 
 3.4.4 Impact-formed moons (terrestrial parents)
 - Drawn when the parent is a terrestrial planet and the moon is generated by a giant-impact event. Moon/planet mass ratio is an input of the impact generator, not of this part (Earth-Moon 0.0123, a calibration only, RECALLED).
-- Composition from Lock et al. 2018: iron-poor (metal share a few wt %, the rest bound as FeO), depleted in moderately volatile elements, near-zero water (1-1000 ppm). Metal fraction ~ U(0.01, 0.05) (PARAMETRISATION, from the "few wt %"). Ice fraction 0.
+- Composition from [R2724]: iron-poor (metal share a few wt %, the rest bound as FeO), depleted in moderately volatile elements, near-zero water (1-1000 ppm). Metal fraction ~ U(0.01, 0.05) (PARAMETRISATION, from the "few wt %"). Ice fraction 0.
 - Parent mantle composition is the source composition (agent B hand-off).
 
 3.4.5 Captured moons
@@ -440,15 +440,15 @@ Because the composition then follows from density, Route 1 can only reproduce de
 
 | Quantity | Distribution | Basis | Label |
 |---|---|---|---|
-| snow-line scatter | log10 N(0, 0.2) | coordinator note citing Mulders 2015 | RECALLED |
-| Al-26 ratio per system | log-uniform [0.1, 10] x 5.25e-5 | Lichtenberg 2019 (range tested) | READ |
-| rock mass fraction, icy bodies | truncated normal(0.70, 0.08), [0.45, 0.95] | Bierson and Nimmo 2019 abstract | READ (centre only) |
-| delta_RI, comets | log-uniform [0.5, 8] | Choukroun 2020 | READ |
-| comet porosity | U(0.5, 0.8) | Choukroun 2020 | READ |
-| phi0 C-like / S-like rock | U(0.25, 0.55) / U(0.10, 0.35) | Britt and Consolmagno 2003 (avg 10 %), Carry 2012 | READ |
-| P0 rock / ice | 1e7 Pa / 1e6 Pa | Carry 2012 / guess | 2ND-HAND / RECALLED |
-| alpha/f (moon-system mass) | log-uniform [1e-6, 5e-4] | Canup and Ward 2009 | READ |
-| ice fraction beyond ice line | truncated normal(0.35, 0.10), [0.1, 0.6] | COMPUTED rock fractions 2.7; Marboeuf 2014 via GEN.425 report | COMPUTED |
+| snow-line scatter | log10 N(0, 0.2) | coordinator note citing [R3193, R3196] | RECALLED |
+| Al-26 ratio per system | log-uniform [0.1, 10] x 5.25e-5 | [R2678] (range tested) | READ |
+| rock mass fraction, icy bodies | truncated normal(0.70, 0.08), [0.45, 0.95] | [R0390] abstract | READ (centre only) |
+| delta_RI, comets | log-uniform [0.5, 8] | [R0776] | READ |
+| comet porosity | U(0.5, 0.8) | [R0776] | READ |
+| phi0 C-like / S-like rock | U(0.25, 0.55) / U(0.10, 0.35) | [R0544] (avg 10 %), [R0666] | READ |
+| P0 rock / ice | 1e7 Pa / 1e6 Pa | [R0666] / guess | 2ND-HAND / RECALLED |
+| alpha/f (moon-system mass) | log-uniform [1e-6, 5e-4] | [R0643] | READ |
+| ice fraction beyond ice line | truncated normal(0.35, 0.10), [0.1, 0.6] | COMPUTED rock fractions 2.7; [R2865] via GEN.425 report | COMPUTED |
 | disk lifetime | log-uniform [1, 10] Myr | Sasaki 5 Myr reference | READ |
 
 ### 3.6 Fields to store (names, units, range, per body or per layer)
@@ -480,7 +480,7 @@ Per planet or moon (new child table `body_composition`, body_id, layer, componen
 I read `/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md`.
 - Agree: the generator's uniform per-class density draw does not follow composition, and class D draws a rocky density; ice and silicate zero-pressure densities (the gap) are filled in 2.1; the small-body mixing rule rho = 1 / sum(w_i/rho0_i) is kept (3.2) with a porosity term and compression limit added; the snow-line constant of 2.7 AU is a blackbody value and has about 0.2 dex real scatter (3.4.1).
 - Differ or extend: the rule is a zero-pressure mixing rule; it must not be used for bodies of Ganymede size (2.11 shows a 10-15 point under-prediction); porosity (about 10 % for meteorites, 65-79 % for comets) changes bulk density by more than the compositional difference between neighbouring classes.
-- Marboeuf 2014 (30-45 % ice) is taken from that report and not re-verified here; my own COMPUTED rock fractions (2.7) give 0.58-0.96 rock, i.e. 4-42 % ice.
+- [R2865] (30-45 % ice) is taken from that report and not re-verified here; my own COMPUTED rock fractions (2.7) give 0.58-0.96 rock, i.e. 4-42 % ice.
 
 ---
 
@@ -490,15 +490,15 @@ Test targets only, never presets. Each should be reproduced by the stated law wi
 
 | Target | Value | Tolerance | Law tested | Source | Label |
 |---|---|---|---|---|---|
-| Ordinary chondrite bulk density | H 3.42, L 3.36, LL 3.22 g/cm3 | 0.2 | grain density and porosity (2.2) | Carry 2012 | READ |
+| Ordinary chondrite bulk density | H 3.42, L 3.36, LL 3.22 g/cm3 | 0.2 | grain density and porosity (2.2) | [R0666] | READ |
 | CI bulk density | 1.6 vs 2.11 g/cm3 (two sources) | 0.5 | two measurement sets differ | Carry; Britt | READ |
-| 67P density | 537.8 kg/m3 | 100 kg/m3 | delta_RI, porosity 65-79 % | Choukroun 2020 | READ |
-| Mean TNO / comet density | 0.77 / 0.47 g/cm3 | 0.3 | KBO and comet draws | Carry 2012 | READ |
+| 67P density | 537.8 kg/m3 | 100 kg/m3 | delta_RI, porosity 65-79 % | [R0776] | READ |
+| Mean TNO / comet density | 0.77 / 0.47 g/cm3 | 0.3 | KBO and comet draws | [R0666] | READ |
 | Pluto, Charon, Quaoar, Orcus rock fractions | 0.58-0.82 | within the 0.45-0.95 draw | 3.4.2 | COMPUTED | COMPUTED |
-| Compaction transition | about 1e20 kg | factor 3 | toy law | Carry 2012 | READ |
+| Compaction transition | about 1e20 kg | factor 3 | toy law | [R0666] | READ |
 | Galilean ice fraction ordering | Io 0 below Europa 0.06 below Ganymede 0.24 below Callisto 0.35 | ordering exact | ramp 3.4.3 | COMPUTED | COMPUTED |
 | Galilean densities | 3.53, 3.01, 1.94, 1.83 g/cm3 | 0.3 (needs EOS for Ganymede) | 3.4.3 | NASA; Sasaki Table 1 | READ |
-| Total regular-satellite mass ratio | Jupiter 2.1e-4, Saturn 2.5e-4 | factor 3 | alpha/f draw | Canup and Ward 2009 | READ |
+| Total regular-satellite mass ratio | Jupiter 2.1e-4, Saturn 2.5e-4 | factor 3 | alpha/f draw | [R0643] | READ |
 | Io density | 3.53 g/cm3 | 0.2 | anhydrous rocky moon | NASA | READ |
 | Dwarf-planet q values | 5e-4-0.11 | covered by draw | 3.4.2 | Barr and Schwamb | READ |
 | Long-lived heating of ordinary chondrite | 4.9-5.4 pW/kg | 10 % | Lodders x Ruedas | COMPUTED | COMPUTED |
@@ -510,21 +510,21 @@ Test targets only, never presets. Each should be reproduced by the stated law wi
 
 ### Boss must research (ranked by importance to the design)
 
-1. Canup 2012 (Science) and Cuk and Stewart 2012: composition and iron fraction of the impact-formed moon disk, mass-ratio distribution. Science is refused; the SwRI copy returned a certificate error. NOT REACHED.
-2. Mosqueira and Estrada 2003 (Icarus): solids-enhanced minimum-mass disk; the composition-versus-distance rule for regular moons beyond the one scaling from Sasaki. NOT REACHED.
-3. Bierson and Nimmo 2019 full text (Icarus 326:10): compaction model, P0 and creep law for ices, compaction thresholds. Only the abstract was reached (the PMC page showed a reCAPTCHA; the E-utilities XML gave the abstract). NOT REACHED.
-4. Macke et al. 2011 (MAPS 46:1842) and Consolmagno et al. 2008 (Chemie der Erde 68:1): bigger meteorite grain-density and porosity tables. ADS timed out and the journal returned 403. NOT REACHED.
-5. Alexander et al. 2012 (Science): water content of CI, CM, CV. NOT REACHED.
-6. Hussmann et al. 2006: interiors of medium-sized icy satellites. NOT REACHED.
-7. Waite et al. 2017 and Postberg et al. 2011: Enceladus plume gas and grain composition numbers (only Glein 2015's summary read). NOT REACHED.
-8. Mumma and Charnley 2011 (Annu. Rev.): comet volatile tables; Bardyn et al. 2017: comet refractory composition. NOT REACHED.
+1. [R0638, R0958]: composition and iron fraction of the impact-formed moon disk, mass-ratio distribution. Science is refused; the SwRI copy returned a certificate error. NOT REACHED.
+2. [R3180]: solids-enhanced minimum-mass disk; the composition-versus-distance rule for regular moons beyond the one scaling from Sasaki. NOT REACHED.
+3. [R0390] full text (Icarus 326:10): compaction model, P0 and creep law for ices, compaction thresholds. Only the abstract was reached (the PMC page showed a reCAPTCHA; the E-utilities XML gave the abstract). NOT REACHED.
+4. [R2793] (MAPS 46:1842) and [R0874] (Chemie der Erde 68:1): bigger meteorite grain-density and porosity tables. ADS timed out and the journal returned 403. NOT REACHED.
+5. [R0067]: water content of CI, CM, CV. NOT REACHED.
+6. [R2059]: interiors of medium-sized icy satellites. NOT REACHED.
+7. [R3586, R4587]: Enceladus plume gas and grain composition numbers (only [R1596]'s summary read). NOT REACHED.
+8. [R3206] (Annu. Rev.): comet volatile tables; [R0259]: comet refractory composition. NOT REACHED.
 9. Nimmo and McKinnon: Pluto interior and ice fraction. NOT REACHED.
-10. Crida and Charnoz 2012: ring-origin moon composition and rules. Abstract READ; full text garbled. NOT REACHED.
-11. Metal weight percent per chondrite group (Lodders 2021 Fe split, or Rubin). Volume percent per group is now READ (Weisberg, McCoy and Krot 2006 Table 1; part H section 3.5) with a COMPUTED weight percent for the ordinary groups; the measured weight percent per group is still NOT REACHED.
+10. [R0920]: ring-origin moon composition and rules. Abstract READ; full text garbled. NOT REACHED.
+11. Metal weight percent per chondrite group ([R2729] Fe split, or Rubin). Volume percent per group is now READ ([R4658: Table 1]; part H section 3.5) with a COMPUTED weight percent for the ordinary groups; the measured weight percent per group is still NOT REACHED.
 12. Moon counts and mass partition from circumplanetary-disk models (Sasaki Table 1 only gives one set).
 13. Low-pressure compaction pressure P0 for water ice and for ice-rock mixtures.
-14. Lodders 2003 (reachable on IOP but bot-checked): use Lodders 2021 instead (done).
-15. Mulders et al. 2015: snow-line scatter of about 0.2 dex, taken from the coordinator, not read here.
+14. [R2726] (reachable on IOP but bot-checked): use [R2729] instead (done).
+15. [R3193]: snow-line scatter of about 0.2 dex, taken from the coordinator, not read here.
 16. Albedo scatter within a taxon (none found in what I read).
 
 ### To verify (RECALLED, ranked)
@@ -546,7 +546,7 @@ Test targets only, never presets. Each should be reproduced by the stated law wi
 ## 6. Proposed work items
 
 Group 1: research and design
-- Load Lodders 2021 full chondrite table; scope: put all 11 groups into a data file with ppm per element, K/Th/U; depends on nothing; small.
+- Load [R2729] full chondrite table; scope: put all 11 groups into a data file with ppm per element, K/Th/U; depends on nothing; small.
 - Verify RECALLED list (section 5); scope: metal wt % per group, age; depends on Lodders table; small.
 - Obtain unreachable references (section 5 items 1-9); scope: Boss pulls PDFs, I extract numbers; depends on Boss; medium.
 
@@ -555,7 +555,7 @@ Group 2: tables
 - Meteorite group table (grain, bulk, porosity, analogue); small.
 - Taxon table (Bus-DeMeo classes, albedo, density, analogue); depends on meteorite table; small.
 - Zone-weight kernel x = a/a_snow from DeMeo-Carry Table 6; small.
-- Comet volatile table (Rubin 2019, Harrington Pinto 2022); small.
+- Comet volatile table ([R3835], Harrington [R3535]); small.
 - Radiogenic table (Ruedas rates, Lodders ppm); small.
 
 Group 3: drawing rules

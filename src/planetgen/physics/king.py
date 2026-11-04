@@ -1,7 +1,7 @@
 # planetgen/physics/king.py
 
 """
-King (1966) models for globular clusters (GEN.159).
+[R2359] models for globular clusters (GEN.159).
 
 A King model is self-similar: for one central potential `W0` the density, the cumulative mass and the tidal radius
 are one curve in units of the King radius `r0`, so ten tables (`W0` = 3 to 12, `tuning.KING_W0_RANGE`), each solved

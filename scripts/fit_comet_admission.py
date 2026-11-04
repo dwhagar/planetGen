@@ -8,7 +8,7 @@ Fits src/planetgen/physics/data/comet_admission.json (GEN.507)
 Which comets have a published coma composition, and at what heliocentric distance it was measured. Two published tables are joined:
 
 * the compositional measurements of comets, one row per species and epoch with the comet's heliocentric distance `Rh(au)`
-  (Robinson, Malamud, Opitom, Perets and Blum 2024, arXiv:2403.15644, database doi 10.7488/ds/7723, CC BY 4.0), 909 rows of 96
+  ([R3782], database [R4972], CC BY 4.0), 909 rows of 96
   comets;
 * the orbits of the known comets (JPL Small-Body Database query API: `q` and the orbit class of every comet).
 
@@ -119,7 +119,7 @@ def build(database_text, sbdb_text, retrieved):
                           "rows": len(pts), "comets": len({p[2] for p in pts})}
     return {
         "title": "Which comets have a measured coma composition and at what heliocentric distance (GEN.507)",
-        "source": "Robinson et al. 2024 database (doi 10.7488/ds/7723, CC BY 4.0) joined to the JPL Small-Body Database orbits; "
+        "source": "[R3782] database ([R4972], CC BY 4.0) joined to the JPL Small-Body Database orbits; "
                   "queries in scripts/fit_comet_admission.py",
         "retrieved": retrieved,
         "label": "DATA, COMPUTED",

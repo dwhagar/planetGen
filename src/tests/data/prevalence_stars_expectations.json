@@ -8,7 +8,7 @@
   "sources": {
    "RECONS": "RECONS census of objects nearer than 10 parsecs, Henry et al., data of 2018-04-12 (read 2026-10-28): 378 stars of which 21 white dwarfs (A 4, F 7, G 19, K 44, M 283), 50 brown dwarfs, 317 systems (232 single, 66 double, 14 triple, 3 quadruple, 2 quintuple), multiplicity rate 27%",
    "Mamajek": "Mamajek, Number Densities of Stars of Different Types in the Solar Vicinity (read 2026-10-28): fraction of stars O 5e-7, B 3.9e-4, A 6.0e-3, F 0.031, G 0.041, K 0.129, M 0.725 (0.687 from the RECONS 10 pc density), white dwarfs 0.059",
-   "multiplicity": "Duchene and Kraus 2013 (ARA&A 51:269): M dwarfs 26 +/- 3%; Raghavan et al. 2010 (ApJS 190:1): solar-type 46% with 56% single, 33% double, 8% triple, 3% higher (44 +/- 2% in Duchene and Kraus); Moe and Di Stefano 2017 (ApJS 230:15) Table 13: A and late B 0.59 +/- 0.11. Recalled, not reopened (tier T2/T3); the same figures tuning.py quotes"
+   "multiplicity": "[R1175] (ARA&A 51:269): M dwarfs 26 +/- 3%; [R3646] (ApJS 190:1): solar-type 46% with 56% single, 33% double, 8% triple, 3% higher (44 +/- 2% in Duchene and Kraus); [R3108] (ApJS 230:15) Table 13: A and late B 0.59 +/- 0.11. Recalled, not reopened (tier T2/T3); the same figures tuning.py quotes"
   }
  },
  "anomalies": {
@@ -41,25 +41,25 @@
  "multiplicity": {
   "M2V": {
    "companion": {"norm_min": 0.22, "norm_max": 0.35, "kind": "norm",
-                 "source": "Duchene and Kraus 2013 M dwarfs 26 +/- 3%; RECONS multiplicity rate 27% of all systems (mostly M); an early M dwarf is more often a pair than a late one"}
+                 "source": "[R1175] M dwarfs 26 +/- 3%; RECONS multiplicity rate 27% of all systems (mostly M); an early M dwarf is more often a pair than a late one"}
   },
   "K5V": {
    "companion": {"norm_min": 0.35, "norm_max": 0.47, "kind": "norm",
-                 "source": "Raghavan et al. 2010 K dwarfs, about 0.41; tuning.py anchors K at 0.40"}
+                 "source": "[R3646] K dwarfs, about 0.41; tuning.py anchors K at 0.40"}
   },
   "G2V": {
    "companion": {"norm_min": 0.42, "norm_max": 0.50, "kind": "norm",
-                 "source": "Raghavan et al. 2010 solar-type 46 +/- 2%; Duchene and Kraus 2013 44 +/- 2%"},
+                 "source": "[R3646] solar-type 46 +/- 2%; [R1175] 44 +/- 2%"},
    "triple_or_more": {"norm_min": 0.07, "norm_max": 0.15, "kind": "norm",
-                      "source": "Raghavan et al. 2010: 8% triple and 3% higher"}
+                      "source": "[R3646]: 8% triple and 3% higher"}
   },
   "F5V": {
    "companion": {"norm_min": 0.42, "norm_max": 0.55, "kind": "norm",
-                 "source": "Raghavan et al. 2010 F6 to F7 about 0.5; tuning.py anchors F at 0.47"}
+                 "source": "[R3646] F6 to F7 about 0.5; tuning.py anchors F at 0.47"}
   },
   "A0V": {
    "companion": {"norm_min": 0.44, "norm_max": 0.70, "kind": "norm",
-                 "source": "About 0.44 from companions found; Duchene and Kraus 2013 at least 0.5; Moe and Di Stefano 2017 A and late B 0.59 +/- 0.11", "anomaly": "TEST.473"}
+                 "source": "About 0.44 from companions found; [R1175] at least 0.5; [R3108] A and late B 0.59 +/- 0.11", "anomaly": "TEST.473"}
   }
  }
 }

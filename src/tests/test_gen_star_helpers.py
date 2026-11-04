@@ -176,7 +176,7 @@ def test_white_dwarf_params_keep_the_radius_of_the_cooling_sequences():
 ])
 def test_evolve_star_phases_follow_age(mass, ms_fraction, yerkes):
     """Phase boundaries are multiples of the main-sequence lifetime: a solar-mass star leaves the subgiant phase at 1.05
-    of it and its giant branch ends at 1.12 (GEN.502, Hurley, Pols and Tout 2000); a 6 solar mass star is a bright giant
+    of it and its giant branch ends at 1.12 (GEN.502, [R2055]); a 6 solar mass star is a bright giant
     burning helium in its core until 1.13 of it (the MIST track, GEN.935) and a white dwarf after."""
     age = stellar_evolution.main_sequence_lifetime_gy(mass) * ms_fraction
     rng = random.Random(7)
@@ -471,7 +471,7 @@ def test_map_luminosity_is_within_a_factor_of_the_star_generators_main_sequence(
 def test_hot_white_dwarf_central_stars_are_the_models_hot_white_dwarfs(star_type):
     """A central star is a white dwarf the star model makes at that temperature (GEN.941): a remnant of 0.5 to 1.35 Msun
     whose luminosity and radius follow from its cooling and mass, as hot as its letter says. The mass is held to the model's white
-    dwarf range (`tuning.WD_MASS_RANGE_SOL`, 0.5 to 1.35 Msun: the initial-final relation of Cummings et al. 2018 clipped to it),
+    dwarf range (`tuning.WD_MASS_RANGE_SOL`, 0.5 to 1.35 Msun: the initial-final relation of [R0961] clipped to it),
     which the test held to 1.3 before the star model's remnants reached the top of it."""
     for _ in range(20):
         star = make_star(star_type)

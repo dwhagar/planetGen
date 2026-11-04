@@ -66,17 +66,16 @@ _mearth_to_kg = units.converter("Mearth", "kg")
 
 METALLIZATION_PRESSURE_RANGE_GPA = (40.0, 200.0)
 """tuple: The molecular-to-metallic hydrogen pressure, drawn log-uniform (D1). 0.4 to 0.6 Mbar from quantum Monte Carlo at
-Jupiter's conditions (Mazzola, Helled and Sorella 2018, READ), 1 to 2 Mbar from the older liquid-liquid transition work
-(Debras and Chabrier 2019, READ); the widest range wins (Boss's rule 3)."""
+Jupiter's conditions ([R2966], READ), 1 to 2 Mbar from the older liquid-liquid transition work
+([R1038], READ); the widest range wins (Boss's rule 3)."""
 
 HELIUM_RAIN_ONSET_GPA = 200.0
-"""float: Where helium becomes immiscible in metallic hydrogen for a proto-solar adiabat, 2 Mbar (Mankovich and Fortney 2020
-Figure 1 and 3, READ). The helium gradient starts here and the envelope above it keeps one depleted helium share."""
+"""float: Where helium becomes immiscible in metallic hydrogen for a proto-solar adiabat, 2 Mbar ([R2852: Figure 1 and 3], READ). The helium gradient starts here and the envelope above it keeps one depleted helium share."""
 
 HELIUM_RAIN_POINTS_K = ((140.0, 0.26), (166.0, 0.85))
-"""tuple: STAND-IN (D2, replaced by the Schottler and Redmer 2018 curve and a stored adiabat, GEN.641 follow-up): the
+"""tuple: STAND-IN (D2, replaced by the [R3973] curve and a stored adiabat, GEN.641 follow-up): the
 one-bar temperature and the molecular envelope's helium share against the natal share where it was measured. Saturn's
-Y = 0.07 against 0.27 (Mankovich and Fortney 2020, READ) and Jupiter's 0.234 against 0.2745 (Galileo, via Helled and Howard
+Y = 0.07 against 0.27 ([R2852], READ) and Jupiter's 0.234 against 0.2745 (Galileo, via Helled and Howard
 2024, READ). A straight line through them, held at the Saturn value below it and at 1 from where it reaches 1."""
 
 DEEP_ENVELOPE_MAX_Z = 0.9
@@ -92,7 +91,7 @@ of the mass, so the helium that rained out has somewhere to go."""
 
 HELIUM_SHELL_THRESHOLD = 0.5
 """float: STAND-IN (D2): below this depletion half of the helium that rained out forms a helium shell above the core (the
-Saturn picture, Mankovich and Fortney 2020 section 2, READ for the existence, not for the share)."""
+Saturn picture, [R2852] section 2, READ for the existence, not for the share)."""
 
 HELIUM_SHELL_FRACTION = 0.5
 SHELL_HELIUM_SHARE = 0.9
@@ -100,36 +99,36 @@ SHELL_HELIUM_SHARE = 0.9
 hydrogen and helium."""
 
 COMPACT_CORE_RANGE_EARTH = (0.5, 20.0)
-"""tuple: The compact core mass, log-uniform (D3). A few Earth masses at most for Jupiter (Helled and Stevenson 2024, READ),
-15 to 18 for Saturn (via Helled and Howard 2024, 2ND-HAND); the widest range wins."""
+"""tuple: The compact core mass, log-uniform (D3). A few Earth masses at most for Jupiter ([R1895], READ),
+15 to 18 for Saturn (via [R1893], 2ND-HAND); the widest range wins."""
 
 DILUTE_CORE_RANGE_EARTH = (20.0, 100.0)
 """tuple: The dilute core mass (hydrogen and helium with heavy elements), log-uniform (D4). About 20 Earth masses where
-evaporated solids mix in (2ND-HAND through Helled and Stevenson 2024) to about 100 (Helled and Stevenson
+evaporated solids mix in (2ND-HAND through [R1895]) to about 100 (Helled and Stevenson
 2024, READ)."""
 
 DILUTE_CORE_MAX_MASS_FRACTION = 0.65
-"""float: Saturn's stable region is 55 of 95 Earth masses, 0.58 (Mankovich and Fuller 2021, READ); the cap is a little above."""
+"""float: Saturn's stable region is 55 of 95 Earth masses, 0.58 ([R2851], READ); the cap is a little above."""
 
 DILUTE_CORE_MAX_HEAVY_FRACTION = 0.8
-"""float: The heavy-element share of the dilute core's inner part reaches 0.8 (Mankovich and Fuller 2021, READ)."""
+"""float: The heavy-element share of the dilute core's inner part reaches 0.8 ([R2851], READ)."""
 
 DILUTE_CORE_MIN_BODY_EARTH = 30.0
 """float: Below this mass the heavy elements are a gradient through the whole body and there is no separate dilute core (D4)."""
 
 ICE_GIANT_ENVELOPE_LIMIT = 0.5
-"""float: A body whose hydrogen and helium are under this share of its mass is an ice giant (Helled and Fortney 2020: 10 to
+"""float: A body whose hydrogen and helium are under this share of its mass is an ice giant ([R1892]: 10 to
 20 percent for Uranus and Neptune)."""
 
 ICE_GIANT_ROCK_FRACTION_RANGE = (0.05, 0.67)
-"""tuple: The rock and iron share of an ice giant's heavy elements (D4.4, OPEN): 0.05 from the non-adiabatic empirical models, 0.67 from Zeng et al. 2019 (rock to water at most 2)."""
+"""tuple: The rock and iron share of an ice giant's heavy elements (D4.4, OPEN): 0.05 from the non-adiabatic empirical models, 0.67 from [R4880] (rock to water at most 2)."""
 
 ICE_GIANT_RELATIVE_DENSITY = {"rock_core": 2.0, "ice_mantle": 1.0, "molecular_envelope": 0.25}
 """dict: STAND-IN (D7): the relative densities of the three constant-density layers of an ice giant. Only the ratios matter:
 the scale is set so the layers fill the radius."""
 
 SUPERIONIC_PRESSURE_GPA = 100.0
-"""float: Water above this pressure is superionic ice (ice XVIII at 100 to 400 GPa, Millot et al. 2019 abstract, READ)."""
+"""float: Water above this pressure is superionic ice (ice XVIII at 100 to 400 [R3081] abstract, READ)."""
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -160,7 +159,7 @@ COMPACT_CORE_TABLE = pt.REGISTRY.register(pt.Table(
             notes="A pure rock and iron core of 0.5 to 20 Earth masses. Formation models predict one (Helled and Stevenson "
                   "2024); gravity cannot see one under about 10 Earth masses; the share is a placeholder."),
      pt.Row("no compact core", (pt.ANY_CLASS,), pt.OPEN, "open", state=pt.OPEN_STATE,
-            notes="Convective mixing or a giant impact removed it, or it never formed (Helled and Stevenson 2024).")],
+            notes="Convective mixing or a giant impact removed it, or it never formed [R1895].")],
     description="Whether a giant has a compact core of heavy elements."))
 
 

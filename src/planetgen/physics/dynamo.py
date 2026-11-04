@@ -6,7 +6,7 @@ and draws nothing. The power comes from the core's own thermal history (the heat
 GEN.838) or, for a giant, from its luminosity (`giant_power_w`); the spin is the body's (`spin`, GEN.731). The values stored on a body are set by
 GEN.967, which replaces the design defaults of `magnetism` with these.
 
-1. **Strength.** The buoyancy-flux scaling of Olson and Christensen (2006), which Christensen and Aubert (2006) extend: the
+1. **Strength.** The buoyancy-flux scaling of [R3355], which [R0784] extend: the
    dipole's equatorial field at the top of a dipolar dynamo's region does not depend on the spin or the conductivity, only on the buoyancy flux
    `F = P / (rho V)` (W/kg, the power per mass of the region), its thickness `D` and the density `rho`:
    `B = gamma sqrt(rho mu0 / 2) (F D)^(1/3)` with `gamma` about 0.2, and the moment is `4 pi r_o^3 B / mu0` (the design note section 3.1). The same
@@ -29,7 +29,7 @@ VACUUM_PERMEABILITY = 4e-7 * math.pi
 """float: mu0, T m/A."""
 
 DIPOLE_COEFFICIENT = 0.2
-"""float: `gamma`, the coefficient of the dipole's field in the buoyancy-flux scaling (Olson and Christensen 2006: 145 numerical dynamos, 0.2, which
+"""float: `gamma`, the coefficient of the dipole's field in the buoyancy-flux scaling ([R3355]: 145 numerical dynamos, 0.2, which
 puts the solar-system moments within about 15 percent; second-hand)."""
 EARTH_OUTER_CORE_M = 3.480e6
 EARTH_INNER_CORE_M = 1.221e6
@@ -41,11 +41,11 @@ EARTH_FLUX_DEPTH_M2_S2 = 1.4e-6
 """float: Earth's `F D` for the scaling, m2/s2, the value that gives its 7.8e22 A m2 (design note section 3.1, a check): `F` is about 6.2e-13 W/kg, which
 is `EARTH_DYNAMO_POWER_W` of 1.15 TW in the outer core. STAND-IN DY3: the published range of the power is 0.2 to 3 TW."""
 EARTH_ROSSBY = 0.09
-"""float: The local Rossby number of Earth's dynamo (Olson and Christensen 2006), the unit of `local_rossby`."""
+"""float: The local Rossby number of Earth's dynamo [R3355], the unit of `local_rossby`."""
 DIPOLE_ROSSBY = 0.12
-"""float: The local Rossby number above which a dynamo is multipolar (Christensen and Aubert 2006: 0.12; the band is 0.1 to 0.12)."""
+"""float: The local Rossby number above which a dynamo is multipolar ([R0784]: 0.12; the band is 0.1 to 0.12)."""
 FLUX_RAYLEIGH_EXPONENT = 0.41
-"""float: The exponent of the flux Rayleigh number in the Rossby number (Christensen and Aubert 2006: 0.41)."""
+"""float: The exponent of the flux Rayleigh number in the Rossby number ([R0784]: 0.41)."""
 MIN_DIPOLE_FRACTION = 0.15
 """float: STAND-IN DY4: the share of the field a multipolar dynamo keeps in its dipole (the rule of `magnetism` since GEN.86; the simulations give 0.05 to 0.2)."""
 

@@ -23,7 +23,7 @@ complete; nothing in the generator puts them on a surface until a rule for their
    at the surface temperature condenses (`condensing`), ranked by how far past saturation it is; otherwise the amount of its ice or ore the body holds (the
    `reservoir`) ranks it. The rule is physics for the first and a stand-in for the second (OT3 in the registry).
 3. **Seas of several liquids.** `ideal_sea` gives the mole fractions of a sea in equilibrium with an air by Raoult's law, `x_i = p_i / P_sat,i(T)`, with an
-   involatile solvent (ethane, on Titan) taking the rest: Titan's lakes are methane, ethane and nitrogen (Cordier et al. 2009, recalled). Ideal mixing
+   involatile solvent (ethane, on Titan) taking the rest: Titan's lakes are methane, ethane and nitrogen ([R0888], recalled). Ideal mixing
    overstates the nitrogen the cold lakes hold, so a permanent gas keeps `SOLUBILITY_FACTOR` of its ideal share; the result is a stand-in (OT3).
 4. **Density and viscosity.** The density is linear from the reference point in the expansion coefficient, held to 30 percent of the reference at least (a
    liquid near its critical point is lighter than that line says); the viscosity is interpolated linearly in its logarithm between the row's points and
@@ -47,7 +47,7 @@ GAS_CONSTANT_J_MOL_K = 8.314
 ONE_BAR_PA = 1.0e5
 SOLUBILITY_FACTOR = {"N2": 0.3}
 """dict: STAND-IN OT3: the share of Raoult's ideal mole fraction a permanent gas keeps in a cold hydrocarbon sea (ideal mixing overstates the nitrogen Titan's lakes
-hold, the 0.1 to 0.2 of Cordier et al. 2009, recalled)."""
+hold, the 0.1 to 0.2 of [R0888], recalled)."""
 MIN_DENSITY_SHARE = 0.3
 """float: STAND-IN: the density line is held at or above this share of the reference density (a liquid near its critical point)."""
 KINDS = ("cryogenic", "hydrocarbon", "molecular", "aqueous", "brine", "acid", "sulfur", "salt", "metal", "sulfide", "silicate", "carbonate")

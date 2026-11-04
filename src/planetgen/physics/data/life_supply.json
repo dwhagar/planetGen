@@ -7,7 +7,7 @@
    "value": 0.087,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "Earth's mean surface heat flow, 0.087 W/m2 (Davies and Davies 2010, recalled): the heat a supply of 1 stands for"
+   "basis": "Earth's mean surface heat flow, 0.087 W/m2 ([R1015], recalled): the heat a supply of 1 stands for"
   },
   "heat_share_max": {
    "value": 10.0,

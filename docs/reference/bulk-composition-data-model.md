@@ -63,9 +63,9 @@ hold exactly the heavy-element mass and natal helium (tested to 1e-9). Where a b
 1. **The star sets the dry ratios.** The host star's abundances (`stellar_composition`) give Fe/Mg, Si/Mg, Al/Mg, Ca/Mg, Ni/Mg and
    C/O. A rocky body takes all the star's Mg, Si, Ca and Al into its rock as oxides and the iron its mantle does not hold as FeO into
    its metal core (`dry_partition`). An Earth-like star gives a core mass fraction near 0.3 with no draw; an iron-rich or iron-poor
-   star moves it, the observed trend (Dorn et al. 2015; Santos et al. 2015).
+   star moves it, the observed trend [R1146, R3916].
 2. **What the star cannot say is drawn**, from `RANGES` and the tables, each with its source in the module: the kind of rock
-   (`ROCK_KIND_TABLE`: silicate, or silicon carbide and graphite for C/O of 0.8 or more, Bond et al. 2010; Unterborn et al. 2014); the
+   (`ROCK_KIND_TABLE`: silicate, or silicon carbide and graphite for C/O of 0.8 or more, [R0455, R4469]); the
    water share, log-uniform over the range of the body's origin (`tuning.DRY_WATER_MASS_FRACTION` 1e-6 to 1e-3; a water world,
    `WATER_WORLD_SHARE` 0.03 of bodies, 0.01 to 0.1; an icy body beyond the snow line `ICY_WATER_MASS_FRACTION` 0.05 to 0.5); for an
    icy body the other ices from the comet volatiles; the rock's FeO (2 to 18 percent), the core's light elements (3 to 12 percent), a
@@ -78,8 +78,8 @@ hold exactly the heavy-element mass and natal helium (tested to 1e-9). Where a b
 4. **A body given both a mass and a radius** goes the other way (`composition_origin = inverse`): they say the core mass fraction
    (`bulk_structure.cmf_from_mass_radius`, at most `MAX_CMF` 0.9), as an observer's route does.
 5. **A moon that holds its origin** (`moon_composition`, GEN.466) takes its shares from it: a disk moon of a giant (ice rising with the
-   formation distance past the disk's ice line, Sasaki et al. 2010; the moon system of Canup and Ward 2009), an impact moon (little
-   metal, no ice, Lock et al. 2018), a captured body, a ring moon or the partner of a dwarf planet. Every weight of the origin table is
+   formation distance past the disk's ice line, [R3922]; the moon system of [R0643]), an impact moon (little
+   metal, no ice, [R2724]), a captured body, a ring moon or the partner of a dwarf planet. Every weight of the origin table is
    open (no source), so the rows a moon supports share the probability equally. Below the taper's end of the compaction law
    (`compaction.TAPER_END_KG`, GEN.442) its mass follows from its radius by the tapered brittle law and its grain density; heavier, the
    structure solver decides.
@@ -95,15 +95,15 @@ belt are flagged stand-ins).
 
 - **`layered_structure`**, the reference: a two-layer integrator extended with a water layer on top whose density is the 300 K
   isotherm of liquid water (IAPWS-95 through the NIST WebBook, to 950 MPa), the ice VI, VII and X reference points of the materials
-  table, and the polytrope of Seager et al. 2007 above 1 TPa. Hydrostatic balance in `s = m^(1/3)`, fourth-order Runge-Kutta,
+  table, and the polytrope of [R3992] above 1 TPa. Hydrostatic balance in `s = m^(1/3)`, fourth-order Runge-Kutta,
   shooting on the central pressure to 1 bar at the surface. Checked against a scipy reference built from the full mantle tables
   (0.20 percent in radius, 0.28 in the moment of inertia, 0.93 in the core-mantle pressure over 90 cases) and, with water, within 1.5
-  percent of Zeng and Sasselov 2013 from 0.5 to 50 Earth masses. Validated 0.1 to 20 Earth masses.
+  percent of [R4881] from 0.5 to 50 Earth masses. Validated 0.1 to 20 Earth masses.
 - **Dry rock and iron**, `radius_fit_earth`: 0.1 to 20 Earth masses, core mass fraction 0 to 0.8; at most 0.40 percent (rms 0.10)
   against the solver.
 - **Water-bearing**, `water_world_radius_earth`: 0.3 to 20 Earth masses, water fraction 0 to 1; rms 1.2 and at most 3.6 percent.
 - **Small differentiated bodies**, `small_body_radius_earth`: 1.5e-4 to 0.3 Earth masses; rms 0.57, at most 2.0 percent.
-- **An envelope on a core**, `envelope_radius_earth`: Lopez and Fortney 2014 Eqs. 1 and 3 at the 20 mbar level plus ln(50) scale
+- **An envelope on a core**, `envelope_radius_earth`: [R2741] Eqs. 1 and 3 at the 20 mbar level plus ln(50) scale
   heights for 1 bar; 1 to 20 Earth masses, envelope 0.01 to 20 percent; rms 6.3 percent against their tables at 1 Gyr. The valley of
   the radius distribution (`physics/radius_valley.py`, GEN.509) tunes the starting envelope against the Kepler population.
 
@@ -111,9 +111,9 @@ A body whose envelope is more than `GIANT_ENVELOPE_FRACTION` (0.5) of its mass, 
 and outside this module.
 
 **A giant** (`giant_radius.py`, `giant_draw.py`, GEN.460): the envelope's metallicity is a multiple of the star's, the heavy-element
-mass follows Chachan et al. 2025 (`M_Z = M_core + f_Z (M - M_core)` with its scatter, at most `MAX_HEAVY_FRACTION` 0.9 of the mass), and the
-radius is interpolated from the cool-start tables of Fortney, Marley and Barnes 2007 (17 to 3,594 Earth masses) plus the inflation of
-Sestovic, Demory and Queloz 2018 above a threshold flux (an empirical median, a stand-in for the thermal evolution the project does
+mass follows [R0710] (`M_Z = M_core + f_Z (M - M_core)` with its scatter, at most `MAX_HEAVY_FRACTION` 0.9 of the mass), and the
+radius is interpolated from the cool-start tables of [R1429] (17 to 3,594 Earth masses) plus the inflation of
+[R4029] above a threshold flux (an empirical median, a stand-in for the thermal evolution the project does
 not have). Where the tables do not hold the body (an ice giant, a giant under 17 Earth masses, a moon) the anchored mass-radius
 relation of `planets.sample_giant_radius_km` is used. The density of a giant is bounded by `tuning.GIANT_DENSITY_BOUNDS_G_CM3` (0.05 to
 60) and a terrestrial body's by `bulk_draw.DENSITY_BOUNDS_G_CM3` (0.6 to 25).
@@ -122,7 +122,7 @@ relation of `planets.sample_giant_radius_km` is used. The density of a giant is 
 
 `physics/materials.py` (GEN.427): the one table of every element, mineral, ice, organic and alloy a body can contain, 161 rows from
 `physics/data/materials.json`, which `scripts/build_materials_table.py` builds from the research parts' tables (E materials, B's
-phases and iron rows, C's ice phases) and `scripts/materials_data.py` (Seager et al. 2007 Tables 1 to 3, the Handbook of Mineralogy,
+phases and iron rows, C's ice phases) and `scripts/materials_data.py` ([R3992: Tables 1 to 3], the Handbook of Mineralogy,
 PubChem). A row has its formula, molar mass (kg/mol, from the element table), grain density (g/cm3 at ambient conditions), phase
 points, latent heats, band albedos and, where it has one, the equation-of-state constants of the model GEN.426 chose, each number with
 its source and a source state (`verified`, `partly verified` with its limit, or not reached). A value with no source is `None`; none is

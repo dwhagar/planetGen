@@ -1,6 +1,6 @@
 """
 The carbon sink of a world with no land (GEN.814, `planetgen.physics.waterworld_carbon`): ocean carbonate chemistry under a high-pressure-ice
-seal, and seafloor weathering. Kite and Ford 2018 and Krissansen-Totton and Catling 2017 are the test targets, never inputs of the code.
+seal, and seafloor weathering. [R2381, R2489] are the test targets, never inputs of the code.
 """
 
 import math
@@ -144,7 +144,7 @@ def test_the_ocean_must_be_there_and_the_air_must_have_mass():
 # --- seafloor weathering ----------------------------------------------------------------------------------------------------
 
 LAW = wc.SeafloorLaw(activation_j_mol=75.0e3, ph_exponent=0.27, spreading_exponent=0.47)
-"""The posterior medians of Krissansen-Totton and Catling 2017 (Table 1)."""
+"""The posterior medians of [R2489: Table 1]."""
 
 
 def _surface(p_bar):

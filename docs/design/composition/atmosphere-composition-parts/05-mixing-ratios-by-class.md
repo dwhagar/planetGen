@@ -28,33 +28,33 @@ Rules the generator should respect everywhere:
 
 ### 2.1 Solar reference abundances
 
-Number abundances relative to H are 10^(log epsilon - 12), COMPUTED from the READ log epsilon values of Asplund et al. 2021 (arXiv:2105.01661, photosphere column unless noted). Asplund 2009 (arXiv:0909.0948) values are listed where they differ by more than 0.05 dex.
+Number abundances relative to H are 10^(log epsilon - 12), COMPUTED from the READ log epsilon values of [R0168] ([R0168], photosphere column unless noted). [R0169] values are listed where they differ by more than 0.05 dex.
 
 | Element | log eps (A21 photosphere) | n/nH (COMPUTED) | Other value | Source | Status |
 |---|---|---|---|---|---|
-| H | 12.00 | 1 | CI chondrite 8.22 | Asplund 2021 arXiv:2105.01661 | READ |
-| He | 10.914 | 0.0821 | 10.93 (A09) | Asplund 2021; Asplund 2009 arXiv:0909.0948 | READ |
-| C | 8.46 | 2.88e-4 | 8.43 (A09), CI 7.39 | Asplund 2021 | READ |
-| N | 7.83 | 6.76e-5 | CI 6.26 | Asplund 2021 | READ |
-| O | 8.69 | 4.90e-4 | CI 8.39 | Asplund 2021 | READ |
-| Ne | 8.06 | 1.15e-4 | 7.93 (A09) | Asplund 2021 | READ |
-| Na | 6.22 | 1.66e-6 | 6.24 (A09) | Asplund 2021 | READ |
-| Mg | 7.55 | 3.55e-5 | 7.60 (A09) | Asplund 2021 | READ |
-| Al | 6.43 | 2.69e-6 | | Asplund 2021 | READ |
-| Si | 7.51 | 3.24e-5 | | Asplund 2021 | READ |
-| P | 5.41 | 2.57e-7 | CI 5.43 | Asplund 2021 | READ |
-| S | 7.12 | 1.32e-5 | | Asplund 2021 | READ |
-| Cl | 5.31 | 2.04e-7 | 5.50 (A09), CI 5.23 | Asplund 2021 | READ |
-| Ar | 6.38 | 2.40e-6 | 6.40 (A09) | Asplund 2021 | READ |
-| K | 5.07 | 1.17e-7 | 5.03 (A09) | Asplund 2021 | READ |
-| Ca | 6.30 | 2.00e-6 | | Asplund 2021 | READ |
-| Ti | 4.97 | 9.33e-8 | | Asplund 2021 | READ |
-| Fe | 7.46 | 2.88e-5 | 7.50 (A09) | Asplund 2021 | READ |
-| Ni | 6.20 | 1.58e-6 | | Asplund 2021 | READ |
-| Kr | 3.12 | 1.32e-9 | 3.25 (A09) | Asplund 2021 | READ |
-| Xe | 2.22 | 1.66e-10 | 2.24 (A09) | Asplund 2021 | READ |
+| H | 12.00 | 1 | CI chondrite 8.22 | [R0168] | READ |
+| He | 10.914 | 0.0821 | 10.93 (A09) | [R0168, R0169] [R0169] | READ |
+| C | 8.46 | 2.88e-4 | 8.43 (A09), CI 7.39 | [R0168] | READ |
+| N | 7.83 | 6.76e-5 | CI 6.26 | [R0168] | READ |
+| O | 8.69 | 4.90e-4 | CI 8.39 | [R0168] | READ |
+| Ne | 8.06 | 1.15e-4 | 7.93 (A09) | [R0168] | READ |
+| Na | 6.22 | 1.66e-6 | 6.24 (A09) | [R0168] | READ |
+| Mg | 7.55 | 3.55e-5 | 7.60 (A09) | [R0168] | READ |
+| Al | 6.43 | 2.69e-6 | | [R0168] | READ |
+| Si | 7.51 | 3.24e-5 | | [R0168] | READ |
+| P | 5.41 | 2.57e-7 | CI 5.43 | [R0168] | READ |
+| S | 7.12 | 1.32e-5 | | [R0168] | READ |
+| Cl | 5.31 | 2.04e-7 | 5.50 (A09), CI 5.23 | [R0168] | READ |
+| Ar | 6.38 | 2.40e-6 | 6.40 (A09) | [R0168] | READ |
+| K | 5.07 | 1.17e-7 | 5.03 (A09) | [R0168] | READ |
+| Ca | 6.30 | 2.00e-6 | | [R0168] | READ |
+| Ti | 4.97 | 9.33e-8 | | [R0168] | READ |
+| Fe | 7.46 | 2.88e-5 | 7.50 (A09) | [R0168] | READ |
+| Ni | 6.20 | 1.58e-6 | | [R0168] | READ |
+| Kr | 3.12 | 1.32e-9 | 3.25 (A09) | [R0168] | READ |
+| Xe | 2.22 | 1.66e-10 | 2.24 (A09) | [R0168] | READ |
 
-Derived ratios (COMPUTED): C/O = 0.589, N/O = 0.138, S/O = 0.027, Mg/Si = 1.10, Fe/Si = 0.89, Ar/Ne = 0.021. Photospheric mass fractions X = 0.7438, Y = 0.2423, Z = 0.0139, Z/X = 0.0187 +/- 0.0009 (READ, Asplund 2021); protosolar X = 0.7121, Y = 0.2725, Z = 0.0154 (READ, same). Asplund 2009: X = 0.7381, Y = 0.2485, Z = 0.0134, Z/X = 0.0181 (READ). Lodders, Palme and Gail 2009 give Z/X = 0.0191 (READ, arXiv:0901.1149 table). The spread in solar Z is therefore 0.0134 to 0.0154 depending on photospheric versus protosolar and the author. A generator that scales other stars should state which Z_sun it uses.
+Derived ratios (COMPUTED): C/O = 0.589, N/O = 0.138, S/O = 0.027, Mg/Si = 1.10, Fe/Si = 0.89, Ar/Ne = 0.021. Photospheric mass fractions X = 0.7438, Y = 0.2423, Z = 0.0139, Z/X = 0.0187 +/- 0.0009 [R0168]; protosolar X = 0.7121, Y = 0.2725, Z = 0.0154 (READ, same). [R0169]: X = 0.7381, Y = 0.2485, Z = 0.0134, Z/X = 0.0181 (READ). [R2733] give Z/X = 0.0191 (READ, [R2733] table). The spread in solar Z is therefore 0.0134 to 0.0154 depending on photospheric versus protosolar and the author. A generator that scales other stars should state which Z_sun it uses.
 
 ### 2.2 Cool solar gas, all heavy elements locked in simple hydrides
 
@@ -71,19 +71,19 @@ COMPUTED from the table above: assume all O in H2O (or 80% of O if 20% is held b
 | H2S | 2.3e-5 | 2.3e-5 | COMPUTED |
 | Ar | 4.1e-6 | 4.1e-6 | COMPUTED |
 
-For comparison, the Zahnle and Marley 2014 equilibrium transition (section 7) says CH4 holds the carbon below about 500 K at planet pressures, so this is the correct low-temperature end member.
+For comparison, the [R4863] equilibrium transition (section 7) says CH4 holds the carbon below about 500 K at planet pressures, so this is the correct low-temperature end member.
 
 ### 2.3 How host-star composition maps to planet composition
 
 | Finding | Value | Source | Status |
 |---|---|---|---|
-| Planetary Mg/Si and Fe/Si track the stellar values; C/O of solids depends only weakly on stellar C/O; rocky planets formed inside the ice line carry very little carbon | qualitative | Thiabaud et al. 2015, arXiv:1507.01343 abstract and conclusions | 2ND-HAND (abstract read, body not fully read) |
-| Refractory material is more than 50 wt% of accreted solids, up to 30 wt% refractory organics | >50 wt% | Thiabaud et al. 2014, arXiv:1312.3085 | READ |
-| In planet-host dwarfs, C/O > 0.8 in 34% and <= 0.8 in 66%; Mg/Si < 1 in 56%, 1 to 2 in 44%, > 2 in 0% | 34% | Delgado Mena et al. 2010, arXiv:1009.5224 | READ |
-| Brewer and Fischer 2016: carbon-rich dwarfs are under 0.13% and Mg/Si peaks near 1.0 with about 60% between 1 and 2 | <0.13% | Brewer and Fischer 2016, arXiv:1608.06286 | SNIPPET (PDF downloaded, abstract only used) |
+| Planetary Mg/Si and Fe/Si track the stellar values; C/O of solids depends only weakly on stellar C/O; rocky planets formed inside the ice line carry very little carbon | qualitative | [R4336] abstract and conclusions | 2ND-HAND (abstract read, body not fully read) |
+| Refractory material is more than 50 wt% of accreted solids, up to 30 wt% refractory organics | >50 wt% | [R4335] | READ |
+| In planet-host dwarfs, C/O > 0.8 in 34% and <= 0.8 in 66%; Mg/Si < 1 in 56%, 1 to 2 in 44%, > 2 in 0% | 34% | Delgado [R1060] | READ |
+| [R0535]: carbon-rich dwarfs are under 0.13% and Mg/Si peaks near 1.0 with about 60% between 1 and 2 | <0.13% | [R0535, R0536] | SNIPPET (PDF downloaded, abstract only used) |
 | Disagreement: C/O > 0.8 fraction is 34% (Delgado Mena) versus under 0.13% (Brewer and Fischer). The spread is two orders of magnitude, so a generator should use a small tail (about 0.1 to a few percent) and treat the 34% as an upper bound from a heterogeneous sample | | both above | READ and SNIPPET |
-| Compositions of terrestrial planets range from Earth-like to graphite and SiC dominated for high C/O stars (threshold C/O = 0.8) | | Bond, O'Brien and Lauretta 2010, arXiv:1004.0971 | READ |
-| Mg/Si and the oxygen budget set mantle mineralogy | | Unterborn and Panero 2017, arXiv:1604.08309 | READ |
+| Compositions of terrestrial planets range from Earth-like to graphite and SiC dominated for high C/O stars (threshold C/O = 0.8) | | [R0455] | READ |
+| Mg/Si and the oxygen budget set mantle mineralogy | | [R4470] | READ |
 
 Recipe (Path B start): draw stellar [Fe/H], C/O, Mg/Si from the Delgado Mena distribution (sigma roughly 0.2 dex in each), then set planetary Mg/Si and Fe/Si equal to stellar; draw volatile delivery from the accretion zone (section 3.1).
 
@@ -91,12 +91,12 @@ Recipe (Path B start): draw stellar [Fe/H], C/O, Mg/Si from the Delgado Mena dis
 
 | Relation | Value | Validity | Source | Status |
 |---|---|---|---|---|
-| Heavy-element mass Mz = (57.9 +/- 7.03) (M/MJ)^(0.61 +/- 0.08) Earth masses; 1 sigma intrinsic scatter factor 1.82 (10^sigma, 0.26 dex) | | 47 transiting giants, roughly 0.1 to 10 MJ | Thorngren et al. 2016, arXiv:1511.07854 | READ |
-| Zpl/Zstar = (9.7 +/- 1.28) (M/MJ)^(-0.45 +/- 0.09), Zstar = 0.014 x 10^[Fe/H] | | same | Thorngren et al. 2016 | READ |
-| Mz = Mcore + fZ (Mp - Mcore), Mcore = 14.7 (+1.8/-1.6) Earth masses, fZ = 0.09 +/- 0.01, astrophysical scatter 0.66 +/- 0.08 x MZ | | 147 planets | Chachan et al. 2025, arXiv:2509.20428 | READ |
-| No scatter was found for the Zpl/Zstar fit itself; use the 0.26 dex of the Mz relation as the proxy | | | Thorngren 2016 | NOT REACHED (see Boss list) |
+| Heavy-element mass Mz = (57.9 +/- 7.03) (M/MJ)^(0.61 +/- 0.08) Earth masses; 1 sigma intrinsic scatter factor 1.82 (10^sigma, 0.26 dex) | | 47 transiting giants, roughly 0.1 to 10 MJ | [R4352] | READ |
+| Zpl/Zstar = (9.7 +/- 1.28) (M/MJ)^(-0.45 +/- 0.09), Zstar = 0.014 x 10^[Fe/H] | | same | [R4352] | READ |
+| Mz = Mcore + fZ (Mp - Mcore), Mcore = 14.7 (+1.8/-1.6) Earth masses, fZ = 0.09 +/- 0.01, astrophysical scatter 0.66 +/- 0.08 x MZ | | 147 planets | [R0710] | READ |
+| No scatter was found for the Zpl/Zstar fit itself; use the 0.26 dex of the Mz relation as the proxy | | | [R4352] | NOT REACHED (see Boss list) |
 
-COMPUTED comparison, with Z_star = 0.0139 (Asplund 2021 photosphere):
+COMPUTED comparison, with Z_star = 0.0139 ([R0168] photosphere):
 
 | M/MJ | Mz (Earth masses) | Z by Mz fit | Z by ratio fit | Ratio fit in solar units | Chachan Mz | Chachan Z |
 |---|---|---|---|---|---|---|
@@ -113,15 +113,15 @@ The two Thorngren fits differ by about 30% in Z at Jupiter mass and the Chachan 
 
 | Result | Value | Source | Status |
 |---|---|---|---|
-| log(H2O/H) relative to host expectation = -1.09 log(M/MJ) - 0.95 across 19 planets (water abundance falls with mass) | slope -1.09 | Welbanks et al. 2019, arXiv:1912.04904 | READ |
-| Solar-system giants: log(CH4/H) = -1.11 log(M/MJ) + 0.38 | slope -1.11 | Welbanks et al. 2019 | READ (this is a TEST relation) |
-| H2O in hot giants is sub-stellar while Na and K are stellar to super-stellar; roughly 100x H2O depletion is possible from high C/O | | Welbanks et al. 2019 | READ |
-| A later revisit finds the data cannot distinguish a linear mass relation from independence | | arXiv:2402.08292 | 2ND-HAND (abstract) |
-| C/O between 0.5 and 2 changes H2O and CH4 by orders of magnitude; HCN and C2H2 appear at C/O >= 1; TiO and VO are underabundant at C/O >= 1 | | Madhusudhan 2012, arXiv:1209.2412 | READ |
+| log(H2O/H) relative to host expectation = -1.09 log(M/MJ) - 0.95 across 19 planets (water abundance falls with mass) | slope -1.09 | [R4663] | READ |
+| Solar-system giants: log(CH4/H) = -1.11 log(M/MJ) + 0.38 | slope -1.11 | [R4663] | READ (this is a TEST relation) |
+| H2O in hot giants is sub-stellar while Na and K are stellar to super-stellar; roughly 100x H2O depletion is possible from high C/O | | [R4663] | READ |
+| A later revisit finds the data cannot distinguish a linear mass relation from independence | | [R4258] | 2ND-HAND (abstract) |
+| C/O between 0.5 and 2 changes H2O and CH4 by orders of magnitude; HCN and C2H2 appear at C/O >= 1; TiO and VO are underabundant at C/O >= 1 | | [R2801, R2803], [R2801] | READ |
 | Madhusudhan classes O1, O2 (C/O < 1), C1, C2 (C/O >= 1, split at Teq near 1200 K) | | same | READ |
-| TEST: WASP-77Ab [C/H] = -0.46 (+0.17/-0.16), [O/H] = -0.49 (+0.14/-0.12), [(C+O)/H] = -0.48 (+0.15/-0.13), C/O = 0.59 +/- 0.08 (they quote solar C/O as 0.55; Asplund 2021 gives 0.589, a 0.04 spread) | | Line et al. 2021, arXiv:2110.14821 | READ |
-| TEST: WASP-107b Z = 43 +/- 8 x solar, CH4 1.0 +/- 0.5 ppm (4.2 sigma; about 3 orders of magnitude below equilibrium because of vigorous mixing, Kzz = 10^(11.6 +/- 0.1) cm2/s), Tint = 460 +/- 40 K | | Sing et al. 2024, arXiv:2405.11027 | READ |
-| TEST: WASP-39b best-fit models 3 to 10 x solar metallicity with sub-solar to solar C/O; SO2 is photochemical (below 1e-12 in thermal equilibrium at 10 x solar) | | Alderson et al. 2023, arXiv:2211.10488; Tsai et al. 2023, arXiv:2211.10490 | READ |
+| TEST: WASP-77Ab [C/H] = -0.46 (+0.17/-0.16), [O/H] = -0.49 (+0.14/-0.12), [(C+O)/H] = -0.48 (+0.15/-0.13), C/O = 0.59 +/- 0.08 (they quote solar C/O as 0.55; [R0168] gives 0.589, a 0.04 spread) | | Line et al. 2021, [R2701] | READ |
+| TEST: WASP-107b Z = 43 +/- 8 x solar, CH4 1.0 +/- 0.5 ppm (4.2 sigma; about 3 orders of magnitude below equilibrium because of vigorous mixing, Kzz = 10^(11.6 +/- 0.1) cm2/s), Tint = 460 +/- 40 K | | [R4106] | READ |
+| TEST: WASP-39b best-fit models 3 to 10 x solar metallicity with sub-solar to solar C/O; SO2 is photochemical (below 1e-12 in thermal equilibrium at 10 x solar) | | [R0064, R4437] | READ |
 
 Recipe for giants (any T): `m = 10^N(log10 Zratio(M), 0.3)`; `C/O = 0.55 * 10^N(0, 0.15)`, truncated at 0.2 to 1.5, with a 2 to 5% chance of C/O >= 0.8 from section 2.3. These widths are RECALLED design choices bracketed by the Madhusudhan and Line cases above, not published fits.
 
@@ -133,19 +133,19 @@ Recipe for giants (any T): `m = 10^N(log10 Zratio(M), 0.3)`; `C/O = 0.55 * 10^N(
 
 | Input | Value | Source | Status |
 |---|---|---|---|
-| Volatile contents in wt% (delivered, stored in mantle) for Low: H2O 0.05, CO2 0.01 delivered; 0.015, 0.0022 stored | | Ortenzi et al. 2020, Sci. Rep. 10, 10907 (nature.com PDF) Table 1 | READ |
+| Volatile contents in wt% (delivered, stored in mantle) for Low: H2O 0.05, CO2 0.01 delivered; 0.015, 0.0022 stored | | [R3378], Sci. Rep. 10, 10907 (nature.com PDF) Table 1 | READ |
 | High: delivered H2O 0.5, CO2 0.1; stored 0.045, 0.005 | | same | READ |
 | Dry: delivered H2O 0, CO2 0.6; stored 0.005, 0.018 | | same | READ |
 | Partition D_H2O = 0.01; extrusive melt fraction 10%; maximum outgassing at 2 to 4 Earth masses | | same | READ |
-| Mantle at 4000 K, 0.05 wt% H2O (550 ppm) and 0.01 wt% CO2 (130 ppm) | | Katyal et al. 2020, arXiv:2009.14599 | READ |
-| Example 1 Earth mass planet with XCO2 = 22 ppm and XH2O = 150 ppm | | Ortenzi 2020 | READ |
-| Reduced mantles give lower surface pressure and a thicker atmosphere (more H2/CO per unit gas mass); CH4 excluded from their model | | Ortenzi 2020 | READ |
+| Mantle at 4000 K, 0.05 wt% H2O (550 ppm) and 0.01 wt% CO2 (130 ppm) | | [R2286] | READ |
+| Example 1 Earth mass planet with XCO2 = 22 ppm and XH2O = 150 ppm | | [R3378] | READ |
+| Reduced mantles give lower surface pressure and a thicker atmosphere (more H2/CO per unit gas mass); CH4 excluded from their model | | [R3378] | READ |
 
 The spread across Low, High and Dry is a factor of 10 in water and 60 in CO2; the generator should draw the delivered volatile fraction log-uniformly between these cases.
 
 ### 3.2 Redox: oxygen fugacity buffers
 
-Holloway 1992 buffers as quoted in Katyal et al. 2020 (2ND-HAND): `log10 fO2 = A - B/T + C (P - 1)/T`, T in K, P in bar.
+[R1989] buffers as quoted in [R2286] (2ND-HAND): `log10 fO2 = A - B/T + C (P - 1)/T`, T in K, P in bar.
 
 | Buffer | A | B | C | Status |
 |---|---|---|---|---|
@@ -154,9 +154,9 @@ Holloway 1992 buffers as quoted in Katyal et al. 2020 (2ND-HAND): `log10 fO2 = A
 | QFM | 8.555 | 24014 | 0.092 | 2ND-HAND |
 | NiNiO | 8.951 | 24556 | 0.046 | 2ND-HAND |
 
-Cross-check: the NASA stoichiometric FeO data (DATA, cantera nasa_condensed.yaml) give log fO2(IW) = -12.20 at 1500 K and -7.74 at 2000 K (COMPUTED). The RECALLED Frost 1991 fit (-27489/T + 6.702) gives -11.62 and -7.04. Spread between the two thermodynamic routes: 0.6 to 1.2 log units at 1500 to 2000 K; non-stoichiometric wuestite explains part of it. Ortenzi 2020 labels IW "oxidised" and QFM "reduced" in the running text, which is backwards (IW is the reducing buffer); the generator should follow the physical order IW < QIF < QFM < NiNiO.
+Cross-check: the NASA stoichiometric FeO data (DATA, cantera nasa_condensed.yaml) give log fO2(IW) = -12.20 at 1500 K and -7.74 at 2000 K (COMPUTED). The RECALLED [R1464] fit (-27489/T + 6.702) gives -11.62 and -7.04. Spread between the two thermodynamic routes: 0.6 to 1.2 log units at 1500 to 2000 K; non-stoichiometric wuestite explains part of it. [R3378] labels IW "oxidised" and QFM "reduced" in the running text, which is backwards (IW is the reducing buffer); the generator should follow the physical order IW < QIF < QFM < NiNiO.
 
-Meteorite-class outgassing redox, Schaefer and Fegley 2017 (ApJ 843:120, Table 2; PDF read, arXiv id not recorded): `log10 fO2 = a + b 10^3/T + c 10^6/T^2 + d 10^9/T^3 + f 10^12/T^4` at 1 bar, 300 to 2000 K.
+Meteorite-class outgassing redox, [R3944] (ApJ 843:120, Table 2; PDF read, arXiv id not recorded): `log10 fO2 = a + b 10^3/T + c 10^6/T^2 + d 10^9/T^3 + f 10^12/T^4` at 1 bar, 300 to 2000 K.
 
 | Composition | a | b | c | d | f | Status |
 |---|---|---|---|---|---|---|
@@ -166,7 +166,7 @@ Meteorite-class outgassing redox, Schaefer and Fegley 2017 (ApJ 843:120, Table 2
 | EH | 4.9495 | -24.024 | -4.6236 | 1.7177 | -0.2332 | READ |
 | Eucrite | 5.4856 | -25.127 | -3.6580 | 1.3014 | -0.1650 | READ |
 
-Redox ranking is CI > CV > H > EH; EH is about IW-1 and eucrite IW-1.4 to IW-0.8 (READ, same paper). The existing project redox draw (`REDOX_EARTH_DELTA_IW = 3.5`, slope 2.0 per dex of mass, sigma 1.0) is therefore far more oxidised than meteoritic building blocks (dIW about -1 to 0) and corresponds to a modern Earth-like upper mantle; Sossi et al. 2020 (NOT REACHED, snippet: Fe3+/sumFe 0.037 +/- 0.005, magma ocean near IW+0.5, CO-rich then CO2-N2) suggests a magma-ocean stage near IW to IW+1 before oxidation. See Boss list.
+Redox ranking is CI > CV > H > EH; EH is about IW-1 and eucrite IW-1.4 to IW-0.8 (READ, same paper). The existing project redox draw (`REDOX_EARTH_DELTA_IW = 3.5`, slope 2.0 per dex of mass, sigma 1.0) is therefore far more oxidised than meteoritic building blocks (dIW about -1 to 0) and corresponds to a modern Earth-like upper mantle; [R4154] (NOT REACHED, snippet: Fe3+/sumFe 0.037 +/- 0.005, magma ocean near IW+0.5, CO-rich then CO2-N2) suggests a magma-ocean stage near IW to IW+1 before oxidation. See Boss list.
 
 ### 3.3 Speciation equations
 
@@ -182,7 +182,7 @@ Fits of log10 K(T) = a + b/T, 600 to 2000 K, bar standard state, from NASA polyn
 | CO + H2S = COS + H2 | -1.477 | 4 | 0.06 | COMPUTED |
 | CO + NH3 = HCN + H2O | 0.296 | -2742 | 0.02 | COMPUTED |
 
-Cross-check against Zahnle and Marley 2014 (arXiv:1408.6283): K(CH4 CO) = pCH4 pH2O/(pCO pH2^3) = 5.24e-14 exp(27285/T), atm (READ), versus my fit ln K = -30.27 + 26934/T in bar (COMPUTED); these agree to the stated accuracy once atm versus bar is accounted for.
+Cross-check against [R4863]: K(CH4 CO) = pCH4 pH2O/(pCO pH2^3) = 5.24e-14 exp(27285/T), atm (READ), versus my fit ln K = -30.27 + 26934/T in bar (COMPUTED); these agree to the stated accuracy once atm versus bar is accounted for.
 
 Ortenzi's own relations: (H2O/H2)^2 = K3 fO2 and CO2/CO = K4 fO2^(1/2) (their Eq 16 and 18, READ); carbonate melt fraction X_CO3 = K1 K2 fO2 / (1 + K1 K2 fO2), with log10 K1 = 40.07639 - 2.53932e-2 T + 5.27096e-6 T^2 + 0.0267 (p - 1)/T and log10 K2 = -6.24763 - 282.56/T - 0.119242 (p - 1000)/T (READ; degassing at about 2000 K).
 
@@ -198,7 +198,7 @@ Solver inputs: ideal gas, element budget per H atom C = 0.1, N = 0.02, S = 0.02 
 | 800 K, 100 bar | NH3 about 1.5e-2 to 2e-2 | COMPUTED |
 | H2S/SO2 crossover | near dIW = +3 at 1200 K | COMPUTED |
 
-Direct comparison with the published bulk-silicate-Earth speciation (Schaefer, Lodders and Fegley 2012, arXiv:1108.4660, Table 3, READ):
+Direct comparison with the published bulk-silicate-Earth speciation ([R3945: Table 3], READ):
 
 | Condition | Continental crust composition | BSE composition |
 |---|---|---|
@@ -235,13 +235,13 @@ Generator rule: Ar40_atm (mol) = f_degas x f_Ar x K40_now (mol) x (exp(lambda t)
 
 | Result | Source | Status |
 |---|---|---|
-| Volcanic CH4 fluxes comparable to biological ones are unlikely and would come with abundant CO | Wogan, Krissansen-Totton and Catling 2020, arXiv:2009.07761 | READ |
-| 1 to 10 Earth-mass planets with 10 to 100 day periods keep water-dominated atmospheres; FeO reduction creates H2O that is soluble in magma | Kite and Schaefer 2021, arXiv:2103.07753 | READ |
-| CO2 atmospheres suppress H2O outgassing; a molten mantle increases radius by about 5% | Bower et al. 2019, arXiv:1904.08300 | READ |
-| Atmodeller: CO-dominated at magma-ocean stage evolving to CO2-rich atmospheres of a few hundred bar at 280 K | Bower et al. 2025, arXiv:2507.00499 | READ |
-| Abiotic O2 build-up near 5 bar per Myr on Earth-mass planets, up to 25 bar per Myr on super-Earths, reaching hundreds to thousands of bar (GJ 667Cc up to about 2000 bar, up to 10 oceans lost) | Luger and Barnes 2015 as quoted in Katyal 2020 | 2ND-HAND |
-| Liggins classes at 800 K: Class O (oxidised: SO2, sulfur allotropes), Class I (intermediate: CO2, CH4, CO, COS), Class R (reduced: H2, NH3, CH4) | Liggins et al. 2022, arXiv:2111.05161 | READ |
-| H/C and age set whether the main species is H2, H2O or CO2 | Liggins 2022 | READ |
+| Volcanic CH4 fluxes comparable to biological ones are unlikely and would come with abundant CO | [R2490, R4729] | READ |
+| 1 to 10 Earth-mass planets with 10 to 100 day periods keep water-dominated atmospheres; FeO reduction creates H2O that is soluble in magma | [R2383] | READ |
+| CO2 atmospheres suppress H2O outgassing; a molten mantle increases radius by about 5% | [R0502] | READ |
+| Atmodeller: CO-dominated at magma-ocean stage evolving to CO2-rich atmospheres of a few hundred bar at 280 K | [R0503] | READ |
+| Abiotic O2 build-up near 5 bar per Myr on Earth-mass planets, up to 25 bar per Myr on super-Earths, reaching hundreds to thousands of bar (GJ 667Cc up to about 2000 bar, up to 10 oceans lost) | [R2769] as quoted in [R2286] | 2ND-HAND |
+| Liggins classes at 800 K: Class O (oxidised: SO2, sulfur allotropes), Class I (intermediate: CO2, CH4, CO, COS), Class R (reduced: H2, NH3, CH4) | [R2686] | READ |
+| H/C and age set whether the main species is H2, H2O or CO2 | [R2686] | READ |
 
 Atmospheric class by mantle redox (generator mapping): dIW < 0 gives Class R (H2, CH4/CO, NH3); dIW 0 to +2 Class I; dIW > +2.5 Class O. The 0 and 2.5 cuts are my interpolation of Liggins and the section 3.4 crossovers and are labelled COMPUTED/design, not published numbers.
 
@@ -251,27 +251,27 @@ Atmospheric class by mantle redox (generator mapping): dIW < 0 gives Class R (H2
 
 | Item | Value | Source | Status |
 |---|---|---|---|
-| Dominant gases above the BSE or komatiite melt: Na, O2, O, SiO, Fe, Mg | | Miguel, Kaltenegger and Fegley 2011, arXiv:1110.2426 | READ |
+| Dominant gases above the BSE or komatiite melt: Na, O2, O, SiO, Fe, Mg | | [R3059] | READ |
 | Of 193 Kepler candidates studied: 189 Type I, 3 Type II, 1 Type IV | | same | READ |
 | Type boundaries in the text (Tp in K): I < 2033, II 2033 to 2588, III 2588 to 2890, IV 2890 to 3168, V > 3168 | | same text | READ |
 | Type boundaries in the figure caption lines: 2096, 2460, 2735, 2974, 3170 K | | same figure captions | READ |
 | Spread of the two boundary lists: up to 130 K on the I/II boundary (2033 vs 2096) and 128 K on II/III (2588 vs 2460) | | COMPUTED | COMPUTED |
-| Vapour pressure of BSE melt: log10(Peq) = k1 exp(k2 Ts), 1400 < Ts < 2800 K, k1 = {-34.7, -60.1, -60.2}, k2 = {-0.00112, -0.00122, -0.00101} for small (< 0.01), intermediate (about 0.5), large (> 0.9) vaporised fraction | | Kite et al. 2016, arXiv:1606.06740 | READ |
+| Vapour pressure of BSE melt: log10(Peq) = k1 exp(k2 Ts), 1400 < Ts < 2800 K, k1 = {-34.7, -60.1, -60.2}, k2 = {-0.00112, -0.00122, -0.00101} for small (< 0.01), intermediate (about 0.5), large (> 0.9) vaporised fraction | | [R2380] | READ |
 | Peq about 2e-4 bar at 2000 K and 8e-3 bar at 2500 K (small fraction) | | evaluated from Kite eq. | COMPUTED |
-| Atmosphere exchanges quickly when bulk-silicate FeO is low; pools are well mixed below about 2400 K substellar temperature | | Kite 2016 | READ |
-| Main species Na, K, Fe, Si, SiO, O, O2; SiO UV absorption causes a thermal inversion | | Ito et al. 2015, arXiv:1501.05393 | READ |
-| Tabulated Type I to V vapour compositions and the original silicate-vapour chemistry papers (Schaefer and Fegley 2009; Miguel 2011 numeric tables) | | | NOT REACHED (only figures read; see Boss list) |
-| TEST: 55 Cnc e has a volatile atmosphere likely rich in CO2 or CO; best fits are CO2-rich, surface pressure 0.01 to 100 bar with CO2 volume mixing ratio above 1e-5; a CO-only scenario is allowed | | Hu et al. 2024, arXiv:2405.04744 | READ (TEST) |
+| Atmosphere exchanges quickly when bulk-silicate FeO is low; pools are well mixed below about 2400 K substellar temperature | | [R2380] | READ |
+| Main species Na, K, Fe, Si, SiO, O, O2; SiO UV absorption causes a thermal inversion | | [R2105] | READ |
+| Tabulated Type I to V vapour compositions and the original silicate-vapour chemistry papers ([R3059, R3943] numeric tables) | | | NOT REACHED (only figures read; see Boss list) |
+| TEST: 55 Cnc e has a volatile atmosphere likely rich in CO2 or CO; best fits are CO2-rich, surface pressure 0.01 to 100 bar with CO2 volume mixing ratio above 1e-5; a CO-only scenario is allowed | | Hu et al. 2024, [R2023] | READ (TEST) |
 
 Recipe (lava world, Ts = substellar surface temperature, composition BSE):
 ```
-logP_eq(Ts) = k1 * exp(k2 * Ts)       (Kite 2016, 1400-2800 K)
+logP_eq(Ts) = k1 * exp(k2 * Ts)       ([R2380], 1400-2800 K)
 x_Na  : x_SiO : x_Mg : x_Fe : x_O2 : x_O  ~ taken from the Miguel/Schaefer table by Type (I-V)
     Type I (Tp < ~2033-2096 K): Na dominant
     Type II-III: SiO and O2 grow
     Type IV-V (Tp > ~2890 K): Fe, Mg, Si, SiO dominate
 ```
-Mole-fraction values by type were not extracted in this lane (figures only); the Schaefer 2012 table in 3.4 (2000 K, 1e-6 bar: 28% Mg, 26% O, 24% SiO for the BSE) is the only quantitative anchor. See Boss list for tabulated Type I to V compositions.
+Mole-fraction values by type were not extracted in this lane (figures only); the [R3945] table in 3.4 (2000 K, 1e-6 bar: 28% Mg, 26% O, 24% SiO for the BSE) is the only quantitative anchor. See Boss list for tabulated Type I to V compositions.
 
 Tracers for optics: SiO, Na, K, Mg, Fe, TiO, VO (the last two follow the Burrows and Sharp sequence in section 7: TiO exists above about 2000 to 2300 K, VO above about 1700 to 1900 K).
 
@@ -281,18 +281,18 @@ Tracers for optics: SiO, Na, K, Mg, Fe, TiO, VO (the last two follow the Burrows
 
 | Item | Value | Source | Status |
 |---|---|---|---|
-| Four atmosphere classes for thick atmospheres: hydrogen-rich (X_H >= 0.7), water-rich, oxygen-rich, hydrocarbon-rich | | Hu and Seager 2014, arXiv:1401.0948 | READ |
-| Water-rich atmospheres require carbon as CO2 and exist only for C/O well below solar; loss of light elements from a C-rich, O-poor atmosphere leaves C2H2 and C2H4 | | Hu and Seager 2014 | READ |
-| Hot Neptunes with metallicity 10 to 10,000 x solar span H2-dominated to CO2-, CO-, H2O- or O2-dominated compositions | | Moses et al. 2013, arXiv:1306.5178 | READ |
-| Interior-atmosphere coupling: H about 1 to 2 wt% and O about 10 wt% of the metal core; about 0.1 wt% H in the mantle; more than 93% of H sits in the atmosphere; the envelope is oxidised, mantle and core reduced | | Schlichting and Young 2022, arXiv:2107.10405 | READ |
-| Hycean: H2 envelope mass fraction <= 0.1%, minimum water mass fraction 10%, ocean-bottom T about 300 to 400 K, pressure at the habitable-surface boundary 1 to 1000 bar, radii up to 2.6 R_Earth at 10 Earth masses | | Madhusudhan, Piette and Constantinou 2021, arXiv:2108.10888 | READ |
+| Four atmosphere classes for thick atmospheres: hydrogen-rich (X_H >= 0.7), water-rich, oxygen-rich, hydrocarbon-rich | | Hu and [R2025] | READ |
+| Water-rich atmospheres require carbon as CO2 and exist only for C/O well below solar; loss of light elements from a C-rich, O-poor atmosphere leaves C2H2 and C2H4 | | Hu and [R2025] | READ |
+| Hot Neptunes with metallicity 10 to 10,000 x solar span H2-dominated to CO2-, CO-, H2O- or O2-dominated compositions | | [R3176] | READ |
+| Interior-atmosphere coupling: H about 1 to 2 wt% and O about 10 wt% of the metal core; about 0.1 wt% H in the mantle; more than 93% of H sits in the atmosphere; the envelope is oxidised, mantle and core reduced | | [R3961] | READ |
+| Hycean: H2 envelope mass fraction <= 0.1%, minimum water mass fraction 10%, ocean-bottom T about 300 to 400 K, pressure at the habitable-surface boundary 1 to 1000 bar, radii up to 2.6 R_Earth at 10 Earth masses | | [R2804] | READ |
 | Water mixing ratio in a hycean photosphere: H2O volume mixing ratio of 10% corresponds to the 10% mass fraction case | | same | READ |
-| TEST: K2-18b (HST) H2O 0.033% to 8.9% (1 sigma), N2 < 10.9%, CO < 7.45%, CO2 < 2.4%, NH3 < 13.5%, CH4 < 0.248% (2 sigma) | | Benneke et al. 2019, arXiv:1909.04642 | READ |
-| TEST: K2-18b (JWST) CH4 about 1% and CO2 about 1% in an H2-rich atmosphere (5 sigma and 3 sigma), NH3 not detected, log X_CH4 = -2.04 (+0.61/-0.72) | | Madhusudhan et al. 2023, arXiv:2309.05566 | READ |
+| TEST: K2-18b (HST) H2O 0.033% to 8.9% (1 sigma), N2 < 10.9%, CO < 7.45%, CO2 < 2.4%, NH3 < 13.5%, CH4 < 0.248% (2 sigma) | | [R0340] | READ |
+| TEST: K2-18b (JWST) CH4 about 1% and CO2 about 1% in an H2-rich atmosphere (5 sigma and 3 sigma), NH3 not detected, log X_CH4 = -2.04 (+0.61/-0.72) | | [R2805] | READ |
 | Spread note: the HST CH4 upper limit (0.248%) lies below the JWST value (about 1%, log X = -2.04 gives 0.9%), so the two datasets disagree by a factor of about 4 at face value | | both above | COMPUTED |
-| TEST: TOI-270 d mean molecular weight 5.47 (+1.25/-1.14), atmospheric metal mass fraction 58 (+8/-12)%, C/O 0.47 (+0.16/-0.19), interior about 90 wt% rock and iron; fully miscible supercritical metal-rich envelope | | Benneke et al. 2024, arXiv:2403.03325 | READ |
-| TEST: GJ 9827 d steam world, O/H about 4 by mass, H2O volume mixing ratio above 31% as the background gas | | Piaulet-Ghorayeb et al. 2024, arXiv:2410.03527 | READ |
-| TEST: GJ 1214b reflective metal-rich atmosphere, metallicity above 100 x solar (models 1 to 3000 x solar considered) with thick haze | | Kempton et al. 2023, arXiv:2305.06240 | READ |
+| TEST: TOI-270 d mean molecular weight 5.47 (+1.25/-1.14), atmospheric metal mass fraction 58 (+8/-12)%, C/O 0.47 (+0.16/-0.19), interior about 90 wt% rock and iron; fully miscible supercritical metal-rich envelope | | [R0339] | READ |
+| TEST: GJ 9827 d steam world, O/H about 4 by mass, H2O volume mixing ratio above 31% as the background gas | | [R3517] | READ |
+| TEST: GJ 1214b reflective metal-rich atmosphere, metallicity above 100 x solar (models 1 to 3000 x solar considered) with thick haze | | [R2316] | READ |
 
 Recipe (sub-Neptune or water world):
 ```
@@ -329,15 +329,15 @@ Frost-equilibrium (Pluto/Triton-like): p_i = chi_i * p_sat,i(T_surface)   (ideal
 
 | TEST body | Values | Source | Status |
 |---|---|---|---|
-| Titan | stratospheric CH4 1.48 +/- 0.09%, near-surface CH4 5.65 +/- 0.18%, H2 (1.01 +/- 0.16)e-3 | Niemann et al. 2010 (NTRS file) | READ |
+| Titan | stratospheric CH4 1.48 +/- 0.09%, near-surface CH4 5.65 +/- 0.18%, H2 (1.01 +/- 0.16)e-3 | [R3289] (NTRS file) | READ |
 | Mars | CO2 0.960, Ar 0.0193, N2 0.0189, O2 1.45e-3, CO below 1e-3 | no source | READ |
 | Mars (later) | CO2 0.951, N2 0.0259, Ar 0.0194, O2 1.61e-3, CO 5.8e-4 | no source | SNIPPET |
 | Mars spread between the two sets | N2 0.0189 vs 0.0259 (30% apart) | both above | COMPUTED |
 | Venus | CO2 96.5%, N2 below 3.5%, SO2 150 ppm, Ar 70 ppm, H2O 20 ppm, CO 17 ppm | search summary (Wikipedia-type compilation) | SNIPPET |
-| Pluto | N2 above 99%, CH4 about 0.30%, CO about 0.05% (cited); surface CH4 (3 to 3.6)e-3 in N2 ice; near-surface CO/N2 about 4e-3 and CO/CH4 about 1.7e-3 reported by one set of authors | Mousis and Anderson 2024 review, arXiv:2406.03815 | 2ND-HAND |
-| Triton | CO/N2 about 0.015% in the atmosphere (ground-based surface ice gave about 0.1%, predicted atmospheric mixing ratio 1.5e-4); CH4 partial pressure several times larger than Voyager; CO abundance similar to surface abundance, controlled by a thin CO-rich veneer | Lellouch et al. 2010, arXiv:1003.2866 (abstract READ); Mousis and Anderson 2024 | READ and 2ND-HAND |
+| Pluto | N2 above 99%, CH4 about 0.30%, CO about 0.05% (cited); surface CH4 (3 to 3.6)e-3 in N2 ice; near-surface CO/N2 about 4e-3 and CO/CH4 about 1.7e-3 reported by one set of authors | [R3186] review, [R3186] | 2ND-HAND |
+| Triton | CO/N2 about 0.015% in the atmosphere (ground-based surface ice gave about 0.1%, predicted atmospheric mixing ratio 1.5e-4); CH4 partial pressure several times larger than Voyager; CO abundance similar to surface abundance, controlled by a thin CO-rich veneer | [R2642] (abstract READ); [R3186] | READ and 2ND-HAND |
 
-Two values for Pluto CO (about 0.05% atmospheric; CO/N2 about 4e-3 near surface) are not the same quantity and lie a factor of 8 apart; the generator should state whether it means a column-integrated or a near-surface ratio. The vapour-pressure relations for N2, CO, CH4 and CO2 ices are NOT REACHED (Fray and Schmitt 2009 not available; see 12.2 and the Boss list), so the frost-equilibrium recipe can only be used with the project's existing two-point table until those relations are obtained.
+Two values for Pluto CO (about 0.05% atmospheric; CO/N2 about 4e-3 near surface) are not the same quantity and lie a factor of 8 apart; the generator should state whether it means a column-integrated or a near-surface ratio. The vapour-pressure relations for N2, CO, CH4 and CO2 ices are NOT REACHED ([R1445] not available; see 12.2 and the Boss list), so the frost-equilibrium recipe can only be used with the project's existing two-point table until those relations are obtained.
 
 ---
 
@@ -345,7 +345,7 @@ Two values for Pluto CO (about 0.05% atmospheric; CO/N2 about 4e-3 near surface)
 
 ### 7.1 Condensation and chemistry sequence versus temperature (cloud-free, solar composition)
 
-Burrows and Sharp 1999 (astro-ph/9807055) sequence, READ:
+[R0608] (astro-ph/9807055) sequence, READ:
 
 | Temperature (K) | Event |
 |---|---|
@@ -365,7 +365,7 @@ CH4 is the main carbon carrier except in the youngest and hottest objects (Teff 
 
 ### 7.2 Condensation temperatures (T in K, P_T in bar, [X/H] in dex)
 
-Visscher, Lodders and Fegley 2010 (arXiv:1001.3639) and 2006 (astro-ph/0511136), READ:
+[R4561] and 2006 (astro-ph/0511136), READ:
 
 | Condensate | Relation |
 |---|---|
@@ -384,7 +384,7 @@ Quartz forms at about 1550 K and enstatite at about 1600 K (READ). Monatomic Fe,
 
 ### 7.3 CO / CH4 / NH3 equilibrium and quench
 
-Zahnle and Marley 2014, arXiv:1408.6283, READ:
+[R4863], READ:
 - Equilibrium: K(CH4 CO) = pCH4 pH2O / (pCO pH2^3) = 5.24e-14 exp(27285/T), atm.
 - Quench times: t_q1 = 1.5e-6 p^-1 m^-0.7 exp(42000/T) s, t_q2 = 40 p^-2 exp(25000/T) s, 1/t_CO = 1/t_q1 + 1/t_q2, with p in bar and m the metallicity in solar units; the quench level is where t_mix = H^2 / Kzz equals t_CO.
 - The CH4 to CO transition lies near 500 K for planets (up to 600 K with sluggish mixing, 400 K with clouds or strong mixing) and 1100 +/- 100 K for brown dwarfs.
@@ -392,7 +392,7 @@ Zahnle and Marley 2014, arXiv:1408.6283, READ:
 
 ### 7.4 Mixing ratios by temperature regime
 
-Median and range columns are COMPUTED from the solar budget in 2.2 scaled by metallicity m (CH4, H2O, NH3, H2S scale with m while H2 and He are weakly changed), then corrected by the condensation relations above; the log10 range column combines m = 0.3 to 30 with the C/O range 0.3 to 1.0 (design brackets from Madhusudhan 2012 and Line 2021). They are not measured values.
+Median and range columns are COMPUTED from the solar budget in 2.2 scaled by metallicity m (CH4, H2O, NH3, H2S scale with m while H2 and He are weakly changed), then corrected by the condensation relations above; the log10 range column combines m = 0.3 to 30 with the C/O range 0.3 to 1.0 (design brackets from [R2801, R2803] and Line 2021). They are not measured values.
 
 | Class (Teff or Teq, K) | H2 | He | H2O | CH4 | CO | NH3 | H2S | Na+K | Controls | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -406,9 +406,9 @@ Recipe:
 ```
 given Teff (or T(P)), g, m, C/O, Kzz:
    x_H2 = 0.857*(1 - Zscale), x_He = 0.141*(1 - Zscale)   [Zscale = metal mole fraction]
-   O budget = m * 4.9e-4 minus the O taken by silicate/Fe clouds (~20%, Visscher 2010 rock-forming elements)
+   O budget = m * 4.9e-4 minus the O taken by silicate/Fe clouds (~20%, [R4561] rock-forming elements)
    C budget = m * 2.9e-4 * (C/O)/(0.589) ; CH4/CO by K(CH4 CO) with the quench of 7.3
-   N budget: NH3 at T < 700 K (Burrows and Sharp), N2 above ; S budget: H2S (Visscher 2006)
+   N budget: NH3 at T < 700 K (Burrows and Sharp), N2 above ; S budget: H2S [R4562]
    condense Fe, Mg2SiO4, MgSiO3, Na2S, NH4SH, H2O, H2S by 7.2 and 12.2 before computing gas fractions
 ```
 The ice-giant interior (above 1 kbar, water-rich) has no sourced mixing ratio in this lane; only the envelope recipe above applies. A mass-radius-consistent water/ammonia/methane interior mixture is NOT REACHED (Boss list). TEST: Jupiter-class retrievals follow log(CH4/H) = -1.11 log(M/MJ) + 0.38 (2.5), which the Solar System giants satisfy by construction.
@@ -423,12 +423,12 @@ Zahnle and Marley give the CH4 to CO crossover temperature as 1100 +/- 100 K for
 
 | Item | Value | Source | Status |
 |---|---|---|---|
-| For HD 189733b and HD 209458b, CH4, NH3, HCN and C2H2 are enhanced by quenching and photochemistry; CO, H2O, N2 and CO2 follow equilibrium except below about 1 microbar | | Moses et al. 2011, arXiv:1102.0063 | READ |
-| Photochemical and kinetic models for hot Jupiters (HD 209458b, HD 189733b) | not extracted | Venot et al. 2012, arXiv:1208.0560 | NOT REACHED (PDF downloaded, body not read) |
-| TiO/VO as thermal-inversion absorbers: cold-trapping depletes them unless Kzz is at least a few times 1e7 cm2/s (0.1 micron grains) up to about 1e11 cm2/s (10 micron grains); VO unlikely to matter | | Spiegel, Silverio and Burrows 2009, arXiv:0902.3995 | READ |
-| Ultra-hot dayside (Tday about 2900 K): H- opacity, thermal dissociation of H2O and other major molecules, and thermal ionisation of metals must be included; WASP-18b [M/H] = -0.01 +/- 0.35, C/O < 0.85 (3 sigma), inverted temperature profile | | Arcangeli et al. 2018, arXiv:1801.02489 | READ |
-| H2O in hot giants is sub-stellar while Na and K are stellar to super-stellar | | Welbanks 2019, arXiv:1912.04904 | READ |
-| C/O >= 1 gives HCN and C2H2, with TiO and VO underabundant | | Madhusudhan 2012, arXiv:1209.2412 | READ |
+| For HD 189733b and HD 209458b, CH4, NH3, HCN and C2H2 are enhanced by quenching and photochemistry; CO, H2O, N2 and CO2 follow equilibrium except below about 1 microbar | | [R3177] | READ |
+| Photochemical and kinetic models for hot Jupiters (HD 209458b, HD 189733b) | not extracted | [R4527] | NOT REACHED (PDF downloaded, body not read) |
+| TiO/VO as thermal-inversion absorbers: cold-trapping depletes them unless Kzz is at least a few times 1e7 cm2/s (0.1 micron grains) up to about 1e11 cm2/s (10 micron grains); VO unlikely to matter | | [R4172] | READ |
+| Ultra-hot dayside (Tday about 2900 K): H- opacity, thermal dissociation of H2O and other major molecules, and thermal ionisation of metals must be included; WASP-18b [M/H] = -0.01 +/- 0.35, C/O < 0.85 (3 sigma), inverted temperature profile | | [R0134] | READ |
+| H2O in hot giants is sub-stellar while Na and K are stellar to super-stellar | | [R4663] | READ |
+| C/O >= 1 gives HCN and C2H2, with TiO and VO underabundant | | [R2801, R2803] | READ |
 | Teq of TiO survival: Burrows and Sharp: TiO exists above 2000 to 2300 K, VO above 1700 to 1900 K | | astro-ph/9807055 | READ |
 
 Recipe:
@@ -448,25 +448,25 @@ Mole-fraction values for dissociation depend on P and T and are not tabulated in
 
 | Species | 67P percent of H2O (TEST) | Cross-comet range, percent of H2O | Source | Status |
 |---|---|---|---|---|
-| CO2 | 4.7 +/- 1.4 | median about 12 (25 comets; about half CO2-dominated, a third CO-dominated, a tenth comparable) | Rubin 2019, arXiv:1907.11044; Harrington Pinto 2022 | READ; SNIPPET |
-| CO | 3.1 +/- 0.9 | 0.5 to 23 (Hale-Bopp 23.0, Hyakutake 18.2); median about 3 | Rubin 2019; Willacy 2025, arXiv:2509.20530 (Tables 2 and 3); Harrington Pinto 2022 | READ; READ; SNIPPET |
-| O2 | 3.1 +/- 1.1 | not tabulated | Rubin 2019 | READ |
-| CH4 | 0.34 +/- 0.07 | not extracted | Rubin 2019 | READ |
-| C2H6 | 0.29 +/- 0.06 | not extracted | Rubin 2019 | READ |
-| CH3OH | 0.21 +/- 0.06 | 0.2 to 2.6 | Rubin 2019; Willacy 2025 | READ |
-| H2CO | 0.32 +/- 0.10 | not extracted | Rubin 2019 | READ |
-| NH3 | 0.67 +/- 0.20 | 0.1 to 0.73 | Rubin 2019; Willacy 2025 | READ |
-| HCN | 0.14 +/- 0.04 | 0.09 to 0.29 | Rubin 2019; Willacy 2025 | READ |
-| H2S | 1.10 +/- 0.46 | not extracted | Rubin 2019 | READ |
-| N2 | 0.089 +/- 0.024 | not extracted | Rubin 2019 | READ |
-| OCS | 0.041 | not extracted | Rubin 2019 | READ |
-| SO2 | 0.127 | not extracted | Rubin 2019 | READ |
-| Ar | 5.8e-4 | not extracted | Rubin 2019 | READ |
-| Kr | 4.9e-5 | not extracted | Rubin 2019 | READ |
-| Xe | 2.4e-5 | not extracted | Rubin 2019 | READ |
-| Ne | < 5e-6 | not extracted | Rubin 2019 | READ |
+| CO2 | 4.7 +/- 1.4 | median about 12 (25 comets; about half CO2-dominated, a third CO-dominated, a tenth comparable) | [R3835]; Harrington [R3535] | READ; SNIPPET |
+| CO | 3.1 +/- 0.9 | 0.5 to 23 (Hale-Bopp 23.0, Hyakutake 18.2); median about 3 | [R3835, R4704] (Tables 2 and 3); Harrington [R3535] | READ; READ; SNIPPET |
+| O2 | 3.1 +/- 1.1 | not tabulated | [R3835] | READ |
+| CH4 | 0.34 +/- 0.07 | not extracted | [R3835] | READ |
+| C2H6 | 0.29 +/- 0.06 | not extracted | [R3835] | READ |
+| CH3OH | 0.21 +/- 0.06 | 0.2 to 2.6 | [R3835, R4704] | READ |
+| H2CO | 0.32 +/- 0.10 | not extracted | [R3835] | READ |
+| NH3 | 0.67 +/- 0.20 | 0.1 to 0.73 | [R3835, R4704] | READ |
+| HCN | 0.14 +/- 0.04 | 0.09 to 0.29 | [R3835, R4704] | READ |
+| H2S | 1.10 +/- 0.46 | not extracted | [R3835] | READ |
+| N2 | 0.089 +/- 0.024 | not extracted | [R3835] | READ |
+| OCS | 0.041 | not extracted | [R3835] | READ |
+| SO2 | 0.127 | not extracted | [R3835] | READ |
+| Ar | 5.8e-4 | not extracted | [R3835] | READ |
+| Kr | 4.9e-5 | not extracted | [R3835] | READ |
+| Xe | 2.4e-5 | not extracted | [R3835] | READ |
+| Ne | < 5e-6 | not extracted | [R3835] | READ |
 
-The 67P CO2 value (4.7) and the 25-comet CO2 median (about 12) differ by a factor 2.6 and the 67P CO (3.1) sits at the cross-comet median (about 3). Spread for CO alone across comets is a factor of 46 (0.5 to 23). Generator rule: draw `CO2/H2O` log-normal with median 0.12 and sigma about 0.5 dex, and `CO/H2O` log-normal with median 0.03 and sigma about 0.6 dex (sigma values are COMPUTED by eye from the quoted ranges, not published fits). Per-comet tabulations of A'Hearn et al. 2012 (NTRS, OCR damaged) and Mumma and Charnley 2011 / Bockelee-Morvan 2004 are NOT REACHED; a protoplanetary-disk midplane comparison is in arXiv:1907.11255 and an ice-origin review in arXiv:2309.07483 (both downloaded, tables not extracted).
+The 67P CO2 value (4.7) and the 25-comet CO2 median (about 12) differ by a factor 2.6 and the 67P CO (3.1) sits at the cross-comet median (about 3). Spread for CO alone across comets is a factor of 46 (0.5 to 23). Generator rule: draw `CO2/H2O` log-normal with median 0.12 and sigma about 0.5 dex, and `CO/H2O` log-normal with median 0.03 and sigma about 0.6 dex (sigma values are COMPUTED by eye from the quoted ranges, not published fits). Per-comet tabulations of [R0048] (NTRS, OCR damaged) and [R3206] / [R0436] are NOT REACHED; a protoplanetary-disk midplane comparison is in [R1234] and an ice-origin review in [R3833] (both downloaded, tables not extracted).
 
 ### 9.2 Production-rate scaling (COMPUTED)
 
@@ -478,10 +478,10 @@ Energy balance of a sublimating water-ice surface: `Q(r) = (1 - A) S0 pi R^2 / (
 
 | Item | Value | Source | Status |
 |---|---|---|---|
-| Debris accreted by polluted white dwarfs is volatile-depleted and rock-forming (O, Mg, Si, Ca, Fe dominated); the best extrapolation from calcium to total heavy-element accretion uses the bulk terrestrial Ca mass fraction A about 0.016 | | Farihi 2016, arXiv:1604.03092 | READ |
-| Upper limit on the H mass fraction of the debris is 1%, consistent with volatile-depleted parent bodies; carbon is consistent with the terrestrial value, not chondritic | | Farihi 2016 (citing Hartmann et al.) | 2ND-HAND |
-| Six polluted white dwarfs give fO2 consistent with Earth, Mars and typical asteroids; most oxidised bodies about dIW = -0.6, WD 1536+520 dIW = -1.37; Solar System bodies span about 6 log units in dIW | | Doyle et al. 2019, arXiv:1910.12989 | READ |
-| Planets that survive post main sequence evolution and their orbital fates | | Veras 2016, arXiv:1601.05419 | NOT REACHED (PDF downloaded, body not read) |
+| Debris accreted by polluted white dwarfs is volatile-depleted and rock-forming (O, Mg, Si, Ca, Fe dominated); the best extrapolation from calcium to total heavy-element accretion uses the bulk terrestrial Ca mass fraction A about 0.016 | | [R1325] | READ |
+| Upper limit on the H mass fraction of the debris is 1%, consistent with volatile-depleted parent bodies; carbon is consistent with the terrestrial value, not chondritic | | [R1325] (citing Hartmann et al.) | 2ND-HAND |
+| Six polluted white dwarfs give fO2 consistent with Earth, Mars and typical asteroids; most oxidised bodies about dIW = -0.6, WD 1536+520 dIW = -1.37; Solar System bodies span about 6 log units in dIW | | [R1154] | READ |
+| Planets that survive post main sequence evolution and their orbital fates | | [R4532] | NOT REACHED (PDF downloaded, body not read) |
 | Atmospheres of planets around white dwarfs and pulsars (composition, escape) | | none | NOT REACHED |
 
 Recipe: for an exposed rocky body around a white dwarf, composition is bulk-silicate-Earth like (3.4 table, 2000 K row) with dIW drawn from N(-1, 0.5) (spread bracketed by Doyle values), volatiles near zero (H < 1% by mass of debris), so only a thin outgassed or vaporised atmosphere (Na, SiO, Mg, Fe) is expected when heated. For pulsar planets no sourced composition exists; treat as bare rock with vapour only if heated, and flag as a gap.
@@ -492,12 +492,12 @@ Recipe: for an exposed rocky body around a white dwarf, composition is bulk-sili
 
 | Finding | Source | Status |
 |---|---|---|
-| On Earth-like planets around M dwarfs the biogenic gases CH4, N2O and CH3Cl have substantially longer lifetimes and higher mixing ratios than on Earth (UV spectrum differs from the Sun); active M-star planets still develop an Earth-like ozone layer | Segura et al. 2005, astro-ph/0510224 | READ (abstract) |
-| N2O builds up to observable concentration around M dwarfs with low UV flux; CH3Cl may become detectable; the O2 0.76 micron feature is harder to detect for later M dwarfs | Rugheimer et al. 2015, arXiv:1506.07202 | READ (abstract) |
-| Abiotic O3 appears without detectable O2 in prebiotic-Earth-like atmospheres | Domagal-Goldman et al. 2014, arXiv:1407.2622 | READ (abstract) |
-| A catalytic H2O2 cycle sustains CO2; below about 1 ppm H2, about 40% of CO2 converts to CO and O2 in about 1 Myr; the loss is capped near 50% | Gao et al. 2015, arXiv:1501.06876 | READ |
-| F and G stars do not accumulate abiotic O2; K and especially M stars can | Harman et al. 2015, arXiv:1509.07863 | READ |
-| Extreme water loss in the M dwarf habitable zone gives abiotic O2 build-up (hundreds to thousands of bar in the cases quoted by Katyal 2020) | Luger and Barnes 2015, arXiv:1411.7412 | READ (title); numbers 2ND-HAND via Katyal 2020 |
+| On Earth-like planets around M dwarfs the biogenic gases CH4, N2O and CH3Cl have substantially longer lifetimes and higher mixing ratios than on Earth (UV spectrum differs from the Sun); active M-star planets still develop an Earth-like ozone layer | [R3999], astro-ph/0510224 | READ (abstract) |
+| N2O builds up to observable concentration around M dwarfs with low UV flux; CH3Cl may become detectable; the O2 0.76 micron feature is harder to detect for later M dwarfs | [R3845, R3846], [R3845] | READ (abstract) |
+| Abiotic O3 appears without detectable O2 in prebiotic-Earth-like atmospheres | [R1137] | READ (abstract) |
+| A catalytic H2O2 cycle sustains CO2; below about 1 ppm H2, about 40% of CO2 converts to CO and O2 in about 1 Myr; the loss is capped near 50% | [R1511] | READ |
+| F and G stars do not accumulate abiotic O2; K and especially M stars can | [R1814] | READ |
+| Extreme water loss in the M dwarf habitable zone gives abiotic O2 build-up (hundreds to thousands of bar in the cases quoted by [R2286]) | [R2769] | READ (title); numbers 2ND-HAND via [R2286] |
 
 Recipe: the host star changes the atmosphere mainly through the FUV/UV to visible ratio and flare history. For an M dwarf host and a rocky planet with an oxidised mantle, move oxygen from the CO2/H2O reservoir to O2 on a timescale set by water loss (up to about 5 bar/Myr on Earth-mass planets, 2ND-HAND), and move CO2 to CO plus O2 by the factor in the Gao row (cap 50%) when H2 is below 1 ppm. Quantitative flare-driven rates and an F/G/K/M tabulation of mixing ratios are NOT REACHED beyond these abstracts.
 
@@ -511,18 +511,18 @@ From NASA condensed thermodynamic data for H2O(s) and H2O gas (cantera 3.2.0 `na
 
 ### 12.2 NH3 and beta-O2 ices (READ, COMPUTED check)
 
-Blakley et al. 2024 (arXiv:2403.09917): `ln p_vap(bar) = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3`.
+[R0418]: `ln p_vap(bar) = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3`.
 
 | Species | A | B (K) | C | D2 (1/K) | D3 (1/K^2) | D4 (1/K^3) |
 |---|---|---|---|---|---|---|
 | NH3 ice | -5.55 +/- 0.45 | 3605 +/- 31 | 4.82792 | -0.024895 | 2.1669e-5 | -2.3575e-8 |
 | beta-O2 ice | 15.29 +/- 0.29 | 1166.2 +/- 8.6 | -0.75587 | 0.14188 | -1.8665e-3 | 7.582e-6 |
 
-COMPUTED check: NH3 gives 6.17e-2 bar at 195 K (triple point about 6.1e-2 bar, RECALLED) and 3.7e-2 bar at 190 K, 3.4e-3 bar at 170 K, 1.6e-4 bar at 150 K, 2.5e-7 bar at 120 K; O2 gives 2.7e-3 bar at 54 K, 4.9e-4 bar at 50 K, 3.7e-5 bar at 45 K, 1.4e-6 bar at 40 K. Their experimental vapour pressures lie below the Fray and Schmitt 2009 extrapolation by a factor 1.5 for NH3 and 1.6 for beta-O2 (READ), a direct measure of the spread to carry. The project's two-point table (`CONDENSATION_K` in `atmosphere.py`) can be validated against these.
+COMPUTED check: NH3 gives 6.17e-2 bar at 195 K (triple point about 6.1e-2 bar, RECALLED) and 3.7e-2 bar at 190 K, 3.4e-3 bar at 170 K, 1.6e-4 bar at 150 K, 2.5e-7 bar at 120 K; O2 gives 2.7e-3 bar at 54 K, 4.9e-4 bar at 50 K, 3.7e-5 bar at 45 K, 1.4e-6 bar at 40 K. Their experimental vapour pressures lie below the [R1445] extrapolation by a factor 1.5 for NH3 and 1.6 for beta-O2 (READ), a direct measure of the spread to carry. The project's two-point table (`CONDENSATION_K` in `atmosphere.py`) can be validated against these.
 
 ### 12.3 Not reached
 
-N2, CO, CH4, CO2, SO2, H2S and NH4SH(s) sublimation relations (Fray and Schmitt 2009; Grundy et al. 2024 updates) are NOT REACHED; only the NH4SH and H2S condensation relations of 7.2 exist.
+N2, CO, CH4, CO2, SO2, H2S and NH4SH(s) sublimation relations ([R1445, R1708] updates) are NOT REACHED; only the NH4SH and H2S condensation relations of 7.2 exist.
 
 ---
 
@@ -556,7 +556,7 @@ Entries are mole fractions (gas phase, dry unless noted) with the evidence statu
 | HCl | 1.4% (crust composition, 1000 K, 100 bar) | ? | ? | ? | ? | KCl, NaCl condensates | ? | ? | READ |
 | HF | 4.5% (crust composition, 1000 K, 1e-6 bar) | ? | ? | ? | ? | - | ? | ? | READ |
 | N2O | - | abiotic ? | - | - | - | - | - | - | NOT REACHED |
-| NO2 | - | lightning-driven, ? (Harman 2018) | - | - | - | - | - | - | NOT REACHED |
+| NO2 | - | lightning-driven, ? [R1813] | - | - | - | - | - | - | NOT REACHED |
 | Na | - | - | Type I dominant | - | - | condensed below ~1100 K | 1.7e-6 per H | - | READ/COMPUTED |
 | K | - | - | present | - | - | KCl below ~1200 K | 1.2e-7 per H | - | READ/COMPUTED |
 | SiO | - | - | 0.24 (BSE at 2000 K, 1e-6 bar) | - | - | - | refractory gas | - | READ |
@@ -572,25 +572,25 @@ Entries are mole fractions (gas phase, dry unless noted) with the evidence statu
 
 ## 14. Boss must research
 
-1. Fray and Schmitt 2009 (Planet. Space Sci. 57) and Grundy et al. 2024 for N2, CO, CH4, CO2, SO2, H2S, NH3 sublimation coefficients: needed for the Pluto/Triton frost-equilibrium recipe and validation of `CONDENSATION_K`. Not reachable here (journal; no arXiv copy found).
-2. Sossi et al. 2020 (Sci. Adv.) and Gaillard et al. 2014 and 2021: magma-ocean redox and CO to CO2-N2 evolution; snippet only. Needed to fix the dIW prior of the generator.
-3. Hirschmann 2012 (graphite, C solubility) and carbon solubility in melt: our speciation has no graphite and no solubility, so CH4/CO at the surface is biased.
-4. Mumma and Charnley 2011, Bockelee-Morvan 2004, Dello Russo 2016, Harrington Pinto 2022 full tables: per-comet abundances of 30 or more species; Willacy 2025 has only ranges. Also A'Hearn 2012 with usable OCR.
-5. Lodders and Fegley 2002 and 2006, Lodders 2003: brown dwarf chemistry and the original condensation tables; Schaefer and Fegley 2010 for silicate vapour.
-6. Miguel et al. 2011 numeric tables (Type I to V compositions) for lava worlds; only figures were read.
-7. The Thorngren 2016 scatter on the Zpl/Zstar fit and the width of the atmosphere-to-bulk offset in giants.
+1. [R1445] (Planet. Space Sci. 57) and [R1708] for N2, CO, CH4, CO2, SO2, H2S, NH3 sublimation coefficients: needed for the Pluto/Triton frost-equilibrium recipe and validation of `CONDENSATION_K`. Not reachable here (journal; no arXiv copy found).
+2. [R4154] (Sci. Adv.) and [R1491] and 2021: magma-ocean redox and CO to CO2-N2 evolution; snippet only. Needed to fix the dIW prior of the generator.
+3. [R1953] (graphite, C solubility) and carbon solubility in melt: our speciation has no graphite and no solubility, so CH4/CO at the surface is biased.
+4. [R0436, R3206], Dello [R1063], Harrington [R3535] full tables: per-comet abundances of 30 or more species; [R4704] has only ranges. Also [R0048] with usable OCR.
+5. [R2725] and 2006, [R2726]: brown dwarf chemistry and the original condensation tables; [R3943] for silicate vapour.
+6. [R3059] numeric tables (Type I to V compositions) for lava worlds; only figures were read.
+7. The [R4352] scatter on the Zpl/Zstar fit and the width of the atmosphere-to-bulk offset in giants.
 8. An occurrence-weighted distribution of sub-Neptune envelope metallicity (Zenv) for the generator; used here only as a bracket of TEST planets.
-9. Hot Jupiter thermochemistry tables (FastChem or GGchem output) for T above 2200 K, and Venot 2012 / Line 2021 numbers.
+9. Hot Jupiter thermochemistry tables (FastChem or GGchem output) for T above 2200 K, and [R4527] / Line 2021 numbers.
 10. Mass-radius-consistent water, ammonia and methane interior mixture of ice giants (no mixing ratio found).
 11. Pulsar planet and white-dwarf planet atmospheres: no sourced composition.
 12. Fugacity coefficients for CO2-H2O at above 100 bar (ideal gas fails).
 13. Combi, Meech and Svoren production-rate law for comets and the CO, CO2 activity onset distance.
-14. N2O, NO2, O3 abiotic abundances (Harman 2018, Domagal-Goldman 2014 numeric values), and the Atmospheric Toxicity document item Harman 2018 (ApJ 866, 56, real).
+14. N2O, NO2, O3 abiotic abundances ([R1137, R1813] numeric values), and the Atmospheric Toxicity document item [R1813] (ApJ 866, 56, real).
 
 ## 15. Recalled / to verify
 
 All values below are RECALLED and not verified:
-- Frost 1991 iron-wuestite fit log fO2 = -27489/T + 6.702.
+- [R1464] iron-wuestite fit log fO2 = -27489/T + 6.702.
 - BSE K about 240 ppm (McDonough and Sun); K/U about 12,000 (Arevalo); Earth 40Ar degassed fraction about 50 to 66%.
 - Earth air: Ne 18.18 ppm, Kr 1.14 ppm, Xe 0.087 ppm, Ar 0.934%; 40Ar 99.6% of Ar; atmosphere 1.8e20 mol; mantle mass 4.0e27 g.
 - Latent heat of water ice sublimation 51 kJ/mol; water ice line near 2.5 AU; triple points of H2O (6.117 mbar) and NH3 (about 61 mbar).

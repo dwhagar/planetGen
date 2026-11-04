@@ -26,7 +26,7 @@ def _shape(length=2600.0, height=300.0, bulge=1580.0, stellar_mass=None):
 
 
 MILKY_WAY_MASS = 5.0e10
-"""float: The mass of the galaxy the tests call Milky Way-like (Licquia and Newman 2015: 6.08 +- 1.14e10, bulge and
+"""float: The mass of the galaxy the tests call Milky Way-like ([R2681]: 6.08 +- 1.14e10, bulge and
 disk); its halo is the median one for it, as the mass chain draws."""
 SHAPE = _shape(stellar_mass=MILKY_WAY_MASS)
 HALO = mass_chain.median_halo_mass(MILKY_WAY_MASS)
@@ -38,7 +38,7 @@ FLAT = {name: (high - low) / (tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STA
 def test_the_cosmology_makes_the_universe_as_old_as_the_tuning_says():
     assert disk_history.universe_age_gy() == pytest.approx(tuning.UNIVERSE_AGE_GY, abs=0.05)
     assert disk_history.redshift_at_age(disk_history.universe_age_gy()) == pytest.approx(0.0, abs=1e-9)
-    # Planck 2018: the Universe was 3.8 Gy old at z of about 1.6 (the cosmic clock the halo's growth is read on).
+    # [R3544]: the Universe was 3.8 Gy old at z of about 1.6 (the cosmic clock the halo's growth is read on).
     assert disk_history.redshift_at_age(3.8) == pytest.approx(1.6, abs=0.15)
 
 
@@ -52,7 +52,7 @@ def test_the_return_fraction_reproduces_madau_and_dickinsons_salpeter_value():
 def test_the_stellar_to_halo_ratio_is_the_chains_at_redshift_zero_and_moves_with_redshift():
     for mass in (1.0e11, 1.0e12, 1.0e13):
         assert disk_history.stellar_to_halo_ratio_at(mass, 0.0) == pytest.approx(mass_chain.stellar_to_halo_ratio(mass))
-    # Moster, Naab and White 2013: a 1e12 halo holds fewer stars at z = 2 than a 1e12 halo does now.
+    # [R3181]: a 1e12 halo holds fewer stars at z = 2 than a 1e12 halo does now.
     assert disk_history.stellar_to_halo_ratio_at(1.0e12, 2.0) < disk_history.stellar_to_halo_ratio_at(1.0e12, 0.0)
 
 
@@ -134,7 +134,7 @@ def test_a_flat_inflow_settles_a_ring_toward_a_constant_rate():
 
 
 def _observed_present_over_mean():
-    """Target: Licquia and Newman 2015 (arXiv 1407.1078, read): the Galaxy forms 1.65 +- 0.19 solar masses a year (a
+    """Target: [R2681] ([R2680], read): the Galaxy forms 1.65 +- 0.19 solar masses a year (a
     Kroupa mass function) and its disk holds 5.17 +- 1.11e10, which a life of ten Gy and the stars' return fraction
     make 5.17e10 / (1 - R) / 10 Gy of births a year on average. (The disk's mass includes the thick disk, which formed
     before the thin disk's ten Gy, so the ratio is somewhat higher than this.)"""
@@ -164,8 +164,7 @@ def _depletion_time_gy(found):
 def test_a_milky_way_mass_disc_keeps_its_gas_for_the_measured_depletion_time_and_the_local_gas():
     """GEN.999: with the law steepening where the gas thins (GEN.450) the disc of 3e10 solar masses of stars depletes its gas in 2.5
     to 4.2 Gy (1.0 to 4.2 Gy is the measured range, Sources 2 on GEN.998; the plain Kennicutt law gave 1.8) and holds a local gas of the order of
-    the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium (McKee, Parravano and
-    Hollenbach 2015, Table 2: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
+    the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium ([R3002: Table 2]: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
     found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0, HALO)
     assert 2.5 <= _depletion_time_gy(found) <= 4.2
     solar = int(np.argmin(np.abs(found.radius_scale_lengths * 2600.0 - 8000.0)))

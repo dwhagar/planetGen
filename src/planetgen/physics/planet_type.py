@@ -5,8 +5,7 @@ The type of a planet or moon: terrestrial, transitional or gas (GEN.1219; design
 =========================================================================================================================================
 
 The first qualification of a body (Boss, 10:31 AM EDT 2026-10-31), before any class: how its mass is shared between a core and an atmosphere.
-The one number that cuts is the envelope's share of the mass, `envelope_mass_fraction` (the hydrogen-helium envelope of `bulk_structure`, Lopez
-and Fortney 2014):
+The one number that cuts is the envelope's share of the mass, `envelope_mass_fraction` (the hydrogen-helium envelope of `bulk_structure`, [R2741]):
 
 * **terrestrial**: under `TERRESTRIAL_MAX_ENVELOPE` (0.5 percent, about the 1.6 Earth radii of the rocky limit): mostly rock; any air is secondary and may be
   absent (Venus's 92 bar is 1e-4 of its mass);
@@ -24,7 +23,7 @@ GAS = "gas"
 TYPES = (TERRESTRIAL, TRANSITIONAL, GAS)
 
 TERRESTRIAL_MAX_ENVELOPE = 0.005
-"""float: STAND-IN PT1 (Boss's choice, L0): an envelope under this share of the mass is a terrestrial body (about 1.6 Earth radii; Rogers 2015, Fulton and Petigura 2018)."""
+"""float: STAND-IN PT1 (Boss's choice, L0): an envelope under this share of the mass is a terrestrial body (about 1.6 Earth radii; [R1477, R3800])."""
 GAS_MIN_ENVELOPE = 0.5
 """float: STAND-IN PT2 (Boss's choice, L0): an envelope of this share of the mass or more is a gas body (the line of `bulk_structure.GIANT_ENVELOPE_FRACTION`)."""
 

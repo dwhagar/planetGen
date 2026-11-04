@@ -92,7 +92,7 @@ def test_a_saturn_like_giant_has_a_weaker_field_than_a_jupiter_like_one():
     jupiter = statistics.median(_field(JUPITER, s, JUPITER_RADIUS_M, JUPITER_HEAT_W, JUPITER_SPIN).field.moment_a_m2 for s in range(1, 9))
     saturn = statistics.median(_field(SATURN, s, SATURN_RADIUS_M, SATURN_HEAT_W, SATURN_SPIN).field.moment_a_m2 for s in range(1, 9))
     assert saturn < jupiter / 1.5
-    # Saturn's observed 4.6e25 is below this: a stable layer above its dynamo (Cao and Stevenson 2017) is not modelled yet (DY2's note).
+    # Saturn's observed 4.6e25 is below this: a stable layer above its dynamo [R0644] is not modelled yet (DY2's note).
     assert saturn > 4.6e25
 
 

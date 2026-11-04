@@ -167,7 +167,7 @@
     {
       "epoch": 28,
       "first_release": "8.0.1813",
-      "reason": "A brown dwarf's temperature, radius and luminosity follow the cooling track of Baraffe et al. (2015) in place of a single old-age power law, so the heaviest brown dwarfs stay as hot L dwarfs and a free-floating brown dwarf's radius, flux and surface change with its drawn age (GEN.549).",
+      "reason": "A brown dwarf's temperature, radius and luminosity follow the cooling track of [R0254] in place of a single old-age power law, so the heaviest brown dwarfs stay as hot L dwarfs and a free-floating brown dwarf's radius, flux and surface change with its drawn age (GEN.549).",
       "affects": ["scatter", "fill"]
     },
     {
@@ -313,7 +313,7 @@
     {
       "epoch": 53,
       "first_release": "8.0.1998",
-      "reason": "A galaxy's nuclear stellar disc is drawn from its stellar mass by the two fits of Gadotti and de Sa-Freitas 2025 (only for a barred galaxy, no longer 61 times the nuclear cluster), so the nuclear terms of every seed's density, its outline, its sectors and its plan figures differ (GEN.628)",
+      "reason": "A galaxy's nuclear stellar disc is drawn from its stellar mass by the two fits of [R1487] (only for a barred galaxy, no longer 61 times the nuclear cluster), so the nuclear terms of every seed's density, its outline, its sectors and its plan figures differ (GEN.628)",
       "affects": ["plan", "scatter", "fill"]
     },
     {
@@ -475,7 +475,7 @@
     {
       "epoch": 80,
       "first_release": "8.0.2180",
-      "reason": "A giant planet's radius comes from the Fortney, Marley and Barnes 2007 tables for its mass, heavy-element core, starlight and age (plus hot-giant inflation) and its heavy elements and layered interior are drawn together (Chachan et al. 2025 for class J), replacing the anchored mass-radius relation and the stand-in envelope shares, so every giant's radius and composition and the stream after it move (GEN.460, GEN.642)",
+      "reason": "A giant planet's radius comes from the [R1429] tables for its mass, heavy-element core, starlight and age (plus hot-giant inflation) and its heavy elements and layered interior are drawn together ([R0710] for class J), replacing the anchored mass-radius relation and the stand-in envelope shares, so every giant's radius and composition and the stream after it move (GEN.460, GEN.642)",
       "affects": ["fill"]
     },
     {

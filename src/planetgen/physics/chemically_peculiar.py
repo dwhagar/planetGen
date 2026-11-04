@@ -34,13 +34,13 @@ AP_TEMPERATURE_RANGE_K = (7500.0, 13000.0)
 peculiar stars are found from B8 to F0.]"""
 AM_TEMPERATURE_RANGE_K = (7000.0, 9500.0)
 """tuple: The temperatures, K, in which a main-sequence star may be Am. [Stand-in PEC2, tier T3, tweak L0: Am stars are the A1 to F2 dwarfs, about 7,000 to
-9,500 K (Abt 2009).]"""
+9,500 K [R0022].]"""
 AP_SHARE = 0.10
 """float: The share of the stars in `AP_TEMPERATURE_RANGE_K` that are Ap or Bp. [Stand-in PEC3, tier T4, tweak L1: about 10 percent of A stars, 5 to
 10 percent in the magnetic surveys (8 percent).]"""
 AM_SHARE = 0.33
 """float: The share of the stars in `AM_TEMPERATURE_RANGE_K` that are Am. [Stand-in PEC4, tier T3, tweak L1: about a third of A stars between A4 and F1 (Smith
-1996; Abt 2009 has 30 to 40 percent).]"""
+1996; [R0022] has 30 to 40 percent).]"""
 AP_PERIOD_MEDIAN_DAYS = 4.5
 """float: The median rotation period of an Ap star, days. [Stand-in PEC5, tier T6, tweak L1: the periods run from half a day to decades with the bulk at days.]"""
 AP_PERIOD_SIGMA_LN = 1.3
@@ -49,7 +49,7 @@ AP_PERIOD_RANGE_DAYS = (0.5, 30.0)
 """tuple: The Ap periods kept, days. [Stand-in PEC7, tier T6, tweak L0: the long-period tail of decades is left out of the draw.]"""
 AM_SPEED_RANGE_KMS = (10.0, 90.0)
 """tuple: The equatorial speeds, km/s, an Am star is drawn between, uniform. [Stand-in PEC8, tier T6, tweak L1: Am stars rotate slowly, v sin i under about 100
-km/s with a mean near 50 (Abt and Morrell 1995).]"""
+km/s with a mean near 50 [R0023].]"""
 AP_POLAR_FIELD_GAUSS = (300.0, 3.0e4)
 """tuple: The polar field of an Ap star, gauss, drawn log-uniform between. [Stand-in PEC9, tier T4, tweak L0: dipole fields of 300 G to 34 kG (Babcock's star
 at 34 kG); the lower edge is the survey's detection floor.]"""

@@ -3,8 +3,8 @@
  "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity, infrared bands, ultraviolet and visible absorption (GEN.410)",
  "sources": [
   "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
-  "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
-  "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) binned to 35 bins in part 02 section 2.3"
+  "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); [R3470]; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
+  "[R4066] gas-phase fundamentals at [R0620] as read in part 03 table 2.1; photochem_clima_data 0.3.4 ([R1873, R2040, R2258, R3966], [R2302, R2303]) binned to 35 bins in part 02 section 2.3"
  ],
  "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists the band centres (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` where under half of the bin is covered.",
  "uv_bins_nm": [
@@ -210,7 +210,7 @@
     "research_row": "H2, route A: Peck and Huang n-based",
     "research_note": "(n-1) = 0.0148956/(180.7 - s^2) + 0.0049037/(92 - s^2), s = 1/lam in um^-1, at 273.15 K, valid 0.168 to 1.6945 um; refractiveindex.info `H2_nk_Peck.yml` (CC0) citing Peck and Huang, JOSA 67, 1550 (1977)",
     "reference_temperature_k": 273.15,
-    "note": "Peck and Huang 1977 at 273.15 K; Dalgarno and Williams route gives 0.202 of N2 against 0.217: draw 0.20 to 0.22",
+    "note": "[R3470] at 273.15 K; Dalgarno and Williams route gives 0.202 of N2 against 0.217: draw 0.20 to 0.22",
     "state": "verified",
     "limit": ""
    },
@@ -248,7 +248,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -258,7 +258,7 @@
      0.1,
      119.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      3.5e-19,
      3.5e-18,
@@ -494,7 +494,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -654,7 +654,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -760,7 +760,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -866,7 +866,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -972,7 +972,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -1147,7 +1147,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -1338,7 +1338,7 @@
     "saturated_rank": null,
     "no_band": true,
     "source": "physics",
-    "research_status": "READ in Wordsworth and Pierrehumbert 2013 text for H2 and N2",
+    "research_status": "READ in [R4773] text for H2 and N2",
     "state": "verified",
     "limit": ""
    },
@@ -1348,7 +1348,7 @@
      4.2,
      239.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      9.5e-18,
      2.2e-17,
@@ -1547,7 +1547,7 @@
      0.06,
      1099.9
     ],
-    "origin": "Huebner 2015 below 52.7 nm, Heays 2017 above",
+    "origin": "[R2040] below 52.7 nm, [R1873] above",
     "cross_section_cm2": [
      1.2e-17,
      2.6e-17,
@@ -1744,7 +1744,7 @@
     "strength_text": "very strong; rank 11; dominant on warm worlds; condensable, so its column is set by T and RH",
     "saturated_rank": 11,
     "no_band": false,
-    "source": "NIST/Shimanouchi 1972; rank from Byrne and Goldblatt 2014b",
+    "source": "NIST/[R4066]; rank from [R0620]",
     "research_status": "DATA; rank READ; rotation edge RECALLED",
     "state": "partly verified",
     "limit": "research status \"DATA; rank READ; rotation edge RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
@@ -1755,7 +1755,7 @@
      0.1,
      230.4
     ],
-    "origin": "Ranjan 2020 for 192 to 230 nm",
+    "origin": "[R3662] for 192 to 230 nm",
     "cross_section_cm2": [
      5e-18,
      1.7e-17,
@@ -1967,7 +1967,7 @@
      65.1,
      349.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      null,
      null,
@@ -2154,10 +2154,10 @@
     ],
     "research_row": "CO",
     "fundamentals_text": "fundamental about 2143 (4.67)",
-    "strength_text": "poor absorber, still optically thin at 1 bar for a pure-CO atmosphere (READ in Koll 2019, arXiv:1907.13145, his Fig. 4 text)",
+    "strength_text": "poor absorber, still optically thin at 1 bar for a pure-CO atmosphere (READ in [R2434, R2435], his Fig. 4 text)",
     "saturated_rank": null,
     "no_band": false,
-    "source": "Koll 2019",
+    "source": "[R2435]",
     "research_status": "READ; band RECALLED",
     "state": "partly verified",
     "limit": "research status \"READ; band RECALLED\": what is RECALLED was recalled, not read from a table (part 03 section 12)"
@@ -2168,7 +2168,7 @@
      0.1,
      166.5
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      6.5e-18,
      1.8e-17,
@@ -2399,7 +2399,7 @@
      0.2,
      212.8
     ],
-    "origin": "Schmidt 2013 at 270 K, reduced resolution, above 138.9 nm",
+    "origin": "[R3966] at 270 K, reduced resolution, above 138.9 nm",
     "cross_section_cm2": [
      1.1e-17,
      2.9e-17,
@@ -2618,7 +2618,7 @@
      5.7,
      1000.0
     ],
-    "origin": " Karkoschka 1994 for 152 to 1000 nm, so all visible CH4 bands rest on a paper that was NOT REACHED",
+    "origin": "[R2258] for 152 to 1000 nm, so all visible CH4 bands rest on a paper that was NOT REACHED",
     "cross_section_cm2": [
      2.3e-18,
      1.8e-17,
@@ -2695,7 +2695,7 @@
     ],
     "research_status": "DATA, COMPUTED",
     "state": "partly verified",
-    "limit": "the visible bins rest on Karkoschka 1994, which the research did not reach; giant-planet methane bands are one to two decades stronger than these bin means and need a band model (part 03)"
+    "limit": "the visible bins rest on [R2258], which the research did not reach; giant-planet methane bands are one to two decades stronger than these bin means and need a band model (part 03)"
    },
    "state": "verified",
    "limit": "",
@@ -2831,7 +2831,7 @@
      6.3,
      299.4
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      3.9e-18,
      2.1e-17,
@@ -3035,7 +3035,7 @@
      0.1,
      194.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      5.5e-18,
      3e-17,
@@ -3260,7 +3260,7 @@
      15.4,
      149.5
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      3.8e-18,
      2.7e-17,
@@ -3677,7 +3677,7 @@
      0.1,
      187.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      3.9e-18,
      1.4e-17,
@@ -3879,7 +3879,7 @@
      6.3,
      375.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      6.5e-18,
      2.5e-17,
@@ -4227,7 +4227,7 @@
      0.1,
      230.0
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      3.6e-18,
      1.8e-17,
@@ -4491,7 +4491,7 @@
      91.3,
      209.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      null,
      null,
@@ -4653,7 +4653,7 @@
      0.1,
      229.3
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      7e-18,
      2.1e-17,
@@ -4835,7 +4835,7 @@
      0.06,
      660.0
     ],
-    "origin": "no source",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      1.1e-17,
      2.8e-17,
@@ -5580,7 +5580,7 @@
     "research_row": "H2S",
     "research_note": "alpha 3.631 A^3, rho_n 0.00004; sigma(550) at B = 0.004 to 0.0075 um^2: 1.94e-26 to 2.01e-26",
     "reference_temperature_k": null,
-    "note": "polarizability route, each value about +-8 percent; Bogaard 1978 not reached",
+    "note": "polarizability route, each value about +-8 percent; [R0443] not reached",
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
@@ -5647,7 +5647,7 @@
      0.06,
      316.0
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      1.1e-18,
      5.5e-18,
@@ -5790,7 +5790,7 @@
     "research_row": "SO2",
     "research_note": "alpha 3.882 A^3, rho_n 0.0388; sigma(550) at B = 0.004 to 0.0075 um^2: 2.37e-26 to 2.46e-26",
     "reference_temperature_k": null,
-    "note": "polarizability route, each value about +-8 percent; Bogaard 1978 not reached",
+    "note": "polarizability route, each value about +-8 percent; [R0443] not reached",
     "state": "partly verified",
     "limit": "polarizability route good to -9 to +6 percent on 13 verified gases"
    },
@@ -5857,7 +5857,7 @@
      1.7,
      416.6
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      9.8e-18,
      3.5e-17,
@@ -6169,7 +6169,7 @@
      3.5,
      279.4
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      7.3e-18,
      2.6e-17,
@@ -6699,7 +6699,7 @@
      4.5,
      229.9
     ],
-    "origin": "Heays 2017 or Huebner 2015",
+    "origin": "[R1873] or [R2040]",
     "cross_section_cm2": [
      1.1e-18,
      1.8e-17,
@@ -7504,10 +7504,10 @@
     "bands": [],
     "research_row": "TiO, VO, Na, K, Fe, Mg",
     "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
-    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "strength_text": "thermal inversions in hot Jupiters when present ([R1715]: strong TiO/VO absorption gives gamma large and a temperature inversion)",
     "saturated_rank": null,
     "no_band": true,
-    "source": "Guillot 2010",
+    "source": "[R1715]",
     "research_status": "READ",
     "state": "verified",
     "limit": ""
@@ -7567,10 +7567,10 @@
     "bands": [],
     "research_row": "TiO, VO, Na, K, Fe, Mg",
     "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
-    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "strength_text": "thermal inversions in hot Jupiters when present ([R1715]: strong TiO/VO absorption gives gamma large and a temperature inversion)",
     "saturated_rank": null,
     "no_band": true,
-    "source": "Guillot 2010",
+    "source": "[R1715]",
     "research_status": "READ",
     "state": "verified",
     "limit": ""
@@ -7681,10 +7681,10 @@
     "bands": [],
     "research_row": "TiO, VO, Na, K, Fe, Mg",
     "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
-    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "strength_text": "thermal inversions in hot Jupiters when present ([R1715]: strong TiO/VO absorption gives gamma large and a temperature inversion)",
     "saturated_rank": null,
     "no_band": true,
-    "source": "Guillot 2010",
+    "source": "[R1715]",
     "research_status": "READ",
     "state": "verified",
     "limit": ""
@@ -7744,10 +7744,10 @@
     "bands": [],
     "research_row": "TiO, VO, Na, K, Fe, Mg",
     "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
-    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "strength_text": "thermal inversions in hot Jupiters when present ([R1715]: strong TiO/VO absorption gives gamma large and a temperature inversion)",
     "saturated_rank": null,
     "no_band": true,
-    "source": "Guillot 2010",
+    "source": "[R1715]",
     "research_status": "READ",
     "state": "verified",
     "limit": ""
@@ -7802,10 +7802,10 @@
     "bands": [],
     "research_row": "TiO, VO, Na, K, Fe, Mg",
     "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
-    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "strength_text": "thermal inversions in hot Jupiters when present ([R1715]: strong TiO/VO absorption gives gamma large and a temperature inversion)",
     "saturated_rank": null,
     "no_band": true,
-    "source": "Guillot 2010",
+    "source": "[R1715]",
     "research_status": "READ",
     "state": "verified",
     "limit": ""
@@ -8058,10 +8058,10 @@
     "bands": [],
     "research_row": "TiO, VO, Na, K, Fe, Mg",
     "fundamentals_text": "electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)",
-    "strength_text": "thermal inversions in hot Jupiters when present (Guillot 2010: strong TiO/VO absorption gives gamma large and a temperature inversion)",
+    "strength_text": "thermal inversions in hot Jupiters when present ([R1715]: strong TiO/VO absorption gives gamma large and a temperature inversion)",
     "saturated_rank": null,
     "no_band": true,
-    "source": "Guillot 2010",
+    "source": "[R1715]",
     "research_status": "READ",
     "state": "verified",
     "limit": ""

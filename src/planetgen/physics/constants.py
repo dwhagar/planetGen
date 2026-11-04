@@ -17,7 +17,7 @@ these values are needed.
 import math
 
 # Values that are measured or defined are written out in SI floats, from the
-# CODATA 2018 and IAU 2015 tables (GEN.66, GEN.211): astropy supplied them
+# [R4361] and IAU 2015 tables (GEN.66, GEN.211): astropy supplied them
 # until GEN.211 dropped it at run time (it cost 280 ms and 29 MB per process).
 # The astropy constants test holds each against astropy's own value.
 
@@ -64,7 +64,7 @@ MOON_MASS_KG = 7.342e+22  # The Moon's mass, kg: project-nominal (the IAU define
 JUPITER_MASS_TO_KG = 1.8981245973360505e+27  # Jupiter mass to kilograms conversion factor
 JUPITER_RADIUS_KM = 71_492.0  # Jupiter's mean equatorial radius in kilometers
 
-# Minimum Mass Solar Nebula (MMSN, Hayashi 1981) *solid* surface density at
+# Minimum Mass Solar Nebula [R1854] *solid* surface density at
 # 1 AU, and its power-law falloff exponent: Sigma_s(a) = SOL_GCM2 *
 # (a/1AU)^EXPONENT, valid inside the snow line. This is the *dust/ice*
 # surface density (what actually accretes into planetesimals/embryos), not
@@ -147,7 +147,7 @@ GIANT_RADIUS_SCATTER = {"neptunian": 0.10, "jovian": 0.07}
 # (P_c = 3*G*M^2/(8*pi*R^4)), because a real self-gravitating body's density
 # rises toward the center rather than staying uniform. n=1 is the classic,
 # simplest polytrope with an exact analytic solution, and is a standard
-# textbook approximation for cold, dense hydrogen/helium (Zapolsky & Salpeter 1969
+# textbook approximation for cold, dense hydrogen/helium ([R4867]
 # used the closely related n=3/2 for fully degenerate
 # matter). Checked against Jupiter's real numbers (M=1.898e27 kg,
 # R=71,492 km): this formula alone gives ~3,620 GPa, within ~10% of the
@@ -233,7 +233,7 @@ SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR = 2e-14
 # magnitude out of calibration unnoticed. Verified against measured rates:
 # gives ~factor-of-4 agreement for ordinary giants/supergiants, but
 # systematically overestimates by ~10x above log(L/Lsun) > 5 -- the
-# supergiant/hypergiant regime -- per Mauron & Josselin (2011)'s comparison
+# supergiant/hypergiant regime -- per [R2958]'s comparison
 # against 40 Galactic red supergiants, hence the correction below.
 NDJ_MASS_LOSS_COEFFICIENT = 9.63e-15
 NDJ_LUMINOSITY_EXPONENT = 1.42
@@ -246,7 +246,7 @@ NDJ_HIGH_LUMINOSITY_CORRECTION_FACTOR = 0.1
 # 2000/2001 radiation-driven-wind models, the standard for hot dwarfs) show
 # N&dJ overestimates main-sequence O-star mass loss by up to ~20x, since it
 # was fit mostly to evolved/luminous stars. Calibrated instead against
-# measured O/B dwarf rates (e.g. Vink et al. 2000), which put
+# measured O/B dwarf rates (e.g. [R4557]), which put
 # late-O dwarfs (~1e5 Lsun) around 3-7e-8 Msun/yr. The previous value
 # (3.2e-20) was ~3-4 orders of magnitude too low, making hot dwarf winds
 # weaker than a cool M dwarf's and understating their heliosphere size.
@@ -303,7 +303,7 @@ MOON_ORBITAL_INCLINATION_MAX_DEG = 25.0
 # Axial rotation ("day length") ranges, by body_type, in hours, for a body
 # no tide has slowed (`spin.planet_day_hours`). Terrestrial: giant impacts
 # leave a newly formed rocky planet spinning in a few hours to about two
-# days (Kokubo & Genda 2010, ApJ 714:L21), drawn log-uniform; the slow days
+# days ([R2431]:L21), drawn log-uniform; the slow days
 # of Mercury and Venus come from tides, which the tidal-locking rule
 # covers (Boss, 2026-10-10: realistic days). Gas giant: real gas giants
 # all spin fast (Jupiter ~9.9h, Saturn ~10.7h, Uranus ~17.2h, Neptune
@@ -340,7 +340,7 @@ MOON_TIDAL_LOVE_NUMBER_K2 = 0.03
 # --- S-type (wide) binary stability (orbits.holman_wiegert_critical_semimajor_axis,
 # orbits.mutual_hill_radius_au, system.StarSystem) ---
 
-# Holman & Wiegert (1999), AJ 117:621, "Long-Term Stability of Planets in
+# [R1990], AJ 117:621, "Long-Term Stability of Planets in
 # Binary Systems" -- their numerically-fit S-type critical semi-major axis
 # formula was tested over companion mass fraction mu in [0.1, 0.9] and
 # binary eccentricity e in [0.0, 0.7-0.8]; inputs are clamped to this range
@@ -348,7 +348,7 @@ MOON_TIDAL_LOVE_NUMBER_K2 = 0.03
 HOLMAN_WIEGERT_MU_RANGE = (0.1, 0.9)
 HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 
-# Gladman (1993), "Dynamical stability of the outer solar system and the
+# [R1583], "Dynamical stability of the outer solar system and the
 # delivery of comets," Icarus 106, 247 -- for two coplanar, circular-orbit
 # planets sharing one central mass, a mutual separation of at least
 # 2*sqrt(3) (~3.464) mutual Hill radii guarantees Hill stability (no close
@@ -361,6 +361,6 @@ GLADMAN_MUTUAL_HILL_STABILITY_FACTOR = 2 * math.sqrt(3)
 
 ELECTRON_VOLT_J = 1.602176634e-19  # One electron volt in joules (the elementary charge times 1 V)
 
-# Earth's XUV flux today, 4.6 erg/cm^2/s at 1 AU (Ribas et al. 2005), W/m^2:
+# Earth's XUV flux today, 4.6 erg/cm^2/s at 1 AU [R3753], W/m^2:
 # the unit of a planet's `xuv_flux_earth` (GEN.86).
 EARTH_XUV_FLUX_W_M2 = 4.6e-3

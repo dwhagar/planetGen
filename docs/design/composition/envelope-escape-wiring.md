@@ -4,7 +4,7 @@ Status: module and tuning, written on 2026-10-25 (as the lane reported) by the C
 
 ## 1. The answer in short
 
-- Rows e1 (the planet is a bare core) and e2 (it keeps its envelope) now weigh the share of the starting envelope that the hydro-based mass-loss rate of Kubyshkina et al. 2018 (`thermosphere.hydro_based_mass_loss_g_s`, GEN.738) has removed, integrated over the star's XUV history (`activity.coronal_xuv_at`) while the envelope thins and the planet shrinks with it (radius from Lopez and Fortney 2014, `bulk_structure.envelope_radius_earth`). The old row used `10 f_env0 (15 / v_esc)^2 pi R_core^3 E_xuv S / (G M^2)`, an energy-limited loss with a fitted efficiency; both the formula and the second knob are gone.
+- Rows e1 (the planet is a bare core) and e2 (it keeps its envelope) now weigh the share of the starting envelope that the hydro-based mass-loss rate of [R2512] (`thermosphere.hydro_based_mass_loss_g_s`, GEN.738) has removed, integrated over the star's XUV history (`activity.coronal_xuv_at`) while the envelope thins and the planet shrinks with it (radius from [R2741], `bulk_structure.envelope_radius_earth`). The old row used `10 f_env0 (15 / v_esc)^2 pi R_core^3 E_xuv S / (G M^2)`, an energy-limited loss with a fitted efficiency; both the formula and the second knob are gone.
 - **What the model says, and what had to be tuned.** Started at the 10 Myr of disc dispersal, the Kubyshkina rate is 35 to 60 times the energy-limited rate of 0.15 for a 4 Earth-mass planet at 0.09 AU (its escape parameter is 15, the boil-off regime), and it strips every core below about 15 Earth masses inside 30 days whatever the starting envelope (up to 0.5 of the mass). No valley comes out: the survey gives a slope of +0.07 to +0.14 and a valley at 2.1 to 2.3 Earth radii. The rate is inside the published grid (1 to 39 Earth masses, 1 to 10 Earth radii, 300 to 2,000 K, 1e26 to 5e30 erg/s) and reproduces the nine planets of the paper's Table 2, so the early loss is real in the model; but real sub-Neptunes of 4 to 6 Earth masses with a few percent of envelope exist at 10 days. The integration therefore starts at `ONSET_GY` = 1 Gyr, and what is lost earlier (the boil-off of the hot, inflated envelope, and the saturated first hundred million years) is part of the starting envelope `f_env0`: the number is what is left when the model begins. That is a tuned stand-in (tier T9, tweak level L3, registry row AM81), not a measurement of the onset.
 - **The result.** With the onset at 1 Gyr and the core-mass width narrowed from 0.4 to 0.25 in ln (RV2 of the registry, section 6.10), the simulated Kepler surveys put both published valley numbers inside 2 sigma for every starting envelope `f_env0` from 0.04 to 0.2: slope -0.099 (target -0.11 plus or minus 0.02, z 0.56) and 1.84 Earth radii at 10 days (target 1.84 plus or minus 0.03, z -0.1 to 0.1) for 0.07, 0.1 and 0.2; at 0.04 the radius is 1.88 (z 1.2). The recipe bracket for `f_env0` is 0.05 to 0.2, log (it was 0.035 to 0.08). The old ridge `eta = 10 f_env0` is gone: there is one knob (`f_env0`, a free bracket) and one tuned onset.
 - What the model gives for a planet: with a starting envelope of 10 percent, a 4 Earth-mass core has lost 35 percent of it at 10 times the Earth's insolation and 91 percent at 30 times; a 6 Earth-mass core 10 and 57 percent; a 10 Earth-mass core 2 and 13 percent, and 70 percent at 100 times. Nothing is lost at 1 times the Earth's insolation from a 5 Earth-mass core (under 5 percent). In the survey the share of planets under 1.8 Earth radii is 100 percent for periods of 2 to 8 days, 97 percent for 8 to 16, 60 percent for 16 to 32 and 9 percent for 32 to 64 days.
@@ -13,10 +13,10 @@ Status: module and tuning, written on 2026-10-25 (as the lane reported) by the C
 
 | Source | Read | Used for |
 |---|---|---|
-| Kubyshkina, Fossati, Erkaev et al. 2018 (arXiv:1810.06920), already read for GEN.738 | the grid boundaries, Table 1 and Table 2, the comparison with the energy-limited rate | the rate and its range of validity; the statement that the energy-limited form is off by up to 1e8 at small escape parameters and by a factor of 10 to 20 at intermediate ones |
-| Petigura et al. 2022 (arXiv:2201.10020), through the tuning target table (GEN.509) | the two numbers, -0.11 plus or minus 0.02 and 1.84 plus or minus 0.03 Earth radii at 10 d | the targets `e1-valley-slope` and `e1-valley-radius` |
-| Lopez and Fortney 2014 | the radius law, through `bulk_structure` | the radius of the planet as its envelope thins |
-| Rogers and Owen 2021 (arXiv:2007.11006), through GEN.509 | the peak of the core mass, 3.72 Earth masses | the median of the survey's core masses (kept) |
+| [R2512], already read for GEN.738 | the grid boundaries, Table 1 and Table 2, the comparison with the energy-limited rate | the rate and its range of validity; the statement that the energy-limited form is off by up to 1e8 at small escape parameters and by a factor of 10 to 20 at intermediate ones |
+| [R3500], through the tuning target table (GEN.509) | the two numbers, -0.11 plus or minus 0.02 and 1.84 plus or minus 0.03 Earth radii at 10 d | the targets `e1-valley-slope` and `e1-valley-radius` |
+| [R2741] | the radius law, through `bulk_structure` | the radius of the planet as its envelope thins |
+| [R3797], through GEN.509 | the peak of the core mass, 3.72 Earth masses | the median of the survey's core masses (kept) |
 | Recalled (tier 3) | gas discs last a few to ten Myr | the 10 Myr of the first try |
 
 ## 3. The model
@@ -31,7 +31,7 @@ Status: module and tuning, written on 2026-10-25 (as the lane reported) by the C
 
 ## 4a. The stellar-mass slopes (GEN.722)
 
-The two targets added by GEN.722, the valley against insolation (alpha 0.069 +0.019 -0.023) and against stellar mass (beta -0.046 +0.125 -0.117; Berger et al. 2023), were run against the hydro-based loss: both pass inside 2 sigma at f_env0 0.05, 0.1 and 0.2 (8 surveys of 12000 planets each, `test_radius_valley.py`). The mechanism is still not chosen (RV1).
+The two targets added by GEN.722, the valley against insolation (alpha 0.069 +0.019 -0.023) and against stellar mass (beta -0.046 +0.125 -0.117; [R0354]), were run against the hydro-based loss: both pass inside 2 sigma at f_env0 0.05, 0.1 and 0.2 (8 surveys of 12000 planets each, `test_radius_valley.py`). The mechanism is still not chosen (RV1).
 
 ## 5. Limits and what is not done
 

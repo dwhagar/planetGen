@@ -5,27 +5,27 @@ The gas a rocky body outgasses (GEN.451, GEN.479; docs/design/composition/mixtur
 ==============================================================================
 
 The rocky family of `mixture_draw.draw_mixture`. The outgassed mixture is the gas in equilibrium with a mantle of a given oxygen
-fugacity (Schaefer and Fegley 2010; Gaillard and Scaillet 2014; Ortenzi et al. 2020, part 05 section 3 of the atmosphere
+fugacity ([R1491, R3378, R3943], part 05 section 3 of the atmosphere
 research), as the research recipe 3.5 states, with the chemistry of `physics/gas_equilibrium.py` over the NASA Glenn
 thermodynamics of `physics/species_thermo.py` and no per-class template:
 
     draw = outgassed_mixture(Subject("A", {... the quantities required_inputs("A") names ...}))
     draw.mole_fractions       # {"H2O": 0.78, "CO2": 0.16, ...}, gas-table formulas, sums to 1
 
-1. *Redox.* The magma-ocean stage's oxygen fugacity is the row `a1` of the recipes (Sossi et al. 2020: IW+0.5 for about an Earth
-   mass, about IW-2 for a small body whose redox was set at core formation; Hirschmann 2021 scale, `physics/oxygen_fugacity.py`),
+1. *Redox.* The magma-ocean stage's oxygen fugacity is the row `a1` of the recipes ([R4154]: IW+0.5 for about an Earth
+   mass, about IW-2 for a small body whose redox was set at core formation; [R1951] scale, `physics/oxygen_fugacity.py`),
    and a body with long-lived geology moves to the later upper mantle `a2` over a seeded oxidation time, `OXIDATION_TIME_GY`. A
    body around a white dwarf takes `a4`, a small body `a3`. The mean redox is therefore a function of mass, age and the
    building blocks, never the modern Earth's constant.
 2. *Inventory.* The delivered volatile class (`b1` dry, `b2` low, `b3` high, `b4` water-rich) and its continuous water fraction
-   (`b5`) give the hydrogen and carbon in the outgassing stage in the proportions of Ortenzi et al. 2020 Table 1; the
+   (`b5`) give the hydrogen and carbon in the outgassing stage in the proportions of [R3378: Table 1]; the
    nitrogen, the sulfur and the radiogenic argon come from the design brackets of `INVENTORY`.
 3. *The volcano's gas.* The gas in equilibrium with the mantle at the magmatic temperature (`MAGMATIC_TEMPERATURE_K`, the
    research's 1200 K illustration widened) and the pressure of the layer, with the oxygen fugacity held at the mantle's: H2, H2O,
    CO, CO2, CH4, N2, NH3, H2S, SO2, COS and the rest of the table.
 4. *Cooling.* The gas then cools in a closed system (the oxygen it carries is all the oxygen it has) to the surface temperature
-   when that is above the quench temperature (`QUENCH_TEMPERATURE_K`, seeded between 400 and 900 K: Zahnle and Marley 2014 put
-   the methane to carbon monoxide quench of planets at 400 to 600 K, Liggins et al. 2022 compute at 800 K), and to the quench
+   when that is above the quench temperature (`QUENCH_TEMPERATURE_K`, seeded between 400 and 900 K: [R4863] put
+   the methane to carbon monoxide quench of planets at 400 to 600 K, [R2686] compute at 800 K), and to the quench
    temperature when it is colder: the reactions freeze there. Water, sulfur and the other condensables that a cool surface
    takes out of the gas are the pressure bookkeeping's (GEN.422); this mixture is the gas before that.
 
@@ -57,24 +57,24 @@ K40_ARGON_BRANCH = 0.104
 
 # Design brackets: (low, high, shape); "log" is log-uniform, "uniform" is uniform. Each is a stand-in for the research item named.
 INVENTORY = {
-    # Ortenzi et al. 2020 Table 1, read in part 05 section 3.1: delivered H2O 0.05 and 0.5 wt%, CO2 0.01 and 0.1 wt% (CO2/H2O = 0.2 in
+    # [R3378: Table 1], read in part 05 section 3.1: delivered H2O 0.05 and 0.5 wt%, CO2 0.01 and 0.1 wt% (CO2/H2O = 0.2 in
     # both), the dry class H2O 0 and CO2 0.6 wt% delivered, 0.018 wt% stored. The dry water is a bracket (their stored 0.005 wt% is the
     # top of it). The dry carbon is the bracket from the stored 0.018 to the wet High case's 0.1 wt%, not the delivered 0.6: an Earth twin
     # draws the dry class nine times in ten, and 0.6 wt% CO2 is sixteen times the carbon of the bulk silicate Earth (100 ppm C, Bergin
     # et al. 2015 Table S1), where this bracket's log-middle (0.042 wt% CO2, 115 ppm C) is within a sixth of it (GEN.813).
     # GEN.1005: the dry carbon is now `dry_carbon.co2_wt_percent_bracket()`, 0.029 to 0.108 wt% CO2 from the carbon of non-carbonaceous building blocks,
-    # the share already differentiated and the core's share (Blanchard et al. 2022); the bulk silicate Earth is a test of it.
+    # the share already differentiated and the core's share [R0419]; the bulk silicate Earth is a test of it.
     "co2_over_h2o_wet": (0.2, 0.2, "uniform"),
     "h2o_dry_wt_percent": (1e-4, 5e-3, "log"),
     "co2_dry_wt_percent": (*dry_carbon.co2_wt_percent_bracket(), "log"),
     # The water-rich class (b4: at least 10 weight percent water): the carbon share is open.
-    # CO2 over H2O: Kite and Ford 2018 give c_C/f_W 1e-6 to about 0.1 (Sec 3.1) and 0.3 to 30 percent of the water (Sec 4.3), which disagree
+    # CO2 over H2O: [R2381] give c_C/f_W 1e-6 to about 0.1 (Sec 3.1) and 0.3 to 30 percent of the water (Sec 4.3), which disagree
     # inside the paper; the widest is kept, so the top of 0.2 is inside the second (GEN.824, AM14).
     "h2o_rich_wt_percent": (10.0, 50.0, "log"),
     "co2_over_h2o_rich": (5e-3, 0.2, "log"),
-    # The nitrogen and sulfur per carbon atom: the bulk silicate Earth (Kargel and Lewis 1993 via Schaefer, Lodders and Fegley
+    # The nitrogen and sulfur per carbon atom: the bulk silicate Earth ([R2251] via Schaefer, Lodders and Fegley
     # 2012 Table 2: N/C 0.013, S/C 1.7) and the CI chondrites (N/C 0.04, S/C 0.6) are inside; open, GEN.481. The nitrogen bracket
-    # runs from 0.005 to 0.1: Bergin et al. 2015 Table S1 gives N/C 0.020 for the bulk silicate Earth (C/N 49 plus or minus 9), 0.059
+    # runs from 0.005 to 0.1: [R0357: Table S1] gives N/C 0.020 for the bulk silicate Earth (C/N 49 plus or minus 9), 0.059
     # for the CI chondrites, 0.074 for the air of Venus and 0.055 for the air of Mars, and its log-middle 0.022 is the Earth's (GEN.813).
     "nitrogen_per_carbon": (5e-3, 0.1, "log"),
     "sulfur_per_carbon": (0.1, 3.0, "log"),
@@ -90,7 +90,7 @@ MAGMATIC_TEMPERATURE_K = (1100.0, 1500.0, "uniform")
 bracket is the design's: basalt erupts at 1450 to 1550 K, the gas re-equilibrates in the conduit and at the vent below that)."""
 
 QUENCH_TEMPERATURE_K = (400.0, 900.0, "log")
-"""tuple: The temperature a cool body's outgassed gas keeps (Zahnle and Marley 2014: 400 to 600 K for planets; Liggins 2022: 800 K)."""
+"""tuple: The temperature a cool body's outgassed gas keeps ([R4863]: 400 to 600 K for planets; [R2686]: 800 K)."""
 
 OXIDATION_TIME_GY = (0.1, 1.5, "log")
 """tuple: The time a body with long-lived geology takes to move its mantle from the magma-ocean redox to the later upper mantle's:
@@ -110,13 +110,13 @@ ROCKY_CATEGORIES = "abc"
 
 def draw_redox(subject, recipe, constants):
     """
-    The oxygen fugacity of the mantle that outgasses, log10 units above the iron-wuestite buffer (Hirschmann 2021 scale).
+    The oxygen fugacity of the mantle that outgasses, log10 units above the iron-wuestite buffer ([R1951] scale).
 
-    The recipe draw holds the magma-ocean stage's value `a1` (Sossi 2020: about IW+0.5 at an Earth mass, about IW-2 for a small
+    The recipe draw holds the magma-ocean stage's value `a1` ([R4154]: about IW+0.5 at an Earth mass, about IW-2 for a small
     body), the later upper mantle's `a2`, the building blocks' `a3` and the white-dwarf debris `a4`; the body's own geology and age
     pick the one the air was outgassed over. A body with long-lived geology moves from `a1` to `a2` as
     `1 - exp(-age / tau)` with the oxidation time `tau` of `OXIDATION_TIME_GY`; the later mantle is never more reduced than the
-    magma-ocean surface of the same body (Deng 2020, Hirschmann 2022: the later processes only oxidise; GEN.482b).
+    magma-ocean surface of the same body ([R1075, R1951]: the later processes only oxidise; GEN.482b).
 
     Args:
         subject (Subject): With `age_gy` and, for a tectonic body, `long_lived_geology`.

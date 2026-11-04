@@ -1,7 +1,7 @@
 {
- "title": "Saturation (sublimation) pressures of the gases and ices: Fray and Schmitt 2009 polynomials, laboratory-corrected cold ends, Span and Wagner carbon dioxide, water by Feistel and Wagner",
- "basis": "The solid curve is below the triple point and the liquid curve above it, up to the critical point. Liquid: Wagner fits to the NIST saturation tables, P = Pc exp((a x + b x^1.5 + c x^2.5 + d x^5)/Tr), x = 1 - T/Tc, Tr = T/Tc, P in Pa (COMPUTED by the Atmosphere research lane, part 01 section 6.2, max error 0.002 to 0.26 percent against the table); hydrogen cyanide by the Perry DIPPR 101 correlation ln P[Pa] = A + B/T + C ln T + D T^E (259.83 to 456.65 K, DATA, part 01 section 7.4); acetylene has no liquid curve. Fray and Schmitt polynomials are ln P[bar] = A0 + sum_{i=1..6} Ai / T^i for the solid, with the coefficients as quoted in the supplementary Table 2 of Lisse et al. arXiv:2009.02277 (2ND-HAND, read from the table image; SO2 A1 and Kr A6 typos corrected, both confirmed only by the triple-point check). Water is ln(P/Ptr) = 1.5 ln(T/Ttr) + (1 - Ttr/T) sum ei theta^i, theta = T/Ttr, Ptr = 611.657 Pa, Ttr = 273.16 K. Where a species has more than one fit, `from_k` is where the second takes over: the temperature at which the two fits cross (the solid transitions of N2, CO, O2 and CH3OH). The windows of the original paper (Planet. Space Sci. 57, 2053) were not read, so every `from_k` and every `floor_k` is a STAND-IN derived from the fits themselves; `floor_k` is the temperature below which the polynomial turns downwards and means nothing. Cold ends (GEN.497): `cold_end` is the laboratory fit ln P[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3 of Grundy et al. 2024 and Blakley et al. 2024, in a `corrected` set (the 2026 Grundy preprint, which multiplies all five by 1.19 +/- 0.03) and an `uncorrected` one (2024), used from `from_k` up to `hand_over_k` of the set, where it meets the Fray and Schmitt polynomial (N2: the top of the fit's window); below `from_k` the curve is Clausius-Clapeyron from the edge. Carbon dioxide is `span-wagner`: Span and Wagner 1996 equation 3.12 with T_t, P_t and a1 to a3, valid to `floor_k`.",
- "source": "docs/design/composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4 and 01-gas-table-thermodynamics.md section 7.2 (O2-3, Ne-2); docs/design/composition/body-composition-research.md part F; Feistel and Wagner 2007, J. Phys. Chem. Ref. Data 35, 1021 (water, as quoted); Grundy et al. 2024, Icarus 410, 115767 and Blakley et al. 2024, Planet. Space Sci. 244, 105863 and Grundy 2026 preprint Table 3 as read in docs/design/composition/body-composition-parts/G4-ices-brines-licences.md (GEN.497); Span and Wagner 1996, J. Phys. Chem. Ref. Data 25, 1509 (CO2, eq. 3.12, read from the NIST reprint)",
+ "title": "Saturation (sublimation) pressures of the gases and ices: [R1445] polynomials, laboratory-corrected cold ends, Span and Wagner carbon dioxide, water by Feistel and Wagner",
+ "basis": "The solid curve is below the triple point and the liquid curve above it, up to the critical point. Liquid: Wagner fits to the NIST saturation tables, P = Pc exp((a x + b x^1.5 + c x^2.5 + d x^5)/Tr), x = 1 - T/Tc, Tr = T/Tc, P in Pa (COMPUTED by the Atmosphere research lane, part 01 section 6.2, max error 0.002 to 0.26 percent against the table); hydrogen cyanide by the Perry DIPPR 101 correlation ln P[Pa] = A + B/T + C ln T + D T^E (259.83 to 456.65 K, DATA, part 01 section 7.4); acetylene has no liquid curve. Fray and Schmitt polynomials are ln P[bar] = A0 + sum_{i=1..6} Ai / T^i for the solid, with the coefficients as quoted in the supplementary Table 2 of Lisse et al. [R2711] (2ND-HAND, read from the table image; SO2 A1 and Kr A6 typos corrected, both confirmed only by the triple-point check). Water is ln(P/Ptr) = 1.5 ln(T/Ttr) + (1 - Ttr/T) sum ei theta^i, theta = T/Ttr, Ptr = 611.657 Pa, Ttr = 273.16 K. Where a species has more than one fit, `from_k` is where the second takes over: the temperature at which the two fits cross (the solid transitions of N2, CO, O2 and CH3OH). The windows of the original paper (Planet. Space Sci. 57, 2053) were not read, so every `from_k` and every `floor_k` is a STAND-IN derived from the fits themselves; `floor_k` is the temperature below which the polynomial turns downwards and means nothing. Cold ends (GEN.497): `cold_end` is the laboratory fit ln P[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3 of [R0418, R1708], in a `corrected` set (the 2026 Grundy preprint, which multiplies all five by 1.19 +/- 0.03) and an `uncorrected` one (2024), used from `from_k` up to `hand_over_k` of the set, where it meets the Fray and Schmitt polynomial (N2: the top of the fit's window); below `from_k` the curve is Clausius-Clapeyron from the edge. Carbon dioxide is `span-wagner`: [R4166] equation 3.12 with T_t, P_t and a1 to a3, valid to `floor_k`.",
+ "source": "docs/design/composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4 and 01-gas-table-thermodynamics.md section 7.2 (O2-3, Ne-2); docs/design/composition/body-composition-research.md part F; [R1345] (water, as quoted); [R0418, R1708], Planet. Space Sci. 244, 105863 and [R1707] preprint Table 3 as read in docs/design/composition/body-composition-parts/G4-ices-brines-licences.md (GEN.497); [R4166] (CO2, eq. 3.12, read from the NIST reprint)",
  "cold_unverified_below_k": 50.0,
  "species": {
   "Ne": {
@@ -113,7 +113,7 @@
      "corrected": 35.0,
      "uncorrected": 35.0
     },
-    "note": "Grundy et al. 2024 quartz-crystal-microbalance fit to 20 to 35 K (Icarus 410, 115767); the constants C to D4 are reconstructions fitted to the published curve times 1.19 (docs/design/composition/body-composition-parts/G4-ices-brines-licences.md, max 0.3 percent), A and B are Grundy 2026 Table 3 (preprint). The fit ends at 35 K, inside the alpha phase; the Fray and Schmitt alpha fit above it is about 2.1 times higher, and the step is the published disagreement, not smoothed. Below 20 K the fit is carried on by Clausius-Clapeyron from its edge"
+    "note": "[R1708] quartz-crystal-microbalance fit to 20 to 35 K (Icarus 410, 115767); the constants C to D4 are reconstructions fitted to the published curve times 1.19 (docs/design/composition/body-composition-parts/G4-ices-brines-licences.md, max 0.3 percent), A and B are [R1707: Table 3] (preprint). The fit ends at 35 K, inside the alpha phase; the Fray and Schmitt alpha fit above it is about 2.1 times higher, and the step is the published disagreement, not smoothed. Below 20 K the fit is carried on by Clausius-Clapeyron from its edge"
    },
    "note": "the alpha to beta transition is at 35.6 K; the two fits cross at 36.1 K",
    "liquid": {
@@ -188,7 +188,7 @@
      "corrected": 54.4,
      "uncorrected": 59.39
     },
-    "note": "Grundy et al. 2024 fit to 25 to 61 K, constants as for N2; the corrected curve meets Fray and Schmitt at 54.4 K (59.4 K uncorrected). Below 25 K Clausius-Clapeyron from the edge (Fray and Schmitt is up to 15 times too high near 25 K)"
+    "note": "[R1708] fit to 25 to 61 K, constants as for N2; the corrected curve meets Fray and Schmitt at 54.4 K (59.4 K uncorrected). Below 25 K Clausius-Clapeyron from the edge (Fray and Schmitt is up to 15 times too high near 25 K)"
    },
    "note": "the alpha to beta transition is at 61.55 K; the two fits cross at 60.75 K",
    "liquid": {
@@ -312,7 +312,7 @@
      "corrected": 42.71,
      "uncorrected": 42.94
     },
-    "note": "Blakley et al. 2024 beta oxygen fit (Planet. Space Sci. 244, 105863, Table 1) from about 30 K; the corrected set takes A and B of Grundy 2026 Table 3 with Blakley's C to D4. It meets Fray and Schmitt's beta fit at 42.7 K. Below 30 K Clausius-Clapeyron from the edge"
+    "note": "[R0418] beta oxygen fit (Planet. Space Sci. 244, 105863, Table 1) from about 30 K; the corrected set takes A and B of [R1707: Table 3] with Blakley's C to D4. It meets Fray and Schmitt's beta fit at 42.7 K. Below 30 K Clausius-Clapeyron from the edge"
    },
    "note": "the solid transitions are at 23.88 K and 43.8 K; the fits cross at 23.15 K and 43.79 K",
    "liquid": {
@@ -372,7 +372,7 @@
      "corrected": 50.95,
      "uncorrected": 68.49
     },
-    "note": "Grundy et al. 2024 fit for methane I, 30 to 90 K, constants as for N2; the corrected curve meets Fray and Schmitt at 51.0 K (68.5 K uncorrected). Below 30 K Clausius-Clapeyron from the edge"
+    "note": "[R1708] fit for methane I, 30 to 90 K, constants as for N2; the corrected curve meets Fray and Schmitt at 51.0 K (68.5 K uncorrected). Below 30 K Clausius-Clapeyron from the edge"
    },
    "note": "",
    "liquid": {
@@ -594,7 +594,7 @@
     ],
     "floor_k": 85.0
    },
-   "note": "Span and Wagner 1996 (J. Phys. Chem. Ref. Data 25, 1509) equation 3.12 for the sublimation pressure of solid CO2, read from the NIST reprint (docs/design/composition/body-composition-parts/G4-ices-brines-licences.md): 0.1 percent at 150 to 200 K, fitted to data above 154 K and matched to the low-temperature data above 85 K. It replaces the two Fray and Schmitt fits, the first of which is 7 percent high at 125 K and 41 percent at 100 K",
+   "note": "[R4166] equation 3.12 for the sublimation pressure of solid CO2, read from the NIST reprint (docs/design/composition/body-composition-parts/G4-ices-brines-licences.md): 0.1 percent at 150 to 200 K, fitted to data above 154 K and matched to the low-temperature data above 85 K. It replaces the two Fray and Schmitt fits, the first of which is 7 percent high at 125 K and 41 percent at 100 K",
    "liquid": {
     "form": "wagner",
     "t_max_k": 304.128,
@@ -652,7 +652,7 @@
      "corrected": 162.33,
      "uncorrected": 173.28
     },
-    "note": "Blakley et al. 2024 ammonia fit (Table 1) from 80 K, where the laboratory data begin; the corrected set takes A and B of Grundy 2026 Table 3 with Blakley's C to D4. It meets Fray and Schmitt at 162.3 K, where the laboratory data on Fray and Schmitt's own range begin (162 to 195 K). Below 80 K Clausius-Clapeyron from the edge"
+    "note": "[R0418] ammonia fit (Table 1) from 80 K, where the laboratory data begin; the corrected set takes A and B of [R1707: Table 3] with Blakley's C to D4. It meets Fray and Schmitt at 162.3 K, where the laboratory data on Fray and Schmitt's own range begin (162 to 195 K). Below 80 K Clausius-Clapeyron from the edge"
    },
    "note": "",
    "liquid": {
@@ -834,7 +834,7 @@
     29.7880481050215,
     -9.13050963547721
    ],
-   "note": "ice Ih sublimation, Feistel and Wagner 2007 as adopted by IAPWS R14-08; a fit to 0 K is not claimed",
+   "note": "ice Ih sublimation, [R1345] as adopted by IAPWS R14-08; a fit to 0 K is not claimed",
    "liquid": {
     "form": "wagner",
     "t_max_k": 647.096,

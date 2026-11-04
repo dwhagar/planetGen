@@ -7,7 +7,7 @@ or supergiant phases, and its luminosity, temperature and radius in each, read f
 
 The windows and the tracks come from two sources, as the main sequence's do (`main_sequence`): the generator's own phase
 times say when a star is in a phase, and MIST says what the star looks like there. The main-sequence lifetime is
-Hurley, Pols and Tout 2000 (`ms_lifetime`); from it on, for every star lighter than `SUPERGIANT_MIN_MASS_SOL`, the end of
+[R2055] (`ms_lifetime`); from it on, for every star lighter than `SUPERGIANT_MIN_MASS_SOL`, the end of
 the Hertzsprung gap (the base of the giant branch) and of the first ascent (helium ignition) are theirs too
 (`giant_branch`, GEN.502, whose durations reproduce the paper's Table 1). A star lighter than `HELIUM_FLASH_MASS_SOL`
 then spends `HORIZONTAL_BRANCH_DURATION_GY` on the horizontal branch and `AGB_MS_FRACTION` of its main-sequence

@@ -28,7 +28,7 @@ def test_every_type_is_inside_its_range():
 
 
 def test_the_water_phases_follow_the_calculation_from_the_1997_laws():
-    """GEN.1183: the ratio to ice Ih at the same temperature, from Durham, Kirby and Stern 1997 Table 2 at 1e-15 per second."""
+    """GEN.1183: the ratio to ice Ih at the same temperature, from [R1190: Table 2] at 1e-15 per second."""
     assert it.strength_ratio("ice_ih") == 1.0
     assert it.strength_ratio("ice_ii", 150.0) == pytest.approx(1.7)
     assert it.strength_ratio("ice_ii", 180.0) == pytest.approx(1.0)

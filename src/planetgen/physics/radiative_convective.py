@@ -91,7 +91,7 @@ fixed point at 284.6 K, the clear-sky model's own bias of 3 K, and 0.13 puts it 
 that is a share of the flux, not a layer in the column, masks the carbon dioxide forcing and the vapour feedback by the same tenth, as the cloudy
 sky of the Earth does, and keeps the feedbacks of the clear column whole (a grey layer over the sky hid all of the vapour's)."""
 EARTH_HUMIDITY = 0.77
-"""float: The mean relative humidity of the Earth's surface air (Manabe and Wetherald 1967), the humidity at which `CLOUD_LONGWAVE_SHARE` holds (tier T1)."""
+"""float: The mean relative humidity of the Earth's surface air [R2848], the humidity at which `CLOUD_LONGWAVE_SHARE` holds (tier T1)."""
 FINITE_DIFFERENCE_K = 0.5
 """float: The step of the Jacobian of the stratosphere, K."""
 STRATOSPHERE_STEPS = 25
@@ -205,7 +205,7 @@ def methane_latent_heat_j_mol(temperature_k):
 _CP_GRID = np.arange(40.0, 4001.0, 20.0)
 
 H2_ROTATION_TEMPERATURE_K = 87.55
-"""float: The rotational temperature of molecular hydrogen, hc B / k with B = 60.853 cm-1 (Herzberg 1950; NIST Chemistry WebBook) and hc/k = 1.43878 cm K."""
+"""float: The rotational temperature of molecular hydrogen, hc B / k with B = 60.853 cm-1 ([R1926]; NIST Chemistry WebBook) and hc/k = 1.43878 cm K."""
 EQUILIBRIUM_HYDROGEN_BELOW_K = 200.0
 """float: Below this temperature the heat capacity of hydrogen is that of equilibrium ortho and para forms (GEN.1030); the NASA fit of `species_thermo` starts here, where the two agree to 1 percent."""
 

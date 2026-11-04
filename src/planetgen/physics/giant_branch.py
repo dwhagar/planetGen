@@ -4,14 +4,14 @@
 The first giant branch of a star of mass `M` and metallicity (GEN.502): where it starts and ends, how long it takes and
 how the star's luminosity is spread over that time.
 
-It follows Hurley, Pols and Tout 2000 (MNRAS 315, 543, arXiv:astro-ph/0001295, section 5.2 and the Appendix), whose
+It follows [R2055] (MNRAS 315, 543, [R2055], section 5.2 and the Appendix), whose
 formulae `physics/ms_lifetime.py` already reads for the time to the base of the branch. On the branch the helium core
 `Mc` grows by the hydrogen burning of the shell, `dMc/dt = A_H L`, and the luminosity is a power of the core mass,
 `L = min(B Mc^q, D Mc^p)` (equation 37; `p = 6` and `q = 3` below the helium-flash mass, 5 and 2 above 2.5 solar
 masses, `D`, `B` and `A_H` from the equations of section 5.2). Integrating gives the time to reach each luminosity
 (equations 36, 40 to 43), so the branch's duration, its end at helium ignition `L_HeI` (equation 49, the tip: about
 2,700 solar luminosities for a low-mass star of reference composition, 1,900 at Z = 1e-4 against the 1,650 to 1,780 of
-Serenelli et al. 2017) and the time a giant spends at each luminosity (the slope flattening along the branch, from
+[R4024]) and the time a giant spends at each luminosity (the slope flattening along the branch, from
 -0.83 at the base to -0.56 at the tip) follow from the core-mass-luminosity relation instead of being set. The
 duration reproduces the paper's Table 1: `(t_HeI - t_BGB) / t_BGB` is 6.4e-2 at one solar mass, 2.0e-2 at two and 2.4e-3
 at five.

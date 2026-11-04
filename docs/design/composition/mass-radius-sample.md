@@ -4,7 +4,7 @@ Status: built 2026-10-23 by lane M. Code `src/planetgen/physics/mass_radius_samp
 
 ## 1. What it answers
 
-A density distribution of small planets (Luque and Palle 2022; the density modes 0.94, 0.47 and 0.24 are recorded in `tunable-gaps.md` section 3.1) is measured on planets with mass better than 25 percent and radius better than 8 percent. Comparing the generator's drawn planets with those numbers needs the same cut: which of the drawn planets would have been measured that precisely.
+A density distribution of small planets ([R2774]; the density modes 0.94, 0.47 and 0.24 are recorded in `tunable-gaps.md` section 3.1) is measured on planets with mass better than 25 percent and radius better than 8 percent. Comparing the generator's drawn planets with those numbers needs the same cut: which of the drawn planets would have been measured that precisely.
 
 ## 2. The model
 

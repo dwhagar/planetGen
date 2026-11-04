@@ -6,11 +6,11 @@
 A white dwarf has no fusion and only cools. Its luminosity used to be a power law of the cooling age (`L = 1e-3 (M / 0.6) t^-1.4`,
 clamped to 1e-5 to 50 solar luminosities, the Mestel law) and its radius one zero-temperature mass-radius relation, so a star of a given
 mass had one radius whatever its age, a hydrogen layer made no difference, and the core never crystallised. Now all four come from the
-cooling sequences the setup step already downloads for the star's makeup (Bedard, Bergeron, Brassard and Fontaine 2020, ApJ 901, 93).
+cooling sequences the setup step already downloads for the star's makeup [R0308].
 
 | Piece | Value | Source |
 |---|---|---|
-| Sequences | 23 masses, 0.20 to 1.30 solar masses, thick (q_H = 1e-4) and thin (q_H = 1e-10) hydrogen layer, carbon-oxygen cores; each lists Teff, log g, radius, cooling age, photon luminosity and the crystallised mass fraction from about 100,000 K down to about 1,500 K | Bedard et al. 2020 (`sequences.tar`, sha256 in the catalogue) |
+| Sequences | 23 masses, 0.20 to 1.30 solar masses, thick (q_H = 1e-4) and thin (q_H = 1e-10) hydrogen layer, carbon-oxygen cores; each lists Teff, log g, radius, cooling age, photon luminosity and the crystallised mass fraction from about 100,000 K down to about 1,500 K | [R0308] (`sequences.tar`, sha256 in the catalogue) |
 | State at a cooling age | `cooling_state(mass, cooling_age_gy, envelope)`: the two grid masses around the mass, each read at the cooling age (linear in age, in the logarithm of Teff and of L, in the radius and in the crystallised share), then mixed linearly in mass | the files; interpolation is the reader's |
 | Cooling age | the star's age minus the end of its asymptotic branch (`tuning.WD_MIN_COOLING_AGE_GY` at least). The sequences count from about 100,000 K; the tens of thousands of years from the end of the branch to there are not counted | stand-in (tier T5, tweak L0) |
 | Hydrogen layer | `tuning.STELLAR_WD_DA_SHARE` (0.80) of white dwarfs are hydrogen atmospheres and read the thick sequences, the rest read the thin ones; the draw is kept in the state (`white_dwarf_atmosphere`) | the share is the existing design value of `stellar_composition` (tier T3, tweak L0); BC19, the share against temperature, stays open |

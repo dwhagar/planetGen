@@ -14,7 +14,7 @@ time while the temperature rises. The sum of the two is the Kelvin-Helmholtz tim
 note (which gives 10 Gyr at 0.1 solar masses, where models give about 1 Gyr, and had to be capped). Contraction does
 not pay for all the light, so `G M^2` is stretched by `tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR`.
 
-Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks (Baraffe et al. 2015, A&A 577, A42): the
+Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks [R0254]: the
 Hayashi temperature and its mass slope, the birthline radius and its slope, and the energy factor above. Past the
 table's 1.4 solar masses they are extended by the same power laws.
 
@@ -40,7 +40,7 @@ RADIUS_SETTLED_MYR = (
     (0.07, 1010.4), (0.08, 830.5), (0.09, 506.6), (0.10, 402.4), (0.11, 355.5), (0.13, 279.2), (0.15, 240.1), (0.17, 216.1),
     (0.20, 187.5), (0.30, 130.2), (0.40, 105.5), (0.50, 88.2), (0.60, 74.8), (0.70, 62.2), (0.80, 50.3),
 )
-"""tuple: `(initial mass in solar masses, Myr)`: the age at which the radius of the BHAC15 track (Baraffe et al. 2015, A&A 577, A42, solar metallicity,
+"""tuple: `(initial mass in solar masses, Myr)`: the age at which the radius of the BHAC15 track ([R0254], solar metallicity,
 `BHAC15_tracks+structure`) first falls within 5 percent of its value at 5 Gyr, read for GEN.1174 (the report `gen1169-pre-main-sequence-share-2026-10-31.md`
 and its script). Above 0.8 solar masses the radius of the track goes through a minimum and the criterion stops meaning the same thing, so the model's
 own Kelvin-Helmholtz time is carried on at the 0.8 ratio (`radius_settled_yr`); registry row LM6 of 6.66."""
@@ -242,7 +242,7 @@ def draw_disk(mass_sol, age_yr, luminosity_sol, rng=draw):
 
 def companion_chance(mass_sol, age_yr):
     """
-    The share of protostars that have a companion, by their Class (Perseus' Tobin et al. 2016, `tuning`): the
+    The share of protostars that have a companion, by their Class (Perseus' [R4379], `tuning`): the
     Class 0 and Class I values; None for a star that is not a protostar, which keeps the field's multiplicity.
     """
     if stage(mass_sol, age_yr) != PROTOSTAR:

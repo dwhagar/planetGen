@@ -102,7 +102,7 @@ Effects beyond routing: `min_orbit_distance` for a moon is `5 x hill_radius`, an
 Recommendation: pass-through with a note, which is what is built, but for better reasons than the current note ("No mass is stored for it, so the course passes through it.") gives.
 
 - **Geometry.** A nebula's drawn shape fills only 13% of its bounding sphere (6% to 19% over 30 shapes drawn with `nebula_shape.draw_shape`, seeded with `random.Random` in place of `draw.Stream`) [C, `nebfrac.py`]. A hard keep-out on the stored `radius_ly` would reserve about 7 times the real volume and force detours around empty space. If Boss ever wants a hard keep-out it should use the shape, not the sphere.
-- **Gas.** Ram pressure is negligible (0.015 Pa at 0.1c in a 1e4 cm^-3 core), but kinetic power flux `0.5 rho v^3` is not: 31 W/m^2 at 0.1c in 1 cm^-3 gas, 3.1e5 W/m^2 at 0.1c in a 1e4 cm^-3 core, 3.9e7 W/m^2 at 0.5c [C; hydrogen mass 1.4 m_H]. The 50 kW/m^2 threshold is reached at 0.1c for about 1,600 cm^-3. Dust erodes about 0.5 mm of surface per 3e17 cm^-2 of hydrogen column at 0.2c (Hoang et al. 2017 [S]); crossing 100 ly of a class M core (1e4 cm^-3) is 9.5e23 cm^-2, about a million times the Alpha Centauri trip [C]. This applies only to sub-light speeds near 0.1c or more; warp and fold speeds are game physics. It is a reason to put the column density in the note, not to forbid passage.
+- **Gas.** Ram pressure is negligible (0.015 Pa at 0.1c in a 1e4 cm^-3 core), but kinetic power flux `0.5 rho v^3` is not: 31 W/m^2 at 0.1c in 1 cm^-3 gas, 3.1e5 W/m^2 at 0.1c in a 1e4 cm^-3 core, 3.9e7 W/m^2 at 0.5c [C; hydrogen mass 1.4 m_H]. The 50 kW/m^2 threshold is reached at 0.1c for about 1,600 cm^-3. Dust erodes about 0.5 mm of surface per 3e17 cm^-2 of hydrogen column at 0.2c ([R1965] [S]); crossing 100 ly of a class M core (1e4 cm^-3) is 9.5e23 cm^-2, about a million times the Alpha Centauri trip [C]. This applies only to sub-light speeds near 0.1c or more; warp and fold speeds are game physics. It is a reason to put the column density in the note, not to forbid passage.
 - **Extinction.** A_V up to 100+ in dark cores blocks sensors and starlight: a navigation-difficulty note and a possible soft cost, not a collision hazard.
 - **Remnants.** Hot gas (1e6 to 1e7 K) at 0.1 to 100 cm^-3, so gas hazards are small; the particle and X-ray environment of a young remnant (classes R, T, U; under about 1e4 years) is the real caution. The lethal distances in the literature (8 to 10 pc for a supernova, 91 to 200 pc for a GRB [S]) are for biospheres, not ships. Remnants have no stored shape, so the bounding sphere is the whole thing.
 - **New note text.** "Passes through <name> (class X) for about N ly; column about Y cm^-2; extinction A_V about Z." The chord length comes from `NebulaShape.contains_many` sampled along the leg. A later optional "avoid dense clouds" switch (edge cost multiplied by 1 + k inside the shape, A* on a coarse grid) only if Boss asks.
@@ -132,7 +132,7 @@ Other stellar options, for completeness:
 ### 4.2 Planets and moons
 
 - Hill radius `a (m / 3M)^(1/3)`: Mercury 2.2e5 km, Earth 1.5e6 km, Mars 1.1e6 km, Jupiter 5.3e7 km (0.36 AU), Saturn 6.5e7, Uranus 7.0e7, Neptune 1.16e8 km (0.78 AU) [C]. A hot Jupiter at 0.05 AU: 5.1e5 km (7 R_J).
-- Stable satellites: Hamilton and Burns (1992, Icarus 96:43) say the stable zone scales with the Hill sphere at pericentre and retrograde orbits are stable out to slightly past the Hill radius [S]. The common numbers are about 0.49 R_H prograde and 0.93 R_H retrograde (Domingos, Winter and Yokoyama 2006) [R]; the repo uses 0.4895 (`MOON_PROGRADE_STABLE_HILL_FRACTION`). This limits where a moon can orbit; for a ship it only marks where capture and long orbits are possible.
+- Stable satellites: [R1772] (Icarus 96:43) say the stable zone scales with the Hill sphere at pericentre and retrograde orbits are stable out to slightly past the Hill radius [S]. The common numbers are about 0.49 R_H prograde and 0.93 R_H retrograde [R1138] [R]; the repo uses 0.4895 (`MOON_PROGRADE_STABLE_HILL_FRACTION`). This limits where a moon can orbit; for a ship it only marks where capture and long orbits are possible.
 - Laplace sphere of influence `a (m/M)^(2/5)`: Earth 9.2e5 km, Jupiter 4.8e7 km, 60% to 90% of the Hill radius [C]. No advantage over the stored value, and never mixed with it (orbital-solvers-and-integrators.md section 7).
 - Fluid Roche limit `2.44 R_p (rho_p / rho_body)^(1/3)` (1.26 for rigid bodies, orbital-updates.md): 2.4 R_p for a body of the planet's own density, under 1% of a giant's Hill radius (Jupiter's is 740 R_J). A ship is rigid and strong, so Roche is a floor for parking orbits, not a hazard.
 - **Default: stored Hill radius, hard keep-out.** Boss's rule, and the right order of magnitude.
@@ -153,7 +153,7 @@ The tidal-disruption radius of a star is `R_star (M_bh / M_star)^(1/3)`, equal t
 
 ### 4.4 Neutron stars, pulsars, magnetars
 
-Mass 1.1 to 2.2 solar, radius about 11 to 14 km, the band of Miller et al. 2021 at its mass (GEN.463). The DB has `spin_period_ms`, `magnetic_field_gauss` (up to 1e13 G) and `pulsar_type`; there are no magnetars in the generator (1e14 to 1e15 G [S]).
+Mass 1.1 to 2.2 solar, radius about 11 to 14 km, the band of [R3075] at its mass (GEN.463). The DB has `spin_period_ms`, `magnetic_field_gauss` (up to 1e13 G) and `pulsar_type`; there are no magnetars in the generator (1e14 to 1e15 G [S]).
 
 - Light cylinder `c P / (2 pi)`: 67 km (1.4 ms), 760 km (16 ms), 9.5e4 km (2 s) [C; formula S].
 - Dipole field `B(r) = B0 (R/r)^3` falls to 1 tesla at 260 km (1e8 G ms pulsar), 5,600 km (1e12 G), 12,000 km (1e13 G), 56,000 km (1e15 G magnetar) [C].
@@ -171,7 +171,7 @@ Mass 1.1 to 2.2 solar, radius about 11 to 14 km, the band of Miller et al. 2021 
 
 ### 5.1 Known results
 
-- For disjoint spheres in 3D, a shortest path is straight segments tangent to spheres joined by arcs of great circles on the sphere surfaces. This is the standard picture for convex smooth obstacles [R]; the general 3D shortest-path problem among obstacles is NP-hard with an FPTAS (Kisfaludi-Bak) [S]. Exact algorithms exist for one, two and three spheres (Chou, Hsieh and Lee, IEEE 2008; Chou 2009; a fixed-sequence n-sphere version in 2012) and an approximation scheme for disjoint spheres [S]; the papers were not read.
+- For disjoint spheres in 3D, a shortest path is straight segments tangent to spheres joined by arcs of great circles on the sphere surfaces. This is the standard picture for convex smooth obstacles [R]; the general 3D shortest-path problem among obstacles is NP-hard with an FPTAS (Kisfaludi-Bak) [S]. Exact algorithms exist for one, two and three spheres (Chou, Hsieh and Lee, IEEE 2008; [R0775]; a fixed-sequence n-sphere version in 2012) and an approximation scheme for disjoint spheres [S]; the papers were not read.
 - Tangent lines between two spheres are continuous families in 3D, so no exact visibility graph exists; any graph needs sampled points per sphere. A lattice A* built as the reference was never better than the method below.
 - **One sphere, closed form and planar.** If the straight segment A to B meets sphere (c, R), the shortest path lies in the plane through A, B and c. With `a = |A-c|`, `b = |B-c|` and `phi` the angle at c between them, the wrap exists when `acos(R/a) + acos(R/b) < phi`. Entry and exit are at angles `acos(R/a)` and `phi - acos(R/b)` from the direction of A in that plane. Length: `sqrt(a^2-R^2) + R (phi - acos(R/a) - acos(R/b)) + sqrt(b^2-R^2)`. If A, c, B are collinear any plane through the line gives the same length. The planner reproduces it to 7e-15 (compared at the waypoint radius `R (1 + 1e-6)`). Overhead for a dead-centre sphere of radius r on a leg of length L: 2e-4 at r/L = 0.01, 1.8e-3 at 0.03, 2.0e-2 at 0.1, 0.128 at 0.25, 0.54 at 0.49 [C]; about `2 (r/L)^2` for small r/L.
 
@@ -405,7 +405,7 @@ Add `adjusted` to the NAV result and to `galaxy_course` beside the existing `poi
 [C] computed: all galactic Hill radii, Jacobi comparisons, filling fraction and hit-rate figures, black hole radii, tidal and radiation radii, neutron star radii and spin-down power, Stromgren radii, belt strike table, kinetic power flux table, nebula shape volume fraction (13%), all planner results and timings, the moving-bodies tests, the robustness and edge-case tests, the flyby deflection figures (section 6) and the moon Hill-radius figures (hand arithmetic from the code's formula). Not computed against a real database: no generated galaxy was available (importing the generator needs `astropy` and `nltk`, which were not installed), so densities and masses come from `tuning.py` and per-sector counts are model-level, not measured.
 
 [R] recalled, to verify when paper or arXiv access is allowed:
-- The 0.4895 and 0.9309 Hill fractions attributed to Domingos et al. 2006 (a result listed both numbers with the labels swapped, so the pairing needs a check).
+- The 0.4895 and 0.9309 Hill fractions attributed to [R1138] (a result listed both numbers with the labels swapped, so the pairing needs a check).
 - Photon sphere 1.5 r_s and the innermost-stable-orbit values (3 r_s, spin dependent).
 - The vacuum-dipole spin-down formula.
 - The main-belt count of about 1e6 bodies over 1 km and the 18 AU^3 torus estimate.
@@ -415,15 +415,15 @@ Add `adjusted` to the NAV result and to `galaxy_course` beside the existing `poi
 ## Sources
 
 Search results, not fetched pages:
-- Hamilton and Burns 1992, Icarus 96:43, reprint: https://pages.astro.umd.edu/~dphamil/research/DPHreprints/HamBurns92.pdf (snippet only)
-- Stable satellites around giant planets (Domingos et al. 2006): https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-2966.2006.11104.x (title only; the 0.4895 and 0.9309 values were not confirmed)
-- Jacobi radius with Oort constants: https://arxiv.org/pdf/1801.04278, https://arxiv.org/pdf/1904.05896, https://en.wikipedia.org/wiki/Oort_constants
+- [R1772]:43, reprint: https://pages.astro.umd.edu/~dphamil/research/DPHreprints/HamBurns92.pdf (snippet only)
+- Stable satellites around giant planets [R1138]: https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-2966.2006.11104.x (title only; the 0.4895 and 0.9309 values were not confirmed)
+- Jacobi radius with Oort constants: [R1210, R3731], https://en.wikipedia.org/wiki/Oort_constants
 - Asteroid belt spacing, Pioneer 10 and Dawn: https://www.astronomy.com/science/how-do-spacecraft-safely-navigate-the-asteroid-belt/, https://science.nasa.gov/mission/dawn/faq/, https://lucy.swri.edu/MainBeltDensity.html, https://en.wikipedia.org/wiki/Pioneer_10, https://www.scientificamerican.com/article/in-science-fiction-movies/
 - Tidal disruption radius and Hills mass: https://link.springer.com/article/10.1007/s11214-021-00818-7, https://pubs.aip.org/physicstoday/article/67/5/37/414728/The-tidal-disruption-of-stars-by-supermassive, https://academic.oup.com/mnras/article/455/1/859/984391
-- Supernova remnant radii and phases: https://arxiv.org/pdf/1701.05942, https://pages.astro.umd.edu/~rmushotz/ASTR480/A480_supernova_remnants_2016_lec3.pdf, https://arxiv.org/pdf/1604.04395
-- Relativistic craft and the interstellar medium: https://arxiv.org/pdf/1608.05284 (Hoang et al. 2017, ApJ 837:5), https://arxiv.org/abs/2307.12160
-- Magnetar fields and the light cylinder: https://solomon.as.utexas.edu/magnetar.html, https://arxiv.org/pdf/1804.05343
-- Supernova and GRB lethal distances: https://iopscience.iop.org/article/10.1086/346127 (Gehrels et al. 2003), https://arxiv.org/pdf/1702.04365
+- Supernova remnant radii and phases: [R2596], https://pages.astro.umd.edu/~rmushotz/ASTR480/A480_supernova_remnants_2016_lec3.pdf, [R1748]
+- Relativistic craft and the interstellar medium: [R1965] ([R1965]:5), [R2736]
+- Magnetar fields and the light cylinder: https://solomon.as.utexas.edu/magnetar.html, [R4150]
+- Supernova and GRB lethal distances: https://iopscience.iop.org/article/10.1086/346127 [R1530, R3028]
 - Shortest paths among spheres: https://ieeexplore.ieee.org/document/4811457/, https://www.researchgate.net/publication/255640870_A_Base_Algorithm_for_Computing_the_Shortest_Path_of_Spheres, https://cerv.aut.ac.nz/wp-content/uploads/2015/08/MItech-TR-75.pdf, https://drops.dagstuhl.de/storage/00lipics/lipics-vol359-isaac2025/LIPIcs.ISAAC.2025.46/LIPIcs.ISAAC.2025.46.pdf
 
 Repo files read: `docs/TODO.md` (NAV entries), `course-routing.md`, `navigation-frames.md`, `nebula-and-asteroid-field-classes.md`, `orbital-solvers-and-integrators.md`, `galactic-potential.md`, `collisions-and-mergers.md`, "Computational Astrodynamics.md", "Orbital Update Collision Detection.md", `src/planetgen/galaxy/keepout.py`, `db/query.py` (`keep_out_radius`), `physics/planets.py`, `physics/orbits.py`, `physics/body_positions.py`, `generation/star.py`, `generation/binary.py`, `generation/validation.py`, `generation/phenomena/compact_remnant.py`, `galaxy/nebula_shape.py`, `population/facilities.py`, `tuning.py`, `db/schema.sql`, `web/nav_page.py`.

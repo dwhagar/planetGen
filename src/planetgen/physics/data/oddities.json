@@ -63,7 +63,7 @@
       "limits": [
         {"quantity": "core_mass_fraction", "lt": 0.85}
       ],
-      "source": "Marcus, Stewart, Sasselov and Hernquist 2010 (ApJL 712, L73); Benz and others 2007 (Space Science Reviews 132, 189); Bonomo and others 2019 (Nature Astronomy 3, 416); the module is physics/mantle_stripping.py",
+      "source": "[R2867]; Benz and others 2007 (Space Science Reviews 132, 189); Bonomo and others 2019 (Nature Astronomy 3, 416); the module is physics/mantle_stripping.py",
       "text": "A giant impact knocked most of its rocky mantle off, so it is mostly iron, like Mercury."
     }
   ]

@@ -25,8 +25,7 @@ _au_to_m = units.converter("au", "m")
 def snow_line_au(luminosity_w):
     """
     The snow line's blackbody position (where the starlight alone warms a
-    blackbody to the temperature water ice condenses at, 182 K, Lodders 2003
-    Table 10: `condensate_shares.ICE_CONDENSATION_K`), in AU -- real protoplanetary disk temperature falls off with
+    blackbody to the temperature water ice condenses at, 182 K, [R2726: Table 10]: `condensate_shares.ICE_CONDENSATION_K`), in AU -- real protoplanetary disk temperature falls off with
     stellar flux, i.e. with distance^-2, the same physical reasoning
     `calculate_habitable_zone` already uses for its own sqrt(luminosity)
     boundaries. This is the centre of the scatter a star draws its own
@@ -98,7 +97,7 @@ def disk_surface_density_scale(star_mass_kg, metal_ratio=1.0):
 def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
     """
     The Minimum Mass Solar Nebula's solid surface density at a given
-    distance from the star (Hayashi 1981) -- see
+    distance from the star [R1854] -- see
     `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2`'s docstring
     for the model and its snow-line ice-boost jump.
 
@@ -128,7 +127,7 @@ def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
 @finite_domain()
 def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg, separation=None):
     """
-    The oligarchic-growth isolation mass (Lissauer 1993; Kokubo & Ida
+    The oligarchic-growth isolation mass ([R2709]; Kokubo & Ida
     2000, 2002): the mass a growing embryo reaches once it has cleared its
     own feeding zone of width `b` mutual Hill radii
     (`tuning.MUTUAL_HILL_RADII_SEPARATION`) -- the same `b`

@@ -41,20 +41,20 @@ class Boundary:
 
 
 STAR_BROWN_DWARF_SPLIT_SOL = 0.08
-"""float: Where the stellar mass function ends and the brown dwarf one begins (Kroupa 2001's floor of the stars). Both read this one number,
+"""float: Where the stellar mass function ends and the brown dwarf one begins ([R2498]'s floor of the stars). Both read this one number,
 so no mass between them is left out and none is counted twice (GEN.936)."""
 
 BOUNDARIES = (
     Boundary("hydrogen_burning_limit", STAR_BROWN_DWARF_SPLIT_SOL, "Msun",
              "the least mass of a star the mass function draws, and the mass the companion code splits its stars and brown dwarfs at: "
              "the draw split, not the class of the object it draws",
-             "Confident Unverified (recalled: Chabrier and Baraffe 2000 give 0.072 solar masses at solar metallicity; "
+             "Confident Unverified (recalled: [R0707] give 0.072 solar masses at solar metallicity; "
              "the 0.08 is the round figure the mass function uses)",
              "whether a drawn object burns hydrogen is decided at its place, by its birth [Fe/H] "
              "(`stellar_abundances.hydrogen_burning_limit_sol`: 0.074 at solar Z, 0.092 at Z = 0)."),
     Boundary("deuterium_burning_limit", 13.0, "Mjup",
              "the edge between a planet and a brown dwarf: the working definition of the IAU Working Group on Extrasolar Planets",
-             "Confident Unverified (recalled: Spiegel, Burrows and Milsom 2011 give 11 to 16 Jupiter masses with composition)"),
+             "Confident Unverified (recalled: [R4170] give 11 to 16 Jupiter masses with composition)"),
     Boundary("brown_dwarf_upper_limit", STAR_BROWN_DWARF_SPLIT_SOL, "Msun",
              "the heaviest brown dwarf the generator draws: the floor of the stars' mass function, so the two functions meet",
              "Confident Unverified (the draw split above; it was a round 80 Jupiter masses, 0.0764 solar masses, and left the stretch to the "
@@ -69,7 +69,7 @@ BOUNDARIES = (
              "the lightest star that has become a white dwarf within the age of the Galaxy's disk",
              "Confident Unverified (recalled: a 0.8 solar mass star leaves the main sequence at about 14 Gy)"),
     Boundary("chandrasekhar_limit", constants.CHANDRASEKHAR_LIMIT_SOL, "Msun",
-             "the heaviest white dwarf (Chandrasekhar 1931; 1.44 solar masses for a carbon-oxygen white dwarf)",
+             "the heaviest white dwarf ([R0729]; 1.44 solar masses for a carbon-oxygen white dwarf)",
              "Verified"),
 )
 

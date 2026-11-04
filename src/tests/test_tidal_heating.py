@@ -49,7 +49,7 @@ def test_peale_power_has_the_published_scaling():
 
 
 def test_europa_gets_a_tide_of_the_published_size_from_its_ice_shell_with_nothing_fitted():
-    """Europa: 1e11 to 1e12 W of tide at e = 0.0094 in a shell of 10 to 30 km (Hussmann and Spohn 2004; the old 1.4e11 W was a fitted k2/Q): the shell's own rheology
+    """Europa: 1e11 to 1e12 W of tide at e = 0.0094 in a shell of 10 to 30 km ([R2060]; the old 1.4e11 W was a fitted k2/Q): the shell's own rheology
     (`icy_tide`, GEN.960) gives it from the temperature profile and the strain, with the radiogenic heat of its rock under it."""
     from planetgen.physics import hydrosphere, icy_tide
     flux, power = icy_tide.flux_from_tide(4.8e22, 1560.8e3, JUPITER, 6.711e8, 0.0094, 7.0e-4, 100.0)
@@ -68,7 +68,7 @@ def test_enceladus_gets_a_tide_within_a_factor_of_ten_of_what_it_radiates():
 
 
 def test_the_moon_is_flexed_solid_and_heated_by_a_fraction_of_a_percent_of_its_own_heat():
-    """The Moon: k2 = 0.021 from its rigidity (observed 0.0242, Williams and Boggs 2015); on a cool mantle the Andrade Q of tens to hundreds gives the
+    """The Moon: k2 = 0.021 from its rigidity (observed 0.0242, [R4711]); on a cool mantle the Andrade Q of tens to hundreds gives the
     few times 1e8 to 1e10 W of the tide at e = 0.0549 (the lunar Q of 38 gives 6e8 W), and it stays solid."""
     mass, radius_km = 7.346e22, 1737.4
     assert tidal_heating.rigid_k2(mass, radius_km * 1000.0) == pytest.approx(0.0242, rel=0.2)

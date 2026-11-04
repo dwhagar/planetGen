@@ -4,7 +4,7 @@
 The age-metallicity relation of the disc, by branch (GEN.744 part 2, GEN.944 part 1).
 
 A star's [Fe/H] was drawn from its population alone (`metallicity.sample_fe_h`), independent of its age inside the population's window.
-In the solar neighbourhood the two are tied, and differently on the two branches (Haywood et al. 2013, A&A 560, A109, Section 3.3 and
+In the solar neighbourhood the two are tied, and differently on the two branches ([R1863: Section 3.3] and
 Fig. 9):
 
 - **The thin disc** (`stellar_abundances.BRANCH_THIN`) gains metals slowly, 0.025 dex per Gyr, with a wide scatter.
@@ -14,7 +14,7 @@ Fig. 9):
 The relation is the mean `mean_fe_h(age, branch)`: a line through the branch's anchor, at the slope the paper gives. The anchors (the thin
 disc's at birth, the thick disc's at 8 Gyr), the scatters and the thick disc's share of the old stars are stand-ins (AR1 to AR4) chosen to
 match the populations the generator has today (`tuning.METALLICITY_BY_POPULATION`: 0 for the young and intermediate disc, -0.325 for the old, whose ages reach the thick disc's 13 Gyr)
-and the thin disc's lower limit near -0.7 (Bensby et al. 2014).
+and the thin disc's lower limit near -0.7 [R0349].
 
 **How a star takes it.** The [Fe/H] is still drawn first, from the place and the population (the scatter's tables, the places' own
 distributions and the bins of GEN.651 all stand on that order), and the age follows it: `tilted_age` draws `AGE_CANDIDATES` ages the way the
@@ -31,9 +31,9 @@ from planetgen import tuning
 from planetgen.physics import stellar_abundances
 
 THIN_SLOPE_DEX_PER_GY = -0.025
-"""float: d[Fe/H]/d(age) of the thin disc, dex per Gyr (Haywood et al. 2013: 0.025 dex per Gyr of metal gain, so older is poorer)."""
+"""float: d[Fe/H]/d(age) of the thin disc, dex per Gyr ([R1863]: 0.025 dex per Gyr of metal gain, so older is poorer)."""
 THICK_SLOPE_DEX_PER_GY = -0.15
-"""float: d[Fe/H]/d(age) of the thick disc (Haywood et al. 2013: about 0.15 dex per Gyr)."""
+"""float: d[Fe/H]/d(age) of the thick disc ([R1863]: about 0.15 dex per Gyr)."""
 THIN_BIRTH_FE_H = 0.05
 """float: The thin disc's mean [Fe/H] at age 0. [Stand-in AR1, tier T6, tweak L1: the young and intermediate disc of today average 0.]"""
 THICK_ANCHOR_FE_H = -0.10
@@ -58,7 +58,7 @@ def mean_fe_h(age_gy, branch):
 
 THICK_SHARE = 0.8
 """float: The share of the disc's stars older than `tuning.STELLAR_THICK_START_GY` that are thick-disc, the rest being the thin disc's oldest.
-[Stand-in AR4, tier T6, tweak L1: Haywood et al. 2013 have the thin disc start forming 8 to 9 Gyr ago, so little of it is older.]"""
+[Stand-in AR4, tier T6, tweak L1: [R1863] have the thin disc start forming 8 to 9 Gyr ago, so little of it is older.]"""
 AGE_CANDIDATES = 8
 """int: How many ages `tilted_age` draws to pick one from. A numerical resolution of the tilt, not a physical value: more candidates follow
 the relation more closely."""

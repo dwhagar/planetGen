@@ -9,10 +9,10 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
     surface = gcr * helio_mult + sep + ground
 
 1. **Cosmic rays (`dose_gcr_msv_yr`, GEN.453).** `D = D0(X) f_B(M, X) f_sol` under a column of air `X = P0 / g`
-   (g/cm2). `D0` is the no-field curve: the proton-primary air showers of Atri et al. 2013 (553, 263, 17.2, 3.02 and 0.65
+   (g/cm2). `D0` is the no-field curve: the proton-primary air showers of [R0187] (553, 263, 17.2, 3.02 and 0.65
    mSv/yr at X of 100, 200, 500, 700 and 1036), log-log between them; below 100 g/cm2 the primaries thinned by collisions plus
    the shower building up behind them (`thin_air_dose_msv_yr`, GEN.746): the Moon at X 0 (500 mSv/yr, Chang'E-4), Mars at X 22.6 (232
-   mSv/yr and its measured fall with depth, Hassler 2014 and Guo 2018) and the shower's peak at the first run, 553 at 100; above 1036 the larger of the
+   mSv/yr and its measured fall with depth, [R1729, R1843]) and the shower's peak at the first run, 553 at 100; above 1036 the larger of the
    table's last slope and the muon tail (Crouch). `f_B` is the dipole's cut of that dose, the ratio of Atri's and Griessmeier's
    runs to the no-field run (it depends on the column), looked up at the field's equivalent moment `M = Rc0 / 14.34 GV`
    (a body of another radius has the cutoff of an Earth-sized body of that moment); `f_sol` is the solar-modulation
@@ -42,8 +42,8 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
 6. **Ozone loss (`ozone_loss_flag`, GEN.805, GEN.808).** True when there is ozone and either the system's lethal galactic events exceed one
    per 100 Myr or the planet's flare irradiation index (`flare_irradiation_index`, `N33 / d_AU^2`: Earth 0.003, Proxima b about 2,100) times
    the field's shielding `f_B` reaches `FLARE_OZONE_LIMIT` (300; `f_B` is 1 without a dipole, 0.3 for a magnetopause under 3 radii and 0.1
-   above: the design note section 2.3). A world that loses its ozone keeps `OZONE_LOSS_REMAINING` of it (Segura et al. 2010: 94 percent
-   removed by one large flare; Howard et al. 2018: 90 percent by repeated flaring): the stored `ozone_column_du` is the column that is left, the
+   above: the design note section 2.3). A world that loses its ozone keeps `OZONE_LOSS_REMAINING` of it ([R4000]: 94 percent
+   removed by one large flare; [R2014]: 90 percent by repeated flaring): the stored `ozone_column_du` is the column that is left, the
    UV index, the habitability score and the colour of the sky and ground are worked out from it. A loss event that removes air (stripping,
    impact, escape) is not applied to the stored ozone column here: the final-age refresh (GEN.839) works the dose and the ozone again from the air that is left.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
@@ -73,26 +73,26 @@ BODY_FIELDS = (
 `planets` and `moons`."""
 
 GCR_MOON_MSV_YR = 500.0
-"""float: The no-field dose with no air, mSv/yr (Chang'E-4 LND, 1369 uSv/day, a solar-minimum bound; Zhang 2020). Source tier T1."""
+"""float: The no-field dose with no air, mSv/yr (Chang'E-4 LND, 1369 uSv/day, a solar-minimum bound; [R4884, R4888]). Source tier T1."""
 GCR_MARS_G_CM2 = 22.6
 GCR_MARS_MSV_YR = 232.0
-"""float: Mars at Gale (MSL RAD, 0.64 mSv/day, GCR only; Hassler 2014, Table 3; Guo 2015 gives 255 mSv/yr with a range of 128 to 420) under the
-column of its mean pressure, 840 Pa over 3.71 m/s2 = 22.6 g/cm2 (Guo 2018; the 21 of the earlier stand-in was recalled). Source tier T1."""
+"""float: Mars at Gale (MSL RAD, 0.64 mSv/day, GCR only; [R1843: Table 3]; [R1730] gives 255 mSv/yr with a range of 128 to 420) under the
+column of its mean pressure, 840 Pa over 3.71 m/s2 = 22.6 g/cm2 ([R1729]; the 21 of the earlier stand-in was recalled). Source tier T1."""
 GCR_MARS_LOG_SLOPE_PER_G_CM2 = -0.19 / (25.7 - 18.9)
 """float: d ln D / dX at Mars: the modelled dose equivalent falls by 126 uSv/day, 19 percent of its mean, between the column of 700 Pa (18.9 g/cm2)
-and of 950 Pa (25.7 g/cm2) and "declines continuously and nonlinearly" with depth (Guo et al. 2018, arXiv:1712.06987, read for GEN.746; the paper's
+and of 950 Pa (25.7 g/cm2) and "declines continuously and nonlinearly" with depth ([R1727, R1729], read for GEN.746; the paper's
 dose-against-depth figures are not tabulated). Source tier T2."""
 GCR_PEAK_G_CM2 = 100.0
-"""float: Where the shower dose peaks, g/cm2: "about 100" (Guo 2018) and 122.7 +- 6.3 (the Pfotzer maximum, Sarkar 2017). The curve below the runs has
-its peak at the first run of Atri 2013 (`GCR_SHOWER_POINTS`), so it joins them at its highest point. Source tier T2."""
+"""float: Where the shower dose peaks, g/cm2: "about 100" [R1729] and 122.7 +- 6.3 (the Pfotzer maximum, [R3919]). The curve below the runs has
+its peak at the first run of [R0187] (`GCR_SHOWER_POINTS`), so it joins them at its highest point. Source tier T2."""
 GCR_SHOWER_POINTS = ((100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65))
 """tuple: `(X g/cm2, mSv/yr)`: total biological dose from muons, electrons, photons and neutrons in proton-primary CORSIKA
-air showers with no magnetic field (Atri, Hariharan, Fryer et al. 2013, Table XV, via Griessmeier et al. 2016, Table 2).
+air showers with no magnetic field ([R1466], Table XV, via [R1687: Table 2]).
 Helium and heavier primaries are absent, so these are lower bounds."""
 GCR_SEA_LEVEL_G_CM2 = GCR_SHOWER_POINTS[-1][0]
 
 FIELD_COLUMNS_G_CM2 = (100.0, 200.0, 500.0, 700.0, 1036.0)
-"""tuple: The columns the field's cut was run at (Atri 2013)."""
+"""tuple: The columns the field's cut was run at [R0187]."""
 FIELD_FULL_MOMENTS = (0.0, 0.1, 0.15, 0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 6.0, 10.0)
 """tuple: The dipole moments, Earth's = 1, of the runs at 100 and 1036 g/cm2."""
 FIELD_DOSE_100 = (553.0, 527.0, 510.0, 405.0, 257.0, 216.0, 172.0, 53.0, 15.0, 5.7, 2.3)
@@ -102,13 +102,13 @@ FIELD_MIDDLE_MOMENTS = (0.0, 0.15, 0.5, 1.0)
 FIELD_MIDDLE_DOSE = {
     200.0: (263.0, 260.0, 141.0, 97.0), 500.0: (17.2, 18.2, 12.0, 8.7), 700.0: (3.02, 3.38, 2.53, 1.84),
 }
-"""dict: Dose, mSv/yr, of the runs between those columns, at `FIELD_MIDDLE_MOMENTS` (Atri 2013, Table XV). A field cannot
+"""dict: Dose, mSv/yr, of the runs between those columns, at `FIELD_MIDDLE_MOMENTS` ([R0187], Table XV). A field cannot
 add primaries, so a ratio the runs put above 1 (a weak field at 500 and 700 g/cm2, within the runs' scatter) is held at 1."""
 FIELD_MAX_MOMENT = FIELD_FULL_MOMENTS[-1]
 """float: The strongest field the runs reach (10 Earth moments); a stronger one takes this ratio, an upper bound."""
 
 """float: The solar-cycle spread of the dose as fractions of its mean (Mars: 0.35 to 1.15 mSv/day around 0.7; a total spread
-of 3.3, Guo 2015). `tuning.GCR_SOLAR_MODULATION_RANGE` is the draw."""
+of 3.3, [R1730]). `tuning.GCR_SOLAR_MODULATION_RANGE` is the draw."""
 
 MUON_LOG_A = (-11.22, -14.10)
 MUON_RATE_PER_HG_CM2 = (0.00262, 0.001213)
@@ -164,7 +164,7 @@ SHIELD_NO_FIELD, SHIELD_WEAK_FIELD, SHIELD_STRONG_FIELD = 1.0, 0.3, 0.1
 WEAK_MAGNETOPAUSE_RP = 3.0
 """float: The standoff, in radii of the body, under which a field is too squeezed to shield well."""
 OZONE_LOSS_REMAINING = 0.1
-"""float: The share of its ozone a world keeps when flares hold the flag (Segura et al. 2010: 94 percent removed; Howard et al. 2018: 90 percent)."""
+"""float: The share of its ozone a world keeps when flares hold the flag ([R4000]: 94 percent removed; [R2014]: 90 percent)."""
 FLARE_ENERGY_SPAN = 1.0e3
 """float: The span of flare energies, over the 1e33 erg of `N33`, the energy weight is worked out over (1e33 to 1e36 erg: the largest superflares seen
 on solar-type stars are 1e35 to 1e36). A design default."""
@@ -200,7 +200,7 @@ def _fit_thin_air_curve():
         D(X) = D_moon exp(-X / L_p) + K (X / X_1)^a exp(-(X - X_1) / L_s),       K = D_1 - D_moon exp(-X_1 / L_p),
 
     and the three numbers are the ones that make it pass through Mars (value `GCR_MARS_MSV_YR` and log slope
-    `GCR_MARS_LOG_SLOPE_PER_G_CM2`, at `GCR_MARS_G_CM2`) and peak at the first run `(X_1, D_1)` of Atri 2013. The Moon is the value at X = 0
+    `GCR_MARS_LOG_SLOPE_PER_G_CM2`, at `GCR_MARS_G_CM2`) and peak at the first run `(X_1, D_1)` of [R0187]. The Moon is the value at X = 0
     (the shower is nil there). For a trial `L_p` the shower's `a` and `1 / L_s` follow from the Mars value and the peak by two linear
     equations, and the Mars slope is then a function of `L_p` alone, found by bisection.
     """

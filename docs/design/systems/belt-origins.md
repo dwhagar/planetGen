@@ -24,23 +24,23 @@ Each cause is a rule the generator can apply and a sentence it can print. A belt
 
 | Code | Cause | Physics | Evidence |
 |---|---|---|---|
-| `failed-growth` | **A planet that did not finish.** Solids stall because the next oligarch would exceed the isolation mass, or a giant's growth starved the zone. | The inner disc forms planetesimals; where growth is stopped, the mass stays as a population. The planet architecture (GEN.728) already holds the chain; a gap or unfinished tail in it is a belt. | Planetesimals formed big, around 100 km and up, then the belt's size distribution has a bump near 100 km [S: Morbidelli et al., "Asteroids Were Born Big", arXiv:0907.2512; Weidenschilling, arXiv:1004.0270 gives the same 100 km peak]. |
-| `giant-stirring` | **A giant excites it.** Mean-motion resonances and the chaotic zone around a giant raise eccentricities until bodies collide with each other (grinding) or hit a planet or the star. Growth never completes, and the zone is cleared of what drifts into resonance. | Chaotic zone half-width about 1.3 a (m/M*)^(2/7) [R: Wisdom 1980]; resonance positions a (q/p)^(2/3) [S physics]; ledger draft section 2.3. | Main belt gaps at 3:1, 5:2, 2:1 [R]. |
-| `instability-depletion` | **A giant instability or migration swept it.** Jupiter's Grand Tack or a Nice-type scatter removes most of a belt and implants bodies from elsewhere. | Survival of a few percent; implants of outer-disc bodies into the inner belt. | Walsh et al. 2011 [R], Levison and Morbidelli, who deliver KBOs during the instability, arXiv:0712.0553 [S]. |
-| `outer-disc` | **The cold leftover beyond the last giant.** Solids too sparse and orbital times too long to build a planet. A Kuiper-type belt. Self-stirring by its own largest bodies (Pluto-size) sets the grinding. | Kenyon and Bromley: KBOs form in a massive disc, then substantial collisional grinding and dynamical ejection [S: arXiv:0704.0259]. Mass today in Sol: 0.0197 +/- 0.003 Earth masses [S: arXiv:1810.09771]; 0.010 Earth masses for the classical part [S: Bernstein et al., arXiv:astro-ph/0308467]. | Herschel DEBRIS: 17.1 percent of F-K stars show cold discs, most at 7 to 40 AU blackbody radius; the data fit "all stars born with a narrow belt that then grinds", with Sol's own belt near the population median, so half of stars have depleted theirs or formed less [S: arXiv:1803.00072]. |
-| `collisional-debris` | **The rubble of a destroyed planet** or a giant collision, one composition family, differentiated shards. Also transient hot dust. | A rare event, not a standing population. | DEBRIS: hot dust under 4 AU "likely transient events" [S: arXiv:1803.00072]. |
+| `failed-growth` | **A planet that did not finish.** Solids stall because the next oligarch would exceed the isolation mass, or a giant's growth starved the zone. | The inner disc forms planetesimals; where growth is stopped, the mass stays as a population. The planet architecture (GEN.728) already holds the chain; a gap or unfinished tail in it is a belt. | Planetesimals formed big, around 100 km and up, then the belt's size distribution has a bump near 100 km [S: Morbidelli et al., "Asteroids Were Born Big", [R3147]; Weidenschilling, [R0971] gives the same 100 km peak]. |
+| `giant-stirring` | **A giant excites it.** Mean-motion resonances and the chaotic zone around a giant raise eccentricities until bodies collide with each other (grinding) or hit a planet or the star. Growth never completes, and the zone is cleared of what drifts into resonance. | Chaotic zone half-width about 1.3 a (m/M*)^(2/7) [R: [R4727]]; resonance positions a (q/p)^(2/3) [S physics]; ledger draft section 2.3. | Main belt gaps at 3:1, 5:2, 2:1 [R]. |
+| `instability-depletion` | **A giant instability or migration swept it.** Jupiter's Grand Tack or a Nice-type scatter removes most of a belt and implants bodies from elsewhere. | Survival of a few percent; implants of outer-disc bodies into the inner belt. | [R4603] [R], Levison and Morbidelli, who deliver KBOs during the instability, [R2654] [S]. |
+| `outer-disc` | **The cold leftover beyond the last giant.** Solids too sparse and orbital times too long to build a planet. A Kuiper-type belt. Self-stirring by its own largest bodies (Pluto-size) sets the grinding. | Kenyon and Bromley: KBOs form in a massive disc, then substantial collisional grinding and dynamical ejection [S: [R2325]]. Mass today in Sol: 0.0197 +/- 0.003 Earth masses [S: [R3538]]; 0.010 Earth masses for the classical part [S: Bernstein et al., [R0362]]. | Herschel DEBRIS: 17.1 percent of F-K stars show cold discs, most at 7 to 40 AU blackbody radius; the data fit "all stars born with a narrow belt that then grinds", with Sol's own belt near the population median, so half of stars have depleted theirs or formed less [S: [R4081]]. |
+| `collisional-debris` | **The rubble of a destroyed planet** or a giant collision, one composition family, differentiated shards. Also transient hot dust. | A rare event, not a standing population. | DEBRIS: hot dust under 4 AU "likely transient events" [S: [R4081]]. |
 | `captured` | A belt around a pulsar or white dwarf from a disrupted disc or scattered survivors (already used for pulsar planets). | Mass-loss destabilisation, ledger draft 2.5. | Existing repo rows. |
 
-What makes it **go away or change** over time, already in the ledger draft: collisional grinding (Wyatt 2007, `belt_mass.py`, built but not called), Yarkovsky drift, star events (engulfment keeps the surviving outer part, mass-loss widening, companion truncation).
+What makes it **go away or change** over time, already in the ledger draft: collisional grinding ([R4785], `belt_mass.py`, built but not called), Yarkovsky drift, star events (engulfment keeps the surviving outer part, mass-loss widening, companion truncation).
 
-**Link to exoplanet evidence.** Debris around known planet hosts: 10 cool discs around 37 hosts, 29 +/- 9 percent for Sun-like hosts, consistent with the 20.2 +/- 2.0 percent DUNES rate [S: Herschel exoplanet-host sample, arXiv:1403.6186]. That paper also finds more dust with lower planet masses and lower metallicity, which fits `giant-stirring` and `instability-depletion`: heavy planets sweep their belts, light ones leave them. Another paper finds no significant correlation between radial-velocity planet presence and disc properties [S, title seen only: arXiv:2005.03573], so the link is weak and stays a stand-in: **use the architecture's outcome as the driver, do not impose a correlation**. The correlation then falls out of the model, and the test is whether it appears.
+**Link to exoplanet evidence.** Debris around known planet hosts: 10 cool discs around 37 hosts, 29 +/- 9 percent for Sun-like hosts, consistent with the 20.2 +/- 2.0 percent DUNES rate [S: Herschel exoplanet-host sample, [R2894]]. That paper also finds more dust with lower planet masses and lower metallicity, which fits `giant-stirring` and `instability-depletion`: heavy planets sweep their belts, light ones leave them. Another paper finds no significant correlation between radial-velocity planet presence and disc properties [S, title seen only: [R4822]], so the link is weak and stays a stand-in: **use the architecture's outcome as the driver, do not impose a correlation**. The correlation then falls out of the model, and the test is whether it appears.
 
 ### 3.1 How the generator picks the cause (rule, not a roll)
 
 Run after the planet architecture (GEN.728) has the final chain and giant history:
 1. **Inner belt candidates:** every gap in the oligarch chain where the next mass step is below the isolation mass, and the zone between the snow line and the first giant. Each gets `failed-growth`. If a giant lies within the chaotic-zone ratio of the zone, add `giant-stirring`: mass multiplied by a survival factor that falls with giant mass.
 2. **Instability flag:** the architecture already moves and scatters giants. If it moved a giant through the zone, apply `instability-depletion` (survival stand-in about 0.01 to 0.3, widest range until read).
-3. **Outer disc:** past the last giant, always built from the disc solids out to a disc edge (stand-in), then ground by Wyatt for the star's age. Occurrence of a **detectable** cold disc is then an output, to be compared with Sibthorpe 2018 and DEBRIS (17 percent F-K) as a check, not an input. Where the generator already stores the GEN.787 descriptor, that descriptor becomes the outer disc's summary and the two stop being separate things.
+3. **Outer disc:** past the last giant, always built from the disc solids out to a disc edge (stand-in), then ground by Wyatt for the star's age. Occurrence of a **detectable** cold disc is then an output, to be compared with [R4081] and DEBRIS (17 percent F-K) as a check, not an input. Where the generator already stores the GEN.787 descriptor, that descriptor becomes the outer disc's summary and the two stop being separate things.
 4. **Rare cause:** `collisional-debris` at a small stand-in rate per system age tied to the system's dynamical history.
 5. Write `origin`, `formation_snow_line`, and a one-line history for the belt page.
 
@@ -54,11 +54,11 @@ Stand-ins this section adds: survival factors, the disc edge, the stirring facto
 |---|---|---|---|
 | Main belt | about 200 to 250 | 4 or 5 (Ceres, Vesta, Pallas, Hygiea; Interamnia nearly) | Ceres, 940 km |
 | Jupiter Trojans | about 25 to 30 | none | Hektor, about 220 km |
-| Kuiper belt and scattered disc | order 1e5 [R: Bernstein 2004 fits, Fraser 2014; the Bernstein paper puts the classical mass "predominately in the form of ~100 km bodies", S] | roughly 15 to 20 candidates (Pluto, Eris, Haumea, Makemake, Gonggong, Quaoar, Sedna, Orcus, Salacia, Varda, Huya about 410 km [S: arXiv:2205.12882]) | Eris and Pluto, about 2,300 km |
+| Kuiper belt and scattered disc | order 1e5 [R: [R0362] fits, [R1439]; the Bernstein paper puts the classical mass "predominately in the form of ~100 km bodies", S] | roughly 15 to 20 candidates (Pluto, Eris, Haumea, Makemake, Gonggong, Quaoar, Sedna, Orcus, Salacia, Varda, Huya about 410 km [S: [R3917]]) | Eris and Pluto, about 2,300 km |
 | Moons of 50 to 500 km radius | about 25 to 30 (Saturn: Mimas, Enceladus, Hyperion, Phoebe, Janus; Uranus: Miranda, Puck; Neptune: Proteus, Nereid, Larissa; others) | only a few at the top | Tethys, 530 km |
 | IAU dwarf planets | 5 (Ceres, Pluto, Eris, Haumea, Makemake) | | |
 
-The cold classical belt has **no objects of 400 km or more**; its size distribution has an exponential cutoff there [S: OSSOS, arXiv:2107.06120]. The big bodies are in the excited (scattered) population, which is the point of section 6. 
+The cold classical belt has **no objects of 400 km or more**; its size distribution has an exponential cutoff there [S: OSSOS, [R2288]]. The big bodies are in the excited (scattered) population, which is the point of section 6. 
 
 ## 5. Do systems need more Class D? Yes, but as ledger members
 
@@ -72,7 +72,7 @@ The cold classical belt has **no objects of 400 km or more**; its size distribut
 ### 5.2 Population model (recommended)
 Do not add Class D to the planet slot loop. Draw them from the belt and disc size laws:
 
-* `N(>D) = N100 (D / 100 km)^(-q)` per population, with the slope `q` and the cutoff from the size-law note (`small-body-size-laws.md`: main belt cumulative q 3.0 from 5 to 40 km (Ivezic's differential 4) and a steeper stand-in above, see `belt_ledger.ROCKY_LAW`; Kuiper bright slope, hot and cold from Fraser 2014 [REPO table]).
+* `N(>D) = N100 (D / 100 km)^(-q)` per population, with the slope `q` and the cutoff from the size-law note (`small-body-size-laws.md`: main belt cumulative q 3.0 from 5 to 40 km (Ivezic's differential 4) and a steeper stand-in above, see `belt_ledger.ROCKY_LAW`; Kuiper bright slope, hot and cold from [R1439] [REPO table]).
 * `N100` from the belt mass and size law, not typed in; the top body is the order statistic `N(>D) = 1` (ledger draft 3.1). Test target: main belt with 0.0005 Earth masses gives a Ceres-size top body and 200 to 250 bodies of 100 km and up; Kuiper-type with 0.02 Earth masses gives order 1e5 bodies of 100 km and up and the 15 to 20 round candidates.
 * **Dwarf planet line:** a body is a dwarf planet when its mass is above the hydrostatic mass for its composition (ice about 1e20 to 1e21 kg, rock above that, ledger draft 3.2) and the orbit-clearing number is under the planet line. The count follows from the size law; **do not put a count in as a target**.
 * **Class D label:** applied to every L1 body that is airless and at least 1 percent ice (conditions rule). The rocky ones inside the snow line are Class C or A by the rules the planet classes already hold, or have no letter if they are under the dwarf line.
@@ -89,7 +89,7 @@ Sol has about 25 to 30 moons in the 50 to 500 km radius range, mostly irregular 
 
 What it does, once per system, after the architecture, before belts are finalised and before validation:
 1. **Inputs:** final giants (mass, a, e), their migration history, the outer disc (mass, edge) and each inner belt.
-2. **Scatter fraction:** the fraction of each disc that was scattered is a function of the last giant's mass and migration extent (stand-in; Levison et al. [S: arXiv:0712.0553] needs Neptune scattering and a disc truncated at about 30 to 35 AU for the observed structure). A system whose giants never moved keeps a cold disc and no scattered population; a system with a Nice-type instability makes a hot population.
+2. **Scatter fraction:** the fraction of each disc that was scattered is a function of the last giant's mass and migration extent (stand-in; Levison et al. [S: [R2654]] needs Neptune scattering and a disc truncated at about 30 to 35 AU for the observed structure). A system whose giants never moved keeps a cold disc and no scattered population; a system with a Nice-type instability makes a hot population.
 3. **Outcome classes** (each a tag on a ledger member and a share of the disc mass): `cold-classical` (stays, low eccentricity and inclination, no large bodies, as OSSOS), `hot-classical`, `resonant` (3:2 and 2:1 with the outer giant), `scattered-disc` (high eccentricity, perihelion near the giant), `detached`, `centaur` (crossing the giants), `trojan` (1:1 with a giant, L4 and L5), `ejected` (leaves the system; contributes to rogue and interstellar bodies, which the generator already has).
 4. **Implant:** a small share of outer bodies is implanted into the inner belt (the C and D taxon mix in Sol's outer main belt) and a share is captured as irregular moons.
 5. **Write** the mass shares, the tags on the L1 draw, and one history line ("when the outer giant moved from 18 to 30 AU it scattered 82 percent of the disc").
@@ -118,8 +118,8 @@ The belt chain itself is in [belt-evolution.md](belt-evolution.md).
 
 | Value | Tier | Tweak | Replace by |
 |---|---|---|---|
-| Survival factors for `giant-stirring` and `instability-depletion` | educated guess from physics | L1 | Walsh 2011, Raymond and Izidoro 2017 |
-| Disc edge and scatter fraction | educated guess from physics | L1 to L3 | Levison 2008 simulations; DEBRIS fit |
+| Survival factors for `giant-stirring` and `instability-depletion` | educated guess from physics | L1 | [R3681, R4603] |
+| Disc edge and scatter fraction | educated guess from physics | L1 to L3 | [R2654] simulations; DEBRIS fit |
 | `collisional-debris` rate | educated guess from needed output | L3 | transient-dust statistics |
 | Cut for L1 members | design | L0 | Boss decision in ledger draft 11.1 |
 | Dwarf-planet mass line | confident unverified | L0 | Bierson and Nimmo |
@@ -131,14 +131,14 @@ The belt chain itself is in [belt-evolution.md](belt-evolution.md).
 3. **Scatter phase size.** Default: a rule over the architecture's events with stored mass shares, no N-body run.
 
 ## Sources
-* Mass of the Kuiper Belt, arXiv:1810.09771 [S]
-* OSSOS exponential cutoff, arXiv:2107.06120 [S]
-* Asteroids Were Born Big, arXiv:0907.2512 [S]
-* Towards initial mass functions for asteroids and KBOs, arXiv:1004.0270 [S]
-* Bernstein et al., size distribution of trans-Neptunian bodies, arXiv:astro-ph/0308467 [S]
-* Kenyon and Bromley chapter, arXiv:0704.0259 [S]
-* Levison et al., Kuiper belt structure during the instability, arXiv:0712.0553 [S]
-* Sibthorpe et al., DEBRIS Sun-like sample, arXiv:1803.00072 [S]
-* Herschel exoplanet-host sample, arXiv:1403.6186 [S]
-* Huya occultation, arXiv:2205.12882 [S]
+* Mass of the Kuiper Belt, [R3538] [S]
+* OSSOS exponential cutoff, [R2288] [S]
+* Asteroids Were Born Big, [R3147] [S]
+* Towards initial mass functions for asteroids and KBOs, [R0971] [S]
+* Bernstein et al., size distribution of trans-Neptunian bodies, [R0362] [S]
+* Kenyon and Bromley chapter, [R2325] [S]
+* Levison et al., Kuiper belt structure during the instability, [R2654] [S]
+* Sibthorpe et al., DEBRIS Sun-like sample, [R4081] [S]
+* Herschel exoplanet-host sample, [R2894] [S]
+* Huya occultation, [R3917] [S]
 * Repo: `physics/data/planet_classes.json`, `tuning.py` (PLANET_MIN_MASS_*), `composition/small-bodies-composition.md`, `architecture/mass-object-class.md`, ledger draft, belt root-cause report.

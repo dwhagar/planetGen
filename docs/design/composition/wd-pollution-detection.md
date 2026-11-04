@@ -4,7 +4,7 @@ Status: built 2026-10-23 by lane M. Code `src/planetgen/physics/wd_pollution.py`
 
 ## 1. What is measured, and what is reported
 
-A polluted white dwarf with oxygen, magnesium, silicon and iron measured gives the oxygen fugacity of the body that fell on it: dIW = 2 log10(x_FeO / x_Fe,metal) with x_Fe,metal = 0.85 (Doyle et al. 2020, equations 3 and 4; arXiv:2008.05992). The abundances have errors, and the papers propagate them by Monte Carlo draws; a draw with a negative FeO mole fraction is unphysical. The rule they report by (Doyle 2020 section 2.3, applied again in Doyle et al. 2023, arXiv:2303.00063):
+A polluted white dwarf with oxygen, magnesium, silicon and iron measured gives the oxygen fugacity of the body that fell on it: dIW = 2 log10(x_FeO / x_Fe,metal) with x_Fe,metal = 0.85 ([R1152], equations 3 and 4; [R1152]). The abundances have errors, and the papers propagate them by Monte Carlo draws; a draw with a negative FeO mole fraction is unphysical. The rule they report by ([R1152] section 2.3, applied again in [R1153]):
 
 | Negative draws | Reported | Stars |
 |---|---|---|
@@ -14,7 +14,7 @@ A polluted white dwarf with oxygen, magnesium, silicon and iron measured gives t
 
 So a body with little FeO next to the abundance error is reported with a large error, or not at all. The 22 medians (mean -1.248, median -1.256, sample sd 0.447, recomputed from the two tables) are a sample cut by this rule and scattered by the measurement, and the tuned width of rows a3 and a4 must be compared with that sample and not with the bodies.
 
-The earlier worker report (`tunable-gaps-sources/group3-redox-wd-radio.md`) counted 7 of 24 without a lower bound; the two tables give 8 (six with a median and an upper bound, two upper limits). The 24 rows, with the effective temperature of each star, are in the data file; Table 1 of Doyle 2020 holds 16 stars and Table 4 of Doyle 2023 holds 8 (temperatures from its Table 2).
+The earlier worker report (`tunable-gaps-sources/group3-redox-wd-radio.md`) counted 7 of 24 without a lower bound; the two tables give 8 (six with a median and an upper bound, two upper limits). The 24 rows, with the effective temperature of each star, are in the data file; Table 1 of [R1152] holds 16 stars and Table 4 of [R1153] holds 8 (temperatures from its Table 2).
 
 ## 2. The model
 
@@ -40,8 +40,8 @@ Validity: effective temperature 10,120 to 21,200 K; DA, DB and DZ atmospheres; b
 ## 4. What it does not do
 
 - The shipped rows a3 and a4 were retuned with this model (GEN.513, `docs/design/composition/wd-redox-tuning.md`): the width 0.45 became 0.22 and the four targets now name this model. The conversion between the core-formation dIW of the white dwarfs and the surface magma-ocean scale of row a1 is not tested.
-- The settling of elements out of the atmosphere (Doyle 2020 section 3.2 and Figs. 8 to 11) is not modelled: a DB observed long after accretion has waned can show a more reduced body than fell on it (the papers' time-dependent model, diffusion times, is the reference). The model's case is a body observed in its build-up or steady-state phase; a tuned width is an upper bound where the sample may hold stars observed later.
-- The detection of pollution itself (which white dwarfs are polluted, 27 to about 50 percent, Koester et al. 2014) gates "rocky debris exists" and is not part of this selection: every simulated body is one that fell.
+- The settling of elements out of the atmosphere ([R1152] section 3.2 and Figs. 8 to 11) is not modelled: a DB observed long after accretion has waned can show a more reduced body than fell on it (the papers' time-dependent model, diffusion times, is the reference). The model's case is a body observed in its build-up or steady-state phase; a tuned width is an upper bound where the sample may hold stars observed later.
+- The detection of pollution itself (which white dwarfs are polluted, 27 to about 50 percent, [R2415]) gates "rocky debris exists" and is not part of this selection: every simulated body is one that fell.
 - The convention for the two limit stars' error and the Gaussian form of the abundance error are model choices; the fit changes if either is dropped (the two brackets above).
 
 ## 5. Use

@@ -6,18 +6,18 @@ Status: read report. Written 5:36 PM EDT 2026-10-30 as the lane reported. Nothin
 
 | Source | How | What it gave |
 |---|---|---|
-| Leinhardt and Stewart 2012, ApJ 745, 79 (arXiv:1106.6084) | full text | the disruption threshold and its scaling (IF3), the largest remnant (IF1, IF2), the impact angle (IF4), the fragment tail (IF5) and the fragment speeds (IF6) |
-| Stewart and Leinhardt 2012, ApJ 751, 32 (arXiv:1109.4588) | abstract, sections 2 to 4 | where erosion begins, the debris share of giant impacts, and the core and mantle bookkeeping (IF7, IF8) |
-| Su et al. 2006, ApJ 653, 675 (arXiv:astro-ph/0608563) | abstract, sections 2 to 4, Table 4 | the share of young A stars with a belt, by age (IF9) |
-| Do, Tucker and Tonry 2018, ApJL 855, L10 (arXiv:1801.02821) | abstract, section 2 | the interstellar background the fields stand against (IF11) |
+| [R2633] | full text | the disruption threshold and its scaling (IF3), the largest remnant (IF1, IF2), the impact angle (IF4), the fragment tail (IF5) and the fragment speeds (IF6) |
+| [R4226] [R4999] | abstract, sections 2 to 4 | where erosion begins, the debris share of giant impacts, and the core and mantle bookkeeping (IF7, IF8) |
+| Su et al. 2006, ApJ 653, 675 [R4247] | abstract, sections 2 to 4, Table 4 | the share of young A stars with a belt, by age (IF9) |
+| Do, [R1124] | abstract, section 2 | the interstellar background the fields stand against (IF11) |
 
 Not reached, and what that leaves open:
 
-* **Mroz et al. 2017 and 2020, Johnson et al. 2020**: rogue density; already the root of `tuning.ROGUE_PLANET_RATE_PER_STAR`, and GEN.1109 (rogue abundance) owns them. The collision rate (design section 2) stays a derived figure on that input.
-* **Shock vaporisation thresholds** (Pierazzo, Melosh) and **Breslau et al. 2014** (flyby truncation): not opened. The design's remark that peak shock above about 400 GPa leaves mostly melt and vapour stays [R]. LS12 has no vaporisation at all (see finding 3).
-* **Chen et al. 2005** (excess rates of B stars): not opened; IF9 uses A stars as the stand-in for the belts of supernova progenitors.
-* **Marcus et al. 2009, 2010** (core and mantle in impacts of differentiated bodies): quoted second-hand through Stewart and Leinhardt 2012 (IF8).
-* **Hills 1983** (unbinding by mass loss): the half-mass rule is derived in IF10 in two lines instead.
+* **[R3191] and 2020, [R2178]**: rogue density; already the root of `tuning.ROGUE_PLANET_RATE_PER_STAR`, and GEN.1109 (rogue abundance) owns them. The collision rate (design section 2) stays a derived figure on that input.
+* **Shock vaporisation thresholds** (Pierazzo, Melosh) and **[R0527]** (flyby truncation): not opened. The design's remark that peak shock above about 400 GPa leaves mostly melt and vapour stays [R]. LS12 has no vaporisation at all (see finding 3).
+* **[R0763]** (excess rates of B stars): not opened; IF9 uses A stars as the stand-in for the belts of supernova progenitors.
+* **[R2867], 2010** (core and mantle in impacts of differentiated bodies): quoted second-hand through [R4226] (IF8).
+* **[R1941]** (unbinding by mass loss): the half-mass rule is derived in IF10 in two lines instead.
 
 ## What it changes in the design
 

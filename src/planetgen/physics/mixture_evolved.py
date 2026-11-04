@@ -19,11 +19,11 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
 * **Abiotic oxygen (`j5`).** The outgassed gas, its carbon, nitrogen and sulfur rescaled to a carbon of `CARBON_PER_OCEAN_WATER` per molecule of the
   surface water of one to ten oceans (`OCEAN_WATER_WT_PERCENT`) added to it; the
   hydrogen of the water escapes (the fraction `WATER_PHOTOLYSED`) and the oxygen it leaves behind stays in the closed gas, except for
-  the share `OXYGEN_SINK` that the crust takes up (Luger and Barnes 2015: the O2 builds to tens or hundreds of bar around a late M
+  the share `OXYGEN_SINK` that the crust takes up ([R2769]: the O2 builds to tens or hundreds of bar around a late M
   dwarf). Nothing holds the oxygen fugacity here: the gas is free to have O2.
 * **Titan-like (`j3`): nitrogen and methane at the methane's saturation.** The nitrogen is the balance, and it is the nitrogen of the
   body's ammonia ice (GEN.821): the share `AMMONIA_OUTGASSED` of the ammonia leaves the interior and the share `AMMONIA_TO_N2` of
-  that is converted to N2 (Erkaev et al. 2020, section 4.2), added to what the rocky inventory degasses; the methane is the
+  that is converted to N2 ([R1282], section 4.2), added to what the rocky inventory degasses; the methane is the
   surface's humidity `TITAN_HUMIDITY` of the saturation pressure at the surface temperature over the pressure of the air (the
   lakes and the damp ground are the reservoir), hydrogen a trace of the methane's photolysis (`TITAN_HYDROGEN`).
 * **Frost equilibrium (`j4`, Pluto and Triton).** Each gas stands over the surface ice at the pressure of an ideal solution,
@@ -50,7 +50,7 @@ WATER_PHOTOLYSED = (0.3, 1.0, "uniform")
 
 OCEAN_WATER_WT_PERCENT = (0.0233, 0.233, "log")
 """tuple: The water an abiotic-oxygen world's surface holds before its hydrogen is lost, weight percent of the body: one to ten
-Earth oceans (one ocean is 0.0233 percent of the Earth's mass; the ten are the top of the range Luger and Barnes 2015 consider)."""
+Earth oceans (one ocean is 0.0233 percent of the Earth's mass; the ten are the top of the range [R2769] consider)."""
 
 CARBON_PER_OCEAN_WATER = (0.01, 0.2, "log")
 """tuple: The carbon of an abiotic-oxygen world's gas per water molecule of its oceans, mole per mole: the Earth's atmosphere and carbonate
@@ -61,22 +61,22 @@ OXYGEN_SINK = (0.0, 0.9, "uniform")
 
 TITAN_HUMIDITY = (0.3, 1.0, "uniform")
 """tuple: The methane's relative humidity at the surface (Titan: 5.65 percent near the surface at 94 K against a saturation of 12 percent;
-the measured humidity is about 0.5; TEST, Niemann et al. 2010)."""
+the measured humidity is about 0.5; [R3289])."""
 
 TITAN_HYDROGEN = (3e-4, 3e-3, "log")
-"""tuple: The hydrogen mole fraction of a methane atmosphere (Titan 1.0e-3 +/- 0.16e-3, Niemann et al. 2010, TEST); design bracket around it."""
+"""tuple: The hydrogen mole fraction of a methane atmosphere (Titan 1.0e-3 +/- 0.16e-3, [R3289], TEST); design bracket around it."""
 
 AMMONIA_OUTGASSED = (0.0081, 0.048, "log")
-"""tuple: The share of a body's ammonia that leaves its interior as a gas, epsilon of Erkaev et al. 2020 (Planetary and Space Science, section
+"""tuple: The share of a body's ammonia that leaves its interior as a gas, epsilon of [R1282] (Planetary and Space Science, section
 4.2, Table 2): 0.81 to 4.80 percent across the interior models of Fortes (methane clathrate, pure water ice, light and dense ocean, FeS and iron
 core), for the nitrogen Titan's air holds."""
 
 AMMONIA_PER_WATER = (0.002, 0.015, "log")
-"""tuple: The ammonia in the ice of a body that drew none, mole per mole of its water: the 0.2 to 1.5 percent that Erkaev et al. 2020 (section 4.2)
+"""tuple: The ammonia in the ice of a body that drew none, mole per mole of its water: the 0.2 to 1.5 percent that [R1282] (section 4.2)
 take from the comets (NH3/H2O of the cometary ice)."""
 
 AMMONIA_TO_N2 = (0.1, 1.0, "log")
-"""tuple: The share of the outgassed ammonia that ends as N2, xi of Erkaev et al. 2020 (at most 1, the paper gives no best estimate; the 0.1 floor is
+"""tuple: The share of the outgassed ammonia that ends as N2, xi of [R1282] (at most 1, the paper gives no best estimate; the 0.1 floor is
 a design bound, registry row AM87)."""
 
 NH3_G_MOL = 17.03052
@@ -156,7 +156,7 @@ def evolved_oxidised(subject, recipe, row, supply=None):
 
 def _ammonia_nitrogen(subject, constants):
     """
-    The nitrogen atoms per 100 g of mantle that the body's ammonia ice has outgassed as N2 (GEN.821; Erkaev et al. 2020 equation 41, with the
+    The nitrogen atoms per 100 g of mantle that the body's ammonia ice has outgassed as N2 (GEN.821; [R1282] equation 41, with the
     ammonia read off the body, or the cometary share of its water when the makeup holds none): `AMMONIA_OUTGASSED` times `AMMONIA_TO_N2` of the ammonia, one nitrogen atom per
     molecule. 0 for a body whose subject carries no ammonia or no rock.
     """

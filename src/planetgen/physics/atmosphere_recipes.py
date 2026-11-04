@@ -53,7 +53,7 @@ weights for the sourced rows are the same expressions; the open rows carry `open
 
 The corrections of the later research are applied (the part's section 5 and tunable-gaps.md): the C/O recipe of part 05 that
 put 13.9 percent of giants above 0.8 is the explicit core and tail of f7, the lava-world boundaries are the text edges of
-Miguel 2011 (the difference to the caption list is 63 K and not 130 K), the shoreline of d is the Berta-Thompson logistic and
+[R3059] (the difference to the caption list is 63 K and not 130 K), the shoreline of d is the Berta-Thompson logistic and
 not the K window fitted to 13 Solar System bodies, a3 and a4 follow the 22 polluted white dwarfs, f7 has the planet tail and
 the core centre of the data, and p4 depends on the stellar mass.
 

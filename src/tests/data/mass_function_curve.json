@@ -5,8 +5,8 @@
   "primaries": 60000,
   "note": "A bin's range is the lowest and the highest share the named curves give it, widened by the relative tolerance and then by four binomial sigma of the run. The two samples answer two questions: what the generator draws as the primary of a system (compared with the system function), and what its systems hold in all (compared with the single-star function). Below 0.8 solar masses every star born is still alive, so the born shares are the present shares; above it the sample is the living stars of the population model and the rows only report what the generator makes (no norm yet).",
   "sources": [
-   "Chabrier 2003, PASP 115:763, Table 2, Galactic disk (recalled, T2)",
-   "Kroupa 2001, MNRAS 322:231 (recalled, T2)"
+   "[R0705]:763, Table 2, Galactic disk (recalled, T2)",
+   "[R2498]:231 (recalled, T2)"
   ]
  },
  "curves": {
@@ -16,7 +16,7 @@
    "sigma": 0.69,
    "break_sol": 1.0,
    "power_law_x": 1.3,
-   "source": "Chabrier 2003 Table 2, Galactic disk, individual stars: log-normal in log mass, centre 0.079 solar masses, width 0.69 dex, power law x = 1.3 above 1 solar mass (recalled, T2)"
+   "source": "[R0705: Table 2], Galactic disk, individual stars: log-normal in log mass, centre 0.079 solar masses, width 0.69 dex, power law x = 1.3 above 1 solar mass (recalled, T2)"
   },
   "chabrier2003_system": {
    "kind": "lognormal below break, power law above, joined continuously",
@@ -24,7 +24,7 @@
    "sigma": 0.57,
    "break_sol": 1.0,
    "power_law_x": 1.3,
-   "source": "Chabrier 2003 Table 2, Galactic disk, systems: log-normal in log mass, centre 0.22 solar masses, width 0.57 dex, power law x = 1.3 above 1 solar mass (recalled, T2)"
+   "source": "[R0705: Table 2], Galactic disk, systems: log-normal in log mass, centre 0.22 solar masses, width 0.57 dex, power law x = 1.3 above 1 solar mass (recalled, T2)"
   },
   "kroupa2001": {
    "kind": "broken power law in dN/dM",
@@ -37,7 +37,7 @@
     1.3,
     2.3
    ],
-   "source": "Kroupa 2001: dN/dM ~ M^-1.3 from 0.08 to 0.5 and M^-2.3 above, corrected for unresolved binaries (recalled, T2); the shape the generator's rows carry today"
+   "source": "[R2498]: dN/dM ~ M^-1.3 from 0.08 to 0.5 and M^-2.3 above, corrected for unresolved binaries (recalled, T2); the shape the generator's rows carry today"
   }
  },
  "bins": {
@@ -90,7 +90,7 @@
   "white dwarfs mean mass": "GEN.996"
  },
  "anomaly_notes": {
-  "GEN.951": "the primary function is derived from the single-star function and the companion draw (GEN.928); the system function (Chabrier 2003, centre 0.22 solar masses) has 7.7 to 12% of the primaries at 0.6 to 0.8 solar masses and the derivation 6.8%. GEN.951 drew the companions' mass ratios from Moe and Di Stefano 2017 (Table 13: a twin excess and a primary-mass and period dependent slope) and the bin did not move (7.08% to 7.05% in the derivation), so the mass ratio is not the cause; what is left is the star-count table's companion counts for G and K primaries and the system function's own range",
-  "GEN.996": "white dwarfs come from single stars only, by the Cummings et al. (2018) initial-final mass relation over the generator's ages: mean mass 0.703 solar masses against 0.55 to 0.70 observed; binary evolution makes low-mass (helium core, about 0.4) white dwarfs, which the generator does not draw"
+  "GEN.951": "the primary function is derived from the single-star function and the companion draw (GEN.928); the system function ([R0705], centre 0.22 solar masses) has 7.7 to 12% of the primaries at 0.6 to 0.8 solar masses and the derivation 6.8%. GEN.951 drew the companions' mass ratios from [R3108] (Table 13: a twin excess and a primary-mass and period dependent slope) and the bin did not move (7.08% to 7.05% in the derivation), so the mass ratio is not the cause; what is left is the star-count table's companion counts for G and K primaries and the system function's own range",
+  "GEN.996": "white dwarfs come from single stars only, by the [R0961] initial-final mass relation over the generator's ages: mean mass 0.703 solar masses against 0.55 to 0.70 observed; binary evolution makes low-mass (helium core, about 0.4) white dwarfs, which the generator does not draw"
  }
 }

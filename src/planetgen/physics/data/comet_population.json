@@ -3,10 +3,10 @@
  "retrieved": "2026-10-17",
  "part": "docs/design/composition/body-composition-parts/G1-comets.md",
  "sources": {
-  "rob24": "Robinson, Malamud, Opitom, Perets and Blum 2024, arXiv:2403.15644, and its database (Edinburgh DataShare, doi 10.7488/ds/7723, df_comp_all.csv, 909 rows, 69 comets): per-species statistics of the coma ratio to water at a heliocentric distance of at most 2 AU, computed by the body composition research lane (G1 section 2.3)",
-  "hp22": "Harrington Pinto et al. 2022, arXiv:2209.09985: CO, CO2 and H2O in comets; (CO + CO2)/H2O median 18 +/- 4 percent (18 comets), CO2 2 to 30 percent (23 comets within 2.5 AU), CO 0.3 to 26 percent (32 comets within 2.5 AU)",
-  "coch15": "Cochran et al. 2015, Space Science Reviews 197, 9, arXiv:1507.00761: depleted fractions of the optical taxonomy, 37 percent of Jupiter-family comets against 18.5 percent of long-period comets",
-  "cor25": "Cordiner et al. 2025, arXiv:2508.18209 (JWST, 3I/ATLAS): CO2/H2O 7.6 +/- 0.3 and CO/H2O 1.65 +/- 0.09 at 3.32 AU"
+  "rob24": "[R3782], and its database (Edinburgh DataShare, [R4972], df_comp_all.csv, 909 rows, 69 comets): per-species statistics of the coma ratio to water at a heliocentric distance of at most 2 AU, computed by the body composition research lane (G1 section 2.3)",
+  "hp22": "Harrington [R3535]: CO, CO2 and H2O in comets; (CO + CO2)/H2O median 18 +/- 4 percent (18 comets), CO2 2 to 30 percent (23 comets within 2.5 AU), CO 0.3 to 26 percent (32 comets within 2.5 AU)",
+  "coch15": "[R0835], Space Science Reviews 197, 9, [R0835]: depleted fractions of the optical taxonomy, 37 percent of Jupiter-family comets against 18.5 percent of long-period comets",
+  "cor25": "[R0890] (JWST, 3I/ATLAS): CO2/H2O 7.6 +/- 0.3 and CO/H2O 1.65 +/- 0.09 at 3.32 AU"
  },
  "total_carbon_oxide": {
   "name": "CO + CO2",
@@ -15,7 +15,7 @@
   "source": "rob24",
   "label": "COMPUTED",
   "state": "partly verified",
-  "limit": "the median 18 is read (Harrington Pinto 2022, 18 comets); the 0.2 dex width is the scatter among single comets computed from the database: log10 of (CO + CO2)/H2O of the 9 comets with both measured within 2.5 AU gives 0.197 dex (8 comets within 2.0 AU give 0.138, the widest is kept); the sample is small and its own median is 15"
+  "limit": "the median 18 is read (Harrington [R3535], 18 comets); the 0.2 dex width is the scatter among single comets computed from the database: log10 of (CO + CO2)/H2O of the 9 comets with both measured within 2.5 AU gives 0.197 dex (8 comets within 2.0 AU give 0.138, the widest is kept); the sample is small and its own median is 15"
  },
  "co_fraction": {
   "name": "CO/(CO + CO2)",

@@ -25,7 +25,7 @@ The address of an entry is `/references/<page>` and, for one entry on a page, `#
 * `about`: `/references/about`, credits and version (no id).
 
 `anchor(text)` is the one way an id becomes part of an address: lower case, every run of characters that is not a letter or a digit
-becomes one hyphen (`10.1086/151682` is `10-1086-151682`). Standard library only.
+becomes one hyphen (`Surface Pressure` is `surface-pressure`). Standard library only.
 """
 
 import re

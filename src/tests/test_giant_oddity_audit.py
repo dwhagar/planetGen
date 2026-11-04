@@ -87,7 +87,7 @@ def test_few_neptunes_sit_inside_three_days_and_a_few_survive_there():
     beside = [mass for period, mass in neptunes if 3.0 <= period < 10.0]
     assert len(neptunes) > 400
     assert len(inside) >= 1                      # the survivors: LTT 9779 b (about 29 Earth masses at 0.8 d) is the real case
-    assert len(inside) * 3 < len(beside)         # the desert: a third or fewer of what the next octave holds (Mazeh et al. 2016)
+    assert len(inside) * 3 < len(beside)         # the desert: a third or fewer of what the next octave holds [R2963]
     assert max(inside) > 25.0 or len(inside) >= 3
 
 

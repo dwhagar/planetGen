@@ -10,7 +10,7 @@ import pytest
 from planetgen.physics import belt_ledger as bl, body_strength as bs, constants, dwarf_population as dp, moon_composition
 
 EARTH_KG = constants.EARTH_MASS_TO_KG
-MAIN_BELT_KG = 4.008e-4 * EARTH_KG        # Pitjeva and Pitjev 2018; a test point only
+MAIN_BELT_KG = 4.008e-4 * EARTH_KG        # [R3538, R3539]; a test point only
 KUIPER_BELT_KG = 1.97e-2 * EARTH_KG       # the same; a test point only
 
 
@@ -57,7 +57,7 @@ def test_the_round_mass_is_the_engines_and_icy_bodies_turn_round_at_a_smaller_ma
 
 
 def test_margots_discriminant_is_the_papers_for_jupiter_and_mars():
-    """Margot 2015 prints Pi = 4.0e4 for Jupiter and 54 for Mars; the dwarf planets are under 1."""
+    """[R2871, R2874] prints Pi = 4.0e4 for Jupiter and 54 for Mars; the dwarf planets are under 1."""
     sun = 1.0
     assert dp.margot_pi(317.8 * EARTH_KG, 5.2, sun) == pytest.approx(4.0e4, rel=0.1)
     assert dp.margot_pi(0.107 * EARTH_KG, 1.524, sun) == pytest.approx(54.0, rel=0.1)

@@ -14,9 +14,9 @@ The pulmonary alveolar capillary bed represents the most direct and vulnerable p
 
 ### Oxygen Boundaries: Hypobaric Hypoxia and Hyperoxic Toxicity
 
-The inspired partial pressure of oxygen ($P_{\text{i}\text{O}_2}$) directly determines the driving gradient across the alveolar-capillary membrane into arterial blood. At standard terrestrial sea-level pressure (101.3 kPa), ambient air contains approximately 20.9% $\text{O}_2$, yielding a $P_{\text{i}\text{O}_2}$ of 21.2 kPa (0.21 bar) (U.S. Navy, 2016). As total ambient pressure drops or diluent gases displace oxygen, systemic decrements follow predictable metabolic milestones (Murray et al., 2013). When $P_{\text{i}\text{O}_2}$ falls below 16.0 kPa (0.16 bar), subtle neurological impairments emerge, starting with impaired scotopic vision and diminished executive calculation performance (Murray et al., 2013).
+The inspired partial pressure of oxygen ($P_{\text{i}\text{O}_2}$) directly determines the driving gradient across the alveolar-capillary membrane into arterial blood. At standard terrestrial sea-level pressure (101.3 kPa), ambient air contains approximately 20.9% $\text{O}_2$, yielding a $P_{\text{i}\text{O}_2}$ of 21.2 kPa (0.21 bar) (U.S. Navy, 2016). As total ambient pressure drops or diluent gases displace oxygen, systemic decrements follow predictable metabolic milestones [R3221]. When $P_{\text{i}\text{O}_2}$ falls below 16.0 kPa (0.16 bar), subtle neurological impairments emerge, starting with impaired scotopic vision and diminished executive calculation performance [R3221].
 
-A reduction of $P_{\text{i}\text{O}_2}$ into the range of 9.0 kPa to 10.0 kPa (0.09 to 0.10 bar) induces severe cognitive confusion, motor ataxia, cephalalgia, and rapid fatigue (Murray et al., 2013). Breaching the critical threshold of 8.0 kPa (0.08 bar) leads to immediate catastrophe: alveolar gas tensions fall below mixed venous oxygen tension, causing oxygen to diffuse backward from pulmonary capillary blood into the alveolar voids (Reddit, 2026; U.S. Navy, 2016). This sudden desaturation triggers anoxic syncope within 10 to 15 seconds, followed by irreversible coma and cellular brain death within minutes if positive-pressure oxygenation is not restored immediately (Murray et al., 2013; U.S. Navy, 2016).
+A reduction of $P_{\text{i}\text{O}_2}$ into the range of 9.0 kPa to 10.0 kPa (0.09 to 0.10 bar) induces severe cognitive confusion, motor ataxia, cephalalgia, and rapid fatigue [R3221]. Breaching the critical threshold of 8.0 kPa (0.08 bar) leads to immediate catastrophe: alveolar gas tensions fall below mixed venous oxygen tension, causing oxygen to diffuse backward from pulmonary capillary blood into the alveolar voids (Reddit, 2026; U.S. Navy, 2016). This sudden desaturation triggers anoxic syncope within 10 to 15 seconds, followed by irreversible coma and cellular brain death within minutes if positive-pressure oxygenation is not restored immediately ([R3221]; U.S. Navy, 2016).
 
 Conversely, elevated oxygen partial pressures present severe chemical risks to cell membranes. Exposure to hyperbaric or hyperoxic gas mixtures induces toxicity via two distinct pathways (Diving Medical Advisory Committee [DMAC], 2024; OSHA, 2003; U.S. Navy, 2016):
 
@@ -26,8 +26,8 @@ $$\text{O}_2^{\bullet-} + \text{H}_2\text{O}_2 \xrightarrow{\text{Fe-catalyzed H
 
 
 
-This cascade causes diffuse alveolar damage, capillary endothelial swelling, intra-alveolar exudation, and loss of pulmonary compliance (Murray et al., 2013; U.S. Navy, 2016).
-* **Acute Central Nervous System (CNS) oxygen toxicity (Paul Bert effect):** Occurs under hyperbaric working conditions when $P_{\text{O}_2}$ exceeds 140.0 kPa to 160.0 kPa (1.4 to 1.6 bar) (OSHA, 2003; U.S. Navy, 2016). Excess dissolved oxygen in cerebral circulation inactivates key metabolic enzymes, inhibits gamma-aminobutyric acid (GABA) synthesis, and leads to unheralded tonic-clonic convulsions and loss of consciousness (U.S. Navy, 2016, 2018). In operational underwater or extraterrestrial environments, acute hyperoxic convulsions frequently lead to secondary trauma or fatal equipment ejection (Murray et al., 2013; U.S. Navy, 2016).
+This cascade causes diffuse alveolar damage, capillary endothelial swelling, intra-alveolar exudation, and loss of pulmonary compliance ([R3221]; U.S. Navy, 2016).
+* **Acute Central Nervous System (CNS) oxygen toxicity (Paul Bert effect):** Occurs under hyperbaric working conditions when $P_{\text{O}_2}$ exceeds 140.0 kPa to 160.0 kPa (1.4 to 1.6 bar) (OSHA, 2003; U.S. Navy, 2016). Excess dissolved oxygen in cerebral circulation inactivates key metabolic enzymes, inhibits gamma-aminobutyric acid (GABA) synthesis, and leads to unheralded tonic-clonic convulsions and loss of consciousness (U.S. Navy, 2016, 2018). In operational underwater or extraterrestrial environments, acute hyperoxic convulsions frequently lead to secondary trauma or fatal equipment ejection ([R3221]; U.S. Navy, 2016).
 
 | Oxygen Partial Pressure | Equivalent Percentage at 101.3 kPa | Physiological Status & Clinical Effects | Standard Operational Application |
 | --- | --- | --- | --- |
@@ -139,12 +139,12 @@ As ambient barometric pressure decreases, the boiling temperature of liquids dro
 
 $$\ln\left(\frac{P_2}{P_1}\right) = -\frac{\Delta H_{\text{vap}}}{R}\left(\frac{1}{T_2} - \frac{1}{T_1}\right)$$
 
-At a standard core body temperature of 37 °C (310.15 K), the saturated vapor pressure of pure water is precisely 6.27 kPa (47 mmHg or 0.91 psi) (Murray et al., 2013). This critical physical boundary is known as the **Armstrong Limit** (TwinMind, 2026).
+At a standard core body temperature of 37 °C (310.15 K), the saturated vapor pressure of pure water is precisely 6.27 kPa (47 mmHg or 0.91 psi) [R3221]. This critical physical boundary is known as the **Armstrong Limit** (TwinMind, 2026).
 
 * **Above the Armstrong Limit:** External atmospheric pressure keeps exposed bodily fluids—including tears, saliva, interstitial fluid, and unpressurized venous blood—in a liquid state.
 * **At or below 6.27 kPa:** External barometric pressure falls below the vapor pressure of body fluids (TwinMind, 2026). At this point, water throughout exposed physiological tissues vaporizes into steam at normal body temperature (TwinMind, 2026).
 
-This flash vaporization triggers **ebullism** (Mission Orbit, 2025; Murray et al., 2013). Dissolved gases ($\text{N}_2$, $\text{O}_2$, $\text{CO}_2$) rapidly effervesce out of solution, followed by the flash evaporation of moisture throughout subcutaneous compartments, the upper respiratory tract, and open mucous membranes (TwinMind, 2026). Subcutaneous emphysema inflates elastic tissues, visibly doubling the volume of an unconfined subject within 30 to 60 seconds (TwinMind, 2026).
+This flash vaporization triggers **ebullism** (Mission Orbit, 2025; [R3221]). Dissolved gases ($\text{N}_2$, $\text{O}_2$, $\text{CO}_2$) rapidly effervesce out of solution, followed by the flash evaporation of moisture throughout subcutaneous compartments, the upper respiratory tract, and open mucous membranes (TwinMind, 2026). Subcutaneous emphysema inflates elastic tissues, visibly doubling the volume of an unconfined subject within 30 to 60 seconds (TwinMind, 2026).
 
 While arterial blood does not instantly boil because cardiovascular pumping maintains an internal pressure 10 kPa to 16 kPa above ambient, venous and capillary beds experience catastrophic vapor lock (TwinMind, 2026). This flash vaporization halts pulmonary blood flow, arrests cardiac venous return, and induces anoxic circulatory collapse within 10 to 15 seconds (TwinMind, 2026). Simultaneously, the latent heat of vaporization ($\Delta H_{\text{vap}} \approx 2.4\text{ MJ/kg}$) pulls thermal energy from moist tissues, rapidly freezing mucosal surfaces in the mouth, trachea, and lungs despite room-temperature ambient conditions.
 
@@ -156,7 +156,7 @@ However, the human respiratory system cannot tolerate significant trans-thoracic
 
 * Without external chest and abdominal counterpressure garments, the maximum positive pressure human respiratory muscles can sustain during continuous breathing is approximately 4.0 kPa (30 mmHg), or up to 6.7 kPa (50 mmHg) during brief, physically exhausting intervals (TwinMind, 2026).
 * Positive pulmonary gas pressure forces the lungs to overexpand, compressing the low-pressure pulmonary capillaries, superior vena cava, and inferior vena cava within the thoracic cavity (TwinMind, 2026). This obstruction impairs venous blood return to the heart, causing blood to pool in the extremities and triggering an acute drop in cardiac output and syncopal shock (TwinMind, 2026).
-* Simultaneously, transpulmonary pressures exceeding 6 kPa to 8 kPa risk mechanical alveolar rupture, which can cause tension pneumothorax, pneumomediastinum, and fatal arterial gas embolism (AGE) (Murray et al., 2013).
+* Simultaneously, transpulmonary pressures exceeding 6 kPa to 8 kPa risk mechanical alveolar rupture, which can cause tension pneumothorax, pneumomediastinum, and fatal arterial gas embolism (AGE) [R3221].
 
 As a consequence of these thoracic mechanics, a mask alone is unusable at ambient pressures below 16.0 kPa to 20.0 kPa (2.3 to 2.9 psi), even when supplying 100% oxygen. Any operational domain at or below this threshold—and universally below the Armstrong limit—mandates a full-body counterpressure system or an encapsulated gas-pressurized suit to support internal vascular and thoracic pressures (TwinMind, 2026).
 
@@ -178,7 +178,7 @@ At terrestrial sea level, breathing air has a density of 1.2 g/L. In a dense hyp
 
 
 
-Because even light helium gas mixtures exceed this 10.0 g/L density ceiling at pressures beyond 5.0 MPa to 7.0 MPa, human beings cannot survive ambient-pressure exposures in extreme hyperbaric regimes (SatDiver, 2024). Surviving these environments requires an Atmospheric Diving Suit (ADS) or rigid armored capsule (Fandom, 2026; SatDiver, 2024; Wikipedia, 2026a). An ADS uses an articulated, rigid structural hull—typically made of cast aluminum alloys or forged titanium—that resists external crushing pressures while maintaining an internal atmosphere at a standard terrestrial pressure of 101.3 kPa (1.0 atm) (Murray et al., 2013; U.S. Navy, 2016). By isolating the occupant from ambient pressure, the rigid suit prevents decompression sickness, eliminates inert gas narcosis, and avoids hyperbaric gas density problems entirely (Murray et al., 2013; U.S. Navy, 2016).
+Because even light helium gas mixtures exceed this 10.0 g/L density ceiling at pressures beyond 5.0 MPa to 7.0 MPa, human beings cannot survive ambient-pressure exposures in extreme hyperbaric regimes (SatDiver, 2024). Surviving these environments requires an Atmospheric Diving Suit (ADS) or rigid armored capsule (Fandom, 2026; SatDiver, 2024; Wikipedia, 2026a). An ADS uses an articulated, rigid structural hull—typically made of cast aluminum alloys or forged titanium—that resists external crushing pressures while maintaining an internal atmosphere at a standard terrestrial pressure of 101.3 kPa (1.0 atm) ([R3221]; U.S. Navy, 2016). By isolating the occupant from ambient pressure, the rigid suit prevents decompression sickness, eliminates inert gas narcosis, and avoids hyperbaric gas density problems entirely ([R3221]; U.S. Navy, 2016).
 
 | Ambient Pressure Regime | Absolute Barometric Pressure | Limiting Physiological Constraints & Hazards | Mandatory Protective Equipment Class |
 | --- | --- | --- | --- |
@@ -349,7 +349,7 @@ These suits use a multi-layer textile laminate designed for structural strength 
 * Inside the restraint layer is the **hermetic pressure bladder**, a urethane-coated nylon film that holds the breathing gas atmosphere with minimal leakage (< 100 sccm) (SatDiver, 2024; NASA, 2020).
 * Directly against the astronaut's skin is the **LCVG**, which circulates chilled water through integrated tubing to absorb metabolic heat (NASA, 2020).
 
-To maintain mobility under internal pressure, gas suits use constant-volume joints (Rawal et al., 2021; Void Orbital, 2026b). Bending a simple pressurized tube changes its internal volume, requiring the user to do physical work against the gas pressure:
+To maintain mobility under internal pressure, gas suits use constant-volume joints ([R4185]; Void Orbital, 2026b). Bending a simple pressurized tube changes its internal volume, requiring the user to do physical work against the gas pressure:
 
 $$\Delta W = P \cdot \Delta V$$
 
@@ -357,7 +357,7 @@ Constant-volume joints prevent this by using sealed mechanical ball bearings at 
 
 Operating pressure involves a trade-off between joint mobility and decompression sickness (DCS) risk:
 
-* **Low-pressure pure-oxygen suits:** Such as the US EMU (29.6 kPa / 4.3 psi) and Apollo A7L (25.5 kPa / 3.7 psi), keep operating pressures low to reduce joint stiffness and minimize hand fatigue (Rawal et al., 2021; Reddit, 2017; Wikipedia, 2026d). However, moving from a standard sea-level habitat atmosphere (101.3 kPa, 78% $\text{N}_2$, 21% $\text{O}_2$) to a low-pressure suit exceeds the safe decompression threshold:
+* **Low-pressure pure-oxygen suits:** Such as the US EMU (29.6 kPa / 4.3 psi) and Apollo A7L (25.5 kPa / 3.7 psi), keep operating pressures low to reduce joint stiffness and minimize hand fatigue ([R4185]; Reddit, 2017; Wikipedia, 2026d). However, moving from a standard sea-level habitat atmosphere (101.3 kPa, 78% $\text{N}_2$, 21% $\text{O}_2$) to a low-pressure suit exceeds the safe decompression threshold:
 
 $$R = \frac{P_{\text{N}_2}}{P_{\text{final}}} \le 1.2\text{ to }1.4$$
 
@@ -369,12 +369,12 @@ causing dissolved nitrogen to form venous gas bubbles (NASA, 2020; TwinMind, 202
 
 ### Distal Extremity Biomechanics and Hand Injury Pathophysiology
 
-Spacesuit gloves are the most biomechanically demanding component of an extravehicular ensemble (NASA, 2020). Because fingers have small radii of curvature, internal gas pressure forces the glove fingers into an extended position (New Space Economy, 2025). To grip tools or work controls, an astronaut must continuously fight this pressure, exerting sustained muscular force with their forearm flexors and metacarpophalangeal (MCP) joints (New Space Economy, 2025; Rawal et al., 2021).
+Spacesuit gloves are the most biomechanically demanding component of an extravehicular ensemble (NASA, 2020). Because fingers have small radii of curvature, internal gas pressure forces the glove fingers into an extended position (New Space Economy, 2025). To grip tools or work controls, an astronaut must continuously fight this pressure, exerting sustained muscular force with their forearm flexors and metacarpophalangeal (MCP) joints (New Space Economy, 2025; [R4185]).
 
 This continuous resistance leads to severe physical strain:
 
-* **Forearm muscle fatigue:** Accumulates rapidly during a 6-to-8-hour EVA, degrading grip strength and fine motor coordination (Rawal et al., 2021; Space Voyage Ventures, 2025).
-* **Onycholysis and nail trauma:** As the fingers flex inside the pressurized glove, rigid thimbles press repeatedly against the tips of the fingers (Rawal et al., 2021). Over several hours, this mechanical pressure and shear stress causes subungual hematomas, matrix bruising, and onycholysis—the painful separation of the fingernail plate from the underlying nail bed (New Space Economy, 2025; PMC, 2024; Rawal et al., 2021).
+* **Forearm muscle fatigue:** Accumulates rapidly during a 6-to-8-hour EVA, degrading grip strength and fine motor coordination ([R4185]; Space Voyage Ventures, 2025).
+* **Onycholysis and nail trauma:** As the fingers flex inside the pressurized glove, rigid thimbles press repeatedly against the tips of the fingers [R4185]. Over several hours, this mechanical pressure and shear stress causes subungual hematomas, matrix bruising, and onycholysis—the painful separation of the fingernail plate from the underlying nail bed (New Space Economy, 2025; PMC, 2024; [R4185]).
 * **Cold exposure:** Because hands have a high surface-area-to-volume ratio, and gripping metal tools in shadow creates efficient thermal conduction paths, fingertips lose heat rapidly (NASA, 2020; Space Voyage Ventures, 2025). Spacesuit gloves incorporate electric resistive heating patches inside each fingertip, powered by an internal DC circuit and adjusted via manual switches, keeping skin temperatures above 10 °C to preserve nerve conduction and prevent frostbite (NASA, 2020; Space Voyage Ventures, 2025).
 
 | Protective Suit Classification | Pressure Barrier Operation | Target Operational Environment | Primary Shell Materials & Layers | Joint Mobility & Articulation Engineering | Life Support Consumables & Limits |
@@ -394,7 +394,7 @@ The transition between protective systems is governed by physical and biological
 
 * At ambient pressures below 20.0 kPa, positive-pressure breathing masks exceed human thoracic limits, restricting venous return and risking alveolar rupture (TwinMind, 2026).
 * At pressures below 6.27 kPa (the Armstrong limit), bodily fluids flash into vapor, causing subcutaneous swelling and fatal circulatory arrest (TwinMind, 2026). Any mission in environments with an ambient pressure below 20.0 kPa requires a full-body gas-pressurized suit or mechanical counterpressure system (TwinMind, 2026).
-* At ambient pressures above 5.0 MPa to 7.0 MPa, breathing gas densities exceed 10.0 g/L, creating extreme airway resistance that overwhelms respiratory muscles and leads to fatal carbon dioxide retention (SatDiver, 2024). Ambient-pressure diving gear fails completely, requiring rigid isobaric armored suits (ADS) that maintain internal pressures near 101.3 kPa (Murray et al., 2013; U.S. Navy, 2016).
+* At ambient pressures above 5.0 MPa to 7.0 MPa, breathing gas densities exceed 10.0 g/L, creating extreme airway resistance that overwhelms respiratory muscles and leads to fatal carbon dioxide retention (SatDiver, 2024). Ambient-pressure diving gear fails completely, requiring rigid isobaric armored suits (ADS) that maintain internal pressures near 101.3 kPa ([R3221]; U.S. Navy, 2016).
 
 ### The Thermal Threshold ($T < -40^\circ\text{C}$ and $T > +45^\circ\text{C}$)
 
@@ -444,86 +444,20 @@ Ultimately, these systems reflect the core physics of life support: as an operat
 
 ### References
 
-Chappell, S. P., Abercromby, A. F. J., & Gernhardt, M. L. (2017). *EVA operations injuries and compromised performance* (NASA-JSC-CN-39092). NASA Johnson Space Center.
+[R5002]
 
-D'Onghia, E., et al. (2025). *CREWHat: Cosmic radiation protection with high-temperature superconducting magnet arrays* (NASA/NIAC Phase I Final Report). NASA.
+[R5029]
 
-Diving Medical Advisory Committee. (2024). *Guidance on hyperbaric thermal hazards and saturation diving limits* (DMAC Guidance Note 29). DMAC / European Diving Technology Committee.
+[R5028]
 
-DuPont Personal Protection. (2019). *DuPont SafeSpec chemical permeation guide: ASTM F739 normalized breakthrough times*. Syracuse University Environmental Health and Safety Services.
+[R5027]
 
-European Space Agency. (2026). *Top five Venus mysteries EnVision will solve: Atmospheric oxidants and surface conditions*. ESA Science & Exploration.
+[R5023]
 
-Hargens, A. R. (2014). *Modeling and design of a BioSuit donning system*. University of California, San Diego / NASA.
+[R5025]
 
-Hargens, A. R. (2025). *Physiological effects of a mechanical counter pressure glove*. University of California, San Diego / NASA Johnson Space Center.
+[R5022]
 
-Humans to Titan Organization. (2026). *Human exploration of Titan: Atmospheric thermal environments and life support requirements*. Humans to Titan.
+[R5021]
 
-IntechOpen. (2026). *Planetary regolith chemistry and biological hazards: Martian perchlorates and respiratory toxicology*. IntechOpen Publishing.
-
-International Conference on Environmental Systems. (2020). *Martian spacesuit thermal modeling, contact conductivity, and Ortho-fabric radiative characteristics* (ICES Paper Series). ICES.
-
-International Conference on Environmental Systems. (2023). *Advanced LCVG tubing and thermal resistance modeling for exploration spacesuits* (ICES Paper Series). ICES.
-
-International Enviroguard. (2026). *Hazardous materials hazmat protection levels: OSHA Level A through Level D standards*. International Enviroguard Technical Bulletin.
-
-Kaczmarek, S. (2025). *Thermal management and sublimator heat rejection for lunar surface missions*. Lunar Exploration Science.
-
-Lam, C. W., Scully, R. R., & Romoser, A. A. (2016). *Martian dust toxicity: Should we believe the headlines?* (LPI Contribution No. 1966, Paper #6004). Lunar and Planetary Institute.
-
-Mission Orbit. (2025). *Extravehicular activity (EVA) spacesuit biomechanics, PLSS architecture, and spacewalk ergonomics*. Mission Orbit Aerospace Publications.
-
-Murray, D. H., Pilmanis, A. A., & Webb, J. T. (2013). *Pathophysiology, prevention, and treatment of ebullism*. U.S. Air Force Research Laboratory / ResearchGate.
-
-National Aeronautics and Space Administration. (1993). *LCVG and development of new concepts for EMU heat sink* (NASA-CR-19930005417). NASA NTRS.
-
-National Aeronautics and Space Administration. (2016). *Exploration life support baseline values and assumptions document* (NASA/TP-2015-218570). NASA Johnson Space Center.
-
-National Aeronautics and Space Administration. (2020). *EVA lunar surface concept of operations: xEMU capabilities, pressure settings, and suitport architecture* (EVA-EXP-0075). NASA Johnson Space Center.
-
-National Aeronautics and Space Administration. (2022). *Aerogel-based thermal insulation systems for cryogenic-vacuum applications* (NESC Technical Assessment). NASA Engineering and Safety Center.
-
-National Aeronautics and Space Administration. (2023). *Walking in space: The Russian Orlan spacesuit history and design* (NASA SP-4507). NASA History Division.
-
-National Aeronautics and Space Administration. (2026a). *Establishing crew exposure limits of Martian dust: Technical standard V2 6253 rationale*. NASA Human Research Program.
-
-National Aeronautics and Space Administration. (2026b). *Martian dust exposure limits special publication* (NASA/SP-20260005907). NASA Johnson Space Center.
-
-National Aeronautics and Space Administration. (2026c). *NASA spaceflight human-system standard: Volume 2, Revision F* (NASA-STD-3001). NASA Office of the Chief Health and Medical Officer.
-
-National Aeronautics and Space Administration. (2026d). *Mars portable life support system plan and exploration architecture* (ICES-2026-Presentation). NASA Johnson Space Center.
-
-National Fire Protection Association. (2018). *NFPA 1991: Standard on vapor-protective ensembles for hazardous materials emergencies and CBRN terrorism incidents*. NFPA.
-
-National Institute for Occupational Safety and Health. (2004). *NIOSH respirator selection logic* (DHHS/NIOSH Publication No. 2005-100). Centers for Disease Control and Prevention.
-
-New Space Economy. (2025). *What is the NASA ISS EVA suit? Operating pressures, onycholysis, and joint kinematics*. New Space Economy Aerospace Series.
-
-New Space Economy. (2026). *How will Martian dust exposure limits shape human Mars missions? NASA-STD-3001 Revision F analysis*. New Space Economy Aerospace Series.
-
-Occupational Safety and Health Administration. (2003). *Commercial diving operations: Oxygen partial pressure boundaries and decompression tables* (68 FR 1928). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2024). *Hazardous waste operations and emergency response (HAZWOPER) and personal protective equipment selection guidelines* (29 CFR 1910.120). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2026a). *OSHA technical manual: Chemical protective clothing and respiratory protection* (Section VIII, Chapter 1). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2026b). *Respiratory protection: Assigned protection factors and maximum use concentrations* (29 CFR 1910.134). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2026c). *Fit testing and seal integrity protocols for tight-fitting respirators* (29 CFR 1910.134 Appendix A & B). U.S. Department of Labor.
-
-Rawal, S., Homer, P., & Wang, Y. (2021). Study on the design of space gloves and EVA suits with future challenges. *The Textile Research Journal*, 91(12), 1432–1448. [https://doi.org/10.31881/TLR.2021.25](https://www.google.com/search?q=https://doi.org/10.31881/TLR.2021.25)
-
-Scheuring, R. A., Mathers, C. H., Jones, J. A., & Wear, M. L. (2015). *Development of a comprehensive astronaut spacesuit injury database*. NASA Johnson Space Center.
-
-Space Voyage Ventures. (2025). *Space gloves: Tactility, ergonomics, and environmental protection in harsh extravehicular environments*. Space Voyage Ventures Engineering Reports.
-
-StemRad. (2026). *AstroRad radiation protective equipment evaluations on Orion and ISS: SPE and HZE attenuation*. StemRad Space Systems & Lockheed Martin.
-
-TwinMind. (2026). *Why NASA's next exploration spacesuits operate at elevated hypobaric pressures*. Aerospace Systems Review.
-
-U.S. Environmental Protection Agency. (2026). *Vapor-protective ensembles and emergency chemical guidelines under NFPA 1991*. EPA Office of Emergency Management.
-
-U.S. Navy. (2016). *U.S. Navy diving manual: Revision 7* (NAVSEA 0910-LP-115-1921). Naval Sea Systems Command.
-
-Void Orbital. (2026). *Cosmos exploration spacesuit: Structural capability, joint torque kinematics, and environmental seals*. Void Orbital Technical Reports.
+[R4185]

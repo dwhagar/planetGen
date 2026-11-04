@@ -37,7 +37,7 @@ This part covers four things.
 | Stellar particle (SEP) dose | Free dose `20 mSv/yr * sqrt(flare rate / 10^-2.5) / d^2`; shielded by `exp(-p_cut / 0.2 GV)` where `p_cut` comes from the range law `R = 0.0022 E^1.77` g/cm2 (E in MeV) | repo `radiation.py` lines 79 to 85, 155 to 176 | READ |
 | Ground dose | `a_rad * (0.48 * heat_ratio + 0.5 if radon)` mSv/yr; `heat_ratio` is the rogue radiogenic flux at the body's age over that at 4.5 Gyr; radon only above 1000 Pa | repo `radiation.py` lines 87 to 90, 179 to 184 | READ |
 | `a_rad` | One log-uniform draw in (0.5, 2.0) per body in `generate_dose`, independent of the heat calculation | repo `radiation.py` (docstring of `generate_dose`), `tuning.py` `ROGUE_RADIOGENIC_ABUNDANCE_RANGE` | READ |
-| Radiogenic heat flux | Four isotopes at Turcotte and Schubert 2014 mantle values (U 31 ppb, Th 124 ppb, K 310 ppm), scaled back in time by `exp(lambda (4.5 - t))`, mantle fraction 0.67, abundance 1.0 | repo `rogue_surface.py` (the former `radiogenic_flux_w_m2` is gone: `radiogenic` and `interior_heat` give the heat); `tuning.py` `ROGUE_RADIOGENIC_ISOTOPES` | READ |
+| Radiogenic heat flux | Four isotopes at [R4449] mantle values (U 31 ppb, Th 124 ppb, K 310 ppm), scaled back in time by `exp(lambda (4.5 - t))`, mantle fraction 0.67, abundance 1.0 | repo `rogue_surface.py` (the former `radiogenic_flux_w_m2` is gone: `radiogenic` and `interior_heat` give the heat); `tuning.py` `ROGUE_RADIOGENIC_ISOTOPES` | READ |
 | Internal heat flux | Radiogenic flux at the star's age divided by Urey ratio 0.67 | repo `planets.py` `internal_heat_flux_w_m2`; `tuning.py` `ROGUE_UREY_RATIO` | READ |
 | Ice | density 917 kg/m3, vacuum ice stable below 220 K, conductivity 567/T | repo `hydrosphere.py` | READ |
 | Mobile lid | chance 0.6 (mass up to 5 Earth masses) or 0.3, only with a surface ocean and mass of 0.5 Earth masses or more | repo `magnetism.py` `mobile_lid_chance` | READ |
@@ -54,7 +54,7 @@ Problems found in the existing code (all COMPUTED from the tables below unless n
 
 ### 2.2 Crust types and how they form
 
-Source for all rows: Hu, Ehlmann and Seager 2012, arXiv:1204.1544, Table 2 (mineral assemblages) and Table 4 (near-infrared geometric albedo of an airless planet covered by one type, G star at 1 AU). Both READ. Guimond et al. 2024, arXiv:2404.15427, section 4 (READ) gives the melting rule.
+Source for all rows: Hu, [R2024: Table 2] (mineral assemblages) and Table 4 (near-infrared geometric albedo of an airless planet covered by one type, G star at 1 AU). Both READ. [R1719], section 4 (READ) gives the melting rule.
 
 | Type | Assemblage (Hu Table 2) | Where it comes from | J / H / K band geometric albedo (Hu Table 4) | Label |
 |---|---|---|---|---|
@@ -67,33 +67,33 @@ Source for all rows: Hu, Ehlmann and Seager 2012, arXiv:1204.1544, Table 2 (mine
 | Fe-oxidised | 50% nanophase hematite, 50% basalt | oxidative weathering | 0.21 / 0.21 / 0.21 | READ |
 | Metal-rich | pyrite | mantle stripped | 0.12 / 0.18 / 0.19 | READ |
 
-Melting facts for the genealogy (Guimond 2024, section 4, READ): decompression melting works in any convecting mantle that is not buried under a thick volatile envelope, so a secondary basaltic crust is the default for any rocky body that is still or was once convecting; the mantle solidus moves by more than 100 degrees C with alkali content; thermodynamic melt models are most accurate for Earth-like compositions and are untested for strange ones. Crust is also the second silicate reservoir: it holds most of the incompatible heat producers K, Th, U (same section, READ).
+Melting facts for the genealogy ([R1719], section 4, READ): decompression melting works in any convecting mantle that is not buried under a thick volatile envelope, so a secondary basaltic crust is the default for any rocky body that is still or was once convecting; the mantle solidus moves by more than 100 degrees C with alkali content; thermodynamic melt models are most accurate for Earth-like compositions and are untested for strange ones. Crust is also the second silicate reservoir: it holds most of the incompatible heat producers K, Th, U (same section, READ).
 
 Types the brief lists that Hu does not: komatiitic (high-Mg lava), carbonaceous, sulfur, evaporite, carbon-rich. Their oxide or stoichiometric tables are in 2.3 and the albedo in 2.6; komatiite oxide numbers and a carbon-rich crust rule were not reached (section 5).
 
 ### 2.3 Oxide tables
 
-Source: the reference-composition data files shipped in the `pyrolite` package (version 0.3.8.post1 wheel from PyPI, files `refcomp/*.csv`). Those files carry the numbers of Gale et al. 2013 (N-MORB), Rudnick and Gao 2014 (continental crust), Workman and Hart 2005 (depleted mantle) and Palme and O'Neill 2014 (bulk silicate Earth and CI). The originals sit behind Elsevier and AGU and were not reached, so each number is 2ND-HAND. Oxide percentages for the bulk silicate Earth and CI were computed from element weight percent with `periodictable` masses (COMPUTED). FeO is total iron as FeO. These are the compositions of Earth reservoirs used as chemistry models for crust types; nothing here is a preset (a draw shifts them, see section 3).
+Source: the reference-composition data files shipped in the `pyrolite` package (version 0.3.8.post1 wheel from PyPI, files `refcomp/*.csv`). Those files carry the numbers of [R1494] (N-MORB), [R3842] (continental crust), [R4775] (depleted mantle) and [R3417] (bulk silicate Earth and CI). The originals sit behind Elsevier and AGU and were not reached, so each number is 2ND-HAND. Oxide percentages for the bulk silicate Earth and CI were computed from element weight percent with `periodictable` masses (COMPUTED). FeO is total iron as FeO. These are the compositions of Earth reservoirs used as chemistry models for crust types; nothing here is a preset (a draw shifts them, see section 3).
 
 | Reservoir (ground type it models) | SiO2 | TiO2 | Al2O3 | FeO | MgO | CaO | Na2O | K2O | Source | Label |
 |---|---|---|---|---|---|---|---|---|---|---|
-| N-MORB (basaltic secondary crust) | 50.42 | 1.53 | 15.13 | 9.81 | 7.76 | 11.35 | 2.83 | 0.14 | Gale 2013 via pyrolite `NMORB_Gale2013` | 2ND-HAND |
-| Upper continental crust (felsic tertiary) | 66.6 | 0.64 | 15.4 | 5.04 | 2.48 | 3.59 | 3.27 | 2.8 | Rudnick and Gao 2014 via pyrolite `UCC_RudnickGao2014` | 2ND-HAND |
+| N-MORB (basaltic secondary crust) | 50.42 | 1.53 | 15.13 | 9.81 | 7.76 | 11.35 | 2.83 | 0.14 | [R1494] via pyrolite `NMORB_Gale2013` | 2ND-HAND |
+| Upper continental crust (felsic tertiary) | 66.6 | 0.64 | 15.4 | 5.04 | 2.48 | 3.59 | 3.27 | 2.8 | [R3842] via pyrolite `UCC_RudnickGao2014` | 2ND-HAND |
 | Middle continental crust | 63.5 | 0.69 | 15.0 | 6.02 | 3.59 | 5.25 | 3.39 | 2.3 | same, `MCC_` | 2ND-HAND |
 | Lower continental crust (mafic granulite) | 53.4 | 0.82 | 16.9 | 8.57 | 7.24 | 9.59 | 2.65 | 0.61 | same, `LCC_` | 2ND-HAND |
 | Bulk continental crust | 60.6 | 0.7 | 15.9 | 6.7 | 4.7 | 6.4 | 3.1 | 1.8 | same, `BCC_` | 2ND-HAND |
-| Depleted mantle (ultramafic primary crust and mantle) | 44.71 | 0.13 | 3.98 | 8.18 | 38.73 | 3.17 | 0.13 | 0.01 | Workman and Hart 2005 via pyrolite `DMM_WorkmanHart2005` | 2ND-HAND |
-| Bulk silicate Earth (undifferentiated rocky mantle plus crust) | 45.4 | 0.21 | 4.5 | 8.1 | 36.76 | 3.65 | 0.35 | 0.03 | Palme and O'Neill 2014 via pyrolite `PM_`, oxides computed from elements | COMPUTED |
-| CI chondrite (carbonaceous; oxide equivalents of the elements, S and C not included) | 22.89 | 0.07 | 1.59 | 24.01 | 15.82 | 1.27 | 0.67 | 0.07 | Palme and O'Neill 2014 via pyrolite `CH_`, oxides computed from elements | COMPUTED |
+| Depleted mantle (ultramafic primary crust and mantle) | 44.71 | 0.13 | 3.98 | 8.18 | 38.73 | 3.17 | 0.13 | 0.01 | [R4775] via pyrolite `DMM_WorkmanHart2005` | 2ND-HAND |
+| Bulk silicate Earth (undifferentiated rocky mantle plus crust) | 45.4 | 0.21 | 4.5 | 8.1 | 36.76 | 3.65 | 0.35 | 0.03 | [R3417] via pyrolite `PM_`, oxides computed from elements | COMPUTED |
+| CI chondrite (carbonaceous; oxide equivalents of the elements, S and C not included) | 22.89 | 0.07 | 1.59 | 24.01 | 15.82 | 1.27 | 0.67 | 0.07 | [R3417] via pyrolite `CH_`, oxides computed from elements | COMPUTED |
 | Anorthosite end-member (anorthite CaAl2Si2O8, stoichiometry) | 43.2 | 0 | 36.6 | 0 | 0 | 20.2 | 0 | 0 | stoichiometry with `periodictable` masses | COMPUTED |
 
-Not found in reachable sources (gap list, section 5): komatiite oxide table (RECALLED only: MgO about 18 to 32 weight percent, source needed), Mars, Venus and lunar crust oxide tables (the Wikipedia pages fetched had no table; the primary sources are Taylor and McLennan and Wanke style compilations behind publishers). Chemistry of the other types: ice is H2O (formula, COMPUTED mass fractions H 0.1119, O 0.8881), sulfur is S, evaporites are halite NaCl, gypsum CaSO4.2H2O and calcite CaCO3 (formulas), carbonaceous is the CI row above and agent D's Lodders 2021 table (READ in part D, section 2.5).
+Not found in reachable sources (gap list, section 5): komatiite oxide table (RECALLED only: MgO about 18 to 32 weight percent, source needed), Mars, Venus and lunar crust oxide tables (the Wikipedia pages fetched had no table; the primary sources are Taylor and McLennan and Wanke style compilations behind publishers). Chemistry of the other types: ice is H2O (formula, COMPUTED mass fractions H 0.1119, O 0.8881), sulfur is S, evaporites are halite NaCl, gypsum CaSO4.2H2O and calcite CaCO3 (formulas), carbonaceous is the CI row above and agent D's [R2729] table (READ in part D, section 2.5).
 
 ### 2.4 Regolith structure and thermal properties
 
 | Quantity | Value | Unit | Source | Label |
 |---|---|---|---|---|
-| Surface-layer density | 1100 | kg/m3 | Hayne et al. 2017, arXiv:1711.00977, Appendix table (lunar fit) | READ |
+| Surface-layer density | 1100 | kg/m3 | [R1861], Appendix table (lunar fit) | READ |
 | Deep-layer density | 1800 | kg/m3 | same | READ |
 | Density with depth | `rho(z) = rho_d - (rho_d - rho_s) exp(-z/H)` | n/a | same, equation 1 | READ |
 | Scale depth H | 0 to above 0.2, average 0.06 | m | same | READ |
@@ -102,19 +102,19 @@ Not found in reachable sources (gap list, section 5): komatiite oxide table (REC
 | Heat capacity polynomial | `cp = -3.6125 + 2.7431 T + 2.3616e-3 T^2 - 1.2340e-5 T^3 + 8.9093e-9 T^4` | J/kg/K | same) | READ |
 | cp from that polynomial | 138 (50 K), 254 (90 K), 424 (150 K), 555 (200 K), 720 (273 K), 771 (300 K), 850 (350 K), 910 (400 K) | J/kg/K | evaluated from the polynomial | COMPUTED |
 | Thermal inertia at 273 K, surface / deep | 36.6 / 100 | J/m2/K/s^1/2 | evaluated from the Hayne laws, `I = sqrt(K rho cp)` | COMPUTED |
-| Granular conductivity model | `lambda = lambda_solid H(r,T,phi) + 8 sigma eps T^3 Lambda`; `Lambda = e1 (1-phi)/phi r`, e1 = 1.34; `H = [(9 pi/4)(1-mu^2) gamma(T)/(E r)]^(1/3) f1 exp(f2 phi) chi`; f1 = 5.18e-2, f2 = 5.26, chi = 0.41; basalt grain values mu = 0.25, E = 7.8e10 Pa, gamma = 6.67e-5 T J/m2; lambda_solid 1.5 to 4 W/m/K | n/a | arXiv:2502.13222 Eq. 6 to 8 | 2ND-HAND |
+| Granular conductivity model | `lambda = lambda_solid H(r,T,phi) + 8 sigma eps T^3 Lambda`; `Lambda = e1 (1-phi)/phi r`, e1 = 1.34; `H = [(9 pi/4)(1-mu^2) gamma(T)/(E r)]^(1/3) f1 exp(f2 phi) chi`; f1 = 5.18e-2, f2 = 5.26, chi = 0.41; basalt grain values mu = 0.25, E = 7.8e10 Pa, gamma = 6.67e-5 T J/m2; lambda_solid 1.5 to 4 W/m/K | n/a | [R1349: Eq. 6 to 8] | 2ND-HAND |
 | Example from that model, filling factor 0.3 / 0.5, T = 250 K, lambda_solid = 3 | r = 10 um: 1.8e-3 / 4.7e-3; 100 um: 2.7e-3 / 3.0e-3; 1 mm: 2.0e-2 / 9.5e-3; 1 cm: 0.20 / 0.086 | W/m/K | my evaluation; implementation not yet checked against the original paper | COMPUTED |
-| Asteroid thermal inertia range used for grain-size inversion | 150 to 300 | J/m2/K/s^1/2 | Wada et al. 2018, arXiv:1804.03734, section on thermal inertia and albedo | READ |
-| Water ice conductivity | `k = 567/T` (crystalline) | W/m/K | Klinger 1980 as quoted in de Kleer et al. 2021, arXiv:2101.04211 | 2ND-HAND |
+| Asteroid thermal inertia range used for grain-size inversion | 150 to 300 | J/m2/K/s^1/2 | [R4577], section on thermal inertia and albedo | READ |
+| Water ice conductivity | `k = 567/T` (crystalline) | W/m/K | [R2392] as quoted in [R1055] | 2ND-HAND |
 | Water ice heat capacity | `cp = 7.49 T + 90` | J/kg/K | same | 2ND-HAND |
 | Limit of the ice laws | good above about 100 K; amorphous ice conducts far less | n/a | search summary of the same paper | SNIPPET |
-| Lunar interior heat flow in that model | 0.018 | W/m2 | Hayne 2017 Appendix (cites Langseth et al. 1976); calibration target only | READ |
+| Lunar interior heat flow in that model | 0.018 | W/m2 | [R1861] Appendix (cites [R2560]); calibration target only | READ |
 
 Failure modes: the Hayne laws are fitted to lunar basaltic and anorthositic regolith in vacuum and carry no gas conduction; with an atmosphere the pore-gas term dominates for coarse grains and must be added by the atmosphere lane. The Gundlach and Blum form needs the grain radius and filling factor, which no part yet stores.
 
 ### 2.5 Heat capacity, Debye data, melting, latent heat
 
-Phase data for pure materials are in the CSV (section 2.10). Mineral grain data come from the SLB 2011 database parameters read from the `burnman` 2.1.0 wheel source (`SLB_2011.py`), so they are 2ND-HAND. Debye heat capacity per kg was computed from those parameters (the Debye function with the Debye temperature and atom count).
+Phase data for pure materials are in the CSV (section 2.10). Mineral grain data come from the [R4232] database parameters read from the `burnman` 2.1.0 wheel source (`SLB_2011.py`), so they are 2ND-HAND. Debye heat capacity per kg was computed from those parameters (the Debye function with the Debye temperature and atom count).
 
 | Mineral | Molar mass g/mol | Grain density g/cm3 | Debye temperature K | Debye Cv at 150 / 300 / 600 / 1000 K (J/kg/K) | Dulong-Petit limit J/kg/K | Label |
 |---|---|---|---|---|---|---|
@@ -136,7 +136,7 @@ Latent heat and melting in the CSV: pure-material values are from NIST WebBook p
 All band values are means of laboratory reflectance spectra, averaged over the band by me (COMPUTED from READ data). Two open datasets:
 
 - USGS Spectral Library version 7 (splib07a, sciencebase.gov, USGS Data Series 1035). Beckman (BECK) spectra are absolute reflectance of powders or slabs; ASD spectra are field or lab reflectance. File names are given so the spectrum can be found.
-- Paragas et al. 2025 (ApJ 981, 130; data at Zenodo record 17986129, `hemi_refls.csv`): hemispherical reflectance of slab, crushed and powder samples.
+- [R3425] (ApJ 981, 130; data at Zenodo record 17986129, `hemi_refls.csv`): hemispherical reflectance of slab, crushed and powder samples.
 
 Caveat for every row: a lab reflectance factor is neither a geometric albedo nor a Bond albedo. Use it as a normal reflectance proxy. Real regolith is darkened by space weathering (2.7). The relation to Bond albedo is a gap.
 
@@ -178,7 +178,7 @@ Caveat for every row: a lab reflectance factor is neither a geometric albedo nor
 | Slush | USGS mSnw16 (ASD) | 0.194 | 0.212 | 0.204 | 0.203 | COMPUTED |
 | Hexane frost at 85 K (cold frost stand-in) | USGS (ASD) | 0.746 | 0.751 | 0.755 | 0.751 | COMPUTED |
 | Water ice at 77 K | USGS GDS136 (BECK) starts at 0.86 um, so no visible value | n/a | n/a | n/a | n/a | NOT REACHED |
-| Red organic-rich ice, Arrokoth surface (calibration target) | Hofgartner et al. 2020, arXiv:2003.01224: geometric albedo 0.21 (+0.05, -0.04) at 550 nm, 0.24 at 610 nm | n/a | 0.21 | 0.24 | n/a | READ |
+| Red organic-rich ice, Arrokoth surface (calibration target) | [R1970]: geometric albedo 0.21 (+0.05, -0.04) at 550 nm, 0.24 at 610 nm | n/a | 0.21 | 0.24 | n/a | READ |
 | Near-infrared types (J 1.1-1.4, H 1.5-1.8, K 2.0-2.4 um) | see table 2.2 | n/a | n/a | n/a | n/a | READ |
 
 Not reached: visible albedo of CO2, CH4, NH3, N2 and SO2 frosts; Mars bright dust (search snippets only: Pancam single-scattering albedo of outcrop about 0.9 and spherule soil about 0.6 at 753 nm, SNIPPET); tholin-like organics other than Arrokoth; pyrite and metal in the visible (Hu gives only the near infrared, table 2.2).
@@ -189,12 +189,12 @@ Grain-state effect (COMPUTED from the Paragas columns above, powder over slab, m
 
 | Item | Value | Source | Label |
 |---|---|---|---|
-| Model form | the unweathered fraction decays exponentially with time since the surface was refreshed (single-tau and dual-tau models) | Willman and Jedicke 2010, arXiv:1010.5847 | READ |
+| Model form | the unweathered fraction decays exponentially with time since the surface was refreshed (single-tau and dual-tau models) | [R4713] | READ |
 | Dual-tau characteristic times, S-complex asteroids | weathering 960 +/- 160 Myr, gardening 2000 +/- 290 Myr | same, quoting the earlier fit | READ |
 | Enhanced dual-tau fit | weathering 2050 +/- 80 Myr, gardening 4400 (+700) Myr | same | READ |
 | Spread of published timescales | 1 Myr to 1 Gyr for significant reddening | Marchi et al. as summarised in a search result | SNIPPET |
 | Direction of the effect | darkening and reddening of the spectral slope, from nanophase iron | search summary | SNIPPET |
-| Lab-to-regolith gap | lunar mean Bond albedo in the Hayne model is 0.12 (READ, Hayne 2017) against 0.15 to 0.74 for the lab powder means of 2.6 (basaltic andesite to felsic): weathered regolith is darker than fresh lab powder by a factor of about 1.3 to 6, depending on type. A Bond albedo and a lab reflectance factor are not the same quantity, so this is an order-of-magnitude guide only | Hayne 2017 and table 2.6 | COMPUTED |
+| Lab-to-regolith gap | lunar mean Bond albedo in the Hayne model is 0.12 [R1861] against 0.15 to 0.74 for the lab powder means of 2.6 (basaltic andesite to felsic): weathered regolith is darker than fresh lab powder by a factor of about 1.3 to 6, depending on type. A Bond albedo and a lab reflectance factor are not the same quantity, so this is an order-of-magnitude guide only | [R1861] and table 2.6 | COMPUTED |
 
 Parametrisation (mine, not from a paper): `A_band(t) = A_fresh * [1 - d * (1 - exp(-t_surface / tau_w))]` with `tau_w` drawn log-uniform in 1 to 2 Gyr and `d` drawn uniform in 0.3 to 0.7 for airless silicate regolith. The values of `d` and the exponent form are placeholders to fit against lunar and asteroid reflectance data (section 5).
 
@@ -202,7 +202,7 @@ Parametrisation (mine, not from a paper): `A_band(t) = A_fresh * [1 - d * (1 - e
 
 #### 2.8a Isotope constants and heat per kilogram
 
-Method (Dye 2012, arXiv:1111.6099, equation 6, READ): heat per kg of isotope `h = N_A * lambda * Qh / mu`, with `Qh` the heat released per decay after removing the neutrino energy. `Qh` and `mu` are from Dye's Table 2; half-lives are from the `radioactivedecay` 0.6.1 package (ICRP-107 data); my values reproduce Dye's table within 0.1 percent for U-238, U-235 and Th-232 and within 2.2 percent for K-40.
+Method ([R1203], equation 6, READ): heat per kg of isotope `h = N_A * lambda * Qh / mu`, with `Qh` the heat released per decay after removing the neutrino energy. `Qh` and `mu` are from Dye's Table 2; half-lives are from the `radioactivedecay` 0.6.1 package (ICRP-107 data); my values reproduce Dye's table within 0.1 percent for U-238, U-235 and Th-232 and within 2.2 percent for K-40.
 
 | Isotope | Half-life Gyr | Qh pJ (Dye Table 2) | h W/kg of isotope (Dye) | h W/kg (this work) | Label |
 |---|---|---|---|---|---|
@@ -222,21 +222,21 @@ Concentrations are ppm by mass. Heat is in pW/kg at the present isotopic mix (CO
 | Reservoir | K ppm | Th ppm | U ppm | Heat pW/kg | Th/U | Label |
 |---|---|---|---|---|---|---|
 | CI chondrite | 546 | 0.030 | 0.0081 | 3.5 | 3.70 | COMPUTED |
-| Bulk silicate Earth, Palme and O'Neill 2014 | 260 | 0.0849 | 0.0229 | 5.4 | 3.71 | COMPUTED |
+| Bulk silicate [R3417] | 260 | 0.0849 | 0.0229 | 5.4 | 3.71 | COMPUTED |
 | Bulk silicate Earth (pyrolite), McDonough and Sun 1995, via pyrolite `PY_McDonoughSun1995` | 240 | 0.0795 | 0.0203 | 4.9 | 3.92 | COMPUTED |
 | Bulk silicate Earth in the repo (Turcotte and Schubert) | 310 | 0.124 | 0.031 | 7.4 | 4.00 | COMPUTED |
-| Depleted mantle (Workman and Hart 2005) | 51 | 0.0079 | 0.0032 | 0.7 | 2.47 | COMPUTED |
+| Depleted mantle [R4775] | 51 | 0.0079 | 0.0032 | 0.7 | 2.47 | COMPUTED |
 | N-MORB | 1162 | 0.252 | 0.083 | 18.8 | 3.04 | COMPUTED |
 | Upper continental crust | 23244 | 10.5 | 2.7 | 622.6 | 3.89 | COMPUTED |
 | Middle continental crust | 19093 | 6.5 | 1.3 | 365.2 | 5.00 | COMPUTED |
 | Lower continental crust | 5064 | 1.2 | 0.2 | 68.8 | 6.00 | COMPUTED |
 | Bulk continental crust | 14943 | 5.6 | 1.3 | 327.1 | 4.31 | COMPUTED |
 
-Bulk silicate Earth totals for a bulk silicate mass of 4.03e24 kg (the mass Dye uses): Palme and O'Neill 21.7 TW, McDonough and Sun 19.8 TW, the repo values 29.8 TW (all COMPUTED). Dye's own ranges (Table 7, READ): chondritic-composition model 13 TW; cosmochemical model 11 to 21 TW (U 12 to 22 ng/g, Th 45 to 83, K 140 to 260 ug/g); geophysical model 19 to 38 TW (U 20 to 35, Th 77 to 135, K 240 to 420). Nimmo et al. 2020 (arXiv:2011.04791, READ) assume 260 ppm K, 23 ppb U, 85 ppb Th, giving 22 TW, of which about 15 TW sits in the mantle.
+Bulk silicate Earth totals for a bulk silicate mass of 4.03e24 kg (the mass Dye uses): Palme and O'Neill 21.7 TW, McDonough and Sun 19.8 TW, the repo values 29.8 TW (all COMPUTED). Dye's own ranges (Table 7, READ): chondritic-composition model 13 TW; cosmochemical model 11 to 21 TW (U 12 to 22 ng/g, Th 45 to 83, K 140 to 260 ug/g); geophysical model 19 to 38 TW (U 20 to 35, Th 77 to 135, K 240 to 420). [R3293] ([R3293], READ) assume 260 ppm K, 23 ppb U, 85 ppb Th, giving 22 TW, of which about 15 TW sits in the mantle.
 
 Refractory and volatile behaviour (COMPUTED from the table above): Th/U is the same in CI (3.70) and the bulk silicate Earth (3.71), so Th and U track each other. K/U is 67 407 in CI and 11 354 in the bulk silicate Earth, a depletion factor of 0.168: K is volatile and must be drawn separately from Th and U. Th and U are lithophile and refractory, so they follow Al, Ca and Ti; the bulk silicate Earth is enriched over CI by a factor of about 2.8 in Th (0.0849 over 0.030), the same factor that applies to Al2O3 (4.5 over 1.59, 2.8). Use that: Th and U in the silicate part scale with the refractory (Al) enrichment of the body.
 
-Condensation temperatures (50 percent, nebular pressure 1e-4 bar, from Lodders, Palme and Gail 2009, arXiv:0901.1149, Table 1, READ): Th 1659 K, Al 1653 K, U 1610 K, Ti 1582 K (all refractory, host phase hibonite or titanite); Na 958 K and Rb 800 K (moderately volatile). Potassium is not in the part of that table that could be read; its value of 1006 K is now READ in Lodders 2003 (feldspar, solar-system composition; see part H section 3.4). The ordering Th, U above Mg and Si (1354 K), and Na and K well below them, is the physical reason for the volatile K and the refractory Th and U. The solar and CI abundance tables of Asplund et al. 2009 (arXiv:0909.0948) were also downloaded; the paper states that its proto-solar values for radioactive nuclides come from Lodders, Palme and Gail 2009 (READ, text).
+Condensation temperatures (50 percent, nebular pressure 1e-4 bar, from [R2733: Table 1], READ): Th 1659 K, Al 1653 K, U 1610 K, Ti 1582 K (all refractory, host phase hibonite or titanite); Na 958 K and Rb 800 K (moderately volatile). Potassium is not in the part of that table that could be read; its value of 1006 K is now READ in [R2726] (feldspar, solar-system composition; see part H section 3.4). The ordering Th, U above Mg and Si (1354 K), and Na and K well below them, is the physical reason for the volatile K and the refractory Th and U. The solar and CI abundance tables of [R0169] were also downloaded; the paper states that its proto-solar values for radioactive nuclides come from [R2733] (READ, text).
 
 #### 2.8c Heat with time
 
@@ -257,14 +257,14 @@ Concentrations fixed to the Palme and O'Neill bulk silicate Earth at 4.567 Gyr; 
 
 Isotope fractions at formation (4.567 Gyr ago, COMPUTED): K-40/K 1.47e-3 (12.6 times today), U-235 24.3 percent of U (90 times today's U-235 amount), U-238 75.7 percent of U; Th-232 amount 1.25 times today's.
 
-Cross-checks: Nimmo et al. state heat production was 3.5 times higher about 4 Gyr ago (arXiv:2011.04791, READ); mine gives 3.67 at an age of 0.567 Gyr (COMPUTED), within 5 percent. Unterborn et al. 2015 (arXiv:1505.00280, READ) scale back to a formation heat of 51.6 TW against a present 16.4 TW (ratio 3.15); my U-plus-Th-only ratio is 3.45 (K-40 left out) and my total ratio is 4.98 (COMPUTED). The 10 percent gap against Unterborn's ratio is not explained and is listed in section 5; the large K-40 share at early times is real physics, so the generator should include K-40 for young bodies.
+Cross-checks: Nimmo et al. state heat production was 3.5 times higher about 4 Gyr ago ([R3293], READ); mine gives 3.67 at an age of 0.567 Gyr (COMPUTED), within 5 percent. [R4469] ([R4469], READ) scale back to a formation heat of 51.6 TW against a present 16.4 TW (ratio 3.15); my U-plus-Th-only ratio is 3.45 (K-40 left out) and my total ratio is 4.98 (COMPUTED). The 10 percent gap against Unterborn's ratio is not explained and is listed in section 5; the large K-40 share at early times is real physics, so the generator should include K-40 for young bodies.
 
 #### 2.8d Link to the star (agent A)
 
 | Statement | Value | Source | Label |
 |---|---|---|---|
-| Th abundance in Sun-like stars, relative to the Sun | 59 to 251 percent (log eps_Th); measured log eps_Th from -0.14 +/- 0.04 to 0.49 +/- 0.05 | Unterborn et al. 2015 (arXiv:1505.00280) abstract and results | READ |
-| Th and U relative to Mg between Sun-like stars | 30 to 300 percent of solar (Eu/Mg range -0.5 to +0.5 dex, 1 to 99 percent of the Hypatia catalogue; 10 to 90 percent range about -0.3 to +0.3 dex) | Nimmo et al. 2020 (arXiv:2011.04791) | READ |
+| Th abundance in Sun-like stars, relative to the Sun | 59 to 251 percent (log eps_Th); measured log eps_Th from -0.14 +/- 0.04 to 0.49 +/- 0.05 | [R4469] abstract and results | READ |
+| Th and U relative to Mg between Sun-like stars | 30 to 300 percent of solar (Eu/Mg range -0.5 to +0.5 dex, 1 to 99 percent of the Hypatia catalogue; 10 to 90 percent range about -0.3 to +0.3 dex) | [R3293] | READ |
 | Th and U are r-process products with star-to-star scatter, K is not | text | same | READ |
 | Eu/Mg decreases with stellar age by about 0.1 dex per 10 Gyr | text | same | READ |
 | Stellar Mg/Si scatter is only tens of percent | text | same | READ |
@@ -279,7 +279,7 @@ Formula (a derivation from the pieces above; all terms COMPUTED or READ):
 
 `f_i(t) = exp(lambda_i * (T_ref - t))` where `T_ref` is the age at which the concentrations `C` are quoted; `w_238 = 0.9928, w_235 = 0.0072` at present, so at age t the stored uranium splits by `exp` factors. `M_sil` is the mass of the part that carries the heat (bulk silicate: planet mass times (1 - core mass fraction) from part B). Mean surface flux from radiogenic heat: `q_rad = H / (4 pi R^2)`. Total flux: `q = q_rad / Ur`, with Ur the Urey ratio, so the remainder `q - q_rad` is secular cooling.
 
-Urey ratio targets (COMPUTED from Nimmo et al. 2020, READ): total surface heat flow 42 to 47 TW, bulk silicate radiogenic heat 22 TW, so the present Urey ratio is 0.47 to 0.52; they quote 35 to 40 TW when the crustal contribution is removed. Borexino geoneutrinos give a total of 38.2 (+13.6, -12.7) TW with a mantle part 24.6 (+11.1, -10.4) TW (same paper, READ). The repo's 0.67 is above all of these. Ur varies with age: young bodies have Ur well below 1 because secular cooling is large; the generator should draw it, not fix it (section 3).
+Urey ratio targets (COMPUTED from [R3293], READ): total surface heat flow 42 to 47 TW, bulk silicate radiogenic heat 22 TW, so the present Urey ratio is 0.47 to 0.52; they quote 35 to 40 TW when the crustal contribution is removed. Borexino geoneutrinos give a total of 38.2 (+13.6, -12.7) TW with a mantle part 24.6 (+11.1, -10.4) TW (same paper, READ). The repo's 0.67 is above all of these. Ur varies with age: young bodies have Ur well below 1 because secular cooling is large; the generator should draw it, not fix it (section 3).
 
 Worked example, an Earth-mass body with core mass fraction 0.325 (a worked example only, not a default): `M_sil = 0.675 * 5.97e24 kg`, Palme and O'Neill concentrations, `H = 21.7 TW`, `q_rad = 0.0426 W/m2` over `R = 6371 km`, `q = 0.091 W/m2` at Ur 0.47 (COMPUTED). The measured total of 42 to 47 TW over 5.1e14 m2 is 0.082 to 0.092 W/m2 (COMPUTED).
 
@@ -287,18 +287,18 @@ Worked example, an Earth-mass body with core mass fraction 0.325 (a worked examp
 
 | Item | Value | Source | Label |
 |---|---|---|---|
-| 26Al/27Al at formation (Solar System) | (5.23 +/- 0.13)e-5 | Lugaro et al. 2018, arXiv:1808.00233 Table 2 | READ |
-| Range explored | 0.1 to 10 times that value | Lichtenberg et al. 2019, arXiv:1902.04026 | READ |
-| Decay energy and mean life | E = 3.12 MeV, tau = 1.03 Myr | Lichtenberg 2019 Eq. 1 | READ |
-| Heat source law | `H = f_Al * (26Al/27Al)_0 * E / tau * exp(-t/tau)` | Lichtenberg 2019 Eq. 1 | READ |
-| Energy per decay: 26Al, 60Fe | 5.00e-6 and 4.16e-6 erg | Lugaro 2018 Table 4 | READ |
-| Total decay energy of 26Al in CI rock | 5.07e10 erg/g (5.07e6 J/kg) | Lugaro 2018 Table 4 | READ |
+| 26Al/27Al at formation (Solar System) | (5.23 +/- 0.13)e-5 | [R2768: Table 2] | READ |
+| Range explored | 0.1 to 10 times that value | [R2678] | READ |
+| Decay energy and mean life | E = 3.12 MeV, tau = 1.03 Myr | [R2678: Eq. 1] | READ |
+| Heat source law | `H = f_Al * (26Al/27Al)_0 * E / tau * exp(-t/tau)` | [R2678: Eq. 1] | READ |
+| Energy per decay: 26Al, 60Fe | 5.00e-6 and 4.16e-6 erg | [R2768: Table 4] | READ |
+| Total decay energy of 26Al in CI rock | 5.07e10 erg/g (5.07e6 J/kg) | [R2768: Table 4] | READ |
 | Same, recomputed (Al 0.84 weight percent, 5.23e-5) | 4.90e6 J/kg (3.4 percent below Lugaro) | my calculation | COMPUTED |
 | Initial power, CI Al, ratio 5.23e-5 | 1.51e-7 W/kg; 5.7e-8 at 1 Myr; 2.2e-8 at 2 Myr; 8.2e-9 at 3 Myr; 1.2e-9 at 5 Myr; 9.2e-12 at 10 Myr | my calculation | COMPUTED |
 | Initial power, bulk-silicate Al (2.38 weight percent), 5.23e-5 | 4.27e-7 W/kg (about 80 000 times today's long-lived heat 5.4e-12 W/kg) | my calculation | COMPUTED |
 | 26Al power falls below today's long-lived heat after about | 10 to 11 Myr (CI Al) | my calculation | COMPUTED |
-| 60Fe/56Fe at formation | (1.01 +/- 0.27)e-8 recommended; values 1e-7 to 1e-6 also reported | Lugaro 2018 Table 2 and text | READ |
-| Interstellar-medium 60Fe/56Fe from gamma-ray data | 0.8 to 13 e-7 | Lugaro 2018 text | READ |
+| 60Fe/56Fe at formation | (1.01 +/- 0.27)e-8 recommended; values 1e-7 to 1e-6 also reported | [R2768: Table 2] and text | READ |
+| Interstellar-medium 60Fe/56Fe from gamma-ray data | 0.8 to 13 e-7 | [R2768] text | READ |
 | 60Fe half-life | about 2.6 Myr; the `radioactivedecay` ICRP-107 value is 1.5 Myr and is outdated for this isotope | Lugaro text (2.6 Myr, SNIPPET in the search result for the same review); package value READ from the package | SNIPPET |
 | Total 60Fe energy at ratio 1e-8, CI Fe 18.66 weight percent | 8.4e3 J/kg (independent of the half-life); initial power 7.0e-11 W/kg with 2.62 Myr half-life (1.2e-10 with the package value) | my calculation | COMPUTED |
 
@@ -308,7 +308,7 @@ Consequences: the 26Al energy per kg is 600 times the 60Fe energy at the recomme
 
 #### 2.9a Ground gamma and radon
 
-Dose-rate conversion (air kerma per unit specific activity, infinite flat source, 1 m height, nGy/h per Bq/kg): K-40 0.042; U series 0.463; Th series 0.604, 0.042 / 0.444 / 0.592 (Malins and Machida 2015, arXiv:1501.04426 text, which also quotes Gasser's 0.036 / 0.357 / 0.482). Source: arXiv:1501.04426, READ.
+Dose-rate conversion (air kerma per unit specific activity, infinite flat source, 1 m height, nGy/h per Bq/kg): K-40 0.042; U series 0.463; Th series 0.604, 0.042 / 0.444 / 0.592 ([R2836] text, which also quotes Gasser's 0.036 / 0.357 / 0.482). Source: [R2836], READ.
 
 Specific activity per ppm of the element (COMPUTED with `radioactivedecay` half-lives, N_A and isotope abundances): U 12.35 Bq/kg per ppm (U-238 only; the series is assumed in equilibrium), Th 4.06 Bq/kg per ppm, K 316 Bq/kg per weight percent K (K-40 abundance 1.17e-4). Dose per ppm and per percent (Saito and Jacob factors, COMPUTED): U 5.72 nGy/h per ppm, Th 2.45 nGy/h per ppm, K 13.3 nGy/h per weight percent. With the Malins factors: U 5.48, Th 2.40.
 
@@ -330,7 +330,7 @@ The soil activities 33 / 45 / 420 Bq/kg were the UNSCEAR world means as RECALLED
 
 Radon: the repo adds a flat 0.5 mSv/yr above 1000 Pa. No source for radon dose per unit of uranium, emanation fraction or atmospheric mixing was reached (NOT REACHED). Radon in air scales with Ra-226 in the soil, so with U, and needs open soil and an atmosphere that holds radon; the rule in section 3 is a placeholder scaling.
 
-Effective dose quality factor: GCR absorbed dose and the repo's dose-equivalent anchors differ. The Moon anchor 500 mSv/yr against absorbed 80 to 99 mGy/yr in lunar orbit (RADOM 0.227 mGy/day at 100 km, 0.257 mGy/day at 200 km; CRaTER 0.22 to 0.27 mGy/day; all READ from Wimmer-Schweingruber et al. 2020, arXiv:2001.11028; conversion to per year COMPUTED) implies a quality factor near 5.5 (COMPUTED). The Mars anchor 237 mSv/yr against Dartnell's absorbed 62 mGy/yr at 16 g/cm2 implies 3.8 (COMPUTED). Both factors depend on the quality factors used and are noted, not fixed. An orbit dose is not a surface dose (the Moon hides part of the sky from an orbiter), so the lunar ratio is rough.
+Effective dose quality factor: GCR absorbed dose and the repo's dose-equivalent anchors differ. The Moon anchor 500 mSv/yr against absorbed 80 to 99 mGy/yr in lunar orbit (RADOM 0.227 mGy/day at 100 km, 0.257 mGy/day at 200 km; CRaTER 0.22 to 0.27 mGy/day; all READ from [R4718]; conversion to per year COMPUTED) implies a quality factor near 5.5 (COMPUTED). The Mars anchor 237 mSv/yr against Dartnell's absorbed 62 mGy/yr at 16 g/cm2 implies 3.8 (COMPUTED). Both factors depend on the quality factors used and are noted, not fixed. An orbit dose is not a surface dose (the Moon hides part of the sky from an orbiter), so the lunar ratio is rough.
 
 #### 2.9b Photon shielding
 
@@ -396,7 +396,7 @@ Nuclear interaction length lambda_I in g/cm2 (Particle Data Group atomic and nuc
 | Felsic (UCC oxides, same rule) | 101.1 | 0.891 | 0.998 | COMPUTED |
 | Ultramafic (DMM oxides, same rule) | 100.8 | 0.894 | 0.995 | COMPUTED |
 
-Two independent measures of how much a gram of material is worth in air-equivalent shielding. Nuclear: `lambda_air / lambda_material`. Ionisation: PSTAR range of air over the material's range at 30 to 1000 MeV (COMPUTED). Rock: 0.889 (nuclear) and 0.92 to 0.95 (ionisation). Water: 1.082 and 1.13 to 1.14. Iron: 0.682 and 0.73 to 0.80. Rock and water agree within 3 to 6 percent; iron within 7 to 17 percent, so iron needs an energy-dependent weight if it matters. Dartnell et al. 2007 (Biogeosciences 4, 545; PDF read) found the cosmic-ray dose-depth peak at 40 g/cm2 for both 1 and 3 g/cm3 dry regolith and at 30 g/cm2 for ice: a ratio of 0.75, against 0.82 from both lambda_I and PSTAR range (COMPUTED), a difference within the reading precision of a peak position.
+Two independent measures of how much a gram of material is worth in air-equivalent shielding. Nuclear: `lambda_air / lambda_material`. Ionisation: PSTAR range of air over the material's range at 30 to 1000 MeV (COMPUTED). Rock: 0.889 (nuclear) and 0.92 to 0.95 (ionisation). Water: 1.082 and 1.13 to 1.14. Iron: 0.682 and 0.73 to 0.80. Rock and water agree within 3 to 6 percent; iron within 7 to 17 percent, so iron needs an energy-dependent weight if it matters. [R0996] (Biogeosciences 4, 545; PDF read) found the cosmic-ray dose-depth peak at 40 g/cm2 for both 1 and 3 g/cm3 dry regolith and at 30 g/cm2 for ice: a ratio of 0.75, against 0.82 from both lambda_I and PSTAR range (COMPUTED), a difference within the reading precision of a peak position.
 
 Column rule (a derivation from the table above; the structure is Dartnell's finding that atmosphere and ground columns add as shielding depth, READ, and the weights are COMPUTED):
 
@@ -406,7 +406,7 @@ Column rule (a derivation from the table above; the structure is Dartnell's find
 
 | Fact | Value | Source | Label |
 |---|---|---|---|
-| Mars surface dose under 16 g/cm2 atmosphere, solar minimum, 3 g/cm3 dry dust | 6.2 cGy/yr; peak 6.6 cGy/yr at 40 g/cm2 ground depth (1.06 times) | Dartnell et al. 2007 | READ |
+| Mars surface dose under 16 g/cm2 atmosphere, solar minimum, 3 g/cm3 dry dust | 6.2 cGy/yr; peak 6.6 cGy/yr at 40 g/cm2 ground depth (1.06 times) | [R0996] | READ |
 | Other models | 20 cGy/yr peak at 25 g/cm2; 19.4 surface and 24.9 peak at 30 g/cm2; factor 3 between them | same | READ |
 | Peak depth for dry dust at 1 g/cm3 and regolith at 3 g/cm3 | both 40 g/cm2 | same | READ |
 | Peak depth for ice at 1 g/cm3 | 30 g/cm2 | same | READ |
@@ -426,7 +426,7 @@ The repo rules (2.1) cover dipole cutoff, heliosphere compression, flare-driven 
 
 Columns: `id, family, composition, molar_mass_g_mol, rho_grain_g_cm3, T_melt_K, T_boil_or_sub_K, T_triple_K, P_triple_bar, T_crit_K, P_crit_bar, H_fus_kJ_mol, H_vap_kJ_mol, H_sub_kJ_mol, H_fus_kJ_kg, lambda_I_g_cm2, debye_K, alb_040_050, alb_050_060, alb_060_070, owner, labels`.
 
-Notes: an empty cell means not reached or not applicable. `T_boil_or_sub_K` is the boiling point at 1 atm, or the sublimation point for CO2. `H_vap_kJ_mol` is at the normal boiling point except where the labels column says otherwise. `H_sub_kJ_mol` is at the temperature given in the source. `owner` is `ground` (this part) or `atmosphere` (gas rows are pointers: the atmosphere lane owns gas properties and these rows only supply phase data that the ground needs, such as frost and condensation limits). `labels` is `column=code` pairs separated by semicolons, codes: R = READ, H = 2ND-HAND, C = COMPUTED, S = SNIPPET, Q = RECALLED, N = NOT REACHED. A column absent from `labels` is empty. Sources: NIST WebBook pages for phase points and critical data (R); CRC Handbook tables in the `chemicals` 1.5.2 package for latent heats and normal boiling points (H); PDG for lambda_I (R); SLB 2011 via `burnman` for mineral density and Debye temperature (H); albedo from table 2.6 (C); molar mass from `periodictable` (C).
+Notes: an empty cell means not reached or not applicable. `T_boil_or_sub_K` is the boiling point at 1 atm, or the sublimation point for CO2. `H_vap_kJ_mol` is at the normal boiling point except where the labels column says otherwise. `H_sub_kJ_mol` is at the temperature given in the source. `owner` is `ground` (this part) or `atmosphere` (gas rows are pointers: the atmosphere lane owns gas properties and these rows only supply phase data that the ground needs, such as frost and condensation limits). `labels` is `column=code` pairs separated by semicolons, codes: R = READ, H = 2ND-HAND, C = COMPUTED, S = SNIPPET, Q = RECALLED, N = NOT REACHED. A column absent from `labels` is empty. Sources: NIST WebBook pages for phase points and critical data (R); CRC Handbook tables in the `chemicals` 1.5.2 package for latent heats and normal boiling points (H); PDG for lambda_I (R); [R4232] via `burnman` for mineral density and Debye temperature (H); albedo from table 2.6 (C); molar mass from `periodictable` (C).
 
 ```csv
 id,family,composition,molar_mass_g_mol,rho_grain_g_cm3,T_melt_K,T_boil_or_sub_K,T_triple_K,P_triple_bar,T_crit_K,P_crit_bar,H_fus_kJ_mol,H_vap_kJ_mol,H_sub_kJ_mol,H_fus_kJ_kg,lambda_I_g_cm2,debye_K,alb_040_050,alb_050_060,alb_060_070,owner,labels
@@ -484,9 +484,9 @@ CSV caveats: the rock rows `Tm` (1400 K, a solidus near 1100 to 1150 C) and `Hfu
 
 Route 1 (keep the drawn bulk figures, fill a composition that fits). The planet already has mass, radius and density and, once part B lands, a core mass fraction. Pick the ground type from rules (3.2), take the oxide model for that type from table 2.3, draw K, Th, U from the star (3.3) and compute heat, gamma and albedo from them. The oxide table is a choice among end-members, and the draw lives in the type choice and in a few perturbation parameters (mantle FeO and alkali shift, Th/U offset, K depletion).
 
-Route 2 (build up from the basic abundances). Take the star's Mg, Si, Fe, Al, Ca, Na, K, Th, U (part A), form a mantle mineralogy and run a melting model to get the crust composition (Guimond 2024 describes the thermodynamic approach). Then heat, gamma and albedo follow from the computed crust.
+Route 2 (build up from the basic abundances). Take the star's Mg, Si, Fe, Al, Ca, Na, K, Th, U (part A), form a mantle mineralogy and run a melting model to get the crust composition ([R1719] describes the thermodynamic approach). Then heat, gamma and albedo follow from the computed crust.
 
-Recommendation: Route 1 for the ground, with a Route 2 hook for the K, Th, U and Al inputs. Reasons: (a) the melt models are reliable only for Earth-like mantles (Guimond 2024, READ); (b) a full melting calculation per body is far heavier than anything else in the pipeline and gives a result that cannot be tested outside the Solar System; (c) the end-member table (2.3) already spans the range between ultramafic (almost no heat) and felsic (heat producers 100 times richer); (d) what the later radiation and heat calculations need from the crust is only four numbers (K, Th, U, mean oxide set for the shielding mass coefficient), which Route 1 gives. Keep the interface so that part B's mantle composition can move the end-member oxides (more FeO gives lower Mg#, more alkali shifts the solidus) without a change in the ground code.
+Recommendation: Route 1 for the ground, with a Route 2 hook for the K, Th, U and Al inputs. Reasons: (a) the melt models are reliable only for Earth-like mantles ([R1719], READ); (b) a full melting calculation per body is far heavier than anything else in the pipeline and gives a result that cannot be tested outside the Solar System; (c) the end-member table (2.3) already spans the range between ultramafic (almost no heat) and felsic (heat producers 100 times richer); (d) what the later radiation and heat calculations need from the crust is only four numbers (K, Th, U, mean oxide set for the shielding mass coefficient), which Route 1 gives. Keep the interface so that part B's mantle composition can move the end-member oxides (more FeO gives lower Mg#, more alkali shifts the solidus) without a change in the ground code.
 
 ### 3.2 Choosing the ground type (decision rules)
 
@@ -495,7 +495,7 @@ Inputs already stored: mass, radius, density, [Fe/H], age, surface temperature, 
 1. Body without a solid surface (gas or ice giant): no ground, every field empty.
 2. Ice-dominated surface (parts C and D give ice mass fraction above rock in the outer layer, and surface temperature is below the ice stability limit: below 220 K in vacuum per the repo; below 273 K under an atmosphere): ground type `ice`, with species from the ice inventory (water first, then CO2, NH3, CH4, N2 by condensation temperature at the body's surface temperature, from the phase data of 2.10). Albedo from the ice rows with a dust-and-organics darkening draw.
 3. Silicate body. Primary crust from magma-ocean solidification: ultramafic if mantle overturn happened, feldspathic or anorthositic if not (Hu 2012). The overturn rule is a parametrisation: draw `overturn` with a probability tied to mantle FeO (more FeO means denser late cumulates and overturn) and not to a fixed threshold; the plagioclase-flotation pressure limit is RECALLED and listed in section 5. Primary crust is kept only on bodies with no later volcanism.
-4. Secondary crust, basaltic: present if the body was convecting and melting; with the stored `internal_heat_flux_w_m2` and age, require the flux above a floor `q_min` (parametrisation; log-uniform draw 1e-4 to 1e-3 W/m2 to be tuned, not a published value). Decompression melting works in any convecting mantle (Guimond 2024), so the floor is a convenience.
+4. Secondary crust, basaltic: present if the body was convecting and melting; with the stored `internal_heat_flux_w_m2` and age, require the flux above a floor `q_min` (parametrisation; log-uniform draw 1e-4 to 1e-3 W/m2 to be tuned, not a published value). Decompression melting works in any convecting mantle [R1719], so the floor is a convenience.
 5. Tertiary crust, granitoid: needs tectonic reprocessing with water (Hu 2012). Draw it with the existing `mobile_lid_chance`; the areal fraction `f_felsic` is a uniform draw in 0 to 0.5 (parametrisation) when the lid is mobile, 0 otherwise.
 6. Modifications of the dominant silicate crust, each an areal fraction: clay if liquid water ever existed on the surface (ocean flag or past ocean), Fe-oxidised if the atmosphere is oxidising (O2 partial pressure above the repo's ozone floor 0.02 kPa) or if the surface carries water-vapour photolysis products, evaporite only where a dried basin is likely (small areal fraction).
 7. Special: sulfur and SO2 frost if tidal heating exceeds the radiogenic flux and the part D composition carries sulfur; carbon-rich crust (graphite or carbide) only if the star's C/O is above a threshold from part A (rule NOT REACHED; threshold in section 5).
@@ -508,8 +508,8 @@ Draws (all seeded, in this order is not required):
 
 1. `x_Th`: normal with sigma 0.22 dex, truncated to +/- 0.5 dex, giving the Th and U offset relative to Mg (2.8d). If part A stores a proper [Th/Mg] or [Eu/Mg] from a real catalogue, use that and skip this draw.
 2. `C_Th0`, `C_U0` (concentrations at formation in the silicate part): reference at formation = reference bulk silicate Earth values multiplied by `exp(lambda * 4.567)` (Th 1.253, U-238 2.031, U-235 89.7) and by `10^x_Th`, and by the refractory enrichment of the body (Al2O3 of the chosen composition over the bulk silicate Earth's 4.5, per 2.8b).
-3. `C_K0`: from the K depletion factor `d_K` against the Th/U track: `K/U` at the body = 67 407 (CI value) times `d_K`, with `d_K` drawn log-uniform between 0.03 and 1 (parametrisation; the Earth value 0.168 lies inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies stated by Nimmo et al. 2020, READ, not a measured spread).
-4. `Al0` ratio: log-uniform 0.1 to 10 times 5.23e-5 (Lichtenberg 2019, READ), applied only to bodies whose accretion time is a few Myr (parametrisation).
+3. `C_K0`: from the K depletion factor `d_K` against the Th/U track: `K/U` at the body = 67 407 (CI value) times `d_K`, with `d_K` drawn log-uniform between 0.03 and 1 (parametrisation; the Earth value 0.168 lies inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies stated by [R3293], READ, not a measured spread).
+4. `Al0` ratio: log-uniform 0.1 to 10 times 5.23e-5 ([R2678], READ), applied only to bodies whose accretion time is a few Myr (parametrisation).
 5. `Ur(t)`: draw or compute from `q_total` and `q_rad`: since total flux is `q_rad + q_cool`, store `q_cool` from the planet's thermal history if part B supplies it; else `Ur = 0.47` at 4.567 Gyr scaled by `H(t)/H(4.567)` is a rough placeholder. Do not use 0.67.
 
 Heat: `H(t) = M_sil * sum_i C_i * h_i * f_i(t)` (2.8e) with `t` equal to the body's age. If the body is a rogue planet use the rogue age. Surface radiogenic flux `q_rad = H / (4 pi R^2)`. The crust holds a fraction of the heat producers; for the ground dose only the crust matters (3.4), and for the mantle heat subtract the crust inventory: `H_mantle = H - H_crust` with `H_crust` from the crust mass and its enrichment (continental crust of the bulk silicate Earth holds about 40 percent of Th and U; this share is RECALLED, check section 5).
@@ -556,20 +556,20 @@ Measured bodies, used only to check the laws, never as presets.
 | Target | Value | Source | Used for | Label |
 |---|---|---|---|---|
 | Bulk silicate Earth heat at 4.567 Gyr | 21.7 TW (Palme and O'Neill), 19.8 TW (McDonough and Sun); tolerance +/- 5 percent of the chosen model | table 2.8b | heat formula check | COMPUTED |
-| Earth radiogenic heat | about 22 TW total, about 15 TW in the mantle (Nimmo 2020 via O'Neill 2020b) | arXiv:2011.04791 | order of magnitude | READ |
-| Earth total heat flow | 42 to 47 TW | arXiv:2011.04791 | Urey ratio check 0.47 to 0.52 | READ |
-| Geoneutrino total | 38.2 (+13.6, -12.7) TW | arXiv:2011.04791 | broad check | READ |
-| Heat production 4 Gyr ago against present | 3.5 times | arXiv:2011.04791 | time evolution; mine 3.67 | READ |
-| Lunar interior heat flow | 0.018 W/m2 | arXiv:1711.00977 | low-Th smaller body | READ |
-| Lunar regolith density, conductivity, inertia | 1100 and 1800 kg/m3; 7.4e-4 and 3.4e-3 W/m/K; I = 36.6 to 100 (at 273 K) | arXiv:1711.00977 and table 2.4 | regolith law | READ |
-| Mars dose under 16 g/cm2 | 6.2 cGy/yr absorbed, peak 6.6 at 40 g/cm2 | Dartnell 2007 | dose-depth shape | READ |
-| Lunar orbit absorbed dose | 0.22 to 0.27 mGy/day | arXiv:2001.11028 | free-space GCR | READ |
-| Arrokoth geometric albedo | 0.21 (550 nm), 0.24 (610 nm) | arXiv:2003.01224 | dark red ice | READ |
+| Earth radiogenic heat | about 22 TW total, about 15 TW in the mantle ([R3293] via [R3363]) | [R3293] | order of magnitude | READ |
+| Earth total heat flow | 42 to 47 TW | [R3293] | Urey ratio check 0.47 to 0.52 | READ |
+| Geoneutrino total | 38.2 (+13.6, -12.7) TW | [R3293] | broad check | READ |
+| Heat production 4 Gyr ago against present | 3.5 times | [R3293] | time evolution; mine 3.67 | READ |
+| Lunar interior heat flow | 0.018 W/m2 | [R1861] | low-Th smaller body | READ |
+| Lunar regolith density, conductivity, inertia | 1100 and 1800 kg/m3; 7.4e-4 and 3.4e-3 W/m/K; I = 36.6 to 100 (at 273 K) | [R1861] and table 2.4 | regolith law | READ |
+| Mars dose under 16 g/cm2 | 6.2 cGy/yr absorbed, peak 6.6 at 40 g/cm2 | [R0996] | dose-depth shape | READ |
+| Lunar orbit absorbed dose | 0.22 to 0.27 mGy/day | [R4718] | free-space GCR | READ |
+| Arrokoth geometric albedo | 0.21 (550 nm), 0.24 (610 nm) | [R1970] | dark red ice | READ |
 | World soil gamma | 60 nGy/h (from 33 / 45 / 420 Bq/kg; UNSCEAR 2008 gives 33 / 45 / 412 and 58 nGy/h outdoors) | activities now READ (part H) | gamma conversion | COMPUTED |
 | Proton range | PSTAR table 2.9c | NIST PSTAR | stopping | READ |
 | Elemental ratios of chondrites | K/U 67 407 (CI) and 11 354 (BSE); Th/U 3.7 | table 2.8b | refractory/volatile rule | COMPUTED |
 | Asteroid heat sources | Al-26 plus long-lived heat of chondrites | part D section 2.5 | cross-check with D | READ |
-| Space weathering timescale | 960 to 2050 Myr | arXiv:1010.5847 | `tau_w` draw range | READ |
+| Space weathering timescale | 960 to 2050 Myr | [R4713] | `tau_w` draw range | READ |
 
 ## 5. Gaps
 
@@ -577,18 +577,18 @@ Measured bodies, used only to check the laws, never as presets.
 
 Ranked by effect on the design.
 
-1. A K depletion survey for rocky bodies: Lodders 2003, ApJ 591, 1220 (the IOP page opened but only the abstract; the K condensation temperature of 1006 K is RECALLED). Gives the distribution of `d_K`.
-2. Original geochemical references behind publisher walls, to turn the pyrolite-package numbers (2ND-HAND) into READ: Palme and O'Neill 2014 (Treatise on Geochemistry 3.1, Elsevier), Rudnick and Gao 2014 (Treatise 4.1), McDonough and Sun 1995 (Chem. Geol. 120, 223), Gale et al. 2013 (Geochem. Geophys. Geosyst. 14, 489, AGU), Workman and Hart 2005 (EPSL 231, 53). Elsevier and AGU pages were refused.
+1. A K depletion survey for rocky bodies: [R2726] (the IOP page opened but only the abstract; the K condensation temperature of 1006 K is RECALLED). Gives the distribution of `d_K`.
+2. Original geochemical references behind publisher walls, to turn the pyrolite-package numbers (2ND-HAND) into READ: [R3417] (Treatise on Geochemistry 3.1, Elsevier), [R3842] (Treatise 4.1), McDonough and Sun 1995 (Chem. Geol. 120, 223), [R1494] (Geochem. Geophys. Geosyst. 14, 489, AGU), [R4775]. Elsevier and AGU pages were refused.
 3. Komatiite, Mars, Venus and lunar crust oxide tables: Taylor and McLennan), Wanke and Dreibus on Martian soil, Arndt on komatiite; each would give a calibration row.
 4. Radon: UNSCEAR 2008 Annex B (Ra-226 to radon emanation, indoor and outdoor dose, soil Ra-226 activities) to replace the flat 0.5 mSv/yr and the 33 / 45 / 420 Bq/kg world soil means. Done in part of GEN.465 (part H section 3.3): the soil means are READ, indoor radon is log-normal with geometric mean 45 Bq/m3 and GSD 2.1; the radon emanation fraction from soil Ra-226 is still not found.
 5. Ground-depth dose profile for non-Mars cases: Geant4 or published dose-depth curves for the Moon and thick atmospheres (Dartnell's Fig. 6 data digitised; Schwadron, Wilson or Dartnell follow-ups). Gives the build-up amplitude and Lambda in the ground.
 6. Space weathering darkening amplitude (the `d` in 2.7) per mineral type: Hapke-type models and lunar sample reflectance (Pieters et al.; Lucey), and the fresh-to-weathered ratio for anorthositic, basaltic and ultramafic regolith.
 7. Visible reflectance of CO2, CH4, NH3, N2, SO2 and tholin frosts and of Mars dust, with grain-size dependence (Grundy and Fink; Cruikshank; Mars Pancam dust papers behind publishers).
 8. Debye temperatures and specific heats of water ice, CO2, CH4, NH3, N2, SO2, S and iron (CRC Handbook or Giauque tables), and densities of the solid ices; liquidus and solidus of basalt, peridotite and iron-sulfur at 1 atm, with latent heats (NIST has only pure compounds).
-9. The Th/U heat-production time curve discrepancy against Unterborn et al. 2015 (their 51.6 TW at formation against my 62 TW without K-40, and 108 TW with it); their Methods (not just the text read) would resolve whether they exclude K-40.
-10. Conversion from lab reflectance to geometric and Bond albedo for particulate surfaces (Hapke 2012 book or an arXiv equivalent).
-11. Original SLB 2011 paper (Stixrude and Lithgow-Bertelloni, Geophys. J. Int. 184, 1180; Oxford Academic refused); the parameters used here were read from open-source code that cites it.
-12. Plagioclase-flotation depth/pressure limit and mantle overturn criterion for magma-ocean crusts (Elkins-Tanton 2005 and later).
+9. The Th/U heat-production time curve discrepancy against [R4469] (their 51.6 TW at formation against my 62 TW without K-40, and 108 TW with it); their Methods (not just the text read) would resolve whether they exclude K-40.
+10. Conversion from lab reflectance to geometric and Bond albedo for particulate surfaces ([R1806] book or an arXiv equivalent).
+11. Origin[R4232] paper (Stixrude and Lithgow-Bertelloni, Geophys. J. Int. 184, 1180; Oxford Academic refused); the parameters used here were read from open-source code that cites it.
+12. Plagioclase-flotation depth/pressure limit and mantle overturn criterion for magma-ocean crusts ([R1247] and later).
 
 ### To verify (RECALLED items), ranked
 
@@ -597,7 +597,7 @@ Ranked by effect on the design.
 3. Sulfur melting point 388.4 K, iron melting point 1811 K, iron enthalpy of vaporisation 340 kJ/mol, SO2 enthalpy of fusion 7.4 kJ/mol.
 4. Dose-equivalent factor 0.7 Sv/Gy and the UNSCEAR 0.48 mSv/yr total terrestrial dose (it explains the repo's `GROUND_MSV_YR`).
 5. World soil means 33 / 45 / 420 Bq/kg.
-6. Condensation temperature of K, 1006 K (Th, U, Na are READ in 2.8b). Now READ in Lodders 2003 (part H section 3.4).
+6. Condensation temperature of K, 1006 K (Th, U, Na are READ in 2.8b). Now READ in [R2726] (part H section 3.4).
 7. Calorimetric Cp of forsterite near 300 K (about 840 J/kg/K) used to state the Debye overestimate.
 8. Continental crust holds about 40 percent of Th and U of the bulk silicate Earth.
 9. Gas phase data values in the CSV that are marked H come from CRC files read in the `chemicals` package; a few (CO Hvap, Ar Hvap, H2 Hvap) were not cross-checked with NIST.

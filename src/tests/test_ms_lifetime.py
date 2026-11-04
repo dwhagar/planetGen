@@ -1,7 +1,7 @@
 # tests/test_ms_lifetime.py
 
 """
-GEN.467: the main-sequence lifetime of `physics/ms_lifetime.py`, the fit of Hurley, Pols and Tout 2000 in place of the
+GEN.467: the main-sequence lifetime of `physics/ms_lifetime.py`, the fit of [R2055] in place of the
 `10 Gy * M^-2.5` law: the published scale of its Table 1, the metallicity dependence, the inverse the companion
 draws use, and the places that read it.
 """

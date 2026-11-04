@@ -9,7 +9,7 @@ structure that let the hypergiant constant drift ~9 orders of magnitude out
 of calibration unnoticed earlier this session. They're now one formula:
 the empirical fit, Mdot = 9.63e-15 * L^1.42 * M^0.16 * R^0.81
 (L, M, R in solar units), with a literature-cited 10x correction above
-log(L/Lsun) > 5 (Mauron & Josselin 2011).
+log(L/Lsun) > 5 [R2958].
 
 These tests use fixed, hand-computed inputs (not the randomized star
 generator) so the underlying mass-loss rate can be inverted from the
@@ -106,7 +106,7 @@ def test_ordinary_red_giant_mass_loss_is_much_weaker_than_supergiant():
 
 def test_high_luminosity_correction_only_applies_above_threshold():
     """
-    The Mauron & Josselin (2011) 10x correction should produce a visible
+    The [R2958] 10x correction should produce a visible
     downward kink in Mdot (and therefore heliosphere) right at the
     log(L/Lsun) > 5 threshold, holding mass/radius/Teff fixed.
     """

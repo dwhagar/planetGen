@@ -20,11 +20,11 @@ Inputs: the gap-filling plan and its registry, the boss-papers report ("still op
 
 ## 1. What most needs Boss
 
-1. **Giant-planet visible absorption (AD1, GEN.422, atmosphere colour).** The project names Karkoschka and Tomasko 2010 [KT10] and Karkoschka 1994 [Kar94] (both paid) as the sources of the visible methane and ammonia band strengths. The free line lists do not reach the visible: the HITEMP methane list covers 0 to 13,400 cm-1, which is wavelengths longer than 746 nm [Har20] (COMPUTED from the abstract: 619 nm is 16,155 cm-1 and 727 nm is 13,755 cm-1, both outside). Fitting the bands to the giants' own albedo would tune to the Solar System (the NO FIXED CONTENT rule). This is the gap with no free route that I found, and it is the one that most limits the colour of the giant planets.
-2. **Lodders 2003 [Lod03] (BC1, GEN.468).** The free copy is behind a captcha from this container, so a person has to fetch it. The water-share fill is derived and reproduces the 0.14 to 0.39 bracket, so nothing is blocked; the paper would add the condensation temperatures and check the derivation.
+1. **Giant-planet visible absorption (AD1, GEN.422, atmosphere colour).** The project names [R2265] [KT10] and [R2258] [Kar94] (both paid) as the sources of the visible methane and ammonia band strengths. The free line lists do not reach the visible: the HITEMP methane list covers 0 to 13,400 cm-1, which is wavelengths longer than 746 nm [Har20] (COMPUTED from the abstract: 619 nm is 16,155 cm-1 and 727 nm is 13,755 cm-1, both outside). Fitting the bands to the giants' own albedo would tune to the Solar System (the NO FIXED CONTENT rule). This is the gap with no free route that I found, and it is the one that most limits the colour of the giant planets.
+2. **[R2726] [Lod03] (BC1, GEN.468).** The free copy is behind a captcha from this container, so a person has to fetch it. The water-share fill is derived and reproduces the 0.14 to 0.39 bracket, so nothing is blocked; the paper would add the condensation temperatures and check the derivation.
 3. **"Most permission take wins" is settled.** Boss chose "widest range" by card at 1:12 PM EDT. The one place it changes an outcome today is the halo scatter (Dragonfly 1.01 dex against Harmsen 0.33 dex): under M the widest, 1.01, applies (section 5, item 8).
-4. **Closed since the plan, no file needed any more.** BC13 (radiation weights and dose limits) is readable from the free IAEA GSR Part 3 [IAEA14]: only the neutron weighting function is missing. AD4 for SO2 and H2S no longer needs Bogaard 1978 [Bog78] if the project computes the cross section from polarizability and anisotropy (row AD4); the paper would only check it.
-5. **Three citations in the project files look wrong** and are worth correcting before anyone builds on them (section 5, items 1, 3 and 5): "Renzini 1997" is Buzzoni 1997; "Yu and Ho 2018" for the bulge result is probably Yu and Ho 2019; and the fO2 buffer must not be cited to O'Neill and Eggins 2002.
+4. **Closed since the plan, no file needed any more.** BC13 (radiation weights and dose limits) is readable from the free IAEA GSR Part 3 [IAEA14]: only the neutron weighting function is missing. AD4 for SO2 and H2S no longer needs [R0443] [Bog78] if the project computes the cross section from polarizability and anisotropy (row AD4); the paper would only check it.
+5. **Three citations in the project files look wrong** and are worth correcting before anyone builds on them (section 5, items 1, 3 and 5): "[R3734]" is [R0618]; "Yu and Ho 2018" for the bulge result is probably Yu and Ho 2019; and the fO2 buffer must not be cited to [R3365].
 
 ## 2. Twelve laws that cover most of the rows
 
@@ -122,7 +122,7 @@ Counts: galaxy 16 rows, stars 11, bodies and composition 18, atmosphere and colo
 | **AD7** (GEN.471, 491) Sulfuric acid and water: acid vapour pressure and brines | Acid pressure over a solution = mole fraction x activity coefficient x pure-acid pressure, activities from [Zel91]; water pressure from [Tab97] Eq. 1 and Table 1 (185 to 260 K, read) | [Aye80] (paid) for pure acid; [KL90] form is in the files; [Gia60]; E-AIM [WC02] (not reachable from this container) | B: 10 percent in log pressure (P). Quality: good for the water side, weak for the acid side | V. Printing faults: [Tab97] Table 2 is discontinuous at water activity 0.05 and 0.85; [Zel91] Eqs 11 and 12 have a sign and an index fault |
 | **AD8** (GEN.496, 501) Photochemistry rates (JPL 19-5 not in hand) | L12: Troe falloff, Arrhenius, photolysis integrals | [Atk04] IUPAC datasheets (reachable); NIST kinetics (reachable); [KR13]; [Hea17]; [HM15]; [JPL19] (U); UMIST [Mil24] and KIDA [Wak12] are not reachable from this container | B: factor 2 (P), downloaded at build time. Quality: fair | V |
 | **AT.a1, a2 (T8)** Mantle redox against mass; the later-mantle law | L9: delta IW = 2 log10(a_FeO/a_Fe); ideal-solution limit gives -2.5 to -1.6 for FeO 5 to 15 mole percent (plan 4.8); the 22 white-dwarf values give -1.25 +- 0.10 [Doy20] [Doy23] | [Hir21] (IW calibration); [Fro91]; [Sos20]; [Gai22]; [GS14]; [Hir12]; MELTS (reachable); GEOROC | D: identity with the white-dwarf zero point. Quality: fair at the small-body end; the Earth end and slope are Solar System only (weak) | V (Figure 2 of the Gaillard paper in Boss's upload, about FMQ-2.75, wins over its text's FMQ-2 +- 0.5; the report identifies it as [Gai22]). The white-dwarf scale (core formation) differs from the surface magma-ocean scale and needs a conversion test |
-| **AT.b4** Water-rich share (published shares run from at most 3 percent to 87 percent by formation model) | Water delivered by migration from beyond the snow line: logistic in mass, centre 6.1 Earth masses, slope 6.3 per dex (COMPUTED by the tunable-gaps lane from NGPPS) [Ems21]; density modes [LP22] | [Ems21]; DACE and NASA Exoplanet Archive (reachable); the NGPPS Zenodo record is not reachable from this container | T: uniform 0 to 0.87 (P). Quality: weak | Two papers disagree (Rogers 2025, at most 3 percent; Chakrabarty 2026, 59 percent water-rich; neither opened here, U). If verified, N takes the 2026 paper and M the union (today's bracket) |
+| **AT.b4** Water-rich share (published shares run from at most 3 percent to 87 percent by formation model) | Water delivered by migration from beyond the snow line: logistic in mass, centre 6.1 Earth masses, slope 6.3 per dex (COMPUTED by the tunable-gaps lane from NGPPS) [Ems21]; density modes [LP22] | [Ems21]; DACE and NASA Exoplanet Archive (reachable); the NGPPS Zenodo record is not reachable from this container | T: uniform 0 to 0.87 (P). Quality: weak | Two papers disagree ([R3801], at most 3 percent; [R0715], 59 percent water-rich; neither opened here, U). If verified, N takes the 2026 paper and M the union (today's bracket) |
 | **AT.b5** Sub-percent water fraction | No ensemble measures it | none | P: log-uniform (Decided placeholder). Quality: weak | M and Decided |
 | **AT.n7** Haze yield | Haze mass production rate = yield x methane photolysis rate (inference); laboratory rates span 250 times [Hor18]; Titan [Tra06] | [Hor18]; [Tra06]; [AM01]; [Roo22] (virga) | P: log-uniform (Decided placeholder). Quality: weak | M and Decided |
 | **AT.j2, j3, j4** Mars-, Titan- and Pluto-like occurrence | These are outputs of escape and retention, not a separate frequency: atmosphere kept above a line in escape velocity and flux (cosmic shoreline) [ZC17], fitted logistically [BT25] and with slope 5.77 [MG25] | [ZC17]; [BT25]; [MG25]; [CK17] | T: derive from inventory, escape and vapour pressure; leftover prior [0, 1] flagged. Quality: weak | V (both 2025 fits beat the 13-body repo window). The two fits are the same year; the lane chose [BT25] |
@@ -183,13 +183,13 @@ Also open and listed above: AD5 (energetic particle spectra and shower runs, in 
 
 **Errors in the project's own records** (a fix for the TODO thread; each was checked in Crossref or arXiv on 2026-10-17):
 
-1. **"Renzini 1997" (astro-ph/9711072) is Buzzoni 1997**, single author, Evolutionary population synthesis models of primeval galaxies: a critical appraisal [Bu97]. Rule V (the paper read shows the author).
-2. **Evolutionary flux 2.2e-11** is attributed to Renzini and Buzzoni 1986 [RB86], which was not opened. Buzzoni 1997 [Bu97] (read here) gives B = 1.7 +- 0.4e-11 per solar luminosity per year, and the stellar-tables check found the same from [Bu89]. V gives 1.7; N gives 1.7 (the read paper is newer); M would keep 2.2 inside a wider band. Recommendation under the rules as Boss gave them: 1.7.
+1. **"[R3734]" (astro-ph/9711072) is [R0618]**, single author, Evolutionary population synthesis models of primeval galaxies: a critical appraisal [Bu97]. Rule V (the paper read shows the author).
+2. **Evolutionary flux 2.2e-11** is attributed to [R3735] [RB86], which was not opened. [R0618] [Bu97] (read here) gives B = 1.7 +- 0.4e-11 per solar luminosity per year, and the stellar-tables check found the same from [Bu89]. V gives 1.7; N gives 1.7 (the read paper is newer); M would keep 2.2 inside a wider band. Recommendation under the rules as Boss gave them: 1.7.
 3. **"Yu and Ho 2018" for the bulge and pitch-angle result (GX2)** is probably Yu and Ho 2019 [YH19] (On the connection between spiral arm pitch angle and galaxy properties, ApJ 871, 194). [YH18] (ApJ 869, 29) is about the wavelength dependence of the pitch angle.
-4. **"Hart 2017"** can be either of two papers (MNRAS 468, 1850 and MNRAS 472, 2263 [Har17b]); the notes should name the one that holds the pitch and bulge result.
+4. **"[R1836]"** can be either of two papers (MNRAS 468, 1850 and MNRAS 472, 2263 [Har17b]); the notes should name the one that holds the pitch and bulge result.
 5. **The fO2 buffer.** [OE02] concerns activity coefficients of FeO, NiO, CoO and Mo oxides in silicate melts (by its title). The iron-wuestite calibration is [Hir21]; [Fro91] is the introduction to oxygen fugacity.
 6. **Badhwar and O'Neill** exist as two papers, 1994 [BO94] (Long-term modulation of galactic cosmic radiation, Adv. Space Res. 14, 749) and 1996 [BO96] (Galactic cosmic radiation model and its applications, Adv. Space Res. 17, 7). The notes should name which one the code follows.
-7. **Plotnykov.** The slope 0.94 (+1.02/-1.07) is [PV26] (the 2025 preprint arXiv:2511.17717), not [PV20].
+7. **Plotnykov.** The slope 0.94 (+1.02/-1.07) is [PV26] (the 2025 preprint [R3546]), not [PV20].
 
 **Source against source** (V, N and M applied; the six "widen, keep both" answers stand and are not repeated):
 
@@ -201,12 +201,12 @@ Also open and listed above: AD5 (energetic particle spectra and shower runs, in 
 | 11 | Moon ice fraction: [Sas10] against [Cil18] | no decision | [Cil18] | the 0.5 to 0.85 bracket (today's) | Not decided |
 | 12 | Planet-star Fe/Mg slope: [PV20] against [PV26] | no decision | [PV26] | widest | Not decided |
 | 13 | Dwarf stellar-to-halo scatter: [Fit17] 0.5 dex against [Nad20] under 0.19 dex | no decision | [Nad20] | uniform 0.19 to 0.5 (today's) | Already the M outcome |
-| 14 | Water-rich share: Rogers 2025 (at most 3 percent) against Chakrabarty 2026 (59 percent) (U) | open until read | 2026 paper | 0 to 0.87 (today's) | Both papers unverified here |
+| 14 | Water-rich share: [R3801] (at most 3 percent) against [R0715] (59 percent) (U) | open until read | 2026 paper | 0 to 0.87 (today's) | Both papers unverified here |
 | 15 | Palme and O'Neill: 2003 edition values (read) against 2014 values quoted second-hand | 2003 | 2014 if opened and verified | wider | Open until the 2014 edition is read |
 | 16 | Rossby saturation thresholds of different authors | Wright's, read by the lane; never mixed | | | Keep one author's pair of numbers |
 | 17 | Rock fraction of Kuiper Belt objects: rising with size against constant 70 percent with porosity | no decision | dates not recorded | today's draw | Not decided |
 
-**The twelve paper-against-project contradictions** of boss-papers section 3 (ice compaction reference pressure, Palme and O'Neill 2014 Th and U, mantle parameter set, "IPCC 1990" labels, generic Rayleigh error, Earth optical depth 0.0969 against 0.09721, Tabazadeh as an acid source, comet NH3 bound, constant 0.54 dispersion ratio, Wolff tables, Gaillard FMQ range, Mars column) are all decided by V: the paper wins and both values stay in the record. N and M do not apply because one side is a project value or a second-hand value, not a verified source. The 16 Gemini claims contradicted by a read source are also V: the verified figure wins.
+**The twelve paper-against-project contradictions** of boss-papers section 3 (ice compaction reference pressure, [R3417] Th and U, mantle parameter set, "IPCC 1990" labels, generic Rayleigh error, Earth optical depth 0.0969 against 0.09721, Tabazadeh as an acid source, comet NH3 bound, constant 0.54 dispersion ratio, Wolff tables, Gaillard FMQ range, Mars column) are all decided by V: the paper wins and both values stay in the record. N and M do not apply because one side is a project value or a second-hand value, not a verified source. The 16 Gemini claims contradicted by a read source are also V: the verified figure wins.
 
 ## 6. Free sources and tools: what answered
 
@@ -214,249 +214,249 @@ Checked from this container at about 12:50 PM EDT on 2026-10-17 by requesting ea
 
 **Reachable:** NIST Chemistry WebBook, CCCBDB, XCOM, ESTAR, PSTAR and chemical kinetics; PubChem; HITRAN, HITEMP, ExoMol; MIST, BaSTI, BHAC15 and ATMO 2020 model grids; CompOSE; Illustris and TNG data; MELTS; RELAB; EXPACS, CREME and OLTARIS; TUV; the Montreal White Dwarf Database; VizieR; NASA Exoplanet Archive; GEOROC and EarthChem; CoolProp; IAPWS; DACE; Colossus and HMFcalc; petitRADTRANS and virga; NuDat; the Crystallography Open Database; IGRF; MESA; Gaia archive; Hypatia; the IUPAC kinetics datasheets; the MPI-Mainz UV/VIS atlas; the Leiden photodissociation database; Crossref, arXiv, Open Library.
 
-**Not reachable from this container (Boss's browser may work):** JPL kinetics, E-AIM, KIDA, UMIST, PARSEC, Kaye and Laby tables, NASA CEA, several GitHub repositories, the USGS spectral library page, Zenodo, the Meteoritical Bulletin Database, the Lodders 2003 free copy (captcha), the Tabazadeh Wiley PDF. The IAEA nuclear-data API returned a Cloudflare challenge and the UNSCEAR 2000 Annex B address returned 404, so half-lives and UNSCEAR coefficients stay unverified.
+**Not reachable from this container (Boss's browser may work):** JPL kinetics, E-AIM, KIDA, UMIST, PARSEC, Kaye and Laby tables, NASA CEA, several GitHub repositories, the USGS spectral library page, Zenodo, the Meteoritical Bulletin Database, the [R2726] free copy (captcha), the Tabazadeh Wiley PDF. The IAEA nuclear-data API returned a Cloudflare challenge and the UNSCEAR 2000 Annex B address returned 404, so half-lives and UNSCEAR coefficients stay unverified.
 
 ## 7. References
 
 Every reference cited above, in order of first citation. Mark: V-rec = record confirmed, text not opened; V-read = opened and read by this thread; PT = marked READ by a prior project thread; U = unverified (section 0).
 
-- **[KT10]** Karkoschka and Tomasko 2010, Icarus 205, 674 (Methane absorption coefficients for the jovian planets). *Mark: V-rec; text paid.*
-- **[Kar94]** Karkoschka 1994, Icarus 111, 174 (Spectrophotometry of the jovian planets and Titan at 300 to 1000 nm). *Mark: V-rec; text paid.*
-- **[Har20]** Hargreaves et al. 2020, ApJS 247, 55 (HITEMP methane line list, 0-13,400 cm-1, i.e. longer than 746 nm, by its abstract). *Mark: V-rec; abstract read.*
-- **[Lod03]** Lodders 2003, ApJ 591, 1220, doi 10.1086/375492 (Solar system abundances and condensation temperatures of the elements). *Mark: V-rec; text not opened by this thread (free copy behind a captcha).*
+- **[KT10]** [R2265] (Methane absorption coefficients for the jovian planets). *Mark: V-rec; text paid.*
+- **[Kar94]** [R2258] (Spectrophotometry of the jovian planets and Titan at 300 to 1000 nm). *Mark: V-rec; text paid.*
+- **[Har20]** [R1812] (HITEMP methane line list, 0-13,400 cm-1, i.e. longer than 746 nm, by its abstract). *Mark: V-rec; abstract read.*
+- **[Lod03]** [R2726] (Solar system abundances and condensation temperatures of the elements). *Mark: V-rec; text not opened by this thread (free copy behind a captcha).*
 - **[IAEA14]** IAEA 2014, Radiation Protection and Safety of Radiation Sources: International Basic Safety Standards, General Safety Requirements Part 3 (GSR Part 3), Vienna; glossary entries 'radiation weighting factor' and 'tissue weighting factor', and the occupational limit paragraphs. *Mark: V-read (the PDF opened; glossary values copied).*
-- **[Bog78]** Bogaard, Buckingham, Pierens and White 1978, J. Chem. Soc. Faraday Trans. 1, 74, 3008 (Rayleigh scattering depolarization ratio and molecular polarizability anisotropy for gases). *Mark: V-rec; text not opened (the files say it holds SO2 and H2S).*
-- **[KWW12]** Kippenhahn, Weigert and Weiss 2012, Stellar Structure and Evolution, 2nd ed., Springer, doi 10.1007/978-3-642-30304-3. *Mark: V-rec.*
-- **[Poi00]** Poirier 2000, Introduction to the Physics of the Earth's Interior, 2nd ed., Cambridge University Press. *Mark: V-rec.*
-- **[SD08]** Stacey and Davis 2008, Physics of the Earth, 4th ed., Cambridge University Press, doi 10.1017/CBO9780511812910. *Mark: V-rec.*
-- **[LP16]** Lattimer and Prakash 2016, Phys. Rep. 621, 127 (The equation of state of hot, dense matter and neutron stars). *Mark: V-rec.*
+- **[Bog78]** [R0443], J. Chem. Soc. Faraday Trans. 1, 74, 3008 (Rayleigh scattering depolarization ratio and molecular polarizability anisotropy for gases). *Mark: V-rec; text not opened (the files say it holds SO2 and H2S).*
+- **[KWW12]** [R2364], Stellar Structure and Evolution, 2nd ed., Springer, [R2364] *Mark: V-rec.*
+- **[Poi00]** [R3556], Introduction to the Physics of the Earth's Interior, 2nd ed., Cambridge University Press. *Mark: V-rec.*
+- **[SD08]** [R4187], Physics of the Earth, 4th ed., Cambridge University Press, [R4187] *Mark: V-rec.*
+- **[LP16]** [R2574], Phys. Rep. 621, 127 (The equation of state of hot, dense matter and neutron stars). *Mark: V-rec.*
 - **[Cot14]** Cottaar, Heister, Geochem. Geophys. Geosyst. 15, 1164 (BurnMan: a lower mantle mineral physics toolkit). *Mark: V-rec.*
-- **[BT08]** Binney and Tremaine 2008, Galactic Dynamics, 2nd ed., Princeton University Press, doi 10.1515/9781400828722. *Mark: V-rec.*
-- **[Ken98]** Kennicutt 1998, ApJ 498, 541 (The global Schmidt law in star-forming galaxies). *Mark: V-rec; PT (index 1.4 +- 0.15).*
-- **[KE12]** Kennicutt and Evans 2012, ARA&A 50, 531 (Star formation in the Milky Way and nearby galaxies). *Mark: V-rec.*
-- **[Big08]** Bigiel et al. 2008, AJ 136, 2846 (The star formation law in nearby galaxies on sub-kpc scales). *Mark: V-rec.*
-- **[Pag09]** Pagel 2009, Nucleosynthesis and Chemical Evolution of Galaxies, 2nd ed., Cambridge University Press, doi 10.1017/CBO9780511812170. *Mark: V-rec.*
-- **[Nel19]** Nelson et al. 2019, The IllustrisTNG Simulations: Public Data Release. *Mark: V-rec.*
-- **[ST99]** Sheth and Tormen 1999, MNRAS 308, 119 (Large scale bias and the peak background split). *Mark: V-rec.*
-- **[Tin08]** Tinker et al. 2008, ApJ 688, 709 (Toward a halo mass function for precision cosmology). *Mark: V-rec.*
-- **[Gio08]** Giocoli, Tormen and van den Bosch 2008, MNRAS 386, 2135, arXiv:0712.1563 (The population of dark matter subhaloes: mass functions and average mass loss rates). *Mark: V-rec; PT (Eq. 2 read).*
-- **[Mos13]** Moster, Naab and White 2013, MNRAS 428, 3121, arXiv:1205.5807. *Mark: V-rec; PT.*
-- **[MBW10]** Mo, van den Bosch and White 2010, Galaxy Formation and Evolution, Cambridge University Press, doi 10.1017/CBO9780511807244. *Mark: V-rec.*
-- **[Die18]** Diemer 2018, ApJS 239, 35 (COLOSSUS: a python toolkit for cosmology, large-scale structure and dark matter halos). *Mark: V-rec.*
-- **[Mur13]** Murray, Power and Robotham 2013, Astronomy and Computing 3-4, 23, doi 10.1016/j.ascom.2013.11.001 (HMFcalc). *Mark: V-rec.*
-- **[Bu97]** Buzzoni 1997, astro-ph/9711072 (Evolutionary population synthesis models of primeval galaxies: a critical appraisal); the project files list it as 'Renzini 1997'. *Mark: V-rec; V-read (B = 1.7 +- 0.4 e-11 per solar luminosity per year).*
-- **[SC05]** Salaris and Cassisi 2005, Evolution of Stars and Stellar Populations, Wiley. *Mark: V-rec (Open Library).*
-- **[Bu89]** Buzzoni 1989, ApJS 71, 817, doi 10.1086/191399 (Evolutionary population synthesis in stellar systems I). *Mark: V-rec; PT.*
-- **[Cho16]** Choi et al. 2016, ApJ 823, 102 (MIST I). *Mark: V-rec.*
-- **[You81]** Young 1981, Appl. Opt. 20, 533 (Rayleigh scattering). *Mark: V-rec; PT.*
-- **[Bat84]** Bates 1984, Planet. Space Sci. 32, 785 (Rayleigh scattering by air). *Mark: V-rec; PT.*
-- **[Buc95]** Bucholtz 1995, Appl. Opt. 34, 2765 (Rayleigh-scattering calculations for the terrestrial atmosphere). *Mark: V-rec; PT.*
-- **[GY89]** Goody and Yung 1989, Atmospheric Radiation: Theoretical Basis, 2nd ed., Oxford University Press. *Mark: V-rec (Open Library).*
-- **[LO91]** Lacis and Oinas 1991, JGR 96, 9027 (correlated k distribution method). *Mark: V-rec.*
-- **[Sea10]** Seager 2010, Exoplanet Atmospheres: Physical Processes, Princeton University Press, doi 10.1515/9781400835300. *Mark: V-rec.*
-- **[Gor22]** Gordon et al. 2022, JQSRT 277, 107949 (The HITRAN2020 molecular spectroscopic database). *Mark: V-rec.*
-- **[Ten20]** Tennyson et al. 2020, JQSRT 255, 107228 (The 2020 release of the ExoMol database). *Mark: V-rec.*
-- **[Pie10]** Pierrehumbert 2010, Principles of Planetary Climate, Cambridge University Press, doi 10.1017/CBO9780511780783. *Mark: V-rec.*
-- **[LF02]** Lodders and Fegley 2002, Icarus 155, 393 (Atmospheric chemistry in giant planets, brown dwarfs and low-mass dwarf stars I). *Mark: V-rec.*
-- **[Bel14]** Bell, Wronski, Quoilin and Lemort 2014, Ind. Eng. Chem. Res. 53, 2498 (CoolProp). *Mark: V-rec.*
-- **[Hir21]** Hirschmann 2021, Geochim. Cosmochim. Acta 313, 74, doi 10.1016/j.gca.2021.08.039 (Iron-wuestite revisited). *Mark: V-rec.*
-- **[Fro91]** Frost 1991, Rev. Mineral. 25, ch. 1 (Introduction to oxygen fugacity and its petrologic importance). *Mark: V-rec.*
-- **[CA79]** Cowan and A'Hearn 1979, Moon and Planets 21, 155 (Vaporization of comet nuclei: light curves and life times). *Mark: V-rec.*
-- **[FS09]** Fray and Schmitt 2009, Planet. Space Sci. 57, 2053 (Sublimation of ices of astrophysical interest: a bibliographic review). *Mark: V-rec; text paid.*
-- **[SS05]** Smart and Shea 2005, Adv. Space Res. 36, 2012 (A review of geomagnetic cutoff rigidities for earth-orbiting spacecraft). *Mark: V-rec.*
-- **[Att86]** Attix 1986, Introduction to Radiological Physics and Radiation Dosimetry, Wiley. *Mark: V-rec.*
-- **[Tur07]** Turner 2007, Atoms, Radiation, and Radiation Protection, 3rd ed., Wiley. *Mark: V-rec.*
-- **[Sat15]** Sato 2015, PLoS ONE 10, e0144679 (PARMA: analytical model for estimating terrestrial cosmic ray fluxes). *Mark: V-rec.*
-- **[BS05]** Brasseur and Solomon 2005, Aeronomy of the Middle Atmosphere, 3rd ed., Springer. *Mark: V-rec.*
-- **[Troe79]** Troe 1979, J. Phys. Chem. 83, 114 (Predictive possibilities of unimolecular rate theory). *Mark: V-rec.*
-- **[Atk04]** Atkinson et al. 2004, Atmos. Chem. Phys. 4, 1461 (IUPAC evaluated kinetic and photochemical data, Vol. I). *Mark: V-rec.*
-- **[KR13]** Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365 (The MPI-Mainz UV/VIS spectral atlas). *Mark: V-rec.*
-- **[Hea17]** Heays, Bosman and van Dishoeck 2017, A&A 602, A105, doi 10.1051/0004-6361/201628742 (Photodissociation and photoionisation of atoms and molecules of astrophysical interest). *Mark: V-rec.*
-- **[Har17]** Harmsen, Monachesi, Bell et al. 2017, MNRAS 466, 1491, doi 10.1093/mnras/stw2992 (Diverse stellar haloes in nearby Milky Way mass disc galaxies). *Mark: V-rec; PT.*
-- **[BLF20]** Benitez-Llambay and Frenk 2020, MNRAS 498, 4887, arXiv:2004.06124 (Figs 10 and 11). *Mark: V-rec; PT.*
-- **[RG16]** Rodriguez-Gomez et al. 2016, MNRAS 458, 2371, arXiv:1511.08804 (Illustris stellar mass assembly). *Mark: V-rec; PT (abstract and Fig 3).*
-- **[Nel15]** Nelson et al. 2015, The Illustris Simulation: Public Data Release. *Mark: V-rec.*
-- **[Rem22]** Remus and Forbes 2022, ApJ 935, 37, arXiv:2101.12216 (Accreted or not accreted? The fraction of accreted mass in galaxies from simulations and observations). *Mark: V-rec.*
-- **[DS14]** D'Souza et al. 2014, MNRAS 443, 1433, arXiv:1404.2123 (Parametrizing the stellar haloes of galaxies). *Mark: V-rec; PT.*
-- **[YD06]** Yoachim and Dalcanton 2006, AJ 131, 226, arXiv:astro-ph/0508460. *Mark: V-rec; PT.*
-- **[Com18]** Comeron, Salo and Knapen 2018, A&A 610, A5, arXiv:1709.00457; VizieR J/A+A/610/A5. *Mark: V-rec; PT (catalogue fit computed).*
-- **[Com21]** Comeron et al. 2021, arXiv:2101.04478 (age of thick discs against stellar mass; Eq. 1 hot-component mass). *Mark: V-rec; PT.*
-- **[SH20]** Sharma and Hayden 2020, arXiv:2004.06556 (velocity dispersion of stars in the Milky Way; Table 2). *Mark: V-rec; PT (Table 2 read).*
-- **[Mar13]** Martinsson et al. 2013, A&A 557, A131, arXiv:1307.8130 (DiskMass Survey VI). *Mark: V-rec; PT.*
-- **[AB09]** Aumer and Binney 2009, MNRAS 397, 1286, arXiv:0905.2512 (Table 6). *Mark: V-rec; PT.*
-- **[Hay13]** Haywood et al. 2013, A&A 560, A109, arXiv:1305.4663. *Mark: V-rec; PT.*
-- **[Ben14]** Bensby, Feltzing and Oey 2014, A&A 562, A71, arXiv:1309.2631 (title: Exploring the Milky Way stellar disk, 714 F and G dwarf stars); journal volume from memory. *Mark: V-rec (arXiv title); volume U.*
-- **[Pin19a]** Pinna et al. 2019a, arXiv:1901.04310 (Fornax 3D: thick disk origin in FCC 170). *Mark: V-rec; PT.*
-- **[Pin19b]** Pinna et al. 2019b, arXiv:1904.01260 (Fornax 3D: thick disks in a cluster environment). *Mark: V-rec; PT.*
-- **[Sat24]** Sattler, Pinna et al. 2024, arXiv:2410.05761 (Relatively young thick disks in star-forming late-type galaxies). *Mark: V-rec; PT.*
-- **[Cor15]** Correa et al. 2015, MNRAS 450, 1514, arXiv:1409.5228 (accretion history of dark matter halos I). *Mark: V-rec; PT.*
-- **[FP12]** Forbes and Ponman 2012, arXiv:1205.5315 (The baryonic halos of elliptical galaxies: radial distribution of globular clusters and diffuse hot gas). *Mark: V-rec.*
-- **[HR14]** Hargis and Rhode 2014, ApJ 796, 62, arXiv:1409.6306. *Mark: V-rec.*
-- **[Kar16]** Kartha et al. 2016, MNRAS 458, 105, arXiv:1602.01838 (SLUGGS: Leo II group). *Mark: V-rec; PT.*
-- **[HR18]** Hudson and Robison 2018, MNRAS 477, 3869, doi 10.1093/mnras/sty844 (sizes of globular cluster systems and their host dark matter haloes). *Mark: V-rec; PT.*
-- **[For18]** Forbes, Bastian, Gieles et al. 2018, Proc. R. Soc. A 474, 20170616, doi 10.1098/rspa.2017.0616 (Globular cluster formation and evolution in the context of cosmological galaxy assembly: open questions). *Mark: V-rec.*
-- **[Geo10]** Georgiev et al. 2010, arXiv:1004.2039 (Globular cluster systems in nearby dwarf galaxies III). *Mark: V-rec.*
-- **[Beh13]** Behroozi, Wechsler and Conroy 2013, ApJ 770, 57, arXiv:1207.6105. *Mark: V-rec; PT.*
-- **[Pfe18]** Pfeffer et al. 2018, MNRAS 475, 4309, arXiv:1712.00019 (E-MOSAICS). *Mark: V-rec.*
-- **[Kru14]** Kruijssen 2014, Class. Quantum Grav. 31, 244006, doi 10.1088/0264-9381/31/24/244006 (Globular cluster formation in the context of galaxy formation and evolution). *Mark: V-rec.*
-- **[Neu20]** Neumayer, Seth and Boeker 2020, A&ARv 28, 4, arXiv:2001.03626 (Nuclear star clusters). *Mark: V-rec; PT.*
-- **[TOS75]** Tremaine, Ostriker and Spitzer 1975, ApJ 196, 407 (The formation of the nuclei of galaxies I: M31). *Mark: V-rec.*
-- **[Geo16]** Georgiev, Boeker, Leigh et al. 2016, MNRAS (Masses and scaling relations for nuclear star clusters, and their co-existence with central black holes); volume and page not confirmed. *Mark: V-rec (title); volume U.*
-- **[CC10]** Cooper and Cole 2010, MNRAS 406, 744, arXiv:0910.3211 (Galactic stellar haloes in the CDM model). *Mark: V-rec.*
-- **[GK14]** Garrison-Kimmel et al. 2014, MNRAS 438, 2578, arXiv:1310.6746 (ELVIS; the low-mass slope 1.92). *Mark: V-rec; PT.*
-- **[Nad20]** Nadler et al. 2020, ApJ 893, 48, arXiv:1912.03303 (Milky Way satellite census II). *Mark: V-rec; PT.*
-- **[Fit17]** Fitts et al. 2017, MNRAS 471, 3547 (FIRE in the field: simulating the threshold of galaxy formation). *Mark: V-rec.*
-- **[GK17]** Garrison-Kimmel et al. 2017, arXiv:1701.03792 (Not so lumpy after all). *Mark: V-rec.*
-- **[Har17b]** Hart et al. 2017, MNRAS 472, 2263, arXiv:1708.04628 (Galaxy Zoo and SpArcFiRe: constraints on spiral arm formation mechanisms from spiral arm number); which Hart 2017 paper the project cites is not stated in the notes. *Mark: V-rec; which paper U.*
-- **[YH19]** Yu and Ho 2019, ApJ 871, 194, doi 10.3847/1538-4357/aaf895 (On the connection between spiral arm pitch angle and galaxy properties). *Mark: V-rec.*
+- **[BT08]** [R0398, R0399], Galactic Dynamics, 2nd ed., Princeton University Press, [R0398] *Mark: V-rec.*
+- **[Ken98]** [R2321] (The global Schmidt law in star-forming galaxies). *Mark: V-rec; PT (index 1.4 +- 0.15).*
+- **[KE12]** [R2320] (Star formation in the Milky Way and nearby galaxies). *Mark: V-rec.*
+- **[Big08]** [R0392] (The star formation law in nearby galaxies on sub-kpc scales). *Mark: V-rec.*
+- **[Pag09]** [R3405], Nucleosynthesis and Chemical Evolution of Galaxies, 2nd ed., Cambridge University Press, [R3405] *Mark: V-rec.*
+- **[Nel19]** [R3258], The IllustrisTNG Simulations: Public Data Release. *Mark: V-rec.*
+- **[ST99]** [R4060] (Large scale bias and the peak background split). *Mark: V-rec.*
+- **[Tin08]** [R4367] (Toward a halo mass function for precision cosmology). *Mark: V-rec.*
+- **[Gio08]** Giocoli, Tormen and van [R1574, R4492] (The population of dark matter subhaloes: mass functions and average mass loss rates). *Mark: V-rec; PT (Eq. 2 read).*
+- **[Mos13]** [R3181]. *Mark: V-rec; PT.*
+- **[MBW10]** Mo, van [R3106], Galaxy Formation and Evolution, Cambridge University Press, [R3106] *Mark: V-rec.*
+- **[Die18]** [R1111] (COLOSSUS: a python toolkit for cosmology, large-scale structure and dark matter halos). *Mark: V-rec.*
+- **[Mur13]** [R3221], Astronomy and Computing 3-4, 23, [R3221] (HMFcalc). *Mark: V-rec.*
+- **[Bu97]** [R0618], astro-ph/9711072 (Evolutionary population synthesis models of primeval galaxies: a critical appraisal); the project files list it as '[R3734]'. *Mark: V-rec; V-read (B = 1.7 +- 0.4 e-11 per solar luminosity per year).*
+- **[SC05]** [R3877], Evolution of Stars and Stellar Populations, Wiley. *Mark: V-rec (Open Library).*
+- **[Bu89]** [R0617] (Evolutionary population synthesis in stellar systems I). *Mark: V-rec; PT.*
+- **[Cho16]** [R0773] (MIST I). *Mark: V-rec.*
+- **[You81]** [R4835], Appl. Opt. 20, 533 (Rayleigh scattering). *Mark: V-rec; PT.*
+- **[Bat84]** [R0282], Planet. Space Sci. 32, 785 (Rayleigh scattering by air). *Mark: V-rec; PT.*
+- **[Buc95]** [R0575], Appl. Opt. 34, 2765 (Rayleigh-scattering calculations for the terrestrial atmosphere). *Mark: V-rec; PT.*
+- **[GY89]** [R1633], Atmospheric Radiation: Theoretical Basis, 2nd ed., Oxford University Press. *Mark: V-rec (Open Library).*
+- **[LO91]** [R2529] (correlated k distribution method). *Mark: V-rec.*
+- **[Sea10]** [R3990], Exoplanet Atmospheres: Physical Processes, Princeton University Press, [R3990] *Mark: V-rec.*
+- **[Gor22]** [R1634], JQSRT 277, 107949 (The HITRAN2020 molecular spectroscopic database). *Mark: V-rec.*
+- **[Ten20]** [R4323], JQSRT 255, 107228 (The 2020 release of the ExoMol database). *Mark: V-rec.*
+- **[Pie10]** [R3519], Principles of Planetary Climate, Cambridge University Press, [R3519] *Mark: V-rec.*
+- **[LF02]** [R2725] (Atmospheric chemistry in giant planets, brown dwarfs and low-mass dwarf stars I). *Mark: V-rec.*
+- **[Bel14]** [R0329], Ind. Eng. Chem. Res. 53, 2498 (CoolProp). *Mark: V-rec.*
+- **[Hir21]** [R1951], Geochim. Cosmochim. Acta 313, 74, [R1951] (Iron-wuestite revisited). *Mark: V-rec.*
+- **[Fro91]** [R1464], Rev. Mineral. 25, ch. 1 (Introduction to oxygen fugacity and its petrologic importance). *Mark: V-rec.*
+- **[CA79]** [R0913], Moon and Planets 21, 155 (Vaporization of comet nuclei: light curves and life times). *Mark: V-rec.*
+- **[FS09]** [R1445], Planet. Space Sci. 57, 2053 (Sublimation of ices of astrophysical interest: a bibliographic review). *Mark: V-rec; text paid.*
+- **[SS05]** [R4122], Adv. Space Res. 36, 2012 (A review of geomagnetic cutoff rigidities for earth-orbiting spacecraft). *Mark: V-rec.*
+- **[Att86]** [R0191], Introduction to Radiological Physics and Radiation Dosimetry, Wiley. *Mark: V-rec.*
+- **[Tur07]** [R4455], Atoms, Radiation, and Radiation Protection, 3rd ed., Wiley. *Mark: V-rec.*
+- **[Sat15]** [R3924], PLoS ONE 10, e0144679 (PARMA: analytical model for estimating terrestrial cosmic ray fluxes). *Mark: V-rec.*
+- **[BS05]** [R0520], Aeronomy of the Middle Atmosphere, 3rd ed., Springer. *Mark: V-rec.*
+- **[Troe79]** [R4429], J. Phys. Chem. 83, 114 (Predictive possibilities of unimolecular rate theory). *Mark: V-rec.*
+- **[Atk04]** [R0182], Atmos. Chem. Phys. 4, 1461 (IUPAC evaluated kinetic and photochemical data, Vol. I). *Mark: V-rec.*
+- **[KR13]** [R2303], Earth Syst. Sci. Data 5, 365 (The MPI-Mainz UV/VIS spectral atlas). *Mark: V-rec.*
+- **[Hea17]** [R1873] (Photodissociation and photoionisation of atoms and molecules of astrophysical interest). *Mark: V-rec.*
+- **[Har17]** [R0326, R1816] (Diverse stellar haloes in nearby Milky Way mass disc galaxies). *Mark: V-rec; PT.*
+- **[BLF20]** [R0338] (Figs 10 and 11). *Mark: V-rec; PT.*
+- **[RG16]** [R3790] (Illustris stellar mass assembly). *Mark: V-rec; PT (abstract and Fig 3).*
+- **[Nel15]** [R3257], The Illustris Simulation: Public Data Release. *Mark: V-rec.*
+- **[Rem22]** [R3730] (Accreted or not accreted? The fraction of accreted mass in galaxies from simulations and observations). *Mark: V-rec.*
+- **[DS14]** [R1169] (Parametrizing the stellar haloes of galaxies). *Mark: V-rec; PT.*
+- **[YD06]** [R4824]. *Mark: V-rec; PT.*
+- **[Com18]** [R0865]; VizieR J/A+A/610/A5. *Mark: V-rec; PT (catalogue fit computed).*
+- **[Com21]** [R0860] (age of thick discs against stellar mass; Eq. 1 hot-component mass). *Mark: V-rec; PT.*
+- **[SH20]** [R4043] (velocity dispersion of stars in the Milky Way; Table 2). *Mark: V-rec; PT (Table 2 read).*
+- **[Mar13]** [R2917] (DiskMass Survey VI). *Mark: V-rec; PT.*
+- **[AB09]** [R0202] (Table 6). *Mark: V-rec; PT.*
+- **[Hay13]** [R1863]. *Mark: V-rec; PT.*
+- **[Ben14]** [R0349] (title: Exploring the Milky Way stellar disk, 714 F and G dwarf stars); journal volume from memory. *Mark: V-rec (arXiv title); volume U.*
+- **[Pin19a]** [R3531, R3532] (Fornax 3D: thick disk origin in FCC 170). *Mark: V-rec; PT.*
+- **[Pin19b]** [R3531, R3532] (Fornax 3D: thick disks in a cluster environment). *Mark: V-rec; PT.*
+- **[Sat24]** [R3530, R3928] (Relatively young thick disks in star-forming late-type galaxies). *Mark: V-rec; PT.*
+- **[Cor15]** [R0894] (accretion history of dark matter halos I). *Mark: V-rec; PT.*
+- **[FP12]** [R1410] (The baryonic halos of elliptical galaxies: radial distribution of globular clusters and diffuse hot gas). *Mark: V-rec.*
+- **[HR14]** [R1811]. *Mark: V-rec.*
+- **[Kar16]** [R2268] (SLUGGS: Leo II group). *Mark: V-rec; PT.*
+- **[HR18]** [R2038] (sizes of globular cluster systems and their host dark matter haloes). *Mark: V-rec; PT.*
+- **[For18]** [R1553], Proc. R. Soc. A 474, 20170616, [R1408] (Globular cluster formation and evolution in the context of cosmological galaxy assembly: open questions). *Mark: V-rec.*
+- **[Geo10]** [R1539] (Globular cluster systems in nearby dwarf galaxies III). *Mark: V-rec.*
+- **[Beh13]** [R0320]. *Mark: V-rec; PT.*
+- **[Pfe18]** [R3508] (E-MOSAICS). *Mark: V-rec.*
+- **[Kru14]** [R2505], Class. Quantum Grav. 31, 244006, [R4977] (Globular cluster formation in the context of galaxy formation and evolution). *Mark: V-rec.*
+- **[Neu20]** [R3273] (Nuclear star clusters). *Mark: V-rec; PT.*
+- **[TOS75]** [R4420] (The formation of the nuclei of galaxies I: M31). *Mark: V-rec.*
+- **[Geo16]** [R2631], MNRAS (Masses and scaling relations for nuclear star clusters, and their co-existence with central black holes); volume and page not confirmed. *Mark: V-rec (title); volume U.*
+- **[CC10]** [R0876] (Galactic stellar haloes in the CDM model). *Mark: V-rec.*
+- **[GK14]** [R1523] (ELVIS; the low-mass slope 1.92). *Mark: V-rec; PT.*
+- **[Nad20]** [R3232] (Milky Way satellite census II). *Mark: V-rec; PT.*
+- **[Fit17]** [R1387] (FIRE in the field: simulating the threshold of galaxy formation). *Mark: V-rec.*
+- **[GK17]** [R1524] (Not so lumpy after all). *Mark: V-rec.*
+- **[Har17b]** [R1836] (Galaxy Zoo and SpArcFiRe: constraints on spiral arm formation mechanisms from spiral arm number); which [R1836] paper the project cites is not stated in the notes. *Mark: V-rec; which paper U.*
+- **[YH19]** Yu and Ho 2019, ApJ 871, 194, [R4849] (On the connection between spiral arm pitch angle and galaxy properties). *Mark: V-rec.*
 - **[YH18]** Yu and Ho 2018, ApJ 869, 29 (Dependence of the spiral arms pitch angle on wavelength as a test of the density wave theory). *Mark: V-rec.*
-- **[DB18]** D'Souza and Bell 2018, arXiv:1705.08442 (The masses and metallicities of stellar haloes reflect galactic merger histories); the journal reference is not confirmed. *Mark: V-rec (arXiv); journal U.*
-- **[Kir13]** Kirby et al. 2013, ApJ 779, 102, arXiv:1310.0814 (Universal stellar mass-stellar metallicity relation for dwarf galaxies). *Mark: V-rec.*
-- **[Tre04]** Tremonti et al. 2004, ApJ 613, 898 (Origin of the mass-metallicity relation, 53,000 SDSS galaxies). *Mark: V-rec.*
-- **[Abb18]** Abbott et al. 2018, PRL 121, 161101 (GW170817: measurements of neutron star radii and equation of state). *Mark: V-rec.*
-- **[Mil19]** Miller et al. 2019, ApJ 887, L24 (PSR J0030+0451 mass and radius from NICER data). *Mark: V-rec.*
-- **[Ril19]** Riley et al. 2019, ApJ 887, L21 (A NICER view of PSR J0030+0451). *Mark: V-rec.*
-- **[Mil21]** Miller et al. 2021, arXiv:2105.06979 (The radius of PSR J0740+6620 from NICER and XMM-Newton data). *Mark: V-rec.*
-- **[Ril21]** Riley et al. 2021, arXiv:2105.06980 (A NICER view of the massive pulsar PSR J0740+6620). *Mark: V-rec.*
-- **[Rea09]** Read et al. 2009, PRD 79, 124032 (Constraints on a phenomenologically parameterized neutron-star equation of state). *Mark: V-rec.*
-- **[HPT00]** Hurley, Pols and Tout 2000, MNRAS 315, 543 (Comprehensive analytic formulae for stellar evolution as a function of mass and metallicity). *Mark: V-rec.*
-- **[Dot16]** Dotter 2016, ApJS 222, 8 (MIST 0). *Mark: V-rec.*
-- **[Sta83]** Stahler 1983, ApJ 274, 822, doi 10.1086/161495 (The birthline for low-mass stars). *Mark: V-rec.*
-- **[Bar15]** Baraffe et al. 2015, A&A 577, A42, arXiv:1503.04107 (BHAC15; tables at CDS). *Mark: V-rec; PT (paper has no tables).*
+- **[DB18]** [R1168] (The masses and metallicities of stellar haloes reflect galactic merger histories); the journal reference is not confirmed. *Mark: V-rec (arXiv); journal U.*
+- **[Kir13]** [R2368] (Universal stellar mass-stellar metallicity relation for dwarf galaxies). *Mark: V-rec.*
+- **[Tre04]** [R4423] (Origin of the mass-metallicity relation, 53,000 SDSS galaxies). *Mark: V-rec.*
+- **[Abb18]** [R0013], PRL 121, 161101 (GW170817: measurements of neutron star radii and equation of state). *Mark: V-rec.*
+- **[Mil19]** [R3072] (PSR J0030+0451 mass and radius from NICER data). *Mark: V-rec.*
+- **[Ril19]** [R3766] (A NICER view of PSR J0030+0451). *Mark: V-rec.*
+- **[Mil21]** [R3075] (The radius of PSR J0740+6620 from NICER and XMM-Newton data). *Mark: V-rec.*
+- **[Ril21]** [R3767] (A NICER view of the massive pulsar PSR J0740+6620). *Mark: V-rec.*
+- **[Rea09]** [R3691], PRD 79, 124032 (Constraints on a phenomenologically parameterized neutron-star equation of state). *Mark: V-rec.*
+- **[HPT00]** [R2055] (Comprehensive analytic formulae for stellar evolution as a function of mass and metallicity). *Mark: V-rec.*
+- **[Dot16]** [R1150] (MIST 0). *Mark: V-rec.*
+- **[Sta83]** [R4189] (The birthline for low-mass stars). *Mark: V-rec.*
+- **[Bar15]** [R0254] (BHAC15; tables at CDS). *Mark: V-rec; PT (paper has no tables).*
 - **[Sie00]** Siess, A&A 358, 593 (pre-main-sequence tracks). *Mark: V-rec.*
-- **[Wri11]** Wright et al. 2011, ApJ 743, 48, arXiv:1109.4634 (The stellar activity-rotation relationship and the evolution of stellar dynamos). *Mark: V-rec; PT.*
-- **[Sku72]** Skumanich 1972, ApJ 171, 565. *Mark: V-rec.*
-- **[Joh21]** Johnstone et al. 2021, A&A 649, A96 (The active lives of stars). *Mark: V-rec; PT.*
-- **[Jac12]** Jackson, MNRAS 422, 2024, arXiv:1111.0031 (coronal X-ray - age relation). *Mark: V-rec; PT.*
-- **[Med22]** Medina et al. 2022, arXiv:2205.02331 (Galactic kinematics and observed flare rates of mid-to-late M dwarfs). *Mark: V-rec; PT.*
-- **[Kir21]** Kirkpatrick et al. 2021, ApJS 253, 7, arXiv:2011.11616 (Field substellar mass function from the 20-pc census); Table 13. *Mark: V-rec; PT.*
-- **[BL93]** Burrows and Liebert 1993, Rev. Mod. Phys. 65, 301 (The science of brown dwarfs). *Mark: V-rec.*
-- **[Phi20]** Phillips et al. 2020, A&A 637, A38 (ATMO 2020 models). *Mark: V-rec.*
-- **[Bar03]** Baraffe et al. 2003, A&A 402, 701 (evolutionary models for cool brown dwarfs and extrasolar giant planets). *Mark: V-rec.*
-- **[Ser17]** Serenelli et al. 2017, A&A 606, A33 (The brightness of the red giant branch tip). *Mark: V-rec; PT.*
-- **[Ree25]** Rees and Izzard 2025, arXiv:2503.17772 (A stellar evolutionary grid for binary population synthesis: from the main sequence to helium ignition); the core-mass-luminosity fit used in GEN.502. *Mark: V-rec; PT.*
-- **[Sal04]** Salaris et al. 2004, A&A 420, 911 (The initial helium abundance of the Galactic globular cluster system). *Mark: V-rec; PT.*
-- **[LDZ94]** Lee, Demarque and Zinn 1994, ApJ 423, 248 (horizontal-branch stars in globular clusters II: the second parameter). *Mark: V-rec.*
-- **[Dot10]** Dotter et al. 2010, ApJ 708, 698 (ACS Survey of Galactic Globular Clusters IX: horizontal branch morphology). *Mark: V-rec.*
-- **[RB86]** Renzini and Buzzoni 1986, in Spectral Evolution of Galaxies, Reidel, p. 195 (Global properties of stellar populations and the spectral evolution of galaxies). *Mark: V-rec (chapter); text not opened.*
-- **[BRL97]** Bergeron, Ruiz and Leggett 1997, ApJS 108, 339 (chemical evolution of cool white dwarfs). *Mark: V-rec.*
-- **[GBB19]** Genest-Beaulieu and Bergeron 2019, ApJ 871, 169 (DA and DB white dwarfs from SDSS and Gaia). *Mark: V-rec.*
-- **[Kep19]** Kepler et al. 2019, MNRAS 486, 2169, doi 10.1093/mnras/stz960 (White dwarf and subdwarf stars in SDSS DR14). *Mark: V-rec.*
-- **[WSH19]** Wood, Smythe and Harrison 2019, Am. Mineral. 104, 844 (The condensation temperatures of the elements: a reappraisal). *Mark: V-rec.*
-- **[Asp21]** Asplund et al. 2021, A&A 653, A141, arXiv:2105.01661 (The chemical make-up of the Sun: a 2020 vision); Table 2. *Mark: V-rec; PT.*
-- **[Bre16]** Brewer, Fischer, Valenti and Piskunov 2016, ApJS 225, 32, doi 10.3847/0067-0049/225/2/32 (Spectral properties of cool stars: extended abundance analysis of 1,617 planet-search stars); VizieR J/ApJS/225/32. *Mark: V-rec; PT (table downloaded and fitted).*
-- **[SLB05]** Stixrude and Lithgow-Bertelloni 2005, GJI 162, 610 (Thermodynamics of mantle minerals I). *Mark: V-rec.*
-- **[SLB11]** Stixrude and Lithgow-Bertelloni 2011, GJI 184, 1180 (Thermodynamics of mantle minerals II; Table A1). *Mark: V-rec; PT (Table A1 read).*
-- **[PO14]** Palme and O'Neill 2014, in Treatise on Geochemistry 2nd ed. (Cosmochemical estimates of mantle composition); the 2003 first edition is the one read. *Mark: V-rec; 2014 values not opened.*
+- **[Wri11]** [R4780] (The stellar activity-rotation relationship and the evolution of stellar dynamos). *Mark: V-rec; PT.*
+- **[Sku72]** [R4114]. *Mark: V-rec.*
+- **[Joh21]** [R2183] (The active lives of stars). *Mark: V-rec; PT.*
+- **[Jac12]** Jackson, MNRAS 422, 2024, [R2118] (coronal X-ray - age relation). *Mark: V-rec; PT.*
+- **[Med22]** [R3017] (Galactic kinematics and observed flare rates of mid-to-late M dwarfs). *Mark: V-rec; PT.*
+- **[Kir21]** [R2374] (Field substellar mass function from the 20-pc census); Table 13. *Mark: V-rec; PT.*
+- **[BL93]** [R0607] (The science of brown dwarfs). *Mark: V-rec.*
+- **[Phi20]** [R3512] (ATMO 2020 models). *Mark: V-rec.*
+- **[Bar03]** [R0253] (evolutionary models for cool brown dwarfs and extrasolar giant planets). *Mark: V-rec.*
+- **[Ser17]** [R4024] (The brightness of the red giant branch tip). *Mark: V-rec; PT.*
+- **[Ree25]** [R3702] (A stellar evolutionary grid for binary population synthesis: from the main sequence to helium ignition); the core-mass-luminosity fit used in GEN.502. *Mark: V-rec; PT.*
+- **[Sal04]** [R3879] (The initial helium abundance of the Galactic globular cluster system). *Mark: V-rec; PT.*
+- **[LDZ94]** [R2619] (horizontal-branch stars in globular clusters II: the second parameter). *Mark: V-rec.*
+- **[Dot10]** [R1151] (ACS Survey of Galactic Globular Clusters IX: horizontal branch morphology). *Mark: V-rec.*
+- **[RB86]** [R3735], in Spectral Evolution of Galaxies, Reidel, p. 195 (Global properties of stellar populations and the spectral evolution of galaxies). *Mark: V-rec (chapter); text not opened.*
+- **[BRL97]** [R0355] (chemical evolution of cool white dwarfs). *Mark: V-rec.*
+- **[GBB19]** [R1533] (DA and DB white dwarfs from SDSS and Gaia). *Mark: V-rec.*
+- **[Kep19]** [R2326] (White dwarf and subdwarf stars in SDSS DR14). *Mark: V-rec.*
+- **[WSH19]** [R4755], Am. Mineral. 104, 844 (The condensation temperatures of the elements: a reappraisal). *Mark: V-rec.*
+- **[Asp21]** [R0168] (The chemical make-up of the Sun: a 2020 vision); Table 2. *Mark: V-rec; PT.*
+- **[Bre16]** [R0535, R4978] (Spectral properties of cool stars: extended abundance analysis of 1,617 planet-search stars); VizieR J/ApJS/225/32. *Mark: V-rec; PT (table downloaded and fitted).*
+- **[SLB05]** [R4231], GJI 162, 610 (Thermodynamics of mantle minerals I). *Mark: V-rec.*
+- **[SLB11]** [R4232], GJI 184, 1180 (Thermodynamics of mantle minerals II; Table A1). *Mark: V-rec; PT (Table A1 read).*
+- **[PO14]** [R3417], in Treatise on Geochemistry 2nd ed. (Cosmochemical estimates of mantle composition); the 2003 first edition is the one read. *Mark: V-rec; 2014 values not opened.*
 - **[MS95]** McDonough and Sun 1995, Chem. Geol. 120, 223 (The composition of the Earth). *Mark: V-rec.*
-- **[RG14]** Rudnick and Gao 2014, in Treatise on Geochemistry 2nd ed. (Composition of the continental crust); Table 11. *Mark: V-rec; PT.*
-- **[SCvH95]** Saumon, Chabrier and van Horn 1995, ApJS 99, 713 (An equation of state for low-mass stars and giant planets). *Mark: V-rec.*
-- **[Tho16]** Thorngren, Fortney, Murray-Clay and Lopez 2016, ApJ 831, 64, arXiv:1511.07854 (The mass-metallicity relation for giant planets). *Mark: V-rec; V-read (M_Z = 57.9 +- 7.03 M^(0.61 +- 0.08), 47 planets, scatter factor 1.82 +- 0.09).*
-- **[For07]** Fortney, Marley and Barnes 2007, ApJ 659, 1661 (Planetary radii across five orders of magnitude). *Mark: V-rec.*
-- **[Cha25]** Chachan, Fortney, Ohno et al. 2025, ApJ 994, 43, arXiv:2509.20428 (Revising the giant planet mass-metallicity relation). *Mark: V-rec.*
-- **[Sas10]** Sasaki, Stewart and Ida 2010, ApJ 714, 1052 (Origin of the different architectures of the Jovian and Saturnian satellite systems). *Mark: V-rec; PT.*
-- **[CW06]** Canup and Ward 2006, Nature 441, 834 (A common mass scaling for satellite systems of gaseous planets). *Mark: V-rec.*
-- **[CW02]** Canup and Ward 2002, AJ 124, 3404 (Formation of the Galilean satellites). *Mark: V-rec.*
-- **[Cil18]** Cilibrasi, Szulagyi, MNRAS 480, 4355, doi 10.1093/mnras/sty2163 (Satellites form fast and late). *Mark: V-rec; PT.*
-- **[BN19]** Bierson and Nimmo 2019, Icarus 326, 10 (Using the density of Kuiper Belt objects to constrain their composition and formation history); Table 1. *Mark: V-rec; PT (Table 1 read); free copy PMC7058130 (U).*
-- **[PV26]** Plotnykov, Valencia and Ross 2026, ApJ 997, 253, doi 10.3847/1538-4357/ae200b; preprint arXiv:2511.17717 (Evidence of 1:1 slope between rocky super-Earths and their host stars). *Mark: V-rec; PT (slope 0.94, band +1.02/-1.07).*
-- **[PV20]** Plotnykov and Valencia 2020, MNRAS 499, 932, doi 10.1093/mnras/staa2615 (Chemical fingerprints of formation in rocky super-Earths' data). *Mark: V-rec.*
-- **[Adi21]** Adibekyan et al. 2021, Science 374, 330 (A compositional link between rocky exoplanets and their host stars). *Mark: V-rec.*
-- **[Fre09]** French, Mattsson, Nettelmann and Redmer 2009, Phys. Rev. B 79, 054107 (water at ultrahigh pressures). *Mark: V-rec.*
-- **[Jou20]** Journaux et al. 2020, JGR Planets 125, e2019JE006176 (Gibbs representation of ice thermodynamics). *Mark: V-rec.*
-- **[Hal20]** Haldemann, Alibert, Mordasini and Benz 2020, A&A 643, A105 (AQUA: a collection of H2O equations of state). *Mark: V-rec.*
-- **[Hap12]** Hapke 2012, Theory of Reflectance and Emittance Spectroscopy, 2nd ed., Cambridge University Press. *Mark: V-rec.*
-- **[Kok17]** Kokaly et al. 2017, USGS Data Series 1035 (USGS Spectral Library version 7), doi 10.3133/ds1035. *Mark: V-rec.*
-- **[Ste99]** Stevenson 1999, Nature 400, 32 (Life-sustaining planets in interstellar space?). *Mark: V-rec.*
-- **[SW96]** Span and Wagner 1996, J. Phys. Chem. Ref. Data 25, 1509 (equation of state for carbon dioxide). *Mark: V-rec.*
+- **[RG14]** [R3842], in Treatise on Geochemistry 2nd ed. (Composition of the continental crust); Table 11. *Mark: V-rec; PT.*
+- **[SCvH95]** [R3932] (An equation of state for low-mass stars and giant planets). *Mark: V-rec.*
+- **[Tho16]** [R4352] (The mass-metallicity relation for giant planets). *Mark: V-rec; V-read (M_Z = 57.9 +- 7.03 M^(0.61 +- 0.08), 47 planets, scatter factor 1.82 +- 0.09).*
+- **[For07]** [R1429] (Planetary radii across five orders of magnitude). *Mark: V-rec.*
+- **[Cha25]** [R0710] (Revising the giant planet mass-metallicity relation). *Mark: V-rec.*
+- **[Sas10]** [R3922] (Origin of the different architectures of the Jovian and Saturnian satellite systems). *Mark: V-rec; PT.*
+- **[CW06]** [R0642] (A common mass scaling for satellite systems of gaseous planets). *Mark: V-rec.*
+- **[CW02]** [R0641] (Formation of the Galilean satellites). *Mark: V-rec.*
+- **[Cil18]** Cilibrasi, Szulagyi, MNRAS 480, 4355, [R0804] (Satellites form fast and late). *Mark: V-rec; PT.*
+- **[BN19]** [R0390] (Using the density of Kuiper Belt objects to constrain their composition and formation history); Table 1. *Mark: V-rec; PT (Table 1 read); free copy PMC7058130 (U).*
+- **[PV26]** [R3546]; preprint [R3546] (Evidence of 1:1 slope between rocky super-Earths and their host stars). *Mark: V-rec; PT (slope 0.94, band +1.02/-1.07).*
+- **[PV20]** [R3545] (Chemical fingerprints of formation in rocky super-Earths' data). *Mark: V-rec.*
+- **[Adi21]** [R0032] (A compositional link between rocky exoplanets and their host stars). *Mark: V-rec.*
+- **[Fre09]** [R1457], Phys. Rev. B 79, 054107 (water at ultrahigh pressures). *Mark: V-rec.*
+- **[Jou20]** [R2204], JGR Planets 125, e2019JE006176 (Gibbs representation of ice thermodynamics). *Mark: V-rec.*
+- **[Hal20]** [R1754] (AQUA: a collection of H2O equations of state). *Mark: V-rec.*
+- **[Hap12]** [R1806], Theory of Reflectance and Emittance Spectroscopy, 2nd ed., Cambridge University Press. *Mark: V-rec.*
+- **[Kok17]** [R2429], USGS Data Series 1035 (USGS Spectral Library version 7), [R2429] *Mark: V-rec.*
+- **[Ste99]** [R4219] (Life-sustaining planets in interstellar space?). *Mark: V-rec.*
+- **[SW96]** [R4166] (equation of state for carbon dioxide). *Mark: V-rec.*
 - **[ICRP07]** ICRP 2007, Publication 103, Ann. ICRP 37(2-4), Elsevier (the IAEA glossary cites it as the source of its wR and wT). *Mark: U (record not queried; not opened).*
-- **[DC13]** DeMeo and Carry 2013, Icarus 226, 723 (taxonomic distribution of asteroids); Table 6. *Mark: V-rec; PT.*
-- **[Wal11]** Walsh et al. 2011, Nature 475, 206 (A low mass for Mars from Jupiter's early gas-driven migration). *Mark: V-rec.*
-- **[RI17]** Raymond and Izidoro 2017, Icarus 297, 134 (Origin of water in the inner Solar System). *Mark: V-rec.*
-- **[Kro14]** Krot et al. 2014, in Treatise on Geochemistry 2nd ed. (Classification of meteorites and their genetic relationships). *Mark: V-rec.*
-- **[LB86]** Le Bas et al. 1986, J. Petrology 27, 745 (A chemical classification of volcanic rocks based on the total alkali-silica diagram). *Mark: V-rec.*
-- **[PA09]** Philpotts and Ague 2009, Principles of Igneous and Metamorphic Petrology, 2nd ed., Cambridge University Press. *Mark: V-rec.*
-- **[Lic16]** Lichtenberg, Parker et al. 2016, Isotopic enrichment of forming planetary systems from supernova pollution (journal reference not confirmed). *Mark: V-rec (arXiv title); journal U.*
-- **[Die06]** Diehl et al. 2006, Nature 439, 45 (Radioactive 26Al from massive stars in the Galaxy). *Mark: V-rec.*
-- **[Rug09]** Rugel et al. 2009, PRL 103, 072502 (New measurement of the 60Fe half-life). *Mark: V-rec; number not opened.*
-- **[Fis15]** Fischer et al. 2015, Geochim. Cosmochim. Acta 167, 177 (High pressure metal-silicate partitioning of Ni, Co, V, Cr, Si and O). *Mark: V-rec.*
-- **[Hak18]** Hakim et al. 2018, Icarus 313, 61 (A new ab initio equation of state of hcp-Fe). *Mark: V-rec.*
-- **[DA81]** Dziewonski and Anderson 1981, Phys. Earth Planet. Inter. 25, 297 (Preliminary reference Earth model). *Mark: V-rec.*
-- **[Yur14]** Yurchenko and Tennyson 2014, MNRAS 440, 1649 (ExoMol line lists IV: methane up to 1500 K). *Mark: V-rec.*
-- **[HT74]** Hansen and Travis 1974, Space Sci. Rev. 16, 527 (Light scattering in planetary atmospheres). *Mark: V-rec.*
-- **[Wol09]** Wolff et al. 2009, JGR 114, E00D04 (Wavelength dependence of dust aerosol single scattering albedo on Mars). *Mark: V-rec; PT (figures only).*
-- **[Khare84]** Khare et al. 1984, Icarus 60, 127 (Optical constants of organic tholins). *Mark: V-rec.*
-- **[Tom08]** Tomasko et al. 2008, Planet. Space Sci. 56, 669 (A model of Titan's aerosols). *Mark: V-rec; text paid.*
-- **[Myh98]** Myhre et al. 1998, GRL 25, 2715 (New estimates of radiative forcing due to well mixed greenhouse gases). *Mark: V-rec; PT (Table 3 read).*
-- **[PG14]** Parmentier and Guillot 2014, A&A 562, A133, doi 10.1051/0004-6361/201322342 (A non-grey analytical model for irradiated atmospheres). *Mark: V-rec.*
-- **[Gui10]** Guillot 2010, A&A 520, A27 (On the radiative equilibrium of irradiated planetary atmospheres). *Mark: V-rec.*
-- **[Fre14]** Freedman et al. 2014, ApJS 214, 25, doi 10.1088/0067-0049/214/2/25 (Gaseous mean opacities for giant planet and ultracool dwarf atmospheres). *Mark: V-rec.*
-- **[Kin23]** King 1923, Proc. R. Soc. A 104, 333. *Mark: V-rec; PT.*
-- **[SU05]** Sneep and Ubachs 2005, JQSRT 92, 293 (Direct measurement of the Rayleigh scattering cross section in various gases). *Mark: V-rec; PT (Table 2 read).*
-- **[Has14]** Hassler et al. 2014, Science 343, 1244797 (Mars' surface radiation environment measured with Curiosity's RAD). *Mark: V-rec; PT (0.21 mGy/day, 0.64 mSv/day).*
-- **[BO96]** Badhwar and O'Neill 1996, Adv. Space Res. 17, 7, doi 10.1016/0273-1177(95)00507-B (Galactic cosmic radiation model and its applications). *Mark: V-rec.*
-- **[GA68]** Gleeson and Axford 1968, ApJ 154, 1011 (Solar modulation of galactic cosmic rays). *Mark: V-rec.*
-- **[Xap00]** Xapsos et al. 2000, IEEE Trans. Nucl. Sci. 47, 486 (Probability model for cumulative solar proton event fluences). *Mark: V-rec.*
-- **[SF09]** Schaefer and Fegley 2009, ApJ 703, L113 (Chemistry of silicate atmospheres of evaporating super-Earths). *Mark: V-rec.*
-- **[Kit16]** Kite et al. 2016, ApJ 828, 80 (Atmosphere-interior exchange on hot rocky exoplanets). *Mark: V-rec.*
-- **[Zel91]** Zeleznik 1991, J. Phys. Chem. Ref. Data 20, 1157 (Thermodynamic properties of the aqueous sulfuric acid system to 350 K). *Mark: V-rec; PT.*
-- **[Tab97]** Tabazadeh, Toon, Clegg and Hamill 1997, GRL 24, 1931 (A new parameterization of H2SO4/H2O aerosol composition). *Mark: V-rec; PT (Eq. 1, Table 1 read).*
-- **[Aye80]** Ayers, Gillett and Gras 1980, GRL 7, 433 (On the vapor pressure of sulfuric acid). *Mark: V-rec; text paid.*
-- **[KL90]** Kulmala and Laaksonen 1990, J. Chem. Phys. 93, 696 (Binary nucleation of water-sulfuric acid system). *Mark: V-rec.*
-- **[Gia60]** Giauque, Hornung, Kunzler and Rubin 1960, J. Am. Chem. Soc. 82, 62 (aqueous sulfuric acid solutions and hydrates). *Mark: V-rec.*
-- **[WC02]** Wexler and Clegg 2002, JGR 107, 4207 (E-AIM). *Mark: V-rec.*
-- **[HM15]** Huebner and Mukherjee 2015, Planet. Space Sci. 106, 11 (Photoionization and photodissociation rates in solar and blackbody radiation fields). *Mark: V-rec.*
+- **[DC13]** [R1065] (taxonomic distribution of asteroids); Table 6. *Mark: V-rec; PT.*
+- **[Wal11]** [R4603] (A low mass for Mars from Jupiter's early gas-driven migration). *Mark: V-rec.*
+- **[RI17]** [R3681] (Origin of water in the inner Solar System). *Mark: V-rec.*
+- **[Kro14]** [R2495], in Treatise on Geochemistry 2nd ed. (Classification of meteorites and their genetic relationships). *Mark: V-rec.*
+- **[LB86]** [R0277], J. Petrology 27, 745 (A chemical classification of volcanic rocks based on the total alkali-silica diagram). *Mark: V-rec.*
+- **[PA09]** [R3514], Principles of Igneous and Metamorphic Petrology, 2nd ed., Cambridge University Press. *Mark: V-rec.*
+- **[Lic16]** [R3434], Isotopic enrichment of forming planetary systems from supernova pollution (journal reference not confirmed). *Mark: V-rec (arXiv title); journal U.*
+- **[Die06]** [R1108, R1109] (Radioactive 26Al from massive stars in the Galaxy). *Mark: V-rec.*
+- **[Rug09]** [R3844], PRL 103, 072502 (New measurement of the 60Fe half-life). *Mark: V-rec; number not opened.*
+- **[Fis15]** [R1380], Geochim. Cosmochim. Acta 167, 177 (High pressure metal-silicate partitioning of Ni, Co, V, Cr, Si and O). *Mark: V-rec.*
+- **[Hak18]** [R1752] (A new ab initio equation of state of hcp-Fe). *Mark: V-rec.*
+- **[DA81]** [R1204], Phys. Earth Planet. Inter. 25, 297 (Preliminary reference Earth model). *Mark: V-rec.*
+- **[Yur14]** [R4855] (ExoMol line lists IV: methane up to 1500 K). *Mark: V-rec.*
+- **[HT74]** [R1799] (Light scattering in planetary atmospheres). *Mark: V-rec.*
+- **[Wol09]** [R4743], E00D04 (Wavelength dependence of dust aerosol single scattering albedo on Mars). *Mark: V-rec; PT (figures only).*
+- **[Khare84]** [R2335] (Optical constants of organic tholins). *Mark: V-rec.*
+- **[Tom08]** [R4394], Planet. Space Sci. 56, 669 (A model of Titan's aerosols). *Mark: V-rec; text paid.*
+- **[Myh98]** [R3229] (New estimates of radiative forcing due to well mixed greenhouse gases). *Mark: V-rec; PT (Table 3 read).*
+- **[PG14]** [R3439] (A non-grey analytical model for irradiated atmospheres). *Mark: V-rec.*
+- **[Gui10]** [R1715] (On the radiative equilibrium of irradiated planetary atmospheres). *Mark: V-rec.*
+- **[Fre14]** [R1450] (Gaseous mean opacities for giant planet and ultracool dwarf atmospheres). *Mark: V-rec.*
+- **[Kin23]** [R2360], Proc. R. Soc. A 104, 333. *Mark: V-rec; PT.*
+- **[SU05]** [R4138], JQSRT 92, 293 (Direct measurement of the Rayleigh scattering cross section in various gases). *Mark: V-rec; PT (Table 2 read).*
+- **[Has14]** [R1843], 1244797 (Mars' surface radiation environment measured with Curiosity's RAD). *Mark: V-rec; PT (0.21 mGy/day, 0.64 mSv/day).*
+- **[BO96]** [R0225], Adv. Space Res. 17, 7, [R0225] (Galactic cosmic radiation model and its applications). *Mark: V-rec.*
+- **[GA68]** [R1593] (Solar modulation of galactic cosmic rays). *Mark: V-rec.*
+- **[Xap00]** [R4789], IEEE Trans. Nucl. Sci. 47, 486 (Probability model for cumulative solar proton event fluences). *Mark: V-rec.*
+- **[SF09]** [R3943] (Chemistry of silicate atmospheres of evaporating super-Earths). *Mark: V-rec.*
+- **[Kit16]** [R2380] (Atmosphere-interior exchange on hot rocky exoplanets). *Mark: V-rec.*
+- **[Zel91]** [R4877] (Thermodynamic properties of the aqueous sulfuric acid system to 350 K). *Mark: V-rec; PT.*
+- **[Tab97]** [R4289] (A new parameterization of H2SO4/H2O aerosol composition). *Mark: V-rec; PT (Eq. 1, Table 1 read).*
+- **[Aye80]** [R0210] (On the vapor pressure of sulfuric acid). *Mark: V-rec; text paid.*
+- **[KL90]** [R2516] (Binary nucleation of water-sulfuric acid system). *Mark: V-rec.*
+- **[Gia60]** [R1550], J. Am. Chem. Soc. 82, 62 (aqueous sulfuric acid solutions and hydrates). *Mark: V-rec.*
+- **[WC02]** [R4680] (E-AIM). *Mark: V-rec.*
+- **[HM15]** [R2040], Planet. Space Sci. 106, 11 (Photoionization and photodissociation rates in solar and blackbody radiation fields). *Mark: V-rec.*
 - **[JPL19]** Burkholder et al., JPL Publication 19-5 (Chemical kinetics and photochemical data for use in atmospheric studies, Evaluation No. 19); the project notes disagree on 2019 against 2020. *Mark: U.*
-- **[Mil24]** Millar et al. 2024, A&A 682, A109, doi 10.1051/0004-6361/202346908 (The UMIST Database for Astrochemistry 2022). *Mark: V-rec.*
-- **[Wak12]** Wakelam et al. 2012, ApJS 199, 21 (KIDA). *Mark: V-rec.*
-- **[Doy20]** Doyle et al. 2020, arXiv:2008.05992 (title as returned by arXiv: Where are the extrasolar Mercuries?); Table 1 is the redox source in the tunable-gaps note. *Mark: V-rec; PT.*
-- **[Doy23]** Doyle et al. 2023, arXiv:2303.00063 (New chondritic bodies identified in eight oxygen-bearing white dwarfs); Table 4. *Mark: V-rec; PT.*
-- **[Sos20]** Sossi et al. 2020, Sci. Adv. 6, eabd1387 (Redox state of Earth's magma ocean and its Venus-like early atmosphere). *Mark: V-rec; PT.*
-- **[Gai22]** Gaillard et al. 2022, Earth Planet. Sci. Lett. 577, 117255 (Redox controls during magma ocean degassing). *Mark: V-rec; PT.*
-- **[GS14]** Gaillard and Scaillet 2014, Earth Planet. Sci. Lett. 403, 307 (volcanic degassing chemistry in a comparative planetology perspective). *Mark: V-rec.*
-- **[Hir12]** Hirschmann 2012, Earth Planet. Sci. Lett. 341-344, 48 (Magma ocean influence on early atmosphere mass and composition). *Mark: V-rec.*
-- **[Ems21]** Emsenhuber et al. 2021, A&A 656, A69 (The New Generation Planetary Population Synthesis, NGPPS). *Mark: V-rec.*
-- **[LP22]** Luque and Palle 2022, Science 377, 1211 (Density, not radius, separates rocky and water-rich small planets orbiting M dwarf stars). *Mark: V-rec.*
-- **[Hor18]** Horst et al. 2018, Nat. Astron. 2, 303 (Haze production rates in super-Earth and mini-Neptune atmosphere experiments). *Mark: V-rec.*
-- **[Tra06]** Trainer et al. 2006, PNAS 103, 18035 (Organic haze on Titan and the early Earth). *Mark: V-rec.*
-- **[AM01]** Ackerman and Marley 2001, ApJ 556, 872 (Precipitating condensation clouds in substellar atmospheres). *Mark: V-rec.*
-- **[Roo22]** Rooney et al. 2022, ApJ 925, 33 (virga sedimentation model). *Mark: V-rec.*
-- **[ZC17]** Zahnle and Catling 2017, ApJ 843, 122 (The cosmic shoreline). *Mark: V-rec.*
-- **[BT25]** Berta-Thompson et al. 2025, arXiv:2507.02136 (The 3D cosmic shoreline). *Mark: V-rec; PT.*
-- **[MG25]** Meni-Gallardo and Palle 2025, arXiv:2508.12865 (An empirical determination of the cosmic shoreline). *Mark: V-rec; PT.*
-- **[CK17]** Catling and Kasting 2017, Atmospheric Evolution on Inhabited and Lifeless Worlds, Cambridge University Press. *Mark: V-rec.*
-- **[DG14]** Domagal-Goldman et al. 2014, ApJ 792, 90 (Abiotic ozone and oxygen in atmospheres similar to prebiotic Earth). *Mark: V-rec; PT.*
-- **[Ben19]** Benneke et al. 2019, arXiv:1909.04642 (Water vapor and clouds on the habitable-zone sub-Neptune exoplanet K2-18b). *Mark: V-rec.*
-- **[HP22]** Harrington Pinto et al. 2022, arXiv:2209.09985 (A survey of CO, CO2 and H2O in comets and Centaurs); Table 2. *Mark: V-rec; PT.*
-- **[Gao20]** Gao, Thorngren, Lee et al. 2020, Nat. Astron. 4, 951, doi 10.1038/s41550-020-1114-3 (Aerosol composition of hot giant exoplanets dominated by silicates and hydrocarbon hazes). *Mark: V-rec.*
-- **[MC11]** Mumma and Charnley 2011, ARA&A 49, 471 (The chemical composition of comets); Table 4. *Mark: V-rec; PT.*
-- **[BN85]** Bar-Nun, Herman, Laufer and Rappaport 1985, Icarus 63, 317, doi 10.1016/0019-1035(85)90048-X (Trapping and release of gases by water ice and implications for icy bodies). *Mark: V-rec.*
-- **[BN87]** Bar-Nun, Dror, Kochavi and Laufer 1987, Phys. Rev. B 35, 2427 (Amorphous water ice and its ability to trap gases). *Mark: V-rec.*
-- **[BN88]** Bar-Nun, Kleinfeld and Kochavi 1988, Phys. Rev. B 38, 7749 (Trapping of gas mixtures by amorphous water ice). *Mark: V-rec.*
-- **[NB96]** Notesco and Bar-Nun 1996, Icarus 122, 118 (Enrichment of CO over N2 by their trapping in amorphous ice). *Mark: V-rec.*
-- **[NB05]** Notesco and Bar-Nun 2005, Icarus 175, 546 (A ~25 K temperature of formation for the submicron ice grains which formed comets). *Mark: V-rec.*
-- **[Rub15]** Rubin et al. 2015, Science 348, 232 (Molecular nitrogen in comet 67P). *Mark: V-rec.*
-- **[BB17]** Bockelee-Morvan and Biver 2017, Phil. Trans. R. Soc. A 375, 20160252 (The composition of cometary ices). *Mark: V-rec.*
+- **[Mil24]** [R3071] (The UMIST Database for Astrochemistry 2022). *Mark: V-rec.*
+- **[Wak12]** [R4591] (KIDA). *Mark: V-rec.*
+- **[Doy20]** [R1152] (title as returned by arXiv: Where are the extrasolar Mercuries?); Table 1 is the redox source in the tunable-gaps note. *Mark: V-rec; PT.*
+- **[Doy23]** [R1153] (New chondritic bodies identified in eight oxygen-bearing white dwarfs); Table 4. *Mark: V-rec; PT.*
+- **[Sos20]** [R4154], Sci. Adv. 6, eabd1387 (Redox state of Earth's magma ocean and its Venus-like early atmosphere). *Mark: V-rec; PT.*
+- **[Gai22]** [R1488], Earth Planet. Sci. Lett. 577, 117255 (Redox controls during magma ocean degassing). *Mark: V-rec; PT.*
+- **[GS14]** [R1491], Earth Planet. Sci. Lett. 403, 307 (volcanic degassing chemistry in a comparative planetology perspective). *Mark: V-rec.*
+- **[Hir12]** [R1953], Earth Planet. Sci. Lett. 341-344, 48 (Magma ocean influence on early atmosphere mass and composition). *Mark: V-rec.*
+- **[Ems21]** [R1268] (The New Generation Planetary Population Synthesis, NGPPS). *Mark: V-rec.*
+- **[LP22]** [R2774] (Density, not radius, separates rocky and water-rich small planets orbiting M dwarf stars). *Mark: V-rec.*
+- **[Hor18]** [R2009], Nat. Astron. 2, 303 (Haze production rates in super-Earth and mini-Neptune atmosphere experiments). *Mark: V-rec.*
+- **[Tra06]** [R4415], PNAS 103, 18035 (Organic haze on Titan and the early Earth). *Mark: V-rec.*
+- **[AM01]** [R0024] (Precipitating condensation clouds in substellar atmospheres). *Mark: V-rec.*
+- **[Roo22]** [R3807] (virga sedimentation model). *Mark: V-rec.*
+- **[ZC17]** [R4862] (The cosmic shoreline). *Mark: V-rec.*
+- **[BT25]** [R0364] (The 3D cosmic shoreline). *Mark: V-rec; PT.*
+- **[MG25]** [R3037] (An empirical determination of the cosmic shoreline). *Mark: V-rec; PT.*
+- **[CK17]** [R0692], Atmospheric Evolution on Inhabited and Lifeless Worlds, Cambridge University Press. *Mark: V-rec.*
+- **[DG14]** [R1137] (Abiotic ozone and oxygen in atmospheres similar to prebiotic Earth). *Mark: V-rec; PT.*
+- **[Ben19]** [R0340] (Water vapor and clouds on the habitable-zone sub-Neptune exoplanet K2-18b). *Mark: V-rec.*
+- **[HP22]** Harrington [R3535] (A survey of CO, CO2 and H2O in comets and Centaurs); Table 2. *Mark: V-rec; PT.*
+- **[Gao20]** [R2612], Nat. Astron. 4, 951, [R1513] (Aerosol composition of hot giant exoplanets dominated by silicates and hydrocarbon hazes). *Mark: V-rec.*
+- **[MC11]** [R3206] (The chemical composition of comets); Table 4. *Mark: V-rec; PT.*
+- **[BN85]** [R0266] (Trapping and release of gases by water ice and implications for icy bodies). *Mark: V-rec.*
+- **[BN87]** [R0265], Phys. Rev. B 35, 2427 (Amorphous water ice and its ability to trap gases). *Mark: V-rec.*
+- **[BN88]** [R0267], Phys. Rev. B 38, 7749 (Trapping of gas mixtures by amorphous water ice). *Mark: V-rec.*
+- **[NB96]** [R3316] (Enrichment of CO over N2 by their trapping in amorphous ice). *Mark: V-rec.*
+- **[NB05]** [R3317] (A ~25 K temperature of formation for the submicron ice grains which formed comets). *Mark: V-rec.*
+- **[Rub15]** [R3836] (Molecular nitrogen in comet 67P). *Mark: V-rec.*
+- **[BB17]** [R0435], Phil. Trans. R. Soc. A 375, 20160252 (The composition of cometary ices). *Mark: V-rec.*
 - **[CII]** Festou, Keller and Weaver (eds) 2004, Comets II, University of Arizona Press. *Mark: V-rec (Open Library).*
-- **[Bie15]** Bieler et al. 2015, Nature 526, 678 (Abundant molecular oxygen in the coma of comet 67P). *Mark: V-rec.*
-- **[Bal15]** Balsiger et al. 2015, Sci. Adv. 1, e1500377 (Detection of argon in the coma of comet 67P). *Mark: V-rec.*
-- **[Rub18]** Rubin et al. 2018, Sci. Adv. 4, eaar6297 (Krypton isotopes and noble gas abundances in the coma of comet 67P). *Mark: V-rec.*
-- **[BNO07]** Bar-Nun, Notesco and Owen 2007, Icarus 190, 655 (Trapping of N2, CO and Ar in amorphous ice). *Mark: V-rec.*
-- **[Rob24]** Robinson et al. 2024, cometary volatile abundance database (CC BY 4.0, as the tunable-gaps lane records); no bibliographic record found by Crossref in this thread. *Mark: U.*
-- **[DR16]** Dello Russo et al. 2016, Icarus 278, 301 (Emerging trends and a comet taxonomy based on the volatile chemistry measured in thirty comets). *Mark: V-rec.*
-- **[Bar17]** Bardyn et al. 2017, MNRAS 469, S712 (Carbon-rich dust in comet 67P measured by COSIMA). *Mark: V-rec.*
-- **[AH12]** A'Hearn et al. 2012, ApJ 758, 29 (Cometary volatiles and the origin of comets). *Mark: V-rec.*
-- **[Jor05]** Jordan et al. 2005, ApJ 634, 1002, astro-ph/0508219 (ACS Virgo Cluster Survey X). *Mark: V-rec; PT (abstract).*
-- **[OE02]** O'Neill and Eggins 2002, Chem. Geol. 186, 151 (the activity coefficients of FeO, NiO, CoO, MoO2 and MoO3 in silicate melts, by its title); not an IW-buffer calibration. *Mark: V-rec.*
-- **[BO94]** Badhwar and O'Neill 1994, Adv. Space Res. 14(10), 749, doi 10.1016/0273-1177(94)90537-1 (Long-term modulation of galactic cosmic radiation and its model for space exploration). *Mark: V-rec.*
-- **[Mer16]** Merritt et al. 2016, ApJ 830, 62 (The Dragonfly Nearby Galaxies Survey I). *Mark: V-rec; PT (second-hand, through the Knapen book).*
+- **[Bie15]** [R0386] (Abundant molecular oxygen in the coma of comet 67P). *Mark: V-rec.*
+- **[Bal15]** [R0249], Sci. Adv. 1, e1500377 (Detection of argon in the coma of comet 67P). *Mark: V-rec.*
+- **[Rub18]** [R3834], Sci. Adv. 4, eaar6297 (Krypton isotopes and noble gas abundances in the coma of comet 67P). *Mark: V-rec.*
+- **[BNO07]** [R0268] (Trapping of N2, CO and Ar in amorphous ice). *Mark: V-rec.*
+- **[Rob24]** [R3782], cometary volatile abundance database (CC BY 4.0, as the tunable-gaps lane records); no bibliographic record found by Crossref in this thread. *Mark: U.*
+- **[DR16]** Dello [R1063] (Emerging trends and a comet taxonomy based on the volatile chemistry measured in thirty comets). *Mark: V-rec.*
+- **[Bar17]** [R0259] (Carbon-rich dust in comet 67P measured by COSIMA). *Mark: V-rec.*
+- **[AH12]** [R0048] (Cometary volatiles and the origin of comets). *Mark: V-rec.*
+- **[Jor05]** [R2193], astro-ph/0508219 (ACS Virgo Cluster Survey X). *Mark: V-rec; PT (abstract).*
+- **[OE02]** [R3365], Chem. Geol. 186, 151 (the activity coefficients of FeO, NiO, CoO, MoO2 and MoO3 in silicate melts, by its title); not an IW-buffer calibration. *Mark: V-rec.*
+- **[BO94]** [R0224], Adv. Space Res. 14(10), 749, [R0224] (Long-term modulation of galactic cosmic radiation and its model for space exploration). *Mark: V-rec.*
+- **[Mer16]** [R3041] (The Dragonfly Nearby Galaxies Survey I). *Mark: V-rec; PT (second-hand, through the Knapen book).*
 
 Count: 236 references: 3 read in this thread, 230 with the record confirmed, 3 unverified.
 
 ## 8. Limits of this report
 
 - Book entries confirm the book exists (a Crossref or Open Library record); the chapter named is by topic and was not opened. Page and chapter locators are unverified.
-- V-rec is a bibliographic check, not a reading. Only the IAEA Safety Standard, Thorngren 2016 and Buzzoni 1997 were opened in this thread; every PT mark rests on an earlier thread's reading.
+- V-rec is a bibliographic check, not a reading. Only the IAEA Safety [R0618, R4352] were opened in this thread; every PT mark rests on an earlier thread's reading.
 - The King-factor form with polarizability, the polytrope energy factors (3/7 and 3/4), and the 0.7 percent fusion fraction are textbook results I re-derived or recalled (the fusion fraction from the recalled atomic masses of H-1 and He-4; NIST atomic weights are reachable to check). Check each against a text before coding.
 - The "quality" words are my judgement from the gap plan's closure checks; they are not new tests.
 - I did not compare the project code with current main; the TODO items were read as filed.

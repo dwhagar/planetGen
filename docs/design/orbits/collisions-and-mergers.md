@@ -155,7 +155,7 @@ radii (71,492 km) [C]:
 | Radius (Rjup) | 1.00 | 0.97 | 0.90 | 0.84 |
 
 Volume addition for two Jupiters gives 1.26 Rjup (about 90,000 km) against 0.97
-(69,500 km), 30% too large. Chen and Kipping (2017) find the same Jovian slope,
+(69,500 km), 30% too large. [R0758] find the same Jovian slope,
 -0.04 +/- 0.02, with brown dwarfs on the trend to about 80 Mjup [S:
 https://iopscience.iop.org/article/10.3847/1538-4357/834/1/17; weakly
 constrained at the brown-dwarf end]. Use `giant_radius_km(M_new)` for giants
@@ -210,7 +210,7 @@ too small for long steps (a body at 56 km/s travels farther than an Earth's
 
 - Positions must be differenced from sector-relative values, not absolute
   galactic coordinates (section 5.3).
-- Brent (1973) and Ortega and Rheinboldt (1970), cited for the promised
+- [R1483, R2065], cited for the promised
   bisection, are root-finding references the closed form does not need.
 - orbital-updates.md sections 4, 5, 10.3 and 10.5 still carry the uncorrected
   forms (top 10 influencers, volume-sum radius, fluid Roche factor for all
@@ -286,15 +286,15 @@ plain Hill-sphere entries at debug level.
 
 ## 4. What happens in a collision
 
-### 4.1 Impact regimes (Leinhardt and Stewart 2012; Asphaug et al. 2006)
+### 4.1 Impact regimes [R0166, R2633]
 
-Leinhardt and Stewart (2012, ApJ 745:79) classify outcomes as cratering,
+[R2633] (ApJ 745:79) classify outcomes as cratering,
 merging, disruption, supercatastrophic disruption and hit-and-run, set by impact
 speed, mass ratio and angle [S: https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79].
-Asphaug, Agnor and Williams (2006, Nature 439:155) showed hit-and-run is common
-[S: https://www.nature.com/articles/nature04311]; Genda, Kokubo and Ida (2012)
+[R0166] (Nature 439:155) showed hit-and-run is common
+[S: https://www.nature.com/articles/nature04311]; [R1532]
 give a critical speed in units of v_esc above which a collision is hit-and-run
-[S: https://arxiv.org/pdf/1109.4330].
+[S: [R1532]].
 
 - Mutual escape speed at contact v_esc = sqrt(2 G (M1 + M2) / (R1 + R2)); impact
   speed from an unbound approach with speed at infinity v_inf:
@@ -305,8 +305,8 @@ give a critical speed in units of v_esc above which a collision is hit-and-run
   gamma = M_projectile / M_target and Q*_RD,gamma=1 = c* (4/5) pi rho_1 G R_C1^2,
   rho_1 = 1000 kg/m^3, R_C1 the radius of a body of the total mass at that
   density. Strengthless planets: c* = 1.9, mu_bar = 0.36; small bodies: c* = 5,
-  mu_bar = 0.37 [S: https://arxiv.org/html/1106.6084 as quoted in search
-  results; https://arxiv.org/pdf/2006.01881 for the formula].
+  mu_bar = 0.37 [S: [R2633] as quoted in search
+  results; [R1078] for the formula].
 - Largest remnant M_lr = M_tot (1 - Q_R / (2 Q*_RD)) below Q*_RD [R, derived
   from the definition: linear through (0, 1) and (Q*, 1/2)]; beyond about 1.8
   Q*_RD, M_lr = 0.1 M_tot (Q_R / (1.8 Q*_RD))^-1.5 [R, about 70% sure].
@@ -355,7 +355,7 @@ merge, 15% disruption or worse. These are design-grade shares, not predictions.
   puffy remnants, and can be treated as perfect inelastic collisions [S:
   https://academic.oup.com/mnras/article/501/2/1621/6027698, search snippets
   only]; a gas giant hit by an Earth-mass embryo kept about 90% of its envelope
-  [S: https://arxiv.org/pdf/1410.6815 snippet]. The scaling-law formula gives 4
+  [S: [R2720] snippet]. The scaling-law formula gives 4
   to 12% mean loss across the galactic speed range, in line with Boss's "small %".
 - **The remnant spins near breakup.** A grazing merger (b = 0.5) of two Jupiters
   at v_inf = 0 to 30 km/s spins at 1.0 to 1.1 times breakup (moment of inertia
@@ -368,10 +368,10 @@ merge, 15% disruption or worse. These are design-grade shares, not predictions.
 
 | Threshold | Mjup | Msun | Source |
 |---|---|---|---|
-| Deuterium burning (50% burn) | 13.0 +/- 0.8 (range 11 to 16.3) | 0.0124 | [S] Spiegel, Burrows and Milsom 2011, ApJ 727:57 |
-| Lithium burning | about 63 to 68 | 0.060 to 0.065 | [S] https://arxiv.org/abs/2110.11982 |
-| Hydrogen burning, solar metallicity | 73 to 79 (75 cloudless; 78.5 with ATMO models) | 0.070 to 0.075 | [S] Chabrier and Baraffe 2000; Burrows 2001; https://arxiv.org/pdf/1312.1736 |
-| Hydrogen burning, zero metallicity | about 96 | 0.092 | [S] Burrows 2001 as quoted |
+| Deuterium burning (50% burn) | 13.0 +/- 0.8 (range 11 to 16.3) | 0.0124 | [S] [R4170]:57 |
+| Lithium burning | about 63 to 68 | 0.060 to 0.065 | [S] [R2899] |
+| Hydrogen burning, solar metallicity | 73 to 79 (75 cloudless; 78.5 with ATMO models) | 0.070 to 0.075 | [S] [R0606, R0707, R1113] |
+| Hydrogen burning, zero metallicity | about 96 | 0.092 | [S] [R0606] as quoted |
 
 1 Mjup = 9.54e-4 Msun [C], so 13 Mjup = 0.0124, 78.6 = 0.075, 80 = 0.0763 Msun.
 The project already uses 13 to 80 Mjup for rogue brown dwarfs
@@ -490,7 +490,7 @@ Options for the nebula clause:
   (display "<63 AU") and recompute `radius_ly` from `formed_at` at each update.
 - Members (rendering only, GEN.112): cumulative N(>D) ~ D^-2.5 with explicit hero
   bodies (differential slope 3.5 aged, 2.2 to 2.7 for a fresh disruption [S:
-  https://arxiv.org/pdf/0911.3937 snippet]); the largest fragment is M_lr.
+  [R2217] snippet]); the largest fragment is M_lr.
 - Life span: free fields disperse in 1e6 to 1e7 years (in
   interstellar-object-rates.md). The generator makes no free fields
   (`PHENOMENON_DENSITY_PC3["asteroid-field"]` is 0), so event-made and hand-made
@@ -599,13 +599,13 @@ relative speeds, 1-D relative dispersion s_rel = sqrt(s1^2 + s2^2)):
 The second term is gravitational focusing, sigma = pi b^2 (1 + v_esc^2 / v^2).
 Check against the published focusing-dominated stellar collision time, T_coll
 about 7e14 yr (R/Rsun)^-1 (M/Msun)^-1 (n/pc^-3)^-1 (sigma/km s^-1) [S:
-https://arxiv.org/html/1302.2549]: 1.2e17 yr for n = 0.14 and sigma = 25 km/s;
+[R4980]]: 1.2e17 yr for n = 0.14 and sigma = 25 km/s;
 this formula gives 1.26e17 yr [C]. Inputs are the project's densities
 (`tuning.PHENOMENON_DENSITY_PC3`, `tuning.ROGUE_PLANET_MASS_BINS`): terrestrial
 0.78, sub-Neptune 0.10, Saturn-class 0.024, Jupiter-bin 0.0039, brown dwarf 0.03,
 neutron star 7e-4, star 0.14 per pc^3, and 1e15 pc^-3 for comets and debris
 (`INTERSTELLAR_DEBRIS_DENSITY_PC3`). The thin disc has (sigma_U, sigma_V,
-sigma_W) about (33, 28, 23) km/s overall [S: https://arxiv.org/pdf/1710.08479;
+sigma_W) about (33, 28, 23) km/s overall [S: [R0119];
 https://www.aanda.org/articles/aa/full_html/2024/08/aa49445-24/aa49445-24.html,
 search snippets]; rogues are ejected at a few km/s [R], so they inherit it.
 Default 25 km/s per axis per body (mean relative speed 56 km/s).
@@ -630,10 +630,10 @@ N^2, so a generated galaxy of 1e9 rogues is smaller by a further 3e-6. Comet
 hits are craters, not events to model, which is why comets must not be rows.
 Dense places do not change the picture: a terrestrial rogue pair waits about
 1.3e17 years in a globular cluster core and 1e14 to 1e15 years at the galactic
-centre [S/R: https://arxiv.org/html/1302.2549;
+centre [S/R: [R4980];
 https://iopscience.iop.org/article/10.3847/2041-8213/ad251f; the central density
 is recalled]. Belt and moon collisions (main belt: 2.85 +/- 0.66 e-18 km^-2
-yr^-1 at 5.81 km/s [S: Farinella and Davis 1992]) are the orbit code's concern,
+yr^-1 at 5.81 km/s [S: [R1327]]) are the orbit code's concern,
 not this handler's.
 
 ## 7. What the admin report contains
@@ -687,19 +687,19 @@ reachable (the research environment read search-result text only):
 
 Seen in search results (search text only):
 
-- Leinhardt and Stewart 2012, ApJ 745:79: https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79 ; https://arxiv.org/html/1106.6084 ; https://arxiv.org/pdf/2006.01881 (formula restated). Stewart and Leinhardt 2012: https://arxiv.org/pdf/1109.4588 (title only).
-- Asphaug, Agnor and Williams 2006: https://www.nature.com/articles/nature04311 ; Genda, Kokubo and Ida 2012: https://arxiv.org/pdf/1109.4330
-- Spiegel, Burrows and Milsom 2011: https://www.osti.gov/etdeweb/biblio/21567589 ; hydrogen limit: https://arxiv.org/pdf/1312.1736 ; https://www.researchgate.net/publication/367543291 ; https://arxiv.org/pdf/astro-ph/9902015 ; lithium limit: https://arxiv.org/abs/2110.11982
-- Giant mergers (SPH): https://academic.oup.com/mnras/article/501/2/1621/6027698 ; https://arxiv.org/pdf/1410.6815
-- Chen and Kipping 2017: https://iopscience.iop.org/article/10.3847/1538-4357/834/1/17 ; https://arxiv.org/pdf/2311.12593
-- ZTF SLRN-2020: https://www.nature.com/articles/s41586-023-05842-x ; V1309 Sco: https://arxiv.org/pdf/1311.6522
-- Planetary nebulae: https://arxiv.org/pdf/1411.2365 ; https://arxiv.org/pdf/1002.1525
-- Roche coefficients: https://academic.oup.com/mnras/article/509/2/2404/6408484 ; https://arxiv.org/html/2110.07601
-- Main belt: https://sciencedirect.com/science/article/abs/pii/001910359290060K ; https://arxiv.org/pdf/2403.03248
-- Velocity dispersions: https://arxiv.org/pdf/1710.08479 ; https://www.aanda.org/articles/aa/full_html/2024/08/aa49445-24/aa49445-24.html ; https://arxiv.org/html/2412.07089v1
-- Stellar encounter rates: https://arxiv.org/html/1302.2549 ; nuclear star cluster: https://iopscience.iop.org/article/10.3847/2041-8213/ad251f ; https://arxiv.org/html/0810.0204
-- Free-floating planets: https://arxiv.org/html/2503.11597 ; https://iopscience.iop.org/article/10.3847/1538-3881/ace688/pdf
-- Fragment size distribution: https://arxiv.org/pdf/0911.3937
+- [R2633]:79: https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79 ; [R1078, R2633] (formula restated). [R4226]: [R4999] (title only).
+- [R0166]: https://www.nature.com/articles/nature04311 ; [R1532]: [R1532]
+- [R4170]: https://www.osti.gov/etdeweb/biblio/21567589 ; hydrogen limit: [R1113] ; https://www.researchgate.net/publication/367543291 ; [R0704] ; lithium limit: [R2899]
+- Giant mergers (SPH): https://academic.oup.com/mnras/article/501/2/1621/6027698 ; [R2720]
+- [R0758]: https://iopscience.iop.org/article/10.3847/1538-4357/834/1/17 ; [R3200]
+- ZTF SLRN-2020: https://www.nature.com/articles/s41586-023-05842-x ; V1309 Sco: [R3240]
+- Planetary nebulae: [R1460, R1751]
+- Roche coefficients: https://academic.oup.com/mnras/article/509/2/2404/6408484 ; [R4990]
+- Main belt: https://sciencedirect.com/science/article/abs/pii/001910359290060K ; [R3332]
+- Velocity dispersions: [R0119] ; https://www.aanda.org/articles/aa/full_html/2024/08/aa49445-24/aa49445-24.html ; [R4991]
+- Stellar encounter rates: [R4980] ; nuclear star cluster: https://iopscience.iop.org/article/10.3847/2041-8213/ad251f ; [R4983]
+- Free-floating planets: [R4992] ; https://iopscience.iop.org/article/10.3847/1538-3881/ace688/pdf
+- Fragment size distribution: [R2217]
 
 Repo files read: "Orbital Update Collision Detection.md" (in full), "Orbital
 Update Full Algorithm.md", "Computational Astrodynamics.md", orbital-updates.md,

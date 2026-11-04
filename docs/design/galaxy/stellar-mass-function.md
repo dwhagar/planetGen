@@ -11,14 +11,14 @@ what is set and what is derived, and what each consumer reads.
 
 | Curve | Name in code | What it counts | Where it comes from |
 |---|---|---|---|
-| Single stars | `imf.SINGLE` (`xi`) | Every star born, by mass | Set: Chabrier 2003 (PASP 115:763, Table 2, disk, individual stars) |
+| Single stars | `imf.SINGLE` (`xi`) | Every star born, by mass | Set: [R0705] (PASP 115:763, Table 2, disk, individual stars) |
 | Primaries | `imf.PRIMARY` (`P`) | The star a system is built around, by its birth mass | Derived: `xi` less the companions of heavier primaries (`generation/primary_mass_function.py`) |
 
 **Single stars.** A log-normal in log mass below 1 solar mass (centre 0.079, width 0.69 dex) and the power law
 `dN/dM ~ M^-2.3` above, joined continuously at 1 solar mass. The function is kept as a continuous piecewise power law
 (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`): the log-normal is cut at every 0.05 dex and each pair of nodes is joined by the
 chord of `ln dN/dM` against `ln M`, within 0.07% of the log-normal. The sampler, the integrals and the number counts of
-`physics/imf.py` stay exact on it. The birth slope is 2.3; the steeper 2.7 of the field (Kroupa, Tout and Gilmore 1993) counts
+`physics/imf.py` stay exact on it. The birth slope is 2.3; the steeper 2.7 of the field [R2499] counts
 stars still alive, and the disk history reproduces it from this slope and the ages. The old two-segment function (1.3 below
 0.5 solar masses, 2.3 above) did not have the log-normal's turnover, which is what the published counts of low-mass stars
 show.
@@ -29,7 +29,7 @@ the primaries of that mass plus the companions of the heavier primaries that fal
     xi(m) = P(m) + sum over primaries M >= m of P(M) n_c(M) (share of M's companions that land at m)
 
 `n_c(M)` is the mean count less one of the `star-count` table for the class of the star (`multistar.companion_class`), and a
-companion's mass is its primary's times a ratio from the law of Moe and Di Stefano (2017, Table 13) between `max(0.1, 0.08 / M)` and 1
+companion's mass is its primary's times a ratio from the law of [R3108: Table 13] between `max(0.1, 0.08 / M)` and 1
 (`multistar.companion_ratio_range`, `mass_ratio.py`, GEN.951, below).
 Companions are never heavier than the primary, so the equation is solved from the top mass down in one pass, with no
 iteration. The result peaks higher than `xi`, as the published systems' functions do (Chabrier's own for systems has its centre
@@ -42,7 +42,7 @@ a system); the brown dwarf companion (below the hydrogen-burning limit, outside 
 
 **The mass ratio of a companion (GEN.951).** At one orbital period the density of the ratio q = M2/M1 is a power law, `q ** gamma_smallq`
 over 0.1 to 0.3 and `q ** gamma_largeq` over 0.3 to 1, continuous at 0.3, with a fraction `F_twin` of the companions with q > 0.3
-spread evenly over 0.95 to 1 on top of it (Moe and Di Stefano 2017, ApJS 230:15, Eqn. 2 and Table 1). Their Table 13 gives the three
+spread evenly over 0.95 to 1 on top of it ([R3108]:15, Eqn. 2 and Table 1). Their Table 13 gives the three
 numbers at log P = 1, 3, 5 and 7 for solar-type, A / late-B, mid-B, early-B and O-type primaries
 (`tuning.MASS_RATIO_*`, rows in the order of `COMPANIONS_PER_DECADE_BY_PRIMARY_MASS`, straight in log mass between them): a solar-type
 primary stays near flat (slopes -0.5 to +0.3) with a twin fraction 0.3, 0.2 and 0.1 at log P 1, 3 and 5; a massive one is flat at log P = 1
@@ -65,13 +65,13 @@ one's (12 solar masses) 0.38; the share with q > 0.95 is 12% against 6% flat for
 
 ## The remnants of the same curve
 
-* **White dwarfs** carry one initial-final mass relation, `tuning.WD_IFMR_PIECES` (Cummings et al. 2018, ApJ 866:21, MIST
+* **White dwarfs** carry one initial-final mass relation, `tuning.WD_IFMR_PIECES` ([R0961]:21, MIST
   fit, equations 4 to 6, read): `0.080 M + 0.489` for 0.83 to 2.85 solar masses, `0.187 M + 0.184` for 2.85 to 3.6, `0.107 M
   + 0.471` for 3.6 to 7.2, the last piece carried to 8 (a 1.33 solar mass white dwarf at the top). Read by the star model, the
-  member draw, the disk history and `mass_loss`, through `physics/remnant_mass.py`. The Kalirai et al. (2008) relation the
+  member draw, the disk history and `mass_loss`, through `physics/remnant_mass.py`. The [R2230] relation the
   generator used before ran 0.04 to 0.06 under it, and another relation, the disk history's, 0.1 to 0.16 under at 5 to 7
   solar masses. The disk history's return fraction is 0.384 (it was 0.371).
-* **Neutron stars** are drawn from the Gaussian of the slow pulsars (Ozel and Freire 2016: 1.49 +- 0.19), held to 1.1 to 2.2
+* **Neutron stars** are drawn from the Gaussian of the slow pulsars ([R3396]: 1.49 +- 0.19), held to 1.1 to 2.2
   solar masses; `remnant_mass.share_above` and `moments` are the same Gaussian's for the scatter cut and the placement terms.
 * **Black holes** stay uniform over 5 to 20 solar masses: the widest of the published ranges stands.
 
@@ -92,5 +92,5 @@ Registry section 6.50 of `research/gap-filling-plan.md`.
 ## Open
 
 * GEN.931: the arm contrast by population and the A stars.
-* GEN.936 and GEN.948 (built on their own branch): the main sequence from 0.07 to 0.1 solar masses and the brown dwarf cooling track are read from the Baraffe et al. 2015 table, and the star/brown-dwarf boundary is one split at 0.08 with a class that depends on the place's [Fe/H].
+* GEN.936 and GEN.948 (built on their own branch): the main sequence from 0.07 to 0.1 solar masses and the brown dwarf cooling track are read from the [R0254] table, and the star/brown-dwarf boundary is one split at 0.08 with a class that depends on the place's [Fe/H].
 * GEN.951: the remaining items of the chain.

@@ -607,7 +607,7 @@ nebula, so the table would be rebuilt for every setting.
   `idx_sectors_center` per accepted candidate).
 - **No overlap, by dart throwing.** Keep a hash grid of cell size 2r over accepted
   centres and reject a candidate closer than 2r plus a margin (Poisson-disk
-  sampling; Bridson 2007, SIGGRAPH sketches) [R]. A 100 ly neighbourhood excludes
+  sampling; [R0539], SIGGRAPH sketches) [R]. A 100 ly neighbourhood excludes
   9.7 x 10^5 pc^3 and random sequential packing fills about 30% of the volume, so
   it succeeds for up to about 4.8 x 10^5 centres (3.0 x 10^4 at 250 ly) galaxy-wide
   and 3.4 x 10^4 in the bulge alone. Cap attempts at 200 x N and report a shortfall.
@@ -649,7 +649,7 @@ centres (`centres.py`); star totals (`galaxy_totals.py`). The dispersion formula
 integration pass.
 
 Recalled [R], to verify when paper access is allowed (the research environment
-could read only search-result text): Bridson 2007; the Minecraft chunk status list and neighbour-radius rule (idea high
+could read only search-result text): [R0539]; the Minecraft chunk status list and neighbour-radius rule (idea high
 confidence, names medium); the outbox and idempotent-handler patterns; the 40 KB
 per system storage figure and the 8% O/B share at 750 L_sun and above (both from
 the pre-placement plan, not re-measured).

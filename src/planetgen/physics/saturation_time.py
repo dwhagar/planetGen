@@ -5,7 +5,7 @@ How long a star stays saturated in X-rays, by mass and by initial rotation (GEN.
 
 Row p6 of the atmosphere recipes draws a star's initial-rotation percentile and takes the saturation time from three solar-mass points of
 Tu et al. 2015 (5.7, 23 and 226 Myr at the 10th, 50th and 90th percentile); the mass dependence was missing (every mass used the solar one, GEN.523).
-Johnstone, Bartel and Guedel 2021 (A&A 649, A96, arXiv:2009.07695) model the rotation and X-ray evolution of 0.1 to 1.25 solar mass stars with
+[R2183] model the rotation and X-ray evolution of 0.1 to 1.25 solar mass stars with
 the spin-down of a model and give, in their Fig. 10, the age at which a star falls below the saturation threshold against mass for the slow,
 medium and fast rotators, the observed 5th, 50th and 95th percentiles of the rotation distribution at 150 Myr (READ). `ANCHORS_MYR` is that figure
 read off: the pixel positions of the three curves on the published page, converted with the axes (a logarithmic axis up to 1000 Myr and a linear
@@ -28,7 +28,7 @@ import math
 from planetgen.util.checks import finite_domain
 
 PERCENTILES = (5.0, 50.0, 95.0)
-"""tuple: The percentiles of the 150 Myr rotation distribution the slow, medium and fast curves of Johnstone et al. 2021 are."""
+"""tuple: The percentiles of the 150 Myr rotation distribution the slow, medium and fast curves of [R2183] are."""
 
 ANCHORS_MYR = {
     0.10: (3150.0, 4460.0, 4700.0),
@@ -46,7 +46,7 @@ ANCHORS_MYR = {
     1.20: (2.5, 13.1, 17.4),
 }
 """dict: The age, Myr, at which a star of this mass (solar masses) falls below the X-ray saturation threshold, for the slow (5th percentile), medium
-(50th) and fast (95th percentile) rotators, read off Fig. 10 of Johnstone et al. 2021 (the fast value at 0.1 solar masses is read by eye where the
+(50th) and fast (95th percentile) rotators, read off Fig. 10 of [R2183] (the fast value at 0.1 solar masses is read by eye where the
 curve runs under the medium one). [Stand-in RS1, tier T3, tweak L0.]"""
 
 _MASSES = sorted(ANCHORS_MYR)

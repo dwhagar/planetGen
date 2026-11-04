@@ -4,7 +4,7 @@ Part of GEN.1006 (overlap-free multi-star systems, [overlap-free-systems.md](ove
 
 ## 1. The problem and the form chosen
 
-A 2+2 quadruple is two binaries, `(m1 >= m2)` and `(m3 >= m4)` with `m1 + m2 >= m3 + m4`, that orbit each other. `physics/stability.py` can test it as two nested triples (each binary with the other as one point mass) and that is right for 83 percent of the paper's systems (Vynatheya, Mardling and Hamers 2023, arXiv 2301.09930, Table 3, Mardling-Aarseth), 88 percent with their triple network. The paper's 2+2 network is right for 94 percent. It is the same kind of network as the 3+1 one: 11 inputs, four hidden layers of 50 logistic units, one output (the probability of "unstable"), 8,301 numbers. `scripts/build_quadruple_stability.py 2p2 <model>` makes `data/quadruple_stability_2p2_weights.json` from the authors' `mlp_model_2p2_ghost_v1.2.2.pkl` without running the pickle (the restricted reader of GEN.1029); the numpy forward pass gives the probabilities of the same network built as a scikit-learn model from that state to 1e-6 on five stored cases (the test file carries them).
+A 2+2 quadruple is two binaries, `(m1 >= m2)` and `(m3 >= m4)` with `m1 + m2 >= m3 + m4`, that orbit each other. `physics/stability.py` can test it as two nested triples (each binary with the other as one point mass) and that is right for 83 percent of the paper's systems ([R4575: Table 3], Mardling-Aarseth), 88 percent with their triple network. The paper's 2+2 network is right for 94 percent. It is the same kind of network as the 3+1 one: 11 inputs, four hidden layers of 50 logistic units, one output (the probability of "unstable"), 8,301 numbers. `scripts/build_quadruple_stability.py 2p2 <model>` makes `data/quadruple_stability_2p2_weights.json` from the authors' `mlp_model_2p2_ghost_v1.2.2.pkl` without running the pickle (the restricted reader of GEN.1029); the numpy forward pass gives the probabilities of the same network built as a scikit-learn model from that state to 1e-6 on five stored cases (the test file carries them).
 
 Inputs (dimensionless): `q_in1 = m2/m1`, `q_in2 = m4/m3`, `q_out = (m3+m4)/(m1+m2)`, `alpha_in1_out = a_in1/a_out`, `alpha_in2_out = a_in2/a_out`, the three eccentricities, the three mutual inclinations (radians, over pi inside). `ratios_2p2` makes the five ratios from masses and axes, `outside_range_2p2` names inputs outside what the paper documents (mass ratios under 0.1, `q_out` above 1, eccentricity above 0.95, an axis ratio outside 0 to 1), `hierarchy_holds_2p2` is the apoapsis-inside-periapsis test the training sample kept for both inner binaries.
 
@@ -33,7 +33,7 @@ What it shows and does not show:
 2. **Training range.** Masses within a factor 10 (inner mass ratios at least 0.1), `q_out` at most 1, eccentricities to 0.95, isotropic angles, systems near the Mardling-Aarseth boundary of the two nested triples (the paper excludes 70 percent of the MA01-unstable draws). Far from the boundary the network extrapolates.
 3. **No arguments of periapsis or mean anomalies** are inputs.
 4. **Only the two quadruple shapes of the paper.** Higher multiples are the nested-triple test at each node.
-5. **Licence.** As for the 3+1 file: the authors' repository has no licence file; Boss handles DATA-LICENSE.md. Cite Vynatheya, Mardling and Hamers 2023 wherever the rule is used.
+5. **Licence.** As for the 3+1 file: the authors' repository has no licence file; Boss handles DATA-LICENSE.md. Cite [R4575] wherever the rule is used.
 
 ## 4. For the wiring (GEN.1016)
 

@@ -25,8 +25,7 @@ Gyr the schedule runs in, and the world holds `N*` (as the partial pressure `p =
 delay and nothing before. A world with `S <= R` never holds any. The most the air can hold is `mixture_oxygen.BIOTIC_O2_MAX` of it (the
 fire limit).
 
-The numbers are those of the one world we know (`EARTH_*`, round figures from the literature of the oxygen cycle: Holland 2002; Lenton and
-Catling and Claire 2005, from memory), used as the test point and the scale and not as a preset: a world
+The numbers are those of the one world we know (`EARTH_*`, round figures from the literature of the oxygen cycle: [R0689, R1980], from memory), used as the test point and the scale and not as a preset: a world
 with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.21 of
 `docs/design/research/gap-filling-plan.md` with its tier and tweak level.
 
@@ -44,10 +43,10 @@ EARTH_O2_MOL = 3.7e19
 """float: The oxygen of Earth's air, mol (21 percent of 1.77e20 mol of air; 22.8 kPa at its gravity and area)."""
 
 EARTH_BURIAL_MOL_YR = 1.0e13
-"""float: The organic carbon Earth buries a year, mol (the source `S`; Hayes and Waldbauer 2006, about 1e13). T2, L3."""
+"""float: The organic carbon Earth buries a year, mol (the source `S`; [R1859], about 1e13). T2, L3."""
 
 EARTH_REDUCTANT_MOL_YR = 3.0e12
-"""float: The oxygen Earth's volcanic and metamorphic reductants take a year, mol (`R`; Holland 2002, a few 1e12). T3, L3."""
+"""float: The oxygen Earth's volcanic and metamorphic reductants take a year, mol (`R`; [R1980] few 1e12). T3, L3."""
 
 EARTH_STORE_MOL = 5.0e21
 """float: The oxygen the ocean's iron and the crust's sulfides and iron take before the air holds any, mol (`B`), chosen so that the first
@@ -92,7 +91,7 @@ MINIMUM_PA = 1.0
 """float: Under this partial pressure, Pa, a world is counted as making no oxygen."""
 
 EUKARYOTE_MINIMUM_PA = 200.0
-"""float: The oxygen, Pa, the air must hold for the wait for complex cells to start (about 1 percent of Earth's: Mills et al. 2014; T3, L0)."""
+"""float: The oxygen, Pa, the air must hold for the wait for complex cells to start (about 1 percent of Earth's: [R3084]; T3, L0)."""
 
 APPLY_RISE = 1.01
 """float: The air takes new oxygen only when the target is this much above what it holds, so that applying the model again changes nothing."""

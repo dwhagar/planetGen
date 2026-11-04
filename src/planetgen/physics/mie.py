@@ -6,7 +6,7 @@ Mie scattering of a homogeneous sphere (GEN.1020, chapter 4), vectorised over sp
 
 `efficiencies(x, m)` is the extinction and scattering efficiencies and the asymmetry factor of spheres of size parameter `x = 2 pi r / lambda`
 and complex refractive index `m = n + i k` (the sign of the imaginary part is the absorbing one). `gamma_average` averages them over a
-gamma size distribution of effective radius and effective variance (Hansen and Travis 1974), weighted by the cross section.
+gamma size distribution of effective radius and effective variance [R1799], weighted by the cross section.
 
 The coefficients `a_n` and `b_n` come from the usual recurrences: the logarithmic derivative `D_n(m x)` downward, the Riccati-Bessel
 functions of `x` upward, each sphere summed to its own `n_max = x + 4 x^(1/3) + 2`. Units: lengths in the same unit for `r` and `lambda`.

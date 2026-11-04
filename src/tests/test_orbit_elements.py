@@ -57,7 +57,7 @@ def test_the_eccentricities_of_a_single_planet_follow_the_published_mixture():
     scale = cdf(0.9)
     assert stats.kstest(values, lambda x: cdf(x) / scale).pvalue > 0.001
     multi = _draws(SAMPLES, lambda: oe.draw_planet_eccentricity(True, 0.9))
-    assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population (Van Eylen et al. 2019)
+    assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population [R1307]
 
 
 def test_a_cut_eccentricity_is_never_exceeded_and_a_cut_of_zero_is_a_circle():
@@ -88,7 +88,7 @@ def test_a_regular_moon_takes_a_small_forced_eccentricity_and_a_captured_one_the
 
 
 def test_a_moon_at_the_edge_of_the_stable_sphere_has_no_room_for_an_eccentricity():
-    # Domingos, Winter and Yokoyama (2006): a_moon <= 0.4895 R_H (1 - 1.0305 e_planet - 0.2738 e_moon)
+    # [R1138]: a_moon <= 0.4895 R_H (1 - 1.0305 e_planet - 0.2738 e_moon)
     hill = 0.001
     stable = 0.4895 * hill
     assert oe.max_moon_eccentricity(stable, hill) == 0.0

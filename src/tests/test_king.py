@@ -1,7 +1,7 @@
 # tests/test_king.py
 
 """
-GEN.159: the King (1966) solver. Its concentrations match the textbook values, a cluster's expected number of systems is
+GEN.159: the [R2359] solver. Its concentrations match the textbook values, a cluster's expected number of systems is
 its mass over the mean system mass, a radius drawn by inverse transform lands where the table says, and a cluster whose
 King edge would pass its Jacobi radius is given a lower central potential.
 """

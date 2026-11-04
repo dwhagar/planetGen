@@ -8,7 +8,7 @@ GEN.459 drew a Urey ratio (0.1 to 0.9) and divided the radiogenic heat by it. Th
 
 ## 2. The model
 
-One-box parameterised convection for a stagnant lid: Thiriet et al. 2019 as used by Guimond, Rudge and Shorttle 2022 (arXiv:2201.05636 section 2.2 and Table 2; READ). Mantle and core share one temperature `Tm` (that paper's runs have the core following the mantle):
+One-box parameterised convection for a stagnant lid: [R4339] as used by [R1716] ([R1716] section 2.2 and Table 2; READ). Mantle and core share one temperature `Tm` (that paper's runs have the core following the mantle):
 
 `(Mm cm + Mc cc) dTm/dt = -qu Au + Mm h(t)`
 
@@ -16,14 +16,14 @@ One-box parameterised convection for a stagnant lid: Thiriet et al. 2019 as used
 
 | Quantity | Value | Source | Label |
 |---|---|---|---|
-| rho, cm, cc, km, alpha, kappa | 3500 kg/m3, 1142 and 840 J/kg/K, 4 W/m/K, 2.5e-5 /K, 1e-6 m2/s | Guimond 2022 Table 2 (from Thiriet 2019) | READ |
-| Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 (Thiriet 2019) | READ |
+| rho, cm, cc, km, alpha, kappa | 3500 kg/m3, 1142 and 840 J/kg/K, 4 W/m/K, 2.5e-5 /K, 1e-6 m2/s | [R1716: Table 2] (from [R4339]) | READ |
+| Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 [R4339] | READ |
 | surface temperature | 273 K in the paper; here the body's own when its climate is known, else 273 K | Table 2 | READ, body's own: GEN.735 |
 | eta0 | uniform 2.6e10 to 5.3e13 Pa s | Section 2.2.3 (wet olivine less a decade to dry enstatite) | READ |
-| Ea | uniform 200 to 300 kJ/mol | Section 2.2.3 (Karato and Wu 1993; Zhang et al. 2017) | READ |
-| core radius | `R_dry CMF^0.5`; dry radius from `radius_fit_earth` or `small_body_radius_earth` | Zeng and Jacobsen 2017 via the paper; part B fits | READ |
+| Ea | uniform 200 to 300 kJ/mol | Section 2.2.3 (Karato and Wu 1993; [R4889]) | READ |
+| core radius | `R_dry CMF^0.5`; dry radius from `radius_fit_earth` or `small_body_radius_earth` | [R4879] via the paper; part B fits | READ |
 | start | `Ts + E / C`, `E` = binding energy of the differentiated body (two uniform shells) | COMPUTED | COMPUTED |
-| ceiling | the liquidus at the middle of the mantle, `a_l (p + p_l)^c_l` with 310.317, 29.102 GPa, 0.5337 (3,100 K for the Earth, 1,900 K for a Moon-sized body); a magma ocean radiates the rest away | Manske et al. 2025 (arXiv:2506.18718) Table 1, Eq. 7 | READ |
+| ceiling | the liquidus at the middle of the mantle, `a_l (p + p_l)^c_l` with 310.317, 29.102 GPa, 0.5337 (3,100 K for the Earth, 1,900 K for a Moon-sized body); a magma ocean radiates the rest away | [R2857: Table 1], Eq. 7 | READ |
 
 The two draws (`eta0`, `Ea`) are the paper's own uncertainty about other planets' mantles; the stream is two `uniform` calls. Everything else follows from the stored mass, radius, composition and the star's age.
 
@@ -38,13 +38,13 @@ Differences from the paper, all labelled here: one temperature instead of two; t
 | Earth twin at 0.1 Gy | 3 to 30 times the heat of 4.5 Gy, Urey ratio 0.1 to 0.25 (1.0 for the stiffest rheology, which stays near the ceiling) |
 | Differentiation energy of the Earth | 1.9e31 J on top of 2.2e32 J of accretion |
 
-The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020; READ via part E 2.8e). This one box reaches neither with either lid (it holds the 21 TW of radiogenic heat and the cooling of one temperature); the totals are inside the geoneutrino range, 38.2 +13.6 -12.7 TW.
+The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 ([R3293]; READ via part E 2.8e). This one box reaches neither with either lid (it holds the 21 TW of radiogenic heat and the cooling of one temperature); the totals are inside the geoneutrino range, 38.2 +13.6 -12.7 TW.
 
 ### 3.1 The lid (GEN.721)
 
 A body has a **tectonic regime**, `lid_regime`: `mobile` (plate tectonics) or `stagnant` (one rigid plate). It is drawn once, after the hydrosphere, at the chance the magnetic field's rule gave (`magnetism.mobile_lid_chance`: a liquid surface ocean and a mass of 0.5 to 5 Earth masses at 0.6, heavier at 0.3, any other body stagnant), and stored. Three things read it: the dynamo's lifetime (a stagnant lid's is 0.4 as long), the ground dose (a mobile lid reprocesses basalt into felsic crust) and the heat flux law here. Before GEN.721 the field and the ground dose each drew their own coin on the same chance, so one body could be mobile for its dynamo and stagnant for its dose.
 
-The law. A stagnant lid loses heat across `dT = a_rh R Tm^2 / Ea`, the boundary layer's viscous temperature scale (section 1). A mobile lid carries the whole drop from the mantle to the surface, `dT = Tm - Ts`, with the same Rayleigh number and the viscosity at `Tm`, and a mobile exponent `beta = 1/3` (boundary-layer theory; Gurnis 1989 for a viscous lid with weak zones, READ in O'Neill 2020, arXiv:2006.05654 section 1; Moresi and Solomatov 1998 find 0.224 to 0.293 for a yielding lid and O'Neill's own runs 0.26 for an evolving mobile lid, 0.12 for a stagnant one). At one mantle temperature the mobile lid loses about ten times the heat, so the mantle cools to a lower temperature, the heat it was born with is spent sooner, and the radiogenic share is larger:
+The law. A stagnant lid loses heat across `dT = a_rh R Tm^2 / Ea`, the boundary layer's viscous temperature scale (section 1). A mobile lid carries the whole drop from the mantle to the surface, `dT = Tm - Ts`, with the same Rayleigh number and the viscosity at `Tm`, and a mobile exponent `beta = 1/3` (boundary-layer theory; [R1736] for a viscous lid with weak zones, READ in [R3363] section 1; [R3154] find 0.224 to 0.293 for a yielding lid and O'Neill's own runs 0.26 for an evolving mobile lid, 0.12 for a stagnant one). At one mantle temperature the mobile lid loses about ten times the heat, so the mantle cools to a lower temperature, the heat it was born with is spent sooner, and the radiogenic share is larger:
 
 | Earth twin at 4.568 Gy, the paper's four rheology corners | stagnant lid | mobile lid |
 |---|---|---|
@@ -58,7 +58,7 @@ The hydrosphere is made before the regime exists (the regime needs the hydrosphe
 
 ### 3.2 Small and large bodies, and a Urey ratio above 1 (GEN.763)
 
-The Urey ratio is the radiogenic heat over the heat that leaves the surface (arXiv:1210.3838 section 3.1: "the ratio of internal heat production to surface heat flux"; they cite about 0.3 from geochemistry and close to one from the geophysical view for the Earth). Here it is an output, `radiogenic_w / total_w`. It passes 1 only while the mantle is warming (it makes more than it loses), and it is exactly 1 while the mantle sits at its ceiling.
+The Urey ratio is the radiogenic heat over the heat that leaves the surface ([R3377] section 3.1: "the ratio of internal heat production to surface heat flux"; they cite about 0.3 from geochemistry and close to one from the geophysical view for the Earth). Here it is an output, `radiogenic_w / total_w`. It passes 1 only while the mantle is warming (it makes more than it loses), and it is exactly 1 while the mantle sits at its ceiling.
 
 Bulk silicate Earth composition, the middle rheology, a stagnant lid:
 
@@ -95,7 +95,7 @@ The core is read where it is wanted (`interior_heat.core_of`), not stored: no co
 
 ## 5. Stand-ins for the gap plan registry
 
-* The separate core temperature (GEN.838, section 3.3): built as a second state driven by the box, not as the two-way coupled model of Thiriet et al. 2019 (the paper behind it, Physics of the Earth and Planetary Interiors 286, was not readable); the core's heat is not taken from the mantle's budget, so the mantle's history is Guimond et al. 2022's, with the core following it.
+* The separate core temperature (GEN.838, section 3.3): built as a second state driven by the box, not as the two-way coupled model of [R4339] (the paper behind it, Physics of the Earth and Planetary Interiors 286, was not readable); the core's heat is not taken from the mantle's budget, so the mantle's history is [R1716]'s, with the core following it.
 * The mantle's ceiling is the liquidus at the middle of the mantle (a uniform density and gravity); the solidus and a melt fraction are not modelled.
 * The surface is the body's own surface temperature when its climate is known (`update_heat`), 273 K for a body without one (a mild effect, read only by a mobile lid's drop and by the birth temperature); a mantle colder than `Ea / R T` = 600 does not convect and loses no heat (no conduction), so a cold small body warms with its radiogenic heat until convection starts.
 * The mobile lid's exponent (1/3) and critical Rayleigh number (450, the stagnant lid's) are unsourced for this model; replace them with a calibrated mobile-lid law (Korenaga, Driscoll and Bercovici) when one is read.

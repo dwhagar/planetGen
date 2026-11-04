@@ -71,7 +71,7 @@ EXPECTED_SHARES = [
     ("white dwarf", 4.0, 7.0),
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
-    # GEN.1174: a star is pre-main-sequence until its radius has settled (BHAC15, Baraffe et al. 2015): 0.19 Gy at 0.2 solar masses, 0.40 at 0.1, 0.05 at 0.8, no longer
+    # GEN.1174: a star is pre-main-sequence until its radius has settled (BHAC15, [R0254]): 0.19 Gy at 0.2 solar masses, 0.40 at 0.1, 0.05 at 0.8, no longer
     # the 0.1 to 0.7 Gy of MIST's nuclear arrival (GEN.529, kept as `nuclear_arrival_yr`). The share is the part of the stars younger than that, 1.8 to 1.9% of this sample.
     ("pre-main-sequence", 1.2, 6.0),
 ]
@@ -114,7 +114,7 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
     white_dwarfs = [state for _, _, state in states if state["yerkes_class"] == "VII"]
     assert white_dwarfs
     low, high = prog_c.WD_MASS_RANGE_SOL
-    # The heaviest the initial-final mass relation makes (1.33 solar masses, Cummings et al. 2018) is smaller than the
+    # The heaviest the initial-final mass relation makes (1.33 solar masses, [R0961]) is smaller than the
     # zero-temperature radius at the top of the range (2,700 km); a cold star is never smaller than that.
     smallest = stellar_abundances.white_dwarf_radius_solar(high) * phys_c.SOLAR_RADIUS_M / 1000.0
     for state in white_dwarfs:

@@ -26,7 +26,7 @@ def test_a_giant_with_nothing_in_its_past_has_no_ring():
 
 
 def test_saturns_rings_come_out_of_a_mimas_sized_moon_a_hundred_million_years_ago():
-    """Saturn's rings hold 1.5e19 kg (Iess et al. 2019, recalled) and are put at 1e8 to 4e8 years old; a moon of Mimas's 3.7e19 kg that fell then leaves that to a factor of two."""
+    """Saturn's rings hold 1.5e19 kg ([R2077], recalled) and are put at 1e8 to 4e8 years old; a moon of Mimas's 3.7e19 kg that fell then leaves that to a factor of two."""
     result = ring_origin.ring_origin(SATURN, AGE, [FallenMoon(3.7e19, AGE - 1.5e8)])
     assert result.exists and result.origin == "disrupted_moon"
     assert result.mass_kg == pytest.approx(1.5e19, rel=0.5)

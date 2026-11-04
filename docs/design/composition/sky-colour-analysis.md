@@ -9,7 +9,7 @@ Read-only study of `dwhagar/planetGen` at main `1bb8755` (Release 8.0.1634). No 
 
 **Small to medium, and no migration is needed for a first version.** Almost everything a physical sky colour needs is already stored: the ten gas partial pressures, the surface pressure, gravity, the host star's temperature and luminosity, the orbital distance, the ozone-forming oxygen. The colour can be computed at description time as a pure function and shown as a new "Sky" row (hex swatch plus a colour word) in the planet and moon facts table. The two real gaps are **aerosols** (haze, dust, cloud: nothing is stored) and the **albedo** (drawn, used for temperature, thrown away). A first version without them is honest for clear, thin-to-moderate atmospheres and wrong for Mars-like dusty and Venus-like cloudy worlds; adding one stored column (albedo, plus an optional aerosol class) fixes most of that and does need a migration.
 
-Prototype results (Rayleigh only, no ground, no aerosols) [P]: Earth air under the Sun gives a light blue (#9ac0ff) with an Earth Rayleigh optical depth of 0.098 at 550 nm, which matches the accepted 0.097 [R, Bucholtz 1995]. The same air under a 3,300 K red dwarf gives a cream-white sky in absolute terms, but the same blue once the eye is adapted to the star's light. A 1 MPa nitrogen world is white-cyan with an orange sun. A 9 MPa CO2 world is white with the sun disc extinguished. A thin clear CO2 atmosphere comes out blue, which real Mars is not (dust), so the aerosol gap matters.
+Prototype results (Rayleigh only, no ground, no aerosols) [P]: Earth air under the Sun gives a light blue (#9ac0ff) with an Earth Rayleigh optical depth of 0.098 at 550 nm, which matches the accepted 0.097 [R, [R0575]]. The same air under a 3,300 K red dwarf gives a cream-white sky in absolute terms, but the same blue once the eye is adapted to the star's light. A 1 MPa nitrogen world is white-cyan with an orange sun. A 9 MPa CO2 world is white with the sun disc extinguished. A thin clear CO2 atmosphere comes out blue, which real Mars is not (dust), so the aerosol gap matters.
 
 ## 1. What exists and what is missing
 
@@ -27,7 +27,7 @@ Prototype results (Rayleigh only, no ground, no aerosols) [P]: Earth air under t
 | Surface type | `ocean_fraction`, `land_fraction`, `hydrosphere`, `ice_shell_km`, `life_chemical`, `reflection_spectrum_visible` (list of words) | Enough for a coarse ground and ocean tint. |
 | Spin | `rotation_period_hours`, `axial_tilt_deg`, spin axis | Needed only for the sunset variant (a tidally locked world has no sunset). |
 | Display path | `describe/build.py` (`_planet_facts`, `_atmosphere_composition`) builds a typed Document; `describe/render.py` makes text, markdown and wikitext; the web page and `GET /api/systems/<id>/description` consume the JSON (`docs/design/architecture/system-description.md`) | One place to add a row serves every output. |
-| Related plan | `docs/design/orbits/sky-view.md` section 4 and stage 1 (`planetgen/physics/photometry.py`, not yet written) | Already specifies blackbody to sRGB through the Wyman, Sloan and Shirley (2013) CIE fit and an sRGB encoder. The sky colour reuses it; do not write it twice. |
+| Related plan | `docs/design/orbits/sky-view.md` section 4 and stage 1 (`planetgen/physics/photometry.py`, not yet written) | Already specifies blackbody to sRGB through the [R4788] CIE fit and an sRGB encoder. The sky colour reuses it; do not write it twice. |
 
 ### Missing
 
@@ -55,18 +55,18 @@ with `f_i` the mole fractions from the stored partials, `m_bar = sum f_i m_i`, a
 
     sigma(lambda) = 24 pi^3 / (lambda^4 N_s^2) * ((n^2 - 1)/(n^2 + 2))^2 * F_K(lambda)
 
-where `n` is the refractive index at standard density `N_s` and `F_K` the King correction for molecular anisotropy [S: formula quoted in papers citing Sneep and Ubachs 2005]. Per-gas `n(lambda)` and `F_K` come from the laboratory literature (below). Only ten gases, so a small constant table (Cauchy-type `n - 1 = A (1 + B / lambda^2)` per gas) is enough; no data files. The refractivities of N2, CO2, H2 and He are tabulated in Bétrémieux and Kaltenegger 2015 (arXiv:1507.02107, Table 1) [S]; the ratios to N2 that the prototype used came from those: CO2 about 2.5, H2 about 0.22, He about 0.014 (the sources check of 2026-10-17 corrects these to 2.5, 0.20 and 0.013; squared refractivity ratio times King factor) [P].
+where `n` is the refractive index at standard density `N_s` and `F_K` the King correction for molecular anisotropy [S: formula quoted in papers citing [R4138]]. Per-gas `n(lambda)` and `F_K` come from the laboratory literature (below). Only ten gases, so a small constant table (Cauchy-type `n - 1 = A (1 + B / lambda^2)` per gas) is enough; no data files. The refractivities of N2, CO2, H2 and He are tabulated in [R0375: Table 1] [S]; the ratios to N2 that the prototype used came from those: CO2 about 2.5, H2 about 0.22, He about 0.014 (the sources check of 2026-10-17 corrects these to 2.5, 0.20 and 0.013; squared refractivity ratio times King factor) [P].
 
 ### 2.3 Sky radiance and the Sun's direct colour
 
-- **Direct sun** (noon and any elevation): `S(lambda) = F_star(lambda) exp(-tau(lambda) * X)` where `X` is the airmass for the elevation. Noon is `X = 1`; sunset uses a Chapman-type function because the scale-height-to-radius ratio of the world sets the horizon airmass (`scale_height_km / radius_km` is already stored). Kasten and Young 1989 is the Earth form [R].
-- **Blue sky, zenith or 90 degrees from the Sun**: single-scattering radiance with attenuation, `L(lambda) = F_star(lambda) * mu0/(mu0+mu) * (1 - exp(-tau (1/mu0 + 1/mu))) * (phase / 4 pi)`, with the Rayleigh phase function `3/4 (1 + cos^2 theta)` (Chandrasekhar 1960 [R]). This is the standard textbook limit and is accurate for `tau` up to about 0.3.
+- **Direct sun** (noon and any elevation): `S(lambda) = F_star(lambda) exp(-tau(lambda) * X)` where `X` is the airmass for the elevation. Noon is `X = 1`; sunset uses a Chapman-type function because the scale-height-to-radius ratio of the world sets the horizon airmass (`scale_height_km / radius_km` is already stored). [R2274] is the Earth form [R].
+- **Blue sky, zenith or 90 degrees from the Sun**: single-scattering radiance with attenuation, `L(lambda) = F_star(lambda) * mu0/(mu0+mu) * (1 - exp(-tau (1/mu0 + 1/mu))) * (phase / 4 pi)`, with the Rayleigh phase function `3/4 (1 + cos^2 theta)` ([R0728, R0731] [R]). This is the standard textbook limit and is accurate for `tau` up to about 0.3.
 - **Thick air** (`tau_550` above about 0.5, roughly 5 bar of nitrogen and up): single scattering over-saturates the colour. Use a two-stream or adding-doubling pass (a short function, still no database) or fall back to the saturated limit: the sky tends to white or to the star's colour, the sun disc reddens, and at very large `tau` only the longest wavelengths reach the ground. The prototype shows this: 1 MPa N2 gives a white-cyan sky and an orange sun; 9 MPa CO2 gives a white sky and no sun disc [P].
 - **Ground bounce** (surface albedo adds a floor of diffuse light, desaturating the blue): multiply by `1 / (1 - A_g * s)` with `s` the air's spherical albedo, Chandrasekhar's standard result [R]. Needs the ground tint (below).
 
 ### 2.4 Absorbers
 
-- **Ozone** Chappuis band (500 to 700 nm) deepens the blue of Earth's sky. Estimate the column from `ozone_ratio(p_o2_kpa)` (already in `radiation.py`) times Earth's value, cross section from Burkholder and Talukdar 1994 or the Serdyuchenko 2014 compilation [R, not fetched]. A second-order effect; can come in phase 2.
+- **Ozone** Chappuis band (500 to 700 nm) deepens the blue of Earth's sky. Estimate the column from `ozone_ratio(p_o2_kpa)` (already in `radiation.py`) times Earth's value, cross section from [R0599] or the [R4023] compilation [R, not fetched]. A second-order effect; can come in phase 2.
 - **Methane**: red and near-infrared bands tint ice-giant skies blue-green (Uranus, Neptune). Matters for gas-giant skies and for methane-rich small worlds; needs band cross sections [R]. Phase 2.
 - **SO2, H2S, CO, H2O vapour**: weak in the visible; skip first.
 
@@ -104,7 +104,7 @@ Files that would change for version 1:
 
 No migration, no new table, no generator change (so no rescatter and no generator epoch bump) for version 1. The colour is deterministic from stored values, so it renders the same from freshly generated or database-loaded systems.
 
-Test targets that are physical, not fixed content: Earth air column gives `tau_R(550 nm)` close to 0.097 [R, Bucholtz 1995 or Penndorf 1957]; the Rayleigh exponent is about -4.08 across the visible [R]; Earth's clear zenith sky is blue under a 5,772 K blackbody; a pure H2 atmosphere scatters about a fifth as much as N2 per molecule [S, arXiv:1507.02107 refractivities]; doubling pressure doubles `tau`.
+Test targets that are physical, not fixed content: Earth air column gives `tau_R(550 nm)` close to 0.097 [R, [R0575] or [R3480]]; the Rayleigh exponent is about -4.08 across the visible [R]; Earth's clear zenith sky is blue under a 5,772 K blackbody; a pure H2 atmosphere scatters about a fifth as much as N2 per molecule [S, [R0375] refractivities]; doubling pressure doubles `tau`.
 
 ## 4. Risks and a richer version
 
@@ -116,20 +116,20 @@ Test targets that are physical, not fixed content: Earth air column gives `tau_R
 - **Perception model** (adaptation, rod/cone, gamut clipping): the sRGB gamut cannot show saturated violet or deep orange; normalisation hides the sky's absolute brightness. A "twilight to noon" strip needs an exposure model.
 - **Gas giants and ice giants** have no surface; a "sky" is a pressure level (for example 1 bar). The prototype gave a pale blue at 1 bar for an H2/He column, but clouds and methane decide the real appearance. Suggest skipping them in version 1.
 - **Moons of giants**: the primary fills the sky and reflects light; this is a different (and nice) feature, not part of sky colour.
-- **Richer version**: noon colour, sunset colour and the sun-disc colour as three swatches; the horizon-versus-zenith gradient; a stored `bond_albedo` and aerosol load; ozone and methane bands; a full two-stream or Monte Carlo transfer; the sky-view horizon renderer (stage 6) using the same function per pixel. Compare with published full-atmosphere models (Bruneton and Neyret 2008, Hillaire 2020) [R] for Earth as a regression test.
+- **Richer version**: noon colour, sunset colour and the sun-disc colour as three swatches; the horizon-versus-zenith gradient; a stored `bond_albedo` and aerosol load; ozone and methane bands; a full two-stream or Monte Carlo transfer; the sky-view horizon renderer (stage 6) using the same function per pixel. Compare with published full-atmosphere models [R0560, R1940] [R] for Earth as a regression test.
 
 ## 5. Sources and how well each was checked
 
 Checked in this session:
-- Sneep and Ubachs, "Direct measurement of the Rayleigh scattering cross section in various gases", J. Quant. Spectrosc. Radiat. Transfer, 2005, DOI 10.1016/j.jqsrt.2004.07.025 [S]: cited in papers that quote the cross-section formula above. Volume and page (92, 293) not confirmed.
+- Sneep and Ubachs, "Direct measurement of the Rayleigh scattering cross section in various gases", J. Quant. Spectrosc. Radiat. Transfer, 2005, [R4138] [S]: cited in papers that quote the cross-section formula above. Volume and page (92, 293) not confirmed.
 - Bucholtz, "Rayleigh-scattering calculations for the terrestrial atmosphere", Applied Optics 34(15), 2765-2773, 1995 [S]: citation confirmed from a reference list; content (tables and analytic fit from 0.2 to 1 micron) confirmed second-hand.
-- Bétrémieux and Kaltenegger, "Refraction in planetary atmospheres: improved analytical expressions and comparison with a new ray tracing algorithm", arXiv:1507.02107 (ar5iv page fetched) [S]: refractivities at 1 micron N2 2.95e-4, CO2 4.43e-4, H2 1.37e-4, He 3.48e-5; H2, He.
-- "The Habitability of Proxima Centauri b: II. Environmental States and Observational Discriminants", arXiv:1608.08620, a search result only (the full text was not retrievable; authors and journal not confirmed): says a planet's sky colour depends on atmosphere and starlight, might be pale blue or pale purple around Proxima, and that haze-covered Venus-like atmospheres look redder and lilac because Rayleigh scattering matters little in them. The sources check of 2026-10-17 read it: it is the colour of the planet's disk from space, a precedent for the star-plus-Rayleigh reasoning only, not for the colour of the sky from the ground.
-- Mars: search results on dust absorbing blue and blue sunsets from forward scattering; an Applied Optics 2014 article (DOI 10.1364/AO.53.001808) is named in a result but its authors and title were not retrieved.
-- Wyman, Sloan and Shirley (2013) CIE fit: already validated numerically in `docs/design/orbits/sky-view.md` [C].
+- Bétrémieux and Kaltenegger, "Refraction in planetary atmospheres: improved analytical expressions and comparison with a new ray tracing algorithm", [R0375] (ar5iv page fetched) [S]: refractivities at 1 micron N2 2.95e-4, CO2 4.43e-4, H2 1.37e-4, He 3.48e-5; H2, He.
+- "The Habitability of Proxima Centauri b: II. Environmental States and Observational Discriminants", [R3014], a search result only (the full text was not retrievable; authors and journal not confirmed): says a planet's sky colour depends on atmosphere and starlight, might be pale blue or pale purple around Proxima, and that haze-covered Venus-like atmospheres look redder and lilac because Rayleigh scattering matters little in them. The sources check of 2026-10-17 read it: it is the colour of the planet's disk from space, a precedent for the star-plus-Rayleigh reasoning only, not for the colour of the sky from the ground.
+- Mars: search results on dust absorbing blue and blue sunsets from forward scattering; an Applied Optics 2014 article [R1225] is named in a result but its authors and title were not retrieved.
+- [R4788] CIE fit: already validated numerically in `docs/design/orbits/sky-view.md` [C].
 - Environment note: arxiv.org is refused by the proxy; `ar5iv.labs.arxiv.org` served 1507.02107 but redirected to arxiv.org for 1608.08620, so that one was not read.
 
-Recalled, not verified (check before citing in a design note): Peck and Huang 1977 (H2 refractivity, JOSA 67, 1550; a search did not return it), Penndorf 1957 (JOSA 47, 176), Chandrasekhar 1960 *Radiative Transfer*, Kasten and Young 1989 (airmass), Bruneton and Neyret 2008, Hillaire 2020, Burkholder and Talukdar 1994, Serdyuchenko et al. 2014 (ozone cross sections), Lemmon et al. 2004 Science 306, 1753 (Mars dust), Tomasko et al. 2008 and Karkoschka 1994 (Titan haze and ice giants).
+Recalled, not verified (check before citing in a design note): [R3470] (H2 refractivity, JOSA 67, 1550; a search did not return it), [R3480] (JOSA 47, 176), [R0728, R0731] *Radiative Transfer*, [R2274] (airmass), [R0560, R0599, R1940, R4023] (ozone cross sections), [R2645] (Mars dust), [R4392, R4394] and [R2258] (Titan haze and ice giants).
 
 ## 6. Prototype (not committed)
 

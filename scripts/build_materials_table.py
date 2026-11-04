@@ -6,9 +6,9 @@ Builds the shared materials table (GEN.427) from the research tables it is typed
     python scripts/build_materials_table.py --check    # build in memory and fail if the committed file differs
 
 The file is `src/planetgen/physics/data/materials.json`. The base is part E's materials table (section 2.10 of
-`docs/design/composition/body-composition-parts/E-ground-radiogenic-shielding.md`, 44 rows, label column kept); part B's SLB 2024 phases
+`docs/design/composition/body-composition-parts/E-ground-radiogenic-shielding.md`, 44 rows, label column kept); part B's [R4233] phases
 (table 2.1a) and iron rows (table 2.1b) and part C's ice phases (section 2.3) add the equation-of-state rows; the values in
-`materials_data.py` (Seager et al. 2007, the Handbook of Mineralogy, PubChem) replace every value the parts labelled
+`materials_data.py` ([R3992], the Handbook of Mineralogy, PubChem) replace every value the parts labelled
 RECALLED and fill the minerals the shared table needs (every name of `ASTEROID_COMPONENTS`, `COMET_COMPOSITION`, the field
 families and the class compositions of `tuning`). A value with no source is not kept: its cell is `null` with the code `N`.
 Nothing is fitted or invented here.
@@ -51,17 +51,17 @@ SOURCES = {
     "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density listed there",
     "crc-density-wiki": "Densities of the elements (data page), Wikipedia, the row marked 'use' (CRC and WebElements values); the handbook itself was not read",
     "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
-    "seager2007": "Seager, Kuchner, Hier-Majumder and Militzer 2007, Mass-radius relationships for solid exoplanets, ApJ 669, 1279 "
-                  "(arXiv:0707.2895), Tables 1, 2 and 3 (read)",
-    "hakim2018": "Hakim et al. 2018, Icarus 313, 61 (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
+    "seager2007": "[R3992], Mass-radius relationships for solid exoplanets, ApJ 669, 1279 "
+                  "[R3992: Tables 1], 2 and 3 (read)",
+    "hakim2018": "[R1752] (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
     "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/composition/body-composition-parts/B-rocky.md section 2.1b)",
-    "slb2024-burnman": "Stixrude and Lithgow-Bertelloni 2024, Thermodynamics of mantle minerals III, GJI 237, 1699 "
-                       "(doi:10.1093/gji/ggae126), as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
-    "exoplex": "ExoPlex 1.0.1a1 source distribution (Anderson and Ahrens 1994 liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
-    "hp2011-burnman": "Holland and Powell 2011 data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
-    "journaux2020": "Journaux et al. 2020, JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C "
+    "slb2024-burnman": "[R4233], Thermodynamics of mantle minerals III, GJI 237, 1699 "
+                       "[R4233], as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
+    "exoplex": "ExoPlex 1.0.1a1 source distribution ([R0111] liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
+    "hp2011-burnman": "[R1981] data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
+    "journaux2020": "[R2204], JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C "
                     "section 2.3 (computed from second-hand data)",
-    "blum-bischoff": "Blum and Bischoff, arXiv:2207.12731, as read in part C section 2.3 (comet densities)",
+    "blum-bischoff": "Blum and Bischoff, [R0430], as read in part C section 2.3 (comet densities)",
     "cod-part-d": "Part D of the body composition research, section 2.1: densities computed from the Crystallography Open Database cell of the same formula "
                   "(rho = Z M / (N_A V)), label COMPUTED; not a measurement of the solid at the body's temperature",
     "ideal-gas": "The ideal gas law rho = P M / (R T); exact, no constants of its own",
@@ -376,7 +376,7 @@ def main():
     rows["amorphous_carbon"] = ac
     co_ = new_row("complex_organics", "complex organic compounds", "organic", None, ["complex organic compounds"],
                   composition="refractory organics of comets and primitive bodies",
-                  note="Choukroun et al. 2020 (read, section 3.3, the CONSERT permittivity review) gives only a rough "
+                  note="[R0776] (read, section 3.3, the CONSERT permittivity review) gives only a rough "
                        "'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no "
                        "organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, "
                        "inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its "
@@ -412,8 +412,8 @@ def main():
     helium["props"]["rho_gas_stp_g_l"] = prop(0.1786, "H", "crc-density-wiki", "g/L", basis="0 C, 1 atm")
     for row in (hydrogen, helium):
         row["eos"].append({"model": "ideal-gas", "params": {}, "valid": {}, "source": "ideal-gas", "code": "C",
-                           "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the Lopez and Fortney and "
-                                   "Fortney 2007 tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS "
+                           "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the "
+                                   "[R1429] tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS "
                                    "constants are held here"})
     rows["hydrogen"], rows["helium"] = hydrogen, helium
 
@@ -430,10 +430,10 @@ def main():
     rows["iron_liquid"] = new_row("iron_liquid", "liquid iron", "metal", "Fe", [], gate=PLANETARY)
     rows["iron_liquid"]["eos"].append(eos_entry(
         "bme", {"order": 4, "rho0_kg_m3": 7019.0, "k0_gpa": 109.7, "k0p": 4.66, "k0pp_per_gpa": -0.043}, "exoplex", "H",
-        note="Anderson and Ahrens 1994 as carried in the ExoPlex source; the original was not reached"))
+        note="[R0111] as carried in the ExoPlex source; the original was not reached"))
     rows["iron_liquid"]["props"]["rho_grain_g_cm3"] = prop(7.019, "H", "exoplex", "g/cm3", basis="rho0 of the BM4 fit")
     rows["fesi"] = new_row("fesi", "iron silicide", "light-element compound", "FeSi", [], gate=PLANETARY)
-    rows["fesi"]["props"]["rho_grain_g_cm3"] = prop(6.522, "R", "hakim2018", "g/cm3", basis="rho0 of the Sata 2010 refit")
+    rows["fesi"]["props"]["rho_grain_g_cm3"] = prop(6.522, "R", "hakim2018", "g/cm3", basis="rho0 of the [R3923] refit")
 
     for row_id, model, rho0, k0, k0p, source, note in data.PART_B_IRON:
         rows[row_id]["eos"].append(eos_entry(
@@ -478,7 +478,7 @@ def main():
         note = {"Wuestite, low spin": "the low-spin state", "Periclase": "K0 161.14 GPa here; some older tables give 177"}.get(phase["phase"], "")
         rows[row_id]["eos"].append(eos_entry("mgd-slb3", params, "slb2024-burnman", "H", note=note))
 
-    # Seager et al. 2007
+    # [R3992]
     for row_id, (model, order, rho0, k0, k0_sd, k0p, k0p_sd, note) in data.SEAGER_TABLE_1.items():
         if row_id == "ice_vii":
             continue

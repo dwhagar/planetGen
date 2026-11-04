@@ -5,8 +5,7 @@ The collision of two rogue planets (GEN.1099; docs/design/systems/interstellar-a
 ==================================================================================================================================================
 
 Pure functions, no draws. Two rogues almost never meet (about one collision in the life of the Galaxy), and when they do, what is left depends on the speed:
-this module gives the rate, the speed at which the pair breaks up, what is left and how fast the pieces fly. The collision law is Leinhardt and Stewart 2012
-(ApJ 745, 79), read in full for GEN.1098 (stand-in rows IF1 to IF8 of `gap-filling-plan.md` section 6.103):
+this module gives the rate, the speed at which the pair breaks up, what is left and how fast the pieces fly. The collision law is [R2633], read in full for GEN.1098 (stand-in rows IF1 to IF8 of `gap-filling-plan.md` section 6.103):
 
 * **Rate.** `Gamma = n sigma v` per rogue, with `sigma = pi (R1 + R2)^2 (1 + v_esc^2 / v^2)` (`cross_section_m2`, gravitational focusing with the escape speed of the pair
   at touching); for the Galaxy `0.5 sigma v (rogues per star)^2 integral(n_star^2 dV)` (`galaxy_rate_per_year`). A relative speed of Maxwellian dispersion `s` weights
@@ -31,7 +30,7 @@ import math
 from planetgen.physics import constants
 
 RHO1_KG_M3 = 1000.0
-"""float: The reference density of the disruption law: `RC1` is the radius of the combined mass at this density (Leinhardt and Stewart 2012; IF3, tier T1, L0)."""
+"""float: The reference density of the disruption law: `RC1` is the radius of the combined mass at this density ([R2633]; IF3, tier T1, L0)."""
 C_STAR_PLANET = 1.9
 """float: The disruption offset of strengthless planet-size bodies, in units of the binding energy (1.9 +/- 0.3; IF3)."""
 MU_BAR_PLANET = 0.36

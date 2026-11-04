@@ -56,7 +56,7 @@ def test_the_thick_disk_mass_ratio_sits_between_the_two_fits_and_inside_the_boun
     # The centre is spread evenly (in the log) between the fits, so about half the draws stay between them
     # once the 0.27 dex scatter is added.
     assert 0.25 < inside / len(STRUCTURES) < 0.75
-    # The bound of Comeron et al. 2021 holds for the mean relation of either fit, with a margin of the hot
+    # The bound of [R0860] holds for the mean relation of either fit, with a margin of the hot
     # component's own 0.13 dex (galaxy by galaxy 39 percent of the real galaxies exceed it).
     for log_mass in (9.48, 10.0, 10.7, 11.3):
         mass = 10.0 ** log_mass
@@ -115,7 +115,7 @@ def test_a_barred_bulge_is_a_bar_and_an_unbarred_one_is_rounder():
     round_ = [s for _, s in STRUCTURES if not s.bar_present]
     assert len(barred) > 100 and len(round_) > 100
     assert sum(s.bar_axis_ratio_y for s in barred) / len(barred) < sum(s.bar_axis_ratio_y for s in round_) / len(round_) - 0.2
-    # Peanuts take over with mass (Erwin and Debattista 2017): half the bars at 10^10.4.
+    # Peanuts take over with mass [R1290]: half the bars at 10^10.4.
     assert sd.boxy_peanut_fraction(10.0 ** 10.37) == pytest.approx(0.5, abs=0.01)
     assert sd.boxy_peanut_fraction(10.0 ** 9.48) < 0.05 < 0.95 < sd.boxy_peanut_fraction(10.0 ** 11.3)
     # The bar's angle is uniform: a quarter of the seeds in each quarter of 0 to 180 degrees, within sampling error.
@@ -126,9 +126,8 @@ def test_a_barred_bulge_is_a_bar_and_an_unbarred_one_is_rounder():
 
 def test_the_young_discs_height_for_a_milky_way_twin_is_inside_the_sourced_band():
     """GEN.1182 and GEN.1188: young OB stars, HII regions, Cepheids and open clusters of the Milky Way have a scale height of
-    about 50 pc, 36 to 66 by tracer (Bobylev and Bajkova 2015 and 2016, Bonatto 2006, Joshi 2016, Hao 2021,
-    Moreira 2025), against a 300 pc old thin disc: young over old 0.12 to 0.23. A Milky Way check, not a law for every galaxy
-    (six low-mass edge-on discs show 0.40 to 0.59, Seth 2005)."""
+    about 50 pc, 36 to 66 by tracer ([R0433] and 2016, [R0453, R1804, R2203, R3151]), against a 300 pc old thin disc: young over old 0.12 to 0.23. A Milky Way check, not a law for every galaxy
+    (six low-mass edge-on discs show 0.40 to 0.59, [R4031])."""
     reference = galaxyStructure.REFERENCE_STRUCTURE
     young = galaxyStructure.population_height_ratios(reference)["young"]
     assert 0.12 <= young <= 0.23
@@ -146,7 +145,7 @@ def test_the_populations_heights_and_dispersions_come_from_one_law():
         assert ratios[name] == pytest.approx((sigma[name] / sigma["old"]) ** 2)
     assert 0.0 < ratios["young"] < ratios["intermediate"] < 1.0
     # The Milky Way check of the gap plan (4.3): the old disc's vertical dispersion at the Sun is within 35 percent of
-    # the 21.1 km/s of Sharma and Hayden 2020.
+    # the 21.1 km/s of [R4043].
     assert abs(sigma["old"] / 21.1 - 1.0) < 0.35
     totals = [galaxyStructure.disc_dispersion_kms(reference, name) for name in ratios]
     assert totals == sorted(totals)

@@ -7,14 +7,14 @@ A super-puff: a low-mass planet with a huge radius, and how it fades with age (G
 Kepler-51 b, c and d (below 0.1 g/cc, 7 to 10 Earth radii, 2 to 6 Earth masses), Kepler-79 d and Kepler-87 c are planets of a few Earth masses whose
 radius is that of a Neptune or a Saturn. Three papers say what makes one and what the module takes from each:
 
-* Lee and Chiang 2016 (arXiv:1510.08855): a core of a few Earth masses can hold a thick envelope, a gas-to-core ratio of 7 to 28 percent for
+* [R2609]: a core of a few Earth masses can hold a thick envelope, a gas-to-core ratio of 7 to 28 percent for
   Kepler-51 b and over 20 percent for the class, when it accretes a dust-free atmosphere in the outer disk and migrates in. This gives the
   *envelope*, `PUFF_ENVELOPE`, and the class (`MAX_MASS_EARTH`, the periods, "an order of magnitude more rare" than smaller planets).
-* Lopez and Fortney 2014 (`bulk_structure.envelope_radius_earth`): the radius of a core under an envelope of that fraction. It is the radius of
+* [R2741] (`bulk_structure.envelope_radius_earth`): the radius of a core under an envelope of that fraction. It is the radius of
   the module everywhere it holds (1 to 30 Earth masses, envelope up to a half): Kepler-51 d comes out at 9.3 Earth radii with a 41 percent
   envelope, Kepler-51 b at 7.1 with 16 percent. Past it (`covers`) the radius is the giant tables' (`giant_radius`), which give WASP-107 b
-  (30.5 Earth masses, 0.96 Jupiter radii, 0.134 g/cc, Piaulet et al. 2021) its radius with a 3.7 Earth-mass core.
-* Millholland 2019 (arXiv:1910.06794): obliquity tides in a close planet put heat in the core and inflate the radius by 10 to 100 percent, and
+  (30.5 Earth masses, 0.96 Jupiter radii, 0.134 g/cc, [R3516]) its radius with a 3.7 Earth-mass core.
+* [R3079]: obliquity tides in a close planet put heat in the core and inflate the radius by 10 to 100 percent, and
   by up to a factor 2. The inflation ratio is her fit, equation 14, which holds from 20 Earth fluxes up (Kepler-51 c and d are colder and get
   none: "their irradiation fluxes are too small for the parameter domain of our models").
 
@@ -69,7 +69,7 @@ TIDAL_MAX_RATIO = 2.0
 """float: The largest inflation: "it caps at about 2" (Sec. 4.1, row PF4)."""
 
 _TIDAL_FIT = (0.29, -0.90, 0.91, 3.11, -0.88)
-"""tuple: Millholland 2019 equation 14: `R(tides) / R(no tides) = 1 + a (M / 10 Me)^b (f_env / 0.05)^c (F / 100 F_earth)^d (Q / 1e5)^e`, with
+"""tuple: [R3079] equation 14: `R(tides) / R(no tides) = 1 + a (M / 10 Me)^b (f_env / 0.05)^c (F / 100 F_earth)^d (Q / 1e5)^e`, with
 `Q = Q' (1 + cos^2 eps) / sin^2 eps`."""
 
 _R_EARTH_M = constants.EARTH_RADIUS_KM * 1.0e3
@@ -88,7 +88,7 @@ def density_g_cm3(mass_earth, radius_earth_):
 
 
 def tidal_luminosity_w(host_mass_kg, radius_m, distance_m, q_term):
-    """The tidal power in the planet's core with its orbit circular, W (Millholland 2019 eq. 11): `(9 n / 2) (G M*^2 / R) (R / a)^6 / Q`
+    """The tidal power in the planet's core with its orbit circular, W ([R3079] eq. 11): `(9 n / 2) (G M*^2 / R) (R / a)^6 / Q`
     with `Q = Q' (1 + cos^2 eps) / sin^2 eps` (`q_term`, about 1e3 to 1e5 for the planets of her tables)."""
     n = math.sqrt(constants.G * host_mass_kg / distance_m ** 3)
     return 4.5 * n / q_term * constants.G * host_mass_kg ** 2 / radius_m * (radius_m / distance_m) ** 6
@@ -101,7 +101,7 @@ def tidal_luminosity_ratio(host_mass_kg, radius_m, distance_m, flux_earth, q_ter
 
 def tidal_inflation_ratio(mass_earth, envelope, flux_earth, q_term):
     """
-    The radius with the obliquity tides over the radius without them (Millholland 2019 eq. 14), from `TIDAL_MIN_FLUX_EARTH` up, held at
+    The radius with the obliquity tides over the radius without them ([R3079] eq. 14), from `TIDAL_MIN_FLUX_EARTH` up, held at
     `TIDAL_MAX_RATIO`; 1 for a colder planet. Her fit is of her own radii, here the ratio multiplies the radius of Lopez and Fortney (row PF4).
     """
     if flux_earth < TIDAL_MIN_FLUX_EARTH:

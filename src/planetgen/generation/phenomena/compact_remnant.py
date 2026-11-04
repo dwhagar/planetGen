@@ -300,7 +300,7 @@ class BlackHole(CompactRemnant):
                 # sub-Eddington fraction of this, and the inner-disk
                 # temperature as a representative soft-X-ray value, both
                 # order-of-magnitude flavor rather than a full accretion-disk
-                # model (e.g. Shakura & Sunyaev 1973).
+                # model (e.g. [R4037]).
                 eddington_luminosity_w = 1.26e31 * self.mass_solar
                 self.luminosity = draw.uniform(0.0001, 0.05) * eddington_luminosity_w
                 self.temperature = draw.uniform(1e5, 1e7)

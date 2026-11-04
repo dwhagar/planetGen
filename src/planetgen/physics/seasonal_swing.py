@@ -7,8 +7,8 @@ The seasonal swing of the temperature at a latitude, from the planet's tilt and 
 `regional_temperature` spreads a world's mean temperature over latitude bands by the annual-mean light of each band, so the stored tilt already moves the
 *means* (a pole is warmer than the equator over the year above 54.8 degrees of tilt), but nothing says how far a place swings between its summer and its winter. A
 tilted planet's seasons are its weather: Uranus-like tilts give a pole in daylight at noon-equator brightness for decades, Mars's eccentric orbit adds a second
-season, and the Earth without its Moon is the middle case (Williams and Kasting 1997, Icarus 129:254; Williams and Pollard 2002, 2003, Int. J. Astrobiol. 1:61 and
-2:1; Spiegel, Menou and Scharf 2009, ApJ 691:596, Icarus; Armstrong et al. 2014, Astrobiology 14:277; recalled, none opened). This module is that
+season, and the Earth without its Moon is the middle case ([R4708]:254; [R4709], 2003, Int. J. Astrobiol. 1:61 and
+2:1; [R4171]:596, Icarus; [R0149]:277; recalled, none opened). This module is that
 calculation as a pure function of stored quantities. Nothing calls it yet (GEN.1048 wires it into the regional temperatures).
 
 **The light.** The day's mean insolation at latitude `phi` for the Sun at declination `delta` is the closed form of `regional_temperature._daily_insolation`
@@ -17,7 +17,7 @@ sin(L)`, with `L = v + varpi` the true longitude (`v` the true anomaly by Kepler
 as `(a / r)^2`. The year is cut into `STEPS` equal times, so an eccentric orbit spends longer at apoapsis. The annual mean over the sphere is `S / (4 sqrt(1 - e^2))`
 (checked in the tests).
 
-**The response.** About the place's annual-mean state, one energy balance per latitude (the `energy balance model` of North and Coakley 1979, J. Atmos. Sci. 36:1189, local
+**The response.** About the place's annual-mean state, one energy balance per latitude (the `energy balance model` of [R3313], J. Atmos. Sci. 36:1189, local
 form, recalled):
 
     C dT/dt = (1 - A) S [Q(t) - <Q>]  -  eps_out sigma (T^4 - Tm^4)  -  B_t (T - Tm)
@@ -53,7 +53,7 @@ STEPS = 96
 WATER_HEAT_CAPACITY_J_M3_K = 4.1e6
 """float: The volumetric heat capacity of liquid water (about 4,186 J/kg/K at 1,000 to 1,025 kg/m3). Source tier T1, tweak level L0."""
 OCEAN_MIXED_LAYER_M = 50.0
-"""float: The depth of the ocean that follows the seasons, metres (the 50 m mixed layer of the simple climate models of Williams and Kasting 1997 and Spiegel et al. 2009,
+"""float: The depth of the ocean that follows the seasons, metres (the 50 m mixed layer of the simple climate models of [R4708] and [R4171, R4172],
 recalled; the Earth's seasonal mixed layer is 20 to 100 m). Source tier T4, tweak level L0."""
 LATITUDE_SAMPLES = 36
 """int: Latitudes (equal in sine of latitude, so equal in area) used to find the annual means' scale. Source tier T6, tweak level L0 (numerical)."""

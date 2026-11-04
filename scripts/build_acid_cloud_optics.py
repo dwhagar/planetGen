@@ -2,12 +2,12 @@
 """
 Builds `src/planetgen/physics/data/acid_cloud_optics.json` (GEN.1020): the infrared optics of sulfuric acid cloud droplets on the 130 bands of
 `physics/line_opacity.py`, from the refractive indices of the HITRAN aerosol package (Myhre and others 2003 for 76 and 81 percent acid at 298 K,
-400 to 7500 cm-1; Palmer and Williams 1975 for the visible index).
+400 to 7500 cm-1; [R3418] for the visible index).
 
     python scripts/build_acid_cloud_optics.py --indices /path/to/hitran_ri      # the folder of hitran_ri.tar (https://hitran.org/data/Aerosols/)
 
 For each acid strength and each effective radius of `RADII_UM` the droplets are a gamma size distribution of effective variance `VARIANCE`
-(0.2, the order of the mode variances of Arney and Kane 2018 Table 2); the Mie efficiencies (`physics/mie.py`) are averaged over
+(0.2, the order of the mode variances of [R0157: Table 2]); the Mie efficiencies (`physics/mie.py`) are averaged over
 four wavenumbers of each band. Stored per band: the extinction efficiency relative to the 550 nm one of the same droplets (the cloud depth in
 the generator is stated at 550 nm), the single-scattering albedo and the asymmetry factor. The raw index files are never committed.
 """
@@ -69,7 +69,7 @@ def build(folder):
     document = {
         "version": 1,
         "title": "Infrared optics of sulfuric acid cloud droplets on the infrared model's bands",
-        "description": "Derived by scripts/build_acid_cloud_optics.py from the HITRAN aerosol refractive indices of Myhre and others 2003 (76 and 81 percent H2SO4 at 298 K, 400 to 7500 cm-1, held at the ends) and Palmer and Williams 1975 (the 550 nm index), with Mie spheres in a gamma size distribution of effective variance 0.2. Per band: extinction efficiency over the 550 nm one of the same droplets, single-scattering albedo, asymmetry factor.",
+        "description": "Derived by scripts/build_acid_cloud_optics.py from the HITRAN aerosol refractive indices of Myhre and others 2003 (76 and 81 percent H2SO4 at 298 K, 400 to 7500 cm-1, held at the ends) and [R3418] (the 550 nm index), with Mie spheres in a gamma size distribution of effective variance 0.2. Per band: extinction efficiency over the 550 nm one of the same droplets, single-scattering albedo, asymmetry factor.",
         "variance": VARIANCE, "radii_um": list(RADII_UM), "weight_percent": list(STRENGTHS), "bands": len(edges) - 1,
         "visible_real_index": visible_n, "optics": {},
     }

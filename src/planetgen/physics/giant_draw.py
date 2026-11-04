@@ -10,11 +10,11 @@ regimes by its mass (`regime_of`): an ice giant (at most `ICE_GIANT_MAX_EARTH`, 
 fixed and is part of the generator epoch:
 
 1. **The envelope's metallicity**: a multiple of the star's own Z, log-uniform over the regime's range (`ENVELOPE_Z`).
-2. **The heavy-element mass M_Z.** A gas giant takes Chachan et al. 2025's law with its scatter
+2. **The heavy-element mass M_Z.** A gas giant takes [R0710]'s law with its scatter
    (`giant_radius.heavy_mass_earth`); an ice giant, whose mass is mostly heavy elements and lies below that law's 20 Earth masses,
    takes a share of its mass from `HEAVY_FRACTION`.
-3. **The radius**, unless the caller gave one: where the Fortney, Marley and Barnes 2007 tables hold the body (`giant_radius.in_range`
-   and `covers`), their radius for the mass, core, starlight and age plus the Sestovic et al. 2018 inflation; elsewhere the old
+3. **The radius**, unless the caller gave one: where the [R1429] tables hold the body (`giant_radius.in_range`
+   and `covers`), their radius for the mass, core, starlight and age plus the [R4029] inflation; elsewhere the old
    anchored mass-radius relation, which the caller passes as `fallback_radius_km` (an ice giant, a giant under 17 Earth
    masses, a moon, a body whose heavy elements outweigh what the tables hold).
 4. **The interior** (`giant_interior.draw_interior`): the layers, whose whole-body totals are the body's bulk composition.
@@ -39,9 +39,9 @@ from planetgen.physics import unit_registry as units
 _kg_to_mearth = units.converter("kg", "Mearth")
 
 SOURCES = {
-    "chachan2025": "Chachan et al. 2025, arXiv:2509.20428 (the heavy-element mass of giants)",
-    "fortney2007": "Fortney, Marley and Barnes 2007, ApJ 659:1661 (giant radii, Tables 2 to 4)",
-    "sestovic2018": "Sestovic, Demory and Queloz 2018, A&A 612:A74 (hot-giant inflation)",
+    "chachan2025": "[R0710] (the heavy-element mass of giants)",
+    "fortney2007": "[R1429]:1661 (giant radii, Tables 2 to 4)",
+    "sestovic2018": "[R4029]:A74 (hot-giant inflation)",
 }
 
 ICE, GAS = "ice", "gas"
@@ -51,8 +51,8 @@ ICE_GIANT_MAX_EARTH = tuning.GIANT_NO_GAS_CORE_MAX_EARTH
 
 HEAVY_FRACTION = (0.75, 0.95)
 """tuple: An ice giant's heavy-element share of its mass, uniform, below the heavy-element law's 20 Earth masses
-(Chachan et al. 2025 give M_Z = M below 14.7). Ice giants are 5 to 25 percent hydrogen and helium (Uranus and Neptune about 10 to 20
-percent, Helled and Fortney 2020, READ as a range, not a fit). A gas giant takes the law."""
+([R0710] give M_Z = M below 14.7). Ice giants are 5 to 25 percent hydrogen and helium (Uranus and Neptune about 10 to 20
+percent, [R1892], READ as a range, not a fit). A gas giant takes the law."""
 
 ENVELOPE_Z = {ICE: (5.0, 30.0), GAS: (1.0, 8.0)}
 """dict: The envelope's heavy-element mass fraction as a multiple of the star's Z, log-uniform, by regime; a stand-in range (Jupiter's

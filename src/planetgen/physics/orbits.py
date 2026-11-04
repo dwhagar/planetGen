@@ -23,7 +23,7 @@ _yr_to_s = units.converter("yr", "s")
 
 
 KOPPARAPU_TEFF_RANGE_K = (2600.0, 7200.0)
-"""tuple: The effective temperatures (K) Kopparapu et al. (2014) fitted the zone edges for; a star outside the range is
+"""tuple: The effective temperatures (K) [R2447] fitted the zone edges for; a star outside the range is
 given the nearest end's edges."""
 
 KOPPARAPU_REFERENCE_TEFF_K = 5780.0
@@ -39,15 +39,14 @@ KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS = (
     (1.0, KOPPARAPU_RUNAWAY_GREENHOUSE),
     (5.0, (1.188, 1.433e-4, 1.707e-8, -8.968e-12, -2.084e-15)),
 )
-"""tuple: `(planet mass in Earth masses, (S0, a, b, c, d))` of the three runaway greenhouse sets of Kopparapu et al. 2014
-(Table 1): a lighter planet loses its water at a lower flux (its weaker gravity lets the steam rise higher), a heavier one at
+"""tuple: `(planet mass in Earth masses, (S0, a, b, c, d))` of the three runaway greenhouse sets of [R2447: Table 1]: a lighter planet loses its water at a lower flux (its weaker gravity lets the steam rise higher), a heavier one at
 a higher. The maximum greenhouse edge does not depend on the planet's mass."""
 
 KOPPARAPU_MASS_RANGE_EARTH = (0.1, 5.0)
 """tuple: The planet masses (Earth masses) the three sets span; a lighter or heavier planet takes the nearest set."""
 
 KOPPARAPU_MAXIMUM_GREENHOUSE = (0.356, 6.171e-5, 1.698e-9, -3.198e-12, -5.575e-16)
-"""tuple: `(S0, a, b, c, d)` of the outer edge, the maximum greenhouse limit (Kopparapu et al. 2014, Table 1; the same
+"""tuple: `(S0, a, b, c, d)` of the outer edge, the maximum greenhouse limit ([R2447: Table 1]; the same
 for every planet mass): the flux below which a CO2 atmosphere can no longer keep the surface warm."""
 
 
@@ -62,7 +61,7 @@ def kopparapu_flux(coefficients, teff):
 def runaway_greenhouse_flux(temperature, planet_mass_earth=1.0):
     """
     The effective flux (the Sun's at the Earth = 1) above which a planet of `planet_mass_earth` Earth masses around a star
-    of effective temperature `temperature` (K) loses its oceans to a runaway greenhouse (GEN.639; Kopparapu et al. 2014).
+    of effective temperature `temperature` (K) loses its oceans to a runaway greenhouse (GEN.639; [R2447]).
 
     The three sets of `KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS` are worked out at the star's temperature (clamped to
     `KOPPARAPU_TEFF_RANGE_K`) and the flux is linear in the logarithm of the mass between them; a planet outside
@@ -100,7 +99,7 @@ def calculate_habitable_zone(luminosity, temperature):
 
     The habitable zone is the region around a star where liquid water could exist on an Earth-like planet's surface.
     The inner edge is the runaway greenhouse limit and the outer edge the maximum greenhouse limit, both from the
-    Kopparapu et al. (2014) fits, which move with the star's temperature: a cool star's light is redder, so a planet
+    [R2447] fits, which move with the star's temperature: a cool star's light is redder, so a planet
     takes more of it at the same flux, and the zone is nearer in than the luminosity alone says (GEN.146). For the
     Sun the edges are 0.95 and 1.68 AU.
 
@@ -309,7 +308,7 @@ def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_f
 @finite_domain()
 def mutual_hill_radius_au(mass1_kg, mass2_kg, distance1_au, distance2_au, central_mass_kg):
     """
-    Gladman (1993), Icarus 106:247, "Dynamical stability of the outer solar
+    [R1583], Icarus 106:247, "Dynamical stability of the outer solar
     system and the delivery of comets" -- the mutual Hill radius of two
     orbiting bodies:
 
@@ -346,7 +345,7 @@ def mutual_hill_radius_m(distance1_m, distance2_m, mass1_kg, mass2_kg, central_m
     """
     Calculates the *mutual* Hill radius of two bodies that orbit the same
     primary -- the length scale real orbital-dynamics stability criteria
-    (Gladman 1993; Chambers; Smith & Lissauer
+    ([R1583]; Chambers; Smith & Lissauer
     1999/2009) use for how close two adjacent planets' orbits can safely
     be, as distinct from `calculate_hill_sphere`'s single-body sphere of
     gravitational dominance (the right tool for "how far can a satellite

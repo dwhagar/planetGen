@@ -7,8 +7,8 @@ How bright a ring is, and the shade it throws (GEN.1055; docs/design/systems/wei
 Two pure functions of the rings family (`rings.py`). Nothing here draws a number from a stream and nothing is stored: the ring painter (MAP.275) and the climate term of
 the weird worlds (W1) read the results once a lane wires them.
 
-R6, bright and dark rings. A ring is made of ice and of dark material (rock, dust, organics). Saturn's rings are 90 to 99 percent water ice and bright (Cuzzi et al. 2018, recalled),
-Uranus's and Neptune's are dark; the Cassini ring mass and the flux of non-icy dust gave Saturn's rings an age of order 100 million years (Iess et al. 2019; the
+R6, bright and dark rings. A ring is made of ice and of dark material (rock, dust, organics). Saturn's rings are 90 to 99 percent water ice and bright ([R0970], recalled),
+Uranus's and Neptune's are dark; the Cassini ring mass and the flux of non-icy dust gave Saturn's rings an age of order 100 million years ([R2077]; the
 age is contested, 2ND-HAND: no paper was read). Two things set the ice share a ring has now:
 
 * **What it began with.** `rings.RANGES["ice_fraction"]`: a broad ring beyond the snow line is 90 to 99 percent ice, a faint or narrow one little, and a ring inside the snow line none.
@@ -21,7 +21,7 @@ The flux itself (`pollution_flux`) is the Saturn value scaled to the ring's dist
 (the dust is pulled in, `1 + (v_esc / v_inf)^2`).
 
 The ice share left is `ice0 / (1 + gain)` (the added mass is all dark), and the albedo follows from the dark share by an intimate-mixture law: a ring of clean ice is bright, and
-a few percent of dark material takes the brightness down fast, as the reflectance of grain mixtures does (Clark and Lucey 1984; recalled). `albedo` is the half-saturation form
+a few percent of dark material takes the brightness down fast, as the reflectance of grain mixtures does ([R0814]; recalled). `albedo` is the half-saturation form
 `A = A_dark + (A_ice - A_dark) / (1 + d / d_half)`, with `d` the dark share.
 
 R8, the ring's shadow. The ring lies in the planet's equatorial plane. In a season where the Sun stands at declination `delta` (the latitude under it) a point of the planet's winter
@@ -49,7 +49,7 @@ DARK_ALBEDO = 0.04
 """float: The reflectance of a ring of dark material only (Uranus's and Neptune's rings, 0.03 to 0.05, recalled, 2ND-HAND). [Stand-in RGD2, tier T4, tweak L0.]"""
 HALF_DARKENING_SHARE = 0.04
 """float: The dark share at which the ring is half way between clean ice and dark (an intimate mixture of ice and dark grains is half as bright at a few percent dark
-material; Clark and Lucey 1984, recalled). Tuned so that Saturn's A and B rings (1 to 10 percent dark) come out at 0.3 to 0.8 and the C ring (about 30 percent) at 0.1. [Stand-in RGD1, tier T6, tweak L3.]"""
+material; [R0814], recalled). Tuned so that Saturn's A and B rings (1 to 10 percent dark) come out at 0.3 to 0.8 and the C ring (about 30 percent) at 0.1. [Stand-in RGD1, tier T6, tweak L3.]"""
 
 SATURN_POLLUTION_FLUX_KG_M2_S = 4.5e-17
 """float: The mass of non-icy micrometeoroids that falls on Saturn's rings per m2 and second, of order 1e-17 to 1e-16 (recalled, 2ND-HAND; the value that

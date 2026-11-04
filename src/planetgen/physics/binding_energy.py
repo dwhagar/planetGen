@@ -14,8 +14,8 @@ the mass is spread, so each kind of mass object has its own formula. Boss's rule
 | Gas giant | polytrope n = 1 | 3/4 | `giant_interior` uses n = 1 for gas giants |
 | Brown dwarf, fully convective star (under `FULLY_CONVECTIVE_MASS_SOLAR`) | polytrope n = 3/2 | 6/7 | Lane-Emden |
 | Star with a radiative core, giants | polytrope n = 3 (the Eddington standard model) | 3/2 | Lane-Emden |
-| White dwarf | polytrope n = 3/2 (non-relativistic degenerate) | 6/7 | Chandrasekhar 1939 |
-| Neutron star | `BE / (M c^2) = 0.6 beta / (1 - 0.5 beta)`, `beta = G M / (R c^2)` | | Lattimer and Prakash 2001 (ApJ 550, 426, arXiv:astro-ph/0002232, Eq. 33, READ) |
+| White dwarf | polytrope n = 3/2 (non-relativistic degenerate) | 6/7 | [R0730] |
+| Neutron star | `BE / (M c^2) = 0.6 beta / (1 - 0.5 beta)`, `beta = G M / (R c^2)` | | [R2573] (ApJ 550, 426, [R2573: Eq. 33], READ) |
 | Black hole | `INFINITE` | | Boss: stored as -1, meaning infinite |
 
 For a polytrope of index `n` below 5 the energy is `3 / (5 - n) G M^2 / R` (Lane-Emden; exact for a self-gravitating polytropic sphere).
@@ -101,7 +101,7 @@ def two_shell_j(mass_kg, radius_m, core_mass_kg, core_radius_m):
 
 @finite_domain()
 def neutron_star_j(mass_kg, radius_m):
-    """The binding energy of a neutron star, J: Lattimer and Prakash 2001 Eq. 33, `BE / (M c^2) = 0.6 beta / (1 - 0.5 beta)` with `beta = G M / (R c^2)`."""
+    """The binding energy of a neutron star, J: [R2573: Eq. 33], `BE / (M c^2) = 0.6 beta / (1 - 0.5 beta)` with `beta = G M / (R c^2)`."""
     if not (mass_kg > 0.0 and radius_m > 0.0):
         raise ValueError("the mass and the radius must be positive")
     c2 = constants.SPEED_OF_LIGHT_M_S ** 2

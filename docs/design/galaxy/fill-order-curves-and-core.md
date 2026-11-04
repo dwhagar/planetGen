@@ -115,7 +115,7 @@ not matter for the fix: parity already decides it.
 ### 1.2 The pruned Hilbert curve
 
 Implementation: Skilling's transpose algorithm (Skilling, "Programming the
-Hilbert curve", AIP Conf. Proc. 707, 2004 [R]; the alternative is Butz 1971
+Hilbert curve", AIP Conf. Proc. 707, 2004 [R]; the alternative is [R0616]
 [R]), vectorised in numpy, about 35 lines (`hil.py`). Verified on full cubes
 of side 2 to 32: bijective, every step has L1 length 1, start (0,0,0), end
 on the same edge [C, `t1.py`]. A pure-Python version is about 25 lines. PyPI
@@ -167,7 +167,7 @@ Reading the table:
   behaves like Hilbert once pruned. Gosper-style curves are 2D hexagonal;
   there is no standard 3D one.
 - Locality theory for Hilbert (Moon, Jagadish, Faloutsos, Saltz, IEEE TKDE
-  2001; Niedermeier, Reinhardt, Sanders 2002; Haverkort and van Walderveen
+  2001; [R3910]; Haverkort and van Walderveen
   2010 [R]) is about the cost of range queries, which is what a database
   wants when it stores sectors in curve order. It says nothing about
   visiting a ball nearest first. The "onion curve" (Xu, Nguyen, Tirthapura,
@@ -494,8 +494,8 @@ Superseded by GEN.280 (Boss's item GEN.285, 2026-10-16, 12:43 AM EDT): the nucle
 | Structure | Size | Mass | Notes |
 |---|---|---|---|
 | Sgr A* | point | 4.3e6 Msun | distance 8.2 to 8.3 kpc |
-| Nuclear star cluster | half-light radius about 4 pc (Schodel et al. 2014, A&A 566, A47) | 2.0 to 2.5e7 Msun | mean density inside 4 pc about 4.5e4 Msun/pc^3 (derived: 1.2e7 Msun in 268 pc^3) |
-| Nuclear stellar disc | radius about 100 to 230 pc, scale height about 30 to 45 pc (Launhardt et al. 2002; Sormani et al. 2022) | about 1e9 Msun | mean density inside 200 pc about 50 to 150 Msun/pc^3 (derived, assuming 0.7e9 in pi x 200^2 x 90 pc^3) |
+| Nuclear star cluster | half-light radius about 4 pc [R3967] | 2.0 to 2.5e7 Msun | mean density inside 4 pc about 4.5e4 Msun/pc^3 (derived: 1.2e7 Msun in 268 pc^3) |
+| Nuclear stellar disc | radius about 100 to 230 pc, scale height about 30 to 45 pc [R2577, R4152] | about 1e9 Msun | mean density inside 200 pc about 50 to 150 Msun/pc^3 (derived, assuming 0.7e9 in pi x 200^2 x 90 pc^3) |
 | Central molecular zone | about 200 pc radius (about 1.5 degrees of longitude) | gas 3 to 5e7 Msun | gas, not stars; a ring or twisted ring near 100 pc plus clouds |
 | Bar and bulge (boxy) | half-length about 2 kpc; long bar to about 4 to 5 kpc | about 1.5e10 Msun | the model's 31% bulge share |
 
@@ -507,7 +507,7 @@ PERF.3 default `_stars_per_system` = 1.3, so 1,100 to 1,400 stars) is 5 to
 15 times lower. In the nuclear cluster the density rises further: about
 1e5 Msun/pc^3 near 1 pc and 1e6 to 1e7 Msun/pc^3 within 0.1 pc (derived
 from an r^-1.4 slope normalised to the mean above; low confidence, check
-Genzel et al. 2010 [R]). The sector holding Sgr A*
+[R1535] [R]). The sector holding Sgr A*
 (a 4 pc cube, r of about 2 to 2.5 pc) contains of order 1e6 to 1e7 stars, a
 thousand times anything generated here, and cannot be filled star by star
 with planetary systems (a star every 0.005 pc, a few hundred AU, with Hill
@@ -609,9 +609,8 @@ only search-result text, not papers, and web search was unavailable for this
 topic. Verify when paper access is allowed:
 
 - All astronomy figures in 4.2: nuclear star cluster mass (2.0 to 2.5e7
-  Msun) and half-light radius (about 4 pc), Schodel et al. 2014 (medium confidence); nuclear stellar disc
-  mass (about 1e9 Msun), radius and scale height, Launhardt et al. 2002 and
-  Sormani et al. 2022 (medium); CMZ gas mass and radius (medium); Sgr A* mass
+  Msun) and half-light radius (about 4 pc), [R3967] (medium confidence); nuclear stellar disc
+  mass (about 1e9 Msun), radius and scale height, [R2577, R4152] (medium); CMZ gas mass and radius (medium); Sgr A* mass
   4.3e6 Msun (high); bulge mass 1.5e10 Msun (matches the repository's BHG16
   citation). The inner-parsec densities are derived from an assumed slope
   and are low confidence.

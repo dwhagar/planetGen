@@ -4,9 +4,9 @@ Builds `src/planetgen/physics/data/ozone_chappuis.json`, the ozone cross section
 (380 to 780 nm at 5 nm; GEN.418, `planetgen/physics/atmosphere_colour.py`).
 
 The values are cell means of the 295 K, 1 nm table of the Brion, Daumont, Malicet and Jenouvrier group in the MPI-Mainz UV/VIS Spectral
-Atlas snapshot of 2013-06-24 (Keller-Rudek et al. 2013, CC BY 4.0), read through the downloaded dataset `ozone_uv` (run
+Atlas snapshot of 2013-06-24 ([R2302, R2303], CC BY 4.0), read through the downloaded dataset `ozone_uv` (run
 `python3 -m planetgen.cli.datasets fetch ozone_uv` first), and (GEN.748) the ratio of the band at 220, 240, 260, 280 and 298 K to its
-298 K value, cell means of the five tables of Burkholder and Talukdar (1994) in the same atlas. Only these derived tables are kept in the
+298 K value, cell means of the five tables of [R0599] in the same atlas. Only these derived tables are kept in the
 repository, so a page that shows a planet's colour needs no download.
 
 Usage: python3 scripts/build_ozone_chappuis.py
@@ -35,12 +35,12 @@ def main():
     ratios = [ozone_uv.chappuis_ratio(located, EDGES_NM, temperature) for temperature in ozone_uv.CHAPPUIS_TEMPERATURES_K]
     document = {
         "source": "the Brion team's 1992 to 1998 measurements, 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 "
-                  "(Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
+                  "([R2303], Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
         "temperature_k": 295.0,
         "wavelength_nm": [float(v) for v in centres],
         "sigma_cm2": [float(f"{v:.6g}") for v in sigma],
-        "ratio_source": "Burkholder and Talukdar (1994), Geophys. Res. Lett. 21, 581, 407 to 762 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot "
-                        "2013-06-24, Zenodo record 6951, CC BY 4.0 (Keller-Rudek et al. 2013); cell means on 5 nm cells over the 298 K table, 1 outside "
+        "ratio_source": "[R0599], Geophys. Res. Lett. 21, 581, 407 to 762 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot "
+                        "2013-06-24, Zenodo record 6951, CC BY 4.0 [R2302, R2303]; cell means on 5 nm cells over the 298 K table, 1 outside "
                         "407 to 762 nm",
         "ratio_temperatures_k": list(ozone_uv.CHAPPUIS_TEMPERATURES_K),
         "ratio": [[float(f"{v:.5g}") for v in row] for row in ratios],

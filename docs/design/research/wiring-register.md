@@ -45,7 +45,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | module | planetgen.physics.kepler_multiplicity | by design | the Kepler transit multiplicity harness, read by the tuning tests until the wiring (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | data | planet_occurrence.json | by design | read by `physics/planet_occurrence.py` only (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
-| data | potassium_depletion.json | GEN.492 | the K/U of six bodies (Dauphas et al. 2022 Table 1) with CI chondrites; `radiogenic.draw_content` will take the potassium depletion and CI K/U from it |
+| data | potassium_depletion.json | GEN.492 | the K/U of six bodies ([R1003: Table 1]) with CI chondrites; `radiogenic.draw_content` will take the potassium depletion and CI K/U from it |
 | module | planetgen.physics.potassium_depletion | GEN.492 | the potassium depletion drawn by body class; replaces the log-uniform `tuning.RADIOGENIC_K_DEPLETION_RANGE` once `radiogenic` calls it with the body's mass |
 | row | 6.61:KD3 | GEN.492 | `potassium_depletion.CLASS_MASS_EARTH`, not read until `radiogenic` calls the module |
 | row | 6.61:KD4 | GEN.492 | `potassium_depletion.MAX_DEPLETION`, not read until `radiogenic` calls the module |
@@ -83,7 +83,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.75:NC1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, Cunha, Correia and Laskar 2015); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
+| module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, [R0962]); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
 | row | 6.90:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
 | row | 6.90:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
 | row | 6.90:VS4 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
@@ -113,6 +113,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
+| module | planetgen.generation.rogue_landing | GEN.1111 | where a rogue an ejection event made is now (the ring drift from its donor's place, its velocity and the sector that holds it); the donor's save reads it when the lock wiring lands |
+| module | planetgen.generation.ejection_events | GEN.1111 | the events a rogue is built from (whether, when, how fast and which way a body a donor threw out left, its age and its moon limit); the donor's save reads it when the lock wiring lands |
 | module | planetgen.generation.phenomena.starless_host | GEN.1111 | the host a rogue planet is built against (the donor's mass and snow line, no light, the rogue's age) and `build_ejected_planet`; the rogue rows from the architecture's ejections read it when the lock wiring lands, after the table's no-host rule |
 | module | planetgen.physics.rogue_drift | GEN.1111 | the closed-form drift of an ejected planet from its star; the virtual-donor placement of rogue planets reads it |
 | row | 6.89:GD1 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
@@ -281,7 +283,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.spherical.cells_touching_sphere | GEN.105 | the sector search of the influence set (`influence.influence_set` calls it); it reaches the app with the acceleration kernel |
 | function | planetgen.galaxy.spherical.shell_cells | by design | every cell of one shell in order, the independent reference the grid tests count, sum volumes and compare neighbours against; the generator reaches cells by band ranges and never walks a whole shell |
 | function | planetgen.galaxy.star_formation.star_formation_rate_profile | by design | the present star-formation rate against radius that `test_star_formation_profile` compares with the observed profile; the generator reads `recent_factor`, never the profile |
-| function | planetgen.galaxy.structure_draw.hot_component_bound | by design | the most the thick disc can weigh over the thin disc's (Comeron et al. 2021 Eq. 1), the bound `test_structure_draw` holds the drawn thick-to-thin ratio under; the draw does not read it |
+| function | planetgen.galaxy.structure_draw.hot_component_bound | by design | the most the thick disc can weigh over the thin disc's ([R0860: Eq. 1]), the bound `test_structure_draw` holds the drawn thick-to-thin ratio under; the draw does not read it |
 | function | planetgen.galaxy.structure_draw.draw_neutron_star_unbound_share | by design | the kick share a seed draws, with the stellar mass pinned, so `test_natal_kick` and `test_halo_threshold` probe the halo threshold without building the whole structure; the structure carries the same value |
 | function | planetgen.generation.bright_stars.cell_band_rate | by design | the stars a cell expects in a luminosity band, the independent form of the rate the block path of `backfill_cells` computes inline; `test_block_sampler` and `test_backfill_block_path` check the block path against it |
 | function | planetgen.generation.possibility_table.concentration_from_spread | by design | the authoring helper that turns a published spread of a component into a Dirichlet row's concentration; a row written from a source that gives spreads calls it, the tests hold the formula |
@@ -356,9 +358,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.surface_liquids.stable_liquids | GEN.1218 | the second liquid and the mixed seas of the composition model (Raoult sea of an air, its density, the liquids stable at a state); `surface_liquid_world` picks one liquid with `dominant` today |
 | function | planetgen.physics.surface_liquids.ideal_sea | GEN.1218 | the second liquid and the mixed seas of the composition model (Raoult sea of an air, its density, the liquids stable at a state); `surface_liquid_world` picks one liquid with `dominant` today |
 | function | planetgen.physics.surface_liquids.sea_density_kg_m3 | GEN.1218 | the second liquid and the mixed seas of the composition model (Raoult sea of an air, its density, the liquids stable at a state); `surface_liquid_world` picks one liquid with `dominant` today |
-| function | planetgen.physics.surface_liquids.stable_liquids | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.surface_liquids.ideal_sea | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.surface_liquids.sea_density_kg_m3 | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.unit_registry.constant_in | by design | the number of a physical constant in another unit system (G in AU, year and solar mass); `relations.py` says a law in those units takes its G from it, and the Gaussian-constant test holds it |
 | function | planetgen.physics.unit_registry.units_of | by design | the registry's listing of a kind's units in declaration order; the registry audits and the page-side export tests walk it, the app looks units up by key |
 | function | planetgen.physics.unit_registry.parts_dimension | by design | the dimension a compound unit's parts give it; the registry's self-check holds every compound's stated dimension to it |
@@ -367,9 +366,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.wd_pollution.observed_sampler | by design | the simulated polluted white dwarf sample: the simulated side of the `wd_pollution` selection model, run by test_wd_pollution and test_tuning_harness through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
 | function | planetgen.physics.wd_pollution.class_probabilities | by design | the detection chance by class of a polluted white dwarf: the simulated side of the `wd_pollution` selection model, run by test_wd_pollution and test_tuning_harness through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
 | function | planetgen.physics.wd_pollution.expected_sample | by design | the expected polluted sample of the detection model: the simulated side of the `wd_pollution` selection model, run by test_wd_pollution and test_tuning_harness through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
-| function | planetgen.physics.magnetism.induced_moment | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.radiation_belts.dose_at_orbit_gy_yr | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.radiation_belts.equatorial_field_t | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.photometry.bolometric_correction_v | VIEW.11 | the VIEW.11 photometry library is the reader: apparent magnitude on a star page reads it when VIEW.11 is built |
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |

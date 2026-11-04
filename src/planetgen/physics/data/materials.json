@@ -14,14 +14,14 @@
   "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density listed there",
   "crc-density-wiki": "Densities of the elements (data page), Wikipedia, the row marked 'use' (CRC and WebElements values); the handbook itself was not read",
   "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
-  "seager2007": "Seager, Kuchner, Hier-Majumder and Militzer 2007, Mass-radius relationships for solid exoplanets, ApJ 669, 1279 (arXiv:0707.2895), Tables 1, 2 and 3 (read)",
-  "hakim2018": "Hakim et al. 2018, Icarus 313, 61 (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
+  "seager2007": "[R3992], Mass-radius relationships for solid exoplanets, ApJ 669, 1279 [R3992: Tables 1], 2 and 3 (read)",
+  "hakim2018": "[R1752] (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
   "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/composition/body-composition-parts/B-rocky.md section 2.1b)",
-  "slb2024-burnman": "Stixrude and Lithgow-Bertelloni 2024, Thermodynamics of mantle minerals III, GJI 237, 1699 (doi:10.1093/gji/ggae126), as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
-  "exoplex": "ExoPlex 1.0.1a1 source distribution (Anderson and Ahrens 1994 liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
-  "hp2011-burnman": "Holland and Powell 2011 data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
-  "journaux2020": "Journaux et al. 2020, JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C section 2.3 (computed from second-hand data)",
-  "blum-bischoff": "Blum and Bischoff, arXiv:2207.12731, as read in part C section 2.3 (comet densities)",
+  "slb2024-burnman": "[R4233], Thermodynamics of mantle minerals III, GJI 237, 1699 [R4233], as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
+  "exoplex": "ExoPlex 1.0.1a1 source distribution ([R0111] liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
+  "hp2011-burnman": "[R1981] data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
+  "journaux2020": "[R2204], JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C section 2.3 (computed from second-hand data)",
+  "blum-bischoff": "Blum and Bischoff, [R0430], as read in part C section 2.3 (comet densities)",
   "cod-part-d": "Part D of the body composition research, section 2.1: densities computed from the Crystallography Open Database cell of the same formula (rho = Z M / (N_A V)), label COMPUTED; not a measurement of the solid at the body's temperature",
   "ideal-gas": "The ideal gas law rho = P M / (R T); exact, no constants of its own"
  },
@@ -2903,7 +2903,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "Sata 2010 refit, Hakim 2018 Table D.5; the high-pressure phase"
+     "note": "[R3923] refit, [R1752] Table D.5; the high-pressure phase"
     },
     {
      "model": "bme",
@@ -2998,7 +2998,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "Fe3C, Sata 2010 refit, Hakim 2018 Table D.5"
+     "note": "Fe3C, [R3923] refit, [R1752] Table D.5"
     }
    ],
    "labels": "rho=R",
@@ -4774,7 +4774,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "Fe0.95O, Sata 2010 refit, Hakim 2018 Table D.5"
+     "note": "Fe0.95O, [R3923] refit, [R1752] Table D.5"
     },
     {
      "model": "mgd-slb3",
@@ -5287,7 +5287,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "Choukroun et al. 2020 (read, section 3.3, the CONSERT permittivity review) gives only a rough 'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).",
+   "note": "[R0776] (read, section 3.3, the CONSERT permittivity review) gives only a rough 'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).",
    "source": "blum-bischoff",
    "state": "verified",
    "limit": ""
@@ -5569,7 +5569,7 @@
      "valid": {},
      "source": "ideal-gas",
      "code": "C",
-     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
+     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the [R1429] tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
     }
    ],
    "labels": "Tm=R;Tb=H;Tt=R;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;rhog=H",
@@ -5606,7 +5606,7 @@
      "valid": {},
      "source": "ideal-gas",
      "code": "C",
-     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
+     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the [R1429] tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
     }
    ],
    "labels": "rhog=H",
@@ -5657,7 +5657,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "room-temperature Vinet below 234.4 GPa (Dewaele et al., as in Hakim 2018)"
+     "note": "room-temperature Vinet below 234.4 GPa (Dewaele et al., as in [R1752])"
     },
     {
      "model": "vinet",
@@ -5669,7 +5669,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "the Valencia parameters, Hakim 2018 Table F.7"
+     "note": "the Valencia parameters, [R1752] Table F.7"
     },
     {
      "model": "bme",
@@ -5682,7 +5682,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "the Dorn parameters, Hakim 2018 Table F.7"
+     "note": "the Dorn parameters, [R1752] Table F.7"
     },
     {
      "model": "bme",
@@ -5695,7 +5695,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "the Fei parameters, Hakim 2018 Table F.7"
+     "note": "the Fei parameters, [R1752] Table F.7"
     },
     {
      "model": "vinet",
@@ -5774,7 +5774,7 @@
      "valid": {},
      "source": "exoplex",
      "code": "H",
-     "note": "Anderson and Ahrens 1994 as carried in the ExoPlex source; the original was not reached"
+     "note": "[R0111] as carried in the ExoPlex source; the original was not reached"
     }
    ],
    "labels": "rho=H",
@@ -5799,7 +5799,7 @@
      "unit": "g/cm3",
      "source": "hakim2018",
      "code": "R",
-     "basis": "rho0 of the Sata 2010 refit"
+     "basis": "rho0 of the [R3923] refit"
     }
    },
    "eos": [
@@ -5813,7 +5813,7 @@
      "valid": {},
      "source": "hakim2018",
      "code": "R",
-     "note": "Sata 2010 refit, Hakim 2018 Table D.5"
+     "note": "[R3923] refit, [R1752] Table D.5"
     }
    ],
    "labels": "rho=R",

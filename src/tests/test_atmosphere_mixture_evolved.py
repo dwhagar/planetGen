@@ -148,7 +148,7 @@ def _titan_n2_kg(result, rock_fraction=ICY["rock_mass_fraction"]):
 
 
 def test_a_titan_like_air_takes_the_nitrogen_of_the_ammonia_ice_and_comes_out_of_the_order_of_titans():
-    """GEN.821 (Erkaev et al. 2020, section 4.2): the nitrogen is the share epsilon of the ammonia that is outgassed times the share xi that
+    """GEN.821 ([R1282], section 4.2): the nitrogen is the share epsilon of the ammonia that is outgassed times the share xi that
     ends as N2; with the ammonia 0.2 to 1.5 percent of the water of a Titan-sized ice moon the air holds 1e17 to 1e20 kg of N2 (Titan's 1.5 bar is
     about 9e18 kg)."""
     found = draws("terrestrial", {**TITAN, **ICY}, "titan", count=80)

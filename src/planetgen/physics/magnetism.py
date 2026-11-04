@@ -38,7 +38,7 @@ section 3.5 (design defaults):
    `2 pi R_moon^3 A B_exc / mu0`, stored as `induced_moment_a_m2` beside the
    intrinsic `magnetic_moment_a_m2`. `sigma` is a planetGen default per ocean
    class (`OCEAN_CONDUCTIVITY_S_M`; Europa's magnesium-sulfate ocean 2.75 S/m
-   [Hand and Chyba 2007]). Nothing is drawn.
+   [[R1785]]). Nothing is drawn.
 7. **Induced field of a metal core and of a planet in its star's field** (GEN.981). The iron core of a body (`interior_heat.core_of`, whatever its dynamo
    does: solid iron conducts as well as liquid) answers a changing field as a conducting sphere (`sphere_response`: `|F| = |1 - 3/z^2 + 3 cot(z)/z|`,
    `z = (1 - i) a / delta`, skin depth `delta = sqrt(2 / (omega mu0 sigma))`, `sigma` `CORE_CONDUCTIVITY_S_M`), which is 1 for a core many skin depths
@@ -98,7 +98,7 @@ with 1.15 TW (`dynamo.EARTH_DYNAMO_POWER_W`), so the ratio puts the model's Eart
 MERCURY_SCATTER_DEX = 0.5
 """float: The log-normal scatter of the stand-in moment of a small, iron-rich body (GEN.86's, dex)."""
 FIELD_SCATTER_DEX = 0.07
-"""float: The log-normal scatter of the dynamo scaling, dex: the 145 numerical dynamos fit the buoyancy-flux law within about 15 percent (Olson and Christensen 2006,
+"""float: The log-normal scatter of the dynamo scaling, dex: the 145 numerical dynamos fit the buoyancy-flux law within about 15 percent ([R3355],
 second-hand, `dynamo.DIPOLE_COEFFICIENT`). Registry row DY5."""
 """tuple: `(mass in Earth masses, dipole moment A m2)` for Neptune, Saturn
 and Jupiter."""
@@ -113,11 +113,10 @@ OCEAN_CONDUCTIVITY_S_M = {
     "ice-sealed": 0.5, "chloride brine": 5.0, "acid sulfate": 10.0, "soda": 3.0, "neutral": 2.75, None: 2.75,
 }
 """dict: Electrical conductivity of an ocean by `ocean_class`, S/m: a cold
-dilute ocean 0.5, Europa's MgSO4 2.75 (Hand and Chyba 2007), sodium carbonate
+dilute ocean 0.5, Europa's MgSO4 2.75 [R1785], sodium carbonate
 3, saturated chloride 5, sulfuric acid 10 (planetGen defaults)."""
 CORE_CONDUCTIVITY_S_M = 1.0e6
-"""float: The electrical conductivity of an iron-alloy core, S/m: Earth's outer core at its pressure and temperature, 1.0 to 1.5 million (Pozzo et al. 2012;
-Gomi et al. 2013 find about half), the same for a solid core. Registry row IN1."""
+"""float: The electrical conductivity of an iron-alloy core, S/m: Earth's outer core at its pressure and temperature, 1.0 to 1.5 million ([R1628, R3597] find about half), the same for a solid core. Registry row IN1."""
 IMF_EARTH_T = 5e-9
 """float: The field a star's wind carries at Earth's distance, T: 5 nT at 1 AU in the Sun's (the interplanetary field of the Parker spiral). Registry row IN2."""
 STELLAR_EXCITATION_SHARE = 0.5
@@ -226,28 +225,6 @@ def synodic_period_s(parent_rotation_hours, orbital_period_years):
     rate = abs(1.0 / _h_to_s(parent_rotation_hours)
                - 1.0 / _yr_to_s(orbital_period_years))
     return 1.0 / rate if rate > 1e-12 else None
-
-
-def induced_moment(parent_moment_a_m2, orbit_radius_m, synodic_s, moon_radius_m, shell_conductance_s, shell_radius_m):
-    """
-    The induced dipole moment of a moon's ocean, A m2 (rule 6), and the
-    response `|A|` it gave, as `(moment, response)`.
-
-    Args:
-        parent_moment_a_m2: The parent's dipole moment (times its dipole share).
-        orbit_radius_m: The moon's distance from the parent.
-        synodic_s: The excitation period (`synodic_period_s`), `None` for none.
-        moon_radius_m: The moon's radius.
-        shell_conductance_s: The ocean's conductance `sigma h`, siemens.
-        shell_radius_m: The ocean shell's radius (the moon's less its ice).
-    """
-    if not parent_moment_a_m2 or not synodic_s or shell_conductance_s <= 0.0 or orbit_radius_m <= 0.0:
-        return 0.0, 0.0
-    excitation_t = EXCITATION_SHARE * VACUUM_PERMEABILITY * parent_moment_a_m2 / (4.0 * math.pi * orbit_radius_m ** 3)
-    omega = 2.0 * math.pi / synodic_s
-    x = omega * VACUUM_PERMEABILITY * shell_conductance_s * shell_radius_m / 2.0
-    response = x / math.sqrt(1.0 + x * x)
-    return 2.0 * math.pi * moon_radius_m ** 3 * response * excitation_t / VACUUM_PERMEABILITY, response
 
 
 def sphere_response(omega, conductivity_s_m, radius_m):

@@ -5,8 +5,7 @@ Rogue Planet Surface Conditions
 ===============================
 
 A rogue planet has no star, so its surface is set by its own heat alone
-(Boss's research, 2026-10-01; Stevenson 1999, Burrows et al. 2001,
-Guillot 2005, Abbot & Switzer 2011, Turcotte & Schubert 2014). This
+(Boss's research, 2026-10-01; [R0010, R0606, R1714, R4219, R4449]). This
 module follows that research's four steps:
 
 1. Internal heat flux: radioactive decay (`radiogenic`, the host-less

@@ -14,7 +14,7 @@ holds the **spans** of semi-major axis where a new body of a given mass and ecce
 
 What the spans are made of, each rule one read:
 
-- **The host's window** (`planet_zones.planet_zones`): from the engulfment or Roche floor the caller gives, and the Holman and Wiegert (1999)
+- **The host's window** (`planet_zones.planet_zones`): from the engulfment or Roche floor the caller gives, and the [R1990]
   P-type limit of a close pair, out to the tightest S-type limit against the stars beside it at every level above (`ancestor_limits_au`;
   Holman and Wiegert, Eqs 1 and 3, equal to the paper's).
   The fits are for coplanar test particles with a mass ratio of 0.1 to 0.9 (S-type; 0.1 to 0.5 for P-type) and an eccentricity up to 0.8
@@ -25,7 +25,7 @@ What the spans are made of, each rule one read:
 - **Each belt** excludes its annulus, widened on the planet's side by the planet's own five Hill radii and `MIN_ASTEROID_BELT_SEPARATION`
   (`belt_exclusion`). A belt adds no spacing between the planets either side of it: both of those exclusions stay.
 - **A moon's window** is the same idea one level down (`moon_bounds_km`): outside the planet and the largest moon it could hold, inside the
-  fraction of the planet's Hill radius that Domingos, Winter and Yokoyama (2006, MNRAS 373, 1227, read in the paper) fit to the restricted
+  fraction of the planet's Hill radius that [R1138] (MNRAS 373, 1227, read in the paper) fit to the restricted
   elliptic three-body problem, with the planet's and the moon's eccentricity terms and the retrograde limit.
 
 The ledger is derived data: it can be rebuilt from the tree and the placed bodies, and nothing in it is stored. It imports no generation code, so
@@ -44,14 +44,14 @@ from planetgen.physics import planet_zones, unit_registry as units
 _msun_to_kg = units.converter("Msun", "kg")
 
 DOMINGOS_PROGRADE = (0.4895, 1.0305, 0.2738)
-"""tuple: `(a, b, c)` of the prograde fit `a_crit / R_H = a (1 - b e_planet - c e_moon)` (Domingos, Winter and Yokoyama 2006, MNRAS 373, 1227, read
+"""tuple: `(a, b, c)` of the prograde fit `a_crit / R_H = a (1 - b e_planet - c e_moon)` ([R1138], read
 in the paper: restricted elliptic three-body problem, planet orbits tested at 0.1 AU with `e_planet` 0 to 0.9). Source tier T1, tweak level L0."""
 DOMINGOS_RETROGRADE = (0.9309, 1.0764, 0.9812)
-"""tuple: The same fit for a retrograde moon (Domingos et al. 2006). Source tier T1, tweak level L0."""
+"""tuple: The same fit for a retrograde moon [R1138]. Source tier T1, tweak level L0."""
 DOMINGOS_PLANET_E_MAX = 0.9
 """float: The planet eccentricity the fit was made up to; past it the limit is applied at this edge and flagged `extrapolated`."""
 HOLMAN_WIEGERT_S_MU = (0.1, 0.9)
-"""tuple: The companion's mass fraction the S-type fit covers (Holman and Wiegert 1999)."""
+"""tuple: The companion's mass fraction the S-type fit covers [R1990]."""
 HOLMAN_WIEGERT_P_MU = (0.1, 0.5)
 """tuple: The lighter side's mass fraction the P-type fit covers."""
 HOLMAN_WIEGERT_S_E_MAX = 0.8
@@ -204,8 +204,7 @@ def spacing_kappa(mass_kg, other_mass_kg, central_mass_kg):
 def planet_exclusion(distance_au, eccentricity, mass_kg, central_mass_kg, new_mass_kg, new_eccentricity=0.0):
     """
     The stretch of semi-major axis round a planet where a new planet of `new_mass_kg` and `new_eccentricity` would stand closer than
-    `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii (Gladman 1993; Chambers, Wetherill and Boss 1996, covered through Obertas, Van
-    Laerhoven and Tamayo 2017), measured between the inner body's apoapsis and the outer one's periapsis. With the mutual radius taken at the
+    `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii ([R1583]; Chambers, Wetherill and Boss 1996, covered through [R3323]), measured between the inner body's apoapsis and the outer one's periapsis. With the mutual radius taken at the
     mean distance, the gap `x (1 - e_new) - d (1 + e) >= kappa (x + d) / 2` for a body outside gives `x >= d (1 + e + kappa/2) / (1 - e_new -
     kappa/2)` (the generator's closed form), and for one inside `x <= d (1 - e - kappa/2) / (1 + e_new + kappa/2)`.
 
@@ -241,7 +240,7 @@ def belt_exclusion(lower_au, upper_au, new_mass_kg, central_mass_kg, new_eccentr
 def moon_hill_fraction(planet_eccentricity, moon_eccentricity=0.0, retrograde=False):
     """
     The largest semi-major axis a moon may have, in units of its planet's Hill radius (taken at the planet's semi-major axis), from the
-    Domingos, Winter and Yokoyama (2006) fit `a (1 - b e_planet - c e_moon)`.
+    [R1138] fit `a (1 - b e_planet - c e_moon)`.
 
     Returns:
         tuple: `(fraction, extrapolated)`; the fraction is held at 0 or more, and `extrapolated` is True past the planet eccentricity the fit covers.

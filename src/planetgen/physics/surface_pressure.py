@@ -10,11 +10,11 @@ surface, and the sinks that take gas back.
 
 * *Degassing.* The share of an element at the surface is `eps_e * (1 - exp(-Theta))` with `Theta = E_release / (M_mantle e_proc)`:
   the mantle processed through melting follows the heat the interior has carried out (`interior_heat.Heat.released_j`), the picture
-  of Tosi et al. 2017 (arXiv:1707.06051). `eps_e` is the share the melt cannot hold dissolved (1 for CO2, N2 and argon; water is
+  of [R4413]. `eps_e` is the share the melt cannot hold dissolved (1 for CO2, N2 and argon; water is
   drawn). `PROCESSING_ENERGY_J_PER_KG` is the one calibrated number: it makes an Earth twin of the interior model give the surface
   carbon of the Earth (1e22 mol), and Venus (about the same carbon in its air) is the check.
 * *Carbonate-silicate cycle.* With liquid water at the surface, silicate weathering and volcanic outgassing balance
-  (Walker, Hays and Kasting 1981); the continental law of Lehmer, Catling and Krissansen-Totton 2020 (PMC7708846) with their ranges
+  [R4596]; the continental law of [R2628] (PMC7708846) with their ranges
   gives the CO2 pressure of the balance (`carbonate_pco2_bar`). The temperature depends on the pressure through the greenhouse, so
   the caller passes it as a function.
 * *Ocean.* Water vapour is capped by the saturation pressure and sulfur gases are taken up by an ocean; both are the callers' (they
@@ -53,28 +53,28 @@ DEGAS_EFFICIENCY = {"C": 1.0, "N": 1.0, "Ar": 1.0, "S": 0.5}
 2017); sulfur stays partly in the melt as sulfide (a stand-in, tier 6)."""
 
 DEGAS_EFFICIENCY_H = (0.05, 0.5, "log")
-"""tuple: The same for hydrogen, drawn: water is highly soluble and the magma ocean retains much of it (Tosi et al. 2017; Bower et al.
-2022; Marty 2012: up to 90 percent of the water in the mantle). Stand-in, tier 6 (a marginal educated guess)."""
+"""tuple: The same for hydrogen, drawn: water is highly soluble and the magma ocean retains much of it ([R4413]; Bower et al.
+2022; [R2923]: up to 90 percent of the water in the mantle). Stand-in, tier 6 (a marginal educated guess)."""
 
 # --- the carbonate-silicate cycle -------------------------------------------------------------------------------------------
 
 WEATHERING_ALPHA = (0.1, 0.5, "uniform")
-"""tuple: The exponent of the CO2 pressure in the silicate weathering rate (Lehmer et al. 2020 Table 1, geologic constraints)."""
+"""tuple: The exponent of the CO2 pressure in the silicate weathering rate ([R2628: Table 1], geologic constraints)."""
 
 WEATHERING_T_E_K = (10.0, 40.0, "uniform")
-"""tuple: The e-folding temperature of the weathering rate, K (Lehmer et al. 2020 Table 1, laboratory and Phanerozoic constraints)."""
+"""tuple: The e-folding temperature of the weathering rate, K ([R2628: Table 1], laboratory and Phanerozoic constraints)."""
 
 OUTGASSING_EXPONENT = (1.0, 2.0, "uniform")
-"""tuple: The exponent of the heat flow in the volcanic outgassing flux (Lehmer et al. 2020 Table 1)."""
+"""tuple: The exponent of the heat flow in the volcanic outgassing flux ([R2628: Table 1])."""
 
 LAND_FRACTION_EARTH = 0.29
 """float: The land share of the Earth's surface, the reference of the weathering law."""
 
 CO2_MODERN_BAR = 288e-6
-"""float: The preindustrial CO2 pressure of the Earth (Lehmer et al. 2020)."""
+"""float: The preindustrial CO2 pressure of the Earth [R2628]."""
 
 TS_MODERN_K = 289.0
-"""float: The preindustrial surface temperature of the Earth (Lehmer et al. 2020)."""
+"""float: The preindustrial surface temperature of the Earth [R2628]."""
 
 HEAT_FLUX_EARTH_W_M2 = 0.0614
 """float: The heat flow of the Earth twin in the interior model (a mid draw of the rheology), the reference of the outgassing flux; it
@@ -140,7 +140,7 @@ def carbonate_pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_of
     """
     The CO2 pressure at which silicate weathering takes as much as the volcanoes give (the stable root).
 
-    The weathering rate is `rho f_land (p / p_mod)^alpha exp((Ts - Ts_mod) / T_e)` (Lehmer et al. 2020 Eq. 4) and the outgassing
+    The weathering rate is `rho f_land (p / p_mod)^alpha exp((Ts - Ts_mod) / T_e)` ([R2628: Eq. 4]) and the outgassing
     `F_mod (q / q_E)^m`; both scale with the area, so it cancels, and the Earth is the steady state at `p_mod` and `Ts_mod` by
     construction. The surface temperature `Ts(p)` rises with the pressure, so the weathering rate does too and the root is unique.
 

@@ -48,11 +48,11 @@ r_BH(place) = IMF_SHARE x RETAIN x sum over populations p [ w_p(place) x C_p x F
 
 | Term | Meaning | Value | Source state |
 |---|---|---|---|
-| IMF_SHARE | stars born with 8 to 150 Msun, per star born, from the generator's own IMF (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`: the Chabrier 2003 function of `galaxy/stellar-mass-function.md`) | 0.7127% (0.6372% on the Kroupa function before GEN.927) | derived (own computation; reproduces GEN.560's 0.637%) |
+| IMF_SHARE | stars born with 8 to 150 Msun, per star born, from the generator's own IMF (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`: the [R0705] function of `galaxy/stellar-mass-function.md`) | 0.7127% (0.6372% on the Kroupa function before GEN.927) | derived (own computation; reproduces GEN.560's 0.637%) |
 | w_p | the population's share of the stars at the place: `galaxy.density.population_densities` (young, intermediate, old, bulge, halo, cluster, satellite and its two young windows, nuclear) | from the galaxy | existing code |
 | F_p | the mean of f(Z) over population p's [Fe/H] distribution at the place (section 3) | 0 to 45% | verified range, see 2 |
 | C_p | share of the population's window in which its remnants have formed: 1 for every window that starts after 100 Myr (an 8 Msun star lives 45 Myr), **0.79** for the young window (0 to 0.1 Gyr, uniform birth, IMF-weighted lifetimes from `stellar_evolution.main_sequence_lifetime_gy` times `remnant_age_fraction`); also divide by (1 - IMF_SHARE) = 1.0064 because the generator's star counts leave out stars already collapsed (`evolve_star` returns None for them) | 0.79 young, 1.0064 others | derived (own computation) |
-| RETAIN | black holes that stay bound: 1 - `BLACK_HOLE_UNBOUND_FRACTION` | 0.98 | verified through `compact-remnant-regions.md` (Sweeney et al., arXiv 2210.04241, "2% of black holes leave"); the primary paper was not opened here |
+| RETAIN | black holes that stay bound: 1 - `BLACK_HOLE_UNBOUND_FRACTION` | 0.98 | verified through `compact-remnant-regions.md` (Sweeney et al., [R4278], "2% of black holes leave"); the primary paper was not opened here |
 
 Why sum over populations: the three disk windows (young, intermediate, old) are the partition of the disk's star formation history (`disk_history`), so the stars born in all windows are the stars that made the remnants at the place; the bulge, halo, cluster and satellite windows are the old ones. Their birth [Fe/H] distributions are the GEN.158/159 ones (`physics/metallicity.py`, `tuning.METALLICITY_BY_POPULATION`, `METALLICITY_HALO`, and the cluster and satellite peaks of `ComponentField.fe_h_peaks`).
 
@@ -62,13 +62,13 @@ The existing GEN.132 place factors stay (vertical thickening `REMNANT_SCALE_HEIG
 
 Sourced anchors (all from GEN.560, section 3 and the table in 4; the share is of core-collapse events, stars of 8 to 150 Msun, Salpeter IMF):
 
-| [Fe/H] | O'Connor and Ott 2011 | Ebinger et al. 2020 (two calibrations) | Sukhbold et al. 2016 (four calibrations) | Widest range |
+| [Fe/H] | [R3327] | [R1208] (two calibrations) | [R4251] (four calibrations) | Widest range |
 |---|---|---|---|---|
 | solar (0) | 0 to 7% | 5 to 8% and 16 to 21% | 26 to 45% | **0 to 45%** |
 | 1e-4 solar or zero (below the generator's -3.5 clamp) | ~15% | 18 to 20% and 27 to 32% | none (solar only) | **15 to 32%** |
 | above solar | none | none | none | none |
 
-Observations (Neustadt 2021: 0.16, 90% interval 0.04 to 0.39; Byrne and Fraser 2022: upper limits 0.23 to 0.61) exclude nothing in these windows except the last few points of 45% against Neustadt's 90% upper edge.
+Observations ([R3274]: 0.16, 90% interval 0.04 to 0.39; [R0621]: upper limits 0.23 to 0.61) exclude nothing in these windows except the last few points of 45% against Neustadt's 90% upper edge.
 
 Design (Card 1 and Card 5 decided; the draws below are the uncapped ranges, the Decisions block shows them with the cap applied): two numbers per galaxy, drawn once from the galaxy seed (the precedent is `ejecta_field.unbound_fraction`, a seeded draw per galaxy; the galaxy laws table of GEN.368 is where they are listed), each uniform over its widest verified range because only the range is known:
 
@@ -99,7 +99,7 @@ Expected values at the Sun with these laws (own computation, `population_densiti
 
 ### Card 1: the range and the draw
 - **Widest range, two ordered draws per galaxy (recommended).** f_sun uniform over 0 to 45%, f_low over 15 to 32%, kept in order. Consequence: follows the source rule as the coordinator stated it (widest verified range), nothing hidden; galaxies range from 0.6 to 5.6 times today's black hole count, the mean is 3.1 times (4.5e8 in the default galaxy).
-- **Newest only (Ebinger 2020).** f_sun uniform over 5 to 21%, f_low over 18 to 32%, same ordering. Consequence: reads "when two verified sources are in doubt, the newest wins" and drops Sukhbold and O'Connor and Ott; the mean falls to 2.1 times today's (3.1e8 in the default galaxy) and the range to 1.2 to 3.1 times.
+- **Newest only [R1208].** f_sun uniform over 5 to 21%, f_low over 18 to 32%, same ordering. Consequence: reads "when two verified sources are in doubt, the newest wins" and drops Sukhbold and O'Connor and Ott; the mean falls to 2.1 times today's (3.1e8 in the default galaxy) and the range to 1.2 to 3.1 times.
 - **One fixed middle curve (22.5% and 29%).** Consequence: simplest to test and reproduce, but it is a point where the sources give a range, against the standing rule.
 
 ### Card 2: the shape between the anchors
@@ -162,7 +162,7 @@ The verified masses (GEN.560 section 4, point 3): IMF-weighted mean 7.7 to 9.2 M
 - **Change it in 8.1.** Consequence: one rescatter for density and masses together, but 8.4 then changes it again; a mean near 8 Msun puts almost every hole below the 14 Msun cut (the scatter keeps only a thin tail and the sector fill draws the rest), so the cut, `share_above`, `place_terms` and the progress estimates all move with it; the form of the new law is a further card.
 
 ### Card 7: the mass islands
-The islands (which progenitor masses fail: from about 20 Msun, mostly failure above 35 Msun at low Z, per Sukhbold, O'Connor and Ott, Maltsev et al. 2025) change the progenitor and the mass of each hole, not the share f: the density above already integrates over the whole IMF. They matter where the generator reads a progenitor: the direct-collapse flag (`DIRECT_COLLAPSE_PROGENITOR_SOL` = 40, which GEN.560 says is not verified at solar Z where 23 to 25 Msun also fail) and `_remnant` (`multistar.py:466`, progenitors 20 to 100).
+The islands (which progenitor masses fail: from about 20 Msun, mostly failure above 35 Msun at low Z, per [R2845]) change the progenitor and the mass of each hole, not the share f: the density above already integrates over the whole IMF. They matter where the generator reads a progenitor: the direct-collapse flag (`DIRECT_COLLAPSE_PROGENITOR_SOL` = 40, which GEN.560 says is not verified at solar Z where 23 to 25 Msun also fail) and `_remnant` (`multistar.py:466`, progenitors 20 to 100).
 - **Not in 8.1, record them for GEN.554 (recommended).** Consequence: no new rules in 8.1; GEN.554 gets the islands as its mass-law input, with a test that the island windows integrated over the IMF land inside this note's f range.
 - **Add a progenitor window in 8.1.** Consequence: black hole progenitors are drawn from the island windows (carbon-oxygen core rule of Maltsev et al.: 6.6 to 7.2 and above 13 Msun at solar, shifting down with Z), 3 more functions touched in `multistar.py` and a metallicity input into the companion draw; a larger change than the density, with only abstract-level support for the windows' IMF mapping.
 
@@ -200,4 +200,4 @@ The islands (which progenitor masses fail: from about 20 Msun, mostly failure ab
 | budget cap f_cap = 1 - NS_formed / IMF_SHARE (12.1% to 24.7%) | derived; it cuts the verified ranges (Boss, card 5); GEN.554 revisits it when the neutron star rate follows the mass function |
 | generic cluster and satellite peaks in the scatter's array path | stand-in (the sector profile uses the exact component peaks) |
 
-Not verified here (carry to GEN.563 or GEN.554): the primary paper behind the 2% retention (Sweeney et al.); Luo 2025, Zapartas 2021, Patton and Sukhbold 2020 are abstract-level in GEN.560; Maltsev 2025 has no IMF map in the text read; whether Sukhbold's four calibrations and Ebinger's two are independent enough to treat their ranges as additive evidence (they are not independent physics, GEN.560 section 3).
+Not verified here (carry to GEN.563 or GEN.554): the primary paper behind the 2% retention (Sweeney et al.); [R2773, R3453, R4866] are abstract-level in GEN.560; [R2845] has no IMF map in the text read; whether Sukhbold's four calibrations and Ebinger's two are independent enough to treat their ranges as additive evidence (they are not independent physics, GEN.560 section 3).

@@ -13,7 +13,7 @@ giant's one-bar temperature (`giant_draw.own_flux_w_m2`) is made from the same l
 
 **The helium rain.** A giant cold enough at one bar lets helium rain out of its molecular envelope (`giant_interior.helium_depletion`):
 the helium sinks to the helium-enriched zone, the helium shell and the dilute core below, and the energy it gives up falls as heat
-(Stevenson and Salpeter 1977; Fortney and Hubbard 2003; Mankovich and Fortney 2020, who find it a third or so of Saturn's excess).
+([R1427, R2852, R4220], who find it a third or so of Saturn's excess).
 The interior stores where the helium went (`interior_layers`: every layer's mass, its helium and the radii of its top and bottom;
 `helium_depletion`; `has_helium_shell`), and this module reads them back:
 

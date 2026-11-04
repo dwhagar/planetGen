@@ -229,7 +229,7 @@
    "option": "Magma-ocean-stage fO2 (PARAM)",
    "gate_text": "ROCKY, MOON, ROGUE rocky; any M (the clamp holds -2 below 0.01)",
    "weight_text": "dIW ~ N(mu, sigma); mu = clamp(-2+1.25(log10 M+2), -2, 0.5) + clamp(log10 M, 0, 0.7324); sigma = 0.5 + 0.4 clamp(log10 M+1, 0, 1) (GEN.482b); floor on sigma 0.22 = 4 log10(1+0.005/0.037)",
-   "source": "Hirschmann 2022 (GCA 328, section 6.3 and Table 1): Fe3+/FeT of the ocean surface 0.034 to 0.103 and the dIW it gives; Deng 2020: the ferric share of the melt against the pressure at the base of the ocean (factor of two from 55 to 25 GPa) and the base pressures; Sossi 2020 0.037 Fe3+/sumFe (READ, COMPUTED); the form, the pressure scaling and the width are DESIGN brackets of docs/design/composition/magma-ocean-redox-model.md",
+   "source": "[R1951] (GCA 328, section 6.3 and Table 1): Fe3+/FeT of the ocean surface 0.034 to 0.103 and the dIW it gives; [R1075]: the ferric share of the melt against the pressure at the base of the ocean (factor of two from 55 to 25 GPa) and the base pressures; [R4154] 0.037 Fe3+/sumFe (READ, COMPUTED); the form, the pressure scaling and the width are DESIGN brackets of docs/design/composition/magma-ocean-redox-model.md",
    "status": "DERIVED",
    "research": [],
    "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005; GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): the mean is inside the first-hand ranges at the Moon, Mars and Earth, the width and the clamp above 1 Me are not sourced Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses with no redox row at all. GEN.1005 (2026-10-30): the mean and width are the model of physics.magma_ocean_redox in place of the line through three Solar System bodies, which are now tests of the model.",
@@ -239,7 +239,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "the surface redox of the magma ocean from physics.magma_ocean_redox (stand-in rows MR1 to MR7): the base pressure is a power of the mass, held at the 140 GPa where the first-principles calculations end (5.4 Earth masses; no source above), the ferric-share power (0.5 to 1.0) and the offset are read from two papers whose equations were not available when it was built, there is no temperature or composition term, and the graphite-flotation alternative of Gaillard 2022 is not drawn (GEN.482, GEN.1005)",
+   "limit": "the surface redox of the magma ocean from physics.magma_ocean_redox (stand-in rows MR1 to MR7): the base pressure is a power of the mass, held at the 140 GPa where the first-principles calculations end (5.4 Earth masses; no source above), the ferric-share power (0.5 to 1.0) and the offset are read from two papers whose equations were not available when it was built, there is no temperature or composition term, and the graphite-flotation alternative of [R1488] is not drawn (GEN.482, GEN.1005)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -260,7 +260,7 @@
    "option": "Later upper mantle (PARAM)",
    "gate_text": "ROCKY with air; tectonic or long-lived",
    "weight_text": "dIW ~ N(3.5+2 clamp(log10 M, -3, 0), 1.0), clip [-6,6]; the draw takes max(a2, a1) (GEN.482b)",
-   "source": "the later upper mantle of the rocky bodies measured: dIW +3.5 for the one with plate tectonics (Deng 2020 with its refs 37, 6, 7; Hirschmann 2022 section 4: above IW+3), IW to IW+1 for the primitive mantle of the next lighter one and IW to IW-2 for the lightest (Hirschmann 2022 introduction and section 4; Deng 2020 refs 8 to 10); the increment, its growth with mass and the width 1.0 are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-model.md)",
+   "source": "the later upper mantle of the rocky bodies measured: dIW +3.5 for the one with plate tectonics ([R1075] with its refs 37, 6, 7; [R1951] section 4: above IW+3), IW to IW+1 for the primitive mantle of the next lighter one and IW to IW-2 for the lightest ([R1951] introduction and section 4; [R1075] refs 8 to 10); the increment, its growth with mass and the width 1.0 are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-model.md)",
    "status": "DERIVED",
    "research": [],
    "notes": "far above meteoritic building blocks (part 05 s3.2); GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): inside one standard deviation of the three first-hand anchors, no source above 1 Me GEN.1005 (2026-10-30): the mean is the magma-ocean model's surface value plus the increment, in place of the straight line through three Solar System bodies; GEN.482b takes the larger of a2 and a1 in `draw_redox`.",
@@ -300,7 +300,7 @@
    "option": "Building-block redox (PARAM)",
    "gate_text": "AST, C, D, small bodies",
    "weight_text": "dIW ~ U[-1.4, 0]",
-   "source": "22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians (Doyle 2020 Table 1, Doyle 2023 Table 4, via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 well-constrained stars (COMPUTED) and lies inside the 0 to 0.38 the detection model accepts (GEN.513, docs/design/composition/wd-redox-tuning.md); the meteoritic bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
+   "source": "22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians ([R1152: Table 1], [R1153: Table 4], via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 well-constrained stars (COMPUTED) and lies inside the 0 to 0.38 the detection model accepts (GEN.513, docs/design/composition/wd-redox-tuning.md); the meteoritic bracket -1.4 to 0 ([R3944: Table 2], READ) is kept as a check",
    "status": "DESIGN",
    "research": [
     "R3"
@@ -333,7 +333,7 @@
    "option": "White-dwarf debris (PARAM)",
    "gate_text": "host WD, rocky",
    "weight_text": "dIW ~ N(-1, 0.5), bracket [-1.37, -0.6]",
-   "source": "22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 of the reported medians (Doyle 2020, Doyle 2023; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 well-constrained stars and lies inside the 0 to 0.38 the detection model accepts (GEN.513)",
+   "source": "22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 of the reported medians ([R1152, R1153]; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 well-constrained stars and lies inside the 0 to 0.38 the detection model accepts (GEN.513)",
    "status": "DESIGN",
    "research": [
     "R10"
@@ -371,7 +371,7 @@
    "option": "Redox class R (reduced)",
    "gate_text": "ROCKY, any dIW",
    "weight_text": "Phi((0-dIW)/0.5)",
-   "source": "cut 0: Liggins 2022 classes (READ) and part 05 s3.4 crossovers (COMPUTED); width 0.5 DESIGN",
+   "source": "cut 0: [R2686] classes (READ) and part 05 s3.4 crossovers (COMPUTED); width 0.5 DESIGN",
    "status": "DERIVED",
    "research": [],
    "notes": "parent of c1, c2",
@@ -450,7 +450,7 @@
    "option": "Dry delivery (H2O about 0, CO2 0.018 to 0.1 wt%)",
    "gate_text": "ROCKY, MOON, ROGUE; x known",
    "weight_text": "1 - P(not dry); x = a_form/a_snow; a_snow = sqrt(L_form/Lsun) (278.6/T_snow)^2 AU, T_snow=170 K gives 2.69 AU; P(not dry) a logit in ln x, log10 M and a hinge at x = 0.6 (the three nested events of `ngpps_formation_water.json`)",
-   "source": "classes and wt%: Ortenzi 2020 Table 1 (READ), except the dry CO2: the delivered 0.6 wt% is replaced by a log bracket from the stored 0.018 to the High case's 0.1 wt%, tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813, `volatile-inventory-against-planet-totals.md`); the weight is weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); T_snow bracket 161 to 213 K COMPUTED from the water-ice p_sat fit (part 05 s12.1) at nebula partial pressure 1e-9 to 1e-5 bar (that pressure unsourced)",
+   "source": "classes and wt%: [R3378: Table 1] (READ), except the dry CO2: the delivered 0.6 wt% is replaced by a log bracket from the stored 0.018 to the High case's 0.1 wt%, tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813, `volatile-inventory-against-planet-totals.md`); the weight is weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); T_snow bracket 161 to 213 K COMPUTED from the water-ice p_sat fit (part 05 s12.1) at nebula partial pressure 1e-9 to 1e-5 bar (that pressure unsourced)",
    "status": "DERIVED",
    "research": [],
    "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 (centre 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).",
@@ -460,7 +460,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
+   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent [R3801] to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -491,7 +491,7 @@
    "option": "Low delivery (H2O 0.05, CO2 0.01 wt%)",
    "gate_text": "same",
    "weight_text": "P(not dry) - P(high or rich)",
-   "source": "Ortenzi 2020 Table 1 (READ); weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN)",
+   "source": "[R3378: Table 1] (READ); weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN)",
    "status": "DERIVED",
    "research": [],
    "notes": "stored in mantle 0.015 and 0.0022 wt%",
@@ -501,7 +501,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
+   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent [R3801] to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -532,7 +532,7 @@
    "option": "High delivery (H2O 0.5, CO2 0.1 wt%)",
    "gate_text": "same",
    "weight_text": "P(high or rich) - P(rich) + (1 - c) P(rich)",
-   "source": "Ortenzi 2020 Table 1 (READ); weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); c is the plateau of b4",
+   "source": "[R3378: Table 1] (READ); weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); c is the plateau of b4",
    "status": "DERIVED",
    "research": [],
    "notes": "stored 0.045 and 0.005 wt%; D_H2O 0.01",
@@ -542,7 +542,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
+   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent [R3801] to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -573,7 +573,7 @@
    "option": "Water-rich, ocean world (>=10 wt% water)",
    "gate_text": "ROCKY, S, V, or sub-Neptune (I, R[P])",
    "weight_text": "c P(rich), c in [0,1], 1 as fitted",
-   "source": "hycean needs >=10 wt% water (Madhusudhan 2021 READ); refractories >50 wt% of solids caps water+ices at 50 wt% (Thiabaud 2014 READ); the water fraction f >= 0.1 share is weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); c bracketed 0 to 1 because published shares run from 3 percent (Rogers 2025) to 87 percent",
+   "source": "hycean needs >=10 wt% water ([R2804] READ); refractories >50 wt% of solids caps water+ices at 50 wt% ([R4335] READ); the water fraction f >= 0.1 share is weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); c bracketed 0 to 1 because published shares run from 3 percent [R3801] to 87 percent",
    "status": "DERIVED",
    "research": [],
    "notes": "feeds e3, e4",
@@ -583,7 +583,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
+   "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent [R3801] to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -765,7 +765,7 @@
    "option": "I: H2O-CO2 (CO, N2)",
    "gate_text": "L2, parent=a6",
    "weight_text": "1",
-   "source": "Schaefer 2012 Table 3: H2O 49 to 80 %, CO2 12 to 42 %, 1000 K, 100 bar and 2000 K (part 05 s3.4, READ)",
+   "source": "[R3945: Table 3]: H2O 49 to 80 %, CO2 12 to 42 %, 1000 K, 100 bar and 2000 K (part 05 s3.4, READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "crust gives HF, HCl (m5, m6)",
@@ -795,7 +795,7 @@
    "option": "O: H2O-CO2-SO2",
    "gate_text": "L2, parent=a7",
    "weight_text": "1",
-   "source": "BSE 62 % H2O, 20 % SO2, 12 % CO2 (Schaefer 2012, READ); dIW+4 at 1200 K 1 bar: H2O .78 CO2 .16 SO2 .021 (COMPUTED)",
+   "source": "BSE 62 % H2O, 20 % SO2, 12 % CO2 ([R3945], READ); dIW+4 at 1200 K 1 bar: H2O .78 CO2 .16 SO2 .021 (COMPUTED)",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -826,7 +826,7 @@
    "option": "After cooling: H2O condensed, CO2-N2 residual",
    "gate_text": "after c1 to c4; Ts<647 K (RECALLED T_crit of water) and ocean mass",
    "weight_text": "1",
-   "source": "Sossi 2020: CO-rich gas then CO2-N2 near 97:3 once H2O condenses; about 99 % of H2O and 35 % of CO2 dissolve in the melt, N2 about 0 % (part 08 s2, READ)",
+   "source": "[R4154]: CO-rich gas then CO2-N2 near 97:3 once H2O condenses; about 99 % of H2O and 35 % of CO2 dissolve in the melt, N2 about 0 % (part 08 s2, READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "Ar_40 rule: n = f_degas f_Ar K40 (exp(lam t)-1), f_degas LU[0.05,0.7] (part 05 s3.6; DESIGN R3)",
@@ -894,7 +894,7 @@
    "option": "Airless",
    "gate_text": "ROCKY, MOON, AST",
    "weight_text": "P_K(r>30)",
-   "source": "Berta-Thompson, Wachiraphan and Murray 2025 (arXiv:2507.02136): the logistic shoreline P(atmosphere) = 1/(1 + 10^(delta/w)), log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex, 917 labelled planets (READ); the Meni-Gallardo and Palle 2025 line, slope 5.77, agrees (READ)",
+   "source": "[R0364]: the logistic shoreline P(atmosphere) = 1/(1 + 10^(delta/w)), log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex, 917 labelled planets (READ); the [R3037] line, slope 5.77, agrees (READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "fallback row Corrected 2026-10-18 (tunable-gaps 3.3): the K window LU[3.0e-4, 6.6e-4] with slope 4 rests on 13 Solar System bodies and is contradicted by 55 Cnc e and TOI-561 b; the two-class probability of an atmosphere now follows the published logistic, and the K window is no longer used.",
@@ -924,7 +924,7 @@
    "option": "Trace or exosphere (outgassed only)",
    "gate_text": "same",
    "weight_text": "P_K(2.5<r<=30)",
-   "source": "share of P(atmosphere) (Berta-Thompson 2025, READ) by distance below the shoreline; the edges -0.3, -0.8, -1.4 dex and the width 0.247 are DESIGN",
+   "source": "share of P(atmosphere) ([R0364], READ) by distance below the shoreline; the edges -0.3, -0.8, -1.4 dex and the width 0.247 are DESIGN",
    "status": "DERIVED",
    "research": [],
    "notes": "The five-way split of the atmosphere cases is constrained by no measurement (tunable-gaps 3.3); the four windows add up to 1, so together they carry P(atmosphere).",
@@ -1113,8 +1113,8 @@
    "kind": "option",
    "option": "Bare rock (envelope stripped)",
    "gate_text": "S, V, I, T, R[P]; M 1 to 30; not d1-only",
-   "weight_text": "(1-p[b4]) (share lost); share lost = 1 - envelope left / f_env0 M, the envelope left from the hydro-based loss rate of Kubyshkina et al. 2018 integrated over the star's XUV history from the onset age (GEN.822); f_env0=c[0.05,0.2]",
-   "source": "hydro-based rate: Kubyshkina et al. 2018 (READ); XUV history: Johnstone-type decay of `activity` (DESIGN); onset age and f_env0 tuned to the radius valley (GEN.509, GEN.822)",
+   "weight_text": "(1-p[b4]) (share lost); share lost = 1 - envelope left / f_env0 M, the envelope left from the hydro-based loss rate of [R2512] integrated over the star's XUV history from the onset age (GEN.822); f_env0=c[0.05,0.2]",
+   "source": "hydro-based rate: [R2512] (READ); XUV history: Johnstone-type decay of `activity` (DESIGN); onset age and f_env0 tuned to the radius valley (GEN.509, GEN.822)",
    "status": "DERIVED",
    "research": [],
    "notes": "envelope fraction 0.5 to 10 % of mass",
@@ -1123,7 +1123,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of Kubyshkina et al. 2018 over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)",
+   "limit": "f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of [R2512] over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1195,7 +1195,7 @@
     "READ"
    ],
    "state": "partly verified",
-   "limit": "the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)",
+   "limit": "the gate is [R2804] (READ); the share is the b4 stand-in (GEN.510)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1218,7 +1218,7 @@
    "option": "Hycean (H2 <=0.1 wt%, water >=10 wt%, bottom 300 to 400 K)",
    "gate_text": "same",
    "weight_text": "p[b4] eta",
-   "source": "Madhusudhan 2021 (READ)",
+   "source": "[R2804] (READ)",
    "status": "DESIGN",
    "research": [
     "R1"
@@ -1228,7 +1228,7 @@
     "READ"
    ],
    "state": "partly verified",
-   "limit": "the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)",
+   "limit": "the gate is [R2804] (READ); the share is the b4 stand-in (GEN.510)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1297,7 +1297,7 @@
    "option": "L2 carbon carrier CH4 vs CO2/CO",
    "gate_text": "parent=e2",
    "weight_text": "CH4: Phi((500-Teq)/100)",
-   "source": "CH4 to CO near 500 K (400 to 600) for planets, Zahnle and Marley 2014 (READ); width = quoted half-range",
+   "source": "CH4 to CO near 500 K (400 to 600) for planets, [R4863] (READ); width = quoted half-range",
    "status": "DERIVED",
    "research": [],
    "notes": "N as N2; NH3 not seen (K2-18b)",
@@ -1326,7 +1326,7 @@
    "option": "Cold giant, ice-giant envelope (H2O, NH3, H2S cloud-depleted; CH4 5e-4 m)",
    "gate_text": "GIANT; Teq<200 K",
    "weight_text": "Phi-window (s 100 K)",
-   "source": "boundaries 200, 700, 1300 from part 05 s7.4 (COMPUTED/design) and Burrows and Sharp 1999: NH3 clouds about 200 K, water cloud about 350 K, N2 to NH3 about 700 K (READ); width DESIGN",
+   "source": "boundaries 200, 700, 1300 from part 05 s7.4 (COMPUTED/design) and [R0608]: NH3 clouds about 200 K, water cloud about 350 K, N2 to NH3 about 700 K (READ); width DESIGN",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -1440,10 +1440,10 @@
    "option": "Metallicity m (PARAM)",
    "gate_text": "GIANT",
    "weight_text": "log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3), range [-0.5, 2.0]",
-   "source": "147 warm giants: Zp/Z* = 2.6/M + 3.3 (M in Jupiter masses; a +/- 0.3, b +/- 0.5), 0.03 to 12 Jupiter masses (Chachan 2025, arXiv 2509.20428; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to 0.27 (Thorngren 2016, N=47; READ, COMPUTED)",
+   "source": "147 warm giants: Zp/Z* = 2.6/M + 3.3 (M in Jupiter masses; a +/- 0.3, b +/- 0.5), 0.03 to 12 Jupiter masses ([R0710]; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to 0.27 ([R4352], N=47; READ, COMPUTED)",
    "status": "DERIVED",
    "research": [],
-   "notes": "Chachan 2025 gives lower Z for sub-Saturns Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 (Thorngren 2016) is 1.6 times the 147-giant fit at one Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex.",
+   "notes": "[R0710] gives lower Z for sub-Saturns Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 [R4352] is 1.6 times the 147-giant fit at one Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex.",
    "labels": [
     "READ",
     "COMPUTED"
@@ -1572,10 +1572,10 @@
    "option": "Carbon carrier CH4 vs CO",
    "gate_text": "GIANT, BD",
    "weight_text": "CH4: Phi((T_trans-T)/100); T_trans 500 (planets), 1100 (BD)",
-   "source": "Zahnle and Marley 2014 (READ); generator should evaluate the quench formula t_q with its own g, m, Kzz instead",
+   "source": "[R4863] (READ); generator should evaluate the quench formula t_q with its own g, m, Kzz instead",
    "status": "DERIVED",
    "research": [],
-   "notes": "HCN, C2H2 appear at C/O>=1 (Madhusudhan 2012 READ)",
+   "notes": "HCN, C2H2 appear at C/O>=1 ([R2801, R2803] READ)",
    "labels": [
     "READ"
    ],
@@ -1624,7 +1624,7 @@
    "option": "L dwarf: H2O, CO (5e-4 m), Na, K, FeH, CrH; Fe and silicate clouds",
    "gate_text": "BD; 1300 to 2200 K",
    "weight_text": "Phi-window",
-   "source": "part 05 s7.4 (COMPUTED); Burrows and Sharp 1999 (READ)",
+   "source": "part 05 s7.4 (COMPUTED); [R0608] (READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -1676,7 +1676,7 @@
    "option": "Late T, NH3-rich (T8 to Y0 at 460 to 686 K), water cloud near 350 K deeper",
    "gate_text": "BD; 460 to 686 K",
    "weight_text": "Phi-window",
-   "source": "the edges are the type-temperature map itself: T8 686 K and Y0 460 K, scatter 79 K (Kirkpatrick et al. 2021 Table 13, 525 dwarfs within 20 pc; READ); 500 to 700 K is T8 to T9, not a type of its own (GEN.494)",
+   "source": "the edges are the type-temperature map itself: T8 686 K and Y0 460 K, scatter 79 K ([R2374: Table 13], 525 dwarfs within 20 pc; READ); 500 to 700 K is T8 to T9, not a type of its own (GEN.494)",
    "status": "DERIVED",
    "research": [
     "R15"
@@ -1686,7 +1686,7 @@
     "READ"
    ],
    "state": "partly verified",
-   "limit": "late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values (Kirkpatrick 2021 Table 13, GEN.494)",
+   "limit": "late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values ([R2374: Table 13], GEN.494)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1726,7 +1726,7 @@
    "option": "Carbon carrier CH4 vs CO",
    "gate_text": "BD",
    "weight_text": "CH4: Phi((1100-Teff)/100)",
-   "source": "Zahnle and Marley 2014 1100+-100 K (READ)",
+   "source": "[R4863] 1100+-100 K (READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -1750,7 +1750,7 @@
    "option": "Warm-like, quench-enhanced CH4, NH3, HCN",
    "gate_text": "GIANT zone h; Tday<1500 K",
    "weight_text": "Phi-window (s 100 K)",
-   "source": "part 05 s8 recipe; Moses 2011 (READ)",
+   "source": "part 05 s8 recipe; [R3177] (READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -1902,7 +1902,7 @@
    "option": "C/O>=1 branch (HCN, C2H2; TiO, VO depleted)",
    "gate_text": "all h",
    "weight_text": "p[f7 bins >=1.0]",
-   "source": "Madhusudhan 2012 (READ)",
+   "source": "[R2801, R2803] (READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -1931,7 +1931,7 @@
    "option": "Type I: Na, O2, O, Fe",
    "gate_text": "ROCKY zone h (A, B, S, C); Tp<2033 K (s 60)",
    "weight_text": "Phi-window",
-   "source": "Miguel 2011 text boundaries (READ); s covers the caption list, which differs by 2 to 155 K",
+   "source": "[R3059] text boundaries (READ); s covers the caption list, which differs by 2 to 155 K",
    "status": "SOURCED",
    "research": [],
    "notes": "prior if Tp undrawn: 189 of 193 Kepler candidates (0.979)",
@@ -2086,7 +2086,7 @@
    "research": [
     "R7"
    ],
-   "notes": "P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 (Kite 2016, 1400 to 2800 K, READ)",
+   "notes": "P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 ([R2380], 1400 to 2800 K, READ)",
    "labels": [
     "READ",
     "COMPUTED"
@@ -2128,7 +2128,7 @@
    "option": "Venus-like dense CO2-N2 (97:3), SO2 trace",
    "gate_text": "N, V, A, S[with air]; S_eff above the runaway limit (1.04 to 1.11 for a Sun-like star); dIW>=1; water lost",
    "weight_text": "c[0.1,1]",
-   "source": "CO2-N2 ratio: Sossi 2020 (part 08 s2, READ); runaway limit Kopparapu 2013/2014 ([R] in project doc); prior DESIGN",
+   "source": "CO2-N2 ratio: [R4154] (part 08 s2, READ); runaway limit [R2446]/2014 ([R] in project doc); prior DESIGN",
    "status": "DESIGN",
    "research": [
     "R8"
@@ -2139,7 +2139,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)",
+   "limit": "the runaway gate is [R2446] (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -2209,7 +2209,7 @@
    "option": "Titan-like N2-CH4 (N2 0.5 to 2 bar)",
    "gate_text": "Y[P], MOON; 57<=Ts<=125 K (s 5), r<0.7, S<=0.02, R 1500 to 4000 km",
    "weight_text": "c[0.1,1]",
-   "source": "T window: N2 ice p_sat 30.6 to 62.2 K for 1e-7 to 0.1 bar (part 06 s2.4, 2ND-HAND); TEST Titan CH4 1.5 to 5.7 % (Niemann 2010, READ)",
+   "source": "T window: N2 ice p_sat 30.6 to 62.2 K for 1e-7 to 0.1 bar (part 06 s2.4, 2ND-HAND); TEST Titan CH4 1.5 to 5.7 % ([R3289], READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it.",
@@ -2253,7 +2253,7 @@
    "option": "Pluto/Triton-like frost equilibrium: N2 >99 %, CH4 0.3 %, CO 0.05 %",
    "gate_text": "D, C, U[P]; 30<=Ts<=67 K (s 5), r<1",
    "weight_text": "c[0.1,1]",
-   "source": "p_i = chi_i p_sat,i(Ts) (Raoult); TEST values (Mousis and Anderson 2024 2ND-HAND); N2/CO/CH4 vapour-pressure relations not reached",
+   "source": "p_i = chi_i p_sat,i(Ts) (Raoult); TEST values ([R3186] 2ND-HAND); N2/CO/CH4 vapour-pressure relations not reached",
    "status": "DERIVED",
    "research": [],
    "notes": "CO column vs near-surface ratio differ 8x Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it.",
@@ -2286,7 +2286,7 @@
    "option": "Abiotic O2 world (10 to 100+ bar O2, or CO build-up)",
    "gate_text": "Z[P]; host M dwarf, age>1 Gyr, HZ, 0.3<=M<=5",
    "weight_text": "c[0.05,0.5]",
-   "source": "Luger and Barnes 2015 via Meadows 2018 (2ND-HAND): 240 bar O2 per ocean; Gao 2015 cap 50 % CO2 loss (READ)",
+   "source": "[R2769] via [R3014, R3016] (2ND-HAND): 240 bar O2 per ocean; [R1511] cap 50 % CO2 loss (READ)",
    "status": "DESIGN",
    "research": [
     "R8"
@@ -2494,7 +2494,7 @@
    "option": "CH3OH, NH3, HCN to H2O (PARAM)",
    "gate_text": "all k",
    "weight_text": "LU[0.002, 0.026], LU[0.001, 0.0073], LU[0.0009, 0.0029]",
-   "source": "Willacy 2025 cross-comet ranges (READ)",
+   "source": "[R4704] cross-comet ranges (READ)",
    "status": "SOURCED",
    "research": [],
    "notes": "log-uniform shape DESIGN",
@@ -2535,7 +2535,7 @@
    "option": "Single-comet species: CH4 3.4e-3, C2H6 2.9e-3, H2CO 3.2e-3, H2S 1.1e-2, N2 8.9e-4, O2 3.1e-2, OCS 4.1e-4, SO2 1.3e-3, Ar 5.8e-6, Kr 4.9e-7, Xe 2.4e-7, Ne <5e-8",
    "gate_text": "all k",
    "weight_text": "LN(67P value, 0.6 dex)",
-   "source": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520) (READ, DESIGN width)",
+   "source": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, [R3835]) with a design width of 0.6 dex and stay stand-in values (GEN.520) (READ, DESIGN width)",
    "status": "DERIVED",
    "research": [
     "R9"
@@ -2633,7 +2633,7 @@
    "option": "Rocky body with silicate-vapour exosphere (Na, SiO, Mg, Fe)",
    "gate_text": "host WD or PSR; rocky",
    "weight_text": "Phi((log10 P_eq(Ts) + 6)/0.5), P_eq from i6 formula",
-   "source": "Kite 2016 (READ); threshold 1e-6 bar and width DESIGN",
+   "source": "[R2380] (READ); threshold 1e-6 bar and width DESIGN",
    "status": "DESIGN",
    "research": [
     "R10"
@@ -2709,7 +2709,7 @@
    "option": "Surviving H/He giant",
    "gate_text": "host WD, GIANT",
    "weight_text": "c[0,0.1]",
-   "source": "no more than 1 percent of white dwarfs should host close-in giants (Mustill, Veras and Villaver 2014, three giants, read in the abstract and discussion, and as Veras 2016 quotes it; READ); the bracket 0 to 0.1 holds the wider orbits that survive",
+   "source": "no more than 1 percent of white dwarfs should host close-in giants ([R3224], three giants, read in the abstract and discussion, and as [R4532] quotes it; READ); the bracket 0 to 0.1 holds the wider orbits that survive",
    "status": "DESIGN",
    "research": [
     "R10"
@@ -2743,10 +2743,10 @@
    "option": "O3, O2-supported",
    "gate_text": "O2>=1e-3 PAL (any host)",
    "weight_text": "1",
-   "source": "column LU[192, 279] DU at 100 % PAL, Sun (Kozakis fit via project doc 2ND-HAND; Cooke 2022, READ); 18 DU at 0.1 % PAL",
+   "source": "column LU[192, 279] DU at 100 % PAL, Sun (Kozakis fit via project doc 2ND-HAND; [R0875], READ); 18 DU at 0.1 % PAL",
    "status": "SOURCED",
    "research": [],
-   "notes": "M-dwarf columns larger (Segura 2005)",
+   "notes": "M-dwarf columns larger [R3999]",
    "labels": [
     "READ",
     "2ND-HAND"
@@ -2782,7 +2782,7 @@
    "option": "O3, abiotic without O2",
    "gate_text": "O2<1e-3 PAL; CO2-rich, H2-poor, M or K host",
    "weight_text": "c[0.1,0.6]",
-   "source": "O3 about 10 % of Earth column (Domagal-Goldman 2014, 2ND-HAND); O3>1 ppm (Gao 2015, READ)",
+   "source": "O3 about 10 % of Earth column ([R1137], 2ND-HAND); O3>1 ppm ([R1511], READ)",
    "status": "DESIGN",
    "research": [
     "R11"
@@ -2827,7 +2827,7 @@
    "option": "N2O",
    "gate_text": "HAB with life_chemical, or SEP-driven weakly reducing air",
    "weight_text": "c[0.05,0.5]",
-   "source": "TEST ~400 ppbv (Airapetian 2020 READ); presence unsourced",
+   "source": "TEST ~400 ppbv ([R0052] READ); presence unsourced",
    "status": "DESIGN",
    "research": [
     "R11"
@@ -2865,7 +2865,7 @@
    "option": "PH3",
    "gate_text": "ROCKY with air",
    "weight_text": "c[0,0.05]",
-   "source": "TEST 20 ppb Venus claim (Greaves 2020 READ); lifetime hours (Sousa-Silva 2020, READ)",
+   "source": "TEST 20 ppb Venus claim ([R1672] READ); lifetime hours ([R4163], READ)",
    "status": "DESIGN",
    "research": [
     "R11"
@@ -2903,7 +2903,7 @@
    "option": "HCl",
    "gate_text": "c1 to c4; crust-like inventory",
    "weight_text": "c[0.1,0.5]",
-   "source": "1.4 % at 1000 K 100 bar, crust composition (Schaefer 2012 READ)",
+   "source": "1.4 % at 1000 K 100 bar, crust composition ([R3945] READ)",
    "status": "DESIGN",
    "research": [
     "R11"
@@ -3111,7 +3111,7 @@
    "option": "NO2, CH3Cl",
    "gate_text": "HAB with life, or lightning",
    "weight_text": "c[0,0.3]",
-   "source": "NOT REACHED (Harman 2018)",
+   "source": "NOT REACHED [R1813]",
    "status": "DESIGN",
    "research": [
     "R11"
@@ -3149,7 +3149,7 @@
    "option": "Oxide, silicate, iron clouds: Al-Ti oxides 1850-2000 K; Fe 1690-1840; forsterite 1597-1698; enstatite 1513-1597; Cr 1416-1521; MnS 1271-1343",
    "gate_text": "GIANT, BD, i-types; profile crosses window",
    "weight_text": "1",
-   "source": "T_cond fits Visscher 2010 (READ), part 06 s2.6 (COMPUTED)",
+   "source": "T_cond fits [R4561] (READ), part 06 s2.6 (COMPUTED)",
    "status": "DERIVED",
    "research": [],
    "notes": "10^4/T_cond = 5.44-0.48 logP-0.48[Fe/H] (Fe)",
@@ -3370,7 +3370,7 @@
    "option": "Silicate-dominated aerosol",
    "gate_text": "GIANT, BD, hot rocky",
    "weight_text": "Phi((Teq-950)/100)",
-   "source": "crossover Teq about 950 K, Gao 2020 (READ); width DESIGN",
+   "source": "crossover Teq about 950 K, [R1513] (READ); width DESIGN",
    "status": "DESIGN",
    "research": [
     "R12"
@@ -3399,7 +3399,7 @@
    "option": "Photochemical haze (tholin, soot)",
    "gate_text": "carbon-bearing air",
    "weight_text": "(1 - w[n6]) * y; yield y = LU[0.01, 1]; monomer 1 to 50 nm, 1.0 g/cm3",
-   "source": "lab rates span 250x (Horst 2018 READ); haze threshold CH4/CO2 0.1 to 0.2 (Arney 2016 READ)",
+   "source": "lab rates span 250x ([R2009] READ); haze threshold CH4/CO2 0.1 to 0.2 ([R0156] READ)",
    "status": "DESIGN",
    "research": [
     "R12"
@@ -3441,7 +3441,7 @@
    "option": "Mineral dust (Mars-type, r_eff 1 to 2 um)",
    "gate_text": "ROCKY with air and surface wind u*>u*_t",
    "weight_text": "1 if u*>u*_t",
-   "source": "threshold from Shao-Lu and Iversen-White formulas (READ, COMPUTED to 1.6x of Kok 2012)",
+   "source": "threshold from Shao-Lu and Iversen-White formulas (READ, COMPUTED to 1.6x of [R2426])",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -3501,10 +3501,10 @@
    "option": "Thorium (and U) scale, thin-disc Sun-like host (PARAM)",
    "gate_text": "host thin disc, FGK; rocky",
    "weight_text": "log10 f_Th ~ N(0.08, 0.058), f relative to BSE",
-   "source": "Botelho 2019: [Th/H] mean +0.080, scatter 0.058 dex, 53 solar twins (READ)",
+   "source": "[R0479]: [Th/H] mean +0.080, scatter 0.058 dex, 53 solar twins (READ)",
    "status": "SOURCED",
    "research": [],
-   "notes": "BSE: U 0.020, Th 0.077, K 280 ppm (McDonough 2020 READ)",
+   "notes": "BSE: U 0.020, Th 0.077, K 280 ppm ([R2987] READ)",
    "labels": [
     "READ"
    ],
@@ -3539,12 +3539,12 @@
    "option": "Other populations (thick disc, halo, young, M host)",
    "gate_text": "not o1",
    "weight_text": "log10 f ~ U[-0.23, +0.40]",
-   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, Botelho 2019) as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
+   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, [R0479]) as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
    "status": "DESIGN",
    "research": [
     "R13"
    ],
-   "notes": "Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest of the intrinsic 0.056 (Botelho 2019) and the catalogue's 0.15 to 0.19.",
+   "notes": "Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest of the intrinsic 0.056 [R0479] and the catalogue's 0.15 to 0.19.",
    "labels": [
     "DATA",
     "COMPUTED"
@@ -3581,7 +3581,7 @@
    "option": "K/U (mass)",
    "gate_text": "ROCKY",
    "weight_text": "LU[8.9e3, 1.4e4]",
-   "source": "crust 8900 to 11800, BSE 1.4e4 (McDonough 2020, Wipperfurth 2020, READ); volatile-depleted bodies lower, NOT REACHED",
+   "source": "crust 8900 to 11800, BSE 1.4e4 ([R2987, R4726], READ); volatile-depleted bodies lower, NOT REACHED",
    "status": "DESIGN",
    "research": [
     "R13"
@@ -3614,7 +3614,7 @@
    "option": "Th/U",
    "gate_text": "ROCKY",
    "weight_text": "U[3.8, 4.5]",
-   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation (galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr (physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
+   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 ([R1447: Table 1], READ), F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation (galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr (physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
    "status": "DESIGN",
    "research": [
     "R13"
@@ -3645,7 +3645,7 @@
    "option": "Heating vs age",
    "gate_text": "ROCKY",
    "weight_text": "h(t)/h(4.5 Gyr) = sum s_i exp(lam_i (4.5 - t)), shares U238 .384, U235 .016, Th .402, K40 .193",
-   "source": "McDonough 2020 shares and half-lives (READ); COMPUTED",
+   "source": "[R2987] shares and half-lives (READ); COMPUTED",
    "status": "DERIVED",
    "research": [],
    "notes": "Al-26 adds 4.2e-7 W/kg for the first 20 Myr (RECALLED Al)",
@@ -3672,7 +3672,7 @@
    "option": "Al-26 early heating present",
    "gate_text": "planetesimals formed within a few Myr",
    "weight_text": "c[0.1,1]",
-   "source": "26Al/27Al 5.25e-5 (McDonough 2020 READ); presence in a given system unsourced; `birth_radioisotopes.py` (GEN.476) gives the share of stars born above the melting ratio: 12 percent (6 to 20)",
+   "source": "26Al/27Al 5.25e-5 ([R2987] READ); presence in a given system unsourced; `birth_radioisotopes.py` (GEN.476) gives the share of stars born above the melting ratio: 12 percent (6 to 20)",
    "status": "DESIGN",
    "research": [
     "R13"
@@ -3784,7 +3784,7 @@
    "source": "M1.5 1.2e-2, M2.5 1.6e-2, M4 2.7e-2 to 3.6e-2, TRAPPIST-1 (M8) 0.60 (same); O3 lifetime 0.8 to 2 h vs 124 s for the Sun",
    "status": "DERIVED",
    "research": [],
-   "notes": "long CH4, N2O, CH3Cl lifetimes (Segura 2005 READ)",
+   "notes": "long CH4, N2O, CH3Cl lifetimes ([R3999] READ)",
    "labels": [],
    "state": "verified",
    "limit": "",
@@ -3813,10 +3813,10 @@
    "option": "M, saturated and flaring (L_X/L_bol 10^-3.14 for early M)",
    "gate_text": "host M; age<tau_sat; tau_sat = LU[0.162, 2] Gyr",
    "weight_text": "1",
-   "source": "saturation 10^-3.14 and time 0.162 Gyr for early M (Jackson 2012 Table 2, READ); 0.6 +/- 0.3 Gyr for 0.2 to 0.3 and 2.3 +/- 1.3 Gyr for 0.1 to 0.2 solar masses (Medina 2022, READ); the width of 0.25 dex on log tau is DESIGN",
+   "source": "saturation 10^-3.14 and time 0.162 Gyr for early M ([R2118: Table 2], READ); 0.6 +/- 0.3 Gyr for 0.2 to 0.3 and 2.3 +/- 1.3 Gyr for 0.1 to 0.2 solar masses ([R3017], READ); the width of 0.25 dex on log tau is DESIGN",
    "status": "DERIVED",
    "research": [],
-   "notes": "proton ozone loss only if no magnetosphere (Segura 2010 READ) Corrected 2026-10-18 (tunable-gaps 3.3): tau_sat depends on stellar mass (0.16 Gyr at 0.5 to 0.6 solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces LU[0.162, 2].",
+   "notes": "proton ozone loss only if no magnetosphere ([R4000] READ) Corrected 2026-10-18 (tunable-gaps 3.3): tau_sat depends on stellar mass (0.16 Gyr at 0.5 to 0.6 solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces LU[0.162, 2].",
    "labels": [
     "READ",
     "DESIGN"
@@ -3848,7 +3848,7 @@
    "option": "Young star (any type), age<0.1 Gyr",
    "gate_text": "age<0.1 Gyr",
    "weight_text": "1",
-   "source": "1-1180 A flux 110x the 4.57 Gyr value at 0.1 Gyr (Ribas 2005, READ)",
+   "source": "1-1180 A flux 110x the 4.57 Gyr value at 0.1 Gyr ([R3753], READ)",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -3878,7 +3878,7 @@
    "option": "Rotation track (L2 on p4, p5, solar mass): slow / median / fast",
    "gate_text": "any",
    "weight_text": "percentile of the initial rotation distribution uniform 0.02 to 0.98",
-   "source": "Johnstone, Bartel and Guedel 2021 (arXiv:2009.07695, READ): the saturation age against mass for the 5th, 50th and 95th percentiles of the 150 Myr rotation distribution of the clusters (Fig. 10, read off by pixel position), which is the observed distribution, so the percentile is uniform; at one solar mass the curves agree with Tu et al. 2015 (arXiv:1504.04546, READ: 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles)",
+   "source": "[R2183] ([R2183], READ): the saturation age against mass for the 5th, 50th and 95th percentiles of the 150 Myr rotation distribution of the clusters (Fig. 10, read off by pixel position), which is the observed distribution, so the percentile is uniform; at one solar mass the curves agree with Tu et al. 2015 ([R4443], READ: 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles)",
    "status": "DERIVED",
    "research": [
     "R14"
@@ -3888,7 +3888,7 @@
     "READ"
    ],
    "state": "partly verified",
-   "limit": "the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493) and is held to 0.1 to 1.2 solar masses; the generator's own star draws its percentile in `activity.generate_activity`, and this row does not yet read that star's value",
+   "limit": "the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range [R2183] offers); the saturation time against mass is read off [R2183: Fig. 10] (`saturation_time.py`, registry RS1, GEN.493) and is held to 0.1 to 1.2 solar masses; the generator's own star draws its percentile in `activity.generate_activity`, and this row does not yet read that star's value",
    "replacement": "",
    "items": [],
    "classes": [

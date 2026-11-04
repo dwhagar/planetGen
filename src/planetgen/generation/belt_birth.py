@@ -13,7 +13,7 @@ after the star's age of collisions:
    and a migrating giant's sweep, and gives the mass it formed with and the mass it has after them.
 3. An outer disc swept by the outermost giant is split into the populations of `physics/scatter.py` (cold, resonant, scattered, hot), recorded on the belt with the sentence of what the
    giant did. The mass is not changed again: `belt_origin` already took the giants' share, and a second subtraction would count the same sweep twice.
-4. The stretch is cut to the orbits the star can hold (`orbit_floor_au`, `orbit_ceiling_au`), and the belt's mass after `age` of collisions (`belt_mass`, Wyatt et al. 2007) must be
+4. The stretch is cut to the orbits the star can hold (`orbit_floor_au`, `orbit_ceiling_au`), and the belt's mass after `age` of collisions (`belt_mass`, [R4785]) must be
    `MIN_PRESENT_MASS_EARTH` or more: a belt of dust the collisions have ground away is not a belt a survey would find.
 
 The draws come from streams of the system's own, so the run's stream moves only for the belts that are kept (their composition).

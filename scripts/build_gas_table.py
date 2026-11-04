@@ -84,7 +84,7 @@ RAYLEIGH_ROWS = {
             "He 2021 dispersion, replacing the older coded form that is 30 percent above the measured value"),
     "CO": ("a", "CO (Allen/Cox form)", 273.15, "Allen/Cox form n - 1 = 32.7e-5 (1 + 8.1e-3/lambda^2) at 273.15 K; no measurement reached"),
     "H2": ("a", "H2, route A: Peck and Huang n-based", 273.15,
-           "Peck and Huang 1977 at 273.15 K; Dalgarno and Williams route gives 0.202 of N2 against 0.217: draw 0.20 to 0.22"),
+           "[R3470] at 273.15 K; Dalgarno and Williams route gives 0.202 of N2 against 0.217: draw 0.20 to 0.22"),
     "He": ("a", "He", None, "Mansfield and Peck n-based; the report formula gives 6.04e-29"),
     "Ne": ("a", "Ne", None, "Bideau-Mehu fit (650 nm extrapolated); Cuthbertson gives 2.263e-28, spread 3.5 percent"),
     "Kr": ("a", "Kr", None, "Bideau-Mehu fit; spread 0.8 percent"),
@@ -92,8 +92,8 @@ RAYLEIGH_ROWS = {
     "N2O": ("a", "N2O", 288.15, "He 2021 Table 1; 18.3e-27 measured at 532 nm"),
     "NH3": ("a", "NH3, Cuthbertson", 273.15, "Cuthbertson fit (0.48 to 0.67 um); the generic formula gives 6.65e-27"),
     "H2O": ("a", "H2O vapour (generic check only)", None, "see the note on the water vapour row"),
-    "H2S": ("b", "H2S", None, "polarizability route, each value about +-8 percent; Bogaard 1978 not reached"),
-    "SO2": ("b", "SO2", None, "polarizability route, each value about +-8 percent; Bogaard 1978 not reached"),
+    "H2S": ("b", "H2S", None, "polarizability route, each value about +-8 percent; [R0443] not reached"),
+    "SO2": ("b", "SO2", None, "polarizability route, each value about +-8 percent; [R0443] not reached"),
     "C2H6": ("b", "C2H6", None, "polarizability route"),
     "C2H4": ("b", "C2H4", None, "polarizability route"),
     "HCN": ("b", "HCN", None, "polarizability route"),
@@ -351,7 +351,7 @@ def _band(label, cm1=None, low=None, high=None, about=False):
 
 
 # The rows of table 2.1: the row label of the research table, then the band centres typed from its "Fundamentals" cell (the check in
-# `build_infrared` fails when a number is not in that cell), and the rank of the gas in the saturated-absorption ordering of Byrne and Goldblatt 2014b
+# `build_infrared` fails when a number is not in that cell), and the rank of the gas in the saturated-absorption ordering of [R0620]
 # where the strength cell gives one. A gas with no band has an empty list and the research's reason in the row.
 INFRARED = {
     "H2O": ("H2O", [_band("nu2 bend", 1594.59), _band("nu1", 3656.65), _band("nu3", 3755.79),
@@ -423,7 +423,7 @@ UV_TABLE_HEADERS = ("| bin nm | O2 |", "| bin nm | NH3 |", "| bin nm | H2CO |")
 UV_LIMITS = {
     "O2": ("band means understate the transmission of thick columns of the structured Schumann-Runge bands (175 to 200 nm): "
            "the research says the generator needs a k-distribution or effective cross section there"),
-    "CH4": ("the visible bins rest on Karkoschka 1994, which the research did not reach; giant-planet methane bands are one to two "
+    "CH4": ("the visible bins rest on [R2258], which the research did not reach; giant-planet methane bands are one to two "
             "decades stronger than these bin means and need a band model (part 03)"),
 }
 """dict: The limits the research names for the bin tables of a species (the other species' cells are DATA, COMPUTED)."""
@@ -581,10 +581,10 @@ def build():
         "sources": [
             "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, "
             "cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
-            "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; "
+            "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); [R3470]; Mansfield and Peck; "
             "Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
-            "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; "
-            "photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) "
+            "[R4066] gas-phase fundamentals at [R0620] as read in part 03 table 2.1; "
+            "photochem_clima_data 0.3.4 ([R1873, R2040, R2258, R3966], [R2302, R2303]) "
             "binned to 35 bins in part 02 section 2.3",
         ],
         "notes": ("Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, "

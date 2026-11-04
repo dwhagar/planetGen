@@ -40,10 +40,10 @@ DEFAULT_ALBEDO_RANGE = (0.12, 0.35)
 """tuple: The Bond albedo range of a class that declares none (the generator's own default)."""
 
 GIANT_BOND_ALBEDO_RANGE = (0.29, 0.503)
-"""tuple: The Bond albedo a generated giant draws from (GEN.1030): the lowest and the highest of the four measured in the Solar System, Neptune 0.29 (Pearl and Conrath 1991), Uranus 0.30 (Pearl et al. 1990), Saturn 0.342 and Jupiter 0.503 (Li et al. 2018). Registry row CC9."""
+"""tuple: The Bond albedo a generated giant draws from (GEN.1030): the lowest and the highest of the four measured in the Solar System, Neptune 0.29 [R3466], Uranus 0.30 [R3466], Saturn 0.342 and Jupiter 0.503 (Li et al. 2018). Registry row CC9."""
 
 GIANT_ALBEDO_RANGE = (0.02, 0.91)
-"""tuple: The open bracket for a giant with no class range (Sudarsky 2000: about 0.02 to 0.8; Cahoy 2010: Bond up to
+"""tuple: The open bracket for a giant with no class range ([R4250]: about 0.02 to 0.8; [R0622]: Bond up to
 0.914), used only to backfill a row (docs/design/composition/atmosphere-colour.md section 8)."""
 
 GREENHOUSE_RANGE = (0.0, 500.0)
@@ -61,11 +61,15 @@ def starlight_w_m2(luminosity_w, distance_km):
     return (luminosity_w / (4.0 * math.pi * distance_km ** 2)) / 1e6
 
 
-def equilibrium_temperature_k(albedo, flux_w_m2):
+def equilibrium_temperature_k(albedo, flux_w_m2, internal_flux_w_m2=0.0):
     """T_e, K: the temperature the starlight gives a body of Bond albedo `albedo` with no air, floored at the cosmic
-    microwave background."""
+    microwave background. `internal_flux_w_m2` is the body's own heat flux through its surface (`Planet.internal_heat_flux_w_m2`), added as a flux
+    to the absorbed starlight (the way `giant_draw.effective_temperature_k` adds a giant's): `T^4 = (1 - A) F / 4 sigma + F_int / sigma`. It is
+    what sets the temperature of a body with no star (GEN.1111, TEST.498: the rogue chain's `rogue_surface.effective_temperature_k`), and under the
+    light of a star it is below a part in a thousand of T^4 for a rocky planet, so a bound planet leaves it at 0."""
     return max(constants.COSMIC_BACKGROUND_TEMPERATURE_K,
-               ((1.0 - albedo) * flux_w_m2 / (4.0 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** 0.25)
+               ((1.0 - albedo) * flux_w_m2 / (4.0 * constants.STEFAN_BOLTZMANN_CONSTANT)
+                + internal_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25)
 
 
 def surface_temperature_k(albedo, greenhouse_factor, flux_w_m2):
