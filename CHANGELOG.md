@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3124] - 2026-11-04
+
+**Headline:** The settings test knows the two test-run cache switches, so it passes on main again.
+
+### Changed
+- **Test fix, no code change (TEST.560).** `test_the_code_reads_no_variable_the_model_does_not_name` fails on any `PLANETGEN_*` variable the code reads and the settings model does not name. `PLANETGEN_BAND_TABLE_CACHE` (`generation/band_table_cache.py`, PERF.218) and `PLANETGEN_BATTERY_DIGEST_CACHE` (`generation/battery_digest_cache.py`, PERF.209) are read in code and set only by the test suite, so they are not `config.json` options; they are now listed with the other non-option variables, with their meaning (test-run switches).
+generation-output: unchanged
+
 ## [8.0.3123] - 2026-11-04
 
 **Headline:** The forced-fill test for a sector directive no longer fails on the draws that happen to hold six habitable worlds in three systems.
