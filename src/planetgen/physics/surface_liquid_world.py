@@ -36,8 +36,32 @@ SOLUTE_FIELDS = ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface
 percent of its mass, and where it is (`pool` at the ground or `cloud`), and the ammonia of a water ocean, percent of the liquid's mass. `None` where the
 body has no such liquid."""
 
-COLUMN_FIELDS = LIQUID_FIELDS + SOLUTE_FIELDS
+MIX_FIELDS = ("surface_liquid_methane_mol", "surface_liquid_ethane_mol", "surface_liquid_nitrogen_mol")
+"""tuple: What a body stores of the makeup of a methane, ethane or nitrogen sea (GEN.1218b): the mole fraction of each, by Raoult's law with the nitrogen's reduced solubility. `None`
+for any other liquid."""
+
+SALT_FIELD = "surface_liquid_salt_wt"
+"""str: The dissolved salt of a water sea, percent of the solution's mass, as sodium chloride that lowers the water activity as much as the sea's salts do (GEN.1218b)."""
+
+SECOND_FIELDS = ("surface_liquid_2", "surface_liquid_2_fraction")
+"""tuple: The second liquid of a body that holds two (GEN.1218b, Boss's answer 1 of 11:56 AM EDT 2026-10-31): its id and the share of the surface it covers beside the main one."""
+
+COLUMN_FIELDS = LIQUID_FIELDS + SOLUTE_FIELDS + MIX_FIELDS + (SALT_FIELD,) + SECOND_FIELDS
 """tuple: Everything a body stores about its surface liquids (columns of `planets` and `moons`)."""
+
+HYDROCARBON_SEAS = {"methane": "CH4", "ethane": "C2H6", "nitrogen": "N2"}
+"""dict: The liquids whose makeup is stored as mole fractions (`MIX_FIELDS`), and the formula of each."""
+
+OSMOTIC_COEFFICIENT = 0.93
+"""float: STAND-IN GN4 (T5, L1): the osmotic coefficient of sodium chloride in a sea of 0.1 to 1 mol/kg (0.93 to 0.90 at 25 C), used to turn a water activity into the salt that makes it:
+`ln a_w = -nu M_w phi m` with `nu` 2 and `M_w` 0.018015 kg/mol."""
+NACL_G_PER_MOL = 58.44
+"""float: The molar mass of sodium chloride, g/mol."""
+NACL_SATURATION_ACTIVITY = 0.753
+"""float: The water activity of a sodium chloride solution saturated at 25 C (753 per mille). A sea with a lower activity holds other salts (chlorides of calcium and magnesium, perchlorates)
+and has no sodium chloride equivalent, so it stores no salinity (`_salinity`)."""
+WATER_MOLAR_MASS_KG = 0.018015
+"""float: The molar mass of water, kg/mol."""
 
 WATER_ID = "water"
 WATER_STATES = ("surface ocean", "brine seep", "hycean")
@@ -101,20 +125,28 @@ def _reservoir(body):
     return out
 
 
-def _sea(body, temperature_k, pressure_pa):
-    """`(liquid id, surface mass per square metre in kg)` of the sea a cold or temperate body holds, or `None`."""
+def _seas(body, temperature_k, pressure_pa):
+    """`[(liquid id, surface mass per square metre in kg), ...]` of the seas a cold or temperate body could hold, best first (`surface_liquids.candidates`)."""
     partials = mixture.partial_pressures_pa(body)
     reservoir = _reservoir(body)
-    pick = surface_liquids.dominant(temperature_k, pressure_pa, partials, reservoir)
-    if pick is None:
-        return None
     gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
     area_m2 = 4.0 * math.pi * (body.radius * 1000.0) ** 2
-    if pick.basis == "reservoir":
-        return pick.liquid_id, SURFACE_SHARE_OF_ICE * reservoir[pick.liquid_id] * body.mass / area_m2
-    row = surface_liquids.liquid(pick.liquid_id)
-    excess = partials[row.saturation] - saturation.pressure_pa(row.saturation, temperature_k)
-    return pick.liquid_id, max(excess, 0.0) / gravity if gravity > 0.0 else 0.0
+    out = []
+    for pick in surface_liquids.candidates(temperature_k, pressure_pa, partials, reservoir):
+        if pick.basis == "reservoir":
+            out.append((pick.liquid_id, SURFACE_SHARE_OF_ICE * reservoir[pick.liquid_id] * body.mass / area_m2))
+        else:
+            row = surface_liquids.liquid(pick.liquid_id)
+            excess = partials[row.saturation] - saturation.pressure_pa(row.saturation, temperature_k)
+            out.append((pick.liquid_id, max(excess, 0.0) / gravity if gravity > 0.0 else 0.0))
+    return out
+
+
+def _cover(liquid_id, mass_per_m2, temperature_k, gravity):
+    """`(share of the surface, mean depth over that share in km)` of a sea of `mass_per_m2` kg per square metre, or `None` if it covers none."""
+    layer_km = mass_per_m2 / surface_liquids.density_kg_m3(liquid_id, temperature_k) / 1000.0
+    covered = hydrosphere.ocean_fraction(layer_km, gravity)
+    return (covered, layer_km / covered) if covered else None
 
 
 def generate(body):
@@ -125,7 +157,10 @@ def generate(body):
     if body.body_type == "g":
         return
     _main_liquid(body)
+    _second_liquid(body)
     _solutes(body)
+    _mix(body)
+    _salinity(body)
 
 
 def acid_level(values):
@@ -185,14 +220,55 @@ def _main_liquid(body):
         return
     if not pressure > 0.0:
         return                              # in vacuum a liquid boils away
-    found = _sea(body, temperature, pressure)
-    if found is None:
+    seas = _seas(body, temperature, pressure)
+    if not seas:
         return
-    liquid_id, mass_per_m2 = found
+    liquid_id, mass_per_m2 = seas[0]
+    found = _cover(liquid_id, mass_per_m2, temperature, (body.gravity or 0.0) * constants.EARTH_GRAVITY)
+    if found is not None:
+        body.surface_liquid, body.surface_liquid_fraction = liquid_id, found[0]
+        body.surface_liquid_depth_km = found[1]
+
+
+def _second_liquid(body):
+    """Sets `SECOND_FIELDS`: the best other sea the body supplies and has room for beside its main liquid (a lava surface is molten all over and has none)."""
+    main = getattr(body, "surface_liquid", None)
+    if main is None or main in LAVA_IDS:
+        return
+    room = 1.0 - (getattr(body, "surface_liquid_fraction", None) or 0.0)
+    temperature, pressure = body.surface_temperature or 0.0, body.atmospheric_pressure or 0.0
+    if room <= 0.0 or not temperature > 0.0 or not pressure > 0.0:
+        return
     gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
-    layer_km = mass_per_m2 / surface_liquids.density_kg_m3(liquid_id, temperature) / 1000.0
-    covered = hydrosphere.ocean_fraction(layer_km, gravity)
-    if not covered:
+    for liquid_id, mass_per_m2 in _seas(body, temperature, pressure):
+        if liquid_id == main:
+            continue
+        found = _cover(liquid_id, mass_per_m2, temperature, gravity)
+        if found is not None:
+            body.surface_liquid_2, body.surface_liquid_2_fraction = liquid_id, min(found[0], room)
+            return
+
+
+def _mix(body):
+    """Sets `MIX_FIELDS` for a methane, ethane or nitrogen sea: Raoult's mole fractions of the air over it, the ethane the involatile rest (`surface_liquids.ideal_sea`);
+    a sea whose own liquid is not among them (it is supplied by ice, not condensed from the air) is taken as that liquid alone."""
+    main = getattr(body, "surface_liquid", None)
+    if main not in HYDROCARBON_SEAS:
         return
-    body.surface_liquid, body.surface_liquid_fraction = liquid_id, covered
-    body.surface_liquid_depth_km = layer_km / covered
+    fractions = surface_liquids.ideal_sea(body.surface_temperature, mixture.partial_pressures_pa(body))
+    if fractions.get(HYDROCARBON_SEAS[main], 0.0) <= 0.0:
+        fractions = {HYDROCARBON_SEAS[main]: 1.0}
+    for field, formula in zip(MIX_FIELDS, HYDROCARBON_SEAS.values()):
+        setattr(body, field, fractions.get(formula, 0.0))
+
+
+def _salinity(body):
+    """Sets `SALT_FIELD` for a water sea from its water activity: the sodium chloride that lowers it as far (`ln a_w = -2 M_w phi m`), percent of the solution's mass; none under the activity of a saturated sodium chloride solution."""
+    activity = getattr(body, "water_activity", None)
+    if getattr(body, "surface_liquid", None) != WATER_ID or not activity or not NACL_SATURATION_ACTIVITY <= activity <= 1.0:
+        return
+    molality = -math.log(activity) / (2.0 * WATER_MOLAR_MASS_KG * OSMOTIC_COEFFICIENT)
+    grams = molality * NACL_G_PER_MOL
+    body.surface_liquid_salt_wt = 100.0 * grams / (1000.0 + grams)
+
+

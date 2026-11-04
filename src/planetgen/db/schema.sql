@@ -1590,6 +1590,8 @@
 --     rather than MySQL's legacy 3-byte `utf8`).
 -- v197 (GEN.1215): `planets` and `moons` also keep what their surface liquids hold: `surface_liquid_acid_wt` and `surface_liquid_acid_layer` (the strength of the liquid sulfuric acid the air makes,
 --   percent of its mass, and where it is, pool or cloud (`physics/acid_medium.py`)) and `surface_liquid_ammonia_wt` (the ammonia of a liquid water ocean, percent of the liquid's mass). NULL for a body without such a liquid and a row made before v197.
+-- v200 (GEN.1218b): `planets` and `moons` also keep the makeup of a methane, ethane or nitrogen sea (`surface_liquid_methane_mol`, `surface_liquid_ethane_mol`, `surface_liquid_nitrogen_mol`, mole fractions), the salt of a
+--   water sea (`surface_liquid_salt_wt`) and a second liquid with the share of the surface it covers (`surface_liquid_2`, `surface_liquid_2_fraction`). NULL where they do not apply and for a row made before v200.
 
 
 -- v39: star_systems and several phenomenon tables point at nebulae and
@@ -2537,6 +2539,12 @@ CREATE TABLE IF NOT EXISTS planets (
     surface_liquid_acid_wt        DOUBLE,  -- v197 (GEN.1215): the strength of the liquid sulfuric acid the air makes, percent of its mass (NULL: none)
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
+    surface_liquid_methane_mol    DOUBLE,  -- v200 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
+    surface_liquid_ethane_mol     DOUBLE,  -- v200: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v200: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v200: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v200: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v200: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2940,6 +2948,12 @@ CREATE TABLE IF NOT EXISTS moons (
     surface_liquid_acid_wt        DOUBLE,  -- v197 (GEN.1215): the strength of the liquid sulfuric acid the air makes, percent of its mass (NULL: none)
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
+    surface_liquid_methane_mol    DOUBLE,  -- v200 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
+    surface_liquid_ethane_mol     DOUBLE,  -- v200: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v200: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v200: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v200: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v200: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
