@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3127] - 2026-11-04
+
+**Headline:** The density identity test is held to the mean system masses of the new mass-ratio law, not to the ones recorded before it.
+
+### Fixed
+- **TEST.558: `test_the_spiral_written_as_components_gives_the_density_it_gave_before` failed in all six cases on main (the density about 0.6 percent off the stored one).** The cause is a stale reference, not a defect: epoch 130 (train 8, GEN.951) made the mass ratio of a companion follow a sourced law instead of a uniform 0.1 to 1, which moved the mean mass of a system at every age (`system_mass.py`, `multistar.py`), and the model's units per solar mass follow it (the same chain as GEN.929 before). Bisected on the first-parent history: the test passes on the commit before the train 8 merge and fails on it. The fixture `tests/fixtures/density_identity.json` is recorded again. Checked before rewriting it: every total density, halo, bulge and nuclear term is the old one times one number per shape (0.9941 to 0.9944), the total mass is unchanged, and the units per age group follow the mean system mass at each age (young up, old down by a percent or so), so the mix of a place between the age groups moves and its total does not. Nothing generated changes.
+
 ## [8.0.3126] - 2026-11-04
 
 **Headline:** The star, planet and moon lists filter and sort by the same stored physical values as the search page: gravity, temperature, pressure, orbit, dose, luminosity, age, gases and the rest.
