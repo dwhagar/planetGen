@@ -14326,22 +14326,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the law or the test range with the reason stated; register any
   stand-in in GEN.725. Lock work if stored values change. Related:
   GEN.1202. Owner: Core 3 (galaxy history).
+  Diagnosis (Core 3, as the lane reported) (7:38 AM EST on 2026-11-04):
+  Not GEN.999 or the clusters. Bisect on main: 1.97 solar masses a year
+  before train 6, 3.72 at the train 6 merge (#4385), GEN.999 then adds
+  0.3. In train 6 only GEN.1154 reaches the disc history: the reference
+  galaxy halo fell from 2.0e12 to 1.37e12 solar masses and
+  disk_history.inflow_shape rises later for a lighter halo, so GEN.1242
+  and GEN.1230 are one defect. By halo mass: 1.0e12 gives 5.97, 1.6e12
+  3.3, 2.0e12 2.6, 3.1e12 1.95. The model is wrong, not the test (the
+  main sequence at 5.2e10 solar masses of stars is about 1.5 a year; the
+  reference reads 2.7 times that); the test stays at 1 to 3. Candidate
+  fixes, all lock work: (a) inflow from the star formation real halos
+  have, (b) a cold accretion cut once the halo passes the shock heating
+  mass near 1e12, tried first, (c) a thin disc truncated near 14 kpc.
+  Rejected: a weaker law coefficient (worse) and a baryon accretion
+  shape (6.3).
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **GEN.1243 The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug)**
-  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
-  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. The class
-  census white dwarf share is 8.2 percent against the observed range of
-  4.1 to 7.5 percent (the nearby-star census gives 5.6). Candidates: the
-  helium-core white dwarfs and the continuous cooling track of train 8
-  (GEN.996, GEN.1137, now retired), the star mass function epoch
-  (GEN.927), or the age-metallicity history. Do: print the white dwarf
-  share per population with each candidate switched off, find the cause,
-  and fix the law or register a stand-in in GEN.725. Lock work if stored
-  values change. Owner: Bug 1.
-  Prerequisites: none.
-  Prerequisites: none.
+- [ ] **GEN.1244 Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug)**
+  Found by Aux 5 with TEST.557 (as the lane reported 8:19 AM EST
+  2026-11-04): in 55 generated systems only one giant had moons, and all
+  six moons sat 46 to 130 giant radii out, outside the radiation belts
+  that reach about 20 radii. Regular moons form in the circumplanetary
+  disc inside the disc's snow line and centrifugal radius, so the zone
+  should come from the giant's mass, spin and the disc model, not a
+  fixed outer span; a count of 1 giant in 55 with moons is also low and
+  belongs with the same derivation (GEN.1157, GEN.962). The Solar System
+  giants are plausibility targets only (NO FIXED CONTENT). Do: find
+  where generate_moons places a giant's moons, derive the inner and
+  outer edge of the regular-moon zone from the disc physics (secondary
+  sources accepted), register any stand-in in GEN.725 with tier and
+  tweak level, and check the moon distance, the share of giants with
+  moons and the belt dose afterwards. Changes generated output: epoch
+  with --affects fill, rides a train. Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.1157, GEN.962, GEN.921, TEST.557,
+  GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

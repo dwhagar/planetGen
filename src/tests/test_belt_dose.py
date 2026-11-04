@@ -106,6 +106,7 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
     from planetgen.util import draw
     from tests.fuzz_support import deterministic_entropy
     moons_in_belts = 0
+    giant = None
     for seed in range(5, 60):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
@@ -122,8 +123,22 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
                 assert moon.surface_dose_msv_yr >= moon.dose_belt_msv_yr + moon.dose_ground_msv_yr
                 assert moon.dose_belt_msv_yr <= radiation_exposure(planet, moon) * (1.0 + 1e-9)
                 moons_in_belts += moon.dose_belt_msv_yr > 0.0
+        for planet in system.planets:
+            if giant is None and planet.body_type == "g" and planet.moons and planet.moons[0].dose_belt_msv_yr is not None:
+                giant = planet
         if moons_in_belts:
             break
+    if not moons_in_belts:
+        # The generated moons of a giant now sit mostly outside its radiation belts (46 giant radii and more), so no seed has one inside them: put the innermost moon of the first giant
+        # with moons at 9.4 giant radii, in the belts, and check that the stored belt dose follows (TEST.557)
+        assert giant is not None, "no giant with moons in 55 systems"
+        moon = giant.moons[0]
+        moon.distance = _orbit_au(giant, 9.4)
+        radiation.apply_parent_belts(moon, giant)
+        assert moon.dose_belt_msv_yr > 0.0
+        assert moon.surface_dose_msv_yr >= moon.dose_belt_msv_yr + moon.dose_ground_msv_yr
+        assert moon.dose_belt_msv_yr <= radiation_exposure(giant, moon) * (1.0 + 1e-9)
+        moons_in_belts = 1
     assert moons_in_belts > 0
 
 
