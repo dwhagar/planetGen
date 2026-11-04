@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3145] - 2026-11-04
+
+**Headline:** The Galaxy Map shows a progress bar for each level of map data while it loads, so a slow connection shows how far along it is.
+
+### Changed
+- **MAP.364.** While the nodes a view asks for come in from the server, each level of the block ladder with nodes still to come shows a bar in the top left of the map: nodes received over nodes requested for that level (`static/levelprogress.js`), filled as the response is read (`tilepack.readNodeBody` reports each node as its bytes arrive). A load that ends within 400 ms, which is every level served from this browser's store or the server's cache, shows no bar, and the bars go when every level is in. A failed load, or a node that comes back incomplete, replaces its level's bar with a line in plain words that says it could not load and when it will try again. Each bar is a `role="progressbar"` named for its level and takes the map viewport's colors in both themes. The tests hold the bars against a throttled connection, a revisit that finds its nodes stored, and a refused request. The map has twelve block levels, not the six steps (Z0 to Z5) of the zoom plan, so the bars are by block level.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.364.
+
+## [8.0.3144] - 2026-11-04
+
+**Headline:** Two tests that checked old numbers now check what they mean; nothing a visitor sees changes.
+
+### Changed
+- **Missing-data notice test.** The notice a run prints when it disregards missing data is one line, then one line for each missing dataset; the test now counts that instead of a fixed 11.
+- **Helium test.** The strongly stripped planets of the helium test end more than a tenth richer in helium than their star, instead of above a fixed 0.3, which the slower star activity decay (GEN.493) no longer reaches.
+
 ## [8.0.3143] - 2026-11-04
 
 **Headline:** The check that deploy scripts only name files that exist no longer mistakes a record key for a folder.
