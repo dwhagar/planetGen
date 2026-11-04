@@ -350,30 +350,6 @@ def is_habitable(overall_score):
     return overall_score is not None and tier(overall_score) in POTENTIALLY_HABITABLE_TIERS
 
 
-FALLBACK_TIERS = ("Yellow",)
-"""tuple: The overall colours a request for a habitable world accepts when it must fall short of `POTENTIALLY_HABITABLE_TIERS`, provided
-the Suitability colour (the sustainability factor) is at least `FALLBACK_SUITABILITY_TIER`."""
-
-FALLBACK_SUITABILITY_TIERS = ("Blue", "Green", "Yellow")
-"""tuple: The Suitability colours a Yellow fallback may have (not Red)."""
-
-
-def habitable_request_result(overall_score, suitability_score):
-    """
-    How a world answers a request for a habitable world (Boss, 2026-10-23): `"aim"` when it is habitable (overall Blue
-    or Green), `"fallback"` when the request must settle for less and the world is overall Yellow with Suitability at
-    least Yellow ("technically habitable"), else `None`. Either score may be `None` (an unscored body): `None`.
-    """
-    if overall_score is None:
-        return None
-    if is_habitable(overall_score):
-        return "aim"
-    if (tier(overall_score) in FALLBACK_TIERS and suitability_score is not None
-            and tier(suitability_score) in FALLBACK_SUITABILITY_TIERS):
-        return "fallback"
-    return None
-
-
 def wet_bulb_c(temperature_c, relative_humidity):
     """Wet-bulb temperature, deg C ([R4246]; fitted for -20 to 50 deg C
     and 5 to 99% humidity, clamped to those)."""
