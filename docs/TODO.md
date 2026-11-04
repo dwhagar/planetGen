@@ -1776,7 +1776,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 10) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.670, GEN.419.
+  Owner Core 2; GEN.670 done (2026-11-04 12:40 PM EST): GEN.670 is done:
+  the research report is
+  /mnt/project-files/reports/gen670-body-rendering-research-2026-11-04.md
+  (band count, storm size, ring reddening and albedo laws with proposed
+  GEN.725 rows B1-B4, S1-S4, RC1-RC3; numbers marked [S] are to be
+  confirmed before use). Both prerequisites are now met, so Core 2 takes
+  this item after its current lock step, one lock-free item at a time.
+  Owner: Core 2.
+  Prerequisites: GEN.419.
 
 - [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
    Design draft
@@ -1812,7 +1820,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 10) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.670, MAP.280.
+  GEN.670 done (2026-11-04 12:40 PM EST): GEN.670 is done (report
+  /mnt/project-files/reports/gen670-body-rendering-research-2026-11-04.md,
+  rows V1-V2); the vegetation colour by star peak absorption is the
+  report's own inference (no source gives a plant colour for a star
+  other than the Sun), so register it as a stand-in with tier and tweak
+  level in GEN.725 when this item uses it. Still waits on MAP.280.
+  Prerequisites: MAP.280.
 
 - [ ] **MAP.283 Comet colour from the coma species**
    Design draft
@@ -9699,33 +9713,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   systems under one day). Decide the weight or add the missing physics,
   and record the residual in the generation-output line.
   Prerequisites: GEN.270.
-
-- [ ] **GEN.670 Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition**
-  Stand-ins are registered in the gap plan until sourced. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  5, 10), filed by the body-rendering design thread, 10:18 PM EDT
-  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
-  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 18 and
-  19: visible water absorption in giants (none above the cloud for Teq
-  under 250 K, band-averaged cross sections for warm giants) and visible
-  ammonia (keep the four read equivalent widths). The real ammonia
-  source is the ExoMol CoYuTe line list, which reaches the 6450 and 5520
-  A bands: a data job for the sources thread, not a stand-in. Each row
-  carries its source tier and tweak level in the report; record both in
-  the registry (GEN.725) in the same PR that uses the value. Nothing
-  changes a generated world until the owning item uses it.
-  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
-  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
-  lane reported; second-hand citations thread): ExoMol CoYuTe ammonia
-  [R2098] is open first-hand and resolves the visible-ammonia gap
-  of D2; a data job at setup, licence note only in DATA-LICENSE.md.
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130); first in its rendering chain; nobody has started it.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 10) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
 
 - [ ] **GEN.681 The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw**
   Step C6 of the condition-based classes build (design draft

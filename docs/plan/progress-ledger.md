@@ -2365,3 +2365,4 @@ Baseline: PR #1817.
 | TEST.567 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.364 | 8.2 | Robust tile caching |
 | TEST.568 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.670 | 8.1 | Descriptions and maps |
