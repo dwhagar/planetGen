@@ -98,7 +98,8 @@ const {
   FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
-const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
+const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
+const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
 const {
   STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
@@ -2893,24 +2894,34 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
+  // MAP.364: the bar for each level of nodes while they load (static/levelprogress.js).
+  var levelProgress = viewport ? createLevelProgress(viewport) : null;
+  canvasEl.galaxyLevelProgress = function () {
+    return levelProgress ? levelProgress.state() : null;
+  };
+
   function fetchFromServer(missing) {
     if (activeAbort) {
       activeAbort.abort();
     }
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     activeAbort = controller;
+    var asked = missing.slice(0, MAX_NODES_PER_REQUEST);
     var params = new URLSearchParams({
-      keys: missing.slice(0, MAX_NODES_PER_REQUEST).join(","),
+      keys: asked.join(","),
     });
     if (currentStamp) {
       params.set("stamp", currentStamp);
+    }
+    if (levelProgress) {
+      levelProgress.start(asked);
     }
     fetch(data.fetchPath + "?" + params.toString(), controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) {
           throw new Error(data.fetchPath + " returned " + response.status);
         }
-        return response.arrayBuffer();
+        return readNodeBody(response, levelProgress ? function (keys) { levelProgress.arrived(keys); } : null);
       })
       .then(function (body) {
         var unpacked = unpackResponse(body);
@@ -2920,6 +2931,11 @@ function initGalaxyMap3d(canvasEl, data) {
         }
         fetchFailures = 0;
         var stampChanged = absorb(payload, unpacked.packed);
+        if (levelProgress) {
+          levelProgress.arrived(Object.keys(payload.nodes || {}));
+          levelProgress.incomplete(Object.keys(payload.nodes || {}).filter(function (key) { return payload.nodes[key] && payload.nodes[key].incomplete; }));
+          levelProgress.finish();
+        }
         askAgainForIncomplete(payload.nodes || {});
         var stillMissing = renderFromCache(neededNodes(undefined, true));
         // A new stamp dropped changed (or all) cached nodes, and a view
@@ -2934,6 +2950,9 @@ function initGalaxyMap3d(canvasEl, data) {
       })
       .catch(function (err) {
         if (err && err.name === "AbortError") {
+          if (levelProgress && activeAbort !== controller) {
+            levelProgress.abandon();
+          }
           return;
         }
         // A failed fetch leaves the currently-drawn content in place. A
@@ -2945,6 +2964,9 @@ function initGalaxyMap3d(canvasEl, data) {
         }
         fetchFailures += 1;
         var pause = Math.min(30000, 2000 * Math.pow(2, Math.min(fetchFailures, 5) - 1));
+        if (levelProgress) {
+          levelProgress.stalled(Math.round(pause / 1000));
+        }
         if (fetchTimer) {
           clearTimeout(fetchTimer);
         }
