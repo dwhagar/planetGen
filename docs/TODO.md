@@ -2062,6 +2062,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
+- [ ] **MAP.370 Black hole dots must always draw with the stars; only the black hole POI marks are off by default (bug)**
+  Boss, 2:53 PM EST on 2026-11-04: "I specifically said I wanted it to
+  still show the dots with the rest of the stars at the magnitudes
+  related to their mass that we discussed. I just wanted the POI for the
+  black holes turned off by default." MAP.368 (#4857) made the Black
+  holes layer start off and hide both the marks and the purple dots. Do:
+  split the two. The black hole dots are drawn like every other star
+  (purple #a43cff, magnitude tied to mass as already decided, no
+  dependence on the layer or its menu choice), at every view that shows
+  stars. The POI marks (the clickable black hole markers) are the only
+  thing the Black holes layer controls, and they start off; a viewer who
+  already chose keeps the choice. Update the menu wording and the tests
+  (including TEST.573's halo black hole pick test, which depends on
+  this). Done: a fresh viewer sees black hole dots among the stars and
+  no black hole markers; turning the layer on adds the markers; browser
+  test covers both. Front of Core 2's queue, ahead of MAP.367. Related:
+  MAP.368, MAP.164. Filed by the TODO thread.
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
