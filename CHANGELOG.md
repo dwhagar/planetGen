@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3164] - 2026-11-04
+
+**Headline:** The System Map drill test no longer fails when the planet's info card sits over the moon it clicks next.
+
+### Changed
+
+- `test_system_map_selection_drill_and_measure` expanded the planet's info card to read it, then clicked the first moon. The expanded card is as tall as the window, and the system is a random one, so when the moon lay under the card the click landed on the card and the test waited out its 120 second timeout (TEST.194, seen as a load flake; it failed 1 of 3 runs alone). The test now presses Expand again to shrink the card before it clicks the moon. Four runs alone pass.
+
 ## [8.0.3163] - 2026-11-04
 
 **Headline:** The guards that were red on main are green: reproducible maths in five places, the unit registry for mass conversions, a sector that no longer carries a memory address, and the sector page's map text.
