@@ -2002,28 +2002,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
 
-- [ ] **MAP.364 Progress bar for each map level while its tiles load (Z0 to Z5)**
-  Boss, 11:41 AM EST on 2026-11-04: add a progress bar for each map level
-  while its tiles load, so a slow load shows how far along it is. Do:
-  (1) each of the six zoom levels (Z0 to Z5 of the continuous-zoom plan,
-  galaxy-map-continuous-zoom-redesign-2026-10-28) shows its own bar
-  while its nodes are fetched and unpacked; the bar counts nodes
-  received over nodes requested for that level (the node list the
-  request already names, so no new server work), fills as the response
-  is read, and disappears when the level is complete; (2) a level served
-  from the browser or server cache shows no flash of a bar; (3) a failed
-  or incomplete level shows the stalled state in plain words, not a bar
-  stuck mid-way; (4) the bar is readable with a screen reader (role
-  progressbar with the level named) and follows the dark and light
-  themes; (5) a browser test loads each level with throttled network and
-  checks the bar rises and is gone at the end. Where:
-  html/static/galaxymap3d.js (node fetch and the zoom layers) and
-  tilepack.js (the reader). Lock-free (browser only, no stored value
-  changes). Owner Core 2 (maps; proposed by the TODO thread, one
-  lock-free item at a time; the lane says if it clashes). Filed by the
-  TODO thread.
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -18803,6 +18781,19 @@ clears each one.
   companion law), fix the cause, and say which in the change note. If
   the generator changed on purpose, update the test with the reason; if
   a defect, fix it and note whether stored output changes. Owner: Aux 7.
+  Prerequisites: none.
+
+- [ ] **TEST.568 test_page_shell::test_js_modules_import_siblings_with_their_own_version fails on main: boxfit.js has a static import (bug)**
+  Found by Core 2 and confirmed on main by the TODO thread, 12:15 PM EST
+  on 2026-11-04. boxfit.js (UX.142 slice 1, #4759) starts with `import {
+  watchWindowBox } from ...`, and the test requires a module to import
+  its siblings with their own version query (a dynamic import with the
+  version string), so a changed sibling is never read from the browser
+  cache. Do: change the import in html/static/boxfit.js to the dynamic
+  form the other modules use (see the import lines in galaxymap3d.js),
+  run the test and the box-fit browser test. Done: the test passes on
+  main. Lock-free (browser module only). Owner Core 2 (proposed by the
+  TODO thread; it found the failure). Filed by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts

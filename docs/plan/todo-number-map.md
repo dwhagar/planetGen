@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.568 |
+| TEST | TEST.569 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.104 |
@@ -2385,7 +2385,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.361 | Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would | MAP.360 | done, PR #4393 |
 | MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) | none | done, PR #4393 |
 | MAP.363 | Object page: draw the lumpy silhouette of an unrounded small body, as the System Map and the 3D system view do (bodyview.js) | none | done, PR #4594 |
-| MAP.364 | Progress bar for each map level while its tiles load (Z0 to Z5) | none | open |
+| MAP.364 | Progress bar for each map level while its tiles load (Z0 to Z5) | none | done, PR #4820 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -3817,6 +3817,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.565 | test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug) | none | done, PR #4796 |
 | TEST.566 | test_deploy_scripts fails on main: scripts/settle_references.py names src/crossref, which is not in the repo (bug) | none | done, PR #4815 |
 | TEST.567 | Two tests red on main: test_helium_fractionation (0.29985 over 0.3) and test_disregard_missing_data (12 lines against 11) (bug) | none | done, PR #4818 |
+| TEST.568 | test_page_shell::test_js_modules_import_siblings_with_their_own_version fails on main: boxfit.js has a static import (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
