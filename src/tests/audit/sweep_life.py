@@ -192,18 +192,18 @@ def _run_life(planet, letter=None):
     if letter is not None:
         clone.planet_class = letter
     begun = []
-    real = life._life_has_begun
+    real = life._begun
 
-    def recorded(body):
-        begun.append(real(body))
+    def recorded(body, cand):
+        begun.append(real(body, cand))
         return begun[-1]
 
     draw.set_run_seed(LIFE_STREAM_SEED)
-    with mock.patch.object(life, "_life_has_begun", recorded):
+    with mock.patch.object(life, "_begun", recorded):
         life.apply_life_data(clone)
     outcome = clone.life_class_id, clone.life_stage, tuple(getattr(clone, field, None) for field in evolution.SCHEDULE_FIELDS)
     age = getattr(clone.star, "age", None)
-    waiting = outcome[0] is None and ((age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY) or begun == [False])
+    waiting = outcome[0] is None and ((age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY) or (begun and not any(begun)))
     return outcome, waiting
 
 

@@ -5,6 +5,7 @@ import types
 import pytest
 
 from planetgen.db import models, object_rows, store
+from planetgen import tuning
 from planetgen.physics import atmosphere, constants, life_classes
 
 KIND_FIELDS = {
@@ -169,7 +170,8 @@ class _Rows(list):
 
 
 class _SpectrumConnection:
-    def __init__(self, layers=None, gases=None, scores=None):
+    def __init__(self, layers=None, gases=None, scores=None, living=None):
+        self.living = living or []
         self.layers = layers or []
         self.gases = gases or {}
         self.scores = scores or {}
@@ -183,6 +185,13 @@ class _SpectrumConnection:
         if "_life_class_scores" in sql:  # GEN.889: the class scores are read from planet_life_class_scores or moon_life_class_scores
             column = "moon_id" if "moon_life_class_scores" in sql else "planet_id"
             return _Rows([{column: params[0], "life_class": name, "score": score} for name, score in self.scores.items()])
+        if "_life " in sql:  # GEN.1209: the classes that live on the body are read from planet_life or moon_life
+            column = "moon_id" if "moon_life" in sql else "planet_id"
+            return _Rows([{column: params[0], "life_class": entry["life_class"], "share": entry["share"], "life_stage": entry["stage"],
+                           "life_milestone_age_gyr": entry["milestone_age_gyr"], "life_system_age_gyr": entry["system_age_gyr"],
+                           "life_animal_grade": entry["animal_grade"], "life_complexity": entry["complexity"],
+                           **dict(zip(tuning.LIFE_SCHEDULE_FIELDS, entry["ages"])),
+                           **dict(zip(("life_microbial", "life_flora", "life_fauna", "life_sentient"), entry["kinds"]))} for entry in self.living])
         return _Rows([{"spectrum_type": "visible", "value": 1.5}, {"spectrum_type": "non_visible", "value": 3.5}])
 
 
@@ -201,7 +210,7 @@ def _check_bodies(system, checked):
         if hasattr(body, "moons"):
             row = _stored(store.PLANET_FIELDS, body, context)
             row["id"] = 7
-            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None)), row, False)
+            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None), getattr(body, life_classes.LIVING_FIELD, None)), row, False)
             original = body.to_dict()
             for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible"}:
                 _same(original[key], loaded[key])
@@ -210,7 +219,7 @@ def _check_bodies(system, checked):
             for moon in body.moons:
                 row = _stored(store.MOON_FIELDS, moon, dict(context, planet_id=7))
                 row["id"] = 8
-                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None), getattr(moon, life_classes.SCORES_FIELD, None)), row, True)
+                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None), getattr(moon, life_classes.SCORES_FIELD, None), getattr(moon, life_classes.LIVING_FIELD, None)), row, True)
                 assert "reflex_offset_x" not in loaded and loaded["is_moon"] is True
                 original = moon.to_dict()
                 for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible",

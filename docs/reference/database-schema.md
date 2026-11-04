@@ -1468,6 +1468,21 @@ Added in v155 (DB.71, GEN.424). The air of a planet or moon: one row per gas abo
 | `gas` | VARCHAR(16) | NOT NULL | The formula in the gas table (`physics/data/gases.json`): `O2`, `CO2`, `N2`, `He`, `Na`, `NH3`. UNIQUE with the owner. |
 | `partial_pa` | DOUBLE | NOT NULL, CHECK above 0 | The partial pressure, Pa. |
 
+### `planet_life` / `moon_life`
+
+Added in v200 (GEN.1209). The life classes that live on a planet or moon: one row for each (the dominant class too), written with the body and removed with it. The body's own `life_class`, `life_stage`, `life_animal_grade` and the schedule columns describe the dominant class, and its four kind scores (`life_microbial`, `life_flora`, `life_fauna`, `life_sentient`) are the highest of each over these rows. A body stored before v197 has no rows.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `life_class` | VARCHAR(2) | NOT NULL | The class id (`1a`, `3`). UNIQUE with the owner; indexed with `life_stage`. |
+| `share` | DOUBLE | NOT NULL, CHECK 0 < share <= 1 | The class's share of the body's food production (its net primary production over the sum); the shares of a body add up to 1. |
+| `life_stage`, `life_milestone_age_gyr`, `life_system_age_gyr` | VARCHAR(32), DOUBLE, DOUBLE | nullable | The latest stage the class's own schedule reached by the star's age, the age it was reached and the star's age (as on `planets`). |
+| `life_animal_grade`, `life_complexity` | TINYINT UNSIGNED, DOUBLE | nullable | The grade of the class's animals, 0 to 3, and its complexity index. |
+| `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr` | DOUBLE | nullable | The five ages of the class's schedule, Gyr; `NULL` for a step never reached. |
+| `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | The four kind scores, 0 to 9, that this class gives. |
+
 ### `asteroid_belts`
 
 One row per asteroid belt. Belts have no properties-dict data table
@@ -2249,6 +2264,10 @@ Migration 0192 adds `ring_age_yr` (DOUBLE, NULL) to `planets`, `moons` and `rogu
 ### v191 (GEN.1034): the open-ocean tide of a world with a sea
 
 Migration 0191 adds three nullable columns at the end of `planets` and `moons`, derived by `physics/ocean_tides.py` from the stored mass, radius, spin axis and rotation period, orbits, moons and hydrosphere: `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres: the equilibrium high-to-low range with every tide-raiser in line, and with the largest against the rest; `0` for an ice-covered ocean, NULL for a body without a free sea, that is any other hydrosphere, a gas giant, or a body with no spin on record) and `ocean_liquid` (VARCHAR(40): the liquid of that sea, `water` until the surface liquid inventory of GEN.1035 names others). They are the value a deep ocean would have if it followed the tidal potential freely; the range on a coast depends on the shape and depth of the basin and on its resonance and can exceed it many times. A row made before v187 keeps NULL; nothing is backfilled; a stopped run can be started again (a column already there is skipped).
+### v200 (GEN.1209): several life classes on one body
+
+Migration 0200 creates `planet_life` and `moon_life` (a table already there is kept). A body stored before has no rows: its one class is the dominant one in its own columns, and nothing is backfilled; the rows come when the galaxy is regenerated (the epoch of GEN.1209).
+
 ### v199 (GEN.1159): the roundness ratio, the strength and the binding energy
 
 Migration 0195 adds `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` (DOUBLE, nullable) to `planets`, `moons` and `comets`, `density_g_cm3` and `ice_mass_fraction` to `comets`, `asteroid_belts` and `asteroid_fields`, skipping a column already there. All are NULL after the migration: they are worked out by `physics/body_strength.py` when a body is generated, so a row made before v195 gets them when the galaxy is regenerated. Nothing is backfilled.
