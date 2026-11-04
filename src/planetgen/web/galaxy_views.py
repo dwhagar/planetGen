@@ -601,6 +601,30 @@ def galaxy_nebula_shape(nebula_id):
 galaxy_nebula_shape.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+@bp.route("/galaxy/nebula/<uid:nebula_id>/volume")
+@page_limit("galaxy_tiles")
+def galaxy_nebula_alone_volume(nebula_id):
+    """
+    The points that draw one nebula alone (MAP.142: the Sector Map and the nebula page): the packed bytes `static/nebulavolume.js` reads, as
+    `GET /api/nebulae/<id>/volume` sampled them from the model's density. An unknown nebula is a 404 and an API failure a 502, both as
+    `{"error": ...}` JSON.
+    """
+    try:
+        found = apiclient.get_nebula_volume(db_name(), nebula_id)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a nebula's volume: {exc}")
+        return _json_error("The nebula could not be loaded. Please try again shortly.", 502)
+    response = Response(base64.b64decode(found["data"]), mimetype="application/octet-stream")
+    # The points follow the nebula's own properties and the galaxy's stored shape, so they do not change.
+    response.headers["Cache-Control"] = "private, max-age=3600"
+    return response
+
+
+galaxy_nebula_alone_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/galaxy/system/<uid:system_id>/nearest")
 @page_limit("galaxy_tiles")
 def galaxy_system_nearest(system_id):
