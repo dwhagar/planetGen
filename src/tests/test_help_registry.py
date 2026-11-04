@@ -124,7 +124,7 @@ def test_the_equipment_limits_on_the_page_are_the_limits_the_score_uses():
     vehicle = _equipment("Vehicle only")
     assert f"heat past {limit('vehicle_heat_c'):g} C" in vehicle and f"{limit('vehicle_gravity_g'):g} g" in vehicle
     assert f"{limit('vehicle_pressure_kpa') / 1000:g} MPa" in vehicle
-    assert f"heat past {limit('armoured_heat_c'):g} C" in _equipment("Armoured suit")
+    assert f"heat past {limit('armoured_heat_c'):g} C" in _equipment("Armored suit")
     frame = _equipment("Powered frame")
     assert f"{limit('frame_gravity_g'):g} g" in frame and f"{limit('frame_gravity_rec_g'):g} g" in frame
     dust = _equipment("Dust filter or seals")
