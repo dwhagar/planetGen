@@ -1023,7 +1023,7 @@ with `clamp()`.
 - [ ] **UX.258 The describer writes the hours outside in a day with a raw format (build.py line 516), failing the wording-agrees-with-the-index test (bug)**
   Found by the full-suite thread (first pass on main 7eef24a, to 53
   percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
   src/planetgen/describe/build.py line 516 writes f"{day:.1f} hours" for
   the outside-hours-day fact, so
   tests/test_wording_agrees_with_the_index.py::test_no_quantity_in_the_describer_is_written_with_a_raw_format
@@ -14356,7 +14356,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.1239 The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug)**
   Found by the full-suite thread (first pass on main 7eef24a, to 53
   percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
   tests/test_volatile_inventory_totals.py::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it
   reads 153.1 against 98.8 plus or minus 19.8 (Core 4 also reported it
   red on main, 2026-11-01). Do: find what lifted the dry-class carbon
@@ -19160,7 +19160,7 @@ clears each one.
 - [ ] **TEST.554 test_web_old_urls_errors has no test value for the new route /help/life/<topic>, so the HEAD and OPTIONS route tests fail (bug)**
   Found by the full-suite thread (first pass on main 7eef24a, to 53
   percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
   tests/test_web_old_urls_errors.py: test_head_matches_get_with_no_body
   and test_options_answers_allow_with_no_body fail (anonymous and admin)
   with "no test value for /help/life/<topic>" (route in
@@ -19173,7 +19173,7 @@ clears each one.
 - [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
   Found by the full-suite thread (first pass on main 7eef24a, to 53
   percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
   Failures re-run alone and real on 7eef24a, none diagnosed: (1)
   tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
   (the /search page shows H2, N2, O2, H2O, CO2, CH4 formulas unwritten);
