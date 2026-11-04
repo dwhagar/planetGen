@@ -2091,6 +2091,103 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: none.
 
+- [ ] **MAP.366 Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug)**
+  Boss, 1:03 PM EST on 2026-11-04 (live observation): "how we cut stars
+  off instead of the view ... one segment of stars would disappear but
+  another one right next to it would stay there and they're about the
+  same distance away. It would make the star map look like it was
+  missing these square chunks of the tiles. I understand that tiles have
+  to do that but can you investigate and see if there is a way to make
+  what is visible a little more consistent when you're at the same
+  view?" He will send screenshots after train 10 is done to check
+  whether it is still true. Do: (1) reproduce on a seeded galaxy: fly to
+  a view where two neighbouring nodes at about the same distance differ
+  in what is drawn (the per-node cut in the node budget and the star
+  fade, NODE_CUT_CONFIG maxNodes, the block hand-down to children, the
+  per-node star limit); (2) find the rule that cuts a whole node's stars
+  while its neighbour keeps them (a budget spent in node order, a
+  distance test on the node centre rather than the star, a tile fetched
+  later than its neighbour); (3) change the rule so what is shown
+  depends on the star and the view, not on which tile it sits in: cut by
+  star brightness or distance for the whole view (one global threshold),
+  keep the cut smooth over tile borders, and fade rather than drop; (4)
+  a browser test with a seeded galaxy that two adjacent nodes at the
+  same distance show the same share of stars, and that the visible count
+  follows a smooth rule as the camera moves. Owner Core 2 (Boss's
+  request relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at
+  a time, behind MAP.365 unless Core 2 says it clashes). Filed by the
+  TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.367 Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown**
+  Boss, 1:03 PM EST on 2026-11-04: "lower the number of stars and other
+  objects viewed from what it is now. Let's cut it about half for the
+  max number of items on the screen unless you're in sector view, and in
+  sector view we'll display everything." Do: find every cap on what the
+  Galaxy Map and the star/object layers draw at once (the node budget
+  data.nodeBudget with its 1200 default, the marker budget, the star and
+  point caps, the per-layer limits for markers, regions and labels) and
+  set each to about half its present value everywhere except an opened
+  sector (SECTOR_MARKER_BUDGET and the sector-open path keep showing
+  every system that fits, merged only when marks touch). Keep the cut
+  consistent with the MAP.366 rule (no square chunks). Done: a test per
+  cap that the value is about half the old one and a browser test that
+  an opened sector still shows everything. Lock-free. Related: MAP.366, MAP.339.
+  Owner Core 2 (Boss's request relayed 1:03 PM EST on 2026-11-04; 8.1,
+  one lock-free item at a time, behind MAP.365 unless Core 2 says it
+  clashes). Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.368 Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on**
+  Boss, 1:03 PM EST on 2026-11-04: "let's have black holes off by
+  default. We'll still show them as purple dots. I think cyan or purpley
+  dots are what we went through for pulsars and neutron stars." Do: the
+  black-hole layer in the layer menu starts off (the stored choice still
+  wins for a viewer who set it); when on, black holes draw as purple
+  dots (today black_hole is #a43cff, a purple; keep it); neutron stars
+  and pulsars keep the colour already chosen for them (today
+  neutron_star is #3200ff, a deep blue; Boss recalls cyan or purple:
+  Core 2 checks the decision in MAP.80 and MAP.208 and asks Boss only if
+  the code differs from what was decided). Done: default-off test,
+  on-state test, and the legend matches. Lock-free. Related: MAP.80,
+  MAP.208, MAP.339. Owner Core 2 (Boss's request relayed 1:03 PM EST on
+  2026-11-04; 8.1, one lock-free item at a time, behind MAP.365 unless
+  Core 2 says it clashes). Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
+  Boss, 1:03 PM EST on 2026-11-04 (live observation): "right now we're
+  still not showing a region label as a POI that I can click on and zoom
+  in to the region of the galaxy that's been charted." What is on main:
+  the regions chain is built and retired (MAP.314 to MAP.322 named
+  regions, MAP.336 Go to a region, MAP.357 "every far-apart filled
+  region is a point of interest", MAP.356 to MAP.362 in #4393, which
+  added the region points of interest with a zoom link and merged nearby
+  ones). Why Boss may not see it: unknown from the code alone; those
+  items were closed on a browser test over a fixture, and Boss's own
+  galaxy may differ (a region needs a charted cell group that the node
+  payload names, the labels are domain-sliced and budgeted so far
+  regions may be cut, the layer may be off or hidden at his zoom, or a
+  later change such as the node budget or the nebula sprites hides
+  them). Do: (1) open Boss's kind of galaxy (a seeded galaxy with one
+  charted region far from another, then the default view) and find why
+  no region label draws or is clickable: payload (does the node list the
+  region?), layer default, label budget, selection (selectMarkers),
+  z-order under another layer, or a click target too small; (2) fix the
+  cause so that, at the default Galaxy Map view, each charted region far
+  enough from the others shows a label as a point of interest; clicking
+  it flies in to frame the charted part of the region (MAP.336 "frame");
+  (3) a browser test on a galaxy made like Boss's (a region generated
+  through the normal Generate page and a sector run) that the label is
+  present at the default zoom and the click flies in and frames the
+  region; (4) if it works on a fresh galaxy but not on Boss's, ask Boss
+  for the galaxy's region listing (planetgen regions) and check it.
+  Related: MAP.357, MAP.336, MAP.176. Owner Core 2 (Boss's request
+  relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at a time,
+  behind MAP.365 unless Core 2 says it clashes). Filed by the TODO
+  thread.
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
