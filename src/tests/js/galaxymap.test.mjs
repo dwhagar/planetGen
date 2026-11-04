@@ -149,7 +149,6 @@ function open(href, options) {
       }
     } : undefined,
     viewport: options.unchartedScene ? viewport : undefined,
-    lightBackground: false,
     pixelRatio: () => 1,
     showInfo: (spec) => calls.infos.push(spec),
     hideCell: (bounds) => calls.hidden.push(bounds),
