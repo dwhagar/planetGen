@@ -844,8 +844,10 @@ def test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others(
         stars.append(star)
     scene["stars"] = stars
     scene["epoch_unix"] = tree["nodes"][0]["epoch_unix"]
-    for planet in scene["planets"]:
-        planet["orbit"]["around"] = "barycenter"
+    for body_with_orbit in scene["planets"] + scene["comets"]:    # a comet goes round a star of the real scene, which this scene replaced
+        body_with_orbit["orbit"]["around"] = "barycenter"
+    for belt in scene["belts"]:    # and so does a belt
+        belt["around"] = "barycenter"
     body = json.dumps(scene)
     page.route(re.compile(r"/system/[^/?]+/scene"),
                lambda route: route.fulfill(status=200, content_type="application/json", body=body))
