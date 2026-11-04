@@ -235,112 +235,68 @@ Ultimately, these complex rendering algorithms serve a dual, equally critical pu
 
 ### References
 
-Albumentations. (2025, February). The art and science of dithering. https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/
+[R5036]
 
-Amplify Creations. (n.d.). Camera depth fade node. Amplify Wiki. https://wiki.amplify.pt/index.php?title=Unity_Products:Amplify_Shader_Editor/Camera_Depth_Fade
+[R5037]
 
-Auralite Shaders. (n.d.). Auralite shaders. CurseForge. https://www.curseforge.com/minecraft/shaders/auralite-shaders
+[R5038]
 
-Barakat, Z. (2018, July 4). Dither based transparency in Unreal Engine's material editor. https://danieru.com/2018/07/04/dither-based-transparency-in-unreal-engines-material-editor/
+[R5039]
 
-Barakat, Z. (2020, July 28). Temporal anti-aliasing step by step. https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/
+[R5040]
 
-Beltoforion. (n.d.). Dithering. https://beltoforion.de/en/dithering/
+[R5041]
 
-Calinou. (2025, March 18). Jitter BaseMaterial3D distance fade dithering every frame to take advantage of TAA. GitHub. https://github.com/godotengine/godot-proposals/issues/12008
+[R5042]
 
-Castle Game Engine. (n.d.). Occlusion culling. https://castle-engine.io/occlusion_culling
+[R5043]
 
-Catlike Coding. (n.d.). Custom SRP Particles. https://catlikecoding.com/unity/tutorials/custom-srp/particles/
+[R5044]
 
-Cesium. (2022, October 20). Smoother LOD transitions in Cesium for Unreal. https://cesium.com/blog/2022/10/20/smoother-lod-transitions-in-cesium-for-unreal/
+[R5045]
 
-Crytek. (n.d.). Culling explained. CRYENGINE Documentation. https://www.cryengine.com/docs/static/engines/cryengine-3/categories/1638401/pages/1605709
+[R5046]
 
-Cyanilux. (n.d.). Depth. https://www.cyanilux.com/tutorials/depth/
+[R5047]
 
-DigitalRune. (n.d.). Screen-door transparency. DigitalRune Graphics Documentation. https://digitalrune.github.io/DigitalRune-Documentation/html/fa431d48-b457-4c70-a590-d44b0840ab1e.htm
+[R5048]
 
-DLR. (n.d.). Causes of cybersickness. https://elib.dlr.de/203153/1/final.pdf
+[R5049]
 
-EnDavid. (2017, August 6). New weight function for weighted-blended order independent transparency. http://endavid.com/index.php?entry=76
+[R5050]
 
-Epic Games. (n.d.). Material node reference. https://uehow.web.fc2.com/Contents/Eng/UE4/Material/NodeReference_Root/MaterialNodeReference_All.html
+[R5051]
 
-Epic Games. (n.d.). Stylized rendering materials. Unreal Engine Documentation. https://dev.epicgames.com/documentation/unreal-engine/stylized-rendering-materials?application_version=4.27
+[R5052]
 
-Epic Games. (n.d.). Utility expressions. Unreal Engine Documentation. https://dev.epicgames.com/documentation/unreal-engine/utility-expressions?application_version=4.27
+[R5064]
 
-Friederichs, F., & Eisemann, E. (n.d.). Layered weighted blended order-independent transparency. TU Delft Graphics Publications. https://publications.graphics.tudelft.nl/rails/active_storage/blobs/redirect/.../layered_weighted_blended_order_independent_transparency.pdf
+[R5053]
 
-Gavgani, A. M., et al. (2020). Cybersickness in HMD VR. Frontiers in Virtual Reality. https://www.frontiersin.org/journals/virtual-reality/articles/10.3389/frvir.2020.587698/full
+[R5054]
 
-Greig, M. (n.d.). Easing and splines research. GitHub. https://github.com/marcgreig/Easing-and-Splines-Research
+[R5055]
 
-Groth, et al. (2021). Mitigating cybersickness in 360° videos. IEEE VR. https://graphics.tu-bs.de/upload/publications/Groth2021IEEEVR_WISP.pdf
+[R5067]
 
-HedgeDocs. (n.d.). Transparency dithering. https://hedgedocs.com/index.php/Transparency_Dithering
+[R5056]
 
-Henry VFX. (n.d.). Math: Dot product. https://www.henry-vfx.com/blog/math-dot-product
+[R5057]
 
-IJERT. (n.d.). IGNITE: Immersive game navigation and interaction in 3D VR environment. https://www.ijert.org/research/ignite-immersive-game-navigation-and-interaction-in-3d-vr-environment-IJERTV15IS020666.pdf
+[R5058]
 
-Interplay of Light. (2022, July 10). Order independent transparency: Endgame. https://interplayoflight.wordpress.com/2022/07/10/order-independent-transparency-endgame/
+[R5064]
 
-Jacob. (2025, January 22). Transparency dither. Godot Shaders. https://godotshaders.com/shader/transparency-dither/
+[R5065]
 
-JOV. (n.d.). Focus cues and perceived realism of 3-D structure. https://jov.arvojournals.org/article.aspx?articleid=2793407
+[R5066]
 
-LearnOpenGL. (2020). Weighted Blended OIT. https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended
+[R5059]
 
-LearnOpenGL. (2021). Frustum Culling. https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling
+[R5060]
 
-McGuire, M. (2014, March). Implementing weighted, blended OIT. Casual Effects. http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html
+[R5061]
 
-McGuire, M. (n.d.). Weighted, blended order-independent transparency: Engine scene [Video]. YouTube. https://www.youtube.com/watch?v=axvmoEqcTp8
+[R5062]
 
-MDPI. (n.d.). Multi-view displays and depth perception. https://www.mdpi.com/2076-3417/10/20/7357
-
-Meta Developers. (n.d.). Tech note: Shader snippets for efficient 2D dithering. https://developers.meta.com/vr/blog/tech-note-shader-snippets-for-efficient-2d-dithering/
-
-MJP. (n.d.). Weighted blended OIT. https://therealmjp.github.io/posts/weighted-blended-oit/
-
-Moonjump. (n.d.). Third-person camera systems: How it works. https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/
-
-Ninjin. (2019, February 14). Smoke help. Real-Time VFX. https://realtimevfx.com/t/klemen-lozar-smoke-help/7718
-
-Nycrix. (2019). Distance fade shader URP. Reddit. https://www.reddit.com/r/Unity3D/comments/10nc6au/distance_fade_shader_urp/
-
-PubMed Central. (n.d.). Display requirements for correct focus cues. https://pmc.ncbi.nlm.nih.gov/articles/PMC10910649/
-
-PubMed Central. (n.d.). Foveated depth-of-field effect in reducing cybersickness. https://pmc.ncbi.nlm.nih.gov/articles/PMC8229538/
-
-PubMed Central. (n.d.). Motion parallax and depth cues. https://pmc.ncbi.nlm.nih.gov/articles/PMC4269274/
-
-Reddit. (2023). Developer resources ordered dithering and TAA. r/FuckTAA. https://www.reddit.com/r/FuckTAA/comments/17a7ebs/developer_resources_ordered_dithering_and/
-
-rLiebert. (2024, May 29). Function for camera to fade out objects depending on camera distance. Unreal Engine Forums. https://forums.unrealengine.com/t/function-for-camera-to-fade-out-objects-depending-on-camera-distance/1878794
-
-RyanDowlingSoka. (n.d.). Triplanar dither biplanar. https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/
-
-Seeles.ai. (n.d.). Unreal Engine DitherTemporalAA LOD fade guide. https://www.seeles.ai/resources/blogs/unreal-engine-dither-temporal-aa-lod-fade-guide
-
-Tardif, A. (n.d.). Temporal anti-aliasing. https://alextardif.com/TAA.html
-
-Unity Technologies. (n.d.). Camera fade block. Visual Effect Graph Documentation. https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@10.3/manual/Block-CameraFade.html
-
-Unreal Engine Forums. (n.d.). Dither Temporal AA for translucency: What am I doing wrong? https://forums.unrealengine.com/t/dither-temporal-aa-for-translucency-what-am-i-doing-wrong/82205
-
-UPC Commons. (n.d.). Cybersickness and avatar embodiment. https://upcommons.upc.edu/bitstreams/a687f64d-8a86-460f-95b6-69074a1686f5/download
-
-Void Room. (n.d.). Solving transparency with dithering. https://void-room.itch.io/tea-for-god/devlog/344788/solving-transparency-with-dithering
-
-Wronski, B. (n.d.). Part three – dithering in quantization of 2D images. https://bartwronski.com/page/3/
-
-Wronski, B., et al. (2023). Contact hardening soft shadows. https://wojtsterna.com/wp-content/uploads/2023/02/contact_hardening_soft_shadows.pdf
-
-Xiangk_81891. (2023). Unity DOTS 2023: Fadeout objects near camera. Medium. https://medium.com/@xiangk_81891/unity-dots-2023-fadeout-objects-near-camera-27f5f7f68eb7
-
-YouTube. (n.d.). Retro style shader in Unreal Engine 4 using the dither temporal aa node [Video]. https://www.youtube.com/watch?v=hrDnawIss24
-
-Zhang, H. (1998). Occlusion culling algorithms. Game Developer. https://www.gamedeveloper.com/programming/occlusion-culling-algorithms
+[R5063]
