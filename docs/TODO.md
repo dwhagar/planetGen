@@ -14312,6 +14312,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1069.
   Prerequisites: none.
 
+- [ ] **GEN.1242 The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread.
+  tests/test_prevalence_phenomena_census.py: the reference galaxy's star
+  formation rate reads 4.0 solar masses a year against a hard assert of
+  1 to 3; the Milky Way is about 1.7. It is a hard assert, not a
+  taggable range, so the census stays red until someone looks. Likely
+  moved by trains 6 to 8 (halo mass function GEN.1154, alpha tracks
+  GEN.1024, the disc gas law GEN.999, clusters). Do: find which change
+  moved it, check the reference galaxy against the source-derived range
+  (the Milky Way is a plausibility target, never fixed content), and fix
+  the law or the test range with the reason stated; register any
+  stand-in in GEN.725. Lock work if stored values change. Related:
+  GEN.1202. Owner: Core 3 (galaxy history).
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1243 The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. The class
+  census white dwarf share is 8.2 percent against the observed range of
+  4.1 to 7.5 percent (the nearby-star census gives 5.6). Candidates: the
+  helium-core white dwarfs and the continuous cooling track of train 8
+  (GEN.996, GEN.1137, now retired), the star mass function epoch
+  (GEN.927), or the age-metallicity history. Do: print the white dwarf
+  share per population with each candidate switched off, find the cause,
+  and fix the law or register a stand-in in GEN.725. Lock work if stored
+  values change. Owner: Bug 1.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14885,6 +14916,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
+  Prerequisites: none.
+
+- [ ] **PERF.231 The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. In two
+  separate runs the class census timed out in 8 cells: F5V, G2V, K0III,
+  K5V and M2V in the ecosphere, hot and cold (K5V ecosphere 4 draws);
+  zero before epoch 130. Do: bisect the draw time (an air solve that no
+  longer converges quickly, the hot start of GEN.1238 is not on main yet
+  so look at the train 8 changes: GEN.1160 roundness, giants, belts,
+  GEN.1174), print the time per stage for one slow seed per cell, and
+  fix the slow stage. Done: the census cells finish under the limit and
+  a test pins the slow seed. Lock-free if output is unchanged. Owner:
+  Bug 1.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## DB: Database and schema
