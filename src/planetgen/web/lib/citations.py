@@ -55,7 +55,7 @@ def link(text, data, strict=True):
             entry = sources.get(sid)
             if entry is None:
                 raise CitationError(f"{sid} is not a source of the reference list")
-            page = "data" if entry.get("kind") == "data" else "papers"
+            page = "data" if entry.get("kind") in ("data", "web") else "papers"
             links.append('<a class="citation" href="%s" title="%s">%s</a>' % (reference_path(page, sid), html.escape(entry.get("title") or label(entry), quote=True), html.escape(label(entry))))
         place = (", " + html.escape(m.group(2).strip())) if m.group(2) else ""
         out.append("; ".join(links) + place)

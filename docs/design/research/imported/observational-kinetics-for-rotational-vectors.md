@@ -248,8 +248,6 @@ Celestial rotational velocities are fundamentally constrained by mechanical brea
 
 * [R1056]
 
-* Roche, É. (1873). Critical rotation velocity and equilibrium shapes of self-gravitating fluid bodies. _Académie des Sciences et Lettres de Montpellier_.
-
 * [R4114]
 
 * [R4568]

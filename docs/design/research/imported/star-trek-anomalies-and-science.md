@@ -280,8 +280,6 @@ References
 
 [R2200]
 
-Memory Alpha. (n.d.). _Star Trek wiki_. Fandom. https://memory-alpha.fandom.com
-
 [R4515]
 
 [R4547]

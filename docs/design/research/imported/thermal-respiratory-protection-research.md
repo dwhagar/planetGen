@@ -196,11 +196,9 @@ Operating safely in these conditions requires transitioning to a fully encapsula
 ## References
 
 - [R0377]
-- Drägerwerk AG & Co. KGaA. (2019). *Dräger PSS BG 4 plus: Closed-circuit breathing apparatus instructions for use* (Publication No. 9021728). Lübeck, Germany: Drägerwerk AG.
 - [R2989]
 - [R5019]
-- National Fire Protection Association. (2013). *NFPA 1981: Standard on open-circuit self-contained breathing apparatus (SCBA) for emergency services* (2013 ed.). Quincy, MA: National Fire Protection Association.
-- National Institute for Occupational Safety and Health. (2016). *Criteria for a recommended standard: Occupational exposure to heat and hot environments* (DHHS/NIOSH Publication No. 2016-106). Cincinnati, OH: Centers for Disease Control and Prevention.
-- National Institute for Occupational Safety and Health. (2023). *Lieutenant and probationary firefighter die after experiencing thermal degradation of self-contained breathing apparatus facepiece lenses – Maryland* (Fatality Assessment and Control Evaluation Report F2023-11). Morgantown, WV: NIOSH.
+- [R5024]
+- [R5026]
 - [R3630]
 - [R5020]
