@@ -46,6 +46,9 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_classes.json")
 TERRESTRIAL = "t"
 GIANT = "g"
 
+BAND_COUNT = 7
+"""int: How many latitude bands a body stores (`regional_temperature`, `latitude_bands`)."""
+
 GASES = tuple(atmosphere.SPECIES)
 """tuple: The gases whose partial pressure a body stores (`share_<gas>` quantities)."""
 
@@ -68,7 +71,14 @@ def values_from_body(body):
         "flux_variation": getattr(body, "flux_variation", None),
         "ocean_ph": getattr(body, "ocean_ph", None),
         "roundness_ratio": getattr(body, "roundness_ratio", None),
+        "relative_humidity": getattr(body, "relative_humidity", None),
+        "groundwater": getattr(body, "groundwater", None),
+        "aquifer_depth_km": getattr(body, "aquifer_depth_km", None),
+        "aquifer_thickness_km": getattr(body, "aquifer_thickness_km", None),
     }
+    for number in range(1, BAND_COUNT + 1):         # the seven latitude bands (GEN.1108), which the regional, day and night temperatures of a class read (GEN.1221)
+        for field in ("mean_k", "swing_k"):
+            values[f"band{number}_{field}"] = getattr(body, f"band{number}_{field}", None)
     values[atmosphere.GAS_FIELD] = atmosphere.gas_partials_pa(body)
     return values
 

@@ -38,7 +38,7 @@ def score_bodies(bodies):
     for body, is_moon in bodies:
         values = body if isinstance(body, Mapping) else planet_classes.values_from_body(body)
         found = planet_classes.quantities(values)
-        letter, fit, runner, runner_fit = class_fit.best_class(found)
+        letter, fit, runner, runner_fit = class_fit.best_class(values)      # the stored values: the matrix reads the bands, humidity and groundwater too (GEN.1221)
         records.append({
             "tree": planet_classes.classify(values), "fit": letter or "-", "match": fit,
             "runner": runner or "-", "runner_match": runner_fit, "moon": is_moon, "found": found,

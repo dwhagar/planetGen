@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, outside_hours, regional_temperature,
+from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, outside_hours, regional_temperature,
                                stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -229,6 +229,7 @@ _BODY_GROUPS = (
            ("temp_mean_swing_k", "Day and night swing, whole surface (hottest to coldest)"), ("energy_flux_w_m2", "Stellar energy received"),
            ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
+           ("relative_humidity", "Relative humidity of the surface air"), ("groundwater", "Groundwater (liquid water underground)", TEXT),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
            ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
@@ -783,7 +784,7 @@ _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "me
                "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
 _MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
-    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
+    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
@@ -881,6 +882,9 @@ _BODY_RULES = [
      "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") is None or any(
+        identifier != str(row["life_class"]) and identifier.startswith(str(row["life_class"])) for identifier in life_classes.IDS),
+     "a life class with no pigment or metabolism variants (2, 6, 7, 8 and 9) has no letter"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
