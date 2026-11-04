@@ -623,7 +623,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | GEN.862 |  |
 | GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build |  |  |
 | GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) |  |  |
-| UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages |  |  |
 | DOC.94 | References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages | DOC.93 |  |
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | DOC.98 | Boss, citations only in the registry. |
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment | DOC.93 | Boss, citations only in the registry. |

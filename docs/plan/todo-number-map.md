@@ -3136,7 +3136,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.249 | The "On this page" menu should sit in one row across the top when every link fits without scrolling, and be the grouped list otherwise (follow-up to UX.247) (bug) | none | done, PR #4274 |
 | UX.250 | Planet render: the terminator between night and day should be more of a crescent, showing more of the day side, and the "to star" arrow overlaps the render (bug) | none | done, PR #4462 |
 | UX.251 | Planet and moon pages: a Life summary paragraph in At a glance, from the life readings | none | done, PR #4488 |
-| UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | open |
+| UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | done, PR #4799 |
 | UX.253 | Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages | none | done, PR #4496 |
 | UX.254 | Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup | none | done, PR #4540 |
 | UX.255 | Remove the light-theme branches in the map scripts that black map backgrounds left unused | none | done, PR #4751 |
