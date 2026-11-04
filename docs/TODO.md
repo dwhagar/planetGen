@@ -19007,6 +19007,35 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
+- [ ] **OPS.95 update.sh ends its full warm-up with timeout 1800 (30 minutes), which a first warm-up after a new epoch overruns: the run dies with a KeyboardInterrupt traceback at chunk 414 of 458 and nothing says why (bug)**
+  Boss, 6:43 PM EST on 2026-11-04, gave no interrupt, yet stage 2 of
+  ./update.sh (planetgen warm --progress) died with a KeyboardInterrupt
+  traceback at galaxy-nodes chunk 414 of 458, about 28 minutes after the
+  galaxy-nodes step began (the opening phase took 54 s before it, so
+  about 30 minutes in all). Cause, from the code:
+  scripts/deploy-common.sh run_warm_stage runs the warm under 'timeout
+  1800' (comment: at most 30 minutes); timeout sends SIGTERM,
+  cli/warm.py _stop_on_sigterm turns SIGTERM into a KeyboardInterrupt
+  (the update guard's cancel and a stop-all end it the same way), and
+  the run is marked cancelled in Redis, so the workers stop too. The
+  work already stored is kept, so a plain rerun of planetgen warm
+  --progress continues. Aux 3's first-run numbers say the objects phase
+  alone is about 24 minutes on a 14-sector test galaxy, so a first
+  warm-up after an epoch change always overruns 30 minutes on a real
+  galaxy. Do: (1) drop the fixed 1800 s limit for stage 2 or make it
+  WARM_STAGE_SECONDS with a default of several hours, and print the
+  limit in the stage's first line; (2) when SIGTERM or a hangup ends the
+  warm client, print one line saying what ended it (update.sh's time
+  limit, the update guard's cancel, a stop-all, or the terminal) and
+  that a rerun continues, instead of a traceback, and have the canceller
+  leave a short reason in the state folder for the client to read; (3)
+  say in the final warning of run_warm_stage that the stored work is
+  kept and how to continue. Done: a shell test with a fake long run and
+  a short limit, and a Python test that SIGTERM prints the one line and
+  exits non-zero. Proposed owner: Aux 7 (OPS.94 owner). Filed by the
+  TODO thread.
+  Prerequisites: none. Related: OPS.94, PERF.233, PERF.235.
+
 ## DOC: Documentation
 
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
