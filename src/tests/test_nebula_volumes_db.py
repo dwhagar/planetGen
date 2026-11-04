@@ -70,3 +70,47 @@ def test_a_block_draws_the_points_of_the_nebulae_in_it(planned):
             nebula_volumes.group_volume(conn, "not-a-key", _Model)
     finally:
         conn.close()
+
+
+def _points(packed):
+    """`{(ix, iy, iz): strength}` of a packed volume."""
+    import numpy as np
+
+    n = int.from_bytes(packed[6:10], "little")
+    body = packed[14:]
+    ix, iy, iz = (np.frombuffer(body[4 * n * k:4 * n * (k + 1)], dtype="<i4").tolist() for k in range(3))
+    strength = list(body[12 * n:13 * n])
+    return dict(zip(zip(ix, iy, iz), strength))
+
+
+def test_one_nebula_alone_is_drawn_with_the_points_its_node_gives_it(planned):
+    """MAP.142: the volume of one nebula holds the whole of its cloud and, at the same level, every point its node draws for it at the same
+    strength, so a nebula looks the same on the Galaxy Map, the Sector Map and its own page."""
+    conn = store.get_connection(planned)
+    try:
+        nebula_id = conn.execute("SELECT id FROM nebulae ORDER BY id DESC LIMIT 1").fetchone()["id"]
+        alone = nebula_volumes.single_nebula_volume(conn, nebula_id, _Model)
+        assert alone == nebula_volumes.single_nebula_volume(conn, nebula_id, _Model)
+        assert alone[:4] == nebula_volume.MAGIC
+        whole = _points(alone)
+        assert len(whole) > 20
+        block = _points(nebula_volumes.group_volume(conn, _keys(27), _Model))
+        assert block and alone[5] == nebula_volumes.group_volume(conn, _keys(27), _Model)[5]
+        assert all(whole.get(cell) == strength for cell, strength in block.items())
+        assert len(whole) >= len(block)
+        with pytest.raises(ValueError):
+            nebula_volumes.single_nebula_volume(conn, 99999999, _Model)
+    finally:
+        conn.close()
+
+
+def test_a_nebula_in_a_galaxy_never_planned_is_header_only(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        if query.get_galaxy_shape(conn, light=True) is not None:
+            pytest.skip("this database already holds a plan")
+        nebula_id = _store_nebula(conn, "C", 65.0, CENTRE)
+        packed = nebula_volumes.single_nebula_volume(conn, nebula_id, _Model)
+        assert int.from_bytes(packed[6:10], "little") == 0
+    finally:
+        conn.close()

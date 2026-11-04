@@ -266,6 +266,26 @@ def nebula_volume_payload(key):
             "data": base64.b64encode(packed).decode("ascii")}
 
 
+def single_nebula_volume_payload(nebula_id):
+    """What `GET /api/nebulae/<id>/volume` answers for a fixture nebula: that one cloud sampled alone by the real sampler from the stand-in
+    density, whole (MAP.142)."""
+    import base64
+
+    from planetgen.galaxy import nebula_blocks, nebula_volume
+    from tests import nebula_density_stand_in as stand_in
+
+    cloud = next((n for n in NEBULAE if int(n["id"]) == int(nebula_id)), None)
+    if cloud is None:
+        raise apiclient.NotFoundError(f"No such nebula: {nebula_id}")
+    family = cloud.get("family") or ("dark" if cloud.get("descriptor") == "dark" else "diffuse")
+    volume = nebula_volume.sample_group(
+        [{"x": cloud["x"], "y": cloud["y"], "z": cloud["z"], "radius_pc": cloud["radius_pc"], "family": family}], None,
+        stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL, nebula_blocks.FAMILIES)
+    packed = nebula_volume.pack(volume)
+    return {"id": int(nebula_id), "format": "NVOL1", "level": packed[5], "count": int.from_bytes(packed[6:10], "little"),
+            "data": base64.b64encode(packed).decode("ascii")}
+
+
 def _point(kind, mass_solar, **fields):
     """A fixture point as a node lists it: its mass and the luminosity of a star of it (MAP.208), and its
     own light as a small number."""
@@ -948,6 +968,9 @@ class FixtureApi:
     def get_galaxy_nebula_volume(self, db, key):
         return nebula_volume_payload(key)
 
+    def get_nebula_volume(self, db, nebula_id):
+        return single_nebula_volume_payload(nebula_id)
+
     def get_sector(self, db, sector_id):
         if int(sector_id) not in [s[0] for s in SECTORS]:
             raise apiclient.NotFoundError(f"No such sector: {sector_id}")
@@ -1000,7 +1023,7 @@ class FixtureApi:
 
 _APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_shape", "get_system_scene",
+              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_nebula_shape", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 

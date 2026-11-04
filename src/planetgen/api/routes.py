@@ -1883,6 +1883,22 @@ def nebula_shape_route(nebula_id):
     })
 
 
+@bp.route("/nebulae/<uid:nebula_id>/volume")
+def nebula_volume_route(nebula_id):
+    """
+    The points that draw one nebula alone (MAP.142): the same packed volume as `GET /api/galaxy/nebula-volume` (`{"id", "format", "level", "count",
+    "data"}`, `data` the base64 of `galaxy.nebula_volume.pack`), over this nebula's sphere only, for the Sector Map and the nebula page. Nothing is
+    stored; a nebula never placed answers `count` 0. A 404 for an unknown nebula.
+    """
+    try:
+        packed = nebula_volumes.single_nebula_volume(get_db(), nebula_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    count = int.from_bytes(packed[6:10], "little")
+    return jsonify({"id": nebula_id, "format": "NVOL1", "level": packed[5], "count": count,
+                    "data": base64.b64encode(packed).decode("ascii")})
+
+
 @bp.route("/nebulae/<uid:nebula_id>/surroundings")
 def nebula_surroundings_route(nebula_id):
     """
