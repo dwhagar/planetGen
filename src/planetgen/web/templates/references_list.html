@@ -1,0 +1,74 @@
+{#- The Papers and Data pages of the References section (web/references_pages.py, web/lib/references_site.py, DOC.89). -#}
+{% extends "base.html" %}
+{% block body_class %} references-mode{% endblock %}
+{% macro cell(value) -%}
+  {%- if value is mapping -%}<a href="{{ value.href }}">{{ value.text }}</a>{%- else -%}{{ value }}{%- endif -%}
+{%- endmacro %}
+{% macro places(label, found) -%}
+  {%- if found.names %}<li><span class="reference-place-label">{{ label }}:</span> {{ found.names | join(", ") }}{% if found.more %}, and {{ found.more }} more{% endif %}</li>{% endif -%}
+{%- endmacro %}
+{% block content %}
+<aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>
+<section class="panel" id="references" aria-labelledby="references-heading">
+  <div class="panel-header"><h2 id="references-heading">{{ page.title }}</h2></div>
+  {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- if page.views %}
+  <nav class="reference-views" aria-label="Views of the sources"><ul>
+    {%- for view in page.views %}<li><a href="{{ view.href }}"{% if view.current %} aria-current="page"{% endif %}>{{ view.label }}</a></li>{% endfor %}
+  </ul></nav>
+  {%- endif %}
+  {%- if search_action %}
+  <form class="reference-search" method="get" action="{{ search_action }}" role="search">
+    <label for="reference-search-box">Search the title, the authors, the DOI, or the ID</label>
+    <input id="reference-search-box" type="search" name="q" value="{{ page.query }}" maxlength="200" autocomplete="off">
+    <button type="submit">Search</button>
+  </form>
+  {%- endif %}
+  {%- if page.note %}<p class="reference-count" role="status">{{ page.note }}</p>{% endif %}
+  {%- if page.letters %}
+  <nav class="reference-letters" aria-label="Jump to a letter"><ul>
+    {%- for item in page.letters %}<li><a href="#{{ item.id }}">{{ item.letter }}</a></li>{% endfor %}
+  </ul></nav>
+  {%- endif %}
+</section>
+{%- for section in page.sections %}
+<section class="panel" id="{{ section.id }}" aria-labelledby="{{ section.id }}-heading">
+  <div class="panel-header"><h2 id="{{ section.id }}-heading">{{ section.heading }}</h2></div>
+  {%- for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- for table in section.tables %}
+  {%- if table.heading %}<h3>{{ table.heading }}</h3>{% endif %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr>{% for head in table.head %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {%- for row in table.rows %}
+      <tr{% if row.id %} id="{{ row.id }}"{% endif %}>{% for value in row.cells %}{% if loop.first %}<th scope="row">{{ cell(value) }}</th>{% else %}<td>{{ cell(value) }}</td>{% endif %}{% endfor %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endfor %}
+  {%- if section.links %}<p>{% for link in section.links %}<a href="{{ link.href }}">{{ link.text }}</a>{% endfor %}</p>{% endif %}
+</section>
+{%- endfor %}
+{%- for block in page.blocks %}
+<section class="panel reference-block"{% if block.id %} id="{{ block.id }}"{% endif %}{% if block.heading %} aria-labelledby="{{ block.id }}-heading"{% endif %}>
+  {%- if block.heading %}<div class="panel-header"><h2 id="{{ block.id }}-heading">{{ block.heading }}</h2></div>{% endif %}
+  <ol class="reference-entries">
+    {{- block.html -}}
+    {%- for entry in block.entries %}
+    <li class="reference-entry"{% if entry.anchor %} id="{{ entry.anchor }}"{% endif %}>
+      <p><strong>{{ entry.label }}</strong> <span class="reference-id">{{ entry.id }}</span></p>
+      <p>{% if entry.who %}{{ entry.who }}{% if not entry.who.endswith(".") %}.{% endif %} {% endif %}{{ entry.title }}{% if entry.venue %}. {{ entry.venue }}{% endif %}.</p>
+      <p class="reference-links">{% for link in entry.links %}<a href="{{ link.url }}" rel="noopener noreferrer">{{ link.label }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</p>
+      <ul class="reference-meta">
+        <li>{{ entry.type }}, {{ entry.field }}</li>
+        {%- if entry.areas %}<li><span class="reference-place-label">Used in:</span> {{ entry.areas | join(", ") }}</li>{% else %}<li><span class="reference-place-label">Used in:</span> no code, data, or design note cites it</li>{% endif %}
+        {{ places("Code and data", entry.code) }}
+        {{ places("Stand-ins", entry.stand_ins) }}
+        {{ places("Design notes", entry.notes) }}
+      </ul>
+    </li>
+    {%- endfor %}
+  </ol>
+</section>
+{%- endfor %}
+{% endblock %}
