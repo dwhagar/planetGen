@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1086 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1089 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 153 | 17 | 8 | 1 | 0 | 179 |
-| T2 | 115 | 43 | 0 | 1 | 0 | 159 |
+| T2 | 115 | 44 | 0 | 1 | 0 | 160 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
-| T4 | 52 | 5 | 1 | 18 | 10 | 86 |
+| T4 | 53 | 5 | 1 | 18 | 10 | 87 |
 | T5 | 48 | 19 | 2 | 1 | 0 | 70 |
-| T6 | 103 | 84 | 22 | 53 | 0 | 262 |
+| T6 | 104 | 84 | 22 | 53 | 0 | 263 |
 | T7 | 32 | 13 | 7 | 13 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 22 | 14 | 5 | 47 | 28 | 116 |
-| All | 610 | 236 | 53 | 148 | 39 | 1086 |
+| All | 612 | 237 | 53 | 148 | 39 | 1089 |
 
 ## How the labels were given
 
@@ -1508,6 +1508,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | HCT1 | D | T1 | L0 | directives.HABITABLE_COUNT_PMF: the share of systems holding each count of habitable bodies, counted from 4,000 default systems of the generator itself | none (a count; re-run the script when the class rules or the planet draw change) | systems of the default configuration; a sector's systems differ by position and star mix (the sector check reads high by about 1.5 sigma) | the script re-run on a new epoch that moves the none-share by more than 3 percent | none: it is the generator's own output, re-measured, not a stand-in for a measurement of the sky | MEASURED (`scripts/measure_habitable_count.py`, seeds 5,000,000 upward, epoch 130) | - | - |
+
+## 6.167 Stand-ins of the zone the regular moons of a giant form in
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IGH1 | P | T4 | L0 | ice_giant_heat.STRATIFIED_SHARE 0.5: the chance an ice giant keeps a stable compositional gradient; one of the two measured ice giants has one, so the rule of succession gives (1 + 1) / (2 + 2) | 0.2 to 0.8 | ice giants of 5 to 20 Earth masses | a census of exoplanet ice-giant luminosities (or a model of which interiors the formation and the impacts leave) that gives a share outside 0.2 to 0.8 | a formation and impact model of the layered interior: the share from the impact history (`giant_tilt`: a head-on mixing impact against an oblique one, [R5100]) | 2 measured cases ([R5097: Table 2]); the cause read in [R5099, R5101, R5102] | - | - |
+| IGH2 | B | T2 | L1 | ice_giant_heat.SUPPRESSION_RANGE (0.03, 0.30): the share of the law's flux a layered ice giant radiates, log-uniform; Uranus's 0.042 (+0.047, -0.042) W/m2 is 0.13 of the 0.32 the law gives at its mass, and 0 to 0.28 inside its error | 0.01 to 0.5 | layered ice giants of 5 to 20 Earth masses | a measured layered ice giant radiating under 0.01 or over 0.5 of the law | thermal evolution models of layered ice giants by mass and age [R5099, R5102] that give the share of the law as a function of the gradient | READ ([R5097: Table 2], Voyager values of [R5098]); the range is widened to the error bar's top, L1 | - | - |
+| IGH3 | P | T6 | L0 | the layered share is one number for the life of the giant (mass-only, no age law): a gradient that stays stable for billions of years leaves the outer cooling at a fixed fraction of the adiabatic rate [R5099] | none | giants of a few to 15 Gyr | a model that gives the share falling or rising with age by more than a factor of 2 over 1 to 10 Gyr | the thermal evolution tracks of layered giants | [R5099, R5102] read as abstracts; the age law is argued, not derived | - | - |
 
 ## 6.166 Stand-ins of the interior viscosity ranges
 
