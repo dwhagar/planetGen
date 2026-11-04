@@ -103,7 +103,7 @@ def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False, quad
 
 
 def _fake_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                  binary=None, placement=None, octants=(), facets=False, after=None, start=None):
+                  binary=None, placement=None, octants=(), facets=False, after=None, start=None, ranges=None):
     rows = [row for row in STANDALONE if binary is None or bool(row["is_binary"]) == binary]
     key = {"octant": "quadrant"}.get(sort or "name", "name")
     rows = sorted(rows, key=lambda row: (row[key] or "", row["name"]), reverse=bool(descending))

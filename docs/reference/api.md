@@ -169,7 +169,10 @@ connectivity to that specific schema rather than the default one.
   `binary_type`). `star_type` is a literal prefix (`%` and `_` match only
   themselves). `sector_id=none` matches only standalone systems
   (`sector_id IS NULL`, the `/systems` page's Standalone Systems table) — distinct
-  from omitting `sector_id` entirely (no sector filter at all). The Systems
+  from omitting `sector_id` entirely (no sector filter at all). UX.228: the numeric range filters of
+  `GET /api/search` (UX.226; `star_`, `planet_` or `moon_` in front of `min_<key>`, `max_<key>` and `<key>_unit`,
+  `planet_min_gravity=0.8&planet_max_gravity=1.2`) keep the systems that hold at least one star, planet or moon whose stored value lies in every
+  range on its kind (with ranges on more than one kind a system needs a body of each); `total` and `facets` follow, and a bad bound or unit is a 400. The Systems
   tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`, `stars`) with
   `order=asc|desc` (systems with no sector or octant sort last), the filters
   `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),

@@ -19,7 +19,7 @@ from planetgen.web.lib.habitability_cells import COLUMN as HABITABILITY_COLUMN, 
 
 from . import bp, tables
 from .helpers import crumb, db_name, page_url, render_page
-from .searchpage import SearchState, tidy_value_args, value_form
+from .searchpage import SearchState, tidy_value_args, value_chips, value_form
 
 KIND_LABELS = {
     "star": ("star", "stars", "Stars"),
@@ -211,32 +211,14 @@ def _kept_params(kind):
 
 def _chips(kind, ranges):
     """The "remove this filter" chips of the ranges and the order in use: `[{label, url}]` (UX.228)."""
-    chips = []
-
-    def without(*names, gas=False):
-        """The address without `names`; a gas range may have come from the form's "another gas" row, so removing one drops that row too."""
-        pairs = [(key, value) for key, value in request.args.items(multi=True) if key not in names
-                 and not (gas and (key.endswith("_other_gas") or "_other_gas_" in key))]
-        return page_url("object_list", kind=kind, **dict(pairs))
-
-    for key, (least, most, unit) in (ranges or {}).items():
-        symbol = search_values.symbol(unit or search_values.KEYS[key].default_unit(kind))
-        tail = f" {symbol}" if symbol else ""
-        if least is not None and most is not None:
-            text = f"{least:.6g}\u2013{most:.6g}{tail}"
-        elif least is not None:
-            text = f"\u2265 {least:.6g}{tail}"
-        else:
-            text = f"\u2264 {most:.6g}{tail}"
-        label = search_values.KEYS[key].label.split(" (")[0]
-        chips.append({"label": f"{label[:1].lower()}{label[1:]}: {text}",
-                      "url": without(f"{kind}_min_{key}", f"{kind}_max_{key}", f"{kind}_{key}_unit",
-                                     gas=key.startswith(search_values.GAS_PREFIX))})
+    pairs = list(request.args.items(multi=True))
+    chips = value_chips({kind: ranges} if ranges else {}, pairs, page_url("object_list", kind=kind), with_entity=False)
     ordered = _value_state().value_sorts().get(kind)
     if ordered:
         label = search_values.KEYS[ordered.lstrip("-")].label.split(" (")[0].lower()
+        remaining = [(key, value) for key, value in pairs if key != f"{kind}_value_sort"]
         chips.append({"label": f"ordered by {label}, {'high to low' if ordered.startswith('-') else 'low to high'}",
-                      "url": without(f"{kind}_value_sort")})
+                      "url": page_url("object_list", kind=kind, **dict(remaining))})
     return chips
 
 
