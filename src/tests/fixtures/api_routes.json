@@ -92,6 +92,7 @@
   "/api/galaxy/window GET",
   "/api/health GET",
   "/api/jobs/<job_id> GET",
+  "/api/lookup GET",
   "/api/moons/<uid:body_id> DELETE",
   "/api/moons/<uid:body_id>/regenerate POST",
   "/api/moons/<uid:moon_id> PATCH",

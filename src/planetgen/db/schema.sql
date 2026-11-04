@@ -1542,6 +1542,7 @@
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
 --   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
 -- v198 (GEN.1174): `stars` and `bright_stars` gain `nuclear_arrival_age_gy` (Gyr, NULL), the age at which MIST's tracks put a pre-main-sequence star on the main sequence (hydrogen burning settled), kept beside `phase_end_age_gy` of `bright_stars`, which for such a star is the earlier age its radius settles (BHAC15). NULL for every star that is not pre-main-sequence and for a row made before v195; nothing is backfilled.
+-- v200 (GEN.1138): `designations`, one row for each ID or name an object stopped having (`designation_uid` or `designation_name`, `object_kind` and `object_row_id`, `valid_from_epoch`, `retired_epoch`, `reason`, `gone_epoch`). A retired ID is reserved for ever (unique), a retired name is not. A designation that changed before has none; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4580,6 +4581,36 @@ CREATE TABLE IF NOT EXISTS dark_members (
     CONSTRAINT fk_dark_members_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT chk_dark_members_kind CHECK (kind IN ('brown-dwarf', 'neutron-star', 'black-hole', 'stripped-helium'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- designations (v200, GEN.1138): the IDs and names an object used to have, one row each (docs/design/architecture/designation-history.md). `object_kind` is the
+-- table that held the object and `object_row_id` its row number, which never changes (the `uid` is the thing that does). A retired ID is reserved for ever:
+-- `uq_designations_uid` and the objects' own unique `uid` columns keep it from being given again. A retired name is not reserved (the collision bump hands a
+-- stored object's name to another), so it has a plain index. `valid_from_epoch` is NULL for the birth designation; `gone_epoch` is NULL while the object exists.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS designations (
+    id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    designation_kind     VARCHAR(4) NOT NULL,
+    designation_uid      BINARY(12) NULL,
+    designation_name     VARCHAR(255) NULL,
+    object_kind          VARCHAR(24) NOT NULL,
+    object_row_id        BIGINT UNSIGNED NOT NULL,
+    valid_from_epoch     SMALLINT UNSIGNED NULL,
+    retired_epoch        SMALLINT UNSIGNED NOT NULL,
+    reason               VARCHAR(16) NOT NULL,
+    gone_epoch           SMALLINT UNSIGNED NULL,
+    retired_at           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_designations_uid (designation_uid),
+    KEY idx_designations_name (designation_name, retired_epoch),
+    KEY idx_designations_object (object_kind, object_row_id, retired_epoch),
+    CONSTRAINT chk_designations_kind CHECK (designation_kind IN ('uid', 'name')),
+    CONSTRAINT chk_designations_reason CHECK (reason IN ('collision bump', 'rename', 'regeneration', 'parent change', 'admin renumber')),
+    CONSTRAINT chk_designations_shape CHECK (
+        (designation_kind = 'uid' AND designation_uid IS NOT NULL AND designation_name IS NULL)
+        OR (designation_kind = 'name' AND designation_name IS NOT NULL AND designation_uid IS NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
