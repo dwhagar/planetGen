@@ -2142,6 +2142,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   #3241. Filed by the TODO thread.
   Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
 
+- [ ] **MAP.376 Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug)**
+  Found by Core 5 in its TEST.575 share, 5:40 PM EST on 2026-11-04 (as
+  the lane reported).
+  test_map_region_labels_browser::test_a_click_on_the_family_flies_to_its_block
+  fails deterministically (assert 9 == 81): clicking the family label
+  'Fixture Reach' (family:81.0.0.0, no extent, so regionOpener.block)
+  ends with the camera at 71.6 pc in a 9-block window instead of an
+  81-block one. Since MAP.336 and MAP.337 every Go to is a camera flight
+  and the window follows the camera, so openBlock lands at the default
+  window distance. MAP.319 (flyToFit) says a flight to a region places
+  the camera so the target fills the window, so this is a map bug, not a
+  test to change. Do: make the flight to a family or region block frame
+  the whole block (camera distance from the block's extent, or from its
+  size when it has no stored extent), for every level of the ladder (3,
+  9, 27, 81, 243). Done: the existing test green unchanged, plus a case
+  for each level. Owner Core 2 (MAP.336, MAP.337 and MAP.319 owner).
+  Goal #3241. Filed by the TODO thread.
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
