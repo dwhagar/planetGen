@@ -133,7 +133,8 @@ def test_a_sea_of_another_liquid_has_a_tide_with_its_own_density_and_a_lava_none
                   planet_class="H", surface_liquid="methane", surface_liquid_fraction=0.017, surface_temperature=94.0)
     found = ocean_tides.compute(titan, giant)
     assert found["ocean_liquid"] == "methane" and found["tide_range_spring_m"] > 0.0
-    titan.surface_liquid = "basalt_melt"
-    assert ocean_tides.compute(titan, giant)["tide_range_spring_m"] is None
+    for melt in ("basalt_melt", "peridotite_magma", "carbonatite_melt"):     # every rock melt, silicate or carbonate, by its kind
+        titan.surface_liquid = melt
+        assert ocean_tides.compute(titan, giant)["tide_range_spring_m"] is None, melt
     titan.surface_liquid, titan.surface_liquid_fraction = "methane", None
     assert ocean_tides.compute(titan, giant)["tide_range_spring_m"] is None

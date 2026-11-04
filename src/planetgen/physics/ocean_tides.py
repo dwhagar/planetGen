@@ -182,22 +182,26 @@ def ocean_tide(body_mass_kg, body_radius_m, spin_rate_rad_s, raisers, k2, liquid
 def _liquid_of(body):
     """The liquid of the body's sea: the stored surface liquid (GEN.1035) at the body's temperature when it is a non-water sea (a methane or ethane sea, an ammonia-water or acid one), else water."""
     name = getattr(body, "surface_liquid", None)
-    if name and name != "water" and name not in _lava_ids():
+    if name and name != "water" and not _is_melt(name):
         temperature = getattr(body, "surface_temperature", None)
         if temperature:
             return Liquid(name, surface_liquids.density_kg_m3(name, temperature))
     return WATER
 
 
-def _lava_ids():
-    from planetgen.physics import surface_liquid_world        # imported here: it imports the chain this module is part of
-    return surface_liquid_world.LAVA_IDS
+MELT_KINDS = ("silicate", "carbonate")
+"""tuple: The kinds of liquid in `surface_liquids` that are rock melts (basalt, komatiite, rhyolite, peridotite magma, carbonatite): a molten surface is not a free sea with a tide here."""
+
+
+def _is_melt(name):
+    """Whether `name` (an id of `surface_liquids`) is a rock melt, by its kind, so a melt the surface liquid step does not store yet (carbonatite) is left out too."""
+    return surface_liquids.liquid(name).kind in MELT_KINDS
 
 
 def _has_liquid_sea(body):
     """Whether the body's surface is a free sea of a non-water, non-lava liquid (a stored `surface_liquid` that covers part of it)."""
     name = getattr(body, "surface_liquid", None)
-    return bool(name) and name != "water" and name not in _lava_ids() and bool(getattr(body, "surface_liquid_fraction", None))
+    return bool(name) and name != "water" and not _is_melt(name) and bool(getattr(body, "surface_liquid_fraction", None))
 
 
 def _axis(body):
