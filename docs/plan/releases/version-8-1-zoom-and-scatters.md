@@ -546,6 +546,12 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch |  |  |
 | GEN.1144 | Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach |  |  |
 | GEN.1141 | Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete |  |  |
+| API.38 | API and search for local names: name is the local name, a new sector field carries the place, a typed name returns every match with its sector, an ID typed in full still opens its object | GEN.1254, GEN.1255 |  |
+| UX.259 | Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>' | GEN.1254, GEN.1255 |  |
+| GEN.1257 | Charting keeps the old ID-derived name as the first Formerly line when a word-salad name replaces it | GEN.1254, GEN.1255 |  |
+| GEN.1256 | One uid-derived name scheme for every ID-named object: rogues, nebulae, remnants, quasars, comets, asteroid fields and black holes stop using the position ID as a name | GEN.1254, GEN.1255 |  |
+| GEN.1255 | Local names from the Object ID: the serial and body number spelled alone as two words through a keyed bijective scramble, CODEC_VERSION 2 |  |  |
+| GEN.1254 | Every scatter star and scattered phenomenon gets an Object ID (uid) when the scatter is made: uid column on bright_stars and phenomenon_scatter, serial = rank in the sector |  |  |
 | GEN.1186 | Small evidence updates to registered stand-ins from the strength papers review |  |  |
 | GEN.1185 | Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned |  |  |
 | GEN.1179 | Optional: Hoek-Brown geological strength index as a body parameter for rock |  |  |
@@ -576,7 +582,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range |  |  |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | GEN.1111 |  |
 | TEST.575 | 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug) |  |  |
-| TEST.572 | Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug) |  |  |
 | TEST.569 | Red on main: the reproducibility guard (five call sites), the mass-conversion guard (two tests), the pinned galaxy and the sector panel test (bug) |  |  |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly |  |  |
 | GEN.1221 | Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent | GEN.1219, GEN.1220 |  |

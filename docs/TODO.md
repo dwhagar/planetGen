@@ -870,6 +870,31 @@ with `clamp()`.
   Prerequisites: GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
+- [ ] **UX.259 Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>'**
+  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
+  questions of reports/id-names-without-region-prefix-2026-11-04.md
+  section 7 (research thread): (1) a name is the local part of the
+  Object ID only, two words, with the sector shown beside it, and the
+  uid stays the identity; (2) one uid-derived scheme for every ID-named
+  object, retiring the position-ID names of rogues, nebulae and the
+  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
+  old derived name is kept as a Formerly line when charting gives a
+  word-salad name. Pages and map side of questions 1 and 3. Do: the
+  uncharted star page title, its row in the Uncharted stars table and
+  the uncharted phenomenon page and lists show the local name from
+  GEN.1255; where a name stands alone (search results, the
+  uncharted-stars list, the map infobox and labels) it is followed by
+  the sector ('Hairun Binn, sector 00FA0FFFE9E240') and the sector is a
+  link; tables that already show 'Sector and cell' keep that column. The
+  Object ID shown on the page is the real uid of the scatter row.
+  Lock-free once GEN.1254 and GEN.1255 are on main. Done: no page, list,
+  label or infobox of an uncharted object carries 'Uncharted <class>
+  star <number>'; a test over the uncharted-star page, the phenomenon
+  page and the lists. Owner Core 2 (map labels, infobox) with Core 5
+  (pages), proposed by the TODO thread. Related: GEN.1254, GEN.1255,
+  API.38. Filed by the TODO thread.
+  Prerequisites: GEN.1254, GEN.1255.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -13936,6 +13961,128 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **GEN.1254 Every scatter star and scattered phenomenon gets an Object ID (uid) when the scatter is made: uid column on bright_stars and phenomenon_scatter, serial = rank in the sector**
+  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
+  questions of reports/id-names-without-region-prefix-2026-11-04.md
+  section 7 (research thread): (1) a name is the local part of the
+  Object ID only, two words, with the sector shown beside it, and the
+  uid stays the identity; (2) one uid-derived scheme for every ID-named
+  object, retiring the position-ID names of rogues, nebulae and the
+  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
+  old derived name is kept as a Formerly line when charting gives a
+  word-salad name. This item is question 3 and the prerequisite of the
+  whole names chain. Today bright_stars and phenomenon_scatter carry
+  only an auto-increment row id and a sector address; the page title
+  'Uncharted G2V star 12345' is built from that row id, which is not
+  stable (clear_bright_stars truncates the table). Do: add a uid
+  BINARY(12) column with a unique index to both tables, written at
+  scatter time; the serial is the object's rank among the sector's
+  pre-placed objects by luminosity descending and a deterministic
+  candidate key (not the auto-increment id, which depends on insertion
+  order); when a sector is generated, a system built round a scatter
+  star keeps that uid ('a row that already has a uid keeps it',
+  object-ids.md) and the fill continues its own serial after the scatter
+  ones. Check first whether the fill's pre-placed order (luminosity
+  DESC, id) already equals the new key; if not, change it so existing
+  output stays stable. Cost about 24 bytes a row (0.6 GB at 26.9 million
+  rows, 5 GB at 220 million). Generation output changes (new epoch, new
+  migration, scatter regenerated; testing mode, no shim). Lock work,
+  train 11 (train 10 is frozen). Done: every scatter row has a unique
+  uid; a charted system round a scatter star keeps it; the Object ID of
+  a scatter star is the same after a scatter rebuild with the same seed;
+  a test that no two rows share a uid; census line with the added bytes;
+  object-ids.md updated. Owner Core 3 (scatter and fill). Related:
+  GEN.1255, GEN.1256, GEN.1257. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1255 Local names from the Object ID: the serial and body number spelled alone as two words through a keyed bijective scramble, CODEC_VERSION 2**
+  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
+  questions of reports/id-names-without-region-prefix-2026-11-04.md
+  section 7 (research thread): (1) a name is the local part of the
+  Object ID only, two words, with the sector shown beside it, and the
+  uid stays the identity; (2) one uid-derived scheme for every ID-named
+  object, retiring the position-ID names of rogues, nebulae and the
+  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
+  old derived name is kept as a Formerly line when charting gives a
+  word-salad name. This item is question 1. Today an ID-derived name
+  spells the whole position ID as four words (36 characters), so objects
+  born near each other share their leading words. Do: in
+  names/naming_key.py add a local-name function that spells only the
+  serial (28 bits, of which 26 are count bits) and body number, in its
+  own codec domain so it never carries the sector's words, as two words
+  of about 10 characters ('Hairun Binn'). The raw serial must be
+  scrambled first with a keyed bijection on the 26 count bits (odd
+  multiplier and offset, mixed with the sector), because serials 0, 1, 2
+  spelled directly share their first word; the research check gave 1,000
+  serials as 1,000 different first words and names. The scramble is a
+  bijection, so the name is reversible with the key. The sector
+  designation is shown beside the name wherever a name stands alone
+  ('Hairun Binn, sector 00FA0FFFE9E240'); name inside a sector is exact,
+  and on its own it is shared with another object about 1 time in 27 at
+  10 million objects, which the sector settles. A naming-key change
+  renames ID-named objects without rewriting rows. CODEC_VERSION goes to
+  2 (golden words change; testing mode). Stored data and the generator
+  are untouched, so this is lock-free. Done: golden words; a bijection
+  test for the scramble; a test that local names are unique inside a
+  sector and that no two serials of a sector share a first word;
+  reversal from the name and sector back to the uid; naming docs
+  updated. Owner Aux 7 (idle after TEST.562, proposed by the TODO
+  thread). Related: GEN.70, GEN.71, GEN.120, GEN.1254. Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1256 One uid-derived name scheme for every ID-named object: rogues, nebulae, remnants, quasars, comets, asteroid fields and black holes stop using the position ID as a name**
+  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
+  questions of reports/id-names-without-region-prefix-2026-11-04.md
+  section 7 (research thread): (1) a name is the local part of the
+  Object ID only, two words, with the sector shown beside it, and the
+  uid stays the identity; (2) one uid-derived scheme for every ID-named
+  object, retiring the position-ID names of rogues, nebulae and the
+  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
+  old derived name is kept as a Formerly line when charting gives a
+  word-salad name. This item is question 2. Rogue planets, standalone
+  black holes and neutron stars, nebulae, remnants, quasars, comets and
+  asteroid fields store the 19-digit position ID (GEN.64) as their name
+  and show it spelled by the old codec (GEN.71). Do: audit every admin,
+  API and search path that reads the 19-digit position ID as a key; give
+  each of these objects (where it has no uid yet) an Object ID; derive
+  every ID-named object's name from its uid with the local-name function
+  of GEN.1255, with the sector beside it; stop writing the position ID
+  into name, with no alias and no shim (testing mode). Stored name
+  values change (new epoch and migration). Lock work, train 11, after
+  GEN.1254 and GEN.1255. Done: no object stores a position ID as its
+  name; a test that every uncharted object page and list row shows a
+  local name and its sector, never a word-salad name and never a
+  position-ID spelling; the audit written into the item's note. Owner
+  Planets 1 (rogues and the phenomena stores) after GEN.1111. Related:
+  GEN.64, GEN.71, GEN.1254, GEN.1255. Filed by the TODO thread.
+  Prerequisites: GEN.1254, GEN.1255.
+
+- [ ] **GEN.1257 Charting keeps the old ID-derived name as the first Formerly line when a word-salad name replaces it**
+  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
+  questions of reports/id-names-without-region-prefix-2026-11-04.md
+  section 7 (research thread): (1) a name is the local part of the
+  Object ID only, two words, with the sector shown beside it, and the
+  uid stays the identity; (2) one uid-derived scheme for every ID-named
+  object, retiring the position-ID names of rogues, nebulae and the
+  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
+  old derived name is kept as a Formerly line when charting gives a
+  word-salad name. This item is question 4. An ID-derived name is
+  computed, not stored, so renaming at charting leaves no history row
+  and an old link or search for the derived name stops resolving. Do:
+  when the fill gives a scatter star (or a phenomenon) its word-salad
+  name, write the derived local name as the first retired name in the
+  designations table (GEN.1138 reason 'charted'), shown on the Formerly
+  line (GEN.1140) and found by past-name search; the uid does not
+  change, so redirects are not needed. Generation output changes the
+  designations table content (lock work, train 11, with GEN.1254). Done:
+  a test that charting a scatter star leaves one Formerly row with its
+  local name and that search by the old name finds the object; the
+  Formerly line shows the date and reason 'charted'. Owner Core 1
+  (designation history). Related: GEN.1138, GEN.1140, GEN.1141,
+  GEN.1254, GEN.1255. Filed by the TODO thread.
+  Prerequisites: GEN.1254, GEN.1255.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15561,6 +15708,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+
+- [ ] **API.38 API and search for local names: name is the local name, a new sector field carries the place, a typed name returns every match with its sector, an ID typed in full still opens its object**
+  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
+  questions of reports/id-names-without-region-prefix-2026-11-04.md
+  section 7 (research thread): (1) a name is the local part of the
+  Object ID only, two words, with the sector shown beside it, and the
+  uid stays the identity; (2) one uid-derived scheme for every ID-named
+  object, retiring the position-ID names of rogues, nebulae and the
+  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
+  old derived name is kept as a Formerly line when charting gives a
+  word-salad name. Wire side of question 1. Do: for an ID-named object
+  `name` becomes the local name and a new field (sector) carries the
+  sector designation, in the object, list and search answers;
+  `former_designations`, redirects and 409/410 are untouched (they work
+  on the uid); the search that today resolves a typed name to one ID
+  (stored_name_for) returns the candidates, each with its sector, and
+  one match opens directly, while an ID typed in full still opens its
+  object. API version bump (testing mode, no alias): rides a train with
+  GEN.1254 (train 11). Done: tests over the object, list and search
+  answers; the wire-format docs updated. Owner Core 5 (API) after
+  DOC.103, proposed by the TODO thread. Related: GEN.1255, API.36
+  (region-name search, open), GEN.1140. Filed by the TODO thread.
+  Prerequisites: GEN.1254, GEN.1255.
 
 ## ADM: Admin tools
 
@@ -17691,21 +17861,6 @@ clears each one.
   detmath may differ in the last bit), in which case it rides a train
   with an epoch under its own item. Owner Core 1 (free; found them).
   Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.572 Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug)**
-  Found by Tides 1, about 2:30 PM EST on 2026-11-04 (as the lane
-  reported), red with and without its GEN.1218b change. (1) A
-  test_sheet_fill check on life_class_variant fails for 1 of 30 bodies.
-  (2) nuclear_arrival_age_gy comes out NULL in every star row, so the
-  column is not being filled (or the test reads the wrong place). Do:
-  run each alone on current main, find the cause (a train 8 change that
-  stopped writing the column, or a stale test), and fix it at the
-  source. If the column is meant to be filled and is not, that is a
-  generation bug: fix the writer and add a guard. Done: both checks pass
-  on main in 3 runs. Owner Aux 7 after TEST.571 (proposed by the TODO
-  thread; Bug 1 or Star 2 if the star column proves theirs). Filed by
-  the TODO thread.
   Prerequisites: none.
 
 - [ ] **TEST.575 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug)**
