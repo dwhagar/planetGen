@@ -307,7 +307,7 @@ def cleared_spans(body, star_mass_kg, lower_au, upper_au):
 def is_stirred(body, star_mass_kg, lower_au, upper_au):
     """Whether a giant stirs the stretch: it reaches within `STIR_ZONE_WIDTHS` chaotic half-widths of the giant's orbit."""
     reach = STIR_ZONE_WIDTHS * chaotic_half_width_au(body, star_mass_kg)
-    return upper_au >= body.distance_au - reach and lower_au <= body.distance_au + reach
+    return bool(upper_au >= body.distance_au - reach and lower_au <= body.distance_au + reach)
 
 
 def moved_through(body, lower_au, upper_au, star_mass_kg):
@@ -316,7 +316,7 @@ def moved_through(body, lower_au, upper_au, star_mass_kg):
         return False
     half = chaotic_half_width_au(body, star_mass_kg)
     path = (min(body.formation_au, body.distance_au) - half, max(body.formation_au, body.distance_au) + half)
-    return upper_au >= path[0] and lower_au <= path[1]
+    return bool(upper_au >= path[0] and lower_au <= path[1])
 
 
 def instability_survival(u):
