@@ -761,7 +761,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.87 | References R1: link helper (reference_link(kind, id)), the anchor and URL scheme, the banned-words rule for out-of-universe words, and the crawl test | none | done, PR #4602 |
 | DOC.88 | References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh) | none | done, PR #4624 |
 | DOC.89 | References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used | none | done, PR #4828 |
-| DOC.90 | References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets) | none | open |
+| DOC.90 | References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets) | none | done, PR #4830 |
 | DOC.91 | References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect | none | open |
 | DOC.92 | References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213) | none | open |
 | DOC.93 | References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places | none | open |
@@ -1389,7 +1389,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.612 | Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable | none | open |
 | GEN.613 | Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them | none | open |
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster | none | open |
-| GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures | none | open |
+| GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures | none | done, PR #4830 |
 | GEN.616 | Average the galaxy density over each planned sector (or a 3 by 3 by 3 sample) instead of taking its centre point, for galaxies under 28 pc scale length | none | dropped (Boss, 2026-10-21 8:08 PM EDT, replaced by GEN.619) |
 | GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output | none | done, PR #2469 |
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end | none | open |

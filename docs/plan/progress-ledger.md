@@ -2367,3 +2367,5 @@ Baseline: PR #1817.
 | TEST.568 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.670 | 8.1 | Descriptions and maps |
 | DOC.89 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.615 | 8.1 | Admin control suite |
+| DOC.90 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

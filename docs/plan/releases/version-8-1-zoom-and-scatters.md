@@ -123,7 +123,6 @@ Shape dials (Boss, 6:41 to 6:46 PM EDT, 2026-10-21; goal issue #2355): the gener
 | GEN.612 | Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable |  | Shape dials (Boss 7:13 PM EDT 2026-10-21); needs Boss sources. |
 | GEN.613 | Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them |  | Boss 7:33 PM EDT 2026-10-21; read-only report. |
 | GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster |  | Density limits report (GEN.613). |
-| GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures |  | Density limits report (GEN.613); cut decided 3e8 (Boss, 7:58 PM EDT). |
 | GEN.618 | The stellar-to-halo inversion gives a 6e13 solar-mass halo for 2e11 solar masses of stars, the shape dials' mass ceiling: check the Moster inversion at the top end |  | Density limits report (GEN.613). |
 
 ## Phase 2: Infinite zoom
@@ -628,10 +627,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | DOC.98 | Boss, citations only in the registry. |
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment | DOC.93 | Boss, citations only in the registry. |
 | DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information |  | Boss, citation links. |
-| DOC.93 | References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places | DOC.90, DOC.91 |  |
+| DOC.93 | References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places | DOC.91 |  |
 | DOC.92 | References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213) |  |  |
-| DOC.91 | References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect | DOC.90 |  |
-| DOC.90 | References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets) |  |  |
+| DOC.91 | References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect |  |  |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | GEN.862 |  |
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages |  |  |
 | GEN.1207 | Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match |  |  |
