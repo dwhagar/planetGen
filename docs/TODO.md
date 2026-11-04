@@ -18012,67 +18012,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.284 test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug)**
-  Found by the Performance lane (relayed 10:25 PM EDT 2026-10-22 as the
-  lane reported) while re-running the ten failures it had seen, on
-  current main with the control database present. Kind: test fails on
-  main. Test:
-  src/tests/test_uncharted_phenomenon.py::test_an_uncharted_black_hole_page_names_its_class.
-  Failure text: the page shows 2 uncharted where the test expects 3.
-  Fails on main: yes on the Performance lane's clean checkout; not yet
-  confirmed on another lane. Frequency: every run on that lane.
-  Reproducer: python3 -m pytest -q
-  src/tests/test_uncharted_phenomenon.py::test_an_uncharted_black_hole_page_names_its_class.
-  Do: confirm it on another lane's main (Bug Hunt), find the cause (a
-  recent change to uncharted counting or to black hole classification),
-  and fix the cause, not the test. Done: the test passes alone and in a
-  gate. Owner: Bug Hunt (proposed by the TODO thread, after TEST.275).
-  Two other failures the lane saw are its own machine's grants
-  (test_update_database_step: Access denied for planetgen@127.0.0.1 on
-  the test database) and pass alone (test_count_cache, test_slow_route),
-  so they are not filed.
-  Not reproduced (Bug Hunt, relayed 12:41 AM EDT 2026-10-23 as the lane
-  reported): on main at a56c434a plus #2600 (release 8.0.1986) the file
-  test_uncharted_phenomenon.py gives 9 passed, and the same test passed
-  in the lane's last three full gates; the test body asserts that 'Black
-  Hole (Stellar)' and 'Mass' are on the page and has no count of 2
-  against 3, so the failure text above is a paraphrase. Parked until the
-  Performance lane sends: the full pytest failure output (assert line
-  and traceback), `git rev-parse HEAD` and `git status --short`, whether
-  Apache or another web server answers on its machine (TEST.279 was an
-  unfaked HTTP call answered by Apache with a 404), and its MySQL
-  version (8.0 is the minimum).
-  Correction (Performance, relayed 12:44 AM EDT 2026-10-23 as the lane
-  reported): the '2 against 3' belongs to a different test,
-  test_count_cache.py::test_the_uncharted_count_follows_a_rescatter_and_a_reset
-  (assert 2 == 3), and
-  test_a_count_under_an_unchanged_stamp_is_not_made_again (assert 2 ==
-  1); both passed alone on rerun, so they were load or order and are not
-  filed. The failure of this item is the assertion `'Black Hole
-  (Stellar)' in <page>`: the page rendered without the class name. It
-  failed only inside `scripts/test.py changed` (4 xdist workers, load
-  about 5.5 to 6.5) in two gates and passes alone (9 passed at cd5542f,
-  main plus the PERF.164 commits, git status clean). That machine: MySQL
-  8.0.46 on Ubuntu 24.04, Redis local, nothing answers on port 80 (no
-  Apache). It looks load-dependent. Next: Bug Hunt runs it in a loop
-  under load (the Performance lane can do the same after its medium
-  suite) to find what the page depends on that load changes; the earlier
-  request for more output is withdrawn.
-  Progress (Bug Hunt, #2604 merged 1:18 AM EDT 2026-10-23 as the lane
-  reported; the item stays open): not reproduced in 150 or more runs of
-  the test, alone and with the file's other tests under -n 3, beside a
-  six-worker load at load 9 on the Bug Hunt lane. The page is built
-  straight from the phenomenon_scatter row, so only a non-page answer
-  (202 loading, 302, a cached page of another row) can drop the class
-  name. #2604 makes the assertion print the status code, the headers and
-  the first 1,500 characters of the page, so the next sighting names the
-  cause. The Performance lane's two sightings may predate #2573 (a
-  private Redis database per xdist worker) and #2600; it is asked to
-  re-run the file in its next gate on current main and send the printed
-  answer if it recurs. Close this item if it does not recur in the
-  Performance lane's next two gates.
-  Prerequisites: none. Related: TEST.275.
-
 - [ ] **TEST.287 test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug)**
   Found by Core 2 (relayed 1:32 AM EDT 2026-10-23 as the lane reported)
   in its gate for ADM.127 and UX.146; neither diff touches it, and it
@@ -18261,24 +18200,6 @@ clears each one.
   queue's swallowed bookkeeping errors, and a missing work_jobs row
   reports the rows there are and what the queue could not write. This
   item stays open for a sighting with that text.
-
-- [ ] **TEST.298 test_admin_script_cli.py: four fixture-finalizer errors under load in a gate (bug)**
-  Found by Core 2 (relayed 2:55 PM EDT 2026-10-23 as the lane reported)
-  in its gate for MAP.174 (#2694); filed by the TODO thread. Kind: flaky
-  errors under load. Test: four tests of
-  src/tests/test_admin_script_cli.py errored in their fixture (a pytest
-  fixture-finalizer assertion); they pass on re-run. Failure text beyond
-  that was not given. Fails on main: unknown. Frequency: once in one
-  gate. Do: capture the finalizer assertion and the fixture, find what
-  the finalizer asserts on (a leftover database, a held connection or a
-  worker still running) and make it wait for or remove that state. Done:
-  the four tests pass 50 times in a row at -n 4 under load, with the
-  cause on this item. Owner: Bug Hunt (proposed by the TODO thread).
-  Research (2026-10-09, Update): Bug Hunt (7:22 AM EDT 2026-10-24, as
-  the lane reported): not reproduced, 50 of 50 green at -n 4 under load.
-  Parked: it needs the finalizer text the next time it is seen; close it
-  if nothing shows by the next audit.
-  Prerequisites: none. Related: TEST.297, TEST.141.
 
 - [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
@@ -18911,20 +18832,6 @@ clears each one.
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
   Prerequisites: none.
-
-- [ ] **TEST.561 Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug)**
-  Found by the full-suite run on 7eef24a (as the lane reported 9:17 AM
-  EST on 2026-11-04) and reproduced on main d22d767df by TODO. Both
-  tests pin a count that depends on the derived mean system mass
-  (GEN.927 and later epochs): tests/test_galaxy_shell_outline.py and
-  tests/test_gen_halo.py. Do: decide for each whether the move is
-  expected (the single-star mass function and the new old-population
-  window moved the mean system mass) and re-pin it with the reason in
-  the test, or whether a defect moved it; if the pin keeps moving each
-  epoch, make the test compare against a value derived from the model
-  (as TEST.548 did for the remnant ratio). Test only, no generated
-  change unless a defect is found. Owner: Star 2.
-  Prerequisites: none. Related: GEN.927, GEN.1025.
 
 - [ ] **TEST.562 test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug)**
   Found by the full-suite run (as the lane reported 9:36 AM EST on

@@ -3533,7 +3533,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.281 | test_a_star_in_an_opened_sector_is_selectable fails on main: no click on a star in an opened sector selects it (bug) | none | done, PR #2619 |
 | TEST.282 | test_precision imports calculate_hill_sphere from generation.star, where GEN.565d moved it away: ImportError on main (bug) | none | done, PR #2547 |
 | TEST.283 | Re-run the whole-sphere audits TEST.185, TEST.184, TEST.159 and TEST.160 on main after the PERF.146 speedups | none | done, audits run on main dd6d46d0 (9:57 PM EDT) |
-| TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) | none | open |
+| TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) | none | done, PR #4809 |
 | TEST.285 | test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases fails on a machine without the static downloads: the plan step exits 1 and the test expects 0 (bug) | none | done, PR #2602 |
 | TEST.286 | test_quasar_physics_follows_from_mass_and_eddington_ratio fails by chance: it builds 50 quasars with no seed and a mass draw below 1e5 breaks its assertion (bug) | none | done, PR #2612 |
 | TEST.287 | test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug) | none | open |
@@ -3547,7 +3547,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.295 | test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug) | none | open |
 | TEST.296 | test_species_limits.py::test_a_generated_galaxys_species_are_all_inside_their_limits fails once in a gate: population.run_pass makes 1 new species where 2 or more are expected (bug) | none | done, PR #2687 |
 | TEST.297 | The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug) | none | open |
-| TEST.298 | test_admin_script_cli.py: four fixture-finalizer errors under load in a gate (bug) | none | open |
+| TEST.298 | test_admin_script_cli.py: four fixture-finalizer errors under load in a gate (bug) | none | done, PR #4809 |
 | TEST.299 | test_api_species_tech_filters fails once in a full run: the first species of the tech-descending list has tech 6.55, not the 6.0 the test set (bug) | none | done, PR #2945 |
 | TEST.300 | End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers | none | open |
 | TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | none | done, PR #3619 |
@@ -3809,7 +3809,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.558 | test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main in 6 cases: the component density differs from the stored one by about 0.6 percent (bug) | none | done, PR #4782 |
 | TEST.559 | test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon fails on main: physics.tidal_heating has no molten_power_w (the tides chain removed it) (bug) | none | done, PR #4779 |
 | TEST.560 | test_the_code_reads_no_variable_the_model_does_not_name fails on main: PLANETGEN_BAND_TABLE_CACHE and PLANETGEN_BATTERY_DIGEST_CACHE are read in code and not named in the settings model (bug) | none | done, PR #4779 |
-| TEST.561 | Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug) | none | open |
+| TEST.561 | Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug) | none | done, PR #4809 |
 | TEST.562 | test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug) | none | open |
 | TEST.563 | test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass fails on main: the belt mass reads 1.86e19 kg where 0.0 is expected (bug) | none | done, PR #4796 |
 | TEST.564 | test_a_directed_moon_count_still_goes_through_the_gate fails on main: moon counts vary 1 and 2 with a minimum of 0 where at least 1 and 80 percent at 2 are expected (bug) | none | done, PR #4788 |
