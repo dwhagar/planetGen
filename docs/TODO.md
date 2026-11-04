@@ -800,41 +800,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
-- [ ] **UX.225 Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4)**
-  Unused stored values audit (the "Find stored values nothing uses"
-  thread, report reports/unused-stored-values-audit-2026-10-24.md,
-  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
-  Boss's 10:16 PM EDT instruction to file every stored or calculated
-  value nothing uses that is not already in the works. None of it is a
-  wrong number on a page today. G4. db/query.py SEARCH_TAG_FACETS is tag
-  facets only; objectlist.SORTS has name, class, mass and radius;
-  SYSTEM_SORTS name, sector, octant and binary. There is no range filter
-  or sort on gravity, surface temperature, pressure, orbit distance, day
-  length, year length, star mass, luminosity or age, surface dose,
-  magnetic field, ocean depth, moon count or any atmosphere gas. Add
-  numeric range filters and sort keys for the stored physical values on
-  the search page, the object lists, Nearby and /api/search, with the
-  unit shown (unit registry GEN.568) so 'planets with 0.8 to 1.2 g and a
-  dose under 2 mSv a year' is one query. Done: a browser test runs that
-  query on a sample galaxy and the API documents the parameters. Version
-  8.2, phase 2. Owner: Aux 6 with Aux 12 for the API. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  draws through draw.py; a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`; stand-ins get
-  GEN.725 registry rows.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 12) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Owner (11:30 AM EST on 2026-11-04): OWNER Core 1 (assigned by TODO as
-  the lane reported 11:28 AM EST on 2026-11-04, after UX.228 completed
-  with the lists, Nearby and the Systems list): what is left is
-  /api/search taking the same range filters and sort keys with the units
-  documented, and the browser test that runs one query such as planets
-  with 0.8 to 1.2 g and a dose under 2 mSv a year on a sample galaxy.
-  Lock-free, no stored value.
-  Prerequisites: UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
 - [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L9. The Life and air chart plots O2, CO2, CH4
@@ -18649,19 +18614,6 @@ clears each one.
   runs. Kept open until it recurs; if it has not recurred when Bug 1
   finishes its queue, Bug 1 retires it.
   Prerequisites: none. Related: TEST.394, TEST.383.
-
-- [ ] **TEST.414 test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug)**
-  Found by Aux 10 (as the lane reported 9:56 AM EDT 2026-10-28) while
-  merging MAP.317 (#3395); not that change's. Do: run the file alone on
-  clean main, find what the database fixture waits on (a generation of a
-  whole sector fixture, MySQL or Redis not up, a worker not started, the
-  env variables PLANETGEN_MYSQL_USER/PASSWORD/HOST missing after a
-  restart), and fix the fixture so it builds a small galaxy in seconds
-  or fails fast with the reason. Done: the 8 tests pass and a stuck
-  fixture fails within its timeout. Owner: Bug 1 after DB.108/GEN.826,
-  or a free lane. Rules: never skip or quarantine a test;
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.409, TEST.412.
 
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
