@@ -14555,46 +14555,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
-- [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
-  Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
-  5:04 PM EDT 2026-10-24 as the lane reported; filed by the TODO
-  thread). The scatter-pass tests take 60 to 130 s each alone, which
-  makes gates slow and flaky under load. Do: profile
-  star_population._bright_windows, then cache the table per galaxy
-  parameters or vectorise the build, with bit-identical output on the
-  golden set (no epoch) or an epoch if the values change. Done: the
-  build is at least five times faster, the tests' own timeout can come
-  down, and a test pins the output. Owner: Performance lane (pool
-  otherwise).
-  Progress (2026-10-30 2:11 PM EDT): Aux 5 (as the lane reported 2:10 PM
-  EDT; #4075): PERF.218 and TEST.464 are retired. Tests now keep the
-  bright-star tables across processes (PLANETGEN_BAND_TABLE_CACHE, set
-  only by conftest): one first sector fill on a slow machine 267 s and
-  1,842 MB before, 35.8 s and 534 MB with the kept tables, output and
-  golden digest identical. Production never sets the variable, so a real
-  first fill still builds the tables (measured 267 s, 717,000 distinct
-  track evaluations); making that faster is this item, by one-pass
-  bright pieces per mass and [Fe/H], or by turning the kept folder on in
-  production (Boss call: it trades a disk folder for time).
-  Star 2 profile (as the lane reported) (2026-10-31 12:50 PM EDT): one
-  solar-bin table (threshold 100 Lsun, 718 cells) takes 20.4 s under the
-  profiler and the work is distinct, not repeats: about 28 percent
-  main-sequence edge rows that miss the memo (isochrones.edge_point,
-  main_sequence._low_mass), 29 percent post_main_sequence.bright_pieces,
-  12 percent timeline. A five-fold gain needs the edge, low-mass,
-  timeline and bright-piece functions vectorised across a cell grid, and
-  numpy log10 and pow need not match math to the last bit, so
-  bit-identical output cannot be promised: treat the vectorised version
-  as lock work (epoch) or take the Boss call already noted in the item
-  (turn on the kept-table folder in production). A bit-identical cache
-  of the low-mass edge pieces (about 10 percent) is available as a small
-  lock-free step.
-  Boss (11:25 AM EST on 2026-11-04): decided (Boss, 11:24 AM EST on
-  2026-11-04, option 1): keep the built star tables in a disk folder in
-  production (first fill from 267 s to 36 s, same output), not a
-  vectorised rebuild with a new epoch. Owner Star 2 builds it; no epoch.
-  Prerequisites: none. Related: TEST.344, GEN.394.
-
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -18843,6 +18803,19 @@ clears each one.
   companion law), fix the cause, and say which in the change note. If
   the generator changed on purpose, update the test with the reason; if
   a defect, fix it and note whether stored output changes. Owner: Aux 7.
+  Prerequisites: none.
+
+- [ ] **TEST.566 test_deploy_scripts fails on main: scripts/settle_references.py names src/crossref, which is not in the repo (bug)**
+  Found by Star 2 in its PERF.188 run and confirmed on main by the TODO
+  thread, 11:55 AM EST on 2026-11-04:
+  test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist
+  fails with `scripts/settle_references.py: src/crossref`. The script
+  (DOC.95 and DOC.96 sweep) names a path that is not committed. Do:
+  either commit the missing module, point the script at the file it
+  means, or drop the line if the script no longer needs it; then run the
+  test and the sweep script's own check. Done: the test passes on main.
+  Lock-free (scripts only). Owner the Citations thread (proposed by the
+  TODO thread; it says if it clashes). Filed by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts
