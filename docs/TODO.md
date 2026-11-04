@@ -14242,6 +14242,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread). Filed by the TODO thread.
   Prerequisites: GEN.1218.
 
+- [ ] **GEN.1250 With HABITABLE_WORLD off, about 3 percent of sampled dwarf systems still hold a planet that meets the request's conditions (bug)**
+  Found by Aux 7 in its TEST.571 work, about 4:10 PM EST on 2026-11-04
+  (as the lane reported). With the generate request set to no habitable
+  world, 7 of 209 sampled G/K/M/F dwarf systems (3 percent) still hold
+  an ecosphere planet that meets the request's conditions (temperate,
+  thick enough air, a surface ocean), though the bar in
+  generation/planet.py redraws up to 30 times. Seeds 150, 178, 180 and
+  203 among them, with G2V, M2V and F5V stars. Do: find why the redraw
+  lets some through (a redraw that stops after 30 tries, a path that
+  builds the planet after the check, or moons and later steps that
+  change the conditions), and make the bar hold, or document the honest
+  limit if it cannot (the answer to a request is yes, no or unknown, per
+  GEN.1248). Generation output changes, so lock work with an epoch under
+  its own item, after GEN.1244 and GEN.1218b in train 10. Done: over 300
+  sampled dwarf systems none breaks the request, with a census guard.
+  Related: GEN.916, GEN.917, GEN.1248. Owner Core 4 after the class
+  chain (proposed by the TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
