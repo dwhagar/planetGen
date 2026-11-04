@@ -2,6 +2,67 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3132] - 2026-11-04
+
+**Headline:** The slow-pages test for a site being updated now expects what the cache guard does: a refusal, not a page built in the request.
+
+### Changed
+- **Test fix, no behaviour change (TEST.565).** `test_an_update_in_progress_builds_in_the_request_too` expected that, when the work queue cannot take a slow page because the site is being updated, the page is built in the request. That was true until the cache guard (`admin/cachebuild.py`, `web/rebuild_gate.py`): a page that needs a cache an update is rebuilding is refused with a 503 and "try again in a minute", because built in the web daemon it runs past mod_wsgi's 60-second limit and the daemon is killed with every other request in flight. The slow-pages code still tries the queue first, gets the update's refusal, and falls back to building; the guard then refuses it. The test, renamed `test_an_update_in_progress_refuses_the_page_instead_of_building_it_in_the_request`, now expects `CacheRebuilding`, the notice that the queue was not available, and no job left half queued. The cause was not the PERF.209/218 caches. Also: the `directives.py` docstring names the registry row `HCT1` (it said `HC1`).
+generation-output: unchanged
+
+## [8.0.3131] - 2026-11-04
+
+**Headline:** Planet, moon and belt pages now use American spelling and sentence-case labels throughout.
+
+### Changed
+- **American spelling on planet-facing text.** Color, gray, center, neighbor, vapor, sulfur, armored, aluminum, summarize and similar words replace the British forms in labels, legends, help text and descriptions of planets, moons and belts, including the habitability colors page and the property sheet.
+- **Label case.** Property sheet and table labels for planets, moons and belts are in sentence case.
+
+## [8.0.3130] - 2026-11-04
+
+**Headline:** The table behind a habitable-worlds directive (`habitable>=N`) is now measured on the current generator, where it was a typed table from before the life classes.
+
+### Changed
+- **Habitable count per system, measured (GEN.1245).** `generation/directives.py` sizes the "impossible" check of a `habitable` directive (GEN.180) from the share of systems that hold 0, 1, 2, ... habitable bodies. The table was typed from 6,000 systems before epoch 121, when a habitable body became a body of a life class: it put 76 percent of systems at none and six habitable bodies in three systems at about 1 in 250. On the generator now 40 percent hold none, the mean is 1.78 per system and the tail reaches 16, and six or more in three systems is about 42 percent (a 160-sector check gave 49 percent, a mean of 5.9 against 5.4 per sector, inside that sample's noise). `scripts/measure_habitable_count.py` counts 4,000 systems (epoch 130) and writes `physics/data/habitable_count.json`; `directives` reads the table from it instead of a typed tuple. Registered as HCT1 in the stand-in registry (GEN.725, section 6.165). Only the refusal of a request a sector cannot reach reads the table; the forced fill builds as many systems as the minimum asks, and no sector, system or stored value changes. Fixed two tests with it: the compound-tail test now passes the design note's table explicitly, and the forced-fill message test asserts the message the fill gives since GEN.1130 ("a fill asked for a habitable world"), which it had not since that item.
+generation-output: unchanged
+
+## [8.0.3129] - 2026-11-04
+
+**Headline:** Every list on the site now puts a comma before its last "and" or "or" ("red, green, and blue").
+
+### Changed
+- **The serial comma, everywhere.** Lists of three or more in the pages, help text, class descriptions, life classes, the settings and admin help, and the sentences the site writes about a system now read "a, b, and c". Pairs are unchanged ("red and blue").
+- **A check keeps it that way.** The plain-words checker flags a list with no comma before its last "and" or "or", and a test reads every page template for it.
+
+## [8.0.3128] - 2026-11-04
+
+**Headline:** The directed-moon-count test counts a moon that fell into its planet as born, so it no longer fails when the planet's spin history takes the moons it was given.
+
+### Changed
+- **Test fix, no code change (TEST.564).** `test_a_directed_moon_count_still_goes_through_the_gate` asked a planet for two moons and expected at least one to be left. The moons are drawn as asked (the gate, GEN.761, and the direction hold), but the spin history of the planet (GEN.959, `moon_history`) then lets a moon that sits inside the planet's synchronous orbit spiral in within a few million years, and it becomes ring material (GEN.1057, `planet.fallen_moons`). On some seeds both moons fell, so the planet kept none and the test read 0. It is not a stability drop (GEN.1031) and not the direction being lost. The test now counts the moons born (kept plus fallen) for the minimum, maximum and the share with two, and checks that the moons kept are never more than asked or born.
+generation-output: unchanged
+
+## [8.0.3127] - 2026-11-04
+
+**Headline:** The density identity test is held to the mean system masses of the new mass-ratio law, not to the ones recorded before it.
+
+### Fixed
+- **TEST.558: `test_the_spiral_written_as_components_gives_the_density_it_gave_before` failed in all six cases on main (the density about 0.6 percent off the stored one).** The cause is a stale reference, not a defect: epoch 130 (train 8, GEN.951) made the mass ratio of a companion follow a sourced law instead of a uniform 0.1 to 1, which moved the mean mass of a system at every age (`system_mass.py`, `multistar.py`), and the model's units per solar mass follow it (the same chain as GEN.929 before). Bisected on the first-parent history: the test passes on the commit before the train 8 merge and fails on it. The fixture `tests/fixtures/density_identity.json` is recorded again. Checked before rewriting it: every total density, halo, bulge and nuclear term is the old one times one number per shape (0.9941 to 0.9944), the total mass is unchanged, and the units per age group follow the mean system mass at each age (young up, old down by a percent or so), so the mix of a place between the age groups moves and its total does not. Nothing generated changes.
+
+## [8.0.3126] - 2026-11-04
+
+**Headline:** The star, planet and moon lists filter and sort by the same stored physical values as the search page: gravity, temperature, pressure, orbit, dose, luminosity, age, gases and the rest.
+
+### Added
+- `/lists/star`, `/lists/planet` and `/lists/moon` carry a "Filter and order by physical values" form with the search page's range boxes and unit menus (`planet_min_gravity=0.8&planet_max_gravity=1.2`, `planet_value_sort=-gravity`), chips that take one range away, and a Values column for the values a range or an order is on that no column shows already. The columns of a physical value (orbit, surface temperature, a star's temperature, luminosity and age) sort the list by it. The table keeps the ranges while it is sorted and paged, and a submitted form is redirected to its short address like the search page's. The partial `value_group.html` is shared with the search page.
+- `GET /api/object-lists/<kind>` for those three kinds takes `sort=<key>` for any numeric key of the search and `<kind>_min_<key>`, `<kind>_max_<key>`, `<kind>_<key>_unit` range filters; items carry `values` for the keys in use. Value sorts and ranges read the kind's own table through a join on the object index, keyset paged.
+
+### Changed
+- A sort the star list did not know before (`age`) is now a valid sort rather than a 400.
+
+generation-output: unchanged
+TODO items resolved: UX.228 part 1 (the star, planet and moon lists); the Systems list and Nearby are the other parts of the item
+
 ## [8.0.3125] - 2026-11-04
 
 **Headline:** The resonant-chain tide test calls the tide functions that exist now.

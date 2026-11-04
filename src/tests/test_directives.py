@@ -100,7 +100,7 @@ def test_a_habitable_minimum_missed_for_k_draws_takes_the_forced_fill_and_says_s
         directives.parse(["habitable>=4"]), lambda: _Sector([_Entry("G2", hab=0)] * 2), max_attempts=5,
         build_forced=build_forced)
     assert outcome.status == directives.MET_FORCED and counts == [4] and outcome.missed == {}
-    assert len(sector.entries) == 4 and "forced fill" in outcome.describe() and "met_forced" in outcome.describe()
+    assert len(sector.entries) == 4 and "a fill asked for a habitable world" in outcome.describe() and "met_forced" in outcome.describe()
     assert outcome.attempts == 6, "the K draws, then the forced one"
 
 
@@ -140,17 +140,18 @@ def test_the_forced_fill_is_repeatable_for_a_seed():
 
 def test_the_compound_poisson_tail_matches_the_tables_of_the_design_note():
     """sampling-backfill-and-resume.md 8.1: P(at least N habitable worlds) at 6.3 and 2.0 expected systems."""
-    assert directives._compound_poisson_tail(6.3, 3) == pytest.approx(0.327, abs=0.003)
-    assert directives._compound_poisson_tail(6.3, 5) == pytest.approx(0.104, abs=0.003)
-    assert directives._compound_poisson_tail(2.0, 2) == pytest.approx(0.155, abs=0.003)
-    assert directives._compound_poisson_tail(0.35, 1) == pytest.approx(0.082, abs=0.003)
+    note = (0.7551, 0.1896, 0.0380, 0.0120, 0.0040, 0.0010)    # the note's 6,000 systems, before epoch 121 (GEN.1245)
+    assert directives._compound_poisson_tail(6.3, 3, note) == pytest.approx(0.327, abs=0.003)
+    assert directives._compound_poisson_tail(6.3, 5, note) == pytest.approx(0.104, abs=0.003)
+    assert directives._compound_poisson_tail(2.0, 2, note) == pytest.approx(0.155, abs=0.003)
+    assert directives._compound_poisson_tail(0.35, 1, note) == pytest.approx(0.082, abs=0.003)
     assert directives._poisson_tail(6.3, 0) == 1.0 and directives._poisson_tail(0.0, 1) == 0.0
     assert directives._poisson_tail(6.3, 500) == 0.0, "an underflowing tail ends, it does not loop"
 
 
 @pytest.mark.parametrize("minimums, systems, mean, quoted", [
     (["systems>=5"], 3, None, "systems >= 5 cannot be met in a sector of 3 systems"),
-    (["habitable>=6"], 1, None, "habitable >= 6 cannot be met"),
+    (["habitable>=60"], 1, None, "habitable >= 60 cannot be met"),
     (["type:G>=40"], 10, None, "type:G >= 40 cannot be met"),
     (["systems>=500"], None, 6.3, "about 6.3 systems"),
 ])

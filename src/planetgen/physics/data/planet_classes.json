@@ -36,7 +36,7 @@
     "ocean_fraction": {
       "label": "water cover",
       "percent": true,
-      "note": "share of the surface covered by water, liquid or frozen"
+      "note": "share of the surface covered by water, liquid, or frozen"
     },
     "water_mass_fraction": {
       "label": "water share of the body's mass",
@@ -95,7 +95,7 @@
           "lt": 35.0
         }
       ],
-      "sentence": "An ice giant: 10 to 35 Earth masses, mostly water, ammonia and methane ices and rock under a hydrogen and helium envelope.",
+      "sentence": "An ice giant: 10 to 35 Earth masses, mostly water, ammonia, and methane ices and rock under a hydrogen and helium envelope.",
       "basis": "design: 35 Earth masses, the cut that misplaces fewest of the drawn ice and gas giants (15 percent; their mass ranges overlap from 30 to 60); the envelope share of GEN.428 replaces it at the cut-over"
     },
     {

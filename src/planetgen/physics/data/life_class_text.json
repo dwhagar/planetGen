@@ -19,7 +19,7 @@
   },
   "4": {
    "name": "Multicellular life",
-   "description": "Class {n} life has grown into colonies, mats or bodies big enough to see."
+   "description": "Class {n} life has grown into colonies, mats, or bodies big enough to see."
   },
   "5": {
    "name": "Animals",
@@ -27,7 +27,7 @@
   },
   "6": {
    "name": "Sentient life",
-   "description": "A species of Class {n} life builds tools, settlements and a civilization."
+   "description": "A species of Class {n} life builds tools, settlements, and a civilization."
   }
  },
  "grades": {
@@ -37,7 +37,7 @@
   },
   "A2": {
    "name": "Small mobile animals",
-   "description": "Animals that crawl or swim, mostly small, grazing and hunting."
+   "description": "Animals that crawl or swim, mostly small, grazing, and hunting."
   },
   "A3": {
    "name": "Large active animals",
@@ -64,7 +64,7 @@
    },
    "6": {
     "name": "Sentient life",
-    "description": "A species that builds tools, settlements and a civilization, living on an oxygen-rich world."
+    "description": "A species that builds tools, settlements, and a civilization, living on an oxygen-rich world."
    }
   },
   "2": {
@@ -88,7 +88,7 @@
   "3": {
    "1": {
     "name": "Microbes on hydrogen",
-    "description": "Microbes living on hydrogen from rock and water, in vents, deep rock and aquifers."
+    "description": "Microbes living on hydrogen from rock and water, in vents, deep rock, and aquifers."
    },
    "2": {
     "name": "Hydrogen-eating communities",
@@ -98,7 +98,7 @@
   "4": {
    "1": {
     "name": "Microbes at the redox edge",
-    "description": "Microbes living where a fuel such as sulfide, iron or ammonium meets an oxidant."
+    "description": "Microbes living where a fuel such as sulfide, iron, or ammonium meets an oxidant."
    },
    "2": {
     "name": "Chemosynthetic mats",
@@ -110,15 +110,15 @@
    },
    "4": {
     "name": "Chemosynthetic colonies",
-    "description": "Multicellular life around vents and seeps, living on sulfide, iron or ammonium."
+    "description": "Multicellular life around vents and seeps, living on sulfide, iron, or ammonium."
    },
    "5": {
     "name": "Vent and seep animals",
-    "description": "Animals that live beside the vent and host or eat chemosynthetic microbes: tubeworms, clams and the animals that graze them."
+    "description": "Animals that live beside the vent and host or eat chemosynthetic microbes: tubeworms, clams, and the animals that graze them."
    },
    "6": {
     "name": "Sentient life",
-    "description": "A species that builds tools, settlements and a civilization, rising from a chemosynthetic food web."
+    "description": "A species that builds tools, settlements, and a civilization, rising from a chemosynthetic food web."
    }
   },
   "5": {

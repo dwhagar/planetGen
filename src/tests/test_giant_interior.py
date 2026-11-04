@@ -192,7 +192,7 @@ def test_the_description_has_a_sentence_for_every_layer():
     assert sentences[0].startswith("The molecular hydrogen and helium envelope (molecular fluid) holds")
     assert all(s.endswith(".") and any(word in s for word in ("hydrogen", "rock", "iron")) for s in sentences)
     ice = gi.describe_interior(interior(NEPTUNE))
-    assert any("mantle of water, ammonia and methane" in s for s in ice)
+    assert any("mantle of water, ammonia, and methane" in s for s in ice)
 
 
 def test_the_summary_wording_has_a_clause_for_every_kind_and_every_feature_it_names():

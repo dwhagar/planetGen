@@ -15,6 +15,7 @@ from planetgen.describe.html import inline_html
 from planetgen.generation import evolution
 from planetgen.physics import gases, life_class_text, life_classes
 from planetgen.util.format import three_figures_or_tiny
+from planetgen.util.wordlist import join_words
 
 PHI6_CAPTIONS = ("Radiation", "Survival equipment")
 """tuple: The captions of the description's facts tables that belong with the PHI-6 rating."""
@@ -143,7 +144,7 @@ def _glance_classes(best, others, class_url=None):
     if len(others) > GLANCE_OTHERS:
         named.append("others")
     if named:
-        text += ", then " + (", ".join(named[:-1]) + " and " if len(named) > 1 else "") + named[-1]
+        text += ", then " + join_words(named)
     return text + "."
 
 

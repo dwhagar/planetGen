@@ -14347,23 +14347,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1157, GEN.962, GEN.921, TEST.557,
   GEN.725.
 
-- [ ] **GEN.1245 Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale**
-  Found by Aux 3 with TEST.555 part 3 (as the lane reported 8:58 AM EST
-  on 2026-11-04). generation/directives.py sizes the forced fill of a
-  sector directive such as habitable>=6 and its impossible check from
-  HABITABLE_COUNT_PMF, the spread of habitable bodies per system. A
-  habitable body is a body of a life class since epoch 121 and about 7
-  systems in 10 hold one, a spread the table does not hold. Do: measure
-  the habitable count per system on the current generator (about 3 s a
-  system, so a few thousand systems as a background job), replace the
-  table with the measured spread and register it in GEN.725 with tier
-  and tweak level, read the table from the measurement script rather
-  than a typed number, and check that the forced fill and the impossible
-  check agree with a sector drawn on the new epoch. Changes how a
-  directive run fills a sector, not a system: epoch with --affects fill
-  if the stored output moves, rides a train. Owner: Aux 3. Version 8.1.
-  Prerequisites: none. Related: GEN.180, GEN.1130, TEST.555, GEN.725.
-
 - [ ] **GEN.1246 The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source**
   Found by Core 3 with GEN.1242 (as the lane reported 9:16 AM EST on
   2026-11-04). GEN.1242 replaces the growth-of-stars inflow with an
@@ -18425,25 +18408,6 @@ clears each one.
   is busy.
   Prerequisites: none. Related: TEST.313.
 
-- [ ] **TEST.319 test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug)**
-  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
-  the lane reported) during the gate of #2742: the catalogue test fails
-  when the ozone_uv data file is not downloaded on the machine (the
-  dataset arrived with GEN.443). Do: either make the test skip a dataset
-  whose download is optional and not yet run, or make the gate fetch it,
-  following how the other real-dataset tests decide; the rule is the
-  existing one for datasets fetched at setup. Done: the test passes on a
-  machine without the file and still fails when a required file is
-  missing. Owner: Bug Hunt or lane E (GEN.443).
-  Research (2026-10-09, Update): Update 1:17 AM EDT 2026-10-24: Core 5
-  reports the same failure on its lane machine (the ozone_uv file is not
-  downloaded there; the OPS.62 environment setup family). The fix is in
-  the test, not on each machine.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Core 5) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: GEN.443.
-
 - [ ] **TEST.320 test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug)**
   Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
   the lane reported): it failed once in a full gate and passes alone; it
@@ -18490,26 +18454,6 @@ clears each one.
   finds 0 help links where 7 are expected.
   Prerequisites: none. Related: UX.163.
 
-- [ ] **TEST.332 test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug)**
-  Reported by the unit registry lane at 6:10 AM EDT 2026-10-24 (as the
-  lane reported) as failing on main while merging #2924: the comet is
-  missing from the set of row kinds the test checks (it asserts {planet,
-  moon, belt, comet}). The TODO thread could not confirm the cause: on
-  its machine the test fails for another reason (NLTK data download
-  refused by the proxy), so recheck on current main first. Do: reproduce
-  on current main, find why a system built by the test holds no comet (a
-  draw change from the star tree, GEN.631, or the belt fix, TEST.313,
-  are the likely sources) and make the test force a comet the way
-  test_systems forces a belt. Done: the test passes. Owner: Bug Hunt
-  (proposed).
-  Research (2026-10-09): Aux 11 (as the lane reported, 2026-10-28) saw
-  test_object_rows round-trip red again on clean main while merging
-  #3573; still open, Bug 1.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 11) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: GEN.631, TEST.313.
-
 - [ ] **TEST.333 test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug)**
   Reported by Habitability lane B at 6:12 AM EDT 2026-10-24 (as the lane
   reported) from an end-of-queue `full --check` on main:
@@ -18524,26 +18468,6 @@ clears each one.
   passes, close this. Done: 50 clean trials on main. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.313, GEN.631.
-
-- [ ] **TEST.336 test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug)**
-  Reported by Core 5 at 6:51 AM EDT 2026-10-24 (as the lane's clock
-  reads) as failing on main too while merging GEN.309 (#2934): the
-  assertion shows 142 == 138. The TODO thread could not run it (the test
-  skips on this machine for lack of the database grants), so recheck on
-  current main first. Do: reproduce on current main; the count differs
-  by 4, so find which draw or migration step changed the number of
-  planets and moons the v135 fixture galaxy holds (a draw change from
-  GEN.631 or GEN.271, or the DB.98 fixture clean-up #2931, are the
-  likely sources) and fix the test or the migration. Done: the test
-  passes on main. Owner: Bug Hunt (proposed).
-  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
-  2026-10-24, as the lane reported): test_migration_habitable_worlds
-  fails with DataMissing on a fresh lane machine until the ozone_uv
-  dataset is fetched (python3 -m planetgen.cli.datasets fetch ozone_uv).
-  That may be the whole cause of this red on lane machines (the same
-  environment fault as TEST.319); recheck with the dataset fetched
-  before looking for a code cause.
-  Prerequisites: none. Related: DB.98, GEN.631, GEN.271.
 
 - [ ] **TEST.341 A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug)**
   Seen once by Habitability lane K (7:50 AM EDT 2026-10-24, as the lane
@@ -18719,19 +18643,6 @@ clears each one.
   nothing in 8.1.
   Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
 
-- [ ] **TEST.387 test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug)**
-  Aux 3 (Lane D) saw test_every_column_is_written fail once in a batch
-  run (10:40 PM EDT 2026-10-24 as the lane reported): the four disk
-  columns were NULL in every row because the random draw produced no
-  star with a disk; it passes alone on main. The sheet fill audit
-  (reports/sheet-fill-summary-2026-10-25.md) shows only 1 of 522 stars
-  has a disk, so the test depends on luck. Make the test deterministic:
-  seed a fixture with a disk star, or exclude columns that are
-  conditionally written by a rule, and have the rule stated in one
-  place. Related fill items GEN.778 to GEN.791 (disk producer). Done:
-  the test passes on any seed, 20 runs in a row. Owner: Bug 1.
-  Prerequisites: none. Related: GEN.778.
-
 - [ ] **TEST.389 test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug)**
   Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported): in the
   gate of GEN.818 (nothing of that change is in generation)
@@ -18743,27 +18654,6 @@ clears each one.
   tables is the first suspect. Done: confirmed or cleared with the
   commit named; if real, fixed with a test. Owner: Bug 1.
   Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
-
-- [ ] **TEST.391 Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug)**
-  Reported by the Citations lane (1:30 AM EDT 2026-10-25, GEN.738 gate):
-  test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
-  fails on a clean origin/main, and
-  test_atmosphere_mixture_escape::test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen
-  fails with a top O2 of 0.498 against the 0.5 bound, also on main. Find
-  the cause of each (a real model change, a stale golden, or a bound
-  that needs its source), fix at the cause, never skip; the 0.5 bound
-  needs the source that sets it or a GEN.725 row. Done: both pass on a
-  clean main. Owner: Bug 1 (after TEST.384). Rules: no backward-compat
-  shims; tests are scripts/test.py changed --resume.
-  Finding (2026-10-09): Confirmed on clean origin/main by a second lane
-  (1:38 AM EDT 2026-10-25):
-  test_runaway_history.py::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
-  fails because lost_any is False for all 6 seeds, so no M3V Earth-zone
-  planet loses surface water.
-  Seen again (3:52 PM EDT 2026-10-30): Core 3 found test_runaway_history
-  surface water red on a clean origin/main again (relayed 3:52 PM EDT
-  2026-10-30 as the lane reported).
-  Prerequisites: none. Related: TEST.384, GEN.738.
 
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
   From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
@@ -19170,19 +19060,6 @@ clears each one.
   the re-tag. Owner: Train Manager.
   Prerequisites: none.
 
-- [ ] **TEST.558 test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main in 6 cases: the component density differs from the stored one by about 0.6 percent (bug)**
-  Found by Core 3 while building GEN.1242 (as the lane reported 9:16 AM
-  EST on 2026-11-04, not from its change) and reproduced on main
-  d132b7661 by TODO: tests/test_density_components.py line 182, the
-  four_arms case first. The density written as components differs from
-  the one the spiral gave before by about 0.6 percent in every grid
-  cell, where the test expects equality to its tolerance. Do: find
-  whether a component weight, a constant moved by a recent epoch, or the
-  test's reference is stale (git bisect on the file), fix the cause, and
-  say in the change note which it was. No generated change if the
-  reference is stale. Owner: Core 4 (stand-by).
-  Prerequisites: none. Related: GEN.1242.
-
 - [ ] **TEST.561 Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug)**
   Found by the full-suite run on 7eef24a (as the lane reported 9:17 AM
   EST on 2026-11-04) and reproduced on main d22d767df by TODO. Both
@@ -19196,6 +19073,40 @@ clears each one.
   (as TEST.548 did for the remnant ratio). Test only, no generated
   change unless a defect is found. Owner: Star 2.
   Prerequisites: none. Related: GEN.927, GEN.1025.
+
+- [ ] **TEST.562 test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug)**
+  Found by the full-suite run (as the lane reported 9:36 AM EST on
+  2026-11-04) and reproduced alone on main 6d1d104.
+  tests/test_gen_fill_groups.py. A member of a decayed group is built
+  from the hierarchy and should come out with both stars; one star comes
+  out. Do: find whether the generator or the test is stale (bisect the
+  file, check the recent hierarchy and multiplicity epochs, GEN.951
+  companion law), fix the cause, and say which in the change note. If
+  the generator changed on purpose, update the test with the reason; if
+  a defect, fix it and note whether stored output changes. Owner: Aux 7.
+  Prerequisites: none.
+
+- [ ] **TEST.563 test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass fails on main: the belt mass reads 1.86e19 kg where 0.0 is expected (bug)**
+  Found by the full-suite run (as the lane reported 9:36 AM EST on
+  2026-11-04) and reproduced alone on main 6d1d104.
+  tests/test_gen337_point_fill.py (64 s alone). A belt stated with zero
+  mass should store zero mass; it stores 1.86e19 kg, so a rule fills in
+  a belt mass the directive said not to. Do: find whether a recent
+  belt-mass rule (the belt ledger, GEN.1156) overrides a stated zero or
+  the test predates it, fix the cause, and say which in the change note.
+  Owner: Aux 7.
+  Prerequisites: none.
+
+- [ ] **TEST.565 test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug)**
+  Found by the full-suite run (as the lane reported 9:36 AM EST on
+  2026-11-04) and reproduced alone on main 6d1d104.
+  tests/test_slowpages.py. While an update is in progress a slow page
+  should build in the request; it raises CacheRebuilding instead. Needs
+  the MySQL test setup. Do: find whether the cache rule (PERF.209,
+  PERF.218 or the slow-pages work) changed the update-in-progress path
+  on purpose or broke it, fix the cause, and say which. Owner: Aux 3,
+  after GEN.1245.
+  Prerequisites: none.
 
 ## USR: User accounts
 
@@ -20291,27 +20202,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.86 Oxford comma everywhere: check lists of three or more for the serial comma, and fix every template, help page and generated sentence**
-  Boss (2026-10-31, 2:50 PM EDT): "introduce our text pages to the
-  oxford comma, sometimes you use it, sometimes you don't, use it, it's
-  important." Rule 15 of the plain-words guide
-  (docs/design/interface/text-style.md) now says every list of three or
-  more has a comma before its and or or. Do: (1) add a checker to
-  planetgen/util/plainwords.py that flags a list of three or more items
-  without the comma, reliably enough to hold (a clause list like 'X,
-  which is big and cold' must not fire: flag only a run of at least
-  three short noun phrases joined by commas ending in and or or without
-  the comma; test sentences for both the hits and the safe cases, then
-  run it over the corpus to see what it flags), and move rule 15 into
-  the checked list; (2) run it over the generated text
-  (tests/test_plain_words.py), the class pages, the life help pages
-  (tests/test_life_help.py), the help suite, the templates and the
-  static pages, and fix every hit; (3) hold the new help pages
-  (References, glossary) to it as they land. Lock-free; text only, no
-  generation change. Owner: Core 5 (with UX.252, which applies the rule
-  in its rewrite).
-  Prerequisites: none.
-
 - [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
@@ -20879,6 +20769,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   plain-words guide and docs/design/interface/references.md. No author,
   year, journal, DOI or arXiv number outside the registry, REFERENCES.md
   and the References pages.
+
+- [ ] **DOC.102 American spelling sweep of every text that is not a planet, moon or belt description: templates, help pages, static pages, star, system, sector, nebula and phenomenon text, error messages, the API and CLI help, so "colour" and the other British spellings go to zero**
+  Boss, 10:33 AM EDT on 2026-10-31: American spelling, so "color" not
+  "colour", consistent everywhere (UX.252 records it for planet, moon
+  and belt text). Core 5 asked for the rest to be filed (as the lane
+  reported 9:50 AM EST on 2026-11-04). Do: run the British-spelling
+  checker of planetgen/util/plainwords.py (colour, grey, centre, metre,
+  litre, kilometre, analyse, neighbour and the like, with its short
+  allow-list for proper names and quotes) over every text outside
+  UX.252's reach, fix every hit, extend the word list where the sweep
+  finds more, and hold the checker to the whole site so a new British
+  spelling fails a test; the 333 uses of "colour" on the site go to zero
+  apart from quotes and names. Text only: a stored text that carries a
+  British spelling is not edited here, it is listed for the item that
+  owns its generator. Lock-free. Owner: Core 5 (after UX.252).
+  Prerequisites: none. Related: UX.252, DOC.86.
 
 ## POP: Population and politics
 

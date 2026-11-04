@@ -208,13 +208,13 @@ def index():
     return render_page(
         "index.html",
         title="Home",
-        description="Every sector, star system and phenomenon in this charted galaxy.",
+        description="Every sector, star system, and phenomenon in this charted galaxy.",
         counts=[{"total": envelope["total"], "capped": bool(envelope.get("total_capped")), "url": url,
                  "noun": nouns[0] if envelope["total"] == 1 and not envelope.get("total_capped") else nouns[1]}
                 for envelope, nouns, url in counts],
         tools=[{"label": "Galaxy Map", "hint": "Fly through the whole galaxy.", "url": page_url("galaxy")},
                {"label": "Navigate", "hint": "Plan a route between two places.", "url": page_url("nav")},
-               {"label": "Search", "hint": "Find a sector, system, star, planet or moon by name.",
+               {"label": "Search", "hint": "Find a sector, system, star, planet, or moon by name.",
                 "url": page_url("search")}],
     )
 
@@ -335,7 +335,7 @@ def generate_uncharted_system(bright_star_id):
 @bp.route("/search")
 @page_limit("search")
 @slow_route("Search", breadcrumbs=lambda: [crumb("Search")],
-            description="Search this charted galaxy by name, size and type.")
+            description="Search this charted galaxy by name, size, and type.")
 def search():
     """
     Faceted search (was `search.py`): `?q=` searches every kind of name
@@ -352,7 +352,7 @@ def search():
         "search.html",
         title="Search",
         breadcrumbs=[crumb("Search")],
-        description="Search this charted galaxy by name, size and type.",
+        description="Search this charted galaxy by name, size, and type.",
         state=state,
         name_fields=searchpage.NAME_FIELDS,
         size_entities=searchpage.SIZE_ENTITIES,

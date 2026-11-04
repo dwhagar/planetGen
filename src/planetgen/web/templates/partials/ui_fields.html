@@ -1,11 +1,11 @@
 {#- planetgen/web/templates/partials/ui_fields.html -- the one form field (UX.124): a labelled Shoelace `sl-input`,
-    `sl-select` or `sl-checkbox` with its name, required flag and a slot for the server's validation error. Import it
+    `sl-select` or `sl-checkbox` with its name, required flag, and a slot for the server's validation error. Import it
     `from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox`.
 
     Without script the element is not defined (shoelace-theme.css hides it), so each field also writes the plain
     control into a <noscript>: the page posts as it always did with scripts off, and with scripts on the <noscript>
     is not drawn. A field that needs a datalist stays a native control (a datalist cannot reach into the shadow
-    root); the hidden, submit, password and one-time-code fields stay native too (decided).
+    root); the hidden, submit, password, and one-time-code fields stay native too (decided).
 
     `error` is the server's text for this field: it shows under the field (role "alert") and marks it invalid. Extra
     keyword arguments are written as attributes on both the element and the plain control (placeholder, min, max, step,

@@ -36,7 +36,7 @@ KIND_LABELS = {
     "interstellar_comet": ("interstellar comet", "interstellar comets", "Interstellar comets"),
     "quasar": ("quasar", "quasars", "Quasars"),
 }
-"""dict: Each kind with a list page, to its singular, plural and heading (facilities have no page of their own)."""
+"""dict: Each kind with a list page, to its singular, plural, and heading (facilities have no page of their own)."""
 
 COLUMNS = [Column("name", "Name"), Column("class", "Class"), Column("mass", "Mass"), Column("radius", "Radius"),
            Column("sector", "Sector", sortable=False)]

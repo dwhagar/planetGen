@@ -13,7 +13,7 @@
   <div class="panel-header">
     <h2 id="object-list-heading" class="sr-only">All {{ title }}</h2>
   </div>
-  {% if filter_url %}<p class="list-filter-link"><a href="{{ filter_url }}">Filter and sort these by habitability colour, the six domains, life and food</a> on the search page.</p>{% endif %}
+  {% if filter_url %}<p class="list-filter-link"><a href="{{ filter_url }}">Filter and sort these by habitability color, the six domains, life, and food</a> on the search page.</p>{% endif %}
   {%- if value_group %}
   <form method="get" action="{{ request.path }}" class="search-form object-list-values" id="object-list-values-form">
     {%- for name, value in value_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}

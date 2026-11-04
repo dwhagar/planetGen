@@ -236,7 +236,7 @@ def test_a_panels_table_route_pages_one_panel_alone(client, fake):
 def test_no_results_message(client, fake):
     fake.results = {p: None for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     html = client.get("/search?type=planet").get_data(as_text=True)
-    assert "No sectors, systems, stars, planets or moons match." in html
+    assert "No sectors, systems, stars, planets, or moons match." in html
 
 
 def test_the_header_search_icon_links_to_search(client, fake):
@@ -347,7 +347,7 @@ def test_groups_with_no_matches_are_left_out(client, fake):
     fake.results = {p: dict(empty) for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     html = client.get("/search?q=zzz").get_data(as_text=True)
     assert 'id="search-sectors"' not in html and 'id="search-stars"' not in html
-    assert "No sectors, systems, stars, planets or moons match." in html
+    assert "No sectors, systems, stars, planets, or moons match." in html
 
 
 def test_a_star_result_links_to_its_own_page(client, fake):
