@@ -2,6 +2,74 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3103] - 2026-11-01
+
+**Headline:** The tables that sample stars build about 15 percent faster, with every number unchanged.
+
+### Changed
+- **Faster isochrone edge rows (PERF.230).** `isochrones.edge_point`, which every `zams_state` and `end_state` call reads (a bright-star table asks for it about 75,000 times per population), took 5.7 microseconds a call; it now takes 2.0. The two isochrones that bracket a birth [Fe/H], their edge tables and the weight between them are kept for each [Fe/H] asked (4096 values, then the memory starts over), and the interpolation in mass and [Fe/H] is written out for the four components with the same arithmetic. A table build of two populations (four tables) went from 14.2 s to 12.0 s here. The rows, the tables and every generated number are identical (a digest of the four tables and of 150,000 edge rows and end states, before and after). The share of a build that `edge_point` takes is about a quarter, not the 60 percent first measured; the rest is `post_main_sequence.bright_pieces` and the evolved-track reads, which are a separate item.
+generation-output: unchanged
+
+## [8.0.3102] - 2026-11-01
+
+**Headline:** A radiation sweep checks every class of planet and moon: light through the air, greenhouse against temperature, dose terms and ultraviolet.
+
+### Changed
+
+- New `src/tests/test_radiation_sweep.py` (TEST.212 part 1): generates systems with both planets and moons of every class and checks the band transmissions (0 to 1, and thicker air passes no more light), that the stored surface temperature is the one the stored albedo, greenhouse factor and starlight give (or the 2000 K cap), that the greenhouse rises with the infrared-active column, that the yearly dose is the sum of its terms and follows the column, the field and the flares, and that the ultraviolet index is the Setlow dose of the spectrum below the air. A second set of tests breaks each rule in turn and checks that it is named. The earth, moon and mars dose values and the descriptions that quote these numbers wait for GEN.444's later slices and GEN.446.
+
+## [8.0.3101] - 2026-11-01
+
+**Headline:** A generated system now keeps the plan its planets were built from, so the bodies it threw out can be read from it: the first step of making rogue planets come from real ejections.
+
+### Changed
+- **The architecture of each star is kept (GEN.1111).** `StarSystem` holds, for each star, the planet architecture its kept planets were built from (the last attempt's), and `ejected_losses()` gives the bodies that architecture threw out (the `thrown` losses of GEN.1119 that end ejected, with the scatterer, the distance, the formation distance and the Hill radius). It is not stored: a system rebuilt from the database has none, because a donor's rogues are made and saved when it is generated. Nothing reads it yet; the ejection events and the rogue rows of GEN.1111 do.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3100] - 2026-11-01
+
+**Headline:** The reference lists at the end of the imported research notes now hold only source IDs, and unverifiable entries are gone.
+
+### Changed
+- **Bibliography lists of the imported research notes (DOC.98 follow-up).** 266 entries in APA form became source IDs like [R0123]; 21 of them were found at Crossref and added to the reference list. 155 entries that neither the list nor Crossref could verify (wrong year, authors or title for any real paper) were removed, following the rule that a paper which cannot be verified is not real; the removed entries are kept in a report. `scripts/rewrite_bibliographies.py` does this, and the citation lock test now also fails on an APA-form entry.
+- **Unused functions removed (TEST.520).** `magnetism.induced_moment`, `radiation_belts.dose_at_orbit_gy_yr` and `radiation_belts.equatorial_field_t` had only tests calling them; the induced moment is computed by `generate_induced_field`, and the belt dose by `moon_exposure_msv_yr`. The Europa and Callisto induction tests now go through `generate_induced_field`. Three duplicate lines of the wiring register were dropped. No change to generated output.
+
+## [8.0.3099] - 2026-11-01
+
+**Headline:** How wide a moon system a planet thrown out of its system can keep is now worked out from the ejection's own record, ready for the rogue rows.
+
+### Changed
+- **The moon limit of a thrown-out body (GEN.1111, RP4).** `rogue_moons.moon_limit_km` is the lower of the body's stable moon zone before the ejection (the Domingos fraction of its Hill radius) and the widest orbit that follows it through the closest approach (Huang and Lai 2026). `starless_host.ejected_moon_limit_km` takes a thrown loss of the architecture (`planet_architecture.Loss`), draws the closest approach from the published distribution in the mutual Hill radius of the body and its scatterer, and gives the outer edge the rogue's moon system is built inside, in place of the Hill sphere of a host it no longer has. A closer encounter leaves a narrower system. Nothing calls it yet; the rogue rows from the ejections read it in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3098] - 2026-11-01
+
+**Headline:** The equilibrium temperature can now take a body's own heat, which is what sets the temperature of a planet with no star: the next piece of building a rogue through the planet code.
+
+### Changed
+- **The body's own heat in the equilibrium temperature (GEN.1111, TEST.498).** `climate_draws.equilibrium_temperature_k` takes an optional `internal_flux_w_m2` and adds it to the absorbed starlight as a flux (`T^4 = (1 - A) F / 4 sigma + F_int / sigma`), the way the giants' effective temperature already adds theirs. With none it is the old value exactly, so no body changes; under a star a rocky planet's heat moves it by less than a part in a thousand. A body with no light is then its heat's temperature, as the rogue chain has it, instead of the 2.725 K floor the bound chain returned for a body far from a star. Nothing passes it yet; the starless planet's temperature reads it in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3097] - 2026-11-01
+
+**Headline:** A rogue planet can now be built through the planet code against a host with no light: the first part of making a rogue the same planet as a bound one.
+
+### Changed
+- **The starless host (GEN.1111, TEST.498).** `generation/phenomena/starless_host.py` holds `StarlessHost`, the donor star a body was ejected from with no luminosity and the rogue's own age, and `build_ejected_planet`, which makes a `Planet` of a given mass against it (the donor's mass and snow line, the formation distance of the loss, where `FAR_AU` puts it). Nothing reads it yet; the rogue rows from the architecture's ejections will, after the table rule below. Two strict expected failures in `test_starless_host.py` record why a whole body cannot be built yet: the atmosphere table's shoreline row (d1) is a logistic in the log of the insolation and of the host's luminosity, which are zero for a body with no light, so the weight is not a number. The rule for the table rows that read the star (a body with no host keeps its air as the ejection left it) is the next part and changes the table, so it goes in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
 ## [8.0.3096] - 2026-11-01
 
 **Headline:** The Life section of an object page fits a phone and its links in running text are underlined, so they clear the contrast rule.

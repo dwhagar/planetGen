@@ -4978,7 +4978,7 @@
     },
     "R0996": {
       "kind": "paper",
-      "label": "Dartnell et al. 2007",
+      "label": "Dartnell et al. 2007a",
       "title": "Martian sub-surface ionising radiation: biosignatures and geology"
     },
     "R0997": {
@@ -16103,7 +16103,7 @@
     },
     "R3221": {
       "kind": "paper",
-      "label": "Murray et al. 2013",
+      "label": "Murray et al. 2013b",
       "title": "HMFcalc: An online tool for calculating dark matter halo mass functions"
     },
     "R3222": {
@@ -21083,7 +21083,7 @@
     },
     "R4217": {
       "kind": "paper",
-      "label": "Stevenson et al. 2014",
+      "label": "Stevenson et al. 2014b",
       "title": "Is there a common water-activity limit for the three domains of life?"
     },
     "R4218": {
@@ -23343,7 +23343,7 @@
     },
     "R4669": {
       "kind": "paper",
-      "label": "West 2009",
+      "label": "West 2009b",
       "title": "Observations of He+ concentrations in the topside ionosphere under equinox conditions near solar maximum: Morningside morphology"
     },
     "R4670": {
@@ -24985,6 +24985,111 @@
       "kind": "paper",
       "label": "Stewart and Leinhardt 2011",
       "title": "Collisions between Gravity-Dominated Bodies: 2. The Diversity of Impact Outcomes during the End Stage of Planet Formation"
+    },
+    "R5000": {
+      "kind": "paper",
+      "label": "Cockell et al. 2023",
+      "title": "Sustained and comparative habitability beyond Earth"
+    },
+    "R5001": {
+      "kind": "paper",
+      "label": "Stevenson et al. 2014a",
+      "title": "Multiplication of microbes below 0.690 water activity: implications for terrestrial and extraterrestrial life"
+    },
+    "R5002": {
+      "kind": "paper",
+      "label": "Murray et al. 2013a",
+      "title": "Pathophysiology, Prevention, and Treatment of Ebullism"
+    },
+    "R5003": {
+      "kind": "paper",
+      "label": "West 2009a",
+      "title": "VIII World Congress on High Altitude Medicine and Physiology, Arequipa, Peru, August 8–12, 2010"
+    },
+    "R5004": {
+      "kind": "paper",
+      "label": "Atri et al. 2025",
+      "title": "Estimating the potential of ionizing radiation-induced radiolysis for microbial metabolism on terrestrial planets and satellites with rarefied atmospheres"
+    },
+    "R5005": {
+      "kind": "paper",
+      "label": "Daly et al. 2007",
+      "title": "Protein Oxidation Implicated as the Primary Determinant of Bacterial Radioresistance"
+    },
+    "R5006": {
+      "kind": "paper",
+      "label": "Dartnell et al. 2007b",
+      "title": "Modelling the surface and subsurface Martian radiation environment: Implications for astrobiology"
+    },
+    "R5007": {
+      "kind": "paper",
+      "label": "Grießmeier 2014",
+      "title": "Detection Methods and Relevance of Exoplanetary Magnetic Fields"
+    },
+    "R5008": {
+      "kind": "paper",
+      "label": "Hashimoto et al. 2016",
+      "title": "Extremotolerant tardigrade genome and improved radiotolerance of human cultured cells by tardigrade-unique protein"
+    },
+    "R5009": {
+      "kind": "paper",
+      "label": "Lin et al. 2006",
+      "title": "Long-Term Sustainability of a High-Energy, Low-Diversity Crustal Biome"
+    },
+    "R5010": {
+      "kind": "paper",
+      "label": "Linsky 2019",
+      "title": "Why Are Host Stars Important for Understanding Exoplanet Atmospheres?"
+    },
+    "R5011": {
+      "kind": "paper",
+      "label": "Paige 1976",
+      "title": "Error Analysis of the Lanczos Algorithm for Tridiagonalizing a Symmetric Matrix"
+    },
+    "R5012": {
+      "kind": "paper",
+      "label": "Paige 1980",
+      "title": "Accuracy and effectiveness of the Lanczos algorithm for the symmetric eigenproblem"
+    },
+    "R5013": {
+      "kind": "paper",
+      "label": "Beall et al. 2002",
+      "title": "An Ethiopian pattern of human adaptation to high-altitude hypoxia"
+    },
+    "R5014": {
+      "kind": "paper",
+      "label": "Beall et al. 2012",
+      "title": "Nitric oxide in adaptation to altitude"
+    },
+    "R5015": {
+      "kind": "paper",
+      "label": "Lammer et al. 2007",
+      "title": "Coronal Mass Ejection (CME) Activity of Low Mass M Stars as An Important Factor for The Habitability of Terrestrial Exoplanets. II. CME-Induced Ion Pick Up of Earth-like Exoplanets in Close-In Habitable Zones"
+    },
+    "R5016": {
+      "kind": "paper",
+      "label": "Le Caër 2011",
+      "title": "Water Radiolysis: Influence of Oxide Surfaces on H2 Production under Ionizing Radiation"
+    },
+    "R5017": {
+      "kind": "paper",
+      "label": "Seager et al. 2025",
+      "title": "The diversity of exoplanetary environments and the search for signs of life beyond Earth"
+    },
+    "R5018": {
+      "kind": "paper",
+      "label": "Yi et al. 2010",
+      "title": "Sequencing of 50 Human Exomes Reveals Adaptation to High Altitude"
+    },
+    "R5019": {
+      "kind": "paper",
+      "label": "Moritz 1945",
+      "title": "EFFECTS OF COLD AIR ON THE AIR PASSAGES AND LUNGS"
+    },
+    "R5020": {
+      "kind": "paper",
+      "label": "Stenfors et al. 2022",
+      "title": "A breathing mask attenuates acute airway responses to exercise in sub-zero environment in healthy subjects"
     }
   }
 }
