@@ -725,7 +725,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'
             '<span class="galaxy-legend-title"></span>'
             '<span class="galaxy-legend-bar"></span>'
-            '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n')
+            '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n'
+            '<div class="galaxy-window-bar" id="galaxymap3d-window" role="status" hidden>'
+            '<span class="galaxy-window-title"></span> <span class="galaxy-window-summary"></span> '
+            '<button type="button" class="starmap-btn" data-action="close-window">Back to the Galaxy Map</button></div>\n')
     regions_block = ""
     if regions_path:
         regions_block = REGIONS_LIST

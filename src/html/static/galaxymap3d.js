@@ -98,6 +98,7 @@ const {
   FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
+const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
 const { sourceOf: nebulaVolumeSource, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
@@ -293,6 +294,7 @@ function withRegion(spec, position) {
 }
 
 function showInfo(spec) {
+  selectedCloud = null;
   var panel = infoPanel();
   if (panel) {
     panel.show(spec);
@@ -549,10 +551,19 @@ function cloudFacts(cloud) {
   };
 }
 
+// MAP.222: opens the nebula window (set once the map is built; null on a sector page) and the cloud whose card is shown, which Enter opens.
+var windowOpener = null;
+var selectedCloud = null;
+
 function showCloudInfo(cloud) {
-  showInfo(withRegion(Object.assign(cloudFacts(cloud), {
+  var spec = Object.assign(cloudFacts(cloud), {
     more: [["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
-  }, phenomenonActions(cloud)), [cloud.x, cloud.y, cloud.z]));
+  }, phenomenonActions(cloud));
+  if (windowOpener) {
+    spec.buttons = (spec.buttons || []).concat([{ label: "Open nebula window →", onClick: function () { windowOpener.open(cloud); } }]);
+  }
+  showInfo(withRegion(spec, [cloud.x, cloud.y, cloud.z]));
+  selectedCloud = cloud;
 }
 
 // A star's color from its surface temperature: Tanner Helland's fit to
@@ -1007,12 +1018,66 @@ function initGalaxyMap3d(canvasEl, data) {
   var glowLayerOn = true;
   function applySectorView() {
     starMaterial.uniforms.outsideDim.value = hiddenCell ? SECTOR_OUTSIDE_SHARE : 1;
-    if (glow) glow.setVisible(glowLayerOn && !hiddenCell);
-    if (regionLayer) regionLayer.setVisible(regionsOn && !hiddenCell);
-    if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell);
-    if (nebulaVolumes) nebulaVolumes.setVisible(!hiddenCell);
+    if (glow) glow.setVisible(glowLayerOn && !hiddenCell && !groupWindow);
+    if (regionLayer) regionLayer.setVisible(regionsOn && !hiddenCell && !groupWindow);
+    if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell && !groupWindow);
+    if (nebulaVolumes) {
+      nebulaVolumes.setVisible(!hiddenCell);
+      nebulaVolumes.setClip(groupWindow ? { centre: groupWindow.centre, radiusPc: groupWindow.radiusPc } : null);
+    }
     if (markerLayer) markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: the marks dim as the stars do
     if (sectorFrame) sectorFrame.set(hiddenCell);
+  }
+
+  // MAP.222: the group window. Choosing a nebula (its card's button, a double click, Enter, its name) opens a window on it and the nebulae
+  // that reach it: the camera frames their bounding sphere, only what lies inside is drawn (`drawnByTheGalaxy` holds the one test; the
+  // glow, the regions and the group sprites give way, the nebulae's own shape is cut to the sphere), and the bar's button, Escape or Backspace
+  // flies back to where the camera was.
+  var groupWindow = null;
+  var windowReturn = null;
+  var windowBar = document.getElementById("galaxymap3d-window");
+  function showWindowBar() {
+    if (!windowBar) return;
+    windowBar.hidden = !groupWindow;
+    if (!groupWindow) return;
+    windowBar.querySelector(".galaxy-window-title").textContent = groupWindow.title;
+    windowBar.querySelector(".galaxy-window-summary").textContent = groupWindow.summary;
+  }
+  function refreshWindowView() {
+    markHiddenStars();
+    updateClouds();
+    applySectorView();
+    showWindowBar();
+  }
+  function openNebulaWindow(cloud) {
+    if (data.pinned || !cloud) return false;
+    var candidates = [];
+    cloudSprites.forEach(function (sprite) { candidates.push(sprite.userData.cloud); });
+    var made = GROUP_WINDOW.createWindow("nebula", cloud, candidates);
+    if (!made) return false;
+    if (!groupWindow) {
+      var scale = stageView.scaleInfo();
+      windowReturn = stageView.centre() && scale ? { center: stageView.centre(), dist: scale.dist } : null;
+    }
+    groupWindow = made;
+    refreshWindowView();
+    stageView.goTo(GROUP_WINDOW.framing(made));
+    canvasEl.dataset.groupWindow = made.key;
+    return true;
+  }
+  function closeGroupWindow() {
+    if (!groupWindow) return false;
+    groupWindow = null;
+    refreshWindowView();
+    delete canvasEl.dataset.groupWindow;
+    if (windowReturn) stageView.goTo({ center: windowReturn.center, dist: windowReturn.dist });
+    windowReturn = null;
+    return true;
+  }
+  windowOpener = data.pinned ? null : { open: openNebulaWindow };
+  if (windowBar) {
+    var windowBack = windowBar.querySelector("[data-action=close-window]");
+    if (windowBack) windowBack.addEventListener("click", function () { closeGroupWindow(); canvasEl.focus({ preventScroll: true }); });
   }
 
   // How far round from bearing a0 bearing `angle` is, 0 to a full turn.
@@ -1023,6 +1088,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // Whether a point is drawn by the galaxy's own layers: not inside the cell of the sector opened in place, which
   // draws its own.
   function drawnByTheGalaxy(x, y, z) {
+    // MAP.222: with a group window open only what lies in it is drawn.
+    if (groupWindow && !GROUP_WINDOW.contains(groupWindow, x, y, z)) {
+      return false;
+    }
     if (!hiddenCell) {
       return true;
     }
@@ -4123,6 +4192,12 @@ function initGalaxyMap3d(canvasEl, data) {
     canvasEl.__mapNebulae = nebulaLayer;    // the browser tests read what is drawn
     canvasEl.__mapNebulaVolumes = nebulaVolumes;
     canvasEl.__mapNebulaTint = nebulaTintUniforms;
+    canvasEl.__mapNebulaWindow = function () {    // the browser tests read the open window and how many stars are drawn
+      var clipped = starPoints.geometry.getAttribute("starClipped");
+      var drawn = 0;
+      for (var i = 0; i < starList.length; i++) if (!(clipped && clipped.array[i] > 0.5)) drawn++;
+      return { window: groupWindow, drawn: drawn, total: starList.length };
+    };
   }
   // MAP.328: the stars and bodies of a system opened in the sector turn slowly; this switch (a standing preference, as the System
   // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
@@ -4554,7 +4629,19 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.addEventListener("pointerup", function (event) { stageView.onPointerUp(event); });
   canvasEl.addEventListener("pointercancel", function (event) { stageView.onPointerUp(event); });
   canvasEl.addEventListener("pointerleave", function (event) { stageView.onPointerLeave(event); });
-  canvasEl.addEventListener("keydown", function (event) { stageView.onKey(event); });
+  canvasEl.addEventListener("keydown", function (event) {
+    // MAP.222: Escape and Backspace leave a group window before they step out; Enter on a nebula's card opens its window.
+    if (groupWindow && (event.key === "Escape" || event.key === "Backspace")) {
+      event.preventDefault();
+      closeGroupWindow();
+      return;
+    }
+    if (event.key === "Enter" && selectedCloud && !groupWindow && !event.shiftKey && !event.altKey && openNebulaWindow(selectedCloud)) {
+      event.preventDefault();
+      return;
+    }
+    stageView.onKey(event);
+  });
   // The wheel zooms within the stage's zoom policy.
   canvasEl.addEventListener("wheel", function (event) {
     if (stageView.onWheel(event)) {
@@ -4628,6 +4715,12 @@ function initGalaxyMap3d(canvasEl, data) {
     select: function (cloud) {
       highlightPosition(cloud.x, cloud.y, cloud.z);
       showCloudInfo(cloud);
+    },
+    // MAP.222: a double click on a nebula opens its window.
+    activate: function (cloud) {
+      highlightPosition(cloud.x, cloud.y, cloud.z);
+      showCloudInfo(cloud);
+      return openNebulaWindow(cloud);
     },
   });
 
@@ -4825,7 +4918,9 @@ function initGalaxyMap3d(canvasEl, data) {
     } else if (ref.kind === "nebula") {
       highlightPosition(ref.cloud.x, ref.cloud.y, ref.cloud.z);
       showCloudInfo(ref.cloud);
-      stageView.goTo({ entry: { x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc } });
+      if (!openNebulaWindow(ref.cloud)) {
+        stageView.goTo({ entry: { x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc } });
+      }
     } else if (ref.kind === "sector") {
       stageView.goTo({ sector: ref.sector, label: label.text || null });
     } else if (ref.kind === "region") {

@@ -56,6 +56,9 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         focal: { value: 800 },
         alpha: { value: 0 },
         families: { value: familyUniform },
+        // MAP.222: a group window cuts the shape to its sphere: the centre in the mesh's frame, and the radius (0 for none).
+        clipCentre: { value: new THREE.Vector3() },
+        clipRadius: { value: 0 },
       },
       vertexShader: [
         "attribute vec2 corner;",
@@ -66,12 +69,15 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         "uniform float focal;",
         "uniform float alpha;",
         `uniform vec4 families[${MAX_FAMILIES}];`,
+        "uniform vec3 clipCentre;",
+        "uniform float clipRadius;",
         "varying vec2 vCorner;",
         "varying vec3 vColor;",
         "void main() {",
         "  vCorner = corner;",
         "  vec4 f = families[int(family + 0.5)];",
         `  vColor = f.rgb * (strength * ${POINT_ALPHA.toFixed(5)} * alpha * f.a);`,
+        "  if (clipRadius > 0.0) vColor *= 1.0 - smoothstep(0.9 * clipRadius, clipRadius, distance(position, clipCentre));",
         "  vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
         `  float px = clamp(splat * focal / max(clip.w, 1e-6), ${MIN_SPLAT_PX.toFixed(1)}, ${MAX_SPLAT_PX.toFixed(1)});`,
         "  clip.xy += corner * (0.5 * px) * 2.0 / viewport * clip.w;",
@@ -184,6 +190,22 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
     composite.material.uniforms.sum.value = target.texture;
   }
 
+  // MAP.222: the window's sphere, `{ centre: [x, y, z], radiusPc }` or null; the shape is faded out to it, in each mesh's own frame.
+  let clip = null;
+  function applyClip(mesh) {
+    const uniforms = mesh.material.uniforms;
+    if (!clip) {
+      uniforms.clipRadius.value = 0;
+      return;
+    }
+    uniforms.clipCentre.value.set(clip.centre[0] - mesh.position.x, clip.centre[1] - mesh.position.y, clip.centre[2] - mesh.position.z);
+    uniforms.clipRadius.value = clip.radiusPc;
+  }
+  function setClip(sphere) {
+    clip = sphere ? { centre: sphere.centre.slice(), radiusPc: sphere.radiusPc } : null;
+    held.forEach((entry) => applyClip(entry.mesh));
+  }
+
   // Chooses which nodes to hold (`sources` from nebulavolume.sourceOf, `makeWeigh()` gives the cut's `weigh(block) -> 0..1` share, called only
   // when something is held, or is null for whole shares),
   // asks for the ones missing and sets how strongly each shows. Call it every frame the camera or the cut may have moved.
@@ -212,6 +234,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
       uniforms.alpha.value = alpha;
       uniforms.focal.value = focalPx;
       uniforms.viewport.value.set(Math.max(1, canvasEl.clientWidth), Math.max(1, canvasEl.clientHeight));
+      applyClip(entry.mesh);
     });
     held.forEach((entry, key) => {
       if (!keep.has(key)) {
@@ -295,7 +318,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
   }
 
   return {
-    update, prepare, snapshot, setFamilyVisible, setVisible,
+    update, prepare, snapshot, setFamilyVisible, setVisible, setClip,
     // How strongly node `key`'s volume shows (0 until it has arrived): the share of its nebulae the sprites and meshes give up.
     coverage: (key) => nodeAlpha.get(key) || 0,
     // What is drawn, for the browser tests: held volumes, those showing, the points in them.

@@ -1668,6 +1668,65 @@ def test_galaxy_map_default_view_shades_only_with_nebulae(page, map_site):
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value") == 1
 
 
+WINDOW = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaWindow()"
+
+
+def _click_nebula_name(page):
+    """Clicks the fixture nebula's name where the label engine placed it (a label takes no pointer events: the map finds it under the pointer)."""
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'nebula' && label.text === 'Fixture Cloud')")
+    label = page.evaluate(f"() => ({LABELS})().find((l) => l.kind === 'nebula' && l.text === 'Fixture Cloud')")
+    canvas = page.locator("#galaxymap3d-canvas")
+    canvas.scroll_into_view_if_needed()
+    box = canvas.bounding_box()
+    page.mouse.click(box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2)
+
+
+def _open_nebula_window(page, map_site):
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    _click_nebula_name(page)
+    page.wait_for_function(f"() => ({WINDOW})().window !== null")
+
+
+def test_choosing_a_nebula_opens_its_window_and_the_way_back_returns(page, map_site):
+    """MAP.222: choosing the fixture nebula by its name flies to a window on it alone: the bar names it with a button back, the camera
+    frames its bounding sphere (centred on it, whatever sectors it crosses), only the stars inside are drawn, and the other layers (the
+    glow, the regions) give way; the button returns the camera to where it was and brings everything back."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    before = _camera(page)
+    everything = page.evaluate(WINDOW)
+    assert everything["window"] is None and everything["total"] > 0 and everything["drawn"] == everything["total"]
+    _click_nebula_name(page)
+    page.wait_for_function(f"() => ({WINDOW})().window !== null")
+    opened = page.evaluate(WINDOW)
+    win = opened["window"]
+    assert win["kind"] == "nebula" and win["title"] == "Fixture Cloud" and win["count"] >= 1
+    assert page.locator("#galaxymap3d-window").is_visible()
+    assert "Fixture Cloud" in page.locator("#galaxymap3d-window").inner_text()
+    camera = _camera(page)
+    assert math.dist(camera["target"], win["centre"]) < 0.05 * win["radiusPc"] + 1.0, (camera["target"], win["centre"])
+    assert opened["drawn"] < opened["total"], "stars outside the window are not drawn"
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').dataset.groupWindow") == win["key"]
+    page.click('#galaxymap3d-window [data-action="close-window"]')
+    page.wait_for_function(f"() => ({WINDOW})().window === null")
+    after = page.evaluate(WINDOW)
+    assert after["drawn"] == after["total"] and not page.locator("#galaxymap3d-window").is_visible()
+    back = _camera(page)
+    assert math.dist(back["target"], before["target"]) < 1.0 and abs(back["dist"] - before["dist"]) < 0.02 * before["dist"] + 1.0
+
+
+def test_escape_leaves_a_nebula_window_before_it_steps_out(page, map_site):
+    """MAP.222: Escape closes the window and goes no further out; the Open nebula window button of the card opens it again."""
+    _open_nebula_window(page, map_site)
+    stage = parse_qs(urlparse(page.url).query).get("win")
+    page.locator("#galaxymap3d-canvas").focus()
+    page.keyboard.press("Escape")
+    page.wait_for_function(f"() => ({WINDOW})().window === null", timeout=15000)
+    assert parse_qs(urlparse(page.url).query).get("win") == stage, "the stage stayed"
+    _camera(page)    # the flight back has landed
+    _click_nebula_name(page)
+    page.wait_for_function(f"() => ({WINDOW})().window !== null", timeout=15000)
+
+
 def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
     """MAP.365: where nebulae overlap their colors add and the sum is bent under the cap (never white): the pass that does it, drawn
     alone, matches `cappedSum` of the raw sums at every pixel, the raw sum passes the cap somewhere (so the cap is working) and
