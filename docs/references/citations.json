@@ -25390,6 +25390,16 @@
       "kind": "paper",
       "label": "De Vito and Benvenuto 2012",
       "title": "Evolution of low mass close binary systems with a neutron star: its dependence with the initial neutron star mass"
+    },
+    "R5081": {
+      "kind": "paper",
+      "label": "Kubryk et al. 2015",
+      "title": "Evolution of the Milky Way with radial motions of stars and gas"
+    },
+    "R5082": {
+      "kind": "paper",
+      "label": "Chiappini et al. 2001",
+      "title": "Abundance Gradients and the Formation of the Milky Way"
     }
   }
 }
