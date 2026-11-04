@@ -24,17 +24,17 @@ def _body(**fields):
     return types.SimpleNamespace(**base)
 
 
-def _result(oxygenic=None, **rungs):
+def _result(oxygenic=None, multi=None, living=None, **rungs):
     """A run whose life worlds stand on `rungs`; the oxygenic worlds of the host systems stand on `oxygenic` (default: the same rungs)."""
     life_worlds = sum(rungs.values())
     host = rungs if oxygenic is None else oxygenic
     return {"systems": 10, "worlds": 100, "life": life_worlds, "rungs": rungs, "classes": {}, "host_systems": 10, "host_oxygenic": host,
-            "abandoned": 0, "errors": [], "error_count": 0}
+            "multi": int(0.8 * life_worlds) if multi is None else multi, "living": living or {}, "minor_sentient": 0, "abandoned": 0, "errors": [], "error_count": 0}
 
 
 def _expectations(**changes):
     bands = {"stops_before_animals": (0.5, 1.0), "reaches_animals": (0.15, 0.35), "reaches_sentient": (0.0, 0.02),
-             "sentient_of_animal_worlds": (0.0, 0.05)}
+             "sentient_of_animal_worlds": (0.0, 0.05), "two_or_more_classes": (0.6, 1.0)}
     measures = {name: {"min": low, "max": high, "kind": "stand-in", "source": "test"} for name, (low, high) in bands.items()}
     for name, extra in changes.items():
         measures[name].update(extra)
@@ -57,6 +57,22 @@ def test_the_shares_count_sentient_worlds_among_the_animal_ones():
     values, counts = life.summarize(_result(origin=30, producers=30, animals=30, sentient=10))
     assert values["stops_before_animals"] == 0.6 and values["reaches_animals"] == 0.4 and values["reaches_sentient"] == 0.1
     assert values["sentient_of_animal_worlds"] == 0.25 and counts["sentient_of_animal_worlds"] == 40
+
+
+def test_the_share_of_worlds_with_several_living_classes_is_over_every_life_world():
+    values, counts = life.summarize(_result(origin=30, producers=30, animals=30, sentient=10, multi=60))
+    assert values["two_or_more_classes"] == 0.6 and counts["two_or_more_classes"] == 100
+
+
+def test_a_list_that_collapses_to_one_class_is_flagged():
+    flags = life.compare(_result(origin=60, producers=10, animals=29, sentient=1, multi=0), _expectations())
+    assert [f.measure for f in flags] == ["two_or_more_classes"] and flags[0].kind == "missing"
+
+
+def test_the_report_names_the_share_of_worlds_each_class_lives_on():
+    result = _result(origin=60, producers=10, animals=29, sentient=1, living={"3a": 80, "4b": 60})
+    report = life.format_report(result, life.compare(result, _expectations()))
+    assert "3a 0.800" in report and "4b 0.600" in report and "beside the dominant one reached a civilization" in report
 
 
 # --- The harness: each flag trips on a deliberately broken input ------------------------------------------------------------
