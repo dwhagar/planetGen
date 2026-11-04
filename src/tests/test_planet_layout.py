@@ -188,7 +188,7 @@ def test_the_glance_names_two_other_classes_and_says_others_for_the_rest():
     scores = {"1a": 7, "2": 6, "3a": 5, "3b": 4, "4a": 3}
     glance = planet_layout.life_class_view({**LIVING, "life_class_scores": scores}, READINGS)["glance"]
     assert glance.endswith(", then Class 2 (" + planet_layout._short_name("2") + "), Class 3a (" + planet_layout._short_name("3a")
-                           + ") and others.")
+                           + "), and others.")
 
 
 def test_a_world_that_suits_a_class_but_has_no_life_says_nothing_lives_there_yet():

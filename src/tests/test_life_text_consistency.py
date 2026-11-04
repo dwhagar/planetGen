@@ -37,11 +37,31 @@ def _bodies(system):
         yield from getattr(planet, "moons", ())
 
 
+_LIFE_ROLES = {"life-class": "life", "life": "life", "timeline": "timeline", "milestone": "timeline"}
+"""dict: The blocks of a planet section that carry the life facts (UX.251 split the paragraphs: the class and pace sentence, the colors, the system's age and the
+latest milestone), and the paragraph of this test's checks each belongs to."""
+
+
 def _life_text(body):
-    """The life and timeline paragraphs of a body's section, as the page shows them."""
+    """The life and timeline paragraphs of a body's section, as the page shows them: the life paragraph is the class and pace sentence with the colors, the
+    timeline paragraph the system's age with the latest milestone."""
     section = describe_build._planet_section(body)
-    blocks = [block for block in section["blocks"] if block["type"] == "prose" and block["role"] in ("life", "timeline")]
-    return {block["role"]: " ".join(inline_text(sentence) for sentence in block["text"]) for block in blocks}, blocks
+    blocks = [block for block in section["blocks"] if block["type"] == "prose" and block["role"] in _LIFE_ROLES]
+    paragraphs = {}
+    for block in blocks:
+        paragraph = " ".join(inline_text(sentence) for sentence in block["text"])
+        paragraphs[_LIFE_ROLES[block["role"]]] = (paragraphs[_LIFE_ROLES[block["role"]]] + " " + paragraph) if _LIFE_ROLES[block["role"]] in paragraphs else paragraph
+    return paragraphs, blocks
+
+
+def _life_paragraph(facts):
+    """The life paragraph the page writes from `facts`: the class and pace sentence, then the colors."""
+    return " ".join(inline_text(sentence) for sentence in describe_build._life_class_sentences(facts) + describe_build._life_sentences(facts))
+
+
+def _timeline_paragraph(facts):
+    """The timeline paragraph the page writes from `facts`: the system's age, then the latest milestone."""
+    return " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(facts) + describe_build._milestone_sentences(facts))
 
 
 def conflicts(body, paragraphs):
@@ -120,10 +140,10 @@ def test_the_timeline_ages_in_the_page_are_the_stored_ones():
         if not body.has_timeline:
             continue
         _text, blocks = _life_text(body)
-        timeline = next((block for block in blocks if block["role"] == "timeline"), None)
-        if timeline is None:
+        timeline = [block for block in blocks if block["role"] in ("timeline", "milestone")]
+        if not timeline:
             continue
-        quantities = [item for sentence in timeline["text"] for item in sentence if isinstance(item, dict) and "qty" in item]
+        quantities = [item for block in timeline for sentence in block["text"] for item in sentence if isinstance(item, dict) and "qty" in item]
         expected = [describe_build._gy(body.life_system_age_gyr)]
         if body.life_stage is not None:
             expected.append(describe_build._gy(body.life_milestone_age_gyr))
@@ -150,8 +170,8 @@ def _facts(scale, class_id, stage, system_age=13.8, milestone_age=0.08, with_tim
 def test_the_pace_is_worded_once_and_the_timeline_follows_it(scale, class_id):
     for stage in (None, *evolution.MILESTONE_KEYS):
         facts = _facts(scale, class_id, stage)
-        life = " ".join(inline_text(sentence) for sentence in describe_build._life_sentences(facts))
-        timeline = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(facts))
+        life = _life_paragraph(facts)
+        timeline = _timeline_paragraph(facts)
         assert _PACE_WORDS.findall(life) == [life_facts.pace_label(scale)]
         assert _PACE_WORDS.findall(timeline) == [], "the timeline says no pace of its own"
         assert timeline.startswith("The system is about 13.8 Gyr old.")
@@ -159,18 +179,18 @@ def test_the_pace_is_worded_once_and_the_timeline_follows_it(scale, class_id):
 
 def test_a_world_with_no_pace_says_none_and_the_timeline_does_not_refer_to_one():
     facts = _facts(None, "3b", "photosynthesis")
-    life = " ".join(inline_text(sentence) for sentence in describe_build._life_sentences(facts))
-    timeline = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(facts))
+    life = _life_paragraph(facts)
+    timeline = _timeline_paragraph(facts)
     assert "pace" not in life and "at that pace" not in timeline
 
 
 def test_no_life_is_no_sentence():
-    assert describe_build._life_sentences(None) == []
+    assert describe_build._life_sentences(None) == [] and describe_build._life_class_sentences(None) == []
 
 
 def test_an_anoxygenic_world_is_not_told_it_puts_oxygen_in_its_water():
     facts = _facts("normal", "2", "photosynthesis")
-    timeline = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(facts))
+    timeline = _timeline_paragraph(facts)
     assert "make no oxygen" in timeline and "putting oxygen" not in timeline and "releasing oxygen" not in timeline
 
 

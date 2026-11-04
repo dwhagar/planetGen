@@ -255,7 +255,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
                         continue
                     if birth_of(other, n, cloud, cloud_center) == address:
                         rank += 1
-    raise ValueError("a field cloud was not found among its own sector's neighbours")
+    raise ValueError("a field cloud was not found among its own sector's neighbors")
 
 
 def clouds_reaching(galaxy_seed, shape, center_pc, reach_pc):

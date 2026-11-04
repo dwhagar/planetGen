@@ -1,4 +1,4 @@
-"""GEN.420: the description's "Atmosphere Colour" row and the swatch inline item in every output."""
+"""GEN.420: the description's "Atmosphere color" row and the swatch inline item in every output."""
 
 import pytest
 
@@ -21,12 +21,12 @@ def test_a_swatch_is_written_by_every_format():
 
 def test_a_swatch_is_checked_and_found_by_the_walker():
     document = model.document("system", "system:1", "S", [model.section("planet", "planet:1", "P", [
-        model.facts("Planet", [model.fact("atmosphere_colour", "Atmosphere Colour", SWATCH)])])])
+        model.facts("Planet", [model.fact("atmosphere_colour", "Atmosphere color", SWATCH)])])])
     model.check(document)
     assert SWATCH in list(model.walk_inline(document))
     for bad in (model.swatch("blue", "blue"), model.swatch("#99bfff", ""), model.swatch("#99BFFF", "pale blue")):
         broken = model.document("system", "system:1", "S", [model.section("planet", "planet:1", "P", [
-            model.facts("Planet", [model.fact("atmosphere_colour", "Atmosphere Colour", bad)])])])
+            model.facts("Planet", [model.fact("atmosphere_colour", "Atmosphere color", bad)])])])
         with pytest.raises(ValueError):
             model.check(broken)
 

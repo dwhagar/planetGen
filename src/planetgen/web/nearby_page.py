@@ -14,6 +14,8 @@ URL scheme (all GET, so every step is bookmarkable):
     /nearby?place=1.5,-2,0.25&distance=10    a point in the galaxy frame (pc)
     ...&kinds=planet&kinds=moon&page=2       a kind filter, a page
     ...&stars=3                              only systems with that many stars (3+, binary, ...; UX.239)
+    ...&planet_min_gravity=0.8&planet_max_gravity=1.2&planet_value_sort=-gravity
+                                             the search page's physical-value ranges and one order by a value (UX.228)
 
 A place is an object reference (`planetgen.galaxy.objectref`; a bare number
 is a system) or `x,y,z` in galaxy-frame parsecs.
@@ -21,10 +23,11 @@ is a system) or `x,y,z` in galaxy-frame parsecs.
 
 from urllib.parse import urlencode
 
-from flask import request, url_for
+from flask import redirect, request, url_for
 from markupsafe import Markup
 
 from planetgen.db import near as near_search
+from planetgen.db import search_values
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import star_count
 from planetgen.web.lib import apiclient
@@ -119,6 +122,54 @@ def _stars(args):
     return text
 
 
+def _value_pairs(ranges, sort):
+    """The `/api/near` parameters of the ranges and the order by a value (UX.228): `<entity>_min_<key>`, `<entity>_max_<key>`, `<entity>_<key>_unit`
+    and `<entity>_sort`."""
+    pairs = {}
+    for entity, by_key in ranges.items():
+        for key, (least, most, unit) in by_key.items():
+            for part, bound in (("min", least), ("max", most)):
+                if bound is not None:
+                    pairs[f"{entity}_{part}_{key}"] = bound
+            if unit:
+                pairs[f"{entity}_{key}_unit"] = unit
+    if sort:
+        pairs[f"{sort[0]}_sort"] = sort[1]
+    return pairs
+
+
+def _value_state(state):
+    """`(ranges, sort)` the request asks for: the search state's ranges, and its first order by a value as `(entity, "-gravity")` (one kind at a
+    time: planets, then moons, then stars, the order of the form)."""
+    sorts = state.value_sorts()
+    first = next(((entity, sorts[entity]) for entity in ("planet", "moon", "star") if entity in sorts), None)
+    return state.value_ranges(), first
+
+
+def _value_chips(ranges, sort, query_pairs):
+    """The "remove this" chips of the ranges and the order in use: `[{label, url}]`; `query_pairs` is the request's address as pairs."""
+    from .searchpage import VALUE_SORT_FIELDS, value_chips     # searchpage imports item_pages, which imports this module
+    chips = value_chips(ranges, query_pairs, url_for("web.nearby"))
+    if sort:
+        entity, ordered = sort
+        label = search_values.KEYS[ordered.lstrip("-")].label.split(" (")[0].lower()
+        remaining = [(key, value) for key, value in query_pairs if key not in VALUE_SORT_FIELDS]
+        chips.append({"label": f"{ {'planet': 'Planet', 'moon': 'Moon', 'star': 'Star'}[entity] }s ordered by {label}, "
+                               f"{'high to low' if ordered.startswith('-') else 'low to high'}",
+                      "url": f"{url_for('web.nearby')}?{urlencode(remaining)}"})
+    return chips
+
+
+def _values_text(row):
+    """The Values cell of a row: each value it carries, written with its label and unit."""
+    parts = []
+    for key, found in (row.get("values") or {}).items():
+        if found["value"] is not None:
+            tail = f" {found['symbol']}" if found["symbol"] else ""
+            parts.append(f"{search_values.KEYS[key].label.split(' (')[0]} {found['value']:.4g}{tail}")
+    return "; ".join(parts)
+
+
 def _error_field(message):
     """The form field a `/near` refusal is about (UX.124): "distance", else None (the page's own alert)."""
     return "distance" if "distance" in message else None
@@ -145,12 +196,20 @@ def nearby():
         place_param = endpoint(kind, entity_id)
         question = {"from": place_param}
 
+    from .searchpage import VALUE_FIELDS, VALUE_SORT_FIELDS, SearchState, tidy_value_args, value_form     # searchpage imports item_pages, which imports this module
+    tidy, changed = tidy_value_args(args, near_search.VALUE_ENTITIES)
+    if changed:
+        return redirect(f"{url_for('web.nearby')}?{urlencode(tidy)}")
+    state = SearchState.from_args(args)
+    ranges, value_sort = _value_state(state)
     kinds = _kinds(args)
     stars = _stars(args)
     distance_raw = (args.get("distance") or "").strip()
     context = {"place_param": place_param, "distance_text": distance_raw or str(DEFAULT_DISTANCE_PC),
                "stars_text": stars, "star_choices": star_count.STAR_COUNT_CHOICES,
                "max_distance": near_search.MAX_DISTANCE_PC,
+               "value_groups": value_form(state),
+               "value_chips": _value_chips(ranges, value_sort, list(args.items(multi=True))),
                "kind_options": [{"value": kind, "label": KIND_LABELS[kind], "checked": kind in kinds}
                                 for kind in near_search.SEARCH_KINDS]}
     if not distance_raw:
@@ -163,6 +222,7 @@ def nearby():
         params["kinds"] = ",".join(kinds)
     if stars:
         params["stars"] = stars
+    params.update(_value_pairs(ranges, value_sort))
     try:
         result = apiclient.get_near(db_name(), params)
     except apiclient.NotFoundError:
@@ -176,8 +236,9 @@ def nearby():
 
     place = result["place"]
     rows = [{**row, "label": KIND_NAMES[row["kind"]], "url": _row_url(row), "parent_link": _parent_link(row),
-             "distance_text": format_distance_ly(pc_to_ly(row["distance_pc"]))} for row in result["rows"]]
+             "distance_text": format_distance_ly(pc_to_ly(row["distance_pc"])), "values_text": _values_text(row)} for row in result["rows"]]
     keep = [("place", place_param), ("distance", distance_raw)] + [("kinds", kind) for kind in kinds] + ([("stars", stars)] if stars else [])
+    keep += [(key, value) for key, value in args.items(multi=True) if key in VALUE_FIELDS or key in VALUE_SORT_FIELDS]
     pages = Markup(render_pagination(request.path, keep, "page", page_number, result["total"],
                                      anchor="nearby-results", label="Nearby pages"))
     not_generated = [{"label": UNBUILT_LABELS.get(kind) or KIND_LABELS.get(kind, kind.replace("-", " ").replace("_", " ")).lower(), "count": count}
@@ -188,7 +249,8 @@ def nearby():
         "nearby.html", title=f"Within {distance_raw} pc of {place['name']}", place_name=place["name"],
         place_url=_place_url(place), rows=rows, total=result["total"], counts=counts, pages=pages,
         not_generated=not_generated, not_generated_total=result["not_generated_total"],
-        systems_capped=result["systems_in_range_capped"], systems_in_range=result["systems_in_range"], **context,
+        systems_capped=result["systems_in_range_capped"], systems_in_range=result["systems_in_range"],
+        show_values=value_sort is not None or bool(ranges), **context,
         **{**page, "breadcrumbs": [crumb("What's nearby", "nearby"), crumb(place["name"])]})
 
 

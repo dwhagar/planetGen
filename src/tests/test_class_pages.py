@@ -162,7 +162,7 @@ def test_class_pages_show_the_constants(client):
     facts = dict(classref.class_entry("asteroid-field", basaltic["sparse"])["facts"])
     assert facts["Density"] == "Sparse, typical"
     html = _html(client, "/classes/asteroid-field")
-    assert "10^d to 10^(d+1) AU" in html
+    assert "Size digit 1 means a radius of" in html and "Size digit 4 means a radius of" in html
 
     low, high = tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
     assert classref.number_range(low, high, "solar masses") in _html(client, "/classes/black-hole/intermediate")
@@ -495,7 +495,7 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     assert 'href="/classes"' not in bar.split("site-help-menu")[0]
     help_menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
     assert re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu) == [
-        ("/help", "All help"), ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/properties", "Properties"), ("/help/life", "Life"),
+        ("/help", "All help"), ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life"),
         ("/references", "References")]
     assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
     assert "Habitability levels" not in html

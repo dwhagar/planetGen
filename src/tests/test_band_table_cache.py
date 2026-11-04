@@ -25,12 +25,40 @@ def _kept(compute, arguments=("a", 1.5)):
     return cache.kept("test", arguments, compute, lambda table: table["cells"], lambda form: {"cells": [tuple(c) for c in form], "n": 0})
 
 
-def test_without_a_folder_the_table_is_built_every_time(monkeypatch):
+def test_without_a_folder_the_table_is_built_every_time(monkeypatch, tmp_path):
     monkeypatch.delenv(cache.ENV, raising=False)
+    monkeypatch.setattr(cache, "DEFAULT_ROOT", str(tmp_path / "not-made"))
     compute = Counter()
     _kept(compute)
     _kept(compute)
     assert compute.calls == 2
+    assert not (tmp_path / "not-made").exists(), "the program never makes the install's folder, update.sh does (PERF.188)"
+
+
+def test_an_install_keeps_the_tables_in_its_folder_and_only_the_current_code_keys_tables(monkeypatch, tmp_path):
+    root = tmp_path / "band-tables"
+    root.mkdir()
+    older = root / "0123456789abcdef0123"
+    older.mkdir()
+    (older / "bright-old.json").write_text("[]")
+    monkeypatch.delenv(cache.ENV, raising=False)
+    monkeypatch.setattr(cache, "DEFAULT_ROOT", str(root))
+    compute = Counter()
+    first = _kept(compute)
+    again = _kept(compute)
+    assert compute.calls == 1 and again["cells"] == first["cells"]
+    assert [path.name for path in root.iterdir()] == [cache._code_key()[:20]], "the tables of an older version of the code can never be read again"
+
+
+def test_a_variable_set_but_empty_keeps_nothing_even_on_an_install(monkeypatch, tmp_path):
+    root = tmp_path / "band-tables"
+    root.mkdir()
+    monkeypatch.setenv(cache.ENV, "")
+    monkeypatch.setattr(cache, "DEFAULT_ROOT", str(root))
+    compute = Counter()
+    _kept(compute)
+    _kept(compute)
+    assert compute.calls == 2 and not list(root.iterdir())
 
 
 def test_a_kept_table_is_read_back_for_the_same_arguments_and_not_for_others(monkeypatch, tmp_path):

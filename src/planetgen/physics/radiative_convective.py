@@ -121,7 +121,7 @@ CONVERGED_W_M2 = 0.25
 CONVERGED_SHARE = 0.005
 """float: A solution counts as converged when the imbalance is under the larger of `CONVERGED_W_M2` and this share of the absorbed flux."""
 
-SKIN_NOTE = "skin temperature: the radiative equilibrium of a thin grey layer, (F / 2 sigma)^(1/4)"
+SKIN_NOTE = "skin temperature: the radiative equilibrium of a thin gray layer, (F / 2 sigma)^(1/4)"
 
 SIGMA = constants.STEFAN_BOLTZMANN_CONSTANT
 WATER_MOLAR_MASS = gases.gas("H2O").molar_mass

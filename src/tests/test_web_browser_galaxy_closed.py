@@ -54,7 +54,7 @@ def test_the_galaxy_map_is_closed_while_a_run_changes_the_galaxy_and_opens_when_
         runrecord.begin_stage(run_conn, run_id, 0)
         galaxystatus.clear_cache()
         page.goto(base_url + "/galaxy", wait_until="load")
-        assert "closed while the galaxy is generated" in page.locator("#galaxy-generating").inner_text()
+        assert "closed while the galaxy is charted" in page.locator("#galaxy-generating").inner_text()
         assert page.locator("#galaxymap3d-canvas").count() == 0
 
         runrecord.finish_run(run_conn, run_id, "done")

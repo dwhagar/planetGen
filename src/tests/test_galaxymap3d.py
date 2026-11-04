@@ -139,7 +139,7 @@ def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own()
     for action in ("zoom-in", "zoom-out", "reset-view", "center-on", "map-help"):
         assert f'data-action="{action}"' in html
     assert "toggle-rogue-markers" not in html and "Mark rogue planets" not in html
-    assert "Click a star, cloud or body for details." in html
+    assert "Click a star, cloud, or body for details." in html
     # The Menu's per-kind buttons (MAP.79) are filled in by the script once a sector is open.
     assert 'id="galaxymap3d-kinds"' in html
     # The Galaxy Map itself has none of these.

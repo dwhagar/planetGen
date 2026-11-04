@@ -46,6 +46,11 @@
     "frozen hydrocarbons",
     "ice"
    ],
+   "rock, ice, and frozen hydrocarbons": [
+    "rock",
+    "ice",
+    "frozen hydrocarbons"
+   ],
    "silicon, iron, and magnesium": [
     "silicon",
     "iron",

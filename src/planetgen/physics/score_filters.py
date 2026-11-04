@@ -64,8 +64,8 @@ the score the class got from the body's conditions (docs/design/habitability/lif
 lives on a body is the `life` facet."""
 
 FACETS = {
-    "habitability": ("Habitability colour", HABITABILITY_TICKS),
-    "domain": ("Habitability domain colour", DOMAIN_TICKS),
+    "habitability": ("Habitability color", HABITABILITY_TICKS),
+    "domain": ("Habitability domain color", DOMAIN_TICKS),
     "life_level": ("Life score", LIFE_LEVEL_TICKS),
     "living": ("Life", LIVING_TICKS),
     "supports": ("Supports a life class", SUPPORTS_TICKS),

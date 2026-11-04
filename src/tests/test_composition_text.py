@@ -55,7 +55,10 @@ def test_a_body_with_no_stored_composition_has_no_text():
 
 def test_every_generated_body_states_what_its_fractions_say():
     seen = set()
-    for seed in range(6):
+    # at least six systems, and on to the first giant if the first six hold none (the planet law decides how many giants a seed draws)
+    for seed in range(60):
+        if seed >= 6 and seen == {"t", "g"}:
+            break
         with draw.bound(seed):
             system = StarSystem(system_config=SystemConfig())
         for planet in system.planets:

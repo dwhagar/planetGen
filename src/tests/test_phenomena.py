@@ -118,7 +118,7 @@ def test_supermassive_black_hole_sits_still_and_glows_faintly():
     sigma = galaxyStructure.black_hole_dispersion_kms(bh.mass_solar) * 1000
     assert bh.system_perimeter == pytest.approx(constants.G * bh.mass / sigma ** 2 / constants.AU_TO_M)
     text = render_support.prose_text(render_support.phenomenon_section(bh))
-    assert "supermassive black hole at the centre of the galaxy" in text
+    assert "supermassive black hole at the center of the galaxy" in text
     rebuilt = BlackHole.from_dict(bh.to_dict(), make_config())
     assert rebuilt.mass_class == "supermassive"
     with pytest.raises(ValueError):

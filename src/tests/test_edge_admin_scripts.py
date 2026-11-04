@@ -172,7 +172,7 @@ def test_cancel_stops_the_running_step_and_skips_the_rest(tmp_path, restore_sign
     assert jobRunner.run(str(job_dir)) == 1
     assert time.time() - started < 30
     state = _state(job_dir)
-    assert state["status"] == "cancelled" and state["error"] == "Cancelled by an admin."
+    assert state["status"] == "cancelled" and state["error"] == "Canceled by an admin."
     assert not (tmp_path / "ran").exists()
 
 

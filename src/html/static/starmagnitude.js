@@ -40,8 +40,12 @@ export function tierMagnitudePenalty(tier) {
 
 // The width of the opacity ramp (1.5 magnitudes: the factor 4 the node floors step by).
 export const RAMP = 1.5;
-export const TARGET_STARS = 20000;
-export const TARGET_STARS_PHONE = 8000;
+// MAP.367: about how many stars the Galaxy Map holds on the screen (the magnitude limit is chosen to leave this many); half what it was, and the old
+// numbers still hold in a sector opened in place, where everything is shown.
+export const TARGET_STARS = 10000;
+export const TARGET_STARS_PHONE = 4000;
+export const TARGET_STARS_OPENED = 20000;
+export const TARGET_STARS_OPENED_PHONE = 8000;
 // A star with no luminosity on record is too faint to show.
 export const UNKNOWN_MAGNITUDE = 60;
 // The brightness of a star at the faint end of the ramp, as a share of its own.

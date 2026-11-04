@@ -159,5 +159,31 @@ def test_a_requested_habitable_world_that_does_not_come_out_is_said_to_be_unmet_
         assert "a habitable world" not in built.unmet_requirements           # an odds-only request is never a failed requirement
         met = hr.count(built.planets) > 0
         answers.add(met)
-        assert built.habitable_request in ("aim", "fallback", "unmet")
+        assert built.habitable_request == ("aim" if met else "unmet")
     assert answers                                                          # some draws may come out unmet; none is forced
+
+
+def test_the_answer_is_aim_exactly_when_a_body_meets_the_conditions_of_the_request():
+    """GEN.1248: the answer came from the PHI-6 index while the request steers by conditions, so a system with a world said
+    `unmet` and one without said `fallback`. It is now `aim` when `count` finds a body and `unmet` otherwise; a system with no
+    request has no answer, and a moon of a giant counts as a body."""
+    for seed in range(12):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V" if seed % 2 else "K5V"
+        cfg.BINARY_SYSTEM = False
+        cfg.HABITABLE_WORLD = True
+        draw.set_run_seed(seed)
+        built = StarSystem(system_config=cfg)
+        found = hr.count(built.all_planets) > 0
+        assert built.habitable_request == ("aim" if found else "unmet"), (seed, found)
+    plain = SystemConfig()
+    plain.STAR_TYPE = "K5V"
+    plain.BINARY_SYSTEM = False
+    draw.set_run_seed(0)
+    assert StarSystem(system_config=plain).habitable_request is None
+    moon = types.SimpleNamespace(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean", moons=[])
+    giant = types.SimpleNamespace(body_type="g", moons=[moon])
+    holder = types.SimpleNamespace(system_config=types.SimpleNamespace(HABITABLE_WORLD=True), all_planets=[giant])
+    assert StarSystem.habitable_request_status(holder) == "aim"
+    holder.all_planets = [types.SimpleNamespace(body_type="g", moons=[])]
+    assert StarSystem.habitable_request_status(holder) == "unmet"

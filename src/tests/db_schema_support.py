@@ -99,9 +99,10 @@ def downgrade_to(config, version):
                     conn.execute(old["view"])
                 continue
             clauses = []
-            for key, line in now["constraints"].items():
-                if old["constraints"].get(key) != line:
-                    clauses.append(f"DROP FOREIGN KEY `{key}`" if "FOREIGN KEY" in line else f"DROP CHECK `{key}`")
+            dropped = [f"DROP FOREIGN KEY `{key}`" if "FOREIGN KEY" in line else f"DROP CHECK `{key}`"
+                       for key, line in now["constraints"].items() if old["constraints"].get(key) != line]
+            if dropped:    # MySQL refuses a key dropped and added again under one name in one ALTER, as a changed delete rule is
+                conn.execute(f"ALTER TABLE `{name}` {', '.join(dropped)}, ALGORITHM=COPY")
             for key, line in now["keys"].items():
                 if old["keys"].get(key) != line:
                     clauses.append("DROP PRIMARY KEY" if key == "PRIMARY" else f"DROP INDEX `{key}`")

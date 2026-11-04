@@ -1,6 +1,7 @@
 {#- One kind of object as a data table (/lists/<kind>, web/object_lists.py). -#}
 {% extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
+{% from "partials/value_group.html" import value_group as value_rows with context %}
 {% block subhead %}
 <p class="badges"><span class="badge">{{ num(total) }} {{ noun[0] if total == 1 else noun[1] }}</span></p>
 {% endblock %}
@@ -12,7 +13,27 @@
   <div class="panel-header">
     <h2 id="object-list-heading" class="sr-only">All {{ title }}</h2>
   </div>
-  {% if filter_url %}<p class="list-filter-link"><a href="{{ filter_url }}">Filter and sort these by habitability colour, the six domains, life and food</a> on the search page.</p>{% endif %}
+  {% if filter_url %}<p class="list-filter-link"><a href="{{ filter_url }}">Filter and sort these by habitability color, the six domains, life, and food</a> on the search page.</p>{% endif %}
+  {%- if value_group %}
+  <form method="get" action="{{ request.path }}" class="search-form object-list-values" id="object-list-values-form">
+    {%- for name, value in value_hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    <details class="search-more search-values"{% if value_chips %} open{% endif %}>
+      <summary>Filter and order by physical values</summary>
+      {{ value_rows(value_group) }}
+      <p class="hint">A range keeps the {{ noun[1] }} whose stored value lies between the two boxes, ends included; one with no value for it is left out.
+        Each range is in the unit beside it.</p>
+      <button type="submit" class="btn">Apply</button>
+    </details>
+  </form>
+  {%- if value_chips %}
+  <div class="active-filters" aria-label="Active filters" role="group">
+    {%- for chip in value_chips %}
+    <span class="filter-chip">{{ chip.label|chem }}<a href="{{ chip.url }}" aria-label="Remove filter {{ chip.label }}">&times;</a></span>
+    {%- endfor %}
+    <a class="clear-filters" href="{{ clear_url }}">Clear all</a>
+  </div>
+  {%- endif %}
+  {%- endif %}
   {{ datatable(table) }}
 </section>
 {% endblock %}

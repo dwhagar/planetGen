@@ -53,7 +53,7 @@ def test_a_ring_loses_mass_by_spreading_and_by_meteoroid_erosion_and_never_gains
 
 
 def test_saturns_rings_lose_about_two_thirds_of_their_mass_in_the_age_of_the_solar_system():
-    """GEN.1171: the spreading time of `RING_SPREAD_TIME_YR` at Saturn's own ring mass, with the erosion of Cuzzi and Estrada's meteoroid flux added."""
+    """GEN.1171: the spreading time of `RING_SPREAD_TIME_YR` at Saturn's own ring mass, with the erosion of [R5074]'s meteoroid flux added."""
     left = ring_origin.spread(ring_origin.SATURN_RING_MASS_KG, AGE, SATURN)
     assert 0.2 < left / ring_origin.SATURN_RING_MASS_KG < 0.45
     flux = ring_origin.meteoroid_flux_kg_m2_s(SATURN)
@@ -118,7 +118,7 @@ def test_drawn_comet_passages_follow_the_rate_and_come_from_the_units_stream():
 
 
 def test_small_moons_near_a_giant_keep_a_faint_dust_ring_by_a_steady_supply():
-    """GEN.1233: the four inner moons of Jupiter keep a dust ring of 1e7 to 1e9 kg ([R5081]: Jupiter's faint rings) with no moon ever having fallen."""
+    """GEN.1233: the four inner moons of Jupiter keep a dust ring of 1e7 to 1e9 kg ([R5096]: Jupiter's faint rings) with no moon ever having fallen."""
     inner = [ring_origin.FeederMoon(21.0, 128.0e3), ring_origin.FeederMoon(8.2, 129.0e3), ring_origin.FeederMoon(83.5, 181.4e3), ring_origin.FeederMoon(49.0, 222.0e3)]
     assert 1.0e7 < ring_origin.dust_supply_mass_kg(JUPITER, inner) < 1.0e9
     result = ring_origin.ring_origin(JUPITER, AGE, feeders=inner)

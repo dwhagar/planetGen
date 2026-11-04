@@ -45,4 +45,4 @@ def test_a_pair_orbited_by_a_star_that_is_orbited_in_turn_reads_in_order():
              {"node_no": 0, "parent_node_no": 1, "slot": 0, "kind": "close"}]
     assert hierarchy_sentences(stars, nodes) == [
         "Quadruple star system.", "A (K9V) and B (K9V) are a close pair.", "C (M1V) orbits A and B in a medium orbit.",
-        "D (M5V) orbits A, B and C in a wide orbit."]
+        "D (M5V) orbits A, B, and C in a wide orbit."]

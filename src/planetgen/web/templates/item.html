@@ -3,6 +3,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
 {% from "partials/day_counter.html" import day_counter_panel %}
 {#- The Admin menu of this one body (Regenerate, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
@@ -30,6 +31,7 @@
     {%- if system_name %}<span class="badge">{{ system_name }} system</span>
     {%- elif owner_name %}<span class="badge">Orbits the free planet {{ owner_name }}</span>{% endif %}
   </p>
+  {{ formerly(former) }}
   {%- if chips %}
   <p class="item-chips">{{ chips }}</p>
   {%- endif %}
@@ -44,7 +46,7 @@
     <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
       <tbody>
         {%- for row in rows %}
-        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}{% if row.source %}<small class="sheet-source">{{ row.source }}</small>{% endif %}</td></tr>
+        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}{% if row.source %}<small class="sheet-source">{{ value_source(kind, row.label) }}</small>{% endif %}</td></tr>
         {%- endfor %}
       </tbody>
     </table></div>
@@ -77,12 +79,12 @@
     <summary><h3>{{ group.label }}</h3></summary>
     {{ rows_table(group.rows) }}
     {%- if group.key == 'habitability' %}
-    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
+    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colors and symbols mean</a></p>
     {%- endif %}
   </details>
 {%- endmacro %}
 {%- if previous or following %}
-<nav class="item-neighbours" aria-label="Neighbouring {{ kind_label|lower }}s">
+<nav class="item-neighbours" aria-label="Neighboring {{ kind_label|lower }}s">
   {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
   {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
 </nav>
@@ -179,7 +181,7 @@
   <div class="panel-header"><h2 id="habitability-heading">Habitability (PHI-6)</h2></div>
   {{ planet.phi6_blocks }}
   {%- if planet.phi6 %}{{ rows_table(planet.phi6.rows) }}{% endif %}
-  <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colors and symbols mean</a></p>
 </section>
 {%- endif %}
 {%- if planet.atmosphere or planet.gases %}
@@ -234,7 +236,7 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in planet.sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
-  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
+  <p class="sheet-help">{{ reference_link("method", "stars" if kind == "star" else "bodies", "Where these values come from") }}</p>
 </section>
 {%- else %}
 {%- if glance or symbols or location.chain or location.inside %}
@@ -263,7 +265,7 @@
   {%- for group in sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
   {%- if kind in ("star", "planet", "moon") %}
-  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
+  <p class="sheet-help">{{ reference_link("method", "stars" if kind == "star" else "bodies", "Where these values come from") }}</p>
   {%- endif %}
 </section>
 {%- endif %}
