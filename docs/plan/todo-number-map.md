@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.556 |
+| TEST | TEST.557 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.102 |
@@ -3793,6 +3793,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.553 | test_every_author_year_citation_has_an_outcome in test_references.py is red on main (19 keys, bug) (bug) | none | done, PR #4744 |
 | TEST.554 | test_web_old_urls_errors has no test value for the new route /help/life/<topic>, so the HEAD and OPTIONS route tests fail (bug) | none | open |
 | TEST.555 | Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug) | none | open |
+| TEST.556 | test_db_column_round_trip fails on main: stars.nuclear_arrival_age_gy is NULL in every row of the test fixture (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
