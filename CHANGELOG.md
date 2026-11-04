@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3186] - 2026-11-04
+
+**Headline:** Steam and carbon dioxide airs thicker than 1000 bar now read hotter with their pressure, where before they were held at the 1000 bar value (700 to 1300 K for a column of 1e4 to 2e5 bar).
+
+### Changed
+- **GEN.1240.** The greenhouse table (GEN.850) is fitted up to a surface pressure of 1e8 Pa (1000 bar) and held at that value above it, so a steam air of 3e4 to 2e5 bar (the water-rich third of the Venus twins once a wet body past its runaway limit holds its water as steam, GEN.1238) read 716 to 1,300 K, too cool for that column. Above the table's top pressure `ln(T_s / T_e)` now rises by `(1 - 1/gamma) ln(P / P_top)` with the air's own heat-capacity ratio (`greenhouse_table._deep_air_rise`): a convective air is as warm as its adiabat takes it from a radiating level that the opacity sets and the column does not move. It is continuous at 1000 bar, nothing at or below it moves (Venus's 92 bar, the Earth and every air the table was fitted on read as before), and a 1e5 bar steam air reads 1,750 K; the solver's ceiling (2,000 K, `MAX_SURFACE_TEMPERATURE_K`) still bounds it. The 40 Venus twins of GEN.1238 stay 40 of 40 class N with the same pressures; the six to eight steam ones now stand at 1,630 to 2,000 K and the dry Venus-like ones are unchanged. Registry row IR16 (GEN.725, tier T5, tweak L0): not fitted to the model, which does not converge above 1e8 Pa, and no high-pressure k-tables exist (they stop at 100 bar).
+generation-output: changed
+
 ## [8.0.3185] - 2026-11-04
 
 **Headline:** The air of a living rocky world can now hold nitrous oxide, phosphine, nitrogen dioxide and methyl chloride, drawn after its life stage.
