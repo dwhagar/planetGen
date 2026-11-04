@@ -44,6 +44,32 @@ def test_the_stars_own_record_reads_the_same_table():
         assert math.isclose(record["temperature_k"], row.temperature_k, rel_tol=1e-6)
 
 
+def test_an_edge_row_is_the_two_isochrones_tables_interpolated_in_mass_then_in_metallicity():
+    """PERF.230: `edge_point` keeps the bracketing tables for each [Fe/H] and writes the interpolation out; it must give what the plain
+    arithmetic over `_edge_table` gives, to the last bit, at the grid's own [Fe/H], between two and beyond both ends."""
+    from planetgen.datasets import isochrones
+    grid = isochrones._grid()
+    values = isochrones.metallicities()
+    for fe_h in (values[0] - 1.0, values[3], 0.5 * (values[3] + values[4]), 0.0, values[-1] + 1.0):
+        below, above, weight = isochrones._bracket(grid, fe_h)
+        for mass in (0.1, 0.55, 1.0, 1.0007, 7.3, 40.0, 250.0):
+            for departure in (False, True):
+                position = (math.log10(mass) - isochrones._EDGE_LOW_LOG) * isochrones._EDGE_STEPS_PER_DEX
+                index = min(int(position), isochrones.EDGE_MASS_STEPS - 1)
+                along = position - index
+                found = []
+                for isochrone in (below, above):
+                    rows = isochrones._edge_table(isochrone)[1 if departure else 0]
+                    near, far = rows[index], rows[index + 1]
+                    found.append(None if near is None or far is None else tuple(n + (f - n) * along for n, f in zip(near, far)))
+                expected = None if None in found else tuple(a + (b - a) * weight for a, b in zip(*found))
+                assert isochrones.edge_point(mass, fe_h, departure) == expected, (mass, fe_h, departure)
+    assert isochrones._EDGE_BRACKETS
+    isochrones.forget()
+    isochrones._grid()
+    assert not isochrones._EDGE_BRACKETS                   # reading the grid again starts them over
+
+
 def test_the_habitable_zone_of_a_sun_like_star_moves_outward_with_its_age():
     def zone(age):
         record = evolution.evolve_star(1.0, age, fe_h=0.0)

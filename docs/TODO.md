@@ -10547,50 +10547,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   elements.json are in the repo. Catalog sections 3 and 4.
   Prerequisites: none. Related: GEN.512, GEN.725.
 
-- [ ] **GEN.821 Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure**
-  The GEN.813 lane (Citations, 11:09 PM EDT 2026-10-24 as the lane
-  reported) found that Titan has no volatile inventory in the code: the
-  titan family takes its pressure. Add an ice-moon nitrogen inventory
-  from ammonia ice ([R1282: Table 2]) so the supply law and
-  the air fixed point (GEN.411, GEN.422) derive a Titan-like moon's
-  nitrogen and methane. Done: a Titan sample lands near 1.5 bar of N2
-  with methane, with the source and tier in the GEN.725 registry. Owner:
-  the Citations lane. Rules: no backward-compat shims; stand-ins get
-  registry rows; a changed generated value carries `tests.golden_update
-  --reason ... --affects <stage>` and the next epoch.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  [R4529] as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-  Prerequisites: GEN.422. Related: GEN.813, GEN.725.
-
-- [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
-  Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
-  inventory bracket reaches 0.2, above the 0.1 in [R2381].
-  Either cap it at 0.1 with the source or document why 0.2 holds (a
-  verified source or a registry row with its tier and tweak level).
-  Done: the bracket matches its cited source or carries a GEN.725 row
-  that says why not. Owner: Aux 3 (bulk composition) with Aux 8. Rules:
-  no backward-compat shims; a changed generated value carries the next
-  epoch.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  [R4529] as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.814, GEN.823.
-
 - [ ] **GEN.835 The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule**
   Found by Blocker 4 while merging GEN.441 (3:57 AM EDT 2026-10-25):
   tidal_flux_w_m2 is available once GEN.778 fills it, but the ground
@@ -14358,6 +14314,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changes stored ring columns, so it rides a train. Owner: Tides 1.
   Prerequisites: none. Related: GEN.1171, GEN.725.
 
+- [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
+  Found by Core 3's TEST.212 part 1 radiation sweep (as the lane
+  reported, 1:05 AM EDT 2026-11-01), filed by the TODO thread. Two class
+  N planets (7.6 and 3.3 Earth masses, 0.08 AU) have a stored surface
+  temperature of exactly 2000 K, the cap in surface_air, but keep the
+  greenhouse factor computed before the cap (107 and 79). Albedo plus
+  that greenhouse would give about 2370 K and 2600 K, so the stored
+  temperature, the greenhouse factor and the starlight no longer agree.
+  The new sweep test allows this only as "the cap holds, never hotter".
+  Do: find where the 2000 K cap is applied, say whether it is a physical
+  limit (a surface that hot is molten or vaporised and the air then
+  radiates differently) or a numeric guard; if physical, recompute the
+  greenhouse factor from the capped state (or store the cap as a flag)
+  so the three agree; if a guard, remove it. Physics drives, no game
+  cap. Lock work if stored values change (epoch, census). Related:
+  GEN.822, GEN.830, GEN.837 (class N), TEST.212. Owner: none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14931,20 +14906,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
-  Prerequisites: none.
-
-- [ ] **PERF.230 Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical**
-  From Star 2's PERF.224 work (as the lane reported, 12:14 AM EDT
-  2026-11-01). The bright-table build is dominated by the isochrone
-  interpolation (edge_point and end_state, about 60 percent of a build);
-  the caches are already 524,288 entries and building by bin gave no
-  change (47 s for 6 populations either way). Do: make edge_point and
-  end_state cheaper (vectorise or precompute per track) with output
-  byte-identical, checked by the golden and the star table tests.
-  Expected gain uncertain, perhaps 1.3 times, and since PERF.226 part 3
-  only star-stage workers build these tables. Done: build time measured
-  before and after, output identical. Lock-free. Low priority; Owner:
-  none yet.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19136,46 +19097,6 @@ clears each one.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
-- [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
-  Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
-  and read; no more building something and not using it. Filed by the
-  TODO thread after a sweep (report
-  /mnt/project-files/reports/wiring-sweep-2026-10-31.md). The guard of
-  GEN.754 already proves that no module, dataset, data file or registry
-  row is left unread without an open item. It does not see two things.
-  (1) A stored column that is written and read by nothing but the
-  generic Details sheet (describe/sheet.py): 207 candidate columns of
-  planets, moons, stars, star systems, rogue planets, belts, fields and
-  comets are listed in the report; many are read by other physics
-  modules, so each needs a look. (2) A public function of a reachable
-  module that only tests call (a shadow function). Do: add two kinds to
-  scripts/wiring_guard.py, `column` (a column of a generated table that
-  no file outside the schema, models, column units, store, storage
-  checksum, checks and the generic sheet mentions, counting physics
-  modules that read it) and `function` (a public function of a module of
-  physics, generation or galaxy whose only callers are tests), register
-  today's findings in wiring-register.md with the open item that will
-  read them (or `by design`), and let tests/test_wiring_guard.py fail on
-  a new one. Then go through the register's new column lines and, for
-  each, file or name the item that shows it on a page or reads it
-  downstream, or file a drop item (no unused column stays stored).
-  Lock-free (scripts, tests, docs); the drops and the wiring that
-  changes stored output ride trains. Owner Core 1 (proposed; it asked
-  for a lock-free item while GEN.1138 waits for a window).
-  Merged as #4513 (Core 1); owners assigned by the TODO thread
-  (2026-10-31 1:55 PM EDT): columns: 207 candidates, 7 unread
-  (binary_epoch_unix and binary_next_update_due by design; cluster_id
-  GEN.359; dynamical_state GEN.291; formed_at and origin_event_id
-  GEN.346; host_node_id GEN.332), none dropped. Functions: 157 shadow
-  functions in 90 modules, split among seven lanes as TEST.521 for Core
-  1, TEST.522 for Core 3, TEST.523 for Star 2, TEST.524 for Aux 4,
-  TEST.525 for Aux 3, TEST.526 for Tides 1, TEST.527 for Bug 1. This
-  item stays open until none of its register lines names TEST.520 (the
-  guard fails on a line whose item is closed). Rule for every lane: a
-  public function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
   The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
   run on main 7eef24a) re-ran these alone, so they are real:
@@ -19200,6 +19121,20 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
+- [ ] **TEST.553 test_every_author_year_citation_has_an_outcome in test_references.py is red on main (19 keys, bug) (bug)**
+  Found by Core 3 and Citations (as the lanes reported, 1:05 AM EDT
+  2026-11-01):
+  src/tests/test_references.py::test_every_author_year_citation_has_an_outcome
+  fails on main itself with 19 keys, not from any branch. The citation
+  sweep moved author-year text into [R....] IDs, so the test's key list
+  is likely stale: decide whether the test still has a job (the lock
+  test test_citations_outside_the_registry.py now covers the same
+  ground) and either update it to the registry or delete it with its
+  helpers (no shim). Done: the file passes on main or the test is gone
+  with a note saying what covers it. Lock-free. Owner: Citations.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -20884,6 +20819,26 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   plain-words guide and docs/design/interface/references.md. No author,
   year, journal, DOI or arXiv number outside the registry, REFERENCES.md
   and the References pages.
+
+- [ ] **DOC.101 Imported research notes: about 140 web-page, standards and fan-wiki lines in 8 notes have no home in the reference registry**
+  Found by Citations (2026-11-01 12:59 AM EDT as the lane reported)
+  while turning the imported notes' bibliographies into [R....] IDs
+  (#4738). About 140 lines in 8 imported notes are not papers: web
+  pages, standards (NFPA and similar), vendor documents (DuPont, Celery)
+  and fan-wiki pages (Memory Alpha). The registry
+  (docs/reference/references-data.json) has no kind for them, and the
+  lock test now fails on APA-form lines in Markdown. Decide per line:
+  (a) real standards and datasheets that a number rests on: add a web or
+  standard kind to the registry with its stable identifier and check
+  date, cite as [R....]; (b) lines that are fiction or game material
+  (Memory Alpha and similar): remove, since nothing fixed may come from
+  fiction (Boss rule: physics drives, no fixed Milky Way or Solar System
+  content, no game rates); (c) anything else nobody can open: remove, as
+  for unverifiable papers. Done: no APA-form line left in the 8 notes,
+  the registry and the References page show any new kind, the removed
+  lines are listed in a report. Owner: Citations. Lock-free.
+  Related: DOC.97, DOC.98.
+  Prerequisites: none.
 
 ## POP: Population and politics
 
