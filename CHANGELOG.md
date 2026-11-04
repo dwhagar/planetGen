@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3141] - 2026-11-04
+
+**Headline:** a galaxy's first sector fill now keeps the bright-star tables in a folder, so it takes about 36 seconds and 0.5 GB instead of 267 seconds and 1.8 GB.
+
+### Changed
+- **The bright-star sampling tables are kept on disk in production (PERF.188, PERF.218).** A first sector fill built hundreds of tables, 717,000 distinct track evaluations, in every process that filled a sector. They are now kept as small files in `/var/cache/planetgen/band-tables` and read back by the next process that asks for the same table. The file name holds a key of every file of the `planetgen` package, of the downloaded datasets, of the Python and numpy versions and of every constant of `tuning`, so a changed generator file or a new download never reads an old table; a new key removes the folders of older versions of the code. A table read back is the table that was made (numbers are written as Python writes them), so the output and the golden digest are the same. A host without the folder builds the tables as before; `PLANETGEN_BAND_TABLE_CACHE` names another folder, or none when empty.
+- **Setup makes the folder.** `examples/apache/create-cache-dir.sh`, which `install.sh` and `update.sh` run, creates it owned by the web user whose workers write it (mode 750).
+
 ## [8.0.3140] - 2026-11-04
 
 **Headline:** the galaxy outline tests follow the model's mean system mass instead of pinned counts that moved with the star mass function.
