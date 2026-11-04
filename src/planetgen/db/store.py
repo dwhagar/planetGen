@@ -76,7 +76,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, class_code, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -3001,6 +3001,8 @@ BODY_FIELDS = (
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
     object_rows.each(body_strength.FIELDS),
+    object_rows.each(planet_type.FIELDS),
+    object_rows.each(class_code.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
                          lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
 )

@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -129,6 +129,8 @@ def apply_class(planet):
     request can test it) and again once the system is final (the seasonal swing of its starlight, `flux_variation`, is known only then).
     """
     planet.planet_class = None
+    planet.class_variant = None
+    planet_type.fill(planet)            # GEN.1219: terrestrial, transitional or gas, from the envelope share (GEN.1226)
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     planet.planet_class = planet_classes.classify(planet)
     if planet.planet_class is None:
@@ -136,6 +138,7 @@ def apply_class(planet):
         planet.description = planet_classes.ASTEROID.sentence
         return
     body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
+    planet.class_variant = class_code.DIGITS[0]     # GEN.1220: the digit of the class code; the best-fit classifier (GEN.1207) gives 1 to 4
     data = tuning.PLANET_CLASSES[planet.planet_class]
     planet.description = data["description"]
     if planet.is_moon:
@@ -504,6 +507,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         host_eccentricity (float, optional): For a moon, its parent planet's eccentricity, which the light it gets goes by (GEN.727);
                                              kept on the moon (`Planet.host_eccentricity`) and left as it was when not given.
     """
+    envelope_share.restore(planet)      # GEN.1226: the drawn fractions, before the air is solved again (the air share is put in again at the end)
     if host_eccentricity is not None:
         planet.host_eccentricity = host_eccentricity
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
@@ -581,6 +585,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
+    # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
+    envelope_share.fill(planet)
 
 
 def _past_runaway_with_water(planet, starlight_w_m2, surface_w):

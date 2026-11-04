@@ -33,7 +33,7 @@ ROGUE_ONLY_PREFIXES = ("rogue_", "galactic_", "ejection_", "parent_system")
 """tuple: The columns only a rogue planet has: its note (`rogue_note`), its motion round the galaxy in place of an orbit, and the system it was
 ejected from (GEN.1111)."""
 
-MISSING_CEILING = 200
+MISSING_CEILING = 201
 """int: Planet columns (net of `HOST_ONLY`) the rogue planet does not carry under the same name: 148 when the test was written (TEST.498), plus the
 columns the planet gained while the rogue is still a generator of its own (below). It falls to zero when the rogue is built through the planet code
 (GEN.1111 and the rogue train, where every one of them comes with the planet); until then it rises only by the planet columns a lane adds, named in
@@ -53,6 +53,7 @@ PLANET_COLUMNS_ADDED = {
     "GEN.1209 (the living classes of a body)": ("life_living",),
     "GEN.1097 (day and night state)": ("day_night_state", "days_per_year", "night_hours"),
     "GEN.983 (belt dose of a moon)": ("dose_belt_msv_yr",),
+    "GEN.1220 (digit of the class code; the rogue has its own planet_type of t or g until the rogue train)": ("class_variant",),
     "GEN.1108 (seven latitude bands)": tuple(f"band{n}_{name}" for n in range(1, 8) for name in (
         "mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")),
 }

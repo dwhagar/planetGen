@@ -10,7 +10,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import bulk_composition as bc, bulk_draw, bulk_structure, constants
+from planetgen.physics import bulk_composition as bc, bulk_draw, bulk_structure, constants, envelope_share
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -168,7 +168,7 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
                 if body.body_type == "g":
                     assert bulk.envelope > 0.0
                 else:
-                    assert bulk.envelope == 0.0 and body.water_mass_fraction == bulk.water
+                    assert bulk.envelope == pytest.approx(envelope_share.air_share(body)) and body.water_mass_fraction == bulk.water     # GEN.1226: the share of a hydrogen-rich air, else 0
                 seen_classes.add(body.planet_class)
     assert len(seen_classes) >= 3
 
