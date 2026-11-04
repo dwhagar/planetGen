@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3208] - 2026-11-04
+
+**Headline:** On the Galaxy Map the black holes are named only when their marks are turned on, as the marks themselves are; the purple dots always draw.
+
+### Changed
+
+- The black hole name labels follow the Black hole marks switch (off by default), so a default view shows the black hole dots among the stars and no black hole names. Turning the marks on shows both the marks and the names.
+
+generation-output: unchanged
+
 ## [8.0.3207] - 2026-11-04
 
 **Headline:** On the Sector Map a nebula is now drawn as the same irregular cloud of gas the Galaxy Map shows, not a smooth ball or a fixed mesh.
