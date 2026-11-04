@@ -3579,7 +3579,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.328 | Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists | none | done, PR #3693 |
 | TEST.329 | test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug) | none | done, PR #3011 |
 | TEST.330 | test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug) | none | done, PR #2850 |
-| TEST.331 | test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug) | none | open |
+| TEST.331 | test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug) | none | done, PR #4797 |
 | TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) | none | done, PR #4784 |
 | TEST.333 | test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug) | none | open |
 | TEST.334 | Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug) | none | dropped (Debug mode thread, 2:21 PM EDT 2026-10-24 as the lane reported: not red on main; its lane machine ran without PLANETGEN_TEST_REDIS_URL so real workers ran) |
@@ -3656,11 +3656,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) | none | done, PR #3689 |
 | TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) | none | done, PR #3689 |
 | TEST.407 | golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug) | none | done, PR #3371 |
-| TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | open |
-| TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | open |
+| TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | done, PR #4797 |
+| TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | done, PR #4797 |
 | TEST.410 | test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug) | none | done, PR #3405 |
 | TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) | none | open |
-| TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | open |
+| TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | done, PR #4797 |
 | TEST.413 | test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug) | none | done, PR #3499 |
 | TEST.414 | test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug) | none | open |
 | TEST.415 | test_cache_warmup::test_a_big_unit_stops_part_way fails on unmodified main (bug) | none | done, PR #3418 |
@@ -3726,7 +3726,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts | none | done, PR #4199 |
 | TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) | none | done, PR #4071 |
 | TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) | none | done, PR #4056 |
-| TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | open |
+| TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | done, PR #4797 |
 | TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) | none | done, already green on main (fixed by the class epochs) |
 | TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) | none | done, PR #4096 |
 | TEST.482 | test_stages::test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own is red on main: fill-map-luminosity lists the block-lights stage (bug) | none | done, PR #4093 |

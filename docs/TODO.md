@@ -18451,25 +18451,6 @@ clears each one.
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
 
-- [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
-  Found by the detail pages lane at 5:54 AM EDT 2026-10-24 (as the lane
-  reported), checked in a clean worktree on untouched origin/main: the
-  test counts 0 a.help-link elements in the search planet rows, so the
-  habitability symbols there carry no help link. Do: find whether the
-  search rows lost the link (a regression from the help-link work,
-  UX.168 to UX.182, or the symbol markup change) or the test selector is
-  stale, and fix the page or the test to match what the rows should
-  show. Done: the test passes on main. Owner: Bug Hunt (proposed).
-  Research (2026-10-09, Update): Habitability lane B (6:12 AM EDT
-  2026-10-24, as the lane reported): the search symbols test also fails
-  alone on main (the lane called it TEST.327, which is retired; this
-  item is the open one).
-  Research (2026-10-09, Update): Core 5 (6:51 AM EDT 2026-10-24, as the
-  lane's clock reads) saw the same failure on main:
-  test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts
-  finds 0 help links where 7 are expected.
-  Prerequisites: none. Related: UX.163.
-
 - [ ] **TEST.333 test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug)**
   Reported by Habitability lane B at 6:12 AM EDT 2026-10-24 (as the lane
   reported) from an end-of-queue `full --check` on main:
@@ -18715,32 +18696,6 @@ clears each one.
   synthesis binned fit is ngpps_formation_water.json. No occurrence
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
 
-- [ ] **TEST.408 test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug)**
-  Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28, report
-  reports/core4-gen357-report-2026-10-28.md) on clean main c0a6fdef7 or
-  earlier: every run on that lane machine, the 900 s signal timeout did
-  not stop it, and a worker crashed on it in the gate ("node down: Not
-  properly terminated"). Do: reproduce on clean main, find the loop (a
-  pulsar-system fill that never ends or a generation that retries
-  forever), fix the code or the fixture, and make the timeout actually
-  kill the test (a signal that C code or a thread ignores needs a hard
-  kill). Done: the test passes in a few minutes and a stuck test is
-  killed at its timeout. Owner: Bug 1 after TEST.407, or a free lane.
-  Rules: never skip or quarantine a test; scripts/test.py changed
-  --resume.
-  Prerequisites: none. Related: TEST.406, TEST.407.
-
-- [ ] **TEST.409 test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug)**
-  Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28) on clean
-  main, every run. Do: reproduce, find out whether civilization
-  generation moved (GEN.441, 4c, class changes) or the fixture seed no
-  longer yields a civilization, and fix the code or the fixture with the
-  reason in the PR; the setup should fail in seconds, not 7.75 minutes.
-  Done: the test passes on main. Owner: Bug 1 after TEST.407, or a free
-  lane. Rules: never skip or quarantine a test; scripts/test.py changed
-  --resume.
-  Prerequisites: none. Related: TEST.406.
-
 - [ ] **TEST.411 Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug)**
   Found by Bug 1 (as the lane reported 8:36 AM EDT 2026-10-28) while
   merging TEST.394 and TEST.383 (#3385): in a full-file run 132 of 136
@@ -18760,18 +18715,6 @@ clears each one.
   runs. Kept open until it recurs; if it has not recurred when Bug 1
   finishes its queue, Bug 1 retires it.
   Prerequisites: none. Related: TEST.394, TEST.383.
-
-- [ ] **TEST.412 src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug)**
-  Found by Core 2 (as the lane reported 9:05 AM EDT 2026-10-28) while
-  merging UX.126 (#3387); not touched by that change. Do: run the file
-  alone on clean main, find what blocks on the nearby page (a request
-  that never returns, a wait with no timeout, a missing fixture star, a
-  worker that is not running), fix the code or the fixture, and make the
-  test fail in seconds instead of hanging. Done: the file passes and a
-  stuck page request fails the test within its timeout. Owner: Bug 1
-  after DB.108/GEN.826 and TEST.405/406/398/402, or a free lane. Rules:
-  never skip or quarantine a test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.411, UX.126.
 
 - [ ] **TEST.414 test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug)**
   Found by Aux 10 (as the lane reported 9:56 AM EDT 2026-10-28) while
@@ -19007,21 +18950,6 @@ clears each one.
   the test passes. The item stays open until GEN.780 fills the column
   and the excusal is removed.
   Prerequisites: none. Related: DB.70.
-
-- [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
-  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
-  lane reported): earth.tropopause_temperature_k is 168.33 K, outside
-  the test's 170 to 230 K bound; the test's commit says table-dependent
-  tests await the final fit. Do: decide whether the bound or the table
-  is wrong (the real cold-trap tropopause of an Earth-like air is a
-  physics question, check against the published range), fix the right
-  one without loosening the test beyond what the source supports, and
-  push to claude/project-thread-bvcbav with the head named. Done: the
-  test passes on the train branch with a stated source for the bound.
-  Owner: Aux 2. Version 8.1.
-  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
-  coordinator at 3:21 PM EDT; owner is now Aux 2.
-  Prerequisites: none. Related: GEN.850, GEN.851.
 
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
