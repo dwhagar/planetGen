@@ -34,10 +34,11 @@
 // get a second, separate instance of it.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { glowInnerRatio, makeGasRingTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { glowInnerRatio, makeGlowMaterial, paintedTexture, ringStripTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, parseLook, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { paintGiant } = await import(`./giantpaint.js${VERSION_QUERY}`);
+const { paintRing, ringGeometry, STRIP_PIXELS } = await import(`./ringpaint.js${VERSION_QUERY}`);
 const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
@@ -109,7 +110,7 @@ function initSphereField(canvasEl) {
 
   // How far back the camera sits is chosen per marker (see `renderFrame`)
   // rather than fixed: a gas giant's ring reaches much further from
-  // center (out to `RING_OUTER_R`) than a bare sphere (`SPHERE_R` + a
+  // center (out to the ring's outer edge) than a bare sphere (`SPHERE_R` + a
   // little for the atmosphere glow shell) does, and a fixed framing tight
   // enough for the sphere alone clips the ring clean out of the frustum --
   // confirmed directly (an early version framed for the sphere only, and
@@ -138,8 +139,6 @@ function initSphereField(canvasEl) {
 
   var SPHERE_R = 1;
   var GLOW_R = 1.14;
-  var RING_INNER_R = 1.25;
-  var RING_OUTER_R = 1.7;
 
   // A planet/moon is externally lit (its own `sun` above); a star is
   // self-luminous, so it gets its own unlit material instead -- swapped
@@ -153,7 +152,7 @@ function initSphereField(canvasEl) {
   bodyGroup.add(sphere);
 
   var ring = new THREE.Mesh(
-    new THREE.RingGeometry(RING_INNER_R, RING_OUTER_R, 64),
+    new THREE.RingGeometry(1.25, 1.7, 8),
     new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, depthWrite: false })
   );
   ring.rotation.x = THREE.MathUtils.degToRad(70);
@@ -233,8 +232,8 @@ function initSphereField(canvasEl) {
       // for that larger reach here too, or its corona would simply clip
       // outside the frustum the same way an under-framed gas giant ring
       // once did (see this function's own earlier fix for that).
-      var halfExtent = marker.isGasGiant
-        ? RING_OUTER_R * 1.15
+      var halfExtent = marker.ring
+        ? Math.max(GLOW_R, marker.ring.out * SPHERE_R) * 1.15
         : marker.isStar
           ? GLOW_R * marker.glowScale * 1.15
           : Math.max(GLOW_R, marker.lumpy ? marker.lumpy.extent : 0) * 1.15;
@@ -303,8 +302,11 @@ function initSphereField(canvasEl) {
     planetMaterial.color.set(painted ? "#ffffff" : marker.color);
     planetMaterial.needsUpdate = true;
 
-    ring.visible = marker.isGasGiant;
-    if (marker.isGasGiant) {
+    ring.visible = !!marker.ring;
+    if (marker.ring) {
+      // MAP.275: the stored ring, its edges in the body's radii, painted along the radius with the gaps its moons dig.
+      ring.geometry.dispose();
+      ring.geometry = ringGeometry(THREE, marker.ring.in * SPHERE_R, marker.ring.out * SPHERE_R);
       ring.material.map = marker.ringTexture;
       ring.material.needsUpdate = true;
     }
@@ -401,6 +403,7 @@ function initSphereField(canvasEl) {
       return { name: marker.circle.parentNode.dataset.name, angle: Spin.angleAt(marker.look, Spin.seconds()),
         rate: Spin.rateOf(marker.look), spinH: marker.look.spinH, axis: marker.axis, at: Spin.seconds(),
         kind: marker.look.kind, locked: Spin.isLocked(marker.look), isSelf: marker.isSelf, toward: marker.toward || null,
+        ring: marker.ring ? { in: marker.ring.in, out: marker.ring.out, gaps: (marker.ring.gaps || []).length, shown: marker.ring.alpha > 0 } : null,
         cx: rects[i] ? rects[i].cx : null, cy: rects[i] ? rects[i].cy : null };
     });
   }
@@ -448,6 +451,7 @@ function gatherSphereMarkers(sceneEl) {
       isStar: isStar,
       isSelf: !!(circle.parentNode && circle.parentNode.dataset && circle.parentNode.dataset.self === "true"),
       isGasGiant: isGasGiant,
+      ring: look.ring || null,
       paintable: look.body === "solid" || look.body === "gas" || isStar,
       glowScale: glowFor(look.lumSolar).scale,
       glowStrength: glowFor(look.lumSolar).strength,
@@ -463,8 +467,8 @@ function gatherSphereMarkers(sceneEl) {
     if (isLumpy(look)) {
       marker.lumpy = lumpyGeometry(THREE, look);
     }
-    if (isGasGiant) {
-      marker.ringTexture = makeGasRingTexture(THREE, marker.color);
+    if (marker.ring) {
+      marker.ringTexture = ringStripTexture(THREE, paintRing(marker.ring, look.seed, STRIP_PIXELS));
     }
     el.classList.add("sysmap-sphere-active");
     markers.push(marker);

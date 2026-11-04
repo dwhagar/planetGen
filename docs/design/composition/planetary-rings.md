@@ -1,6 +1,6 @@
 # Planetary rings (GEN.732)
 
-Status: built. The model is `src/planetgen/physics/rings.py`; the fields are stored from schema v160 (`planets` and `moons`, migration 0160) and v171 (`rogue_planets`, migration 0171); the painter (MAP.275) reads them and the colour of a ring is GEN.670's research, so neither is here.
+Status: built. The model is `src/planetgen/physics/rings.py`; the fields are stored from schema v160 (`planets` and `moons`, migration 0160) and v171 (`rogue_planets`, migration 0171); the painter (MAP.275, `web/maps/ringlook.py` and `static/ringpaint.js`) reads them, with the colour by the ice share from GEN.670's research, so neither is here.
 
 ## What a ring is here
 
