@@ -274,16 +274,12 @@ ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
 # it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water
-# (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) and an equilibrium temperature under
-# `ALBEDO_FROZEN_BELOW_K` (at the middle albedo) is ice-covered and bright; one above it is ocean and cloud. A Venus-like
+# (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) draws the albedo of its ice-free state, ocean and cloud. The ice is not drawn: the
+# temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
-# Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges; the Earth, at 255 K with
-# no air, and the outer edge of the habitable zone, at 223 K, must stay on the ocean side of 230 K or an Earth twin freezes).
+# Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges).
 ALBEDO_WET_RANGE = (0.25, 0.40)
-ALBEDO_FROZEN_RANGE = (0.45, 0.70)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
-ALBEDO_FROZEN_BELOW_K = 230.0
-ALBEDO_REGIME_REFERENCE = 0.30
 
 # --- Star System Generation Parameters ---
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
@@ -1025,6 +1021,14 @@ Mdot = eps pi R^3 F_xuv / (G M) ([R2769, R4637] take 0.1, other estimates run fr
 0.3). 0.01, a tenth of the usual value, so that only the worst red dwarf zones lose their oceans (Boss, 7:09 PM EDT
 2026-10-23; DESIGN stand-in, GEN.639)."""
 
+RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
+"""float: The Sun's flux at the Earth, W/m2: the unit `orbits.runaway_greenhouse_flux` is in (the planet's starlight over this is its effective flux)."""
+
+RUNAWAY_START_TEMPERATURE_K = 1500.0
+"""float: The temperature the air's fixed point starts from for a body with surface water under starlight past its runaway greenhouse limit (GEN.1238), so it
+finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K,
+`surface_air.MAX_SURFACE_TEMPERATURE_K`). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
+
 MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
 surface reservoir, because escape reaches only the air and the oceans, not the mantle (GEN.639; DESIGN stand-in)."""
@@ -1203,21 +1207,21 @@ The bar's gas is swept in over its length and what lies beyond is untouched, so 
 that never leaves a ring, 4 a ring at the bar's end [a model default, open]."""
 
 # The thin disk's star formation history over time (GEN.469, `galaxy.disk_history`,
-# docs/design/galaxy/disk-star-formation-history.md): gas continuity per ring, the inflow from the halo's growth, the
-# Kennicutt-Schmidt law above as the depletion. The Milky Way's own history is only a test target.
-# The cosmology is the mass chain's (`galaxy.mass_chain.HUBBLE_H`, `OMEGA_MATTER`: Planck-like, 13.8 Gy old).
-HALO_GROWTH_MASS_EXPONENT = 1.1
-"""float: How the mean growth rate of a halo's mass goes with its mass, `M^1.1` (Fakhouri, Ma and [R0508, R1313], eq. 2, read: fitted to the Millennium simulations)."""
-HALO_GROWTH_REDSHIFT_SLOPE = 1.11
-"""float: The `1 + 1.11 z` in the same fit's mean growth rate, `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)`."""
-STELLAR_TO_HALO_EVOLUTION = {"log_m1": 1.195, "norm": -0.0247, "beta": -0.826, "gamma": 0.329}
-"""dict: How the stellar-to-halo mass relation moves with redshift: each of its four parameters is its present value
-(`galaxy.mass_chain.LOG_M1`, `N_NORM`, `BETA`, `GAMMA`) plus this times `z / (z + 1)` ([R3181], eqs. 11 to 14 and Table 1, read: the multi-epoch abundance-matching fit with errors
-in the observed masses). It gives the stars a halo of a given mass and age holds, so the disk's gas inflow
-follows the stellar mass the halo's growth builds."""
-HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
-"""float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
-halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
+# docs/design/galaxy/disk-star-formation-history.md): gas continuity per ring, an exponential infall whose time scale grows
+# outward (inside-out formation, GEN.1230, GEN.1242), the Kennicutt-Schmidt law above as the depletion. The Milky Way's own
+# history is only a test target.
+DISK_INFALL_SLOPE_GY_PER_KPC = 1.033
+"""float: How the thin disk's infall time scale grows with the radius, Gy per kpc: `tau(R) = 1.033 R - 1.267` Gy (Chiappini, Matteucci and Romano, [R5095], section 3, the linear fit
+to the Milky Way's abundance gradients, the time scale of 7 Gy at the Sun). Source tier T2 (a model fit to the Milky Way's gradients, not a measurement of other galaxies)."""
+DISK_INFALL_OFFSET_GY = 1.267
+"""float: The intercept of that line, Gy ([R5095], section 3)."""
+DISK_INFALL_MIN_GY = 2.0
+"""float: The shortest infall time scale, Gy: the line is negative inside 1.2 kpc, and the model of [R5094] takes 2 Gy for the inner disk (section 2.4, the bulge and the disk at 2 kpc). Source tier T2."""
+DISK_INFALL_MAX_GY = 8.0
+"""float: The longest infall time scale, Gy: [R5094] reaches 8 Gy at 20 kpc (section 2.4) where the line of [R5095] would reach 13 Gy at 14 kpc, so the line is stopped at the later model's longest. Source tier T2, level L1 (the choice of the stop between two models)."""
+DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC = 2.6
+"""float: The disk scale length the line is a fit to, kpc: the thin disk of the Milky Way ([R5095] takes 2.5 kpc, [R5094] 2.7). The line is applied to any galaxy in scale lengths, so a ring at x scale lengths has the time scale of the Milky Way's ring
+at `x` times this: a stand-in for how the infall time scales with a galaxy's size (no source gives it; row GI1 of GEN.725, level L0)."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""
 BLACK_HOLE_RETURN_MASS_SOL = 40.0
@@ -1557,8 +1561,10 @@ the radius at which its density equals the ball's mean, so the ball's cell holds
 # the inflow to the ring is 0.8 solar masses a year for the Milky Way (30% efficiency of the
 # dust lanes' flow) against a star formation rate of 0.07 (Table 1: source counts 0.07, integrated light 0.07 to 0.09, more
 # or less constant over the last 5 Myr to 100 Myr), by continuity `inflow = star formation + outflow + growth` (their eq. 1).
-CORE_GAS_INFLOW_TIME_GY = 1.0
-"""float: The time the bar takes to carry the gas of its gap to the centre, Gy."""
+CORE_GAS_INFLOW_TIME_GY = 0.6
+"""float: The time the bar takes to carry the gas of its gap to the centre, Gy. The simulations the gap is read from remove the gas "on 1 Gyr timescales"; the exponential infall of
+GEN.1230 leaves the inner rings about 40 percent less gas than the halo-growth inflow did, so 0.6 Gy (inside a factor of two of that "1 Gyr") gives the measured 0.8 solar masses a year
+for the Milky Way shape (it was 1.0 Gy for 0.8). A stand-in tuned to a published statistic (tier T2, level L2, row CG1 of the registry, GEN.725)."""
 CORE_STAR_FORMATION_PER_INFLOW = 0.07 / 0.8
 """float: The ring's star formation rate over the gas inflow to it (the Milky Way's measured 0.07 over 0.8 solar masses a
 year; one galaxy measured, so a stand-in for the ratio in others) [R, stand-in for other galaxies]."""
@@ -2586,12 +2592,12 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.16%: since GEN.469 the disk's populations have their shares from its gas history (a galaxy of
+# every component, 0.18%, it was 0.16% before GEN.1230 gave the disc an exponential infall: since GEN.469 the disk's populations have their shares from its gas history (a galaxy of
 # 5e10 solar masses; a lighter one forms its stars later and holds more young ones) and since GEN.544 the exponential
 # height (it was 0.19% over the isothermal one); test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0016
+MAGNETAR_YOUNG_STAR_SHARE = 0.0018
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 
@@ -3075,12 +3081,15 @@ RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
 inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies [R3293], not a measured
 spread (radiation-model.md R15, part E 3.3)."""
 
-INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (2.6e10, 5.3e13)
-"""tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly: the bounds [R1716] take ([R1716] section 2.2.3; READ), wet olivine's 1.6e11 Karato and Wu 1993 less an order of magnitude to dry
-enstatite's [R4889]. Their uncertainty on the rheology of other planets' mantles."""
+INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (9.3e7, 1.9e11)
+"""tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly (GEN.1185). [R1716] take 2.6e10 to 5.3e13 with an
+activation energy of 200 to 300 kJ/mol ([R1716] section 2.2.3; READ); the activation range moved up to the diffusion-creep values of the laboratory
+(`INTERIOR_ACTIVATION_RANGE_KJ_MOL`), and these bounds are theirs multiplied by `exp(-(325 - 250) kJ/mol / (R 1600 K))`, 3.56e-3, so the viscosity of a mantle at 1,600 K in the middle of the
+ranges holds (1.7e20 Pa s) and the corners of the viscosity at 1,600 K go from 9e16 and 3e23 Pa s to 3e16 and 1e24 Pa s. Source tier T4, tweak level L3 (registry GEN.725, row IHA1)."""
 
-INTERIOR_ACTIVATION_RANGE_KJ_MOL = (200.0, 300.0)
-"""tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly: [R1716] (wet enstatite 200, dry olivine 300)."""
+INTERIOR_ACTIVATION_RANGE_KJ_MOL = (260.0, 390.0)
+"""tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly (GEN.1185): the diffusion creep a tide and a convecting mantle follow, 261 to 375 kJ/mol dry and 335 to 387 wet
+([R2451: Table 3]; READ). [R1716] take 200 (wet enstatite) to 300 (dry olivine), below every laboratory value for olivine. Source tier T1, tweak level L1 (row IHA2)."""
 
 INTERIOR_LIQUIDUS_COEFFICIENT_K_GPA = 310.317
 """float: `a_l` of the mantle's liquidus `T_l(p) = a_l (p + p_l)^c_l`, K per GPa^c_l: chondritic material, [R2857]

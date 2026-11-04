@@ -30,8 +30,10 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { poiIcon, tokenOf, TIER_NAMES } = await import(`./poiicons.js${VERSION_QUERY}`);
 
 // The most markers drawn at once (MAP.116's rule for the stars: a crowded view must stay readable). Each kind gets
-// an even share of it; a kind that has less hands the rest on.
-export const MARKER_BUDGET = 240;
+// an even share of it; a kind that has less hands the rest on. MAP.367: half of what it was (240); a sector opened in place raises it
+// (galaxymap3d.js's SECTOR_MARKER_BUDGET) and shows every system that fits.
+export const MARKER_BUDGET = 120;
+export const SECTOR_MARKER_BUDGET = 1500;    // an opened sector shows every system that fits, merged only when marks touch
 
 // A marker of a kind with its own size (`extentPc`) is hidden while it would be under this many pixels across.
 export const MIN_EXTENT_PX = 2;
@@ -211,11 +213,12 @@ export function nearFieldRule(view) {
 // not yet built into a sector), heaviest first. Nodes of every block size list the biggest, so every node counts.
 export const BLACK_HOLE_KIND = {
   id: "marker-black-hole",
-  label: "Black holes",
+  label: "Black hole marks",
+  title: "Show or hide the marks over the black holes; the black holes themselves are always drawn, as purple dots among the stars",
   glyph: "black-hole",
   color: "#c58cff",
   maxBlock: Infinity,
-  defaultOn: true,
+  defaultOn: false,   // MAP.368: the marks are off until the visitor turns them on (the stored choice wins); MAP.370: the purple dots among the stars always draw
   crowds: true,       // MAP.340: marks too close on the screen merge into one with a count (`mergeMarks`), among black holes only
   nearField: true,    // MAP.339: chosen by `nearFieldRule` (the view's near field, then by mass over distance squared, then by screen area)
   source: function (node) {

@@ -40,11 +40,16 @@ def calculate_galactic_orbit(distance_ly):
         tuple: `(orbital_speed_kms, orbital_period_gy)` -- circular orbital speed in km/s, and orbital period in billions of years (Gy), the same unit
               `Star.age`/`lifespan` already use. Both `0.0` for a system placed exactly at the galactic center (r = 0, where a circular orbit is degenerate).
     """
+    return circular_orbit(potential.current(), distance_ly)
+
+
+def circular_orbit(pot, distance_ly):
+    """`calculate_galactic_orbit` in the potential `pot` (a stored galaxy's, `galaxy.potential.for_galaxy`) instead of the running unit's galaxy."""
     if distance_ly <= 0:
         return 0.0, 0.0
 
     distance_pc = ly_to_pc(distance_ly)
-    orbital_speed_kms = potential.current_circular_speed_kms(distance_pc)
+    orbital_speed_kms = potential.circular_speed_kms(pot, distance_pc)
     if orbital_speed_kms <= 0.0:
         return 0.0, 0.0
 

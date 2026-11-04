@@ -142,3 +142,17 @@ test("the store asks once for a key, three at a time, and tries a failed one aga
   assert.equal(store.get("a"), null, "a key not kept is let go");
   assert.equal(store.get("c").status, "loading", "but not one on its way");
 });
+
+test("a star behind a nebula takes its hue, more the denser it is, and a little of its light is lost", () => {
+  const white = [1, 1, 1];
+  assert.deepEqual(V.tinted(white, [0, 0, 0]), white, "no nebula, no change");
+  const faint = V.tinted(white, [0.02, 0.005, 0.01]);
+  const dense = V.tinted(white, [0.8, 0.2, 0.4]);
+  assert.ok(faint[0] > faint[1] && faint[0] > faint[2], "the star leans toward the nebula's hue");
+  assert.ok(dense[0] - dense[1] > faint[0] - faint[1], "a denser core tints more");
+  assert.ok(V.tintOf([5, 1, 2]).strength <= V.TINT_MAX && V.tintOf([5, 1, 2]).strength > 0.99 * V.TINT_MAX, "and the tint levels off, so it stays subtle");
+  assert.ok(Math.max(...dense) < 1 && dense[0] > 0.7 * 1, "some light is lost but the star is still there");
+  const blue = V.tinted([0.4, 0.5, 1.0], [0.1, 0.1, 0.5]);
+  assert.ok(blue[2] > blue[0], "a blue star behind a blue nebula stays blue");
+  assert.ok(V.NEBULA_TINT_GLSL.includes("nebulaTinted") && V.NEBULA_TINT_GLSL.includes(V.TINT_MAX.toFixed(3)), "the shader carries the same constants");
+});

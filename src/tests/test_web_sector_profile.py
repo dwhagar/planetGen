@@ -80,7 +80,7 @@ def test_a_sector_page_without_a_profile_still_renders(client, profiles):
 
 def test_an_uncharted_address_shows_its_profile_and_no_warning_for_a_light_cell(client, profiles):
     html = client.get("/sector/at/40/0/3").get_data(as_text=True)
-    assert "Uncharted sector ABC" in html and "Nothing has been generated at shell 40, band 0, wedge 3" in html
+    assert "Uncharted sector ABC" in html and "Nothing has been charted at shell 40, band 0, wedge 3" in html
     assert 'id="sector-profile"' in html and "about 12.5 star systems expected" in html
     assert "1 waiting bright star" in html and 'id="heavy-cell"' not in html
     assert "Generate page" not in html  # only an admin is pointed at it

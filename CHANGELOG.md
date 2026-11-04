@@ -2,6 +2,165 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3170] - 2026-11-04
+
+**Headline:** The Galaxy Map draws about half as many stars, marks, regions, and names at once; an opened sector shows everything.
+
+### Changed
+- **MAP.367.** At Boss's request the caps on what the Galaxy Map draws at once are about halved: the stars held on the screen (20,000 to 10,000, and 8,000 to 4,000 on a phone), the marks (240 to 120), the nebula regions (600 to 300) and the named stars and objects offered for names (400 to 200). A sector opened in place keeps the old star numbers and its own mark budget (1,500), so it still shows every system that fits. Names are held by the screen's area, as before. The node budget stays at 1200: it was tried at 600 and the blocks then hand over in bursts (the square chunks of MAP.366), and the nodes are a data cap rather than what is drawn.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.367.
+
+## [8.0.3169] - 2026-11-04
+
+**Headline:** A new test lock keeps every page of the site in the story's words: no page outside References can use a process word, and every link into References has to work.
+
+### Changed
+- The page crawl has no list of exceptions any more. It also reads the sign-in, preferences, polities, species and Help index pages, and the visible text of every template outside the admin and References pages, so a page that needs data to show is checked too.
+- A new page of the site must be crawled or named in the crawl's register with the reason it cannot be shown without data.
+
+## [8.0.3168] - 2026-11-04
+
+**Headline:** The "every plain button does something" browser test waits for the page's custom elements, so it no longer clicks a button that vanishes as its dialog is defined.
+
+### Changed
+
+- `test_every_plain_button_does_something` took the page's buttons as soon as the page loaded. Until the page's custom elements are defined, the children of a shut `sl-dialog` are drawn in the page, so a dialog's "Close" button counted as visible and then disappeared when the dialog was defined, leaving the click waiting out its 120 second timeout (seen on the sector page, 2 of 6 runs alone; TEST.126). The test's settle step now also waits until no custom element is left undefined. Three runs alone pass.
+
+## [8.0.3167] - 2026-11-04
+
+**Headline:** The last pages that spoke out of the story now speak in it, and a body page's source lines became quiet links.
+
+### Changed
+- The body color note in the info panel says what the color comes from in the story's words (its temperature, ground types, sea and air) and what the picture leaves out.
+- Sector, nearby, galaxy and contents pages say "charted" where they said "generated", and the sector scatter note says "grade" where it said "tier".
+- Under each value on a star, planet or moon page, the one-line source is now a "Where this comes from" link to the value's row on its References method page.
+
+## [8.0.3166] - 2026-11-04
+
+**Headline:** The best-fit class table now follows the Class D and Class C rules of the roundness change: a small airless world is D, and an airless body of 0.1 Earth masses or more is C.
+
+### Changed
+- **The best-fit class table matches the class tree (TEST.574).** The table the best-fit scorer reads still described Class D as a small icy body with at least 1 percent water, and Class C and S as dry, from before Class D and C read the roundness ratio and the 0.1 Earth mass line. A small airless world scored C. The table now gives Class D under 0.1 Earth masses, Class C from 0.1 to 1.5, Class S from 1.5, none of them by water. Nothing stored changes; the class tree still decides.
+- **A class composition text has its row in the materials table.** The text for Class D ("rock, ice, and frozen hydrocarbons") is mapped to its three materials in `materials.json`.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.574.
+
+## [8.0.3165] - 2026-11-04
+
+**Headline:** Black holes are always drawn as purple dots among the stars; only their marks are off by default.
+
+### Changed
+- **MAP.370.** The purple dots of the black holes draw with the rest of the stars, at the magnitudes their mass gives them, whatever the Menu says (MAP.368 had hidden them with the marks). The Menu's layer is now "Black hole marks" and controls only the marks over the black holes, which start off. Also: the two Galaxy Map tests that were red on main (TEST.573) are fixed: the halo pick tests step off the log ruler that sat over the point and read the zoom level instead of crumbs the continuous zoom no longer changes, and the class button test counts the planet classes there are.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.370, TEST.573.
+
+## [8.0.3164] - 2026-11-04
+
+**Headline:** The System Map drill test no longer fails when the planet's info card sits over the moon it clicks next.
+
+### Changed
+
+- `test_system_map_selection_drill_and_measure` expanded the planet's info card to read it, then clicked the first moon. The expanded card is as tall as the window, and the system is a random one, so when the moon lay under the card the click landed on the card and the test waited out its 120 second timeout (TEST.194, seen as a load flake; it failed 1 of 3 runs alone). The test now presses Expand again to shrink the card before it clicks the moon. Four runs alone pass.
+
+## [8.0.3163] - 2026-11-04
+
+**Headline:** The guards that were red on main are green: reproducible maths in five places, the unit registry for mass conversions, a sector that no longer carries a memory address, and the sector page's map text.
+
+### Changed
+- `detmath.hypot`, `dist` and `matmul` replace `math.hypot`, `math.dist` and `@` in `generation/rogue_landing.py`, `physics/ring_darkening.py`, `physics/system_bodies.py` and `galaxy/acceleration.py`, so the last bit does not depend on the machine. The pinned galaxy is unchanged by them (checked on the commit before DOC.86).
+- 17 hand-written mass conversions (`api/routes.py`, `galaxy/potential.py`, `physics/belt_ledger.py`, `field_mass.py`, `giant_heat.py`, `giant_interior.py`, `hydrosphere.py`, `life_readings.py`, `surface_air.py`) go through `unit_registry.converter`, bit for bit; the stale `open_clusters.py` entry is off the kept list.
+- A system keeps its stars' architectures in a list and not in a dictionary keyed by `id(star)` (`StarSystem.architectures`, GEN.1111): the address in the key made a sector differ between runs, so `test_a_sector_does_not_depend_on_hash_seed_or_locale` failed.
+- `util/secret_key.py` may import `secrets` (the form-signing key never feeds a draw); the sector page test follows DOC.86's serial comma.
+
+### Fixed
+- Still open: `test_the_pinned_galaxy_is_the_pinned_one` stays red on main until train 10 rewrites the golden: DOC.86 (#4786) changed generated sentences, which are stored in the sectors.
+
+generation-output: unchanged
+TODO items resolved: TEST.569 (all but the pinned galaxy, which waits for train 10's golden)
+
+## [8.0.3162] - 2026-11-04
+
+**Headline:** Black holes are off by default on the Galaxy Map, and drawn as purple dots when turned on.
+
+### Changed
+- **MAP.368.** The Black holes layer in the Menu now starts off: a new viewer sees no black-hole marks and no purple dots for them, and the Key has no line for them. Turning the layer on draws the marks and the purple dots (black holes stay #a43cff; neutron stars and quasars keep the colors MAP.164 and MAP.80 chose, deep blue and pink, and are not affected). The choice rides in the address (`show=marker-black-hole`) and a reload keeps it, so a viewer who already set it keeps their choice.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.368.
+
+## [8.0.3161] - 2026-11-04
+
+**Headline:** Choosing a nebula on the Galaxy Map flies into a window that shows that nebula alone, with a way back.
+
+### Changed
+- **MAP.222.** A double click on a nebula, Enter with its card up, a click on its name, or the card's "Open nebula window" button flies the camera to frame the nebula and the nebulae that overlap it, and draws only what lies inside: the stars, names and markers in its sphere and the nebulae's shape cut to it, whatever sectors it crosses. A bar over the map names the window and has "Back to the Galaxy Map" (Escape does the same), which returns the camera to where it was. The window is a generic group window (`groupwindow.js`) so a globular cluster can plug in later (MAP.223).
+
+generation-output: unchanged
+
+TODO items resolved: MAP.222.
+
+## [8.0.3160] - 2026-11-04
+
+**Headline:** The top-bar menu test follows the Help menu's new first item, so it opens the Habitability page it means to.
+
+### Changed
+
+- `test_the_top_bar_menus` expected the Help menu to hold Classes, Habitability, Properties, Life and References, and clicked its second item. Since the help registry (the "All help" index first) the second item is Classes, so the click went to the wrong page and the test waited out its 120 second timeout (TEST.324). The test now expects "All help" first and clicks the item named Habitability. The file passes, 11 of 11, in about two minutes.
+
+## [8.0.3159] - 2026-11-04
+
+**Headline:** The Galaxy Map's default view shades only with nebulae: no density, age or luminosity fill.
+
+### Changed
+- **MAP.191.** The default Galaxy Map shows stars and markers for known space with no block fill; the nebulae (drawn from the galaxy's density, MAP.365) are the only shading and tint the stars and regions behind them (MAP.215). This closes the item: the blocks were already hidden unless asked for (MAP.214), and the Color by menu's first choice now reads "No fill (stars, markers and nebulae)" instead of naming the age, density and luminosity colors it does not draw.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.191.
+
+## [8.0.3158] - 2026-11-04
+
+**Headline:** Stars, glows and charted regions seen through a nebula on the Galaxy Map take its hue.
+
+### Changed
+- **MAP.215.** The nebulae's raw sum (the volume layer's target, before the cap) is read by the star shader, the unresolved star glow and the charted-region layer: what is behind a nebula leans toward the sum's hue (`nebulavolume.tinted`, the same formula in the shaders as `nebulaTinted`), more the denser the core and levelling off at 0.6 so the tint stays subtle, and loses a fifth of its light at full tint so a dense cloud dims what is behind it. Nothing is tinted while no nebula is drawn, in the Sector Map, or with the nebula layers off. The density views are unchanged.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.215.
+
+## [8.0.3157] - 2026-11-04
+
+**Headline:** Nebulae on the Galaxy Map fade out at the edge by family: a reflection nebula over the longest way, a supernova shell crisp.
+
+### Changed
+- **MAP.142 (the Galaxy Map's part).** The strength of a nebula's points now follows `smoothstep(FORM_LEVEL - w / 2, FORM_LEVEL + w / 2, density)` with a width `w` for each family (`galaxy/nebula_volume.EDGE_WIDTH`: reflection 0.60, diffuse 0.50, emission 0.40, dark 0.30, planetary 0.15, supernova remnant 0.10 of the density's span, from the "Appearance by class" table), so a nebula has no hard outline and its extent is the half-strength contour, the density the model calls inside a nebula, whatever its width. A planetary nebula and a remnant keep their shell profile, so the families differ by more than color: shells are rings, solid nebulae fade over their own width. The widths are display settings, not measurements. The Sector Map's and the nebula page's meshes keep their edges for now.
+
+generation-output: unchanged
+
+TODO items resolved: none (MAP.142 stays open for the Sector Map and the nebula view).
+
+## [8.0.3156] - 2026-11-04
+
+**Headline:** Nebulae on the Galaxy Map are irregular, wispy shapes taken from the galaxy's gas and star-forming density, not circles.
+
+### Changed
+- **MAP.365.** A nebula is no longer a round sprite or a random blob per object. For each node the map draws, a new read-only endpoint (`GET /galaxy/nebula-volume?key=<node key>`, `/api/galaxy/nebula-volume`) samples the model's density (`galaxy.nebula_density`) at points on one absolute lattice (`galaxy/nebula_volume.py`): every lattice point in the node that a nebula reaching the node holds, with a strength from the density and the family of the nebula it is nearest to in its own radii. A nebula that crosses a node or sector border is drawn half by each node, with no seam, and the lattice gets finer (and the density adds noise octaves, so more filaments) as the nodes get finer. A dense core fades unevenly into a soft edge; a planetary nebula or a supernova remnant is a shell. Nothing is stored, so there is no migration and no epoch: the same galaxy draws the same shapes.
+- The map draws the points as soft splats (`static/nebulavolume.js` chooses and decodes, `static/nebulavolumelayer.js` draws). Where nebulae overlap on the screen their colors add up in a half-resolution target, and a full-screen pass bends the sum under a cap that keeps its hue, so a crowd of nebulae never washes to white. The group circles of MAP.176 and the per-nebula circle and GEN.75 mesh give way where a node's volume shows; the circles stay far out and while a volume loads, and a browser that cannot render to a float target keeps them. The family switches of the Menu switch the volumes too.
+- The tests hold a nebula's outline away from a circle (the circularity of its projected points, with the model's own clouds and a stand-in), two blocks that share a nebula drawing each place once, the same points whichever object it is, the node reader against a stored nebula, the capped sum against the shader's own output at every pixel of a browser frame, and the volume's packed bytes.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.365.
+
 ## [8.0.3155] - 2026-11-04
 
 **Headline:** A system that was asked for a habitable world now answers `aim` when it holds a body that meets the request's conditions and `unmet` when it does not, where the answer used to disagree with the world count.

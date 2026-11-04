@@ -110,7 +110,7 @@ def test_the_list_shows_what_is_near_with_links_and_the_ungenerated_count(client
     assert response.status_code == 200
     assert "Within 12 pc of" in html and escape(system["name"]) in html
     assert re.search(r'href="/system/[0-9A-F-]+"', html)
-    assert "1 object in range is not generated yet (bright stars: 1)" in html
+    assert "1 object in range is not charted yet (bright stars: 1)" in html
     assert 'id="nearby-results"' in html
 
 

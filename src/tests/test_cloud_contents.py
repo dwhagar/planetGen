@@ -93,7 +93,7 @@ def test_a_nebula_page_lists_its_contents_and_an_empty_one_says_so(client, galax
     assert "What is inside it" in page and f"/system/{printed['inside']}" in page
     assert "Star systems (1)" in page and "Rogue planets (1)" in page
     empty = client.get(f"/phenomenon/nebula/{printed['empty']}").get_data(as_text=True)
-    assert "Nothing generated sits inside it." in empty
+    assert "Nothing charted sits inside it." in empty
     # Another kind of phenomenon contains nothing and has no such block.
     rogue = next(row for row in client.get("/api/phenomena").get_json()["items"] if row["type"] == "rogue_planet")
     assert "What is inside it" not in client.get(f"/phenomenon/rogue_planet/{rogue['id']}").get_data(as_text=True)

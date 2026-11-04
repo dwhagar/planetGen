@@ -23,12 +23,12 @@ F) and, for the **wet** range (ocean and cloud), the ocean row of Table 2 at `WE
 is the surface that loses most. The factors are ratios to the G star, as a function of the star's effective temperature (the four stars'
 temperatures are not in the paper; the module takes the main-sequence values of the spectral types). The dry range is left alone: the table's
 land entry is rock under a thick air of clouds and Rayleigh scattering, and a dry body has none of that to lose (the colour effect of bare
-regolith is not in the papers). The freezing line of `climate_draws.albedo_range` (`tuning.ALBEDO_FROZEN_BELOW_K`) is left where it was.
+regolith is not in the papers). The ice cover of a cold wet world is `climate_branches.ICE_COVERED_ALBEDO` (GEN.972), shifted by the "frozen" factor as the old frozen range was.
 
 Use:
 
     factor = spectral_factor("frozen", star_temperature_k)         # 1.0 for the Sun
-    low, high = shifted_range(climate_draws.ALBEDO_FROZEN_RANGE, "frozen", star_temperature_k)
+    low, high = shifted_range((climate_branches.ICE_COVERED_ALBEDO,) * 2, "frozen", star_temperature_k)
 """
 
 SPECTRAL_TEMPERATURES_K = (3410.0, 5040.0, 5770.0, 6900.0)

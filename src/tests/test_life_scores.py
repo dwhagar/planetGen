@@ -98,15 +98,18 @@ def test_generated_bodies_carry_scores_that_agree_with_their_life():
                 scores = tuple(getattr(body, name) for name in life_scores.FIELDS)
                 assert all(0 <= value <= tuning.LIFE_SCORE_MAX for value in scores)
                 # Fauna beside no Flora is the animals of a chemical ecosystem (a class that eats no light, GEN.890)
-                assert scores[2] <= scores[1] or not life_classes.BY_ID[body.life_class_id].light
+                living = body.life_living or ()
+                if len(living) <= 1:
+                    assert scores[2] <= scores[1] or not life_classes.BY_ID[body.life_class_id].light
                 if body.life_class is None:
                     assert scores == (0, 0, 0, 0)
                 else:  # a planet or moon, in any zone, with a chemistry has an evolutionary path (Boss, 2026-10-23)
                     assert body.evolutionary_pace is not None
+                stages = {body.life_stage, *(entry["stage"] for entry in living)}      # the body's scores are the highest over its classes (GEN.1209)
                 if scores[3]:
-                    assert body.life_stage == "technological_civilization"
+                    assert "technological_civilization" in stages
                 if scores[2]:
-                    assert body.life_stage in ("multicellularity", "technological_civilization")
+                    assert stages & {"multicellularity", "technological_civilization"}
                 if scores[0]:
                     seen["alive"] += 1
                     assert body.phi_bio >= tuning.HABITABILITY_LIFE_SCORE_MIN

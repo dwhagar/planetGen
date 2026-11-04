@@ -714,7 +714,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         color_block = (
             '    <label class="galaxy-color-by">Color by <select id="galaxymap3d-color-by" data-color-by\n'
             '            title="What the blocks and sectors are colored by">\n'
-            '      <option value="default">Age, density, and luminosity</option>\n'
+            '      <option value="default">No fill (stars, markers and nebulae)</option>\n'
             '      <option value="density">Density</option>\n'
             '      <option value="age">Mean age</option>\n'
             '      <option value="luminosity">Luminosity</option>\n'
@@ -725,7 +725,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'
             '<span class="galaxy-legend-title"></span>'
             '<span class="galaxy-legend-bar"></span>'
-            '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n')
+            '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n'
+            '<div class="galaxy-window-bar" id="galaxymap3d-window" role="status" hidden>'
+            '<span class="galaxy-window-title"></span> <span class="galaxy-window-summary"></span> '
+            '<button type="button" class="starmap-btn" data-action="close-window">Back to the Galaxy Map</button></div>\n')
     regions_block = ""
     if regions_path:
         regions_block = REGIONS_LIST

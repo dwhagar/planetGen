@@ -9,11 +9,12 @@ Three things are held here.
   a typo in a kind or an id is an error, and no template or module writes a `/references` address by hand.
 * The word list (`plainwords.OUT_OF_UNIVERSE`, rule 16 of the style guide): what it flags and what it leaves alone, and the pages it is
   exempt on (`plainwords.exempt`).
-* The page crawl: every in-universe page this suite can render without a database (the Help pages, the class pages) and every sentence
-  the Document of ten seeded systems writes, every property label and every sheet source line, read for the words. Text that has them today
-  is listed in `KNOWN` under the item that rewrites it (DOC.91 the properties page, DOC.92 the life help pages, DOC.93 the sheet source
-  lines); text that is not listed fails, and a listed entry that no longer happens fails too, so the owner deletes it and is done when
-  none carry its code. DOC.94 locks the crawl once DOC.93 lands.
+* The page crawl: every in-universe page this suite can render without a database (the Help pages, the class pages, the sign-in and
+  preferences pages), every sentence the Document of ten seeded systems writes and every property label, read for the words. Nothing is
+  excused: there is no list of exceptions, so text with a word fails the test the moment it is written (DOC.94 locked the crawl when the
+  last rewrite, DOC.93, landed).
+* The lock around it (DOC.94): the visible text of every in-universe template is read too, so a page that needs data to render is covered,
+  and every in-universe page route must be crawled or named with its reason, so a new page cannot skip the lock.
 
 Every link into `/references` found by the crawl must resolve, and every page under `/references` must carry the Out of universe banner
 (`id="out-of-universe-banner"`; the section is DOC.88, `tests/test_references_pages.py` holds its pages).
@@ -25,7 +26,7 @@ from pathlib import Path
 
 import pytest
 
-from planetgen.describe import sheet, sheet_sources
+from planetgen.describe import sheet
 from planetgen.util import plainwords
 from planetgen.web import helpers
 from planetgen.web.lib import classref, life_help, reference_urls
@@ -36,22 +37,11 @@ from tests.test_plain_words import SEEDS, _document_text
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT.parent / "docs" / "design" / "interface" / "text-style.md"
 
-OWNERS = ("DOC.91", "DOC.92", "DOC.93", "UX.252", "UX.253")
-"""tuple: The items that rewrite the text that has the words today: the properties page moves (DOC.91), the life help pages lose the
-speculative chemistry (DOC.92), the leftovers (DOC.93: the sheet source lines), and the planet, moon, belt, star and system text (UX.252,
-UX.253)."""
-
 BANNER = 'id="out-of-universe-banner"'
 """str: What a References page carries so a reader always knows they left the story (DOC.88 builds it)."""
 
-KNOWN = {
-    ("model", "sheet source line"): "DOC.93",
-}
-"""dict: `{(word, where): the item that rewrites it}` for the out-of-universe words on in-universe pages today. `where` is the page's
-endpoint, `"sheet source line"` or `"document"`. The rewrite item removes its entries; nothing is added without an owner."""
-
 ADVICE = ("\nSay it in universe and, where a reader may want the why, link to the References entry with reference_link(kind, id) "
-          "(docs/design/interface/text-style.md, rule 16). Only text that already existed is listed in KNOWN, under the item that rewrites it.")
+          "(docs/design/interface/text-style.md, rule 16). There is no list of exceptions.")
 
 
 # --- The addresses and the link helper -------------------------------------------------------------------------------------------
@@ -178,7 +168,7 @@ def test_the_guide_names_the_list_the_exemption_and_the_link_helper():
 # --- The crawl -------------------------------------------------------------------------------------------------------------------
 
 class _Visible(HTMLParser):
-    """The text a reader sees on a page: its text nodes outside scripts and styles, and the `title`, `alt` and `aria-label` of its tags."""
+    """The text a reader sees on a page: its text nodes outside scripts and styles, and the `title`, `alt`, `aria-label` and `placeholder` of its tags."""
 
     def __init__(self):
         super().__init__()
@@ -188,7 +178,7 @@ class _Visible(HTMLParser):
         if tag in ("script", "style"):
             self.hidden += 1
         for name, value in attrs:
-            if name in ("title", "alt", "aria-label") and value:
+            if name in ("title", "alt", "aria-label", "placeholder") and value:
                 self.parts.append(value)
             if name == "href" and value and reference_urls.is_reference_path(value.split("#")[0].split("?")[0]):
                 self.links.append(value)
@@ -211,7 +201,7 @@ def _read(html):
 
 def _paths():
     """The in-universe pages this suite can render without a database."""
-    paths = ["/help/habitability", "/help/life", "/classes", "/references"]
+    paths = ["/help", "/help/habitability", "/help/life", "/classes", "/references", "/login", "/preferences", "/polities", "/species"]
     paths += [f"/help/life/{slug}" for slug, _title, _summary in life_help.TOPICS if slug != "kinds"]
     paths += [f"/help/life/classes/{number}" for number in range(1, 10)]
     if classref.preload():
@@ -252,10 +242,6 @@ def _found(crawl):
     for label in sorted(labels):
         for _rule, detail in plainwords.out_of_universe(label):
             found.setdefault((detail.split("'")[1], "sheet label"), []).append(label)
-    for kind, lines in sheet_sources.SOURCES.items():
-        for key, line in lines.items():
-            for _rule, detail in plainwords.out_of_universe(line):
-                found.setdefault((detail.split("'")[1], "sheet source line"), []).append(f"{kind}.{key}")
     return found
 
 
@@ -265,25 +251,108 @@ def test_the_crawl_reads_a_real_corpus(crawl):
     assert sum(len(text.split()) for _path, _endpoint, text, _links in crawl) > 5000
 
 
-def test_no_page_outside_references_uses_the_out_of_universe_words_except_the_listed(crawl):
-    unlisted = [f"{word!r} on {where}: {examples[0]}" for (word, where), examples in sorted(_found(crawl).items()) if (word, where) not in KNOWN]
-    assert not unlisted, "out-of-universe words on an in-universe page:\n  " + "\n  ".join(unlisted) + ADVICE
-
-
-def test_a_listed_exception_that_no_longer_happens_is_deleted(crawl):
-    found = _found(crawl)
-    gone = [f"{word!r} on {where} ({owner})" for (word, where), owner in sorted(KNOWN.items()) if (word, where) not in found]
-    assert not gone, "these are fixed: delete them from KNOWN\n  " + "\n  ".join(gone)
-
-
-def test_every_listed_exception_names_its_owner_and_a_word():
-    for (word, where), owner in KNOWN.items():
-        assert owner in OWNERS, (word, where, owner)
-        assert word in plainwords.OUT_OF_UNIVERSE, word
+def test_no_page_outside_references_uses_the_out_of_universe_words(crawl):
+    found = [f"{word!r} on {where}: {examples[0]}" for (word, where), examples in sorted(_found(crawl).items())]
+    assert not found, "out-of-universe words on an in-universe page:\n  " + "\n  ".join(found) + ADVICE
 
 
 def test_new_text_with_a_word_that_is_not_listed_fails():
     assert plainwords.out_of_universe("A brand new sentence that mentions its tier.") and not plainwords.out_of_universe("A brand new sentence.")
+
+
+# --- The lock (DOC.94) ----------------------------------------------------------------------------------------------------------
+#
+# The crawl above reads what this suite can render without a database. The lock closes the rest: no in-universe template may carry a
+# word of the list in the text a reader sees, even a page that needs data to render, and no new page can arrive without being either
+# crawled or named here. Both run in the gate for changed pages (`scripts/test.py changed`): the scan opens every template and the
+# crawl renders the Help and class pages, so a changed template, page builder or `plainwords.py` selects them.
+
+TEMPLATES = ROOT / "planetgen" / "web" / "templates"
+
+EXEMPT_TEMPLATE_PREFIXES = ("admin", "generate", "references")
+"""tuple: The templates (by file name) that serve the admin pages (`/admin/...`, `admin_*.html`, `generate*.html`) and the References
+pages (`references*.html`): the pages where `plainwords.exempt` allows the out-of-universe words."""
+
+NEEDS_DATA = {
+    "web.account": "behind the sign-in",
+    "web.galaxy": "needs the galaxy",
+    "web.index": "needs the database",
+    "web.lists": "needs the database",
+    "web.logout": "behind the sign-in",
+    "web.maintenance_page": "behind the sign-in",
+    "web.nav": "needs the database",
+    "web.nav_chart": "needs the database",
+    "web.nearby": "needs the database",
+    "web.object_list": "needs the database",
+    "web.object_page": "needs the database",
+    "web.phenomena": "needs the database",
+    "web.phenomenon": "needs the database",
+    "web.polity_page": "needs the database",
+    "web.search": "needs the database",
+    "web.sector": "needs the database",
+    "web.sector_at": "needs the database",
+    "web.sector_on_galaxy_map": "a redirect to the Galaxy Map",
+    "web.sectors": "needs the database",
+    "web.species_page": "needs the database",
+    "web.system": "needs the database",
+    "web.system_on_galaxy_map": "a redirect to the Galaxy Map",
+    "web.systems": "needs the database",
+    "web.uncharted_phenomenon": "needs the database",
+    "web.uncharted_star": "needs the database",
+}
+"""dict: `{endpoint: why the crawl cannot render it here}` for the in-universe pages that need data or a sign-in. The words in these pages'
+templates are still read, by `_template_text`; the sentences the Document writes for a real system are read by tests/test_plain_words.py.
+A new page is crawled (add its path to `_paths`) or listed here with the reason."""
+
+
+def _is_exempt_template(path):
+    return path.name.startswith(EXEMPT_TEMPLATE_PREFIXES)
+
+
+def _templates():
+    """`[(name relative to the template folder, path)]` for every template, in order."""
+    return [(str(path.relative_to(TEMPLATES)), path) for path in sorted(TEMPLATES.rglob("*.html"))]
+
+
+def _template_text(path):
+    """The text a reader sees in a template, without the Jinja tags and comments (what a tag prints is read by the crawl)."""
+    source = path.read_text(encoding="utf-8")
+    for pattern in (r"\{#.*?#\}", r"\{%.*?%\}", r"\{\{.*?\}\}"):
+        source = re.sub(pattern, " ", source, flags=re.S)
+    return _read(source)[0]
+
+
+def test_the_scan_reads_every_template_and_the_exempt_ones_are_the_admin_and_references_pages():
+    names = [name for name, _path in _templates()]
+    assert len(names) > 40 and "base.html" in names and "partials/contents.html" in names
+    exempt = {name for name, path in _templates() if _is_exempt_template(path)}
+    assert "references.html" in exempt and "admin.html" in exempt and "generate_task.html" in exempt
+    assert not exempt & {"base.html", "system.html", "sector.html", "help_index.html", "species.html"}
+
+
+def test_no_template_outside_references_and_admin_has_an_out_of_universe_word():
+    found = []
+    for name, path in _templates():
+        if _is_exempt_template(path):
+            continue
+        for _rule, detail in plainwords.out_of_universe(_template_text(path)):
+            found.append(f"{detail.split(chr(39))[1]!r} in templates/{name}")
+    assert not found, "out-of-universe words in the text of an in-universe template:\n  " + "\n  ".join(found) + ADVICE
+
+
+def test_every_in_universe_page_is_crawled_or_listed_with_its_reason(app, crawl):
+    crawled = {endpoint for _path, endpoint, _text, _links in crawl}
+    pages = {}
+    for rule in app.url_map.iter_rules():
+        view = app.view_functions[rule.endpoint]
+        if rule.endpoint.startswith("web.") and "GET" in rule.methods and not getattr(view, "json_only", False) and not plainwords.exempt(rule.rule):
+            pages.setdefault(rule.endpoint, rule.rule)
+    new = sorted(f"{endpoint} ({rule})" for endpoint, rule in pages.items() if endpoint not in crawled and endpoint not in NEEDS_DATA)
+    assert not new, f"pages the crawl does not read and NEEDS_DATA does not name (add the path to _paths, or the endpoint with its reason): {new}"
+    gone = sorted(endpoint for endpoint in NEEDS_DATA if endpoint not in pages)
+    assert not gone, f"NEEDS_DATA names pages that are gone: {gone}"
+    both = sorted(endpoint for endpoint in NEEDS_DATA if endpoint in crawled)
+    assert not both, f"crawled now, delete from NEEDS_DATA: {both}"
 
 
 def _references_routes(app):

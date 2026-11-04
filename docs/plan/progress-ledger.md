@@ -2385,3 +2385,26 @@ Baseline: PR #1817.
 | DOC.91 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.295 | 8.1 | Bugs and flaky tests |
 | GEN.1248 | 8.2 | Robust tile caching |
+| MAP.365 | 8.1 | Nebula data foundations |
+| TEST.333 | 8.1 | Bugs and flaky tests |
+| TEST.297 | 8.1 | Bugs and flaky tests |
+| MAP.215 | 8.1 | Nebula data foundations |
+| TEST.321 | 8.1 | Bugs and flaky tests |
+| TEST.317 | 8.1 | Bugs and flaky tests |
+| TEST.137 | 8.1 | Bugs and flaky tests |
+| TEST.262 | 8.1 | Bugs and flaky tests |
+| TEST.287 | 8.1 | Bugs and flaky tests |
+| TEST.198 | 8.1 | Bugs and flaky tests |
+| TEST.324 | 8.1 | Bugs and flaky tests |
+| TEST.570 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.222 | 8.1 | Nebula data foundations |
+| MAP.191 | 8.1 | Nebula data foundations |
+| MAP.368 | 8.1 | Nebula data foundations |
+| MAP.370 | 8.1 | Nebula data foundations |
+| TEST.573 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.574 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.93 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.194 | 8.1 | Bugs and flaky tests |
+| DOC.94 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.126 | 8.1 | Bugs and flaky tests |
+| MAP.367 | 8.1 | Nebula data foundations |

@@ -51,9 +51,13 @@ MIN_STRENGTH = 2
 DETAIL_WAVELENGTH_PC = 64.0
 """float: The wavelength of noise octave 0 in `nebula_density` (`nebula_density.W0_PC`); octave n resolves features of about W0 / 2**(n - 1)."""
 
-SOFT_BELOW = 0.12
-SOFT_ABOVE = 0.30
-"""floats: The soft threshold on the density: nothing below `FORM_LEVEL - SOFT_BELOW`, full strength from `FORM_LEVEL + SOFT_ABOVE`."""
+EDGE_WIDTH = {
+    "diffuse": 0.50, "emission": 0.40, "reflection": 0.60, "dark": 0.30, "planetary": 0.15, "supernova-remnant": 0.10,
+}
+"""dict: How wide each family's edge is, in the density's own 0..1 span (MAP.142, docs/design/systems/nebula-and-asteroid-field-classes.md
+"Appearance by class"): the strength is `smoothstep(FORM_LEVEL - w / 2, FORM_LEVEL + w / 2, density)`, so the nebula's extent is the half
+strength contour (the model's `FORM_LEVEL`) whatever the width, a reflection nebula fades over the longest way and a remnant's shell
+stays crisp. A width is a display setting, not a measurement."""
 
 WINDOW_FROM = 0.6
 """float: A solid nebula's window is 1 inside this share of its radius and fades to 0 at the radius."""
@@ -102,7 +106,7 @@ def detail_for_spacing(spacing, max_detail):
 
 
 def _smoothstep(edge0, edge1, x):
-    t = np.clip((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+    t = np.clip((x - edge0) / np.maximum(edge1 - edge0, 1e-12), 0.0, 1.0)
     return t * t * (3.0 - 2.0 * t)
 
 
@@ -196,7 +200,8 @@ def sample_group(nebulae, inside, density, form_level, max_detail, families, lev
     for field in sorted(set(FIELD_OF_FAMILY[families[f]] for f in set(owner_family.tolist()))):
         pick = np.array([FIELD_OF_FAMILY[families[f]] == field for f in owner_family])
         value = np.asarray(density(points[pick], field, detail), dtype=np.float64)
-        strength[pick] = _smoothstep(form_level - SOFT_BELOW, form_level + SOFT_ABOVE, value)
+        half = np.array([EDGE_WIDTH[families[f]] / 2.0 for f in owner_family[pick]])
+        strength[pick] = _smoothstep(form_level - half, form_level + half, value)
     for family_index in sorted(set(owner_family.tolist())):
         pick = owner_family == family_index
         strength[pick] *= profile(nearest_u[pick], families[family_index] in SHELL_FAMILIES)

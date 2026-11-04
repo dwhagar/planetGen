@@ -53,7 +53,7 @@ test("a marker kind can be a symbol: the habitable worlds are, and the legend li
   assert.equal(M.HABITABLE_KIND.icon, "habitable-world");
   assert.equal(M.HABITABLE_KIND.glyph, undefined);
   assert.deepEqual(M.legendOf(M.HABITABLE_KIND), { text: "Habitable worlds", icon: "habitable-world", token: "--tier-green" });
-  assert.deepEqual(M.legendOf(M.BLACK_HOLE_KIND), { text: "Black holes", swatch: "#c58cff", swatchClass: "map-marker-swatch" });
+  assert.deepEqual(M.legendOf(M.BLACK_HOLE_KIND), { text: "Black hole marks", swatch: "#c58cff", swatchClass: "map-marker-swatch" });
   assert.equal(M.tokenOfItem(M.HABITABLE_KIND, { tier: 0 }), "--tier-blue");
   assert.equal(M.tokenOfItem(M.HABITABLE_KIND, {}), "--tier-green");
   assert.equal(M.tokenOfItem(M.BLACK_HOLE_KIND, {}), null);       // a glyph kind has a color, not a token

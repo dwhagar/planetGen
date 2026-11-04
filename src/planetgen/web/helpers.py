@@ -114,6 +114,14 @@ def reference_link(kind, entry=None, label="Where this comes from"):
     return Markup('<a class="reference-link" href="{}">{}</a>').format(reference_path(kind, entry), label)
 
 
+def value_source(kind, label):
+    """The quiet link under a value of a body's page (DOC.93): `reference_link` to the method row of `label` for a `kind` ("planet", "moon" or
+    "star"), or an empty string when the References has no row for it. Where the page printed the one-line source, it now links to it."""
+    from planetgen.web.lib import property_help
+    ref = property_help.method_ref(kind, label)
+    return reference_link("method", ref) if ref else Markup("")
+
+
 def trusted_html(html):
     """
     Marks HTML from a `lib/` renderer safe for a template (`{{ x }}`
