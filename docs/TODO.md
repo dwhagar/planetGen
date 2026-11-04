@@ -10558,7 +10558,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ready; the version number is stamped by the release process and never
   by hand, and no `.major.md` note is written without Boss's word.
   Headline: 9.5 (life classes and sentient life).
-  Prerequisites: GEN.864, TEST.435.
+  Prerequisites: GEN.864.
 
 - [ ] **GEN.876 Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores**
   Life chemistry review (research thread, 2026-10-28,
@@ -17520,51 +17520,6 @@ clears each one.
   GEN.829 (class T never drawn), GEN.866 (the hang), GEN.812 (intended
   greenhouse change warms K5V ecosphere moons; the range waits for the
   class cut-over).
-
-- [ ] **TEST.435 Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges**
-  Boss (2026-10-28, 7:41 PM EDT): adds the life class and stage shares
-  to the prevalence suite of TEST.430, with targets from the researched
-  norms and the share of sentient worlds held to its present value.
-  Research (2026-10-09): Boss, 9:13 PM EDT 2026-10-28: sentient should
-  be the most rare kind of life, with most life stopping at animal life.
-  Census and generation targets order the stages by prevalence: sentient
-  is the rarest stage, animals the common ceiling.
-  Research (2026-10-09): Bug 2 (PR 3622, 2026-10-28): first run merged,
-  counting the shadow class from GEN.886. 1,246 life worlds in 3,917
-  terrestrial worlds, none past producers, so the 15 to 35 percent
-  animals band fails; tagged GEN.855. Stays open: the census reads the
-  stored class once GEN.889 lands.
-  Research (2026-10-09): Update (Boss answer to Core 1's GEN.907 card,
-  about 6:04 AM EDT 2026-10-29: 'Both, in order'): FIRST restate the
-  life-census bands per oxygenic world (or per sea world with air), not
-  per life world, in docs/design/habitability/life-classes.md 5.2 and in
-  these prevalence tests; THEN, after Aux 2's epoch 120 (GEN.867: class
-  rewrite, Melanin gone, chlorophyll/blue-optimized/far-red classes by
-  starlight) lands, re-baseline the numbers. Take the census after epoch
-  120 merges before setting numbers, because epoch 120 changes the
-  denominator. Core 1's diagnosis:
-  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
-  Bug 2 owns the tests; the band text in life-classes.md is Bug 2's edit
-  with Core 1's report as the source.
-  Research (2026-10-09): Update (Bug 2, #3683, about 6:25 AM EDT
-  2026-10-29 as the lane reported): step one merged. The life census
-  takes the animal and sentient shares per oxygenic world, on 300
-  systems around each of G2V and K5V: 63 oxygenic worlds, 11 percent
-  reach animals, 1 sentient; the band holds so the GEN.907 tag is
-  removed; life-classes.md 5.2 is restated per population; no band
-  number changed. Step two (re-take and re-baseline) waits for Aux 2's
-  epoch 120.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
-  AM EDT): Once GEN.1209 lands the prevalence census also covers the
-  list: the share of worlds with two or more living classes, and the
-  prevalence shares per class, inside researched ranges.
-  Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
   Life chemistry review (research thread, 2026-10-28,
