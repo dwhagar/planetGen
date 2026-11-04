@@ -238,7 +238,7 @@ ensure_apache_modules() {
 # ensure_apache_modules sets for that alone); the update guard is held until the script ends, so no Generate job
 # runs then. gunicorn (the planetgen-gunicorn unit on Linux, launchd's org.planetgen.gunicorn on macOS) gets a SIGHUP,
 # which starts new workers and leaves a Generate job alone. Afterwards each answers /api/health (PLANETGEN_HEALTH_URL
-# names another address; HEALTH_WAIT_SECONDS, default 20, is how long it waits).
+# names another address; HEALTH_WAIT_SECONDS, default 90, is how long it waits).
 # A reload aborts the requests a mod_wsgi daemon is serving after about 4 seconds (touching src/html/wsgi.py does
 # not), which is why a reload is quick and a long request at that moment can fail.
 # Returns 0 when everything reloaded answers, 1 when a step failed (the caller prints the command and ends non-zero),
@@ -365,17 +365,20 @@ curl_failure_words() {
     esac
 }
 
-# Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning and $3 as the setting
-# the address came from (OPS.86). It asks that one address and no other. A passing answer while the site is closed for the
-# update says so (and why), on success and in the warning alike: /api/health stays open while the site is closed
-# (OPS.75), so a reload is checked while the update's own maintenance mode is still on.
+# Waits up to HEALTH_WAIT_SECONDS (default 90, OPS.94: workers still compiling and importing after new code can need over 20 s) for $1
+# (an address) to answer below 400, naming $2 in the warning and $3 as the setting the address came from (OPS.86). It asks that one
+# address and no other, and stops at the first good answer. Every retry line says what curl saw (a timeout, a refused connection, a
+# failed name lookup and a TLS error read differently). A passing answer while the site is closed for the update says so (and why), on
+# success and in the warning alike: /api/health stays open while the site is closed (OPS.75), so a reload is checked while the
+# update's own maintenance mode is still on. When the last answer was no HTTP answer at all, the warning also says whether the server
+# answers on its own loopback (`health_loopback_note`, which only explains the failure and never makes a check pass).
 # Returns 0 when it answers, 1 when it never did (or without curl, 0).
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
     # The reload has just restarted the workers: they get HEALTH_SETTLE_SECONDS (default 10) to start before the first probe.
-    echo "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 (${3:-its setting}) for /api/health (up to ${HEALTH_WAIT_SECONDS:-20} seconds):"
+    echo "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 (${3:-its setting}) for /api/health (up to ${HEALTH_WAIT_SECONDS:-90} seconds):"
     sleep "${HEALTH_SETTLE_SECONDS:-10}"
-    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body rc
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-90} )) reply code body rc why last_said=-100 last_why=""
     while :; do
         rc=0
         reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)" || rc=$?
@@ -385,15 +388,44 @@ wait_for_health() {
             health_maintenance_note "$body"
             return 0
         fi
+        why="HTTP ${code:-000}"
+        [[ "${code:-000}" == 000 ]] && why+=": $(curl_failure_words "$rc")"
         if (( SECONDS >= end )); then
             local bare_note=""
-            [[ "${code:-000}" == 000 ]] && bare_note=" (no HTTP answer at all: $(curl_failure_words "$rc"))"
-            echo "warning: the health check of $2 failed: $1 (${3:-its setting}) answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload. Only that address was asked; check ${3:-the setting} if it is not where the site is served.$(health_maintenance_note "$body" brief)" >&2
+            [[ "${code:-000}" == 000 ]] && bare_note=" (no HTTP answer at all: $(curl_failure_words "$rc"))$(health_loopback_note "$1" "$rc")"
+            echo "warning: the health check of $2 failed: $1 (${3:-its setting}) answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-90} seconds after the reload. Only that address was asked; check ${3:-the setting} if it is not where the site is served.$(health_maintenance_note "$body" brief)" >&2
             return 1
         fi
-        (( SECONDS % 5 == 0 )) && echo "  no good answer yet (HTTP ${code:-000}); asking again, $(( end - SECONDS )) s left"
+        # One line for the first miss, then one every 5 seconds or whenever the reason changes.
+        if (( SECONDS - last_said >= 5 )) || [[ "$why" != "$last_why" ]]; then
+            echo "  no good answer yet ($why); asking again, $(( end - SECONDS )) s left"
+            last_said=$SECONDS last_why="$why"
+        fi
         sleep 1
     done
+}
+
+# Explains a health check that got no HTTP answer at all (OPS.94): asks the same /api/health once more with the address's name pinned
+# to this server's own loopback and says what came back, in the words the failed warning continues with. $1 is the address, $2 the
+# curl exit status of the failed ask. A server that answers there is up, so the public address is what it cannot reach (DNS, the
+# firewall or the router not sending a server's own traffic back to it); one that does not answer there either is still starting or down.
+# An address that is already an IP number is not asked again. This never decides whether the check passes: the configured address is
+# the only one the check asks (OPS.86).
+health_loopback_note() {
+    local url="$1" host port scheme reply code rc=0
+    [[ "$url" =~ ^(https?)://([^/:]+)(:([0-9]+))?(/.*)?$ ]] || return 0
+    scheme="${BASH_REMATCH[1]}" host="${BASH_REMATCH[2]}" port="${BASH_REMATCH[4]:-}"
+    [[ "$host" =~ ^[0-9.]+$ ]] && return 0
+    [[ -n "$port" ]] || { [[ "$scheme" == https ]] && port=443 || port=80; }
+    reply="$(curl -s --max-time 5 --resolve "$host:$port:127.0.0.1" -w '\n%{http_code}' "$url" 2>/dev/null)" || rc=$?
+    code="${reply##*$'\n'}"
+    if [[ "$code" =~ ^[23] ]]; then
+        echo "; asked once more with $host pinned to this server's own loopback address it answered HTTP $code, so the server is up and cannot reach its own public address (check DNS for $host, the firewall, or whether the router sends a server's own traffic back to it; PLANETGEN_HEALTH_URL names an address it can reach)"
+    elif [[ "${code:-000}" == 000 ]]; then
+        echo "; asked once more with $host pinned to this server's own loopback address it gave no HTTP answer either ($(curl_failure_words "$rc")), so the workers had not finished starting or the server is down"
+    else
+        echo "; asked once more with $host pinned to this server's own loopback address it answered HTTP $code, so the server is up but not healthy"
+    fi
 }
 
 # Says whether a /api/health reply reports maintenance mode, and why; the reply is $1. With a second argument it only
