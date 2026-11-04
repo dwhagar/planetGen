@@ -25,7 +25,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, interior_heat, mass_boundaries, radiogenic, relations, saturation, substellar_ceiling, water_layer, unit_registry as units
+from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, ice_giant_heat, interior_heat, mass_boundaries, radiogenic, relations, saturation, substellar_ceiling, water_layer, unit_registry as units
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -102,8 +102,10 @@ def _giant_luminosity_w(mass_kg, age_gy):
 
 def giant_internal_flux_w_m2(mass_kg, radius_km, age_gy):
     """A giant's or brown dwarf's internal heat flux at its photosphere,
-    W/m^2, capped at the flux of the hottest a body of its mass and age can be (`substellar_ceiling.cap_k`)."""
+    W/m^2, capped at the flux of the hottest a body of its mass and age can be (`substellar_ceiling.cap_k`). An ice giant radiates the law's
+    flux or, when its interior keeps a stable composition gradient, a share of it (`ice_giant_heat`, GEN.1033)."""
     flux = _giant_luminosity_w(mass_kg, age_gy) / (4 * math.pi * (radius_km * 1000.0) ** 2)
+    flux *= ice_giant_heat.suppression(_kg_to_mearth(mass_kg))        # GEN.1033: an ice giant with a stable composition gradient leaks little
     cap_k = substellar_ceiling.cap_k(_kg_to_msun(mass_kg), age_gy)
     return min(flux, _sigma() * cap_k ** 4)
 
