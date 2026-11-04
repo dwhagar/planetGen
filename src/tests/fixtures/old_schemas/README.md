@@ -85,3 +85,4 @@ Commit each file came from:
 - v199: train 8 (GEN.1159 body strength, before GEN.1162 stellar bulk; main 2a2131226)
 - v200: train 9 (GEN.1162 stellar bulk, before GEN.1127 chart ledger; schema of Aux 5's branch claude/aux5-gen1162b 21c8c949c)
 - v201: train 9 (GEN.1127 chart ledger, before GEN.1138 designations; train 9 schema at 3aa6a16e7)
+- v202: train 9 (GEN.1138 designations, before GEN.1209 life per class; train 9 schema at e3f3908e0)

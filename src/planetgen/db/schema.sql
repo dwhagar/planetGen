@@ -2678,7 +2678,7 @@ CREATE TABLE IF NOT EXISTS planet_life_class_scores (
     KEY idx_planet_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The life classes that live on a planet (v200, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
+-- The life classes that live on a planet (v203, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
 -- the five ages of its schedule and the four kind scores it gives (0 to 9). The planet's own `life_class` columns are the dominant class and its own kind scores the highest of each over these rows.
 CREATE TABLE IF NOT EXISTS planet_life (
     id                                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -3112,7 +3112,7 @@ CREATE TABLE IF NOT EXISTS moon_life_class_scores (
     KEY idx_moon_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The life classes that live on a moon (v200, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
+-- The life classes that live on a moon (v203, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
 -- the five ages of its schedule and the four kind scores it gives (0 to 9). The moon's own `life_class` columns are the dominant class and its own kind scores the highest of each over these rows.
 CREATE TABLE IF NOT EXISTS moon_life (
     id                                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
