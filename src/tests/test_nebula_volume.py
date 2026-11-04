@@ -173,3 +173,21 @@ def test_a_cloud_drawn_from_the_models_own_density_is_not_a_ball():
         perimeter = sum(1 for i, j in cells for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)) if (i + di, j + dj) not in cells)
         values.append(4 * math.pi * len(cells) / perimeter ** 2)
     assert max(values) < 0.74 and sum(values) / len(values) < 0.68, values
+
+
+def test_each_family_has_its_own_edge_width_and_the_extent_is_the_half_strength_contour():
+    """MAP.142: a ramp of density from 0 to 1 across 40 pc is faded by each family over its own width, all half strong where the density is
+    the model's FORM_LEVEL; the fade is longest for a reflection nebula and shortest for a dark one (a shell's is narrower still)."""
+    ramp = lambda points, field, detail: np.clip((points[:, 0] + 20.0) / 40.0, 0.0, 1.0).astype(np.float32)
+    widths = {}
+    for family in ("reflection", "diffuse", "emission", "dark"):
+        volume = rules.sample_group([_nebula(0.0, 0.0, 0.0, 70.0, family)], None, ramp, FORM, MAX_DETAIL, FAMILIES, level=4)
+        x = volume.ix.astype(float) * volume.spacing_pc
+        on_axis = (volume.iy == 0) & (volume.iz == 0) & (np.abs(x) <= 38.0)
+        order = np.argsort(x[on_axis])
+        along, strength = x[on_axis][order], volume.strength[on_axis][order] / 255.0
+        half_at = along[np.argmin(np.abs(strength - 0.5))]
+        assert abs(half_at - (FORM * 40.0 - 20.0)) <= 4.0, (family, half_at)
+        widths[family] = (strength * (1.0 - strength)).sum() * (along[1] - along[0])    # proportional to the width of the fade
+    assert widths["reflection"] > widths["diffuse"] > widths["emission"] > widths["dark"], widths
+    assert rules.EDGE_WIDTH["planetary"] < rules.EDGE_WIDTH["dark"] and rules.EDGE_WIDTH["supernova-remnant"] < rules.EDGE_WIDTH["planetary"]
