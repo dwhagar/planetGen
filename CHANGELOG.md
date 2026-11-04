@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3103] - 2026-11-01
+
+**Headline:** The tables that sample stars build about 15 percent faster, with every number unchanged.
+
+### Changed
+- **Faster isochrone edge rows (PERF.230).** `isochrones.edge_point`, which every `zams_state` and `end_state` call reads (a bright-star table asks for it about 75,000 times per population), took 5.7 microseconds a call; it now takes 2.0. The two isochrones that bracket a birth [Fe/H], their edge tables and the weight between them are kept for each [Fe/H] asked (4096 values, then the memory starts over), and the interpolation in mass and [Fe/H] is written out for the four components with the same arithmetic. A table build of two populations (four tables) went from 14.2 s to 12.0 s here. The rows, the tables and every generated number are identical (a digest of the four tables and of 150,000 edge rows and end states, before and after). The share of a build that `edge_point` takes is about a quarter, not the 60 percent first measured; the rest is `post_main_sequence.bright_pieces` and the evolved-track reads, which are a separate item.
+generation-output: unchanged
+
 ## [8.0.3102] - 2026-11-01
 
 **Headline:** A radiation sweep checks every class of planet and moon: light through the air, greenhouse against temperature, dose terms and ultraviolet.
