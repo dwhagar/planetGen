@@ -20,6 +20,13 @@ Output, in `docs/references/`:
 
 * `overview.json`: the counts the start page shows (papers, links, datasets, archives, stand-ins by tier and by tweak), the legends of the
   tiers and tweak levels, and the headline verdict, computed from the counts.
+* `citations.json`: the name and kind of every source ID, for the links in the text of the pages (DOC.97).
+* `papers.json`: one row for each paper, book, and data set of the reference list (DOC.89): ID, name, authors, title, year, where it was
+  published, the DOI and arXiv ids, its type, the field of its journal, and the link a reader follows (DOI, else arXiv, else a search link).
+  Where we use a source is not here: it changes with every text that cites one, so the page reads it from the files when it runs
+  (`web/lib/references_usage.py`).
+* `data.json`: the data sets fetched at setup, the archives and catalogs, the standards and web sources, and the data sets that have their own
+  DOI (DOC.89).
 
 * `stand-ins.json` (DOC.90): every row of the stand-in registry, section by section, with the legend text of each field, the item that will
   wire it (`wiring-register.md`) and what a hand-tuned row needs (`burn-down-register.md`). One page of `/references/stand-ins/<slug>`
@@ -27,11 +34,12 @@ Output, in `docs/references/`:
 * `fitted.json` (DOC.90): the tuning targets (`src/planetgen/physics/data/tuning_targets.json`) that the rows tuned to a published
   statistic point at, for `/references/fitted`.
 
-Later items add their files here (the papers, data, method and speculative pages: DOC.89, DOC.91 and DOC.92); each build function is added
+Later items add their files here (the method and speculative pages: DOC.91 and DOC.92); each build function is added
 to `BUILDERS`, and `--check` covers it at once.
 """
 
 import argparse
+import html
 import json
 import os
 import re
@@ -175,6 +183,160 @@ def build_citations():
     return {"aliases": dict(sorted(cache.get("id_aliases", {}).items())), "sources": sources}
 
 
+# ------------------------------------------------------------------------------------------------------ papers and data (DOC.89)
+
+FIELDS = (
+    ("Planetary science", r"icarus|jgre|psj|\bp&ss|planetary and space|m&ps|meteorit|sol syst res|asteroids iv|\bssrv|space science reviews|"
+                          r"\blpsc|lunar|comets|protostars and planets|moon and the planets|handbook of exoplanets|origin of the earth|saturn from|"
+                          r"planets, stars"),
+    ("Astronomy and astrophysics", r"^(mnras|apj|apjl|apjs|a&a|aj|ara&a|pasp|pasa|pasj|proc\. iau|symp\.|astrophysics and space|natas|ap&ss|adspr|"
+                                   r"newar|a&arv|an|a&c|ojap|astron|celestial|cemda|j astrophys|spie|eas publications|space sciences series|living rev|"
+                                   r"cqgra|jcap|sop?h|lrsp|supernovae|advances in astrobiology)|astro-ph|astronom|astrophys|cosmolog"),
+    ("Earth and geoscience", r"georl|geophys|e&psl|earth and planetary|geca|gecoa|geochim|jgrb|jgra|pepi|physics of the earth|areps|natge|geoji|ggg|"
+                             r"geochem|geol|mineral|petrol|earth-science|earth science|tectono|open-file|american journal of science|volcan|seismol|"
+                             r"sedimen|^jgr$|^eos|j\. res\. natl|rock mech|fracture mechanics|precambrian|palaeobot|goldschmidt"),
+    ("Atmosphere and climate", r"jgrd|jgrc|jats|atmos|quart j|meteorol|climate|aerosol|ocean|solar-terrestrial|remote sensing"),
+    ("Life sciences", r"asbio|astrobiol|ijasb|life sciences|microbiol|plos|biolog|dna repair|ecology|geobiology|biochem|genetics|evolution|"
+                      r"origins of life|^life$|neuro|physiol|bacteri|enzym|biophys|\bbio|zool|animal|archaeolog|mutation"),
+    ("Medicine and health", r"faculty opinions|arch intern|health phys|anicrp|icrp|food|lancet|jama|medic|clinic|radiation research|toxic|health|"
+                            r"cancer|nutr|pharmac|materials science and engineering: c|circulation|cardio|hematopath|aviat space"),
+    ("Chemistry", r"jphch|jachs|jchph|jpca|jpcrd|jpcb|chem|polym|\bcpl\b|^cp$|adndt|ind\. eng|bulletin des|thermodynamic|fluid phase|combustion"),
+    ("Physics", r"phrl|phrb|phrd|phrc|phr\b|rvmp|phra|phre|phrv|rpph|physica|optic|opt\. lett|apopt|j\. opt|vacuum|aip conf|comptes rendus|phys\.|"
+                r"acta cryst|jqsrt|spectrosc|physics of music|nuclear|plasma|laser|applied physics|soviet physics|low temp|lecture notes in physics|"
+                r"springer proceedings in physics|j mater|engineering physics|materials"),
+    ("Mathematics and computing", r"math|comput|siam|numer|imaj|ima j|algorithm|graphics|software|operations research|random variate|"
+                                  r"linear algebra|statistics|functional analysis"),
+    ("General science", r"^nature|^science$|pnas|sci rep|scientific reports|natco|scia|science advances|phil\. trans|proc(eedings)? (of )?(the )?"
+                        r"r(oyal|\. soc)|r\. soc|sci nat|naturwissenschaften"),
+)
+"""tuple: `(field, pattern)` in the order tried: the first pattern that matches the journal (or the title of the book) of a paper gives its field."""
+
+NO_JOURNAL = "Not stated"
+OTHER_FIELD = "Other"
+
+TYPE_NAMES = {
+    "journal-article": "Journal article", "article": "Journal article", "preprint": "Preprint", "posted-content": "Preprint",
+    "book-chapter": "Book chapter", "proceedings-article": "Conference paper", "dataset": "Data set", "monograph": "Book", "book": "Book",
+    "edited-book": "Book", "report": "Report", "report-component": "Report", "book-review": "Review", "review": "Review",
+}
+"""dict: The words for the type a source has in the reference list; a type not listed is `Other`."""
+
+BOOK_TYPES = ("Book",)
+
+
+def field_of(entry):
+    """The field of a paper, read from its journal (or the book it is a chapter of): the first of `FIELDS` whose pattern matches, `Other` when none does."""
+    journal = clean(entry.get("journal")).lower()
+    book = clean(entry.get("book")).lower()
+    for text in (journal, book):
+        if text:
+            for name, pattern in FIELDS:
+                if re.search(pattern, text):
+                    return name
+    if not journal and not book:
+        return "Astronomy and astrophysics" if (entry.get("arxiv") or "").startswith("astro-ph") else NO_JOURNAL
+    return OTHER_FIELD
+
+
+def clean(text):
+    """A title or a journal as plain text: the markup the publisher's feed carries is removed and the character references are decoded."""
+    text = str(text or "")
+    for _ in range(2):  # a feed sometimes escapes the escapes: `&amp;lt;`
+        text = html.unescape(text)
+    text = re.sub(r"</?[A-Za-z][A-Za-z0-9:]*(?:\s[^<>]*)?/?>", "", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def decade_of(year):
+    """`1990s` for 1994; `Not stated` for a source with no year."""
+    return f"{int(year) // 10 * 10}s" if year else NO_JOURNAL
+
+
+def paper_row(cache, key, entry, suffix):
+    """
+    One row of `papers.json`; empty values are left out so the file stays small. The link a reader follows is made by the page from the DOI or the
+    arXiv id (`references_site.paper_links`); only a record that has neither, and carries a link of its own, keeps it here.
+    """
+    sid = refs.id_of(cache, key)
+    parts = refs.entry_parts(entry, suffix, sid)
+    year = int(entry.get("year") or 0)
+    kind = TYPE_NAMES.get(entry.get("type"), "Other")
+    row = {
+        "id": sid,
+        "label": source_label(entry, suffix),
+        "who": clean(parts["authors"]),
+        "year": year,
+        "title": clean(entry.get("title")),
+        "venue": clean(", ".join(parts["bits"])),
+        "doi": entry.get("doi") or "",
+        "arxiv": entry.get("arxiv") or "",
+        "type": kind,
+        "field": field_of(entry),
+        "link": "" if entry.get("doi") or entry.get("arxiv") else (entry.get("url") or ""),
+    }
+    return {name: value for name, value in row.items() if value not in ("", 0)}
+
+
+def count_pairs(values, order=None):
+    """`[[name, count], ...]` for the values, most first (ties by name), or in the `order` given."""
+    counts = {}
+    for value in values:
+        counts[value] = counts.get(value, 0) + 1
+    if order is not None:
+        return [[name, counts[name]] for name in order if name in counts]
+    return [[name, number] for name, number in sorted(counts.items(), key=lambda item: (-item[1], item[0]))]
+
+
+def paper_totals(rows):
+    """The totals of the Papers page, counted from the rows: how many, how each can be looked up, the oldest and the newest, and the counts by field, decade, and type."""
+    dated = [row for row in rows if row.get("year")]
+    oldest = min(dated, key=lambda row: (row["year"], row["id"]))
+    newest = max(dated, key=lambda row: (row["year"], -int(row["id"][1:])))
+    pick = lambda row: {name: row[name] for name in ("id", "label", "title", "year") if name in row}
+    decades = sorted({decade_of(row.get("year")) for row in rows}, key=lambda name: (name == NO_JOURNAL, name))
+    return {
+        "papers": len(rows),
+        "with_doi": sum(1 for row in rows if row.get("doi")),
+        "with_arxiv": sum(1 for row in rows if row.get("arxiv")),
+        "books": sum(1 for row in rows if row["type"] in BOOK_TYPES),
+        "datasets": sum(1 for row in rows if row["type"] == "Data set"),
+        "oldest": pick(oldest),
+        "newest": pick(newest),
+        "by_field": count_pairs([row["field"] for row in rows]),
+        "by_decade": count_pairs([decade_of(row.get("year")) for row in rows], decades),
+        "by_type": count_pairs([row["type"] for row in rows]),
+    }
+
+
+def build_papers():
+    """The rows of the Papers page, `/references/papers`, in the order of the reference list (author, year, title), and their totals."""
+    with open(DATA, encoding="utf-8") as handle:
+        cache = json.load(handle)
+    keyed, suffix = refs.sorted_entries({k: e for k, e in cache["entries"].items() if e.get("authors") or e.get("title")})
+    rows = [paper_row(cache, key, entry, suffix.get(key, "")) for key, entry in keyed]
+    return {"rows": rows, "totals": paper_totals(rows)}
+
+
+def build_data():
+    """The Data page, `/references/data`: the data sets fetched at setup, the archives and catalogs, and the standards and web sources. The data sets with a DOI are rows of the Papers page."""
+    with open(DATA, encoding="utf-8") as handle:
+        cache = json.load(handle)
+    ids = cache["ids"]
+    setup = [{"id": ids["setup:" + d["url"].lower()], "key": d["key"], "name": d["title"], "source": d["source"], "link": d["url"], "file": d.get("file_url", "")}
+             for d in cache["setup_datasets"]]
+    archives = [{"id": ids["archive:" + a["url"].lower()], "name": a["name"], "provider": a["provider"], "link": a["url"], "mentions": a["mentions"]}
+                for a in cache["archives"]]
+    web = [{"id": ids["web:" + w["url"].lower()], "name": w["name"], "provider": w["provider"], "kind": w["kind"], "identifier": w["identifier"],
+            "year": w["year"], "checked": w["checked"], "link": w["url"]} for w in cache["web_sources"]]
+    return {
+        "setup": sorted(setup, key=lambda row: row["id"]),
+        "archives": sorted(archives, key=lambda row: row["id"]),
+        "web": sorted(web, key=lambda row: row["id"]),
+    }
+
+
+
+
 KINDS = {"D": "derived from a source", "B": "bracket between sources", "T": "theory", "P": "placeholder"}
 """dict: The kind letters of a registry row (`gap-filling-plan.md`, section 5): a value derived from a source, a bracket between sources, a
 theory fill, or a placeholder with no source."""
@@ -194,7 +356,7 @@ SKIP_FIELDS = ("Id", "fill_id", "Lever", "Kind", "kind", "Tier", "tier", "Tweak"
 """tuple: The columns a stand-in's page shows in its head and not in its body."""
 
 
-def clean(text):
+def registry_text(text):
     """A registry cell as the page shows it: no markdown ticks, one line."""
     return " ".join(text.replace("`", "").split())
 
@@ -230,16 +392,16 @@ def build_stand_ins():
             if slug in slugs:
                 raise ValueError(f"{row_key} and {slugs[slug]} are the same page address {slug}")
             slugs[slug] = row_key
-            tier_cell = clean(cells[header[lowered.index("tier")]])
-            head = next((clean(cells[name]) for name in HEADLINE if name in cells and cells[name]), clean(row[0]))
-            if "Fill (ranked)" in cells and head == clean(cells["Fill (ranked)"]):
-                head = clean(stand_ins._first_option(cells["Fill (ranked)"]))
+            tier_cell = registry_text(cells[header[lowered.index("tier")]])
+            head = next((registry_text(cells[name]) for name in HEADLINE if name in cells and cells[name]), registry_text(row[0]))
+            if "Fill (ranked)" in cells and head == registry_text(cells["Fill (ranked)"]):
+                head = registry_text(stand_ins._first_option(cells["Fill (ranked)"]))
             by_label = "Kind" not in cells and "kind" not in cells
-            kind = clean(cells.get("Kind") or cells.get("kind") or cells.get("Label") or "")
+            kind = registry_text(cells.get("Kind") or cells.get("kind") or cells.get("Label") or "")
             kind = {name.split()[0]: letter for letter, name in KINDS.items()}.get(kind, kind)
-            fields = [[FIELD_LABELS.get(name, name), clean(cells[name])] for name in header
+            fields = [[FIELD_LABELS.get(name, name), registry_text(cells[name])] for name in header
                       if name not in SKIP_FIELDS and not (by_label and name == "Label") and cells[name].strip() not in ("", "-")]
-            if head == clean(row[0]) and fields:
+            if head == registry_text(row[0]) and fields:
                 head = f"{head}: {fields[0][1]}"
             for text in [head] + [text for _label, text in fields]:
                 try:
@@ -248,10 +410,10 @@ def build_stand_ins():
                     raise ValueError(f"stand-in {row_key}: {error}") from error
             disposition = burn.get(row_key)
             out.append({
-                "key": row_key, "slug": slug, "id": clean(row[0]),
+                "key": row_key, "slug": slug, "id": registry_text(row[0]),
                 "kind": kind,
                 "tier": tier_cell, "tier_code": stand_ins.TIER_CODE.match(tier_cell).group(0),
-                "tweak": clean(cells[header[lowered.index("tweak")]]), "what": head, "fields": fields,
+                "tweak": registry_text(cells[header[lowered.index("tweak")]]), "what": head, "fields": fields,
                 "unread": unread.get(row_key), "burn_down": list(disposition) if disposition else None,
             })
         sections.append({"key": key, "number": number, "title": re.sub(r"^\d+\.\d+a? ", "", title), "slug": reference_urls.anchor(title), "rows": out})
@@ -276,18 +438,31 @@ def build_fitted():
     return {"targets": targets}
 
 
-BUILDERS = {"overview.json": build_overview, "citations.json": build_citations, "stand-ins.json": build_stand_ins, "fitted.json": build_fitted}
+BUILDERS = {"overview.json": build_overview, "citations.json": build_citations, "papers.json": build_papers, "data.json": build_data,
+            "stand-ins.json": build_stand_ins, "fitted.json": build_fitted}
 """dict: `{file under docs/references/: function that returns its data}`."""
 
 
-def render(data):
-    """A data file's text: sorted keys, two-space indent, one trailing newline, so a build is the same bytes every time."""
-    return json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+ROW_LISTS = {"papers.json": "rows"}
+"""dict: `{file: key of its list of rows}`: such a list is written one row to a line, so a change to one paper is one line of a diff."""
+
+
+def render(data, rows=None):
+    """
+    A data file's text: sorted keys, two-space indent, one trailing newline, so a build is the same bytes every time. The list under `rows` (a
+    key of `data`) is written one row to a line.
+    """
+    if rows is None:
+        return json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    dump = lambda value: json.dumps(value, sort_keys=True, ensure_ascii=False)
+    lines = [f"  {dump(key)}: " + ("[\n" + ",\n".join("    " + dump(row) for row in value) + "\n  ]" if key == rows else dump(value))
+             for key, value in sorted(data.items())]
+    return "{\n" + ",\n".join(lines) + "\n}\n"
 
 
 def build():
     """`{file name: text}` for every file of `BUILDERS`."""
-    return {name: render(builder()) for name, builder in BUILDERS.items()}
+    return {name: render(builder(), ROW_LISTS.get(name)) for name, builder in BUILDERS.items()}
 
 
 def stale(built, folder=None):

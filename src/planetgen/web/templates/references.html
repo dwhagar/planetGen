@@ -6,6 +6,11 @@
 <section class="panel" id="references" aria-labelledby="references-heading">
   <div class="panel-header"><h2 id="references-heading">{{ page.title }}</h2></div>
   {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- if page.pages %}
+  <nav class="reference-views" aria-label="Pages of this section"><ul>
+    {%- for item in page.pages %}<li><a href="{{ item.href }}">{{ item.text }}</a></li>{% endfor %}
+  </ul></nav>
+  {%- endif %}
 </section>
 {%- for section in page.sections %}
 <section class="panel" id="{{ section.id }}" aria-labelledby="{{ section.id }}-heading">

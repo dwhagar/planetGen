@@ -10,6 +10,11 @@ fitted to a result and how sure each part is. Every other page keeps a quiet "Wh
 - `/references`: the start page: what the section is, the headline numbers and the tier and tweak legends.
 - `/references/stand-ins`: the registry of every stand-in (DOC.90), filtered by tier, tweak level, section and words; `/references/stand-ins/<slug>`:
   the page of one stand-in; `/references/fitted`: the stand-ins at tweak levels L2 to L4 and the tuning targets.
+- `/references/papers` (DOC.89): every paper, book, and data set the project cites, with its DOI, arXiv, and ADS links, where we use it (area, code,
+  data, stand-ins, design notes), views by A to Z, area, field, year, and type, totals, and a search over title, authors, DOI, and ID. A source has
+  the anchor `#paper-r0123`;
+- `/references/data` (DOC.89): the data sets fetched at setup, the archives and catalogs, the standards and web pages, and the terms of use that
+  `DATA-LICENSE.md` records.
 
 The pages are static: no database, no script. Their numbers are read from `docs/references/*.json`, built at setup from the registries by
 `scripts/build_reference_pages.py`. Every page opens with the Out of universe banner (`id="out-of-universe-banner"`) and the site header
@@ -18,10 +23,11 @@ takes another tint (`body.references-mode`), so a reader always knows they have 
 
 from flask import abort, request
 
-from planetgen.web.lib import help_registry, references_site
+from planetgen.web.lib import help_registry, references_site, references_usage
 
 from . import bp
 from .helpers import crumb, render_page
+from .lib.reference_urls import reference_path
 
 
 def _built(*names):
@@ -40,6 +46,41 @@ def references_page():
         breadcrumbs=[crumb("References")],
         description="Where the numbers come from: the papers and data sets, the stand-ins and how sure each part is.",
         page=references_site.overview(references_site.load("overview.json")),
+        banner=references_site.BANNER,
+        banner_text=references_site.BANNER_TEXT,
+    )
+
+
+@bp.route("/references/papers")
+def references_papers_page():
+    """DOC.89: the sources, with links, where we use each, views, totals, and a search (`?view=area&group=stars`, `?q=lodders`)."""
+    page = references_site.papers_page(
+        references_site.load("papers.json"), references_usage.uses(), view=request.args.get("view", "az"),
+        group=request.args.get("group", ""), q=request.args.get("q", "")[:200])
+    return render_page(
+        "references_list.html",
+        title="Papers",
+        section="references",
+        breadcrumbs=[crumb("References", "references_page"), crumb("Papers")],
+        description="Every paper, book, and data set the project cites, with its links and where it is used.",
+        page=page,
+        search_action=reference_path("papers"),
+        banner=references_site.BANNER,
+        banner_text=references_site.BANNER_TEXT,
+    )
+
+
+@bp.route("/references/data")
+def references_data_page():
+    """DOC.89: the data sets, archives, catalogs, standards, and their terms of use."""
+    return render_page(
+        "references_list.html",
+        title="Data sets and archives",
+        section="references",
+        breadcrumbs=[crumb("References", "references_page"), crumb("Data sets and archives")],
+        description="The data sets downloaded at setup, the archives and catalogs, the standards, and the terms of use.",
+        page=references_site.data_page(references_site.load("data.json"), references_site.licence_text()),
+        search_action="",
         banner=references_site.BANNER,
         banner_text=references_site.BANNER_TEXT,
     )
