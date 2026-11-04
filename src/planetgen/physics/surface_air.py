@@ -743,6 +743,6 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         mantle_water_kg=0.0 if giant else max(0.0, (body.water_mass_fraction or 0.0) * body.mass - surface_w * body.mass),
         subject_of=subject_of, age_gy=age_gy,
         bulk_water_fraction=0.0 if giant else (body.water_mass_fraction or 0.0), giant=giant,
-        internal_flux_w_m2=giant_draw.own_flux_w_m2(body) if giant else 0.0,
+        internal_flux_w_m2=giant_draw.own_flux_w_m2(body) if giant else ((getattr(body, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(body, "tidal_flux_w_m2", None) or 0.0)),
         haze_draws=aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
         star_temperature_k=getattr(star, "temperature", None), orbital_speed_ms=orbital_speed)

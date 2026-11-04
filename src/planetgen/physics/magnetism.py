@@ -339,6 +339,8 @@ def magnetopause_rp(body, star_distance_au):
     if not moment:
         return None
     pressure = wind_pressure_pa(body.star, star_distance_au)
+    if pressure <= 0.0:   # GEN.1111: a body with no star has no wind to hold off, so no standoff
+        return None
     standoff_earth_radii = (EARTH_STANDOFF_RP * (moment / EARTH_MOMENT_A_M2) ** (1 / 3)
                             * (pressure / EARTH_WIND_PA) ** (-1 / 6))
     return standoff_earth_radii * constants.EARTH_RADIUS_KM / body.radius

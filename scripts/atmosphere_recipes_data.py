@@ -107,7 +107,10 @@ GROUPS = {
 
 # The [R0364] shoreline [R0364], posteriors of the main sample, read in
 # docs/design/composition/tunable-gaps-sources/group2-delivery-retention.md: log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex.
-_DELTA = "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))"
+# GEN.1111 part 5: a body with no star (an ejected planet) has no light for the shoreline to be measured against: the star cannot strip its air, so it sits far inside the shoreline, whatever its gravity
+# (delta -6 dex: p_atm 1, the thickest-retention row d5). The air it keeps is then limited by its own gravity and temperature in the rows after the table (the ejection's loss is rogue_volatiles).
+NO_LIGHT_DELTA = -6.0
+_DELTA = f"{NO_LIGHT_DELTA:g} if luminosity_solar <= 0 else log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))"
 _P_ATM = "1/(1 + 10**(delta/0.247))"
 _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
