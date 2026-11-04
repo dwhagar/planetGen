@@ -19183,6 +19183,44 @@ clears each one.
   reference is stale. Owner: Core 4 (stand-by).
   Prerequisites: none. Related: GEN.1242.
 
+- [ ] **TEST.559 test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon fails on main: physics.tidal_heating has no molten_power_w (the tides chain removed it) (bug)**
+  Found by the full-suite run on 7eef24a (as the lane reported 9:17 AM
+  EST on 2026-11-04) and reproduced on main d22d767df by TODO:
+  tests/test_resonant_chains.py calls tidal_heating.molten_power_w,
+  which GEN.955 and GEN.778 (stage 1 of the tides chain, 60ae5e5e2)
+  replaced. The sibling failure in test_rogue_moons.py (ROCK_TIDAL_Q)
+  passes on main. Do: point the test at the function the chain uses now
+  (peale_power_w or the mantle-temperature form) and keep what it
+  checks: the forced eccentricity feeds the tide the same way for a moon
+  as for a planet. Test only, no generated change. Owner: Tides 1.
+  Prerequisites: none. Related: GEN.955, GEN.778.
+
+- [ ] **TEST.560 test_the_code_reads_no_variable_the_model_does_not_name fails on main: PLANETGEN_BAND_TABLE_CACHE and PLANETGEN_BATTERY_DIGEST_CACHE are read in code and not named in the settings model (bug)**
+  Found by the full-suite run on 7eef24a (as the lane reported 9:17 AM
+  EST on 2026-11-04) and reproduced on main d22d767df by TODO:
+  tests/test_settings.py. generation/band_table_cache.py (PERF.218,
+  135b4b889) and generation/battery_digest_cache.py (PERF.209,
+  9a575b25d) read test-run cache switches from the environment that the
+  settings model does not list. Do: name both in the settings model with
+  their meaning (they are switches for a test run, not production
+  settings), or read them through the settings model; no shim. Test and
+  settings only, no generated change. Owner: Aux 3.
+  Prerequisites: none. Related: PERF.218, PERF.209.
+
+- [ ] **TEST.561 Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug)**
+  Found by the full-suite run on 7eef24a (as the lane reported 9:17 AM
+  EST on 2026-11-04) and reproduced on main d22d767df by TODO. Both
+  tests pin a count that depends on the derived mean system mass
+  (GEN.927 and later epochs): tests/test_galaxy_shell_outline.py and
+  tests/test_gen_halo.py. Do: decide for each whether the move is
+  expected (the single-star mass function and the new old-population
+  window moved the mean system mass) and re-pin it with the reason in
+  the test, or whether a defect moved it; if the pin keeps moving each
+  epoch, make the test compare against a value derived from the model
+  (as TEST.548 did for the remnant ratio). Test only, no generated
+  change unless a defect is found. Owner: Star 2.
+  Prerequisites: none. Related: GEN.927, GEN.1025.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
