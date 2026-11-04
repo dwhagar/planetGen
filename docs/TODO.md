@@ -19142,22 +19142,6 @@ clears each one.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
-- [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
-  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
-  run on main 7eef24a) re-ran these alone, so they are real:
-  tests/test_phenomenon_scatter.py::test_each_kind_follows_its_rate_per_star
-  (line 95) and
-  ::test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_model_counts
-  (line 536) both fail on assert 29689 > 1.5 * 20059. A remnant count
-  ratio moved, probably from the star mass function epoch (Bug 1);
-  TEST.541 covers different tests, not these. Do: find which epoch moved
-  the remnant count, then either fix a generator defect (rides an epoch)
-  or, if the model counts are what changed, update the expected counts
-  from the sourced model with the reason stated; never loosen the 1.5
-  factor to pass. Done: both tests pass on main. Owner: Bug 1, queued
-  behind the train 8 stored-tree fix (GEN.951).
-  Prerequisites: none.
-
 - [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
   Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
   five prevalence census tests red on main on purpose: their baselines
