@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3149] - 2026-11-04
+
+**Headline:** The Papers page tests no longer write a source by name, and the Papers data catches up with the new sources; nothing a visitor sees changes beyond the new sources appearing.
+
+### Changed
+- **Papers tests.** Two tests read their example source from the reference list instead of writing its title and DOI.
+- **Papers data.** The Papers page data is rebuilt for the sources added since it was last built.
+
 ## [8.0.3148] - 2026-11-04
 
 **Headline:** The sources behind the body-rendering research (giant bands and storms, plant pigment color, ring color) are in the citation list.
