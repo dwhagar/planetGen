@@ -34,6 +34,7 @@ const { mapVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
+const { singleSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
@@ -672,7 +673,7 @@ export function starClassOf(entry) {
 // entryByKey, kinds() (the kinds in
 // it, [{kind, label, count}]), setKindHidden(kind, hidden), kindHidden(kind),
 // nebulaMeshCount() (nebulae drawn from their shape
-// so far), dispose()}. `options.onShape(count)` is called as each arrives.
+// so far), nebulaSources() (with `options.volumeSingles`: the nebulae the host draws from their own points, MAP.142), dispose()}. `options.onShape(count)` is called as each arrives.
 export function buildSectorScene(data, options) {
   var o = options || {};
   var origin = o.origin || [0, 0, 0];
@@ -742,6 +743,9 @@ export function buildSectorScene(data, options) {
   // arrives (MAP.103) the shape's mesh takes its place for drawing and picking.
   var loadNebulaShape = data.nebulaShapePath ? createShapeLoader(data.nebulaShapePath) : null;
   var nebulaMeshes = 0;
+  // MAP.142: where the host draws each nebula from its own cloud of points (`nebulaSources()`), the sphere stays only to be picked.
+  var volumeSingles = !!o.volumeSingles;
+  var volumeClouds = [];
   var disposed = false;
 
   function drawFromShape(cloud, sphere) {
@@ -850,7 +854,10 @@ export function buildSectorScene(data, options) {
       entryByObject.set(mesh, cloud);
       volumeObjects.push(mesh);
       drawnFor(cloud, mesh);
-      if (cloud.kind === "nebula" && cloud.nebulaId != null && loadNebulaShape) {
+      if (cloud.kind === "nebula" && cloud.nebulaId != null && volumeSingles) {
+        mesh.material.visible = false;
+        volumeClouds.push(cloud);
+      } else if (cloud.kind === "nebula" && cloud.nebulaId != null && loadNebulaShape) {
         drawFromShape(cloud, mesh);
       }
       return;
@@ -1046,6 +1053,15 @@ export function buildSectorScene(data, options) {
     faded = fadeGroup(group, share);
   }
 
+  // MAP.142: the nebulae the host draws from their own points (options.volumeSingles): `nebulavolume.singleSource`s in the scene's frame
+  // (parsecs of the galaxy), each at the scene's fade and none for a hidden kind.
+  function nebulaSources() {
+    return volumeClouds.map(function (cloud) {
+      var weight = hides(cloud) ? 0 : faded * (cloud.neighbor ? NEIGHBOR_CLOUD_DIM : 1);
+      return singleSource(cloud.nebulaId, { x: cloud.x, y: cloud.y, z: cloud.z, radiusPc: cloud.r }, weight);
+    });
+  }
+
   function dispose() {
     disposed = true;
     group.traverse(function (object) {
@@ -1081,6 +1097,7 @@ export function buildSectorScene(data, options) {
     setFade: setFade,
     fade: function () { return faded; },
     nebulaMeshCount: function () { return nebulaMeshes; },
+    nebulaSources: nebulaSources,
     dispose: dispose,
   };
 }

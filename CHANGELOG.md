@@ -2,6 +2,26 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3207] - 2026-11-04
+
+**Headline:** On the Sector Map a nebula is now drawn as the same irregular cloud of gas the Galaxy Map shows, not a smooth ball or a fixed mesh.
+
+### Changed
+
+- A sector's nebulae (opened in place on the Galaxy Map or on a sector page) are drawn from each nebula's own cloud of points (`/galaxy/nebula/<id>/volume`) by the Galaxy Map's volume layer, so they have the same uneven edges, overlap by adding colors, and tint the stars behind them. The old sphere stays only so a nebula can still be clicked.
+
+generation-output: unchanged
+
+## [8.0.3206] - 2026-11-04
+
+**Headline:** There is now a short two-word local name for any Object ID, spelling only its serial and body number, with the sector shown beside it.
+
+### Changed
+
+- **Local names (GEN.1255).** `names/naming_key.py` gains `local_name`, `local_name_with_sector` and `uid_of_local_name`: the serial and body number of an Object ID, 10 hex digits, spelled alone as two words in their own codec domain, so the sector's words never appear (`Zaidonr Jaisonn, sector 0000B0001803E8`). The 26 count bits of the serial are first scrambled by a keyed bijection (odd multiplier and offset drawn from the naming key and the sector), so serials 0, 1, 2 no longer share a first word: the first 4,096 serials of every sector have first words of their own. The name is exact inside a sector and reverses from the name, the sector and the key. `CODEC_VERSION` goes to 2. Nothing uses the local name yet: rogue planets and the other phenomena, scatter rows, the pages, the API and search follow in GEN.1256, GEN.1257, UX.259 and API.38. No stored data or generated output changes.
+
+generation-output: unchanged
+
 ## [8.0.3205] - 2026-11-04
 
 **Headline:** The first fill of a galaxy works out its bright-star band shares about fifteen times faster, with every star drawn as before.

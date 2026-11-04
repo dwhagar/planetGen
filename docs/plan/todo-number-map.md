@@ -13,11 +13,11 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.260 |
-| MAP | MAP.371 |
-| NAV | NAV.65 |
+| UX | UX.261 |
+| MAP | MAP.378 |
+| NAV | NAV.73 |
 | GEN | GEN.1258 |
-| PERF | PERF.234 |
+| PERF | PERF.236 |
 | DB | DB.110 |
 | API | API.39 |
 | ADM | ADM.138 |
@@ -26,7 +26,7 @@ release is stamped.
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.104 |
-| VIEW | VIEW.19 |
+| VIEW | VIEW.41 |
 | POP | POP.46 |
 
 ## Why this exists
@@ -2026,7 +2026,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1248 | The stored habitable-request answer (habitable_request_status) disagrees with the world count: answer from habitable_request.count and meets (bug) | none | done, PR #4842 |
 | GEN.1249 | A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree | none | open |
 | GEN.1250 | With HABITABLE_WORLD off, about 3 percent of sampled dwarf systems still hold a planet that meets the request's conditions (bug) | none | open |
-| GEN.1251 | Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid | none | open |
+| GEN.1251 | Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid | none | dropped (Aux 4, 2026-11-04: GEN.1052 already covers the non-water tide hook) |
 | GEN.1252 | Methane fluxes of fuel-limited life classes are multiplied by their share of net primary production: sum fuel-limited rows once per fuel (bug) | none | open |
 | GEN.1253 | toxin_factor has no SO2 or H2S term, so worlds with an acid-eater air read as clean for animals (bug) | none | open |
 | GEN.1254 | Every scatter star and scattered phenomenon gets an Object ID (uid) when the scatter is made: uid column on bright_stars and phenomenon_scatter, serial = rank in the sector | none | open |
@@ -2403,6 +2403,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.368 | Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on | none | done, PR #4858 |
 | MAP.369 | Region labels still do not show as clickable points of interest that zoom into the charted region (bug) | none | open |
 | MAP.370 | Black hole dots must always draw with the stars; only the black hole POI marks are off by default (bug) | none | done, PR #4865 |
+| MAP.371 | Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead) | none | open |
+| MAP.372 | Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane | none | open |
+| MAP.373 | Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple | none | open |
+| MAP.374 | Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection | none | open |
+| MAP.375 | A linked side strip for height on the Galaxy Map: an optional panel with height on one axis and distance across, linked to the map so a pick in one rings the star in the other | none | open |
+| MAP.376 | Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug) | none | open |
+| MAP.377 | Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2467,6 +2474,14 @@ Parents marked "new parent" had no old number of their own.
 | NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | open |
 | NAV.63 | Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route | none | open |
 | NAV.64 | Find the nearest resource location from a position or along a course, by resource kind and minimum score | none | open |
+| NAV.65 | Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap | none | open |
+| NAV.66 | Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels | none | open |
+| NAV.67 | Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops | none | open |
+| NAV.68 | Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more' | none | open |
+| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | none | open |
+| NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | none | open |
+| NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
+| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -2793,6 +2808,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.231 | The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug) | none | done, PR #4880 |
 | PERF.232 | test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug) | none | open |
 | PERF.233 | One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update | none | open |
+| PERF.234 | The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug) | none | open |
+| PERF.235 | A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3165,6 +3182,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.257 | Object page life text: the life readings table overflows a phone and the species link fails contrast (bug) | none | done, PR #4734 |
 | UX.258 | The describer writes the hours outside in a day with a raw format (build.py line 516), failing the wording-agrees-with-the-index test (bug) | none | done, PR #4749 |
 | UX.259 | Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>' | none | open |
+| UX.260 | Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3183,6 +3201,28 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | none | open |
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | none | open |
 | VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | none | open |
+| VIEW.19 | System sky S1: measure the backfill cost of a 6.5 and a 7.5 magnitude sky on a real galaxy, and settle the luminosity-versus-mass ledger question | none | open |
+| VIEW.20 | System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule | none | open |
+| VIEW.21 | System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility | none | open |
+| VIEW.22 | System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py | none | open |
+| VIEW.23 | System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report | none | open |
+| VIEW.24 | System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725 | none | open |
+| VIEW.25 | System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill | none | open |
+| VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) | none | open |
+| VIEW.27 | System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell | none | open |
+| VIEW.28 | System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction | none | open |
+| VIEW.29 | System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both | none | open |
+| VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | none | open |
+| VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= | none | open |
+| VIEW.32 | System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test | none | open |
+| VIEW.33 | System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock | none | open |
+| VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | none | open |
+| VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | none | open |
+| VIEW.36 | System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points | none | open |
+| VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | none | open |
+| VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | none | open |
+| VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
+| VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
 
 ## Tree IDs to flat IDs
 
@@ -3846,8 +3886,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.574 | Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug) | none | done, PR #4869 |
 | TEST.575 | 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug) | none | open |
 | TEST.576 | test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug) | none | done, PR #4897 |
-| TEST.577 | test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug) | none | open |
-| TEST.578 | test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug) | none | open |
+| TEST.577 | test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug) | none | dropped (did not reproduce: 26 of 26 pass on main, Core 3) |
+| TEST.578 | test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug) | none | done, PR #4866 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
