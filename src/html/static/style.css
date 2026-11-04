@@ -3648,6 +3648,19 @@ body.app {
   flex: 1 1 auto;
 }
 
+/* UX.142: on a window with room for it, the shell stays under the held site header while a long admin page scrolls, so
+   the rail, the search and the density switch are always in view. A phone or a short window keeps it in the flow
+   (it would take too much of the window). adminshell.js sets --site-header-h. */
+@media (min-width: 700px) and (min-height: 600px) {
+  .app .admin-shell {
+    position: sticky;
+    top: var(--site-header-h, 0);
+    z-index: 15;
+    background: var(--bg);
+    padding-top: 0.4rem;
+  }
+}
+
 .app .admin-rail ul {
   list-style: none;
   margin: 0;
