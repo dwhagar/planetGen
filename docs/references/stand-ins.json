@@ -24503,6 +24503,204 @@
           "tweak": "L3",
           "unread": null,
           "what": "ring_origin.EROSION_YIELD 1.0, the ring mass an impactor takes away in impactor masses"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of the inner moonlets of giants outside the four of the Solar System is in hand"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_MEAN_COUNT 6, the mean number of small moonlets a giant has inside 3 radii (the generator makes no moon under a few hundred km, so these are drawn, not stored)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 15"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of giants' inner moonlets whose mean inside 3 radii is outside 2 to 15, or a giant with a dust ring and none"
+            ],
+            [
+              "What replaces it",
+              "a moonlet population from the ring-moon cycle (the Roche-limit spreading and re-accretion, [R0920])"
+            ],
+            [
+              "Evidence",
+              "Jupiter 4, Saturn 6 to 8, Uranus 13 and Neptune 6 inner moons; four giants, none without any"
+            ]
+          ],
+          "id": "RO14",
+          "key": "6.70:RO14",
+          "kind": "P",
+          "slug": "6-70-ro14",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ring_origin.FEEDER_MEAN_COUNT 6, the mean number of small moonlets a giant has inside 3 radii (the generator makes no moon under a few hundred km, so these are drawn, not stored)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_MAX_DISTANCE_RADII 3 and FEEDER_MAX_RADIUS_KM 100: a moon feeds the dust ring if it orbits inside 3 planet radii and is under 100 km"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4 radii; 50 to 150 km"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "a ring-feeding moon found over 150 km or outside 4 radii"
+            ],
+            [
+              "What replaces it",
+              "the ejecta escape speed and the dust lifetime of each moon from its size and orbit"
+            ],
+            [
+              "Evidence",
+              "Amalthea (84 km, 2.5 Jupiter radii) feeds the gossamer ring; larger moons keep their ejecta"
+            ]
+          ],
+          "id": "RO15",
+          "key": "6.70:RO15",
+          "kind": "P",
+          "slug": "6-70-ro15",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ring_origin.FEEDER_MAX_DISTANCE_RADII 3 and FEEDER_MAX_RADIUS_KM 100: a moon feeds the dust ring if it orbits inside 3 planet radii and is under 100 km"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no impact-ejecta experiment on a small moon's surface gives the kept share of the dust"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon"
+            ],
+            [
+              "The range it moves in",
+              "1 to 100"
+            ],
+            [
+              "Where it holds",
+              "feeding moons of 5 to 100 km"
+            ],
+            [
+              "What would show it wrong",
+              "an impact-ejecta measurement whose kept share is under 1 or over 100"
+            ],
+            [
+              "What replaces it",
+              "the ejecta yield and speed distribution of a hypervelocity impact on a small moon's surface (the escape fraction)"
+            ],
+            [
+              "Evidence",
+              "puts Jupiter's four inner moons at 2.4e7 kg, inside the 1e7 to 1e9 kg of its ring"
+            ]
+          ],
+          "id": "RO16",
+          "key": "6.70:RO16",
+          "kind": "P",
+          "slug": "6-70-ro16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow"
+            ],
+            [
+              "The range it moves in",
+              "1e3 to 1e5"
+            ],
+            [
+              "Where it holds",
+              "micron grains round a giant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured grain lifetime outside 1e3 to 1e5 years"
+            ],
+            [
+              "What replaces it",
+              "the Poynting-Robertson, plasma and Lorentz drag of each grain size at the planet"
+            ],
+            [
+              "Evidence",
+              "1e3 to 1e5 years for micron grains round Jupiter, [R5096], recalled"
+            ]
+          ],
+          "id": "RO17",
+          "key": "6.70:RO17",
+          "kind": "P",
+          "slug": "6-70-ro17",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet"
+            ],
+            [
+              "The range it moves in",
+              "one factor"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "an inner moonlet found outside 3 to 150 km or 1.2 to 4 radii"
+            ],
+            [
+              "What replaces it",
+              "the size distribution of the moonlets from the ring-moon cycle"
+            ],
+            [
+              "Evidence",
+              "Metis 22, Adrastea 8, Pan 14, Cordelia 20, Galatea 79 km; between 1.7 and 3 radii"
+            ]
+          ],
+          "id": "RO18",
+          "key": "6.70:RO18",
+          "kind": "P",
+          "slug": "6-70-ro18",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet"
         }
       ],
       "slug": "6-70-stand-ins-of-the-ring-origin",

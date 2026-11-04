@@ -231388,6 +231388,49 @@
    "volume": "281",
    "year": 1998
   },
+  "10.1126/science.284.5417.1146": {
+   "authors": [
+    [
+     "Burns",
+     "J. A."
+    ],
+    [
+     "Showalter",
+     "M. R."
+    ],
+    [
+     "Hamilton",
+     "D. P."
+    ],
+    [
+     "Nicholson",
+     "P. D."
+    ],
+    [
+     "Pater",
+     "I. D."
+    ],
+    [
+     "Ockert-Bell",
+     "M. E."
+    ],
+    [
+     "Thomas",
+     "P. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.284.5417.1146",
+   "editors": [],
+   "journal": "Science",
+   "page": "1146",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "The Formation of Jupiter's Faint Rings",
+   "type": "journal-article",
+   "volume": "284",
+   "year": 1999
+  },
   "10.1126/science.288.5466.658": {
    "authors": [
     [
@@ -278555,7 +278598,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5096,
+ "id_next": 5097,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282538,6 +282581,7 @@
   "10.1126/science.277.5324.358": "R2578",
   "10.1126/science.278.5341.1245": "R2276",
   "10.1126/science.281.5381.1342": "R1969",
+  "10.1126/science.284.5417.1146": "R5096",
   "10.1126/science.288.5466.658": "R0630",
   "10.1126/science.341.6150.1062-b": "R4875",
   "10.1126/science.8105534": "R2362",

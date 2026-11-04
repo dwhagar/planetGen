@@ -211,7 +211,10 @@ def apply(planet, host=None):
     age_yr = planet.star.age * 1.0e9
     body = ring_origin.Planet(planet.mass, planet.radius, around.distance, star_mass_kg)
     passages = ring_origin.draw_comet_passages(body, age_yr, cold)
-    history = ring_origin.ring_origin(body, age_yr, getattr(planet, "fallen_moons", ()) or (), passages)
+    feeders = () if planet.is_moon else tuple(ring_origin.FeederMoon(moon.radius or 0.0, _au_to_km(moon.distance)) for moon in planet.moons)
+    if planet.body_type == "g" and not planet.is_moon:
+        feeders += ring_origin.draw_feeders(body)
+    history = ring_origin.ring_origin(body, age_yr, getattr(planet, "fallen_moons", ()) or (), passages, feeders)
     resonance = None
     if parent == moon_composition.DWARF_PLANET and not planet.is_moon and planet.rotation_period_hours:
         resonance = small_body_rings.resonance_ring(planet.mass, planet.radius, planet.rotation_period_hours, around.distance, star_mass_kg, cold, draw)

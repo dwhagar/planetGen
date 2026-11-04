@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**4979 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**4980 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -635,6 +635,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r0600"></a>**R0600** Burn, R., et al. 2024a, A radius valley between migrated steam worlds and evaporated rocky cores, NatAs, 8, 463, doi:10.1038/s41550-023-02183-7. [paper](https://doi.org/10.1038/s41550-023-02183-7) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41550-023-02183-7/abstract)
 - <a id="paper-r0601"></a>**R0601** Burn, R., et al. 2024b, A radius valley between migrated steam worlds and evaporated rocky cores, arXiv:2401.04380. [paper](https://arxiv.org/abs/2401.04380) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2401.04380/abstract)
 - <a id="paper-r0602"></a>**R0602** Burn, R., et al. 2021, The New Generation Planetary Population Synthesis (NGPPS), A&A, 656, A72, doi:10.1051/0004-6361/202140390, arXiv:2105.04596. [paper](https://doi.org/10.1051/0004-6361/202140390) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/202140390/abstract)
+- <a id="paper-r5096"></a>**R5096** Burns, J. A., et al. 1999, The Formation of Jupiter's Faint Rings, Science, 284, 1146, doi:10.1126/science.284.5417.1146. [paper](https://doi.org/10.1126/science.284.5417.1146) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1126/science.284.5417.1146/abstract)
 - <a id="paper-r0603"></a>**R0603** Burrell, G. A. & Robertson, I. W. 1915a, The Influence of Temperature and Pressure on the Explosibility of Methane-Air Mixtures., J. Ind. Eng. Chem., 7, 417, doi:10.1021/ie50077a009. [paper](https://doi.org/10.1021/ie50077a009) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1021/ie50077a009/abstract)
 - <a id="paper-r0604"></a>**R0604** Burrell, G. A. & Robertson, I. W. 1915b, THE VAPOR PRESSURES OF SULFUR DIOXIDE AND NITROUS OXIDE AT TEMPERATURES BELOW THEIR NORMAL BOILING POINTS., JAChS, 37, 2691, doi:10.1021/ja02177a012. [paper](https://doi.org/10.1021/ja02177a012) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1021/ja02177a012/abstract)
 - <a id="paper-r0605"></a>**R0605** Burrows, A. & Hayes, J. 1996, Pulsar Recoil and Gravitational Radiation Due to Asymmetrical Stellar Collapse and Explosion, PhRvL, 76, 352, doi:10.1103/physrevlett.76.352. [paper](https://doi.org/10.1103/physrevlett.76.352) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1103/physrevlett.76.352/abstract)

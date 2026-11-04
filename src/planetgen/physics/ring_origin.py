@@ -67,6 +67,26 @@ RING_MIN_DISTANCE_AU = 0.1
 MIN_RING_MASS_KG = 1.0e7
 """float: The least ring that counts (the dust of Jupiter's ring is 1e7 to 1e9 kg). Source tier T6, tweak level L0."""
 
+FEEDER_MAX_DISTANCE_RADII = 3.0
+"""float: A moon feeds the planet's dust ring when it orbits inside this many planet radii (Metis and Adrastea at 1.8 Jupiter radii, Amalthea at 2.5 feed Jupiter's ring and gossamers, the inner moons of Uranus
+and Neptune lie inside 3). Source tier T6, tweak level L2 (GEN.1233)."""
+FEEDER_MAX_RADIUS_KM = 100.0
+"""float: Only a small moon feeds a ring: an ejecta cloud of a larger one falls back (its escape speed is over about 60 m/s at 100 km, and the moon keeps its ejecta); Amalthea, the largest feeder of
+Jupiter, is 84 km. Source tier T6, tweak level L2 (GEN.1233)."""
+DUST_YIELD = 10.0
+"""float: The mass of dust that stays in orbit round the planet per unit mass of meteoroid that strikes a feeding moon (the ejecta of a hypervelocity impact are 1e1 to 1e3 impactor masses and most of them
+escape the moon's weak gravity or fall back; the share kept as ring dust is not measured, and 10 puts the four inner moons of Jupiter at 2.4e7 kg of dust, inside the 1e7 to 1e9 kg of Jupiter's ring). Source tier T6, tweak level L3 (GEN.1233)."""
+DUST_LIFETIME_YR = 1.0e4
+"""float: How long a dust grain of a faint ring lasts against Poynting-Robertson and plasma drag and the planet's shadow (1e3 to 1e5 years for micron grains round Jupiter, [R5096], recalled). Source tier T6, tweak level L1 (GEN.1233)."""
+
+FEEDER_MEAN_COUNT = 6.0
+"""float: How many small moonlets a giant has inside `FEEDER_MAX_DISTANCE_RADII` radii, on average, drawn Poisson: the generator makes no moon smaller than a few hundred km, so the inner moonlets that keep a dust ring
+(Jupiter 4 of them, Saturn 6 to 8, Uranus 13, Neptune 6, none of the four giants without any) are drawn here and not stored as moons. Source tier T7, tweak level L3 (GEN.1233)."""
+FEEDER_RADIUS_KM_RANGE = (5.0, 100.0)
+"""tuple: The radii, km, of the moonlets drawn, log-uniform (Metis 22 and Adrastea 8 km, Pan 14, Cordelia 20, Galatea 79 and Amalthea 84 km). Source tier T6, tweak level L1 (GEN.1233)."""
+FEEDER_DISTANCE_RADII_RANGE = (1.5, 3.0)
+"""tuple: The distances, in planet radii, of the moonlets drawn, uniform (the Roche limit of a ring-forming body is at 1.5 to 2.5 radii; the moonlets of the four giants lie between 1.7 and 3). Source tier T6, tweak level L1 (GEN.1233)."""
+
 SATURN = dict(mass_kg=5.683e26, radius_km=58232.0, distance_au=9.58, star_mass_kg=1.989e30)
 """dict: The reference situation of `COMET_PASSAGES_PER_GYR`."""
 
@@ -92,6 +112,13 @@ class CometPassage:
     """A comet that passed inside the Roche limit: its mass and when, years after the planet formed."""
     mass_kg: float
     time_yr: float
+
+
+@dataclass(frozen=True)
+class FeederMoon:
+    """A small moon near the planet: its radius, km, and its distance from the planet's centre, km."""
+    radius_km: float
+    distance_km: float
 
 
 @dataclass(frozen=True)
@@ -191,16 +218,41 @@ def spread(mass_kg, since_yr, planet, cold=True):
     return scale * math.tan(angle) if angle > 0.0 else 0.0
 
 
-def ring_origin(planet, age_yr, fallen_moons=(), comet_passages=()):
+def draw_feeders(planet):
+    """The small moonlets inside `FEEDER_MAX_DISTANCE_RADII` radii of a giant (`FeederMoon`s): a Poisson `FEEDER_MEAN_COUNT` of them, each with a log-uniform radius and a uniform distance. Draws from the unit's stream."""
+    count, product, limit = 0, draw.random(), math.exp(-FEEDER_MEAN_COUNT)
+    while product > limit:
+        count += 1
+        product *= draw.random()
+    return tuple(FeederMoon(log_uniform(*FEEDER_RADIUS_KM_RANGE), planet.radius_km * draw.uniform(*FEEDER_DISTANCE_RADII_RANGE)) for _ in range(count))
+
+
+def dust_supply_mass_kg(planet, feeders, cold=True):
+    """
+    The steady-state mass, kg, of the faint dust ring that the small moons near `planet` keep (GEN.1233): the meteoroid mass that strikes them (`meteoroid_flux_kg_m2_s` over the cross-section
+    `pi r^2` of every feeder inside `FEEDER_MAX_DISTANCE_RADII` planet radii and smaller than `FEEDER_MAX_RADIUS_KM`), times `DUST_YIELD`, lasts `DUST_LIFETIME_YR`. 0 with no such moon.
+    """
+    if planet.distance_au < RING_MIN_DISTANCE_AU:
+        return 0.0
+    area_m2 = sum(math.pi * (f.radius_km * 1000.0) ** 2 for f in feeders
+                  if 0.0 < f.radius_km <= FEEDER_MAX_RADIUS_KM and f.distance_km <= FEEDER_MAX_DISTANCE_RADII * planet.radius_km)
+    return DUST_YIELD * meteoroid_flux_kg_m2_s(planet, cold) * area_m2 * constants.SECONDS_PER_YEAR * DUST_LIFETIME_YR
+
+
+def ring_origin(planet, age_yr, fallen_moons=(), comet_passages=(), feeders=()):
     """
     The ring of `planet` at `age_yr` from the moons that fell (`FallenMoon`s, from `moon_orbits`) and the comets that passed inside the Roche limit (`CometPassage`s, from `draw_comet_passages`):
-    the sum of each event's ring spread for the time since, capped at `rings.MAX_MASS_OVER_PLANET` of the planet, none inside `RING_MIN_DISTANCE_AU` or below `MIN_RING_MASS_KG`.
+    the sum of each event's ring spread for the time since, plus the steady dust ring that the small moons near it keep (`FeederMoon`s, `dust_supply_mass_kg`, GEN.1233),
+    capped at `rings.MAX_MASS_OVER_PLANET` of the planet, none inside `RING_MIN_DISTANCE_AU` or below `MIN_RING_MASS_KG`.
     """
     if planet.distance_au < RING_MIN_DISTANCE_AU:
         return RingOrigin(False, None, 0.0, 0.0, 0.0, 0.0)
     events = [("disrupted_moon", spread(RING_RETAINED_FRACTION * m.mass_kg, age_yr - m.time_yr, planet), age_yr - m.time_yr) for m in fallen_moons]
     events += [("captured_body", spread(COMET_CAPTURE_FRACTION * c.mass_kg, age_yr - c.time_yr, planet), age_yr - c.time_yr) for c in comet_passages]
-    from_moons = sum(mass for origin, mass, _ in events if origin == "disrupted_moon")
+    dust = dust_supply_mass_kg(planet, feeders)
+    if dust > 0.0:
+        events.append(("moon_erosion", dust, age_yr))
+    from_moons = sum(mass for origin, mass, _ in events if origin in ("disrupted_moon", "moon_erosion"))
     from_comets = sum(mass for origin, mass, _ in events if origin == "captured_body")
     total = min(from_moons + from_comets, rings.MAX_MASS_OVER_PLANET * planet.mass_kg)
     if total < MIN_RING_MASS_KG:
