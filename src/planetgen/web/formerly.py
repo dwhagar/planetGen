@@ -18,7 +18,7 @@ REASON_TEXT = {
 
 def view(former):
     """
-    The rows of the "Formerly" line for the template: `[{designation, what, reason, epoch, date}]`, newest first; `[]` for an object that
+    The rows of the "Formerly" line for the template: `[{designation, what, reason, date}]` (the epoch stays in the JSON, not on the page: it is not part of the story), newest first; `[]` for an object that
     never changed (the line is then not shown).
 
     Args:
@@ -28,6 +28,5 @@ def view(former):
         "designation": entry["designation"],
         "what": "Name" if entry["kind"] == "name" else "Object ID",
         "reason": REASON_TEXT.get(entry["reason"], entry["reason"]),
-        "epoch": entry["retired_epoch"],
         "date": entry.get("retired_on"),
     } for entry in (former or [])]
