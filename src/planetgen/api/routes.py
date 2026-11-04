@@ -575,6 +575,9 @@ def systems():
     The systems, by name, paginated; `star_type` and `sector_id` filter them, and so does `stars` (UX.239): a count (`stars=3`, exactly
     three), a count and a plus (`stars=3+`, three or more) or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many;
     `quintenary`: five or more), anything else a 400.
+    UX.228: the numeric range filters of `GET /api/search` (UX.226; `star_`, `planet_` or `moon_` in front of `min_<key>`, `max_<key>` and `<key>_unit`,
+    `planet_min_gravity=0.8&planet_max_gravity=1.2`) keep the systems that hold a star, planet or moon whose stored value lies in every range on its
+    kind (one body of each ranged kind is enough); the counts and `facets` follow.
     The Systems tables (UX.41) also take `sort` (`name`, `sector`, `octant` or `stars`, the number of stars) with `order=asc|desc`, the filters `binary=yes|no`,
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
@@ -597,6 +600,12 @@ def systems():
         "in_sector": None if not placement else placement == "sector",
         "stars": _parse_stars(request.args),
     }
+
+    try:
+        values = search_values.ranges_from_args(request.args)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    filters["values"] = values
 
     limit, offset = _paginate(request.args)
     db = get_db()

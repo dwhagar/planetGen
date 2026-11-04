@@ -7,6 +7,7 @@ two halves of `browse.py`), and `/search` (was `search.py`).
 """
 
 import re
+from urllib.parse import urlencode
 
 from flask import abort, flash, get_flashed_messages, redirect, request, url_for
 
@@ -91,13 +92,19 @@ def _facet_options(options, labels=None):
              "count": option["count"]} for option in options]
 
 
+def _system_value_ranges():
+    """The physical-value ranges of the request, read as the search page reads them (UX.227, UX.228): `{entity: {key: (least, most, unit or None)}}`;
+    a bound that is not a number, an inverted range and a unit that does not measure the value are ignored."""
+    return searchpage.SearchState.from_args(request.args).value_ranges()
+
+
 def _all_systems_load(state, limit, offset, want_facets, after=None):
     placement = state.filters["placement"]
     envelope = apiclient.get_systems(
         db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
         binary=_binary_filter(state.filters["binary"]),
         placement=placement[0] if len(placement) == 1 and placement[0] in _PLACEMENT_LABELS else None,
-        octants=state.filters["octant"], facets=want_facets, start=state.start)
+        octants=state.filters["octant"], facets=want_facets, start=state.start, ranges=_system_value_ranges())
     facets = None
     if want_facets:
         facets = {
@@ -238,10 +245,18 @@ def systems():
     outside any sector) are a filter on the list (UX.55). `?uncharted=1`
     lists the scattered stars no system was built around instead (UX.87)."""
     show_uncharted = request.args.get("uncharted") == "1"
+    value_groups, value_chips = [], []
     if show_uncharted:
         table = tables.render(UNCHARTED_SYSTEMS_TABLE, request.path, anchor="all-systems", keep=("uncharted",))
     else:
-        table = tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems")
+        pairs, changed = searchpage.tidy_value_args(request.args, searchpage.ENTITY_NAMES)
+        if changed:
+            return redirect(f"{request.path}?{urlencode(pairs)}#all-systems" if pairs else f"{request.path}#all-systems")
+        kept = {key: value for key, value in request.args.items() if key in searchpage.VALUE_FIELDS}
+        table = tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems", keep=tuple(kept), **kept)
+        state = searchpage.SearchState.from_args(request.args)
+        value_groups = searchpage.value_form(state)
+        value_chips = searchpage.value_chips(state.value_ranges(), list(request.args.items(multi=True)), request.path, anchor="#all-systems")
     return render_page(
         "systems.html",
         title="Uncharted stars" if show_uncharted else "Systems",
@@ -249,6 +264,7 @@ def systems():
         breadcrumbs=[crumb("Systems", "systems"), crumb("Uncharted stars")] if show_uncharted else [crumb("Systems")],
         description="Every star system in this charted galaxy.",
         all_systems=table,
+        value_groups=value_groups, value_chips=value_chips,
         show_uncharted=show_uncharted,
         uncharted_url=page_url("systems", uncharted="1", _anchor="all-systems"),
         systems_url=page_url("systems", _anchor="all-systems"),
