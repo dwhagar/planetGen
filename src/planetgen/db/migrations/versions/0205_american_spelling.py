@@ -4,8 +4,8 @@ Schema v205. The stored words that kept a British spelling after the visible tex
 `planets.hydrosphere` and `moons.hydrosphere` `vapour` becomes `vapor`; `bright_stars.population` `nuclear_disc` becomes `nuclear_disk`;
 `asteroid_belts.origin_cause` and the `co_causes` list `outer-disc` become `outer-disk`; and the column `ground_oxidised_fraction` of `planets`
 and `moons` is renamed `ground_oxidized_fraction`. The CHECKs that list a renamed value (`planets_chk_5` and `moons_chk_5` for the hydrosphere,
-`chk_bright_stars_population`) are replaced by ones of the same names that list the new words. A row keeps its other values; the generator draws the
-same worlds, so no regeneration is needed. Every step skips work that is already done, so a stopped run can be started again.
+`chk_bright_stars_population`) are replaced by ones of the same names that list the new words. A row keeps its other values; the generator makes the
+same worlds with the new words (epoch 132), so no regeneration is needed. Every step skips work that is already done, so a stopped run can be started again.
 """
 
 import re
