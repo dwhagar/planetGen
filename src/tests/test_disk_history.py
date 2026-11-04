@@ -42,7 +42,7 @@ def test_the_return_fraction_reproduces_madau_and_dickinsons_salpeter_value():
 
 
 def test_the_infall_time_scale_is_the_milky_ways_line_between_its_two_models_limits():
-    """[R5082] section 3: `tau = 1.033 R - 1.267` Gy, 7 Gy at the Sun; [R5081]: 2 Gy inside and 8 Gy at 20 kpc."""
+    """[R5095] section 3: `tau = 1.033 R - 1.267` Gy, 7 Gy at the Sun; [R5094]: 2 Gy inside and 8 Gy at 20 kpc."""
     sun = 8.0 / tuning.DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC
     assert disk_history.infall_time_gy(sun) == pytest.approx(7.0, abs=0.05)
     assert disk_history.infall_time_gy(0.1) == tuning.DISK_INFALL_MIN_GY
@@ -132,7 +132,7 @@ def _observed_present_over_mean():
 def test_the_present_rate_over_the_mean_is_within_a_factor_of_two_and_a_half_of_the_milky_ways():
     """TEST.533, tightened by GEN.1230. The bound was a factor of three while the inflow followed the stars a halo builds, which for the
     lighter median halo of GEN.1154 (1.57e12 solar masses for 5e10 of stars) rose to the present: the ratio was 0.55 against the observed
-    0.20. The infall time scale of the Milky Way's chemical evolution model ([R5082], limited by [R5081]) gives 0.45, 2.3 times the observed
+    0.20. The infall time scale of the Milky Way's chemical evolution model ([R5095], limited by [R5094]) gives 0.45, 2.3 times the observed
     figure, which also counts the thick disc's stars over a ten-Gy life, so it is low for the thin disc alone."""
     found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0)
     observed = _observed_present_over_mean()
