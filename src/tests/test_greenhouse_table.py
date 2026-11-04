@@ -113,6 +113,21 @@ def test_an_input_outside_the_fitted_range_is_held_at_its_edge_and_stays_finite(
         assert warming.effective_temperature_k <= warming.surface_temperature_k <= max(gt.HIGHEST_SURFACE_K, warming.effective_temperature_k)
 
 
+def test_an_air_thicker_than_the_table_was_fitted_on_keeps_its_top_value_and_then_rises_by_the_adiabat():
+    """GEN.1240: above the table's top pressure the surface rises with the adiabat from a radiating level that does not move, `kappa ln(P / P_top)` in `ln(T_s / T_e)`,
+    continuous at the top, nothing different at or below it, and a steam air of 1e5 bar is hotter than one of 1e3."""
+    top = math.exp(float(gt.table().high[gt.FEATURE_NAMES.index("ln_pressure")]))
+    steam = lambda pressure: gt.warming({"H2O": pressure}, 8.87, 411.0).surface_temperature_k   # noqa: E731
+    assert steam(top) == pytest.approx(steam(0.999 * top), rel=1e-3)                          # nothing below the top moves
+    assert steam(1.001 * top) == pytest.approx(steam(top), rel=5e-3)                          # continuous at the top
+    levels = [steam(top * factor) for factor in (1.0, 3.0, 10.0, 30.0, 100.0)]
+    assert levels == sorted(levels) and levels[-1] > 2.0 * levels[0]                          # rises with the column
+    gamma = gt.features({"H2O": top}, 8.87, 411.0)[gt.FEATURE_NAMES.index("heat_capacity_ratio")]
+    rise = math.log(steam(10.0 * top) / steam(top))
+    assert rise == pytest.approx((1.0 - 1.0 / gamma) * math.log(10.0), rel=1e-6)
+    assert steam(1.0e4 * top) <= gt.HIGHEST_SURFACE_K
+
+
 def test_bad_inputs_are_refused():
     with pytest.raises(ValueError):
         gt.warming(EARTH, 9.81, 0.0)

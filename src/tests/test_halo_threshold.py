@@ -11,7 +11,7 @@ from planetgen.galaxy import density, dials, disk_history, enclosed_mass, mass_c
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
 HALO_FUNCTIONS = (
     (mass_chain, "median_halo_mass"), (mass_chain, "conditional_halo_mass"), (mass_chain, "virial_radius_kpc"),
-    (mass_chain, "median_concentration"), (disk_history, "halo_track"),
+    (mass_chain, "median_concentration"),
 )
 BELOW = mass_chain.HALO_MIN_STELLAR_MASS_SOLAR * 0.9
 ABOVE = mass_chain.HALO_MIN_STELLAR_MASS_SOLAR * 1.1
@@ -46,8 +46,6 @@ def test_below_the_threshold_no_halo_function_is_called(monkeypatch):
     assert (chain.halo_mass_solar, chain.virial_radius_kpc, chain.concentration) == (None, None, None)
     structure = structure_draw.draw_structure(SEED, BELOW)
     assert structure.halo_stellar_ratio == 0.0
-    inflow = disk_history.inflow_shape(None, 10.0, 20)
-    assert list(inflow) == [1.0] * 21
     draw = shape_draw.draw_galaxy(SEED, stellar_mass_solar=BELOW)
     assert draw.chain.halo_mass_solar is None
     assert calls == []

@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/datatable.html" import datatable with context %}
 {% from "partials/profile.html" import profile_panel with context %}
 {%- set groups = [] %}
@@ -46,6 +47,7 @@
 {%- if quadrant %}
 <p class="location">In <a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a> of the galaxy</p>
 {%- endif %}
+{{ formerly(former) }}
 {{ action_bar(bookmark, none, none, galaxy_url, admin_button, nearby_url) }}
 </div>
 {% endblock %}

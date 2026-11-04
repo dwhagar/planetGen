@@ -343,8 +343,8 @@ def generate_block(block_key, config, disregard_missing_data=False):
 
 
 def empty_sector(sector_id, config):
-    """The first half of `regenerate_sector` (GEN.845): deletes the galaxy-placed sector with everything in it and says what
-    to make again.
+    """The first half of `regenerate_sector` (GEN.845): deletes the galaxy-placed sector with what was born in it
+    (`db.edits.empty_sector`: the row stays when objects born elsewhere are filed in it) and says what to make again.
 
     Returns:
         dict: `address` of its cell, `around` (the ids of the sectors whose paths it touched, not itself) and `deleted`
@@ -356,7 +356,7 @@ def empty_sector(sector_id, config):
         with conn:
             address = editStore.sector_address(conn, sector_id)
             around = [other for other in sector_paths.sectors_to_settle(conn, [sector_id]) if other != sector_id]
-            counts = editStore.delete_sector_with_contents(conn, sector_id)
+            counts = editStore.empty_sector(conn, sector_id)
     finally:
         conn.close()
     return {"address": address, "around": around, "deleted": counts}

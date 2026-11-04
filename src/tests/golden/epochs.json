@@ -777,6 +777,13 @@
       "first_release": "8.0.3049",
       "reason": "Train 8: gas law and velocities of the disc, giants, belts and the clearance ledger, cooling track, companion mass ratio, liquid solutes, ring darkening, hydrosphere, nuclear arrival age and body strength",
       "affects": ["plan", "population", "fill", "scatter"]
+    },
+    {
+      "epoch": 131,
+      "first_release": null,
+      "pending": true,
+      "reason": "Train 9: chart ledger, designation history, several life classes on a body, belt origin, disc infall and star formation (GEN.1242), steam-air greenhouse and runaway start (GEN.1238, GEN.1240), greenhouse cap (GEN.1236), mantle activation energy, trace gases and halogens, ice-albedo state, ammonia-water liquids, stellar bulk density, galactic motion stepper, moon orbit solver stages (PERF.231)",
+      "affects": ["plan", "population", "fill", "scatter"]
     }
   ]
 }
