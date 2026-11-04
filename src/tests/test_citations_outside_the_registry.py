@@ -56,7 +56,10 @@ def test_no_citation_is_written_outside_the_registry():
     found = []
     for name in rc.tracked([]):
         if not name.startswith(TODO_OWNED):
+            before = len(reg.unresolved)
             found += _places(name, reg)
+            found += ["%s: %r is not in the reference list: add the paper (python scripts/build_references.py add <doi or arXiv number>) and write its [R0123],"
+                      " or drop the sentence that rests on it" % (name, mention) for _key, mention in reg.unresolved[before:]]
     assert not found, (
         "%d places write a source by name; write its ID, [R0123] (python scripts/build_references.py add <doi> lists a new source):\n  " % len(found)
         + "\n  ".join(found[:SHOWN])
