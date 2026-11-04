@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3135] - 2026-11-04
+
+**Headline:** Long planet, giant, and class-page sentences are now short ones, one idea each.
+
+### Changed
+- **Giant planet interiors.** The summary of a gas giant, ice giant, or brown dwarf is now one short sentence for what it is, then one for each feature (the liquid metal layer, the dilute core, the helium shell, the helium rain). Each layer is two sentences: what it holds and where, then what it is made of.
+- **Class pages.** The note on how a class is chosen is two sentences, the size digits of an asteroid field each get their own line, and the marginal world (class L) description is two sentences.
+
+## [8.0.3134] - 2026-11-04
+
+**Headline:** The one-line description of each planet class now comes from a table read when the page is built.
+
+### Changed
+- **Class descriptions are read at view time.** The phrase after "It is" on a planet or moon page and in the system map panel is read from a table of class descriptions, not from a copy stored with each body. Moons read "moon" where the class text says planet, on the map as well as on the page.
+
+## [8.0.3133] - 2026-11-04
+
+**Headline:** What's nearby filters and orders what it lists by the same stored physical values as the search page: planets within 20 parsecs with 0.8 to 1.2 g, stars by age, moons by orbit.
+
+### Added
+- `/nearby` carries the search page's "Filter and order by physical values" form (`planet_min_gravity=0.8&planet_max_gravity=1.2`, `star_value_sort=-age`): a range lists only the stars, planets or moons in the sphere whose stored value lies in it, a kind with a range is listed even when it is not ticked, an order by a value lists that kind's bodies by it (nearest first among equals; planets, then moons, then stars when several are set). Each range shows as a chip with its unit, the rows carry a Values column, and a submitted form is redirected to its short address.
+- `GET /api/near` takes the same ranges (`<entity>_min_<key>`, `<entity>_max_<key>`, `<entity>_<key>_unit`) and `<entity>_sort=<key>` / `-<key>`; rows carry `values`. `nearest=K` takes the ranges; an order by a value with `nearest`, a range on another kind than the one ordered, and a key a kind does not have are a 400. Value orders hold one heap key per candidate body of the sphere and name only the page's rows.
+
+generation-output: unchanged
+TODO items resolved: UX.228 part 3 (Nearby); the Systems list is the remaining part of the item
+
 ## [8.0.3132] - 2026-11-04
 
 **Headline:** The slow-pages test for a site being updated now expects what the cache guard does: a refusal, not a page built in the request.

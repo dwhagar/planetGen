@@ -259,7 +259,7 @@
           "min": 0.5
         }
       ],
-      "sentence": "A marginal world, Earth-like but hard to breathe without a mask and not toxic: air of 30 kPa to 3 bar at 273 to 320 K with carbon dioxide at 1 percent or more and oxygen at only 3 to 16 percent.",
+      "sentence": "A marginal world, Earth-like but hard to breathe without a mask. The air is not toxic: 30 kPa to 3 bar at 273 to 320 K, with at least 1 percent carbon dioxide and only 3 to 16 percent oxygen.",
       "basis": "design stand-in (GEN.1142, registry CL3): Boss's 6:57 PM EDT 10-30 reading of L (Earth-like, high carbon dioxide, low oxygen, near-Earth temperature); the numbers are fitted, 0.5 g is unchanged"
     },
     {

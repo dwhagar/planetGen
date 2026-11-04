@@ -2,7 +2,7 @@
 
 """
 GEN.337: the objects the free-object step (GEN.336) left out are written with the point columns of DB.55 when they are
-made: a belt (position and vector at its star, a stated zero mass), the quasar (a stated zero vector and the orbit
+made: a belt (position and vector at its star, and the mass its collisional law left it), the quasar (a stated zero vector and the orbit
 epoch), a comet (the mass of its nucleus), a facility (the mass of what it sits on) and a scatter member (the epoch of
 its tree).
 """
@@ -25,7 +25,7 @@ pytestmark = pytest.mark.fresh_database
 EPOCH = 1_700_000_000.0
 
 
-def test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass(mysql_config):
+def test_a_belt_is_at_its_star_with_no_vector_and_the_mass_its_disc_left_it(mysql_config):
     system_id = _system_with_worlds(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -34,7 +34,9 @@ def test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass(mysql_confi
         conn.close()
     for axis in "xyz":
         assert belt[f"position_{axis}_km"] == 0.0 and belt[f"velocity_{axis}_kms"] == 0.0
-    assert belt["mass_kg"] == 0.0
+    # TEST.563: the belt's mass is its own (what the disc's solids leave after the star's age of collisions, `belt_ledger.belt_state`, GEN.477), written as it is
+    # and read by the sector mass (`sector_mass`); it was a stated zero only while a belt had none.
+    assert 0.0 < belt["mass_kg"] < float("inf")
     assert belt["epoch_unix"] is None and belt["next_update_due"] is None  # a belt follows its system's clock
 
 

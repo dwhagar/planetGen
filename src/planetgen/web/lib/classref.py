@@ -226,8 +226,9 @@ def _planet():
         "label": "Planet class",
         "summary": "One letter for what a planet or moon is like, worked out from its finished conditions.",
         "notes": [
-            "A class is never drawn first: once a planet or moon is complete, its class is the first class in the check "
-            "order whose rule its mass, gravity, temperature, air, water, and starlight satisfy. All the rules must hold.",
+            "A class is never drawn first. Once a planet or moon is complete, its class is the first class in the check "
+            "order whose rule it satisfies.",
+            "A rule can ask about the mass, gravity, temperature, air, water, and starlight. All of its parts must hold.",
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
@@ -318,8 +319,6 @@ def _asteroid_field():
             ("Made of", components_text),
         ])
     low_digit, high_digit = pc.ASTEROID_FIELD_SIZE_DIGIT_RANGE
-    sizes = "; ".join(f"{digit}: {number_range(10 ** digit, 10 ** (digit + 1), 'AU')}"
-                      for digit in range(low_digit, high_digit + 1))
     example = next(iter(pc.ASTEROID_FIELD_COMPOSITIONS.values()))["letters"]["dense"]
     return {
         "name": "Asteroid Field Classes",
@@ -328,7 +327,8 @@ def _asteroid_field():
         "notes": [
             "An asteroid field's class is a letter and a digit. The letter (below) is its composition and "
             "density; the digit is its size.",
-            f"Size digit d means a radius of 10^d to 10^(d+1) AU, from {low_digit} to {high_digit}: {sizes}. "
+            *[f"Size digit {digit} means a radius of {number_range(10 ** digit, 10 ** (digit + 1), 'AU')}."
+              for digit in range(low_digit, high_digit + 1)],
             f"So a full class reads like “{example}{min(low_digit + 2, high_digit)}”.",
         ],
         "classes": classes,
