@@ -95,14 +95,14 @@ def test_a_renamed_sector_and_phenomenon_carry_the_field_too(galaxy):
     assert [f["designation"] for f in client.get(f"/api/phenomena/rogue_planet/{_printed(rogue)}").get_json()["former_designations"]] == [rogue["name"]]
 
 
-def test_the_pages_say_formerly_with_the_old_name_the_reason_and_the_epoch(galaxy):
+def test_the_pages_say_formerly_with_the_old_name_the_reason_and_the_date(galaxy):
     config, client = galaxy
     system, rogue, planet = _first(config, "star_systems"), _first(config, "rogue_planets"), _first(config, "planets")
     _rename(config, "star_systems", system)
     _rename(config, "rogue_planets", rogue)
     for url, old in ((f"/system/{_printed(system)}", system["name"]), (f"/phenomenon/rogue_planet/{_printed(rogue)}", rogue["name"])):
         html = client.get(url).get_data(as_text=True)
-        assert 'class="formerly"' in html and old in html and "renamed" in html and "epoch " in html, url
+        assert 'class="formerly"' in html and old in html and "renamed" in html and "epoch" not in html.split('class="formerly"')[1].split("</p>")[0], url
     plain = client.get(f"/system/{_printed(_first(config, 'star_systems'))}").get_data(as_text=True)
     assert plain.count('class="formerly"') == 1
     untouched = client.get(f"/object/planet:{_printed(planet)}")
