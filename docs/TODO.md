@@ -14312,6 +14312,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1069.
   Prerequisites: none.
 
+- [ ] **GEN.1242 The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread.
+  tests/test_prevalence_phenomena_census.py: the reference galaxy's star
+  formation rate reads 4.0 solar masses a year against a hard assert of
+  1 to 3; the Milky Way is about 1.7. It is a hard assert, not a
+  taggable range, so the census stays red until someone looks. Likely
+  moved by trains 6 to 8 (halo mass function GEN.1154, alpha tracks
+  GEN.1024, the disc gas law GEN.999, clusters). Do: find which change
+  moved it, check the reference galaxy against the source-derived range
+  (the Milky Way is a plausibility target, never fixed content), and fix
+  the law or the test range with the reason stated; register any
+  stand-in in GEN.725. Lock work if stored values change. Related:
+  GEN.1202. Owner: Core 3 (galaxy history).
+  Diagnosis (Core 3, as the lane reported) (7:38 AM EST on 2026-11-04):
+  Not GEN.999 or the clusters. Bisect on main: 1.97 solar masses a year
+  before train 6, 3.72 at the train 6 merge (#4385), GEN.999 then adds
+  0.3. In train 6 only GEN.1154 reaches the disc history: the reference
+  galaxy halo fell from 2.0e12 to 1.37e12 solar masses and
+  disk_history.inflow_shape rises later for a lighter halo, so GEN.1242
+  and GEN.1230 are one defect. By halo mass: 1.0e12 gives 5.97, 1.6e12
+  3.3, 2.0e12 2.6, 3.1e12 1.95. The model is wrong, not the test (the
+  main sequence at 5.2e10 solar masses of stars is about 1.5 a year; the
+  reference reads 2.7 times that); the test stays at 1 to 3. Candidate
+  fixes, all lock work: (a) inflow from the star formation real halos
+  have, (b) a cold accretion cut once the halo passes the shock heating
+  mass near 1e12, tried first, (c) a thin disc truncated near 14 kpc.
+  Rejected: a weaker law coefficient (worse) and a baryon accretion
+  shape (6.3).
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1243 The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. The class
+  census white dwarf share is 8.2 percent against the observed range of
+  4.1 to 7.5 percent (the nearby-star census gives 5.6). Candidates: the
+  helium-core white dwarfs and the continuous cooling track of train 8
+  (GEN.996, GEN.1137, now retired), the star mass function epoch
+  (GEN.927), or the age-metallicity history. Do: print the white dwarf
+  share per population with each candidate switched off, find the cause,
+  and fix the law or register a stand-in in GEN.725. Lock work if stored
+  values change. Owner: Bug 1.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14885,6 +14931,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
+  Prerequisites: none.
+
+- [ ] **PERF.231 The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. In two
+  separate runs the class census timed out in 8 cells: F5V, G2V, K0III,
+  K5V and M2V in the ecosphere, hot and cold (K5V ecosphere 4 draws);
+  zero before epoch 130. Do: bisect the draw time (an air solve that no
+  longer converges quickly, the hot start of GEN.1238 is not on main yet
+  so look at the train 8 changes: GEN.1160 roundness, giants, belts,
+  GEN.1174), print the time per stage for one slow seed per cell, and
+  fix the slow stage. Done: the census cells finish under the limit and
+  a test pins the slow seed. Lock-free if output is unchanged. Owner:
+  Bug 1.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19121,19 +19182,6 @@ clears each one.
   (many commits since 7eef24a), keep only those that still fail,
   root-cause each, and file or fix. Done: each failing test has a cause
   and an owner or a fix. Owner: full-suite thread, with Bug 1.
-  Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **TEST.556 test_db_column_round_trip fails on main: stars.nuclear_arrival_age_gy is NULL in every row of the test fixture (bug)**
-  Found by Core 1 (as the lane reported, 6:49 AM EST on 2026-11-04) while
-  running the slow suites on its designations stack:
-  tests/test_db_column_round_trip.py::test_every_column_is_written fails
-  with "NULL in every row (never written?):
-  stars.nuclear_arrival_age_gy". The column is GEN.1174's (merged with
-  train 8, migration 0198); the suite passed before train 8. Do: write
-  the column in the test's star fixture with a real value, or exempt it
-  with a stated reason if it is only set for some stars. Done: the round
-  trip test passes on main. Lock-free. Owner: Aux 7 (GEN.1174's lane).
   Prerequisites: none.
   Prerequisites: none.
 

@@ -37,22 +37,17 @@ def test_a_host_can_be_copied_and_a_missing_attribute_is_an_attribute_error():
         host.no_such_attribute
 
 
-_UNTIL = ("the air of a body with no star: the atmosphere table's shoreline row (d1) is a logistic in log10 of the insolation and of the host's luminosity, "
-          "which a body with no light does not have (GEN.1111 lock wiring: a no-host rule for the table rows that read the star)")
-
-
-@pytest.mark.xfail(strict=True, reason=_UNTIL)
 def test_an_ejected_planet_is_a_planet_of_the_given_mass_with_no_light_on_it():
     system, donor = _donor()
     with draw.bound("starless-host-planet"):
         planet = starless_host.build_ejected_planet(system.system_config, donor, 5.0, 3.0 * EARTH_KG, moon_count=1)
     assert isinstance(planet, Planet) and isinstance(planet.star, starless_host.StarlessHost)
     assert planet.mass == 3.0 * EARTH_KG
-    assert planet.energy_flux_w_m2 < 1e-6, "no starlight reaches it"
+    assert planet.energy_flux_w_m2 < 1e-2, "no starlight reaches it: what is left is the chemical share of its own heat"
+    assert planet.star.luminosity == 0.0 and planet.magnetopause_rp is None, "no light and no wind"
     assert len(planet.moons) == 1 and planet.moons[0].is_moon
 
 
-@pytest.mark.xfail(strict=True, reason=_UNTIL)
 def test_the_formation_distance_the_loss_gives_is_the_one_the_planet_keeps():
     system, donor = _donor()
     with draw.bound("starless-host-formation"):
