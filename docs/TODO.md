@@ -18300,6 +18300,21 @@ clears each one.
   TODO thread.
   Prerequisites: none. Related: TEST.430, GEN.725, PERF.229.
 
+- [ ] **TEST.580 Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug)**
+  Core 1, 6:38 PM EST on 2026-11-04 (as the lane reported), found these
+  red on main while building GEN.367 and says none are its own. Do: for
+  each, find the commit that turned it red (git bisect on the one test
+  file), say which item owns it, and either fix the test with the reason
+  or fix the code. test_burn_down_register: the 6.170 rows from MAP.275
+  have L3 or L4 tweak levels with no burn-down line (the register rule
+  from the stand-in tiers); add the lines or lower the level with a
+  source. test_gen_magellanic_classes: the supernova factor 0.92 must
+  read above 1.0 by the test's own claim; decide whether the factor or
+  the claim is stale. Done: the four green on main with a note of the
+  cause of each. Proposed owner: Bug 1 after TEST.579. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: TEST.579, GEN.367.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
