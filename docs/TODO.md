@@ -1022,6 +1022,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.172 to MAP.181 (MAP.182 was folded into GEN.241; the dark-theme contrast fix is MAP.175, the dust
   colour MAP.181, the grouped regions MAP.176 and the individual clouds
   MAP.178). This item keeps the fuzzy-boundary shape work.
+  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
+  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
+  irregular, bulbous, wispy shapes from the galaxy model, tinting the
+  regions they cover, overlapping additively with a cap, crossing
+  sectors (full text and his five answers in MAP.365). This item moves
+  from version 8.8 into 8.1 and is built by Core 2 after or with
+  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
+  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
+  MAP.222 (nebula zoom window). Owner: Core 2.
+  Prerequisites: MAP.365.
 
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
@@ -1341,6 +1351,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chunks and shared work): this item is now the umbrella and is done
   when its subitems are: MAP.214, MAP.215. Its Done has two halves of
   different versions.
+  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
+  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
+  irregular, bulbous, wispy shapes from the galaxy model, tinting the
+  regions they cover, overlapping additively with a cap, crossing
+  sectors (full text and his five answers in MAP.365). This item moves
+  from version 8.8 into 8.1 and is built by Core 2 after or with
+  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
+  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
+  MAP.222 (nebula zoom window). Owner: Core 2.
 
 - [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
   GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
@@ -1459,7 +1478,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   read from the nebula layer of the tile. Done: a star behind a nebula
   is tinted by the nebula's family colour, the boundary fades, and the
   density views are unchanged.
-  Prerequisites: MAP.142. Related: MAP.191.
+  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
+  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
+  irregular, bulbous, wispy shapes from the galaxy model, tinting the
+  regions they cover, overlapping additively with a cap, crossing
+  sectors (full text and his five answers in MAP.365). This item moves
+  from version 8.8 into 8.1 and is built by Core 2 after or with
+  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
+  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
+  MAP.222 (nebula zoom window). Owner: Core 2.
+  Prerequisites: MAP.142. Related: MAP.191, MAP.365.
 
 - [ ] **MAP.216 Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -1517,6 +1545,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plug in. Done: the window for nebulae, entered from the map and from
   the keyboard, and a browser test that opens it on a nebula spanning
   two sectors.
+  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
+  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
+  irregular, bulbous, wispy shapes from the galaxy model, tinting the
+  regions they cover, overlapping additively with a cap, crossing
+  sectors (full text and his five answers in MAP.365). This item moves
+  from version 8.8 into 8.1 and is built by Core 2 after or with
+  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
+  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
+  MAP.222 (nebula zoom window). Owner: Core 2.
   Prerequisites: MAP.176. Related: MAP.194.
 
 - [ ] **MAP.223 Globular cluster zoom window: choosing a cluster flies into a view of its own stars**
@@ -2015,6 +2052,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The trojan icon had no owner. Owner now: Core 2 (after GEN.1150)
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
+
+- [ ] **MAP.365 Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively**
+  Boss, 12:30 PM EST on 2026-11-04: the dark nebulae now fill the screen
+  when they load as circles (the MAP.176 sprite per group); they must be
+  bulbous, irregular shapes, not all circles, that keep their shape. On
+  the Galaxy Map they affect the tinting and colour of each region they
+  occupy; overlapping nebulae at that view just happen and their colours
+  are merged additively; irregular, like a real nebula, crossing sectors
+  (not all do). Boss's answers to five questions (12:37 PM EST on
+  2026-11-04): (1) shapes come from the real gas and star-forming
+  density of the galaxy model, never a random blob per object ID; (2)
+  wispy edges, a dense core fading unevenly, no hard outline; (3) a
+  subtle tint, denser cores tint more; (4) coarse blobs when far out,
+  more filaments as you zoom in; (5) overlaps add their colours, capped
+  so the sum never washes to white. Do: (a) shape field: each nebula
+  group's outline is the contour of the model density (the gas and
+  star-forming density the nebula was placed from, GEN.75 shapes and the
+  nebula_field/nebula_regions the nodes already carry) at the node's
+  resolution, so the same galaxy always draws the same shape and
+  neighbouring nodes meet without seams across sector borders; (b) draw:
+  coarse level-of-detail blobs for far zoom, adding filament detail as
+  the zoom rises, with a soft uneven falloff from a dense core; (c)
+  tint: each covered map region is tinted by the family colour of the
+  nebulae over it, strength scaled by local density, and the stars seen
+  through are tinted too (this is MAP.215); (d) overlap: additive colour
+  blending with a cap (a soft clamp) so overlap never turns white, on
+  both themes; (e) browser tests: a seeded galaxy where a nebula is not
+  a circle (the outline's circularity is under a stated bound), crosses
+  a sector border without a seam, and two overlapping nebulae draw a
+  colour that is the capped sum; a test that the shape does not depend
+  on the object ID's random draw. Physics drives: no stored per-nebula
+  blob parameters beyond what the model already stores; if a new stored
+  column is needed it is registered in the wiring register. Owner Core 2
+  (Boss's request relayed 12:37 PM EST on 2026-11-04). Lock-free if the
+  shapes are computed at view time from stored densities; if they need a
+  stored outline per node, say so and it rides a train. Filed by the
+  TODO thread.
+  Prerequisites: none.
 
 ## NAV: Navigation and courses
 

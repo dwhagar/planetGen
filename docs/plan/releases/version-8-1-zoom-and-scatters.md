@@ -101,6 +101,11 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
+| MAP.365 | Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively |  |  |
+| MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone |  | Split from MAP.194. |
+| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.215 |  |
+| MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | MAP.142 | Split from MAP.191. |
+| MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 
 ### Composition research and design
 
