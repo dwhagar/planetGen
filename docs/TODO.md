@@ -14304,6 +14304,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt owner, GEN.1068 and GEN.1156). Version 8.1.
   Prerequisites: none. Related: GEN.1068, GEN.1156, GEN.477.
 
+- [ ] **GEN.1249 A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree**
+  Found by Tides 1 in its GEN.1218b build, about 2:30 PM EST on
+  2026-11-04 (as the lane reported); notes in
+  /mnt/project-files/reports/tides1/gen1218/gen1218b-notes-2026-11-04.md.
+  The main liquid label follows the supply (which ice or volatile feeds
+  the sea) while the stored mole fractions follow the air (Raoult's
+  law), so about 7 of 24 hydrocarbon seas in the 150-system sample show
+  under 0.1 of their own labelled liquid. Do: make the two agree by
+  physics, either label by the largest mole fraction or let the supplied
+  liquid take the share the supply gives, whichever the sources support;
+  record the choice and any stand-in in GEN.725. Done: no sea carries a
+  label whose mole fraction is under a stated floor, with a census
+  guard. Needs GEN.1218b merged. Owner Tides 1 (proposed by the TODO
+  thread). Filed by the TODO thread.
+  Prerequisites: GEN.1218.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
