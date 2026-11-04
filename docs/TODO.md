@@ -11114,50 +11114,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sections 2 and 5.
   Prerequisites: none. Related: GEN.745.
 
-- [ ] **GEN.972 Climate feedback 1: ice-albedo on the surface temperature fixed point (ice cover grows as the planet cools and raises the albedo)**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.752. Do: ice cover as a function of surface temperature
-  feeds the planet albedo inside the GEN.422 fixed point; tests on a
-  cooling sweep that find the snowball threshold the literature gives
-  (secondary sources accepted). Changes generated output: epoch
-  --affects fill, rides a train. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Aux 2.
-  Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
-  (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
-  at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
-  nasa_glenn_species.json and saturation_pressure.json are in the repo.
-  Catalog sections 1 and 2.
-  GEN.975 note (Air 1, #3895, as the lane reported) (2026-10-30 12:34 AM
-  EDT): the climate sweep test src/tests/test_climate_sweep.py holds the
-  lower bound (0.54 K per W/m2) as a strict xfail naming GEN.972,
-  GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
-  the last of the three lands the test passes, the strict xfail fails
-  the run, and this item removes the mark.
-  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
-  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
-  The wiring register names this item for the unread ice-albedo feedback
-  and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
-  TODO thread; the lane says if it cannot take it).
-  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
-  reported, 3:19 PM EDT): READY as one lock branch
-  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
-  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
-  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
-  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
-  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
-  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
-  own production. Depths above about 100 are suspect (the only sink is
-  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
-  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
-  red on clean main is GEN.1030.
-  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
-  coordinator at 3:21 PM EDT; owner is now Aux 2. The lock branch
-  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
-  rides a train through the Train Manager.
-  Prerequisites: none. Related: GEN.752, GEN.462.
-
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -11193,53 +11149,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-11-04, option 1): the water-loss efficiency stays 0.01 (his
   choice of 10-23) until this item lands, then it is re-tested against
   the usual 0.1 with the cloud albedo in place. No change before that.
-  Prerequisites: GEN.972. Related: GEN.752, GEN.684.
-
-- [ ] **GEN.982 Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry**
-  Found by Sources 1 with the wiring guard GEN.754 (as the lane reported
-  9:18 PM EDT 2026-10-29): physics/photolysis.py and
-  photolysis_lifetimes.json have no caller, and no open item wires them
-  (GEN.496 is closed). Do: the lifetimes of the photolysed species (the
-  JPL 19-5 and Leiden rates held in the second-hand citation files) set
-  the loss term of the gas inventory in the atmosphere mixture, with the
-  star's UV spectrum; add the wiring-register line when it merges.
-  Changes generated output: epoch with --affects fill, rides train 6.
-  Every stand-in it adds gets a GEN.725 registry row with tier and tweak
-  level. Owner: Aux 2. Version 8.1.
-  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
-  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
-  The photolysis lifetime table has no caller until this item wires it,
-  and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
-  TODO thread; the lane says if it cannot take it).
-  Reading chosen and GEN.972 head (2026-10-31 2:13 PM EDT): Aux 4 (as
-  the lane reported, 2:12 PM EDT): a gross photolysis lifetime cannot be
-  a plain loss on a net gas inventory (photon-limited methane loss for
-  an Earth-sized air is about 78 Tmol a year, while the life ledger
-  holds anoxic methane at 100 ppmv to 3.5 percent on 9 to 67 Tmol a year
-  because the products recombine), so it is NOT wired into life_air. It
-  is wired where the table is the physical limit and is missing: the
-  methane haze supply in aerosols.haze_in, which is diffusion limited
-  only. Three parts: (1) Hu 2012 table 6 UV cross sections and a pure
-  photon-limited gross loss function in photolysis.py (lock-free); (2)
-  the star far-UV flux at the body as a subject quantity (lock-free);
-  (3) the haze supply becomes the smaller of the diffusion and
-  photon-limited supplies, a GEN.725 row for the one-layer
-  optical-depth-1 closure (lock work, epoch --affects fill). TODO
-  approved the reading. GEN.972 (ice-albedo feedback) is ready as lock
-  work: branch claude/project-thread-nfytfi-gen972, head 3dc7948e8,
-  epoch --affects fill, passed to the Train Manager.
-  Parts 1 and 2 merged (2026-10-31 2:25 PM EDT): Parts 1 and 2 merged
-  lock-free (cross sections, shielded_column_mol_m2,
-  photon_limited_flux_mol_m2_s, far_uv_power_w, far_uv_flux_ratio;
-  register lines name part 3). Part 3 (haze supply) is built on branch
-  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
-  GEN.972, held back until GEN.1229 (haze depth per unit of mass flux)
-  is built; the two ride one lock window.
-  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
-  coordinator at 3:21 PM EDT; owner is now Aux 2. The lock branch
-  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
-  rides a train through the Train Manager.
-  Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
+  Prerequisites: none. Related: GEN.752, GEN.684.
 
 - [ ] **GEN.993 Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12**
   Found by GEN.777 (Sources 1, as the lane reported 10:35 PM EDT
@@ -13802,45 +13712,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 4.1). Changes the colour of oxidised worlds on the map and
   body pages only; no stored generator value moves. Lock-free (the
   land colour, MAP.274, has merged).
-  Prerequisites: none.
-
-- [ ] **GEN.1229 Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug)**
-    Finding from Aux 4's GEN.982 build (as the lane reported, 2:22 PM
-  EDT 2026-10-31). The photon-limited methane loss at Titan's distance
-  is about 6e9 molecules per cm2 per second, which is Titan's own
-  methane loss, and it is 100 to 100000 times under the diffusion supply
-  the haze depth was tuned with. With the physical supply, Titan-like
-  hazes drop from optical depth 0.007 to 3 down to 3e-7 to 0.2 and
-  Titan's 9.6 is not reachable: the old model got its Titan order from
-  an oversized mass flux, so the depth per unit of mass flux is what is
-  off (the fall term in aerosols.haze_fall, where the eddy speed
-  replaces the fall speed, and the aggregate cross section). Do: derive
-  the depth per unit of mass flux from the physics (sourced), fix the
-  fall term and the cross section, then let GEN.982 part 3 (haze supply
-  is the smaller of diffusion and photon-limited, branch
-  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
-  GEN.972) ride the same lock window. Done: Titan's depth reached from
-  the physical flux; the strict expected failure of the Titan test
-  removed; census of methane hazes before and after. Lock work (epoch,
-  --affects fill). Owner: Aux 2.
-  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
-  reported, 3:19 PM EDT): READY as one lock branch
-  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
-  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
-  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
-  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
-  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
-  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
-  own production. Depths above about 100 are suspect (the only sink is
-  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
-  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
-  red on clean main is GEN.1030.
-  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
-  coordinator at 3:21 PM EDT (Boss: retire threads that served their
-  purpose); owner is now Aux 2. The lock branch
-  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
-  rides a train through the Train Manager.
-    Prerequisites: GEN.982. Related: GEN.972.
   Prerequisites: none.
 
 - [ ] **GEN.1230 The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug)**
