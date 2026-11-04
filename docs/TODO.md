@@ -14362,23 +14362,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt owner, GEN.1068 and GEN.1156). Version 8.1.
   Prerequisites: none. Related: GEN.1068, GEN.1156, GEN.477.
 
-- [ ] **GEN.1248 The stored habitable-request answer (habitable_request_status) disagrees with the world count: answer from habitable_request.count and meets (bug)**
-  Found by Aux 3 while fixing TEST.307, 1:10 PM EST on 2026-11-04 (as
-  the lane reported). StarSystem.habitable_request_status still reads
-  the old PHI-6 index while the request now steers by conditions
-  (GEN.1130, odds-only), so the stored answer disagrees with what was
-  drawn: in a probe of 14 A0V systems 4 had a world and said unmet, 1
-  had none and said fallback. Do: compute the status from
-  habitable_request.count and meets (a world the conditions rate
-  habitable, found or not); delete the PHI-6 index read (no shim);
-  update the sheet and any text that quotes the status; add a test over
-  several seeds that the answer matches the world count. Done: no system
-  says unmet with a habitable world present or fallback with none. This
-  changes a stored column (migration, epoch, golden, census re-tag), so
-  it rides a train. Related: GEN.1130, TEST.307. Owner Aux 3 (proposed
-  by the TODO thread). Filed by the TODO thread.
-  Prerequisites: none.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17869,53 +17852,6 @@ clears each one.
   at -n 4 under load and takes well under a minute alone. Owner: Bug
   Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
-
-- [ ] **TEST.295 test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug)**
-  Found by Core 5 (relayed 10:15 AM EDT 2026-10-23 as the lane reported)
-  in a loaded 4-worker gate; filed by the TODO thread. Kind: slow flaky
-  test, the same family as TEST.293 (a draw at 1, 2 and 4 workers).
-  Test:
-  src/tests/test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw.
-  Failure: it hit the 900 s pytest-timeout at load 10; alone it passes
-  in about 5 minutes. Fails on main: unknown. Frequency: 1 in 1 loaded
-  gate. Reproducer: run it while another gate is running. Do: find what
-  the 5 minutes alone are spent on (building the galaxy, three draws),
-  cut the cost with a smaller fixture if the check keeps its meaning,
-  and check whether it forks a threaded process as the TEST.293 tests
-  did (TEST.293's fix made the four-worker draw tests spawn their
-  workers). Done: the test takes well under a minute alone and passes 20
-  times in a row at -n 4 under load. Owner: Bug Hunt (proposed by the
-  TODO thread).
-  Finding (Bug Hunt, relayed 10:40 AM EDT 2026-10-23 as the lane reported):
-  7 s alone on its machine (the three runs of the queue take 0 s, 4 s and
-  4.6 s); it does not fork, the workers are subprocesses
-  (`redisqueue.RQExecutor` uses subprocess.Popen), so it is not TEST.293's
-  family. Stack at the timeout (Core 5, relayed 10:45 AM EDT as the lane
-  reported): the second `_run_queue(2)` was leaving its WorkQueue block,
-  work.py `__exit__` -> `drain` -> `_collect(block=True)` ->
-  `RQExecutor.wait` (redisqueue.py:411) in `time.sleep(POLL_SECONDS)`,
-  waiting for its 2 futures, not on a Redis call; Redis was
-  redis://127.0.0.1:6379/0, flushed before the gate, no stale keys; 4
-  cores at load about 10 (4 xdist workers, a second 2-worker scan on
-  Redis port 6390, headless Chromium at 100 to 150 percent CPU).
-  Progress (Bug Hunt, #2683 merged about 1:16 PM EDT 2026-10-23 as the
-  lane reported, gate green at 22,724 passed): the original hang did not
-  reproduce (17 loops beside 8 CPU burners, all clean), but Core 5's
-  stack fits a real gap that Bug Hunt reproduced: RQExecutor restarted a
-  worker the moment it exited while tasks waited, so workers that die at
-  start (an import error, out of memory, an unreachable Redis; their
-  output is discarded) were started without limit (752 in 21 s). The run
-  now fails after 10 workers in a row die, with the exit code and the
-  command to see why. This item stays open as 'cause of the dying
-  workers unknown': if it recurs, the error now names the exit code.
-  Done is unchanged except that a recurrence is now diagnosable.
-  Research (2026-10-09, Update): Update 1:17 AM EDT 2026-10-24 (as Core
-  5 reported): the test ran `galaxy` with all stages; after PERF.123
-  (#2865) `galaxy` always does every stage, so Core 5 changed
-  test_parallel_generation.py to run `sectors` instead. Recheck whether
-  the 900 s timeout still happens, and close this item if not. Owner:
-  Bug Hunt.
-  Prerequisites: none. Related: TEST.293, TEST.292, TEST.198.
 
 - [ ] **TEST.297 The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug)**
   Found by Core 2 (relayed 12:46 PM EDT 2026-10-23 as the lane reported)
