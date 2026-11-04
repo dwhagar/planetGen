@@ -18805,23 +18805,6 @@ clears each one.
   a defect, fix it and note whether stored output changes. Owner: Aux 7.
   Prerequisites: none.
 
-- [ ] **TEST.567 Two tests red on main: test_helium_fractionation (0.29985 over 0.3) and test_disregard_missing_data (12 lines against 11) (bug)**
-  Found by Core 5 after DOC.102 (relayed 11:57 AM EST on 2026-11-04 as
-  the lane reported); the TODO thread saw test_disregard_missing_data
-  fail 3 tests on main (the option, the bulk command and the status
-  command). Tests: the helium-fractionation figure test (a mass fraction
-  0.29985 against a bound of 0.3) and
-  tests/test_disregard_missing_data.py. Do: for each, find whether the
-  test or the code moved (the output of a merged epoch or a changed help
-  line), fix the one that is wrong with a sourced reason, and run each
-  test 3 times. Done: both pass on main. A moved physics figure follows
-  the physics rule (secondary sources accepted, stand-ins registered in
-  GEN.725); a changed line count means update the expected count.
-  Lock-free unless the helium fix changes a stored value, in which case
-  it rides a train under its own item. Owner Core 5 (offered; proposed
-  by the TODO thread). Filed by the TODO thread.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

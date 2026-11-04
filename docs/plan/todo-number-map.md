@@ -3816,7 +3816,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.564 | test_a_directed_moon_count_still_goes_through_the_gate fails on main: moon counts vary 1 and 2 with a minimum of 0 where at least 1 and 80 percent at 2 are expected (bug) | none | done, PR #4788 |
 | TEST.565 | test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug) | none | done, PR #4796 |
 | TEST.566 | test_deploy_scripts fails on main: scripts/settle_references.py names src/crossref, which is not in the repo (bug) | none | done, PR #4815 |
-| TEST.567 | Two tests red on main: test_helium_fractionation (0.29985 over 0.3) and test_disregard_missing_data (12 lines against 11) (bug) | none | open |
+| TEST.567 | Two tests red on main: test_helium_fractionation (0.29985 over 0.3) and test_disregard_missing_data (12 lines against 11) (bug) | none | done, PR #4818 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
