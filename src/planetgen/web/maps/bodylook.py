@@ -419,30 +419,30 @@ def colour_account(look):
     temperature = look.get("tempK")
     if body == "star":
         if temperature is None:
-            return "Partial: colour from its spectral class alone; no temperature is stored for a model atmosphere"
-        return f"Full: colour of a model atmosphere at its effective temperature ({temperature:,.0f} K) and gravity"
+            return "Partial: color from its spectral class alone; no temperature is stored for a model atmosphere"
+        return f"Full: color of a model atmosphere at its effective temperature ({temperature:,.0f} K) and gravity"
     if body not in ("solid", "gas"):
         return None
     kind = look.get("kind")
     layer = "Cloud-top" if body == "gas" else "Ground"
     if temperature is not None:
-        parts = [f"{layer} colour from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K) alone"]
+        parts = [f"{layer} color from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K) alone"]
     else:
-        parts = [f"{layer} colour is a default: no temperature is stored"]
+        parts = [f"{layer} color is a default: no temperature is stored"]
     if body == "solid" and look.get("quality") == "composition":
         known = look.get("landKnown")
-        parts[0] = "Ground colour from the stored ground types (lab reflectance)" + (
-            "" if (known or 1.0) >= 0.995 else "; %d percent of the land has no measured colour and is left out" % round(100.0 * (1.0 - known)))
+        parts[0] = "Ground color from the stored ground types (lab reflectance)" + (
+            "" if (known or 1.0) >= 0.995 else "; %d percent of the land has no measured color and is left out" % round(100.0 * (1.0 - known)))
     if body == "solid" and look.get("ocean"):
         if look.get("oceanClass"):
-            parts.append(f"sea colour from its ocean class ({look['oceanClass']})")
+            parts.append(f"sea color from its ocean class ({look['oceanClass']})")
         else:
-            parts.append("sea colour is a default: no ocean class is stored")
+            parts.append("sea color is a default: no ocean class is stored")
     if look.get("atm") and kind != "rogue_planet":
         if look.get("glow"):
             parts.append("limb glow from the composition of its air under its star")
         else:
-            parts.append("no limb glow: the colour of its air could not be worked out")
+            parts.append("no limb glow: the color of its air could not be worked out")
     if look.get("quality") == "estimate":
         missing = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
         head = "Partial estimate: "

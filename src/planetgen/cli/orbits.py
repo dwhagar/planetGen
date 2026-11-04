@@ -267,7 +267,7 @@ def main():
             log.normal("The cancel request came during the run: the update finished first, so nothing is half moved.")
     except KeyboardInterrupt:
         log.error("Stopped part-way by a second interrupt: run the orbital update again to finish it." if cancel.moving
-                  else "Cancelled before any position moved.")
+                  else "Canceled before any position moved.")
         sys.exit(130)
     except Exception as exc:
         log.error(str(exc))

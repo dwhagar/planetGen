@@ -623,7 +623,7 @@ def _comet_composition_text(components):
 _SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", speed_kms_html)
 _PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", _quantity("Gyr"))
 
-_EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from the reference radius, against the galactic centre)",
+_EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from the reference radius, against the galactic center)",
                     _quantity("m"))
 """The derived row of a compact object's page (GEN.154): see `_derived_fields`."""
 

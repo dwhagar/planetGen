@@ -61,7 +61,7 @@ _STAR = {
                      "blackbody radius of its drawn dust temperature times 1.74 [R4081].",
     "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris belt ends at 1.5 of its radius, the "
                      "blackbody radius of its drawn dust temperature times 1.74 [R4081].",
-    "chemistry_branch": "A star older than the thick disc's start is alpha-rich with [R0349]'s logistic probability of its "
+    "chemistry_branch": "A star older than the thick disk's start is alpha-rich with [R0349]'s logistic probability of its "
                         "[Fe/H] (age gate, [R1863]); one draw of the star's own decides it.",
     "chemistry_alpha_fe": "The mean [X/Fe] of O, Mg, Si and Ca: the branch's hinge fit at the star's [Fe/H] [R0349, R3294] "
                           "plus the star's residuals [R0535].",

@@ -282,7 +282,7 @@ class TileCache(_Section):
                    summary="Where the Galaxy Map's nodes are cached; empty uses "
                            "/var/cache/planetgen/tiles.")
     warm_zoom_floor: int = opt(9, "Finest block level of the zoom run `planetgen warm` builds from the opening view in to "
-                               "the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of "
+                               "the galaxy's center, on top of the populated blocks it builds in full (9 is blocks of "
                                "nine shells, about 36 pc across; the run covers blocks of that size and bigger; "
                                "243 or more builds no run).",
                                unit="shells", group="speed", ge=1, le=177147,
@@ -342,7 +342,7 @@ class PageCache(_Section):
                                 control="duration",
                                 advanced=True)
     warm_max_objects: int = opt(5000, "Most sector pages, system pages and phenomenon pages the warm-up builds "
-                                "(each, nearest the galaxy centre first); the rest are built on their first visit, "
+                                "(each, nearest the galaxy center first); the rest are built on their first visit, "
                                 "and the warm-up says how many it left out.", unit="objects", group="speed", ge=0,
                                 label="Pages built ahead",
                                 summary="Most sector, system and phenomenon pages the warm-up "
@@ -516,14 +516,14 @@ class Web(_Section):
                               label="Page title format",
                               summary="How a page's title is written in the browser tab, using "
                                       "{title} and {site_name}.")
-    theme_color_light: str = opt("#f6f7fb", "The browser's toolbar colour on phones for the light theme, as #rrggbb.",
+    theme_color_light: str = opt("#f6f7fb", "The browser's toolbar color on phones for the light theme, as #rrggbb.",
                                  group="look",
-                                 label="Browser colour, light theme",
-                                 summary="The toolbar colour phones show with the light theme.",
+                                 label="Browser color, light theme",
+                                 summary="The toolbar color phones show with the light theme.",
                                  control="color")
     theme_color_dark: str = opt("#14151e", "The same for the dark theme.", group="look",
-                                label="Browser colour, dark theme",
-                                summary="The toolbar colour phones show with the dark theme.",
+                                label="Browser color, dark theme",
+                                summary="The toolbar color phones show with the dark theme.",
                                 control="color")
     assets_dir: str = opt("", "Where uploaded icons and images are kept; empty means the assets folder in the state "
                           "folder.", env="PLANETGEN_ASSETS_DIR", editable=False, group="paths",
@@ -545,7 +545,7 @@ class Web(_Section):
     @classmethod
     def _color(cls, value):
         if not _HEX_COLOR.match(value):
-            raise ValueError("must be a colour written #rrggbb")
+            raise ValueError("must be a color written #rrggbb")
         return value
 
 
@@ -567,7 +567,7 @@ class Icons(_Section):
                                 summary="The icon iPhones and iPads use when the site is added to "
                                         "the home screen.",
                                 control="asset")
-    manifest_enabled: bool = opt(False, "Serve /site.webmanifest, which names the site, its icon and its theme colour "
+    manifest_enabled: bool = opt(False, "Serve /site.webmanifest, which names the site, its icon and its theme color "
                                  "for browsers that can install it.", group="look",
                                  label="Installable site",
                                  summary="Let browsers offer to install the site as an app.")

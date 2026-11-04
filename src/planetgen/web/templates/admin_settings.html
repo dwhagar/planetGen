@@ -87,10 +87,10 @@
 {%- set key = option.path | replace('.', '-') %}
 {%- set editable = option.allowed and can_save %}
 {%- set described = 'help-' ~ key ~ (' err-' ~ key if option.error else '') %}
-{%- set labelled = editable and option.control not in ('switch', 'asset') and not (option.control == 'choice' and option.choices|length <= 3) %}
+{%- set has_label = editable and option.control not in ('switch', 'asset') and not (option.control == 'choice' and option.choices|length <= 3) %}
 <div class="setting{% if not option.allowed %} setting-fixed{% endif %}" id="setting-{{ key }}" data-setting data-search="{{ option.search_text }}">
   <div class="setting-main">
-    {%- if labelled %}
+    {%- if has_label %}
     <label class="setting-name" for="opt-{{ key }}">{{ option.title }}</label>
     {%- else %}
     <span class="setting-name" id="name-{{ key }}">{{ option.title }}</span>

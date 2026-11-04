@@ -86,7 +86,7 @@ LIMIT_ROWS = (
     Limit("corrosive_ph_high", 12.0, "pH", "a surface liquid above this pH needs a chemical-barrier suit", None, None),
     Limit("dust_pressure_kpa", 10.0, "kPa", "interim rule: a rocky body under this pressure has regolith dust that wrecks open seals", None, None),
     Limit("dust_recommended_mg_m3", 0.1, "mg/m3", "airborne dust from here: a dust filter is recommended (NASA-STD-3001: Mars dust, 0.1 mg/m3 for 30 days)", None, None),
-    Limit("dust_required_mg_m3", 10.0, "mg/m3", "airborne dust from here: a dust filter is required (NASA-STD-3001 short-term ceiling for particles under 10 micrometres)", None, None),
+    Limit("dust_required_mg_m3", 10.0, "mg/m3", "airborne dust from here: a dust filter is required (NASA-STD-3001 short-term ceiling for particles under 10 micrometers)", None, None),
     Limit("work_hours_outside_yr", 2000.0, "h", "a working year outside, for the suit worn to go out from a shelter", None, None),
     # --- Hours outside in a day (GEN.768): the body, the garments and the shift. The values are in the stand-in registry of
     # the gap-filling plan (section 6.8) with their source tier and tweak level ---

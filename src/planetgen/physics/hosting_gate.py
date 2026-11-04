@@ -234,7 +234,7 @@ SATELLITE_SHARE = pt.REGISTRY.register(pt.Table(
                      "cut is 1 km; 0.11 to 0.19 within the quoted error",
                conditions=(pt.Condition("diameter_m", SIZE_CUT_M, PHOTOMETRIC_BINARY_MAX_DIAMETER_M),)),
         pt.Row("belt rubble pile with a satellite", ("belt-small-body",), 0.16,
-               source="[R2131]: the modelled steady-state binary fraction 16 +- 6 percent; "
+               source="[R2131]: the modeled steady-state binary fraction 16 +- 6 percent; "
                       "[R2874]: small main-belt binaries are discovered about as often as near-Earth ones",
                state=pt.STAND_IN, replacement="a measured small-body binary fraction",
                conditions=(pt.Condition("diameter_m", SIZE_CUT_M, PHOTOMETRIC_BINARY_MAX_DIAMETER_M),)),

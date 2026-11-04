@@ -874,7 +874,7 @@ def after_sectors_steps(generate, scatters=()):
     The steps after a `planetgen sectors` step (PERF.123): `link`, the `scatters` (`scatter_steps`), the bright-star
     `backfill` and `settle`, each for the sectors saved since the start of the newest `sectors` run (their default).
     """
-    return [{"label": "Link the neighbours", "argv": generate + ["link"]}, *scatters,
+    return [{"label": "Link the neighbors", "argv": generate + ["link"]}, *scatters,
             {"label": "Scatter the massive stars from the neighborhood", "argv": generate + ["backfill"]},
             {"label": "Save the sector paths", "argv": generate + ["settle"]}]
 

@@ -117,7 +117,7 @@ def table():
     if tuple(data["features"]) != FEATURE_NAMES:
         raise elements.DataError(f"{DATA_FILE}: the features are not the module's; fit the table again (scripts/fit_greenhouse_table.py)")
     if data["data_digest"] != data_digest():
-        raise elements.DataError(f"{DATA_FILE}: the table was fitted to other k-tables or collision-induced files than the catalogue's; "
+        raise elements.DataError(f"{DATA_FILE}: the table was fitted to other k-tables or collision-induced files than the catalog's; "
                                  "fit it again (scripts/fit_greenhouse_table.py)")
     return Table(mean=np.array(data["mean"]), scale=np.array(data["scale"]), low=np.array(data["low"]), high=np.array(data["high"]),
                  weights=tuple(np.array(layer) for layer in data["weights"]), biases=tuple(np.array(layer) for layer in data["biases"]),
