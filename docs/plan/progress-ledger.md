@@ -2339,3 +2339,4 @@ Baseline: PR #1817.
 | TEST.558 | 8.2 | Robust tile caching |
 | TEST.332 | 8.1 | Bugs and flaky tests |
 | TEST.319 | 8.1 | Bugs and flaky tests |
+| DOC.86 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

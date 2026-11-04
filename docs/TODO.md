@@ -20286,27 +20286,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.86 Oxford comma everywhere: check lists of three or more for the serial comma, and fix every template, help page and generated sentence**
-  Boss (2026-10-31, 2:50 PM EDT): "introduce our text pages to the
-  oxford comma, sometimes you use it, sometimes you don't, use it, it's
-  important." Rule 15 of the plain-words guide
-  (docs/design/interface/text-style.md) now says every list of three or
-  more has a comma before its and or or. Do: (1) add a checker to
-  planetgen/util/plainwords.py that flags a list of three or more items
-  without the comma, reliably enough to hold (a clause list like 'X,
-  which is big and cold' must not fire: flag only a run of at least
-  three short noun phrases joined by commas ending in and or or without
-  the comma; test sentences for both the hits and the safe cases, then
-  run it over the corpus to see what it flags), and move rule 15 into
-  the checked list; (2) run it over the generated text
-  (tests/test_plain_words.py), the class pages, the life help pages
-  (tests/test_life_help.py), the help suite, the templates and the
-  static pages, and fix every hit; (3) hold the new help pages
-  (References, glossary) to it as they land. Lock-free; text only, no
-  generation change. Owner: Core 5 (with UX.252, which applies the rule
-  in its rewrite).
-  Prerequisites: none.
-
 - [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
@@ -20874,6 +20853,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   plain-words guide and docs/design/interface/references.md. No author,
   year, journal, DOI or arXiv number outside the registry, REFERENCES.md
   and the References pages.
+
+- [ ] **DOC.102 American spelling sweep of every text that is not a planet, moon or belt description: templates, help pages, static pages, star, system, sector, nebula and phenomenon text, error messages, the API and CLI help, so "colour" and the other British spellings go to zero**
+  Boss, 10:33 AM EDT on 2026-10-31: American spelling, so "color" not
+  "colour", consistent everywhere (UX.252 records it for planet, moon
+  and belt text). Core 5 asked for the rest to be filed (as the lane
+  reported 9:50 AM EST on 2026-11-04). Do: run the British-spelling
+  checker of planetgen/util/plainwords.py (colour, grey, centre, metre,
+  litre, kilometre, analyse, neighbour and the like, with its short
+  allow-list for proper names and quotes) over every text outside
+  UX.252's reach, fix every hit, extend the word list where the sweep
+  finds more, and hold the checker to the whole site so a new British
+  spelling fails a test; the 333 uses of "colour" on the site go to zero
+  apart from quotes and names. Text only: a stored text that carries a
+  British spelling is not edited here, it is listed for the item that
+  owns its generator. Lock-free. Owner: Core 5 (after UX.252).
+  Prerequisites: none. Related: UX.252, DOC.86.
 
 ## POP: Population and politics
 
