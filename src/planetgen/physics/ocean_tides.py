@@ -24,7 +24,7 @@ resonance, which this does not model, so it is an upper bound for an ocean that 
   `LOADING_REFUSE` of that is refused (`OceanTideError`): a global layer of a heavy liquid is not thin, and needs the fluid Love numbers, not this.
 * **An ice-covered ocean** has no free surface: the lid flexes, and the free-surface tide is not defined (zero, with the reason).
 
-The depth of the basin, the dissipation of the tide and non-water liquids (GEN.1035) are not here. Stand-ins are OT1, OT2 and OT6 to OT8 of
+The depth of the basin and the dissipation of the tide are not here. Stand-ins are OT1, OT2 and OT6 to OT8 of
 `docs/design/research/gap-filling-plan.md` section 6.68.
 
 **The stored columns** (`FIELDS`, on `planets` and `moons`; `generate`, called where `daylight.generate` is, after the moons and the spin are final):
@@ -32,7 +32,9 @@ The depth of the basin, the dissipation of the tide and non-water liquids (GEN.1
 * `tide_range_spring_m` and `tide_range_neap_m`, metres: the open-ocean equilibrium ranges above, for a body whose hydrosphere is `surface ocean` (a free
   sea); `0` for an `ice-covered ocean` (no free surface, with the reason in `ocean_tide`); `None` for every other body (dry, vapour, ice, a brine seep, a
   hycean world, a gas giant, a body with no spin on record).
-* `ocean_liquid`: the liquid of that sea, `water` until the surface liquid inventory (GEN.1035) names others; `None` where the tide columns are.
+* `ocean_liquid`: the liquid of that sea: `water` for the sea of a water world, and for a body whose stored `surface_liquid` (GEN.1035) is another liquid that covers part of it
+  (the methane and ethane seas of a Titan, an ammonia-water ocean) that liquid's id, with the ranges of its sea at its density at the surface temperature (the loading
+  factor is the only thing the liquid changes). A lava is no sea of this kind and a liquid too heavy for a thin layer is the deep path of GEN.1052: both leave the columns `None`.
 
 The raisers of a planet are its star and each of its moons; those of a moon are its planet and the star (at the planet's distance). The other planets'
 tides are not counted (a planet at one astronomical unit raises on the Earth 1 percent of the Moon's). The spin sense is read against each raiser's orbit
@@ -43,7 +45,7 @@ normal: a raiser that goes round the other way is a retrograde one for the body 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, icy_tide, spin, tidal_heating
+from planetgen.physics import constants, icy_tide, spin, surface_liquids, tidal_heating
 
 FIELDS = ("tide_range_spring_m", "tide_range_neap_m", "ocean_liquid")
 """tuple: The stored columns on `planets` and `moons` (see the module text)."""
@@ -53,6 +55,10 @@ H2_OVER_K2 = 5.0 / 3.0
 the floor's share of the tide is 0.80 here against 0.69 measured. Source tier T5, tweak level L1."""
 LOADING_REFUSE = 0.9
 """float: The most `3 rho_liquid / (5 rho_mean)` the thin-layer loading factor is used at (the factor is 10 there); a heavier liquid is refused. Source tier T2, tweak level L0."""
+SEA_STATES = ("surface ocean", "ice-covered ocean")
+"""tuple: The hydrospheres whose sea is water and has a tide (a free surface, or zero under a lid)."""
+NOT_A_SEA_KINDS = ("silicate", "carbonate")
+"""tuple: The kinds of liquid of the surface liquid table that are a lava, not a sea: no ocean tide of this kind is stored for one."""
 LOCK_TOLERANCE = 1.0e-3
 """float: A body whose spin is within this share of a raiser's orbital rate is locked to it (the same share as `moon_history.SYNCHRONOUS_TOLERANCE`). Source tier T6, tweak level L0."""
 
@@ -179,9 +185,24 @@ def ocean_tide(body_mass_kg, body_radius_m, spin_rate_rad_s, raisers, k2, liquid
 
 # --- The stored columns ------------------------------------------------------------------------------------------
 
-def _liquid_of(body):
-    """The liquid of the body's sea: water until the surface liquid inventory (GEN.1035) says otherwise."""
-    return WATER
+def _sea_liquid(body):
+    """
+    The liquid of a sea that is not water, or `None` (GEN.1034 hook to GEN.1035): the stored `surface_liquid` of a body that covers some of its surface with it,
+    at the density it has at the surface temperature. Water is the sea of `SEA_STATES`; a lava (a silicate or carbonate melt) is not a tide of this kind, and a liquid too heavy
+    for a thin layer is the deep heavy-liquid path of GEN.1052 (`OceanTideError`, so no columns here).
+    """
+    liquid_id = getattr(body, "surface_liquid", None)
+    if not liquid_id or liquid_id == "water" or not (getattr(body, "surface_liquid_fraction", None) or 0.0) > 0.0:
+        return None
+    try:
+        row = surface_liquids.liquid(liquid_id)
+    except surface_liquids.SurfaceLiquidError:
+        return None
+    if row.kind in NOT_A_SEA_KINDS:
+        return None
+    temperature = getattr(body, "surface_temperature", None)
+    density = surface_liquids.density_kg_m3(liquid_id, temperature) if temperature and temperature > 0.0 else row.density_kg_m3
+    return Liquid(liquid_id, density)
 
 
 def _axis(body):
@@ -210,14 +231,15 @@ def _love_k2(body, mass, radius_m, rate):
 def compute(body, parent=None):
     """
     The `FIELDS` of a planet or moon as a dict (`parent` the planet a moon orbits): a `surface ocean` gets its spring and neap ranges and its liquid, an
-    `ice-covered ocean` zero ranges, any other body `None`. Pure: no draws.
+    `ice-covered ocean` zero ranges, a body with another liquid's sea (`_sea_liquid`) the ranges of that sea, any other body `None`. Pure: no draws.
     """
     out = dict.fromkeys(FIELDS)
     hydrosphere = getattr(body, "hydrosphere", None)
     star = getattr(body, "star", None)
     rotation = getattr(body, "rotation_period_hours", None)
     axis = _axis(body)
-    if hydrosphere not in ("surface ocean", "ice-covered ocean") or star is None or not rotation or rotation <= 0.0 or axis is None:
+    liquid = WATER if hydrosphere in SEA_STATES else _sea_liquid(body)
+    if liquid is None or star is None or not rotation or rotation <= 0.0 or axis is None:
         return out
     mass, radius_m = body.mass, body.radius * 1000.0
     host = parent if parent is not None else body
@@ -230,8 +252,10 @@ def compute(body, parent=None):
     for moon in getattr(body, "moons", None) or ():
         raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
                                  _retrograde(axis, _normal(moon))))
-    liquid = _liquid_of(body)
-    tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")
+    try:
+        tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")
+    except OceanTideError:
+        return out
     out["tide_range_spring_m"], out["tide_range_neap_m"], out["ocean_liquid"] = tide.spring_range_m, tide.neap_range_m, liquid.name
     return out
 

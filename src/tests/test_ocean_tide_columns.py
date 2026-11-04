@@ -124,3 +124,40 @@ def test_a_finished_system_has_the_tide_of_its_final_water():
         if checked:
             break
     assert checked, "no seed from 7100 made an ice-covered ocean"
+
+
+# --- the sea of another liquid (the hook to GEN.1035) -------------------------------------------------------------------
+
+def _titan(**given):
+    values = dict(mass=1.345e23, radius=2574.7, hydrosphere="ice", distance=1.2218e6 / 149597870.7, surface_liquid="methane", surface_liquid_fraction=0.017, surface_temperature=94.0,
+                  rotation_period_hours=40.0, is_moon=True)             # not locked to Saturn, so it feels her tide
+    values.update(given)
+    return _body(**values)
+
+
+def test_a_body_with_a_methane_sea_gets_the_tide_of_that_sea_and_its_liquid_named():
+    found = ocean_tides.compute(_titan(), parent=_body(mass=5.683e26, radius=58232.0, body_type="g", distance=9.5, eccentricity=0.05, hydrosphere=None))
+    assert found["ocean_liquid"] == "methane"
+    assert 10.0 < found["tide_range_spring_m"] < 1000.0 and found["tide_range_neap_m"] <= found["tide_range_spring_m"]     # Saturn raises a hundred metres or so of equilibrium tide on a Titan that turned freely
+
+
+def test_the_density_of_the_liquid_changes_only_the_loading_not_the_equilibrium_height():
+    parent = _body(mass=5.683e26, radius=58232.0, body_type="g", distance=9.5, eccentricity=0.05, hydrosphere=None)
+    methane = ocean_tides.compute(_titan(), parent=parent)
+    ammonia = ocean_tides.compute(_titan(surface_liquid="ammonia_water", surface_temperature=200.0), parent=parent)
+    assert ammonia["ocean_liquid"] == "ammonia_water"
+    assert ammonia["tide_range_spring_m"] > methane["tide_range_spring_m"] > 0.0       # the denser liquid loads its floor more
+    assert 1.1 < ammonia["tide_range_spring_m"] / methane["tide_range_spring_m"] < 1.4
+
+
+def test_a_liquid_with_no_cover_a_lava_and_a_liquid_too_heavy_for_a_thin_layer_leave_the_columns_empty():
+    empty = dict.fromkeys(ocean_tides.FIELDS)
+    for given in (dict(surface_liquid_fraction=0.0), dict(surface_liquid_fraction=None), dict(surface_liquid=None), dict(surface_liquid="basalt_melt", surface_liquid_fraction=1.0),
+                  dict(surface_liquid="carbonatite_melt", surface_liquid_fraction=1.0), dict(surface_liquid="mercury", surface_liquid_fraction=1.0),
+                  dict(surface_liquid="no_such_liquid")):
+        assert ocean_tides.compute(_body(hydrosphere="dry", surface_temperature=300.0, **given)) == empty, given
+
+
+def test_the_water_sea_does_not_change_and_a_water_liquid_without_a_water_state_is_not_a_second_sea():
+    assert ocean_tides.compute(_body())["ocean_liquid"] == "water"
+    assert ocean_tides.compute(_body(hydrosphere="dry", surface_liquid="water", surface_liquid_fraction=0.5)) == dict.fromkeys(ocean_tides.FIELDS)
