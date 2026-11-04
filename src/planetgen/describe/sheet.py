@@ -363,7 +363,7 @@ _SUPERNOVA_REMNANT = (
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
-_ROGUE_PLANET = (
+_ROGUE_OWN = (
     *_rows("identity", ("planet_type", "Type", TEXT), ("planet_class", "Class", TEXT),
            ("mass_bin", "Mass class", TEXT)),
     *_rows("physical", ("mass_kg", "Mass"), ("radius_km", "Radius", "radius"), ("age_gy", "Age"),
@@ -395,6 +395,24 @@ _ROGUE_PLANET = (
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
+
+_ROGUE_ORIGIN = (
+    *_rows("identity", ("rogue_note", "Where it came from", TEXT)),
+    *_rows("orbit", ("since_ejection_gy", "Time since the system threw it out"),
+           ("ejection_delay_gy", "Time from its birth to the throw"), ("ejection_speed_kms", "Speed it left at")),
+)
+
+
+def _rogue_rows():
+    """GEN.1111: a rogue planet is built by the planet chain, so its sheet is the body's rows that its table holds, with the rows of its own
+    (what a brown dwarf shows, and where it came from) first."""
+    columns = models.metadata.tables["rogue_planets"].columns
+    own = (*_ROGUE_ORIGIN, *_ROGUE_OWN)
+    taken = {spec.key for spec in own}
+    return (*own, *(spec for spec in _BODY_GROUPS if spec.key not in taken and spec.stored_column() in columns))
+
+
+_ROGUE_PLANET = _rogue_rows()
 
 _INTERSTELLAR_COMET = (
     *_rows("identity", ("is_active", "Active", FLAG)),
@@ -582,10 +600,13 @@ NOT_SHOWN = {
     "supernova_remnant": _phenomenon_not_shown(
         "supernova_remnant", compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
         compact_remnant_neutron_star_id="the neutron star it left behind, a link in its contents"),
-    "rogue_planet": _phenomenon_not_shown(
-        "rogue_planet", **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec",
-                                  "eq_mobility", "eq_dust", "eq_gas_filter", "eq_co2_scrub", "eq_supply", "eq_supply_rec",
-                                  "eq_shelter", "eq_shelter_rec"), _EQUIPMENT)),
+    "rogue_planet": {
+        **{name: reason for name, reason in _BODY_NOT_SHOWN.items()
+           if name in models.metadata.tables["rogue_planets"].columns and name not in {spec.key for spec in _ROGUE_PLANET}},
+        **_phenomenon_not_shown("rogue_planet"),
+        "donor_uid": "the system that threw it out, a link in the Location chain and the Where it came from row",
+        "event_index": "which of the donor's ejections it is; bookkeeping",
+    },
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),
     "globular_cluster": _container_not_shown(),

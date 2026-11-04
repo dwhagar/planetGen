@@ -343,7 +343,7 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
       young, gas-rich places carry them and the old and halo ones none.
     * **`nebula`** (the emission and reflection nebulae grown around a sector's own hot stars): the cold gas fraction.
       The hot host star's own age is the young share here, so it is not counted twice.
-    * **`rogue-planet` and `comet`**: the planet occurrence at the place's [Fe/H], against the disk's
+    * **`comet`**: the planet occurrence at the place's [Fe/H], against the disk's
       (`metallicity.planet_occurrence_factor`), averaged over the stars' [Fe/H] distributions.
 
     Args:
@@ -369,7 +369,7 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
         "supernova-remnant": _supernova_remnant_factor(populations, gas_fraction, shape),
         "molecular-cloud": cold_fraction * young,
         "nebula": cold_fraction,
-        "rogue-planet": occurrence, "comet": occurrence,
+        "comet": occurrence,
     }
 
 

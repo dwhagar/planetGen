@@ -3536,10 +3536,12 @@ def nebula_surroundings(conn, nebula_id):
 
 def _with_printed_uid(row):
     """A copy of a table row as a dict with its `uid` (a BINARY(12) column, GEN.170) as
-    the text the site prints, so the row can be written as JSON."""
+    the text the site prints, so the row can be written as JSON. A `donor_uid` (the system that threw a rogue planet out, GEN.1111) is
+    printed the same way."""
     out = dict(row)
-    if isinstance(out.get("uid"), (bytes, bytearray)):
-        out["uid"] = object_uid.format_id(object_uid.from_bytes(out["uid"]))
+    for column in ("uid", "donor_uid"):
+        if isinstance(out.get(column), (bytes, bytearray)):
+            out[column] = object_uid.format_id(object_uid.from_bytes(out[column]))
     return out
 
 
@@ -3599,6 +3601,9 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     detail["type"] = phenomenon_type
     if table == "rogue_planets":
         detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
+        if row["donor_uid"] is not None:     # GEN.1111: the system that threw it out, named where it is filed
+            donor = conn.execute("SELECT name FROM star_systems WHERE uid = ?", (bytes(row["donor_uid"]),)).fetchone()
+            detail["donor_name"] = None if donor is None else donor["name"]
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
     free = " AND star_id IS NULL" if "star_id" in detail else ""    # a black hole or neutron star of a system is not a free one
     for key, op, order in (("previous", "<", "DESC"), ("next", ">", "ASC")):

@@ -372,6 +372,16 @@ LEVERS = (
         source="the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 "
                "systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4", status="bracket"),
     Lever(
+        name="rogues", flag="--rogues", dial="census", label="Rogue planets", kind="enum", unit="", minimum=None, maximum=None, step=None,
+        choices=("none", "few", "normal", "many"),
+        law="how many free-floating planets a sector may hold once its top-up has made up the mass its own systems did not (physics/rogue_topup): "
+            "the systems' own ejections always land where they land, and the top-up only brings a sector to the level, never past it",
+        auto_text="normal, the low side of the observed range of free-floating planets per star",
+        help="How many rogue planets a sector may hold after its top-up: none, few, normal or many. The top-up adds rogues only where the "
+             "systems' own ejections left a sector short of its mass.",
+        source="Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to "
+               "10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)", status="placeholder", tweak="L3"),
+    Lever(
         name="arm_count", flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",
@@ -489,11 +499,19 @@ def resolved(args, name):
 def describe_pins(pins):
     """The sentence the galaxy page shows for the levers a plan was told (DB.81), `pins` being `{lever name: value}` as
     `shape_draw.pins_of` stores it: what was pinned, in the table's order and units, and that the rest was drawn."""
-    shown = [f"{row.label} {pins[row.name]:.4g}{' ' + row.unit if row.unit else ''}"
+    shown = [f"{row.label} {row.choices[int(pins[row.name])]}" if row.kind == "enum"
+             else f"{row.label} {pins[row.name]:.4g}{' ' + row.unit if row.unit else ''}"
              for row in LEVERS if row.name in (pins or {})]
     if not shown:
         return "Shape drawn from the seed"
     return f"Shape pinned: {', '.join(shown)}; the rest drawn from the seed"
+
+
+def choice_pinned(pins, name):
+    """The choice of an enum lever a plan was told (`shape_draw.pins_of` keeps it as its place in the row's `choices`), or `None` when it was left on Auto."""
+    if name not in (pins or {}):
+        return None
+    return lever(name).choices[int(pins[name])]
 
 
 def docs_table():
@@ -565,3 +583,4 @@ def _main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(_main())
+

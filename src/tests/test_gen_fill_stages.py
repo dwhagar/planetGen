@@ -54,7 +54,7 @@ def test_each_stage_and_each_stream_within_a_stage_draws_from_a_stream_of_its_ow
     assert _sample(a, fill_stages.SYSTEMS) == _sample(b, fill_stages.SYSTEMS)
     draws = {_sample(a, name)[0] for name in fill_stages.STAGES}
     assert len(draws) == len(fill_stages.STAGES)
-    assert _sample(a, fill_stages.PER_STAR_KINDS, "comet") != _sample(a, fill_stages.PER_STAR_KINDS, "rogue-planet")
+    assert _sample(a, fill_stages.PER_STAR_KINDS, "comet") != _sample(a, fill_stages.PER_STAR_KINDS, "brown-dwarf")
     assert _sample(a, fill_stages.FLAGS, "nucleus") != _sample(a, fill_stages.FLAGS, "fast-stars")
 
 

@@ -555,12 +555,16 @@ def pins_of(args, disk_scale_length_pc=None):
     """The shape options the user gave, `{lever name: value}` in the units of the table (the lengths in parsecs): what
     a plan stores beside the resolved shape (DB.81), so the galaxy page can say what was pinned and what was drawn.
     A value that is the row's fixed Auto value counts as pinned when it was given. The Shape selector is a choice, not
-    a number (it is stored with the family, DB.66). A length in scale lengths (the Edge) is stored in parsecs, resolved
+    a number (it is stored with the family, DB.66); any other choice (the Rogues level) is stored as its place in the row's `choices`. A length in scale lengths (the Edge) is stored in parsecs, resolved
     against `disk_scale_length_pc`."""
     given = {row.name: getattr(args, row.dest) for row in dials.LEVERS
              if row.kind in ("float", "int", "length") and getattr(args, row.dest, None) is not None}
-    return {name: edge_limit_pc(value, disk_scale_length_pc) if isinstance(value, dials.RelativeLength) else value
+    pins = {name: edge_limit_pc(value, disk_scale_length_pc) if isinstance(value, dials.RelativeLength) else value
             for name, value in given.items()}
+    for row in dials.LEVERS:    # a choice other than the family is kept as its place in the row's list of choices (GEN.1120: the Rogues level)
+        if row.kind == "enum" and row.name != "shape" and getattr(args, row.dest, None) is not None:
+            pins[row.name] = float(row.choices.index(getattr(args, row.dest)))
+    return pins
 
 
 def pinned_stellar_mass(args, drawn):

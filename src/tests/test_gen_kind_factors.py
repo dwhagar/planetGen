@@ -162,15 +162,13 @@ def test_the_cloud_factor_is_the_cold_gas_times_the_young_share_against_the_sola
     assert 0.0 < here.kind_factors["molecular-cloud"] < here.kind_factors["nebula"]
 
 
-def test_rogue_planets_and_comets_follow_the_planet_occurrence_of_the_places_metallicity():
-    for position in (SUN, INNER_DISK, HALO):
-        factors = _at(position).kind_factors
-        assert factors["rogue-planet"] == factors["comet"]
-    assert _at(SUN).kind_factors["rogue-planet"] > 0.9
-    assert _at(HALO).kind_factors["rogue-planet"] < 0.1
+def test_comets_follow_the_planet_occurrence_of_the_places_metallicity():
+    assert "rogue-planet" not in _at(SUN).kind_factors      # rogue planets come from the systems that threw them out (GEN.1111), not from a rate
+    assert _at(SUN).kind_factors["comet"] > 0.9
+    assert _at(HALO).kind_factors["comet"] < 0.1
     here = _at(HALO)
     expected = metallicity.expected_factor(metallicity.planet_occurrence_factor, here.populations["halo"].fe_h)
-    assert here.kind_factors["rogue-planet"] == pytest.approx(expected, rel=0.02)
+    assert here.kind_factors["comet"] == pytest.approx(expected, rel=0.02)
 
 
 # --- The vectorised gas factor ----------------------------------------------------------------------------------------
@@ -249,12 +247,12 @@ def test_a_fill_multiplies_each_kinds_mean_by_its_factor_and_leaves_a_kind_witho
         return original(sector_, name, sub)
 
     monkeypatch.setattr(run_sector.fill_stages, "stage", tracking_stage)
-    factors = {"rogue-planet": 0.25, "comet": 0.0, "supernova-remnant": 0.5}
+    factors = {"brown-dwarf": 0.25, "comet": 0.0, "supernova-remnant": 0.5}
     run_sector.generate_sector_phenomena(sector, SimpleNamespace(), kind_factors=factors)
     rate = tuning.phenomenon_rate_per_star
-    assert means["rogue-planet"] == pytest.approx(rate("rogue-planet") * stars * 0.25)
+    assert means["brown-dwarf"] == pytest.approx(rate("brown-dwarf") * stars * 0.25)
     assert means["comet"] == 0.0
-    assert means["brown-dwarf"] == pytest.approx(rate("brown-dwarf") * stars)
+    assert means["supernova-remnant"] == pytest.approx(rate("supernova-remnant") * stars * 0.5)
 
 
 def test_a_fill_with_no_factors_draws_the_same_as_one_with_every_factor_one():
@@ -263,15 +261,14 @@ def test_a_fill_with_no_factors_draws_the_same_as_one_with_every_factor_one():
             sector = _seeded_sector(5)
             entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(), kind_factors=factors)
         return sorted(entry.phenomenon_type for entry in entries)
-    assert kinds(None) == kinds({"rogue-planet": 1.0, "comet": 1.0, "nebula": 1.0})
+    assert kinds(None) == kinds({"brown-dwarf": 1.0, "comet": 1.0, "nebula": 1.0})
 
 
-def test_a_factor_of_zero_rolls_no_rogue_planet_or_comet(monkeypatch):
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "brown-dwarf", 0.0)    # saved as a rogue planet of its own bin
+def test_a_factor_of_zero_rolls_no_brown_dwarf_or_comet():
     with draw.bound("kind-factors-zero"):
         sector = _seeded_sector(7)
         entries = run_sector.generate_sector_phenomena(
-            sector, SimpleNamespace(), kind_factors={"rogue-planet": 0.0, "comet": 0.0})
+            sector, SimpleNamespace(), kind_factors={"brown-dwarf": 0.0, "comet": 0.0})
     assert not [e for e in entries if e.phenomenon_type in ("rogue-planet", "comet")]
 
 

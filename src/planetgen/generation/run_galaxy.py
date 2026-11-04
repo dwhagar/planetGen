@@ -322,6 +322,7 @@ def _fill_context(args, address):
         if skeleton is None:
             return None
         profile = sector_profile(address, skeleton)
+        residents = store.arrived_residents(conn, address)
         limits, backfill_seed = run_plan._scatter_limits_and_seed(conn, skeleton)
         # The resolution reads the reference metallicity, which depends on the galaxy's own disk scale length: bind the
         # galaxy as the fill will, so the cell is aimed at the number its stored stats then record.
@@ -353,7 +354,7 @@ def _fill_context(args, address):
         emission_hosts = _emission_hosts(conn, skeleton, address, profile)
         if level is None and mass_limit is None:
             return brightStars.FillContext(profile, phenomenon_rows=phenomena, below_cut=below_cut,
-                                           resolution=resolution, emission_hosts=emission_hosts)
+                                           resolution=resolution, emission_hosts=emission_hosts, residents=residents)
         rows = store.bright_stars_for_sector(conn, *address)
         # GEN.315: a row with members is built from the tree it stored
         member_trees = scatter_systems.read_stored_trees(conn, "bright_stars", [r["id"] for r in rows if r.get("member_count")])
@@ -363,7 +364,7 @@ def _fill_context(args, address):
     return brightStars.FillContext(profile, rows, min_luminosity_sol=level,
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
                                    resolution=resolution, emission_hosts=emission_hosts, member_trees=member_trees,
-                                   orbit_epoch_unix=orbit_epoch_unix)
+                                   orbit_epoch_unix=orbit_epoch_unix, residents=residents)
 
 
 def _take_to_the_deepest_floor(config, skeleton, address, limits, seed):
@@ -2692,9 +2693,20 @@ def _plan_addresses(args, edge_pc, progress):
         skip_note = f", {skipped} skipped (beyond the grid's reach)" if skipped else ""
         already = f"{total - pending.count - skipped} already existed" if limit is None else f"{existed} already existed"
         log.normal(f"Generated {pending.count} new sector(s) in {what} ({total} total, {already}{skip_note}).")
+        if getattr(args, "around", None) is not None:
+            _topup_region(args, plan, edge_pc)
 
     return [SectorsFollower(args, "sectors", f"Sectors ({what})", edge_pc, count=pending.count,
                             bar_description=f"Sectors ({what})", planned="addresses", finish=finished)]
+
+
+def _topup_region(args, plan, edge_pc):
+    """Stage 3 of a region run (GEN.1120): once every sector of the region is built and saved, the rogue top-up of the charted ones, at the Rogues level of the
+    run (`--rogues`) or else of the galaxy's plan (`topup_stage.galaxy_level`)."""
+    from planetgen.generation import topup_stage
+
+    totals = topup_stage.topup_region(store.mysql_config_from_args(args), plan.addresses(), edge_pc, level=getattr(args, "rogues", None))
+    log.normal(f"Rogue top-up (stage 3): {totals['rogues']:,} rogue planet(s) and {totals['fields']:,} light asteroid field(s) added to {totals['sectors']:,} sector(s).")
 
 
 def course_cells(config, from_ref, to_ref, border=False):

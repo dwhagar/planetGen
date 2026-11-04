@@ -3150,30 +3150,18 @@ sits. It fixes one Rosseland mean opacity (kappa = (2/3) g / P) for every
 giant, so a heavier one's photosphere sits deeper, and puts a 1 Mjup,
 4.5 Gyr rogue at ~140 K at 1 bar (Boss's research: 130-170 K)."""
 
-ROGUE_ENVELOPE_PHOTOSPHERE_PRESSURE_BAR = 0.1
-"""float: A rocky rogue's hydrogen envelope radiates from about 0.1 bar;
-below that, collision-induced absorption makes it opaque [R3519, R4219]."""
 
 ROGUE_HYDROGEN_ENVELOPE_CHANCE = {"terrestrial": 0.1, "sub-neptune": 0.5}
 """dict: Chance a rocky rogue kept a primordial hydrogen envelope, by
 mass bin -- one ejected before its star could strip it (Stevenson
 1999). Defaults: rare for Earth-mass rogues, common for sub-Neptunes."""
 
-ROGUE_HYDROGEN_ENVELOPE_PRESSURE_BAR = {"terrestrial": (10.0, 1000.0), "sub-neptune": (100.0, 10000.0)}
-"""dict: The envelope's base pressure, bar, drawn log-uniformly (Stevenson:
-10^2-10^3 bar; deeper for sub-Neptunes, a default)."""
 
-ROGUE_MIN_ESCAPE_PARAMETER = 15.0
-"""float: The Jeans escape parameter (G M m / k T R) above which a gas
-stays bound for billions of years; below it the envelope is lost."""
 
 ROGUE_WATER_RICH_CHANCE = {"terrestrial": 0.35, "sub-neptune": 0.8}
 """dict: Chance a rocky rogue is water-rich, by mass bin (defaults: ejected
 planets often formed beyond a snow line)."""
 
-ROGUE_WATER_MASS_FRACTION_RANGE = (1e-4, 0.1)
-"""tuple: A water-rich rogue's water share of its mass, drawn log-uniformly
-(Earth's oceans are 2.3e-4)."""
 
 ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH = 0.3
 """float: A rocky rogue at least this heavy once held an air (like Earth or
@@ -3617,10 +3605,7 @@ REFERENCE_STELLAR_DENSITY_PC3 = 0.14
 literature), the density every PHENOMENON_DENSITY_PC3 figure is quoted at."""
 
 PHENOMENON_DENSITY_PC3 = {
-    # Sum of ROGUE_PLANET_MASS_BINS' per-star rates (5.8) at n_*0.
-    # Terrestrial alone: about 0.78 pc^-3 (0.5-1.4); Jupiter-mass about
-    # 0.004 (un[R3191]'s limit of 0.035).
-    "rogue-planet": sum(rate for _lo, _hi, rate in ROGUE_PLANET_MASS_BINS.values()) * REFERENCE_STELLAR_DENSITY_PC3,
+    # No rate for rogue planets: they come from the systems that threw them out (GEN.1111), and the top-up's level ceilings.
     # 0.025-0.035 ([R2374]:7), ~1 per 4.7 stars.
     "brown-dwarf": 0.03,
     # Stars moving > 30 km/s, 1-2% of stars ([R4310]:L6).

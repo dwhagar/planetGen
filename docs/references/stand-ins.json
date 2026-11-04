@@ -2243,6 +2243,28 @@
           "fields": [
             [
               "The range",
+              "none, few, normal, many"
+            ],
+            [
+              "Source",
+              "Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to 10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)"
+            ]
+          ],
+          "id": "--rogues",
+          "key": "6.3a:--rogues",
+          "kind": "P",
+          "slug": "6-3a-rogues",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "--rogues: none, few, normal, many"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "The range",
               "1 to 10"
             ],
             [
@@ -25561,7 +25583,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "tuning.ROGUE_LEVEL_CEILINGS None 0, Few 2.5, Normal 4.3, Many 10 terrestrial rogues per star, the most the top-up may bring a sector to"
         },
         {
@@ -25603,7 +25625,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "tuning.ROGUE_TOPUP_PLACEMENT 1, the share of the sector edge a top-up rogue may be placed over, centred (1 is the whole sector)"
         },
         {
@@ -25645,7 +25667,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.SCATTERER_AU_RANGE 1 to 30 AU, where the scattering giant of an apparent origin sits, drawn log-uniform"
         },
         {
@@ -25683,7 +25705,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.VELOCITY_DISPERSION_KM_S 35, 25, 20 km/s, the thin disc's U, V and W dispersion of the hosts"
         },
         {
@@ -25721,7 +25743,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.GALACTOCENTRIC_RADIUS_PC 8000, the galactocentric radius of the ring used for the arc of an apparent origin where the caller gives none"
         }
       ],
@@ -25767,7 +25789,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.SCATTER_SPEED_KM_S 3, the ejection speed scale of a Jupiter-mass scatterer at 1 AU, km/s; v_c goes as the square root of the scatterer's mass over its distance"
         },
         {
@@ -25805,7 +25827,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects"
         },
         {
@@ -25843,7 +25865,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.MEAN_OVER_SCALE 0.87, the mean ejection speed in units of v_c"
         },
         {
@@ -25881,7 +25903,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.SPEED_SIGMA_LN 0.51, the ln-width of the ejection speed in units of v_c, set so the 99th percentile is 2.5 v_c"
         },
         {
@@ -25919,7 +25941,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays"
         },
         {
@@ -25957,7 +25979,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass)"
         },
         {
@@ -25999,7 +26021,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_MASS_INDEX 1.13, the median closest approach goes as the scatterer's mass to this power"
         },
         {
@@ -26037,7 +26059,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_SIGMA_LN 2.35, the ln-width of the closest approach"
         }
       ],
@@ -26083,7 +26105,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation"
         },
         {
@@ -26125,7 +26147,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1"
         }
       ],
@@ -26171,7 +26193,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.OORT_A_KM_S_KPC 15.3 km/s/kpc, the shear at the Sun"
         },
         {
@@ -26209,7 +26231,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.OORT_B_KM_S_KPC -11.9 km/s/kpc"
         },
         {
@@ -26247,7 +26269,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.VERTICAL_FREQUENCY_KM_S_KPC 76 km/s/kpc, nu = sqrt(4 pi G rho) for 0.1 solar masses per cubic parsec"
         },
         {
@@ -26285,7 +26307,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.LINEAR_LIMIT_PC 1500, the separation up to which the linear equations are taken as good"
         }
       ],
@@ -27325,7 +27347,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_density.BULK_DENSITY_KG_M3 2500"
         }
       ],
@@ -30295,7 +30317,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_moons.SURVIVAL_AT_0P01_HILL 0.82 and SURVIVAL_AT_0P1_HILL 0.48: the shares of ejections whose closest approach stayed beyond 0.01 and 0.1 mutual Hill radii"
         },
         {
@@ -30375,7 +30397,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_moons.EJECTED_MOON_ECCENTRICITY 0.13: the eccentricity of a moon carried out with its planet"
         },
         {
@@ -37279,7 +37301,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L1",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_dispersal.RETIREMENT_RADIUS_M 1 light year: the rms radius past which a field is retired (its mass is then under 1e-6 of the background density of a 1 ly ball for a planet's worth of rock, and the field is no longer a place)"
         },
         {
@@ -37317,7 +37339,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1105",
+          "unread": null,
           "what": "field_dispersal.OORT_A_KMS_KPC 15.0 km/s/kpc, with SHEAR_VALID_YEARS 2.6e7: the galactic shear of the field along the orbit, 2 A x t for an offset x, applied to the bodies of a field only while the epicyclic approximation holds"
         },
         {
@@ -37355,7 +37377,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1105",
+          "unread": null,
           "what": "field_dispersal.DEFAULT_DENSITY_KG_M3 3000: the bulk density of a rocky piece, used for the freeze-out radius sqrt(3 M / (2 pi rho D)) at which a column of pieces of diameter D stops colliding (one collision per piece when the optical depth is 1)"
         },
         {
@@ -37767,7 +37789,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.LARGEST_BODY_MASS_KG 1e17, BULK_DENSITY_KG_M3 1500: the largest body of a light field (a rubble pile about 50 km across, a hundredth of the ledger cut of 1e19) and its bulk density (a porous pile, half of the silicate pieces of IF17)"
         },
         {
@@ -37809,7 +37831,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it)"
         },
         {
@@ -37851,7 +37873,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up"
         }
       ],

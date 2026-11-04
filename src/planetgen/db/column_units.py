@@ -1072,6 +1072,85 @@ TABLES = {
 }
 """dict: Table -> unit -> the columns stored in it. Every numeric column of every table is on it once."""
 
+ROGUE_BODY_UNITS = {
+    "rogue_planet_gases": {
+        "id": ("id", "rogue_planet_id",),
+        "Pa": ("partial_pa",),
+    },
+    "rogue_planet_interior_layers": {
+        "GPa": ("bottom_pressure_gpa", "top_pressure_gpa",),
+        "ratio": ("bottom_radius_fraction", "top_radius_fraction",),
+        "Mearth": ("ch4_ice", "helium", "hydrogen", "ice_x", "iron", "mass_earth", "nh3_ice", "rock", "water_liquid",),
+        "id": ("id", "rogue_planet_id",),
+        "index": ("layer_index",),
+    },
+    "rogue_planet_life_class_scores": {
+        "id": ("id", "rogue_planet_id",),
+        "score9": ("score",),
+    },
+    "rogue_planet_reflection_spectrum": {
+        "id": ("id", "rogue_planet_id",),
+        "index": ("position",),
+    },
+    "rogue_planets": {
+        "ratio": ("aerosol_draw",),
+        "al26": ("al26_ratio",),
+        "index": ("albedo_basis", "event_index", "life_class",),
+        "km": ("aquifer_depth_km", "aquifer_thickness_km", "ice_shell_km", "moon_disk_ice_line_km", "scale_height_km", "surface_liquid_depth_km",),
+        "kg_m3": ("atm_density",),
+        "kg/mol": ("atm_molar_density",),
+        "rgb24": ("atmosphere_colour",),
+        "Pa": ("atmospheric_pressure_pa", "water_base_pressure_pa",),
+        "h": ("band1_day_hours", "band1_night_hours", "band2_day_hours", "band2_night_hours", "band3_day_hours", "band3_night_hours", "band4_day_hours", "band4_night_hours", "band5_day_hours", "band5_night_hours", "band6_day_hours", "band6_night_hours", "band7_day_hours", "band7_night_hours", "daylight_hours", "night_hours", "outside_hours", "outside_hours_day", "solar_day_hours",),
+        "d": ("band1_longest_day_days", "band1_longest_night_days", "band2_longest_day_days", "band2_longest_night_days", "band3_longest_day_days", "band3_longest_night_days", "band4_longest_day_days", "band4_longest_night_days", "band5_longest_day_days", "band5_longest_night_days", "band6_longest_day_days", "band6_longest_night_days", "band7_longest_day_days", "band7_longest_night_days",),
+        "K": ("band1_mean_k", "band2_mean_k", "band3_mean_k", "band4_mean_k", "band5_mean_k", "band6_mean_k", "band7_mean_k",),
+        "dK": ("band1_swing_k", "band2_swing_k", "band3_swing_k", "band4_swing_k", "band5_swing_k", "band6_swing_k", "band7_swing_k", "temp_mean_swing_k",),
+        "frac": ("bond_albedo", "cloud_cover", "day_share_equator", "day_share_mean", "days_per_year", "envelope_helium_fraction", "envelope_mass_fraction", "envelope_z_fraction", "flux_variation", "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_carbon_fraction", "ground_clay_fraction", "ground_evaporite_fraction", "ground_felsic_fraction", "ground_ice_fraction", "ground_intermediate_fraction", "ground_metal_fraction", "ground_ocean_fraction", "ground_oxidised_fraction", "ground_sulfur_fraction", "ground_ultramafic_fraction", "helium_depletion", "ice_ch4_mass_fraction", "ice_co2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_mass_fraction", "ice_n2_mass_fraction", "ice_nh3_mass_fraction", "ice_other_mass_fraction", "ice_so2_mass_fraction", "land_fraction", "metal_mass_fraction", "moon_disk_f_inf", "ocean_fraction", "parent_shadow_share", "porosity", "rock_al2o3_fraction", "rock_feo_fraction", "rock_mass_fraction", "surface_liquid_fraction", "urey_ratio", "water_mass_fraction",),
+        "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm",),
+        "flag": ("carbon_rock", "has_helium_shell", "ozone_loss_flag",),
+        "Mearth": ("core_mass_earth", "dilute_core_mass_earth",),
+        "mSv/yr": ("dose_belt_msv_yr", "dose_gcr_msv_yr", "dose_ground_msv_yr", "dose_sep_msv_yr", "surface_dose_msv_yr",),
+        "dose-mult": ("dose_helio_mult",),
+        "Gyr": ("ejection_delay_gy", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_milestone_age_gyr", "life_system_age_gyr", "since_ejection_gy",),
+        "km_s": ("ejection_speed_kms",),
+        "flares-per-au2": ("flare_irradiation_index",),
+        "count": ("flavor_text_count",),
+        "g0": ("gravity_g",),
+        "greenhouse": ("greenhouse_factor",),
+        "A*m2": ("induced_moment_a_m2", "magnetic_moment_a_m2",),
+        "grade3": ("life_animal_grade",),
+        "score9": ("life_class_best_score",),
+        "complexity": ("life_complexity",),
+        "R_planet": ("magnetopause_rp",),
+        "kJ/mol": ("mantle_activation_kj_mol",),
+        "dex": ("mantle_delta_iw",),
+        "Pa*s": ("mantle_eta0_pa_s",),
+        "GPa": ("metallization_pressure_gpa",),
+        "disk-alpha-f": ("moon_disk_alpha_over_f",),
+        "Myr": ("moon_disk_lifetime_myr",),
+        "pH": ("ocean_ph",),
+        "DU": ("ozone_column_du",),
+        "deg": ("polar_circle_deg",),
+        "mg-si": ("rock_mg_si_ratio",),
+        "pct": ("surface_liquid_acid_wt", "surface_liquid_ammonia_wt",),
+        "tau": ("tau_cloud", "tau_dust", "tau_haze",),
+        "W_m2": ("tidal_flux_w_m2",),
+        "m": ("tide_range_neap_m", "tide_range_spring_m",),
+        "dna-mult": ("uv_surface_index",),
+        "km3": ("volume_km3",),
+        "aw": ("water_activity",),
+        "xuv-ref": ("xuv_exposure_index",),
+        "xuv-earth": ("xuv_flux_earth",),
+    },
+}
+"""dict: Table -> unit -> the columns a rogue planet stores beyond the ones listed above (GEN.1111): every column of a planet apart from the orbit, in the unit the planet stores it in,
+the ejection (`ejection_delay_gy`, `since_ejection_gy`, `ejection_speed_kms`, `event_index`) and the four child tables."""
+
+for _table, _by_unit in ROGUE_BODY_UNITS.items():
+    _own = TABLES.setdefault(_table, {})
+    for _unit, _columns in _by_unit.items():
+        _own[_unit] = (*_own.get(_unit, ()), *_columns)
+
 COLUMNS = {(table, column): unit for table, by_unit in TABLES.items() for unit, columns in by_unit.items()
            for column in columns}
 """dict: `(table, column)` -> unit key."""
@@ -1101,7 +1180,7 @@ SUFFIX_EXCEPTIONS = {
     ("moons", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
     ("rogue_planets", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
     **{(table, name): "a temperature difference (kelvin of swing), not a temperature"
-       for table in ("planets", "moons") for name in TEMPERATURE_DIFFERENCES},
+       for table in ("planets", "moons", "rogue_planets") for name in TEMPERATURE_DIFFERENCES},
     ("nebula_field", "cell_k"): "the third axis of a cell's index, not kelvin",
     ("orbital_events", "hydrogen_limit_sol"): "a mass (the hydrogen-burning limit in solar masses), though the name has no 'mass'",
 }

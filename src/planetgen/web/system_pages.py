@@ -685,6 +685,9 @@ FIELD_SPECS = {
     "rogue_planet": [
         ("planet_type", "Type", _rogue_planet_type_text),
         ("planet_class", "Planet Class", str),
+        ("rogue_note", "Where It Came From", str),      # GEN.1111: a rogue planet is made by the system that threw it out
+        ("since_ejection_gy", "Time Since It Was Thrown Out", lambda v: f"{format_number(v, ',.3f')} Gyr"),
+        ("ejection_speed_kms", "Speed It Left At", lambda v: f"{format_number(v, ',.1f')} km/s"),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", _quantity("kg")),
         ("radius_km", "Radius", _body_radius),
