@@ -2,6 +2,75 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3110] - 2026-11-04
+
+**Headline:** A rogue planet can now be built from an ejection event through the planet code, with the moons the ejection left it, and the sector it lands in can be found from its donor's place.
+
+### Changed
+- **The rogue body of an event (GEN.1111).** `starless_host.build_rogue_body` makes the planet an ejection event describes through the one planet chain: the event's mass and formation distance, no moons while it is made, then the Hill radius of its moon window set so that the outer edge is the one the ejection left (`EjectionEvent.moon_limit_km`), then its moons drawn inside that edge. A limit narrower than the planet's own clearance leaves no moons; a wider one lets them lie farther out.
+- **Where the rogue is now (GEN.1111).** `generation/rogue_landing.py` takes the donor's place in the galaxy and the event's kick, orbital velocity and time since the ejection, and gives the rogue's position and velocity in the galaxy frame and the sector that holds it: the along-orbit offset is an angle round the galactic centre (`rogue_drift.ring_drift`), so an old ejection lands on the far side of the rotation rather than on a straight line, and a donor on the galaxy's axis uses the offset in the galaxy axes. The velocity is the circular speed along the rotation at the new place plus the motion against it.
+
+Nothing reads either yet; the donor's save does in the lock wiring. The whole body of a starless rogue still waits on the atmosphere table's rule for a body with no light (two expected failures in `test_starless_host.py`); the moon bound is tested with a real star as host.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3109] - 2026-11-04
+
+**Headline:** The events a rogue planet is built from can now be drawn from a donor system's record: whether each thrown-out body left, when, how fast and in which direction, and how wide a moon system it kept.
+
+### Changed
+- **The ejection events (GEN.1111).** `generation/ejection_events.py` turns the bodies a system's planet architecture threw out (`StarSystem.ejected_losses`) into one event each: whether it ended ejected (by the share the architecture gives), the delay after formation, the age now and the time since, the kick of the scattering and the planet's orbital velocity at the ejection (both isotropic in direction, the orbital one at the circular speed of its distance), and the outer edge of the moon system it kept. Every number comes from the donor's own stream in a fixed order, so the set of rogues of a donor is the same whatever else is charted, and an event's index is the key a rogue row will carry. Nothing reads it yet; the donor's save does in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3108] - 2026-11-04
+
+**Headline:** A generated system now keeps the plan its planets were built from, so the bodies it threw out can be read from it: the first step of making rogue planets come from real ejections.
+
+### Changed
+- **The architecture of each star is kept (GEN.1111).** `StarSystem` holds, for each star, the planet architecture its kept planets were built from (the last attempt's), and `ejected_losses()` gives the bodies that architecture threw out (the `thrown` losses of GEN.1119 that end ejected, with the scatterer, the distance, the formation distance and the Hill radius). It is not stored: a system rebuilt from the database has none, because a donor's rogues are made and saved when it is generated. Nothing reads it yet; the ejection events and the rogue rows of GEN.1111 do.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3107] - 2026-11-04
+
+**Headline:** How wide a moon system a planet thrown out of its system can keep is now worked out from the ejection's own record, ready for the rogue rows.
+
+### Changed
+- **The moon limit of a thrown-out body (GEN.1111, RP4).** `rogue_moons.moon_limit_km` is the lower of the body's stable moon zone before the ejection (the stable fraction of its Hill radius, [R1138]) and the widest orbit that follows it through the closest approach [R2031]. `starless_host.ejected_moon_limit_km` takes a thrown loss of the architecture (`planet_architecture.Loss`), draws the closest approach from the published distribution in the mutual Hill radius of the body and its scatterer, and gives the outer edge the rogue's moon system is built inside, in place of the Hill sphere of a host it no longer has. A closer encounter leaves a narrower system. Nothing calls it yet; the rogue rows from the ejections read it in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3106] - 2026-11-04
+
+**Headline:** The equilibrium temperature can now take a body's own heat, which is what sets the temperature of a planet with no star: the next piece of building a rogue through the planet code.
+
+### Changed
+- **The body's own heat in the equilibrium temperature (GEN.1111, TEST.498).** `climate_draws.equilibrium_temperature_k` takes an optional `internal_flux_w_m2` and adds it to the absorbed starlight as a flux (`T^4 = (1 - A) F / 4 sigma + F_int / sigma`), the way the giants' effective temperature already adds theirs. With none it is the old value exactly, so no body changes; under a star a rocky planet's heat moves it by less than a part in a thousand. A body with no light is then its heat's temperature, as the rogue chain has it, instead of the 2.725 K floor the bound chain returned for a body far from a star. Nothing passes it yet; the starless planet's temperature reads it in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3105] - 2026-11-04
+
+**Headline:** A rogue planet can now be built through the planet code against a host with no light: the first part of making a rogue the same planet as a bound one.
+
+### Changed
+- **The starless host (GEN.1111, TEST.498).** `generation/phenomena/starless_host.py` holds `StarlessHost`, the donor star a body was ejected from with no luminosity and the rogue's own age, and `build_ejected_planet`, which makes a `Planet` of a given mass against it (the donor's mass and snow line, the formation distance of the loss, where `FAR_AU` puts it). Nothing reads it yet; the rogue rows from the architecture's ejections will, after the table rule below. Two strict expected failures in `test_starless_host.py` record why a whole body cannot be built yet: the atmosphere table's shoreline row (d1) is a logistic in the log of the insolation and of the host's luminosity, which are zero for a body with no light, so the weight is not a number. The rule for the table rows that read the star (a body with no host keeps its air as the ejection left it) is the next part and changes the table, so it goes in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
 ## [8.0.3104] - 2026-11-04
 
 **Headline:** Standards, regulations, program documentation and web pages are now listed in the reference list like papers, and the last bare author-and-year citations are gone.
