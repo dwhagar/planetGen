@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
+{% from "partials/value_group.html" import value_group with context %}
 {% block head %}
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
@@ -27,6 +28,28 @@
     see where each one is. {% if can_generate %}Generate builds only that one star's system and leaves the rest of its
     sector uncharted; generating the whole sector from the Galaxy Map is recommended.{% else %}An admin can chart one
     by itself, though charting its whole sector is recommended.{% endif %}</p>
+  {%- endif %}
+  {%- if not show_uncharted %}
+  <form method="get" action="{{ request.path }}#all-systems" class="search-form systems-values" id="systems-values-form">
+    <details class="search-more search-values"{% if value_chips %} open{% endif %}>
+      <summary>Filter by what the system holds</summary>
+      {%- for group in value_groups %}
+      <h3 class="search-values-heading">{{ group.label }}s</h3>
+      {{ value_group(group, with_order=False) }}
+      {%- endfor %}
+      <p class="hint">A range keeps the systems that hold at least one star, planet, or moon whose stored value lies between the two boxes, ends included, in the
+        unit beside it; with ranges on more than one kind a system needs a body of each. A body with no value for it does not count.</p>
+      <button type="submit" class="btn">Apply</button>
+    </details>
+  </form>
+  {%- if value_chips %}
+  <div class="active-filters" aria-label="Active filters" role="group">
+    {%- for chip in value_chips %}
+    <span class="filter-chip">{{ chip.label|chem }}<a href="{{ chip.url }}" aria-label="Remove filter {{ chip.label }}">&times;</a></span>
+    {%- endfor %}
+    <a class="clear-filters" href="{{ systems_url }}">Clear all</a>
+  </div>
+  {%- endif %}
   {%- endif %}
   {{ datatable(all_systems) }}
 </section>

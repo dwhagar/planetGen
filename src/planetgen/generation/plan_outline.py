@@ -60,7 +60,7 @@ def build(shape_args, galaxy_seed, edge_pc, reach_shell_index=DEFAULT_REACH_SHEL
     """
     timer = stepTimer.StepTimer()
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
-    with timer.step("the galaxy's shape (the levers, the halo, the disc's history)"):
+    with timer.step("the galaxy's shape (the levers, the halo, the disk's history)"):
         shape, drawn = shapeDraw.plan_shape(shape_args, galaxy_seed)
     scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
     epoch = program_constants.SCATTER_PHASE_ORIGIN_UNIX
@@ -109,8 +109,8 @@ class Report:
     def line(self):
         """The one line the plan prints and the Generate page shows under the dials."""
         if self.empty:
-            return f"Outline: empty (the disc's crest is {self.crest:.2g} times the one-star density)"
-        return (f"Outline: the disc's crest is {self.crest:.3g} times the one-star density, about "
+            return f"Outline: empty (the disk's crest is {self.crest:.2g} times the one-star density)"
+        return (f"Outline: the disk's crest is {self.crest:.3g} times the one-star density, about "
                 f"{100 * self.share:.0f} percent of the stars sit in planned sectors, {self.shells:,} shells out to "
                 f"{self.radius_pc / 1000:,.1f} kpc, {self.sectors:,} candidate sectors, about {self.reaching:,} of them expect "
                 f"at least one system")

@@ -89,7 +89,7 @@ def test_check_datasets_says_where_each_dataset_stands(tmp_path, monkeypatch):
     assert result["lines"][0].startswith("absent: missing (XX1)") and "generation will not start" in result["lines"][0]
     assert any("https://example.org/absent/part.dat" in line for line in result["lines"])
     taken = commands.run_alone("check-datasets", {"keys": ["absent"], "disregard": True})
-    assert taken["absent"] == 0 and "takes a labelled fallback" in taken["lines"][0]
+    assert taken["absent"] == 0 and "takes a labeled fallback" in taken["lines"][0]
 
 
 def test_the_data_check_verb_runs_the_command_and_prints_its_lines(tmp_path, monkeypatch, capsys, redis_server):

@@ -4978,7 +4978,7 @@
     },
     "R0996": {
       "kind": "paper",
-      "label": "Dartnell et al. 2007",
+      "label": "Dartnell et al. 2007a",
       "title": "Martian sub-surface ionising radiation: biosignatures and geology"
     },
     "R0997": {
@@ -16103,7 +16103,7 @@
     },
     "R3221": {
       "kind": "paper",
-      "label": "Murray et al. 2013",
+      "label": "Murray et al. 2013b",
       "title": "HMFcalc: An online tool for calculating dark matter halo mass functions"
     },
     "R3222": {
@@ -18528,7 +18528,7 @@
     },
     "R3706": {
       "kind": "paper",
-      "label": "Reid et al. 2014",
+      "label": "Reid et al. 2014a",
       "title": "A 2.5 per cent measurement of the growth rate from small-scale redshift space clustering of SDSS-III CMASS galaxies"
     },
     "R3707": {
@@ -21083,7 +21083,7 @@
     },
     "R4217": {
       "kind": "paper",
-      "label": "Stevenson et al. 2014",
+      "label": "Stevenson et al. 2014b",
       "title": "Is there a common water-activity limit for the three domains of life?"
     },
     "R4218": {
@@ -23343,7 +23343,7 @@
     },
     "R4669": {
       "kind": "paper",
-      "label": "West 2009",
+      "label": "West 2009b",
       "title": "Observations of He+ concentrations in the topside ionosphere under equinox conditions near solar maximum: Morningside morphology"
     },
     "R4670": {
@@ -24985,6 +24985,486 @@
       "kind": "paper",
       "label": "Stewart and Leinhardt 2011",
       "title": "Collisions between Gravity-Dominated Bodies: 2. The Diversity of Impact Outcomes during the End Stage of Planet Formation"
+    },
+    "R5000": {
+      "kind": "paper",
+      "label": "Cockell et al. 2023",
+      "title": "Sustained and comparative habitability beyond Earth"
+    },
+    "R5001": {
+      "kind": "paper",
+      "label": "Stevenson et al. 2014a",
+      "title": "Multiplication of microbes below 0.690 water activity: implications for terrestrial and extraterrestrial life"
+    },
+    "R5002": {
+      "kind": "paper",
+      "label": "Murray et al. 2013a",
+      "title": "Pathophysiology, Prevention, and Treatment of Ebullism"
+    },
+    "R5003": {
+      "kind": "paper",
+      "label": "West 2009a",
+      "title": "VIII World Congress on High Altitude Medicine and Physiology, Arequipa, Peru, August 8–12, 2010"
+    },
+    "R5004": {
+      "kind": "paper",
+      "label": "Atri et al. 2025",
+      "title": "Estimating the potential of ionizing radiation-induced radiolysis for microbial metabolism on terrestrial planets and satellites with rarefied atmospheres"
+    },
+    "R5005": {
+      "kind": "paper",
+      "label": "Daly et al. 2007",
+      "title": "Protein Oxidation Implicated as the Primary Determinant of Bacterial Radioresistance"
+    },
+    "R5006": {
+      "kind": "paper",
+      "label": "Dartnell et al. 2007b",
+      "title": "Modelling the surface and subsurface Martian radiation environment: Implications for astrobiology"
+    },
+    "R5007": {
+      "kind": "paper",
+      "label": "Grießmeier 2014",
+      "title": "Detection Methods and Relevance of Exoplanetary Magnetic Fields"
+    },
+    "R5008": {
+      "kind": "paper",
+      "label": "Hashimoto et al. 2016",
+      "title": "Extremotolerant tardigrade genome and improved radiotolerance of human cultured cells by tardigrade-unique protein"
+    },
+    "R5009": {
+      "kind": "paper",
+      "label": "Lin et al. 2006",
+      "title": "Long-Term Sustainability of a High-Energy, Low-Diversity Crustal Biome"
+    },
+    "R5010": {
+      "kind": "paper",
+      "label": "Linsky 2019",
+      "title": "Why Are Host Stars Important for Understanding Exoplanet Atmospheres?"
+    },
+    "R5011": {
+      "kind": "paper",
+      "label": "Paige 1976",
+      "title": "Error Analysis of the Lanczos Algorithm for Tridiagonalizing a Symmetric Matrix"
+    },
+    "R5012": {
+      "kind": "paper",
+      "label": "Paige 1980",
+      "title": "Accuracy and effectiveness of the Lanczos algorithm for the symmetric eigenproblem"
+    },
+    "R5013": {
+      "kind": "paper",
+      "label": "Beall et al. 2002",
+      "title": "An Ethiopian pattern of human adaptation to high-altitude hypoxia"
+    },
+    "R5014": {
+      "kind": "paper",
+      "label": "Beall et al. 2012",
+      "title": "Nitric oxide in adaptation to altitude"
+    },
+    "R5015": {
+      "kind": "paper",
+      "label": "Lammer et al. 2007",
+      "title": "Coronal Mass Ejection (CME) Activity of Low Mass M Stars as An Important Factor for The Habitability of Terrestrial Exoplanets. II. CME-Induced Ion Pick Up of Earth-like Exoplanets in Close-In Habitable Zones"
+    },
+    "R5016": {
+      "kind": "paper",
+      "label": "Le Caër 2011",
+      "title": "Water Radiolysis: Influence of Oxide Surfaces on H2 Production under Ionizing Radiation"
+    },
+    "R5017": {
+      "kind": "paper",
+      "label": "Seager et al. 2025",
+      "title": "The diversity of exoplanetary environments and the search for signs of life beyond Earth"
+    },
+    "R5018": {
+      "kind": "paper",
+      "label": "Yi et al. 2010",
+      "title": "Sequencing of 50 Human Exomes Reveals Adaptation to High Altitude"
+    },
+    "R5019": {
+      "kind": "paper",
+      "label": "Moritz 1945",
+      "title": "EFFECTS OF COLD AIR ON THE AIR PASSAGES AND LUNGS"
+    },
+    "R5020": {
+      "kind": "paper",
+      "label": "Stenfors et al. 2022",
+      "title": "A breathing mask attenuates acute airway responses to exercise in sub-zero environment in healthy subjects"
+    },
+    "R5021": {
+      "kind": "web",
+      "label": "Respiratory protection",
+      "title": "Respiratory protection"
+    },
+    "R5022": {
+      "kind": "web",
+      "label": "Hazardous waste operations and emergency response",
+      "title": "Hazardous waste operations and emergency response"
+    },
+    "R5023": {
+      "kind": "web",
+      "label": "Standard on vapor-protective ensembles for hazardous materials emergencies and CBRN terrorism incidents",
+      "title": "Standard on vapor-protective ensembles for hazardous materials emergencies and CBRN terrorism incidents"
+    },
+    "R5024": {
+      "kind": "web",
+      "label": "Standard on open-circuit self-contained breathing apparatus (SCBA) for emergency services",
+      "title": "Standard on open-circuit self-contained breathing apparatus (SCBA) for emergency services"
+    },
+    "R5025": {
+      "kind": "web",
+      "label": "NIOSH respirator selection logic",
+      "title": "NIOSH respirator selection logic"
+    },
+    "R5026": {
+      "kind": "web",
+      "label": "Criteria for a recommended standard: occupational exposure to heat and hot environments",
+      "title": "Criteria for a recommended standard: occupational exposure to heat and hot environments"
+    },
+    "R5027": {
+      "kind": "web",
+      "label": "NASA-STD-3001 Volume 2, Revision E, NASA spaceflight human-system standard: human factors, habitability, and environmental health",
+      "title": "NASA-STD-3001 Volume 2, Revision E, NASA spaceflight human-system standard: human factors, habitability, and environmental health"
+    },
+    "R5028": {
+      "kind": "web",
+      "label": "Martian dust exposure limits: permissible exposure limits, toxicological risks, and health standards for Martian dust as discussed by the Mars Dust Working Group",
+      "title": "Martian dust exposure limits: permissible exposure limits, toxicological risks, and health standards for Martian dust as discussed by the Mars Dust Working Group"
+    },
+    "R5029": {
+      "kind": "web",
+      "label": "Life support baseline values and assumptions document",
+      "title": "Life support baseline values and assumptions document"
+    },
+    "R5030": {
+      "kind": "web",
+      "label": "Celery: distributed task queue",
+      "title": "Celery: distributed task queue"
+    },
+    "R5031": {
+      "kind": "web",
+      "label": "3D Tiles specification, version 1.1",
+      "title": "3D Tiles specification, version 1.1"
+    },
+    "R5032": {
+      "kind": "web",
+      "label": "concurrent.futures: managing pools of concurrent tasks",
+      "title": "concurrent.futures: managing pools of concurrent tasks"
+    },
+    "R5033": {
+      "kind": "web",
+      "label": "Shoelace: web components for building modern web applications",
+      "title": "Shoelace: web components for building modern web applications"
+    },
+    "R5034": {
+      "kind": "web",
+      "label": "TanStack Table: headless UI for building powerful tables and datagrids",
+      "title": "TanStack Table: headless UI for building powerful tables and datagrids"
+    },
+    "R5035": {
+      "kind": "web",
+      "label": "Xterm.js: a terminal for the web",
+      "title": "Xterm.js: a terminal for the web"
+    },
+    "R5036": {
+      "kind": "web",
+      "label": "The art and science of dithering",
+      "title": "The art and science of dithering"
+    },
+    "R5037": {
+      "kind": "web",
+      "label": "Dither based transparency in Unreal Engine's material editor",
+      "title": "Dither based transparency in Unreal Engine's material editor"
+    },
+    "R5038": {
+      "kind": "web",
+      "label": "Temporal anti-aliasing step by step",
+      "title": "Temporal anti-aliasing step by step"
+    },
+    "R5039": {
+      "kind": "web",
+      "label": "Dithering",
+      "title": "Dithering"
+    },
+    "R5040": {
+      "kind": "web",
+      "label": "Occlusion culling",
+      "title": "Occlusion culling"
+    },
+    "R5041": {
+      "kind": "web",
+      "label": "Custom SRP Particles",
+      "title": "Custom SRP Particles"
+    },
+    "R5042": {
+      "kind": "web",
+      "label": "Smoother LOD transitions in Cesium for Unreal",
+      "title": "Smoother LOD transitions in Cesium for Unreal"
+    },
+    "R5043": {
+      "kind": "web",
+      "label": "Culling explained",
+      "title": "Culling explained"
+    },
+    "R5044": {
+      "kind": "web",
+      "label": "Depth",
+      "title": "Depth"
+    },
+    "R5045": {
+      "kind": "web",
+      "label": "Screen-door transparency",
+      "title": "Screen-door transparency"
+    },
+    "R5046": {
+      "kind": "web",
+      "label": "Causes of cybersickness",
+      "title": "Causes of cybersickness"
+    },
+    "R5047": {
+      "kind": "web",
+      "label": "New weight function for weighted-blended order independent transparency",
+      "title": "New weight function for weighted-blended order independent transparency"
+    },
+    "R5048": {
+      "kind": "web",
+      "label": "Stylized rendering materials",
+      "title": "Stylized rendering materials"
+    },
+    "R5049": {
+      "kind": "web",
+      "label": "Utility expressions",
+      "title": "Utility expressions"
+    },
+    "R5050": {
+      "kind": "web",
+      "label": "Transparency dithering",
+      "title": "Transparency dithering"
+    },
+    "R5051": {
+      "kind": "web",
+      "label": "Math: Dot product",
+      "title": "Math: Dot product"
+    },
+    "R5052": {
+      "kind": "web",
+      "label": "Order independent transparency: Endgame",
+      "title": "Order independent transparency: Endgame"
+    },
+    "R5053": {
+      "kind": "web",
+      "label": "Weighted Blended OIT",
+      "title": "Weighted Blended OIT"
+    },
+    "R5054": {
+      "kind": "web",
+      "label": "Frustum Culling",
+      "title": "Frustum Culling"
+    },
+    "R5055": {
+      "kind": "web",
+      "label": "Implementing weighted, blended OIT",
+      "title": "Implementing weighted, blended OIT"
+    },
+    "R5056": {
+      "kind": "web",
+      "label": "Tech note: Shader snippets for efficient 2D dithering",
+      "title": "Tech note: Shader snippets for efficient 2D dithering"
+    },
+    "R5057": {
+      "kind": "web",
+      "label": "Weighted blended OIT",
+      "title": "Weighted blended OIT"
+    },
+    "R5058": {
+      "kind": "web",
+      "label": "Third-person camera systems: How it works",
+      "title": "Third-person camera systems: How it works"
+    },
+    "R5059": {
+      "kind": "web",
+      "label": "Triplanar dither biplanar",
+      "title": "Triplanar dither biplanar"
+    },
+    "R5060": {
+      "kind": "web",
+      "label": "Unreal Engine DitherTemporalAA LOD fade guide",
+      "title": "Unreal Engine DitherTemporalAA LOD fade guide"
+    },
+    "R5061": {
+      "kind": "web",
+      "label": "Temporal anti-aliasing",
+      "title": "Temporal anti-aliasing"
+    },
+    "R5062": {
+      "kind": "web",
+      "label": "Camera fade block",
+      "title": "Camera fade block"
+    },
+    "R5063": {
+      "kind": "web",
+      "label": "Part three – dithering in quantization of 2D images",
+      "title": "Part three – dithering in quantization of 2D images"
+    },
+    "R5064": {
+      "kind": "paper",
+      "label": "March et al. 2024",
+      "title": "Impact of focus cue presentation on perceived realism of 3-D scene structure: Implications for scene perception and for display technology"
+    },
+    "R5065": {
+      "kind": "paper",
+      "label": "Hussain et al. 2021",
+      "title": "Mitigating Cybersickness in Virtual Reality Systems through Foveated Depth-of-Field Blur"
+    },
+    "R5066": {
+      "kind": "paper",
+      "label": "Geng 2013",
+      "title": "Three-dimensional display technologies"
+    },
+    "R5067": {
+      "kind": "paper",
+      "label": "Ezcurdia et al. 2020",
+      "title": "Content Adaptation and Depth Perception in an Affordable Multi-View Display"
+    },
+    "R5068": {
+      "kind": "paper",
+      "label": "Heiles and Troland 2003",
+      "title": "The Millennium Arecibo 21 Centimeter Absorption‐Line Survey. II. Properties of the Warm and Cold Neutral Media"
+    },
+    "R5069": {
+      "kind": "paper",
+      "label": "Janson et al. 2012",
+      "title": "THE ASTRALUX LARGE M-DWARF MULTIPLICITY SURVEY"
+    },
+    "R5070": {
+      "kind": "paper",
+      "label": "Poppe 2016",
+      "title": "An improved model for interplanetary dust fluxes in the outer Solar System"
+    },
+    "R5071": {
+      "kind": "paper",
+      "label": "Rappaport et al. 1995",
+      "title": "The relation between white dwarf mass and orbital period in wide binary radio pulsars"
+    },
+    "R5072": {
+      "kind": "paper",
+      "label": "Liebert et al. 2005",
+      "title": "The Formation Rate and Mass and Luminosity Functions of DA White Dwarfs from the Palomar Green Survey"
+    },
+    "R5073": {
+      "kind": "paper",
+      "label": "Reid et al. 2014b",
+      "title": "TRIGONOMETRIC PARALLAXES OF HIGH MASS STAR FORMING REGIONS: THE STRUCTURE AND KINEMATICS OF THE MILKY WAY"
+    },
+    "R5074": {
+      "kind": "paper",
+      "label": "Cuzzi and Estrada 1998",
+      "title": "Compositional Evolution of Saturn's Rings Due to Meteoroid Bombardment"
+    },
+    "R5075": {
+      "kind": "paper",
+      "label": "Spohn and Hoening 2022",
+      "title": "Land/Ocean Surface Diversity on Earth-like (Exo)planets: Implications for Habitability"
+    },
+    "R5076": {
+      "kind": "paper",
+      "label": "McDonough and Sun 1995",
+      "title": "The composition of the Earth"
+    },
+    "R5077": {
+      "kind": "paper",
+      "label": "Webbink et al. 1983",
+      "title": "On the evolutionary status of bright, low-mass X-ray sources"
+    },
+    "R5078": {
+      "kind": "paper",
+      "label": "Tauris and Savonije 1999",
+      "title": "Formation of millisecond pulsars. I. Evolution of low-mass X-ray binaries with P > 2 days"
+    },
+    "R5079": {
+      "kind": "paper",
+      "label": "Tauris and van den Heuvel 2003",
+      "title": "Formation and Evolution of Compact Stellar X-ray Sources"
+    },
+    "R5080": {
+      "kind": "paper",
+      "label": "De Vito and Benvenuto 2012",
+      "title": "Evolution of low mass close binary systems with a neutron star: its dependence with the initial neutron star mass"
+    },
+    "R5081": {
+      "kind": "paper",
+      "label": "Kaspi and Flierl 2007",
+      "title": "Formation of Jets by Baroclinic Instability on Gas Planet Atmospheres"
+    },
+    "R5082": {
+      "kind": "paper",
+      "label": "Gastine et al. 2014",
+      "title": "Zonal flow scaling in rapidly-rotating compressible convection"
+    },
+    "R5083": {
+      "kind": "paper",
+      "label": "Verhoeven and Stellmach 2014",
+      "title": "The compressional beta effect: A source of zonal winds in planets?"
+    },
+    "R5084": {
+      "kind": "paper",
+      "label": "Nicoski et al. 2024",
+      "title": "Asymptotic scaling relations for rotating spherical convection with strong zonal flows"
+    },
+    "R5085": {
+      "kind": "paper",
+      "label": "Bouchet and Sommeria 2002",
+      "title": "Emergence of intense jets and Jupiter's Great Red Spot as maximum-entropy structures"
+    },
+    "R5086": {
+      "kind": "paper",
+      "label": "Zhang and Marcus 2024",
+      "title": "Stable three-dimensional vortex families consistent with Jovian observations including the Great Red Spot"
+    },
+    "R5087": {
+      "kind": "paper",
+      "label": "Lemasquerier et al. 2020",
+      "title": "Remote determination of the shape of Jupiter’s vortices from laboratory experiments"
+    },
+    "R5088": {
+      "kind": "paper",
+      "label": "Lehmer et al. 2021",
+      "title": "The Peak Absorbance Wavelength of Photosynthetic Pigments Around Other Stars From Spectral Optimization"
+    },
+    "R5089": {
+      "kind": "paper",
+      "label": "Schwieterman 2018",
+      "title": "Surface and Temporal Biosignatures"
+    },
+    "R5090": {
+      "kind": "paper",
+      "label": "Miller et al. 2024",
+      "title": "The Composition of Saturn’s Rings"
+    },
+    "R5091": {
+      "kind": "paper",
+      "label": "Filacchione et al. 2013",
+      "title": "THE RADIAL DISTRIBUTION OF WATER ICE AND CHROMOPHORES ACROSS SATURN'S SYSTEM"
+    },
+    "R5092": {
+      "kind": "paper",
+      "label": "Filacchione et al. 2012",
+      "title": "Saturn’s icy satellites and rings investigated by Cassini–VIMS: III – Radial compositional variability"
+    },
+    "R5093": {
+      "kind": "paper",
+      "label": "Hedman et al. 2013",
+      "title": "Connections between spectra and structure in Saturn’s main rings based on Cassini VIMS data"
+    },
+    "R5094": {
+      "kind": "paper",
+      "label": "Kubryk et al. 2015",
+      "title": "Evolution of the Milky Way with radial motions of stars and gas"
+    },
+    "R5095": {
+      "kind": "paper",
+      "label": "Chiappini et al. 2001",
+      "title": "Abundance Gradients and the Formation of the Milky Way"
     }
   }
 }

@@ -39,32 +39,7 @@ PLANET_CLASS_TYPES = ("planet", "rogue-planet", "asteroid-field", "comet")
 GUIDE = Path(__file__).resolve().parents[2] / "docs" / "design" / "interface" / "text-style.md"
 
 KNOWN = {
-    ('class-name', 'Animals have appeared among'): 'UX.252',  # Animals have appeared among Class 1 life.
-    ('class-name', 'Cells with internal structure'): 'UX.252',  # Cells with internal structure have appeared among Class 3 life.
-    ('class-name', 'Class # life has'): 'UX.252',  # Class 3 life has grown into colonies, mats or bodies big enough to see.
-    ('ideas', 'Size digit d means'): 'UX.252',  # Size digit d means a radius of 10^d to 10^(d+1) AU, from 1 to 4: 1: 10 to 100 AU; 2: 100 to 1,000 AU; 3: 1 × 1
-    ('label-case', 'Atmosphere Colour'): 'UX.252',
-    ('label-case', 'Distance from the Star'): 'UX.252',
-    ('label-case', 'Inner Edge'): 'UX.252',
-    ('label-case', 'Internal Pressure'): 'UX.252',
-    ('label-case', 'Moon Wobble'): 'UX.252',
-    ('label-case', 'Nearest Meteorite Group'): 'UX.252',
-    ('label-case', 'Nucleus Diameter'): 'UX.252',
-    ('label-case', 'Outer Edge'): 'UX.252',
-    ('label-case', 'Surface Pressure'): 'UX.252',
-    ('label-case', 'Surface Temperature'): 'UX.252',
-    ('spelling', 'Aluminium-26 at formation'): 'UX.252',
-    ('spelling', 'Atmosphere Colour'): 'UX.252',
-    ('spelling', 'It is the overall'): 'UX.252',
     ('spelling', "Offset from the system's centre, x"): 'UX.253',
-    ('spelling', 'Soundings read a gas'): 'UX.252',
-    ('length', 'A class is never'): 'UX.252',  # A class is never drawn first: once a planet or moon is complete, its class is the first class in the check ord
-    ('length', 'A marginal world, Earth-like'): 'UX.252',  # A marginal world, Earth-like but hard to breathe without a mask and not toxic: air of 30 kPa to 3 bar at 273 t
-    ('length', 'Size digit d means'): 'UX.252',  # Size digit d means a radius of 10^d to 10^(d+1) AU, from 1 to 4: 1: 10 to 100 AU; 2: 100 to 1,000 AU; 3: 1 × 1
-    ('length', 'Soundings read a gas'): 'UX.252',  # Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core, with hydrogen squeezed
-    ('length', 'Soundings read an ice'): 'UX.252',  # Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia a
-    ('length', 'The dilute core (metallic'): 'UX.252',  # The dilute core (metallic fluid) holds 2.8 Earth masses, from 0.98 Mbar down to 1.17 Mbar; it is rock 36%, sup
-    ('length', 'The molecular hydrogen and'): 'UX.252',  # The molecular hydrogen and helium envelope (molecular fluid) holds 3.3 Earth masses, from 1 bar down to 0.28 M
 }
 """dict: `{(rule, start of the sentence or the whole label): the item that rewrites it}` for the text that breaks a rule today. The
 comment is one example. A rewrite item removes its entries; nothing is added without an owner."""
@@ -149,7 +124,7 @@ def test_the_property_sheet_labels_are_in_sentence_case():
 def test_every_listed_exception_names_its_owner_and_a_rule():
     for (rule, start), owner in KNOWN.items():
         assert owner in OWNERS, (rule, start, owner)
-        assert rule in {"length", "ideas", "banned", "class-name", "label-case", "spelling"}, rule
+        assert rule in {"length", "ideas", "banned", "class-name", "label-case", "spelling", "oxford-comma"}, rule
 
 
 def test_new_text_that_breaks_a_rule_and_is_not_listed_fails():
@@ -180,6 +155,20 @@ def test_new_text_that_breaks_a_rule_and_is_not_listed_fails():
     ("Luminosity class 0 stars are hypergiants.", None),
     ("It is a hot world; the sea is dry.", None),
     ("The planet is about 5 pc away.", None),
+    ("It is red, green and blue.", "oxford-comma"),
+    ("It is red, green, and blue.", None),
+    ("The surface is rock, ice or dust.", "oxford-comma"),
+    ("It holds iron, nickel and cobalt in the core.", "oxford-comma"),
+    ("It is red and blue.", None),
+    ("The star is red, which is big and cold.", None),
+    ("In the north, rock and ice cover the ground.", None),
+    ("The air is thin, the ground is cold and the sky is dark.", None),
+    ("Water covers the ground, the sea and the sky.", "oxford-comma"),
+    ("It has a deep envelope of hydrogen and helium, and a small core.", None),
+    ("It orbits at 1,000 and 2,000 AU.", None),
+    ("Alpha, beta, and gamma.", None),
+    ("The rings are the chronic, and acute edges.", None),
+    ('The words "red, green and blue" are quoted.', None),
 ])
 def test_the_checker_flags_each_rule(sentence, rule):
     found = {name for name, _detail in plainwords.check_sentence(sentence)}
@@ -222,3 +211,28 @@ def test_the_stored_system_flavour_lines_are_in_plain_words():
     for line in lines:
         for sentence in plainwords.sentences("Sensors show " + line):
             assert not plainwords.check_sentence(sentence), (sentence, plainwords.check_sentence(sentence))
+def test_a_list_built_by_the_code_has_the_comma_before_its_last_word():
+    from planetgen.util.wordlist import join_words
+    assert join_words([]) == ""
+    assert join_words(["red"]) == "red"
+    assert join_words(["red", "blue"]) == "red and blue"
+    assert join_words(["red", "green", "blue"]) == "red, green, and blue"
+    assert join_words(["red", "green", "blue"], "or") == "red, green, or blue"
+    for items in (["a", "b"], ["a", "b", "c"], ["a", "b", "c", "d"]):
+        assert not plainwords.oxford_commas(join_words(items) + ".")
+
+
+TEMPLATES = Path(__file__).resolve().parents[1] / "planetgen" / "web" / "templates"
+
+
+def test_the_page_templates_have_the_comma_in_every_list():
+    """The words the templates write straight onto a page (rule 15): the text between tags, with the template tags taken out."""
+    found = []
+    for path in sorted(TEMPLATES.rglob("*.html")):
+        text = re.sub(r"\{#.*?#\}", " ", path.read_text(), flags=re.S)
+        text = re.sub(r"\{\{.*?\}\}|\{%.*?%\}", " X ", text, flags=re.S)
+        text = re.sub(r"<(script|style)\b.*?</\1>", " ", text, flags=re.S)
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = re.sub(r"\s+", " ", text)
+        found += [f"{path.name}: {detail}" for _rule, detail in plainwords.oxford_commas(text)]
+    assert not found, "template lists without the comma before the last and/or:\n  " + "\n  ".join(found)

@@ -223,7 +223,7 @@ class Row:
                 raise TableError(f"row {name!r}: the fractions must be finite, not negative and not all zero")
         if self.concentration is not None:
             if not self.fractions:
-                raise TableError(f"row {name!r}: a concentration needs fractions to centre on")
+                raise TableError(f"row {name!r}: a concentration needs fractions to center on")
             if not (math.isfinite(self.concentration) and self.concentration > 0):
                 raise TableError(f"row {name!r}: the concentration must be a positive number")
 

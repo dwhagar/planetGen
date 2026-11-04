@@ -32,6 +32,10 @@
 // their sum), and what a domain cannot use goes to the others in proportion.
 export const SLICE_WEIGHTS = { inhabited: 30, star: 30, uninhabited: 25, nebula: 10, region: 5 };
 
+// MAP.367: the most named stars and named objects of each kind the map offers the label engine (the brightest first); half of what it was (400).
+// A sector opened in place offers its own systems instead and is not held to it.
+export const NAMED_LIMIT = 200;
+
 // The screen one name takes, in CSS pixels: a short name (about 14 characters at the label font), its padding and
 // the line it stands on.
 export const LABEL_CELL_PX = { width: 120, height: 24 };

@@ -153,12 +153,15 @@ TABLES = {
     "asteroid_belts": {
         "id": ("id", "star_system_id", "star_id", "parent_id"),
         "index": ("orbital_index",),
-        "km": ("distance_km", "lower_limit_km", "upper_limit_km", "position_x_km", "position_y_km", "position_z_km"),
+        "km": ("distance_km", "lower_limit_km", "upper_limit_km", "position_x_km", "position_y_km", "position_z_km", "largest_body_km"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "kg": ("mass_kg",),
         "unix_s": ("epoch_unix", "next_update_due"),
         "g_cm3": ("density_g_cm3",),
         "frac": ("ice_mass_fraction",),
+        "au": ("formation_snow_line_au",),
+        "Mearth": ("primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth"),
+        "flag": ("stirred",),
     },
     "asteroid_field_composition": {
         "id": ("id", "field_id"),
@@ -194,6 +197,8 @@ TABLES = {
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"),
         "key": ("cell_key",),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
+        "g_cm3": ("density_g_cm3",),
+        "J": ("binding_energy_j",),
     },
     "bright_stars": {
         "id": ("id", "star_system_id", "cluster_id"),
@@ -258,6 +263,10 @@ TABLES = {
         "index": ("member_no", "parent_node_no", "slot"),
         "Msun": ("mass_solar",),
         "au": ("radius_au",),
+    },
+    "designations": {
+        "id": ("id", "object_row_id"),
+        "index": ("valid_from_epoch", "retired_epoch", "gone_epoch"),
     },
     "edit_journal": {
         "id": ("id", "op_id", "plan_id", "sector_id"),
@@ -400,6 +409,11 @@ TABLES = {
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"),
         "key": ("cell_key",),
         "kg": ("mass_kg",),
+        "g_cm3": ("density_g_cm3",),
+        "frac": ("ice_mass_fraction",),
+        "round-ratio": ("roundness_ratio",),
+        "Pa": ("yield_strength_pa",),
+        "J": ("binding_energy_j",),
     },
     "moon_interior_layers": {
         "id": ("id", "moon_id"),
@@ -415,6 +429,14 @@ TABLES = {
     "moon_life_class_scores": {
         "id": ("id", "moon_id"),
         "score9": ("score",),
+    },
+    "moon_life": {
+        "id": ("id", "moon_id"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+                "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr"),
+        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient"),
+        "index": ("life_animal_grade",),
+        "ratio": ("share", "life_complexity"),
     },
     "moon_reflection_spectrum": {
         "id": ("id", "moon_id"),
@@ -579,6 +601,8 @@ TABLES = {
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"),
         "key": ("cell_key",),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
+        "g_cm3": ("density_g_cm3",),
+        "J": ("binding_energy_j",),
     },
     "object_index": {
         "id": ("source_id", "sector_id", "system_id"),
@@ -670,6 +694,14 @@ TABLES = {
     "planet_life_class_scores": {
         "id": ("id", "planet_id"),
         "score9": ("score",),
+    },
+    "planet_life": {
+        "id": ("id", "planet_id"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+                "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr"),
+        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient"),
+        "index": ("life_animal_grade",),
+        "ratio": ("share", "life_complexity"),
     },
     "planet_reflection_spectrum": {
         "id": ("id", "planet_id"),
@@ -803,7 +835,7 @@ TABLES = {
         "Gyr": ("age_gy", "galactic_orbital_period_gy"),
         "W_m2": ("internal_heat_flux_w_m2", "energy_flux_w_m2"),
         "K": ("effective_temperature_k", "surface_temperature_k"),
-        "Pa": ("surface_pressure_pa",),
+        "Pa": ("surface_pressure_pa", "yield_strength_pa"),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
         "yr": ("galactic_min_update_interval_years", "ring_age_yr"),
         "unix_s": ("epoch_unix", "next_update_due"),
@@ -820,6 +852,9 @@ TABLES = {
             "l_solv", "l_chem", "l_ener", "l_rad",
         ),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
+        "g_cm3": ("density_g_cm3",),
+        "round-ratio": ("roundness_ratio",),
+        "J": ("binding_energy_j",),
     },
     "scatter_members": {
         "index": ("source", "member_no", "parent_node_no", "slot"),
@@ -861,6 +896,10 @@ TABLES = {
         "id": ("id", "sector_id", "object_id"),
         "flag": ("exited",),
         "yr": ("duration_years",),
+    },
+    "chart_ledger": {
+        "index": ("shell_index", "band_index", "wedge_index", "generator_epoch"),
+        "id": ("run_id",),
     },
     "sector_stats": {
         "index": ("shell_index", "band_index", "wedge_index"),
@@ -964,12 +1003,13 @@ TABLES = {
         "1/yr": ("flare_n33_per_yr",),
         "flare-slope": ("flare_alpha",),
         "uv-mult": ("uv_c_share",),
-        "J": ("xuv_fluence_j",),
+        "J": ("xuv_fluence_j", "binding_energy_j"),
         "1/Gy": ("lethal_event_rate_per_gyr",),
         "au": ("offset_x_au", "offset_y_au", "offset_z_au", "disk_inner_au", "disk_outer_au"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix",),
         "Msun": ("disk_mass_solar",),
+        "g_cm3": ("density_g_cm3",),
     },
     "supernova_remnants": {
         "id": ("id", "sector_id", "compact_remnant_black_hole_id", "compact_remnant_neutron_star_id"),

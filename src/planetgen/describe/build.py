@@ -41,6 +41,7 @@ from planetgen.physics import (
     habitability_explain,
     meteorite_groups,
     outside_hours,
+    planet_class_text,
     pre_main_sequence,
     protection,
     regional_temperature,
@@ -48,6 +49,7 @@ from planetgen.physics import (
 )
 from planetgen.physics.quantity import Quantity
 from planetgen.util.format import three_figures_or_tiny
+from planetgen.util.wordlist import join_words
 
 ECCENTRICITY_NOTE = "(0 is a circle, 1 is the escape orbit)"
 """str: What a bare eccentricity reads beside its number (GEN.772)."""
@@ -181,7 +183,7 @@ def _star_age_sentence(star):
     age = _gy(star.age)
     if star.yerkes_class in pre_main_sequence.STAGE_CLASSES:
         # GEN.242: still contracting.
-        sentence = inline("The star is about ", age, " old and is still contracting towards the main sequence. ",
+        sentence = inline("The star is about ", age, " old and is still contracting toward the main sequence. ",
                           "It should last about ", _gy(star.lifespan), ".")
     elif star.lifespan == float("inf"):
         sentence = inline("The star is about ", age, " old and is now a white dwarf, which will cool for trillions of years.")
@@ -200,7 +202,7 @@ def _galactic_orbit_or_centre(star):
         speed = math.sqrt(sum(component * component for component in star.ejecta_velocity_kms))
         return inline("Ejected from the galaxy, leaving at ", _kms(speed), " on a straight line")
     if star.galactic_orbital_period_gy is None:
-        return inline("None (the galaxy's centre)")
+        return inline("None (the galaxy's center)")
     return _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)
 
 
@@ -224,7 +226,7 @@ def _black_hole_blocks(hole):
     ]
     glow = _kelvin(hole.temperature, companions=False)
     if hole.mass_class == "supermassive":
-        sentences = [inline("It is the supermassive black hole at the centre of the galaxy, and every star in the galaxy "
+        sentences = [inline("It is the supermassive black hole at the center of the galaxy, and every star in the galaxy "
                             "orbits it in the end."),
                      inline("Its nucleus is quiet: a thin, hot accretion flow feeds it at a tiny fraction of its Eddington "
                             "limit and glows at about ", glow, ".")]
@@ -377,7 +379,7 @@ def _colours(names):
         if name.lower().startswith("none (") and name.endswith(")"):
             name = name[6:-1]
         words.append(name[0].lower() + name[1:] if not name[:2].isupper() else name)
-    return ", ".join(words[:-1]) + " and " + words[-1] if len(words) > 1 else words[0]
+    return join_words(words)
 
 
 def _life_class_sentences(life):
@@ -419,21 +421,21 @@ def _planet_facts(planet):
         fact("mass", "Mass", _mass(planet.mass)),
     ]
     if planet.reflex_offset_x or planet.reflex_offset_y or planet.reflex_offset_z:
-        rows.append(fact("moon_wobble", "Moon Wobble",
+        rows.append(fact("moon_wobble", "Moon wobble",
                          _au(_offset(planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z)),
                          " from its nominal position, pulled by its own moons"))
     if not planet.is_moon:
         rows.append(fact("moon_count", "Moons", qty("count", len(planet.moons))))
     if planet.body_type == "g":
         rows.append(fact("temperature", "Temperature", _kelvin(planet.surface_temperature)))
-        rows.append(fact("internal_pressure", "Internal Pressure", _pascal(planet.atmospheric_pressure)))
+        rows.append(fact("internal_pressure", "Internal pressure", _pascal(planet.atmospheric_pressure)))
     else:
-        rows.append(fact("temperature", "Surface Temperature", _kelvin(planet.surface_temperature)))
+        rows.append(fact("temperature", "Surface temperature", _kelvin(planet.surface_temperature)))
         airless = planet.atmosphere in (None, "None")
-        rows.append(fact("pressure", "Surface Pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
+        rows.append(fact("pressure", "Surface pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
         colour = None if airless else atmosphere_colour.body_atmosphere_colour(planet)
         if colour is not None:
-            rows.append(fact("atmosphere_colour", "Atmosphere Colour", swatch(colour.hex, colour.label)))
+            rows.append(fact("atmosphere_colour", "Atmosphere color", swatch(colour.hex, colour.label)))
     return facts("Moon" if planet.is_moon else "Planet", rows)
 
 
@@ -513,13 +515,13 @@ def _equipment_block(planet):
     day, limit = getattr(planet, "outside_hours_day", None), getattr(planet, "outside_hours_limit", None)
     if day is not None:
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
-        rows.append(fact("outside-hours-day", "Hours outside in a day", f"{day:.1f} hours", f", set by {cause}"))
+        rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
     return facts("Survival equipment", rows) if rows else None
 
 
 def _planet_section(planet):
     blocks = [_planet_facts(planet)]
-    summary = [f"It is {planet.description.lower()}."]
+    summary = [f"It is {planet_class_text.description(planet.planet_class, planet.is_moon).lower()}."]
     blocks.append(prose("description", *summary))
     if planet.body_type == "g":
         blocks.append(prose("depth", *_gas_giant_depth_sentences(planet)))
@@ -551,35 +553,38 @@ def meteorite_group_fact(body):
     group = body.chondrite_group
     if group is None:
         return None
-    return fact("meteorite-group", "Nearest Meteorite Group", "None fits (not a chondrite mix)" if group == meteorite_groups.NONE else f"{group} chondrites")
+    return fact("meteorite-group", "Nearest meteorite group", "None fits (not a chondrite mix)" if group == meteorite_groups.NONE else f"{group} chondrites")
 
 
 def _belt_section(belt):
     rows = [
-        fact("inner", "Inner Edge", _au(belt.lower_limit)),
-        fact("outer", "Outer Edge", _au(belt.upper_limit)),
+        fact("inner", "Inner edge", _au(belt.lower_limit)),
+        fact("outer", "Outer edge", _au(belt.upper_limit)),
         fact("density", "Density", belt.density),
         fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
+    if belt.largest_body_km:
+        rows.append(fact("largest-body", "Largest Body", _km(belt.largest_body_km)))
     rows.append(meteorite_group_fact(belt))
     parts = [{"name": component, "level": level} for component, level in belt.composition]
-    return section("belt", _ref("belt", belt), "Asteroid Belt",
-                   [facts("Asteroid belt", rows),
-                    model.composition("Composition", parts, format_composition_summary(belt.composition))])
+    blocks = [facts("Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
+    if belt.origin_sentence:      # GEN.1069: where the belt came from and what shaped it, as the generator wrote it
+        blocks.append(prose("summary", belt.origin_sentence, *belt.origin_history))
+    return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)
 
 
 def _comet_section(comet):
     parabolic = comet.orbit_type == "parabolic"
     rows = [
         fact("type", "Type", "Parabolic Comet" if parabolic else "Comet"),
-        fact("nucleus", "Nucleus Diameter", _km(comet.nucleus_diameter_km)),
+        fact("nucleus", "Nucleus diameter", _km(comet.nucleus_diameter_km)),
         fact("perihelion", "Perihelion", _au(comet.perihelion_distance_au)),
         fact("eccentricity", "Eccentricity", qty("ratio", comet.eccentricity, note=ECCENTRICITY_NOTE)),
     ]
     if not parabolic:
         rows.append(fact("period", "Period", _years(comet.orbital_period_years)))
     rows += [
-        fact("distance", "Distance from the Star", _au(comet.distance_au)),
+        fact("distance", "Distance from the star", _au(comet.distance_au)),
         fact("speed", "Speed", _kms(comet.orbital_speed_kms)),
         fact("activity", "Activity", "Active" if comet.is_active else "Dormant"),
     ]

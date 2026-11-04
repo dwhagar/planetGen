@@ -49,9 +49,9 @@ JS_FILES = (".js", ".mjs")
 
 KEEP = (
     "docs/REFERENCES.", "docs/reference/references-data.json", "docs/references/",
-    "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py",
+    "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py", "scripts/rewrite_bibliographies.py", "src/tests/test_rewrite_bibliographies.py",
     "DATA-LICENSE.md", "LICENSE.md", "CHANGELOG.md",
-    "src/tests/test_references.py", "src/tests/test_citations_links.py", "src/tests/test_references_crawl.py", "src/tests/test_references_pages.py", "src/tests/test_citations_outside_the_registry.py",
+    "src/tests/test_references.py", "src/tests/test_citations_links.py", "src/tests/test_references_crawl.py", "src/tests/test_references_pages.py", "src/tests/test_references_papers.py", "src/tests/test_citations_outside_the_registry.py",
     "src/planetgen/datasets/catalogue.py",
     "node_modules/", "vendor/", "three.min", ".min.js", "package-lock",
 )
@@ -98,6 +98,8 @@ class Registry:
 
     def __init__(self, cache=None, all_candidates=False):
         self.all_candidates = all_candidates
+        self.unresolved = []
+        """list: `(key, mention)` of each author-year mention the rewrite met that the list has no outcome for (`unknown`, or `for review`), in the order met."""
         self.c = cache or br.load_cache()
         br.assign_ids(self.c)
         self.ids = self.c["ids"]
@@ -279,6 +281,8 @@ def rewrite_text(text, reg, stats=None, where=""):
             stats["ambiguous: " + key] += 1
         if not sid:
             stats[why.split(" (")[0]] += 1
+            if why in ("unknown", "for review"):
+                reg.unresolved.append((key, m.group(0)))
             if why.startswith("ambiguous"):
                 stats["ambiguous: " + key] += 1
             continue

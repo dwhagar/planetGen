@@ -1,7 +1,7 @@
 # tests/test_disk_history.py
 
-"""GEN.469: the thin disk's star formation history comes from gas continuity (the Kennicutt-Schmidt law, the inflow of
-the stars the galaxy's halo builds), and the disk's young, intermediate and old shares are what that history puts in
+"""GEN.469: the thin disk's star formation history comes from gas continuity (the Kennicutt-Schmidt law, an exponential infall
+with the time scale growing outward, GEN.1230), and the disk's young, intermediate and old shares are what that history puts in
 their age windows.
 
 The Milky Way's figures here (its local gas, its present star formation rate against its mean, the local B-star share)
@@ -29,17 +29,9 @@ MILKY_WAY_MASS = 5.0e10
 """float: The mass of the galaxy the tests call Milky Way-like ([R2681]: 6.08 +- 1.14e10, bulge and
 disk); its halo is the median one for it, as the mass chain draws."""
 SHAPE = _shape(stellar_mass=MILKY_WAY_MASS)
-HALO = mass_chain.median_halo_mass(MILKY_WAY_MASS)
 FLAT = {name: (high - low) / (tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0])
         for name, (low, high) in ((n, tuning.THIN_DISC_OLD_WINDOW_GY if n == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[n])
                                   for n in tuning.STELLAR_POPULATION_ARM_AMPLITUDE)}
-
-
-def test_the_cosmology_makes_the_universe_as_old_as_the_tuning_says():
-    assert disk_history.universe_age_gy() == pytest.approx(tuning.UNIVERSE_AGE_GY, abs=0.05)
-    assert disk_history.redshift_at_age(disk_history.universe_age_gy()) == pytest.approx(0.0, abs=1e-9)
-    # [R3544]: the Universe was 3.8 Gy old at z of about 1.6 (the cosmic clock the halo's growth is read on).
-    assert disk_history.redshift_at_age(3.8) == pytest.approx(1.6, abs=0.15)
 
 
 def test_the_return_fraction_reproduces_madau_and_dickinsons_salpeter_value():
@@ -49,36 +41,29 @@ def test_the_return_fraction_reproduces_madau_and_dickinsons_salpeter_value():
     assert 0.27 < disk_history.return_fraction() < 0.5
 
 
-def test_the_stellar_to_halo_ratio_is_the_chains_at_redshift_zero_and_moves_with_redshift():
-    for mass in (1.0e11, 1.0e12, 1.0e13):
-        assert disk_history.stellar_to_halo_ratio_at(mass, 0.0) == pytest.approx(mass_chain.stellar_to_halo_ratio(mass))
-    # [R3181]: a 1e12 halo holds fewer stars at z = 2 than a 1e12 halo does now.
-    assert disk_history.stellar_to_halo_ratio_at(1.0e12, 2.0) < disk_history.stellar_to_halo_ratio_at(1.0e12, 0.0)
+def test_the_infall_time_scale_is_the_milky_ways_line_between_its_two_models_limits():
+    """[R5095] section 3: `tau = 1.033 R - 1.267` Gy, 7 Gy at the Sun; [R5094]: 2 Gy inside and 8 Gy at 20 kpc."""
+    sun = 8.0 / tuning.DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC
+    assert disk_history.infall_time_gy(sun) == pytest.approx(7.0, abs=0.05)
+    assert disk_history.infall_time_gy(0.1) == tuning.DISK_INFALL_MIN_GY
+    assert disk_history.infall_time_gy(10.0) == tuning.DISK_INFALL_MAX_GY
+    scales = np.linspace(0.0, 10.0, 50)
+    assert np.all(np.diff(disk_history.infall_time_gy(scales)) >= 0.0)
 
 
-def test_the_halo_was_lighter_before_and_grew():
-    mass, redshift = disk_history.halo_track(1.0e12, 10.0, 400)
-    assert mass[-1] == 1.0e12
-    assert np.all(np.diff(mass) > 0.0)
-    assert np.all(np.diff(redshift) < 0.0)
-    # Fakhouri et al.: a 1e12 halo today was a few 1e11 ten Gy ago (it grows a few percent a Gy now, faster before).
-    assert 1.0e11 < mass[0] < 6.0e11
-
-
-def test_the_inflow_follows_the_stars_the_halo_builds():
-    shape = disk_history.inflow_shape(HALO, 10.0, 800)
-    assert shape.shape == (801,)
-    assert np.mean(shape) == pytest.approx(1.0)
-    assert np.all(shape >= 0.0)
-    # A massive halo has stopped building stars as fast: its inflow has fallen; a light one's is still rising.
-    heavy = disk_history.inflow_shape(1.0e13, 10.0, 800)
-    light = disk_history.inflow_shape(3.0e11, 10.0, 800)
-    assert heavy[-1] / heavy[400] < light[-1] / light[400]
-    assert light[-1] > light[0]
+def test_the_inflow_of_each_ring_decays_with_that_rings_time_scale():
+    rings = np.array([1.0, 3.0])
+    shapes = disk_history.inflow_shapes(rings, 10.0, 800)
+    assert shapes.shape == (801, 2)
+    assert np.all(shapes[0] == 1.0)
+    # The outer ring's longer time scale keeps more of its inflow to the present (inside-out formation).
+    assert shapes[-1, 1] > shapes[-1, 0]
+    for column, scale in enumerate(rings):
+        assert shapes[-1, column] == pytest.approx(math.exp(-10.0 / disk_history.infall_time_gy(scale)))
 
 
 def test_each_ring_ends_with_the_stars_it_was_solved_to_have():
-    found = disk_history.history(3.5e10, 2600.0, HALO)
+    found = disk_history.history(3.5e10, 2600.0)
     built = (1.0 - disk_history.return_fraction()) * np.trapezoid(found.rate, dx=10.0 / 800, axis=1)
     assert built == pytest.approx(found.stars_now, rel=1e-4)
     assert np.all(found.gas_now >= 0.0)
@@ -87,7 +72,7 @@ def test_each_ring_ends_with_the_stars_it_was_solved_to_have():
 def test_the_gas_left_at_the_suns_radius_is_a_fraction_of_its_stars():
     """Target: the Galaxy's local gas is about a third of its local stellar surface density (13 against 38 solar
     masses per pc2); the derived rings should leave tenths, not hundredths or ones."""
-    found = disk_history.history(3.5e10, 2600.0, HALO)
+    found = disk_history.history(3.5e10, 2600.0)
     ring = int(np.argmin(np.abs(found.radius_scale_lengths - tuning.REFERENCE_RADIUS_SCALE_LENGTHS)))
     assert 0.1 <= found.gas_now[ring] / found.stars_now[ring] <= 0.5
 
@@ -116,17 +101,19 @@ def test_a_shape_without_masses_takes_the_median_galaxy_of_its_disk():
 
 
 def test_lighter_galaxies_have_more_recent_stars():
-    """Downsizing: a spiral of 1e10 solar masses has a rising history and forms its stars late, one of 1e11 formed
-    them early. The shares fall with mass from 1e10 to 5e10 (the chain's range is 3e9 to 2e11)."""
+    """Downsizing: a thinner disc spends its gas more slowly (the law goes as the gas to the 1.4), so a spiral of 1e10 solar masses forms its stars later
+    than one of 5e10. The shares fall with mass from 1e10 to 5e10 (the chain's range is 3e9 to 2e11). Since GEN.1230 this is the law's effect alone (the
+    infall time scale is the Milky Way's in scale lengths for every galaxy, row GI1 of the registry), 1.4 times between 1e10 and 5e10; the halo-growth inflow
+    that gave 3 times kept the Milky Way's own disc forming 2.7 times the stars per year it does."""
     young = [disk_history.population_shares(_shape(stellar_mass=mass))["young"] for mass in (1.0e10, 3.0e10, 5.0e10)]
     assert young == sorted(young, reverse=True)
-    assert young[0] > 3.0 * young[-1]
+    assert young[0] > 1.3 * young[-1]
 
 
 def test_a_flat_inflow_settles_a_ring_toward_a_constant_rate():
     """Gas continuity checked on its own: a constant inflow fills a ring and its rate climbs, ever more slowly, toward
     the rate that uses the inflow up (the second half of ten Gy changes by under 15 percent)."""
-    flat = np.ones(801)
+    flat = np.ones((801, 1))
     rate, gas = disk_history._solve_rings(np.array([40.0]), flat, 10.0)
     late = rate[0, 400:]
     assert np.all(np.diff(rate[0]) >= 0.0)
@@ -142,16 +129,14 @@ def _observed_present_over_mean():
     return 1.65 / mean_births_per_year
 
 
-def test_the_present_rate_over_the_mean_is_within_a_factor_of_three_of_the_milky_ways():
-    """TEST.533. The bound was a factor of two while the median halo of a 5e10 galaxy was 2.0e12 solar masses (the ratio 0.39,
-    bound 0.39); GEN.1154 made that halo 1.57e12, which lets the halo grow later and the history rise to the present, so the
-    ratio is 0.49 (0.55 with GEN.999's gas law) against the observed 0.20. The halo of 3.1e12 gives 0.29 and 1.0e12 gives 0.89,
-    so the mismatch is the inflow's shape (the gas comes in as fast as the halo builds stars), not the gas law: the Milky
-    Way's own history declines. The bound is a factor of three until that is reworked (filed with this test); the observed
-    figure also counts the thick disc's stars over a ten-Gy life, so it is low for the thin disc alone."""
-    found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0, HALO)
+def test_the_present_rate_over_the_mean_is_within_a_factor_of_two_and_a_half_of_the_milky_ways():
+    """TEST.533, tightened by GEN.1230. The bound was a factor of three while the inflow followed the stars a halo builds, which for the
+    lighter median halo of GEN.1154 (1.57e12 solar masses for 5e10 of stars) rose to the present: the ratio was 0.55 against the observed
+    0.20. The infall time scale of the Milky Way's chemical evolution model ([R5095], limited by [R5094]) gives 0.45, 2.3 times the observed
+    figure, which also counts the thick disc's stars over a ten-Gy life, so it is low for the thin disc alone."""
+    found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0)
     observed = _observed_present_over_mean()
-    assert 0.5 * observed <= found.present_over_mean() <= 3.0 * observed
+    assert 0.5 * observed <= found.present_over_mean() <= 2.5 * observed
 
 
 def _depletion_time_gy(found):
@@ -164,9 +149,8 @@ def _depletion_time_gy(found):
 def test_a_milky_way_mass_disc_keeps_its_gas_for_the_measured_depletion_time_and_the_local_gas():
     """GEN.999: with the law steepening where the gas thins (GEN.450) the disc of 3e10 solar masses of stars depletes its gas in 2.5
     to 4.2 Gy (1.0 to 4.2 Gy is the measured range, Sources 2 on GEN.998; the plain Kennicutt law gave 1.8) and holds a local gas of the order of
-    the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium (McKee, Parravano and
-    Hollenbach 2015, Table 2: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
-    found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0, HALO)
+    the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium ([R3002: Table 2]: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
+    found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0)
     assert 2.5 <= _depletion_time_gy(found) <= 4.2
     solar = int(np.argmin(np.abs(found.radius_scale_lengths * 2600.0 - 8000.0)))
     assert 0.5 * 11.9 <= found.gas_now[solar] <= 1.5 * 11.9
@@ -175,7 +159,7 @@ def test_a_milky_way_mass_disc_keeps_its_gas_for_the_measured_depletion_time_and
 def test_the_steepening_leaves_a_thin_ring_more_gas_than_the_plain_law(monkeypatch):
     """The plain law (no steepening: a saturation of zero) lets a thin ring spend its gas as fast as a dense one; the
     steepened law keeps more of it, and a dense ring (whose gas is far over the saturation) hardly changes."""
-    flat = np.ones(201)
+    flat = np.ones((201, 2))
     stars = np.array([2.0, 400.0])
     steep = disk_history._solve_rings(stars, flat, 10.0)[1]
     monkeypatch.setattr(tuning, "STAR_FORMATION_SATURATION_GAS_MSUN_PC2", 1.0e-12)

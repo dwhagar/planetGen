@@ -86,14 +86,14 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ## References
 
-Celery Project. (2024). *Celery: Distributed task queue*. https://docs.celeryq.dev/
+[R5030]
 
-Open Geospatial Consortium. (2023). *3D Tiles specification (Version 1.1)*. https://www.ogc.org/standard/3dtiles/
+[R5031]
 
-Python Software Foundation. (2024). *concurrent.futures — Managing pools of concurrent tasks*. https://docs.python.org/3/library/concurrent.futures.html
+[R5032]
 
-Shoelace. (2024). *Web components for building modern web applications*. https://shoelace.style/
+[R5033]
 
-TanStack. (2024). *TanStack table: Headless UI for building powerful tables & datagrids*. https://tanstack.com/table/
+[R5034]
 
-Xterm.js. (2024). *Xterm.js: A terminal for the web*. https://xtermjs.org/
+[R5035]

@@ -40,7 +40,10 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, giant_interior, rogue_surface
+from planetgen.physics import constants, giant_interior, rogue_surface, unit_registry
+
+_mearth_to_kg = unit_registry.converter("Mearth", "kg")
+_kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 RAIN_HEAT_SHARE = 0.5
 """float: The share of the energy the sinking helium gives up that leaves as heat; the rest warms the interior it falls through (the
@@ -74,7 +77,7 @@ class Heat:
 
 def base_flux_w_m2(mass_earth, radius_m, age_gy):
     """The heat a giant of `mass_earth`, `radius_m` and `age_gy` radiates of its own before the helium rain adds to it: the cooling law of GEN.816."""
-    return rogue_surface.giant_internal_flux_w_m2(mass_earth * constants.EARTH_MASS_TO_KG, radius_m / constants.KM_TO_M_FACTOR, age_gy)
+    return rogue_surface.giant_internal_flux_w_m2(_mearth_to_kg(mass_earth), radius_m / constants.KM_TO_M_FACTOR, age_gy)
 
 
 def _shell_integral(mass, top, bottom):
@@ -142,7 +145,7 @@ def heat(interior, radius_m, age_gy):
     moved, energy = rain_energy_j(interior, radius_m)
     duration_s = max(age_gy * RAIN_AGE_SHARE, 1.0e-3) * SECONDS_PER_GYR
     power = RAIN_HEAT_SHARE * energy / duration_s
-    return Heat(base + power / area, base, power / area, power, moved / constants.EARTH_MASS_TO_KG)
+    return Heat(base + power / area, base, power / area, power, _kg_to_mearth(moved))
 
 
 def of(body):

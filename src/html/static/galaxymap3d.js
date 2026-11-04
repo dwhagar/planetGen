@@ -66,8 +66,9 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
+const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { applyPrefs: applyPoiPrefs, savePrefs: savePoiPrefs } = await import(`./poiprefs.js${VERSION_QUERY}`);
 const { bodyMarkers, createHandoff } = await import(`./bodymarkers.js${VERSION_QUERY}`);
@@ -75,7 +76,7 @@ const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VER
 const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { starLight } = await import(`./starlight.js${VERSION_QUERY}`);
-const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
+const { NEBULA_LOOKS } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const { drawnSignature, nodeRevision } = await import(`./nodeview.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
@@ -98,13 +99,17 @@ const {
   FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
-const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
+const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
+const { sourceOf: nebulaVolumeSource, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
+const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
+const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
 const {
-  STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
+  STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, TARGET_STARS_OPENED, TARGET_STARS_OPENED_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
-  entriesNearScreenPoint, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, mapVar,
+  entriesNearScreenPoint, fitRendererToCanvas, formatAddress, makeRingTexture, mapVar,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
@@ -290,6 +295,7 @@ function withRegion(spec, position) {
 }
 
 function showInfo(spec) {
+  selectedCloud = null;
   var panel = infoPanel();
   if (panel) {
     panel.show(spec);
@@ -453,13 +459,11 @@ function showHint(text, keep) {
 
 // --- Clouds: nebulae and supernova remnants --------------------------------
 
-// A nebula's color by its type, per theme (static/nebulalook.js, MAP.175): the
+// A nebula's color by its type (static/nebulalook.js, MAP.175): the
 // same hues the Sector Map uses (planetgen/web/maps/starmap.py's
 // _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core and edge opacity),
-// each reaching 3:1 against the map's background on its theme. A dark
-// nebula is a dust-coloured silhouette on the dark theme and a near-black
-// one on the light.
-var NEBULA_LOOKS = nebulaLooks(isLightBackground());
+// each reaching 3:1 against the map's black background. A dark
+// nebula is a dust-coloured silhouette.
 var DEFAULT_NEBULA_LOOK = NEBULA_LOOKS.default;
 
 function capitalize(text) {
@@ -548,10 +552,19 @@ function cloudFacts(cloud) {
   };
 }
 
+// MAP.222: opens the nebula window (set once the map is built; null on a sector page) and the cloud whose card is shown, which Enter opens.
+var windowOpener = null;
+var selectedCloud = null;
+
 function showCloudInfo(cloud) {
-  showInfo(withRegion(Object.assign(cloudFacts(cloud), {
+  var spec = Object.assign(cloudFacts(cloud), {
     more: [["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
-  }, phenomenonActions(cloud)), [cloud.x, cloud.y, cloud.z]));
+  }, phenomenonActions(cloud));
+  if (windowOpener) {
+    spec.buttons = (spec.buttons || []).concat([{ label: "Open nebula window →", onClick: function () { windowOpener.open(cloud); } }]);
+  }
+  showInfo(withRegion(spec, [cloud.x, cloud.y, cloud.z]));
+  selectedCloud = cloud;
 }
 
 // A star's color from its surface temperature: Tanner Helland's fit to
@@ -948,6 +961,14 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   function renderFrame() {
+    if (nebulaVolumes) {
+      nebulaVolumes.prepare();   // MAP.365: the nebulae's capped sum, before the map is drawn
+      // MAP.215: and what the stars and glows read of it, to take the hue of a nebula in front of them.
+      var sumTexture = nebulaVolumes.texture();
+      nebulaTintUniforms.nebulaSum.value = sumTexture || blankSum;
+      nebulaTintUniforms.nebulaTint.value = sumTexture && nebulaVolumes.isVisible() ? 1 : 0;
+      renderer.getDrawingBufferSize(nebulaTintUniforms.drawSize.value);
+    }
     var frame = stageView.systemFrame();
     var deep = !!frame && frame.group.visible && eyeBack.length() > 0 && eyeBack.length() < DEEP_FRAME_PC;
     deepFrame.active = deep;
@@ -998,11 +1019,66 @@ function initGalaxyMap3d(canvasEl, data) {
   var glowLayerOn = true;
   function applySectorView() {
     starMaterial.uniforms.outsideDim.value = hiddenCell ? SECTOR_OUTSIDE_SHARE : 1;
-    if (glow) glow.setVisible(glowLayerOn && !hiddenCell);
-    if (regionLayer) regionLayer.setVisible(regionsOn && !hiddenCell);
-    if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell);
+    if (glow) glow.setVisible(glowLayerOn && !hiddenCell && !groupWindow);
+    if (regionLayer) regionLayer.setVisible(regionsOn && !hiddenCell && !groupWindow);
+    if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell && !groupWindow);
+    if (nebulaVolumes) {
+      nebulaVolumes.setVisible(!hiddenCell);
+      nebulaVolumes.setClip(groupWindow ? { centre: groupWindow.centre, radiusPc: groupWindow.radiusPc } : null);
+    }
     if (markerLayer) markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: the marks dim as the stars do
     if (sectorFrame) sectorFrame.set(hiddenCell);
+  }
+
+  // MAP.222: the group window. Choosing a nebula (its card's button, a double click, Enter, its name) opens a window on it and the nebulae
+  // that reach it: the camera frames their bounding sphere, only what lies inside is drawn (`drawnByTheGalaxy` holds the one test; the
+  // glow, the regions and the group sprites give way, the nebulae's own shape is cut to the sphere), and the bar's button, Escape or Backspace
+  // flies back to where the camera was.
+  var groupWindow = null;
+  var windowReturn = null;
+  var windowBar = document.getElementById("galaxymap3d-window");
+  function showWindowBar() {
+    if (!windowBar) return;
+    windowBar.hidden = !groupWindow;
+    if (!groupWindow) return;
+    windowBar.querySelector(".galaxy-window-title").textContent = groupWindow.title;
+    windowBar.querySelector(".galaxy-window-summary").textContent = groupWindow.summary;
+  }
+  function refreshWindowView() {
+    markHiddenStars();
+    updateClouds();
+    applySectorView();
+    showWindowBar();
+  }
+  function openNebulaWindow(cloud) {
+    if (data.pinned || !cloud) return false;
+    var candidates = [];
+    cloudSprites.forEach(function (sprite) { candidates.push(sprite.userData.cloud); });
+    var made = GROUP_WINDOW.createWindow("nebula", cloud, candidates);
+    if (!made) return false;
+    if (!groupWindow) {
+      var scale = stageView.scaleInfo();
+      windowReturn = stageView.centre() && scale ? { center: stageView.centre(), dist: scale.dist } : null;
+    }
+    groupWindow = made;
+    refreshWindowView();
+    stageView.goTo(GROUP_WINDOW.framing(made));
+    canvasEl.dataset.groupWindow = made.key;
+    return true;
+  }
+  function closeGroupWindow() {
+    if (!groupWindow) return false;
+    groupWindow = null;
+    refreshWindowView();
+    delete canvasEl.dataset.groupWindow;
+    if (windowReturn) stageView.goTo({ center: windowReturn.center, dist: windowReturn.dist });
+    windowReturn = null;
+    return true;
+  }
+  windowOpener = data.pinned ? null : { open: openNebulaWindow };
+  if (windowBar) {
+    var windowBack = windowBar.querySelector("[data-action=close-window]");
+    if (windowBack) windowBack.addEventListener("click", function () { closeGroupWindow(); canvasEl.focus({ preventScroll: true }); });
   }
 
   // How far round from bearing a0 bearing `angle` is, 0 to a full turn.
@@ -1013,6 +1089,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // Whether a point is drawn by the galaxy's own layers: not inside the cell of the sector opened in place, which
   // draws its own.
   function drawnByTheGalaxy(x, y, z) {
+    // MAP.222: with a group window open only what lies in it is drawn.
+    if (groupWindow && !GROUP_WINDOW.contains(groupWindow, x, y, z)) {
+      return false;
+    }
     if (!hiddenCell) {
       return true;
     }
@@ -1048,10 +1128,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // `faceAlpha` 0 (a sector page's map, MAP.61) draws only the outlines:
   // sector space is not tinted at all.
   // Filled blocks' edges are a saturated amber (MAP.37: "a much higher
-  // contrast"), a deeper shade on the light theme's pale background.
+  // contrast").
   // Their faces take the color of what their sectors hold
   // (galaxyblocks.statsColor, MAP.128), so no amber over them.
-  var FILLED_TINT = new THREE.Color(isLightBackground() ? "#d06a00" : "#ffb02e");
+  var FILLED_TINT = new THREE.Color("#ffb02e");
   var FILLED_FACE_MIX = 0;
   // How far an unfilled block's edges brighten toward white: the ring,
   // wedge and layer boundaries of the grid, kept faint like the wedge
@@ -1758,6 +1838,16 @@ function initGalaxyMap3d(canvasEl, data) {
     return (cloud.radius_pc * heightPx) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * Math.max(distance, 1e-6));
   }
 
+  // The nodes that list each cloud, and how much of the cloud the volume layer draws instead (the most any of those nodes covers).
+  var cloudNodes = new Map();
+  function cloudCover(key) {
+    if (!nebulaVolumes) return 0;
+    var nodes = cloudNodes.get(key);
+    var cover = 0;
+    if (nodes) nodes.forEach(function (nodeKey) { cover = Math.max(cover, nebulaVolumes.coverage(nodeKey)); });
+    return cover;
+  }
+
   function updateClouds() {
     var drawn = 0;
     cloudSprites.forEach(function (sprite, key) {
@@ -1766,10 +1856,12 @@ function initGalaxyMap3d(canvasEl, data) {
       var clipped = !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z);
       var pixels = cloudPixels(cloud, distance);
       var mesh = cloudMeshes.get(key);
-      if (cloud.type === "nebula" && !clipped && pixels >= NEBULA_MESH_MIN_PX) {
+      // MAP.365: where the nebula is drawn from the model's density (nebulavolumelayer.js) its circle and its per-ID mesh give way.
+      var covered = cloudCover(key);
+      if (cloud.type === "nebula" && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
         requestNebulaMesh(sprite);
       }
-      if (mesh && !clipped && pixels >= NEBULA_MESH_MIN_PX) {
+      if (mesh && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
         // The mesh takes over from the sprite, which stays (unseen) for aiming.
         mesh.visible = true;
         sprite.visible = true;
@@ -1786,7 +1878,7 @@ function initGalaxyMap3d(canvasEl, data) {
       // edge at 2 px before); `share` is what can be aimed at.
       var share = near * cloudSizeShare(pixels);
       sprite.visible = share > 0 && !clipped;
-      sprite.material.opacity = CLOUD_OPACITY * share;
+      sprite.material.opacity = CLOUD_OPACITY * share * (1 - covered);
       sprite.userData.share = clipped ? 0 : share;
     });
     // How many nebulae are drawn from their shape now (read by the browser tests).
@@ -1872,8 +1964,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // star once its sector is filled (`charted`); black holes, neutron
   // stars and quasars are landmarks and stay lit.
 
+  // MAP.215: what the nebulae over a pixel add up to, which the stars and the glows read to take their hue (nebulavolume.js `tinted`); the
+  // texture is the volume layer's target (a black one while there is none).
+  var blankSum = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1);
+  blankSum.needsUpdate = true;
+  var nebulaTintUniforms = { nebulaSum: { value: blankSum }, drawSize: { value: new THREE.Vector2(1, 1) }, nebulaTint: { value: 0 } };
   var starMaterial = new THREE.ShaderMaterial({
     uniforms: {
+      nebulaSum: nebulaTintUniforms.nebulaSum, drawSize: nebulaTintUniforms.drawSize, nebulaTint: nebulaTintUniforms.nebulaTint,
       pixelRatio: { value: renderer.getPixelRatio() }, now: { value: 0 },
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
       chartedOnly: { value: 0 }, unchartedFarKeep: { value: UNCHARTED_FAR_KEEP }, focusPc: { value: 0 },
@@ -1983,13 +2081,14 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vShown;",
       "varying float vBright;",
       "varying float vWhiten;",
+      NEBULA_TINT_GLSL,
       "void main() {",
       "  #include <logdepthbuf_fragment>",
       "  float r = length(gl_PointCoord * 2.0 - 1.0);",
       "  if (r > 1.0) discard;",
       "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
       "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
-      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * vWhiten * vBright), clamp(core * vBright + halo, 0.0, 1.0) * vShown);",
+      "  gl_FragColor = vec4(nebulaTinted(mix(vColor, vec3(1.0), core * vWhiten * vBright)), clamp(core * vBright + halo, 0.0, 1.0) * vShown);",
       "}",
     ].join("\n"),
     transparent: true,
@@ -2003,14 +2102,34 @@ function initGalaxyMap3d(canvasEl, data) {
   starPoints.frustumCulled = false;
   scene.add(starPoints);
   // MAP.266: the unresolved glow, under the stars (the Sector Map has none: its sector is all resolved).
-  var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground() });
+  var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, { tint: { uniforms: nebulaTintUniforms, glsl: NEBULA_TINT_GLSL } });
   // MAP.316: the charted regions, soft spheres at their extents coloured by share charted, drawn by a layer of their own
   // (under the glow's) that fades each as its stars resolve; the list in the Menu and the names come from the same blobs.
-  var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground(), look: regionLook, renderOrder: 3 });
+  var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, {
+    look: regionLook, renderOrder: 3, tint: { uniforms: nebulaTintUniforms, glsl: NEBULA_TINT_GLSL },
+  });
   // MAP.176: the groups of nebulae each drawn node lists (`nebula_regions`), soft sprites in the dominant family's colour with a thin
   // ring, a layer of their own under the charted regions' that holds itself to REGION_BUDGET and fades each as its node hands it down.
+  var nebulaVolumes = data.pinned || !data.nebulaVolumePath ? null : createNebulaVolumeLayer(scene, camera, canvasEl, renderer, {
+    colours: NEBULA_FAMILIES.map(function (family) { return nebulaFamilyColour(family, NEBULA_LOOKS); }),
+    fetchBytes: function (key) {
+      return fetch(data.nebulaVolumePath + "?key=" + encodeURIComponent(key)).then(function (response) {
+        if (!response.ok) throw new Error(data.nebulaVolumePath + " returned " + response.status);
+        return response.arrayBuffer();
+      });
+    },
+    onChange: function () { nebulaVersion += 1; updateClouds(); },
+  });
+  var nebulaSources = [];
+  var volumeCoverSignature = "";
+  // MAP.365: a group's circle gives way to its volume where the node that lists it has one drawn.
+  function groupLook(blob, position, focalPx) {
+    var look = nebulaRegionLook(blob, position, focalPx);
+    var covered = nebulaVolumes ? nebulaVolumes.coverage(blob.node) : 0;
+    return covered > 0 ? { alpha: look.alpha * (1 - covered), radiusPx: look.radiusPx, distance: look.distance, spherePx: look.spherePx } : look;
+  }
   var nebulaLayer = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, {
-    light: isLightBackground(), look: nebulaRegionLook, cut: cutNebulaRegions, renderOrder: 3,
+    look: groupLook, cut: cutNebulaRegions, renderOrder: 3,
   });
   var nebulaEntries = [];
   var nebulaVersion = 0;
@@ -2019,7 +2138,10 @@ function initGalaxyMap3d(canvasEl, data) {
   NEBULA_FAMILIES.forEach(function (family) { nebulaFamilyOn[family] = true; });
   function setNebulaRegions() {
     if (!nebulaLayer) return;
-    nebulaLayer.setBlobs(nebulaRegionBlobs(nebulaEntries, NEBULA_LOOKS, isLightBackground(), function (family) {
+    if (nebulaVolumes) {
+      NEBULA_FAMILIES.forEach(function (family, index) { nebulaVolumes.setFamilyVisible(index, nebulaFamilyOn[family] !== false); });
+    }
+    nebulaLayer.setBlobs(nebulaRegionBlobs(nebulaEntries, NEBULA_LOOKS, function (family) {
       return nebulaFamilyOn[family] !== false;
     }), [0, 0, 0]);
     nebulaVersion += 1;
@@ -2437,7 +2559,13 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var MAG_RECOMPUTE_MS = 150;
   var MAG_TAU_S = 0.3;
-  var magTarget = window.matchMedia("(max-width: 700px), (pointer: coarse)").matches ? TARGET_STARS_PHONE : TARGET_STARS;
+  var phoneView = window.matchMedia("(max-width: 700px), (pointer: coarse)").matches;
+  // MAP.367: half the stars on the screen except in a sector opened in place, where the old number holds (everything is shown).
+  function starTarget() {
+    if (hiddenCell) return phoneView ? TARGET_STARS_OPENED_PHONE : TARGET_STARS_OPENED;
+    return phoneView ? TARGET_STARS_PHONE : TARGET_STARS;
+  }
+  var magTarget = starTarget();
   var magGoal = 1000;
   var magSignature = "";
   var magComputedAt = 0;
@@ -2452,7 +2580,8 @@ function initGalaxyMap3d(canvasEl, data) {
     magLastFrame = now;
     var n = starList.length;
     var e = camera.matrixWorldInverse.elements;
-    var signature = [starSetVersion, n, e[0], e[1], e[2], e[4], e[5], e[6], e[8], e[9], e[10], e[12], e[13], e[14], canvasEl.clientHeight].join(",");
+    magTarget = starTarget();
+    var signature = [starSetVersion, magTarget, n, e[0], e[1], e[2], e[4], e[5], e[6], e[8], e[9], e[10], e[12], e[13], e[14], canvasEl.clientHeight].join(",");
     if (n && signature !== magSignature && now - magComputedAt >= MAG_RECOMPUTE_MS) {
       magSignature = signature;
       magComputedAt = now;
@@ -2799,9 +2928,12 @@ function initGalaxyMap3d(canvasEl, data) {
       return view.missing;
     }
     var clouds = new Map();
+    cloudNodes = new Map();
     drawn.forEach(function (key) {
       (getNode(key).clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
+        if (!cloudNodes.has(cloudKey(cloud))) cloudNodes.set(cloudKey(cloud), []);
+        cloudNodes.get(cloudKey(cloud)).push(key);
       });
     });
     noteLuminosityRange(drawn);
@@ -2814,6 +2946,7 @@ function initGalaxyMap3d(canvasEl, data) {
       glow.setBlobs(blobsOf(drawnNodes, NODE_EDGE_PC), [target.x, target.y, target.z]);
     }
     nebulaEntries = drawnNodes;
+    nebulaSources = drawnNodes.map(nebulaVolumeSource).filter(Boolean);
     setNebulaRegions();
     var cloudKeys = Array.from(clouds.keys()).sort().join(",");
     if (cloudKeys !== cloudSignature) {
@@ -2895,24 +3028,34 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
+  // MAP.364: the bar for each level of nodes while they load (static/levelprogress.js).
+  var levelProgress = viewport ? createLevelProgress(viewport) : null;
+  canvasEl.galaxyLevelProgress = function () {
+    return levelProgress ? levelProgress.state() : null;
+  };
+
   function fetchFromServer(missing) {
     if (activeAbort) {
       activeAbort.abort();
     }
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     activeAbort = controller;
+    var asked = missing.slice(0, MAX_NODES_PER_REQUEST);
     var params = new URLSearchParams({
-      keys: missing.slice(0, MAX_NODES_PER_REQUEST).join(","),
+      keys: asked.join(","),
     });
     if (currentStamp) {
       params.set("stamp", currentStamp);
+    }
+    if (levelProgress) {
+      levelProgress.start(asked);
     }
     fetch(data.fetchPath + "?" + params.toString(), controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) {
           throw new Error(data.fetchPath + " returned " + response.status);
         }
-        return response.arrayBuffer();
+        return readNodeBody(response, levelProgress ? function (keys) { levelProgress.arrived(keys); } : null);
       })
       .then(function (body) {
         var unpacked = unpackResponse(body);
@@ -2922,6 +3065,11 @@ function initGalaxyMap3d(canvasEl, data) {
         }
         fetchFailures = 0;
         var stampChanged = absorb(payload, unpacked.packed);
+        if (levelProgress) {
+          levelProgress.arrived(Object.keys(payload.nodes || {}));
+          levelProgress.incomplete(Object.keys(payload.nodes || {}).filter(function (key) { return payload.nodes[key] && payload.nodes[key].incomplete; }));
+          levelProgress.finish();
+        }
         askAgainForIncomplete(payload.nodes || {});
         var stillMissing = renderFromCache(neededNodes(undefined, true));
         // A new stamp dropped changed (or all) cached nodes, and a view
@@ -2936,6 +3084,9 @@ function initGalaxyMap3d(canvasEl, data) {
       })
       .catch(function (err) {
         if (err && err.name === "AbortError") {
+          if (levelProgress && activeAbort !== controller) {
+            levelProgress.abandon();
+          }
           return;
         }
         // A failed fetch leaves the currently-drawn content in place. A
@@ -2947,6 +3098,9 @@ function initGalaxyMap3d(canvasEl, data) {
         }
         fetchFailures += 1;
         var pause = Math.min(30000, 2000 * Math.pow(2, Math.min(fetchFailures, 5) - 1));
+        if (levelProgress) {
+          levelProgress.stalled(Math.round(pause / 1000));
+        }
         if (fetchTimer) {
           clearTimeout(fetchTimer);
         }
@@ -3376,7 +3530,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // crisp rim where the sphere meets the line of sight, under everything else and never picked. No
   // molecular cloud lies inside one.
   var bubbles = data.superbubbles || [];
-  var bubbleLook = superbubble.bubbleLook(isLightBackground());
+  var bubbleLook = superbubble.LOOK;
   var bubbleMaterial = null;
   var bubbleMeshes = [];
   if (bubbles.length) {
@@ -3854,7 +4008,6 @@ function initGalaxyMap3d(canvasEl, data) {
           return response.json();
         });
     } : null,
-    lightBackground: isLightBackground(),
     pixelRatio: function () { return renderer.getPixelRatio(); },
     showInfo: showInfo,
     hideCell: hideCell,
@@ -3916,7 +4069,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
-    markerLayer = createMarkerLayer(scene, camera, canvasEl, isLightBackground() ? "#ffffff" : "#0b0d14", {
+    markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
     });
     markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: a sector may be open before the layer exists
@@ -3935,7 +4088,7 @@ function initGalaxyMap3d(canvasEl, data) {
         group: kind.family === "class" ? CLASS_GROUP : kind.family === "lifeclass" ? LIFE_CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
         data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
-        title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
+        title: kind.title || "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
     });
     // The registry forgets ids nobody registered when it read the address, so read it again for these (without the
@@ -4011,10 +4164,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // legend line each and one line that says what a ring is.
   if (nebulaLayer) {
     var NEBULA_GROUP = "Nebulae";
-    var nebulaLooksNow = NEBULA_LOOKS;
-    var nebulaLightNow = isLightBackground();
     var nebulaSwatch = function (family) {
-      var colour = nebulaFamilyColour(family, nebulaLooksNow, nebulaLightNow);
+      var colour = nebulaFamilyColour(family, NEBULA_LOOKS);
       return "rgb(" + colour.map(function (v) { return Math.round(255 * v); }).join(", ") + ")";
     };
     stageView.layers.bulkGroup(NEBULA_GROUP);
@@ -4047,6 +4198,30 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView.layers.refresh();
     });
     canvasEl.__mapNebulae = nebulaLayer;    // the browser tests read what is drawn
+    canvasEl.__mapNebulaVolumes = nebulaVolumes;
+    canvasEl.__mapNebulaTint = nebulaTintUniforms;
+    canvasEl.__mapCaps = function () {    // the browser tests read the caps in force (MAP.367)
+      var open = !!(canvasEl.galaxyOpenSector && canvasEl.galaxyOpenSector());
+      return { sectorOpen: open, stars: starTarget(), markers: open ? SECTOR_MARKER_BUDGET : MARKER_BUDGET, phone: phoneView };
+    };
+    canvasEl.__mapHoleDots = function () {    // the browser tests count the black holes drawn as purple dots, and the colour they take
+      var clipped = starPoints.geometry.getAttribute("starClipped");
+      var drawn = 0;
+      var held = 0;
+      for (var i = 0; i < starList.length; i++) {
+        if (starList[i].phenomenon && starList[i].type === "black_hole") {
+          held++;
+          if (!(clipped && clipped.array[i] > 0.5)) drawn++;
+        }
+      }
+      return { held: held, drawn: drawn, colour: POINT_COLORS.black_hole };
+    };
+    canvasEl.__mapNebulaWindow = function () {    // the browser tests read the open window and how many stars are drawn
+      var clipped = starPoints.geometry.getAttribute("starClipped");
+      var drawn = 0;
+      for (var i = 0; i < starList.length; i++) if (!(clipped && clipped.array[i] > 0.5)) drawn++;
+      return { window: groupWindow, drawn: drawn, total: starList.length };
+    };
   }
   // MAP.328: the stars and bodies of a system opened in the sector turn slowly; this switch (a standing preference, as the System
   // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
@@ -4319,7 +4494,7 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.readLayersFromLocation();
     stageView.layers.refresh();
     galaxyLabels = createGalaxyLabels({
-      THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
+      THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers,
       // MAP.299: the clear margin between two names, a preference read at each placement.
       padding: function () {
         try { return labelBufferPx(window.localStorage); } catch (error) { return labelBufferPx(null); }
@@ -4380,7 +4555,6 @@ function initGalaxyMap3d(canvasEl, data) {
     regionFrame.set(key ? drillBlockBounds(regionByKey.get(key).block, edgePc) : null);
     stageView.layers.refresh();    // the legend names the outline while it is drawn (MAP.331)
   }
-  var SECTOR_MARKER_BUDGET = 1500;
   var SECTOR_MERGE_PX = 12;
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();
@@ -4478,7 +4652,19 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.addEventListener("pointerup", function (event) { stageView.onPointerUp(event); });
   canvasEl.addEventListener("pointercancel", function (event) { stageView.onPointerUp(event); });
   canvasEl.addEventListener("pointerleave", function (event) { stageView.onPointerLeave(event); });
-  canvasEl.addEventListener("keydown", function (event) { stageView.onKey(event); });
+  canvasEl.addEventListener("keydown", function (event) {
+    // MAP.222: Escape and Backspace leave a group window before they step out; Enter on a nebula's card opens its window.
+    if (groupWindow && (event.key === "Escape" || event.key === "Backspace")) {
+      event.preventDefault();
+      closeGroupWindow();
+      return;
+    }
+    if (event.key === "Enter" && selectedCloud && !groupWindow && !event.shiftKey && !event.altKey && openNebulaWindow(selectedCloud)) {
+      event.preventDefault();
+      return;
+    }
+    stageView.onKey(event);
+  });
   // The wheel zooms within the stage's zoom policy.
   canvasEl.addEventListener("wheel", function (event) {
     if (stageView.onWheel(event)) {
@@ -4552,6 +4738,12 @@ function initGalaxyMap3d(canvasEl, data) {
     select: function (cloud) {
       highlightPosition(cloud.x, cloud.y, cloud.z);
       showCloudInfo(cloud);
+    },
+    // MAP.222: a double click on a nebula opens its window.
+    activate: function (cloud) {
+      highlightPosition(cloud.x, cloud.y, cloud.z);
+      showCloudInfo(cloud);
+      return openNebulaWindow(cloud);
     },
   });
 
@@ -4660,7 +4852,6 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // MAP.298: what the label engine may name besides the open sector's systems: the named stars the map draws and the
   // named objects of the other kinds, the brightest few hundred of each (the engine keeps the ones with room).
-  var NAMED_LIMIT = 400;
   function starNames() {
     var found = [];
     if (hiddenCell) return found;
@@ -4749,7 +4940,9 @@ function initGalaxyMap3d(canvasEl, data) {
     } else if (ref.kind === "nebula") {
       highlightPosition(ref.cloud.x, ref.cloud.y, ref.cloud.z);
       showCloudInfo(ref.cloud);
-      stageView.goTo({ entry: { x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc } });
+      if (!openNebulaWindow(ref.cloud)) {
+        stageView.goTo({ entry: { x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc } });
+      }
     } else if (ref.kind === "sector") {
       stageView.goTo({ sector: ref.sector, label: label.text || null });
     } else if (ref.kind === "region") {
@@ -5061,10 +5254,16 @@ function initGalaxyMap3d(canvasEl, data) {
         return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);
       } : null, focalPixels(), starSetVersion);
     }
+    if (nebulaVolumes) {
+      nebulaVolumes.update(nebulaSources, drawnSettled ? function () {
+        return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);
+      } : null, focalPixels());
+      volumeCoverSignature = nebulaVolumes.drawn() + ":" + nebulaSources.length;
+    }
     if (nebulaLayer) {
       nebulaLayer.update(drawnSettled ? function () {
         return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);
-      } : null, focalPixels(), nebulaVersion);
+      } : null, focalPixels(), nebulaVersion + ":" + volumeCoverSignature);
     }
     updateMagnitudeLimit(now);
     updateClouds();

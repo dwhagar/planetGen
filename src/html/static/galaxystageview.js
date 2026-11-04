@@ -39,8 +39,8 @@
 //   scene JSON of a cell nothing was generated in, which opens in place
 //   with an "Uncharted" mark when the scatters left objects in it (MAP.162);
 // - fetchSystemScene(href): a Promise of GET /system/<id>/scene's JSON, a
-//   system of the open sector opened in place (MAP.125; galaxysystem.js); lightBackground,
-//   pixelRatio(), showInfo(spec), hideCell(bounds or null), preview(facts, entry) (the hover preview of a thing of the open
+//   system of the open sector opened in place (MAP.125; galaxysystem.js); pixelRatio(),
+//    showInfo(spec), hideCell(bounds or null), preview(facts, entry) (the hover preview of a thing of the open
 //   sector: `facts()` is its card's spec, null with no entry when the pointer leaves it; MAP.348);
 // - els: {crumbs, tooltip, notice, address, matches, controls}
 //   (any may be missing).
@@ -1520,7 +1520,7 @@ export function createStageView(host) {
   const picker = host.picker || createPicker(camera, canvasEl);
   const sectorStage = createSectorStage({
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
-    accentColor: host.accentColor || "#4f5fe8", lightBackground: !!host.lightBackground,
+    accentColor: host.accentColor || "#4f5fe8",
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, fetchUnchartedScene: host.fetchUnchartedScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
     hideCell: host.hideCell || function () {}, preview: host.preview || null,
@@ -3337,6 +3337,8 @@ export function createStageView(host) {
       }
       return;
     }
+    // MAP.222: a layer may take a double click for itself (a nebula opens its window); it says so by returning true.
+    if (found.layer.activate && found.layer.activate(found.entry)) return;
     flyToEntry(found.entry);
   }
 

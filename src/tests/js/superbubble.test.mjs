@@ -7,18 +7,11 @@ import { importPage } from "./fakedom.mjs";
 
 const B = await importPage("superbubble.js");
 
-test("the fill is fainter than the old circles' 0.14 and the rim stands out from it, in both themes", () => {
-  [false, true].forEach((light) => {
-    const look = B.bubbleLook(light);
-    assert.ok(look.fillAlpha > 0 && look.fillAlpha < 0.14, `${light}: ${look.fillAlpha}`);
-    assert.ok(look.rimAlpha >= 3 * look.fillAlpha, `${light}: ${look.rimAlpha}`);
-    assert.ok(look.rimAlpha <= 1);
-  });
-});
-
-test("the light theme draws the bubble in a darker colour than the dark theme", () => {
-  const sum = (hex) => B.colorComponents(hex).reduce((a, b) => a + b, 0);
-  assert.ok(sum(B.bubbleLook(true).color) < sum(B.bubbleLook(false).color));
+test("the fill is fainter than the old circles' 0.14 and the rim stands out from it", () => {
+  const look = B.LOOK;
+  assert.ok(look.fillAlpha > 0 && look.fillAlpha < 0.14, `${look.fillAlpha}`);
+  assert.ok(look.rimAlpha >= 3 * look.fillAlpha, `${look.rimAlpha}`);
+  assert.ok(look.rimAlpha <= 1);
 });
 
 test("a colour is three components between 0 and 1 as written to the screen", () => {

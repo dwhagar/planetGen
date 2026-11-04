@@ -47,6 +47,7 @@ WANTED = {
     "S": "g", "S2": "g", "H2S": "g", "SO": "g", "SO2": "g", "SO3": "g", "COS": "g", "CS2": "g",
     # Phosphorus and the halogens
     "P2": "g", "PH3": "g", "HF": "g",
+    "F": "g", "F2": "g", "CL": "g", "CL2": "g", "HCL": "g",     # the halogen gases of the outgassed air (GEN.524 part 2; "CL", "CL2" and "HCL" are the file's spellings)
     # Alkalis, silicon, iron, magnesium, titanium, vanadium, aluminium, calcium (lava vapour, hot giants, part 05 sections 4, 7, 8)
     "Na": "g", "NaOH": "g", "Na2": "g", "NaO": "g", "K": "g", "KOH": "g",
     "AL": "g", "K2": "g", "KO": "g", "K2O": "g", "Na2O": "g",     # the rest of the lava vapour's alkali and aluminium species (GEN.751; "AL" is the file's spelling)

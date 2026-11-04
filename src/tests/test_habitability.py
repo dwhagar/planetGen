@@ -301,16 +301,10 @@ def test_a_world_with_no_atmosphere_has_red_air_and_a_zero_score():
     assert scores(EARTH)["Air"][1] == "Blue"
 
 
-def test_a_request_for_a_habitable_world_aims_for_blue_or_green_and_falls_back_to_yellow_with_yellow_suitability():
-    """Boss, 2026-10-23: Blue or Green is habitable; if the request must fall short it accepts Yellow, so long as the
-    sustainability factor (Suitability) is at least Yellow."""
-    result = hab.habitable_request_result
-    assert result(1.0, 1.0) == "aim" and result(0.8, 0.2) == "aim"  # Green overall needs no particular Suitability
-    assert result(0.7, 0.45) == "fallback" and result(0.7, 0.9) == "fallback"
-    assert result(0.7, 0.2) is None  # Yellow overall but Red Suitability: not habitable at all
-    assert result(0.3, 1.0) is None  # Red overall
-    assert result(None, 1.0) is None and result(0.7, None) is None
-    assert hab.is_habitable(0.75) and not hab.is_habitable(0.7499)
+def test_blue_and_green_are_habitable_from_three_quarters():
+    """Boss, 2026-10-23: Blue or Green is habitable (a request for a habitable world no longer settles for less, GEN.1130, GEN.1248)."""
+    assert hab.is_habitable(1.0) and hab.is_habitable(0.8) and hab.is_habitable(0.75)
+    assert not hab.is_habitable(0.7499) and not hab.is_habitable(0.7) and not hab.is_habitable(None)
 
 
 def test_the_ultraviolet_dose_is_part_of_the_radiation_score_and_moves_it():

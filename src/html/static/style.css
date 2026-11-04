@@ -184,6 +184,17 @@ a:visited {
   text-decoration: underline;
 }
 
+/* UX.257: the links of a prose paragraph (the species and the other bodies a description names) and the help links set in the
+   words of the Life section are running text too: the link colour alone is 2.49:1 (light) and 1.91:1 (dark) against the words
+   around it, so they are underlined as well. */
+.prose p a,
+.prose li a,
+.life-glance a.help-link,
+.life-summary a.help-link,
+.life-help-links a.help-link {
+  text-decoration: underline;
+}
+
 a:focus-visible,
 button:focus-visible,
 textarea:focus-visible {
@@ -1532,6 +1543,11 @@ a:focus-visible .galaxymap-star-core {
   overflow: hidden;
 }
 
+/* UX.142: boxfit.js caps the width (so the height) of a box of fixed shape to the browser window; the box then sits in the middle of its column. */
+[data-fit-aspect] {
+  margin-inline: auto;
+}
+
 .navmap-labels {
   position: absolute;
   inset: 0;
@@ -2206,6 +2222,18 @@ a.btn.btn-secondary.btn-active:visited {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* UX.135: a galaxy family outline (`galaxy_outline(id)`, static/galaxy/<id>.svg): a plain line drawing in the text colour, one
+   stroke weight, no fill. The paint is set here as well as in the file (the Content-Security-Policy refuses inline styles) and is
+   inherited into the <use> content. */
+.galaxy-outline {
+  width: 4em;
+  height: 4em;
+  flex: none;
+  color: var(--text);
+  fill: none;
+  stroke: currentColor;
 }
 
 /* MAP.320: a point-of-interest symbol (`poi_icon(id, tier)`, static/poi/<id>.svg), a solid silhouette in the colour of
@@ -3618,6 +3646,19 @@ body.app {
 
 .app .admin-rail {
   flex: 1 1 auto;
+}
+
+/* UX.142: on a window with room for it, the shell stays under the held site header while a long admin page scrolls, so
+   the rail, the search and the density switch are always in view. A phone or a short window keeps it in the flow
+   (it would take too much of the window). adminshell.js sets --site-header-h. */
+@media (min-width: 700px) and (min-height: 600px) {
+  .app .admin-shell {
+    position: sticky;
+    top: var(--site-header-h, 0);
+    z-index: 15;
+    background: var(--bg);
+    padding-top: 0.4rem;
+  }
 }
 
 .app .admin-rail ul {
@@ -5103,6 +5144,29 @@ body.app {
   text-align: right;
 }
 
+/* MAP.222: the bar over a group window (a nebula alone) with its way back. */
+.galaxy-window-bar {
+  position: absolute;
+  left: 50%;
+  top: 0.75rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.galaxy-window-bar[hidden] {
+  display: none;
+}
+.galaxy-window-title {
+  font-weight: 700;
+}
+
 /* NAV.20: the Galaxy Map's course legend and readout. */
 .course-readout {
   display: flex;
@@ -5702,11 +5766,6 @@ p.hint a {
   text-decoration: underline;
   color: #fff;
 }
-.map-labels[data-light] .map-label[data-hot] { color: #000; }
-.map-labels[data-light] .map-label {
-  color: #10131f;
-  text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px rgba(255, 255, 255, 0.9);
-}
 .map-label[data-kind="nebula"] { font-style: italic; }
 .map-label[data-kind="sector"] { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
@@ -5897,6 +5956,67 @@ p.hint a {
 .app.references-mode .site-header {
   background: var(--references-bg);
   border-bottom-color: var(--references-border);
+}
+
+/* DOC.89: the Papers and Data pages. */
+.reference-views ul,
+.reference-letters ul {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.reference-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.reference-search input[type="search"] {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.reference-entries {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.reference-entry {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+  scroll-margin-top: 4rem;
+}
+
+.reference-entry:target {
+  background: var(--references-bg);
+}
+
+.reference-entry p {
+  margin: 0.15rem 0;
+}
+
+.reference-id {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.reference-meta {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+.reference-place-label {
+  font-weight: 600;
 }
 
 .life-facts,
@@ -6258,6 +6378,61 @@ a.help-mark {
   margin: 0;
 }
 
+/* MAP.364: the bars for the levels of nodes still loading, over the top left of a map. The map viewports carry the dark tokens, so
+   both themes read. */
+.map-level-progress {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: min(20rem, calc(100% - 1rem));
+  pointer-events: none;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.map-level-row {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg-subtle) 85%, transparent);
+  border: 1px solid var(--border);
+}
+
+.map-level-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.map-level-track {
+  display: block;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.map-level-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+.map-level-stalled {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-level-fill {
+    transition: none;
+  }
+}
+
 /* MAP.357: every charted region as a point of interest on the Galaxy Map, each with its link; regions too close to tell apart are one point
    with a count. The layer takes no pointer; only the points do. */
 .map-region-pois {
@@ -6304,3 +6479,11 @@ a.help-mark {
 .preference-option { display: block; margin: 0.25rem 0; }
 .preference-controls input[type="number"] { margin-left: 0.5rem; max-width: 8rem; }
 .preferences-status { min-height: 1.5em; }
+
+/* UX.243: the day-and-night counter of an object page */
+.day-counter-line { margin: 0.2rem 0; font-variant-numeric: tabular-nums; }
+.day-counter-note, .day-counter-year { margin: 0.4rem 0; color: var(--muted, inherit); }
+.day-counter-bands { border-collapse: collapse; margin: 0.5rem 0; max-width: 100%; }
+.day-counter-bands caption { text-align: left; font-weight: 600; padding-bottom: 0.25rem; }
+.day-counter-bands th, .day-counter-bands td { padding: 0.2rem 0.6rem; text-align: left; vertical-align: top; }
+.day-counter-bands tbody tr + tr { border-top: 1px solid var(--border, rgba(128, 128, 128, 0.3)); }

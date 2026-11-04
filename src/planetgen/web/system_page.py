@@ -107,14 +107,14 @@ def system_request(form):
     star_type = _text(form, "star_type")
     age = _text(form, "age")
     if age not in ("", "young", "old"):
-        raise FormError("Age must be young, old or left to the generator.")
+        raise FormError("Age must be young, old, or left to the generator.")
     num_orbits = _number(form, "num_orbits", "Orbital slots", int, minimum=0, maximum=MAX_NUM_ORBITS)
     chance_system = _number(form, "flavor_chance_system", "System flavor chance", float, minimum=0.0, maximum=1.0)
     chance_planet = _number(form, "flavor_chance_planet", "Planet flavor chance", float, minimum=0.0, maximum=1.0)
     max_flavor = bool(form.get("max_planet_flavor"))
 
     if states["planets"] is False and (states["moons"] or states["max_planets"] or states["habitable_world"]):
-        raise FormError("No planets can't be combined with moons, maximum orbits or a habitable world.")
+        raise FormError("No planets can't be combined with moons, maximum orbits, or a habitable world.")
     if star_type and states["large_star"]:
         raise FormError("A star type can't be combined with forcing a large star.")
     if states["intelligent_life"] is not None and states["habitable_world"] is False:

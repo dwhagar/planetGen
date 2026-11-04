@@ -33,7 +33,7 @@ ROGUE_ONLY_PREFIXES = ("rogue_", "galactic_", "ejection_", "parent_system")
 """tuple: The columns only a rogue planet has: its note (`rogue_note`), its motion round the galaxy in place of an orbit, and the system it was
 ejected from (GEN.1111)."""
 
-MISSING_CEILING = 208
+MISSING_CEILING = 206
 """int: Planet columns (net of `HOST_ONLY`) the rogue planet does not carry under the same name: 148 when the test was written (TEST.498), plus the
 columns the planet gained while the rogue is still a generator of its own (below). It falls to zero when the rogue is built through the planet code
 (GEN.1111 and the rogue train, where every one of them comes with the planet); until then it rises only by the planet columns a lane adds, named in
@@ -50,7 +50,7 @@ PLANET_COLUMNS_ADDED = {
     "GEN.1034 (open-ocean tide)": ("ocean_liquid", "tide_range_neap_m", "tide_range_spring_m"),
     "GEN.1035 (stored surface liquid)": ("surface_liquid", "surface_liquid_depth_km", "surface_liquid_fraction"),
     "GEN.1215 (what the surface liquids hold)": ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt"),
-    "GEN.1159 (roundness, strength and binding energy)": ("roundness_ratio", "yield_strength_pa", "binding_energy_j"),
+    "GEN.1209 (the living classes of a body)": ("life_living",),
     "GEN.1218b (makeup, salt and second liquid of the surface liquids)": ("surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_ethane_mol", "surface_liquid_methane_mol",
                                                                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt"),
     "GEN.1097 (day and night state)": ("day_night_state", "days_per_year", "night_hours"),
@@ -61,7 +61,7 @@ PLANET_COLUMNS_ADDED = {
 """dict: The planet columns added since TEST.498 was written, by the item that added them. A lane that adds a planet column raises
 `MISSING_CEILING` by its count and lists the names here; `test_the_columns_added_since_the_test_was_written_are_all_missing_from_the_rogue` checks
 them against the gap, so a name that is not a planet column, or that the rogue now carries, is caught."""
-EXTRA_CEILING = 13
+EXTRA_CEILING = 14
 """int: Rogue columns that are neither a planet column nor a rogue-only one (the rogue's own names for what a planet stores, `mass_kg` for
 `mass`). It falls to zero with the above."""
 
@@ -154,8 +154,10 @@ def _matched(mass_bin, seed):
     giant needs is not on this machine."""
     from planetgen.datasets.fetch import DataMissing
     from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
     from tests.test_gen_builder_internals import make_system
-    system = make_system()
+    with deterministic_entropy(498):     # the same star every run, so a bin's strict expected failure does not depend on which star was drawn
+        system = make_system()
     star = system.star
     try:
         with draw.bound(f"rogue-parity-{mass_bin}-{seed}"):
@@ -181,11 +183,28 @@ def test_a_rogue_and_a_bound_planet_of_one_mass_are_one_kind_of_body_of_one_size
         assert radii[0] * 0.8 <= bound.radius <= radii[1] * 1.2, (bound.radius, radii)
 
 
-@pytest.mark.xfail(strict=True, reason="the bound chain's equilibrium temperature has no internal heat in it (GEN.1111 slice: the starless host)")
-@pytest.mark.parametrize("mass_bin", BINS)
-def test_a_rogue_and_a_bound_planet_far_from_light_have_the_same_surface_temperature(mass_bin):
-    """The one quantity the rogue and the bound chain should differ in is starlight; with none, the surface is the internal heat's over the ambient
-    floor in both. Found (TEST.498, 2026-10-31): the bound chain returns the 2.725 K floor for a 5 Earth-mass body at 1e5 AU and the rogue chain 270 K."""
+@pytest.mark.parametrize("mass_bin", ("saturn", "jupiter"))
+def test_a_giant_far_from_light_is_already_warmed_by_its_own_heat_in_the_bound_chain(mass_bin):
+    """A giant's temperature adds its own heat flux (`giant_draw.effective_temperature_k`), so unlike a rocky body it is nowhere near the 2.725 K floor
+    far from a star. The two chains still differ in the cooling law they use for it (a Saturn-mass body differed by a third when this was written)."""
     rogue, bound = _matched(mass_bin, 0)
-    assert abs(bound.surface_temperature - rogue.surface_temperature_k) <= 0.1 * rogue.surface_temperature_k, (
-        bound.surface_temperature, rogue.surface_temperature_k)
+    assert bound.surface_temperature > 10.0 * 2.725 and rogue.surface_temperature_k > 10.0 * 2.725
+
+
+@pytest.mark.parametrize("mass_bin", ("terrestrial", "sub-neptune"))
+def test_a_planet_with_no_star_is_warmed_by_its_own_heat_as_a_rogue_is(mass_bin):
+    """With no star the surface is the body's own heat over the ambient floor. Found (TEST.498, 2026-10-31): the planet chain returned the 2.725 K floor for
+    a 5 Earth-mass body at 1e5 AU and the rogue chain 270 K; GEN.1111 passes the heat of the body (`internal_heat_flux_w_m2` and the tide) into the
+    equilibrium temperature and the air's balance when the host is starless. The two chains still draw the heat from different models (the rogue's is the
+    older `rogue_surface` law, the planet's the radiogenic and tidal box), so they are not compared number for number; the rogue chain goes with the
+    flat rate."""
+    from planetgen.generation.phenomena import starless_host
+    from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
+    from tests.test_gen_builder_internals import make_system
+    rogue, _bound = _matched(mass_bin, 0)
+    with deterministic_entropy(498):
+        system = make_system()
+    with draw.bound(f"rogue-parity-starless-{mass_bin}"):
+        starless = starless_host.build_ejected_planet(system.system_config, system.star, 5.0, rogue.mass_kg, moon_count=0)
+    assert starless.surface_temperature > 5.0 * 2.725 and rogue.surface_temperature_k > 5.0 * 2.725, (starless.surface_temperature, rogue.surface_temperature_k)

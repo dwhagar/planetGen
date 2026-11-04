@@ -8,8 +8,8 @@ Every small body draws its composition first and derives its bulk density from i
 of the one shared materials table (GEN.427), a porosity, and from them `physics.compaction`'s mixing rule. Four kinds:
 
 * **A belt or field of asteroids** (`draw_belt`). Its mass is shared out among the taxa of Bus and DeMeo by a Dirichlet draw
-  around a kernel of the disk temperature at the belt's distance (the blackbody one for the star's luminosity) and the aluminium-26
-  its star was born with (`taxon_kernel`, GEN.473): dry and igneous (the more so the more aluminium-26) where the disk is above the
+  around a kernel of the disk temperature at the belt's distance (the blackbody one for the star's luminosity) and the aluminum-26
+  its star was born with (`taxon_kernel`, GEN.473): dry and igneous (the more so the more aluminum-26) where the disk is above the
   water line, hydrated carbonaceous below it, primitive and ice-rich colder still. Each taxon's mix of materials is a meteorite analogue,
   so every taxon row stays a flagged `stand-in` that GEN.475 replaces, and the Dirichlet concentration is open (Boss, 1:43 and 1:44 AM EDT on 2026-10-17). Each taxon is a mix of the shared table's
   rows (the chemistry of its meteorite analogue), a porosity from its family's range, and an albedo.
@@ -261,7 +261,7 @@ def _taxon_row(taxon):
     data = TAXON_DATA[taxon]
     return pt.Row(
         name=f"taxon-{taxon}", classes=(BELT, FIELD), weight=lambda subject, taxon=taxon: taxon_kernel.kernel(subject["temperature_k"], subject["al26_ratio"])[taxon],
-        source="the belt's taxa from the disk's ice lines and the early heating by aluminium-26 (taxon_kernel); the mix of each taxon is a meteorite analogue [R1065]",
+        source="the belt's taxa from the disk's ice lines and the early heating by aluminum-26 (taxon_kernel); the mix of each taxon is a meteorite analogue [R1065]",
         state=pt.STAND_IN, replacement=REPLACEMENT, fractions=data.fractions, concentration=None,
         notes=f"{data.analogue}; {data.family} family; albedo {data.albedo}")
 
@@ -269,13 +269,13 @@ def _taxon_row(taxon):
 TAXON_TABLE = pt.REGISTRY.register(pt.Table(
     "small-body-taxa", 1, [_taxon_row(t) for t in TAXA], components=pt.SHARED_COMPONENTS,
     description="The taxa of a belt or field of asteroids: the weight is the share of the belt's mass at the disk temperature of its "
-                "distance for a star born with a given aluminium-26 ratio, drawn as a Dirichlet around it; the fractions are the taxon's mix of the shared materials."))
+                "distance for a star born with a given aluminum-26 ratio, drawn as a Dirichlet around it; the fractions are the taxon's mix of the shared materials."))
 """Table: The belt and field taxa, a flagged stand-in at every row until GEN.475 (the weights are derived)."""
 
 
 def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DIRICHLET_CONCENTRATION):
     """
-    The composition of a belt or a field of asteroids at `distance_au` from a star of luminosity `luminosity_w` that was born with the aluminium-26 ratio `al26_ratio`
+    The composition of a belt or a field of asteroids at `distance_au` from a star of luminosity `luminosity_w` that was born with the aluminum-26 ratio `al26_ratio`
     (`radiogenic.star_al26_ratio`): the disk is at its blackbody temperature there and `taxon_kernel` gives the taxa.
 
     The draws, in order: the Dirichlet shares of the taxa the kernel gives weight (in table order), then one porosity for each of
@@ -289,7 +289,7 @@ def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DI
     if not distance_au > 0.0 or not luminosity_w > 0.0:
         raise ValueError("the distance and the luminosity must be positive")
     if not al26_ratio >= 0.0:
-        raise ValueError("the aluminium-26 ratio must be zero or more")
+        raise ValueError("the aluminum-26 ratio must be zero or more")
     temperature_k = condensate_shares.disk_temperature_k(distance_au, luminosity_w)
     subject = pt.Subject(kind, {"temperature_k": temperature_k, "al26_ratio": al26_ratio})
     probabilities = TAXON_TABLE.probabilities(subject)
@@ -517,7 +517,7 @@ and limits are the repository's. The second is the collisional tail of [R0269] (
 ICY_TABLE = pt.REGISTRY.register(pt.Table(
     "icy-body-rock-fraction", 1, [
         pt.Row("icy-intact", ICY_KINDS, pt.OPEN, "open", state=pt.OPEN_STATE,
-               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the centre is [R0390] (Icarus 326, 10: a "
+               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the center is [R0390] (Icarus 326, 10: a "
                      "constant 70 percent matches 14 of 17 Kuiper belt objects within 2 sigma), the width and limits are the "
                      "repository's; the weight against the second row is open"),
         pt.Row("icy-stripped", (DWARF_PLANET,), pt.OPEN, "open", state=pt.OPEN_STATE,

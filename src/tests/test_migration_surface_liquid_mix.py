@@ -1,7 +1,7 @@
 # tests/test_migration_surface_liquid_solutes.py
 
 """
-GEN.1218b: migration 0200 gives a v199 galaxy the makeup, salt and second-liquid columns of the surface liquid, empty, on both bodies tables.
+GEN.1218b: migration 0205 gives a v204 galaxy the makeup, salt and second-liquid columns of the surface liquid, empty, on both bodies tables.
 """
 
 import pytest
@@ -15,9 +15,9 @@ pytestmark = pytest.mark.fresh_database
 NEW = ("surface_liquid_methane_mol", "surface_liquid_ethane_mol", "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "surface_liquid_2", "surface_liquid_2_fraction")
 
 
-def test_a_v199_galaxy_gets_the_columns_empty_after_the_ammonia(mysql_config):
-    load_old_schema(mysql_config, 199)
-    assert store.schema_status(mysql_config)[0] == 199
+def test_a_v204_galaxy_gets_the_columns_empty_after_the_ammonia(mysql_config):
+    load_old_schema(mysql_config, 204)
+    assert store.schema_status(mysql_config)[0] == 204
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):

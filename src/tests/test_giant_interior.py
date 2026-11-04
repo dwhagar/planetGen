@@ -185,14 +185,16 @@ def test_the_compact_core_table_is_registered_with_open_rows():
     assert [row.name for row in table.rows] == ["compact core", "no compact core"]
 
 
-def test_the_description_has_a_sentence_for_every_layer():
+def test_the_description_has_two_sentences_for_every_layer():
+    """UX.252: one sentence for what the layer holds and where, one for what it is made of."""
     body = interior(JUPITER)
     sentences = gi.describe_interior(body)
-    assert len(sentences) == len(body.layers)
+    assert len(sentences) == 2 * len(body.layers)
     assert sentences[0].startswith("The molecular hydrogen and helium envelope (molecular fluid) holds")
-    assert all(s.endswith(".") and any(word in s for word in ("hydrogen", "rock", "iron")) for s in sentences)
+    assert all(s.endswith(".") for s in sentences)
+    assert all(s.startswith("It is ") and any(word in s for word in ("hydrogen", "rock", "iron")) for s in sentences[1::2])
     ice = gi.describe_interior(interior(NEPTUNE))
-    assert any("mantle of water, ammonia and methane" in s for s in ice)
+    assert any("mantle of water, ammonia, and methane" in s for s in ice)
 
 
 def test_the_summary_wording_has_a_clause_for_every_kind_and_every_feature_it_names():

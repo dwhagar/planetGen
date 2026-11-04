@@ -397,7 +397,7 @@ def _reference_checks():
               unit="km"),
         Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0] in the Milky Way's measured shape",
               lambda: _reference_galactic_orbit(gc_ly)[0], 225.0, 0.15,
-              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014); the Milky Way's measured shape's potential "
+              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; [R5073]); the Milky Way's measured shape's potential "
               "(the Hernquist and Miyamoto-Nagai matches of GP1 to GP3 are stand-ins) gives about 208 km/s",
               unit="km/s"),
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1] in the Milky Way's measured shape",
@@ -421,10 +421,10 @@ def _reference_checks():
               "recalled, low confidence); log10 of M_sun/pc^3", mode="abs"),
         Check("galaxy_nuclear_disc_mass_200pc", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["disc_mass_200pc_solar"], 1.0e9, 0.3,
-              "nuclear stellar disc about 1e9 M_sun inside 200 pc ([R2577]; recalled)", unit="M_sun"),
+              "nuclear stellar disk about 1e9 M_sun inside 200 pc ([R2577]; recalled)", unit="M_sun"),
         Check("galaxy_nuclear_disc_scale_height", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["disc_height_pc"], 37.5, 0.2,
-              "nuclear stellar disc scale height 30-45 pc ([R4152]; recalled)", unit="pc"),
+              "nuclear stellar disk scale height 30-45 pc ([R4152]; recalled)", unit="pc"),
         Check("galaxy_core_gas_inflow", "reference", "coreGas.core_gas(reference shape)",
               lambda: coreGas.core_gas(_reference_galaxy_shape()).inflow_msun_yr, 0.8, 0.3,
               "bar-driven inflow to the central molecular zone 0.8 +- 0.6 M_sun/yr (as Henshaw "

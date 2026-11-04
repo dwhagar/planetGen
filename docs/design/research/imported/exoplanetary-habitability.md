@@ -177,64 +177,46 @@ Long-term survival on these planets depends on overcoming the immunological and 
 
 ### References
 
-Anderson, M. S., Ewert, M. K., & Keener, J. F. (2018). *Life support baseline values and assumptions document* (NASA/TP-2015-218570/REV1). National Aeronautics and Space Administration.
+[R4408]
 
-Armstrong, H. G. (1953). *Principles and practice of aviation medicine* (3rd ed.). Williams & Wilkins.
+[R0760]
 
-Bada, J. L. (2004). How life began on Earth: A status report. *Earth and Planetary Science Letters*, 226(1–2), 1–15. [R4408]
+[R1159]
 
-Chen, M., Schliep, M., Willows, R. D., Cai, Z. L., Neilan, B. A., & Scheer, H. (2010). A red-shifted chlorophyll. *Science*, 329(5997), 1318–1319. [R0760]
+[R4092]
 
-Cockell, C. S., Bush, T., Bryce, C., Direktorenko, S., Stevens, D. H., Payne, R., Haley, J., Mann, C., & Wacey, D. (2016). Habitability: A review. *Astrobiology*, 16(1), 89–117. [R1159]
+[R1840]
 
-Cucinotta, F. A., Kim, M. Y., & Chappell, L. J. (2013). *Space radiation cancer risk projections and uncertainties—2012* (NASA/TP-2013-217375). National Aeronautics and Space Administration.
+[R1897]
 
-Davis, J. R., Johnson, R., Stepanek, J., & Fogarty, J. A. (Eds.). (2008). *Fundamentals of aerospace medicine* (4th ed.). Lippincott Williams & Wilkins.
+[R2006]
 
-Drysdale, A. E., Ewert, M. K., & Hanford, A. J. (2003). *Life support systems analysis of a Mars base* (SAE Technic[R3423, R3424]-01-2550). SAE International. [R4092]
+[R2207]
 
-Ernsting, J., Nicholson, A. N., & Rainford, D. J. (Eds.). (2003). *Ernsting's aviation medicine* (4th ed.). Hodder Arnold.
+[R2281]
 
-Hanford, A. J. (2004). *Advanced life support baseline values and assumptions document* (NASA/CR-2004-208941). National Aeronautics and Space Administration.
+[R2344]
 
-Haruyama, J., Hioki, K., Shirao, M., Morota, T., Hiesinger, H., van der Bogert, C. H., Miyamoto, H., Iwasaki, A., Yokota, Y., Ohtake, M., Matsunaga, T., Hara, S., Omake, N., & Tada, H. (2009). Possible lunar lava tube skylight observed by SELENE cameras. *Geophysical Research Letters*, 36(21), L21206. [R1840]
+[R2345]
 
-Heller, R., & Armstrong, J. (2014). Superhabitable worlds. *Astrobiology*, 14(1), 50–66. [R1897]
+[R2769]
 
-Horneck, G., Klaus, D. M., & Mancinelli, R. L. (2010). Space microbiology. *Microbiology and Molecular Biology Reviews*, 74(1), 121–156. [R2006]
+[R3024]
 
-Joyce, G. F., Visser, G. M., van Boeckel, C. A. A., van Boom, J. H., Orgel, L. E., & van Westrenen, J. (1984). Chiral selection in poly(C)-directed synthesis of oligo(G). *Nature*, 310(5978), 602–604. [R2207]
+[R3933]
 
-Kasting, J. F., Whitmire, D. P., & Reynolds, R. T. (1993). Habitable zones around main sequence stars. *Icarus*, 101(1), 108–128. [R2281]
+[R3979]
 
-Kiang, N. Y., Segura, A., Tinetti, G., Govindjee, Blankenship, R. E., Cohen, M., Siefert, J., Crisp, D., & Meadows, V. S. (2007b). Spectral signatures of photosynthesis. II. Coevolution with other stars and the atmosphere on extrasolar worlds. *Astrobiology*, 7(1), 252–274. [R2344]
+[R3997]
 
-Kiang, N. Y., Siefert, J., Govindjee, & Blankenship, R. E. (2007a). Spectral signatures of photosynthesis. I. Review of Earth organisms. *Astrobiology*, 7(1), 222–251. [R2345]
+[R4064]
 
-Luger, R., & Barnes, R. (2015). Extreme water loss and chemical evolution of gaseous envelopes of sub-Neptunes and super-Earths in the habitable zone of M dwarfs. *Astrobiology*, 15(2), 119–143. [R2769]
+[R4308]
 
-Meierhenrich, U. (2008). *Amino acids and the asymmetry of life: Caught in the act of formation*. Springer. [R3024]
+[R4332]
 
-Méndez, A. (2011). *The Earth Similarity Index (ESI)*. Planetary Habitability Laboratory, University of Puerto Rico at Arecibo.
+[R4621]
 
-Roth, E. M. (1968). *Compendium of human responses to the aerospace environment* (NASA-CR-1205). National Aeronautics and Space Administration.
+[R5003]
 
-Sauro, F., Pozzobon, R., Massironi, M., De Berardinis, P., Santagata, T., & De Waele, J. (2020). Lava tubes on Earth, Moon and Mars: A review on their size and morphology mitigation potential for planetary exploration. *Earth-Science Reviews*, 209, 103288. [R3933]
-
-Schulze-Makuch, D., Méndez, A., Fairén, A. G., von Paris, P., Turse, C., Boyce, G., Sommers, M., Catling, D., Irwin, L. N., & McKay, C. P. (2011). A two-tiered approach to assessing the habitability of exoplanets. *Astrobiology*, 11(10), 1041–1052. [R3979]
-
-Seedhouse, E. (2010). *Ocean outpost: The future of humans living underwater and in space*. Springer. [R3997]
-
-Shields, A. L., Ballard, S., & Johnson, J. A. (2016). The habitability of planets orbiting M-dwarf stars. *Physics Reports*, 663, 1–49. [R4064]
-
-Tarter, J. C., Backus, P. R., Mancinelli, R. L., Aurnou, J. M., Backman, D. E., Basri, G. S., Boss, A. P., Clarke, A., Deming, D., Doyle, L. R., Feigelson, E. D., Freund, F., Grinspoon, D. H., Haberle, R. M., Hauck, S. A., Heath, M. J., Henry, T. J., Hollingsworth, J. L., Joshi, M. M., ... Young, P. A. (2007). A reappraisal of the habitability of planets around M dwarf stars. *Astrobiology*, 7(1), 30–65. [R4308]
-
-Theinat, A. K., Modiriasari, A., Bobet, A., Melosh, H. J., Dyke, S. J., Ramirez, J., & Maghareh, A. (2020). Structural stability of lunar lava tubes. *Icarus*, 338, 113442. [R4332]
-
-Thomas, K. S., & McMann, H. J. (2006). *US spacesuits*. Springer Science & Business Media.
-
-Ward, P. D., & Brownlee, D. (2000). *Rare Earth: Why complex life is uncommon in the universe*. Copernicus Books.
-
-West, J. B. (2009). *High altitude medicine and physiology* (4th ed.). Hodder Arnold.
-
-Wheeler, R. M. (2017). Agriculture for space: People and places paving the way. *Open Agriculture*, 2(1), 14–32. [R4685]
+[R4685]

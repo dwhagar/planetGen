@@ -142,8 +142,8 @@ def test_phenomenon_page_rows():
     with create_app(_Config).test_request_context("/"):
         fields = {label: re.sub(r"<[^>]*>", "", str(text)) for label, text, _url in system_pages.phenomenon_fields("rogue_planet", detail)}
     assert fields["Surface"] == "Ice shell over a liquid ocean"
-    assert fields["Surface Temperature"] == "35.1 K (-238 °C, -396 °F)"
-    assert fields["Surface Pressure"] == "300 mPa (a trace)"
+    assert fields["Surface temperature"] == "35.1 K (-238 °C, -396 °F)"
+    assert fields["Surface pressure"] == "300 mPa (a trace)"
     assert fields["Ice Thickness"] == "13.4 km"
     assert fields["Liquid Ocean Depth"] == "120 km"
     assert fields["Internal Heat Flow"] == "87 mW/m²"

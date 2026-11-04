@@ -11,7 +11,8 @@
 // three.js here: tests/js/galaxynebulae.test.mjs holds it to this description.
 
 // The most regions drawn at once; the weakest of more are not drawn, and the last tenth of the budget fades out so none pops.
-export const REGION_BUDGET = 600;
+// MAP.367: half of what it was (600).
+export const REGION_BUDGET = 300;
 export const BUDGET_FADE_SHARE = 0.1;
 // The families a region is made of, in the order the server gives their shares (planetgen.galaxy.nebula_blocks.FAMILIES).
 export const FAMILIES = ["diffuse", "emission", "reflection", "planetary", "dark", "supernova-remnant"];
@@ -20,7 +21,7 @@ export const FAMILY_LABELS = {
   dark: "Dark nebulae", "supernova-remnant": "Supernova remnants",
 };
 // The colour of a supernova remnant (nebulalook.js has no look for one: a remnant is drawn from its own texture).
-const REMNANT_COLOUR = { dark: "#f0a050", light: "#c2570c" };
+const REMNANT_COLOUR = "#f0a050";
 // A region is drawn from this radius in pixels (a nebula is, at 2 px across), its strength follows its count, and it fades
 // out between the two radii of RESOLVE_PX: the camera is among its nebulae, which a haze would only hide.
 export const MIN_RADIUS_PX = 1;
@@ -40,9 +41,9 @@ export function colourOf(hex) {
   return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
 }
 
-// The colour [r, g, b] (0 to 1) of a family in `looks` (nebulalook.js `nebulaLooks`; `light` whether the page is light).
-export function familyColour(family, looks, light) {
-  if (family === "supernova-remnant") return colourOf(light ? REMNANT_COLOUR.light : REMNANT_COLOUR.dark);
+// The colour [r, g, b] (0 to 1) of a family in `looks` (nebulalook.js `NEBULA_LOOKS`).
+export function familyColour(family, looks) {
+  if (family === "supernova-remnant") return colourOf(REMNANT_COLOUR);
   const look = looks[family] || looks.default;
   return colourOf(look[0]);
 }
@@ -63,9 +64,9 @@ export function dominantFamily(shares) {
 
 // The blobs of the regions of the nodes in `entries` (`[{key, block, node}]`: the nodes being drawn): one for each group of
 // each node's `nebula_regions` whose family is shown (`isShown(family) -> boolean`). A blob is
-// `{ key, block, x, y, z, radiusPc, count, volume, family, nebulaClass, color, ring }`: `block` the node it was listed by (the share
-// the cut gives that node is the region's), `ring` true for a group of more than one nebula. In the order of the nodes' lists.
-export function regionBlobs(entries, looks, light, isShown) {
+// `{ key, block, node, x, y, z, radiusPc, count, volume, family, nebulaClass, color, ring }`: `block` the node it was listed by (the share
+// the cut gives that node is the region's) and `node` that node's key, `ring` true for a group of more than one nebula. In the order of the nodes' lists.
+export function regionBlobs(entries, looks, isShown) {
   const found = [];
   const seen = new Set();
   (entries || []).forEach((entry) => {
@@ -75,9 +76,9 @@ export function regionBlobs(entries, looks, light, isShown) {
       if (!family || (isShown && !isShown(family))) return;
       seen.add(region.key);
       found.push({
-        key: region.key, block: entry.block, x: region.centre[0], y: region.centre[1], z: region.centre[2],
+        key: region.key, block: entry.block, node: entry.key, x: region.centre[0], y: region.centre[1], z: region.centre[2],
         radiusPc: region.radius_pc, count: region.count, volume: region.volume_pc3, family, nebulaClass: region.class || null,
-        color: familyColour(family, looks, light), ring: region.count > 1,
+        color: familyColour(family, looks), ring: region.count > 1,
       });
     });
   });

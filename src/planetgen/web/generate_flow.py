@@ -48,9 +48,9 @@ class Task:
 
 TASKS = (
     Task("add-sectors", "Add sectors to the galaxy",
-         "Generate more sectors, around a place or by shells, bands and wedges.", "safe", ("galaxy",)),
+         "Generate more sectors, around a place, or by shells, bands, and wedges.", "safe", ("galaxy",)),
     Task("new-galaxy", "Start a new galaxy",
-         "Delete everything, plan a new galaxy and generate a first neighborhood.", "destroys", ("new_galaxy",)),
+         "Delete everything, plan a new galaxy, and generate a first neighborhood.", "destroys", ("new_galaxy",)),
     Task("plan-only", "Plan a new galaxy and stop",
          "Delete everything and plan a new galaxy with no sectors and no scatters, so the Galaxy Map shows the sector layout "
          "and you add sectors by hand.", "destroys", ("new_plan",)),
@@ -69,7 +69,7 @@ TASKS = (
          endpoint="generate_system"),
     Task("check", "Check the database", "Look for damage. It changes nothing.", "safe", ("check_db",)),
     Task("wipe", "Wipe the galaxy",
-         "Delete every sector, system, phenomenon and the plan. Admin logins and API keys are kept.", "destroys",
+         "Delete every sector, system, phenomenon, and the plan. Admin logins and API keys are kept.", "destroys",
          ("reset",)),
 )
 """tuple: The tasks, in card order (the wipe card is drawn last, apart from the rest)."""
@@ -167,7 +167,7 @@ def render_screen(template, admin, title, crumbs, form=None, error=None, status=
     trail = [crumb("Admin", "admin"), crumb("Generate", "generate") if crumbs else crumb("Generate"), *crumbs]
     return _no_store(render_page(
         template, title=title, section="admin_generate", tab=tab, breadcrumbs=trail,
-        description=description or "Generate, plan or reset this site's galaxy.", tasks=TASKS, **context))
+        description=description or "Generate, plan, or reset this site's galaxy.", tasks=TASKS, **context))
 
 
 RECIPE_NOTES = {"saved": "Saved the recipe \u201c{}\u201d.", "renamed": "Renamed the recipe to \u201c{}\u201d.",

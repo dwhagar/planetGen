@@ -11,15 +11,17 @@ whose response said nothing of the Earth's.) The model stands about 6.5 K under 
 (GEN.974), so the absorbed flux of the twin is set, by bisection, to the flux at which the fixed point stands at the measured 288 K: the sweep then measures
 the response of a 288 K Earth, the number the published range is about.
 
-Where the fixed point stands: it converges and warms with the light, with a response of 0.40 K per W/m2 at 288 K, under the published lower bound of 0.54. Of the
-feedbacks of IPCC AR6 (2021) table 7.10 only the Planck response and the water vapour with the lapse rate are in it (1 / (3.22 - 1.30) = 0.52 K per W/m2 by the
-assessment's own numbers; the fixed point's outgoing flux rises faster with the temperature, 2.5 W/m2 per K, a gap GEN.973 follows). Adding the surface albedo
-(+0.35 W/m2 per K, GEN.972) and the cloud (+0.42, GEN.974) feedbacks gives 1 / (2.5 - 0.77) = 0.58, inside the range. The lower bound is held by a strict
-expected failure that names them; when GEN.972, GEN.973 and GEN.974 bring the response inside the range, the test passes, the expected failure fails the run, and
-the mark comes off.
+Where the fixed point stands: it converges and warms with the light, with a response of 0.44 K per W/m2 at 288 K (0.40 before the ice-albedo law, GEN.972), under the
+published lower bound of 0.54. Of the feedbacks of IPCC AR6 (2021) table 7.10 the Planck response, the water vapour with the lapse rate and, since GEN.972, the surface
+albedo are in it (1 / (3.22 - 1.30) = 0.52 K per W/m2 by the assessment's own numbers; the fixed point's outgoing flux rises faster with the temperature, 2.5 W/m2 per
+K, a gap GEN.973 follows). The ice law gives the twin +0.34 W/m2 per K at 288 K by design, and less as the ice is gone: 0.61 K per W/m2 on the cooling half of the
+sweep, 0.41 on the warming half. The cloud (+0.42, GEN.974) feedback is still missing; with it 1 / (2.5 - 0.77) = 0.58. The lower bound is held by a strict expected
+failure that names what is missing; when GEN.973 and GEN.974 bring the response inside the range, the test passes, the expected failure fails the run, and the mark
+comes off.
 
 The twin is a test target, never an input of the code. The solve is replayed on one stream (`draw.bound`), so the sweep changes the light and nothing else;
-the albedo is held in the absorbed flux until the feedbacks that move it (GEN.972 ice-albedo, GEN.974 cloud albedo) are in the fixed point.
+the albedo follows the ice law of the twin (`climate_branches.IceAlbedoLaw`, GEN.972), and the flux swept is the one it absorbs ice-free, until the cloud albedo (GEN.974)
+is in the fixed point.
 """
 
 import math
@@ -28,7 +30,7 @@ import types
 import pytest
 from scipy.optimize import brentq
 
-from planetgen.physics import atmosphere_state, gases, mixture_draw, surface_air as sa
+from planetgen.physics import atmosphere_state, climate_branches as cb, gases, mixture_draw, surface_air as sa
 from planetgen.util import draw
 
 SENSITIVITY_K_PER_W_M2 = (2.0 / 3.7, 5.0 / 3.7)
@@ -49,7 +51,7 @@ FACTORS = (0.90, 0.95, 1.0, 1.05, 1.10)
 def _earth_twin(flux_w_m2):
     return sa.Setting(gravity_m_s2=EARTH_GRAVITY_M_S2, radius_m=EARTH_RADIUS_M, mantle_kg=EARTH_MANTLE_KG, released_j=0.0, heat_flux_w_m2=0.087,
                       ocean_cover=EARTH_OCEAN_COVER, water_kg=EARTH_WATER_KG, absorbed_flux_w_m2=flux_w_m2, released_at_seal_j=0.0,
-                      subject_of=lambda *_: None, age_gy=4.5)
+                      subject_of=lambda *_: None, age_gy=4.5, starlight_w_m2=4.0 * flux_w_m2 / (1.0 - cb.ICE_FREE_ALBEDO), albedo_law=cb.IceAlbedoLaw())
 
 
 def _solve(flux_w_m2):
@@ -101,9 +103,8 @@ def test_the_response_to_the_flux_is_not_above_the_published_climate_sensitivity
     assert all(0.0 < response < SENSITIVITY_K_PER_W_M2[1] for response in _responses(sweep))
 
 
-@pytest.mark.xfail(strict=True, reason="GEN.972 and GEN.974: no ice-albedo or cloud feedback in the fixed point yet, so the response (0.40 K per W/m2 at 288 K) is the Planck one "
-                                       "with the vapour and the lapse rate, under the published lower bound of 0.54; with them (+0.35 and +0.42 W/m2 per K, AR6 table 7.10) "
-                                       "it is 0.58. GEN.1194 (the outgoing flux rising too fast with the temperature) moves it too")
+@pytest.mark.xfail(strict=True, reason="GEN.973 and GEN.974: no cloud feedback in the fixed point yet, so the response (0.44 K per W/m2 at 288 K, with the ice-albedo law of GEN.972) "
+                                       "is under the published lower bound of 0.54; with the cloud (+0.42 W/m2 per K, AR6 table 7.10) it is 0.58. GEN.1194 (the outgoing flux rising too fast with the temperature) moves it too")
 def test_the_response_to_the_flux_is_not_below_the_published_climate_sensitivity(sweep):
     assert all(response > SENSITIVITY_K_PER_W_M2[0] for response in _responses(sweep))
 

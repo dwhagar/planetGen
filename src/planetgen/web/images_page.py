@@ -60,6 +60,6 @@ def admin_images():
     return _render(
         "admin_images.html", flashed=True, title="Images", section="admin_settings",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Settings", "admin_settings"), crumb("Images")],
-        description="The site icon, the home-screen icon and the link-preview picture.",
+        description="The site icon, the home-screen icon, and the link-preview picture.",
         data=data, message=flashed.get("message"), error=flashed.get("error"),
     )

@@ -130,7 +130,7 @@ def protect():
             # `next`, or shows the form again if the session is stale.
             return redirect(url_for("web.login", next=request.values.get("next") or None), code=303)
         abort(400, description="This form has expired or was not sent from this site. "
-                               "Go back, reload the page and try again.")
+                               "Go back, reload the page, and try again.")
     return None
 
 

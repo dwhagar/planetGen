@@ -6,6 +6,8 @@ and Abralinar B (K9V) are a close pair. Abralinar C (M1V) orbits Abralinar A and
 ("Binary (K9V/K9V)") says what the pair is; this says what the system is.
 """
 
+from planetgen.util.wordlist import join_words
+
 COUNT_NAMES = {2: "Binary", 3: "Triple", 4: "Quadruple", 5: "Quintuple", 6: "Sextuple", 7: "Septuple"}
 """dict: How many stars -> what the system is called."""
 
@@ -20,10 +22,8 @@ def _first_mention(star, seen):
 
 
 def _names(items):
-    """The names of stars as a list in words: "A", "A and B", "A, B and C"."""
-    if len(items) == 1:
-        return items[0]
-    return ", ".join(items[:-1]) + " and " + items[-1]
+    """The names of stars as a list in words: "A", "A and B", "A, B, and C"."""
+    return join_words(items)
 
 
 def _members(node, stars, nodes):

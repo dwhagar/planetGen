@@ -123,17 +123,21 @@ def test_the_forced_orbits_of_trappist_1_do_not_cross_and_keep_the_planets_insid
 
 
 def test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon():
-    # Io's observed forced eccentricity through the melt-limited power gives the 1e14 W the model was fitted to
+    # Io's observed forced eccentricity through the box's melt-limited tide (`interior_heat.heat_flow`, GEN.955) gives the 1e13 to 5e13 W the model holds to
+    # (Io's observed 1e14 W lies a factor of 2 to 3 above it, tests/test_tidal_heating.py)
+    from tests.test_tidal_heating import _heat, _rock
     io = rc.forcing(JUPITER, GALILEAN_PERIODS[0], GALILEAN_MASSES[0], 0.0041)
-    assert tidal_heating.molten_power_w(io, 1.8216e6) == pytest.approx(1.0e14, rel=0.6)
-    # TRAPPIST-1 d: a solid rocky planet, tide from the forced eccentricity, a modest fraction of Io's flux
+    assert 1.0e13 < _heat(GALILEAN_MASSES[0], 1821.6, _rock(0.8, 0.2), io).tidal_w < 5.0e13
+    # TRAPPIST-1 d: a solid rocky planet (k2 of a rigid sphere, Q of 100), tide from the forced eccentricity, a modest fraction of Io's flux
     e = rc.forced_eccentricities(TRAPPIST_PERIODS, TRAPPIST_MASSES, TRAPPIST_STAR)
     d = rc.forcing(TRAPPIST_STAR, TRAPPIST_PERIODS[2], TRAPPIST_MASSES[2], e[2])
-    power = tidal_heating.solid_power_w(d, TRAPPIST_MASSES[2], 0.788 * 6.371e6)
-    flux = power / (4.0 * math.pi * (0.788 * 6.371e6) ** 2)
+    radius = 0.788 * 6.371e6
+    k2_over_q = tidal_heating.rigid_k2(TRAPPIST_MASSES[2], radius) / 100.0
+    power = tidal_heating.peale_power_w(k2_over_q, d, radius)
+    flux = power / (4.0 * math.pi * radius ** 2)
     assert 0.0 < flux < 1.0
     circular = rc.forcing(TRAPPIST_STAR, TRAPPIST_PERIODS[2], TRAPPIST_MASSES[2], 0.0)
-    assert tidal_heating.solid_power_w(circular, TRAPPIST_MASSES[2], 0.788 * 6.371e6) == 0.0
+    assert tidal_heating.peale_power_w(k2_over_q, circular, radius) == 0.0
 
 
 def test_inputs_the_model_cannot_use_are_refused():
