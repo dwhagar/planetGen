@@ -1730,28 +1730,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
 
-- [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
-  Bands, storms, a chemistry tint, thermal glow, and rings with
-  resonance gaps. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  5), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), after GEN.670 (GEN.419 is done); nobody has started it.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 10) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Owner Core 2; GEN.670 done (2026-11-04 12:40 PM EST): GEN.670 is done:
-  the research report is
-  /mnt/project-files/reports/gen670-body-rendering-research-2026-11-04.md
-  (band count, storm size, ring reddening and albedo laws with proposed
-  GEN.725 rows B1-B4, S1-S4, RC1-RC3; numbers marked [S] are to be
-  confirmed before use). Both prerequisites are now met, so Core 2 takes
-  this item after its current lock step, one lock-free item at a time.
-  Owner: Core 2.
-  Prerequisites: GEN.419.
-
 - [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -1774,7 +1752,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 1) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: MAP.275.
+  Prerequisites: none.
 
 - [ ] **MAP.282 Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry**
   Stand-in until sourced by GEN.670. Design draft
@@ -5012,21 +4990,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   longer waits on this study.
   Prerequisites: none. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Done: the field kernel of
-  `src/planetgen/physics/sector_path.py` subtracts a local origin (the
-  path's own start or the cell centre) from every position before the
-  loop, so the sums run on small numbers; a test shows the result agrees
-  with a high-precision reference within the float64 spacing at a sector
-  262 kpc from the origin. Owner: Core 1, with GEN.294.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.372, GEN.294.
 
 - [ ] **GEN.376 Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py`**
   From the GEN.372 precision audit (Core 1,
@@ -10595,7 +10558,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ready; the version number is stamped by the release process and never
   by hand, and no `.major.md` note is written without Boss's word.
   Headline: 9.5 (life classes and sentient life).
-  Prerequisites: GEN.864, TEST.435.
+  Prerequisites: GEN.864.
 
 - [ ] **GEN.876 Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores**
   Life chemistry review (research thread, 2026-10-28,
@@ -13714,33 +13677,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   land colour, MAP.274, has merged).
   Prerequisites: none.
 
-- [ ] **GEN.1230 The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug)**
-  Found by Core 3 while closing TEST.533 (#4575, 2:55 PM EDT 10-31 as
-  the lane reported). Present star formation over its ten-Gy mean for
-  the model disc is 0.49 (0.55 after GEN.999) against 0.20 to 0.3
-  measured for the Milky Way [R2680]. Cause is not the
-  gas law: the inflow in disk_history follows the halo's stellar growth,
-  and for a light halo that rises to the present, while the Milky Way's
-  own history declines. Measured for the test's disc by halo mass:
-  1.0e12 gives 0.89, 1.6e12 0.49, 2.0e12 0.39, 3.1e12 0.29. GEN.1154
-  lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar
-  masses. Candidate causes: the inflow shape (halo growth rate against
-  the stellar-to-halo relation) and the thin disc's age. Physics
-  decides, no game rate; any stand-in goes in GEN.725 with tier and
-  level. TEST.533 widened the bound to a factor of three with the reason
-  in the test; tighten it back when this lands. Interacts with GEN.999
-  (adds 10 percent), so look at it after train 8. Lock work (epoch).
-  Core 3 (9:20 AM EST on 2026-11-04): as the lane reported 9:16 AM EST
-  on 2026-11-04: GEN.1242 (exponential inside-out infall, Chiappini line
-  time scale, stopped at 2 and 8 Gy) brings the reference galaxy to 2.8
-  solar masses a year and present over mean to 0.45; the 0.20 to 0.3 aim
-  is not reached. The disc beyond 10 kpc and inside 4 kpc still forms
-  more than observed. This item stays open for that residual after
-  GEN.1242 merges; GEN.1202 also stays open (8 kpc gas 10.3 against
-  13.7).
-  Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
-  Prerequisites: none.
-
 - [ ] **GEN.1231 White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent**
   From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
   follow-up of GEN.1072 (#4430): remnant_orbits.pollution_rate_g_s and
@@ -13866,38 +13802,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1069.
   Prerequisites: none.
 
-- [ ] **GEN.1242 The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug)**
-  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
-  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread.
-  tests/test_prevalence_phenomena_census.py: the reference galaxy's star
-  formation rate reads 4.0 solar masses a year against a hard assert of
-  1 to 3; the Milky Way is about 1.7. It is a hard assert, not a
-  taggable range, so the census stays red until someone looks. Likely
-  moved by trains 6 to 8 (halo mass function GEN.1154, alpha tracks
-  GEN.1024, the disc gas law GEN.999, clusters). Do: find which change
-  moved it, check the reference galaxy against the source-derived range
-  (the Milky Way is a plausibility target, never fixed content), and fix
-  the law or the test range with the reason stated; register any
-  stand-in in GEN.725. Lock work if stored values change. Related:
-  GEN.1202. Owner: Core 3 (galaxy history).
-  Diagnosis (Core 3, as the lane reported) (7:38 AM EST on 2026-11-04):
-  Not GEN.999 or the clusters. Bisect on main: 1.97 solar masses a year
-  before train 6, 3.72 at the train 6 merge (#4385), GEN.999 then adds
-  0.3. In train 6 only GEN.1154 reaches the disc history: the reference
-  galaxy halo fell from 2.0e12 to 1.37e12 solar masses and
-  disk_history.inflow_shape rises later for a lighter halo, so GEN.1242
-  and GEN.1230 are one defect. By halo mass: 1.0e12 gives 5.97, 1.6e12
-  3.3, 2.0e12 2.6, 3.1e12 1.95. The model is wrong, not the test (the
-  main sequence at 5.2e10 solar masses of stars is about 1.5 a year; the
-  reference reads 2.7 times that); the test stays at 1 to 3. Candidate
-  fixes, all lock work: (a) inflow from the star formation real halos
-  have, (b) a cold accretion cut once the halo passes the shock heating
-  mass near 1e12, tried first, (c) a thin disc truncated near 14 kpc.
-  Rejected: a weaker law coefficient (worse) and a baryon accretion
-  shape (6.3).
-  Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **GEN.1244 Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug)**
   Found by Aux 5 with TEST.557 (as the lane reported 8:19 AM EST
   2026-11-04): in 55 generated systems only one giant had moons, and all
@@ -13931,7 +13835,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the census. Changes stored ages and populations: epoch with --affects
   plan,scatter,fill,population, census re-baseline; lock work, rides a
   train after GEN.1242. Owner: Core 3. Version 8.1.
-  Prerequisites: GEN.1242. Related: GEN.1242, GEN.1230, GEN.1202,
+  Prerequisites: none. Related: GEN.1242, GEN.1230, GEN.1202,
   GEN.725.
 
 - [ ] **GEN.1247 Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug)**
@@ -13983,6 +13887,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sampled dwarf systems none breaks the request, with a census guard.
   Related: GEN.916, GEN.917, GEN.1248. Owner Core 4 after the class
   chain (proposed by the TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1251 Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid**
+  Built by Aux 4, branch claude/project-thread-nfytfi-tide-liquid head
+  7a0d5e515, change note changes/tide-liquid-hook.minor.md. Bodies whose
+  stored surface liquid is a non-water, non-lava sea (methane, ethane,
+  ammonia-water and the like) now store ocean_liquid and the spring and
+  neap ranges, with the liquid's density at the surface temperature;
+  water worlds are unchanged; lava and too-heavy liquids (mercury) stay
+  empty, heavy liquids are left to GEN.1052. No migration (columns exist
+  from 0191). Generation output changes the tide columns of Titan-like
+  bodies only (stage fill, the tide step ocean_tides.compute), so it
+  needs an epoch. Done: merged in a train with a census line counting
+  the bodies that gain tides. Lock work, train 11. Related: GEN.1052,
+  GEN.1218. Owner Aux 4. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1252 Methane fluxes of fuel-limited life classes are multiplied by their share of net primary production: sum fuel-limited rows once per fuel (bug)**
+  Found by Aux 4 in its GEN.1213 air-side review, 4:50 PM EST on
+  2026-11-04 (as the lane reported). In life_air.py the methane flux of
+  every life class is multiplied by that class's share of net primary
+  production. That is right for the oxygenic class (methane from burial
+  of its production), but wrong for classes 2, 3, 6 and 8, which are
+  limited by their own fuel (a donor or a hydrogen supply), not by food:
+  with a 10 percent share beside an oxygenic class their methane comes
+  out about ten times too small. Do: apply the share only on the burial
+  row, and sum fuel-limited rows once per fuel. Only multi-class output
+  changes, so it is lock work with an epoch under its own item. Done: a
+  test with one oxygenic and one fuel-limited class that conserves the
+  fuel and does not scale it by the other class's share. Related:
+  GEN.1209, GEN.1213. Owner Aux 4 (it found it) after the tide hook.
+  Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1253 toxin_factor has no SO2 or H2S term, so worlds with an acid-eater air read as clean for animals (bug)**
+  Found by Aux 4 in its GEN.1213 air-side review, 4:50 PM EST on
+  2026-11-04 (as the lane reported). The toxin test reads CO and CO2
+  only. A world whose air holds SO2 or H2S (the acid-eater classes)
+  therefore reads as clean for animals. Do: add the sourced toxicity
+  terms for SO2 and H2S (and name the other common poisons if the
+  research finds them) to toxin_factor, with sources in the registry and
+  stand-ins in GEN.725 where a number is not sourced. Generation output
+  changes the habitability and life reading of such worlds, so it is
+  lock work with an epoch under its own item. Done: a world with SO2 in
+  the air no longer reads as clean for animals, with a census line.
+  Related: GEN.1213, GEN.1210. Owner Aux 4 or Aux 2 (proposed by the
+  TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -14544,6 +14495,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests/test_emission_members.py (the pre-placed hot star test) also
   times out past 900 s on main. Take it with this item; it is a
   slow-test cost, not a spelling effect.
+  Prerequisites: none.
+
+- [ ] **PERF.233 One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update**
+  Boss, 4:57 PM EST on 2026-11-04: "I want the entire map tile cache
+  built with one command and then I'm going to put that command in the
+  maintenance script so that nightly, after the orbital update, all of
+  the caches are rebuilt from scratch. But I want it to build
+  everything. I want it to cache the entire galactic map as map tiles
+  built." What exists: `planetgen warm` (planetgen/cli/warm.py,
+  web/warmup.py) builds the opening views, the Galaxy Map's nodes to the
+  built levels and the deep nodes along the zoom run, then the lists and
+  object pages, but it stops at each phase's cache budget (cache.max_mb)
+  and warms only what a visit would reach; web/lib/tilecache.py stores
+  packed PGT1 tiles per generation, prunes least recently written files
+  above tile_cache.max_mb, and deletes only changed tiles when data
+  changes (PERF.129, PERF.134 admin page); the monthly orbit update is
+  examples/maintenance/planetgen-orbits@.service and .timer. Do: (1)
+  MEASURE FIRST and report before building: the number of tiles per zoom
+  level for the whole galaxy, bytes per tile stored, the seconds per
+  tile and the total disk and hours for a full build on a 4-core
+  machine, so the cost is known. (2) A single command, e.g. `planetgen
+  warm tiles --all` (or `planetgen tiles build --all`), that builds
+  EVERY tile of EVERY zoom level of the whole galaxy, with no cache
+  budget cap and no pruning while it runs, from scratch: it builds into
+  a new generation beside the live one and swaps it in when complete, so
+  visitors never meet an empty cache and a killed run leaves the old
+  cache serving; progress lines per level, resumable by level, parallel
+  workers set by a setting, exits non-zero on failure. (3) Lift
+  tile_cache.max_mb pruning for a full cache or make the full build
+  declare the size it needs and warn when the disk lacks it. (4) Add the
+  command to the maintenance example: a timer unit that runs after the
+  orbit update (After= and OnSuccess= ordering, or one script that runs
+  orbits and then the build), documented in examples/maintenance and
+  INSTALL.md; the other caches (lists, objects, search) are rebuilt
+  after it by the existing planetgen warm. Done: one command builds the
+  whole galaxy's tiles; a test on a small galaxy proves every level and
+  tile exists afterwards and the swap leaves the old generation serving
+  during the build; the measured size and time are in the report; the
+  maintenance example runs it nightly after the orbit update. Lock-free
+  (no generator output change). Related: PERF.129, PERF.134, PERF.141,
+  MAP.158, MAP.260. Owner Core 2 (map tiles) with Aux 3 for the timings
+  (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -17528,51 +17521,6 @@ clears each one.
   greenhouse change warms K5V ecosphere moons; the range waits for the
   class cut-over).
 
-- [ ] **TEST.435 Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges**
-  Boss (2026-10-28, 7:41 PM EDT): adds the life class and stage shares
-  to the prevalence suite of TEST.430, with targets from the researched
-  norms and the share of sentient worlds held to its present value.
-  Research (2026-10-09): Boss, 9:13 PM EDT 2026-10-28: sentient should
-  be the most rare kind of life, with most life stopping at animal life.
-  Census and generation targets order the stages by prevalence: sentient
-  is the rarest stage, animals the common ceiling.
-  Research (2026-10-09): Bug 2 (PR 3622, 2026-10-28): first run merged,
-  counting the shadow class from GEN.886. 1,246 life worlds in 3,917
-  terrestrial worlds, none past producers, so the 15 to 35 percent
-  animals band fails; tagged GEN.855. Stays open: the census reads the
-  stored class once GEN.889 lands.
-  Research (2026-10-09): Update (Boss answer to Core 1's GEN.907 card,
-  about 6:04 AM EDT 2026-10-29: 'Both, in order'): FIRST restate the
-  life-census bands per oxygenic world (or per sea world with air), not
-  per life world, in docs/design/habitability/life-classes.md 5.2 and in
-  these prevalence tests; THEN, after Aux 2's epoch 120 (GEN.867: class
-  rewrite, Melanin gone, chlorophyll/blue-optimized/far-red classes by
-  starlight) lands, re-baseline the numbers. Take the census after epoch
-  120 merges before setting numbers, because epoch 120 changes the
-  denominator. Core 1's diagnosis:
-  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
-  Bug 2 owns the tests; the band text in life-classes.md is Bug 2's edit
-  with Core 1's report as the source.
-  Research (2026-10-09): Update (Bug 2, #3683, about 6:25 AM EDT
-  2026-10-29 as the lane reported): step one merged. The life census
-  takes the animal and sentient shares per oxygenic world, on 300
-  systems around each of G2V and K5V: 63 oxygenic worlds, 11 percent
-  reach animals, 1 sentient; the band holds so the GEN.907 tag is
-  removed; life-classes.md 5.2 is restated per population; no band
-  number changed. Step two (re-take and re-baseline) waits for Aux 2's
-  epoch 120.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
-  AM EDT): Once GEN.1209 lands the prevalence census also covers the
-  list: the share of worlds with two or more living classes, and the
-  prevalence shares per class, inside researched ranges.
-  Prerequisites: GEN.863, TEST.430.
-
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 9.3 test 3 and
@@ -17745,24 +17693,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.571 test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug)**
-  Found by Bug 1 in its PERF.229 work, 1:50 PM EST on 2026-11-04 (as the
-  lane reported). The hypothesis test
-  test_random_valid_configs_generate_sane_systems runs past 2900 s on
-  plain main: the heavy star draws (giant classes on late subclasses,
-  supergiant cells) cost minutes per system through per-body air and
-  climate work (gas_equilibrium solve, reconcile_moved_planet). Do: cap
-  the number of hypothesis examples, or bound the heavy star draws in
-  the test (as PERF.229 did for the star-type fuzz test, by spectral
-  letter and subclasses 0/5/9), so the test finishes in under 10 minutes
-  on a 4-core machine; keep the sanity checks. Done: the test passes on
-  main in the time. A separate performance item may be filed for the
-  intrinsic per-body air and climate cost if it matters beyond this
-  test. Lock-free (test only). Related: TEST.417, PERF.229. Owner Aux 3
-  after PERF.232 (proposed by the TODO thread). Filed by the TODO
-  thread.
-  Prerequisites: none.
-
 - [ ] **TEST.572 Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug)**
   Found by Tides 1, about 2:30 PM EST on 2026-11-04 (as the lane
   reported), red with and without its GEN.1218b change. (1) A
@@ -17792,6 +17722,20 @@ clears each one.
   3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
   test that follows its map changes (proposed by the TODO thread). Filed
   by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.576 test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug)**
+  Found by Core 5, about 4:45 PM EST on 2026-11-04 (as the lane
+  reported), red on clean main, not from DOC.103. The plain-words test
+  builds a corpus of the site's text and requires at least 1500 words;
+  it finds 1306, so either the corpus lost text (DOC.93 or DOC.94 moved
+  source lines and templates out of the pages it reads) or the floor is
+  stale. Do: find which text left the corpus, and either restore it to
+  the scan or lower the floor to what the in-universe pages hold with
+  the reason written beside it; do not weaken what the test checks.
+  Done: test_plain_words passes on main in 3 runs. Lock-free (test
+  only). Owner Core 1, who built the DOC.94 crawl (proposed by the TODO
+  thread). Filed by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts

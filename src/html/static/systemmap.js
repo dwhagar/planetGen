@@ -39,6 +39,7 @@ const { makeCache, makeQueue, parseLook, tierForDiameter, TIER_SIZES } = await i
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { paintGiant } = await import(`./giantpaint.js${VERSION_QUERY}`);
 const { paintRing, ringGeometry, STRIP_PIXELS } = await import(`./ringpaint.js${VERSION_QUERY}`);
+const { EMISSION_GAIN, thermalOf } = await import(`./thermalglow.js${VERSION_QUERY}`);
 const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
@@ -300,6 +301,16 @@ function initSphereField(canvasEl) {
     var painted = textureFor(marker, tierForDiameter(marker.diameterPx));
     planetMaterial.map = painted;
     planetMaterial.color.set(painted ? "#ffffff" : marker.color);
+    // MAP.275: a body hot enough to shine gives itself light, in the colour of its heat over its own picture.
+    if (marker.thermal) {
+      planetMaterial.emissive.setRGB(marker.thermal.rgb[0] / 255, marker.thermal.rgb[1] / 255, marker.thermal.rgb[2] / 255);
+      planetMaterial.emissiveMap = painted;
+      planetMaterial.emissiveIntensity = marker.thermal.strength * EMISSION_GAIN;
+    } else {
+      planetMaterial.emissive.setRGB(0, 0, 0);
+      planetMaterial.emissiveMap = null;
+      planetMaterial.emissiveIntensity = 1;
+    }
     planetMaterial.needsUpdate = true;
 
     ring.visible = !!marker.ring;
@@ -403,6 +414,7 @@ function initSphereField(canvasEl) {
       return { name: marker.circle.parentNode.dataset.name, angle: Spin.angleAt(marker.look, Spin.seconds()),
         rate: Spin.rateOf(marker.look), spinH: marker.look.spinH, axis: marker.axis, at: Spin.seconds(),
         kind: marker.look.kind, locked: Spin.isLocked(marker.look), isSelf: marker.isSelf, toward: marker.toward || null,
+        thermal: marker.thermal ? marker.thermal.strength : null,
         ring: marker.ring ? { in: marker.ring.in, out: marker.ring.out, gaps: (marker.ring.gaps || []).length, shown: marker.ring.alpha > 0 } : null,
         cx: rects[i] ? rects[i].cx : null, cy: rects[i] ? rects[i].cy : null };
     });
@@ -452,6 +464,7 @@ function gatherSphereMarkers(sceneEl) {
       isSelf: !!(circle.parentNode && circle.parentNode.dataset && circle.parentNode.dataset.self === "true"),
       isGasGiant: isGasGiant,
       ring: look.ring || null,
+      thermal: thermalOf(look),
       paintable: look.body === "solid" || look.body === "gas" || isStar,
       glowScale: glowFor(look.lumSolar).scale,
       glowStrength: glowFor(look.lumSolar).strength,

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1071 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1082 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 152 | 15 | 8 | 1 | 0 | 176 |
-| T2 | 114 | 42 | 0 | 1 | 0 | 157 |
+| T1 | 153 | 17 | 8 | 1 | 0 | 179 |
+| T2 | 115 | 43 | 0 | 1 | 0 | 159 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
 | T5 | 48 | 19 | 2 | 1 | 0 | 70 |
-| T6 | 102 | 82 | 21 | 51 | 0 | 256 |
+| T6 | 103 | 82 | 21 | 52 | 0 | 258 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 22 | 14 | 5 | 46 | 25 | 112 |
-| All | 607 | 232 | 52 | 144 | 36 | 1071 |
+| T9 | 22 | 14 | 5 | 47 | 28 | 116 |
+| All | 610 | 235 | 52 | 146 | 39 | 1082 |
 
 ## How the labels were given
 
@@ -1475,7 +1475,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
 
-## 6.170 Stand-ins of the picture of a ring
+## 6.170 Stand-ins of the picture of a ring and of a glowing body
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1487,6 +1487,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RNG6 | P | T9 | L4 | ringlook.DISPLAY_GAIN 1.6, DUST_ALPHA_FLOOR 0.06, MAX_ALPHA 0.95: the picture is 1.6 times brighter than the albedo, no ring is less opaque than 0.06 or more than 0.95 | gain 1 to 2.5; floor 0.03 to 0.1 | any ring | none: display choices | a rendering model that works the light of the ring | chosen so an icy ring reads as a bright ring and a dust ring is still seen; [R5090] the visible I/F of Saturn's rings is about 0.5 | - | - |
 | RNG7 | P | T6 | L2 | ringlook.RESONANCES 2:1 (weight 1), 3:2 (0.6), 3:1 (0.35), 4:3 (0.35) and GAP_COEFFICIENT 2500: a gap at a moon's resonance with width over radius = weight times 2500 times (moon mass over planet mass) to the 2/3 | weights 0.2 to 1; coefficient 1000 to 5000 | a ring with a moon outside it | a stored ring and moon set whose measured gaps differ by more than a factor of 3 in width | a gap width from the resonance torque and the ring's viscosity | the coefficient is fitted to the Cassini Division (0.04 of the radius for Mimas, 6.6e-8 of Saturn's mass); the form is the resonance radius a (q/p)^(2/3) | - | - |
 | RNG8 | P | T9 | L4 | ringlook.GAP_MAX_SHARE 0.25, GAP_MIN_SHARE 0.006 and ringpaint.js RINGLET_SWING 0.35, NARROW_RINGLETS 4, NARROW_WIDTH 0.025, NARROW_CONCENTRATION 6, edge fades 0.35 (dusty), 0.04 (narrow), 0.03 (broad): the drawn gap widths and the seeded ringlet pattern | each by a factor of 2 | any ring | none: a picture | a ring structure worked out from the ring's dynamics | choices of the item; no source | - | - |
+| RNG9 | P | T2 | L0 | bodylook.THERMAL_ONSET_K 800: a body starts to shine by its own heat at the Draper point, about 800 K (525 C) | 700 to 900 K | any planet or moon with a stored temperature | a body that is seen to glow red cooler than 700 K | a glow worked out from the emissivity and the eye's sensitivity | recalled (the Draper point); the gap plan has no registry source for it yet | - | - |
+| RNG10 | P | T9 | L3 | bodylook.THERMAL_FULL_K 2400 and thermalglow.js EMISSION_GAIN 1.1: the glow rises linearly from 0 at 800 K to full at 2400 K, and a full glow adds as much light as the body's own colour; the glow is the blackbody colour of the body's temperature over its own picture | full at 1800 to 3000 K; gain 0.5 to 2 | a hot giant or a molten world | none: tuned by eye so that 1000 K reads dull red and 2000 K bright orange | a rendering model that works the emitted light | tuned by eye | - | - |
+| RNG11 | P | T6 | L3 | giantpaint.BAND_K 120, BANDS_MIN 4, BANDS_MAX 24: bands = round(120 x (R / R_Jupiter) / P_hours), clamped, made odd (an equatorial zone and the same number each side); 8 with no stored spin | K 80 to 200 | a giant with a stored spin | a band count that disagrees with the belts and zones of Jupiter (about 12 to 16 are seen) or Saturn by more than a factor of 2 | a count worked out from the jet speed and the Rhines length (the report's law n = 24 sqrt(Omega/Omega_J) sqrt(v_J/v_jet) has no usable jet speed law: the heat-flux speed gives Saturn 26 to 33 against 17 observed) | fitted to what is seen on Jupiter and Saturn; [R5082] 30 and 17 jets observed | - | - |
+| RNG12 | P | T1 | L1 | giantpaint.EQUATOR_HALF_MIN_DEG 15 and EQUATOR_HALF_MAX_DEG 30: the equatorial zone's half-width, drawn between Jupiter's and Saturn's | 10 to 35 degrees | any giant | a jet profile of a giant whose equatorial band is outside 10 to 35 degrees | a half-width from the jet speed ratio | [R5082] Jupiter's equatorial jet within plus or minus 15 degrees, Saturn's a single jet to plus or minus 30 | - | - |
+| RNG13 | P | T9 | L4 | giantpaint.ICE_GIANT_BANDS 5 or 7: a giant with cloud tops under 130 K has 2 or 3 bands a hemisphere and the equatorial zone | 3 to 11 | methane-air ice giants | a read count of bands for Uranus or Neptune | a jet count of the ice giants from a source read | needed output: no source gives a jet count for Uranus or Neptune (the report's section 2) | - | - |
+| RNG14 | P | T6 | L0 | giantpaint.DEFORMATION_JUPITER_KM 2000 scaled by (T / 165 K), (2.53 g / g) and (P / 9.93 h): the Rossby deformation radius of a giant | Jupiter's 500 to 2500 km | any giant | a measured deformation radius of another giant outside a factor of 3 of the scaling | the radius from the Brunt-Vaisala frequency of the generated air | [R5081] about 2000 km at Jupiter, [R5085] 500 to 2500 km; the scaling with scale height and the Coriolis parameter is the form L_R = H_P N / f of [R5086], with N kept at Jupiter's | - | - |
+| RNG15 | P | T2 | L1 | giantpaint.STORM_SIZE_MIN_KM 1000 and STORM_SIZE_LOG_RANGE 0.8: a large storm is 1 to 6.3 deformation radii long and no storm of this kind is under 1000 km | range 5 to 26 radii (the Great Red Spot by the maximum-entropy count) | a giant with storms | a measured storm population outside the range | a storm size law from a source | [R5086] the Great Red Spot about 13,000 km, [R5085] 20,000 by 10,000 km against 500 to 2500 km | - | - |
+| RNG16 | P | T1 | L1 | giantpaint.STORM_ASPECT_MIN 1.2 and STORM_ASPECT_MAX 1.9: a large storm's length over its height | 1.2 to 1.9 | any large storm | a measured aspect ratio outside 1.2 to 1.9 | the aspect from the vortex theory | [R5087] 1.84 (1.93 measured) for the Great Red Spot, 1.45 (1.22) for Oval BA, 1.44 (1.34) and 1.67 (1.67) for Ovals DE and BC | - | - |
+| RNG17 | P | T1 | L0 | giantpaint.CYCLONE_SHARE 0.1: nine in ten storms are anticyclones | 0.05 to 0.2 | any giant with storms | a measured share outside 0.05 to 0.2 | a sign law from a source | [R5087] about 90 percent of Jupiter's vortices are anticyclonic | - | - |
+| RNG18 | P | T9 | L4 | giantpaint storm counts and weights: 1 to 4 large storms (one more at 11 bands and another at 19; one for a nearly featureless giant), 6 + 2 bands small storms up to 40, 1000 to 3000 km, drawn at 0.25 to 0.55 of the large storms' strength | each by a factor of 2 | any giant | none: a picture | a storm count law from a source | the design's 1 to 4; [R5086] the real count (hundreds of 1000 km spots) is a texture of small ones; no source gives a count law by rotation or heat flux | - | - |
+| RNG19 | P | T9 | L4 | giantpaint.CONTRAST_BY_TEMP, the belt and zone colours, the chromophore amounts (H2S_FULL, CH4_FULL, H2O_FULL) and the cloud regimes (130, 250 and 800 K): how the cloud-top temperature and the stored gases set the picture | each by a factor of 1.5 | any giant | none: a picture | band contrast and colour from the optics of the generated clouds (GEN.422 k-tables) | tuned by eye so that a methane giant is nearly featureless, an ammonia giant strongly banded and a hot giant dull | - | - |
 
 ## 6.165 Stand-ins of the habitable bodies per system
 

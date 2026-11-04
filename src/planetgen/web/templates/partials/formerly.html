@@ -4,7 +4,7 @@ never changed. -#}
 {%- macro formerly(lines) -%}
 {%- if lines %}
 <p class="formerly"><strong>Formerly</strong>
-  {%- for line in lines %}{{ ";" if not loop.first else ":" }} <span class="formerly-entry">{{ line.designation }} <span class="formerly-why">({{ line.what | lower }}, {{ line.reason }}, epoch {{ line.epoch }}{% if line.date %}, {{ line.date }}{% endif %})</span></span>{% endfor -%}
+  {%- for line in lines %}{{ ";" if not loop.first else ":" }} <span class="formerly-entry">{{ line.designation }} <span class="formerly-why">({{ line.what | lower }}, {{ line.reason }}{% if line.date %}, {{ line.date }}{% endif %})</span></span>{% endfor -%}
 </p>
 {%- endif %}
 {%- endmacro -%}

@@ -13,7 +13,11 @@
 //     a cloudless or silicate-hot giant almost none;
 //   * the palette comes from the stored gases: methane tints the air blue-green, ammonia clouds are cream, hydrogen sulfide
 //     (the source of the ammonium hydrosulfide browns) warms the belts, water whitens the zones;
-//   * 1 to 4 storms, more for a fast spinner, tinted by the same minor chromophore.
+//   * MAP.275 part 2: the bands are laid out from the equator outward (a wide equatorial zone, half-width 15 to 30 degrees, then belt and zone by turns,
+//     the same on both sides); an ice giant (cloud tops under 130 K) gets 5 or 7 bands (2 or 3 a hemisphere and the equatorial zone);
+//   * storms: 1 to 4 large ovals, more with more bands, each 1 to 6.3 Rossby deformation radii across (the radius from the cloud-top temperature,
+//     gravity and spin, 2000 km at Jupiter), an aspect ratio of 1.2 to 1.9, nine in ten anticyclones (tinted by the minor chromophore) and the rest
+//     dark cyclones, and a field of small ones (1000 to 3000 km) as texture.
 //
 // Same look, same size: same pixels. Do not change the noise or the constants without a changelog note.
 
@@ -26,6 +30,22 @@ export var BAND_K = 120;
 export var BANDS_MIN = 4;
 export var BANDS_MAX = 24;
 export var BANDS_NO_SPIN = 8;
+
+// MAP.275 part 2: the laws of the research report (reports/gen670-body-rendering-research-2026-11-04.md sections 2 and 3, rows RNG11 to RNG18).
+export var DEFORMATION_JUPITER_KM = 2000;       // the Rossby deformation radius at Jupiter's mid-latitudes [R5081]
+var TEMP_JUPITER_K = 165;
+var GRAVITY_JUPITER_G = 2.53;
+var SPIN_JUPITER_H = 9.93;
+export var STORM_SIZE_MIN_KM = 1000;            // a large storm is no smaller
+export var STORM_SIZE_LOG_RANGE = 0.8;          // 1 to 6.3 deformation radii across (log10)
+export var STORM_ASPECT_MIN = 1.2;              // the drawn oval's length over its height, 1.2 to 1.9
+export var STORM_ASPECT_MAX = 1.9;
+export var CYCLONE_SHARE = 0.1;                 // nine in ten of Jupiter's vortices are anticyclones
+export var SMALL_STORM_MIN_KM = 1000;
+export var SMALL_STORM_MAX_KM = 3000;
+export var EQUATOR_HALF_MIN_DEG = 15;           // the equatorial zone's half-width: Jupiter's 15 degrees to Saturn's 30
+export var EQUATOR_HALF_MAX_DEG = 30;
+export var ICE_GIANT_BANDS = [5, 7];            // an ice giant: 2 or 3 bands a hemisphere and the equatorial zone
 
 // Belt and zone contrast (0 to 1, the lightness step) by cloud-top temperature, K: linear between the rows.
 var CONTRAST_BY_TEMP = [
@@ -85,6 +105,36 @@ export function bandCount(spinH, radiusKm) {
   return Math.max(BANDS_MIN, Math.min(BANDS_MAX, Math.round((BAND_K * size) / spinH)));
 }
 
+// The Rossby deformation radius, km, of a giant: Jupiter's 2000 km scaled by the pressure scale height (the cloud-top temperature over gravity) and
+// by the spin (the Coriolis parameter grows with it), `L_D = 2000 km * (T / 165 K) * (2.53 g / g) * (P / 9.93 h)`; what the look record does not store counts as Jupiter's.
+export function deformationKm(look) {
+  var temp = look.tempK > 0 ? look.tempK : TEMP_JUPITER_K;
+  var gravity = look.gravG > 0 ? look.gravG : GRAVITY_JUPITER_G;
+  var spin = look.spinH > 0 ? look.spinH : SPIN_JUPITER_H;
+  return DEFORMATION_JUPITER_KM * (temp / TEMP_JUPITER_K) * (GRAVITY_JUPITER_G / gravity) * (spin / SPIN_JUPITER_H);
+}
+
+// The number of bands laid out from the equator: odd (one equatorial zone and the same number on each side), an ice giant 5 or 7.
+export function bandsFor(look, rand) {
+  var temp = look.tempK > 0 ? look.tempK : 160;
+  if (temp < HOT_ONSET_K) return ICE_GIANT_BANDS[Math.floor(rand() * ICE_GIANT_BANDS.length)];
+  var n = bandCount(look.spinH, look.radiusKm);
+  return n % 2 === 1 ? n : n + 1;
+}
+
+// The edges of `n` bands (n odd) as shares of the way from the north pole (0) to the south pole (1): the equatorial band is centered on 0.5 and
+// `halfDeg` degrees either way, the rest share what is left on each side evenly, with a seeded jitter.
+export function bandEdges(n, halfDeg, rand) {
+  var half = halfDeg / 180;
+  var each = (n - 1) / 2;
+  var north = [0];
+  for (var i = 1; i < each; i++) north.push((i / each) * (0.5 - half) + ((rand() - 0.5) * 0.5 * (0.5 - half)) / each);
+  north.push(0.5 - half);
+  var edges = north.slice();
+  for (var j = each; j >= 0; j--) edges.push(1 - north[j]);
+  return edges;
+}
+
 // The recipe for a giant's picture: every number the painter uses, from the look record alone.
 export function giantRecipe(look) {
   var rand = makeRandom((look.seed >>> 0) ^ 0x6a09e667);
@@ -92,7 +142,8 @@ export function giantRecipe(look) {
   var gas = look.gas || {};
   var known = look.gas !== undefined;
   var base = parseHex(look.color);
-  var bands = bandCount(look.spinH, look.radiusKm);
+  var bands = bandsFor(look, rand);
+  var equatorHalfDeg = EQUATOR_HALF_MIN_DEG + (EQUATOR_HALF_MAX_DEG - EQUATOR_HALF_MIN_DEG) * rand();
   var contrast = interpolate(CONTRAST_BY_TEMP, temp) * (0.8 + 0.4 * rand());
 
   // With no stored mixture the temperature regime stands in: ammonia in its band, methane below it.
@@ -111,12 +162,14 @@ export function giantRecipe(look) {
   belt = mix(belt, ammoniaRegime || waterRegime ? WARM_BELT : COLD_BELT, ammoniaRegime || waterRegime ? chromo * 0.55 : ch4 * 0.3);
   var storm = chromo > 0.45 ? mix(zone, STORM_RED, 0.5 + 0.4 * chromo) : mix(zone, [255, 255, 255], 0.5);
 
-  var fast = look.spinH > 0 ? clamp01((20 - look.spinH) / 14) : 0.4;
-  var stormCount = Math.max(1, Math.min(4, 1 + Math.floor(rand() * 2) + Math.round(fast * 1.5)));
+  // 1 to 4 large storms, more with more bands; one for a nearly featureless giant.
+  var stormCount = Math.max(1, Math.min(4, 1 + Math.floor(rand() * 2) + (bands >= 11 ? 1 : 0) + (bands >= 19 ? 1 : 0)));
   if (contrast < 0.1) stormCount = 1;
 
   return {
     bands: bands,
+    equatorHalfDeg: equatorHalfDeg,
+    deformationKm: deformationKm(look),
     sharp: 0.25 + 0.7 * clamp01((bands - BANDS_MIN) / 16),
     contrast: contrast,
     chromo: chromo,
@@ -129,6 +182,38 @@ export function giantRecipe(look) {
   };
 }
 
+// The storms of a giant: `r.storms` large ovals and a field of small ones, each `{ u, v, rx, ry, weight, colour, size, cyclone, large }` with the center
+// at longitude share `u` and latitude share `v`, the half-sizes `rx` (of the longitude circle) and `ry` (of the half circle from pole to pole), `size` the
+// storm's length in km. A large storm is 1 to 6.3 deformation radii long (none under 1000 km), 1.2 to 1.9 times as long as high, nine in ten an
+// anticyclone (the tinted oval) and the rest a dark cyclone; the small ones are 1000 to 3000 km, faint.
+export function stormsFor(look, r, edges, rand) {
+  var radiusKm = look.radiusKm > 0 ? look.radiusKm : JUPITER_RADIUS_KM;
+  var n = r.bands;
+  var dark = scaled(r.belt, 0.65);
+  function oval(size, aspect, weight, cyclone, large) {
+    var band = Math.floor(rand() * n);
+    var v = Math.max(0.12, Math.min(0.88, (edges[band] + edges[band + 1]) / 2));
+    var cosLat = Math.max(0.25, Math.cos((v - 0.5) * Math.PI));
+    var rx = Math.min(0.2, size / 2 / (2 * Math.PI * radiusKm * cosLat));
+    var ry = Math.min(0.12, size / aspect / 2 / (Math.PI * radiusKm));
+    return { u: rand(), v: v, rx: rx, ry: ry, weight: weight, size: size, cyclone: cyclone, large: large,
+      colour: cyclone ? dark : large ? r.stormColor : mix(r.zone, [255, 255, 255], 0.35) };
+  }
+  var storms = [];
+  for (var s = 0; s < r.storms; s++) {
+    var size = r.deformationKm * Math.pow(10, STORM_SIZE_LOG_RANGE * rand());
+    var aspect = STORM_ASPECT_MIN + (STORM_ASPECT_MAX - STORM_ASPECT_MIN) * rand();
+    var cyclone = rand() < CYCLONE_SHARE;
+    if (size >= STORM_SIZE_MIN_KM) storms.push(oval(size, aspect, 1, cyclone, true));
+  }
+  var small = Math.min(40, 6 + 2 * n);
+  for (var q = 0; q < small; q++) {
+    var length = SMALL_STORM_MIN_KM + (SMALL_STORM_MAX_KM - SMALL_STORM_MIN_KM) * rand();
+    storms.push(oval(length, STORM_ASPECT_MIN + (STORM_ASPECT_MAX - STORM_ASPECT_MIN) * rand(), 0.25 + 0.3 * rand(), rand() < CYCLONE_SHARE, false));
+  }
+  return storms;
+}
+
 // Equirectangular RGBA pixels, w by h (row 0 is the north pole, column 0 the 0-degree meridian).
 export function paintGiant(look, w, h) {
   var r = giantRecipe(look);
@@ -136,21 +221,11 @@ export function paintGiant(look, w, h) {
   var rand = makeRandom(seed ^ 0xbb67ae85);
   var n = r.bands;
 
-  // Band edges, evenly spread with a seeded jitter, and a seeded strength for each band.
-  var edges = [0];
+  // Band edges from the equator outward (a wide equatorial zone, then the rest evenly with a seeded jitter), and a seeded strength for each band.
+  var edges = bandEdges(n, r.equatorHalfDeg, rand);
   var strength = [];
-  for (var i = 1; i < n; i++) edges.push(i / n + ((rand() - 0.5) * 0.6) / n);
-  edges.push(1);
   for (var k = 0; k < n; k++) strength.push(0.6 + 0.4 * rand());
-
-  // Storms: a latitude inside a band, a longitude, and an oval size.
-  var storms = [];
-  for (var s = 0; s < r.storms; s++) {
-    var band = Math.floor(rand() * n);
-    var lat = Math.max(0.12, Math.min(0.88, (edges[band] + edges[band + 1]) / 2));
-    var wide = 0.025 + 0.05 * rand();
-    storms.push({ u: rand(), v: lat, rx: wide, ry: wide * 0.55 });
-  }
+  var storms = stormsFor(look, r, edges, rand);
 
   var out = new Uint8ClampedArray(w * h * 4);
   var edgeWidth = (1 - r.sharp) * 0.45 + 0.05; // transition width as a share of a band
@@ -165,8 +240,8 @@ export function paintGiant(look, w, h) {
       var b = 0;
       while (b < n - 1 && t >= edges[b + 1]) b++;
       var width = edges[b + 1] - edges[b];
-      // 0 for a belt, 1 for a zone, softened across the edges.
-      var here = b % 2;
+      // 0 for a belt, 1 for a zone, softened across the edges; the equatorial band is a zone and they alternate outward from it.
+      var here = (Math.abs(b - (n - 1) / 2) % 2 === 0) ? 1 : 0;
       var near = Math.min(t - edges[b], edges[b + 1] - t) / (width * edgeWidth);
       var tone = here + (0.5 - here) * (1 - smoothstep(0, 1, near));
       var level = clamp01(0.5 + (tone - 0.5) * strength[b] * 2 * polar);
@@ -183,10 +258,10 @@ export function paintGiant(look, w, h) {
         if (du > 0.5) du = 1 - du;
         var d = Math.sqrt((du / st.rx) * (du / st.rx) + ((v - st.v) / st.ry) * ((v - st.v) / st.ry));
         if (d < 1) {
-          var a = (1 - smoothstep(0.4, 1, d)) * r.stormStrength;
-          pr += (r.stormColor[0] - pr) * a;
-          pg += (r.stormColor[1] - pg) * a;
-          pb += (r.stormColor[2] - pb) * a;
+          var a = (1 - smoothstep(0.4, 1, d)) * r.stormStrength * st.weight;
+          pr += (st.colour[0] - pr) * a;
+          pg += (st.colour[1] - pg) * a;
+          pb += (st.colour[2] - pb) * a;
         }
       }
       var o = (y * w + x) * 4;

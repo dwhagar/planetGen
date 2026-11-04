@@ -15,6 +15,7 @@ const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { paintGiant } = await import(`./giantpaint.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
+const { glowed, thermalOf } = await import(`./thermalglow.js${VERSION_QUERY}`);
 const { isLumpy } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { lumpMesh, rasterise } = await import(`./lumpyview.js${VERSION_QUERY}`);
 
@@ -120,6 +121,7 @@ function prepare(canvas, look) {
   const base = parseHex(look.color);
   const twilight = look.twilight || 0;
   const light = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
+  const hot = star ? null : thermalOf(look);     // MAP.275: a hot body adds its own glow to the shade
   const lumpy = isLumpy(look);       // MAP.363: a body its weight has not made round is the lump the System Map draws, not a disk
   const places = [];
   for (let y = 0; y < size && !lumpy; y++) {
@@ -220,6 +222,12 @@ function prepare(canvas, look) {
       data[at] = Math.min(255, r * shade);
       data[at + 1] = Math.min(255, g * shade);
       data[at + 2] = Math.min(255, b * shade);
+      if (hot) {
+        const own = (r + g + b) / 3;
+        data[at] = glowed(data[at], hot.rgb[0], own, hot.strength);
+        data[at + 1] = glowed(data[at + 1], hot.rgb[1], own, hot.strength);
+        data[at + 2] = glowed(data[at + 2], hot.rgb[2], own, hot.strength);
+      }
       data[at + 3] = alphas[i];
     }
     scratchContext.putImageData(image, 0, 0);

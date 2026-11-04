@@ -63,7 +63,8 @@ def test_the_previous_schemas_galaxy_takes_the_american_words_and_column(mysql_c
         _insert(conn, "bright_stars", 1, population="nuclear_disc")
         _insert(conn, "bright_stars", 2, population="halo")
         _stop_enforcing(conn, "asteroid_belts", set())
-        _insert(conn, "asteroid_belts", 1, origin_cause="outer-disc", co_causes='["outer-disc", "gap"]')
+        _insert(conn, "asteroid_belts", 1, origin_cause="outer-disc", co_causes='["outer-disc", "gap"]',
+                origin_sentence="The cold leftover of the disc past 3 AU: it was discovered late.", origin_history='["a Disc of dust", "discrete"]')
         _insert(conn, "asteroid_belts", 2, origin_cause="gap", co_causes=None)
         conn.commit()
     finally:
@@ -80,7 +81,10 @@ def test_the_previous_schemas_galaxy_takes_the_american_words_and_column(mysql_c
                                     " AND COLUMN_NAME = 'ground_oxidised_fraction'", (table,)).fetchall()
         assert _clause(conn, "bright_stars", "nuclear_disk") and not _clause(conn, "bright_stars", "nuclear_disc")
         assert [row["population"] for row in conn.execute("SELECT population FROM bright_stars ORDER BY id").fetchall()] == ["nuclear_disk", "halo"]
-        belts = conn.execute("SELECT origin_cause, co_causes FROM asteroid_belts ORDER BY id").fetchall()
+        belts = conn.execute("SELECT origin_cause, co_causes, origin_sentence, origin_history FROM asteroid_belts ORDER BY id").fetchall()
+        assert (belts[0]["origin_sentence"], belts[0]["origin_history"]) == (
+            "The cold leftover of the disk past 3 AU: it was discovered late.", '["a Disk of dust", "discrete"]')
+        assert belts[1]["origin_sentence"] is None
         assert [(row["origin_cause"], row["co_causes"]) for row in belts] == [("outer-disk", '["outer-disk", "gap"]'), ("gap", None)]
         enforced = conn.execute("SELECT COUNT(*) AS n FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE()"
                                 " AND CONSTRAINT_TYPE = 'CHECK' AND ENFORCED = 'NO'").fetchone()["n"]

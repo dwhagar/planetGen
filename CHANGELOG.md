@@ -2,6 +2,63 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3201] - 2026-11-04
+
+**Headline:** The life census now also counts how many worlds have two or more living classes and how common each class is.
+
+### Changed
+- **TEST.435: the life census covers the list of living classes (GEN.1209).** `tests/audit/prevalence_life.py` takes the share of life worlds on which two or more life classes live (band 0.6 to 1.0, registry row LC1, T9, L3), reports the share of life worlds each class lives on and the worlds where a class beside the dominant one reached a civilization. Re-taken at epoch 131 on 400 default systems and 150 around each of G2V and K5V: 0.857 of 727 life worlds have two or more classes (the hydrogen eaters 3a and the 4b class are on 83 and 77 percent of them), 0.725 stop before animals, 5 of 46 oxygenic life worlds reach animals, none reaches a civilization; no band for the earlier measures changed. Tests and documents only; no generated output changes.
+
+## [8.0.3200] - 2026-11-04
+
+**Headline:** Paths and pulls in a sector far from the galaxy's centre are as exact as in one beside it.
+
+### Fixed
+- The gravity kernel (`physics/field_kernel.py`) measures from a local origin: the start of a path, or the first point of a pull. A step is no longer added to a position 262 kpc from the centre, where the numbers are 1,049 km apart, so the low bits of every step were lost and the loss built up along the path. A path at the reach now matches the same path beside the centre to the spacing of the far numbers; before, it was off by about ten spacings.
+- Stored paths are left out of the fingerprints and the golden files, so nothing in them moves. A sector's paths come out the same except for the last digits.
+
+generation-output: unchanged
+TODO items resolved: GEN.375
+
+## [8.0.3199] - 2026-11-04
+
+**Headline:** Giant planets are drawn with a wide equatorial zone, belts and zones from the equator outward, and storms sized by the Rossby deformation radius.
+
+### Changed
+- **MAP.275, part 2 (bands and storms).** The belts and zones of a gas or ice giant are laid out from the equator outward: one equatorial zone, 15 to 30 degrees either side of the equator, then belts and zones by turns, the same number on each side. An ice giant (cloud tops under 130 K) gets 5 or 7 bands. The storms follow the research of GEN.670: each large storm is 1 to 6.3 Rossby deformation radii long (2000 km at Jupiter, scaled by the cloud-top temperature, the surface gravity, which the look record now carries as `gravG`, and the spin), 1.2 to 1.9 times as long as high, nine in ten an anticyclone and one in ten a dark cyclone, with one to four of them (more for more bands) and a field of small faint ones, so a fast spinner or a small cold giant has smaller storms than Jupiter. The pictures of every giant change. The band count law is unchanged: the research found no usable jet-speed law to replace it (the heat-flux law gives Saturn 26 to 33 bands against 17 observed). The numbers are stand-ins GEN.725 lists as rows RNG11 to RNG19 (section 6.170), which also now register the colour and contrast tables of the giant painter.
+
+generation-output: unchanged
+
+## [8.0.3198] - 2026-11-04
+
+**Headline:** The belt property sheet shows whether a giant stirs the belt, and the three stored lists of a belt's origin say why they are not rows.
+
+### Changed
+- **Belt sheet rows for the stored origin (GEN.1069).** The sheet of a belt gains "Stirred by a giant". The other formation causes, the history sentences and the scatter shares are lists and mappings that the belt page prints as sentences, so the sheet leaves them out with the reason written beside them.
+
+generation-output: unchanged
+
+TODO items resolved: none.
+
+## [8.0.3197] - 2026-11-04
+
+**Headline:** A planet or moon hotter than about 800 K now glows by its own heat, in the colour of that heat, on the System Map and the object page.
+
+### Changed
+- **MAP.275, part 3 (thermal glow).** A hot giant or a molten world used to be drawn like a cold one, dark on its night side. A body whose temperature is above about 800 K (the Draper point, where a body begins to shine red) now gives itself light: the colour is the blackbody colour of its temperature (dull red near 1000 K, orange near 2000 K, white-yellow above), the strength rises from nothing at 800 K to full at 2400 K, and the glow is spread over the body's own picture so a dark band glows less than a bright one. The look record gains a `thermal` entry; the numbers are stand-ins GEN.725 lists as rows RNG9 and RNG10 (section 6.170). Storms and the band and storm laws are the last part of MAP.275.
+
+generation-output: unchanged
+
+## [8.0.3196] - 2026-11-04
+
+**Headline:** The whole-system fuzz test no longer draws the slow giant and supergiant star classes and runs 20 examples, so it finishes instead of timing out.
+
+### Changed
+
+- `test_random_valid_configs_generate_sane_systems` ran past 2900 s on main: a star drawn from the Yerkes classes IA+, IA, IAB, IB, II or III costs 10 to 60 s of per-body air and climate work, and half the examples name a star type. It now runs 20 examples instead of 80 (still scaled up in the deep profile), and its configs draw a star type from the other classes (420 of 840 types). Every spectral letter and subclass of the heavy classes stays covered by `test_every_star_type_generates_a_sane_system`, and every sanity check of the whole-system test is unchanged. The test also stopped asserting that `HABITABLE_WORLD=False` leaves no life-class body (the bar is only the request's conditions in the ecosphere, GEN.916); it asserts the system makes no habitable request. Tests only.
+
+generation-output: unchanged
+
 ## [8.0.3195] - 2026-11-04
 
 **Headline:** The stand-in rows of the ring picture are numbered 6.170 and RNG1 to RNG8, clear of two other rows.

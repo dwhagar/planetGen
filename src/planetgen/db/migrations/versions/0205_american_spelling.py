@@ -65,6 +65,11 @@ def upgrade():
     if helpers.exists_column(connection, "asteroid_belts", "origin_cause"):
         connection.execute(sa.text("UPDATE asteroid_belts SET origin_cause = 'outer-disk' WHERE origin_cause = 'outer-disc'"))
         connection.execute(sa.text("UPDATE asteroid_belts SET co_causes = REPLACE(co_causes, 'outer-disc', 'outer-disk') WHERE co_causes LIKE '%outer-disc%'"))
+    if helpers.exists_column(connection, "asteroid_belts", "origin_sentence"):
+        for column in ("origin_sentence", "origin_history"):    # the sentences of the belt origins (`the disc past 3 AU`), whole word only
+            connection.execute(sa.text(
+                f"UPDATE asteroid_belts SET {column} = REGEXP_REPLACE({column}, '\\\\b(d|D)isc(s?)\\\\b', '$1isk$2')"
+                f" WHERE {column} REGEXP '\\\\b[dD]isc'"))
     for table, old, new in COLUMNS:
         if helpers.exists_column(connection, table, old) and not helpers.exists_column(connection, table, new):
             op.execute(f"ALTER TABLE {table} RENAME COLUMN {old} TO {new}, ALGORITHM=INPLACE")

@@ -564,7 +564,7 @@ def _belt_section(belt):
         fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
     if belt.largest_body_km:
-        rows.append(fact("largest-body", "Largest Body", _km(belt.largest_body_km)))
+        rows.append(fact("largest-body", "Largest body", _km(belt.largest_body_km)))
     rows.append(meteorite_group_fact(belt))
     parts = [{"name": component, "level": level} for component, level in belt.composition]
     blocks = [facts("Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
