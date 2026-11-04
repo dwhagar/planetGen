@@ -149,7 +149,7 @@ def test_a_cancel_before_anything_moved_stops_at_once_and_changes_nothing(galaxy
 
     monkeypatch.setattr(orbits, "get_orbit_update_elapsed_years", cancelled_early)
     assert run_orbits(galaxy, monkeypatch) == 130
-    assert "Cancelled before any position moved" in capsys.readouterr().err
+    assert "Canceled before any position moved" in capsys.readouterr().err
     assert snapshot(galaxy) == before
 
 

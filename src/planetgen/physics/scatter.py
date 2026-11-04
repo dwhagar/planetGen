@@ -156,10 +156,10 @@ def history_line(shares, giant_au, migration_au):
     """One sentence for the belt page."""
     percent = round(100.0 * scattered_share(shares))
     if migration_au > 0.0:
-        return f"when the outer giant moved from {giant_au - migration_au:.0f} to {giant_au:.0f} AU it scattered {percent} percent of the disc"
+        return f"when the outer giant moved from {giant_au - migration_au:.0f} to {giant_au:.0f} AU it scattered {percent} percent of the disk"
     if percent > 0:
-        return f"the outer giant at {giant_au:.0f} AU never moved but its chaotic zone scattered {percent} percent of the disc"
-    return "no giant reached the disc, which kept all its solids on cold orbits"
+        return f"the outer giant at {giant_au:.0f} AU never moved but its chaotic zone scattered {percent} percent of the disk"
+    return "no giant reached the disk, which kept all its solids on cold orbits"
 
 
 def reach_band_au(giant_au, formation_au, giant_mass_earth, star_mass_solar):

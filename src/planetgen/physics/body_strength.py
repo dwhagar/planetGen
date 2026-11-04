@@ -38,6 +38,8 @@ FIELDS = ("roundness_ratio", "yield_strength_pa", "binding_energy_j")
 
 _km_to_m = units.converter("km", "m")
 _g_cm3_to_kg_m3 = units.converter("g_cm3", "kg_m3")
+_msun_to_kg = units.converter("Msun", "kg")
+_kg_to_msun = units.converter("kg", "Msun")
 
 STRENGTH_DRAW_STREAM = "body-strength"
 """str: The seed prefix of the stream a body's strength quantile is drawn from (GEN.1178)."""
@@ -129,13 +131,14 @@ COMET_FIELDS = ("density_g_cm3", "ice_mass_fraction", *FIELDS)
 
 
 def generate_comet(comet):
-    """Sets `COMET_FIELDS` on a comet from its makeup, nucleus diameter and mass (a sphere at the makeup's bulk density), at the cold strength."""
+    """Sets `COMET_FIELDS` on a comet or an interstellar comet (GEN.1162) from its makeup, nucleus diameter and mass (a sphere at the makeup's bulk density), at the cold strength."""
     makeup = comet.makeup
     radius_m = comet.nucleus_diameter_km * 500.0
     density = makeup.bulk_density_kg_m3 if makeup.bulk_density_kg_m3 is not None else makeup.density_at(comet.nucleus_diameter_km / 2.0)
     comet.density_g_cm3 = density / 1000.0
     comet.ice_mass_fraction = makeup.water + makeup.ice
-    quantile = quantile_for(float(comet.mass_kg), float(comet.nucleus_diameter_km), float(comet.perihelion_distance_au), float(comet.eccentricity))
+    quantile = quantile_for(float(comet.mass_kg), float(comet.nucleus_diameter_km), float(getattr(comet, "perihelion_distance_au", 0.0)),
+                            float(getattr(comet, "eccentricity", getattr(comet, "velocity_kms", 0.0))))
     for name, value in solid(comet.mass_kg, radius_m, density, comet.ice_mass_fraction, makeup.metal, makeup.porosity, None, quantile).items():
         setattr(comet, name, value)
 
@@ -170,3 +173,73 @@ def round_mass_for(ice, metal=0.0, quantile=None):
 def ratio_for(mass_kg, ice, metal=0.0, quantile=None):
     """The roundness ratio of a body of this mass, ice and metal share (no porosity), at the median strength (or at `quantile`): 1 or more is round."""
     return roundness.roundness_ratio_from_mass(mass_kg, grain_density_kg_m3(ice, metal), ice, metal, draw=quantile)
+
+
+STELLAR_FIELDS = ("density_g_cm3", "binding_energy_j")
+"""tuple: What a star, a white dwarf, a neutron star or a black hole stores of its bulk (GEN.1162): the mean density, g/cm3, and the binding energy, J. A fluid or degenerate object has
+no strength to measure against its weight, so it has no roundness ratio or yield strength."""
+
+WHITE_DWARF_CLASSES = ("VII", "D")
+"""tuple: The Yerkes classes of a white dwarf (`D` is the model's `VII` under its own name)."""
+
+BROWN_DWARF_MAX_MASS_SOLAR = 0.08
+"""float: A star under this mass (the hydrogen-burning limit, `mass_boundaries`) is a brown dwarf for the binding energy (the n = 3/2 polytrope)."""
+
+
+def stellar_kind(yerkes_class, mass_kg):
+    """The `binding_energy.KINDS` entry of a star row: `black-hole` for the marker `BH`, `neutron-star` for `NS`, `white-dwarf` for `VII` or `D`, `brown-dwarf` under the hydrogen-burning limit, else `star`."""
+    if yerkes_class == "BH":
+        return "black-hole"
+    if yerkes_class == "NS":
+        return "neutron-star"
+    if yerkes_class in WHITE_DWARF_CLASSES:
+        return "white-dwarf"
+    if _kg_to_msun(mass_kg) < BROWN_DWARF_MAX_MASS_SOLAR:
+        return "brown-dwarf"
+    return "star"
+
+
+def bulk_values(kind, mass_kg, radius_km):
+    """`STELLAR_FIELDS` of a mass object of `kind` (a `binding_energy.KINDS` entry other than `rocky`) and this mass and radius: `(density g/cm3, binding energy J)`, `(None, None)` for one without
+    a mass or a radius. A black hole's radius is its event horizon, so its density is the mean inside the horizon and its binding energy `binding_energy.INFINITE`."""
+    if not (mass_kg and radius_km and mass_kg > 0.0 and radius_km > 0.0):
+        return None, None
+    radius_m = _km_to_m(radius_km)
+    density = roundness.bulk_density_kg_m3(mass_kg, radius_m) / 1000.0
+    return density, binding_energy.binding_energy_j(kind, mass_kg, radius_m)
+
+
+def star_values(star):
+    """`STELLAR_FIELDS` of a `Star` or a compact remnant standing in for one (its `mass`, `radius`, `yerkes_class`)."""
+    mass_kg = getattr(star, "mass", None)
+    return bulk_values(stellar_kind(getattr(star, "yerkes_class", None), mass_kg or 0.0), mass_kg, getattr(star, "radius", None))
+
+
+def remnant_values(kind, mass_solar, radius_km):
+    """`STELLAR_FIELDS` of a standalone black hole or neutron star from its mass, solar masses, and its horizon or radius, km (`kind` is `black-hole` or `neutron-star`)."""
+    return bulk_values(kind, _msun_to_kg(mass_solar), radius_km)
+
+
+ROGUE_FIELDS = ("density_g_cm3", *FIELDS)
+"""tuple: What a rogue planet stores of this module (GEN.1162): the mean density and `FIELDS`."""
+
+
+def rogue_values(planet, water_fraction=0.0):
+    """
+    `ROGUE_FIELDS` of a `RoguePlanet`: `{name: value}`. A giant or a brown dwarf keeps its density and binding energy (the n = 1 polytrope for a giant, n = 3/2 for a brown dwarf). A terrestrial one is a rocky body
+    of its drawn density, its ice the `water_fraction` of its mass (its ice shell and ocean) and no metal share stored, so its core is not modelled and its binding energy is the uniform ball's.
+    """
+    out = dict.fromkeys(ROGUE_FIELDS)
+    mass_kg, radius_km = planet.mass_kg, planet.radius_km
+    if not (mass_kg and radius_km and mass_kg > 0.0 and radius_km > 0.0):
+        return out
+    radius_m = _km_to_m(radius_km)
+    out["density_g_cm3"] = roundness.bulk_density_kg_m3(mass_kg, radius_m) / 1000.0
+    if planet.mass_bin == "brown-dwarf":
+        out["binding_energy_j"] = binding_energy.binding_energy_j("brown-dwarf", mass_kg, radius_m)
+    elif planet.planet_type == "g":
+        out["binding_energy_j"] = binding_energy.binding_energy_j("gas-giant", mass_kg, radius_m)
+    else:
+        quantile = quantile_for(float(mass_kg), float(radius_km), 0.0, 0)
+        out.update(solid(mass_kg, radius_m, _g_cm3_to_kg_m3(out["density_g_cm3"]), water_fraction, 0.0, 0.0, None, quantile))
+    return out

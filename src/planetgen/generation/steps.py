@@ -26,7 +26,7 @@ down a channel (any object with `put`), and a `Relay` in the parent turns those 
 in the parent's display (PERF.50 is the first application).
 
 ```
-with steps.step("Neighbours", "link", total, args=args) as bar:
+with steps.step("Neighbors", "link", total, args=args) as bar:
     ...
     bar.update(advance=1)
 ```
@@ -87,7 +87,7 @@ STEP_KINDS = {
     "block-lights": "Map block light totals",
     "nebula-field": "Nebula field",
     "nebula-field-clean": "Nebula field cleanup",
-    "link": "Neighbour linking",
+    "link": "Neighbor linking",
     "paths": "Sector paths",
     "backfill": "Bright-star backfill",
     "topup": "Backfill top-up",

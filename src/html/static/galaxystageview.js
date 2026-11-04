@@ -3337,6 +3337,8 @@ export function createStageView(host) {
       }
       return;
     }
+    // MAP.222: a layer may take a double click for itself (a nebula opens its window); it says so by returning true.
+    if (found.layer.activate && found.layer.activate(found.entry)) return;
     flyToEntry(found.entry);
   }
 

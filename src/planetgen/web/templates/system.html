@@ -4,6 +4,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
 {% from "partials/pick_banner.html" import pick_banner %}
 {% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
@@ -154,6 +155,7 @@
 {%- endif %}
 {%- set admin_button %}{% if groups %}{{ admin_menu_button(groups, system.name) }}{% endif %}{% endset %}
 {% block head %}
+<script type="module" src="{{ static_url('boxfit.js') }}"></script>
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
 <script type="module" src="{{ static_url('systempage3d.js') }}"></script>
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
@@ -168,6 +170,7 @@
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
     {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
   </p>
+  {{ formerly(former) }}
   {{ action_bar(bookmark, nav_links, pick, page_url('system_on_galaxy_map', system_id=system.id) if nav_links else none, admin_button, nearby_url) }}
   {%- if nearest_html %}
   <p class="location inline-links">Nearest: {{ nearest_html }}</p>
@@ -192,7 +195,7 @@
 {#- ADM.34: every admin action of this page sits behind the one Admin menu
     (partials/admin_menu.html): the whole system's (regenerate, change the
     star, delete), a submenu per body (regenerate, change
-    class, delete) and the facilities' (place one, remove one). #}
+    class, delete), and the facilities' (place one, remove one). #}
 {{ admin_dialogs(groups, here) }}
 <section class="panel" id="system-panel" aria-labelledby="system-heading">
   <div class="panel-header">

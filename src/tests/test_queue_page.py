@@ -242,7 +242,7 @@ def test_the_log_downloads_from_redis_and_then_from_the_file(admin_client, conn,
     assert response.status_code == 200 and response.mimetype == "text/plain"
     assert f"run-{run_id}.log" in response.headers["Content-Disposition"]
     text = response.get_data(as_text=True)
-    assert "sector 1,0,0 saved" in text and "cancelled by boss" in text
+    assert "sector 1,0,0 saved" in text and "canceled by boss" in text
     runrecord.delete_run(conn, run_id)
     assert admin_client.get(f"/admin/queue/{run_id}").status_code == 404
     kept = admin_client.get(f"/admin/queue/{run_id}/log")
@@ -259,7 +259,7 @@ def test_every_control_is_confirmed_first(web_app, admin_client, control_config,
     assert response.status_code == 303
     assert runrecord.read_run(conn, run_id)["state"] == "cancelled"
     assert runrecord.active_run(conn) is None
-    assert "Cancelled" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+    assert "Canceled" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
     assert admin_client.get("/admin/queue/confirm/nonsense").status_code == 404
     assert _post(web_app, admin_client, action="queue-pause").status_code == 303
     assert "The queue is paused" in admin_client.get("/admin/queue").get_data(as_text=True)

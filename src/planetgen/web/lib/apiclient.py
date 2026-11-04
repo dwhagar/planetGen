@@ -65,6 +65,21 @@ class NotFoundError(Exception):
     -- callers turn this into a 404 page (`web/errors.py`)."""
 
 
+class MovedError(NotFoundError):
+    """Raised for a 301 response (GEN.1139): the ID asked for is one an object gave up. `retired_id` is the ID asked for and `current_id` the
+    object's ID now; the page routes turn it into a 301 to the same page under the current ID (`web/errors.py`). It is a `NotFoundError`, so
+    code that only handles an object that is not there treats it as one."""
+
+    def __init__(self, message, retired_id=None, current_id=None):
+        super().__init__(message)
+        self.retired_id = retired_id
+        self.current_id = current_id
+
+
+class GoneError(NotFoundError):
+    """Raised for a 410 response (GEN.1139): the object that had the ID asked for was deleted. A page answers 410. A `NotFoundError` too."""
+
+
 class ApiError(Exception):
     """
     Raised for any other failure talking to the API: an unreachable
@@ -170,6 +185,16 @@ def _cache_db(params):
     return None
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Hands a 301 to `_send` instead of following it: a retired ID is the page's to redirect (GEN.1139), the same under either transport."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_opener = urllib.request.build_opener(_NoRedirect)
+
+
 def _http_transport(method, target, data, headers, timeout):
     """The default transport: a real HTTP request to `API_BASE_URL` (OPS.86: with none configured it raises `ApiError`,
     never reaching for a loopback address)."""
@@ -179,7 +204,7 @@ def _http_transport(method, target, data, headers, timeout):
     request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers={"User-Agent": user_agent(), **headers},
                                      method=method)
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with _opener.open(request, timeout=timeout) as response:
             return TransportResponse(
                 response.status, response.read().decode("utf-8"),
                 response.headers.get_all("Set-Cookie") or [], response.reason,
@@ -233,11 +258,22 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
             _log_call(method, where, start, f"unreachable: {exc}")
             raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc}")
 
+    if response.status == 301:
+        # An ID the object gave up (GEN.1139): the API says where it went; a page follows it (web/errors.py).
+        detail = _error_detail(response)
+        _log_call(method, where, start, f"HTTP 301: {detail}")
+        try:
+            moved = json.loads(response.body)
+        except ValueError:
+            moved = {}
+        raise MovedError(detail, moved.get("retired_id"), moved.get("id"))
     if response.status >= 400:
         detail = _error_detail(response)
         _log_call(method, where, start, f"HTTP {response.status}: {detail}")
         if response.status == 404:
             raise NotFoundError(detail)
+        if response.status == 410:
+            raise GoneError(detail)
         raise ApiError(f"planetGen API error ({response.status}): {detail}", status_code=response.status)
     # Request bodies aren't logged: login and credential changes carry passwords.
     _log_call(method, where, start, f"HTTP {response.status}, {len(response.body)} bytes, "
@@ -435,7 +471,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False, after=None, start=None):
+                binary=None, placement=None, octants=(), facets=False, after=None, start=None, ranges=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -450,12 +486,17 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
             it and `offset` is ignored.
         start: The jump-by-value box's text (PERF.75, the API's `from`): the list begins at the first name (name
             sort) or sector (sector sort) from it on.
+        ranges: `{entity: {key: (least, most, unit)}}`, the physical-value ranges (UX.228): only the systems that hold a star, planet or moon in
+            them; sent as `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit` (`unit` a unit key or `None`).
     """
     _require_db(db)
     params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
               ("offset", offset), ("after", after), ("from", start or None), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
+    for entity, by_key in (ranges or {}).items():
+        for key, (least, most, unit) in by_key.items():
+            params += [(f"{entity}_min_{key}", least), (f"{entity}_max_{key}", most), (f"{entity}_{key}_unit", unit or None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
@@ -686,6 +727,13 @@ def get_galaxy_nebula_cover(db, at=None, g=None):
     return _request("/galaxy/nebula-cover", {"db": db, "at": at, "g": g})
 
 
+def get_galaxy_nebula_volume(db, key):
+    """Returns `GET /api/galaxy/nebula-volume`'s payload (`key`/`format`/`level`/`count`/`data`, the base64 of the packed points that
+    draw the nebulae centred in the node `key`, MAP.365 -- see `db.nebula_volumes.group_volume`)."""
+    _require_db(db)
+    return _request("/galaxy/nebula-volume", {"db": db, "key": key})
+
+
 def get_galaxy_charted_regions(db):
     """Returns `GET /api/galaxy/charted-regions`' payload (`regions`, each charted region with its node key, extent, share
     charted and name, by share charted; `edge_pc` -- see `db.region_stats.charted_regions`)."""
@@ -838,15 +886,23 @@ def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, type
 
 
 def get_object_list(db, kind, limit=None, sort=None, descending=False, after=None, name=None, object_class=None,
-                    sector_id=None, start=None):
+                    sector_id=None, start=None, ranges=None):
     """Returns `GET /api/object-lists/<kind>`'s `items`/`next`/`total` -- one keyset page of the object index
     (`db.objectlist.list_objects`). `after` is the printed object ID the previous page ended on and `start` begins a
-    name-sorted list at the first name from it on (UX.141)."""
+    name-sorted list at the first name from it on (UX.141). `ranges` is `{key: (least, most, unit)}` of this kind's physical
+    values, sent as `<kind>_min_<key>`, `<kind>_max_<key>` and `<kind>_<key>_unit` (UX.228); `unit` is a unit key or `None`."""
     _require_db(db)
     params = [("db", db), ("limit", limit), ("sort", sort), ("order", "desc" if descending else None),
               ("after", after), ("name", name), ("class", object_class), ("sector_id", sector_id),
               ("from", start or None)]
-    return _request(f"/object-lists/{kind}", [(key, value) for key, value in params if value is not None])
+    pairs = [(key, value) for key, value in params if value is not None]
+    for key, (least, most, unit) in (ranges or {}).items():
+        for part, bound in (("min", least), ("max", most)):
+            if bound is not None:
+                pairs.append((f"{kind}_{part}_{key}", bound))
+        if unit:
+            pairs.append((f"{kind}_{key}_unit", unit))
+    return _request(f"/object-lists/{kind}", pairs)
 
 
 def get_phenomenon(db, phenomenon_type, phenomenon_id):
@@ -875,6 +931,20 @@ def get_object(db, ref):
     sibling references, positions) -- see `db.query.resolve_object`."""
     _require_db(db)
     return _request(f"/objects/{ref}", {"db": db})
+
+
+def get_lookup(db, text):
+    """
+    Returns `GET /api/lookup`'s dict for an Object ID or a name (GEN.1140: `status` `current` or `redirect`, with the object that has it now), or
+    `None` when nobody has or had it; a designation of a deleted object answers `{"status": "gone", "query": text}`.
+    """
+    _require_db(db)
+    try:
+        return _request("/lookup", {"db": db, "text": text})
+    except GoneError:
+        return {"status": "gone", "query": text}
+    except NotFoundError:
+        return None
 
 
 def get_object_sheet(db, ref):

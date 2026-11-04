@@ -756,7 +756,7 @@ class LinkFollower(followed.Follower):
     """
 
     key = "link"
-    label = "Neighbours"
+    label = "Neighbors"
 
     def __init__(self, args, started_at):
         super().__init__(args)
@@ -772,8 +772,8 @@ class LinkFollower(followed.Follower):
             log.normal(f"Nothing to link: {plan['detail']['skip']}.")
             return
         stages.note(sectors=plan["detail"]["sectors"])
-        log.normal("Linking the new sectors to their neighbours...")
-        self.bar = self.hold(steps.Step("Neighbours", "link", 1, args=self.args, progress=self.progress,
+        log.normal("Linking the new sectors to their neighbors...")
+        self.bar = self.hold(steps.Step("Neighbors", "link", 1, args=self.args, progress=self.progress,
                                         workers=self.workers))
         self.bar.update(total=max(plan["detail"]["sectors"], 1))
 
@@ -784,7 +784,7 @@ class LinkFollower(followed.Follower):
 
     def on_done(self, conclusion):
         if self.bar is not None:
-            log.normal(f"Linked {self.linked:,} sectors to their neighbours.")
+            log.normal(f"Linked {self.linked:,} sectors to their neighbors.")
 
 
 def _link_on_queue(args, started_at):
@@ -795,7 +795,7 @@ def _link_on_queue(args, started_at):
 def planned_link(args, started_at):
     """The link stage as a `followed.Planned`; its result is how many sectors were linked."""
     follower = LinkFollower(args, started_at)
-    return followed.Planned([follower], "Neighbours", lambda: follower.linked)
+    return followed.Planned([follower], "Neighbors", lambda: follower.linked)
 
 
 def expand_refresh_run_blocks(params):
@@ -1791,7 +1791,7 @@ def _report_fill_order(candidates, edge_pc):
     if not steps:
         return
     log.normal(f"Fill order: {len(candidates):,} sector(s), {steps - jumps:,} of {steps:,} steps ({(steps - jumps) / steps:.1%}) "
-               f"between neighbouring sectors; {jumps:,} jump(s) where the ball cuts the curve"
+               f"between neighboring sectors; {jumps:,} jump(s) where the ball cuts the curve"
                + (f", {mean:.1f} sector edges on average and {longest:.1f} at most." if jumps else "."))
 
 
@@ -1968,7 +1968,7 @@ def require_datasets(disregard=None):
         return missing
     raise DatasetsMissing(
         "the downloaded data is missing, so nothing was generated: " + "; ".join(located.describe() for located in missing)
-        + ". Setup downloads it ('python3 -m planetgen.cli.datasets fetch'); to generate anyway with a labelled fallback "
+        + ". Setup downloads it ('python3 -m planetgen.cli.datasets fetch'); to generate anyway with a labeled fallback "
         "for each missing dataset, say so with --disregard-missing-data.")
 
 
@@ -1977,7 +1977,7 @@ def disregard_notice(missing):
     the fallback it takes (GEN.599). Empty when nothing is missing."""
     if not missing:
         return []
-    return (["Missing data is disregarded (--disregard-missing-data): a labelled fallback stands in for each missing dataset."]
+    return (["Missing data is disregarded (--disregard-missing-data): a labeled fallback stands in for each missing dataset."]
             + [f"  {located.dataset.key} ({located.dataset.fill}) is missing ({located.reason}); fallback: {located.dataset.fallback}"
                for located in missing])
 
@@ -2357,7 +2357,7 @@ def _plan_random_start(args, edge_pc, progress):
         conn.close()
     if args.avoid_filled_space:
         log.normal(f"Keeping away from filled space: {drawn.get('filled', 0):,} of {drawn.get('centres', 0):,} "
-                   f"candidate centres touched sectors that are already generated and were dropped, "
+                   f"candidate centers touched sectors that are already generated and were dropped, "
                    f"{drawn.get('centres', 0) - drawn.get('filled', 0):,} qualified.")
     if not starts:
         density_note = (
@@ -2984,7 +2984,7 @@ def run_sectors(args):
     started_at = _run_stages(args, "sectors", lambda _started_at: [])
     if started_at is not None:
         log.normal(f"The sectors are saved. 'planetgen link --since \"{_since_text(started_at)}\"' links them to "
-                   f"their neighbours.")
+                   f"their neighbors.")
 
 
 def run_galaxy(args):

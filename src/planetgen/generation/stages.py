@@ -89,7 +89,7 @@ BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
 def galaxy_stages(args):
     """The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172)."""
     return sectors_stages(args) + [
-        Stage("link", "Link the neighbours"),
+        Stage("link", "Link the neighbors"),
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
         *PHENOMENA_STAGES,
@@ -171,7 +171,7 @@ SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill th
                          "fill-nebula-blocks": Stage("nebula-blocks", "Make the nebula block totals"),
                          "fill-block-totals": Stage("block-totals", "Make the block totals"),
                          "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field"),
-                         "link": Stage("link", "Link the neighbours"),
+                         "link": Stage("link", "Link the neighbors"),
                          "backfill": Stage("backfill", "Scatter the massive stars from the neighborhood"),
                          "settle": Stage("settle", "Save the sector paths"),
                          "population": Stage("population", "Run the population pass"),

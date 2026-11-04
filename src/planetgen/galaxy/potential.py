@@ -36,9 +36,9 @@ import math
 import numpy as np
 
 from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry
 
-G_PC_KMS2_PER_MSUN = constants.G * constants.SOLAR_MASS_TO_KG / (constants.PARSEC_M * 1.0e6)
+G_PC_KMS2_PER_MSUN = constants.G * unit_registry.converter("Msun", "kg")(1.0) / (constants.PARSEC_M * 1.0e6)
 """float: The gravitational constant in pc (km/s)^2 per solar mass (4.3009e-3)."""
 ACCELERATION_TO_SI = 1.0e6 / constants.PARSEC_M
 """float: One (km/s)^2 per pc in m/s^2."""
@@ -235,7 +235,3 @@ def current():
         shape = shape_draw.default_shape(seed)
     return for_galaxy(shape, seed)
 
-
-def current_circular_speed_kms(radius_pc):
-    """The circular speed, km/s, at cylindrical `radius_pc` in the plane of the galaxy the running unit belongs to (`current`); a float for a float."""
-    return circular_speed_kms(current(), radius_pc)

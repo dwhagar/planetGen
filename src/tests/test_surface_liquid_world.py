@@ -84,3 +84,23 @@ def test_a_cooler_surface_than_its_grounds_liquidus_is_solid():
                  ground_ultramafic_fraction=0.8)
     slw.generate(cool)
     assert cool.surface_liquid is None
+
+
+def test_an_ammonia_and_water_ice_body_holds_the_ammonia_water_eutectic_where_pure_ammonia_would_be_frozen():
+    """GEN.1218a: at 200 K pure ammonia is a solid (195.5 K melting is under it only just, and it boils at 240 K), but the 32 percent solution is liquid from 176 K."""
+    body = _body(surface_temperature=190.0, atmospheric_pressure=1.0e4, p_n2_kpa=10.0, p_ch4_kpa=0.0, ice_nh3_mass_fraction=0.01, water_mass_fraction=0.05)
+    slw.generate(body)
+    assert body.surface_liquid == "ammonia_water"
+    assert body.surface_liquid_ammonia_wt == slw.AMMONIA_WATER_MASS_PERCENT
+    dry = _body(surface_temperature=190.0, atmospheric_pressure=1.0e4, p_n2_kpa=10.0, p_ch4_kpa=0.0, ice_nh3_mass_fraction=0.01, water_mass_fraction=0.0)
+    slw.generate(dry)
+    assert dry.surface_liquid is None            # ammonia with no water makes no solution, and pure ammonia is frozen at 190 K
+
+
+def test_methane_is_the_sea_where_methane_and_carbon_monoxide_are_both_liquid_and_supplied():
+    """GEN.1218a, Boss's answer 6: the larger carbon monoxide ice does not take the sea from methane where both are liquid."""
+    from planetgen.physics import surface_liquids
+    both = surface_liquids.candidates(105.0, 5.0e6, {}, {"carbon_monoxide": 0.05, "methane": 0.01})
+    assert [c.liquid_id for c in both][:2] == ["methane", "carbon_monoxide"]
+    only_co = surface_liquids.candidates(75.0, 1.0e5, {}, {"carbon_monoxide": 0.05, "methane": 0.01})
+    assert [c.liquid_id for c in only_co] == ["carbon_monoxide"]          # methane is a solid at 75 K

@@ -101,7 +101,7 @@ def giant_atmosphere_colour(partials_pa, gravity_m_s2, *, temperature_k, p_ref_p
         raise ValueError("the reference pressure must be above zero")
     total = sum(value for value in partials_pa.values() if value and value > 0.0)
     if total <= 0.0:
-        raise air_column.EmptyColumn("the giant has no mixture to take a colour from")
+        raise air_column.EmptyColumn("the giant has no mixture to take a color from")
     column = air_column.from_partials({gas: value / total * p_ref_pa for gas, value in partials_pa.items()}, gravity_m_s2)
     albedo = deck_albedo(cloud_deck, mu0) if cloud_deck is not None and cloud_deck.tau_550 > 0.0 else DEEP_ALBEDO
     result = colour_model.atmosphere_colour(column, temperature_k=temperature_k, ground_albedo=albedo, mu0=mu0, haze=haze,

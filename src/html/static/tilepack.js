@@ -177,3 +177,58 @@ export function unpackResponse(body) {
   }
   return { header, packed, nodes };
 }
+
+// MAP.364: what an unfinished `/galaxy/nodes` body already holds. `bytes` is the body so far; `listed` is what the first call returned (or
+// null). Returns `{ listed, keys }`: the node list once the header is whole (null before), and the keys of the nodes whose bytes are all
+// in. A body that is not a packed response throws, as `unpackResponse` does.
+export function nodesSoFar(bytes, listed) {
+  if (!listed) {
+    if (bytes.length < 8) return { listed: null, keys: [] };
+    if (magicAt(bytes, 0) !== RESPONSE_MAGIC) throw new Error("not a packed node response");
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const headerEnd = 8 + view.getUint32(4, true);
+    if (headerEnd > bytes.length) return { listed: null, keys: [] };
+    const header = JSON.parse(new TextDecoder("utf-8").decode(bytes.subarray(8, headerEnd)));
+    listed = { ends: [], keys: [] };
+    let at = headerEnd;
+    for (const [key, length] of header.nodes || []) {
+      at += length;
+      listed.keys.push(key);
+      listed.ends.push(at);
+    }
+  }
+  const keys = [];
+  for (let i = 0; i < listed.keys.length && listed.ends[i] <= bytes.length; i++) keys.push(listed.keys[i]);
+  return { listed, keys };
+}
+
+// The whole body of a response, read as it comes: `onKeys(keys)` is called with the keys of nodes that have fully arrived since the last
+// call. Falls back to one read where the browser gives no stream. Resolves to the body as an ArrayBuffer.
+export async function readNodeBody(response, onKeys) {
+  if (!response.body || !response.body.getReader) {
+    const whole = await response.arrayBuffer();
+    if (onKeys) onKeys(nodesSoFar(new Uint8Array(whole), null).keys);
+    return whole;
+  }
+  const reader = response.body.getReader();
+  let bytes = new Uint8Array(0);
+  let listed = null;
+  let told = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const grown = new Uint8Array(bytes.length + value.length);
+    grown.set(bytes, 0);
+    grown.set(value, bytes.length);
+    bytes = grown;
+    if (onKeys) {
+      const seen = nodesSoFar(bytes, listed);
+      listed = seen.listed;
+      if (seen.keys.length > told) {
+        onKeys(seen.keys.slice(told));
+        told = seen.keys.length;
+      }
+    }
+  }
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+}

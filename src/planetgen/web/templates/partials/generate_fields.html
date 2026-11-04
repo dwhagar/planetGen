@@ -1,6 +1,6 @@
 {#- planetgen/web/templates/partials/generate_fields.html -- the Generate page's field macros (imported `with context`
     by generate_task.html): number boxes, the limit sliders (UX.116), the scatter limits, prevalence, star mix and
-    overrides. Each is drawn once per task page. Every text, number and choice box and every tick box is the one form
+    overrides. Each is drawn once per task page. Every text, number, and choice box and every tick box is the one form
     field (UX.125, partials/ui_fields.html: a Shoelace element with a plain twin in a <noscript>); the sliders, whose
     box is a native number input that limitsliders.js drives, and the radio choices stay native. -#}
 {% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
@@ -73,7 +73,7 @@
   {{ lever_input(row) }}
   {%- endfor %}
 </div>
-<p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disc plus a bulge with no stellar halo, thick disc, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
+<p class="hint" data-halo-reason hidden>Under {{ num(halo_min_stellar_mass, ",.3g") }} solar masses of stars a galaxy has no dark halo, and under {{ num(full_structure_min_mass, ",.3g") }} it is one disk plus a bulge with no stellar halo, thick disk, bar or nuclear structures: the Halo options that cannot apply are turned off.</p>
 <p class="hint" data-shape-report data-url="{{ url_for('web.generate_shape_report') }}" aria-live="polite"></p>
 <details class="generate-advanced">
   <summary>Advanced shape options</summary>
@@ -85,7 +85,7 @@
 </details>
 {%- endmacro -%}
 {#- GEN.188, UX.116: the scatter limits wherever the scatter is set up (Plan and New galaxy): the galaxy-wide ones
-    first, then a segment each for the core, the halo and the crowded cells. -#}
+    first, then a segment each for the core, the halo, and the crowded cells. -#}
 {%- macro scatter_limits(id, skip_id=none) -%}
 <div class="search-fields scatter-limits">
   {{ mass_limit_slider(id) }}
@@ -118,7 +118,7 @@
 {%- set following = (not form) or form.get("core_follow") or not (form.get("core_min_luminosity") or form.get("core_mass_limit")) -%}
 <fieldset class="generate-mode limit-segment" id="{{ id }}" data-limit-segment>
   <legend>Core</legend>
-  <p class="hint">Where the nuclear cluster and disc dominate, the scatter can draw its line a little higher: the core is
+  <p class="hint">Where the nuclear cluster and disk dominate, the scatter can draw its line a little higher: the core is
   the densest part of the galaxy and holds far more stars than can be made.</p>
   {{ ui_checkbox("core_follow", "Follow the galaxy-wide limits (" ~ core_factor_percent ~ "% of them)", checked=following, **{"data-core-follow": true}) }}
   <div class="search-fields">
@@ -168,7 +168,7 @@
   </div>
   <fieldset class="generate-mode" data-star-mix>
     <legend>Star mix</legend>
-    <p class="hint">How many systems have one star, a close binary or a wide pair. These three must total exactly 100%:
+    <p class="hint">How many systems have one star, a close binary, or a wide pair. These three must total exactly 100%:
     raise one when you lower another.</p>
     <div class="search-fields">
       {%- for name, label, usual in star_mix_fields %}
@@ -199,7 +199,7 @@
     the draft being shown again already holds a value for them. -#}
 {%- macro advanced_sector_inputs() -%}
 <details class="generate-advanced"{% if advanced_open %} open{% endif %}>
-  <summary>Advanced: prevalence, star mix and minimums</summary>
+  <summary>Advanced: prevalence, star mix, and minimums</summary>
   {{ prevalence_inputs() }}
   {{ directive_inputs() }}
 </details>
@@ -207,7 +207,7 @@
 {%- macro skip_scatter(id) -%}
 {{ ui_checkbox("skip_scatters", "Skip all scatters", checked=(form and form.get("skip_scatters")), id=id, hint="Runs no scatter at all: no massive stars, bright stars, neutron stars, black holes or other phenomena are placed across the whole galaxy. Normally they are, right after the plan, or on a new galaxy once its first sectors are generated, leaving those out.") }}
 {%- endmacro -%}
-{#- GEN.599: a job refuses to start while a downloaded data file is missing; this box says to go ahead with each missing dataset's labelled fallback. -#}
+{#- GEN.599: a job refuses to start while a downloaded data file is missing; this box says to go ahead with each missing dataset's labeled fallback. -#}
 {%- macro disregard_data(id, ticked=False) -%}
 {{ ui_checkbox("disregard_missing_data", "Disregard missing data files", checked=(ticked or (form and form.get("disregard_missing_data"))), id=id, hint=("A job refuses to start while a downloaded data file is missing (run <code>update.sh</code> to download it). Ticked, it starts anyway, takes a labelled fallback for each missing dataset, and says so in the job log.")|safe) }}
 {%- endmacro -%}

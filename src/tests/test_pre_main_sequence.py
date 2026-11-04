@@ -164,7 +164,7 @@ def test_the_star_page_says_the_star_is_contracting_and_shows_the_disk():
     star = Star.from_params(evolution.star_params(1.0, 0.0003, evolution.evolve_star(1.0, 0.0003)), config, name="Young")
     rows = {row["key"]: row for row in describe_build._star_facts(star)["rows"]}
     assert "disk" in rows and rows["disk"]["label"] == "Disk"
-    assert "contracting towards the main sequence" in str(describe_build._star_age_sentence(star))
+    assert "contracting toward the main sequence" in str(describe_build._star_age_sentence(star))
 
 
 def test_a_protostar_has_the_companions_of_the_perseus_survey():

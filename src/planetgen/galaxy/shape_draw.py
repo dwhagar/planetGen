@@ -524,9 +524,9 @@ def halo_report(drawn):
     offset = math.log10(ratio / DISC_HALF_LIGHT_OVER_R200)
     if abs(offset) <= DISC_HALF_LIGHT_OVER_R200_DEX:
         return line, None
-    return line, (f"the disc's half-light radius is {ratio:.4f} of the halo's virial radius, {abs(offset):.1f} dex "
+    return line, (f"the disk's half-light radius is {ratio:.4f} of the halo's virial radius, {abs(offset):.1f} dex "
                   f"{'above' if offset > 0 else 'below'} the usual {DISC_HALF_LIGHT_OVER_R200} "
-                  f"(a pinned size or halo makes a disc this halo would not hold; placeholder limit)")
+                  f"(a pinned size or halo makes a disk this halo would not hold; placeholder limit)")
 
 
 def halo_mass_of(stellar_mass_solar, halo_ratio):

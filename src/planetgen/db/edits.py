@@ -71,6 +71,7 @@ def _update_body(conn, table, body, assignments, key_values):
     conn.execute(f"DELETE FROM {prefix}_interior_layers WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_gases WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_life_class_scores WHERE {id_column} = ?", (body.db_id,))
+    conn.execute(f"DELETE FROM {prefix}_life WHERE {id_column} = ?", (body.db_id,))
     store.body_child_rows(conn, body, body.db_id)
 
 
@@ -442,7 +443,7 @@ def empty_sector(conn, sector_id):
 
 
 RESTRICTING_TABLES = ("rogue_planets", "interstellar_comets", "supernova_remnants", "facilities")
-"""tuple: The tables whose `sector_id` key is `ON DELETE RESTRICT` (v200): a sector row cannot be deleted while one of their rows is filed in it."""
+"""tuple: The tables whose `sector_id` key is `ON DELETE RESTRICT` (v201): a sector row cannot be deleted while one of their rows is filed in it."""
 
 
 def restricting_rows(conn, sector_id):
