@@ -323,7 +323,12 @@ connectivity to that specific schema rather than the default one.
   nearest first, each with `ref`, `kind`, `id`, `name`, `parent` and
   `distance_pc`; a `system` row also has `star_count`. Optional `kinds` (comma-separated), `limit` (50, at most
   200), `offset` and `stars` (UX.239, as in `/api/search`: only the systems with that many stars and what is in them; phenomena and facilities
-  outside a system are left out). The answer also carries `total`, `by_kind`, and
+  outside a system are left out). UX.228: the numeric range filters of `/api/search` (UX.226; `star_`, `planet_` or `moon_` in front of
+  `min_<key>`, `max_<key>` and `<key>_unit`, `planet_min_gravity=0.8&planet_max_gravity=1.2`) keep only the stars, planets or moons whose stored
+  value lies in every range, and put `values` (`{key: {value, unit, symbol}}`) on their rows; a kind with a range is listed even when `kinds` leaves it out,
+  and with no `kinds` only the ranged kinds are listed. `planet_sort=gravity` (`-gravity` for largest first; `star_sort` and `moon_sort` likewise, one
+  of the three at most) lists only that kind's bodies that have the value, ordered by it and nearest first among equals; it is a 400 with `nearest`, with
+  a range on another kind, or with a key the kind does not have. The answer also carries `total`, `by_kind`, and
   `not_generated` (`{kind: count}`, with `not_generated_total`): the
   pre-placed bright stars (`bright_star`) and scatter objects in the sphere
   that are not built yet, counted and never listed; the search never

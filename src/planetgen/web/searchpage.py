@@ -386,6 +386,23 @@ def needs_canonical_redirect(args):
     return tidy != sent
 
 
+def tidy_value_args(args, entities):
+    """
+    The query of a page that takes the physical-value fields of `entities` (UX.228), cleaned the way the search page's address is: `(pairs, changed)`.
+
+    A submitted form sends every box, filled or not, and every row's unit, and the "another gas" row under its own names. `pairs` is the
+    `[(name, value)]` of `args` without the empty ones and with the value fields of `entities` as the search state reads them (an empty box
+    gone, a unit that says nothing gone, the "another gas" row turned into the key of that gas); every other parameter is kept as it was, repeats
+    included. `changed` is whether that differs from `args`, so the page can redirect to the short address.
+    """
+    state = SearchState.from_args(args)
+    mine = [name for name in (*VALUE_FIELDS, *VALUE_SORT_FIELDS) if name.split("_", 1)[0] in entities and state.texts.get(name)]
+    dropped = {key for key in args if f"_{OTHER_GAS}" in key or key in VALUE_FIELDS or key in VALUE_SORT_FIELDS}
+    pairs = [(key, value) for key, value in args.items(multi=True) if key not in dropped and value.strip()]
+    pairs += [(name, state.texts[name]) for name in mine]
+    return pairs, sorted(pairs) != sorted(args.items(multi=True))
+
+
 # ---------------------------------------------------------------------
 # Template data
 # ---------------------------------------------------------------------
@@ -774,6 +791,6 @@ def api_offsets(state):
 
 
 __all__ = [
-    "PAGE_SIZE", "NAME_FIELDS", "SIZE_ENTITIES", "SearchState", "needs_canonical_redirect",
+    "PAGE_SIZE", "NAME_FIELDS", "SIZE_ENTITIES", "SearchState", "needs_canonical_redirect", "tidy_value_args",
     "tag_groups", "active_filters", "result_panels", "api_offsets", "value_form", "VALUE_FIELDS",
 ]
