@@ -8,7 +8,7 @@ moons into one record of edges in planet radii, a colour, a peak opacity and the
 ice share (GEN.670 research, `reports/gen670-body-rendering-research-2026-11-04.md` section 5): a reddish slope below 0.55 micrometers, steepest for an
 icy ring; brightness set by the ice share, a dusty ring dark. Nothing here is stored or feeds generation; it is a picture of what is stored.
 
-Every constant is a stand-in registered in `docs/design/research/gap-filling-plan.md` section 6.166 (rows RG1 to RG8).
+Every constant is a stand-in registered in `docs/design/research/gap-filling-plan.md` section 6.170 (rows RNG1 to RNG8).
 """
 
 import math
