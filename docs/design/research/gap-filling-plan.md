@@ -2799,3 +2799,12 @@ The words `physics/life_readings.py` says a world's life in: how much of each ki
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | LC1 | B | T9 | L3 | prevalence_life_expectations.json two_or_more_classes: min 0.6, max 1.0, the share of life worlds with two or more living classes | min 0.4 to 0.7 | life worlds of the default systems at the generator epoch of 131 | a survey of the coexistence of chemoautotrophic and photosynthetic communities on a world, or a census at another epoch that moves the share outside the band with no change to the life rules | a band from the coexistence of metabolisms in the geological record and in extremophile surveys, once the life classes are tied to those | measured 0.857 of 727 life worlds in 400 default systems at 5:53 PM EDT 11-4 (3a lives on 83 percent of them, 4b on 77 percent) |
+
+
+### 6.168 Stand-ins of the envelope share of every body (GEN.1226)
+
+`physics/envelope_share.py` stores the share of a rocky body's mass that is a hydrogen-rich air in `envelope_mass_fraction`, so the body types (`physics/planet_type.py`, GEN.1219) see a hydrogen-air dwarf as the transitional body it is. The air column is the surface pressure times the area over the gravity, `4 pi R^4 P / (G M)`, and its share of the mass is that over `M`; an air is hydrogen-rich from the share of hydrogen in its pressure that the class T rule already uses (row CL1).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| ES1 | P | T9 | L1 | envelope_share.HYDROGEN_RICH_SHARE 0.3: an air with at least this share of its pressure as hydrogen is a hydrogen-rich air whose whole mass is an envelope; a smaller share is a secondary air with no envelope | 0.2 to 0.5 (the range of row CL1) | rocky planets and moons with an air | a survey of sub-Neptunes whose air holds less than 30 percent hydrogen and that carry a primordial envelope, or one whose hydrogen-dominated air is secondary | the mass of each gas of the air read as primordial (hydrogen and helium at the star's ratio) or secondary (outgassed), from the formation and the loss of the body | the same line as the class T rule (CL1, GEN.1143: 47 of 229 N bodies are hydrogen-rich under 15 Earth masses); Boss, 1:56 PM EDT 2026-10-31: store the true air share, not a class-based stand-in |

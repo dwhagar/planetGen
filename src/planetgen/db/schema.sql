@@ -1523,6 +1523,9 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
+-- v205 (GEN.1219, GEN.1220, GEN.1226): `planets` and `moons` keep the body type (`planet_type`, VARCHAR(12): terrestrial, transitional or gas, from the envelope share
+--   of the mass, `physics/planet_type.py`) and the digit of the class code (`class_variant`, TINYINT 0 to 9, 0 not written; `physics/class_code.py`). The
+--   `envelope_mass_fraction` that was there holds the true share of a hydrogen-rich air for every rocky body (`physics/envelope_share.py`). NULL for a row made before v205.
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
@@ -2478,6 +2481,8 @@ CREATE TABLE IF NOT EXISTS planets (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
+    planet_type                 VARCHAR(12),  -- v205 (GEN.1219): the body type, from the envelope share of the mass
+    class_variant               TINYINT,  -- v205 (GEN.1220): the digit of the class code, see the header comment
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2914,6 +2919,8 @@ CREATE TABLE IF NOT EXISTS moons (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
+    planet_type                 VARCHAR(12),  -- v205 (GEN.1219): the body type, from the envelope share of the mass
+    class_variant               TINYINT,  -- v205 (GEN.1220): the digit of the class code, see the header comment
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.

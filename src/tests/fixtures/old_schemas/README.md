@@ -87,3 +87,4 @@ Commit each file came from:
 - v201: train 9 (GEN.1127 chart ledger, before GEN.1138 designations; train 9 schema at 3aa6a16e7)
 - v202: train 9 (GEN.1138 designations, before GEN.1209 life per class; train 9 schema at e3f3908e0)
 - v203: train 9 (GEN.1209 life per class, before GEN.1069 belt origin; train 9 schema at 23820b6a6)
+- v204: train 10 (GEN.1069 belt origin, before GEN.1219 body type and GEN.1220 class code; main's schema at the time)
