@@ -92,4 +92,5 @@ Commit each file came from:
 - v206: train 10 (GEN.1219, GEN.1220, GEN.1226, before GEN.1111 rogue planet is a planet; train 10 schema at 99f54cce4)
 - v207: train 10 (GEN.1111 rogue planet is a planet, before GEN.1212 no description; train 10 schema at 43f3afe46)
 - v208: train 10 (GEN.1212 no description, before GEN.1070 belt members; train 10 schema at 5349a86ef)
-- v209: train 10 (GEN.1070 belt members, before DOC.103 American spelling; train 10 schema at f91e65b29)
+- v209: train 10 (GEN.1070 belt members, before GEN.1232a belt history text; train 10 schema at f91e65b29)
+- v210: train 10 (GEN.1232a belt history text, before DOC.103 American spelling; the train schema before the sweep)
