@@ -93,7 +93,6 @@ def test_generate_sector_phenomena_passes_rate_per_star_times_star_count_as_the_
 
 def test_research_rates_per_star():
     """Boss's research densities at 0.14 stars per pc^3."""
-    assert _rate("rogue-planet") == pytest.approx(5.8)
     assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
     # Derived from the massive stars the black holes leave and the natal kick's ejected share (GEN.554); Boss's 4.0e-3 is the
     # target, reached when the failed share is at its cap. The middle draw is half the cap, so the neutron stars are over it by
@@ -109,8 +108,8 @@ def test_research_rates_per_star():
 
 
 def test_rate_scale_dials_a_kind(monkeypatch):
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "rogue-planet", 0.1)
-    assert _rate("rogue-planet") == pytest.approx(0.58)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "brown-dwarf", 0.1)
+    assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14 * 0.1)
 
 
 def _only(kind, count):
@@ -248,17 +247,12 @@ def test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed(mo
     assert entries == []  # both draws failed to place and were skipped, no crash
 
 
-def test_a_local_density_sector_gets_about_six_and_a_half_rogues_per_star():
+def test_a_sector_rolls_no_rogue_planets_of_its_own_only_brown_dwarfs():
+    """GEN.1111: a rogue planet exists only because a generated system threw it out, so the phenomena roll makes brown dwarfs and no planet of the kind."""
+    assert "rogue-planet" not in [kind for kind, _type, _factory in run_sector.SECTOR_PHENOMENON_KINDS]
     sector = _seeded_sector(9)
-    stars = run_sector.sector_star_count(sector)
-    counts = []
-    for _ in range(5):
-        sector.phenomena.clear()
-        entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace())
-        counts.append(sum(1 for e in entries if e.phenomenon_type == "rogue-planet"))
-    mean = sum(counts) / len(counts)
-    expected = (_rate("rogue-planet") + _rate("brown-dwarf")) * stars
-    assert 0.6 * expected < mean < 1.4 * expected
+    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace())
+    assert all(e.phenomenon.mass_bin == "brown-dwarf" for e in entries if e.phenomenon_type == "rogue-planet")
 
 
 def test_flag_fast_stars(monkeypatch):

@@ -268,41 +268,19 @@ def test_supernova_remnant_morphology_and_sedov_taylor_radius():
 
 
 def test_rogue_planet_mass_and_type_within_configured_ranges():
+    """The standalone rogue-planet phenomenon is a free-floating brown dwarf; planets that were thrown out come from their donor systems (GEN.1111)."""
     for _ in range(TRIALS):
-        planet = RoguePlanet(make_config())
-        mass_jupiter = planet.mass_kg / constants.JUPITER_MASS_TO_KG
-        low, high, _rate = tuning.ROGUE_PLANET_MASS_BINS[planet.mass_bin]
-        mass_earth = planet.mass_kg / constants.EARTH_MASS_TO_KG
-        assert low * (1 - 1e-9) <= mass_earth <= high * (1 + 1e-9)
-        assert planet.planet_type in ('t', 'g')
-        if planet.planet_type == 'g':
-            assert mass_jupiter >= tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
-        else:
-            assert mass_jupiter < tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
-        assert planet.radius_km > 0
-        assert planet.mass_kg > 0
-
-
-def test_rogue_planets_are_mostly_terrestrial():
-    """Terrestrial rogues outnumber the rest (about 5.0 of 5.8 per star)."""
-    bins = [RoguePlanet(make_config()).mass_bin for _ in range(400)]
-    share = bins.count("terrestrial") / len(bins)
-    expected = tuning.ROGUE_PLANET_MASS_BINS["terrestrial"][2] / tuning.ROGUE_PLANET_RATE_PER_STAR
-    assert abs(share - expected) < 0.08
-    assert set(bins) <= set(tuning.ROGUE_PLANET_MASS_BINS)
+        dwarf = RoguePlanet(make_config())
+        low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
+        assert low * (1 - 1e-9) <= dwarf.mass_kg / constants.JUPITER_MASS_TO_KG <= high * (1 + 1e-9)
+        assert dwarf.mass_bin == "brown-dwarf" and dwarf.planet_type == 'g' and dwarf.planet_class is None
+        assert dwarf.radius_km > 0
 
 
 def test_rogue_brown_dwarf():
-    dwarf = RoguePlanet(make_config(), mass_bin="brown-dwarf")
-    low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
-    assert low <= dwarf.mass_kg / constants.JUPITER_MASS_TO_KG <= high
+    dwarf = RoguePlanet(make_config())
     assert dwarf.planet_type == 'g' and dwarf.kind_label == "Brown Dwarf"
     assert "Rogue brown dwarf" in render_support.facts_text(render_support.phenomenon_section(dwarf))
-    with pytest.raises(ValueError):
-        RoguePlanet(make_config(), mass_bin="moon")
-    old = dwarf.to_dict()
-    old.pop("mass_bin")
-    assert RoguePlanet.from_dict(old, make_config()).mass_bin == "brown-dwarf"
 
 
 def test_interstellar_comet_within_configured_ranges():
