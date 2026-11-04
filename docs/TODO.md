@@ -19124,19 +19124,6 @@ clears each one.
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **TEST.556 test_db_column_round_trip fails on main: stars.nuclear_arrival_age_gy is NULL in every row of the test fixture (bug)**
-  Found by Core 1 (as the lane reported, 6:49 AM EST on 2026-11-04) while
-  running the slow suites on its designations stack:
-  tests/test_db_column_round_trip.py::test_every_column_is_written fails
-  with "NULL in every row (never written?):
-  stars.nuclear_arrival_age_gy". The column is GEN.1174's (merged with
-  train 8, migration 0198); the suite passed before train 8. Do: write
-  the column in the test's star fixture with a real value, or exempt it
-  with a stated reason if it is only set for some stars. Done: the round
-  trip test passes on main. Lock-free. Owner: Aux 7 (GEN.1174's lane).
-  Prerequisites: none.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
