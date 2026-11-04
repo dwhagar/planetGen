@@ -19170,19 +19170,6 @@ clears each one.
   the re-tag. Owner: Train Manager.
   Prerequisites: none.
 
-- [ ] **TEST.558 test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main in 6 cases: the component density differs from the stored one by about 0.6 percent (bug)**
-  Found by Core 3 while building GEN.1242 (as the lane reported 9:16 AM
-  EST on 2026-11-04, not from its change) and reproduced on main
-  d132b7661 by TODO: tests/test_density_components.py line 182, the
-  four_arms case first. The density written as components differs from
-  the one the spiral gave before by about 0.6 percent in every grid
-  cell, where the test expects equality to its tolerance. Do: find
-  whether a component weight, a constant moved by a recent epoch, or the
-  test's reference is stale (git bisect on the file), fix the cause, and
-  say in the change note which it was. No generated change if the
-  reference is stale. Owner: Core 4 (stand-by).
-  Prerequisites: none. Related: GEN.1242.
-
 - [ ] **TEST.561 Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug)**
   Found by the full-suite run on 7eef24a (as the lane reported 9:17 AM
   EST on 2026-11-04) and reproduced on main d22d767df by TODO. Both
