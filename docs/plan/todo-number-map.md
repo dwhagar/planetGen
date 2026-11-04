@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.571 |
+| TEST | TEST.572 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.104 |
@@ -2387,7 +2387,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) | none | done, PR #4393 |
 | MAP.363 | Object page: draw the lumpy silhouette of an unrounded small body, as the System Map and the 3D system view do (bodyview.js) | none | done, PR #4594 |
 | MAP.364 | Progress bar for each map level while its tiles load (Z0 to Z5) | none | done, PR #4820 |
-| MAP.365 | Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively | none | open |
+| MAP.365 | Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively | none | done, PR #4844 |
 | MAP.366 | Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug) | none | open |
 | MAP.367 | Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown | none | open |
 | MAP.368 | Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on | none | open |
@@ -3827,6 +3827,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.568 | test_page_shell::test_js_modules_import_siblings_with_their_own_version fails on main: boxfit.js has a static import (bug) | none | done, PR #4823 |
 | TEST.569 | Red on main: the reproducibility guard (five call sites), the mass-conversion guard (two tests), the pinned galaxy and the sector panel test (bug) | none | open |
 | TEST.570 | test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug) | none | open |
+| TEST.571 | test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
