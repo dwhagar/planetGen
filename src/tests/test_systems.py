@@ -387,8 +387,9 @@ def test_each_tristate_flag_forced(star_type, value, attr):
         assert_positions_and_speeds_are_consistent(system)
 
         if attr == "HABITABLE_WORLD" and value is True:
-            assert habitable_request.count(system.all_planets) >= 1 or "a habitable world" in system.unmet_requirements, \
-                f"{star_type}: HABITABLE_WORLD=True produced no habitable world and did not say so"
+            # GEN.1130: the request raises the odds and never forces, so a system may have none; it answers the request all the same
+            assert system.habitable_request in ("aim", "fallback", "unmet"), \
+                f"{star_type}: HABITABLE_WORLD=True was not answered (habitable_request {system.habitable_request!r})"
         if attr == "ASTEROID_BELT" and value is True:
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
         if attr == "COMETS" and value is True:
@@ -455,19 +456,25 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
     belt just placed to satisfy ASTEROID_BELT's own guarantee -- since it had
     no awareness of that guarantee. Fixed by protecting a belt from being
     retroactively overwritten whenever ASTEROID_BELT is required.
+
+    The belt is still guaranteed; the habitable world no longer is (GEN.1130: the request raises the odds and never forces,
+    and a system the request did not reach is saved as it came), so what is asked of the request is that it answers, and that
+    over the trials it did raise the odds enough to give a world now and then (TEST.307: it was checked as "a world, or
+    `unmet_requirements` says so", and the request has not been a requirement since GEN.1130).
     """
     failures_belt = 0
-    failures_hab = 0
+    with_world = 0
     trials = 15
     for _ in range(trials):
         system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
         if system.belt_count == 0:
             failures_belt += 1
-        if habitable_request.count(system.all_planets) == 0 and "a habitable world" not in system.unmet_requirements:
-            failures_hab += 1
+        if habitable_request.count(system.all_planets) > 0:
+            with_world += 1
+        assert system.habitable_request in ("aim", "fallback", "unmet")
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
-    assert failures_hab == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a habitable world, or to say so, in {failures_hab}/{trials} trials"
+    assert with_world >= 1, f"{star_type}: HABITABLE_WORLD=True gave no habitable world in any of {trials} trials"
 
 
 def test_wide_binary_asteroid_belts_forced_do_not_overlap_across_stars():
