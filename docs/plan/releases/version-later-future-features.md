@@ -23,6 +23,8 @@ Neighbour galaxies, more than one galaxy in the database and the intergalactic f
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies |  | Research: stage 1 of GEN.9. |
 | GEN.164 | Synthetic globular-cluster systems for generated galaxies | GEN.387 | Globular-cluster chain. |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | GEN.157 | Research. |
+| MAP.374 | Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection |  | Later; no lane. |
+| UX.260 | Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere |  | Later; no lane. |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | GEN.157 | Research: stage 2 of GEN.9. |
 
 ## Phase 2: Waiting on other projects

@@ -175,11 +175,24 @@ class _Isochrone:
         """`(first, last)` log10 age (years) of the isochrones this mass has a main-sequence row on: from the age it
         reaches the main sequence to the age it leaves it (the oldest isochrone for a mass that does not leave in
         the grid); None when no isochrone holds it (lighter than the grid's lowest mass or heavier than its highest)."""
+        memo = self._memo("span")
+        if mass in memo:
+            return memo[mass]
         low, high = self._mass_limits()
         held = np.nonzero((low <= mass) & (mass <= high))[0]
-        if not len(held):
-            return None
-        return float(self.log_ages[held[0]]), float(self.log_ages[held[-1]])
+        found = None if not len(held) else (float(self.log_ages[held[0]]), float(self.log_ages[held[-1]]))
+        if len(memo) >= _MEMO_LIMIT:
+            memo.clear()
+        memo[mass] = found
+        return found
+
+    def _memo(self, name):
+        """The dict this isochrone keeps what it worked out for `name`, by mass (the same mass is asked at many ages, PERF.232)."""
+        memos = self.__dict__.setdefault("_memos", {})
+        found = memos.get(name)
+        if found is None:
+            found = memos[name] = {}
+        return found
 
     def clamped_point(self, mass, log_age):
         """
@@ -212,16 +225,28 @@ class _Isochrone:
 
     def lifetime_log_age(self, mass):
         """log10 of the age (years) at which a star of `mass` leaves the main sequence, or None outside the grid."""
-        ends = np.array([block[-1, 0] for block in self.blocks])
-        order = np.argsort(ends)
-        if mass < ends[order][0] or mass > ends[order][-1]:
-            return None
-        return float(np.interp(mass, ends[order], self.log_ages[order]))
+        memo = self._memo("lifetime")
+        if mass in memo:
+            return memo[mass]
+        tables = self.__dict__.get("_lifetime_tables")
+        if tables is None:
+            ends = np.array([block[-1, 0] for block in self.blocks])
+            order = np.argsort(ends)
+            tables = self.__dict__["_lifetime_tables"] = (ends[order], self.log_ages[order])
+        ends, ages = tables
+        found = None if mass < ends[0] or mass > ends[-1] else float(np.interp(mass, ends, ages))
+        if len(memo) >= _MEMO_LIMIT:
+            memo.clear()
+        memo[mass] = found
+        return found
 
 
 _END_SLOPE_STEP_DEX = 0.05
 """float: How far back in log age the second row is read for the slope the end of the main sequence is carried on at
 (the isochrones' own spacing)."""
+
+_MEMO_LIMIT = 1 << 17
+"""int: How many masses an isochrone remembers the span and lifetime of (`_Isochrone._memo`) before it starts over."""
 
 _LIMITS = {}
 """dict: Each isochrone's lightest and heaviest main-sequence mass at each age (`_Isochrone._mass_limits`), by `id`."""

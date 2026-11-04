@@ -30,6 +30,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -617,12 +618,12 @@ API = "https://starmap.example/api"
 
 
 def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True, reply="", curl=None,
-                api=API, health_url=None):
+                api=API, health_url=None, wait="1"):
     """Runs the helper with fake `systemctl`, `apache2ctl` and `curl` that log their calls; returns
     `(process, calls)`. `fail` names the systemctl verbs that fail. `curl` is the body of the fake `curl` (it sees the
     address as its last argument) when the test needs different answers for different addresses. `api` is what the
     fake python prints for `get_settings().api_base_url` ("" is an unset api_base_url); `health_url` sets
-    PLANETGEN_HEALTH_URL."""
+    PLANETGEN_HEALTH_URL. `wait` is HEALTH_WAIT_SECONDS (None leaves the script's default)."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     log = tmp_path / "calls"
@@ -641,8 +642,10 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
     fake_python.chmod(0o755)
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
-    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1", HEALTH_SETTLE_SECONDS="0",
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS=wait or "", HEALTH_SETTLE_SECONDS="0",
                PYTHON=str(fake_python))
+    if wait is None:
+        env.pop("HEALTH_WAIT_SECONDS")
     env.pop("PLANETGEN_HEALTH_URL", None)
     if health_url:
         env["PLANETGEN_HEALTH_URL"] = health_url
@@ -747,6 +750,53 @@ def test_no_api_address_configured_stops_with_a_plain_message_and_asks_nothing(t
     assert proc.returncode == 1
     assert "no API address is configured" in proc.stderr and "api_base_url in config.json" in proc.stderr
     assert not calls
+
+
+# --- the health wait (OPS.94) -------------------------------------------------
+
+REFUSED = "exit 7\n"
+TIMED_OUT = "exit 28\n"
+
+
+def test_the_health_wait_defaults_to_90_seconds_and_says_so():
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert "${HEALTH_WAIT_SECONDS:-20}" not in common and common.count("${HEALTH_WAIT_SECONDS:-90}") >= 3
+
+
+def test_a_good_answer_ends_the_wait_at_once_whatever_its_length(tmp_path):
+    proc, calls = _run_reload(tmp_path, wait=None)
+    assert proc.returncode == 0 and "(up to 90 seconds)" in proc.stdout
+    assert len([c for c in calls if c.startswith("curl")]) == 1
+
+
+def test_a_slow_start_is_waited_out_and_the_wait_ends_at_the_first_good_answer(tmp_path):
+    """The first two asks time out (the workers are still starting), the third is answered: no warning, and no more asks."""
+    counter = tmp_path / "count"
+    curl = (f'n=$(cat {counter} 2>/dev/null || echo 0); echo $((n + 1)) > {counter}\n'
+            'if [ "$n" -lt 2 ]; then exit 28; fi\nprintf "\\n200"\n')
+    started = time.monotonic()
+    proc, calls = _run_reload(tmp_path, curl=curl, wait="30")
+    assert proc.returncode == 0 and "warning" not in proc.stderr
+    assert len([c for c in calls if c.startswith("curl")]) == 3 and time.monotonic() - started < 20
+    assert "no good answer yet (HTTP 000: no answer in time)" in proc.stdout
+
+
+@pytest.mark.parametrize("curl, words", [
+    (TIMED_OUT, "no answer in time"),
+    (REFUSED, "the connection was refused: nothing listens on that address and port"),
+    ("exit 6\n", "the name could not be looked up"),
+    ("exit 60\n", "the TLS (https) handshake or certificate failed, curl exit 60"),
+])
+def test_every_retry_line_says_what_curl_saw(tmp_path, curl, words):
+    proc, _calls = _run_reload(tmp_path, curl=curl)
+    assert proc.returncode == 3
+    assert f"no good answer yet (HTTP 000: {words})" in proc.stdout
+    assert f"(no HTTP answer at all: {words})" in proc.stderr
+
+
+def test_an_http_error_is_a_retry_line_with_its_code(tmp_path):
+    proc, _calls = _run_reload(tmp_path, health=False)
+    assert "no good answer yet (HTTP 503)" in proc.stdout
 
 
 def test_no_deploy_script_reaches_the_api_on_a_literal_loopback_address():

@@ -29,7 +29,7 @@ from tests.fuzz_support import deterministic_entropy
 
 SEEDS = range(16)
 """range: The seeds of the systems whose Document is read. The size of the corpus depends on the systems the seeds draw, and a change to
-the generator redraws them: ten seeds gave 1,522 items at UX.252 part 3 and 1,306 after the epochs that followed (TEST.576), with three seeds
+the generator redraws them: ten seeds gave 1,522 items on 2026-11-04 and 1,306 after the epochs of that week (TEST.576), with three seeds
 drawing a lone star. Sixteen gave about 1,840, so the floor of 1,500 in `test_the_prose_and_labels_of_a_document_keep_the_guide_except_the_listed`
 holds with room; if a later epoch pulls it under, add seeds here, do not lower the floor."""
 

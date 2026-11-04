@@ -2,6 +2,93 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3209] - 2026-11-04
+
+**Headline:** update.sh waits up to 90 seconds for the site to answer after a reload and says why each ask failed.
+
+### Changed
+
+- **A longer wait (OPS.94).** After the Apache or gunicorn reload, the health check waited 20 seconds. On a real server the first workers were still compiling and importing after new code, each ask timed out at 5 seconds and read as "HTTP 000", and the update opened the site with a warning. `HEALTH_WAIT_SECONDS` now defaults to 90. The wait still ends at the first good answer, so a quick start costs nothing.
+- **Every retry line says what curl saw.** "no good answer yet (HTTP 000: the connection was refused: nothing listens on that address and port)", or a timeout, a failed name lookup, a TLS error, instead of a bare code. A line is printed for the first miss, then every 5 seconds or when the reason changes.
+
+generation-output: unchanged
+
+## [8.0.3208] - 2026-11-04
+
+**Headline:** On the Galaxy Map the black holes are named only when their marks are turned on, as the marks themselves are; the purple dots always draw.
+
+### Changed
+
+- The black hole name labels follow the Black hole marks switch (off by default), so a default view shows the black hole dots among the stars and no black hole names. Turning the marks on shows both the marks and the names.
+
+generation-output: unchanged
+
+## [8.0.3207] - 2026-11-04
+
+**Headline:** On the Sector Map a nebula is now drawn as the same irregular cloud of gas the Galaxy Map shows, not a smooth ball or a fixed mesh.
+
+### Changed
+
+- A sector's nebulae (opened in place on the Galaxy Map or on a sector page) are drawn from each nebula's own cloud of points (`/galaxy/nebula/<id>/volume`) by the Galaxy Map's volume layer, so they have the same uneven edges, overlap by adding colors, and tint the stars behind them. The old sphere stays only so a nebula can still be clicked.
+
+generation-output: unchanged
+
+## [8.0.3206] - 2026-11-04
+
+**Headline:** There is now a short two-word local name for any Object ID, spelling only its serial and body number, with the sector shown beside it.
+
+### Changed
+
+- **Local names (GEN.1255).** `names/naming_key.py` gains `local_name`, `local_name_with_sector` and `uid_of_local_name`: the serial and body number of an Object ID, 10 hex digits, spelled alone as two words in their own codec domain, so the sector's words never appear (`Zaidonr Jaisonn, sector 0000B0001803E8`). The 26 count bits of the serial are first scrambled by a keyed bijection (odd multiplier and offset drawn from the naming key and the sector), so serials 0, 1, 2 no longer share a first word: the first 4,096 serials of every sector have first words of their own. The name is exact inside a sector and reverses from the name, the sector and the key. `CODEC_VERSION` goes to 2. Nothing uses the local name yet: rogue planets and the other phenomena, scatter rows, the pages, the API and search follow in GEN.1256, GEN.1257, UX.259 and API.38. No stored data or generated output changes.
+
+generation-output: unchanged
+
+## [8.0.3205] - 2026-11-04
+
+**Headline:** The first fill of a galaxy works out its bright-star band shares about fifteen times faster, with every star drawn as before.
+
+### Changed
+- **PERF.232: the band shares of a first sector fill were most of its time, and most of that was work that could only come to 0.** A sector fill asks, for every luminosity band from 100 Lsun up and every population, what share of the population's living stars the band holds (`star_population._bright_fraction`), which weighs about 8,000 masses of the IMF grid per threshold. For an old population nearly all of those stars are dead, or not yet off the main sequence, in the ages the population spans, and each was still worked out in full (the evolved-track corners, the thermal-pulse windows, the main-sequence crossing) to find it weighed nothing. Three changes, none of which moves a number:
+  - A star whose bright windows all lie outside its population's age window now measures exactly 0 without them being worked out (`star_population._outside_window`: the windows lie between the main-sequence lifetime and the end of the last phase, and `AgeLaw.weight` is exactly 0 outside the window). A population's living count and the list of masses that can count at any threshold are worked out once for all thresholds (`_fraction_terms`) instead of once per threshold.
+  - `post_main_sequence.Timeline.bright_pieces`, which finds the stretches of a track that clear a luminosity, runs its arithmetic in one numba pass over the samples (`physics/bright_piece_kernel.py`) instead of two dozen small array operations; a track with a sample that is not a number takes the array path as before.
+  - An isochrone remembers the span and the lifetime of each mass it is asked about (`datasets/isochrones._Isochrone._memo`), and builds the sorted table its lifetime reads once, not on every call: a main-sequence crossing asks the same mass at a dozen ages.
+  Measured on one 4-core machine, each from a cold folder: `test_a_new_seed_replaces_the_old_only_before_any_sector` took 1,478 s on `main` and about 430 s now, and the band shares inside it, sampled while it ran, took about 890 s before and about 60 s after. Every share of 98 asked (seven thresholds, every population, three mass ranges) is the same float as on `main`, and `tests/test_bright_measure_exactness.py` holds the three changes to the way they were worked out before, to the last bit. What is left of that test (the plan, the sampling tables, the sector's own systems) is not the shares. `generation-output: unchanged`
+
+## [8.0.3204] - 2026-11-04
+
+**Headline:** A single nebula's cloud of points can now be fetched on its own, ready for the Sector Map and the nebula page to draw the same irregular shape the Galaxy Map shows.
+
+### Changed
+
+- New `GET /api/nebulae/<id>/volume` (and the web `GET /galaxy/nebula/<id>/volume`) sample one nebula's cloud from the model's gas density with the same sampler as the Galaxy Map's node volumes. Nothing is stored and no map draws it yet (MAP.142 part 1).
+
+generation-output: unchanged
+
+## [8.0.3203] - 2026-11-04
+
+**Headline:** The property sheet knows that only some life classes have a variant letter, so a body whose class has none is no longer flagged as an empty column.
+
+### Changed
+
+- `life_class_variant` is empty on a body whose life class comes in one form (classes 2, 6, 7, 8 and 9 have no pigment or habitat letter); only classes 1, 3, 4 and 5 have variants. The body sheet rules now say so, derived from the life class table, so `test_a_sample_has_no_empty_column_that_applies_and_is_not_filed` no longer fails on a class 2 or class 6 body (TEST.572). The other half of TEST.572, `stars.nuclear_arrival_age_gy` empty in every row, was already fixed by TEST.556 (#4756): both checks passed on main in two runs.
+
+generation-output: unchanged
+
+## [8.0.3202] - 2026-11-04
+
+**Headline:** The plain-words check reads sixteen systems instead of ten so its corpus stays big enough, and two wording slips it found are fixed.
+
+### Fixed
+- The "Formerly" line on object pages no longer shows the epoch number; it says what changed, why and the date, in the story's words.
+- A belt's sheet row reads "Largest body", not "Largest Body".
+
+### Changed
+- `test_plain_words` reads the Document of sixteen seeded systems. The ten it read had shrunk to 1,306 sentences and labels under the 1,500 floor, because the epochs of the last days redrew those systems (three now draw a lone star). The floor stays.
+- Found with the extra systems and listed under its owner: the outer-disk belt origin sentence says "disc" and is stored, so fixing it rides a train.
+
+generation-output: unchanged
+TODO items resolved: TEST.576
+
 ## [8.0.3201] - 2026-11-04
 
 **Headline:** The life census now also counts how many worlds have two or more living classes and how common each class is.

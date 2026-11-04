@@ -92,6 +92,7 @@ ID_PATHS = {
         "results.systems.rows[].id": "system",
     },
     "api.nebula_shape_route": {"id": "nebula"},
+    "api.nebula_volume_route": {"id": "nebula"},
     "population.polity_detail": {"systems[].id": "system"},
     "population.territories": {"points[].id": "system"},
     "api.system_text": {"id": "system"},

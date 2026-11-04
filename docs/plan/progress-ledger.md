@@ -2425,3 +2425,10 @@ Baseline: PR #1817.
 | GEN.375 | 8.3 | Positions as one object |
 | MAP.275 | 8.4 | Asteroid fields |
 | TEST.435 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.576 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.572 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.578 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1251 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.577 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.377 | 8.1 | Fly-through map |
+| OPS.94 | 8.9 | Repair and proof |

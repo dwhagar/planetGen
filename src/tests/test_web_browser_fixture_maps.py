@@ -14,6 +14,7 @@ generated database.
 
 import time
 import io
+import json
 import math
 import re
 from urllib.parse import parse_qs, urlparse
@@ -243,8 +244,18 @@ def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
 def test_sector_map_click_on_empty_space_keeps_the_selection(page, map_site):
     _open_sector(page, map_site)
     _x, _y, name = _click_a_star(page)
+    _settle(page)    # a click on the nebula on the way (it is bright now, MAP.142) flies the camera to it
     box = page.locator(SECTOR_CANVAS).bounding_box()
-    page.mouse.click(box["x"] + 3, box["y"] + 3)
+    # Empty space: a point of the map where hovering names nothing (a neighboring sector's cell would be opened by the click).
+    spot = None
+    for fx, fy in ((0.5, 0.97), (0.03, 0.5), (0.97, 0.5), (0.03, 0.03), (0.97, 0.03), (0.03, 0.97), (0.97, 0.97), (0.5, 0.03)):
+        page.mouse.move(box["x"] + fx * box["width"], box["y"] + fy * box["height"])
+        page.wait_for_timeout(250)
+        if not page.evaluate("() => [...document.querySelectorAll('.map-tooltip')].some((e) => e.textContent.trim() && e.getClientRects().length)"):
+            spot = (box["x"] + fx * box["width"], box["y"] + fy * box["height"])
+            break
+    assert spot, "some part of the map is empty"
+    page.mouse.click(*spot)
     assert _info_title(page) == name
 
 
@@ -1593,14 +1604,18 @@ def _click_galaxy_stars(page, count=5):
     return headings
 
 
-def test_sector_map_draws_its_nebula_from_the_shape_mesh(page, map_site):
-    """MAP.103: the Sector Map's nebula (the fixture's "Fixture Veil") is
-    drawn from its shape mesh once that arrives, in place of the sphere."""
-    shape_requests = []
-    page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
+def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
+    """MAP.142: the Sector Map's nebula (the fixture's "Fixture Veil") is drawn from its own cloud of points (`/galaxy/nebula/<id>/volume`) by the
+    volume layer, with no shape mesh asked for; the sphere stays only so the nebula can still be picked."""
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
     _open_sector(page, map_site)
-    page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
-    assert any("/galaxy/nebula/31/shape?lod=low" in url for url in shape_requests), shape_requests
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.volumes().some((volume) => volume.key === 'nebula:31'); }}", timeout=30000)
+    volumes = page.evaluate(f"() => ({VOLUMES})().volumes().filter((volume) => volume.key === 'nebula:31')")
+    assert volumes and len(volumes[0]["ix"]) > 0
+    assert any("/galaxy/nebula/31/volume" in url for url in requests), requests
+    assert not any("/galaxy/nebula/31/shape" in url for url in requests), requests
+    assert page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").count() == 0
 
 
 def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
@@ -3007,9 +3022,15 @@ def test_galaxy_map_black_hole_marks_start_off_and_the_dots_always_draw(page, ma
     page.wait_for_timeout(500)
     assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
     assert "Black hole marks" not in legend.inner_text()
+    # MAP.377: with the marks off the black holes carry no name either (the dots stay).
+    assert not [label for label in page.evaluate(LABELS) if label["text"] in holes], "no black hole is named with its marks off"
+    object_names = "() => document.querySelector('#galaxymap3d-canvas').__mapObjectNames().map((o) => o.text)"
+    page.wait_for_function(f"() => ({object_names})().length > 0")    # the other named objects are offered
+    assert not set(page.evaluate(object_names)) & set(holes), "and none is offered to the label engine"
     # On: the marks, the dots in purple, the legend line and the address.
     button.click()
     assert button.get_attribute("aria-pressed") == "true"
+    page.wait_for_function(f"() => ({object_names})().includes('Fixture Maw')", timeout=15000)    # MAP.377: the names come with the marks
     assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("show", [""])[0].split(",")
     drawn = _markers_until(page, lambda found: {e["name"] for e in found if e["kind"] == "marker-black-hole"} >= set(holes))
     assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
@@ -5786,3 +5807,4 @@ def test_galaxy_map_says_in_plain_words_that_a_level_stalled_when_its_nodes_do_n
     assert not page.evaluate("() => !!document.querySelector('.map-level-progress [role=progressbar]')"), "no bar is left stuck"
     page.unroute("**/galaxy/nodes*")
     page.wait_for_function("() => !document.querySelector('.map-level-progress')", timeout=40000)
+
