@@ -13441,7 +13441,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
-  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1222, GEN.1214.
+  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
@@ -14022,47 +14022,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
-
-- [ ] **GEN.1222 Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug)**
-  From the Class M research thread's handoff
-  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
-  in class-type-and-domain-scoring-design-2026-10-31.md,
-  class-families-and-positions-design-2026-10-31.md,
-  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
-  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
-  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
-  TODO thread. Found by the Class M thread. In the seed-5 sample 60 of
-  2,071 bodies are tiny airless moons with hydrosphere 'surface ocean'
-  and surface_liquid water at 20 to 33 K, which is frozen solid.
-  Reproduce: class_sweep_cli.sample_bodies(300, 5, 0.25), moons with
-  surface_temperature under 250 K and hydrosphere 'surface ocean'. Do:
-  find which step gives a liquid water state to a moon with no air and a
-  surface far under 273 K (the hydrosphere rule, a moon path that skips
-  the phase gate, or the surface liquid step reading the stored
-  hydrosphere), fix at the cause with the phase gate, and print the
-  census before and after. Changes stored output: epoch with --affects
-  on a train. Where we think it belongs (best guess, can move): Tides 1
-  (owns the surface liquid step) or the Class M thread.
-  Fixed by Tides 1 (as the lane reported, 11:25 AM EDT 2026-10-31)
-  (2026-10-31 11:35 AM EDT): pressure_melted_shell_km had no floor on
-  the melting-point fall, so a thick lid on a cold low-heat body gave a
-  shell of 0 and a water ocean at 25 K (124 of 370 water seas in its
-  sample). Fix: floor at the ice III triple point, 251.2 K. Branch
-  claude/gen1214-volatile-seas head e6af56ae1 off train 7, a lock item
-  (changes stored output), change note included. Stays open until it
-  merges on a train.
-  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
-  and GEN.1222 as one lock branch (as the lane reported):
-  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
-  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
-  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
-  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
-  seas in its sample were wrong), and warm water under crushing air (4.5
-  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
-  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
-  classes read them, classes unchanged on 404 bodies. Goes after train 7
-  merges.
-  Prerequisites: none. Related: GEN.1035, GEN.1214.
 
 - [ ] **GEN.1226 Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly**
   Boss, 11:57 AM EDT 2026-10-31 (via the Class M thread): store the
