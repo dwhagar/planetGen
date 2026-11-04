@@ -14497,6 +14497,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   slow-test cost, not a spelling effect.
   Prerequisites: none.
 
+- [ ] **PERF.233 One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update**
+  Boss, 4:57 PM EST on 2026-11-04: "I want the entire map tile cache
+  built with one command and then I'm going to put that command in the
+  maintenance script so that nightly, after the orbital update, all of
+  the caches are rebuilt from scratch. But I want it to build
+  everything. I want it to cache the entire galactic map as map tiles
+  built." What exists: `planetgen warm` (planetgen/cli/warm.py,
+  web/warmup.py) builds the opening views, the Galaxy Map's nodes to the
+  built levels and the deep nodes along the zoom run, then the lists and
+  object pages, but it stops at each phase's cache budget (cache.max_mb)
+  and warms only what a visit would reach; web/lib/tilecache.py stores
+  packed PGT1 tiles per generation, prunes least recently written files
+  above tile_cache.max_mb, and deletes only changed tiles when data
+  changes (PERF.129, PERF.134 admin page); the monthly orbit update is
+  examples/maintenance/planetgen-orbits@.service and .timer. Do: (1)
+  MEASURE FIRST and report before building: the number of tiles per zoom
+  level for the whole galaxy, bytes per tile stored, the seconds per
+  tile and the total disk and hours for a full build on a 4-core
+  machine, so the cost is known. (2) A single command, e.g. `planetgen
+  warm tiles --all` (or `planetgen tiles build --all`), that builds
+  EVERY tile of EVERY zoom level of the whole galaxy, with no cache
+  budget cap and no pruning while it runs, from scratch: it builds into
+  a new generation beside the live one and swaps it in when complete, so
+  visitors never meet an empty cache and a killed run leaves the old
+  cache serving; progress lines per level, resumable by level, parallel
+  workers set by a setting, exits non-zero on failure. (3) Lift
+  tile_cache.max_mb pruning for a full cache or make the full build
+  declare the size it needs and warn when the disk lacks it. (4) Add the
+  command to the maintenance example: a timer unit that runs after the
+  orbit update (After= and OnSuccess= ordering, or one script that runs
+  orbits and then the build), documented in examples/maintenance and
+  INSTALL.md; the other caches (lists, objects, search) are rebuilt
+  after it by the existing planetgen warm. Done: one command builds the
+  whole galaxy's tiles; a test on a small galaxy proves every level and
+  tile exists afterwards and the swap leaves the old generation serving
+  during the build; the measured size and time are in the report; the
+  maintenance example runs it nightly after the orbit update. Lock-free
+  (no generator output change). Related: PERF.129, PERF.134, PERF.141,
+  MAP.158, MAP.260. Owner Core 2 (map tiles) with Aux 3 for the timings
+  (proposed by the TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
