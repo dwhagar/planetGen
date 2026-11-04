@@ -3277,6 +3277,16 @@ def load_moons_of_rogue_planet(conn, rogue_planet_id, system_config=None):
     return moons
 
 
+def _json_or_none(value):
+    """`value` as JSON text, or None for an empty one (a belt made without an origin keeps no such column)."""
+    return json.dumps(value, sort_keys=True) if value else None
+
+
+def _json_loads(text, default):
+    """The value a JSON column holds, or `default` for NULL."""
+    return default if text is None else json.loads(text)
+
+
 BELT_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("star_id"), object_rows.context("orbital_index"),
     object_rows.computed(("parent_type", "parent_id"),
@@ -3290,6 +3300,17 @@ BELT_FIELDS = (
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                           "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
     object_rows.computed(body_strength.POPULATION_FIELDS, lambda belt, context: body_strength.population_values(belt)),
+    # GEN.1069: where the belt came from and what happened to it; None for a belt made without an origin
+    object_rows.optional("origin_cause", "origin"), object_rows.optional("formation_snow_line_au"),
+    object_rows.optional("primordial_mass_earth"), object_rows.optional("cleared_mass_earth"), object_rows.optional("scattered_mass_earth"),
+    object_rows.optional("origin_sentence"), object_rows.optional("largest_body_km"),
+    object_rows.computed("stirred", lambda belt, context: None if belt.stirred is None else int(bool(belt.stirred)),
+                         lambda row: {"stirred": None if row["stirred"] is None else bool(row["stirred"])}),
+    object_rows.computed("co_causes", lambda belt, context: _json_or_none(belt.co_causes), lambda row: {"co_causes": _json_loads(row["co_causes"], [])}),
+    object_rows.computed("origin_history", lambda belt, context: _json_or_none(belt.origin_history),
+                         lambda row: {"origin_history": _json_loads(row["origin_history"], [])}),
+    object_rows.computed("scatter_fates", lambda belt, context: _json_or_none(belt.scatter_fates),
+                         lambda row: {"scatter_fates": _json_loads(row["scatter_fates"], None)}),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 

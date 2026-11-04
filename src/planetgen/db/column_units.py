@@ -153,12 +153,15 @@ TABLES = {
     "asteroid_belts": {
         "id": ("id", "star_system_id", "star_id", "parent_id"),
         "index": ("orbital_index",),
-        "km": ("distance_km", "lower_limit_km", "upper_limit_km", "position_x_km", "position_y_km", "position_z_km"),
+        "km": ("distance_km", "lower_limit_km", "upper_limit_km", "position_x_km", "position_y_km", "position_z_km", "largest_body_km"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "kg": ("mass_kg",),
         "unix_s": ("epoch_unix", "next_update_due"),
         "g_cm3": ("density_g_cm3",),
         "frac": ("ice_mass_fraction",),
+        "au": ("formation_snow_line_au",),
+        "Mearth": ("primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth"),
+        "flag": ("stirred",),
     },
     "asteroid_field_composition": {
         "id": ("id", "field_id"),

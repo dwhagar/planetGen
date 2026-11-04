@@ -285,9 +285,11 @@ _PLANET = _MOON = _BODY_GROUPS
 _BELT = (
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
-    *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
+    *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_km", "Largest body", "radius"),
+           ("primordial_mass_earth", "Mass it formed with"), ("cleared_mass_earth", "Mass the giants cleared"), ("scattered_mass_earth", "Mass an instability scattered")),
     *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
            ("chondrite_group", "Nearest meteorite group", TEXT)),
+    *_rows("identity", ("origin_cause", "Formed as", TEXT), ("origin_sentence", "Where it came from", TEXT), ("formation_snow_line_au", "Snow line when it formed")),
 )
 
 _COMET = (
