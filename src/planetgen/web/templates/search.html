@@ -58,7 +58,7 @@
       <div class="search-fields search-fields-size search-fields-values" data-values-group="{{ group.entity }}">
         {%- for row in group.rows %}
         <div class="search-field search-field-size search-field-value" role="group" aria-label="{{ group.label }} {{ row.label|lower }}">
-          <span>{{ row.label }}</span>
+          <span>{{ row.label|chem }}</span>
           {{ ui_input(row.min_name, "Minimum " ~ group.label|lower ~ " " ~ row.label|lower, row.min, type="number", bare=True, step="any", placeholder="least") }}
           <span aria-hidden="true">&ndash;</span>
           {{ ui_input(row.max_name, "Maximum " ~ group.label|lower ~ " " ~ row.label|lower, row.max, type="number", bare=True, step="any", placeholder="most") }}
@@ -75,7 +75,7 @@
           <span>Partial pressure of another gas</span>
           <select name="{{ gas.name }}" aria-label="Gas for the {{ group.label|lower }} partial pressure">
             <option value="">Pick a gas</option>
-            {%- for formula in gas.gases %}<option value="{{ formula }}">{{ formula }}</option>{% endfor %}
+            {%- for formula in gas.gases %}<option value="{{ formula }}">{{ formula|formula_text }}</option>{% endfor %}
           </select>
           {{ ui_input(gas.min_name, "Minimum " ~ group.label|lower ~ " partial pressure of the gas picked", "", type="number", bare=True, step="any", placeholder="least") }}
           <span aria-hidden="true">&ndash;</span>
@@ -87,7 +87,7 @@
         {%- endif %}
         <label class="search-field search-field-value-sort">Order the {{ group.label|lower }}s by
           <select name="{{ group.sort.name }}">
-            {%- for option in group.sort.options %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}
+            {%- for option in group.sort.options %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label|chem_text }}</option>{% endfor %}
           </select>
         </label>
       </div>
@@ -104,7 +104,7 @@
   {%- if chips %}
   <div class="active-filters" aria-label="Active filters" role="group">
     {%- for chip in chips %}
-    <span class="filter-chip">{{ chip.label }}<a href="{{ chip.url }}" aria-label="Remove filter {{ chip.label }}">&times;</a></span>
+    <span class="filter-chip">{{ chip.label|chem }}<a href="{{ chip.url }}" aria-label="Remove filter {{ chip.label }}">&times;</a></span>
     {%- endfor %}
     <a class="clear-filters" href="{{ url_for('web.search') }}">Clear all</a>
   </div>
