@@ -12573,44 +12573,6 @@
           "fields": [
             [
               "What it is",
-              "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
-            ],
-            [
-              "The range it moves in",
-              "the exponent 1.4 to 1.9"
-            ],
-            [
-              "Where it holds",
-              "giants"
-            ],
-            [
-              "What would show it wrong",
-              "test_giant_one_bar_temperature::the cooling law gives a Uranus-mass giant far more heat than Uranus has"
-            ],
-            [
-              "What replaces it",
-              "the cooling tracks of the radius tables with the heavy-element interior of each giant (GEN.1033)"
-            ],
-            [
-              "Evidence",
-              "RECALLED ([R3466]: Neptune 0.43 W/m2, Uranus 0.042; Jupiter 5.4)"
-            ]
-          ],
-          "id": "CC14",
-          "key": "6.22:CC14",
-          "kind": "P",
-          "slug": "6-22-cc14",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L1",
-          "unread": null,
-          "what": "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "climate_branches.ICE_FREE_ALBEDO 0.30 and ICE_COVERED_ALBEDO 0.62 (the Bond albedo of a world with no ice, which is Earth's, and of one wholly under ice and snow, sea ice and snow 0.5 to 0.8; GEN.1046)"
             ],
             [
@@ -33881,6 +33843,736 @@
       ],
       "slug": "6-156-stand-ins-of-the-two-cuts-of-the-body-type",
       "title": "Stand-ins of the two cuts of the body type"
+    },
+    {
+      "key": "6.170",
+      "number": "6.170",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.BLUE_SLOPE_ICY 3.5 and ICY_FRACTION 0.985: the reflectance slope from 0.35 to 0.55 micrometers of a ring that is 98.5 percent ice or more, flat whatever its dust"
+            ],
+            [
+              "The range it moves in",
+              "slope 3 to 4; the ice share 0.98 to 0.99"
+            ],
+            [
+              "Where it holds",
+              "an icy ring (Saturn's A and B rings)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured slope outside 3 to 4 for a ring above 98.5 percent ice"
+            ],
+            [
+              "What replaces it",
+              "a slope worked out from the ring's grains"
+            ],
+            [
+              "Evidence",
+              "[R5091] 3 to 4 in the B ring; [R5090] the A and B rings hold only 0.2 to 0.5 percent dust and still show it, so it does not scale with the dust"
+            ]
+          ],
+          "id": "RNG1",
+          "key": "6.170:RNG1",
+          "kind": "P",
+          "slug": "6-170-rng1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ringlook.BLUE_SLOPE_ICY 3.5 and ICY_FRACTION 0.985: the reflectance slope from 0.35 to 0.55 micrometers of a ring that is 98.5 percent ice or more, flat whatever its dust"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.BLUE_SLOPE_DUST 1.5: the same slope for a ring with no ice, interpolated linearly in the ice share between 0.5 and 0.985"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "a ring below 98.5 percent ice"
+            ],
+            [
+              "What would show it wrong",
+              "none: a fitted picture"
+            ],
+            [
+              "What replaces it",
+              "a measured slope of a dust ring (Jupiter, Uranus, Neptune)"
+            ],
+            [
+              "Evidence",
+              "no source gives it; a dark red-brown ring was wanted"
+            ]
+          ],
+          "id": "RNG2",
+          "key": "6.170:RNG2",
+          "kind": "P",
+          "slug": "6-170-rng2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "ringlook.BLUE_SLOPE_DUST 1.5: the same slope for a ring with no ice, interpolated linearly in the ice share between 0.5 and 0.985"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.RED_SLOPE_ICY 0.05, RED_SLOPE_THIN 0.25, THIN_TAU 0.1, THICK_TAU 0.5: the slope from 0.55 to 0.95 micrometers, 0.25 for a thin ring and 0.05 for a thick icy one, linear between"
+            ],
+            [
+              "The range it moves in",
+              "icy 0 to 0.1; thin 0.2 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "any ring with an ice share"
+            ],
+            [
+              "What would show it wrong",
+              "a measured slope outside the ranges for a ring of the optical depth"
+            ],
+            [
+              "What replaces it",
+              "the slope from the ring's grains"
+            ],
+            [
+              "Evidence",
+              "[R5091] 0.0 to 0.1 for the A and B rings, about 0.3 (C ring) and 0.2 (Cassini Division); [R5090] the optical depths"
+            ]
+          ],
+          "id": "RNG3",
+          "key": "6.170:RNG3",
+          "kind": "P",
+          "slug": "6-170-rng3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ringlook.RED_SLOPE_ICY 0.05, RED_SLOPE_THIN 0.25, THIN_TAU 0.1, THICK_TAU 0.5: the slope from 0.55 to 0.95 micrometers, 0.25 for a thin ring and 0.05 for a thick icy one, linear between"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.ALBEDO_ICE 0.55 (ice share 0.95 or more) and ALBEDO_HALF 0.1 (ice share 0.5): the ring's Bond albedo, linear between"
+            ],
+            [
+              "The range it moves in",
+              "ice 0.45 to 0.6; half 0.1 to 0.4"
+            ],
+            [
+              "Where it holds",
+              "an icy ring"
+            ],
+            [
+              "What would show it wrong",
+              "a thermal-model albedo of an icy ring outside 0.45 to 0.6"
+            ],
+            [
+              "What replaces it",
+              "a visible albedo by ice share"
+            ],
+            [
+              "Evidence",
+              "[R5090] 0.55 for the A and B rings, 0.4 falling to 0.1 across the C ring; bolometric, not visible, used for the look"
+            ]
+          ],
+          "id": "RNG4",
+          "key": "6.170:RNG4",
+          "kind": "P",
+          "slug": "6-170-rng4",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ringlook.ALBEDO_ICE 0.55 (ice share 0.95 or more) and ALBEDO_HALF 0.1 (ice share 0.5): the ring's Bond albedo, linear between"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.ALBEDO_DUST 0.04: the albedo of a ring with no ice, linear from 0.1 at an ice share of 0.5"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "a ring with little or no ice"
+            ],
+            [
+              "What would show it wrong",
+              "none: a fitted picture"
+            ],
+            [
+              "What replaces it",
+              "a measured albedo of a dust ring"
+            ],
+            [
+              "Evidence",
+              "an educated guess; no source above gives it"
+            ]
+          ],
+          "id": "RNG5",
+          "key": "6.170:RNG5",
+          "kind": "P",
+          "slug": "6-170-rng5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "ringlook.ALBEDO_DUST 0.04: the albedo of a ring with no ice, linear from 0.1 at an ice share of 0.5"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.DISPLAY_GAIN 1.6, DUST_ALPHA_FLOOR 0.06, MAX_ALPHA 0.95: the picture is 1.6 times brighter than the albedo, no ring is less opaque than 0.06 or more than 0.95"
+            ],
+            [
+              "The range it moves in",
+              "gain 1 to 2.5; floor 0.03 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "any ring"
+            ],
+            [
+              "What would show it wrong",
+              "none: display choices"
+            ],
+            [
+              "What replaces it",
+              "a rendering model that works the light of the ring"
+            ],
+            [
+              "Evidence",
+              "chosen so an icy ring reads as a bright ring and a dust ring is still seen; [R5090] the visible I/F of Saturn's rings is about 0.5"
+            ]
+          ],
+          "id": "RNG6",
+          "key": "6.170:RNG6",
+          "kind": "P",
+          "slug": "6-170-rng6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "ringlook.DISPLAY_GAIN 1.6, DUST_ALPHA_FLOOR 0.06, MAX_ALPHA 0.95: the picture is 1.6 times brighter than the albedo, no ring is less opaque than 0.06 or more than 0.95"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.RESONANCES 2:1 (weight 1), 3:2 (0.6), 3:1 (0.35), 4:3 (0.35) and GAP_COEFFICIENT 2500: a gap at a moon's resonance with width over radius = weight times 2500 times (moon mass over planet mass) to the 2/3"
+            ],
+            [
+              "The range it moves in",
+              "weights 0.2 to 1; coefficient 1000 to 5000"
+            ],
+            [
+              "Where it holds",
+              "a ring with a moon outside it"
+            ],
+            [
+              "What would show it wrong",
+              "a stored ring and moon set whose measured gaps differ by more than a factor of 3 in width"
+            ],
+            [
+              "What replaces it",
+              "a gap width from the resonance torque and the ring's viscosity"
+            ],
+            [
+              "Evidence",
+              "the coefficient is fitted to the Cassini Division (0.04 of the radius for Mimas, 6.6e-8 of Saturn's mass); the form is the resonance radius a (q/p)^(2/3)"
+            ]
+          ],
+          "id": "RNG7",
+          "key": "6.170:RNG7",
+          "kind": "P",
+          "slug": "6-170-rng7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ringlook.RESONANCES 2:1 (weight 1), 3:2 (0.6), 3:1 (0.35), 4:3 (0.35) and GAP_COEFFICIENT 2500: a gap at a moon's resonance with width over radius = weight times 2500 times (moon mass over planet mass) to the 2/3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ringlook.GAP_MAX_SHARE 0.25, GAP_MIN_SHARE 0.006 and ringpaint.js RINGLET_SWING 0.35, NARROW_RINGLETS 4, NARROW_WIDTH 0.025, NARROW_CONCENTRATION 6, edge fades 0.35 (dusty), 0.04 (narrow), 0.03 (broad): the drawn gap widths and the seeded ringlet pattern"
+            ],
+            [
+              "The range it moves in",
+              "each by a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "any ring"
+            ],
+            [
+              "What would show it wrong",
+              "none: a picture"
+            ],
+            [
+              "What replaces it",
+              "a ring structure worked out from the ring's dynamics"
+            ],
+            [
+              "Evidence",
+              "choices of the item; no source"
+            ]
+          ],
+          "id": "RNG8",
+          "key": "6.170:RNG8",
+          "kind": "P",
+          "slug": "6-170-rng8",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "ringlook.GAP_MAX_SHARE 0.25, GAP_MIN_SHARE 0.006 and ringpaint.js RINGLET_SWING 0.35, NARROW_RINGLETS 4, NARROW_WIDTH 0.025, NARROW_CONCENTRATION 6, edge fades 0.35 (dusty), 0.04 (narrow), 0.03 (broad): the drawn gap widths and the seeded ringlet pattern"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "bodylook.THERMAL_ONSET_K 800: a body starts to shine by its own heat at the Draper point, about 800 K (525 C)"
+            ],
+            [
+              "The range it moves in",
+              "700 to 900 K"
+            ],
+            [
+              "Where it holds",
+              "any planet or moon with a stored temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a body that is seen to glow red cooler than 700 K"
+            ],
+            [
+              "What replaces it",
+              "a glow worked out from the emissivity and the eye's sensitivity"
+            ],
+            [
+              "Evidence",
+              "recalled (the Draper point); the gap plan has no registry source for it yet"
+            ]
+          ],
+          "id": "RNG9",
+          "key": "6.170:RNG9",
+          "kind": "P",
+          "slug": "6-170-rng9",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "bodylook.THERMAL_ONSET_K 800: a body starts to shine by its own heat at the Draper point, about 800 K (525 C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "bodylook.THERMAL_FULL_K 2400 and thermalglow.js EMISSION_GAIN 1.1: the glow rises linearly from 0 at 800 K to full at 2400 K, and a full glow adds as much light as the body's own colour; the glow is the blackbody colour of the body's temperature over its own picture"
+            ],
+            [
+              "The range it moves in",
+              "full at 1800 to 3000 K; gain 0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "a hot giant or a molten world"
+            ],
+            [
+              "What would show it wrong",
+              "none: tuned by eye so that 1000 K reads dull red and 2000 K bright orange"
+            ],
+            [
+              "What replaces it",
+              "a rendering model that works the emitted light"
+            ],
+            [
+              "Evidence",
+              "tuned by eye"
+            ]
+          ],
+          "id": "RNG10",
+          "key": "6.170:RNG10",
+          "kind": "P",
+          "slug": "6-170-rng10",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "bodylook.THERMAL_FULL_K 2400 and thermalglow.js EMISSION_GAIN 1.1: the glow rises linearly from 0 at 800 K to full at 2400 K, and a full glow adds as much light as the body's own colour; the glow is the blackbody colour of the body's temperature over its own picture"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.BAND_K 120, BANDS_MIN 4, BANDS_MAX 24: bands = round(120 x (R / R_Jupiter) / P_hours), clamped, made odd (an equatorial zone and the same number each side); 8 with no stored spin"
+            ],
+            [
+              "The range it moves in",
+              "K 80 to 200"
+            ],
+            [
+              "Where it holds",
+              "a giant with a stored spin"
+            ],
+            [
+              "What would show it wrong",
+              "a band count that disagrees with the belts and zones of Jupiter (about 12 to 16 are seen) or Saturn by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a count worked out from the jet speed and the Rhines length (the report's law n = 24 sqrt(Omega/Omega_J) sqrt(v_J/v_jet) has no usable jet speed law: the heat-flux speed gives Saturn 26 to 33 against 17 observed)"
+            ],
+            [
+              "Evidence",
+              "fitted to what is seen on Jupiter and Saturn; [R5082] 30 and 17 jets observed"
+            ]
+          ],
+          "id": "RNG11",
+          "key": "6.170:RNG11",
+          "kind": "P",
+          "slug": "6-170-rng11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "giantpaint.BAND_K 120, BANDS_MIN 4, BANDS_MAX 24: bands = round(120 x (R / R_Jupiter) / P_hours), clamped, made odd (an equatorial zone and the same number each side); 8 with no stored spin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.EQUATOR_HALF_MIN_DEG 15 and EQUATOR_HALF_MAX_DEG 30: the equatorial zone's half-width, drawn between Jupiter's and Saturn's"
+            ],
+            [
+              "The range it moves in",
+              "10 to 35 degrees"
+            ],
+            [
+              "Where it holds",
+              "any giant"
+            ],
+            [
+              "What would show it wrong",
+              "a jet profile of a giant whose equatorial band is outside 10 to 35 degrees"
+            ],
+            [
+              "What replaces it",
+              "a half-width from the jet speed ratio"
+            ],
+            [
+              "Evidence",
+              "[R5082] Jupiter's equatorial jet within plus or minus 15 degrees, Saturn's a single jet to plus or minus 30"
+            ]
+          ],
+          "id": "RNG12",
+          "key": "6.170:RNG12",
+          "kind": "P",
+          "slug": "6-170-rng12",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "giantpaint.EQUATOR_HALF_MIN_DEG 15 and EQUATOR_HALF_MAX_DEG 30: the equatorial zone's half-width, drawn between Jupiter's and Saturn's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.ICE_GIANT_BANDS 5 or 7: a giant with cloud tops under 130 K has 2 or 3 bands a hemisphere and the equatorial zone"
+            ],
+            [
+              "The range it moves in",
+              "3 to 11"
+            ],
+            [
+              "Where it holds",
+              "methane-air ice giants"
+            ],
+            [
+              "What would show it wrong",
+              "a read count of bands for Uranus or Neptune"
+            ],
+            [
+              "What replaces it",
+              "a jet count of the ice giants from a source read"
+            ],
+            [
+              "Evidence",
+              "needed output: no source gives a jet count for Uranus or Neptune (the report's section 2)"
+            ]
+          ],
+          "id": "RNG13",
+          "key": "6.170:RNG13",
+          "kind": "P",
+          "slug": "6-170-rng13",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "giantpaint.ICE_GIANT_BANDS 5 or 7: a giant with cloud tops under 130 K has 2 or 3 bands a hemisphere and the equatorial zone"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.DEFORMATION_JUPITER_KM 2000 scaled by (T / 165 K), (2.53 g / g) and (P / 9.93 h): the Rossby deformation radius of a giant"
+            ],
+            [
+              "The range it moves in",
+              "Jupiter's 500 to 2500 km"
+            ],
+            [
+              "Where it holds",
+              "any giant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured deformation radius of another giant outside a factor of 3 of the scaling"
+            ],
+            [
+              "What replaces it",
+              "the radius from the Brunt-Vaisala frequency of the generated air"
+            ],
+            [
+              "Evidence",
+              "[R5081] about 2000 km at Jupiter, [R5085] 500 to 2500 km; the scaling with scale height and the Coriolis parameter is the form L_R = H_P N / f of [R5086], with N kept at Jupiter's"
+            ]
+          ],
+          "id": "RNG14",
+          "key": "6.170:RNG14",
+          "kind": "P",
+          "slug": "6-170-rng14",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "giantpaint.DEFORMATION_JUPITER_KM 2000 scaled by (T / 165 K), (2.53 g / g) and (P / 9.93 h): the Rossby deformation radius of a giant"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.STORM_SIZE_MIN_KM 1000 and STORM_SIZE_LOG_RANGE 0.8: a large storm is 1 to 6.3 deformation radii long and no storm of this kind is under 1000 km"
+            ],
+            [
+              "The range it moves in",
+              "range 5 to 26 radii (the Great Red Spot by the maximum-entropy count)"
+            ],
+            [
+              "Where it holds",
+              "a giant with storms"
+            ],
+            [
+              "What would show it wrong",
+              "a measured storm population outside the range"
+            ],
+            [
+              "What replaces it",
+              "a storm size law from a source"
+            ],
+            [
+              "Evidence",
+              "[R5086] the Great Red Spot about 13,000 km, [R5085] 20,000 by 10,000 km against 500 to 2500 km"
+            ]
+          ],
+          "id": "RNG15",
+          "key": "6.170:RNG15",
+          "kind": "P",
+          "slug": "6-170-rng15",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "giantpaint.STORM_SIZE_MIN_KM 1000 and STORM_SIZE_LOG_RANGE 0.8: a large storm is 1 to 6.3 deformation radii long and no storm of this kind is under 1000 km"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.STORM_ASPECT_MIN 1.2 and STORM_ASPECT_MAX 1.9: a large storm's length over its height"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 1.9"
+            ],
+            [
+              "Where it holds",
+              "any large storm"
+            ],
+            [
+              "What would show it wrong",
+              "a measured aspect ratio outside 1.2 to 1.9"
+            ],
+            [
+              "What replaces it",
+              "the aspect from the vortex theory"
+            ],
+            [
+              "Evidence",
+              "[R5087] 1.84 (1.93 measured) for the Great Red Spot, 1.45 (1.22) for Oval BA, 1.44 (1.34) and 1.67 (1.67) for Ovals DE and BC"
+            ]
+          ],
+          "id": "RNG16",
+          "key": "6.170:RNG16",
+          "kind": "P",
+          "slug": "6-170-rng16",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "giantpaint.STORM_ASPECT_MIN 1.2 and STORM_ASPECT_MAX 1.9: a large storm's length over its height"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.CYCLONE_SHARE 0.1: nine in ten storms are anticyclones"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "any giant with storms"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share outside 0.05 to 0.2"
+            ],
+            [
+              "What replaces it",
+              "a sign law from a source"
+            ],
+            [
+              "Evidence",
+              "[R5087] about 90 percent of Jupiter's vortices are anticyclonic"
+            ]
+          ],
+          "id": "RNG17",
+          "key": "6.170:RNG17",
+          "kind": "P",
+          "slug": "6-170-rng17",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "giantpaint.CYCLONE_SHARE 0.1: nine in ten storms are anticyclones"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint storm counts and weights: 1 to 4 large storms (one more at 11 bands and another at 19; one for a nearly featureless giant), 6 + 2 bands small storms up to 40, 1000 to 3000 km, drawn at 0.25 to 0.55 of the large storms' strength"
+            ],
+            [
+              "The range it moves in",
+              "each by a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "any giant"
+            ],
+            [
+              "What would show it wrong",
+              "none: a picture"
+            ],
+            [
+              "What replaces it",
+              "a storm count law from a source"
+            ],
+            [
+              "Evidence",
+              "the design's 1 to 4; [R5086] the real count (hundreds of 1000 km spots) is a texture of small ones; no source gives a count law by rotation or heat flux"
+            ]
+          ],
+          "id": "RNG18",
+          "key": "6.170:RNG18",
+          "kind": "P",
+          "slug": "6-170-rng18",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "giantpaint storm counts and weights: 1 to 4 large storms (one more at 11 bands and another at 19; one for a nearly featureless giant), 6 + 2 bands small storms up to 40, 1000 to 3000 km, drawn at 0.25 to 0.55 of the large storms' strength"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giantpaint.CONTRAST_BY_TEMP, the belt and zone colours, the chromophore amounts (H2S_FULL, CH4_FULL, H2O_FULL) and the cloud regimes (130, 250 and 800 K): how the cloud-top temperature and the stored gases set the picture"
+            ],
+            [
+              "The range it moves in",
+              "each by a factor of 1.5"
+            ],
+            [
+              "Where it holds",
+              "any giant"
+            ],
+            [
+              "What would show it wrong",
+              "none: a picture"
+            ],
+            [
+              "What replaces it",
+              "band contrast and colour from the optics of the generated clouds (GEN.422 k-tables)"
+            ],
+            [
+              "Evidence",
+              "tuned by eye so that a methane giant is nearly featureless, an ammonia giant strongly banded and a hot giant dull"
+            ]
+          ],
+          "id": "RNG19",
+          "key": "6.170:RNG19",
+          "kind": "P",
+          "slug": "6-170-rng19",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "giantpaint.CONTRAST_BY_TEMP, the belt and zone colours, the chromophore amounts (H2S_FULL, CH4_FULL, H2O_FULL) and the cloud regimes (130, 250 and 800 K): how the cloud-top temperature and the stored gases set the picture"
+        }
+      ],
+      "slug": "6-170-stand-ins-of-the-picture-of-a-ring-and-of-a-glowing-body",
+      "title": "Stand-ins of the picture of a ring and of a glowing body"
     },
     {
       "key": "6.165",
