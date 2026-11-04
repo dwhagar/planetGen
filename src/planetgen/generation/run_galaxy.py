@@ -2705,7 +2705,7 @@ def _topup_region(args, plan, edge_pc):
     from planetgen.generation import topup_stage
 
     totals = topup_stage.topup_region(store.mysql_config_from_args(args), plan.addresses(), edge_pc, level=getattr(args, "rogues", None))
-    log.normal(f"Rogue top-up (stage 3): {totals['rogues']:,} rogue planet(s) added to {totals['sectors']:,} sector(s).")
+    log.normal(f"Rogue top-up (stage 3): {totals['rogues']:,} rogue planet(s) and {totals['fields']:,} light asteroid field(s) added to {totals['sectors']:,} sector(s).")
 
 
 def course_cells(config, from_ref, to_ref, border=False):

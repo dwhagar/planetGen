@@ -300,6 +300,7 @@ WRITERS = {
     ("db/store.py", "set_sector_uid"): MARKS,
     ("db/store.py", "touch_star_system"): MARKS,
     ("db/store.py", "delete_rogues_of_donor"): MARKS + " through touch_sector, for each sector a rogue was filed in (GEN.1111)",
+    ("db/store.py", "delete_topup_rogues"): MARKS + " through touch_sector (GEN.1120)",
     ("db/store.py", "uncharted_sector_id"): NEW,
     ("db/store.py", "touch_sector"): MARKS,
     ("db/store.py", "advance_orbital_phases"): VOLATILE,

@@ -18,17 +18,18 @@ from planetgen.galaxy import dials, resident_mass, system_mass
 from planetgen.galaxy import seed as galaxy_seed
 from planetgen.galaxy.profile import sector_profile
 from planetgen.generation.config import SystemConfig
-from planetgen.generation import rogue_topup_build
-from planetgen.physics import constants, rogue_topup
+from planetgen.generation import field_topup_build, rogue_topup_build
+from planetgen.physics import constants, rogue_topup, topup_field
 from planetgen.util import draw
 
 MAX_HOSTS = 8
 """int: The most of a sector's systems loaded as donors of the top-up's mass. STAND-IN (GEN.725): a rogue's donor only supplies the mass, the snow line and the
 age of the star; a handful is as good as all of them and a sector can hold hundreds."""
 
-TopUpResult = collections.namedtuple("TopUpResult", ("written", "remainder_kg", "shortfall_kg", "stopped_by_level", "skipped"))
-"""What a sector's top-up did: the rogues written, the mass the level left unmatched, the shortfall it started from, whether the level ended the drawing and
-the reason nothing was done (`None` when it ran)."""
+TopUpResult = collections.namedtuple("TopUpResult", ("written", "remainder_kg", "shortfall_kg", "stopped_by_level", "skipped", "fields", "unmatched_kg"),
+                                     defaults=(0, 0.0))
+"""What a sector's top-up did: the rogues written, the mass the level left over for the fields, the shortfall it started from, whether the level ended the
+drawing, the reason nothing was done (`None` when it ran), the light asteroid fields written for the left-over mass and the mass under the fields' cut."""
 
 
 def level_word(args_or_value):
@@ -79,14 +80,19 @@ def topup_sector(conn, address, profile, level, system_config, edge_pc, stream_k
     system_ids = [r["id"] for r in conn.execute("SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id LIMIT ?", (sector_id, MAX_HOSTS)).fetchall()]
     hosts = [store.load_star_system(conn, system_id).star for system_id in system_ids]
     key = stream_key or "topup:" + ".".join(str(part) for part in address)
+    radius_pc = math.sqrt(sum(c * c for c in profile.position_pc))
     plan = rogue_topup.plan(
         draw.Stream(key + ":plan"), word, stars, short, [host.mass for host in hosts], rogues_present=store.count_rogues_in_sector(conn, sector_id),
-        sector_edge_pc=edge_pc, galactocentric_radius_pc=math.sqrt(sum(c * c for c in profile.position_pc)))
+        sector_edge_pc=edge_pc, galactocentric_radius_pc=radius_pc)
     made = rogue_topup_build.build(plan.rogues, hosts, system_config, key, address, edge_pc)
     written = store.save_topup_rogues(conn, sector_id, made)
+    # What the level left unmatched becomes the lighter fields (Boss, 5:41 PM EDT), placed and given an apparent history the same way.
+    light = topup_field.plan(draw.Stream(key + ":fields"), plan.remainder_kg, [host.mass for host in hosts] if plan.remainder_kg else [], sector_edge_pc=edge_pc,
+                             galactocentric_radius_pc=radius_pc)
+    field_count = store.save_topup_fields(conn, sector_id, field_topup_build.build(light.fields, system_config, key, address, edge_pc))
     chart_ledger.mark_topped_up(conn, address)
     sector_mass.refresh_sectors(conn, [tuple(address)])
-    return TopUpResult(written, plan.remainder_kg, short, plan.stopped_by_level, None)
+    return TopUpResult(written, plan.remainder_kg, short, plan.stopped_by_level, None, field_count, light.unmatched_kg)
 
 
 def topup_region(config, addresses, edge_pc, level=None, system_config=None, report=None):
@@ -103,10 +109,10 @@ def topup_region(config, addresses, edge_pc, level=None, system_config=None, rep
         report (callable, optional): Called with `(address, TopUpResult)` for each sector.
 
     Returns:
-        dict: `{"sectors": n topped up, "rogues": n written, "remainder_kg": mass the level left unmatched}`.
+        dict: `{"sectors": n topped up, "rogues": n written, "fields": n light fields written, "remainder_kg": mass under the fields' cut}`.
     """
     conn = store.get_connection(config)
-    totals = {"sectors": 0, "rogues": 0, "remainder_kg": 0.0}
+    totals = {"sectors": 0, "rogues": 0, "fields": 0, "remainder_kg": 0.0}
     try:
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
@@ -121,7 +127,8 @@ def topup_region(config, addresses, edge_pc, level=None, system_config=None, rep
             if result.skipped is None:
                 totals["sectors"] += 1
                 totals["rogues"] += result.written
-                totals["remainder_kg"] += result.remainder_kg
+                totals["fields"] += result.fields
+                totals["remainder_kg"] += result.unmatched_kg
             if report is not None:
                 report(address, result)
     finally:

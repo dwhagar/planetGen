@@ -3899,9 +3899,33 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
     return written
 
 
+def save_topup_fields(conn, sector_id, made):
+    """
+    Saves the light asteroid fields of a sector's top-up (GEN.1120): each is an `asteroid_fields` row in the sector with its mass (its density follows from its composition, as any field's does); the origin
+    is apparent and not stored (no parent, no collision). Their object IDs are born in this sector.
+
+    Args:
+        conn (Connection): Not mid-`batched`.
+        sector_id (int): The sector the top-up fills.
+        made (iterable): `field_topup_build.ToppedField`s.
+
+    Returns:
+        int: How many fields were written.
+    """
+    count = 0
+    for item in made:
+        field_id = insert_asteroid_field(conn, item.field, sector_id=sector_id, placement=rogue_landing.placement_of(item.landing))
+        assign_uids(conn, phenomenon=("asteroid_fields", field_id))
+        count += 1
+    return count
+
+
 def delete_topup_rogues(conn, sector_id):
     """Deletes the rogue planets a sector's top-up made (GEN.1120): the ones filed in it with no donor, so the top-up of a regenerated sector is written afresh."""
-    return conn.execute("DELETE FROM rogue_planets WHERE sector_id = ? AND donor_uid IS NULL", (sector_id,)).rowcount
+    deleted = conn.execute("DELETE FROM rogue_planets WHERE sector_id = ? AND donor_uid IS NULL", (sector_id,)).rowcount
+    if deleted:
+        touch_sector(conn, sector_id)       # the sector's storage checksum covers its rogues (DB.45)
+    return deleted
 
 
 def count_rogues_in_sector(conn, sector_id):
@@ -4034,7 +4058,8 @@ ASTEROID_FIELD_FIELDS = (
     object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
     object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
-    _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: 0.0), _GALACTIC_ORBIT_FIELD,
+    _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: getattr(field, "mass_kg", None) or 0.0),
+    _GALACTIC_ORBIT_FIELD,
     _PLACEMENT_FIELD,
     object_rows.computed(body_strength.POPULATION_FIELDS, lambda field, context: body_strength.population_values(field)),
 )

@@ -57,8 +57,8 @@ def _along(vector, axes):
     return tuple(sum(vector[k] * axes[k][i] for k in range(3)) for i in range(3))
 
 
-def _landing(rogue, address, edge_pc, circular_speed_km_s):
-    """Where the rogue is: its place in the sector (the plan's offset from the corner, along the sector's own axes) and its velocity through the Galaxy."""
+def place(rogue, address, edge_pc, circular_speed_km_s):
+    """Where a top-up rogue or field is (anything with `position_pc`, `velocity_km_s` and an `apparent_origin`): its place in the sector (the plan's offset from the corner, along the sector's own axes) and its velocity through the Galaxy."""
     center = spherical.sector_position_pc(*address, edge_pc)
     axes = frame.sector_orientation(center)
     half = 0.5 * edge_pc
@@ -67,6 +67,12 @@ def _landing(rogue, address, edge_pc, circular_speed_km_s):
     u, v, w = rogue.velocity_km_s
     velocity = _along((u, v + circular_speed_km_s, w), frame.sector_orientation(position))
     return rogue_landing.Landing(position, velocity, tuple(address), rogue.apparent_origin.distance_pc)
+
+
+def circular_speed_at(address, edge_pc):
+    """The circular speed of the Galaxy at the centre of a sector, km/s (what a top-up object's velocity is measured against)."""
+    center = spherical.sector_position_pc(*address, edge_pc)
+    return galactic_orbit.calculate_galactic_orbit(pc_to_ly(math.sqrt(sum(c * c for c in center))))[0]
 
 
 def build(rogues, hosts, system_config, stream_key, address, edge_pc):
@@ -88,8 +94,7 @@ def build(rogues, hosts, system_config, stream_key, address, edge_pc):
     rogues = list(rogues)
     if rogues and not hosts:
         raise rogue_topup.RogueTopUpError("a top-up needs at least one host star to donate the mass")
-    center = spherical.sector_position_pc(*address, edge_pc)
-    circular_speed, _period = galactic_orbit.calculate_galactic_orbit(pc_to_ly(math.sqrt(sum(c * c for c in center))))
+    circular_speed = circular_speed_at(address, edge_pc)
     low, high = rogue_topup.SCATTERER_AU_RANGE
     made = []
     for index, rogue in enumerate(rogues):
@@ -101,7 +106,7 @@ def build(rogues, hosts, system_config, stream_key, address, edge_pc):
         host = starless_host.StarlessHost(donor, rogue.apparent_origin.age_gy)
         with draw.bound(f"topup-planet:{stream_key}:{index}"):
             planet = starless_host.build_rogue_body(system_config, host, event)
-        where = _landing(rogue, address, edge_pc, circular_speed)
+        where = place(rogue, address, edge_pc, circular_speed)
         rogue_landing.apply_motion(planet, where)
         made.append(ToppedRogue(rogue, planet, where, note_of(rogue)))
     return made

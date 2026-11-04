@@ -120,6 +120,7 @@ def test_the_stage_tops_a_charted_sector_up_once(mysql_config, redis_server):
             result = topup_stage.topup_sector(conn, DB_ADDRESS, profile, "few", SystemConfig(), 4.0)
         stars = conn.execute("SELECT COUNT(*) AS n FROM stars").fetchone()["n"]
         assert result.skipped is None and result.written == int(2.5 * stars) and result.stopped_by_level      # the Few level, 2.5 a star
+        assert result.fields >= 1 and conn.execute("SELECT COUNT(*) AS n FROM asteroid_fields WHERE mass_kg > 0").fetchone()["n"] == result.fields      # the left-over mass is fields
         assert chart_ledger.row(conn, DB_ADDRESS)["topped_up_at"] is not None
         with conn:
             again = topup_stage.topup_sector(conn, DB_ADDRESS, profile, "few", SystemConfig(), 4.0)
