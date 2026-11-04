@@ -17091,27 +17091,6 @@ clears each one.
   first. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.111.
 
-- [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
-  Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
-  TODO thread.
-  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
-  failed once in the browser phase of a full `scripts/test.py changed`
-  run (load 8.7, 2 browser workers) and passed when rerun alone (call
-  122.9 s on gw1). Done: the cause is found (a wait that is too short
-  under load, or a real race in the system map drill), the test waits on
-  the condition it needs and not a fixed time, and it passes under the
-  same load with 2 browser workers, with no quarantine. Fails on main:
-  unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
-  full browser phase; try the file with two browser workers and a busy
-  machine.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. The test passed in repeated runs on an idle machine. Needed
-  next time: The failure text of a loaded run (the captured traceback
-  and the browser console) and the load at the time. Running log: the
-  comments on issue #1694.
-  Prerequisites: none.
-
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -19371,15 +19350,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
-
-- [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free.  Related: DOC.83. Owner: Core 1.
 
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
