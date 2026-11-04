@@ -67,7 +67,7 @@ from planetgen.galaxy import scales
 from planetgen.generation import band_table_cache
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.physics import age_metallicity, alpha_tracks, constants, imf, metallicity, post_main_sequence, wolf_rayet
+from planetgen.physics import age_metallicity, alpha_tracks, constants, imf, main_sequence, metallicity, post_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
     alive_until_gy, birth_fe_h, evolve_star, horizontal_branch_bright_chance,
@@ -141,11 +141,54 @@ def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     return tuple(windows)
 
 
+_REACH_SLACK = 1.0e-9
+"""float: The relative margin `_outside_window` leaves around the ages a star's bright windows can reach, so a window that rounds a
+few ulps past the end of its phase is still inside the bounds."""
+
+
+@functools.lru_cache(maxsize=1 << 18)
+def _reach(mass_sol, track):
+    """`(main-sequence lifetime, end of the last phase, luminosity as it leaves the main sequence)` of a star of initial mass `mass_sol`
+    on the solar-scaled track `track`: what bounds the ages its bright windows can lie in (`_outside_window`). The first two are the
+    ones `post_main_sequence.timeline` holds, which `_evolved_bright_windows` reads anyway."""
+    line = post_main_sequence.timeline(mass_sol, track)
+    return line.main_sequence_gy, line.end_gy, main_sequence.end_state(mass_sol, track).luminosity_sol
+
+
+def _outside_window(mass_sol, min_luminosity_sol, window, fe_h):
+    """
+    Whether every bright window of a star of this mass and birth [Fe/H] (`_bright_windows`) lies outside the age law `window`, so its
+    measure is exactly 0 and the windows need not be worked out. On each track piece the windows lie between the main-sequence
+    lifetime (the star's first phase after the main sequence begins there, and a star lighter than the supergiants has no window
+    before it unless its main sequence reaches the threshold, the test `main_sequence_bright_from_gy` makes first) and the end of its
+    last phase; a piece wholly before the law's first age or from its last holds none of its weight (`AgeLaw.weight` is exactly 0
+    for it). Most of the stars of an old population are of this kind, and a cell asks it at every threshold. A threshold of 0 is one
+    every main sequence clears: the question is then whether the star's windows are outside whatever the threshold.
+    """
+    first, last = window.window
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        if start >= last:
+            continue
+        t_ms, end_gy, leaves_at = _reach(mass_sol, track)
+        low = 0.0 if (mass_sol >= tuning.SUPERGIANT_MIN_MASS_SOL or not leaves_at < min_luminosity_sol) else t_ms * (1.0 - _REACH_SLACK)
+        if max(start, low) >= last or min(end, end_gy * (1.0 + _REACH_SLACK)) <= first:
+            continue
+        return False
+    return True
+
+
+def _full_bright_measure(mass_sol, min_luminosity_sol, window, fe_h=0.0):
+    """`_bright_measure` with every window worked out and weighed, whether or not it can be inside `window`."""
+    return sum(_overlap(start, end, window) * chance
+               for start, end, chance in _bright_windows(mass_sol, min_luminosity_sol, fe_h))
+
+
 def _bright_measure(mass_sol, min_luminosity_sol, window, fe_h=0.0):
     """The chance a star of this mass and birth [Fe/H], of an age spread over the age law `window`, is
     at least `min_luminosity_sol` bright (times the window's length)."""
-    return sum(_overlap(start, end, window) * chance
-               for start, end, chance in _bright_windows(mass_sol, min_luminosity_sol, fe_h))
+    if _outside_window(mass_sol, min_luminosity_sol, window, fe_h):
+        return 0.0
+    return _full_bright_measure(mass_sol, min_luminosity_sol, window, fe_h)
 
 
 def _living_measure(mass_sol, window, fe_h=0.0):
@@ -365,16 +408,18 @@ def _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_b
 
 
 @functools.lru_cache(maxsize=None)
-def _bright_fraction(min_luminosity_sol, population, mass_range, window, fe_bin):
+def _fraction_terms(mass_range, window, fe_bin):
     """
-    The share of ALL of a population's living stars, of the age law `window` and birth [Fe/H] `fe_bin` (a population's own
-    mean composition, `reference_fe_h`, GEN.661), that are at least `min_luminosity_sol` bright and born in `mass_range`:
-    the mean of each cell's measure over stratified IMF quantiles. It reads the measure of a few stars a cell and no
-    bound, which is most of what a sampling table spends its time on.
+    What `_bright_fraction` reads of a population whatever the threshold: `(living, cells)`. `living` is the count of ALL its living
+    stars (the mean of each cell's `_living_measure` over stratified IMF quantiles, times the cell's count, added up cell by cell).
+    `cells` are the cells born in `mass_range` that have a star whose bright windows are not all outside the age law (`_outside_window`
+    with a threshold every main sequence clears), as `(count, masses, points)`: the cell's count, the masses of those stars and how many
+    quantiles the cell has in all. The others measure exactly 0 at every threshold, so a cell that holds none adds nothing to the bright
+    count, and a star that is outside adds nothing to its cell's.
     """
-    check_threshold(min_luminosity_sol)
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
-    bright = living = 0.0
+    living = 0.0
+    cells = []
     for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
                                         _grid_cells(fe_bin, True)):
         count = norm * imf.power_law_integral(a, b, alpha)
@@ -384,7 +429,25 @@ def _bright_fraction(min_luminosity_sol, population, mass_range, window, fe_bin)
         living += count * sum(_living_measure(m, window, fe_bin) for m in points) / len(points)
         if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
             continue
-        bright += count * sum(_bright_measure(m, min_luminosity_sol, window, fe_bin) for m in points) / len(points)
+        masses = tuple(m for m in points if not _outside_window(m, 0.0, window, fe_bin))
+        if masses:
+            cells.append((count, masses, len(points)))
+    return living, tuple(cells)
+
+
+@functools.lru_cache(maxsize=None)
+def _bright_fraction(min_luminosity_sol, population, mass_range, window, fe_bin):
+    """
+    The share of ALL of a population's living stars, of the age law `window` and birth [Fe/H] `fe_bin` (a population's own
+    mean composition, `reference_fe_h`, GEN.661), that are at least `min_luminosity_sol` bright and born in `mass_range`:
+    the mean of each cell's measure over stratified IMF quantiles. It reads the measure of a few stars a cell and no
+    bound, which is most of what a sampling table spends its time on.
+    """
+    check_threshold(min_luminosity_sol)
+    living, cells = _fraction_terms(mass_range, window, fe_bin)
+    bright = 0.0
+    for count, masses, points in cells:
+        bright += count * sum(_bright_measure(m, min_luminosity_sol, window, fe_bin) for m in masses) / points
     return bright / living if living > 0 else 0.0
 
 

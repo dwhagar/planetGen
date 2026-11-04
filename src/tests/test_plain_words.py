@@ -27,8 +27,11 @@ from planetgen.web.lib import classref
 
 from tests.fuzz_support import deterministic_entropy
 
-SEEDS = range(10)
-"""range: The seeds of the systems whose Document is read (the `KNOWN` list was made from eighty)."""
+SEEDS = range(16)
+"""range: The seeds of the systems whose Document is read. The size of the corpus depends on the systems the seeds draw, and a change to
+the generator redraws them: ten seeds gave 1,522 items on 2026-11-04 and 1,306 after the epochs of that week (TEST.576), with three seeds
+drawing a lone star. Sixteen gave about 1,840, so the floor of 1,500 in `test_the_prose_and_labels_of_a_document_keep_the_guide_except_the_listed`
+holds with room; if a later epoch pulls it under, add seeds here, do not lower the floor."""
 
 OWNERS = ("UX.252", "UX.253")
 """tuple: The items that rewrite the text: planets, moons and belts; stars and systems."""
@@ -40,9 +43,11 @@ GUIDE = Path(__file__).resolve().parents[2] / "docs" / "design" / "interface" / 
 
 KNOWN = {
     ('spelling', "Offset from the system's centre, x"): 'UX.253',
+    ('spelling', "The cold leftover of"): 'UX.252',
 }
 """dict: `{(rule, start of the sentence or the whole label): the item that rewrites it}` for the text that breaks a rule today. The
-comment is one example. A rewrite item removes its entries; nothing is added without an owner."""
+comment is one example. "The cold leftover" is the outer-disk belt origin in `physics/data/belt_origins.json`: the sentence is stored in
+`asteroid_belts.origin_sentence`, so writing "disk" there moves stored output and rides a train (TEST.576 found it). A rewrite item removes its entries; nothing is added without an owner."""
 
 
 def shape(sentence):

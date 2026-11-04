@@ -141,38 +141,20 @@ export function makeStarSurfaceTexture(THREE, baseColorHex) {
   return texture;
 }
 
-function hexToRgba(THREE, hex, alpha) {
-  var c = new THREE.Color(hex);
-  return "rgba(" + Math.round(c.r * 255) + "," + Math.round(c.g * 255) + "," + Math.round(c.b * 255) + "," + alpha + ")";
-}
-
-// A ring's own inner-to-outer alpha profile, painted along
-// RingGeometry's `v` axis (0 at the inner radius, 1 at the outer) -- a
-// plain vertical gradient, not a 2D radial one, since that's the axis its
-// polar UV mapping actually varies along. The alternating opaque/faint
-// bands are a cheap "Cassini division"-style gap cue, not a real
-// particle-density simulation.
-export function makeGasRingTexture(THREE, baseColorHex) {
-  var width = 4;
-  var height = 128;
+// A ring's texture: the strip `paintRing` (ringpaint.js) makes, running from the inner edge to the outer one along the texture's `u` axis (a
+// `ringGeometry` mesh maps it so). `strip` is the RGBA pixels, one row.
+export function ringStripTexture(THREE, strip) {
   var canvasEl = document.createElement("canvas");
-  canvasEl.width = width;
-  canvasEl.height = height;
+  canvasEl.width = strip.length / 4;
+  canvasEl.height = 1;
   var ctx = canvasEl.getContext("2d");
-  var gradient = ctx.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0.0, "rgba(0,0,0,0)");
-  gradient.addColorStop(0.12, hexToRgba(THREE, baseColorHex, 0.85));
-  gradient.addColorStop(0.45, hexToRgba(THREE, baseColorHex, 0.3));
-  gradient.addColorStop(0.6, hexToRgba(THREE, baseColorHex, 0.75));
-  gradient.addColorStop(0.85, hexToRgba(THREE, baseColorHex, 0.25));
-  gradient.addColorStop(1.0, "rgba(0,0,0,0)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
+  var image = ctx.createImageData(canvasEl.width, 1);
+  image.data.set(strip);
+  ctx.putImageData(image, 0, 0);
   var texture = new THREE.CanvasTexture(canvasEl);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
-
 
 // Paints `look` with `paint` (solidpaint.js's `paintSolid` or starpaint.js's `paintStar`) into a `size` ([w, h]) texture;
 // the caller's own `THREE`, as above.
