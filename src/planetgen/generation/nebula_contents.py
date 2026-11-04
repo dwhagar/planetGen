@@ -288,7 +288,7 @@ def emission_members(galaxy_seed, nebula, host_name, host_position_pc):
     return members
 
 
-def member_group(member):
+def member_group(member, fe_h=None):
     """
     The young group a member of a field cloud or emission region is born in (GEN.328), or None: `multistar.draw_young_group`
     on a stream of the member's own seed, so the same member draws the same group wherever it is asked. Only a massive star
@@ -297,6 +297,9 @@ def member_group(member):
 
     Args:
         member (CloudMember): The member; its mass is its birth mass (the age is under a megayear).
+        fe_h (float, optional): The birth [Fe/H] of the member's own star, which the tree's records are made at (`Placed.fe_h`). The sector that builds a member in a decayed
+            group gives the one its evolution draws, so the companions are rebuilt as the stars the tree drew (GEN.951, `stored_trees.matches`); left out, the tree is drawn at the
+            Sun's. It moves no mass and no draw, so the group is live or decayed, and has the same stars, whichever is given.
 
     Returns:
         multistar.MemberTree or None: A tree with a `group` node (the group has not decayed: member 0 is `member`, the others
@@ -305,7 +308,7 @@ def member_group(member):
     """
     if member.age_yr >= tuning.YOUNG_GROUP_AGE_MAX_YR:
         return None
-    placed = multistar.Placed("star", member.mass_sol, member.mass_sol)
+    placed = multistar.Placed("star", member.mass_sol, member.mass_sol, fe_h=fe_h)
     return multistar.draw_young_group(placed, member.age_yr, rng=draw.Stream(f"young-group:{member.seed}"))
 
 
