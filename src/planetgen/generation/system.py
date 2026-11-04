@@ -328,7 +328,7 @@ class StarSystem:
         self.primary_star = self.star # For single star systems, the primary is the star
         self.placed_star = self.star
         self.planets = []
-        self.architectures = {}  # GEN.1111: `{id(star): (star, Architecture)}` of the plan each star's planets were built from; not stored (see `ejected_losses`)
+        self.architectures = []  # GEN.1111: `[(star, Architecture)]` of the plan each star's planets were built from, one per star in the order they were first planned; not stored (see `ejected_losses`). A list and not a dict keyed by `id(star)`: an address in a key made the sector differ from run to run (TEST.569)
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
         self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
@@ -1240,7 +1240,12 @@ class StarSystem:
 
         planets = []
         plan, system_objects = self._plan_architecture(star, orbit_ceiling_au)
-        self.architectures[id(star)] = (star, plan.architecture)   # the last attempt's plan is the one the kept planets came from
+        for position, (planned, _old) in enumerate(self.architectures):     # the last attempt's plan is the one the kept planets came from
+            if planned is star:
+                self.architectures[position] = (star, plan.architecture)
+                break
+        else:
+            self.architectures.append((star, plan.architecture))
 
         forced_class = self.system_config.FORCE_CLASS if apply_guarantees else None
         if forced_class and self.system_config.SLOTS:
@@ -2196,7 +2201,7 @@ class StarSystem:
         storage (`from_dict` has no plan; a donor's rogues are made and saved when it is generated) and for a star with no plan.
         """
         found = []
-        for star, architecture in getattr(self, "architectures", {}).values():
+        for star, architecture in getattr(self, "architectures", ()):
             found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind == "thrown" and loss.ejected > 0.0)
         return found
 

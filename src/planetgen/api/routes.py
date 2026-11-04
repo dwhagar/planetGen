@@ -735,7 +735,7 @@ def moon_life_air(moon_id):
 
 def _life_readings(table, body_id):
     """Shared body of `planet_life_readings` and `moon_life_readings`."""
-    from planetgen.physics import constants, life_classes, life_readings
+    from planetgen.physics import life_classes, life_readings, unit_registry
 
     conn = get_db()
     rows = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (body_id,)).fetchall()
@@ -747,7 +747,7 @@ def _life_readings(table, body_id):
     star_row = None if values.get("star_id") is None else conn.execute(
         "SELECT mass_kg, age_gy, metallicity_fe_h FROM stars WHERE id = ?", (values["star_id"],)).fetchone()
     if star_row is not None:
-        star = life_readings.star_of({"mass_sol": star_row["mass_kg"] / constants.SOLAR_MASS_TO_KG, "age_gyr": star_row["age_gy"],
+        star = life_readings.star_of({"mass_sol": unit_registry.converter("kg", "Msun")(star_row["mass_kg"]), "age_gyr": star_row["age_gy"],
                                       "fe_h": star_row["metallicity_fe_h"] or 0.0})
     found = [{"kind": reading.kind, "label": reading.label, "score": reading.score, "abundance": reading.abundance,
               "trend": reading.trend, "security": reading.security, "years_left_gyr": reading.years_left_gyr,
