@@ -45,8 +45,6 @@ BANNER = 'id="out-of-universe-banner"'
 """str: What a References page carries so a reader always knows they left the story (DOC.88 builds it)."""
 
 KNOWN = {
-    ("generator", "web.property_help_page"): "DOC.91",
-    ("model", "web.property_help_page"): "DOC.91",
     ("model", "sheet source line"): "DOC.93",
 }
 """dict: `{(word, where): the item that rewrites it}` for the out-of-universe words on in-universe pages today. `where` is the page's
@@ -213,7 +211,7 @@ def _read(html):
 
 def _paths():
     """The in-universe pages this suite can render without a database."""
-    paths = ["/help/habitability", "/help/properties", "/help/life", "/classes", "/references"]
+    paths = ["/help/habitability", "/help/life", "/classes", "/references"]
     paths += [f"/help/life/{slug}" for slug, _title, _summary in life_help.TOPICS if slug != "kinds"]
     paths += [f"/help/life/classes/{number}" for number in range(1, 10)]
     if classref.preload():
@@ -263,7 +261,7 @@ def _found(crawl):
 
 def test_the_crawl_reads_a_real_corpus(crawl):
     paths = {path for path, _endpoint, _text, _links in crawl}
-    assert len(paths) > 15 and "/help/life/classes/1" in paths and "/help/properties" in paths
+    assert len(paths) > 15 and "/help/life/classes/1" in paths
     assert sum(len(text.split()) for _path, _endpoint, text, _links in crawl) > 5000
 
 
