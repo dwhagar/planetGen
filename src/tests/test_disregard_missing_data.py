@@ -102,7 +102,7 @@ def test_the_option_lets_the_gate_through_and_says_what_each_missing_dataset_is_
                                                         "harris_clusters", "noaa_proton_events", "baraffe_isochrones", "stellar_spectra", "hhe_eos"]
     lines = run_galaxy.disregard_notice(missing)
     assert "--disregard-missing-data" in lines[0]
-    assert len(lines) == 11
+    assert len(lines) == 1 + len(missing)    # the notice, then one line for each missing dataset
     for line, dataset in zip(lines[1:], (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET, ozone_uv.DATASET,
                                          ir_ktables.DATASET, hitran_cia.DATASET, harris_clusters.DATASET, noaa_proton_events.DATASET,
                                          baraffe_isochrones.DATASET, stellar_spectra.DATASET, hhe_eos.DATASET)):
