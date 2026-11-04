@@ -1,0 +1,5 @@
+**Headline:** The directed-moon-count test counts a moon that fell into its planet as born, so it no longer fails when the planet's spin history takes the moons it was given.
+
+### Changed
+- **Test fix, no code change (TEST.564).** `test_a_directed_moon_count_still_goes_through_the_gate` asked a planet for two moons and expected at least one to be left. The moons are drawn as asked (the gate, GEN.761, and the direction hold), but the spin history of the planet (GEN.959, `moon_history`) then lets a moon that sits inside the planet's synchronous orbit spiral in within a few million years, and it becomes ring material (GEN.1057, `planet.fallen_moons`). On some seeds both moons fell, so the planet kept none and the test read 0. It is not a stability drop (GEN.1031) and not the direction being lost. The test now counts the moons born (kept plus fallen) for the minimum, maximum and the share with two, and checks that the moons kept are never more than asked or born.
+generation-output: unchanged
