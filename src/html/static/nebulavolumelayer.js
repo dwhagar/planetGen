@@ -36,10 +36,10 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
   let target = null;
   let targetWidth = 0;
   let targetHeight = 0;
-  let on = true;
+  let on = true;          // the nodes' volumes show (MAP.142: a single nebula's, `source.single`, shows whatever this is)
   let nodeAlpha = new Map();
   let lastDrawn = 0;
-  const held = new Map();       // node key -> { mesh, volume }
+  const held = new Map();       // node key -> { mesh, volume, single }
   const store = createVolumeStore(o.fetchBytes, () => { if (o.onChange) o.onChange(); });
 
   const familyUniform = Array.from({ length: MAX_FAMILIES }, () => new THREE.Vector4(0, 0, 0, 0));
@@ -211,10 +211,10 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
   // asks for the ones missing and sets how strongly each shows. Call it every frame the camera or the cut may have moved.
   function update(sources, makeWeigh, focalPx) {
     const position = camera.position.toArray();
-    const found = on ? wanted(sources, position, focalPx) : [];
+    const found = wanted(on ? sources : sources.filter((source) => source.single), position, focalPx);
     const keep = new Set();
     nodeAlpha = new Map();
-    const weigh = found.length && makeWeigh ? makeWeigh() : null;
+    const weigh = found.some((item) => !item.source.single) && makeWeigh ? makeWeigh() : null;
     found.forEach((item) => {
       const key = item.source.key;
       keep.add(key);
@@ -223,11 +223,11 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
       let entry = held.get(key);
       if (!entry || entry.volume !== state.volume) {
         if (entry) { accumulation.remove(entry.mesh); entry.mesh.geometry.dispose(); entry.mesh.material.dispose(); }
-        entry = { mesh: meshOf(state.volume), volume: state.volume };
+        entry = { mesh: meshOf(state.volume), volume: state.volume, single: !!item.source.single };
         held.set(key, entry);
         accumulation.add(entry.mesh);
       }
-      const share = weigh ? weigh(item.source.block) : 1;
+      const share = item.source.single ? item.source.weight : (weigh ? weigh(item.source.block) : 1);
       const alpha = volumeAlpha(item.radiusPx, share);
       nodeAlpha.set(key, alpha);
       const uniforms = entry.mesh.material.uniforms;
@@ -247,7 +247,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
     store.release(keep);
     held.forEach((entry, key) => { entry.mesh.visible = (nodeAlpha.get(key) || 0) > 0.002; });
     lastDrawn = Array.from(held.keys()).filter((key) => (nodeAlpha.get(key) || 0) > 0.002).length;
-    composite.visible = on && lastDrawn > 0;
+    composite.visible = lastDrawn > 0;
   }
 
   // Fills the half-resolution target with the sum of the splats; call it before the map is drawn.
@@ -312,9 +312,16 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
     }
   }
 
+  // Shows or hides the nodes' volumes (a single nebula's stays); takes effect at once, before the next `update`.
   function setVisible(value) {
     on = !!value;
-    composite.visible = on && lastDrawn > 0;
+    let shown = 0;
+    held.forEach((entry, key) => {
+      const showing = (on || entry.single) && (nodeAlpha.get(key) || 0) > 0.002;
+      entry.mesh.visible = showing;
+      if (showing) shown += 1;
+    });
+    composite.visible = shown > 0;
   }
 
   return {
