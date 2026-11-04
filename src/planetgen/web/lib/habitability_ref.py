@@ -30,7 +30,7 @@ EQUIPMENT_ITEMS = (
     ("Dust filter or seals", "Fine regolith dust wrecks open seals (a rocky body with almost no air), or the dust in the "
                             f"air passes {limit('dust_recommended_mg_m3'):g} mg/m3 (recommended) or "
                             f"{limit('dust_required_mg_m3'):g} mg/m3 (required)."),
-    ("Gas filter, full-face or powered", "A gas such as carbon monoxide, hydrogen sulfide or sulfur dioxide is above "
+    ("Gas filter, full-face, or powered", "A gas such as carbon monoxide, hydrogen sulfide, or sulfur dioxide is above "
                                          "its long-term limit and has to be filtered out."),
     ("CO2 scrubber", "Carbon dioxide is above its long-term limit but short of what is acutely dangerous."),
     ("Gas-mix mask", "Oxygen is low or high, or the pressure is dense: an open mask fixes the mix."),
@@ -158,14 +158,14 @@ def domains(bands=habitability.HUMAN):
 
 
 _BLUE, _GREEN, _YELLOW = habitability._EDGE_SCORES[3], habitability._EDGE_SCORES[2], habitability._EDGE_SCORES[1]
-"""float: The domain score at the edge of Blue, Green and Yellow (`habitability._EDGE_SCORES`)."""
+"""float: The domain score at the edge of Blue, Green, and Yellow (`habitability._EDGE_SCORES`)."""
 
 SCORE_RULE = (
     f"Each variable scores {_BLUE:g} in Blue and falls to {_GREEN:g} at the edge of Green, {_YELLOW:g} at the edge of Yellow and 0 "
     f"at the outer edge of Red. A domain takes the score of its worst variable: Blue at {_BLUE:g}, Green from {_GREEN:g}, "
     f"Yellow from {_YELLOW:g}, Red below. The PHI-6 score on a "
     "planet's tooltip is the geometric mean of the six domains, held under the colour gates: Radiation and "
-    "Temperature cap it at their own colour, Pressure in Yellow or Red caps it there (unless a full suit is "
+    "Temperature cap it at their own colour, Pressure in Yellow, or Red caps it there (unless a full suit is "
     "needed anyway), Air, Water, or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "
     "Suitability, the long-term domain, is the lowest of water, food, and shelter, and is never better than "
     "the colour the other five allow."

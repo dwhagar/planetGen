@@ -218,7 +218,7 @@ def help_menu():
 
 
 HELP_SECTIONS = ("classes", "help", "references")
-"""tuple: The `section` names that mark the Help menu current: the class pages, the help pages and the References pages."""
+"""tuple: The `section` names that mark the Help menu current: the class pages, the help pages, and the References pages."""
 
 POPULATION_SECTIONS = {"species"}
 """set: Sections shown only once population data exists

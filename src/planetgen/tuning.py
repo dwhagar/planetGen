@@ -2628,7 +2628,7 @@ SCATTER_PHASE_ORIGIN_UNIX = 946684800.0
 NEBULA_FAMILIES = {
     "diffuse": {
         "composition": "thin, warm interstellar gas, mostly hydrogen and helium",
-        "formation_cause": "the galaxy's general interstellar medium, stirred and heated by starlight and old supernova blasts",
+        "formation_cause": "the galaxy's general interstellar medium, stirred, and heated by starlight and old supernova blasts",
     },
     "emission": {
         "composition": "ionized hydrogen (H II) glowing under ultraviolet radiation from nearby hot young stars",

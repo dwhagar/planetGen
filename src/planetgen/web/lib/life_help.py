@@ -425,6 +425,6 @@ def link_terms():
 
 
 help_registry.register_category("worlds", "Worlds and life", "How a visitor's gear is judged on a world and how life on it is described.", order=20)
-help_registry.register_topic("life_help_page", "Life", "worlds", "The kinds of life, the scales a planet page uses, the stages and the life classes.",
+help_registry.register_topic("life_help_page", "Life", "worlds", "The kinds of life, the scales a planet page uses, the stages, and the life classes.",
                              order=40, children=help_children)
 help_registry.register_terms("life", link_terms)

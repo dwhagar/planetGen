@@ -840,7 +840,7 @@ _BODY_RULES = [
     (("ring_age_yr",), lambda klass, row: row is None or row.get("ring_age_yr") is not None,
      "a ring has an age only when a moon that fell or a comet that passed made it; the narrow ring of a small body's spin-orbit resonance has none"),
     (_SURFACE_LIQUID_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _SURFACE_LIQUID_COLUMNS),
-     "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen or airless body has none"),
+     "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen, or airless body has none"),
     (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
@@ -973,7 +973,7 @@ lifespan (which gives the initial mass), mass, [Fe/H], and age when the sheet is
 
 PECULIAR_KEY = "chemically_peculiar_kind"
 """str: The key of the star's derived row for an Ap or Am star (GEN.1027, `physics.chemically_peculiar`); it is worked out from the stored class, mass,
-radius, temperature and age when the sheet is made and is not a column."""
+radius, temperature, and age when the sheet is made and is not a column."""
 
 PECULIAR_FIELD_KEY = "chemically_peculiar_polar_field"
 """str: The key of an Ap star's derived row for its polar magnetic field (GEN.1027); an Am star has none."""

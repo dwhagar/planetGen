@@ -553,5 +553,5 @@ def help_children():
 
 
 help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
-help_registry.register_topic("classes", "Classes", "objects", "Every class of star, planet, nebula and other object the survey assigns.",
+help_registry.register_topic("classes", "Classes", "objects", "Every class of star, planet, nebula, and other object the survey assigns.",
                              order=10, children=help_children)

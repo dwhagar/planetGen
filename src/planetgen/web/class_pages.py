@@ -92,7 +92,7 @@ def help_index():
         title="Help",
         section="help",
         breadcrumbs=[crumb("Help")],
-        description="Every help page: the classes, the properties, the habitability ratings and the kinds of life.",
+        description="Every help page: the classes, the properties, the habitability ratings, and the kinds of life.",
         groups=groups,
     )
 
