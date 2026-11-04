@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.574 |
+| TEST | TEST.576 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.104 |
@@ -3832,6 +3832,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.571 | test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug) | none | open |
 | TEST.572 | Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug) | none | open |
 | TEST.573 | Two galaxy map browser tests red on main: the class buttons count (19 against 20) and a halo black hole not picked on the whole-galaxy view (bug) | none | done, PR #4865 |
+| TEST.574 | Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug) | none | open |
+| TEST.575 | 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
