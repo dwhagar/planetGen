@@ -826,26 +826,14 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Owner (11:30 AM EST on 2026-11-04): OWNER Core 1 (assigned by TODO as
+  the lane reported 11:28 AM EST on 2026-11-04, after UX.228 completed
+  with the lists, Nearby and the Systems list): what is left is
+  /api/search taking the same range filters and sort keys with the units
+  documented, and the browser test that runs one query such as planets
+  with 0.8 to 1.2 g and a dose under 2 mSv a year on a sample galaxy.
+  Lock-free, no stored value.
   Prerequisites: UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
-- [ ] **UX.228 The object lists and Nearby filter and sort by the same physical values (G4, step 3)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). The planet, moon, star and system lists and Nearby gain the
-  range filters and sort keys of UX.226. Done: a browser test on a list
-  and on Nearby. Version 8.2, phase 2. Owner: Aux 6. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772); a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 6) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Owner (8:40 AM EST on 2026-11-04): OWNER Core 1 (assigned by TODO as the
-  lane reported 8:36 AM EST on 2026-11-04 after UX.142 completed): a
-  lock-free item on a separate branch; a stored value stays as it is.
-  Prerequisites: UX.226. Related: UX.225.
 
 - [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
