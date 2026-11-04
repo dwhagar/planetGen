@@ -21,7 +21,7 @@ from markupsafe import escape
 from planetgen.physics import latitude_bands, life_classes
 from planetgen.physics.protection_limits import limit
 from planetgen.web import helpers
-from planetgen.web.lib import classref, habitability_ref, help_registry, life_help, property_help
+from planetgen.web.lib import classref, habitability_ref, help_registry, life_help
 from tests.test_class_pages import _html, app, client  # noqa: F401
 
 
@@ -48,8 +48,8 @@ def test_every_topic_has_a_registered_category_and_a_summary():
 
 def test_each_part_of_the_program_registers_its_own_page():
     """The pages come from the modules that own them, not from a list kept here."""
-    assert {t.endpoint for t in help_registry.topics()} >= {"classes", "habitability_levels", "property_help_page", "life_help_page", "references_page"}
-    owner = {"classes": classref, "habitability_levels": habitability_ref, "property_help_page": property_help, "life_help_page": life_help}
+    assert {t.endpoint for t in help_registry.topics()} >= {"classes", "habitability_levels", "life_help_page", "references_page"}
+    owner = {"classes": classref, "habitability_levels": habitability_ref, "life_help_page": life_help}
     for endpoint, module in owner.items():
         source = open(module.__file__, encoding="utf-8").read()
         assert f'register_topic("{endpoint}"' in source, endpoint
@@ -61,10 +61,10 @@ def test_a_page_registered_by_a_new_part_reaches_the_menu_the_index_and_the_term
     monkeypatch.setattr(help_registry, "_categories", dict(help_registry._categories))
     monkeypatch.setattr(help_registry, "_term_sources", dict(help_registry._term_sources))
     help_registry.register_category("tides", "Tides and spin", "How tides slow a spin.", order=30)
-    help_registry.register_topic("property_help_page", "Tide test", "tides", "Tide summary.", order=5,
+    help_registry.register_topic("life_help_page", "Tide test", "tides", "Tide summary.", order=5,
                                  children=lambda: [help_registry.Child("classes", {}, "Child page", "")])
     help_registry.register_terms("tides", lambda: [help_registry.Term("tidal lock", "classes", {})])
-    assert help_registry.menu()[0] == ("property_help_page", "Tide test")
+    assert help_registry.menu()[0] == ("life_help_page", "Tide test")
     slugs = [c["slug"] for c in help_registry.categories()]
     assert "tides" in slugs and slugs.index("tides") < slugs.index("references")
     assert help_registry.Term("tidal lock", "classes", {}) in help_registry.terms()

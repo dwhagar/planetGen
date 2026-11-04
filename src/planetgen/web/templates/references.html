@@ -21,7 +21,7 @@
     <thead><tr>{% for head in section.table.head %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
     <tbody>
       {%- for row in section.table.rows %}
-      <tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
+      <tr{% if section.table.ids %} id="{{ section.table.ids[loop.index0] }}"{% endif %}>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
       {%- endfor %}
     </tbody>
   </table></div>
