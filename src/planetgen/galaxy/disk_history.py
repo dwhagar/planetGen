@@ -23,7 +23,9 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
 3. **The inflow** is an exponential infall whose time scale grows outward (inside-out formation): `tau(R) = 1.033 R - 1.267` Gy of the
    Milky Way's chemical evolution model ([R5095], section 3), stopped at 2 Gy inside and 8 Gy outside, the shortest and longest of
    the later model of [R5094] (`infall_time_gy`, `tuning.DISK_INFALL_*`). The ring at `x` scale lengths has the time scale of the
-   Milky Way's ring at `x` of its own 2.6 kpc: no source gives how the infall scales with a galaxy's size (GEN.725 row GI1).
+   Milky Way's ring at `x` of its own 2.6 kpc: no source gives how the infall scales with a galaxy's size (GEN.725 row GI1). The disc's mass enters through
+   its circular speed `V` (the cube root of its mass): the inflow is also multiplied by `exp(0.4 t (1 - V / 220))` per Gy ([R5103] equation 21), so a lighter
+   disc is fed more and more slowly and forms its stars late, a heavier one the other way (GEN.1246).
    Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's density
    gives it. (Until GEN.1230 the inflow followed the stars the galaxy's halo builds, which for the lighter halos of GEN.1154 kept
    the disk forming 2.7 times the stars per year the main sequence gives.)
@@ -118,16 +120,22 @@ def infall_time_gy(radius_scale_lengths):
     return np.clip(line, tuning.DISK_INFALL_MIN_GY, tuning.DISK_INFALL_MAX_GY)
 
 
-def inflow_shapes(radius_scale_lengths, span_gy, steps):
+def disc_speed_kms(stellar_mass_solar):
+    """The circular speed (km/s) of a disc of `stellar_mass_solar`: the Milky Way's 220 km/s at its 5e10 solar masses, as the cube root of the mass ([R5103], `M_d` proportional to `V_C^3`)."""
+    return tuning.DISK_INFALL_REFERENCE_SPEED_KMS * (stellar_mass_solar / tuning.DISK_INFALL_REFERENCE_MASS_SOLAR) ** (1.0 / 3.0)
+
+
+def inflow_shapes(radius_scale_lengths, span_gy, steps, speed_kms):
     """
-    The gas inflow of each ring over `span_gy` Gy on `steps` equal steps (oldest first), relative to its start: `exp(-t / tau)` with
-    `infall_time_gy` of the ring.
+    The gas inflow of each ring over `span_gy` Gy on `steps` equal steps (oldest first), relative to its start: `exp(-t / tau + k t (1 - V / 220))` with
+    `infall_time_gy` of the ring, `k` `tuning.DISK_INFALL_MASS_TERM_PER_GY` and `V` the disc's circular speed `speed_kms` ([R5103], equation 21).
 
     Returns:
         numpy.ndarray: `steps + 1` rows by one column per ring.
     """
     since_start = np.linspace(0.0, span_gy, steps + 1)
-    return np.exp(-since_start[:, None] / infall_time_gy(radius_scale_lengths)[None, :])
+    mass_term = tuning.DISK_INFALL_MASS_TERM_PER_GY * (1.0 - speed_kms / tuning.DISK_INFALL_REFERENCE_SPEED_KMS)
+    return np.exp(-since_start[:, None] / infall_time_gy(radius_scale_lengths)[None, :] + mass_term * since_start[:, None])
 
 
 def mass_return_fraction(breaks, slopes):
@@ -208,13 +216,14 @@ def _solve_rings(stars_now, inflow, span_gy):
 
 
 @functools.lru_cache(maxsize=64)
-def history(thin_stellar_mass_solar, disk_scale_length_pc, span_gy=None):
+def history(thin_stellar_mass_solar, disk_scale_length_pc, speed_kms, span_gy=None):
     """
     The thin disk's rings run from `span_gy` ago (`tuning.STAR_FORMATION_AGE_RANGE_GY`'s top by default) to now.
 
     Args:
         thin_stellar_mass_solar (float): The stars of the thin disk (what the density model integrates to).
         disk_scale_length_pc (float): The stellar disk's exponential scale length.
+        speed_kms (float): The disc's circular speed (`disc_speed_kms`), which sets how fast it is fed relative to the Milky Way.
         span_gy (float, optional): How long the disk has been forming stars.
 
     Returns:
@@ -226,7 +235,7 @@ def history(thin_stellar_mass_solar, disk_scale_length_pc, span_gy=None):
     x = (np.arange(rings) + 0.5) * reach / rings
     centre = thin_stellar_mass_solar / (2.0 * math.pi * disk_scale_length_pc ** 2)
     stars = centre * np.exp(-x)
-    inflow = inflow_shapes(x, span, tuning.DISK_HISTORY_TIME_STEPS)
+    inflow = inflow_shapes(x, span, tuning.DISK_HISTORY_TIME_STEPS, speed_kms)
     rate, gas = _solve_rings(stars, inflow, span)
     return DiskHistory(radius_scale_lengths=x, age_gy=np.linspace(span, 0.0, len(inflow)), rate=rate, gas_now=gas,
                        stars_now=stars)
@@ -277,7 +286,7 @@ def _history_of(shape):
     stellar_mass, _halo_mass = stellar_and_halo_masses(shape)
     masses = density.integrated_masses(shape)
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
-    return history(stellar_mass * thin_share, length)
+    return history(stellar_mass * thin_share, length, disc_speed_kms(stellar_mass))
 
 
 @functools.lru_cache(maxsize=64)

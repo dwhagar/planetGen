@@ -9,7 +9,7 @@ from planetgen.physics import rprocess_enrichment as rp
 
 
 def _history(stellar_mass):
-    return disk_history.history(0.8 * stellar_mass, 2600.0)
+    return disk_history.history(0.8 * stellar_mass, 2600.0, disk_history.disc_speed_kms(stellar_mass))
 
 
 def test_the_decay_constants_and_the_constant_input_factor_are_the_rows_former_numbers():

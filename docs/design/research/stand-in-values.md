@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 153 | 17 | 8 | 1 | 0 | 179 |
-| T2 | 115 | 44 | 0 | 1 | 0 | 160 |
+| T2 | 114 | 45 | 0 | 1 | 0 | 160 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
 | T4 | 53 | 5 | 1 | 18 | 10 | 87 |
 | T5 | 48 | 19 | 2 | 1 | 0 | 70 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 32 | 13 | 7 | 13 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 22 | 14 | 5 | 47 | 28 | 116 |
-| All | 612 | 237 | 53 | 148 | 39 | 1089 |
+| All | 611 | 238 | 53 | 148 | 39 | 1089 |
 
 ## How the labels were given
 
@@ -407,7 +407,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LF19 | P | T9 | L2 | habitability.LIEBIG_MIN_WEIGHT 0.65 | 0.55 to 0.75 | the weakest likelihood's share of the PHI_bio exponent | the Master doc's worked table | none needed | fitted to the Master doc's own table, 0.046 RMS (0.55 to 0.75 give 0.046 to 0.050; habitability-index.md 7.1) | - | - |
 | LF20 | D | T2 | L0 | habitability.DOSE_THRESH_GY 10, habitability.SIGMA_DOSE_GY 100 | sigma 50 to 200 | the dose threshold and fall-off of `L_rad` for an ordinary animal or plant | a tolerant microbe or animal (they go far higher, review 6.2) | traits that move the threshold (GEN.875) | READ for the threshold ([R0986] and the doc); the fall-off is planetGen's | - | - |
 | LF21 | D | T1 | L0 | habitability.SV_PER_GY 3.06 | none | Sv per Gy of the cosmic-ray and particle dose | a gamma-only dose (weighting 1) is 3 times higher in Gy | none needed | READ (MSL/[R1843]: 0.236 Sv/yr in 0.077 Gy/yr) | - | - |
-| LF22 | D | T2 | L0 | habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0 | none | `T_metazoa`'s CO and CO2 scales | an animal that tolerates more (human limits applied to all animals, review 4.4) | the animal grades (GEN.877, GEN.890) | the Xenobiology doc and Atmospheric Toxicity | - | - |
+| LF22 | D | T2 | L1 | habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0, habitability.H2S_TOX_KPA 0.002, habitability.SO2_TOX_KPA 0.001 (GEN.1253: the last two are twice the chronic limits of GAS_LIMITS_KPA, as CO and CO2 sit at about twice theirs) | none | `T_metazoa`'s CO, CO2, H2S and SO2 scales | an animal that tolerates more (human limits applied to all animals, review 4.4) | the animal grades (GEN.877, GEN.890) | the Xenobiology doc and Atmospheric Toxicity | - | - |
 | LF23 | P | T9 | L3 | habitability.METAZOA_O2_LOW_KPA 8, habitability.METAZOA_O2_HIGH_KPA 50, habitability.METAZOA_O2_SIGMA_LOW_KPA 2, habitability.METAZOA_O2_SIGMA_HIGH_KPA 20 | the band 1 to 10 kPa low edge | `f(pO2)` for animals | a measured animal oxygen floor (the 8 kPa is a human breathing floor; sponge-grade animals live in far less, [R3084] recalled) | the animal O2 floor by grade (GEN.877) | the band from the Xenobiology doc; the widths are planetGen's | - | no data |
 | LF24 | P | T6 | L3 | habitability_world.METHANE_SEA_MAX_K 190, habitability_world.METHANE_SATURATION 0.98 | 180 to 200 K, 0.9 to 1 | the only gate to a non-water solvent: a methane sea | a surface-temperature survey of Titan-like worlds | the strange-solvent classes (GEN.894) | design | - | no data |
 | LF25 | P | T9 | L3 | habitability.FOOD_SCORE (none 0.2, microbial 0.5, macroscopic 0.85, biosphere 1.0), habitability.WATER_ACCESS_SCORE (liquid 0.9, ice 0.6, aquifer 0.6, hydrated 0.25, vapour 0.2) | each value | the Suitability food and water rungs | none | the class table | planetGen's numbers, one per tier of Table 2 of the Exoplanetary Habitability doc | - | no data |

@@ -6,9 +6,9 @@
   "papers": {
     "books": 31,
     "datasets": 25,
-    "entries": 5011,
+    "entries": 5013,
     "with_arxiv": 1460,
-    "with_doi": 4795,
+    "with_doi": 4797,
     "without_doi": 216
   },
   "stand_ins": {
@@ -24,8 +24,8 @@
       "T9": 116
     },
     "by_tweak": {
-      "L0": 612,
-      "L1": 237,
+      "L0": 611,
+      "L1": 238,
       "L2": 53,
       "L3": 148,
       "L4": 39

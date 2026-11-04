@@ -1222,6 +1222,14 @@ DISK_INFALL_MAX_GY = 8.0
 DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC = 2.6
 """float: The disk scale length the line is a fit to, kpc: the thin disk of the Milky Way ([R5095] takes 2.5 kpc, [R5094] 2.7). The line is applied to any galaxy in scale lengths, so a ring at x scale lengths has the time scale of the Milky Way's ring
 at `x` times this: a stand-in for how the infall time scales with a galaxy's size (no source gives it; row GI1 of GEN.725, level L0)."""
+DISK_INFALL_MASS_TERM_PER_GY = 0.4
+"""float: How much the infall rate of a disc of another mass differs from the Milky Way's, per Gy: the inflow is multiplied by `exp(0.4 t (1 - V_C / 220 km/s))` ([R5103]
+equation 21, read from the paper's text through an extraction, the typeset equation not seen): a disc slower than the Milky Way's 220 km/s is fed ever more slowly, a faster one
+ever faster, so lighter spirals form their stars later ([R5104] section 4.1: a disc of 100 km/s has a rising star formation, one of 360 km/s a falling one). Source tier T2."""
+DISK_INFALL_REFERENCE_SPEED_KMS = 220.0
+"""float: The Milky Way's circular speed in that equation, km/s ([R5103] section 2)."""
+DISK_INFALL_REFERENCE_MASS_SOLAR = 5.0e10
+"""float: The mass of the Milky Way's disc in that model, solar masses ([R5103] section 2, `M_d` proportional to `V_C^3`, so a disc of mass `M` has the speed `220 (M / 5e10)^(1/3)` km/s). Source tier T2."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""
 BLACK_HOLE_RETURN_MASS_SOL = 40.0

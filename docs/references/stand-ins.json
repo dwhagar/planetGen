@@ -9705,7 +9705,7 @@
           "fields": [
             [
               "What it is",
-              "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0"
+              "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0, habitability.H2S_TOX_KPA 0.002, habitability.SO2_TOX_KPA 0.001 (GEN.1253: the last two are twice the chronic limits of GAS_LIMITS_KPA, as CO and CO2 sit at about twice theirs)"
             ],
             [
               "The range it moves in",
@@ -9713,7 +9713,7 @@
             ],
             [
               "Where it holds",
-              "T_metazoa's CO and CO2 scales"
+              "T_metazoa's CO, CO2, H2S and SO2 scales"
             ],
             [
               "What would show it wrong",
@@ -9734,9 +9734,9 @@
           "slug": "6-18-lf22",
           "tier": "T2",
           "tier_code": "T2",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
-          "what": "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0"
+          "what": "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0, habitability.H2S_TOX_KPA 0.002, habitability.SO2_TOX_KPA 0.001 (GEN.1253: the last two are twice the chronic limits of GAS_LIMITS_KPA, as CO and CO2 sit at about twice theirs)"
         },
         {
           "burn_down": [
