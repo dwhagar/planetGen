@@ -15032,6 +15032,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Filed by the TODO thread.
   Prerequisites: none. Related: PERF.233.
 
+- [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
+  Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
+  warm --progress. What the code does (src/planetgen/cli/warm.py,
+  queue/wrapper.py, queue/redisqueue.py): the command is a client that
+  follows a run whose units are done by queue workers started in their
+  own session (start_new_session=True), and the next stage is queued by
+  the unit that ends the previous one, so the work most likely keeps
+  going after the hangup; the client itself only handles SIGTERM, so a
+  hangup ends the progress view, and the phase notes the client writes
+  (warmphases) stop. Do: (1) a planetgen warm --follow that attaches to
+  the running warm-up from the run record (wrapper.py already says a
+  second process can follow a run from the record alone) and draws the
+  same bars; (2) handle SIGHUP in the warm command so a hangup leaves
+  the run going and says so, or document the detached way (nohup or
+  tmux) in the operations guide; (3) verify on a real run that killing
+  the client leaves the run finishing, and the admin page's phase list
+  still moves. Done: a test of the follow from a second process and of
+  the hangup. Proposed owner: Aux 3 (PERF.233). Filed by the TODO
+  thread.
+  Prerequisites: none. Related: PERF.233, PERF.234.
+
+- [ ] **PERF.236 The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug)**
+  Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
+  GEN.951 prevalence check: the three failing cases (habitable_world
+  +50, habitable_world -50, asteroid_belt +30) are not GEN.951's; they
+  fail on current main too (post train 8, before train 9). Those cases
+  are slow draws that hit time limits, the same family as the 900 s
+  timeouts PERF.229 listed. Do: find where a forced habitable_world draw
+  spends its time (the forcing repeats the draw until the condition
+  holds, or re-runs a stage), measure it, and either make the forced
+  draw cost a small multiple of the baseline or cut the case's sample
+  size with a stated margin; same for asteroid_belt +30. Done: each
+  prevalence case finishes inside the gate's time limit on a lane
+  machine, with the sample size and margin in the test. Proposed owner:
+  Bug 1 (PERF.229 owner). Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.229, TEST.430.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18224,6 +18261,24 @@ clears each one.
   test that follows its map changes (proposed by the TODO thread). Filed
   by the TODO thread.
   Prerequisites: none.
+
+- [ ] **TEST.579 Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug)**
+  Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
+  GEN.951 prevalence check: the three failing cases (habitable_world
+  +50, habitable_world -50, asteroid_belt +30) are not GEN.951's; they
+  fail on current main too (post train 8, before train 9). The baseline
+  belt share on main is 0.662 (600 systems) against
+  tuning.PREVALENCE_BASE_SHARES asteroid_belt 0.039; habitable_world
+  0.592 matches its 0.598. Do: first decide whether 0.662 is a real
+  generation change (belts now far commoner than the registered rate: if
+  so file it as a generation bug with the epoch that moved it) or a
+  stale constant; then remeasure all base shares on the post-train-10
+  main, register the new values with their tier and tweak level in
+  GEN.725, and re-run test_measured_base_shares_still_hold and the belt
+  prevalence cases. lanes.md already lists that test as red until the
+  epoch re-tag. Proposed owner: Bug 1 (offered to take it). Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.430, GEN.725, PERF.229.
 
 ## USR: User accounts
 

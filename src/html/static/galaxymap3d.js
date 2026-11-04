@@ -100,7 +100,7 @@ const {
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
-const { sourceOf: nebulaVolumeSource, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { sourceOf: nebulaVolumeSource, singleIdOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
 const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
@@ -2110,11 +2110,17 @@ function initGalaxyMap3d(canvasEl, data) {
   });
   // MAP.176: the groups of nebulae each drawn node lists (`nebula_regions`), soft sprites in the dominant family's colour with a thin
   // ring, a layer of their own under the charted regions' that holds itself to REGION_BUDGET and fades each as its node hands it down.
-  var nebulaVolumes = data.pinned || !data.nebulaVolumePath ? null : createNebulaVolumeLayer(scene, camera, canvasEl, renderer, {
+  // MAP.142: a sector's nebulae are drawn from one cloud of points each (`nebulaAloneVolumePath`, `{id}` where the nebula's id goes), by the
+  // same layer; a sector page (pinned) has no nodes, so it asks for those alone.
+  var nodeVolumes = !data.pinned && !!data.nebulaVolumePath;
+  var nebulaVolumes = !nodeVolumes && !data.nebulaAloneVolumePath ? null : createNebulaVolumeLayer(scene, camera, canvasEl, renderer, {
     colours: NEBULA_FAMILIES.map(function (family) { return nebulaFamilyColour(family, NEBULA_LOOKS); }),
     fetchBytes: function (key) {
-      return fetch(data.nebulaVolumePath + "?key=" + encodeURIComponent(key)).then(function (response) {
-        if (!response.ok) throw new Error(data.nebulaVolumePath + " returned " + response.status);
+      var alone = singleIdOf(key);
+      var url = alone !== null ? String(data.nebulaAloneVolumePath).replace("{id}", encodeURIComponent(alone))
+        : data.nebulaVolumePath + "?key=" + encodeURIComponent(key);
+      return fetch(url).then(function (response) {
+        if (!response.ok) throw new Error(url + " returned " + response.status);
         return response.arrayBuffer();
       });
     },
@@ -4011,6 +4017,8 @@ function initGalaxyMap3d(canvasEl, data) {
     pixelRatio: function () { return renderer.getPixelRatio(); },
     showInfo: showInfo,
     hideCell: hideCell,
+    // MAP.142: whether the map draws a sector's nebulae from their own points (the layer is there) in place of a sphere and a mesh.
+    volumeSingles: function () { return !!nebulaVolumes; },
     // MAP.348: what the opened sector's things say first when hovered.
     preview: function (facts, entry) { previewHover(entry, facts, entry); },
     viewport: viewport,
@@ -4162,6 +4170,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   // MAP.176: the nebula regions are layers of the Menu, one for each family, all on until the visitor says otherwise, with a
   // legend line each and one line that says what a ring is.
+  canvasEl.__mapNebulaVolumes = nebulaVolumes;    // the browser tests read what is drawn (a sector page has the layer too, MAP.142)
   if (nebulaLayer) {
     var NEBULA_GROUP = "Nebulae";
     var nebulaSwatch = function (family) {
@@ -4198,7 +4207,6 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView.layers.refresh();
     });
     canvasEl.__mapNebulae = nebulaLayer;    // the browser tests read what is drawn
-    canvasEl.__mapNebulaVolumes = nebulaVolumes;
     canvasEl.__mapNebulaTint = nebulaTintUniforms;
     canvasEl.__mapCaps = function () {    // the browser tests read the caps in force (MAP.367)
       var open = !!(canvasEl.galaxyOpenSector && canvasEl.galaxyOpenSector());
@@ -5258,7 +5266,7 @@ function initGalaxyMap3d(canvasEl, data) {
       } : null, focalPixels(), starSetVersion);
     }
     if (nebulaVolumes) {
-      nebulaVolumes.update(nebulaSources, drawnSettled ? function () {
+      nebulaVolumes.update(nebulaSources.concat(stageView ? stageView.sectorNebulaSources() : []), drawnSettled ? function () {
         return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);
       } : null, focalPixels());
       volumeCoverSignature = nebulaVolumes.drawn() + ":" + nebulaSources.length;

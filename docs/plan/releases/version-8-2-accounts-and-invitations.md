@@ -68,7 +68,9 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | OPS.64 | The version code carries the database schema, generator epoch and API versions as well |  |  |
 | PERF.232 | test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug) |  |  |
+| PERF.236 | The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug) |  |  |
 | PERF.233 | One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update |  |  |
+| PERF.235 | A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup |  |  |
 | PERF.234 | The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug) |  |  |
 | DOC.103 | American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours |  |  |
 | GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) |  |  |

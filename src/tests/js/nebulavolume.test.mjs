@@ -156,3 +156,15 @@ test("a star behind a nebula takes its hue, more the denser it is, and a little 
   assert.ok(blue[2] > blue[0], "a blue star behind a blue nebula stays blue");
   assert.ok(V.NEBULA_TINT_GLSL.includes("nebulaTinted") && V.NEBULA_TINT_GLSL.includes(V.TINT_MAX.toFixed(3)), "the shader carries the same constants");
 });
+
+test("a single nebula is its own key, has no node block, and shows at the weight it is given (MAP.142)", () => {
+  const source = V.singleSource("00001000000000-4000000-000", { x: 1, y: 2, z: 3, radiusPc: 4 }, 0.5);
+  assert.deepEqual(source, { key: "nebula:00001000000000-4000000-000", single: true, block: null, weight: 0.5, reaches: [{ x: 1, y: 2, z: 3, radiusPc: 4 }] });
+  assert.equal(V.singleIdOf(source.key), "00001000000000-4000000-000");
+  assert.equal(V.singleIdOf("27.3.0.5"), null, "a node key is not one");
+  assert.equal(V.singleSource(5, { x: 0, y: 0, z: 0, radiusPc: 1 }, 7).weight, 1, "held to 0..1");
+  assert.equal(V.singleSource(5, { x: 0, y: 0, z: 0, radiusPc: 1 }, -2).weight, 0);
+  assert.equal(V.singleSource(5, { x: 0, y: 0, z: 0, radiusPc: 1 }).weight, 1);
+  const found = V.wanted([source], [0, 0, 0], 800);
+  assert.equal(found.length, 1, "it is asked for like any source once wide enough");
+});
