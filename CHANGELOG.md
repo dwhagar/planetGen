@@ -2,6 +2,58 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3119] - 2026-11-04
+
+**Headline:** The star census now draws the ages of the old stars the way the galaxy does, so its white dwarf share reads 7.95 percent instead of 8.4 and the rest of the excess is named.
+
+### Changed
+- **The star census draws ages from the galaxy's age laws (GEN.1243).** Since the old population reached 13 Gy (GEN.1025) the census drew its ages flat over 3 to 13 Gy, where every sector's stars follow the thin disc's star formation history and the thick disc's window. That put 8.4 percent of its stars in white dwarfs against the 4.5 to 7.0 percent seen near the Sun. With the galaxy's own laws it is 7.95 percent (7.75 for a thin disc alone, the thick disc adding 0.2): the same low recent star formation that keeps A stars at 0.1 percent (GEN.898), so the white dwarf range now carries that known tag. No star the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1243 (cause found; the residual is GEN.898's).
+
+## [8.0.3118] - 2026-11-04
+
+**Headline:** The belt dose test no longer waits for a generated moon to fall inside a giant's radiation belts, which the generated moons rarely do now.
+
+### Changed
+- **The belt dose test (TEST.557).** The test looked through 55 generated systems for a moon taking a dose from the radiation belts of its giant parent and found none: the generated moons of a giant now sit 46 giant radii out or more, past the belts, so the belt dose is zero for all of them. The dose code is not broken (the pure tests of the belts still pass). The test now puts the innermost moon of the first giant with moons at 9.4 giant radii and checks the stored belt dose and surface dose follow.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.557.
+
+## [8.0.3117] - 2026-11-04
+
+**Headline:** The search page writes every gas formula with its subscripts, in the gas rows, the sort menu and the filter chips.
+
+### Changed
+- **Formulas on /search (TEST.555 part 1).** The physical-values form of the search page (UX.227) showed `Partial pressure of O2` and `CO2` as plain text, so `test_no_page_shows_a_formula_that_is_not_written_out` failed on the page. A gas row's label and a filter chip now go through the `chem` filter (`O<sub>2</sub>`), and the text of the sort menu's and the "another gas" menu's `<option>`s, which cannot hold tags, carries Unicode subscripts (`O₂`, `C₆H₆`) through the new `chem_text` and `formula_text` filters; the values the form sends stay `O2` and `C6H6`. A test checks the rows, the menus and the chips. No stored value changes.
+generation-output: unchanged
+
+## [8.0.3116] - 2026-11-04
+
+**Headline:** A planet with no star can now be built through the one planet chain: it keeps the air its own gravity and heat allow, and it is warmed by its own heat instead of sitting at the 2.725 K floor.
+
+### Changed
+- **The air of a body with no light (GEN.1111).** The atmosphere table's shoreline rows (d1 to d5) measure a body against the starlight and the luminosity of its host; a body with no host has neither, so the star cannot strip its air and it sits far inside the shoreline (`NO_LIGHT_DELTA`, a sentinel, not a tuned value: any large negative number gives the same row). The star's wind pressure at a body with no star is zero, so it has no magnetopause to hold off a wind that is not there (`magnetism.magnetopause_rp` gives `None`).
+- **A body with no star is warmed by its own heat.** The temperature of a rocky planet whose host is starless, with or without air, adds the heat of its interior and its tide (`internal_heat_flux_w_m2` and `tidal_flux_w_m2`) to the flux it radiates, as a giant's already did. Under a star that heat is below a part in a thousand of the absorbed flux for an ordinary rocky planet and is left out, so no lit planet changes. (A strongly tide-heated moon is the case where it is not that small; that is a separate question, not changed here.)
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3115] - 2026-11-04
+
+**Headline:** The nav chart and the System Map diagram stay inside the browser window instead of running past its bottom.
+
+### Changed
+- The nav chart (5:3) and the System Map diagram (1:1) were as tall as their column was wide, so in a wide or short window they ran past the bottom of the window and the page had to be scrolled to see all of the map. They now take at most 95 percent of what the window leaves under the header (never under the least height, 320 px), the way the Galaxy Map, the Sector Map and the 3D system view already do, keep their shape (the nav chart's labels are placed in percent of it), sit in the middle of their column, and re-fit when the window is resized, with no reload. The diagram is fitted when it is brought up from behind the Diagram/3D switch too. New `static/boxfit.js` (`mapfit.fitWidth`, `mapfit.watchWindowBox`); a box asks for it with `data-fit-aspect="W/H"`.
+
+generation-output: unchanged
+TODO items resolved: none (UX.142 slice 1 of 2: the nav chart and the System Map diagram; the admin shell is slice 2)
+
 ## [8.0.3114] - 2026-11-04
 
 **Headline:** A system can now be checked and summed as one list of every body with a mass, including a barycentre that has the belts in it and a measure of how much the belts move the star.

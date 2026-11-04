@@ -262,6 +262,20 @@ def _formula(value):
     return Markup(chem.html(value))
 
 
+@bp.app_template_filter("formula_text")
+def _formula_text(value):
+    """UX.149: one chemical formula as plain text with Unicode subscripts, `H₂O`, for the places that cannot hold tags (the text of an `<option>`;
+    `planetgen.util.chem.text`)."""
+    return chem.text(value)
+
+
+@bp.app_template_filter("chem_text")
+def _chem_text(value):
+    """UX.149: a text that names chemicals as plain text with Unicode subscripts (an `<option>`'s label cannot hold tags;
+    `planetgen.util.chem.mark_text`)."""
+    return chem.mark_text(value) if value else value
+
+
 @bp.app_template_filter("chem")
 def _chem(value):
     """UX.149: a text that names chemicals (a nebula's contents, a limit's meaning) as HTML, each formula
