@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3168] - 2026-11-04
+
+**Headline:** The "every plain button does something" browser test waits for the page's custom elements, so it no longer clicks a button that vanishes as its dialog is defined.
+
+### Changed
+
+- `test_every_plain_button_does_something` took the page's buttons as soon as the page loaded. Until the page's custom elements are defined, the children of a shut `sl-dialog` are drawn in the page, so a dialog's "Close" button counted as visible and then disappeared when the dialog was defined, leaving the click waiting out its 120 second timeout (seen on the sector page, 2 of 6 runs alone; TEST.126). The test's settle step now also waits until no custom element is left undefined. Three runs alone pass.
+
 ## [8.0.3167] - 2026-11-04
 
 **Headline:** The last pages that spoke out of the story now speak in it, and a body page's source lines became quiet links.
