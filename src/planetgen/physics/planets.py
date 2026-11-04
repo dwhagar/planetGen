@@ -624,6 +624,7 @@ def refresh_at_final_age(body):
         surface_composition.generate_surface(body)
         if surface_composition.mix_of(body) != ground:
             radiation.update_ground_dose(body)
+    envelope_share.fill(body)       # GEN.1226: the air may have changed with the water and the ground; the share follows the final air
     habitability_world.generate(body, flux)
 
 
