@@ -13334,6 +13334,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
+  Boss decision on class T (answered "1.1") (2026-11-04 2:57 PM EST):
+  With the true air share Boss approved for GEN.1226, the generated
+  class T hydrogen-air dwarfs hold only 1e-8 to 5e-5 of their mass in
+  air (21 sampled), under the 5e-3 line for transitional, so they stay
+  terrestrial; their air is thin hydrogen at 0.01 to 27 bar, not an
+  envelope (Core 4's finding). Boss, 2:57 PM EST on 2026-11-04: keep the
+  honest share, and define the terrestrial-kind class T by its thin
+  hydrogen air instead of calling it a gas dwarf. The giant-kind T
+  bodies keep their stored envelope and are the real gas dwarfs.
   Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
