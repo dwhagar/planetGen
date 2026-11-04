@@ -1344,7 +1344,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay as options; nebulae tint the colour of the stars seen through
   them and have soft translucent boundaries (MAP.142). Owner:
   Foundations lane 2, after the nebula map work (MAP.176; MAP.155 merged in #1253).
-  Prerequisites: MAP.215. Related: MAP.131, MAP.142, MAP.176,
+  Prerequisites: none. Related: MAP.131, MAP.142, MAP.176,
   MAP.146.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -1468,25 +1468,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   review).
   Prerequisites: GEN.302. Related: ADM.57, NAV.45.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
-
-- [ ] **MAP.215 Nebulae tint the stars seen through them, with soft translucent boundaries**
-  Split from MAP.191 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). In the default Galaxy Map view
-  nebulae are the only shading: they change the colour of the stars
-  shining through them and have fuzzy, translucent boundaries (MAP.142),
-  read from the nebula layer of the tile. Done: a star behind a nebula
-  is tinted by the nebula's family colour, the boundary fades, and the
-  density views are unchanged.
-  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
-  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
-  irregular, bulbous, wispy shapes from the galaxy model, tinting the
-  regions they cover, overlapping additively with a cap, crossing
-  sectors (full text and his five answers in MAP.365). This item moves
-  from version 8.8 into 8.1 and is built by Core 2 after or with
-  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
-  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
-  MAP.222 (nebula zoom window). Owner: Core 2.
-  Prerequisites: MAP.142. Related: MAP.191.
 
 - [ ] **MAP.216 Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -17814,58 +17795,6 @@ clears each one.
   Hunt (proposed by the TODO thread).
   Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
 
-- [ ] **TEST.297 The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug)**
-  Found by Core 2 (relayed 12:46 PM EDT 2026-10-23 as the lane reported)
-  in its gate for ADM.126 (#2677); filed by the TODO thread. Kind: tests
-  that fail under load, the same family as TEST.141, TEST.284, TEST.287,
-  TEST.289 and TEST.295. Tests: all 13 in
-  src/tests/test_work_queue_failures.py and
-  src/tests/test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel.
-  Failure: they failed in the gate at load 6 to 8 and passed alone (the
-  failure text was not given). Fails on main: unknown. Frequency: once
-  in one gate. Do: capture the failure text, then find what the 13 share
-  (a queue worker start, a fixed wait, a port or a Redis key) and make
-  them wait for the state they need rather than a time. Done: the 14
-  tests pass 50 times in a row at -n 4 under load. Owner: Bug Hunt
-  (proposed by the TODO thread).
-  Prerequisites: none. Related: TEST.141, TEST.284, TEST.287, TEST.289,
-  TEST.295.
-  Waiting on data (Bug Hunt, relayed 1:25 PM EDT 2026-10-23 as the lane
-  reported): 13 tests of one file failing together at the same minute
-  points at the machine and not at 13 flakes. Asked of Core 2: the
-  failure text of one work-queue test and of the sector-open test,
-  whether MySQL or Redis restarted, hit max_connections or ran out of
-  disk during the gate, and whether its venv had argon2-cffi (main needs
-  it since SEC.32).
-  Core 2's answers (relayed 1:26 PM EDT 2026-10-23 as the lane reported;
-  gate 11:14 AM to 12:37 PM EDT, log /root/gate-adm126d.log on Core 2's
-  machine): test_a_dead_worker_never_hangs_the_run[1] ends 'the run hung
-  after a worker died: its record stood still for 60 s'
-  (test_work_queue_failures.py:133); test_on_done_raising_fails_the_run
-  ends with an IndexError in _ended_cleanly line 69, the work_jobs row
-  for the job id (state 'failed') not found by _rows; the sector-open
-  test is a playwright TimeoutError, wait_for_function 20000 ms,
-  test_web_browser_sector_open.py:212. MySQL and Redis did not restart
-  (uptime about 50,830 s), Max_used_connections 43 of 151, no disk or
-  connection-refused lines, disk 8.4 GB free, load 6 to 8, all 13 pass
-  alone at load 6.1 to 6.7, argon2-cffi 25.1.0 was installed. So it is
-  not the machine breaking; it is timing under load.
-  Bug Hunt's reading (relayed 1:40 PM EDT 2026-10-23 as the lane
-  reported): the dead-worker test's 60 s idle window was too short at
-  load 6 to 8, and test_on_done_raising_fails_the_run found no work_jobs
-  row because `_book` swallows control-database errors silently. Bug
-  Hunt loops the file under load and makes the tests report the
-  swallowed error.
-  Mitigated, not root-caused (Bug Hunt, #2692 merged 2:44 PM EDT
-  2026-10-23 as the lane reported, gate 77 passed): load alone did not
-  reproduce it (6 loops at -n 4 beside 8 CPU burners). Fixed from Core
-  2's texts: the dead-worker test's idle window is 180 s and no longer
-  60 s; the sector-open test re-clicks the sector centre where the map
-  holds still (the TEST.291 cause); test_work_queue_failures keeps the
-  queue's swallowed bookkeeping errors, and a missing work_jobs row
-  reports the rows there are and what the queue could not write. This
-  item stays open for a sighting with that text.
-
 - [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
   before 8.1 is ready. Lane E owns the end-to-end browser tests across
@@ -17936,21 +17865,6 @@ clears each one.
   repeated gates. Note: UX.180 changes the header menus (the Help menu),
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
-
-- [ ] **TEST.333 test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug)**
-  Reported by Habitability lane B at 6:12 AM EDT 2026-10-24 (as the lane
-  reported) from an end-of-queue `full --check` on main:
-  test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V]
-  failed once in 15 trials. TEST.313 (#2918, merged 5:46 AM EDT) fixed
-  the case where the final age trim lost the belt (about 3 in 400), so
-  either the lane's main did not yet hold that fix or a second cause
-  remains. The TODO thread could not run the test (this machine lacks
-  the NLTK words data). Do: run the test about 50 times on current main;
-  if it still fails, find the second cause (the habitable draw, or the
-  belt placement after the star-tree draw of GEN.631) and fix it; if it
-  passes, close this. Done: 50 clean trials on main. Owner: Bug Hunt
-  (proposed).
-  Prerequisites: none. Related: TEST.313, GEN.631.
 
 - [ ] **TEST.344 Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory**
   Efficiency scan suggestion 4, applied by Boss ("ALL", 2:21 PM EDT

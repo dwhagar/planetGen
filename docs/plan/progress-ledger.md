@@ -2386,3 +2386,6 @@ Baseline: PR #1817.
 | TEST.295 | 8.1 | Bugs and flaky tests |
 | GEN.1248 | 8.2 | Robust tile caching |
 | MAP.365 | 8.1 | Nebula data foundations |
+| TEST.333 | 8.1 | Bugs and flaky tests |
+| TEST.297 | 8.1 | Bugs and flaky tests |
+| MAP.215 | 8.1 | Nebula data foundations |
