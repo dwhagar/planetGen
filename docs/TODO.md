@@ -14398,6 +14398,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1254, GEN.1255. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
 
+- [ ] **GEN.1258 Store an ammonia-water fraction for icy bodies so class X (ammonia-water) can join the class-by-domain fit table**
+  Core 4, 6:25 PM EST on 2026-11-04 (as the lane reported), built the
+  GEN.1221 class-by-domain matrix and deferred class X (ammonia-water)
+  because no ammonia-water fraction is stored on a body. Do: work out
+  from the formation physics (ice line, nebula ammonia to water ratio,
+  melt and differentiation history) an ammonia-water fraction for icy
+  planets and moons, store it in a new column (db/column_units.py,
+  wiring register), register its stand-ins in GEN.725 with tier and
+  tweak level, then add class X to the shadow fit table with its range
+  from the families report. Stored letters do not change until GEN.1207.
+  Generation output changes (an epoch), so a lock item. Proposed owner:
+  Core 4 after GEN.1250. Filed by the TODO thread.
+  Prerequisites: GEN.1221. Related: GEN.1221, GEN.1207, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
