@@ -69,7 +69,7 @@ The rings used the plain Kennicutt-Schmidt law, so a thin outer ring spent its g
 |---|---|---|---|
 | Depletion time, thin disc of 3e10 stars | 1.8 Gy | 2.9 Gy | 1.0 to 4.2 Gy |
 | Depletion time, the full Milky Way shape | 2.2 Gy | 3.7 Gy | 4.2 Gy (Sources 2) |
-| Gas at 8 kpc | 4.3 per pc2 | 7.2 per pc2 | 11.9 +- 1.6 atomic and molecular with helium (McKee, Parravano and Hollenbach 2015, Table 2: 10.9 + 1.0 within 1 kpc of the Sun; 13.7 with the ionised gas) |
+| Gas at 8 kpc | 4.3 per pc2 | 7.2 per pc2 | 11.9 +- 1.6 atomic and molecular with helium ([R3002: Table 2]: 10.9 + 1.0 within 1 kpc of the Sun; 13.7 with the ionised gas) |
 | Star formation now | 1.50 a year | 1.70 a year | 1.65 +- 0.19 [R2680] |
 | Gas inside the bar gap | 5.0e8 | 6.2e8 | (the ring inflow follows it) |
 

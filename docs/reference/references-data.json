@@ -6219,6 +6219,11 @@
    ],
    "n": 4
   },
+  "Chen||etal|2013": {
+   "matched": [
+    "arXiv:1203.3439"
+   ]
+  },
   "Chen||one|1991": {
    "matched": [
     "10.1016/0895-6111(91)90085-a"
@@ -7917,6 +7922,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Cuzzi|Estrada|pair|1998": {
+   "matched": [
+    "10.1006/icar.1997.5863"
    ]
   },
   "Cuzzi||etal|2018": {
@@ -12100,6 +12110,11 @@
    ],
    "n": 1
   },
+  "Giammichele||etal|2012": {
+   "matched": [
+    "10.1088/0067-0049/199/2/29"
+   ]
+  },
   "Giammichele||one|2012": {
    "matched": [
     "10.1088/0067-0049/199/2/29"
@@ -14245,6 +14260,11 @@
     "crossref"
    ]
   },
+  "Heiles|Troland|pair|2003": {
+   "matched": [
+    "10.1086/367828"
+   ]
+  },
   "Heimpel||one|2005": {
    "matched": [
     "10.1016/j.epsl.2005.04.032",
@@ -14530,6 +14550,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Heuvel||one|2006": {
+   "matched": [
+    "arXiv:astro-ph/0303456"
    ]
   },
   "Heyer|Dame|pair|2015": {
@@ -14836,6 +14861,11 @@
     "crossref"
    ]
   },
+  "Hoening|Spohn|pair|2022": {
+   "matched": [
+    "10.5194/epsc2022-506"
+   ]
+  },
   "Hoffmann|Pauldrach|pair|2003": {
    "evidence": "a record already in the list has this author, year and (for a pair) second author",
    "matched": [
@@ -14952,6 +14982,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Hollenbach||one|2015": {
+   "matched": [
+    "10.1088/0004-637x/814/1/13"
    ]
   },
   "Holloway|Blank|pair|1994": {
@@ -16228,6 +16263,11 @@
     "10.1029/2018jb016558"
    ],
    "n": 3
+  },
+  "Janson||etal|2012": {
+   "matched": [
+    "10.1088/0004-637x/754/1/44"
+   ]
   },
   "Janson||one|2013": {
    "matched": [
@@ -19526,6 +19566,11 @@
    ],
    "n": 14
   },
+  "Liebert||etal|2005": {
+   "matched": [
+    "10.1086/425738"
+   ]
+  },
   "Lierle|Schmidt|pair|2025": {
    "matched": [
     "arXiv:2505.23915"
@@ -19979,6 +20024,11 @@
    "searched": true,
    "tried": [
     "crossref"
+   ]
+  },
+  "Lorenz||etal|2008": {
+   "matched": [
+    "10.1029/2007gl032118"
    ]
   },
   "Lorenz||etal|2014": {
@@ -21420,6 +21470,11 @@
     "10.1029/jz070i006p01553"
    ],
    "n": 2
+  },
+  "McDonough|Sun|pair|1995": {
+   "matched": [
+    "10.1016/0009-2541(94)00140-4"
+   ]
   },
   "McDonough||one|1992": {
    "matched": [
@@ -24924,6 +24979,11 @@
    ],
    "n": 2
   },
+  "Parravano|Hollenbach|pair|2015": {
+   "matched": [
+    "10.1088/0004-637x/814/1/13"
+   ]
+  },
   "Parviainen||one|2024": {
    "matched": [
     "10.1051/0004-6361/202347431"
@@ -25957,6 +26017,11 @@
    ],
    "n": 1
   },
+  "Poppe||one|2016": {
+   "matched": [
+    "10.1016/j.icarus.2015.10.001"
+   ]
+  },
   "Porter||one|1976": {
    "matched": [
     "10.1038/264745a0"
@@ -26530,6 +26595,16 @@
    "n": 1,
    "searched": true
   },
+  "Rappaport|Savonije|pair|1983": {
+   "matched": [
+    "10.1086/161159"
+   ]
+  },
+  "Rappaport||etal|1995": {
+   "matched": [
+    "10.1093/mnras/273.3.731"
+   ]
+  },
   "Rappaport||one|2012": {
    "evidence": "first author and year agree, and title words appear in the citing sentences: period, short",
    "matched": [
@@ -26602,6 +26677,11 @@
     "10.1088/0004-637x/699/2/l88"
    ],
    "n": 1
+  },
+  "Raymond||one|2019": {
+   "matched": [
+    "10.1093/mnrasl/sly219"
+   ]
   },
   "Read||etal|2009": {
    "matched": [
@@ -26770,6 +26850,11 @@
     "10.1029/2001gl014092"
    ],
    "n": 1
+  },
+  "Reid||etal|2014": {
+   "matched": [
+    "10.1088/0004-637x/783/2/130"
+   ]
   },
   "Reid||one|1973": {
    "matched": [
@@ -30912,6 +30997,11 @@
    ],
    "n": 1
   },
+  "Tauris|Savonije|pair|1999": {
+   "matched": [
+    "arXiv:astro-ph/9909147"
+   ]
+  },
   "Tauris||one|2015": {
    "evidence": "first author and year agree, and a title word (ejected) and the journal appear in the citing sentences",
    "matched": [
@@ -33759,6 +33849,11 @@
     "10.1029/2012gl053230"
    ],
    "n": 1
+  },
+  "Wetherill|Boss|pair|1996": {
+   "matched": [
+    "10.1006/icar.1996.0019"
+   ]
   },
   "Wetzel||one|2013": {
    "matched": [
@@ -76457,6 +76552,29 @@
    "volume": "129",
    "year": 1997
   },
+  "10.1006/icar.1997.5863": {
+   "authors": [
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Estrada",
+     "P. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1997.5863",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "1",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Compositional Evolution of Saturn's Rings Due to Meteoroid Bombardment",
+   "type": "journal-article",
+   "volume": "132",
+   "year": 1998
+  },
   "10.1006/icar.1998.5913": {
    "authors": [
     [
@@ -82353,6 +82471,29 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "57",
    "year": 1986
+  },
+  "10.1016/0009-2541(94)00140-4": {
+   "authors": [
+    [
+     "McDonough",
+     "W."
+    ],
+    [
+     "Sun",
+     "S. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0009-2541(94)00140-4",
+   "editors": [],
+   "journal": "Chemical Geology",
+   "page": "223",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The composition of the Earth",
+   "type": "journal-article",
+   "volume": "120",
+   "year": 1995
   },
   "10.1016/0009-2614(83)87118-8": {
    "authors": [
@@ -94300,6 +94441,25 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "270",
+   "year": 2016
+  },
+  "10.1016/j.icarus.2015.10.001": {
+   "authors": [
+    [
+     "Poppe",
+     "A. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2015.10.001",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "369",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "An improved model for interplanetary dust fluxes in the outer Solar System",
+   "type": "journal-article",
+   "volume": "264",
    "year": 2016
   },
   "10.1016/j.icarus.2015.12.031": {
@@ -151586,6 +151746,33 @@
    "volume": "270",
    "year": 1983
   },
+  "10.1086/161159": {
+   "authors": [
+    [
+     "Webbink",
+     "R. F."
+    ],
+    [
+     "Rappaport",
+     "S."
+    ],
+    [
+     "Savonije",
+     "G. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/161159",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "678",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "On the evolutionary status of bright, low-mass X-ray sources",
+   "type": "journal-article",
+   "volume": "270",
+   "year": 1983
+  },
   "10.1086/161332": {
    "authors": [
     [
@@ -154756,6 +154943,29 @@
    "volume": "585",
    "year": 2003
   },
+  "10.1086/367828": {
+   "authors": [
+    [
+     "Heiles",
+     "C."
+    ],
+    [
+     "Troland",
+     "T. H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/367828",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1067",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Millennium Arecibo 21 Centimeter Absorption‐Line Survey. II. Properties of the Warm and Cold Neutral Media",
+   "type": "journal-article",
+   "volume": "586",
+   "year": 2003
+  },
   "10.1086/374331": {
    "authors": [
     [
@@ -155534,6 +155744,33 @@
    "title": "Recent Star Formation in the Extreme Outer Disk of M83",
    "type": "journal-article",
    "volume": "619",
+   "year": 2005
+  },
+  "10.1086/425738": {
+   "authors": [
+    [
+     "Liebert",
+     "J."
+    ],
+    [
+     "Bergeron",
+     "P."
+    ],
+    [
+     "Holberg",
+     "J. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/425738",
+   "editors": [],
+   "journal": "ApJS",
+   "page": "47",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Formation Rate and Mass and Luminosity Functions of DA White Dwarfs from the Palomar Green Survey",
+   "type": "journal-article",
+   "volume": "156",
    "year": 2005
   },
   "10.1086/426329": {
@@ -164556,6 +164793,61 @@
    "volume": "753",
    "year": 2012
   },
+  "10.1088/0004-637x/754/1/44": {
+   "authors": [
+    [
+     "Janson",
+     "M."
+    ],
+    [
+     "Hormuth",
+     "F."
+    ],
+    [
+     "Bergfors",
+     "C."
+    ],
+    [
+     "Brandner",
+     "W."
+    ],
+    [
+     "Hippler",
+     "S."
+    ],
+    [
+     "Daemgen",
+     "S."
+    ],
+    [
+     "Kudryavtseva",
+     "N."
+    ],
+    [
+     "Schmalzl",
+     "E."
+    ],
+    [
+     "Schnupp",
+     "C."
+    ],
+    [
+     "Henning",
+     "T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/754/1/44",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "44",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "THE ASTRALUX LARGE M-DWARF MULTIPLICITY SURVEY",
+   "type": "journal-article",
+   "volume": "754",
+   "year": 2012
+  },
   "10.1088/0004-637x/754/2/124": {
    "arxiv": "1205.7001",
    "authors": [
@@ -166978,6 +167270,85 @@
    "title": "THE MASSES OF LOCAL GROUP DWARF SPHEROIDAL GALAXIES: THE DEATH OF THE UNIVERSAL MASS PROFILE",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "783",
+   "year": 2014
+  },
+  "10.1088/0004-637x/783/2/130": {
+   "authors": [
+    [
+     "Reid",
+     "M. J."
+    ],
+    [
+     "Menten",
+     "K. M."
+    ],
+    [
+     "Brunthaler",
+     "A."
+    ],
+    [
+     "Zheng",
+     "X. W."
+    ],
+    [
+     "Dame",
+     "T. M."
+    ],
+    [
+     "Xu",
+     "Y."
+    ],
+    [
+     "Wu",
+     "Y."
+    ],
+    [
+     "Zhang",
+     "B."
+    ],
+    [
+     "Sanna",
+     "A."
+    ],
+    [
+     "Sato",
+     "M."
+    ],
+    [
+     "Hachisuka",
+     "K."
+    ],
+    [
+     "Choi",
+     "Y. K."
+    ],
+    [
+     "Immer",
+     "K."
+    ],
+    [
+     "Moscadelli",
+     "L."
+    ],
+    [
+     "Rygl",
+     "K. L. J."
+    ],
+    [
+     "Bartkiewicz",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/783/2/130",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "130",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "TRIGONOMETRIC PARALLAXES OF HIGH MASS STAR FORMING REGIONS: THE STRUCTURE AND KINEMATICS OF THE MILKY WAY",
+   "type": "journal-article",
    "volume": "783",
    "year": 2014
   },
@@ -179991,6 +180362,41 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "272",
+   "year": 1995
+  },
+  "10.1093/mnras/273.3.731": {
+   "authors": [
+    [
+     "Rappaport",
+     "S."
+    ],
+    [
+     "Podsiadlowski",
+     "P."
+    ],
+    [
+     "Joss",
+     "P. C."
+    ],
+    [
+     "Di Stefano",
+     "R."
+    ],
+    [
+     "Han",
+     "Z."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/273.3.731",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "731",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "The relation between white dwarf mass and orbital period in wide binary radio pulsars",
+   "type": "journal-article",
+   "volume": "273",
    "year": 1995
   },
   "10.1093/mnras/273.4.1097": {
@@ -234349,6 +234755,37 @@
    "volume": "",
    "year": 2005
   },
+  "10.1167/jov.24.2.13": {
+   "authors": [
+    [
+     "March",
+     "J. G."
+    ],
+    [
+     "Krishnan",
+     "A."
+    ],
+    [
+     "Mantiuk",
+     "R. K."
+    ],
+    [
+     "Watt",
+     "S. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1167/jov.24.2.13",
+   "editors": [],
+   "journal": "Journal of Vision",
+   "page": "13",
+   "publisher": "Association for Research in Vision and Ophthalmology (ARVO)",
+   "src": "crossref",
+   "title": "Impact of focus cue presentation on perceived realism of 3-D scene structure: Implications for scene perception and for display technology",
+   "type": "journal-article",
+   "volume": "24",
+   "year": 2024
+  },
   "10.1175/1520-0450(1969)008<0392:agcmbo>2.0.co;2": {
    "authors": [
     [
@@ -235750,6 +236187,25 @@
    "type": "journal-article",
    "volume": "53",
    "year": 2014
+  },
+  "10.1364/aop.5.000456": {
+   "authors": [
+    [
+     "Geng",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1364/aop.5.000456",
+   "editors": [],
+   "journal": "Adv. Opt. Photon.",
+   "page": "456",
+   "publisher": "Optica Publishing Group",
+   "src": "crossref",
+   "title": "Three-dimensional display technologies",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2013
   },
   "10.1364/fts.1999.fwe21": {
    "authors": [
@@ -239127,6 +239583,41 @@
    "volume": "1",
    "year": 2020
   },
+  "10.3390/app10207357": {
+   "authors": [
+    [
+     "Ezcurdia",
+     "I."
+    ],
+    [
+     "Arregui",
+     "A."
+    ],
+    [
+     "Ardaiz",
+     "O."
+    ],
+    [
+     "Ortiz",
+     "A."
+    ],
+    [
+     "Marzo",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3390/app10207357",
+   "editors": [],
+   "journal": "Applied Sciences",
+   "page": "7357",
+   "publisher": "MDPI AG",
+   "src": "crossref",
+   "title": "Content Adaptation and Depth Perception in an Affordable Multi-View Display",
+   "type": "journal-article",
+   "volume": "10",
+   "year": 2020
+  },
   "10.3390/biology10100970": {
    "authors": [
     [
@@ -239441,6 +239932,33 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "15",
    "year": 2023
+  },
+  "10.3390/s21124006": {
+   "authors": [
+    [
+     "Hussain",
+     "R."
+    ],
+    [
+     "Chessa",
+     "M."
+    ],
+    [
+     "Solari",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3390/s21124006",
+   "editors": [],
+   "journal": "Sensors",
+   "page": "4006",
+   "publisher": "MDPI AG",
+   "src": "crossref",
+   "title": "Mitigating Cybersickness in Virtual Reality Systems through Foveated Depth-of-Field Blur",
+   "type": "journal-article",
+   "volume": "21",
+   "year": 2021
   },
   "10.3390/sym16081007": {
    "arxiv": "2405.05476",
@@ -268280,6 +268798,29 @@
    "volume": "",
    "year": 2022
   },
+  "10.5194/epsc2022-506": {
+   "authors": [
+    [
+     "Spohn",
+     "T."
+    ],
+    [
+     "Hoening",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5194/epsc2022-506",
+   "editors": [],
+   "journal": "",
+   "page": "",
+   "publisher": "Copernicus GmbH",
+   "src": "crossref",
+   "title": "Land/Ocean Surface Diversity on Earth-like (Exo)planets: Implications for Habitability",
+   "type": "posted-content",
+   "volume": "",
+   "year": 2022
+  },
   "10.5194/epsc2024-501": {
    "authors": [
     [
@@ -269539,6 +270080,28 @@
    "type": "preprint",
    "volume": "",
    "year": 2011
+  },
+  "arXiv:1203.3439": {
+   "arxiv": "1203.3439",
+   "authors": [
+    [
+     "De Vito",
+     "M. A."
+    ],
+    [
+     "Benvenuto",
+     "O. G."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Evolution of low mass close binary systems with a neutron star: its dependence with the initial neutron star mass",
+   "type": "preprint",
+   "volume": "",
+   "year": 2012
   },
   "arXiv:1204.0275": {
    "arxiv": "1204.0275",
@@ -276916,6 +277479,28 @@
    "volume": "",
    "year": 2002
   },
+  "arXiv:astro-ph/0303456": {
+   "arxiv": "astro-ph/0303456",
+   "authors": [
+    [
+     "Tauris",
+     "T. M."
+    ],
+    [
+     "van den Heuvel",
+     "E."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Formation and Evolution of Compact Stellar X-ray Sources",
+   "type": "preprint",
+   "volume": "",
+   "year": 2003
+  },
   "arXiv:astro-ph/0402475": {
    "arxiv": "astro-ph/0402475",
    "authors": [
@@ -277214,6 +277799,28 @@
    "volume": "",
    "year": 1999
   },
+  "arXiv:astro-ph/9909147": {
+   "arxiv": "astro-ph/9909147",
+   "authors": [
+    [
+     "Tauris",
+     "T. M."
+    ],
+    [
+     "Savonije",
+     "G. J."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Formation of millisecond pulsars. I. Evolution of low-mass X-ray binaries with P > 2 days",
+   "type": "preprint",
+   "volume": "",
+   "year": 1999
+  },
   "manual:bennett-rostain-pair-2003": {
    "authors": [
     [
@@ -277379,7 +277986,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5021,
+ "id_next": 5081,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -277478,6 +278085,7 @@
   "10.1006/icar.1997.5705": "R1978",
   "10.1006/icar.1997.5759": "R4708",
   "10.1006/icar.1997.5793": "R2201",
+  "10.1006/icar.1997.5863": "R5074",
   "10.1006/icar.1998.5913": "R2259",
   "10.1006/icar.1998.5915": "R3858",
   "10.1006/icar.1998.5938": "R1933",
@@ -277692,6 +278300,7 @@
   "10.1007/s41116-022-00033-8": "R0825",
   "10.1016/0009-2541(85)90023-3": "R2313",
   "10.1016/0009-2541(86)90053-7": "R1837",
+  "10.1016/0009-2541(94)00140-4": "R5076",
   "10.1016/0009-2614(83)87118-8": "R4269",
   "10.1016/0009-2614(93)87097-m": "R1979",
   "10.1016/0010-2180(93)90121-i": "R4188",
@@ -278105,6 +278714,7 @@
   "10.1016/j.icarus.2015.05.004": "R1822",
   "10.1016/j.icarus.2015.06.024": "R3187",
   "10.1016/j.icarus.2015.09.039": "R1144",
+  "10.1016/j.icarus.2015.10.001": "R5070",
   "10.1016/j.icarus.2015.12.031": "R3558",
   "10.1016/j.icarus.2016.01.010": "R0558",
   "10.1016/j.icarus.2016.02.021": "R2829",
@@ -279536,6 +280146,7 @@
   "10.1086/160871": "R1941",
   "10.1086/160960": "R1222",
   "10.1086/161131": "R3066",
+  "10.1086/161159": "R5077",
   "10.1086/161332": "R4040",
   "10.1086/161495": "R4189",
   "10.1086/161872": "R1368",
@@ -279634,6 +280245,7 @@
   "10.1086/344684": "R0641",
   "10.1086/345412": "R0609",
   "10.1086/346127": "R1530",
+  "10.1086/367828": "R5068",
   "10.1086/374331": "R4249",
   "10.1086/374879": "R0705",
   "10.1086/375461": "R3263",
@@ -279658,6 +280270,7 @@
   "10.1086/424372": "R1346",
   "10.1086/424937": "R0956",
   "10.1086/425251": "R4337",
+  "10.1086/425738": "R5072",
   "10.1086/426329": "R4053",
   "10.1086/427082": "R3023",
   "10.1086/427977": "R3753",
@@ -279889,6 +280502,7 @@
   "10.1088/0004-637x/752/2/97": "R4825",
   "10.1088/0004-637x/753/2/138": "R3642",
   "10.1088/0004-637x/753/2/160": "R4779",
+  "10.1088/0004-637x/754/1/44": "R5069",
   "10.1088/0004-637x/754/2/124": "R4848",
   "10.1088/0004-637x/755/1/41": "R3945",
   "10.1088/0004-637x/756/2/172": "R3165",
@@ -279950,6 +280564,7 @@
   "10.1088/0004-637x/782/1/7": "R1071",
   "10.1088/0004-637x/782/2/100": "R1439",
   "10.1088/0004-637x/783/1/7": "R0854",
+  "10.1088/0004-637x/783/2/130": "R5073",
   "10.1088/0004-637x/784/1/22": "R3264",
   "10.1088/0004-637x/784/1/63": "R2025",
   "10.1088/0004-637x/785/1/28": "R2405",
@@ -280244,6 +280859,7 @@
   "10.1093/mnras/267.4.871": "R0649",
   "10.1093/mnras/270.3.523": "R0658",
   "10.1093/mnras/272.1.l35": "R4545",
+  "10.1093/mnras/273.3.731": "R5071",
   "10.1093/mnras/273.4.1097": "R2196",
   "10.1093/mnras/275.1.31": "R2904",
   "10.1093/mnras/276.1.268": "R0001",
@@ -281481,6 +282097,7 @@
   "10.1161/01.res.0000038114.17939.c8": "R2422",
   "10.1161/01.res.0000107195.13573.e4": "R2421",
   "10.1163/9789047416050_011": "R4756",
+  "10.1167/jov.24.2.13": "R5064",
   "10.1175/1520-0450(1969)008<0392:agcmbo>2.0.co;2": "R4008",
   "10.1175/1520-0469(1967)024<0241:teotaw>2.0.co;2": "R2848",
   "10.1175/1520-0469(1969)026<1191:trgaho>2.0.co;2": "R2085",
@@ -281536,6 +282153,7 @@
   "10.1364/ao.34.002765": "R0575",
   "10.1364/ao.38.003423": "R3245",
   "10.1364/ao.53.001808": "R1225",
+  "10.1364/aop.5.000456": "R5066",
   "10.1364/fts.1999.fwe21": "R1686",
   "10.1364/josa.28.000027": "R2305",
   "10.1364/josa.43.000113": "R2047",
@@ -281647,6 +282265,7 @@
   "10.3389/fmicb.2019.00780": "R3040",
   "10.3389/fmicb.2020.01284": "R4576",
   "10.3389/frvir.2020.587698": "R3419",
+  "10.3390/app10207357": "R5067",
   "10.3390/biology10100970": "R3755",
   "10.3390/galaxies12040039": "R2525",
   "10.3390/ijms24119321": "R4015",
@@ -281656,6 +282275,7 @@
   "10.3390/ma18061211": "R0083",
   "10.3390/polym15102312": "R4235",
   "10.3390/rs15030702": "R4753",
+  "10.3390/s21124006": "R5065",
   "10.3390/sym16081007": "R3643",
   "10.3390/universe8070381": "R0430",
   "10.3390/w3010235": "R5016",
@@ -282104,6 +282724,7 @@
   "10.5194/bg-4-545-2007": "R0996",
   "10.5194/cpd-10-2011-2014": "R0620",
   "10.5194/egusphere-egu22-11313": "R4153",
+  "10.5194/epsc2022-506": "R5075",
   "10.5194/epsc2024-501": "R3750",
   "10.5194/essd-5-365-2013": "R2303",
   "10.5194/esurf-9-379-2021": "R3474",
@@ -282404,6 +283025,7 @@
   "arxiv:1202.5581": "R1547",
   "arxiv:1203.2621": "R3089",
   "arxiv:1203.2626": "R2630",
+  "arxiv:1203.3439": "R5080",
   "arxiv:1203.4286": "R2572",
   "arxiv:1203.4336": "R0666",
   "arxiv:1204.0275": "R4920",
@@ -283540,6 +284162,7 @@
   "arxiv:astro-ph/0211361": "R1530",
   "arxiv:astro-ph/0301527": "R4048",
   "arxiv:astro-ph/0301540": "R2530",
+  "arxiv:astro-ph/0303456": "R5079",
   "arxiv:astro-ph/0308388": "R1270",
   "arxiv:astro-ph/0308467": "R0362",
   "arxiv:astro-ph/0310667": "R4694",
@@ -283633,6 +284256,7 @@
   "arxiv:astro-ph/9904017": "R1908",
   "arxiv:astro-ph/9906303": "R2620",
   "arxiv:astro-ph/9907411": "R3141",
+  "arxiv:astro-ph/9909147": "R5078",
   "manual:bennett-rostain-pair-2003": "R0343",
   "manual:binney-tremaine-pair-2008": "R0399",
   "manual:burke-catanzarite-pair-2017": "R0594",
@@ -283649,7 +284273,50 @@
   "setup:https://warwick.ac.uk/": "R4961",
   "setup:https://www.pas.rochester.edu/": "R4969",
   "setup:https://wwwuser.oats.inaf.it/": "R4968",
-  "setup:https://zenodo.org/": "R4962"
+  "setup:https://zenodo.org/": "R4962",
+  "web:http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html": "R5055",
+  "web:http://endavid.com/index.php?entry=76": "R5047",
+  "web:https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/": "R5036",
+  "web:https://alextardif.com/taa.html": "R5061",
+  "web:https://bartwronski.com/page/3/": "R5063",
+  "web:https://beltoforion.de/en/dithering/": "R5039",
+  "web:https://castle-engine.io/occlusion_culling": "R5040",
+  "web:https://catlikecoding.com/unity/tutorials/custom-srp/particles/": "R5041",
+  "web:https://cesium.com/blog/2022/10/20/smoother-lod-transitions-in-cesium-for-unreal/": "R5042",
+  "web:https://danieru.com/2018/07/04/dither-based-transparency-in-unreal-engines-material-editor/": "R5037",
+  "web:https://dev.epicgames.com/documentation/unreal-engine/stylized-rendering-materials?application_version=4.27": "R5048",
+  "web:https://dev.epicgames.com/documentation/unreal-engine/utility-expressions?application_version=4.27": "R5049",
+  "web:https://developers.meta.com/vr/blog/tech-note-shader-snippets-for-efficient-2d-dithering/": "R5056",
+  "web:https://digitalrune.github.io/digitalrune-documentation/html/fa431d48-b457-4c70-a590-d44b0840ab1e.htm": "R5045",
+  "web:https://docs.celeryq.dev/": "R5030",
+  "web:https://docs.ogc.org/cs/22-025r4/22-025r4.html": "R5031",
+  "web:https://docs.python.org/3/library/concurrent.futures.html": "R5032",
+  "web:https://docs.unity3d.com/packages/com.unity.visualeffectgraph@10.3/manual/block-camerafade.html": "R5062",
+  "web:https://elib.dlr.de/203153/1/final.pdf": "R5046",
+  "web:https://hedgedocs.com/index.php/transparency_dithering": "R5050",
+  "web:https://interplayoflight.wordpress.com/2022/07/10/order-independent-transparency-endgame/": "R5052",
+  "web:https://learnopengl.com/guest-articles/2020/oit/weighted-blended": "R5053",
+  "web:https://learnopengl.com/guest-articles/2021/scene/frustum-culling": "R5054",
+  "web:https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/": "R5058",
+  "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
+  "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
+  "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
+  "web:https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/": "R5059",
+  "web:https://shoelace.style/": "R5033",
+  "web:https://tanstack.com/table/": "R5034",
+  "web:https://therealmjp.github.io/posts/weighted-blended-oit/": "R5057",
+  "web:https://www.cdc.gov/niosh/docs/2005-100/": "R5025",
+  "web:https://www.cdc.gov/niosh/docs/2016-106/": "R5026",
+  "web:https://www.cryengine.com/docs/static/engines/cryengine-3/categories/1638401/pages/1605709": "R5043",
+  "web:https://www.cyanilux.com/tutorials/depth/": "R5044",
+  "web:https://www.ecfr.gov/current/title-29/section-1910.120": "R5022",
+  "web:https://www.ecfr.gov/current/title-29/section-1910.134": "R5021",
+  "web:https://www.henry-vfx.com/blog/math-dot-product": "R5051",
+  "web:https://www.nfpa.org/codes-and-standards/nfpa-1981-standard-development/1981": "R5024",
+  "web:https://www.nfpa.org/codes-and-standards/nfpa-1991-standard-development/1991": "R5023",
+  "web:https://www.seeles.ai/resources/blogs/unreal-engine-dither-temporal-aa-lod-fade-guide": "R5060",
+  "web:https://xtermjs.org/": "R5035",
+  "web:https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/": "R5038"
  },
  "setup_datasets": [
   {
@@ -283749,5 +284416,394 @@
   "10.1177/anib_37_2-4": "DOI not found at Crossref or DataCite",
   "10.3847/1538-4357/ace1f8": "DOI not found at Crossref or DataCite",
   "10.7185/geochemlet.1512": "DOI not found at Crossref or DataCite"
- }
+ },
+ "web_sources": [
+  {
+   "checked": "2026-11-01",
+   "identifier": "29 CFR 1910.134",
+   "kind": "regulation",
+   "name": "Respiratory protection",
+   "provider": "Occupational Safety and Health Administration",
+   "url": "https://www.ecfr.gov/current/title-29/section-1910.134",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "29 CFR 1910.120",
+   "kind": "regulation",
+   "name": "Hazardous waste operations and emergency response",
+   "provider": "Occupational Safety and Health Administration",
+   "url": "https://www.ecfr.gov/current/title-29/section-1910.120",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NFPA 1991",
+   "kind": "standard",
+   "name": "Standard on vapor-protective ensembles for hazardous materials emergencies and CBRN terrorism incidents",
+   "provider": "National Fire Protection Association",
+   "url": "https://www.nfpa.org/codes-and-standards/nfpa-1991-standard-development/1991",
+   "year": "2018"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NFPA 1981",
+   "kind": "standard",
+   "name": "Standard on open-circuit self-contained breathing apparatus (SCBA) for emergency services",
+   "provider": "National Fire Protection Association",
+   "url": "https://www.nfpa.org/codes-and-standards/nfpa-1981-standard-development/1981",
+   "year": "2013"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "DHHS (NIOSH) Publication No. 2005-100",
+   "kind": "government report",
+   "name": "NIOSH respirator selection logic",
+   "provider": "National Institute for Occupational Safety and Health",
+   "url": "https://www.cdc.gov/niosh/docs/2005-100/",
+   "year": "2004"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "DHHS (NIOSH) Publication No. 2016-106",
+   "kind": "government report",
+   "name": "Criteria for a recommended standard: occupational exposure to heat and hot environments",
+   "provider": "National Institute for Occupational Safety and Health",
+   "url": "https://www.cdc.gov/niosh/docs/2016-106/",
+   "year": "2016"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NASA-STD-3001 Vol. 2",
+   "kind": "standard",
+   "name": "NASA-STD-3001 Volume 2, Revision E, NASA spaceflight human-system standard: human factors, habitability, and environmental health",
+   "provider": "National Aeronautics and Space Administration",
+   "url": "https://ntrs.nasa.gov/citations/20250004555",
+   "year": "2025"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NTRS 20260005907",
+   "kind": "government report",
+   "name": "Martian dust exposure limits: permissible exposure limits, toxicological risks, and health standards for Martian dust as discussed by the Mars Dust Working Group",
+   "provider": "National Aeronautics and Space Administration",
+   "url": "https://ntrs.nasa.gov/citations/20260005907",
+   "year": "2026"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "NASA/TP-2015-218570",
+   "kind": "government report",
+   "name": "Life support baseline values and assumptions document",
+   "provider": "National Aeronautics and Space Administration",
+   "url": "https://ntrs.nasa.gov/citations/20150002905",
+   "year": "2015"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Celery: distributed task queue",
+   "provider": "Celery Project",
+   "url": "https://docs.celeryq.dev/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "OGC 22-025r4",
+   "kind": "standard",
+   "name": "3D Tiles specification, version 1.1",
+   "provider": "Open Geospatial Consortium",
+   "url": "https://docs.ogc.org/cs/22-025r4/22-025r4.html",
+   "year": "2023"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "concurrent.futures: managing pools of concurrent tasks",
+   "provider": "Python Software Foundation",
+   "url": "https://docs.python.org/3/library/concurrent.futures.html",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Shoelace: web components for building modern web applications",
+   "provider": "Shoelace",
+   "url": "https://shoelace.style/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "TanStack Table: headless UI for building powerful tables and datagrids",
+   "provider": "TanStack",
+   "url": "https://tanstack.com/table/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Xterm.js: a terminal for the web",
+   "provider": "Xterm.js",
+   "url": "https://xtermjs.org/",
+   "year": "2024"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "The art and science of dithering",
+   "provider": "Albumentations",
+   "url": "https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/",
+   "year": "2025"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Dither based transparency in Unreal Engine's material editor",
+   "provider": "Barakat, Z",
+   "url": "https://danieru.com/2018/07/04/dither-based-transparency-in-unreal-engines-material-editor/",
+   "year": "2018"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Temporal anti-aliasing step by step",
+   "provider": "Barakat, Z",
+   "url": "https://ziyadbarakat.wordpress.com/2020/07/28/temporal-anti-aliasing-step-by-step/",
+   "year": "2020"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Dithering",
+   "provider": "Beltoforion",
+   "url": "https://beltoforion.de/en/dithering/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Occlusion culling",
+   "provider": "Castle Game Engine",
+   "url": "https://castle-engine.io/occlusion_culling",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Custom SRP Particles",
+   "provider": "Catlike Coding",
+   "url": "https://catlikecoding.com/unity/tutorials/custom-srp/particles/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Smoother LOD transitions in Cesium for Unreal",
+   "provider": "Cesium",
+   "url": "https://cesium.com/blog/2022/10/20/smoother-lod-transitions-in-cesium-for-unreal/",
+   "year": "2022"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Culling explained",
+   "provider": "Crytek",
+   "url": "https://www.cryengine.com/docs/static/engines/cryengine-3/categories/1638401/pages/1605709",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Depth",
+   "provider": "Cyanilux",
+   "url": "https://www.cyanilux.com/tutorials/depth/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Screen-door transparency",
+   "provider": "DigitalRune",
+   "url": "https://digitalrune.github.io/DigitalRune-Documentation/html/fa431d48-b457-4c70-a590-d44b0840ab1e.htm",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Causes of cybersickness",
+   "provider": "DLR",
+   "url": "https://elib.dlr.de/203153/1/final.pdf",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "New weight function for weighted-blended order independent transparency",
+   "provider": "EnDavid",
+   "url": "http://endavid.com/index.php?entry=76",
+   "year": "2017"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Stylized rendering materials",
+   "provider": "Epic Games",
+   "url": "https://dev.epicgames.com/documentation/unreal-engine/stylized-rendering-materials?application_version=4.27",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Utility expressions",
+   "provider": "Epic Games",
+   "url": "https://dev.epicgames.com/documentation/unreal-engine/utility-expressions?application_version=4.27",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Transparency dithering",
+   "provider": "HedgeDocs",
+   "url": "https://hedgedocs.com/index.php/Transparency_Dithering",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Math: Dot product",
+   "provider": "Henry VFX",
+   "url": "https://www.henry-vfx.com/blog/math-dot-product",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Order independent transparency: Endgame",
+   "provider": "Interplay of Light",
+   "url": "https://interplayoflight.wordpress.com/2022/07/10/order-independent-transparency-endgame/",
+   "year": "2022"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Weighted Blended OIT",
+   "provider": "LearnOpenGL",
+   "url": "https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended",
+   "year": "2020"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Frustum Culling",
+   "provider": "LearnOpenGL",
+   "url": "https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling",
+   "year": "2021"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Implementing weighted, blended OIT",
+   "provider": "McGuire, M",
+   "url": "http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html",
+   "year": "2014"
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Tech note: Shader snippets for efficient 2D dithering",
+   "provider": "Meta Developers",
+   "url": "https://developers.meta.com/vr/blog/tech-note-shader-snippets-for-efficient-2d-dithering/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Weighted blended OIT",
+   "provider": "MJP",
+   "url": "https://therealmjp.github.io/posts/weighted-blended-oit/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Third-person camera systems: How it works",
+   "provider": "Moonjump",
+   "url": "https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Triplanar dither biplanar",
+   "provider": "RyanDowlingSoka",
+   "url": "https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Unreal Engine DitherTemporalAA LOD fade guide",
+   "provider": "Seeles.ai",
+   "url": "https://www.seeles.ai/resources/blogs/unreal-engine-dither-temporal-aa-lod-fade-guide",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Temporal anti-aliasing",
+   "provider": "Tardif, A",
+   "url": "https://alextardif.com/TAA.html",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Camera fade block",
+   "provider": "Unity Technologies",
+   "url": "https://docs.unity3d.com/Packages/com.unity.visualeffectgraph@10.3/manual/Block-CameraFade.html",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-01",
+   "identifier": "",
+   "kind": "web page",
+   "name": "Part three – dithering in quantization of 2D images",
+   "provider": "Wronski, B",
+   "url": "https://bartwronski.com/page/3/",
+   "year": ""
+  }
+ ]
 }
