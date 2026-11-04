@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3138] - 2026-11-04
+
+**Headline:** The habitability end-to-end browser tests build their small galaxy in seconds again, so their eight tests run.
+
+### Changed
+
+- The fixture of `test_habitability_end_to_end_browser` (`tests/habitability_site.py`) used to search up to 400 seeds, twenty seconds each, for a system that happens to hold a Blue or Green world, and found none in sixty, so its setup ran into the 900 second limit (TEST.414). It now generates two fixed-seed systems in about six seconds and stores the scores the pages read on their bodies, the way `scored_site` does. The file runs in about a minute.
+- The sector colouring test reads the one coarse block the map draws for the two charted sectors (it once drew each sector's own block) and checks it is filled and carries the stored count.
+
 ## [8.0.3137] - 2026-11-04
 
 **Headline:** A browser test now runs the question the value filters were built for, planets of 0.8 to 1.2 g with a surface dose under 2 mSv a year, and finds the same planets on the Search page and in `GET /api/search`.
