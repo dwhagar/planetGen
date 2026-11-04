@@ -215,7 +215,7 @@ export const BLACK_HOLE_KIND = {
   glyph: "black-hole",
   color: "#c58cff",
   maxBlock: Infinity,
-  defaultOn: true,
+  defaultOn: false,   // MAP.368: off until the visitor turns it on (the stored choice wins); it governs the marks and the purple dots alike
   crowds: true,       // MAP.340: marks too close on the screen merge into one with a count (`mergeMarks`), among black holes only
   nearField: true,    // MAP.339: chosen by `nearFieldRule` (the view's near field, then by mass over distance squared, then by screen area)
   source: function (node) {
