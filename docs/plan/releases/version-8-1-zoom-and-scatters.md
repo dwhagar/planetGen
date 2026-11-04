@@ -101,6 +101,11 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
+| MAP.365 | Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively |  |  |
+| MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone |  | Split from MAP.194. |
+| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.215 |  |
+| MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | MAP.142 | Split from MAP.191. |
+| MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 
 ### Composition research and design
 
@@ -622,12 +627,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DOC.94 | References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages | DOC.93 |  |
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | DOC.98 | Boss, citations only in the registry. |
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment | DOC.93 | Boss, citations only in the registry. |
-| DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information | DOC.89 | Boss, citation links. |
-| DOC.93 | References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places | DOC.89, DOC.90, DOC.91 |  |
+| DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information |  | Boss, citation links. |
+| DOC.93 | References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places | DOC.90, DOC.91 |  |
 | DOC.92 | References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213) |  |  |
 | DOC.91 | References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect | DOC.90 |  |
 | DOC.90 | References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets) |  |  |
-| DOC.89 | References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used |  |  |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | GEN.862 |  |
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages |  |  |
 | GEN.1207 | Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match |  |  |
