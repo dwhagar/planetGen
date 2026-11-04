@@ -1,25 +1,15 @@
 // html/static/nebulalook.js
 //
-// MAP.175: how a nebula is painted on the Galaxy Map, per theme. A nebula
-// is a translucent sprite on a transparent canvas, so what shows is its
-// colour at its core opacity composited over the map's background
-// (--bg-subtle, a pale grey-blue on the light theme, a dark blue-grey on the
-// dark one). The dark family used to be near-black (#1c1c24 at 0.91) on both
-// themes, which is 1.0:1 on the dark theme, and the pale families fall short
-// on the light theme, so each theme has its own tokens and every family
-// reaches CONTRAST_TARGET (3:1, WCAG's floor for graphics) against its own
-// background; tests/js/nebulalook.test.mjs checks it against the real
-// colours in style.css.
+// MAP.175: how a nebula is painted on the Galaxy Map. A nebula is a translucent sprite on a transparent canvas, so what shows is its colour at its core
+// opacity composited over the map's background, which is black (`--map-bg`, UX.255 removed the light theme's looks). Every family reaches CONTRAST_TARGET
+// (3:1, WCAG's floor for graphics) against black; tests/js/nebulalook.test.mjs checks it against the real colour in style.css.
 //
-// A look is [colour, core opacity, edge opacity], as galaxymap3d.js reads
-// them. The dark family on the dark theme is a dust colour, a pale umber;
-// MAP.181 settles the final one. The hues are those the Sector Map uses
-// (planetgen/web/maps/starmap.py's _NEBULA_TYPE_COLORS, MAP.175 leaves that
-// map as it is).
+// A look is [colour, core opacity, edge opacity], as galaxymap3d.js reads them. The dark family is a dust colour, a pale umber; MAP.181 settles the final
+// one. The hues are those the Sector Map uses (planetgen/web/maps/starmap.py's _NEBULA_TYPE_COLORS, MAP.175 leaves that map as it is).
 
 export const CONTRAST_TARGET = 3;
 
-export const NEBULA_LOOKS_DARK_THEME = {
+export const NEBULA_LOOKS = {
   diffuse: ["#eabdd6", 0.47, 0.14],
   emission: ["#ff6f91", 0.69, 0.25],
   reflection: ["#6fa8ff", 0.63, 0.22],
@@ -27,20 +17,6 @@ export const NEBULA_LOOKS_DARK_THEME = {
   dark: ["#b08a67", 0.7, 0.3],
   default: ["#c9a8e0", 0.56, 0.22],
 };
-
-export const NEBULA_LOOKS_LIGHT_THEME = {
-  diffuse: ["#ba3b82", 0.8, 0.2],
-  emission: ["#f9003b", 0.8, 0.25],
-  reflection: ["#0062f9", 0.8, 0.22],
-  planetary: ["#117660", 0.8, 0.24],
-  dark: ["#1c1c24", 0.91, 0.56],
-  default: ["#8f4abf", 0.8, 0.22],
-};
-
-// The looks for the theme the page is in (`lightBackground`, from mapcore's isLightBackground).
-export function nebulaLooks(lightBackground) {
-  return lightBackground ? NEBULA_LOOKS_LIGHT_THEME : NEBULA_LOOKS_DARK_THEME;
-}
 
 // "#rrggbb" as [r, g, b], 0..255.
 export function parseHex(hex) {

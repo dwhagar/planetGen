@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3113] - 2026-11-04
+
+**Headline:** The old-URL error tests know the new life help route, so the HEAD and OPTIONS checks run on it again.
+
+### Changed
+- **Test fix, no code change (TEST.554).** `test_web_old_urls_errors.py` builds a path for every page route from a table of argument values and stops on a route whose argument it does not know. `/help/life/<topic>` and `/help/life/classes/<int:number>` (DOC.84) had no `topic` or `number` value, so the HEAD and OPTIONS tests failed for the anonymous and the admin user. The table now has `topic` set to `abundance` and `number` to 1, both real pages of the life help, so the tests check those pages too.
+generation-output: unchanged
+
+## [8.0.3112] - 2026-11-04
+
+**Headline:** The "Hours outside in a day" line of a body's survival equipment now goes through the unit ladder, so a short stay reads in minutes.
+
+### Changed
+- **UX.258.** The describer wrote the hours a person can spend outside in a day with a raw format (`3.9 hours`). It now writes the quantity through the unit registry like every other describer fact (`_held("h", ...)`), so the figure is the same and carries its unit as the registry shows it: `4 hours`, `3.96 hours`, and `59.2 minutes` where the stay is under an hour. The wording and the "set by" cause are unchanged. Only the describer text changes; no stored value does.
+generation-output: unchanged
+
+## [8.0.3111] - 2026-11-04
+
+**Headline:** The map scripts no longer carry the light-theme code that black map backgrounds left unused. Nothing changes on screen.
+
+### Changed
+- **UX.255.** Every map is drawn on black, so the branches that chose colors for a pale background are gone. `mapcore.js` loses `isLightBackground`; `nebulalook.js` keeps one set of nebula looks (`NEBULA_LOOKS`); `superbubble.js` keeps one bubble look (`LOOK`); the galaxy glow layer, galaxy labels, sector point shader, region blobs, sector and stage views no longer take a light-background option, and the `.map-labels[data-light]` rules are removed from `style.css`. The JS tests for these now check the black-background look only. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.255.
+
 ## [8.0.3110] - 2026-11-04
 
 **Headline:** A rogue planet can now be built from an ejection event through the planet code, with the moons the ejection left it, and the sector it lands in can be found from its donor's place.
