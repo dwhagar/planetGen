@@ -49,9 +49,8 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | DOC.103 | American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours |  |  |
 | GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) |  |  |
 | TEST.562 | test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug) |  |  |
-| GEN.1246 | The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source | GEN.1242 |  |
+| GEN.1246 | The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source |  |  |
 | GEN.1244 | Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug) |  |  |
-| GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) |  |  |
 | GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page |  |  |
 | GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) |  |  |
 | GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) |  |  |

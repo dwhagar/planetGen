@@ -2004,7 +2004,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | none | open |
 | GEN.1228 | Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug) | none | open |
 | GEN.1229 | Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug) | none | done, PR #4881 |
-| GEN.1230 | The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug) | none | open |
+| GEN.1230 | The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug) | none | done, PR #4886 |
 | GEN.1231 | White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent | none | open |
 | GEN.1232 | Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event) | none | open |
 | GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law | none | open |
@@ -2016,7 +2016,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1239 | The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug) | none | dropped (already settled (Aux 3, 2026-11-04): the red test read main before #4701; GEN.1005 replaced the Earth-tuned bracket with a source-derived one and the test holds the middle to the source range; all 8 tests pass on main) |
 | GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) | none | open |
 | GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page | none | open |
-| GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) | none | open |
+| GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) | none | done, PR #4886 |
 | GEN.1243 | The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug) | none | done, PR #4767 |
 | GEN.1244 | Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug) | none | open |
 | GEN.1245 | Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale | none | done, PR #4790 |
@@ -3830,7 +3830,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.568 | test_page_shell::test_js_modules_import_siblings_with_their_own_version fails on main: boxfit.js has a static import (bug) | none | done, PR #4823 |
 | TEST.569 | Red on main: the reproducibility guard (five call sites), the mass-conversion guard (two tests), the pinned galaxy and the sector panel test (bug) | none | open |
 | TEST.570 | test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug) | none | done, PR #4852 |
-| TEST.571 | test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug) | none | done, PR #4885 |
+| TEST.571 | test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug) | none | done, PR #4886 |
 | TEST.572 | Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug) | none | open |
 | TEST.573 | Two galaxy map browser tests red on main: the class buttons count (19 against 20) and a halo black hole not picked on the whole-galaxy view (bug) | none | done, PR #4865 |
 | TEST.574 | Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug) | none | done, PR #4869 |

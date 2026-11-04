@@ -13714,33 +13714,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   land colour, MAP.274, has merged).
   Prerequisites: none.
 
-- [ ] **GEN.1230 The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug)**
-  Found by Core 3 while closing TEST.533 (#4575, 2:55 PM EDT 10-31 as
-  the lane reported). Present star formation over its ten-Gy mean for
-  the model disc is 0.49 (0.55 after GEN.999) against 0.20 to 0.3
-  measured for the Milky Way [R2680]. Cause is not the
-  gas law: the inflow in disk_history follows the halo's stellar growth,
-  and for a light halo that rises to the present, while the Milky Way's
-  own history declines. Measured for the test's disc by halo mass:
-  1.0e12 gives 0.89, 1.6e12 0.49, 2.0e12 0.39, 3.1e12 0.29. GEN.1154
-  lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar
-  masses. Candidate causes: the inflow shape (halo growth rate against
-  the stellar-to-halo relation) and the thin disc's age. Physics
-  decides, no game rate; any stand-in goes in GEN.725 with tier and
-  level. TEST.533 widened the bound to a factor of three with the reason
-  in the test; tighten it back when this lands. Interacts with GEN.999
-  (adds 10 percent), so look at it after train 8. Lock work (epoch).
-  Core 3 (9:20 AM EST on 2026-11-04): as the lane reported 9:16 AM EST
-  on 2026-11-04: GEN.1242 (exponential inside-out infall, Chiappini line
-  time scale, stopped at 2 and 8 Gy) brings the reference galaxy to 2.8
-  solar masses a year and present over mean to 0.45; the 0.20 to 0.3 aim
-  is not reached. The disc beyond 10 kpc and inside 4 kpc still forms
-  more than observed. This item stays open for that residual after
-  GEN.1242 merges; GEN.1202 also stays open (8 kpc gas 10.3 against
-  13.7).
-  Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
-  Prerequisites: none.
-
 - [ ] **GEN.1231 White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent**
   From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
   follow-up of GEN.1072 (#4430): remnant_orbits.pollution_rate_g_s and
@@ -13866,38 +13839,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1069.
   Prerequisites: none.
 
-- [ ] **GEN.1242 The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug)**
-  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
-  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread.
-  tests/test_prevalence_phenomena_census.py: the reference galaxy's star
-  formation rate reads 4.0 solar masses a year against a hard assert of
-  1 to 3; the Milky Way is about 1.7. It is a hard assert, not a
-  taggable range, so the census stays red until someone looks. Likely
-  moved by trains 6 to 8 (halo mass function GEN.1154, alpha tracks
-  GEN.1024, the disc gas law GEN.999, clusters). Do: find which change
-  moved it, check the reference galaxy against the source-derived range
-  (the Milky Way is a plausibility target, never fixed content), and fix
-  the law or the test range with the reason stated; register any
-  stand-in in GEN.725. Lock work if stored values change. Related:
-  GEN.1202. Owner: Core 3 (galaxy history).
-  Diagnosis (Core 3, as the lane reported) (7:38 AM EST on 2026-11-04):
-  Not GEN.999 or the clusters. Bisect on main: 1.97 solar masses a year
-  before train 6, 3.72 at the train 6 merge (#4385), GEN.999 then adds
-  0.3. In train 6 only GEN.1154 reaches the disc history: the reference
-  galaxy halo fell from 2.0e12 to 1.37e12 solar masses and
-  disk_history.inflow_shape rises later for a lighter halo, so GEN.1242
-  and GEN.1230 are one defect. By halo mass: 1.0e12 gives 5.97, 1.6e12
-  3.3, 2.0e12 2.6, 3.1e12 1.95. The model is wrong, not the test (the
-  main sequence at 5.2e10 solar masses of stars is about 1.5 a year; the
-  reference reads 2.7 times that); the test stays at 1 to 3. Candidate
-  fixes, all lock work: (a) inflow from the star formation real halos
-  have, (b) a cold accretion cut once the halo passes the shock heating
-  mass near 1e12, tried first, (c) a thin disc truncated near 14 kpc.
-  Rejected: a weaker law coefficient (worse) and a baryon accretion
-  shape (6.3).
-  Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **GEN.1244 Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug)**
   Found by Aux 5 with TEST.557 (as the lane reported 8:19 AM EST
   2026-11-04): in 55 generated systems only one giant had moons, and all
@@ -13931,7 +13872,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the census. Changes stored ages and populations: epoch with --affects
   plan,scatter,fill,population, census re-baseline; lock work, rides a
   train after GEN.1242. Owner: Core 3. Version 8.1.
-  Prerequisites: GEN.1242. Related: GEN.1242, GEN.1230, GEN.1202,
+  Prerequisites: none. Related: GEN.1242, GEN.1230, GEN.1202,
   GEN.725.
 
 - [ ] **GEN.1247 Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug)**
