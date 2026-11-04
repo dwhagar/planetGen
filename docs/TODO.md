@@ -2193,18 +2193,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Goal #3241. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **MAP.377 Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug)**
-  Boss, 5:49 PM EST on 2026-11-04, saw that MAP.370 left the black hole
-  name labels visible. MAP.370 made the black hole dots always draw with
-  the stars and turned only the POI marks off by default; the labels
-  were missed. Do: the black hole labels follow the same default as the
-  POI marks (hidden until the POI toggle is on); the dots stay drawn at
-  their mass magnitudes. Done: a browser test that a default galaxy view
-  draws the black hole dots and no black hole label, and that the POI
-  toggle shows both marks and labels. Proposed owner: Core 2 (map).
-  Filed by the TODO thread. Related: MAP.370.
-  Prerequisites: none. Related: MAP.370.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
