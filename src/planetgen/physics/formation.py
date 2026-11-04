@@ -11,12 +11,13 @@ nebula's surface density, and the isolation mass a planet can grow to.
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants as physical_constants, unit_registry as units
+from planetgen.physics import condensate_shares, constants as physical_constants, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
+_kg_to_msun = units.converter("kg", "Msun")
 
-_m_to_au = units.converter("m", "au")
+
 _au_to_m = units.converter("au", "m")
 
 
@@ -24,8 +25,7 @@ _au_to_m = units.converter("au", "m")
 def snow_line_au(luminosity_w):
     """
     The snow line's blackbody position (where the starlight alone warms a
-    blackbody to `SNOW_LINE_TEMPERATURE_K`, the ~170 K ice condensation
-    point), in AU -- real protoplanetary disk temperature falls off with
+    blackbody to the temperature water ice condenses at, 182 K, [R2726: Table 10]: `condensate_shares.ICE_CONDENSATION_K`), in AU -- real protoplanetary disk temperature falls off with
     stellar flux, i.e. with distance^-2, the same physical reasoning
     `calculate_habitable_zone` already uses for its own sqrt(luminosity)
     boundaries. This is the centre of the scatter a star draws its own
@@ -37,9 +37,7 @@ def snow_line_au(luminosity_w):
     Returns:
         float: The blackbody snow line's distance from the star, in AU.
     """
-    distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) \
-        / physical_constants.SNOW_LINE_TEMPERATURE_K ** 2
-    return _m_to_au(distance_m)
+    return condensate_shares.ice_line_au(luminosity_w, "H2O")
 
 
 def draw_snow_line_au(luminosity_w, stream=None):
@@ -67,6 +65,7 @@ def draw_snow_line_au(luminosity_w, stream=None):
         z = source.gauss(0.0, 1.0)
         if abs(z) <= limit:
             return centre * 10.0 ** (scatter * z)
+        draw.redrawn("snow_line.scatter")
 
 
 @finite_domain()
@@ -90,7 +89,7 @@ def disk_surface_density_scale(star_mass_kg, metal_ratio=1.0):
         float: A dimensionless scale factor, 1.0 for a solar-mass star of
             solar metallicity.
     """
-    solar_masses = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+    solar_masses = _kg_to_msun(star_mass_kg)
     return solar_masses ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT * metal_ratio
 
 
@@ -98,7 +97,7 @@ def disk_surface_density_scale(star_mass_kg, metal_ratio=1.0):
 def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
     """
     The Minimum Mass Solar Nebula's solid surface density at a given
-    distance from the star (Hayashi 1981) -- see
+    distance from the star [R1854] -- see
     `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2`'s docstring
     for the model and its snow-line ice-boost jump.
 
@@ -121,18 +120,18 @@ def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
         * distance_au ** physical_constants.MMSN_SURFACE_DENSITY_EXPONENT
     )
     if distance_au >= snow_line_au:
-        density *= physical_constants.SNOW_LINE_ICE_BOOST_FACTOR
+        density *= condensate_shares.WATER_ICE_SOLID_BOOST
     return density
 
 
 @finite_domain()
 def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg, separation=None):
     """
-    The oligarchic-growth isolation mass (Lissauer 1993; Kokubo & Ida
+    The oligarchic-growth isolation mass ([R2709]; Kokubo & Ida
     2000, 2002): the mass a growing embryo reaches once it has cleared its
     own feeding zone of width `b` mutual Hill radii
     (`tuning.MUTUAL_HILL_RADII_SEPARATION`) -- the same `b`
-    `StarSystem._mutual_min_distance_au` uses for adjacent-planet spacing,
+    `validation.min_distance_after_au` uses for adjacent-planet spacing,
     so this count estimate and that spacing rule are provably consistent.
 
     Derivation: M_iso = 2*pi*a*(b*R_H)*Sigma, where R_H = a*(M_iso /

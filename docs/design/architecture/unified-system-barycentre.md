@@ -100,7 +100,7 @@ So the gate has three parts, in this order:
 
 1. **A satellite must fit:** the smallest satellite is the 10 m floor, and a satellite must not outweigh its host by more than the system's mass-ratio limit (a tunable; equal-mass pairs are allowed only through the node form of the binary tree).
 2. **A stable orbit must exist:** inside 0.4895 Hill radius of the host at its pericentre, outside the host radius plus the satellite radius (and outside the Roche limit for a fluid body), and passing the existing hierarchical stability checks (`physics/stability.py`, `is_triple_stable`) when the satellite is comparable in mass.
-3. **A chance that it exists at all:** a gated table (GEN.472 format) of the share of bodies of each size class that have one or more satellites. This is where the real line is, and its values are research: observed binary and multiple asteroid fractions are known for small bodies **[R]** (Margot et al. 2002, Science; Pravec et al. 2006, Icarus; the order of 15% of near-Earth asteroids over 0.3 km are binaries, recalled and unverified). Until a lane verifies and sources it, the table ships as a labelled stand-in (Boss's gap-plan decision 3, "ship as placeholders") with a stand-in size cut (card S5), replaced when GEN.566 (size-frequency research) gives the law.
+3. **A chance that it exists at all:** a gated table (GEN.472 format) of the share of bodies of each size class that have one or more satellites. This is where the real line is, and its values are research: observed binary and multiple asteroid fractions are known for small bodies **[R]** ([R2873], Science; [R3604], Icarus; the order of 15% of near-Earth asteroids over 0.3 km are binaries, recalled and unverified). Until a lane verifies and sources it, the table ships as a labelled stand-in (Boss's gap-plan decision 3, "ship as placeholders") with a stand-in size cut (card S5), replaced when GEN.566 (size-frequency research) gives the law.
 
 ### 4.5 Moons of moons
 
@@ -167,7 +167,7 @@ The `group` node (a young non-hierarchical system) stays as it is under any opti
 2. Strictly two children everywhere (a chain of nodes, one per planet). Exactly hierarchical; a system of ten planets becomes ten nested nodes.
 3. N members for planets and moons, strictly two for stars, as in the code. No change; keeps two rules.
 
-**S5. Where is the line for bodies that cannot have satellites?** (class D in the code is 50 to 500 km radius, not 500 m; the Hill zone never sets the line, section 4.4.)
+**S5. Where is the line for bodies that cannot have satellites?** (class D in the code is a small airless body with at least 1 percent ice, intended scale 50 to 500 km radius, not 500 m, GEN.1091; the Hill zone never sets the line, section 4.4.)
 1. A stand-in size cut (a tunable, labelled placeholder, set at a diameter of 1 km until the verified law replaces it), plus the fit and stability checks. **Recommended.** Ships with the first build, is labelled, and the research item replaces the cut with a sourced law.
 2. A class cut: only class D and larger can host (radius from 50 km). Simplest; wrong for the small binaries known to exist **[R]**.
 3. No cut: any body of at least 20 m can host, with the share by size from a table that is zero until the research lands. Needs no number invented, but nothing below class D can have satellites before the research is done, so it behaves as option 2 first.

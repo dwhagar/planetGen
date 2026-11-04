@@ -28,6 +28,7 @@ Sequence Star" -> ("G", "V")).
 """
 
 import functools
+import logging
 import math
 
 from markupsafe import Markup, escape
@@ -35,12 +36,14 @@ from markupsafe import Markup, escape
 from planetgen.physics import brown_dwarf_types, constants as phys, planet_classes, small_body_composition
 from planetgen import tuning as pc
 from planetgen.datasets import mamajek_sequence
+from planetgen.datasets.fetch import DataMissing
 from planetgen.generation import forced_star
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
 from planetgen.util import chem
+from planetgen.web.lib import help_registry
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
 """dict: Yerkes codes that are another spelling of a class
@@ -156,9 +159,9 @@ def _star_spectral():
         "label": "Spectral class",
         "summary": "A star's color and surface temperature, hottest (O) to coolest (M).",
         "notes": [
-            "A star's type reads like G2V: the spectral class letter, a subclass digit from 0 (hottest) to 9, "
-            "and the luminosity class (see Star Luminosity Classes).",
-            "Mass and luminosity here are for main-sequence (class V) stars; giants and white dwarfs of the "
+            "A star's type reads like G2V. The letter is the spectral class, the digit is the subclass from 0 "
+            "(hottest) to 9, and the roman numeral is the luminosity class (see Star Luminosity Classes).",
+            "Mass and luminosity here are for main-sequence (class V) stars. Giants and white dwarfs of the "
             "same color differ.",
         ],
         "classes": classes,
@@ -187,8 +190,9 @@ def _star_luminosity():
         "label": "Luminosity class",
         "summary": "The Yerkes (MK) luminosity class: a star's size and brightness for its color.",
         "notes": [
-            "The roman numeral at the end of a star's type (the V in G2V) says how big and bright the star is "
-            "for its color, from hypergiants (0) down to white dwarfs (VII).",
+            "The roman numeral at the end of a star's type, like the V in G2V, says how big and bright the star is "
+            "for its color.",
+            "It runs from hypergiants (0) down to white dwarfs (VII).",
         ],
         "classes": classes,
     }
@@ -199,7 +203,11 @@ def _planet():
     body's conditions say, so a page gives the rule, not a table of ranges the class was drawn from."""
     classes = {}
     ordered = planet_classes.CLASSES
+    high_gravity = next((rule["min"] for c in ordered if c.letter == "V" for rule in c.when if rule["quantity"] == "gravity_g"), None)
     for cls in sorted(ordered, key=lambda c: c.letter):
+        if cls.letter in classes:     # GEN.1142: T has a giant row and a terrestrial one; the page is the giant row's, with a line for the other
+            classes[cls.letter]["facts"].append(("Also", f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: " + "; ".join(planet_classes.rule_words(cls))))
+            continue
         before = [c.letter for c in ordered if c.kind == cls.kind and ordered.index(c) < ordered.index(cls)]
         rule = planet_classes.rule_words(cls)
         facts = [
@@ -210,15 +218,18 @@ def _planet():
             ("Checked after", ", ".join(before) if before else "Nothing: checked first"),
             ("Core class", "Yes" if cls.core else "No"),
         ]
+        if cls.letter == "M":     # GEN.1136: the class above takes over at the high-gravity line
+            facts.append(("Gravity", f"Any gravity up to the {number(high_gravity)} g line of class V (a super-Earth can be a temperate world)"))
         classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)
     return {
         "name": "Planet Classes",
         "label": "Planet class",
         "summary": "One letter for what a planet or moon is like, worked out from its finished conditions.",
         "notes": [
-            "A class is never drawn first: once a planet or moon is complete, its class is the first class in the check "
-            "order whose rule its mass, gravity, temperature, air, water and starlight satisfy. All the rules must hold.",
-            "Habitable is not a class. It is the overall habitability colour (Blue or Green); a world of any class can "
+            "A class is never drawn first. Once a planet or moon is complete, its class is the first class in the check "
+            "order whose rule it satisfies.",
+            "A rule can ask about the mass, gravity, temperature, air, water, and starlight. All of its parts must hold.",
+            "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
             "A rogue planet, adrift with no star, gets a class too, from the classes that list "
@@ -308,8 +319,6 @@ def _asteroid_field():
             ("Made of", components_text),
         ])
     low_digit, high_digit = pc.ASTEROID_FIELD_SIZE_DIGIT_RANGE
-    sizes = "; ".join(f"{digit}: {number_range(10 ** digit, 10 ** (digit + 1), 'AU')}"
-                      for digit in range(low_digit, high_digit + 1))
     example = next(iter(pc.ASTEROID_FIELD_COMPOSITIONS.values()))["letters"]["dense"]
     return {
         "name": "Asteroid Field Classes",
@@ -318,7 +327,8 @@ def _asteroid_field():
         "notes": [
             "An asteroid field's class is a letter and a digit. The letter (below) is its composition and "
             "density; the digit is its size.",
-            f"Size digit d means a radius of 10^d to 10^(d+1) AU, from {low_digit} to {high_digit}: {sizes}. "
+            *[f"Size digit {digit} means a radius of {number_range(10 ** digit, 10 ** (digit + 1), 'AU')}."
+              for digit in range(low_digit, high_digit + 1)],
             f"So a full class reads like “{example}{min(low_digit + 2, high_digit)}”.",
         ],
         "classes": classes,
@@ -455,6 +465,19 @@ def catalog():
     return types
 
 
+def preload():
+    """Builds `catalog()` now so no request does; `False` (the site still boots) when a dataset the star classes read
+    has not been downloaded yet: `update.sh` swaps in the new code before its downloads finish, and a worker that
+    started in between used to die at boot with every page a 500. The catalog is not cached on a failure, so the
+    first /classes request after the download builds it."""
+    try:
+        catalog()
+    except DataMissing as missing:
+        logging.getLogger(__name__).warning("the class reference catalog was not built at start: %s", missing)
+        return False
+    return True
+
+
 def alphabetical(rows, key="name"):
     """`rows` (dicts) in alphabetical order of `row[key]`, ignoring case: how
     the site lists the class categories (UX.77)."""
@@ -520,3 +543,15 @@ def star_type_split(star_type):
     letter, subclass, yerkes = STAR_TYPE_PATTERN.fullmatch(code.upper()).groups()
     cut = len(code) - len(yerkes)
     return code[:cut], code[cut:], f" {tail}" if tail else ""
+
+
+def help_children():
+    """The class types, alphabetically, as the pages under Classes in the help index."""
+    from planetgen.web.lib.help_registry import Child
+    rows = alphabetical([{"name": entry["name"], "slug": slug, "summary": entry["summary"]} for slug, entry in catalog().items()])
+    return [Child("class_type_page", {"type_slug": row["slug"]}, row["name"], row["summary"]) for row in rows]
+
+
+help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
+help_registry.register_topic("classes", "Classes", "objects", "Every class of star, planet, nebula, and other object the survey assigns.",
+                             order=10, children=help_children)

@@ -55,6 +55,22 @@ def _star_positions_km(scene, years):
     return {refs[number]: [_au_to_km(offset[axis] - shift[axis]) for axis in range(3)] for number, offset in offsets.items()}
 
 
+def _node_centre_km(tree, positions, node_no):
+    """The centre of mass of tree node `node_no` (a pair's centre, which bodies can go round: `node:N`), km: the mean of the
+    stars below it, each by its mass."""
+    below = {node_no}
+    grew = True
+    while grew:
+        grew = False
+        for node in tree["nodes"]:
+            if node["parent_node_no"] in below and node["node_no"] not in below:
+                below.add(node["node_no"])
+                grew = True
+    held = [member for member in tree["members"] if member["parent_node_no"] in below]
+    total = sum(member["mass_solar"] for member in held)
+    return [sum(member["mass_solar"] * positions[member["ref"]][axis] for member in held) / total for axis in range(3)]
+
+
 def _relative_state_km(orbit, years, scene_epoch_unix):
     """A planet's or moon's position relative to what it goes round, in km: its stored state moved from the epoch it
     is true at to `years` past the scene's epoch."""
@@ -98,7 +114,9 @@ def positions_at(scene, years):
     out = _star_positions_km(scene, years)
 
     def origin(around):
-        return [0.0, 0.0, 0.0] if around == "barycenter" else out[around]
+        if around == "barycenter":
+            return [0.0, 0.0, 0.0]
+        return _node_centre_km(scene["tree"], out, int(around[5:])) if around.startswith("node:") else out[around]
 
     epoch_unix = scene.get("epoch_unix")
     for planet in scene["planets"]:

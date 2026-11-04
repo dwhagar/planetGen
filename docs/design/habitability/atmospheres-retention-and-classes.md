@@ -104,14 +104,13 @@ I (10 to 60 Earth masses) and T (6 to 40) overlap almost completely.
 ## 3. Atmosphere retention
 
 ### 3.1 Gate 1: the cosmic shoreline
-Zahnle and Catling (2017, arXiv:1702.03386): solar-system bodies with and
+[R4862]: solar-system bodies with and
 without atmospheres separate along cumulative insolation proportional to
 `v_esc^4`, and exoplanets crowd along the extrapolation [S]. A pure
 energy-limited argument gives an exponent of about 3, so the slope is empirical
-[S]. Meni-Gallardo and Pallé (2025, arXiv:2508.12865) do not keep slope 4: their
+[S]. [R3037] do not keep slope 4: their
 fit has slope 5.77 and intercept -4.35 (checked 2026-10-17, Tunable gaps
-investigation; the earlier snippet reading was wrong), and Berta-Thompson (2025,
-arXiv:2507.02136) fits a logistic in the cumulative insolation. Zahnle and
+investigation; the earlier snippet reading was wrong), and [R0364] fits a logistic in the cumulative insolation. Zahnle and
 Catling draw the line by eye and give no constant K. The constant here is fitted
 to 13 Solar System bodies and is contradicted by 55 Cnc e and TOI-561 b (K 12 to
 190 times higher); it is replaced by the tuned draw of GEN.511.
@@ -157,7 +156,7 @@ The generator takes `P = min(P_supply, P_retention, P_vapour)`.
 ### 3.2 Gate 2: which gases are held
 Jeans parameter `lambda = G M m / (k T_exo r_exo) = m v_esc^2 / (2 k T_exo)`
 (`r_exo` set to R). Kept if `lambda >= 30`, lost within about 1 Gyr if under 15
-[R: Catling and Kasting 2017]. A lifetime integral for a 1-bar pure-gas
+[R: [R0692]]. A lifetime integral for a 1-bar pure-gas
 inventory gives Gyr or longer for `lambda_exo` of about 10 or more [C], so 30 is
 conservative.
 
@@ -266,12 +265,12 @@ time-in-runaway of `Mdot_H`; desiccated if it exceeds the ocean inventory
 
 ### 3.5 Sub-Neptunes and the radius valley
 
-- The radius valley (Fulton et al. 2017) is a factor-2 deficit near 1.5 to 2.0
+- The radius valley [R1478] is a factor-2 deficit near 1.5 to 2.0
   Earth radii [S]. Owen and Wu (2017) explain it by photoevaporation: bare
   cores near 1.3 Re, envelope planets near 2.6 Re, sculpted in the first
   100 Myr [S]; its period slope is negative, `R_valley(P) = 1.8 Re (P/10 d)^-0.09`
   [R]. Core-powered mass loss gives the same observable [S].
-- Chen and Kipping (2017): Terran-to-Neptunian break at 2.0 (+0.7, -0.6) Earth
+- [R0758]: Terran-to-Neptunian break at 2.0 (+0.7, -0.6) Earth
   masses [S]; median radii 1 Me 1.01 Re, 3 Me 1.54, 5 Me 2.07, 10 Me 3.11,
   20 Me 4.67 (slope 0.279 below 2.06 Me, 0.586 above) [C].
 - Earth-like composition `R = M^0.27` [R: Zeng et al.] gives 6 Me = 1.62 Re.
@@ -310,6 +309,8 @@ def envelope_loss_fraction(m_e, r_e, cum_xuv_j_m2, eps=0.1):
     return eps * math.pi * (r_e * RE) ** 3 * cum_xuv_j_m2 / (G * (m_e * ME) ** 2)
 ```
 
+**Built (GEN.355, `physics/atmosphere_retention.py`, registry 6.74).** The snippet above is now a library: `shoreline_ratio`, `verdict_of`, `pressure_cap_pa`, `held_species`, `minimum_molar_mass_kg_mol`, `cold_side_k` (the vapour curves of `physics/saturation.py`, so CO2 at 0.6 kPa gives the Mars frost point and N2 at 1 Pa the Pluto figure) and `energy_limited_loss_fraction`. The exobase temperature is the thermosphere model's, not the one-line fit of 3.2 (that fit was a calibration, and the model the generator already runs replaced it). The answer to "when is an atmosphere possible" is: a shoreline ratio under 30 (under 0.7 for a dense one), a gas of Jeans parameter 30 or more at the exobase, a surface warmer than the gas's condensation temperature at its partial pressure, and an envelope or ocean whose energy-limited loss over the star's life is under the share the body can spare. `tests/test_atmosphere_retention.py` carries the 13 bodies. The generator's pressure stage still takes its shoreline from the logistic of rows d (GEN.511); GEN.963 is the item that reads this module.
+
 Draw `k` log-uniformly from 3.0e-4 to 6.6e-4 per planet (or per system) to
 reproduce the scatter between Titan and Ganymede. `P_retention` is the only
 new piece of the final pressure `min(P_supply, P_vapour(T_surf, gas),
@@ -320,7 +321,7 @@ P_retention(r))`, and can be a smooth cap: `r < 0.7` none, 0.7 to 1: 0.1 bar,
 
 ### 4.1 Runaway greenhouse and zone edges
 
-Kopparapu et al. (2013, ApJ 765:131; 2014, ApJL 787:L29):
+[R2446] (ApJ 765:131; 2014, ApJL 787:L29):
 `S_eff(Teff) = S0 + a T* + b T*^2 + c T*^3 + d T*^4`, `T* = Teff - 5780`,
 valid 2,600 to 7,200 K. Confirmed [S]: for the Sun recent Venus 1.78, runaway 1.04 (2013) or 1.107 (2014,
 1 Earth mass), moist 1.01, maximum greenhouse 0.35, early Mars 0.32; 2014
@@ -328,13 +329,13 @@ runaway a = 1.332e-4, b = 1.58e-8; maximum greenhouse S0 0.356, a = 6.171e-5,
 b = 1.698e-9; mass dependence only for the inner edge. The c, d coefficients
 are [R], but reproduce the quoted solar distances (0.75, 0.95, 0.993, 1.676,
 1.774 AU) [C]. The 5 Earth-mass runaway set (S0 1.188) and 0.1 Earth-mass set
-(S0 0.99) are [R] and not tabulated; take them from Kopparapu 2014.
+(S0 0.99) are [R] and not tabulated; take them from [R2447].
 
 | Boundary | S0 | a | b | c | d |
 |---|---|---|---|---|---|
 | Recent Venus | 1.776 | 2.136e-4 | 2.533e-8 | -1.332e-11 | -3.097e-15 [R] |
 | Runaway, 1 Earth mass | 1.107 | 1.332e-4 [S] | 1.58e-8 [S] | -8.308e-12 [R] | -1.931e-15 [R] |
-| Moist (2013) | 1.014 | 8.1774e-5 | 1.7063e-9 | -4.3241e-12 | -6.6462e-16 [R] |
+| no source | 1.014 | 8.1774e-5 | 1.7063e-9 | -4.3241e-12 | -6.6462e-16 [R] |
 | Maximum greenhouse | 0.356 | 6.171e-5 [S] | 1.698e-9 [S] | -3.198e-12 [R] | -5.575e-16 [R] |
 | Early Mars | 0.3179 | 5.4513e-5 | 1.5313e-9 | -2.7786e-12 | -4.8997e-16 [R] |
 
@@ -346,11 +347,11 @@ the outer is 1.37 AU against 1.68. Recommended: a `hz_limits(teff, lum,
 planet_mass)` function with this table, as its own item (it changes zone
 assignment for every star).
 
-**As built (GEN.146).** `orbits.calculate_habitable_zone(luminosity, temperature)` uses the 1 Earth-mass runaway greenhouse set for the inner edge and the maximum greenhouse set for the outer edge, with the coefficients read from Table 1 of Kopparapu et al. 2014 (arXiv:1404.5292; they equal the `[R]` entries above for these two rows, now `[S]`) in `KOPPARAPU_RUNAWAY_GREENHOUSE` and `KOPPARAPU_MAXIMUM_GREENHOUSE`, `d = sqrt(L / S_eff)`. The Sun gets 0.950 and 1.676 AU. A temperature outside 2,600 to 7,200 K takes the nearest end (remnants and brown dwarfs). `Star` and `CompactRemnant` pass their own `temperature`; a `BinaryStarProxy` passes the pair's temperature weighted by luminosity with its summed luminosity. The mass-dependent runaway sets (0.1 M_earth: 0.99, 1.209e-4, 1.404e-8, -7.418e-12, -1.713e-15; 5 M_earth: 1.188, 1.433e-4, 1.707e-8, -8.968e-12, -2.084e-15) are not used: no caller has the planet when the zone is made. The planet-mass `hz_limits` function of the recommendation stays open.
+**As built (GEN.146).** `orbits.calculate_habitable_zone(luminosity, temperature)` uses the 1 Earth-mass runaway greenhouse set for the inner edge and the maximum greenhouse set for the outer edge, with the coefficients read from Table 1 of [R2447] ([R2447]; they equal the `[R]` entries above for these two rows, now `[S]`) in `KOPPARAPU_RUNAWAY_GREENHOUSE` and `KOPPARAPU_MAXIMUM_GREENHOUSE`, `d = sqrt(L / S_eff)`. The Sun gets 0.950 and 1.676 AU. A temperature outside 2,600 to 7,200 K takes the nearest end (remnants and brown dwarfs). `Star` and `CompactRemnant` pass their own `temperature`; a `BinaryStarProxy` passes the pair's temperature weighted by luminosity with its summed luminosity. The mass-dependent runaway sets (0.1 M_earth: 0.99, 1.209e-4, 1.404e-8, -7.418e-12, -1.713e-15; 5 M_earth: 1.188, 1.433e-4, 1.707e-8, -8.968e-12, -2.084e-15) are not used: no caller has the planet when the zone is made. The planet-mass `hz_limits` function of the recommendation stays open.
 
 **As built (GEN.639).** `orbits.runaway_greenhouse_flux(teff, planet_mass_earth)` takes the three sets (0.1, 1 and 5 Earth masses, `KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS`), worked out at the star's temperature and linear in the logarithm of the mass between them, clamped outside; `orbits.hz_limits(luminosity, temperature, planet_mass_earth)` gives the edges for one planet (the Sun: 0.9504 and 1.676 AU at 1 Earth mass; 1.005 AU inner at 0.1; 0.9175 at 5). The star's own zone (`calculate_habitable_zone`) and so the zone label of a planet stay at 1 Earth mass, because the zone is needed to draw the planet's class and mass is known only after it. The planet's mass enters instead in the water history below. A heavier planet keeps its water to a higher flux, so its inner edge sits nearer its star.
 
-The post-runaway history is followed, not assumed (`physics/runaway_history.py`, called from `hydrosphere.generate_hydrosphere`): from `tuning.RUNAWAY_HISTORY_START_YR` (30 Myr, when the last giant impacts are done; DESIGN) to the star's age, the star's light is the pre-main-sequence track (`pre_main_sequence`) until it reaches the main sequence and a log-linear rise to its present luminosity after. Wherever the flux at the planet's orbit is above the planet-mass runaway limit the hydrogen of the steam escapes at the energy-limited rate `Mdot = eps pi R^3 F_xuv / (G M)` with eps = 0.01 (`tuning.ENERGY_LIMITED_EFFICIENCY`; a tenth of Luger and Barnes's 0.1, Boss's choice of 10-23 so that only the worst red dwarf zones dry out; DESIGN) and F_xuv the star's XUV at that age (saturated, then decaying, scaled by the star's own stored `log_lx_lbol`, plus the photosphere above 13.6 eV); the water lost is 8.94 times the hydrogen. Nothing is drawn. The loss comes off the surface reservoir first (the air and the oceans are what escape reaches), and `tuning.MANTLE_OUTGAS_SHARE` (0.3, DESIGN) of the mantle's water is then brought to the surface by volcanism (never more than was lost); the bulk water of the composition is unchanged and the loss shows in the surface water, the oceans and their depth. Measured with the module at eps = 0.1 (divide by ten for the built 0.01): the Sun at 1 AU loses nothing, at 0.85 AU about 50 Earth oceans (it is past the limit now), a 0.3 solar-mass star's planet in the middle of its zone about 31 oceans against the 0.4 to 2.1 oceans of a class M draw. A giant, a white dwarf or any evolved star is not followed, and nothing is added to the air (the oxygen a lost ocean leaves behind, section 4.2, is the next step).
+The post-runaway history is followed, not assumed (`physics/runaway_history.py`, called from `hydrosphere.generate_hydrosphere`): from `tuning.RUNAWAY_HISTORY_START_YR` (30 Myr, when the last giant impacts are done; DESIGN) to the star's age, the star's light is the pre-main-sequence track (`pre_main_sequence`) until it reaches the main sequence and a log-linear rise to its present luminosity after. Wherever the flux at the planet's orbit is above the planet-mass runaway limit the hydrogen of the steam escapes at the energy-limited rate `Mdot = eps pi R^3 F_xuv / (G M)` with eps = 0.01 (`tuning.ENERGY_LIMITED_EFFICIENCY`; a tenth of Luger and Barnes's 0.1, Boss's choice of 10-23 so that only the worst red dwarf zones dry out; DESIGN) and F_xuv the star's XUV at that age (saturated until the star's own saturation age, then decaying: `runaway_history._saturation_age_gy` finds it from the star's stored `xuv_saturated` and `log_lx_lbol` (GEN.800), plus the photosphere above 13.6 eV); the water lost is 8.94 times the hydrogen. Nothing is drawn. The loss comes off the surface reservoir first (the air and the oceans are what escape reaches), and `tuning.MANTLE_OUTGAS_SHARE` (0.3, DESIGN) of the mantle's water is then brought to the surface by volcanism (never more than was lost); the bulk water of the composition is unchanged and the loss shows in the surface water, the oceans and their depth. Measured with the module at eps = 0.1 (divide by ten for the built 0.01): the Sun at 1 AU loses nothing, at 0.85 AU about 50 Earth oceans (it is past the limit now), a 0.3 solar-mass star's planet in the middle of its zone about 31 oceans against the 0.4 to 2.1 oceans of a class M draw. A giant, a white dwarf or any evolved star is not followed, and nothing is added to the air (the oxygen a lost ocean leaves behind, section 4.2, is the next step).
 
 Post-runaway history matters: a planet above `S_runaway` early (pre-main-
 sequence M dwarf) and desiccated stays dry after the star settles, and the
@@ -365,7 +366,7 @@ Luger and Barnes: "several hundred Myr" [S]]; for Sun-like stars use Gough's
   SO2/H2SO4 clouds, T_surface 450 to 900 K, no standing water, no
   carbonate-silicate thermostat. Beyond `S_cs` the planet is bare lava rock
   (Class S hot). This is the default hot subtype. Atm and Master describe a
-  1-bar "dune world" with masks and evaporative cooling (the Abe et al. 2011
+  1-bar "dune world" with masks and evaporative cooling (the [R0014]
   dry-land planet, stable in a narrow band); keep it as a rare variant (about
   10 percent).
 - **Lava / magma-ocean world.** T_eq above about 1,500 K (55 Cnc e about
@@ -377,7 +378,7 @@ Luger and Barnes: "several hundred Myr" [S]]; for Sun-like stars use Gough's
   stripping, chosen by `envelope_loss_fraction`.
 
 ### 4.3 Hycean worlds
-Madhusudhan, Piette and Constantinou (2021) [S]: an ocean under an H2-rich
+[R2804] [S]: an ocean under an H2-rich
 atmosphere; radii up to 2.6 Earth radii at 10 Earth masses and 2.3 at 5;
 ocean-surface limit about 400 K; inner edge at T_eq up to about 500 K for late
 M dwarfs, no outer limit. K2-18 b (8.6 Me, 2.6 Re, T_eq about 255 K): the 2023
@@ -546,7 +547,7 @@ wet-bulb, pressure) are resolved in [habitability-index.md](habitability-index.m
 4. Radius-valley slope, Zeng et al. `R = M^0.27`, the 1.12 factor.
 5. Hycean pressure range and the deep-ocean ice-VII argument.
 6. Tidal-locking constants (Q 100, k2 0.3), M-dwarf pre-MS runaway durations,
-   Joshi et al. 1997's 0.1 bar threshold.
+   [R2201]'s 0.1 bar threshold.
 7. LHS 3844 b "bare rock" and the planet parameters used for TRAPPIST-1 and
    55 Cnc e.
 
@@ -556,21 +557,18 @@ were searched for and not found; neither is used.
 ## 10. Sources
 Found by search (the full papers could not be opened):
 
-- Shoreline: https://arxiv.org/abs/1702.03386, https://arxiv.org/pdf/2508.12865
-  (also https://arxiv.org/pdf/2504.19872, https://arxiv.org/pdf/2507.02136)
+- Shoreline: [R3037, R4862]
+  (also [R0364, R2162])
 - Habitable-zone limits: https://alphaxiv.org/abs/1301.6674,
   https://astrobiology.com/2013/06/26/how-close-is-earth-to-a-runaway-greenhouse/,
-  https://arxiv.org/pdf/1910.07573, https://arxiv.org/pdf/1608.06772,
-  https://arxiv.org/pdf/1707.07986
-- Hycean and K2-18 b: https://arxiv.org/pdf/2108.10888,
-  https://arxiv.org/html/2505.13407v1, https://arxiv.org/pdf/2508.05961,
+  [R1501, R2428, R3792]
+- Hycean and K2-18 b: [R2775, R2804, R4223],
   https://www.aanda.org/10.1051/0004-6361/202555580
-- Sub-Neptunes: https://arxiv.org/abs/1603.08614 (code and parameters read from
+- Sub-Neptunes: [R0758] (code and parameters read from
   https://raw.githubusercontent.com/chenjj2/forecaster/master/),
-  https://arxiv.org/pdf/1710.05398, https://sseh.uchicago.edu/doc/Owen_and_Wu_2017.pdf,
-  arXiv:1407.4457
-- Water loss and observed atmospheres: https://arxiv.org/abs/1411.7412,
-  https://arxiv.org/abs/2405.04744, https://www.arxiv.org/pdf/2412.11627,
+  [R4504], https://sseh.uchicago.edu/doc/Owen_and_Wu_2017.pdf,
+  [R3800]
+- Water loss and observed atmospheres: [R1176, R2023, R2769],
   https://mpg.de/23861226/ducrot_trappist-1b_natureastronomy_2024.pdf,
   https://astrobiology.com/2025/09/jwst-tst-dreams-nirspec-prism-transmission-spectroscopy-of-the-habitable-zone-planet-trappist-1-e.html
 - Earth timeline: https://en.wikipedia.org/wiki/Timeline_of_life

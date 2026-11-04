@@ -39,9 +39,8 @@ def test_the_edges_are_in_order_and_a_disagreement_is_recorded_not_silent():
     assert boundaries.sol("deuterium_burning_limit") < boundaries.sol("brown_dwarf_upper_limit") <= boundaries.sol("hydrogen_burning_limit")
     assert boundaries.sol("white_dwarf_progenitor_floor") < boundaries.sol("core_collapse_limit")
     assert boundaries.sol("chandrasekhar_limit") == constants.CHANDRASEKHAR_LIMIT_SOL
-    upper, hydrogen = boundaries.boundary("brown_dwarf_upper_limit"), boundaries.boundary("hydrogen_burning_limit")
-    if boundaries.sol(upper.name) != boundaries.sol(hydrogen.name):
-        assert "GEN.936" in upper.note and "GEN.936" in hydrogen.note
+    # GEN.936: the brown dwarf mass function ends where the stars' begins, with no stretch between and none counted twice.
+    assert boundaries.sol("brown_dwarf_upper_limit") == boundaries.sol("hydrogen_burning_limit")
 
 
 def test_the_generator_rows_read_the_table():

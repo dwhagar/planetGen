@@ -7,12 +7,12 @@ A pure module: a `giant_interior.GiantInterior`, the body's radius, the heat it 
 
 1. **Which layer.** A gas giant's field is made in its metallic layer (`metallic_envelope`: hydrogen above the metallization pressure, convecting and
    conducting), from the radius of metallization down to the helium gradient below it. The layers under that, the helium gradient and shell the
-   rain leaves and the dilute core (Saturn's stable region, Mankovich and Fuller 2021; Jupiter's, Juno), are stably stratified and carry no
+   rain leaves and the dilute core (Saturn's stable region, [R2851]; Jupiter's, Juno), are stably stratified and carry no
    convection, so they are not part of the region. An ice giant's field is made in the conducting water of its mantle (`ice_mantle`, ionic or
-   superionic), a shell over the rock core and under the molecular envelope (Stanley and Bloxham 2004, 2006 for the shell). A brown dwarf is a gas
+   superionic), a shell over the rock core and under the molecular envelope. A brown dwarf is a gas
    giant here.
 2. **The region.** Its outer radius is the top of that layer, its inner radius the bottom, its mass the layer's, its density the mass over the shell's
-   volume. They are the numbers `dynamo.field` takes (the buoyancy-flux scaling of Olson and Christensen 2006 and the Rossby number that gates the
+   volume. They are the numbers `dynamo.field` takes (the buoyancy-flux scaling of [R3355] and the Rossby number that gates the
    dipole).
 3. **The power.** `dynamo.giant_power_w` of the heat the giant radiates from its own interior (the stand-in DY2).
 
@@ -25,7 +25,9 @@ Every number that is not a published value is a stand-in in the gap registry (do
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, dynamo
+from planetgen.physics import dynamo, unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 CONVECTING_LAYER = {"gas_giant": "metallic_envelope", "brown_dwarf": "metallic_envelope", "ice_giant": "ice_mantle"}
 """dict: The layer that carries the dynamo of each kind of interior (`giant_interior.INTERIOR_KINDS`)."""
@@ -75,7 +77,7 @@ def region_of(interior, radius_m):
     top, bottom = layer.top_radius_fraction, layer.bottom_radius_fraction
     if (top == 1.0 and bottom == 0.0) or not 0.0 <= bottom < top <= 1.0:
         return None  # the radii it is born with: no structure has placed it yet
-    return Region(layer.kind, top * radius_m, bottom * radius_m, layer.mass_earth * constants.EARTH_MASS_TO_KG)
+    return Region(layer.kind, top * radius_m, bottom * radius_m, _mearth_to_kg(layer.mass_earth))
 
 
 @dataclass(frozen=True)

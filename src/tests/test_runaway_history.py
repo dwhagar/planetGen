@@ -1,7 +1,7 @@
 # tests/test_runaway_history.py
 
 """
-GEN.639: the runaway greenhouse limit depends on the planet's mass (the three Kopparapu et al. 2014 sets), and a body that was
+GEN.639: the runaway greenhouse limit depends on the planet's mass (the three [R2447] sets), and a body that was
 past the limit while its star was young and bright loses water to the energy-limited escape of its steam, deterministically.
 """
 
@@ -64,14 +64,18 @@ def test_a_sun_like_star_leaves_the_earth_its_ocean():
     assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 1.0, *EARTH) == 0.0
 
 
-def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_many_oceans():
-    assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 0.72, *EARTH) > 5 * EARTH_OCEAN_KG
+def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_oceans():
+    # the median Sun leaves saturation at 23 Myr (GEN.493): a Venus-orbit Earth loses about two oceans, the 100 Myr of the earlier table gave seven
+    assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 0.72, *EARTH) > 1 * EARTH_OCEAN_KG
 
 
 def test_a_cool_star_dries_the_planets_of_its_present_zone():
     star = _star(0.3, 0.011, 3416.0, 5.0)     # a 0.3 solar mass star on the MIST main sequence at 5 Gy (GEN.652)
     zone = orbits.hz_limits(star.luminosity, star.temperature)
-    assert runaway_history.loss_kg(star, zone[1] * 0.5 + zone[0] * 0.5, *EARTH) > 1 * EARTH_OCEAN_KG
+    # GEN.1174: the star is pre-main-sequence for the 130 Myr its radius takes (BHAC15), not MIST's 417, so the middle of the zone loses a fraction of an ocean and its
+    # hot edge a few ([R2769]: the habitable zone of a 0.1 to 0.3 solar mass star loses from one to several oceans while the star contracts)
+    assert runaway_history.loss_kg(star, zone[0], *EARTH) > 1 * EARTH_OCEAN_KG
+    assert runaway_history.loss_kg(star, zone[1] * 0.5 + zone[0] * 0.5, *EARTH) > 0.0
     assert runaway_history.loss_kg(star, 1.0, *EARTH) == 0.0
 
 
@@ -83,9 +87,9 @@ def test_the_loss_grows_as_the_planet_moves_in():
 
 def test_a_heavier_planet_loses_less_of_its_water_fraction():
     star = _star(0.3, 0.013, 3400.0, 5.0)
-    small = runaway_history.loss_kg(star, 0.2, 0.5 * constants.EARTH_MASS_TO_KG, 5000.0) / (0.5 * constants.EARTH_MASS_TO_KG)
-    big = runaway_history.loss_kg(star, 0.2, 4.0 * constants.EARTH_MASS_TO_KG, 9500.0) / (4.0 * constants.EARTH_MASS_TO_KG)
-    assert big < small
+    small = runaway_history.loss_kg(star, 0.12, 0.5 * constants.EARTH_MASS_TO_KG, 5000.0) / (0.5 * constants.EARTH_MASS_TO_KG)
+    big = runaway_history.loss_kg(star, 0.12, 4.0 * constants.EARTH_MASS_TO_KG, 9500.0) / (4.0 * constants.EARTH_MASS_TO_KG)
+    assert 0.0 < big < small
 
 
 def test_no_loss_where_the_past_is_not_followed():
@@ -102,7 +106,7 @@ def test_the_loss_is_deterministic_and_follows_the_stars_own_activity():
     star = _star(0.3, 0.013, 3400.0, 5.0)
     assert runaway_history.loss_kg(star, 0.1, *EARTH) == runaway_history.loss_kg(star, 0.1, *EARTH)
     activity = runaway_history.activity
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, 0.3)
+    t_sat, decay = activity.saturation_age_gy(0.3), activity.decay_exponent(0.3)
     nominal = activity.lx_lbol_at(5.0, activity.saturated_lx_lbol(0.3), t_sat, decay)
     # at 0.1 AU the planet is past the limit the whole time, so the decaying activity after saturation counts
     quiet = _star(0.3, 0.013, 3400.0, 5.0, log_lx_lbol=math.log10(nominal) - 0.7)
@@ -130,14 +134,21 @@ def test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lo
             patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
             _, sunlike_untouched = _planet("G2V", 1.0, seed)
         assert sunlike.ocean_fraction == sunlike_untouched.ocean_fraction  # the Sun-like zone loses nothing
-        _, cool = _planet("M3V", 1.0, seed)
+        _, cool = _planet("M5V", 1.0, seed)      # GEN.1174: an M3V habitable zone now loses too little to show in all six draws; an M5V one does
         with monkeypatch.context() as patch:
             patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
-            _, untouched = _planet("M3V", 1.0, seed)
+            _, untouched = _planet("M5V", 1.0, seed)      # GEN.1174: an M3V habitable zone now loses too little to show in all six draws; an M5V one does
         assert cool.water_mass_fraction == untouched.water_mass_fraction  # the bulk water of the composition stays
         assert cool.ocean_fraction <= untouched.ocean_fraction  # the escape takes surface water, never makes it
-        lost_any = lost_any or cool.ocean_fraction < untouched.ocean_fraction
-    assert lost_any  # the zone of a 0.3 solar-mass star lost some of its surface water while the star was young
+        # the cover is 1.0 on a world that holds many oceans, so the loss shows in the surface water itself (TEST.504)
+        with draw.bound(seed):
+            surface = hydrosphere.draw_surface_water(cool)
+        with monkeypatch.context() as patch, draw.bound(seed):                    # the same buffer draw with and without the loss
+            patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
+            surface_untouched = hydrosphere.draw_surface_water(cool)
+        assert surface <= surface_untouched
+        lost_any = lost_any or surface < surface_untouched
+    assert lost_any  # the zone of a 0.15 solar-mass star lost some of its surface water while the star was young
 
 
 def test_the_loss_comes_off_the_surface_first_and_the_mantle_gives_part_back(monkeypatch):

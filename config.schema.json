@@ -450,7 +450,7 @@
         },
         "enabled": {
           "default": true,
-          "description": "Add Open Graph and Twitter tags to the public pages, so a link shows a title, a description and a picture when shared.",
+          "description": "Add Open Graph and Twitter tags to the public pages, so a link shows a title, a description, and a picture when shared.",
           "title": "Enabled",
           "type": "boolean",
           "x-advanced": false,
@@ -464,7 +464,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "Show a title, description and picture when a link to the site is shared."
+          "x-summary": "Show a title, description, and picture when a link to the site is shared."
         },
         "generated_cards": {
           "default": false,
@@ -1204,7 +1204,7 @@
         },
         "galaxy_tiles": {
           "default": "600 per minute",
-          "description": "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
+          "description": "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near, and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
           "title": "Galaxy Tiles",
           "type": "string",
           "x-advanced": false,
@@ -1344,7 +1344,7 @@
         },
         "detail_pages": {
           "default": "noindex",
-          "description": "Whether the generated system, sector and phenomenon pages may be indexed when indexing is top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by default; a small galaxy can switch this to index.",
+          "description": "Whether the generated system, sector, and phenomenon pages may be indexed when indexing is top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by default; a small galaxy can switch this to index.",
           "enum": [
             "noindex",
             "index"
@@ -1365,7 +1365,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "Whether the generated system, sector and phenomenon pages may be indexed."
+          "x-summary": "Whether the generated system, sector, and phenomenon pages may be indexed."
         },
         "humans_txt": {
           "default": "",
@@ -1388,7 +1388,7 @@
         },
         "indexing": {
           "default": "top_pages",
-          "description": "Whether search engines may index the site: off (robots.txt disallows everything and every page says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the system, sector and phenomenon pages).",
+          "description": "Whether search engines may index the site: off (robots.txt disallows everything and every page says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the system, sector, and phenomenon pages).",
           "enum": [
             "off",
             "top_pages",
@@ -1637,7 +1637,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The language code of the pages, such as en or en-GB."
+          "x-summary": "The language code of the pages, such as en, or en-GB."
         },
         "tagline": {
           "default": "",
@@ -1871,8 +1871,8 @@
       "x-summary": "Only for local development without TLS; never turn it on in production."
     },
     "api_base_url": {
-      "default": "http://127.0.0.1/api",
-      "description": "Base URL of the Flask API's /api mount point, used by web/lib/apiclient.py only outside the Flask app.",
+      "default": "",
+      "description": "Base URL of the Flask API's /api mount point (for example https://example.org/api). The update asks it whether the site answers, and web/lib/apiclient.py calls it outside the Flask app. There is no default: nothing guesses a loopback address, so it must be set for either to work.",
       "title": "Api Base Url",
       "type": "string",
       "x-advanced": false,
@@ -1887,7 +1887,7 @@
       "x-restart": true,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "Where the API lives, for scripts that call it from outside the web app."
+      "x-summary": "Where the API lives; the update's health check asks it. No default."
     },
     "api_log": {
       "$ref": "#/$defs/ApiLog",
@@ -1911,7 +1911,7 @@
       "x-restart": false,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "The public address of the site, used for canonical links, previews and the sitemap."
+      "x-summary": "The public address of the site, used for canonical links, previews, and the sitemap."
     },
     "cache": {
       "$ref": "#/$defs/Cache",
@@ -1943,7 +1943,7 @@
     },
     "control_database": {
       "default": "planetgen_control",
-      "description": "The MySQL schema holding admin identities, sessions, API keys and the audit log. Never listed or selectable as a galaxy.",
+      "description": "The MySQL schema holding admin identities, sessions, API keys, and the audit log. Never listed or selectable as a galaxy.",
       "title": "Control Database",
       "type": "string",
       "x-advanced": false,
@@ -1958,11 +1958,11 @@
       "x-restart": true,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "The database that holds admin accounts, sessions, API keys and the audit log."
+      "x-summary": "The database that holds admin accounts, sessions, API keys, and the audit log."
     },
     "debug": {
       "default": false,
-      "description": "Debug mode: every decision the generator makes, every random roll, every SQL statement, queue event and request, written to the console of each planetgen command (stdout) and to log_file. The output is large.",
+      "description": "Debug mode: every decision the generator makes, every random roll, every SQL statement, queue event, and request, written to the console of each planetgen command (stdout) and to log_file. The output is large.",
       "title": "Debug",
       "type": "boolean",
       "x-advanced": false,
@@ -2246,7 +2246,7 @@
     },
     "secret_key": {
       "default": "",
-      "description": "Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once).",
+      "description": "Signs the CSRF tokens on the pages' forms. Empty makes one and keeps it in the state folder (mode 0600), so every worker and restart shares it.",
       "title": "Secret Key",
       "type": "string",
       "x-advanced": false,
@@ -2261,7 +2261,7 @@
       "x-restart": true,
       "x-secret": true,
       "x-slider": null,
-      "x-summary": "Signs the security tokens on forms; empty makes a random one at each start."
+      "x-summary": "Signs the security tokens on forms; empty makes one and keeps it in the state folder."
     },
     "seo": {
       "$ref": "#/$defs/Seo",
@@ -2297,7 +2297,7 @@
     },
     "site_name": {
       "default": "planetGen",
-      "description": "Display name for this deployment, shown in the header, the home page heading, every page title and the footer.",
+      "description": "Display name for this deployment, shown in the header, the home page heading, every page title, and the footer.",
       "minLength": 1,
       "title": "Site Name",
       "type": "string",
@@ -2312,7 +2312,7 @@
       "x-restart": false,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "The name shown in the header, the home page, page titles and the footer."
+      "x-summary": "The name shown in the header, the home page, page titles, and the footer."
     },
     "tile_cache": {
       "$ref": "#/$defs/TileCache",

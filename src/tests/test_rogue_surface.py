@@ -13,7 +13,7 @@ import re
 import pytest
 
 from planetgen.db import store
-from planetgen.physics import constants, hydrosphere, interior_heat, radiogenic
+from planetgen.physics import constants, hydrosphere, interior_heat, radiogenic, substellar_ceiling
 from planetgen import tuning
 from planetgen.physics import rogue_surface as rs
 from planetgen.generation.config import SystemConfig
@@ -63,7 +63,9 @@ def test_giants_cool_with_age_and_heavier_ones_are_hotter():
                for m in (0.06, 0.3, 1.0, 5.0, 13.0, 30.0, 80.0)]
     assert by_mass == sorted(by_mass)
     hottest = rs.effective_temperature_k(rs.giant_internal_flux_w_m2(80 * JUPITER, 55000, 0.1))
-    assert hottest <= tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K + 1e-6
+    assert hottest <= substellar_ceiling.HOTTEST_K + 1e-6
+    old = rs.effective_temperature_k(rs.giant_internal_flux_w_m2(73 * JUPITER, 60000, 5.0))        # just under the hydrogen-burning limit
+    assert old <= substellar_ceiling.ceiling_k(5.0) + 1e-6
 
 
 def test_stevenson_envelope_warms_the_ground():
@@ -140,8 +142,8 @@ def test_phenomenon_page_rows():
     with create_app(_Config).test_request_context("/"):
         fields = {label: re.sub(r"<[^>]*>", "", str(text)) for label, text, _url in system_pages.phenomenon_fields("rogue_planet", detail)}
     assert fields["Surface"] == "Ice shell over a liquid ocean"
-    assert fields["Surface Temperature"] == "35.1 K (-238 °C, -396 °F)"
-    assert fields["Surface Pressure"] == "300 mPa (a trace)"
+    assert fields["Surface temperature"] == "35.1 K (-238 °C, -396 °F)"
+    assert fields["Surface pressure"] == "300 mPa (a trace)"
     assert fields["Ice Thickness"] == "13.4 km"
     assert fields["Liquid Ocean Depth"] == "120 km"
     assert fields["Internal Heat Flow"] == "87 mW/m²"

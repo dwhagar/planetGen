@@ -102,7 +102,7 @@ SYSTEM_TYPE_RATES = {
         "13.1", "Intermediate binary, 0.26 to 50 AU", "binaries", 0.433, "C", ANY, _TREE, 261, "S+F"),
     "wide-binary": _t(
         "13.1", "Wide binary, 50 to 10,000 AU", "binaries", 0.436, "C", ANY, _TREE, 261, "S+F", (10, 11),
-        note="Thinned in the bulge, clusters and halo."),
+        note="Thinned in the bulge, clusters, and halo."),
     "ultra-wide-pair": _t(
         "13.1", "Ultra-wide pair, 10,000 to 20,000 AU (0.05 to 0.1 pc)", "binaries", 0.065, "C",
         ("young", "intermediate", "old"), _TREE, 261, "S+F", (10, 11),
@@ -268,7 +268,7 @@ SYSTEM_TYPE_RATES = {
         note="More at low metallicity (halo, clusters, the Clouds)."),
     "dormant-black-hole-star": _t(
         "13.4", "Dormant black hole with a star", "black holes", 0.010, "S,C", ("intermediate", "old", "halo"),
-        _TREE, 261, "S+F", (10,), low=1e-3, high=2.2e-2, note="Gaia BH1, BH2 and BH3."),
+        _TREE, 261, "S+F", (10,), low=1e-3, high=2.2e-2, note="Gaia BH1, BH2, and BH3."),
     "dormant-neutron-star-star": _t(
         "13.4", "Dormant neutron star with a star", "young neutron stars", None, "S", ("intermediate", "old", "halo"),
         _TREE, 261, "S+F", (10,),
@@ -332,7 +332,7 @@ SYSTEM_TYPE_RATES = {
         "13.6", "Runaway star", "O stars", 0.20, "S", ("young", "cluster"), "draw_runaway_origin", 274,
         "S+F", (10, 11), low=0.10, high=0.30,
         by_class={"B": 0.075, "supernova channel": 2 / 3, "dynamical channel": 1 / 3},
-        note="10% to 30% of O stars and 5% to 10% of B stars (Gies 1987); a bow-shock survey finds 23%. The "
+        note="10% to 30% of O stars and 5% to 10% of B stars [R1558]; a bow-shock survey finds 23%. The "
              "supernova channel leaves a compact companion behind at the rate the survival rule gives."),
     "hypervelocity-star": _t(
         "13.6", "Hypervelocity star", "Galaxy count", None, "S", ("halo",),

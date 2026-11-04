@@ -8,7 +8,7 @@ Row o4 of the atmosphere recipes needs the factor `F` of the thorium-to-uranium 
 
     Th/U (mass) = 0.97483 * PR * F * exp[(l238 - l232) * age]
 
-with `PR` the production ratio of the r-process (1.667 to 2.0, Frebel 2007) and `age` the time since the star formed. `F` is
+with `PR` the production ratio of the r-process (1.667 to 2.0, [R1447]) and `age` the time since the star formed. `F` is
 what the decay of the earlier ejecta did to the ratio before the star formed: thorium-232 (half-life 14.05 Gyr) outlives
 uranium-238 (4.468 Gyr), so gas enriched long before the star formed is thorium-rich.
 
@@ -16,7 +16,7 @@ The row used a constant r-process input over a duration `T` of 3 to 13 Gyr, cali
 takes the input from the disc's own history instead:
 
 1. **The sources.** The r-process input at time `t` is the star formation `SFR(t - tau)` convolved with a delay-time law
-   `1/tau` from `TAU_MIN_GY` to the age of the disc (neutron star mergers, Hotokezaka 2018 and Simonetti 2019). The slope 1
+   `1/tau` from `TAU_MIN_GY` to the age of the disc (neutron star mergers, [R2010, R4101]). The slope 1
    and the 30 Myr floor are RECALLED, a stand-in: the delay law is the one number that shapes `F` and is labelled in the gap
    plan registry. Setting `TAU_MIN_GY` to nothing larger than a time step gives prompt sources (collapsars).
 2. **The star formation** is the disc's (`galaxy.disk_history`, GEN.469), so a galaxy that formed its stars early gives thorium-rich
@@ -47,7 +47,7 @@ SECONDS_PER_GYR = 3.15576e16
 
 PRODUCTION_RATIO_RANGE = (1.667, 2.0)
 """tuple: The r-process production ratio of thorium-232 to uranium-238 by number, the range of the theoretical predictions
-(Frebel 2007 Table 1, read in docs/design/composition/radioisotope-tuning.md section 2); a body draws one value from it."""
+([R1447: Table 1], read in docs/design/composition/radioisotope-tuning.md section 2); a body draws one value from it."""
 
 
 def decay_constants_per_gy():

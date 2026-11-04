@@ -1,11 +1,11 @@
 # tests/test_brown_dwarf.py
 
 """GEN.252, GEN.549: a brown dwarf as a star: its mass, how bright and hot it is at an age (the cooling track of Baraffe
-et al. 2015, continued at Burrows et al. 2001's old-age exponent), the L, T or Y type that temperature makes
-(Kirkpatrick et al. 2021, Table 13), and where those reach a page (a free-floating brown dwarf, a brown dwarf member of a
+et al. 2015, continued at [R0606]'s old-age exponent), the L, T or Y type that temperature makes
+([R2374: Table 13]), and where those reach a page (a free-floating brown dwarf, a brown dwarf member of a
 multi-star tree).
 
-The 20 pc census's densities (Kirkpatrick et al. 2021, Table 15) are test targets that show the cooling laws give a
+The 20 pc census's densities ([R2374: Table 15]) are test targets that show the cooling laws give a
 plausible spread of temperatures. None of them is an input of the generator."""
 
 
@@ -17,7 +17,7 @@ from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
-from planetgen.physics import brown_dwarf, brown_dwarf_types, constants
+from planetgen.physics import brown_dwarf, brown_dwarf_types, constants, substellar_ceiling
 from planetgen.util import draw
 from planetgen.web import scatter_members_view
 from tests import render_support
@@ -26,7 +26,7 @@ from tests import render_support
 def test_the_masses_run_from_the_deuterium_limit_to_the_hydrogen_limit():
     low, high = brown_dwarf.mass_range_solar()
     assert low == pytest.approx(13 * constants.JUPITER_MASS_TO_KG / constants.SOLAR_MASS_TO_KG)
-    assert high == pytest.approx(80 * constants.JUPITER_MASS_TO_KG / constants.SOLAR_MASS_TO_KG)
+    assert high == pytest.approx(0.08)      # where the stars' mass function begins (GEN.936), 83.8 Jupiter masses
     with draw.bound(252):
         masses = [brown_dwarf.sample_mass_solar() for _ in range(4000)]
     assert low <= min(masses) and max(masses) <= high
@@ -44,7 +44,7 @@ def test_the_mass_function_is_the_censuss_power_law():
 
 
 def test_the_track_gives_back_the_models_values_at_their_masses_and_ages():
-    """Baraffe et al. 2015's tabulated points: `(mass, age Gy, Teff K, radius Rsun)`."""
+    """[R0254]'s tabulated points: `(mass, age Gy, Teff K, radius Rsun)`."""
     for mass, age, temperature, radius in ((0.07, 10.0, 1626, 0.09), (0.05, 0.3, 2063, 0.109), (0.08, 3.0, 2343, 0.099),
                                            (0.04, 0.1, 2311, 0.13), (0.06, 1.0, 1584, 0.094)):
         assert brown_dwarf.effective_temperature_k(mass, age) == pytest.approx(temperature)
@@ -61,24 +61,55 @@ def test_the_temperature_falls_with_age_and_grows_with_mass():
 
 
 def test_a_track_that_ends_before_10_gy_cools_at_burrows_exponent_and_one_that_reaches_it_holds():
-    """Burrows et al. 2001, eq. 2: `Teff` falls as `t^-0.32` for an old brown dwarf. The 0.05 solar mass row ends at 0.625
+    """[R0606], eq. 2: `Teff` falls as `t^-0.32` for an old brown dwarf. The 0.05 solar mass row ends at 0.625
     Gy; the 0.075 row reaches 10 Gy and holds the hydrogen-burning plateau."""
     assert brown_dwarf.effective_temperature_k(0.05, 5.0) == pytest.approx(1555.0 * (5.0 / 0.625) ** -0.32)
     assert brown_dwarf.effective_temperature_k(0.075, 13.0) == pytest.approx(2037.0)
     assert brown_dwarf.radius_sol(0.05, 5.0) == pytest.approx(0.099)
 
 
-def test_a_young_brown_dwarf_is_no_hotter_than_a_late_m_dwarf():
-    assert brown_dwarf.effective_temperature_k(0.075, 0.01) == tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K
-    assert brown_dwarf.spectral_type(brown_dwarf.effective_temperature_k(0.075, 0.01))[0] == "M"
+def test_the_track_is_continuous_in_mass_where_the_table_stops_holding_a_mass_for_longer():
+    """GEN.1137: 0.0699 solar masses at 5 Gy was 1,220 K and 0.07 was 1,627 K, because the lighter mass cooled on at Burrows'
+    exponent from its last age and the heavier one held the plateau of its table. The cooling past a body's last age now goes
+    from the power law at the lightest mass of that age's table to the next heavier mass's own change (so the plateau is
+    approached, not jumped to), and two masses a few percent apart give temperatures and radii within a few percent."""
+    for age in (1.5, 5.0, 10.0, 13.0):
+        for lighter, heavier in ((0.0699, 0.07), (0.0599, 0.06), (0.0499, 0.05), (0.0399, 0.04), (0.0299, 0.03)):
+            assert brown_dwarf.effective_temperature_k(lighter, age) == pytest.approx(brown_dwarf.effective_temperature_k(heavier, age), rel=0.02), (lighter, age)
+            assert brown_dwarf.radius_sol(lighter, age) == pytest.approx(brown_dwarf.radius_sol(heavier, age), rel=0.02), (lighter, age)
+    # Across the whole table no mass step of a thousandth of a solar mass moves the temperature by more than 15 %.
+    masses = [0.0125 + 0.001 * i for i in range(150)]
+    for age in (0.5, 3.0, 10.0):
+        temperatures = [brown_dwarf.effective_temperature_k(mass, age) for mass in masses]
+        assert max(abs(b / a - 1.0) for a, b in zip(temperatures, temperatures[1:])) < 0.15, age
+
+
+def test_a_young_brown_dwarf_near_the_limit_is_a_late_m_dwarf_no_hotter_than_the_peak_of_the_limit_mass():
+    """The cap is the BHAC15 temperature of the hydrogen-burning limit (GEN.494): 2,950 K at the peak, no longer the 2,800 K of the rogue clip."""
+    for mass in (0.065, 0.0764):
+        temperature = brown_dwarf.effective_temperature_k(mass, 0.01)
+        assert 2800.0 < temperature <= substellar_ceiling.HOTTEST_K
+        assert brown_dwarf.spectral_type(temperature)[0] == "M"
+    assert brown_dwarf.effective_temperature_k(0.0764, 0.01) == substellar_ceiling.HOTTEST_K
+
+
+def test_no_brown_dwarf_is_hotter_than_the_limit_mass_of_its_age():
+    """Below 0.07 solar masses a body cools for ever, so at any age it is no hotter than the limit mass at that age (2,050 K at 1 Gy, 1,630 K at 5 Gy)."""
+    for age in (0.01, 0.1, 1.0, 5.0, 10.0, 13.0):
+        for mass in (0.0124, 0.03, 0.05, 0.065, 0.0699):
+            assert brown_dwarf.effective_temperature_k(mass, age) <= substellar_ceiling.hottest_k(age) + 1e-9
+    assert brown_dwarf.effective_temperature_k(0.0699, 0.01) == pytest.approx(substellar_ceiling.ceiling_k(0.01), rel=0.01)  # the track of a body just under the limit mass is the limit mass's while it is young
 
 
 def test_the_radius_is_about_jupiters_when_old_and_larger_when_young():
     jupiter = constants.JUPITER_RADIUS_KM * constants.KM_TO_M_FACTOR / constants.SOLAR_RADIUS_M
     for mass in (0.03, 0.05, 0.07, 0.0764):
         assert brown_dwarf.radius_sol(mass, 0.05) > brown_dwarf.radius_sol(mass, 1.0) >= brown_dwarf.radius_sol(mass, 10.0)
-    for mass in (0.0124, 0.03, 0.05, 0.07, 0.0764):
+    for mass in (0.03, 0.05, 0.07, 0.0764):
         assert 0.7 * jupiter < brown_dwarf.radius_sol(mass, 10.0) < 1.5 * jupiter
+    # The table loses a mass when it cools out of the models' range, the lightest (the deuterium limit) after 0.01 Gy, and the
+    # radius it is held at is the young one (1.7 Jupiter radii at 13 Jupiter masses): the models give no old radius there.
+    assert 0.7 * jupiter < brown_dwarf.radius_sol(0.0124, 10.0) < 1.8 * jupiter
     old = [brown_dwarf.radius_sol(mass, 8.0) for mass in (0.03, 0.05, 0.065, 0.075)]
     assert old == sorted(old, reverse=True)
 
@@ -92,7 +123,7 @@ def test_the_luminosity_is_stefan_boltzmann_of_the_tracks_radius_and_temperature
 
 
 def test_a_mass_outside_the_models_has_no_track():
-    for mass in (0.005, 0.09):
+    for mass in (0.005, 2.0):
         with pytest.raises(ValueError):
             brown_dwarf.effective_temperature_k(mass, 1.0)
 
@@ -125,7 +156,7 @@ def test_the_type_is_drawn_about_the_mean_of_the_map_and_stays_with_the_temperat
 
 
 def test_dwarfs_of_one_temperature_spread_over_types_by_the_maps_scatter():
-    """Kirkpatrick et al. 2021: 134 K among L dwarfs, 79 K among T and Y. At 1600 K (L5) the types spread over about
+    """[R2374]: 134 K among L dwarfs, 79 K among T and Y. At 1600 K (L5) the types spread over about
     134 / 100 K per subtype, a few subtypes; the flat L/T transition spreads them over many more."""
     def spread(center):
         numbers = [brown_dwarf_types.drawn_number(center, draw.Stream(f"spread:{center}:{k}"))[0] for k in range(2000)]

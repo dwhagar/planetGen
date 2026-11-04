@@ -7,25 +7,29 @@ The interior layers of a giant planet, an ice giant or a brown dwarf (GEN.642, d
 What a giant is made of, layer by layer from the top: a molecular hydrogen and helium envelope, a metallic hydrogen
 envelope under it, a helium-rich zone where helium has rained out, a dilute ("fuzzy") core where the heavy elements are
 mixed with metallic hydrogen, and a compact core of rock and iron; an ice giant has a molecular envelope over a mantle of
-water, ammonia and methane over a rock and iron core. Each layer carries its pressures, its mass, the mass of each
+water, ammonia, and methane over a rock and iron core. Each layer carries its pressures, its mass, the mass of each
 material in it (rows of the shared materials table, GEN.427) and its state.
 
 This module places and fills the layers from the quantities the radius and heavy-element laws (GEN.460) and the bulk
 draw (GEN.428) already give: the mass, the radius, the heavy-element mass M_Z, the envelope metallicity, the natal helium
-share, the one-bar temperature and the split of the heavy elements into iron, rock and ices. It draws only what those do
+share, the one-bar temperature and the split of the heavy elements into iron, rock, and ices. It draws only what those do
 not decide, with `util.draw`: the molecular-to-metallic pressure, whether a compact core exists and its mass, and the mass
 of the dilute core. It changes no mass, radius or fraction the caller fixed: the layer masses add up to the body's mass
 and the layers hold exactly M_Z of heavy elements and the natal helium (tested to 1e-9).
 
 How the layers are placed
 -------------------------
-The hydrostatic profile of a gas giant is the n = 1 polytrope the repo already uses for its central pressure
-(`P_c = pi G M^2 / (8 R^4)`): `P / P_c = (sin xi / xi)^2`, mass inside `(sin xi - xi cos xi) / pi`, `xi = pi r / R`. A
-brown dwarf uses the n = 3/2 polytrope (Lane-Emden, integrated here). An ice giant, whose mass is mostly in the core, uses
-three layers of constant density scaled to its radius (a stand-in until the radius tables of GEN.460 give a real profile,
-design note decision D7). The pressure at a layer's boundary is read from the profile at the mass inside it, so a layer's
-mass fixes its pressures and not the other way round, except for the two levels that are pressures: the
-molecular-to-metallic level `P_MM` (drawn 0.4 to 2 Mbar, D1) and the onset of helium rain (2 Mbar, D2).
+The pressure at a layer's boundary is read from a hydrostatic profile at the mass inside it (`_structure`). With the downloaded
+hydrogen-helium tables (GEN.733, `datasets/hhe_eos.py`) the profile is the structure of `giant_structure.fit_adiabat`: the
+equations of hydrostatic balance integrated inward from one bar with the tables' density along the adiabat that closes the model
+on the radius the caller fixed (a gas giant and a brown dwarf: a core and an envelope of the heavy elements, from M_Z and the
+envelope metallicity; an ice giant: the rock core, the ice mantle and the envelope the draw placed). A run told to disregard
+missing data (GEN.599) takes the profiles this note was written with: for a gas giant the n = 1 polytrope the repo already uses for
+its central pressure (`P_c = pi G M^2 / (8 R^4)`, `P / P_c = (sin xi / xi)^2`, mass inside `(sin xi - xi cos xi) / pi`,
+`xi = pi r / R`), for a brown dwarf the n = 3/2 polytrope (Lane-Emden, integrated here), and for an ice giant three layers of
+constant density scaled to its radius (a stand-in, design note decision D7). A layer's mass fixes its pressures and not the other
+way round, except for the two levels that are pressures: the molecular-to-metallic pressure `P_MM` (drawn 0.4 to 2 Mbar, D1) and
+the onset of helium rain (2 Mbar, D2).
 
 Where the heavy elements go (D5)
 --------------------------------
@@ -33,7 +37,7 @@ Rock and iron fill the compact core first, then the dilute core, then the deep m
 methane), which the molecular envelope can hold as vapour, fills the molecular envelope first, then the metallic
 envelope, then the dilute core. Whatever one material cannot fill, the other takes, so the layers always hold M_Z.
 
-Left out (design note section 8): temperature, neon, helium rain in a brown dwarf, an equation of state. Each number
+Left out (design note section 8): temperature, neon, helium rain in a brown dwarf. Each number
 that has no source is named in `RANGES` and the table `giant-compact-core` with its state.
 
 Use:
@@ -49,9 +53,13 @@ Use:
 import math
 from dataclasses import dataclass, field
 
+from planetgen.datasets import fetch, hhe_eos
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants
+from planetgen.physics import constants, giant_structure, unit_registry as units
 from planetgen.util import draw
+from planetgen.util.wordlist import join_words
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 # ---------------------------------------------------------------------------------------------------------------------
 # What is known and what is a placeholder. Every entry names its source state (docs/design/composition/giant-interiors.md section 7).
@@ -59,17 +67,16 @@ from planetgen.util import draw
 
 METALLIZATION_PRESSURE_RANGE_GPA = (40.0, 200.0)
 """tuple: The molecular-to-metallic hydrogen pressure, drawn log-uniform (D1). 0.4 to 0.6 Mbar from quantum Monte Carlo at
-Jupiter's conditions (Mazzola, Helled and Sorella 2018, READ), 1 to 2 Mbar from the older liquid-liquid transition work
-(Debras and Chabrier 2019, READ); the widest range wins (Boss's rule 3)."""
+Jupiter's conditions ([R2966], READ), 1 to 2 Mbar from the older liquid-liquid transition work
+([R1038], READ); the widest range wins (Boss's rule 3)."""
 
 HELIUM_RAIN_ONSET_GPA = 200.0
-"""float: Where helium becomes immiscible in metallic hydrogen for a proto-solar adiabat, 2 Mbar (Mankovich and Fortney 2020
-Figure 1 and 3, READ). The helium gradient starts here and the envelope above it keeps one depleted helium share."""
+"""float: Where helium becomes immiscible in metallic hydrogen for a proto-solar adiabat, 2 Mbar ([R2852: Figure 1 and 3], READ). The helium gradient starts here and the envelope above it keeps one depleted helium share."""
 
 HELIUM_RAIN_POINTS_K = ((140.0, 0.26), (166.0, 0.85))
-"""tuple: STAND-IN (D2, replaced by the Schottler and Redmer 2018 curve and a stored adiabat, GEN.641 follow-up): the
+"""tuple: STAND-IN (D2, replaced by the [R3973] curve and a stored adiabat, GEN.641 follow-up): the
 one-bar temperature and the molecular envelope's helium share against the natal share where it was measured. Saturn's
-Y = 0.07 against 0.27 (Mankovich and Fortney 2020, READ) and Jupiter's 0.234 against 0.2745 (Galileo, via Helled and Howard
+Y = 0.07 against 0.27 ([R2852], READ) and Jupiter's 0.234 against 0.2745 (Galileo, via Helled and Howard
 2024, READ). A straight line through them, held at the Saturn value below it and at 1 from where it reaches 1."""
 
 DEEP_ENVELOPE_MAX_Z = 0.9
@@ -85,7 +92,7 @@ of the mass, so the helium that rained out has somewhere to go."""
 
 HELIUM_SHELL_THRESHOLD = 0.5
 """float: STAND-IN (D2): below this depletion half of the helium that rained out forms a helium shell above the core (the
-Saturn picture, Mankovich and Fortney 2020 section 2, READ for the existence, not for the share)."""
+Saturn picture, [R2852] section 2, READ for the existence, not for the share)."""
 
 HELIUM_SHELL_FRACTION = 0.5
 SHELL_HELIUM_SHARE = 0.9
@@ -93,38 +100,36 @@ SHELL_HELIUM_SHARE = 0.9
 hydrogen and helium."""
 
 COMPACT_CORE_RANGE_EARTH = (0.5, 20.0)
-"""tuple: The compact core mass, log-uniform (D3). A few Earth masses at most for Jupiter (Helled and Stevenson 2024, READ),
-15 to 18 for Saturn (Militzer et al. 2019, via Helled and Howard 2024, 2ND-HAND); the widest range wins."""
+"""tuple: The compact core mass, log-uniform (D3). A few Earth masses at most for Jupiter ([R1895], READ),
+15 to 18 for Saturn (via [R1893], 2ND-HAND); the widest range wins."""
 
 DILUTE_CORE_RANGE_EARTH = (20.0, 100.0)
 """tuple: The dilute core mass (hydrogen and helium with heavy elements), log-uniform (D4). About 20 Earth masses where
-evaporated solids mix in (Muller et al. 2020, 2ND-HAND through Helled and Stevenson 2024) to about 100 (Helled and Stevenson
+evaporated solids mix in (2ND-HAND through [R1895]) to about 100 (Helled and Stevenson
 2024, READ)."""
 
 DILUTE_CORE_MAX_MASS_FRACTION = 0.65
-"""float: Saturn's stable region is 55 of 95 Earth masses, 0.58 (Mankovich and Fuller 2021, READ); the cap is a little above."""
+"""float: Saturn's stable region is 55 of 95 Earth masses, 0.58 ([R2851], READ); the cap is a little above."""
 
 DILUTE_CORE_MAX_HEAVY_FRACTION = 0.8
-"""float: The heavy-element share of the dilute core's inner part reaches 0.8 (Mankovich and Fuller 2021 via Helled and
-Howard 2024, READ)."""
+"""float: The heavy-element share of the dilute core's inner part reaches 0.8 ([R2851], READ)."""
 
 DILUTE_CORE_MIN_BODY_EARTH = 30.0
 """float: Below this mass the heavy elements are a gradient through the whole body and there is no separate dilute core (D4)."""
 
 ICE_GIANT_ENVELOPE_LIMIT = 0.5
-"""float: A body whose hydrogen and helium are under this share of its mass is an ice giant (Helled and Fortney 2020: 10 to
+"""float: A body whose hydrogen and helium are under this share of its mass is an ice giant ([R1892]: 10 to
 20 percent for Uranus and Neptune)."""
 
 ICE_GIANT_ROCK_FRACTION_RANGE = (0.05, 0.67)
-"""tuple: The rock and iron share of an ice giant's heavy elements (D4.4, OPEN): 0.05 from the non-adiabatic empirical models
-(Neuenschwander et al. 2024, 2ND-HAND), 0.67 from Podolak et al. 2022 and Zeng et al. 2019 (rock to water at most 2)."""
+"""tuple: The rock and iron share of an ice giant's heavy elements (D4.4, OPEN): 0.05 from the non-adiabatic empirical models, 0.67 from [R4880] (rock to water at most 2)."""
 
 ICE_GIANT_RELATIVE_DENSITY = {"rock_core": 2.0, "ice_mantle": 1.0, "molecular_envelope": 0.25}
 """dict: STAND-IN (D7): the relative densities of the three constant-density layers of an ice giant. Only the ratios matter:
 the scale is set so the layers fill the radius."""
 
 SUPERIONIC_PRESSURE_GPA = 100.0
-"""float: Water above this pressure is superionic ice (ice XVIII at 100 to 400 GPa, Millot et al. 2019 abstract, READ)."""
+"""float: Water above this pressure is superionic ice (ice XVIII at 100 to 400 [R3081] abstract, READ)."""
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -155,7 +160,7 @@ COMPACT_CORE_TABLE = pt.REGISTRY.register(pt.Table(
             notes="A pure rock and iron core of 0.5 to 20 Earth masses. Formation models predict one (Helled and Stevenson "
                   "2024); gravity cannot see one under about 10 Earth masses; the share is a placeholder."),
      pt.Row("no compact core", (pt.ANY_CLASS,), pt.OPEN, "open", state=pt.OPEN_STATE,
-            notes="Convective mixing or a giant impact removed it, or it never formed (Helled and Stevenson 2024).")],
+            notes="Convective mixing or a giant impact removed it, or it never formed [R1895].")],
     description="Whether a giant has a compact core of heavy elements."))
 
 
@@ -282,9 +287,6 @@ def _polytrope_rows(index):
     return _POLYTROPE_ROWS[index]
 
 
-def thin_shell_base_pressure_pa(core_mass_kg, envelope_mass_kg, core_radius_m):
-    """The pressure at the base of an envelope that is a thin shell on a core: `G M_core M_env / (4 pi R_core^4)`."""
-    return constants.G * core_mass_kg * envelope_mass_kg / (4.0 * math.pi * core_radius_m ** 4)
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -509,7 +511,7 @@ class GiantSubject:
         if not (0.0 <= self.heavy_mass_earth < self.mass_earth):
             raise InteriorError("the heavy-element mass must be under the body's mass")
         if not (0.0 <= self.envelope_z < 1.0 and 0.0 < self.helium_share < 1.0 and 0.0 <= self.iron_share_of_refractory <= 1.0):
-            raise InteriorError("an envelope metallicity, helium share or iron share is outside its range")
+            raise InteriorError("an envelope metallicity, helium share, or iron share is outside its range")
         if any(v < 0 for v in self.ice_shares.values()) or sum(self.ice_shares.values()) >= 1.0 + 1e-12:
             raise InteriorError("the ice shares of the heavy elements must be positive and add up to at most 1")
 
@@ -614,6 +616,35 @@ def _water_material(bottom_pressure_gpa):
     return "ice_x" if bottom_pressure_gpa >= SUPERIONIC_PRESSURE_GPA else "water_liquid"
 
 
+STAND_IN_POLYTROPE = "giant layer pressures from the polytrope"
+"""str: What the run records when the hydrogen-helium tables were not downloaded and the profile is the polytrope's (GEN.599)."""
+
+
+def _structure(subject, polytrope_index):
+    """
+    The hydrostatic profile layer pressures are read from (GEN.733): the structure of `giant_structure` from the downloaded
+    hydrogen-helium tables, closed on the subject's radius, or, where the tables are missing and the run disregards that, the
+    polytrope of `polytrope_index` (the profile before GEN.733).
+    """
+    mass_kg = _mearth_to_kg(subject.mass_earth)
+    radius_m = subject.radius_km * 1e3
+    if fetch.locate(hhe_eos.DATASET).use_stand_in(STAND_IN_POLYTROPE):
+        return Polytrope(polytrope_index, mass_kg, radius_m)
+    heavy_kg = subject.heavy_mass_earth * constants.EARTH_MASS_TO_KG
+    if subject.is_brown_dwarf:
+        z, core, env_ice, core_ice = subject.heavy_mass_earth / subject.mass_earth, 0.0, 0.0, 0.0
+    else:
+        z = subject.envelope_z
+        core = max((heavy_kg - z * mass_kg) / (1.0 - z), 0.0)
+        env_heavy = heavy_kg - core if core > 0.0 else heavy_kg
+        ice_kg = sum(subject.ice_shares.values()) * heavy_kg
+        env_ice = min(1.0, ice_kg / env_heavy) if env_heavy > 0.0 else 0.0
+        core_ice = min(max((ice_kg - env_ice * env_heavy) / core, 0.0), 1.0) if core > 0.0 else 0.0
+    return giant_structure.fit_adiabat(giant_structure.StructureSubject(
+        mass_kg, radius_m, subject.helium_share, envelope_z=z, heavy_mass_kg=heavy_kg, envelope_ice_fraction=env_ice,
+        core_ice_fraction=core_ice, iron_share=subject.iron_share_of_refractory, temperature_1bar_k=subject.temperature_1bar_k))
+
+
 def draw_interior(subject):
     """
     The layers of `subject`, drawn with the ambient stream (`util.draw`). Gas giants, ice giants and brown dwarfs are told
@@ -635,8 +666,7 @@ def draw_interior(subject):
 
 def _gas_giant(subject):
     mass = subject.mass_earth
-    mass_kg = mass * constants.EARTH_MASS_TO_KG
-    profile = Polytrope(1.0, mass_kg, subject.radius_km * 1e3)
+    profile = _structure(subject, 1.0)
     p_mm_gpa = _log_uniform(*METALLIZATION_PRESSURE_RANGE_GPA)
     ratio_mm = profile.at_pressure(p_mm_gpa * 1e9)[1]  # mass inside the P_MM level
     ratio_rain = profile.at_pressure(HELIUM_RAIN_ONSET_GPA * 1e9)[1]
@@ -888,6 +918,36 @@ class _ConstantDensityProfile:
         return self.inner_mass[-1]
 
 
+class _LayeredProfile:
+    """The structure of `giant_structure` seen the way `_ConstantDensityProfile` is: layers from the centre out, `masses` their masses
+    (kg), with the pressures at their boundaries and the radius and mass at a pressure, so the ice giant reads either."""
+
+    def __init__(self, structure, masses):
+        self.structure = structure
+        self.radius = structure.radius_m
+        self.layer_masses = list(masses)
+        self.inner_mass = [math.fsum(masses[:i + 1]) for i in range(len(masses))]
+        self.outer_radii = [structure.at_mass_inside(m / structure.mass_kg)[0] * self.radius for m in self.inner_mass]
+        self.central_pressure_pa = structure.central_pressure_pa
+
+    def boundary_pressures(self, index):
+        """`(top, bottom)` pressure of layer `index` (0 is the innermost)."""
+        top = giant_structure.ONE_BAR_PA if index == len(self.inner_mass) - 1 else \
+            self.structure.pressure_at_mass_inside_pa(self.inner_mass[index] / self.structure.mass_kg)
+        bottom = self.structure.pressure_at_mass_inside_pa(self.inner_mass[index - 1] / self.structure.mass_kg) if index > 0 \
+            else self.central_pressure_pa
+        return top, bottom
+
+    def radius_at_pressure(self, pressure):
+        """The radius where the pressure is `pressure`, or `None` outside the body's range."""
+        if not giant_structure.ONE_BAR_PA <= pressure <= self.central_pressure_pa:
+            return None
+        return self.structure.at_pressure(pressure)[0] * self.radius
+
+    def mass_inside(self, radius):
+        return self.structure.at_radius(radius / self.radius)[0] * self.structure.mass_kg
+
+
 def _ice_giant(subject):
     mass = subject.mass_earth
     heavy = subject.heavy_mass_earth
@@ -902,15 +962,25 @@ def _ice_giant(subject):
     mantle = math.fsum(mantle_take.values())
     core = math.fsum(core_take.values())
 
-    # Constant-density closure scaled so the layers fill the radius: the densities are the stand-in ratios times one scale.
     kg = constants.EARTH_MASS_TO_KG
-    ratios = ICE_GIANT_RELATIVE_DENSITY
-    volume = 4.0 / 3.0 * math.pi * (subject.radius_km * 1e3) ** 3
-    scale = volume / math.fsum(m * kg / ratios[kind] for m, kind in
-                               ((core, "rock_core"), (mantle, "ice_mantle"), (envelope, "molecular_envelope")))
     names = [kind for kind, m in (("rock_core", core), ("ice_mantle", mantle), ("molecular_envelope", envelope)) if m > 0]
     sizes = {"rock_core": core, "ice_mantle": mantle, "molecular_envelope": envelope}
-    profile = _ConstantDensityProfile([(sizes[kind] * kg, ratios[kind] / scale) for kind in names])
+    if fetch.locate(hhe_eos.DATASET).use_stand_in(STAND_IN_POLYTROPE):
+        # Constant-density closure scaled so the layers fill the radius: the densities are the stand-in ratios times one scale.
+        ratios = ICE_GIANT_RELATIVE_DENSITY
+        volume = 4.0 / 3.0 * math.pi * (subject.radius_km * 1e3) ** 3
+        scale = volume / math.fsum(m * kg / ratios[kind] for m, kind in
+                                   ((core, "rock_core"), (mantle, "ice_mantle"), (envelope, "molecular_envelope")))
+        profile = _ConstantDensityProfile([(sizes[kind] * kg, ratios[kind] / scale) for kind in names])
+    else:
+        envelope_ice = math.fsum(value for name, value in envelope_take.items() if name in bin_.ices)
+        profile = _LayeredProfile(giant_structure.fit_adiabat(giant_structure.StructureSubject(
+            mass * kg, subject.radius_km * 1e3, subject.helium_share, envelope_z=z_out,
+            layers=tuple(giant_structure.Layer(kind, sizes[name] * kg) for name, kind in
+                         (("rock_core", "core"), ("ice_mantle", "mantle"), ("molecular_envelope", "envelope")) if sizes[name] > 0),
+            envelope_ice_fraction=min(envelope_ice / math.fsum(envelope_take.values()), 1.0) if envelope_take else 0.0,
+            iron_share=subject.iron_share_of_refractory, temperature_1bar_k=subject.temperature_1bar_k)),
+            [sizes[kind] * kg for kind in names])
     index = {kind: i for i, kind in enumerate(names)}
 
     layers = []
@@ -922,33 +992,39 @@ def _ice_giant(subject):
         hhe = layer_mass - math.fsum(heavy_part.values())
         return heavy_part, hhe * y, hhe * (1.0 - y)
 
+    outer = profile.outer_radii
+    radius_1bar = outer[-1]
+
+    def inner_of(kind):
+        return outer[index[kind] - 1] / radius_1bar if index[kind] > 0 else 0.0
+
     radius_mm = profile.radius_at_pressure(p_mm_gpa * 1e9)
-    envelope_inner = profile.outer_radii[index["molecular_envelope"] - 1] if index["molecular_envelope"] > 0 else 0.0
-    if radius_mm is not None and radius_mm > envelope_inner:
+    envelope_inner = inner_of("molecular_envelope")
+    if radius_mm is not None and radius_mm > envelope_inner * radius_1bar:
         upper = (profile.inner_mass[index["molecular_envelope"]] - profile.mass_inside(radius_mm)) / kg
-        parts = [("molecular_envelope", "molecular_fluid", upper, env_top, p_mm_gpa * 1e9),
-                 ("metallic_envelope", "metallic_fluid", envelope - upper, p_mm_gpa * 1e9, env_bottom)]
+        mm_fraction = radius_mm / radius_1bar
+        parts = [("molecular_envelope", "molecular_fluid", upper, env_top, p_mm_gpa * 1e9, 1.0, mm_fraction),
+                 ("metallic_envelope", "metallic_fluid", envelope - upper, p_mm_gpa * 1e9, env_bottom, mm_fraction, envelope_inner)]
     elif env_top >= p_mm_gpa * 1e9:
-        parts = [("metallic_envelope", "metallic_fluid", envelope, env_top, env_bottom)]
+        parts = [("metallic_envelope", "metallic_fluid", envelope, env_top, env_bottom, 1.0, envelope_inner)]
     else:
-        parts = [("molecular_envelope", "molecular_fluid", envelope, env_top, env_bottom)]
-    for kind, state, layer_mass, top, bottom in parts:
+        parts = [("molecular_envelope", "molecular_fluid", envelope, env_top, env_bottom, 1.0, envelope_inner)]
+    for kind, state, layer_mass, top, bottom, top_radius, bottom_radius in parts:
         heavy_part, helium, hydrogen = envelope_part(layer_mass)
-        layers.append(_layer(kind, state, top, bottom, heavy_part, helium, hydrogen))
+        layers.append(_layer(kind, state, top, bottom, heavy_part, helium, hydrogen, top_radius, bottom_radius))
     if mantle > 0:
         top, bottom = profile.boundary_pressures(index["ice_mantle"])
         layers.append(_layer("ice_mantle", "superionic" if bottom / 1e9 >= SUPERIONIC_PRESSURE_GPA else "ionic_fluid",
-                             top, bottom, mantle_take, 0.0, 0.0))
+                             top, bottom, mantle_take, 0.0, 0.0, outer[index["ice_mantle"]] / radius_1bar, inner_of("ice_mantle")))
     if core > 0:
         top, bottom = profile.boundary_pressures(index["rock_core"])
-        layers.append(_layer("rock_core", "molten", top, bottom, core_take, 0.0, 0.0))
+        layers.append(_layer("rock_core", "molten", top, bottom, core_take, 0.0, 0.0, outer[index["rock_core"]] / radius_1bar, 0.0))
     return GiantInterior(tuple(_fix_water(layers)), mass, "ice_giant", p_mm_gpa, 1.0)
 
 
 def _brown_dwarf(subject):
     mass = subject.mass_earth
-    mass_kg = mass * constants.EARTH_MASS_TO_KG
-    profile = Polytrope(1.5, mass_kg, subject.radius_km * 1e3)
+    profile = _structure(subject, 1.5)
     p_mm_gpa = _log_uniform(*METALLIZATION_PRESSURE_RANGE_GPA)
     ratio_mm = profile.at_pressure(p_mm_gpa * 1e9)[1]
     mass_mol = mass * (1.0 - ratio_mm)
@@ -990,7 +1066,7 @@ LAYER_NAMES = {
     "helium_shell": "helium-rich shell",
     "dilute_core": "dilute core",
     "compact_core": "compact core of rock and iron",
-    "ice_mantle": "mantle of water, ammonia and methane",
+    "ice_mantle": "mantle of water, ammonia, and methane",
     "rock_core": "core of rock and iron",
 }
 """dict: What each layer kind is called in prose."""
@@ -1023,8 +1099,8 @@ def _pressure_text(pressure_gpa):
 
 def describe_interior(body, min_share=0.02):
     """
-    The layers of `body` (a `GiantInterior`) as prose, one sentence per layer from the top down: its name, state,
-    mass, the pressures it spans, and the materials that make up at least `min_share` of it, largest first.
+    The layers of `body` (a `GiantInterior`) as prose, two sentences per layer from the top down: its name, state, mass, and the pressures it
+    spans; then the materials that make up at least `min_share` of it, largest first.
 
     Returns:
         list of str: The sentences.
@@ -1036,26 +1112,26 @@ def describe_interior(body, min_share=0.02):
         name = LAYER_NAMES[layer.kind]
         sentences.append(
             f"The {name} ({STATE_NAMES[layer.state]}) holds {_mass_text(layer.mass_earth)}, from "
-            f"{_pressure_text(layer.top_pressure_gpa)} down to {_pressure_text(layer.bottom_pressure_gpa)}; it is "
-            f"{', '.join(made)}.")
+            f"{_pressure_text(layer.top_pressure_gpa)} down to {_pressure_text(layer.bottom_pressure_gpa)}.")
+        sentences.append(f"It is {join_words(made)}.")
     return sentences
 
 
 INTERIOR_KIND_WORDING = {
-    "gas_giant": "Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core",
-    "ice_giant": "Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia and methane",
-    "brown_dwarf": "Soundings read a brown dwarf: a body too massive to stay a planet, hydrogen all the way down to a small core",
+    "gas_giant": "Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core.",
+    "ice_giant": "Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia, and methane.",
+    "brown_dwarf": "Soundings read a brown dwarf: a body too massive to stay a planet, hydrogen all the way down to a small core.",
 }
-"""dict: The opening clause for each kind of interior (`INTERIOR_KINDS`); a test pins that every kind has one."""
+"""dict: The opening sentence for each kind of interior (`INTERIOR_KINDS`); a test pins that every kind has one."""
 
 INTERIOR_FEATURE_WORDING = {
-    "metallic_envelope": "hydrogen squeezed to a liquid metal below {pressure}, where the planet's magnetic field is made",
-    "dilute_core": "a dilute core, rock and ice mixed into the hydrogen instead of sitting in a ball at the centre",
-    "helium_shell": "a shell of helium the rain left behind",
-    "helium_rain": "an envelope short of helium, which has sunk into the deep",
-    "ice_mantle": "a conducting mantle of ionic water where the planet's magnetic field is made",
+    "metallic_envelope": "Hydrogen is squeezed to a liquid metal below {pressure}, where the planet's magnetic field is made.",
+    "dilute_core": "It has a dilute core of rock and ice mixed into the hydrogen, not sitting in a ball at the center.",
+    "helium_shell": "It has a shell of helium the rain left behind.",
+    "helium_rain": "The envelope is short of helium, which has sunk into the deep.",
+    "ice_mantle": "A conducting mantle of ionic water is where the planet's magnetic field is made.",
 }
-"""dict: The clause for each feature a giant's interior can have, in the voice of the pages. A test pins the keys."""
+"""dict: The sentence for each feature a giant's interior can have, in the voice of the pages. A test pins the keys."""
 
 HELIUM_RAIN_BELOW = 0.97
 """float: A `helium_depletion` under this reads as an envelope the helium has rained out of."""
@@ -1075,16 +1151,14 @@ def interior_wording_keys(body):
 
 def summarize_interior(body):
     """
-    One sentence that says what a giant's interior is: its kind, then the metallic layer, the dilute core, the helium shell and the helium rain it has.
+    The sentences that say what a giant's interior is: its kind, then one sentence for each of the metallic layer, the dilute core, the helium shell,
+    and the helium rain it has.
 
     Returns:
-        str: The sentence.
+        str: The sentences.
     """
     keys = interior_wording_keys(body)
     kind, features = keys[0], keys[1:]
     pressure = body.metallization_pressure_gpa
-    clauses = [INTERIOR_FEATURE_WORDING[key].format(pressure=_pressure_text(pressure)) for key in features]
-    if not clauses:
-        return INTERIOR_KIND_WORDING[kind] + "."
-    joined = clauses[0] if len(clauses) == 1 else ", ".join(clauses[:-1]) + " and " + clauses[-1]
-    return f"{INTERIOR_KIND_WORDING[kind]}, with {joined}."
+    sentences = [INTERIOR_KIND_WORDING[kind]] + [INTERIOR_FEATURE_WORDING[key].format(pressure=_pressure_text(pressure)) for key in features]
+    return " ".join(sentences)

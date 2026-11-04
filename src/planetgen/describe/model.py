@@ -11,7 +11,7 @@ Inline text is a list whose items are a string or one of:
   a ladder family (`planetgen.util.ladders`) or one of `OTHER_KINDS`; `value` is the number in `unit`, a key of the unit
   registry (`planetgen.physics.unit_registry`) or one of `PLAIN_UNITS` (the unit the value was held in, not converted). Extra
   keys: `sol` (the ratio to Sol), `companions` (whether the text shows the units beside the main one),
-  `note` (a `ratio`'s unit, scale or noun, written after the number: "times Earth's DNA-damaging dose"; a ratio is never
+  `note` (a `ratio`'s unit, scale, or noun, written after the number: "times Earth's DNA-damaging dose"; a ratio is never
   written without one).
 - `{"ref": "planet:31", "name": "40 Eridani II"}`: a link to another object.
 - `{"strong": "Pressure: Red"}`: emphasis, written per format by the renderer.
@@ -47,7 +47,7 @@ PLAIN_UNITS = ("ratio", "count", "Sv/yr")
 SECTION_KINDS = ("system", "star", "black-hole", "neutron-star", "pair", "planet", "moon", "belt", "comet", "nebula",
                  "quasar", "rogue-planet", "interstellar-comet", "asteroid-field", "supernova-remnant")
 BLOCK_TYPES = ("facts", "ratings", "composition", "prose")
-PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life", "timeline", "flavour")
+PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life-class", "life", "timeline", "milestone", "flavour")
 
 
 def qty(kind, value, unit=None, **extra):
@@ -210,11 +210,11 @@ def score_text(score):
 
 BARE_NUMBER = re.compile(r"[-+−]?[\d,]*\.?\d+(?:e[-+]?\d+| ?× ?10(?:[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+|<sup>[-−\d]+</sup>))?")
 """re.Pattern: A number alone, as the pages write it ("0.71", "1,200", "1.74 × 10⁶"); a fact whose value matches it has no
-unit, scale or noun."""
+unit, scale, or noun."""
 
 
 def is_bare_number(text):
-    """Whether `text` is a number alone, with no unit, scale or noun beside it."""
+    """Whether `text` is a number alone, with no unit, scale, or noun beside it."""
     return BARE_NUMBER.fullmatch(text.strip()) is not None
 
 
@@ -227,7 +227,7 @@ def _check_no_bare_number(block):
         text = inline_text(row["value"])
         if text and is_bare_number(text) and not all(
                 isinstance(item, dict) and item.get("qty", {}).get("kind") == "count" for item in row["value"]):
-            raise ValueError(f"the fact {row['label']!r} reads {text!r}, a number with no unit, scale or noun")
+            raise ValueError(f"the fact {row['label']!r} reads {text!r}, a number with no unit, scale, or noun")
 
 
 def check(node):

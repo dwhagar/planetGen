@@ -13,25 +13,39 @@ stars. That is enough to say how much of it formed recently, with no share typed
    its history (the Large Cloud), a falling one an older one (the dwarf spheroidals), and a flat one has half the span as
    its mean age. The stellar mass sets the amplitude, so the present rate is the share of the mass formed in the
    history's last instant.
-2. **The gas.** The Schmidt-Kennicutt law (`tuning.STAR_FORMATION_LAW_EXPONENT`, `STAR_FORMATION_LAW_COEFFICIENT`)
-   inverts to the gas the present rate needs: the rate over the area of the half-mass radius gives a surface density, and
-   that the gas per area. The gas disk is taken as long as the stellar one, as the Milky Way's disk is
-   (`tuning.GAS_TO_STELLAR_SCALE_LENGTH_RATIO`).
-3. **The threshold.** Below `tuning.SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2` a satellite forms no stars, so its young
-   share is nothing; the stars its history put in the last 3 Gy are still there, and stay its intermediate share.
+2. **The gas.** The gas is an exponential disc `exp(-R / g)` whose scale length is
+   `tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO` times the stars' (an exponential's half-mass radius is 1.678
+   scale lengths), longer than the stars as a dwarf irregular's HI is (GEN.1192). The star formation law is
+   `A gas^n (gas / (gas + gas_s))^(m - n)` (Schmidt-Kennicutt, `tuning.STAR_FORMATION_LAW_EXPONENT` and
+   `STAR_FORMATION_LAW_COEFFICIENT`, steepening to `tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT` where the gas thins, as
+   the galaxy's disc does, `galaxy.star_formation`), so a thin gas disc lasts longer than a dense one. Its integral
+   over the disc is the present rate; the central density that makes it so gives the gas surface density at the
+   half-mass radius and the whole disc's gas.
+3. **The threshold.** Where the gas at the half-mass radius is under `tuning.SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2`
+   a satellite forms no stars, so its young share is nothing; the stars its history put in the last 3 Gy are still there,
+   and stay its intermediate share.
 
 The young share is the history's last `tuning.STELLAR_POPULATION_AGE_RANGES_GY["satellite_young"]` window, the
 intermediate share the window of `satellite_intermediate`, and the old share the rest.
 """
 
 import dataclasses
+import functools
 import math
+
+import numpy as np
 
 from planetgen import tuning
 
 _YOUNG_WINDOW = tuning.STELLAR_POPULATION_AGE_RANGES_GY["satellite_young"]
 _INTERMEDIATE_WINDOW = tuning.STELLAR_POPULATION_AGE_RANGES_GY["satellite_intermediate"]
 _PC2_PER_KPC2 = 1.0e6
+_EXPONENTIAL_HALF_MASS_OVER_SCALE = 1.6783
+"""float: The projected half-mass radius of an exponential disc over its scale length: the root of
+`1 - (1 + x) exp(-x) = 1/2`."""
+_DISC_POINTS = 1200
+_DISC_EDGE_SCALE_LENGTHS = 40.0
+_GAS_SEARCH_MSUN_PC2 = (1.0e-9, 1.0e7)
 _LAMBDA_LIMIT_PER_GY = 12.0
 """float: The steepest rise or fall the family is searched over, per Gy: far steeper than any mean age asks for."""
 
@@ -46,9 +60,10 @@ class SatelliteHistory:
             (`satellite_young`, `satellite_intermediate`, `satellite`); they add up to 1.
         rate_per_gy (float): `lambda`, the exponent of the rate over the history, per Gy (negative: rising).
         present_rate_msun_yr (float): The present star formation rate the history gives, solar masses per year.
-        gas_surface_density (float): The gas per area that rate needs by the Schmidt-Kennicutt law, solar masses per pc2.
-        gas_mass_solar (float): That density over the area of the half-mass radius.
-        forming (bool): Whether the gas is at or above the threshold, so the satellite forms stars now.
+        gas_surface_density (float): The gas per area at the half-mass radius that rate needs, solar masses per pc2.
+        gas_mass_solar (float): The whole gas disc.
+        forming (bool): Whether the gas at the half-mass radius is at or above the threshold, so the satellite forms stars
+            now.
     """
     young_share: float
     intermediate_share: float
@@ -100,6 +115,38 @@ def rate_for_mean_age(mean_age, span_gy):
     return 0.5 * (low + high)
 
 
+def _law_rate_per_kpc2(surface):
+    """The star formation rate per area, solar masses a year per kpc2, of gas at `surface` solar masses per pc2 (an
+    array): the law of the module docstring."""
+    saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2
+    index = tuning.STAR_FORMATION_LAW_EXPONENT
+    thin = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - index
+    return (tuning.STAR_FORMATION_LAW_COEFFICIENT * surface ** index * (surface / (surface + saturation)) ** thin)
+
+
+def _disc_rate_msun_yr(central, gas_scale_length_pc):
+    """The rate of an exponential gas disc of this central density (solar masses per pc2) and scale length: the law
+    integrated over the disc, in `x = R / scale length`."""
+    x = np.linspace(0.0, _DISC_EDGE_SCALE_LENGTHS, _DISC_POINTS)
+    per_kpc2 = _law_rate_per_kpc2(central * np.exp(-x))
+    scale_kpc = gas_scale_length_pc / 1000.0
+    return float(np.trapezoid(per_kpc2 * 2.0 * math.pi * x, x)) * scale_kpc ** 2
+
+
+def _central_gas_for_rate(rate_msun_yr, gas_scale_length_pc):
+    """The central gas density (solar masses per pc2) whose disc forms stars at `rate_msun_yr`, by bisection on the
+    logarithm (the rate rises steadily with the density)."""
+    low, high = math.log(_GAS_SEARCH_MSUN_PC2[0]), math.log(_GAS_SEARCH_MSUN_PC2[1])
+    for _ in range(70):
+        middle = 0.5 * (low + high)
+        if _disc_rate_msun_yr(math.exp(middle), gas_scale_length_pc) < rate_msun_yr:
+            low = middle
+        else:
+            high = middle
+    return math.exp(0.5 * (low + high))
+
+
+@functools.lru_cache(maxsize=256)
 def history(mass_solar, half_mass_radius_pc, mean_age):
     """
     The history of a satellite of this stellar mass, half-mass radius (pc) and mean stellar age (Gy): see the module
@@ -116,12 +163,36 @@ def history(mass_solar, half_mass_radius_pc, mean_age):
     density_per_gy = (rate * math.exp(-rate * span) / (1.0 - math.exp(-rate * span))
                       if abs(rate * span) >= 1.0e-9 else 1.0 / span)
     present_rate = mass_solar * density_per_gy / 1.0e9
-    area_pc2 = math.pi * float(half_mass_radius_pc) ** 2
-    rate_per_area = present_rate / (area_pc2 / _PC2_PER_KPC2)
-    surface = (rate_per_area / tuning.STAR_FORMATION_LAW_COEFFICIENT) ** (1.0 / tuning.STAR_FORMATION_LAW_EXPONENT)
+    half_mass_radius = float(half_mass_radius_pc)
+    gas_scale_length = (tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO * half_mass_radius
+                        / _EXPONENTIAL_HALF_MASS_OVER_SCALE)
+    central = _central_gas_for_rate(present_rate, gas_scale_length)
+    surface = central * math.exp(-half_mass_radius / gas_scale_length)
     forming = surface >= tuning.SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2
     if not forming:
         young = 0.0
     return SatelliteHistory(
         young_share=young, intermediate_share=intermediate, old_share=1.0 - young - intermediate, rate_per_gy=rate,
-        present_rate_msun_yr=present_rate, gas_surface_density=surface, gas_mass_solar=surface * area_pc2, forming=forming)
+        present_rate_msun_yr=present_rate, gas_surface_density=surface,
+        gas_mass_solar=2.0 * math.pi * central * gas_scale_length ** 2, forming=forming)
+
+
+def oldest_forming_age_gy(mass_solar, half_mass_radius_pc, youngest_gy, oldest_gy):
+    """
+    The greatest mean stellar age, Gy, in `[youngest_gy, oldest_gy]` at which a satellite of this stellar mass and
+    half-mass radius still forms stars (the gas at its half-mass radius at or above the threshold; the gas falls as the
+    mean age rises, so the forming ages are the young end of the range), found by bisection. `None` if it forms none in
+    the range, `oldest_gy` if it forms through all of it.
+    """
+    if not history(mass_solar, half_mass_radius_pc, youngest_gy).forming:
+        return None
+    if history(mass_solar, half_mass_radius_pc, oldest_gy).forming:
+        return oldest_gy
+    low, high = youngest_gy, oldest_gy
+    for _ in range(40):
+        middle = 0.5 * (low + high)
+        if history(mass_solar, half_mass_radius_pc, middle).forming:
+            low = middle
+        else:
+            high = middle
+    return low

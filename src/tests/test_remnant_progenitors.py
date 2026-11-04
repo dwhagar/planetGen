@@ -61,7 +61,7 @@ def test_a_larger_share_keeps_every_mass_a_smaller_one_fails():
 def test_the_verified_islands_are_the_windows_when_the_share_is_theirs():
     islands = tuning.EXPLOSION_FAILURE_ISLANDS_SOL
     share = _share(islands)
-    assert 0.0 < share <= 0.07 + 1e-3, "O'Connor and Ott 2011: 0 to 7% of the massive stars at solar metallicity"
+    assert 0.0 < share <= 0.07 + 1e-3, "[R3327]: 0 to 7% of the massive stars at solar metallicity"
     windows = progenitors.failure_windows(share)
     assert len(windows) == len(islands)
     for (low, high), (want_low, want_high) in zip(windows, islands):
@@ -69,7 +69,7 @@ def test_the_verified_islands_are_the_windows_when_the_share_is_theirs():
 
 
 def test_the_widest_verified_share_reaches_down_to_the_lowest_island():
-    """45% (Sukhbold et al. 2016) fails every star above about 14.5 solar masses; Ertl et al. 2016 put the lowest island at 15."""
+    """45% [R4251] fails every star above about 14.5 solar masses; [R1286] put the lowest island at 15."""
     low = progenitors.failure_windows(0.45)[0][0]
     assert 14.0 < low < 15.5
     assert progenitors.failure_windows(0.45)[-1][1] == TOP
@@ -82,7 +82,7 @@ def test_a_galaxy_with_no_failures_leaves_neutron_stars_only():
 
 
 def test_the_reference_share_is_the_middle_draws_solar_share_inside_the_verified_range():
-    assert progenitors.reference_failed_share() == black_hole_formation.middle_failed_shares(structure.REFERENCE_STRUCTURE.neutron_star_unbound_share)[0]
+    assert progenitors.reference_failed_share() == black_hole_formation.reference_failed_shares(structure.REFERENCE_STRUCTURE.neutron_star_unbound_share)[0]
     low, high = tuning.BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE
     assert low <= progenitors.reference_failed_share() <= high
     assert progenitors.failure_windows() == progenitors.failure_windows(progenitors.reference_failed_share())

@@ -13,10 +13,18 @@
 // The rate is the stored period run through ONE shared law, for every body, so the order of speeds stays true:
 // the seconds per turn on screen are `FASTEST_SECONDS_PER_TURN * (SLOWEST / FASTEST) ** t`, `t` being where the
 // period falls on a log scale from `FASTEST_PERIOD_HOURS` (t = 0) to `SLOWEST_PERIOD_HOURS` (t = 1), clamped to the
-// ends. A day of 5 hours shows a turn in about 33 s, an Earth day in about 80 s, the Sun's 25 days in about 400 s,
-// and nothing turns faster than one turn in 20 s (it would strobe) or slower than one in 10 minutes (it would look
-// stuck). A straight proportion cannot do both: real periods run from hours to hundreds of days, 100 times wider than
-// the range a screen can show a turn in (a deliberate tweak, recorded as stand-in SP1 at tweak level L4 in docs/design/research/gap-filling-plan.md section 6.9).
+// ends. A day of 5 hours shows a turn in about 31 s, an Earth day in about 70 s, the Sun's 25 days in about 180 s,
+// a 47-day rotation in about 250 s, Venus's 243 days in about 480 s, and nothing turns faster than one turn in 20 s
+// (it would strobe) or slower than one in 10 minutes (it would look stuck). A straight proportion cannot do both: real
+// periods run from hours to hundreds of days, 100 times wider than the range a screen can show a turn in (a deliberate
+// tweak, recorded as stand-in SP1 at tweak level L4 in docs/design/research/gap-filling-plan.md section 6.9). Every
+// body turns far faster on screen than it does: the pages that show a picture say so (`DISPLAY_NOTE`).
+//
+// A body that is tidally locked (`locked`: its rotation period is its orbital period) does not turn by that law. It
+// keeps one face toward what it orbits, so in a view that moves it along its orbit it turns once per orbit, which
+// is the same as the turn of nothing at all as the star sees it. `turn` therefore takes the direction to the body it
+// orbits and lays the sub-parent point (longitude 0) on it, wherever the orbit has taken the body; the pictures that
+// show a body from the star's side (the object page) hold it still with its day side toward the star.
 //
 // The Spin switch (the System Map's Menu) and the reader's reduced-motion setting turn every body still; the choice
 // is kept in localStorage, which can be missing or throw, so every access is guarded and the default is on.
@@ -27,7 +35,10 @@
 export const FASTEST_SECONDS_PER_TURN = 20;
 export const SLOWEST_SECONDS_PER_TURN = 600;
 export const FASTEST_PERIOD_HOURS = 2;
-export const SLOWEST_PERIOD_HOURS = 1000;
+export const SLOWEST_PERIOD_HOURS = 10000;
+
+export const DISPLAY_NOTE = "Shown turning much faster than the real rotation.";
+export const LOCKED_NOTE = "Tidally locked: one face stays toward what it orbits.";
 
 const KEY = "planetgen.spin";
 
@@ -48,6 +59,36 @@ export function rateOf(look) {
 // Where a body starts, so a scene's bodies do not all show the same face at once: a fixed angle from its seed.
 export function phaseOf(look) {
   return look && look.seed !== undefined ? ((Number(look.seed) >>> 0) % 6283) / 1000 : 0;
+}
+
+// Whether the body is tidally locked: the look record says its rotation period is its orbital period.
+export function isLocked(look) {
+  return !!(look && look.locked);
+}
+
+// The angle (about the axis, in the body's own frame) that lays the body's longitude 0 (the sphere's local +X, the middle
+// of its equirectangular texture) along `direction` ([x, y, z] in
+// the frame the body's axis is given in), the way a locked body keeps its face toward its parent; `axis` is the body's
+// axis (`axisOf`). Null when the direction runs along the axis (no face to turn).
+export function faceAngle(axis, direction) {
+  const a = unit(axis);
+  const d = unit(direction);
+  if (!a || !d) return null;
+  // The direction in the frame where the axis is +Y (the shortest turn, the one `turn` uses).
+  const dot = a[1];
+  let v;
+  if (dot <= -1 + 1e-12) {
+    v = [-d[0], -d[1], d[2]]; // three.js turns up to straight down about the Z axis
+  } else {
+    // Rodrigues: the rotation taking `a` to +Y is about a x Y.
+    const cross = [-a[2], 0, a[0]];
+    const f = 1 / (1 + dot);
+    const cd = [cross[1] * d[2] - cross[2] * d[1], cross[2] * d[0] - cross[0] * d[2], cross[0] * d[1] - cross[1] * d[0]];
+    const cc = [cross[1] * cd[2] - cross[2] * cd[1], cross[2] * cd[0] - cross[0] * cd[2], cross[0] * cd[1] - cross[1] * cd[0]];
+    v = [d[0] + cd[0] + cc[0] * f, d[1] + cd[1] + cc[1] * f, d[2] + cd[2] + cc[2] * f];
+  }
+  if (Math.hypot(v[0], v[2]) < 1e-9) return null;
+  return Math.atan2(-v[2], v[0]);
 }
 
 // How far the body has turned after `seconds` of spin time (see `tick`).
@@ -142,8 +183,9 @@ export function seconds() {
 const scratch = {};
 
 // Turns `object` (a three.js sphere, poles on its local Y) about `axis` ([x, y, z], default `axisOf(look)`) to where
-// `look` says it is after `spinSeconds`: its Y is laid on the axis, then it is turned about it.
-export function turn(THREE, object, look, spinSeconds, axis) {
+// `look` says it is after `spinSeconds`: its Y is laid on the axis, then it is turned about it. A locked body, when `toward`
+// (the direction to the body it orbits, in the frame of the axis) is given, is turned to face it instead.
+export function turn(THREE, object, look, spinSeconds, axis, toward) {
   if (!scratch.up || scratch.THREE !== THREE) {
     scratch.THREE = THREE;
     scratch.up = new THREE.Vector3(0, 1, 0);
@@ -154,7 +196,8 @@ export function turn(THREE, object, look, spinSeconds, axis) {
   const a = axis || axisOf(look);
   scratch.axis.set(a[0], a[1], a[2]).normalize();
   scratch.lean.setFromUnitVectors(scratch.up, scratch.axis);
-  scratch.spin.setFromAxisAngle(scratch.up, angleAt(look, spinSeconds));
+  const face = isLocked(look) && toward ? faceAngle(a, toward) : null;
+  scratch.spin.setFromAxisAngle(scratch.up, face === null ? angleAt(look, spinSeconds) : face);
   object.quaternion.copy(scratch.lean).multiply(scratch.spin);
   return object;
 }

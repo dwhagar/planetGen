@@ -93,6 +93,8 @@ DIVE_STEPS_MAX = 30
 """The wheel steps of the dive in, at most (it stops at the closest zoom)."""
 PAN_PC = 150.0
 PAN_STOPS = 6
+PAN_AT_PC = 4.0 * PAN_PC
+"""The camera distance the dive pans at: the zoom the 3-block window used to be reached at (MAP.337: the wheel no longer steps through windows, the zoom is the camera's alone)."""
 """The flight across: `PAN_STOPS` jumps round a circle of `PAN_PC` about the dive's target, at the zoom the dive reached
 the 3-block level at."""
 
@@ -155,7 +157,7 @@ def _dive_and_climb(page, steps):
     _step(page, "centre", lambda: None, steps)
     for i in range(DIVE_STEPS_MAX):
         figures = _step(page, f"in {i + 1}", lambda: _wheel(page, -WHEEL_DELTA), steps)
-        if figures["level"] == 3 and not any(step["step"] == "pan 1" for step in steps):
+        if figures["dist"] <= PAN_AT_PC and not any(step["step"] == "pan 1" for step in steps):
             # Across the level the dive just reached: jump the centre round a circle.
             for k in range(PAN_STOPS):
                 angle = 2.0 * math.pi * (k + 1) / PAN_STOPS
@@ -199,7 +201,7 @@ def test_the_node_path_stays_within_budget_on_a_dive_a_flight_across_and_a_climb
         for key in ("written", "moved"):
             if step[key] > LIMITS["buffer_multiple"] * max(step["stars"], 1):
                 problems.append(f"{step['step']}: {key} {step[key]} stars against a buffer of {step['stars']}")
-    levels = {step["level"] for step in steps}
-    assert {81, 27, 9, 3, 1} <= levels, f"the dive passed through levels {sorted(l for l in levels if l)}"
-    assert steps[-1]["level"] is not None or steps[-1]["step"].startswith("up"), steps[-1]
+    assert min(step["dist"] for step in steps) <= PAN_AT_PC, "the dive never came in to the pan's zoom"
+    assert any(step["step"] == "pan 1" for step in steps), "the flight across never ran"
+    assert steps[-1]["step"].startswith("up"), steps[-1]
     assert not problems, "\n".join(problems)

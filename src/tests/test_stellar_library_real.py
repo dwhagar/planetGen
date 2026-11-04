@@ -2,7 +2,7 @@
 
 """
 GEN.970 on the real grids (Castelli and Kurucz ATLAS9, Husser et al. PHOENIX-ACES), against the Sun and the eleven M and K stars of the
-MUSCLES Treasury Survey (France et al. 2016, ApJ 820, 89). Skipped on a machine whose cache folder does not hold them
+MUSCLES Treasury Survey [R1435]. Skipped on a machine whose cache folder does not hold them
 (`python3 -m planetgen.cli.datasets fetch stellar_spectra`); `test_stellar_spectra.py` covers the code on blackbody fixtures.
 """
 
@@ -21,7 +21,7 @@ FUV_NM = (91.2, 170.0)
 
 
 def test_the_sun_has_the_measured_ultraviolet_shares_of_its_blackbody():
-    """ATLAS-1 (Thuillier et al. 2004) against a 5777 K blackbody: 0.256 in UV-C, 0.625 in UV-B, 0.787 in UV-A (radiation-model.md section 12)."""
+    """ATLAS-1 [R4354] against a 5777 K blackbody: 0.256 in UV-C, 0.625 in UV-B, 0.787 in UV-A (radiation-model.md section 12)."""
     shares = stellar_library.shares_of_blackbody(5777.0, 4.44)
     assert shares["uv_c"] == pytest.approx(0.256, rel=0.2)
     assert shares["uv_b"] == pytest.approx(0.625, rel=0.2)

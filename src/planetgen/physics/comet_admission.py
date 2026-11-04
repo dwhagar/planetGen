@@ -6,7 +6,7 @@ The comet admission model (GEN.507, docs/design/composition/tunable-gaps.md sect
 
 Which comets have a published coma composition and at what heliocentric distance it was measured, so that the comet volatile ratios
 (GEN.495, `comet_population`) and their heliocentric-distance term are compared with the comets that were measured and not with every
-comet drawn. The compositions of the database (Robinson et al. 2024) are of comets near the Sun and bright.
+comet drawn. The compositions of the database [R3782] are of comets near the Sun and bright.
 
 Two things, both fitted by `scripts/fit_comet_admission.py` to the database joined to the JPL Small-Body Database orbits:
 

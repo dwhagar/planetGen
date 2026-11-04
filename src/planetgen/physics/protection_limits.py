@@ -37,7 +37,7 @@ LIMIT_ROWS = (
     Limit("pressure_blue_max_kpa", 250.0, "kPa", "greatest pressure with no gear at all (Blue)", 250.0, None),
     Limit("pressure_narcosis_kpa", 400.0, "kPa", "nitrogen narcosis starts: the greatest pressure of modular gear (Green)", 400.0, 400.0),
     Limit("pressure_hyperbaric_max_kpa", 10_000.0, "kPa", "greatest pressure of a hyperbaric pressure suit (Yellow); "
-          "past it a rigid armoured suit", 10_000.0, 5_000.0, "higher"),
+          "past it a rigid armored suit", 10_000.0, 5_000.0, "higher"),
     Limit("pressure_outer_kpa", 100_000.0, "kPa", "the score reaches 0 here", 100_000.0, None),
     Limit("pressure_low_outer_kpa", 0.63, "kPa", "the score reaches 0 here at the low end", 0.63, None),
     # --- Oxygen ---
@@ -51,7 +51,7 @@ LIMIT_ROWS = (
     Limit("comfort_low_c", 0.0, "C", "least temperature with no gear (Blue)", 0.0, None),
     Limit("comfort_high_c", 31.0, "C", "greatest temperature with no gear (Blue)", 31.0, None),
     Limit("heat_garment_c", 45.0, "C", "hotter than this an actively cooled environment suit (Yellow); below it cooling garments (Green)", 45.0, 45.0),
-    Limit("heat_max_c", 122.0, "C", "the limit of carbon-based life (Takai et al., 2008): the score's Yellow edge", 122.0, None),
+    Limit("heat_max_c", 122.0, "C", "the limit of carbon-based life [R4295]: the score's Yellow edge", 122.0, None),
     Limit("heat_shielded_c", 140.0, "C", "hotter than this a mask-only visitor's skin burns at the seal: a heat-shielded suit with a liquid cooling garment", None, 140.0),
     Limit("hot_outer_c", 200.0, "C", "the score reaches 0 here", 200.0, None),
     Limit("wet_bulb_c", 31.0, "C", "uncompensable wet-bulb temperature: cooling garments needed at or above it", 31.0, 30.0, "higher"),
@@ -72,9 +72,9 @@ LIMIT_ROWS = (
     Limit("inspired_o2_rec_kpa", 16.0, "kPa", "below this inspired O2 (down to the consciousness floor) a gas-mix mask is recommended", None, None),
     Limit("cold_heated_rec_c", -40.0, "C", "from here down a heated sealed suit is recommended (the notes' edge; the table's required edge is colder)", None, -40.0),
     Limit("wet_bulb_rec_c", 30.0, "C", "from here a wet bulb makes cooling clothing recommended (Vecellio's 30.55 less its spread)", None, 30.0),
-    Limit("density_rec_g_l", 6.0, "g/L", "best-mix breathing-gas density where work capacity halves: an armoured suit is recommended", None, 6.0),
-    Limit("density_max_g_l", 10.0, "g/L", "best-mix breathing-gas density where ventilation fails: an armoured suit is required", None, 10.0),
-    Limit("armoured_heat_c", 400.0, "C", "hotter than this an armoured, thermal-capacitor suit (hours of sortie)", None, None),
+    Limit("density_rec_g_l", 6.0, "g/L", "best-mix breathing-gas density where work capacity halves: an armored suit is recommended", None, 6.0),
+    Limit("density_max_g_l", 10.0, "g/L", "best-mix breathing-gas density where ventilation fails: an armored suit is required", None, 10.0),
+    Limit("armoured_heat_c", 400.0, "C", "hotter than this an armored, thermal-capacitor suit (hours of sortie)", None, None),
     Limit("vehicle_heat_c", 500.0, "C", "hotter than this no suit exists: a vehicle", None, None),
     Limit("vehicle_pressure_kpa", 100_000.0, "kPa", "higher than this no suit exists: a vehicle", None, None),
     Limit("frame_gravity_rec_g", 1.25, "g", "from here a powered frame is recommended", None, None),
@@ -190,22 +190,6 @@ LIMITS = {row.name: row for row in LIMIT_ROWS}
 def limit(name):
     """The value in use of the limit `name`."""
     return LIMITS[name].value
-
-
-def chosen_pairs():
-    """
-    The limits where the built table and the research notes gave two different values, as
-    `(name, built, notes, value in use)`. The value in use is always the more permissive of the two
-    (`Limit.looser`); the merge note lists these.
-    """
-    out = []
-    for row in LIMIT_ROWS:
-        if row.built is None or row.notes is None or row.built == row.notes:
-            continue
-        pick = min if row.looser == "lower" else max
-        assert row.value == pick(row.built, row.notes), row.name
-        out.append((row.name, row.built, row.notes, row.value))
-    return out
 
 
 SUPPLY_SHIFT_SHARE = {1: 1.0, 2: 0.5, 3: 0.75, 4: 1.0}

@@ -11,7 +11,7 @@ log mass, held flat past the ends. Its share between three separation ranges is 
 
 - the close range, `CLOSE_RANGE_AU` (0.05 to 0.25 AU), where the pair is a P-type pair (`generation.binary`);
 - the inner range, 0.25 AU to `INNER_LIMIT_AU` (10 AU), an S-type pair that the metallicity trend of GEN.103 reaches
-  (Moe, Kratter and Badenes 2019 measured it for periods under 10^4 days, which is 10 AU for a pair of two solar
+  ([R3109] measured it for periods under 10^4 days, which is 10 AU for a pair of two solar
   masses: the trend belongs to the close and inner ranges together);
 - the outer range, from `INNER_LIMIT_AU` to the widest axis the place keeps (GEN.103), where the trend does not reach.
 
@@ -27,7 +27,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen import tuning
-from planetgen.generation import multistar, place_terms
+from planetgen.generation import close_binary_trend, mass_ratio, multistar, place_terms
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -37,7 +37,7 @@ CLOSE_RANGE_AU = (0.05, 0.25)
 """tuple: The separations of a close (P-type) pair, `generation.binary.BinaryStarProxy`."""
 
 INNER_LIMIT_AU = 10.0
-"""float: Where the metallicity trend stops (Moe, Kratter and Badenes 2019: periods under 10^4 days, 10 AU)."""
+"""float: Where the metallicity trend stops ([R3109]: periods under 10^4 days, 10 AU)."""
 
 _GRID_POINTS = 801
 """int: Points of the grid over log P that the distribution is integrated and inverted on."""
@@ -45,11 +45,10 @@ _GRID_POINTS = 801
 _DAYS_PER_YEAR = _yr_to_d(1.0)
 
 
-def mean_mass_ratio():
-    """The middle of `tuning.BINARY_MASS_RATIO_RANGE` (the mass ratio is uniform over it): the secondary the shares
+def mean_mass_ratio(primary_born_mass_solar):
+    """The mean mass ratio of a companion of a primary of this birth mass (`mass_ratio.mean_ratio`): the secondary the shares
     are worked out for, before the real one is drawn."""
-    low, high = tuning.BINARY_MASS_RATIO_RANGE
-    return 0.5 * (low + high)
+    return mass_ratio.mean_ratio(primary_born_mass_solar)
 
 
 def log_period_days(separation_au, total_mass_solar):
@@ -105,7 +104,7 @@ class CompanionOdds:
             among the wide pair's separations (1 with no [Fe/H] or at the line's zero).
         wide_share (float): The wide kinds' share of the companions before the trend.
         within_10_au (float): The chance of a companion inside `INNER_LIMIT_AU` (close or wide), what the trend of
-            Moe, Kratter and Badenes 2019 measured.
+            [R3109] measured.
     """
     close: float
     wide: float
@@ -130,7 +129,7 @@ def odds(primary_born_mass_solar, chance, fe_h, limit_au, wide_share_scale=None)
     Returns:
         CompanionOdds: The chance of each kind and the inner range's weight among the wide separations.
     """
-    total = primary_born_mass_solar * (1.0 + mean_mass_ratio())
+    total = primary_born_mass_solar * (1.0 + mean_mass_ratio(primary_born_mass_solar))
     birth_top = multistar.ROOT_MAX_AXIS_AU
     top = min(limit_au, tuning.WIDE_BINARY_SEPARATION_CEILING_AU, birth_top)
     outer_low = max(INNER_LIMIT_AU, CLOSE_RANGE_AU[1])
@@ -148,7 +147,7 @@ def odds(primary_born_mass_solar, chance, fe_h, limit_au, wide_share_scale=None)
         inner_share, outer_share = inner_share * scaled / wide_share, outer_share * scaled / wide_share
         close_share, wide_share = 1.0 - scaled, scaled
     inside_share = close_share + inner_share
-    p_inside = place_terms.scaled_close_chance(chance * inside_share, fe_h) if inside_share > 0.0 else 0.0
+    p_inside = close_binary_trend.scaled_close_chance(chance * inside_share, fe_h) if inside_share > 0.0 else 0.0
     p_outside = min(chance * outer_share, 1.0 - p_inside)
     close_part = p_inside * close_share / inside_share if inside_share > 0.0 else 0.0
     inner_born = p_inside * inner_share / inside_share if inside_share > 0.0 else 0.0

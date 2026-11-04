@@ -30,6 +30,7 @@ the next (`wrapper.advance`).
 
 import json
 import os
+import resource
 import time
 
 import rq
@@ -190,6 +191,30 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         return _do_unit(conn, run_id, stage, unit, kind, args, cost)
 
 
+def _proportional_mb(pid):
+    """The memory a process holds, MB, with the pages it shares split among the processes that share them (the `Pss` of
+    /proc/<pid>/smaps_rollup); 0.0 where the system does not say."""
+    try:
+        with open(f"/proc/{pid}/smaps_rollup", encoding="ascii") as handle:
+            for line in handle:
+                if line.startswith("Pss:"):
+                    return int(line.split()[1]) / 1024.0                   # kilobytes
+    except (OSError, ValueError):
+        pass
+    return 0.0
+
+
+def peak_resident_mb():
+    """
+    What the worker that ran this unit holds of the host's memory, MB (PERF.226): the horse's own and its worker's together, shared
+    pages counted once (`Pss` of the two), or, where the system does not say, the most resident memory this process has held. A horse is
+    a fork of its worker, so its resident size counts the worker's tables but not the worker's own pages beside it: a worker and its
+    horse measured 1,487 MB resident in the horse and 2,180 MB together.
+    """
+    resident = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0     # kilobytes on Linux
+    return max(resident, _proportional_mb(os.getpid()) + _proportional_mb(os.getppid()))
+
+
 def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
@@ -199,7 +224,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
-    outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds)
+    outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds, peak_mb=peak_resident_mb())
     conn.hdel(runrecord.progress_key(run_id, stage), unit)
     log.trace(f"unit {unit} of stage {stage} of run {run_id} recorded; "
               f"{'it completes the stage: the next is queued' if outcome.advance else f'{outcome.done} unit(s) done'}",
@@ -237,6 +262,35 @@ def _short(value, limit=300):
     return text if len(text) <= limit else text[:limit] + f"... ({len(text)} chars)"
 
 
+TABLE_KINDS = frozenset({"scatter-mass", "scatter-luminosity", "scatter-backfill", "scatter-band", "generate-start-sector",
+                         "generate-neighborhood", "generate-sectors", "generate-unplaced-sector", "generate-system"})
+"""frozenset: The commands whose units draw stars from the bright-star sampling tables (PERF.226), so a worker builds the tables
+before it forks a horse for one (`warm_unit`) and keeps them; any other unit runs in a worker without them."""
+
+
+def tables_held():
+    """Whether this process holds bright-star sampling tables (`star_population._bright_table`)."""
+    import sys
+    module = sys.modules.get("planetgen.generation.star_population")
+    return module is not None and module._bright_table.cache_info().currsize > 0
+
+
+def sheds_tables_for(job):
+    """Whether `job` is a unit that needs no star tables and this worker holds them: the worker starts itself over for it (PERF.226)."""
+    if job.func_name != UNIT_FUNCTION:
+        return False
+    return job.args[3] not in TABLE_KINDS and tables_held()
+
+
+def warm_star_tables():
+    """Builds in the worker the sampling table of every population at the sectors' floor (PERF.42, PERF.226), which each horse it forks
+    starts with, for the units that draw stars (`TABLE_KINDS`, `warm_unit`). Opens no connection."""
+    from planetgen import tuning
+    from planetgen.generation import star_population
+    for population in star_population.POPULATIONS:
+        star_population.warm_bins(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, population)
+
+
 def warm_unit(job):
     """
     PERF.146: runs the command's `warm` function, if it has one, in the worker before RQ forks the horse for `job`.
@@ -251,10 +305,11 @@ def warm_unit(job):
         return
     kind, args = job.args[3], job.args[4]
     spec = commands.spec(kind)
-    if spec.warm is None:
-        return
     try:
-        commands.warm_function(kind)(args)
+        if kind in TABLE_KINDS:
+            warm_star_tables()
+        if spec.warm is not None:
+            commands.warm_function(kind)(args)
     except Exception:
         pass
 
@@ -284,8 +339,10 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
         log.debug(f"Unit {unit} of stage {stage} of run {run_id} was done when RQ failed it ({exc_type.__name__}: "
                   f"{exc_value}); the run goes on.")
         return
+    from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {stage} failed: {exc_type.__name__}: {exc_value}")
+                         error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
+                               f"{exc_type.__name__}: {exc_value}")
 
 
 def horse_killed(job, retpid, ret_val, _rusage):
@@ -297,8 +354,10 @@ def horse_killed(job, retpid, ret_val, _rusage):
     if job.func_name != UNIT_FUNCTION:
         return
     run_id, stage, unit = job.args[:3]
+    from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(job.connection, run_id, "failed",
-                         error=f"unit {unit} of stage {stage} was killed: its worker process {retpid} ended with "
+                         error=f"unit {unit} of stage {wrapper.stage_name(job.connection, run_id, stage)} was killed: "
+                               f"its worker process {retpid} ended with "
                                f"status {ret_val} (the machine may be out of memory)")
 
 

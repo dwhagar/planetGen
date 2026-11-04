@@ -12,6 +12,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
+from planetgen.galaxy import scales
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
@@ -25,15 +26,15 @@ from tests.test_db_persistence import _placed_nebula, _system_point_pc
 @pytest.mark.parametrize("column, expected", [
     (0.0, 500.0), (22.6, 232.0), (100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65)])
 def test_the_no_field_curve_passes_through_the_read_points(column, expected):
-    """The Moon (Chang'E-4), Mars (Hassler 2014) and the proton-primary showers of Atri 2013, as read."""
+    """The Moon (Chang'E-4), Mars [R1843] and the proton-primary showers of [R0187], as read."""
     assert rad.no_field_dose_msv_yr(column) == pytest.approx(expected, rel=1e-9)
 
 
 def test_the_curve_reproduces_the_aviation_point_and_sea_level_and_keeps_mars_in_its_range():
     earth = rad.EARTH_CUTOFF_GV
-    assert rad.gcr_dose_msv_yr(265.0, earth) == pytest.approx(47.9, rel=0.1)  # Roy 2021, 10 km: 5.46 uSv/h
+    assert rad.gcr_dose_msv_yr(265.0, earth) == pytest.approx(47.9, rel=0.1)  # [R3826], 10 km: 5.46 uSv/h
     assert rad.gcr_dose_msv_yr(1033.0, earth) == pytest.approx(0.32, rel=0.1)  # UNSCEAR 2008 sea level
-    assert 128.0 <= rad.gcr_dose_msv_yr(22.5) <= 420.0  # Guo 2015, Mars at 22.5 g/cm2
+    assert 128.0 <= rad.gcr_dose_msv_yr(22.5) <= 420.0  # [R1730], Mars at 22.5 g/cm2
     assert rad.gcr_dose_msv_yr(122.7) == pytest.approx(444.0, rel=0.01)  # the Pfotzer maximum, log interpolation
 
 
@@ -127,7 +128,7 @@ def test_the_modulation_scales_the_dose():
 
 def test_proxima_bs_thin_air_breaks_the_flare_shield():
     """GEN.747: the measured events give the Sun 265 mSv/yr in free space; Proxima's flares scale it by the square root of their rate and the
-    inverse square of the distance. A tenth of a bar lets 11 Sv a year through (Atri 2017: 5 to 10 Sv from one hard event at 700 g/cm2 or less),
+    inverse square of the distance. A tenth of a bar lets 11 Sv a year through ([R0183]: 5 to 10 Sv from one hard event at 700 g/cm2 or less),
     and a bar of air stops all but a few mSv."""
     free = rad.free_sep_msv_yr(2100.0 * 0.0485 ** 2, 0.0485)
     column = rad.column_g_cm2(10132.5, 1.07)
@@ -206,8 +207,8 @@ def test_the_uv_proxies_are_gone():
 def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air():
     from planetgen.physics import body_radiation
 
-    with deterministic_entropy(3):
-        draw.set_run_seed(3)
+    with deterministic_entropy(2):    # a seed whose system holds several rocky planets (the architecture leaves some systems bare)
+        draw.set_run_seed(2)
         system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
     checked = 0
     for body in _bodies(system):
@@ -270,7 +271,9 @@ def _bodies(system):
 
 def test_every_generated_body_has_a_consistent_dose():
     seen = {"rocky": 0, "giant": 0, "ozone": 0}
-    for seed in range(12):
+    for seed in range(80):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none and 24 held none once the draws moved
+        if seen["rocky"] > 10 and seen["giant"] > 0:
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -282,13 +285,26 @@ def test_every_generated_body_has_a_consistent_dose():
             seen["rocky"] += 1
             assert body.dose_helio_mult == 1.0
             assert body.surface_dose_msv_yr == pytest.approx(
-                body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr)
+                body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr + body.dose_belt_msv_yr)
+            assert body.dose_belt_msv_yr >= 0 and (body.dose_belt_msv_yr == 0 or body.is_moon)
             assert body.dose_gcr_msv_yr > 0 and body.dose_ground_msv_yr > 0
             assert isinstance(body.ozone_loss_flag, bool)
             assert (body.ozone_column_du > 0.0) == (atmosphere.partial_kpa(body, "o2") > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
-            assert body.uv_surface_index is None or body.uv_surface_index > 0
+            assert body.uv_surface_index is None or body.uv_surface_index >= 0.0
+            assert body.uv_surface_index != 0.0 or body.atmospheric_pressure > 0.0     # a dose of exactly 0 is an opaque air (a dense vapour air passes no UV), never a bare body
     assert seen["rocky"] > 10 and seen["giant"] > 0
+
+
+def test_a_star_with_no_galaxy_placement_is_rated_where_a_system_with_no_place_is_taken():
+    """GEN.785: the column is filled for every star; one placed nowhere takes the distance a system with no place is taken at."""
+    class Unplaced:
+        galactic_center_dist_ly = None
+
+    star = Unplaced()
+    activity.set_galactic_hazard(star)
+    assert star.lethal_event_rate_per_gyr == pytest.approx(activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly()))
+    assert star.lethal_event_rate_per_gyr > 0.0
 
 
 def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
@@ -325,45 +341,6 @@ def test_a_real_world_gets_a_finite_ground_dose_that_follows_the_rock_of_its_gro
             rad.generate_dose(body)
         doses[ground] = body.dose_ground_msv_yr
     assert 0.0 < doses["ultramafic"] < doses["felsic"] < float("inf")
-
-
-def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
-    """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
-    body = _rocky_world_with_air()
-    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
-    with deterministic_entropy(1):
-        rad.generate_dose(body)
-    before, uv_before = body.ozone_column_du, body.uv_surface_index
-    assert before == pytest.approx(300.0)
-    rad.apply_air_loss(body, 0.5)
-    assert body.ozone_column_du == pytest.approx(150.0)
-    assert body.uv_surface_index > uv_before
-
-
-def test_an_air_loss_that_keeps_all_of_the_air_changes_nothing_and_one_that_keeps_none_leaves_no_ozone(monkeypatch):
-    body = _rocky_world_with_air()
-    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
-    with deterministic_entropy(1):
-        rad.generate_dose(body)
-    uv = body.uv_surface_index
-    rad.apply_air_loss(body, 1.0)
-    assert body.ozone_column_du == pytest.approx(300.0) and body.uv_surface_index == pytest.approx(uv)
-    rad.apply_air_loss(body, 0.0)
-    assert body.ozone_column_du == 0.0 and body.uv_surface_index > uv
-
-
-def test_the_ozone_after_an_air_loss_is_held_between_none_and_all_of_it():
-    from planetgen.physics import ozone
-    assert ozone.column_after_air_loss(300.0, 0.5) == 150.0
-    assert ozone.column_after_air_loss(300.0, 1.7) == 300.0
-    assert ozone.column_after_air_loss(300.0, -0.2) == 0.0
-    assert ozone.column_after_air_loss(-4.0, 0.5) == 0.0
-
-
-def test_a_body_with_no_ozone_column_is_left_as_it_is_by_an_air_loss():
-    body = types.SimpleNamespace(ozone_column_du=None, uv_surface_index=None)
-    rad.apply_air_loss(body, 0.5)
-    assert body.ozone_column_du is None and body.uv_surface_index is None
 
 
 def _system_with_rocky_worlds():
@@ -413,3 +390,73 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
                    for row in rows)
     finally:
         conn.close()
+
+
+def test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose():
+    """GEN.805: the energy weight of the flare distribution (`flare_alpha`) over 1e33 to 1e36 erg, taken to the square root in the dose."""
+    assert rad.flare_energy_weight(2.0) == 1.0 and rad.flare_energy_weight(None) == 1.0
+    assert rad.flare_energy_weight(1.8) == pytest.approx(2.16, abs=0.02)
+    assert rad.flare_energy_weight(2.2) == pytest.approx(0.54, abs=0.02)
+    assert rad.flare_energy_weight(1.8) > rad.flare_energy_weight(2.0) > rad.flare_energy_weight(2.2)
+    shallow, steep = rad.free_sep_msv_yr(1.0, 0.1, 1.8), rad.free_sep_msv_yr(1.0, 0.1, 2.2)
+    assert shallow > rad.free_sep_msv_yr(1.0, 0.1, 2.0) > steep
+    assert shallow / steep == pytest.approx(math.sqrt(rad.flare_energy_weight(1.8) / rad.flare_energy_weight(2.2)))
+    assert rad.free_sep_msv_yr(1.0, 0.1) == rad.free_sep_msv_yr(1.0, 0.1, 2.0)
+
+
+def test_the_fields_shielding_of_the_flares_is_one_without_a_dipole_and_less_for_a_wider_magnetopause():
+    assert rad.field_shielding(None, "none") == rad.SHIELD_NO_FIELD == 1.0
+    assert rad.field_shielding(10.0, "none") == 1.0 and rad.field_shielding(0.0, "weak") == 1.0
+    assert rad.field_shielding(2.0, "earth-like") == rad.SHIELD_WEAK_FIELD == 0.3
+    assert rad.field_shielding(9.75, "earth-like") == rad.SHIELD_STRONG_FIELD == 0.1
+
+
+def _flared(index, magnetopause_rp, dipole_class, column=1.0, hazard=None):
+    star = types.SimpleNamespace(lethal_event_rate_per_gyr=hazard)
+    return types.SimpleNamespace(star=star, ozone_column_du=column, flare_irradiation_index=index, magnetopause_rp=magnetopause_rp,
+                                 dipole_class=dipole_class)
+
+
+def test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not():
+    """The design note section 2.3: flare irradiation index times f_B at 300; Proxima b about 2,100 and Earth 0.003."""
+    assert rad.ozone_lost(_flared(2100.0, None, "none"))
+    assert rad.ozone_lost(_flared(2100.0, 2.0, "earth-like"))                 # 630 even through a squeezed field
+    assert not rad.ozone_lost(_flared(2100.0, 9.0, "earth-like"))               # 210 through a wide one
+    assert not rad.ozone_lost(_flared(0.003, None, "none"))
+    assert rad.ozone_lost(_flared(300.0, None, "none")) and not rad.ozone_lost(_flared(299.0, None, "none"))
+    assert not rad.ozone_lost(_flared(2100.0, None, "none", column=0.0))        # nothing to lose
+    assert rad.ozone_lost(_flared(0.0, None, "none", hazard=rad.LETHAL_EVENT_LIMIT_PER_GYR * 2))      # the galaxy's events
+    assert not rad.ozone_lost(_flared(None, None, None))
+
+
+def _world_with_air():
+    for seed in range(80):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for body in _bodies(system):
+            if body.body_type == "t" and (body.atmospheric_pressure or 0.0) > 0.0 and (body.atmosphere or {}) and not body.is_moon:
+                body.draw_seed = seed
+                if atmosphere.partial_kpa(body, "o2") > 0.0 and body.star.temperature:
+                    return body
+    raise AssertionError("no seed gave a rocky world with oxygen")
+
+
+def test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet():
+    """GEN.808: the flag lowers the stored column and the DNA-weighted UV index of the surface follows it."""
+    body = _world_with_air()
+    body.star.lethal_event_rate_per_gyr = 0.0
+
+    body.magnetic_moment_a_m2, body.magnetopause_rp, body.dipole_class = 0.0, None, "none"
+
+    def run(index):
+        body.flare_irradiation_index = index
+        draw.set_run_seed(808)
+        rad.generate_dose(body)
+        return body.ozone_loss_flag, body.ozone_column_du, body.uv_surface_index
+
+    quiet = run(0.0)
+    flared = run(2100.0)
+    assert quiet[0] is False and flared[0] is True
+    assert flared[1] == pytest.approx(quiet[1] * rad.OZONE_LOSS_REMAINING)
+    assert flared[2] > quiet[2]

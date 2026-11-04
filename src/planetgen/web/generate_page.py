@@ -49,6 +49,7 @@ import contextlib
 import contextvars
 import json
 import os
+import threading
 import time
 from typing import Annotated
 from urllib.parse import urlsplit
@@ -58,6 +59,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 
 from pydantic import Field, TypeAdapter, ValidationError
 
+from planetgen.admin import cachebuild
 from planetgen.queue import api_jobs, progress_rate, redisqueue, roughtime, runline, runrecord, runview
 from planetgen.queue.commands import DEEP_CHECKS, STAGED_COMMANDS
 from planetgen.web import limit_sliders
@@ -79,6 +81,7 @@ from planetgen.generation.limits import (
 )
 
 from . import bp, jobs
+from .admin_pages import came_from, safe_next
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 # ---------------------------------------------------------------------
@@ -115,7 +118,7 @@ goes, step by step (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
 PLACE_TABS = (
     ("random", "A random populated spot", "Picks a spot at random where stars are dense enough and generates around it."),
     ("sector", "A named sector", "Find a filled sector by name, pick it from the list, or type its ID."),
-    ("address", "A sector address", "Shell, band and wedge, as the Galaxy Map shows them. "
+    ("address", "A sector address", "Shell, band, and wedge, as the Galaxy Map shows them. "
                                     "The sector there is generated first if it isn't yet."),
     ("position", "A position (pc)", "Galaxy-frame x, y and z in parsecs (the center is 0, 0, 0; "
                                     "z is height above the plane). The sector holding that point is the center."),
@@ -159,7 +162,7 @@ PHENOMENA_LABEL = "Scatter the phenomena"
 
 BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
 """str: The galaxy-wide scatter threshold field (GEN.30), on New galaxy,
-Plan and Rebuild the bright stars."""
+Plan, and Rebuild the bright stars."""
 
 """str: The step that pre-places every bright star
 (`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
@@ -1003,14 +1006,14 @@ def _build_job_steps(action, form, edge_pc=None, database=None):
         label = "Bring the galaxy to the running generator epoch"
         return "bring_to_epoch", label, [{"label": label, "argv": generate + ["bring-to-epoch"]}]
     if action == "finish_run":
-        # PERF.182: the command carries on the run the page just read, then the steps of the job it was part of that
-        # never started (a stopped New galaxy goes on to link, settle and the rest).
+        # PERF.182: the command carries on the run the page just read. A job is one run (PERF.203), so what never started
+        # is stages of that run, and the run's own record carries them on.
         found = finish_status(database)
         if found["error"]:
             raise FormError(found["error"] + " Nothing was changed.")
         label = f"Finish the last run: {found['title']}"
         finish = {"label": label, "argv": generate + ["finish-run", "--run", found["run"]]}
-        return "finish_run", label, [finish, *found["later"]]
+        return "finish_run", label, [finish]
     if action == "check_db":
         deep = bool(form.get("deep"))
         argv = generate + ["check-db"] + (list(DEEP_CHECKS) + ["--yes"] if deep else [])
@@ -1074,7 +1077,9 @@ def _galaxy_summary(database):
         summary["shells"] = apiclient.get_shell_specs(database)
         summary["version_warning"] = apiclient.get_version_warning(database)
         summary["sectors"] = apiclient.get_sectors(database, limit=1, offset=0)["total"]
-    except (apiclient.ApiError, apiclient.NotFoundError) as exc:
+    except (apiclient.ApiError, apiclient.NotFoundError, cachebuild.CacheRebuilding) as exc:
+        # CacheRebuilding: a run or rebuild is on and the shape's cache is not ready (admin/cachebuild.py); the console
+        # must stay usable then, since it is where the run is watched.
         summary["error"] = str(exc)
     return summary
 
@@ -1088,7 +1093,7 @@ def _edge_pc(action, form, database):
         return None
     try:
         shape = apiclient.get_galaxy_shape(database)
-    except (apiclient.ApiError, apiclient.NotFoundError) as exc:
+    except (apiclient.ApiError, apiclient.NotFoundError, cachebuild.CacheRebuilding) as exc:
         log.error(f"Generate page: no galaxy shape for a center position: {exc}")
         return None
     return (shape or {}).get("edge_pc")
@@ -1467,7 +1472,9 @@ def generate():
                 activity_log.event("GEN", "job.cancel", user=admin.get("username"), job=job_id)
         except OSError as exc:
             log.error(f"Could not cancel job {job_id}: {exc}")
-        return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
+        # Cancel on a job's own page returns to the page the admin came from (`next`, set by `generate_job`).
+        target = safe_next(request.form.get("next"), default=url_for("web.generate", _anchor="current-job"))
+        return _no_store(redirect(target, code=303))
 
     if action in ("discard_queued", "start_queued"):
         ticket = request.form.get("ticket") or None
@@ -1617,9 +1624,9 @@ def epoch_status(database):
 def finish_status(database):
     """
     What "Finish the last run" would do (PERF.182), read from the run record: `{"error": None, "run", "title",
-    "stopped_in", "carried", "again", "later"}` (the id and title of the run that stopped, the stage it stopped in, the
-    stages it finished and keeps, the stages that run now, and the later steps of the Generate job it was part of that
-    never started), or `{"error": ...}` saying why there is nothing to carry on. It changes nothing but the record of a
+    "stopped_in", "carried", "again"}` (the id and title of the run that stopped, the stage it stopped in, the stages it
+    finished and keeps, and the stages that run now: those the run never started among them), or `{"error": ...}` saying
+    why there is nothing to carry on. It changes nothing but the record of a
     run whose process is gone, which it marks stopped. The build is checked by the command, not here.
     """
     try:
@@ -1631,15 +1638,8 @@ def finish_status(database):
         log.error(f"Generate page: the last run could not be read: {exc}")
         return {"error": f"The last run could not be read: {exc}"}
     run, labels = found.run, [step.label for step in found.steps]
-    later = []
-    if run.get("job") and jobs.JOB_ID_RE.match(run["job"]):
-        try:
-            remaining = jobs.remaining_steps(run["job"])
-        except OSError:
-            remaining = None
-        later = remaining[1][1:] if remaining else []
     return {"error": None, "run": run["id"], "title": run["title"], "stopped_in": labels[found.stopped],
-            "carried": labels[:found.first], "again": labels[found.first:], "later": later}
+            "carried": labels[:found.first], "again": labels[found.first:]}
 
 
 def _require_bringable(database):
@@ -1670,6 +1670,29 @@ def _stored_seed(database):
         return None
 
 
+SHAPE_ANSWERS_KEPT = 32
+"""int: How many answers of the shape report the page keeps."""
+
+_shape_answers = {}
+_shape_lock = threading.Lock()
+
+
+def _shape_preview(argv, seed):
+    """`plan_outline.preview(argv, galaxy_seed=seed)`, kept (TEST.219): it takes 3 to 10 s warm and a minute or more cold on a
+    busy machine, the page asks again at every change of a dial (400 ms after the last), and a page that is closed leaves
+    its asks running. An ask for dials already worked out is answered at once, one still being worked out is waited for
+    rather than worked out a second time, and a refusal (`ValueError`) is raised afresh, not kept."""
+    key = (tuple(argv), seed)
+    with _shape_lock:
+        found = _shape_answers.get(key)
+        if found is None:
+            found = plan_outline.preview(argv, galaxy_seed=seed)
+            while len(_shape_answers) >= SHAPE_ANSWERS_KEPT:
+                del _shape_answers[next(iter(_shape_answers))]
+            _shape_answers[key] = found
+        return found
+
+
 @bp.route("/admin/generate/shape-report")
 def generate_shape_report():
     """
@@ -1686,7 +1709,7 @@ def generate_shape_report():
         return _no_store(make_response(jsonify({"error": str(exc)}), 400))
     seed = _stored_seed(db_name())
     try:
-        made, refusal = plan_outline.preview(argv, galaxy_seed=seed)
+        made, refusal = _shape_preview(argv, seed)
     except ValueError as exc:
         return _no_store(make_response(jsonify({"error": str(exc)}), 400))
     return _no_store(jsonify({"line": made.line(), "warnings": made.warnings, "refusal": refusal,
@@ -1865,6 +1888,7 @@ def generate_job(job_id):
         breadcrumbs=[crumb("Admin", "admin"), crumb("Generate", "generate"), crumb(job["title"] or "Job")],
         admin=admin,
         job=_job_view(job),
+        back_url=safe_next(request.args.get("next"), default="") or came_from(request.path),
         runs=job_runs(job_id),
         output=jobs.log_tail(job_id, max_bytes=256 * 1024, root=root),
     ))

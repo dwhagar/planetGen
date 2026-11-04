@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<p class="hint">Your <a href="{{ page_url('preferences') }}">Preferences</a> (the Galaxy Map's settings) are kept in this browser.</p>
 <section class="panel">
   <h2>Username and password</h2>
   <p class="signed-in">{% if admin.avatar %}<img class="avatar" src="{{ admin.avatar }}" alt="Your picture" width="48" height="48">{% endif %}Signed in as <strong>{{ admin.username }}</strong>.</p>
@@ -38,7 +39,7 @@
   {%- if avatar.message %}
   <p class="hint" role="status">{{ avatar.message }}</p>
   {%- endif %}
-  <p>A PNG, JPEG, ICO or GIF, an animated GIF too, up to {{ max_avatar_kb }} KB, 1024 by 1024 pixels and 100 frames at most. The site keeps a clean copy of the picture without the comments and other details a file can carry.</p>
+  <p>A PNG, JPEG, ICO, or GIF, an animated GIF too, up to {{ max_avatar_kb }} KB, 1024 by 1024 pixels, and 100 frames at most. The site keeps a clean copy of the picture without the comments and other details a file can carry.</p>
   <form method="post" action="{{ url_for('web.account_avatar') }}" enctype="multipart/form-data" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="next" value="{{ next_url }}">

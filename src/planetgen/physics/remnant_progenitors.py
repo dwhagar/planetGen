@@ -6,7 +6,7 @@ Which massive stars leave a black hole and which a neutron star (GEN.554; docs/d
 
 Every star born with 8 to 150 solar masses (`tuning.CORE_COLLAPSE_MASS_RANGE_SOL`) ends as one or the other, and which
 depends on the star's initial mass in windows, not at one cut: "islands of 'explodability' in a sea of black hole
-formation" (Sukhbold et al. 2016). The share of the massive stars that fail to explode and leave a black hole is the
+formation" [R4251]. The share of the massive stars that fail to explode and leave a black hole is the
 galaxy's failed share (`black_hole_formation.failed_share`); the windows are the initial masses that make up that share:
 
 * the two verified islands of `tuning.EXPLOSION_FAILURE_ISLANDS_SOL` (23 to 25 and 35 to 45 solar masses), shrunk about
@@ -37,8 +37,8 @@ _BISECTIONS = 60
 
 
 def reference_failed_share():
-    """The failed share of a draw with no galaxy around it: the solar share of the reference structure, the middle of the
-    draws (`black_hole_formation.middle_failed_shares`)."""
+    """The failed share of a draw with no galaxy around it: the solar share of the reference structure, from its draws
+    (`black_hole_formation.reference_failed_shares`)."""
     from planetgen.galaxy import structure   # a late import: the structure imports the physics of the shares
     return structure.REFERENCE_STRUCTURE.black_hole_solar_share
 

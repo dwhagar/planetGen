@@ -7,6 +7,7 @@ two halves of `browse.py`), and `/search` (was `search.py`).
 """
 
 import re
+from urllib.parse import urlencode
 
 from flask import abort, flash, get_flashed_messages, redirect, request, url_for
 
@@ -79,7 +80,9 @@ def _system_row(system, with_sector):
         row.append({"text": system["sector_name"], "href": page_url("sector", sector_id=system["sector_id"])}
                    if system.get("sector_id") else {"text": "Standalone"})
         row.append({"text": system.get("quadrant") or "\u2013"})
-    row.append({"text": "Yes" if system["is_binary"] else "No"})
+    row.append({"text": str(system["star_count"])})
+    row.append({"text": str(system["object_count"])})
+    row.append({"text": "Yes" if system["has_habitable_world"] else "No"})
     row.append({"text": system["star_summary"] or "\u2013"})
     return row
 
@@ -89,13 +92,19 @@ def _facet_options(options, labels=None):
              "count": option["count"]} for option in options]
 
 
+def _system_value_ranges():
+    """The physical-value ranges of the request, read as the search page reads them (UX.227, UX.228): `{entity: {key: (least, most, unit or None)}}`;
+    a bound that is not a number, an inverted range and a unit that does not measure the value are ignored."""
+    return searchpage.SearchState.from_args(request.args).value_ranges()
+
+
 def _all_systems_load(state, limit, offset, want_facets, after=None):
     placement = state.filters["placement"]
     envelope = apiclient.get_systems(
         db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
         binary=_binary_filter(state.filters["binary"]),
         placement=placement[0] if len(placement) == 1 and placement[0] in _PLACEMENT_LABELS else None,
-        octants=state.filters["octant"], facets=want_facets, start=state.start)
+        octants=state.filters["octant"], facets=want_facets, start=state.start, ranges=_system_value_ranges())
     facets = None
     if want_facets:
         facets = {
@@ -110,8 +119,9 @@ def _all_systems_load(state, limit, offset, want_facets, after=None):
 
 ALL_SYSTEMS_TABLE = tables.register(Table(
     "systems", "All systems",
-    [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"), Column("binary", "Binary"),
-     Column("star_type", "Star type", sortable=False)],
+    [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"),
+     Column("stars", "Stars"), Column("objects", "Objects", sortable=False),
+     Column("habitable", "Habitable world", sortable=False), Column("star_type", "Star type", sortable=False)],
     _all_systems_load,
     facets=[Facet("placement", "Where"), Facet("binary", "Stars"), Facet("octant", "Octant")],
     prefix="systems_", noun=("system", "systems"), keyset=True, jump={"name": "A letter or the start of a name", "sector": "A sector name or its first letters"},
@@ -205,13 +215,13 @@ def index():
     return render_page(
         "index.html",
         title="Home",
-        description="Every sector, star system and phenomenon in this charted galaxy.",
+        description="Every sector, star system, and phenomenon in this charted galaxy.",
         counts=[{"total": envelope["total"], "capped": bool(envelope.get("total_capped")), "url": url,
                  "noun": nouns[0] if envelope["total"] == 1 and not envelope.get("total_capped") else nouns[1]}
                 for envelope, nouns, url in counts],
         tools=[{"label": "Galaxy Map", "hint": "Fly through the whole galaxy.", "url": page_url("galaxy")},
                {"label": "Navigate", "hint": "Plan a route between two places.", "url": page_url("nav")},
-               {"label": "Search", "hint": "Find a sector, system, star, planet or moon by name.",
+               {"label": "Search", "hint": "Find a sector, system, star, planet, or moon by name.",
                 "url": page_url("search")}],
     )
 
@@ -235,10 +245,18 @@ def systems():
     outside any sector) are a filter on the list (UX.55). `?uncharted=1`
     lists the scattered stars no system was built around instead (UX.87)."""
     show_uncharted = request.args.get("uncharted") == "1"
+    value_groups, value_chips = [], []
     if show_uncharted:
         table = tables.render(UNCHARTED_SYSTEMS_TABLE, request.path, anchor="all-systems", keep=("uncharted",))
     else:
-        table = tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems")
+        pairs, changed = searchpage.tidy_value_args(request.args, searchpage.ENTITY_NAMES)
+        if changed:
+            return redirect(f"{request.path}?{urlencode(pairs)}#all-systems" if pairs else f"{request.path}#all-systems")
+        kept = {key: value for key, value in request.args.items() if key in searchpage.VALUE_FIELDS}
+        table = tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems", keep=tuple(kept), **kept)
+        state = searchpage.SearchState.from_args(request.args)
+        value_groups = searchpage.value_form(state)
+        value_chips = searchpage.value_chips(state.value_ranges(), list(request.args.items(multi=True)), request.path, anchor="#all-systems")
     return render_page(
         "systems.html",
         title="Uncharted stars" if show_uncharted else "Systems",
@@ -246,6 +264,7 @@ def systems():
         breadcrumbs=[crumb("Systems", "systems"), crumb("Uncharted stars")] if show_uncharted else [crumb("Systems")],
         description="Every star system in this charted galaxy.",
         all_systems=table,
+        value_groups=value_groups, value_chips=value_chips,
         show_uncharted=show_uncharted,
         uncharted_url=page_url("systems", uncharted="1", _anchor="all-systems"),
         systems_url=page_url("systems", _anchor="all-systems"),
@@ -332,7 +351,7 @@ def generate_uncharted_system(bright_star_id):
 @bp.route("/search")
 @page_limit("search")
 @slow_route("Search", breadcrumbs=lambda: [crumb("Search")],
-            description="Search this charted galaxy by name, size and type.")
+            description="Search this charted galaxy by name, size, and type.")
 def search():
     """
     Faceted search (was `search.py`): `?q=` searches every kind of name
@@ -349,10 +368,12 @@ def search():
         "search.html",
         title="Search",
         breadcrumbs=[crumb("Search")],
-        description="Search this charted galaxy by name, size and type.",
+        description="Search this charted galaxy by name, size, and type.",
         state=state,
         name_fields=searchpage.NAME_FIELDS,
         size_entities=searchpage.SIZE_ENTITIES,
+        value_groups=searchpage.value_form(state),
+        star_choices=searchpage.STAR_COUNT_CHOICES,
         autocomplete=data["autocomplete"],
         tag_groups=searchpage.tag_groups(state, data["facets"]),
         chips=searchpage.active_filters(state, data["facet_labels"]),

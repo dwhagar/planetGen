@@ -17,7 +17,7 @@ phenomenon and other pages use to link a class label here.
 from flask import abort
 from markupsafe import Markup
 
-from planetgen.web.lib import habitability_ref, property_help
+from planetgen.web.lib import habitability_ref, help_registry, life_help, property_help  # noqa: F401  (each registers its help page)
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp
@@ -56,7 +56,7 @@ def classes():
         title="Classes",
         section="classes",
         breadcrumbs=[crumb("Classes")],
-        description="Every class of star, planet, nebula and other object this galaxy survey assigns.",
+        description="Every class of star, planet, nebula, and other object this galaxy survey assigns.",
         rows=rows,
         population=_population_links(),
     )
@@ -74,6 +74,29 @@ def _population_links():
     return links
 
 
+@bp.route("/help")
+def help_index():
+    """The help index: every help page of `web/lib/help_registry.py` under its category, with the pages beneath it (the class types, the
+    life topics and the life classes) read from the program's tables."""
+    groups = []
+    for category in help_registry.categories():
+        topics = []
+        for topic in category["topics"]:
+            topics.append({
+                "label": topic.label, "summary": topic.summary, "url": page_url(topic.endpoint),
+                "children": [{"label": child.label, "summary": child.summary, "url": page_url(child.endpoint, **child.values)}
+                             for child in help_registry.children(topic)]})
+        groups.append({"title": category["title"], "summary": category["summary"], "slug": category["slug"], "topics": topics})
+    return render_page(
+        "help_index.html",
+        title="Help",
+        section="help",
+        breadcrumbs=[crumb("Help")],
+        description="Every help page: the classes, the properties, the habitability ratings, and the kinds of life.",
+        groups=groups,
+    )
+
+
 @bp.route("/help/habitability")
 def habitability_levels():
     """UX.90, UX.180: what the equipment levels and PHI-6 colours on the planet pages mean. The symbols, life scores
@@ -83,7 +106,7 @@ def habitability_levels():
         title="Habitability",
         section="help",
         breadcrumbs=[crumb("Habitability")],
-        description="What the equipment levels, the Blue to Red domain colours and the Habitable chips mean.",
+        description="What the equipment levels, the Blue to Red domain colors and the Habitable chips mean.",
         **habitability_ref.page(),
     )
 
@@ -97,9 +120,50 @@ def property_help_page():
         title="Properties",
         section="help",
         breadcrumbs=[crumb("Properties")],
-        description="Where the orbit, heat, spin, field, ring and life values on a star, planet or moon page come from.",
+        description="Where the orbit, heat, spin, field, ring, and life values on a star, planet, or moon page come from.",
         **property_help.page(),
     )
+
+
+def _life_help_href(topic, number=None):
+    """The address of a life help page (`life_help.page`'s `href`)."""
+    if number is not None:
+        return page_url("life_help_class", number=number)
+    return page_url("life_help_page") if topic == "kinds" else page_url("life_help_topic", topic=topic)
+
+
+def _render_life_help(topic, number=None):
+    built = life_help.page(topic, number, _life_help_href)
+    if built is None:
+        abort(404)
+    return render_page(
+        "life_help.html",
+        title=built["title"],
+        section="help",
+        breadcrumbs=[crumb("Life", "life_help_page")] + ([crumb(built["title"])] if built["topic"] != "kinds" else []),
+        description=built["description"],
+        page=built,
+    )
+
+
+@bp.route("/help/life")
+def life_help_page():
+    """DOC.84: the four kinds of life (microbes, flora, fauna, sentient life), with links to the pages on the scales, the stages and the classes."""
+    return _render_life_help("kinds")
+
+
+@bp.route("/help/life/<topic>")
+def life_help_topic(topic):
+    """DOC.84: one page of the life help: `abundance`, `trend`, `security`, `suitability`, `stages` or `classes`."""
+    if topic == "kinds":
+        abort(404)
+    return _render_life_help(topic)
+
+
+@bp.route("/help/life/classes/<int:number>")
+def life_help_class(number):
+    """DOC.84: one life class (1 to 9): what it drinks, eats, breathes and gives off, where it can live and how sure we are."""
+    return _render_life_help("classes", number)
 
 
 @bp.route("/classes/<type_slug>")

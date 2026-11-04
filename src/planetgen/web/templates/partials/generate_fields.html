@@ -1,6 +1,6 @@
 {#- planetgen/web/templates/partials/generate_fields.html -- the Generate page's field macros (imported `with context`
     by generate_task.html): number boxes, the limit sliders (UX.116), the scatter limits, prevalence, star mix and
-    overrides. Each is drawn once per task page. Every text, number and choice box and every tick box is the one form
+    overrides. Each is drawn once per task page. Every text, number, and choice box and every tick box is the one form
     field (UX.125, partials/ui_fields.html: a Shoelace element with a plain twin in a <noscript>); the sliders, whose
     box is a native number input that limitsliders.js drives, and the radio choices stay native. -#}
 {% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
@@ -85,7 +85,7 @@
 </details>
 {%- endmacro -%}
 {#- GEN.188, UX.116: the scatter limits wherever the scatter is set up (Plan and New galaxy): the galaxy-wide ones
-    first, then a segment each for the core, the halo and the crowded cells. -#}
+    first, then a segment each for the core, the halo, and the crowded cells. -#}
 {%- macro scatter_limits(id, skip_id=none) -%}
 <div class="search-fields scatter-limits">
   {{ mass_limit_slider(id) }}
@@ -168,7 +168,7 @@
   </div>
   <fieldset class="generate-mode" data-star-mix>
     <legend>Star mix</legend>
-    <p class="hint">How many systems have one star, a close binary or a wide pair. These three must total exactly 100%:
+    <p class="hint">How many systems have one star, a close binary, or a wide pair. These three must total exactly 100%:
     raise one when you lower another.</p>
     <div class="search-fields">
       {%- for name, label, usual in star_mix_fields %}
@@ -199,7 +199,7 @@
     the draft being shown again already holds a value for them. -#}
 {%- macro advanced_sector_inputs() -%}
 <details class="generate-advanced"{% if advanced_open %} open{% endif %}>
-  <summary>Advanced: prevalence, star mix and minimums</summary>
+  <summary>Advanced: prevalence, star mix, and minimums</summary>
   {{ prevalence_inputs() }}
   {{ directive_inputs() }}
 </details>

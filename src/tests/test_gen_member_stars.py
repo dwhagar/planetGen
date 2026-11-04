@@ -109,6 +109,33 @@ def test_system_detail_lists_every_star_and_the_scene_keeps_the_member_off_the_p
         conn.close()
 
 
+def test_system_detail_carries_the_orbit_tree_and_where_each_star_hangs(mysql_config):
+    """MAP.213: the detail lists the `orbit_nodes` in node order and each star's node and slot, so a page can name what an orbit joins."""
+    conn, _system, system_id = _saved(mysql_config, True)
+    try:
+        detail = query.system_detail(conn, system_id)
+        assert [(node["node_no"], node["parent_node_no"]) for node in detail["orbits"]] == [(0, 1), (1, None)]
+        assert [(star["parent_node_no"], star["slot"]) for star in detail["stars"]] == [(0, 0), (0, 1), (1, 1)]
+        assert all(node["separation_km"] > 0 and node["period_years"] > 0 for node in detail["orbits"])
+    finally:
+        conn.close()
+
+
+def test_a_single_star_has_no_orbits_in_its_detail(mysql_config):
+    from planetgen.generation.config import SystemConfig
+    cfg = SystemConfig()
+    cfg.BINARY_SYSTEM = False
+    system = StarSystem(system_config=cfg)
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = store.insert_star_system(conn, system, cfg)
+        conn.commit()
+        detail = query.system_detail(conn, system_id)
+        assert detail["orbits"] == [] and detail["stars"][0]["parent_node_no"] is None
+    finally:
+        conn.close()
+
+
 def test_a_sector_lists_all_three_stars_in_order(mysql_config):
     system, cfg = binary(False)
     with_member(system, cfg)
@@ -193,3 +220,43 @@ def test_the_system_page_and_its_map_draw_a_system_of_three(web_app, mysql_confi
     response = web_app.test_client().get(f"/system/{pid('system', system_id)}")
     assert response.status_code == 200
     assert member_name in response.get_data(as_text=True)
+
+
+def test_the_system_page_lists_the_orbits_of_a_system_of_three(web_app, mysql_config):
+    """MAP.213: a triple's page has an "Orbits of the stars" panel with a row for the inner pair and one for the orbit about it."""
+    import re
+    from tests.publicids import pid
+    system, cfg = binary(True, planets=False)
+    with_member(system, cfg)
+    sector = SpaceSector("Orbit Page Sector", edge_ly=10.0)
+    sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
+    sector_id = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+        names = [row["name"] for row in conn.execute("SELECT name FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+    finally:
+        conn.close()
+    html = web_app.test_client().get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
+    panel = re.search(r'<section class="panel" id="system-orbits".*?</section>', html, re.S)
+    assert panel, "no orbits panel"
+    assert len(re.findall(r"<tr><td>", panel.group(0))) == 2
+    assert f"{names[0]} and {names[1]}" in panel.group(0) and f"orbit 1 and {names[2]}" in panel.group(0)
+
+
+def test_the_system_page_of_a_single_star_has_no_orbits_panel(web_app, mysql_config):
+    from planetgen.generation.config import SystemConfig
+    from tests.publicids import pid
+    cfg = SystemConfig()
+    cfg.BINARY_SYSTEM = False
+    system = StarSystem(system_config=cfg)
+    sector = SpaceSector("Lone Page Sector", edge_ly=10.0)
+    sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
+    sector_id = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+    finally:
+        conn.close()
+    html = web_app.test_client().get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
+    assert 'id="system-orbits"' not in html

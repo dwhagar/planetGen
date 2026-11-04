@@ -38,14 +38,13 @@ A row that draws an orbiter's mass states it as a ratio to the host's mass where
 planet, a planet to its star), so a draw cannot make an orbiter heavier than its host except through the pair builder,
 where the primary-first step lives (GEN.581). No row has a mass yet; the convention is for the rows U7 adds.
 
-`SATELLITES` and `COMPANIONS` are looked up by name at call time, so a test can swap a table (`reweighted`).
+`SATELLITES` and `COMPANIONS` are looked up by name at call time, so a test can swap a table (`reweighted` in `tests/test_host_tables.py`).
 """
 
 import functools
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 from planetgen.generation import possibility_table as pt
-from planetgen.generation.phenomena import registry
 from planetgen.util import draw
 
 NO_SATELLITES = "no satellites"
@@ -123,11 +122,11 @@ def _star_count_row(count):
     return pt.Row(
         name=f"{count} star{'s' if count > 1 else ''}", classes=tuple(by_class),
         weight=ClassWeight(by_class, _prevalence_for_five_or_more if count >= FIVE_OR_MORE else None),
-        source="docs/design/systems/multistar-and-compact-systems.md 3.3; B-mid and B-early from Moe & Di Stefano 2017 "
+        source="docs/design/systems/multistar-and-compact-systems.md 3.3; B-mid and B-early from [R3108] "
                "(ApJS 230:15) Table 13 (the B-mid and B-early rows)",
         state=pt.PARTLY_VERIFIED,
         limit="the A to M rows are the design note's and were moved here unchanged; they were not rechecked against "
-              "Raghavan 2010 or Duchene & Kraus 2013 when the tables were built",
+              "[R3646] or [R1175] when the tables were built",
         notes="A system of 7 stars may have more (`multistar.TAIL_RATIOS`, to 12); the five-or-more columns are scaled by "
               "the subject's `prevalence`.")
 
@@ -138,8 +137,7 @@ STAR_COUNT = pt.REGISTRY.register(pt.Table(
                 "node and of a star-like object)."))
 
 MILLISECOND_PULSAR_PLANETS = 0.007
-"""float: The chance a millisecond pulsar holds planets: the 0.7% of PSR B1257+12-like systems (Wolszczan & Frail 1992;
-Wolszczan 2012). The magnetars, young pulsars, intermediate-mass and supermassive holes, brown dwarfs, comets and asteroid
+"""float: The chance a millisecond pulsar holds planets: the 0.7% of PSR B1257+12-like systems [R4750, R4751]. The magnetars, young pulsars, intermediate-mass and supermassive holes, brown dwarfs, comets and asteroid
 fields hold none; white dwarfs and stars take their planets from the star model."""
 
 ROGUE_PLANET_MOON = 0.2
@@ -158,7 +156,7 @@ def _no_satellites_weight(table_name):
 REMNANT_SATELLITES = pt.REGISTRY.register(pt.Table(
     "remnant-satellites", 1, [
         pt.Row("planets", ("neutron-star:millisecond",), MILLISECOND_PULSAR_PLANETS,
-               source="Wolszczan & Frail 1992 (Nature 355:145); Wolszczan 2012 (Acta Astronomica 62:3)", state=pt.PARTLY_VERIFIED,
+               source="[R4751] (Nature 355:145); [R4750] (Acta Astronomica 62:3)", state=pt.PARTLY_VERIFIED,
                limit="the 0.7% is the share of known millisecond pulsars with planets; a recalled figure, not "
                      "rechecked against the papers when the tables were built",
                notes="Zone rule: the planet model's orbit ceiling (the object's galactic Hill sphere), "
@@ -187,7 +185,7 @@ MOON_SATELLITES = pt.REGISTRY.register(pt.Table(
     description="Whether a moon holds anything: empty until the tidal-survival row is added."))
 
 REGISTRY_TABLES = {table.name: table for table in (STAR_COUNT, REMNANT_SATELLITES, PLANET_SATELLITES, MOON_SATELLITES)}
-"""dict: The host tables by name; a test swaps one with `monkeypatch.setitem` (`reweighted`)."""
+"""dict: The host tables by name; a test swaps one with `monkeypatch.setitem` (`reweighted` in `tests/test_host_tables.py`)."""
 
 HOSTS = (
     HostClass("group-node", "the stars of a multi-star group", "star-count", None,
@@ -208,12 +206,6 @@ HOSTS = (
 
 BY_NAME = {host.name: host for host in HOSTS}
 """dict: `name` -> its `HostClass`."""
-
-
-def host_of(kind):
-    """The `HostClass` of the registry kind `kind`, or `None` for a kind that hosts nothing (a nebula, a comet)."""
-    name = registry.BY_KIND[kind].host
-    return None if name is None else BY_NAME[name]
 
 
 def _table(name):
@@ -263,9 +255,3 @@ def holds_something(table_name, object_key, rng=draw):
     rows_and_chances = table.probabilities(pt.Subject(object_key))
     chosen = rng.choices([row for row, _p in rows_and_chances], weights=[p for _row, p in rows_and_chances])[0]
     return chosen.name != NO_SATELLITES
-
-
-def reweighted(table, row_name, weight):
-    """A copy of `table` with the row `row_name` given `weight` (a test helper)."""
-    rows = [replace(row, weight=weight) if row.name == row_name else row for row in table.rows]
-    return pt.Table(table.name, table.version, rows, table.components, table.description)

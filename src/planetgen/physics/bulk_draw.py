@@ -14,11 +14,11 @@ body's origin (`origin_of`: formed beyond its star's snow line or not) and its s
    `stellar_abundances`, the same star key its [Fe/H] stream uses) give the number ratios Fe/Mg, Si/Mg, Al/Mg, Ca/Mg, Ni/Mg
    and C/O. A rocky body takes all of the star's Mg, Si, Ca and Al into its rock as oxides and the Fe that its mantle does
    not hold as FeO into its metal core (`dry_partition`). The Earth-like star gives a core mass fraction near 0.3 with no
-   draw, and an iron-rich or iron-poor star moves it, which is the observed trend (Dorn et al. 2015; Santos et al. 2015).
+   draw, and an iron-rich or iron-poor star moves it, which is the observed trend [R1146, R3916].
 2. **What is drawn** is only what the star cannot say, in this order: the kind of rock (`ROCK_KIND_TABLE`, a gated possibility
-   table: silicate, or silicon carbide and graphite for a star with C/O of 0.8 or more, Bond et al. 2010; Unterborn et al.
+   table: silicate, or silicon carbide and graphite for a star with C/O of 0.8 or more, [R0455]; Unterborn et al.
    2014), the water share (a rocky body's from the Bern delivery law by its mass and the snow lines it formed at, `delivered_water`, GEN.849; an
-   icy body's log-uniform over `tuning.ICY_WATER_MASS_FRACTION`), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
+   icy body's log-uniform from `tuning.ICY_WATER_MASS_FRACTION_FLOOR` up to the water share of the solids at its formation temperature, GEN.950), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
    light elements, a small icy body's porosity, a carbon body's graphite, and then the iron branch of a rocky planet (`IRON_BRANCH_TABLE`: its
    iron follows the star's with a scatter, or is enriched, GEN.512). Every range is in `RANGES` with where it comes from.
 3. **Radius from mass.** The mass is fixed and `bulk_structure.structure` gives the radius the composition holds it at. A caller that
@@ -39,14 +39,18 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, delivered_water, elements,
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, delivered_water, elements,
                                hydrosphere, ice_species, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
+from planetgen.physics import unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 SOURCES = {
-    "bond2010": "Bond, O'Brien and Lauretta 2010, ApJ 715, 1050 (planets of stars with C/O above 0.8 are carbon-rich)",
-    "unterborn2014": "Unterborn, Dismukes and Panero 2014, ApJ 793, 124 (carbon-rich interiors: silicon carbide, graphite)",
+    "bond2010": "[R0455] (planets of stars with C/O above 0.8 are carbon-rich)",
+    "unterborn2014": "Unterborn, ApJ 793, 124 (carbon-rich interiors: silicon carbide, graphite)",
 }
 
 RANGES = {
@@ -60,12 +64,12 @@ RANGES = {
 """dict: The drawn ranges.
 
 - `enriched_cmf`: the core mass fraction of the dry part of an iron-enriched planet (`IRON_BRANCH_TABLE`), uniform, floored at
-  the star-matched value; its top is the cap of the observed iron-rich rocky planets (about 0.8, Plotnykov and Valencia 2020).
+  the star-matched value; its top is the cap of the observed iron-rich rocky planets (about 0.8, [R3545]).
 - `rock_feo`: FeO as a mass fraction of the rock, uniform. Earth's bulk silicate has 0.081, the Moon about 0.10, Mars 0.18
-  (Khan and Connolly 2008); Mercury, under 0.01 (Nittler et al. 2011), is outside it: the Mercury-like range belonged to class B,
+  [R2334]; Mercury, under 0.01, is outside it: the Mercury-like range belonged to class B,
   a class the generator no longer draws, and no condition of the body says it is reduced (a stand-in, tier "from needed output").
 - `core_light_elements`: light elements (S, Si, O, C, H) as a mass fraction of the metal, uniform; Earth's core has 0.05 to
-  0.10 (Hirose et al. 2021).
+  0.10 [R1950].
 - `graphite_over_rock`: a carbon body's graphite against its silicon carbide and oxide rock, uniform; a stand-in range until the
   carbon mantle's equation of state (GEN.428's open item) says what the interiors hold.
 - `porosity`: the void share of a small icy body, uniform; a stand-in until viscous compaction (lane K) replaces it.
@@ -81,7 +85,7 @@ iron-rich in a homogeneous sample, an upper limit)."""
 
 DENSITY_BOUNDS_G_CM3 = (0.6, 25.0)
 """tuple: The lowest and highest mean density a terrestrial body can have, g/cm3: ice with the 30 percent porosity of `RANGES` (0.917 times 0.7) and
-pure iron at 20 Earth masses (Seager et al. 2007: about 23 g/cm3). The hard bounds of the plausibility checks."""
+pure iron at 20 Earth masses ([R3992]: about 23 g/cm3). The hard bounds of the plausibility checks."""
 
 MAX_MASS_EARTH = 20.0
 """float: The heaviest terrestrial body, Earth masses (the top of the closed forms)."""
@@ -92,7 +96,7 @@ RADIUS_TOLERANCE = 1.0e-6
 MAX_CMF = 0.9
 """float: The largest core mass fraction (of the dry part) the inverse route returns."""
 CARBON_OVER_OXYGEN = 0.8
-"""float: A star at or above this C/O makes carbon-rich rock (Bond et al. 2010)."""
+"""float: A star at or above this C/O makes carbon-rich rock [R0455]."""
 
 
 class DrawError(ValueError):
@@ -122,11 +126,16 @@ class HostRatios:
 
 
 @functools.lru_cache(maxsize=4096)
-def _ratios(fe_h, age_gy, key):
+def _star_composition(fe_h, age_gy, key):
     draws = stellar_composition.key_draws(key)
-    branch = stellar_abundances.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = stellar_abundances.branch_of(fe_h, age_gy)
     offsets = stellar_abundances.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
-    star = stellar_abundances.composition(fe_h, offsets)
+    return stellar_abundances.composition(fe_h, offsets)
+
+
+@functools.lru_cache(maxsize=4096)
+def _ratios(fe_h, age_gy, key):
+    star = _star_composition(fe_h, age_gy, key)
     ratio = stellar_abundances.number_ratio
     return HostRatios(fe=ratio(star, "Fe", "Mg"), si=ratio(star, "Si", "Mg"), al=ratio(star, "Al", "Mg"),
                       ca=ratio(star, "Ca", "Mg"), ni=ratio(star, "Ni", "Mg"), c_over_o=ratio(star, "C", "O"),
@@ -149,6 +158,19 @@ def metal_ratio_to_solar(star):
     if getattr(star, "metallicity_fe_h", None) is None:
         return 1.0
     return stellar_abundances.metal_ratio_to_solar(_ratios(star.metallicity_fe_h, star.age, star_key(star)).z)
+
+
+def ice_forming_ratios(star):
+    """
+    `(carbon, oxygen)` of `star`: its C and O per atom of the rock-forming metal Mg, over the Sun's, the amounts `comet_ice_budget` and `condensate_shares` scale the
+    carbon oxides and the water with (GEN.595); `None` for a compact remnant, which has no [Fe/H].
+    """
+    fe_h = getattr(star, "metallicity_fe_h", None)
+    if fe_h is None:
+        return None
+    composition = _star_composition(fe_h, star.age, star_key(star))
+    ratio = stellar_abundances.number_ratio
+    return tuple(ratio(composition, element, "Mg") / ratio({}, element, "Mg") for element in ("C", "O"))
 
 
 REMNANT_DISC_RATIOS = HostRatios(fe=0.8, si=0.9, al=0.07, ca=0.06, ni=0.045, c_over_o=2.0, y_envelope=0.25, z=1.0)
@@ -191,14 +213,14 @@ IRON_BRANCH_TABLE = pt.REGISTRY.register(pt.Table(
     "bulk-iron-branch", 1,
     [
         pt.Row("star-matched", IRON_BRANCH_ORIGINS, 1.0 - IRON_ENRICHED_WEIGHT,
-               "Plotnykov, Valencia, Ross et al. 2026 (arXiv:2511.17717) and Brinkman et al. 2024 (arXiv:2409.08361): planet iron follows the host's, 1:1",
+               "[R0541, R3546]: planet iron follows the host's, 1:1",
                state=pt.PARTLY_VERIFIED, tunable=True,
                limit="the slope of planet against star iron is 0.94 (+1.02/-1.07) and 1.3 to 5.6 by fit: consistent with 1:1, not measured; the scatter is an upper limit",
                notes="Fe/Mg of the planet = the star's times 10 to a normal of IRON_SCATTER_DEX; the slope stays 1"),
         pt.Row("iron-enriched", IRON_BRANCH_ORIGINS, IRON_ENRICHED_WEIGHT,
-               "Plotnykov, Valencia, Ross et al. 2026 (arXiv:2511.17717): 1 of 21 planets 2 sigma more iron-rich than its star; Schulze 2021: 1 of 11",
+               "[R3546]: 1 of 21 planets 2 sigma more iron-rich than its star; [R3978]: 1 of 11",
                state=pt.PARTLY_VERIFIED, tunable=True,
-               limit="an upper limit: 0 of 20 distinct (Brinkman 2024) to 5 of 22 (Adibekyan 2021, heterogeneous); mass-radius scatter alone makes about 15 percent of mock samples show one",
+               limit="an upper limit: 0 of 20 distinct [R0541] to 5 of 22 ([R0032], heterogeneous); mass-radius scatter alone makes about 15 percent of mock samples show one",
                notes="core mass fraction uniform 0.5 to 0.8 (RANGES), never below the star-matched value"),
     ],
     description="Whether a rocky planet's iron follows its star's or is enriched (an iron-rich core)."))
@@ -315,9 +337,24 @@ def _snow_ratio(body):
 def _rocky_water(body):
     """A rocky body's water share from the Bern delivery law (`delivered_water`); a body with no mass yet is taken at the middle of the model's masses."""
     mass = getattr(body, "mass", None)
-    mass_earth = mass / constants.EARTH_MASS_TO_KG if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))
+    mass_earth = _kg_to_mearth(mass) if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))
     ratio = _snow_ratio(body)
     return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio)
+
+
+def _icy_water_range(body):
+    """
+    The range of an icy body's water as a share of its mass: from `tuning.ICY_WATER_MASS_FRACTION_FLOOR` up to the share of the solids that
+    is water at the disk temperature of its formation distance (`condensate_shares.water_share_of_solids`; the temperature falls as the
+    square root of the distance, from the water condensation temperature at the star's own snow line).
+    """
+    distance = getattr(body, "formation_distance_au", None)
+    if distance is None:
+        distance = body.distance
+    water_line = condensate_shares.ICE_CONDENSATION_K["H2O"]
+    temperature = min(water_line * math.sqrt(body.star.snow_line_au / distance), math.nextafter(water_line, 0.0))
+    top = condensate_shares.water_share_of_solids(temperature)
+    return min(tuning.ICY_WATER_MASS_FRACTION_FLOOR, top), top
 
 
 def _water_and_ice(body):
@@ -327,7 +364,7 @@ def _water_and_ice(body):
     `None` for a body with no other ice.
     """
     if origin_of(body) == ICY:
-        water = log_uniform(*tuning.ICY_WATER_MASS_FRACTION)
+        water = log_uniform(*_icy_water_range(body))
     else:
         water = _rocky_water(body)
     ice, shares = 0.0, None
@@ -362,7 +399,7 @@ def mass_from_radius(bulk, radius_km, x_fe):
     def radius_at(mass_kg):
         return bulk_structure.structure(bulk, mass_kg, x_fe=x_fe).radius_km
 
-    top_kg = MAX_MASS_EARTH * constants.EARTH_MASS_TO_KG
+    top_kg = _mearth_to_kg(MAX_MASS_EARTH)
     if radius_at(top_kg) < radius_km:
         return top_kg, radius_at(top_kg)
     low, high = math.log(MIN_MASS_KG), math.log(top_kg)
@@ -487,7 +524,7 @@ def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock,
     """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
     part = dry_partition(ratios, feo, light, carbon_rock, graphite)
     x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(body.mass)
     radius_earth = body.radius / constants.EARTH_RADIUS_KM
     wet = water + ice
     cmf = bulk_structure.cmf_from_mass_radius(mass_earth, radius_earth, x_fe, 1.0, high=MAX_CMF)

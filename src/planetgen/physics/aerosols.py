@@ -22,17 +22,21 @@ log-uniform on 0.01 to 1. The steady depth is the particles' mass flux over thei
 correction) summed down the air column, `tau = 3 Q_ext Mdot / (4 rho_p r_eff) integral dz / v_f`, with the particle radius
 log-uniform on 0.05 to 0.3 micron and the density of the Titan tholin (1000 kg/m3). The Titan laws (9.6 at 500 nm) are a test
 target, never a preset. The extinction goes as `lambda^-a` with `a` between 0.97 and 2.34 (aggregates); the absorption follows the
-Khare tholin imaginary index at 450, 550 and 650 nm.
+Khare tholin imaginary index at 450, 550 and 650 nm. The haze is part of the air the temperature is solved with (GEN.851): the fixed point of
+`surface_air.solve` reads `haze_of` at each step, which gives the share of the absorbed sunlight the haze takes (`haze_absorbed_share`, the tholin's
+absorption weighted by the star's blackbody) and the pressure where it takes it (the middle of that deposition, from the top, over the haze's mass), and
+`radiative_convective` puts that share there. The three haze draws come from a stream of their own (`haze_stream_of`) seeded by what is fixed about
+the body before its air (its mass, radius and distance), so the fixed point and `generate_aerosols` make the same haze of the same air.
 
 **Dust (10.3, stand-in).** A dry solid surface lofts dust when the friction velocity is above the threshold; the wind has no source,
 so `u*/u*_t` is log-uniform on 0.3 to 3 and dust exists above 1, with a depth log-uniform on 0.5 to 1.5, grey, a radius of 1.2 to
-1.8 micron, an asymmetry of 0.673 +- 0.081 and the single-scattering albedo of the Wolff 2009 spectra (digitised from its Figures 12
+1.8 micron, an asymmetry of 0.673 +- 0.081 and the single-scattering albedo of the [R4743] spectra (digitised from its Figures 12
 to 14, a labelled stand-in until a table is read).
 
 `aerosol_draw` is one number in [0, 1) that picks every within-bracket optical property (the dust radius and asymmetry, the haze
 exponent), so the stored five values repeat the optics with no other column. Draws come from `rng` (an object with `random()`),
-always four for the cloud, four for the haze, two for the dust and one for `aerosol_draw`, whether or not the body has the aerosol, so one body's draws never
-shift another's.
+always four for the cloud, two for the dust and one for `aerosol_draw`, whether or not the body has the aerosol, so one body's draws never
+shift another's; the three of the haze come from `haze_stream_of`.
 
 Units: Pa, K, kg, m, s; wavelengths in nm.
 """
@@ -42,7 +46,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import air_column, atmospheric_radiation, constants, gases, saturation
+from planetgen.physics import air_column, atmospheric_radiation, constants, gases, saturation, stellar_spectrum
 from planetgen.util import draw
 
 SKIN_FACTOR = 2.0 ** -0.25
@@ -51,7 +55,7 @@ SKIN_FACTOR = 2.0 ** -0.25
 CLOUD_Q_EXT = 2.0
 """float: The extinction efficiency of droplets above a micron (part 06 3.5)."""
 CLOUD_RADIUS_UM = (1.0, 20.0)
-"""tuple: The cloud droplet effective radius range, micron (open; Earth model droplets 10 to 17.5, Groot 2020)."""
+"""tuple: The cloud droplet effective radius range, micron (open; Earth model droplets 10 to 17.5, [R1697])."""
 CLOUD_TAU_FLOOR = 0.1
 """float: The lowest drawn cloud depth (atmosphere-colour.md 10.1)."""
 CLOUD_COVER_RANGE = (0.1, 1.0)
@@ -60,8 +64,8 @@ CLOUD_G = 0.85
 """float: The cloud asymmetry factor of the Monte Carlo reflectance table (part 06 3.10)."""
 CLOUD_OMEGA = 1.0
 """float: The cloud single-scattering albedo of the same table."""
-DRAWS = 11
-"""int: What `draw_aerosols` takes from its stream: four for the cloud, four for the haze, two for the dust, one for `aerosol_draw`."""
+DRAWS = 7
+"""int: What `draw_aerosols` takes from its stream: four for the cloud, two for the dust, one for `aerosol_draw`."""
 
 CONDENSATE_DENSITY_KG_M3 = {
     # part 06 table 2.8: water liquid 997 (recalled), NH3 ice 840 and CH4 ice 490 (virga), CO2 ice 1560 (recalled)
@@ -71,15 +75,15 @@ CONDENSATE_DENSITY_KG_M3 = {
 row in part 06 2.8 and form no cloud until GEN.452 adds the condensate registry."""
 
 HAZE_ONSET_CH4_CO2 = 0.1
-"""float: The CH4/CO2 ratio above which a methane haze forms (Arney 2016; part 06 2.9)."""
+"""float: The CH4/CO2 ratio above which a methane haze forms ([R0156]; part 06 2.9)."""
 HAZE_THICK_CH4_CO2 = 0.2
 HAZE_H2_CUT = 0.1
-"""float: The share of the production left in hydrogen-rich air (DeWitt 2009, about a tenth)."""
+"""float: The share of the production left in hydrogen-rich air ([R1097], about a tenth)."""
 HAZE_H2_FRACTION = 0.3
 """float: The H2 mole fraction above which the air counts as hydrogen-rich (open)."""
 HAZE_YIELD_RANGE = (0.01, 1.0)
 HAZE_KZZ_RANGE_M2_S = (1e2, 1e6)
-"""tuple: K_zz, 1e6 to 1e10 cm2/s (Gao 2018: 1e6 to 1e8; Adams 2019: 1e8 to 1e10)."""
+"""tuple: K_zz, 1e6 to 1e10 cm2/s ([R1512]: 1e6 to 1e8; [R0027]: 1e8 to 1e10)."""
 HAZE_RADIUS_UM = (0.05, 0.3)
 HAZE_DENSITY_KG_M3 = 1000.0
 """float: Titan tholin, 1 g/cm3 (assumed by the haze papers; part 06 2.8)."""
@@ -91,6 +95,13 @@ HAZE_K_550 = (0.057, 0.0256, 0.012)
 """tuple: The Khare tholin imaginary index at 450, 550 and 650 nm (part 06 2.8)."""
 HAZE_OMEGA_550 = 0.87
 """float: The tholin single-scattering albedo at 550 nm for 0.1 micron grains (part 06 2.8: 0.873)."""
+HAZE_AIR_MASS = 2.0
+"""float: STAND-IN (IR13, tier T7, L0): the slant path of sunlight through the haze, the sphere-averaged secant (the starlight is averaged over the
+sphere in the absorbed flux), which turns the absorption optical depth into the share of the sunlight absorbed."""
+HAZE_SHARE_CAP = 0.95
+"""float: The most sunlight a haze may take of the absorbed flux (the radiative-convective model needs the rest to reach the ground)."""
+SUNLIGHT_BANDS_NM = (200.0, 3000.0, 50.0)
+"""tuple: The first and last edge and the width of the bands the star's light is weighted over for the haze's share, nm."""
 LYMAN_ALPHA_CH4_CM2 = 1.8e-17
 """float: The methane cross section at Lyman alpha (recalled), which sets the level the methane is split at."""
 
@@ -102,11 +113,11 @@ DUST_DENSITY_KG_M3 = 2500.0
 """float: The density of a dust grain, kg/m3 (DESIGN: basaltic dust, Mars's is measured at about 2,500 to 3,000)."""
 DUST_Q_EXT = 2.5
 """float: The extinction efficiency of a micrometre grain at 550 nm (DESIGN; 2 to 3 for the sizes of `DUST_RADIUS_UM`)."""
-"""tuple: The dust asymmetry factor and its spread (Wolff 2009)."""
+"""tuple: The dust asymmetry factor and its spread [R4743]."""
 DUST_OMEGA_NM = (300.0, 380.0, 440.0, 460.0, 500.0, 600.0, 700.0, 800.0, 2480.0)
 DUST_OMEGA_R12 = (0.705, 0.705, 0.765, 0.780, 0.825, 0.941, 0.968, 0.965, 0.965)
 DUST_OMEGA_R18 = (0.705, 0.705, 0.772, 0.788, 0.831, 0.945, 0.971, 0.972, 0.972)
-"""The Wolff 2009 single-scattering albedo for a dust radius of 1.2 and 1.8 micron, digitised from its Figures 12 to 14
+"""The [R4743] single-scattering albedo for a dust radius of 1.2 and 1.8 micron, digitised from its Figures 12 to 14
 (accuracy 0.0005 to 0.001); under 440 nm the UV-band mean of 0.67 to 0.74 (partly verified)."""
 
 
@@ -241,21 +252,36 @@ def _viscosity_pa_s(column, temperature_k):
     return (total / weight if weight else 1.5e1) * 1e-6
 
 
-def haze_fall_integral_s_m(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, kzz_m2_s):
-    """`integral dz / v_f` from the ground to `top_pressure_pa`, the time in seconds a grain takes to fall through the air
+def haze_fall(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, kzz_m2_s):
+    """
+    `integral dz / v_f` from the ground to `top_pressure_pa`, the time in seconds a grain takes to fall through the air
     column: the Stokes speed with the Cunningham slip correction, or the eddy speed `K_zz / H` where that is faster (a grain stays aloft where
-    the mixing time `H^2 / K_zz` is shorter than the fall time `H / v`), and hydrostatic `dz = dp / (rho g)`."""
+    the mixing time `H^2 / K_zz` is shorter than the fall time `H / v`), and hydrostatic `dz = dp / (rho g)`.
+
+    Returns:
+        tuple: `(integral_s_m, level_pa)`: the integral, and a function of a share of it, taken down from the top, that gives the pressure where
+        that share of it lies above: the steady haze holds its mass in proportion to the integrand, so its optical depth is spread the same way.
+    """
     pressure, temperature = profile(column, temperature_k, levels=400, decades=min(12.0, math.log10(column.pressure_pa / top_pressure_pa)))
     molar = column.mean_molar_mass_kg_mol
     rho = pressure * molar / (constants.R * temperature)
-    eta = np.array([_viscosity_pa_s(column, t) for t in temperature])
+    by_temperature = {}                                                      # the profile holds the same temperature over many levels
+    eta = np.array([by_temperature[t] if t in by_temperature else by_temperature.setdefault(t, _viscosity_pa_s(column, t)) for t in temperature])
     path = eta / (0.499 * rho * np.sqrt(8.0 * constants.R * temperature / (math.pi * molar)))
     kn = path / radius_m
     slip = 1.0 + 1.257 * kn + 0.400 * kn * np.exp(-1.10 / kn)
     speed = 2.0 / 9.0 * density_kg_m3 * column.gravity_m_s2 * radius_m ** 2 * slip / eta
     scale_height = constants.R * temperature / (molar * column.gravity_m_s2)
     integrand = 1.0 / (rho * column.gravity_m_s2 * np.maximum(speed, kzz_m2_s / scale_height))
-    return float(np.sum(0.5 * (integrand[1:] + integrand[:-1]) * -np.diff(pressure)))
+    cells = 0.5 * (integrand[1:] + integrand[:-1]) * -np.diff(pressure)
+    from_ground = np.concatenate([[0.0], np.cumsum(cells)])
+    total = float(from_ground[-1])
+    log_pressure = np.log(pressure)
+
+    def level_pa(share_from_top):
+        return float(np.exp(np.interp((1.0 - share_from_top) * total, from_ground, log_pressure))) if total > 0.0 else float(pressure[0])
+
+    return total, level_pa
 
 
 def haze_supply_kg_m2_s(column, temperature_k, kzz_m2_s):
@@ -287,19 +313,104 @@ def haze_gate(column):
     return share
 
 
-def draw_haze(column, temperature_k, rng):
-    """`tau_haze`: the steady haze depth at 550 nm. Four draws of `rng` (K_zz, yield, radius, spare) whether or not the air hazes."""
+@dataclass(frozen=True)
+class HazeDraws:
+    """The three draws of a body's haze: the mixing `kzz_m2_s`, the `yield_` of the supply and the grain `radius_m`."""
+
+    kzz_m2_s: float
+    yield_: float
+    radius_m: float
+
+
+@dataclass(frozen=True)
+class Haze:
+    """
+    A body's haze in its air (`haze_of`).
+
+    Attributes:
+        tau (float): The steady haze depth at 550 nm (0 for none).
+        absorbed_share (float): The share of the absorbed sunlight the haze takes, 0 to `HAZE_SHARE_CAP`.
+        pressure_pa (float or None): The pressure it takes it at (`None` for no haze).
+    """
+
+    tau: float
+    absorbed_share: float
+    pressure_pa: object
+
+
+NO_HAZE = Haze(0.0, 0.0, None)
+"""Haze: What an air that makes no haze has."""
+
+
+def haze_stream_of(body):
+    """
+    The stream of the body's haze draws, seeded by what is fixed about the body before its air (its mass, radius and distance, not its class or
+    its temperature, which the air makes), so the fixed point of the air and `generate_aerosols` draw the same haze.
+    """
+    return draw.Stream(f"haze:{body.is_moon}:{body.mass!r}:{body.radius!r}:{body.distance!r}")
+
+
+def draw_haze_draws(rng):
+    """The three draws of a haze (K_zz, yield, radius) from `rng`, whether or not the air hazes."""
     kzz = _log_uniform(rng, *HAZE_KZZ_RANGE_M2_S)
     yield_ = _log_uniform(rng, *HAZE_YIELD_RANGE)
     radius = _log_uniform(rng, *HAZE_RADIUS_UM) * 1e-6
-    rng.random()
+    return HazeDraws(kzz, yield_, radius)
+
+
+def haze_absorbed_share(tau_550, star_temperature_k):
+    """
+    The share of a star's sunlight a haze of depth `tau_550` absorbs on a slant path of `HAZE_AIR_MASS`: the tholin's absorption optical depth
+    at each wavelength (`layers`' own law) over the star's blackbody, `sum w (1 - exp(-air_mass tau_abs))`, capped at `HAZE_SHARE_CAP`.
+    """
+    if tau_550 <= 0.0 or not star_temperature_k or star_temperature_k <= 0.0:
+        return 0.0
+    edges = np.arange(SUNLIGHT_BANDS_NM[0], SUNLIGHT_BANDS_NM[1] + 0.5 * SUNLIGHT_BANDS_NM[2], SUNLIGHT_BANDS_NM[2])
+    weight = stellar_spectrum.blackbody_fraction(edges[:-1], edges[1:], star_temperature_k)
+    centres = 0.5 * (edges[:-1] + edges[1:])
+    absorption = tau_550 * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centres)
+    total = float(np.sum(weight))
+    if total <= 0.0:
+        return 0.0      # a star too cold to send light in these bands (a black hole's Hawking temperature) has no sunlight to absorb
+    share = float(np.sum(weight * -np.expm1(-HAZE_AIR_MASS * absorption)) / total)
+    return min(share, HAZE_SHARE_CAP)
+
+
+def haze_of(partials_pa, gravity_m_s2, temperature_k, draws, star_temperature_k):
+    """
+    The haze of an air: its depth at 550 nm, the share of the absorbed sunlight it takes and the pressure it takes it at (where half of what it takes is
+    taken, from the top, in the haze's mass over the air column), for the draws of the body (`draw_haze_draws`). `NO_HAZE` for an air that does not haze.
+
+    Args:
+        partials_pa (dict): Gas-table formula -> partial pressure at the ground, Pa.
+        gravity_m_s2 (float): The surface gravity.
+        temperature_k (float): The temperature at the ground.
+        draws (HazeDraws): The body's three haze draws.
+        star_temperature_k (float or None): The star's effective temperature (`None`: no sunlight to absorb).
+    """
+    try:
+        column = air_column.from_partials({f: p for f, p in partials_pa.items() if gases.gas(f).rayleigh is not None}, gravity_m_s2)
+    except air_column.EmptyColumn:
+        return NO_HAZE                  # an air of gases with no Rayleigh entry (sodium) is an exosphere, not a column that hazes
+    return haze_in(column, temperature_k, draws, star_temperature_k)
+
+
+def haze_in(column, temperature_k, draws, star_temperature_k):
+    """`haze_of` for an `AirColumn`."""
     gate = haze_gate(column)
     if gate <= 0.0:
-        return 0.0
-    mdot = haze_supply_kg_m2_s(column, temperature_k, kzz) * yield_ * gate
+        return NO_HAZE
+    mdot = haze_supply_kg_m2_s(column, temperature_k, draws.kzz_m2_s) * draws.yield_ * gate
     top = min(column.pressure_pa * 1e-8, 1e-4)
-    fall = haze_fall_integral_s_m(column, temperature_k, radius, HAZE_DENSITY_KG_M3, max(top, 1e-12), kzz)
-    return 3.0 * HAZE_Q_EXT * mdot * fall / (4.0 * HAZE_DENSITY_KG_M3 * radius)
+    fall, level_pa = haze_fall(column, temperature_k, draws.radius_m, HAZE_DENSITY_KG_M3, max(top, 1e-12), draws.kzz_m2_s)
+    tau = 3.0 * HAZE_Q_EXT * mdot * fall / (4.0 * HAZE_DENSITY_KG_M3 * draws.radius_m)
+    if tau <= 0.0:
+        return NO_HAZE
+    share = haze_absorbed_share(tau, star_temperature_k)
+    # Sunlight enters from the top: with the haze's absorption `a` spread as its mass, half the absorbed share is taken above the share `f` of the
+    # mass where 1 - (1 - share)^f = share / 2, so a thick haze takes its light high up and a thin one in the middle of its mass.
+    above = math.log1p(-0.5 * share) / math.log1p(-share) if 0.0 < share < 1.0 else 0.5
+    return Haze(tau, share, level_pa(above))
 
 
 def dust_loading_mg_m3(tau_dust, scale_height_km):
@@ -326,14 +437,15 @@ def draw_dust(dry_surface, rng):
     return depth
 
 
-def draw_aerosols(column, temperature_k, rng, *, dry_surface=True):
+def draw_aerosols(column, temperature_k, rng, haze, *, dry_surface=True):
     """
     The five stored aerosol values of a body.
 
     Args:
         column (AirColumn or None): The air at the level the light is read at (the ground; a giant's 1 bar level). `None` for no air.
         temperature_k (float): The temperature there.
-        rng: An object with `random()`; `DRAWS` draws are taken, the same ten whatever the air.
+        rng: An object with `random()`; `DRAWS` draws are taken, the same seven whatever the air.
+        haze (Haze): The haze of the air (`haze_in` of the body's own `draw_haze_draws`).
         dry_surface (bool): Whether the ground is dry solid (no ocean); only then does the wind loft dust.
     """
     if column is None:
@@ -341,9 +453,8 @@ def draw_aerosols(column, temperature_k, rng, *, dry_surface=True):
             rng.random()
         return NONE
     cloud, cover = draw_cloud(column, temperature_k, rng)
-    haze = draw_haze(column, temperature_k, rng)
     dust = draw_dust(dry_surface, rng)
-    return Aerosols(haze, dust, cloud, cover, rng.random())
+    return Aerosols(haze.tau, dust, cloud, cover, rng.random())
 
 
 def _haze_exponent(draw):
@@ -449,7 +560,9 @@ def generate_aerosols(body):
     if column is None or not temperature:
         return
     dry = body.body_type != "g" and not (getattr(body, "ocean_fraction", None) or 0.0)
-    drawn = draw_aerosols(column, temperature, stream_of(body), dry_surface=dry)
+    star_temperature = getattr(getattr(body, "star", None), "temperature", None)
+    haze = haze_in(column, temperature, draw_haze_draws(haze_stream_of(body)), star_temperature)
+    drawn = draw_aerosols(column, temperature, stream_of(body), haze, dry_surface=dry)
     for field in BODY_FIELDS:
         setattr(body, field, getattr(drawn, field))
 

@@ -4,10 +4,10 @@
 Rock types from a bulk composition: the normative minerals of its oxides, what it melts to, and the ground type of the result (GEN.474, part 1;
 docs/design/composition/surface-composition.md, "Rock types from the oxides").
 
-`surface_composition.GROUND_TYPES` is a library of the Earth's and the Moon's crusts (Hu, Ehlmann and Seager 2012 Table 2): each ground type is a
+`surface_composition.GROUND_TYPES` is a library of the Earth's and the Moon's crusts (Hu, [R2024: Table 2]): each ground type is a
 fixed mineral list. Here the ground type is worked out from the oxides of the body's own mantle:
 
-1. **The norm** (`cipw_norm`). The CIPW norm (Cross, Iddings, Pirsson and Washington 1902) allocates the oxides of a rock to an ideal set of minerals by mass
+1. **The norm** (`cipw_norm`). The CIPW norm (Cross, Iddings) allocates the oxides of a rock to an ideal set of minerals by mass
    balance, in the fixed order of the method: apatite and ilmenite, then orthoclase, albite and anorthite from the alumina, magnetite, then diopside and
    hypersthene from the lime, magnesia and iron; the silica left over is quartz, and a shortage converts hypersthene to olivine, albite to nepheline and
    orthoclase to leucite (and olivine to periclase). Every oxide goes to a mineral: the norm adds up to the oxides given (tested), so a composition that cannot
@@ -20,17 +20,17 @@ fixed mineral list. Here the ground type is worked out from the oxides of the bo
    coefficient, taken as zero).
 3. **The ground type** (`ground_type_of`), from the oxides of the melt or of the rock: anorthositic when the plagioclase is 90 percent or more of the norm
    (IUGS anorthosite), ultramafic when silica is under 45 percent (ultrabasic) or magnesia over 18 percent (komatiite), then by the silica of the total alkali-silica
-   diagram's bands (Le Bas et al. 1986): basic (45 to 52 percent, basaltic), intermediate (52 to 63) and acid (63 or more, felsic).
+   diagram's bands [R0277]: basic (45 to 52 percent, basaltic), intermediate (52 to 63) and acid (63 or more, felsic).
 
 The Earth's oxide analyses are test points and never inputs: the bulk silicate Earth (McDonough and Sun 1995, `mixture_lava.OXIDES`) melted by a tenth is a
-basalt; the upper continental crust (Rudnick and Gao 2014 Table 11) is felsic and the lower crust intermediate; a lunar highland anorthosite is anorthositic.
+basalt; the upper continental crust ([R3842: Table 11]) is felsic and the lower crust intermediate; a lunar highland anorthosite is anorthositic.
 
 Limits. The norm has no hydrous or carbonate minerals, no sulfur and no peralkaline allocation (acmite and sodium metasilicate): a rock whose alkalis exceed its
 alumina is refused. The melt is a staged allocation, not a phase-equilibrium calculation (MELTS or pMELTS would give the real liquid at a pressure; the real
 first melts of a peridotite are alkaline and richer in the pyroxene's magnesium than the stage mix gives); the iron split between minerals is proportional
-(one Fe/(Fe+Mg) for all the mafic minerals, so the norm's olivine is not as magnesian as a real one). The ground type has no mixed or sedimentary rocks. Nothing in generation calls this
-yet: the wiring step has the surface draw take the primary and secondary crust from the stored mantle through here and replaces the fixed assemblages of `GROUND_TYPES`
-with the norm of the crust, the library remaining the calibration.
+(one Fe/(Fe+Mg) for all the mafic minerals, so the norm's olivine is not as magnesian as a real one). The ground type has no mixed or sedimentary rocks. Wired (GEN.474): the surface draw
+takes the volcanic (secondary) crust of a body from its stored mantle through `rock_oxides`, `partial_melt` and `ground_type_of`; the library of `GROUND_TYPES` stays as the
+assemblages of the types and as the calibration.
 """
 
 import math
@@ -81,7 +81,7 @@ ULTRABASIC_SILICA = 45.0
 KOMATIITE_MAGNESIA = 18.0
 BASIC_SILICA = 52.0
 ACID_SILICA = 63.0
-"""float: The silica bands of the total alkali-silica diagram (Le Bas et al. 1986: ultrabasic under 45, basic to 52, intermediate to 63, acid above) and the
+"""float: The silica bands of the total alkali-silica diagram ([R0277]: ultrabasic under 45, basic to 52, intermediate to 63, acid above) and the
 18 percent magnesia of a komatiite. [Stand-in RT2, tier T2, tweak L0.]"""
 
 INCOMPATIBLE_D = 0.0
@@ -168,10 +168,6 @@ def cipw_norm(oxides):
     return {name: units[name] * _mass(name, iron) for name in MINERALS if units[name] > 0.0}
 
 
-def mafic_share(norm):
-    """The share of the norm that is mafic: diopside, wollastonite, hypersthene, olivine, periclase and the iron-titanium oxides."""
-    total = sum(norm.values())
-    return sum(norm.get(name, 0.0) for name in ("diopside", "wollastonite", "hypersthene", "olivine", "periclase", "magnetite", "hematite", "ilmenite")) / total
 
 
 @finite_domain()
@@ -225,10 +221,24 @@ def batch_enrichment(melt_fraction, partition=INCOMPATIBLE_D):
 
 
 @finite_domain()
+def rock_oxides(feo_fraction, al2o3_fraction, mg_si_ratio, ca_over_mg):
+    """
+    The oxides of a rock the generator stores as a few numbers, in weight percent adding to 100: `MgO` and `SiO2` in the molar `mg_si_ratio` (Mg/Si), `CaO` at `ca_over_mg` Ca atoms
+    per Mg atom (the star's), and `Al2O3` and `FeO` as the given mass fractions of the whole rock. The alkalis, titanium and phosphorus are not stored and are zero (the norm then
+    has anorthite for its feldspar and no orthoclase or albite).
+    """
+    if not (0.0 <= feo_fraction and 0.0 <= al2o3_fraction and feo_fraction + al2o3_fraction < 1.0 and mg_si_ratio > 0.0 and ca_over_mg >= 0.0):
+        raise ValueError("the oxide fractions must be non-negative and leave room for the rest of the rock, with Mg/Si positive")
+    mgo, sio2, cao = _MASS["MgO"], _MASS["SiO2"] / mg_si_ratio, ca_over_mg * _MASS["CaO"]
+    rock = (mgo + sio2 + cao) / (1.0 - feo_fraction - al2o3_fraction)
+    parts = {"SiO2": sio2, "MgO": mgo, "CaO": cao, "Al2O3": al2o3_fraction * rock, "FeO": feo_fraction * rock}
+    return {oxide: 100.0 * mass / rock for oxide, mass in parts.items()}
+
+
+@finite_domain()
 def ground_type_of(oxides):
     """
-    The ground type the oxides make, one of `anorthositic`, `ultramafic`, `basaltic`, `intermediate` or `felsic` (the generator's ground types of the same names;
-    `intermediate` has no row in `surface_composition.GROUND_TYPES` yet).
+    The ground type the oxides make, one of `anorthositic`, `ultramafic`, `basaltic`, `intermediate` or `felsic` (the generator's ground types of the same names).
     """
     norm = cipw_norm(oxides)
     total = sum(oxides.values())

@@ -8,7 +8,7 @@ Regression tests for the orbital-motion feature (docs/TODO.md's
 the primary-mass-aware `period` formula (Kepler's third law using the
 actual body a planet/moon orbits, not always the star), and
 `planetPhysics.generate_orbital_motion_properties`/
-`tidal_spin.locking_time_s` (real tidal-despinning physics decides
+`body_spin.evolve` (real tidal-despinning physics decides
 whether a moon is tidally locked, not a flat probability -- see [5.11.1]).
 Also covers the later position/speed follow-up: `Planet.position_x/y/z`/
 `orbital_speed_kms`, derived from the orbital elements above via
@@ -35,11 +35,17 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import spin, tidal_spin
+from planetgen.physics import spin
 from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
+from tests.tide_support import locking_time_s, rocky
 
 N_SYSTEMS = 20
+
+
+def _rocky(**fields):
+    """A rocky body with the stored content and mantle draws the tide's Love number and Q read (GEN.955), from keyword fields."""
+    return rocky(fields.pop("mass"), fields.pop("radius"), **fields)
 
 
 def _generate_systems_with_moons(n=N_SYSTEMS):
@@ -140,7 +146,7 @@ def _spin_rate(period_hours):
 
 def test_moon_tidal_lock_is_not_universal(bodies):
     """
-    Real tidal physics (`tidal_spin.locking_time_s`) decides
+    Real tidal physics (`body_spin.evolve`) decides
     locking, not a flat probability -- across many independently
     generated moons (spanning a wide range of mass/radius/distance/
     primary-mass/system-age combinations), that should produce both
@@ -160,22 +166,22 @@ def test_tidal_locking_timescale_matches_real_earth_moon_order_of_magnitude():
     bounded -- this formula is an order-of-magnitude estimate (fixed
     Q/k2), not a precision calculation.
     """
-    moon = types.SimpleNamespace(distance=384400 / pc.AU_TO_KM, mass=7.342e22, radius=1737.4, body_type="t")
+    moon = _rocky(distance=384400 / pc.AU_TO_KM, mass=7.342e22, radius=1737.4, body_type="t")
     earth_mass_kg = 5.972e24
-    t_lock_years = tidal_spin.locking_time_s(moon, earth_mass_kg, moon.distance * pc.AU_TO_M, _spin_rate(10.0)) / pc.SECONDS_PER_YEAR
+    t_lock_years = locking_time_s(moon, earth_mass_kg, moon.distance * pc.AU_TO_M, _spin_rate(10.0)) / pc.SECONDS_PER_YEAR
     assert 1e6 < t_lock_years < 5e8
 
 
 def test_tidal_locking_timescale_increases_with_distance_and_decreases_with_primary_mass():
-    close = types.SimpleNamespace(distance=0.001, mass=1e22, radius=1500, body_type="t")
-    far = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500, body_type="t")
-    t_close = tidal_spin.locking_time_s(close, 6e24, close.distance * pc.AU_TO_M, _spin_rate(10.0))
-    t_far = tidal_spin.locking_time_s(far, 6e24, far.distance * pc.AU_TO_M, _spin_rate(10.0))
+    close = _rocky(distance=0.001, mass=1e22, radius=1500, body_type="t")
+    far = _rocky(distance=0.01, mass=1e22, radius=1500, body_type="t")
+    t_close = locking_time_s(close, 6e24, close.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_far = locking_time_s(far, 6e24, far.distance * pc.AU_TO_M, _spin_rate(10.0))
     assert t_far > t_close
 
-    moon = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500, body_type="t")
-    t_light_primary = tidal_spin.locking_time_s(moon, 1e23, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
-    t_heavy_primary = tidal_spin.locking_time_s(moon, 1e26, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
+    moon = _rocky(distance=0.01, mass=1e22, radius=1500, body_type="t")
+    t_light_primary = locking_time_s(moon, 1e23, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_heavy_primary = locking_time_s(moon, 1e26, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
     assert t_heavy_primary < t_light_primary
 
 
@@ -188,7 +194,7 @@ def test_generate_orbital_motion_properties_locks_a_close_moon_around_an_old_sys
     regardless of which candidate period the random draw lands on.
     """
     star = types.SimpleNamespace(age=5.0)
-    moon = types.SimpleNamespace(
+    moon = _rocky(
         is_moon=True, body_type="t", distance=0.0005, mass=5e20, radius=800,
         period=0.001, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
@@ -205,7 +211,7 @@ def test_generate_orbital_motion_properties_does_not_lock_a_far_moon_around_a_yo
     regardless of which candidate period the random draw lands on.
     """
     star = types.SimpleNamespace(age=1.0)
-    moon = types.SimpleNamespace(
+    moon = _rocky(
         is_moon=True, body_type="t", distance=0.05, mass=5e22, radius=2000,
         period=5.0, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
@@ -220,13 +226,13 @@ def test_a_close_in_planet_locks_to_its_star():
     """GEN.104: a planet takes the tidal-locking branch like a moon -- a
     tiny body hugging a star for 100 Gyr turns once per orbit, upright."""
     star = types.SimpleNamespace(age=100.0)
-    planet = types.SimpleNamespace(
+    planet = _rocky(
         is_moon=False, body_type="t", distance=0.0005, mass=5e20, radius=800,
         period=0.001, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(planet, primary_mass_kg=6e30)
     assert planet.rotation_period_hours == pytest.approx(planet.period * pc.SECONDS_PER_YEAR / 3600)
-    assert planet.axial_tilt_deg == 0.0
+    assert 0.0 < planet.axial_tilt_deg <= min(planet.orbital_inclination_deg, 180.0 - planet.orbital_inclination_deg)    # GEN.1165: Cassini state 1, not exactly 0
 
 
 def test_period_uses_the_actual_primary_not_always_the_star(bodies):

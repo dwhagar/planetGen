@@ -30,7 +30,9 @@
 #      warns; bulk generation refuses to start until the next update has
 #      fetched it (GEN.590). Every file's https URL is printed with what
 #      happened to it (fetched, kept, failed and why), so the output says
-#      where each piece comes from (GEN.600).
+#      where each piece comes from (GEN.600). Then the data of the References
+#      pages (`scripts/build_reference_pages.py`, DOC.88), built from the
+#      reference list and the stand-in registry; a failure only warns.
 #   4. `planetgen check-math`: the math check (TEST.68). A failure only
 #      warns (repeated at the end). Generation does not run it (PERF.170); the
 #      admin page can run it any time.
@@ -62,16 +64,18 @@
 # At the end it reloads what serves the site when that is running (OPS.8, OPS.29): Apache
 # (after its own configtest; restarted only when step 6 just installed mod_wsgi), the
 # planetgen-gunicorn unit on Linux, or the launchd gunicorn daemon on macOS, then checks
-# that /api/health answers. A failed step ends the update non-zero and prints the command
-# to run by hand; nothing running prints the command and ends zero. A reload aborts a
+# that /api/health answers, at config.json's api_base_url and nowhere else (OPS.86: no address is guessed; with none configured the
+# update stops before it changes the database). A failed step ends the update non-zero and prints the command
+# to run by hand; a reload that worked but whose /api/health probe never got a good answer only warns and the site opens; nothing running prints the command and ends zero. A reload aborts a
 # mod_wsgi request still running after about 4 seconds; touching src/html/wsgi.py does not.
 #
-# After the steps it starts building the site's caches in the background
-# (`planetgen warm`, MAP.134, PERF.104 and PERF.127): the Galaxy Map's opening
-# view, the lists, the sector, system and phenomenon pages and the search, so
-# the first visit after the update is fast. Each part is its own command, run
-# in order by the wrapper, and the log has a line for each; the update does not
-# wait for it.
+# Once the code, the database, the permissions and Redis are in place it starts building
+# the site's caches (`planetgen warm`, MAP.134, PERF.104 and PERF.127) in two stages, each in the
+# foreground with a progress bar: stage 1 builds only the opening phase (the cluster field, the object index, the
+# opening views, the first page of each list), what the reload and the health check need, then it waits 5 seconds
+# (UPDATE_SETTLE_SECONDS), reloads, waits 10 seconds (HEALTH_SETTLE_SECONDS) and checks /api/health; stage 2 is the
+# full warm-up (the sector, system and phenomenon pages, the search and the rest), which the update waits for, showing
+# its bar, so the reload cannot interrupt it.
 #
 # Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo
@@ -228,12 +232,17 @@ log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
 ensure_update_guard required
+# OPS.86: the address the update asks whether the site answers is config.json's api_base_url; missing, it stops here
+# (before the database is touched) and says so, instead of falling back to a loopback address.
+resolve_api_health || { log_error "set api_base_url in config.json, then run the update again."; exit 1; }
+log_info "The API address (api_base_url in config.json) is ${API_HEALTH_URL%/health}; the update asks only that address."
 
 echo
 UPDATE_STEP="step 3/9, checking the NLTK words corpus and the downloaded data"
 log_stage 3 9 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
+build_reference_pages
 
 echo
 UPDATE_STEP="step 4/9, checking the generator's math"
@@ -245,6 +254,7 @@ UPDATE_STEP="step 5/9, migrating the database"
 log_stage 5 9 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
+warm_shape_means
 
 echo
 UPDATE_STEP="step 6/9, checking Apache's modules"
@@ -270,6 +280,9 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
     || log_warning "the log setup didn't finish (see above); the update carries on."
 
+# Set the secret key if none is (never printed); as Apache's user so the web app can read it.
+set_secret_key
+
 echo
 UPDATE_STEP="step 9/9, checking that the web app imports"
 log_stage 9 9 "Checking that the web app imports"
@@ -281,9 +294,6 @@ ensure_redis
 check_redis_settings
 
 echo
-warm_galaxy_map
-
-echo
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     log_warning "the math check failed (step 4): charted data may be wrong until it is fixed."
@@ -291,11 +301,18 @@ fi
 if [[ "$DATASETS_MISSING" == 1 ]]; then
     log_warning "some data sets could not be downloaded (step 3): bulk generation refuses to start until they are."
 fi
+if [[ "${REFERENCE_PAGES_FAILED:-0}" == 1 ]]; then
+    log_warning "the References pages could not be built (step 3): /references may show old numbers."
+fi
 log_info "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
 log_info "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     log_notice "Done. Nothing new was pulled."
 else
+    UPDATE_STEP="building what the reload and the health check need (cache warm-up, stage 1)"
+    run_warm_stage "stage 1 of 2, what the reload and the health check need" opening
+    echo "The update steps are finished: waiting ${UPDATE_SETTLE_SECONDS:-5} seconds before reloading the site."
+    sleep "${UPDATE_SETTLE_SECONDS:-5}"
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
     reload_status=0
     reload_web_if_running || reload_status=$?
@@ -309,8 +326,22 @@ else
         log_error "Done, but the site was not reloaded cleanly (see the warning above); the old code may still be serving."
         print_reload_commands >&2
         exit 1
+    elif (( reload_status == 3 )); then
+        # The migration finished (step 5) and the reload itself succeeded: only the probe got no good answer, which
+        # can be the address's fault (another virtual host, no https listener) as much as the app's. The site opens.
+        log_warning "the site was reloaded but /api/health did not answer well (see the warning above); the database is migrated and current, so the site is opened. Check it by hand."
     else
         log_notice "Done. Nothing that serves the site is running, so nothing was reloaded. When it is, run:"
         print_reload_commands
     fi
 fi
+
+# Stage 2 (Boss, 11-01 EDT): the full warm-up, after the reload and the health check, so nothing can interrupt it; the
+# update stays up, showing its bar, until it ends. The update is over as far as the site goes (the guard is released and
+# the site opens) before it starts, so the site is not closed for the length of the warm-up.
+if (( UPDATE_GUARD_HELD )); then
+    update_guard end --pid "$$" && UPDATE_GUARD_HELD=0
+fi
+echo
+UPDATE_STEP="building the site's caches (cache warm-up, stage 2)"
+run_warm_stage "stage 2 of 2, the full warm-up"

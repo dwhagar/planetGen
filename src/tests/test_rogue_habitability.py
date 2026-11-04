@@ -37,7 +37,7 @@ def test_an_ocean_under_ice_scores_on_its_own_heat_and_the_ground_dose():
     assert planet.phi4 is not None and 0.0 <= planet.phi4 <= 1.0
     assert planet.tier_temperature == 3 and planet.tier_pressure == 3  # 35 K and 0.3 Pa are Red
     assert planet.eq_body >= 3 and planet.eq_rad_suit > 0  # a hard suit and shielding at best
-    assert not hasattr(planet, "temp_polar_k")  # no star, so no latitude bands
+    assert not hasattr(planet, "band1_mean_k")  # no star, so no latitude bands
     assert (planet.life_microbial, planet.life_flora, planet.life_fauna, planet.life_sentient) == (0, 0, 0, 0)
     assert set(rogue_habitability.ROGUE_FIELDS) <= set(vars(planet))
 

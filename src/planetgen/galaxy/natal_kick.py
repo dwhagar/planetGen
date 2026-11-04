@@ -35,9 +35,11 @@ import functools
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
 
-_KM2_PER_S2_PER_SOLAR_MASS_PER_KPC = constants.G * constants.SOLAR_MASS_TO_KG / constants.KILOPARSEC_M / 1.0e6
+_msun_to_kg = units.converter("Msun", "kg")
+
+_KM2_PER_S2_PER_SOLAR_MASS_PER_KPC = _msun_to_kg(constants.G) / constants.KILOPARSEC_M / 1.0e6
 """float: G in kpc (km/s)^2 per solar mass."""
 _GAMMA2_BISECTIONS = 80
 

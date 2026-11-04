@@ -17,22 +17,22 @@ The recipes are not yet read by the generator, so this change draws nothing diff
 
 | Research item | Rows | New state | Why | Replaced by |
 |---|---|---|---|---|
-| GEN.480 (AR1) envelope, water-rich share, envelope Z | b4 | stand-in | published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent by formation model; decision D1: keep the NGPPS logistic as the labelled MODEL default, bracket 0 to 0.87 | GEN.510 |
-| | e3, e4 | partly verified | the hycean gate (Teq below about 400 K, H2 at most 0.1 wt percent, water at least 10 wt percent) is Madhusudhan 2021; the share is p[b4], a stand-in | GEN.510 |
+| GEN.480 (AR1) envelope, water-rich share, envelope Z | b4 | stand-in | published water-rich shares run from at most 3 percent [R3801] to 87 percent by formation model; decision D1: keep the NGPPS logistic as the labelled MODEL default, bracket 0 to 0.87 | GEN.510 |
+| | e3, e4 | partly verified | the hycean gate (Teq below about 400 K, H2 at most 0.1 wt percent, water at least 10 wt percent) is [R2804]; the share is p[b4], a stand-in | GEN.510 |
 | | e5 | partly verified | bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists | GEN.509 |
 | GEN.481 (AR2) delivery | b1 to b3 | stand-in | the Ortenzi payloads are Earth delivery scenarios; formation distance is not observable; the only function of water against distance is population synthesis (NGPPS, logistic centre 6.1 Earth masses, slope 6.3 per dex, COMPUTED) | GEN.510 |
 | | b5, b6 | stand-in | no ensemble measures sub-percent water (Boss, 1:23 PM EDT, 2026-10-17); rogue water is not a separate draw | GEN.510 |
 | GEN.482 (AR3) redox | a1 | stand-in | the Earth end and the mass slope rest on Solar System bodies; the low-mass end is tunable to the white dwarfs once the scale conversion (core formation against surface magma ocean) is tested | GEN.513 |
 | | a2 (already a stand-in) | stand-in | law fitted to the Moon, Mars and Earth | GEN.513 |
-| | a3, a4 | partly verified | 22 polluted white dwarf values (Doyle 2020, Doyle 2023): centre -1.25, sd 0.45; the sample carries detection and settling selection; the shipped draw is the first tunable row (see section 4) | GEN.513 |
+| | a3, a4 | partly verified | 22 polluted white dwarf values [R1152, R1153]: centre -1.25, sd 0.45; the sample carries detection and settling selection; the shipped draw is the first tunable row (see section 4) | GEN.513 |
 | GEN.483 (AR4) shoreline | d6 | stand-in | only upper limits and one detection (55 Cnc e); the cap is derived as min(supply, vapour, escape) | GEN.511 |
 | GEN.484 (AR5) giant C/O | f7 | partly verified | stellar C/O measured (median 0.47, sd 0.07, N=849); planets 6 of 69 above 0.8 (LExACoM) with a 0.2 to 0.3 method systematic | GEN.516 |
 | GEN.485 (AR6) hot Jupiters | h2, h3 | stand-in | the regime edges are pressure-dependent outputs of equilibrium chemistry, not measurements | GEN.518 |
 | | h4 | partly verified | an empirical Ti threshold between 2350 and 2640 K from N=3 to 6 planets; no population measures Kzz | GEN.519 |
 | GEN.486 (AR7) lava worlds | i6 | partly verified | 2 of 2 molten-dayside ultra-short-period planets keep volatiles (55 Cnc e, TOI-561 b); N=2, Beta(3,1) interval 0.29 to 0.99 | GEN.511 |
-| GEN.487 (AR8) evolved and frost | j1 | partly verified | the runaway gate is Kopparapu 2013; the retained fraction is a design residual in [0, 1] | GEN.511 |
-| | j5 | stand-in | the oxygen-sink fraction is unsourced (Luger and Barnes against Harman 2018 span from 0 to 2400 bar per ocean) | GEN.511 |
-| GEN.488 (AR9) comets | k1 to k3 | stand-in | counts 13/9/3 of 25 are a SNIPPET (Harrington Pinto 2022, Table 4 not read); the target table never tunes to a SNIPPET | GEN.520 |
+| GEN.487 (AR8) evolved and frost | j1 | partly verified | the runaway gate is [R2446]; the retained fraction is a design residual in [0, 1] | GEN.511 |
+| | j5 | stand-in | the oxygen-sink fraction is unsourced (Luger and Barnes against [R1813] span from 0 to 2400 bar per ocean) | GEN.511 |
+| GEN.488 (AR9) comets | k1 to k3 | stand-in | counts 13/9/3 of 25 are a SNIPPET (Harrington [R3535: Table 4] not read); the target table never tunes to a SNIPPET | GEN.520 |
 | | k4, k5 | stand-in | the Solar System population is not a prior for other systems; 2I and 3I lie 1.8 to 3.6 sigma outside the fits | GEN.520 |
 | | k7 (already a stand-in) | stand-in | single-comet species; O2 presence cannot be set from one comet | GEN.520 |
 | GEN.489 (AR10) white dwarfs and pulsars | l1, l2, l3 | stand-in | the exosphere threshold (log10 P = -6 +/- 0.5) is a design constant with no data; the surviving-giant share has upper limits and two detections only | GEN.513 |
@@ -44,13 +44,13 @@ The recipes are not yet read by the generator, so this change draws nothing diff
 | | o3, o4 | stand-in | planetary K is volatile-depleted and only Solar System bodies give the depletion; Th/U calibration is Solar System only | GEN.514 |
 | | o6 | partly verified | the enriched share spans 0.04 to 0.66 (clusters, white dwarf pollution); no single distribution | GEN.514 |
 | GEN.493 (AR14) rotation and saturation | p6 | partly verified | percentile tracks of Tu 2015 (READ); the 0.25/0.5/0.25 weights give way to a uniform percentile | GEN.523 |
-| GEN.494 (AR15) brown dwarfs | g1, g4 | partly verified | type is a function of Teff with published scatter (Kirkpatrick 2021, N=525); the age edge and the 500 to 700 K edge are design choices | GEN.517 |
+| GEN.494 (AR15) brown dwarfs | g1, g4 | partly verified | type is a function of Teff with published scatter ([R2374], N=525); the age edge and the 500 to 700 K edge are design choices | GEN.517 |
 
 Stand-ins that already named a research item now name their builder: a2 (GEN.482 to GEN.513) and k7 (GEN.488 to GEN.520).
 
 ## 3. GEN.501: the NH3 activity factor
 
-The photolysis lifetime of NH3 (`physics/data/photolysis_lifetimes.json`) uses an activity factor of 1.075, the middle of 1.05 to 1.10, settled with the body lane because NH3 absorbs mainly at 170 to 217 nm. The Huebner and Mukherjee 2015 rate tables (Planet. Space Sci. 106, 11-45) are the source that would replace it. The paper was not reachable from this lane, and the `sbpy` package that codes part of the tables (read at version 0.6.0) holds H2O, OH, HCN, CH3OH, H2CO, CO, CO2 and CN but no NH3. So the factor stays the flagged bracket 1.05 to 1.10 with its reasoning, no number changes, and GEN.501 stays open as a data request (the rate table for NH3 from the paper).
+The photolysis lifetime of NH3 (`physics/data/photolysis_lifetimes.json`) uses an activity factor of 1.075, the middle of 1.05 to 1.10, settled with the body lane because NH3 absorbs mainly at 170 to 217 nm. The [R2040] rate tables (Planet. Space Sci. 106, 11-45) are the source that would replace it. The paper was not reachable from this lane, and the `sbpy` package that codes part of the tables (read at version 0.6.0) holds H2O, OH, HCN, CH3OH, H2CO, CO, CO2 and CN but no NH3. So the factor stays the flagged bracket 1.05 to 1.10 with its reasoning, no number changes, and GEN.501 stays open as a data request (the rate table for NH3 from the paper).
 
 ## 4. What this leaves for the builders
 

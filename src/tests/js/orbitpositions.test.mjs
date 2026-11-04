@@ -46,15 +46,55 @@ test("positionsAt places the stars of a wide pair and of a triple where the tree
   }
 });
 
-test("a wide pair's second star is closest at periapsis and relative to the star it goes round (MAP.255)", () => {
+test("a wide pair's stars are closest at periapsis and farthest half a period later (MAP.255)", () => {
   const { scene } = F.orbitPositions.trees.wide;
   const node = scene.tree.nodes[0];
   const periodsToPeriapsis = -node.mean_anomaly_deg / 360 * node.period_years;
-  const at = P.relativeAt(scene, periodsToPeriapsis);
-  assert.equal(at["star:2"].around, "star:1");
-  assert.ok(Math.abs(Math.hypot(...at["star:2"].rel) - 30 * 0.4 * AU_KM) < 1e-6 * AU_KM);
-  const far = P.relativeAt(scene, periodsToPeriapsis + node.period_years / 2);
-  assert.ok(Math.abs(Math.hypot(...far["star:2"].rel) - 30 * 1.6 * AU_KM) < 1e-6 * AU_KM);
+  const apart = (years) => {
+    const at = P.positionsAt(scene, years);
+    return Math.hypot(...at["star:2"].map((c, axis) => c - at["star:1"][axis]));
+  };
+  assert.ok(Math.abs(apart(periodsToPeriapsis) - 30 * 0.4 * AU_KM) < 1e-6 * AU_KM);
+  assert.ok(Math.abs(apart(periodsToPeriapsis + node.period_years / 2) - 30 * 1.6 * AU_KM) < 1e-6 * AU_KM);
+});
+
+test("relativeAt hangs each star from the centre of its node and each node from its parent's, as virtual points (MAP.213)", () => {
+  const { scene } = F.orbitPositions.trees.triple;
+  for (const years of [0, 1.8, 400]) {
+    const at = P.relativeAt(scene, years);
+    assert.deepEqual(Object.keys(at).filter((ref) => at[ref].virtual).sort(), ["node:0", "node:1"]);
+    assert.deepEqual([at["node:1"].around, at["node:0"].around], ["barycenter", "node:1"]);
+    assert.deepEqual(at["node:1"].rel, [0, 0, 0]);
+    assert.deepEqual([at["star:1"].around, at["star:2"].around, at["star:3"].around], ["node:0", "node:0", "node:1"]);
+    // The chain sums to positionsAt's positions, which are Python's.
+    const placed = P.positionsAt(scene, years);
+    const chain = (ref) => {
+      const { around, rel } = at[ref];
+      return around === "barycenter" ? rel : chain(around).map((c, axis) => c + rel[axis]);
+    };
+    for (const ref of ["star:1", "star:2", "star:3"]) {
+      chain(ref).forEach((c, axis) => assert.ok(Math.abs(c - placed[ref][axis]) <= Math.max(1, Math.abs(c) * 1e-9), `${ref} ${axis}`));
+    }
+    assert.equal(Object.keys(placed).some((ref) => ref.startsWith("node:")), false);
+  }
+});
+
+test("a node's paths are its two children's ellipses about its centre, each at the other's share of the separation (MAP.213)", () => {
+  const { scene } = F.orbitPositions.trees.triple;
+  const paths = P.nodePaths(scene, 64);
+  assert.deepEqual(paths.map((path) => [path.ref, path.around]).sort(), [
+    ["node:0", "node:1"], ["star:1", "node:0"], ["star:2", "node:0"], ["star:3", "node:1"]]);
+  const node = scene.tree.nodes[0];
+  const star1 = paths.find((path) => path.ref === "star:1");
+  const star2 = paths.find((path) => path.ref === "star:2");
+  assert.equal(star1.points.length, 65);
+  // At periapsis the pair is a(1 - e) apart, star 2 on 0.25 of it (a quarter of the pair's mass is star 2).
+  const gap = Math.hypot(...star2.points[0].map((c, axis) => c - star1.points[0][axis]));
+  assert.ok(Math.abs(gap - node.separation_km * (1 - node.eccentricity)) < 1e-6 * node.separation_km);
+  assert.ok(Math.abs(Math.hypot(...star2.points[0]) - 0.75 * gap) < 1e-6 * gap);
+  const at = P.relativeAt(scene, 0);
+  const near = (point, target) => Math.hypot(...point.map((c, axis) => c - target[axis]));
+  assert.ok(star2.points.some((point) => near(point, at["star:2"].rel) < 0.2 * node.separation_km));
 });
 
 test("a scene with stars and no tree of orbits is refused (MAP.255)", () => {

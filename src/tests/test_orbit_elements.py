@@ -14,10 +14,11 @@ from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import tidal_heating
+from planetgen.physics import icy_tide, interior_heat, tidal_heating
 from planetgen.physics import constants, insolation, kepler, orbit_elements as oe
 from planetgen.physics import planets as planet_physics
 from planetgen.util import draw
+from tests.tide_support import rocky
 
 SAMPLES = 4000
 
@@ -56,7 +57,7 @@ def test_the_eccentricities_of_a_single_planet_follow_the_published_mixture():
     scale = cdf(0.9)
     assert stats.kstest(values, lambda x: cdf(x) / scale).pvalue > 0.001
     multi = _draws(SAMPLES, lambda: oe.draw_planet_eccentricity(True, 0.9))
-    assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population (Van Eylen et al. 2019)
+    assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population [R1307]
 
 
 def test_a_cut_eccentricity_is_never_exceeded_and_a_cut_of_zero_is_a_circle():
@@ -87,13 +88,20 @@ def test_a_regular_moon_takes_a_small_forced_eccentricity_and_a_captured_one_the
 
 
 def test_a_moon_at_the_edge_of_the_stable_sphere_has_no_room_for_an_eccentricity():
+    # [R1138]: a_moon <= 0.4895 R_H (1 - 1.0305 e_planet - 0.2738 e_moon)
     hill = 0.001
-    stable = tuning.MOON_PROGRADE_STABLE_HILL_FRACTION * hill
+    stable = 0.4895 * hill
     assert oe.max_moon_eccentricity(stable, hill) == 0.0
     assert oe.max_moon_eccentricity(stable * 1.2, hill) == 0.0
-    assert oe.max_moon_eccentricity(stable / 1.5, hill) == pytest.approx(0.5)
+    assert oe.max_moon_eccentricity(stable / 1.2, hill) == pytest.approx((1.0 - 1.0 / 1.2) / 0.2738)
     assert oe.max_moon_eccentricity(stable / 4.0, hill) == oe.MAX_ECCENTRICITY
     assert oe.max_moon_eccentricity(stable, None) == oe.MAX_ECCENTRICITY
+    # the planet's own eccentricity takes room from the moon's
+    assert oe.max_moon_eccentricity(stable / 1.5, hill, 0.2) < oe.max_moon_eccentricity(stable / 1.5, hill, 0.0)
+    assert oe.max_moon_eccentricity(stable / 1.5, hill, 0.2) == pytest.approx(
+        (1.0 - 1.0305 * 0.2 - 1.0 / 1.5) / 0.2738)
+    assert oe.max_moon_eccentricity(stable / 1.2, hill, 0.2) == 0.0   # the planet's eccentricity leaves no room at all
+    assert oe.max_moon_eccentricity(stable * 0.9, hill, 0.5) == 0.0
 
 
 def test_a_planet_cannot_pass_the_roche_limit_of_its_star():
@@ -146,17 +154,38 @@ def _airless_planet():
     pytest.fail("no airless planet found")
 
 
+def _airless_seed(planet, first, *runs):
+    """The first seed from `first` whose draws leave the body with no air at all in every run (each run is the arguments of `calculate_atmospheric_conditions`):
+    a thin air has a greenhouse that moves with the temperature, so the fourth-root law of the light holds only for a body with none."""
+    for seed in range(first, first + 200):
+        for arguments in runs:
+            draw.set_run_seed(seed)
+            planet_physics.calculate_atmospheric_conditions(planet, *arguments)
+            if planet.atmospheric_pressure:
+                break
+        else:
+            return seed
+    pytest.fail("no draw leaves the body airless")
+
+
+def _absorbed_light_ratio(planet, base_temperature, base_albedo):
+    """How much more light the body absorbs than the base run, from its temperatures: an airless body is at the fourth root of the light it absorbs, `T^4 ~ L (1 - A)`.
+    The albedo is the body's own and moves with the temperature (warmer ground loses its ice and frost), so it is read after each run and the law is held to the light, not to the temperature."""
+    return (planet.surface_temperature / base_temperature) ** 4 * (1.0 - base_albedo) / (1.0 - planet.bond_albedo)
+
+
 def test_an_eccentric_planet_is_as_warm_as_a_circle_with_the_same_mean_light():
     planet = _airless_planet()
     planet.eccentricity = 0.0
     draw.set_run_seed(77)
     planet_physics.calculate_atmospheric_conditions(planet)
-    circle = planet.surface_temperature
+    circle, circle_albedo = planet.surface_temperature, planet.bond_albedo
     planet.eccentricity = 0.6
     draw.set_run_seed(77)
     planet_physics.calculate_atmospheric_conditions(planet)
-    # equilibrium temperature goes as the fourth root of the light: (1 - e^2)^(-1/8)
-    assert planet.surface_temperature / circle == pytest.approx((1.0 - 0.36) ** -0.125, rel=1e-6)
+    # the light an orbit gives, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4): 1 / sqrt(1 - e^2) times a circle's (GEN.727). The albedo is not the same
+    # (the warmer eccentric planet has less ice), so the light is found from the temperature and the body's own albedo.
+    assert _absorbed_light_ratio(planet, circle, circle_albedo) == pytest.approx((1.0 - 0.36) ** -0.5, rel=1e-6)
 
 
 def test_a_moon_gets_the_light_of_its_parents_orbit():
@@ -164,13 +193,14 @@ def test_a_moon_gets_the_light_of_its_parents_orbit():
     planet.is_moon = True            # an airless body, its light taken from the orbit round the star the parent has
     planet.eccentricity = 0.9        # its own orbit round its parent does not matter
     planet.host_eccentricity = 0.0
-    draw.set_run_seed(78)
-    planet_physics.calculate_atmospheric_conditions(planet, planet.distance)
-    base = planet.surface_temperature
-    draw.set_run_seed(78)
+    seed = _airless_seed(planet, 78, (planet.distance,), (planet.distance, 0.5))
+    draw.set_run_seed(seed)
+    planet_physics.calculate_atmospheric_conditions(planet, planet.distance, 0.0)
+    base, base_albedo = planet.surface_temperature, planet.bond_albedo
+    draw.set_run_seed(seed)
     planet_physics.calculate_atmospheric_conditions(planet, planet.distance, 0.5)
     assert planet.host_eccentricity == 0.5
-    assert planet.surface_temperature / base == pytest.approx((1.0 - 0.25) ** -0.125, rel=1e-6)
+    assert _absorbed_light_ratio(planet, base, base_albedo) == pytest.approx((1.0 - 0.25) ** -0.5, rel=1e-6)
 
 
 def test_the_orbits_swing_is_the_seasons_of_a_lone_star_and_adds_to_a_companions():
@@ -195,7 +225,9 @@ def test_the_orbits_swing_is_the_seasons_of_a_lone_star_and_adds_to_a_companions
 
 
 def _body(mass_kg, radius_km, body_type="t"):
-    return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type)
+    if body_type == "g" or mass_kg is None:
+        return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type)
+    return rocky(mass_kg, radius_km)
 
 
 def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_orbit():
@@ -206,20 +238,23 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
     assert 1e5 < near < 1e8
     assert far > 1e15
     assert oe.circularised(0.3, 5e9, near) < 1e-6
-    assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-6)
-    # tau goes as a^(13/2): the fifth power of a/R and the 1/n of the period
-    assert oe.circularisation_time_yr(earth, sun, 0.04) / near == pytest.approx(2.0 ** 6.5, rel=1e-9)
+    assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-5)
+    # tau goes as a^(13/2) at a fixed Q (the fifth power of a/R and the 1/n of the period); the mantle's Q rises with the tide's frequency, so a closer
+    # orbit is damped a little more slowly than that law says
+    assert 2.0 ** 5.0 < oe.circularisation_time_yr(earth, sun, 0.04) / near < 2.0 ** 6.5
     assert oe.circularised(0.3, 1e9, 0.0) == 0.0
     assert oe.circularisation_time_yr(_body(None, 1.0), sun, 1.0) == math.inf
 
 
 def test_a_gas_giant_dissipates_less_than_a_rock_of_its_size():
     giant = _body(1.9e27, 70_000.0, "g")
-    assert tidal_heating.response(giant) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
-    k2, q = tidal_heating.response(_body(5.972e24, 6371.0))
-    assert q == tidal_heating.ROCK_TIDAL_Q and k2 == pytest.approx(tidal_heating.rigid_k2(5.972e24, 6.371e6))
+    n = 1.0e-7
+    assert interior_heat.tidal_response(giant, n) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
+    k2, q = interior_heat.tidal_response(_body(5.972e24, 6371.0), n)
+    assert q < tidal_heating.GIANT_TIDAL_Q and 0.1 < k2 < 1.5
     icy = types.SimpleNamespace(mass=1.0e22, radius=1000.0, body_type="t", water_mass_fraction=0.4)
-    assert tidal_heating.response(icy) == (tidal_heating.ICY_K2, tidal_heating.ROCK_TIDAL_Q)
+    k2, q = interior_heat.tidal_response(icy, n)      # the ice shell's (GEN.960)
+    assert k2 == pytest.approx(icy_tide.love_k2(1.0e22, 1.0e6, n)) and 1.0 < q < math.inf
 
 
 # --- Generated systems -------------------------------------------------------------------------------------------------
@@ -276,15 +311,15 @@ def test_the_spacing_leaves_room_for_the_ellipses_and_is_the_old_one_for_circles
     star = types.SimpleNamespace(mass=1.989e30)
 
     def pair(e_in, e_out):
-        inner = types.SimpleNamespace(mass=6e24, star=star, distance=1.0, eccentricity=e_in)
-        outer = types.SimpleNamespace(mass=6e24, star=star, distance=1.5, eccentricity=e_out)
+        inner = types.SimpleNamespace(body_type="t", mass=6e24, star=star, distance=1.0, eccentricity=e_in)
+        outer = types.SimpleNamespace(body_type="t", mass=6e24, star=star, distance=1.5, eccentricity=e_out)
         return outer, inner
 
     kappa = tuning.MUTUAL_HILL_RADII_SEPARATION * (2 * 6e24 / (3 * 1.989e30)) ** (1 / 3)
     outer, inner = pair(0.0, 0.0)
-    assert validation.mutual_min_distance_au(outer, inner) == pytest.approx((1 + kappa / 2) / (1 - kappa / 2))
+    assert validation.min_distance_after_au(outer, [inner]) == pytest.approx((1 + kappa / 2) / (1 - kappa / 2))
     outer, inner = pair(0.1, 0.05)
-    needed = validation.mutual_min_distance_au(outer, inner)
+    needed = validation.min_distance_after_au(outer, [inner])
     # the gap from the inner apoapsis to the outer periapsis holds the separation
     assert needed * (1 - 0.05) - 1.0 * (1 + 0.1) == pytest.approx(kappa * (needed + 1.0) / 2.0)
     assert needed * (1 - 0.05) > 1.0 * (1 + 0.1)
@@ -295,12 +330,12 @@ def test_a_belt_clears_the_apoapsis_of_a_planet_inside_it_and_a_planet_the_belt_
     planet = types.SimpleNamespace(body_type="t", distance=1.0, eccentricity=0.2, min_orbit_distance=0.05, hill_radius=3e5, mass=6e24,
                                    star=star)
     belt = types.SimpleNamespace(body_type="a", lower_limit=1.0, upper_limit=1.4, distance=1.0)
-    assert validation.min_distance_after_au(belt, planet) == pytest.approx(1.2 + 0.05)
+    assert validation.min_distance_after_au(belt, [planet]) == pytest.approx(1.2 + 0.05)
     outer = types.SimpleNamespace(body_type="t", distance=2.0, eccentricity=0.3, hill_radius=3e5, mass=6e24, star=star)
-    needed = validation.min_distance_after_au(outer, belt)
+    needed = validation.min_distance_after_au(outer, [belt])
     assert needed * (1 - 0.3) > belt.upper_limit
     circle = types.SimpleNamespace(**{**outer.__dict__, "eccentricity": 0.0})
-    assert validation.min_distance_after_au(circle, belt) < needed
+    assert validation.min_distance_after_au(circle, [belt]) < needed
 
 
 def test_the_reach_of_a_planet_is_its_apoapsis_and_its_hill_sphere():

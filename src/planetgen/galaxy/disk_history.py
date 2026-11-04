@@ -13,13 +13,15 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
 
     d(gas)/dt = inflow(t) - (1 - R) * rate(gas),    rate = A * gas^n
 
-1. **The depletion** is the Kennicutt-Schmidt law (Kennicutt 1998, `tuning.STAR_FORMATION_LAW_COEFFICIENT` and
-   `STAR_FORMATION_LAW_EXPONENT`): the star formation per area goes as the gas per area to the 1.4.
+1. **The depletion** is the Kennicutt-Schmidt law ([R2321], `tuning.STAR_FORMATION_LAW_COEFFICIENT` and
+   `STAR_FORMATION_LAW_EXPONENT`): the star formation per area goes as the gas per area to the 1.4, steepened where the
+   gas thins by the factor `(gas / (gas + saturation)) ^ (m - n)` of GEN.450 (`tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2`,
+   `STAR_FORMATION_LOW_DENSITY_EXPONENT`; GEN.999). Without it a thin outer ring spends its gas as fast as a dense one and a
+   Milky Way mass disc ended with a third of the gas it has.
 2. **The return** `R` is the share of a stellar generation's mass that goes back into the gas (`return_fraction`),
-   worked out from the generator's own mass function with the remnant masses of Madau and Dickinson 2014.
+   worked out from the generator's own mass function with the remnant masses of [R2798].
 3. **The inflow** follows the stars the galaxy's halo builds. The halo grows at the mean rate of Fakhouri, Ma and
-   Boylan-Kolchin 2010, and the stars it holds at each age are those of the stellar-to-halo mass relation of Moster,
-   Naab and White 2013, which moves with redshift (`inflow_shape`): the gas comes in at the rate the stars are built.
+   [R0508], and the stars it holds at each age are those of the stellar-to-halo mass relation of [R3181], which moves with redshift (`inflow_shape`): the gas comes in at the rate the stars are built.
    Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's
    density gives it.
 4. **The stars.** The disk's stellar mass (its share of the galaxy's, which the mass chain drew from the seed) spread as
@@ -130,7 +132,7 @@ def _expansion_rate(redshift):
 
 def stellar_to_halo_ratio_at(halo_mass_solar, redshift):
     """
-    The median `M* / Mh` of a halo of `halo_mass_solar` at `redshift` (Moster, Naab and White 2013, eqs. 2 and 11 to
+    The median `M* / Mh` of a halo of `halo_mass_solar` at `redshift` ([R3181], eqs. 2 and 11 to
     14): the present relation of `galaxy.mass_chain`, its four parameters moved by `tuning.STELLAR_TO_HALO_EVOLUTION`
     times `z / (z + 1)`.
     """
@@ -148,7 +150,7 @@ def halo_track(halo_mass_solar, span_gy, steps):
     """
     The halo's mass back in time, over `span_gy` Gy on `steps` equal steps (oldest first, `steps + 1` values) and the
     redshift of each: the mean growth rate `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)` of Fakhouri, Ma and
-    Boylan-Kolchin 2010 (eq. 2) integrated back from today's mass.
+    [R0508] (eq. 2) integrated back from today's mass.
 
     Returns:
         tuple: `(mass, redshift)` arrays.
@@ -224,6 +226,12 @@ def _solve_rings(stars_now, inflow, span_gy):
     coefficient = tuning.STAR_FORMATION_LAW_COEFFICIENT * 1.0e3         # per Gy per pc2, gas in solar masses per pc2
     exponent = tuning.STAR_FORMATION_LAW_EXPONENT
     supply = np.trapezoid(inflow, dx=step_gy)
+    saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2
+    steepening = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - exponent
+
+    def thin_gas(gas):
+        # The index rises where the gas thins (GEN.450, GEN.999): the law's factor (gas / (gas + saturation)) ^ (m - n).
+        return (gas / (gas + saturation)) ** steepening
 
     def run(amplitude):
         # Semi-implicit: the gas used in a step is taken at the step's end, so a ring so dense that it uses its gas
@@ -231,9 +239,9 @@ def _solve_rings(stars_now, inflow, span_gy):
         gas = np.zeros_like(amplitude)
         rate = np.zeros((steps + 1, len(amplitude)))
         for i in range(steps):
-            use = step_gy * keep * coefficient * gas ** (exponent - 1.0)
+            use = step_gy * keep * coefficient * gas ** (exponent - 1.0) * thin_gas(gas)
             gas = (gas + step_gy * amplitude * inflow[i]) / (1.0 + use)
-            rate[i + 1] = coefficient * gas ** exponent
+            rate[i + 1] = coefficient * gas ** exponent * thin_gas(gas)
         return rate, gas
 
     def formed(rate):
@@ -285,7 +293,7 @@ def history(thin_stellar_mass_solar, disk_scale_length_pc, halo_mass_solar, span
 
 def stellar_mass_for_scale_length(disk_scale_length_pc):
     """
-    The stellar mass of the galaxy whose median disk (Shen et al. 2003's size-mass relation for late types) has this
+    The stellar mass of the galaxy whose median disk ([R4048]'s size-mass relation for late types) has this
     scale length, solar masses, held to the mass chain's range. A galaxy with this disk scale length but a size
     drawn off the median differs by a fraction of a dex, which moves the shares by a few percent.
     """
@@ -335,7 +343,7 @@ def _history_of(shape):
 def population_age_laws(shape):
     """
     How each disk population's ages are spread over its window, from the history of the galaxy of this shape (GEN.546):
-    `young`, `intermediate` and `old` to their `AgeLaw`. A population the history does not cover (the bulge, the halo, a
+    `young`, `intermediate` and `old` to their `AgeLaw` (`old` is the thin disc's law mixed with the thick disc's, `thick_ages`, GEN.1025). A population the history does not cover (the bulge, the halo, a
     cluster) has no entry and draws uniformly.
 
     Args:
@@ -344,9 +352,12 @@ def population_age_laws(shape):
     Returns:
         dict: Population name -> `AgeLaw`.
     """
+    from planetgen.galaxy import thick_ages
     found = history_of(shape)
-    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
-    return {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
+    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISC_OLD_WINDOW_GY}
+    laws = {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
+    laws["old"] = thick_ages.old_age_law(shape, laws["old"])    # GEN.1025: the thick disc's stars reach 13 Gy
+    return laws
 
 
 @functools.lru_cache(maxsize=64)
@@ -362,7 +373,7 @@ def population_shares(shape):
         dict: Population name -> share.
     """
     found = history_of(shape)
-    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
+    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISC_OLD_WINDOW_GY}    # GEN.1025: the thin disc's own window
     shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_ARM_AMPLITUDE}
     total = sum(shares.values())
     return {name: value / total for name, value in shares.items()}

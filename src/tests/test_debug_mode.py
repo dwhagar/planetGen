@@ -271,7 +271,7 @@ def test_every_planetgen_command_takes_debug_and_debug_areas():
 
 _STANDALONE = ["backup", "benchmark", "config", "datasets", "forget_devices", "lift_lockout", "lockouts", "maintenance",
                "migrate", "orbits", "query", "reset", "reset_jobs", "reset_two_factor", "species_check",
-               "update_guard", "version_history", "worker"]
+               "update_guard", "version_history", "warm_shape", "worker"]
 
 
 @pytest.mark.parametrize("module", _STANDALONE)

@@ -111,6 +111,45 @@ def test_a_saturated_air_cools_more_slowly_with_height_than_a_dry_one():
     assert np.all(np.isfinite(wet_profile)) and np.all(np.diff(wet_profile) > 0.0)
 
 
+def test_methane_condenses_in_a_cold_hydrogen_air_and_slows_its_cooling_with_height():
+    """GEN.1030: with no water in the air the condensable is methane, whose condensation near 80 K (the clouds of Uranus and Neptune) shallows the adiabat."""
+    methane = rc.Column({"H2": 0.80e5, "He": 0.175e5, "CH4": 0.025e5}, 11.15)
+    plain = rc.Column({"H2": 0.8205e5, "He": 0.1795e5}, 11.15)
+    assert methane.condensable_surface == pytest.approx(0.025) and plain.condensable_surface == 0.0
+    assert methane._saturated(80.0, 1.0e5) and not methane._saturated(100.0, 1.0e5)
+    wet_profile, dry_profile = methane.adiabat(80.0), plain.adiabat(80.0)
+    assert wet_profile[-1] > dry_profile[-1] + 1.0e-6 and np.all(np.isfinite(wet_profile)) and np.all(np.diff(wet_profile) > 0.0)
+
+
+def test_water_takes_the_adiabat_before_methane_in_an_air_with_both():
+    both = rc.Column({"N2": 0.7e5, "H2O": 0.2e5, "CH4": 0.1e5}, 9.81)
+    assert both.condensable_surface == pytest.approx(0.2) and both._saturation is rc.saturation_pressure_pa
+
+
+def test_the_methane_curve_is_the_saturation_module_and_ends_below_the_critical_point():
+    from planetgen.physics import saturation
+    assert float(rc.methane_saturation_pressure_pa(100.0)) == pytest.approx(saturation.pressure_pa("CH4", 100.0), rel=1.0e-3)
+    assert np.isinf(rc.methane_saturation_pressure_pa(rc.METHANE_TABLE_TOP_K + 1.0))
+    assert float(rc.methane_latent_heat_j_mol(110.0)) == pytest.approx(8.2e3, rel=0.05)          # about 8.2 kJ/mol at its boiling point
+
+
+def test_cold_hydrogen_in_ortho_and_para_equilibrium_holds_more_heat_than_hot_hydrogen():
+    cp = rc.equilibrium_hydrogen_cp_over_r
+    assert float(cp(5.0)) == pytest.approx(2.5, abs=1.0e-6)          # all para, no rotation: translation alone
+    assert 4.3 < float(cp(60.0)) < 4.5                                # the rotational bump of the ortho-para conversion
+    assert float(cp(60.0)) > float(cp(100.0)) > float(cp(200.0))
+    assert float(cp(2000.0)) == pytest.approx(3.5, abs=0.02)          # rotation fully excited
+    assert float(cp(200.0)) == pytest.approx(rc.species_thermo.gas("H2").cp_over_r(200.0), rel=0.01)          # joins the NASA fit
+
+
+def test_the_heat_capacity_of_hydrogen_on_the_grid_is_the_equilibrium_one_below_200_k_and_the_fit_above():
+    values = rc._cp_over_r("H2")
+    cold = rc._CP_GRID < rc.EQUILIBRIUM_HYDROGEN_BELOW_K
+    assert values[cold].max() > 4.0 and np.all(np.diff(values[~cold][:20]) > 0.0)
+    assert values[~cold][0] == pytest.approx(rc.species_thermo.gas("H2").cp_over_r(200.0))
+    assert np.all(rc._cp_over_r("N2") == rc._cp_over_r.__wrapped__("N2"))          # no other gas is touched
+
+
 def test_the_adiabat_is_continuous_and_rises_with_the_surface_temperature_across_the_saturation_corner():
     """A step that started on the dry branch and crossed into saturation used to take the saturated slope for its whole length (the top of
     the column came out 10 K too warm just below the corner and then fell). The slope of the top temperature has a kink at the corner, nothing more."""
@@ -145,6 +184,27 @@ def test_the_vapour_can_be_held_fixed_as_a_whole_profile():
     column = rc.Column(EARTHLIKE, 9.81, water_fraction=held)
     assert column.water_profile(np.full(rc.LAYERS, 250.0), 288.0) is column.fixed_water
     assert column.water_profile(np.full(rc.LAYERS, 250.0), 288.0) == pytest.approx(held)
+
+
+# ---- the cloud ----
+
+def test_the_cloud_keeps_in_a_share_of_the_flux_in_proportion_to_the_surface_humidity_and_is_nil_without_vapour():
+    from planetgen.physics import saturation
+
+    assert rc.Column(CARBON, 9.81).cloud_share(288.0) == 0.0
+    at_earths = rc.Column({"N2": 1.0e5 - 1.0e3, "H2O": 1.0e3}, 9.81)
+    humidity = 1.0e3 / saturation.pressure_pa("H2O", 288.0)
+    assert at_earths.cloud_share(288.0) == pytest.approx(rc.CLOUD_LONGWAVE_SHARE * humidity / rc.EARTH_HUMIDITY)
+    assert at_earths.cloud_share(300.0) < at_earths.cloud_share(288.0)                 # a drier surface, less cloud
+    assert at_earths.cloud_share(200.0) == pytest.approx(rc.CLOUD_LONGWAVE_SHARE / rc.EARTH_HUMIDITY)     # a saturated surface, the most
+
+
+def test_the_cloud_warms_the_ground_because_it_keeps_in_a_share_of_the_flux(monkeypatch):
+    clear = rc.solve(EARTHLIKE, 9.81, 240.0)
+    monkeypatch.setattr(rc, "CLOUD_LONGWAVE_SHARE", 0.0)
+    bare = rc.solve(EARTHLIKE, 9.81, 240.0)
+    assert clear.converged and bare.converged
+    assert clear.surface_temperature_k > bare.surface_temperature_k + 3.0
 
 
 # ---- the sunlight aloft ----
@@ -259,3 +319,46 @@ def test_a_haze_that_takes_sunlight_high_up_lowers_the_warming_factor():
 def test_the_factor_never_goes_negative_even_when_the_model_does_not_converge():
     warm = rc.warming({"N2": 5.0e4, "CO2": 1.0e4}, 9.81, 240.0, aloft_share=0.999, aloft_pressure_pa=2.0e3)
     assert warm.factor >= 0.0 and math.isfinite(warm.surface_temperature_k)
+
+
+# ---- the heat capacity of every gas of the table (GEN.852, row IR9) ----
+
+def test_a_gas_the_database_writes_under_another_name_takes_its_nasa_fit():
+    from planetgen.physics import species_thermo
+    ocs = species_thermo.species("COS")
+    low, high = ocs.range_k
+    at = int(np.searchsorted(rc._CP_GRID, 300.0))
+    assert rc._cp_over_r("OCS")[at] == pytest.approx(ocs.cp_over_r(min(max(rc._CP_GRID[at], low), high)))
+    assert rc._cp_over_r("C2H2")[at] == pytest.approx(species_thermo.species("C2H2,acetylene").cp_over_r(rc._CP_GRID[at]))
+
+
+def test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends():
+    cp = rc._cp_over_r("HCl")
+    at = int(np.searchsorted(rc._CP_GRID, 300.0))
+    assert rc._CP_GRID[at] == pytest.approx(300.0)
+    assert cp[at] * rc.R == pytest.approx(29.14, rel=1e-3)
+    assert cp[-1] * rc.R == pytest.approx(31.63, rel=1e-3)
+    assert cp[0] * rc.R == pytest.approx(29.12, rel=1e-3)
+
+
+def test_a_gas_with_no_heat_capacity_at_all_counts_its_atoms():
+    assert rc._cp_over_r("HC3N")[0] == pytest.approx(4.0 + 0.5 * (3 * 5 - 6))
+    assert rc._cp_over_r("NH4Cl")[0] == pytest.approx(4.0 + 0.5 * (3 * 6 - 6))
+
+
+def test_every_gas_of_the_table_has_a_heat_capacity_on_the_grid():
+    import json
+    from planetgen.physics import gases
+    with open(gases.DATA_FILE, encoding="utf-8") as handle:
+        rows = json.load(handle)
+    rows = rows["gases"] if isinstance(rows, dict) else rows
+    assert len(rows) > 100
+    for row in rows:
+        cp = rc._cp_over_r(row["formula"])
+        assert cp.shape == rc._CP_GRID.shape and (cp > 0).all(), row["formula"]
+
+
+def test_an_air_with_carbonyl_sulphide_makes_a_column():
+    column = rc.Column({"N2": 0.8e5, "CO2": 0.1e5, "OCS": 50.0}, 9.8)
+    assert column.cp_dry[0] > 0
+

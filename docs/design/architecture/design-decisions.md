@@ -112,7 +112,7 @@ a CDN.
 - The Galaxy Map's slow part was the JavaScript that lists blocks, not the
   drawing; that work moved to a Web Worker (`galaxyblocks.js`, 7.32.0).
 
-**Rejected (2026-09-30 review):** Babylon.js (several megabytes); deck.gl
+**Rejected (review of 2026-09-30):** Babylon.js (several megabytes); deck.gl
 (needs a bundler); regl or raw WebGPU (picking, sprites and lighting by
 hand). If WebGL runs out, three's own `InstancedMesh`, `BatchedMesh` and
 `WebGPURenderer` come first.
@@ -202,10 +202,10 @@ note). A uniquely named note per PR cannot collide.
 
 **Rejected:** bumping the version inside each PR (the old way).
 
-**Later (2026-10-01, OPS.1):** the version became MAJOR.REVISION.BUILD.
+**Later, on 2026-10-01 (OPS.1):** the version became MAJOR.REVISION.BUILD.
 A `major` note bumps MAJOR, any other note bumps REVISION, and BUILD was the
 sum of the TODO category counters in `docs/plan/todo-number-map.md`
-(Boss: "major feature set.revision.build"). **Changed 2026-10-10:** Boss
+(Boss: "major feature set.revision.build"). **Changed on 2026-10-10:** Boss
 wanted BUILD to change on every stamp, so BUILD is now the previous BUILD
 plus one and never resets; the counters only allocate TODO IDs. See
 `changes/README.md`.

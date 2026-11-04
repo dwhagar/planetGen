@@ -17,7 +17,7 @@ products' generators to continue from. Nothing here needs a draw: every row of t
 
 **The numbers** (section 4.1), all SI. `v_inf` is the relative speed of the stored velocities, `v_esc` the mutual escape
 speed at contact, `v_imp = sqrt(v_inf^2 + v_esc^2)`; `Q_R = 0.5 mu v_imp^2 / M_tot` the specific impact energy and
-`Q*_RD` the catastrophic disruption threshold of Leinhardt and Stewart (2012) for a strengthless planet (c* = 1.9,
+`Q*_RD` the catastrophic disruption threshold of [R2633] for a strengthless planet (c* = 1.9,
 mu_bar = 0.36), at the pair's mass ratio; `x = Q_R / Q*_RD`. A pass whose impact parameter is beyond `b_crit = R_target /
 (R_target + R_projectile)` only overlaps a lens of the projectile, and `Q_R` and `Q*_RD` are then worked out for the
 interacting mass, the projectile's lens fraction `(3 R_p l^2 - l^3) / (4 R_p^3)` of its mass, `l = R_t + R_p - b`.
@@ -58,7 +58,10 @@ from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.physics import planets
 from planetgen.physics import relations
-from planetgen.physics import stellar_abundances
+from planetgen.physics import stellar_abundances, unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
+_mjup_to_kg = units.converter("Mjup", "kg")
 
 KINDS = ("T", "G", "B", "S", "X")
 """tuple: The kinds of body section 5.1 names."""
@@ -224,8 +227,8 @@ def _survivor(body, mass_kg, radius_m, position_m, velocity_ms, flags=(), kind=N
 
 
 def _fusion(survivor, z, parents, flags, records):
-    mass_sol = survivor.mass_kg / constants.SOLAR_MASS_TO_KG
-    deuterium_kg = stellar_abundances.deuterium_burning_limit_mj(z) * constants.JUPITER_MASS_TO_KG
+    mass_sol = _kg_to_msun(survivor.mass_kg)
+    deuterium_kg = _mjup_to_kg(stellar_abundances.deuterium_burning_limit_mj(z))
     hydrogen_sol = stellar_abundances.hydrogen_burning_limit_sol(z)
     if abs(mass_sol / hydrogen_sol - 1.0) <= tuning.COLLISION_BORDERLINE_SHARE:
         flags.append("borderline")

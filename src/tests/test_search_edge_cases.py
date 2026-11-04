@@ -273,3 +273,16 @@ def test_like_wildcards_typed_into_the_galaxy_map_locate(db_client, mysql_config
     assert names("B%") == ["B%Rim"]
     assert names("B") == ["B%Rim", "B\\Rim", "BxRim"]
     assert names("%") == [] and names("_") == [] and names("\\") == []
+
+
+def test_star_facets_list_every_generated_class_even_with_no_stars(mysql_config):
+    """The spectral and luminosity tag lists offer every class the generator can produce, with a count of 0 when no
+    star holds it yet, not only the classes present."""
+    conn = query.open_readonly(mysql_config)
+    try:
+        spectral = query._search_facet_spectral(conn)
+        luminosity = query._search_facet_luminosity(conn)
+    finally:
+        conn.close()
+    assert [option["value"] for option in spectral][:len(query.SPECTRAL_CLASS_COLORS)] == list(query.SPECTRAL_CLASS_COLORS)
+    assert [option["value"] for option in luminosity][:len(query._SEARCH_YERKES_ORDER)] == query._SEARCH_YERKES_ORDER

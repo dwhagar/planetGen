@@ -131,8 +131,8 @@ def test_a_centre_off_a_sector_centre_uses_its_own_sector():
 
 
 def test_the_allowance_matches_the_fill_that_uses_it():
-    from planetgen.generation import run_galaxy
-    assert run_galaxy.ball_extent(1, EDGE) == pytest.approx((1 + BALL_EDGE_ALLOWANCE) * EDGE)
+    from planetgen.galaxy import region_run
+    assert region_run.reach_pc(EDGE, EDGE) == pytest.approx((1 + BALL_EDGE_ALLOWANCE) * EDGE)
 
 
 def test_a_radius_of_one_sector_holds_the_centre_and_its_face_neighbours():

@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.2704 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.3136 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -133,17 +133,17 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 
 ### `isochrones`: MIST v1.2 isochrones, main sequence (v/vcrit 0.4, solar-scaled)
 
-- Source: Choi et al. 2016 (ApJ 823, 102) and Dotter 2016 (ApJS 222, 8), MIST v1.2, mist.science.
-- Download: 1 file, 221.5 MB. Kept after setup: `main_sequence.npz` (the download is deleted once it is reduced).
+- Source: [R0773, R1150], MIST v1.2, mist.science.
+- Download: 1 file, 221.5 MB. Kept after setup: `main_sequence.npz`, `post_main_sequence.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch isochrones`.
-- Replaces: the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note.
-- With `--disregard-missing-data`: No MIST point, so no luminosity, temperature, radius or lifetime for a main-sequence star (an open item on the star).
+- Replaces: the [R0254] track at solar metallicity and the fitted relations of the stellar-composition note.
+- With `--disregard-missing-data`: No MIST point, so no luminosity, temperature, radius or lifetime for a star (an open item on the star).
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://mist.science/data/tarballs_v1.2/MIST_v1.2_vvcrit0.4_basic_isos.txz> as `MIST_v1.2_vvcrit0.4_basic_isos.txz`
 
-### `white_dwarf_models`: Bédard et al. 2020 white-dwarf cooling sequences
+### `white_dwarf_models`: [R0308] white-dwarf cooling sequences
 
-- Source: Bédard, Bergeron, Brassard and Fontaine 2020, ApJ 901, 93 (doi:10.3847/1538-4357/abafbe).
+- Source: [R0308].
 - Download: 1 file, 2.5 MB. All kept as downloaded.
 - Fetch: `python3 -m planetgen.cli.datasets fetch white_dwarf_models`.
 - Replaces: the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split.
@@ -151,13 +151,13 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://warwick.ac.uk/fac/sci/physics/research/astro/people/antoinebedard/models/sequences.tar> as `sequences.tar`
 
-### `neutron_star_matter`: Neutron-star equations of state (Malik et al. 2024) and outer-crust compositions (Servais and Chamel 2026)
+### `neutron_star_matter`: Neutron-star equations of state [R2834] and outer-crust compositions [R4028]
 
-- Source: Malik, Pais and Providência 2024 (A&A 689, A242) and Servais and Chamel 2026 (A&A 710, A322), Zenodo.
+- Source: [R2834, R4028], Zenodo.
 - Download: 22 files, 2.0 MB. All kept as downloaded.
 - Fetch: `python3 -m planetgen.cli.datasets fetch neutron_star_matter`.
 - Replaces: the nickel-to-krypton crust table and the 10 km radius floor of the stellar-composition note.
-- With `--disregard-missing-data`: The one outer-crust sequence of Chamel and Haensel 2008 Table 2, in place of the 20 nuclear mass models.
+- With `--disregard-missing-data`: The one outer-crust sequence of [R0722: Table 2], in place of the 20 nuclear mass models.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://zenodo.org/records/20085135/files/compositions.zip?download=1> as `compositions.zip`
   - <https://zenodo.org/records/10950421/files/EOS1.txt?download=1> as `EOS1.txt`
@@ -184,7 +184,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 
 ### `ozone_uv`: Ozone absorption cross sections, 195 to 830 nm at 218, 243 and 295 K, and the Chappuis band at 220 to 298 K (Brion, Daumont, Malicet; Burkholder and Talukdar; MPI-Mainz atlas)
 
-- Source: Keller-Rudek et al. 2013 (ESSD 5, 365), MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo 10.5281/zenodo.6951, CC BY 4.0.
+- Source: [R2303] (ESSD 5, 365), MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo [R2302], CC BY 4.0.
 - Download: 1 file, 126.3 MB. Kept after setup: `ozone_uv.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ozone_uv`.
 - Replaces: the 20 nm band means of the gas table for ozone, which understate the transmission in the UV-B and misplace the UV index.
@@ -194,11 +194,11 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 
 ### `ir_ktables`: Infrared correlated-k tables of H2O, CO2 and CH4 (ExoMolOP, R1000, line lists POKAZATEL, UCL-4000 and YT34to10)
 
-- Source: Chubb et al. 2021 (A&A 646, A21), ExoMolOP R1000 ARCiS k-tables from exomol.com.
+- Source: [R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com.
 - Download: 3 files, 1257.8 MB. Kept after setup: `ir_ktables.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_ktables`.
-- Replaces: the band-strength and wing stand-ins of the infrared opacity: plateau opacities per band centre of the gas table.
-- With `--disregard-missing-data`: The plateau-and-wing band stand-ins of physics/infrared_opacity.py for the three gases.
+- Replaces: the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band centre of the gas table.
+- With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_h2o.fits.gz`
   - <https://exomol.com/db/CO2/12C-16O2/UCL-4000/12C-16O2__UCL-4000.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_co2.fits.gz`
@@ -206,11 +206,11 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 
 ### `ir_cia`: Collision-induced absorption of N2, O2, CO2, H2, He and CH4 pairs (HITRAN CIA, 2011 to 2024 releases)
 
-- Source: Karman et al. 2019 (Icarus 328, 160), HITRAN collision-induced absorption files from hitran.org.
+- Source: [R2267], HITRAN collision-induced absorption files from hitran.org.
 - Download: 11 files, 195.4 MB. Kept after setup: `ir_cia.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_cia`.
-- Replaces: the coarse pair coefficients of the infrared opacity (physics/infrared_opacity.CIA_PAIRS), read at six temperatures from a part-03 table.
-- With `--disregard-missing-data`: The band stand-ins of the infrared opacity (no pair absorption).
+- Replaces: the coarse pair coefficients of the grey infrared opacity, read at six temperatures from a part-03 table.
+- With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the pairs are read to fit and check it.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://hitran.org/data/CIA/main/N2-N2_2021.cia> as `N2-N2_2021.cia`
   - <https://hitran.org/data/CIA/main/O2-O2_2024.cia> as `O2-O2_2024.cia`
@@ -226,10 +226,10 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 
 ### `harris_clusters`: Harris catalog of parameters for Milky Way globular clusters (2010 edition)
 
-- Source: Harris 1996, AJ 112, 1487 (2010 edition), McMaster University.
+- Source: [R1827] (2010 edition), McMaster University.
 - Download: 1 file, 49 kB. All kept as downloaded.
 - Fetch: `python3 -m planetgen.cli.datasets fetch harris_clusters`.
-- Replaces: the globular cluster laws of tuning.py, recalled from Harris 1996.
+- Replaces: the globular cluster laws of tuning.py, recalled from [R1827].
 - With `--disregard-missing-data`: The recalled medians of the cluster laws in tuning.py.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://physwww.mcmaster.ca/~harris/mwgc.dat> as `mwgc.dat`
@@ -244,22 +244,22 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://umbra.nascom.nasa.gov/SEP/seps.html> as `seps.html`
 
-### `baraffe_isochrones`: Baraffe et al. 2015 (BHAC15) isochrones of low-mass stars and brown dwarfs
+### `baraffe_isochrones`: [R0254] (BHAC15) isochrones of low-mass stars and brown dwarfs
 
-- Source: Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42.
+- Source: [R0254].
 - Download: 1 file, 65 kB. All kept as downloaded.
 - Fetch: `python3 -m planetgen.cli.datasets fetch baraffe_isochrones`.
-- Replaces: the three pre-main-sequence constants fitted to Baraffe 2015 and the nine brown dwarf radius points of tuning.py.
-- With `--disregard-missing-data`: The nine hard-coded brown dwarf points and the fitted pre-main-sequence constants of tuning.py.
+- Replaces: the nine brown dwarf radius points and the power-law extension of the main sequence under 0.1 solar masses (the three pre-main-sequence constants of tuning.py stay as fitted to it).
+- With `--disregard-missing-data`: The fitted pre-main-sequence constants of tuning.py; a brown dwarf's radius and the main sequence under 0.1 solar masses are left out.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass> as `BHAC15_iso.2mass`
 
 ### `stellar_spectra`: Model-atmosphere spectra: Castelli and Kurucz ATLAS9 fluxes (3500 to 50000 K) and Husser et al. PHOENIX-ACES (2300 to 3500 K)
 
-- Source: Castelli and Kurucz 2003 (IAU Symp. 210, A20), Husser et al. 2013 (A&A 553, A6).
+- Source: [R0681] (IAU Symp. 210, A20), [R2058].
 - Download: 23 files, 156.4 MB. Kept after setup: `stellar_spectra.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch stellar_spectra`.
-- Replaces: the blackbody of the stellar spectrum with a seeded UV-C share (GEN.443, R17) and the BT-Settl chromaticity offsets.
+- Replaces: the blackbody of the stellar spectrum with a seeded UV-C share (R17) and the BT-Settl chromaticity offsets.
 - With `--disregard-missing-data`: The blackbody of the effective temperature with the seeded UV shares of physics/stellar_spectrum.py.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://wwwuser.oats.inaf.it/fiorella.castelli/grids/gridp00k2odfnew/fp00k2odfnew.pck> as `fp00k2odfnew.pck`
@@ -285,6 +285,16 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
   - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
   - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
   - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+
+### `mamajek_dwarf_sequence`: Mamajek mean dwarf stellar colour and effective temperature sequence (2022.04.16)
+
+- Source: [R3469], version 2022.04.16 of E. Mamajek's table.
+- Download: 1 file, 56 kB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch mamajek_dwarf_sequence`.
+- Replaces: the subclasses linear in temperature inside a letter, with a K/M boundary at 3,700 K.
+- With `--disregard-missing-data`: nothing falls back, the run is still refused.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt> as `EEM_dwarf_UBVIJHK_colors_Teff.txt`
 
 <!-- external-files:end -->
 
@@ -371,7 +381,7 @@ planetgen galaxy --shells 10:12 --bands=-2:2 --limit 500
 planetgen scatter --mass --bright-star-min-luminosity 5000
 planetgen scatter --luminosity
 
-# A single system with a habitable world, printed as Markdown on request, not saved
+# A single system with the odds of a habitable world raised (it may come out without one), printed as Markdown on request, not saved
 planetgen system +habitable_world --format markdown --output -
 
 # A system built from a specification file
@@ -427,6 +437,7 @@ its options:
 | [docs/generated/version-plan.html](docs/generated/version-plan.html) | Every open item by version, phase, thread and dependency, as one page to open in a browser |
 | [docs/generated/todo-tree.html](docs/generated/todo-tree.html) | Every open item as a tree, each under the prerequisite that finishes last, with search and phase and bug filters |
 | [docs/generated/todo-reference.html](docs/generated/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (all three pages are rebuilt by `python scripts/build_todo_docs.py`) |
+| [docs/reference/logging.md](docs/reference/logging.md) | The form of every log line (time, severity, component, stage markers) and where each log is found |
 | [docs/reference/testing.md](docs/reference/testing.md) | Running the tests |
 | [docs/reference/ci-runners.md](docs/reference/ci-runners.md) | Running the scheduled CI on your own computers (optional) |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |

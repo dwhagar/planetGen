@@ -38,6 +38,8 @@ from planetgen.galaxy import enclosed_mass, spherical
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
+_msun_to_kg = units.converter("Msun", "kg")
+
 _ly_to_m = units.converter("ly", "m")
 _m_to_pc = units.converter("m", "pc")
 
@@ -121,7 +123,7 @@ def galactic_hill_radius_pc(masses_kg, radii_pc, shape, galaxy_seed):
     floor_pc = _m_to_pc(_ly_to_m(constants.MIN_TIDAL_DISTANCE_LY))
     radii = np.maximum(np.asarray(radii_pc, dtype=float), floor_pc)
     masses = np.asarray(masses_kg, dtype=float)
-    central = enclosed_mass.mass_model(shape, galaxy_seed).enclosed_solar(radii) * constants.SOLAR_MASS_TO_KG
+    central = _msun_to_kg(enclosed_mass.mass_model(shape, galaxy_seed).enclosed_solar(radii))
     return radii * np.cbrt(masses / (3.0 * (central + masses)))
 
 
@@ -182,8 +184,7 @@ def influence_set(center_pc, radius_pc, edge_pc, read_sector, exclude_keys=(),
         raise ValueError(f"max_exact_members must be >= 1, got {max_exact_members}")
     excluded = frozenset(exclude_keys)
     center = np.asarray(center_pc, dtype=float)
-    cells = sorted(spherical.enumerate_sectors_within_radius(tuple(center), radius_pc + reach_edges * edge_pc, edge_pc),
-                   key=lambda cell: cell[:3])
+    cells = sorted(spherical.cells_touching_sphere(tuple(center), radius_pc, edge_pc, reach_edges), key=lambda cell: cell[:3])
     keys, positions, masses, sectors, distances = [], [], [], [], []
     for cell in cells:
         sector = read_sector(cell[:3])

@@ -64,18 +64,6 @@ sudo scripts/enable-swap.sh 8G /mnt/disk/swapfile   # another place, when the sy
 
 `swapon --show` and `free -m` show the result. `install.sh` and `update.sh` warn when the host has no swap.
 
-Also worth doing on a host that runs MySQL and Redis next to the website: tell the kernel to give up the generation
-workers and the web app before the databases if memory ever does run out (the workers can be started again, a killed
-database cannot be asked politely to resume):
-
-```bash
-for unit in mysql redis-server; do
-  sudo mkdir -p /etc/systemd/system/$unit.service.d
-  printf '[Service]\nOOMScoreAdjust=-800\n' | sudo tee /etc/systemd/system/$unit.service.d/oom.conf >/dev/null
-done
-sudo systemctl daemon-reload && sudo systemctl restart mysql redis-server
-```
-
 On a 16 GB host that also generates, `innodb_buffer_pool_size = 4G` in `/etc/mysql/mysql.conf.d/mysqld.cnf` keeps
 MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the
 Generate page) and the web app.
@@ -84,8 +72,8 @@ On a machine that runs the whole test gate (`scripts/test.py full`, many tests w
 `innodb_redo_log_capacity` from its 100 MB default to 2 GB in the same file (`innodb_redo_log_capacity = 2G`, or at
 run time `SET GLOBAL innodb_redo_log_capacity = 2147483648;`, which MySQL 8.0.30 and later accept without a restart).
 At the default the log checkpointer falls behind under that load (`log_checkpointer lagging` in the MySQL error log,
-84 warnings in one gate), the gate slows, and tests can lose their connection. A server that only runs the site and
-generation does not need it.
+84 warnings in one gate), the gate slows, and tests can lose their connection. A galaxy run does the same: the redo
+log must hold the writes of its busiest half hour or the checkpointer lags (MY-014084 in the error log).
 
 ### Ubuntu 24.04 and 26.04 LTS
 
@@ -164,8 +152,8 @@ sudo ${EDITOR:-nano} config.json
 At minimum set:
 
 - `mysql.host`, `mysql.user`, `mysql.password`, `mysql.database`;
-- `secret_key` to a long random string:
-  `python3 -c "import secrets; print(secrets.token_hex(32))"`;
+- `secret_key` is optional: left empty, the update makes one and keeps it in the
+  state folder (`secret_key`, mode 0600);
 - `site_name` and `base_url` for your site;
 - `proxy_fix` when a separate web server proxies to the app (nginx,
   Caddy, macOS): `{"x_for": 1, "x_proto": 1, "x_host": 0}`

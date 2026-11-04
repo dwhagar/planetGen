@@ -114,6 +114,26 @@ def test_a_planet_or_moon_item_carries_its_stored_habitability(indexed):
     assert stars and all("phi4" not in star for star in stars)
 
 
+def test_a_star_planet_or_moon_item_carries_its_stored_physics_values(indexed):
+    """UX.187: a star's temperature, luminosity and age and a planet's or moon's orbit size, eccentricity and surface
+    temperature come from the kind's own table, as stored; the other kinds carry none."""
+    config, _sector = indexed
+    for kind, table in (("star", "stars"), ("planet", "planets"), ("moon", "moons")):
+        columns = objectlist.PHYSICS_COLUMNS[kind]
+        items, _pages, _total = _walk(config, kind, 50)
+        conn = store.get_connection(config)
+        try:
+            stored = {row["id"]: row for row in conn.execute(f"SELECT id, {', '.join(columns)} FROM {table}").fetchall()}
+        finally:
+            conn.close()
+        assert items
+        for item in items:
+            assert {column: item[column] for column in columns} == {column: stored[item["source_id"]][column]
+                                                                   for column in columns}
+    belts, _pages, _total = _walk(config, "belt", 50)
+    assert all("temperature_k" not in belt and "eccentricity" not in belt for belt in belts)
+
+
 def test_a_cursor_for_a_gone_object_starts_from_the_top_and_a_bad_one_is_refused(indexed):
     config, _sector = indexed
     conn = store.get_connection(config)
@@ -126,7 +146,7 @@ def test_a_cursor_for_a_gone_object_starts_from_the_top_and_a_bad_one_is_refused
         with pytest.raises(ValueError):
             objectlist.list_objects(conn, "galaxy")
         with pytest.raises(ValueError):
-            objectlist.list_objects(conn, "star", sort="age")
+            objectlist.list_objects(conn, "star", sort="colour")
         with pytest.raises(ValueError):
             objectlist.list_objects(conn, "star", limit=0)
         assert len(objectlist.list_objects(conn, "star", limit=10 ** 6)["items"]) <= objectlist.MAX_LIMIT
@@ -157,7 +177,7 @@ def test_the_api_pages_a_kind_and_refuses_what_it_cannot_serve(client, indexed):
     second = client.get(f"/api/object-lists/star?limit=2&sort=mass&order=desc&after={first['next']}").get_json()
     assert second["items"][0]["mass_kg"] <= first["items"][-1]["mass_kg"]
     assert {i["id"] for i in first["items"]}.isdisjoint(i["id"] for i in second["items"])
-    for bad in ("/api/object-lists/galaxy", "/api/object-lists/star?sort=age", "/api/object-lists/star?order=up",
+    for bad in ("/api/object-lists/galaxy", "/api/object-lists/star?sort=colour", "/api/object-lists/star?order=up",
                 "/api/object-lists/star?limit=x", "/api/object-lists/star?after=zz", "/api/object-lists/star?sector_id=a"):
         assert client.get(bad).status_code == 400, bad
 

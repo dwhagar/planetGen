@@ -18,7 +18,7 @@ from planetgen.physics import elements
 from planetgen.physics import stellar_abundances as sa
 
 SUN = {"x": 0.7121, "y": 0.2725, "z": 0.0154}
-"""dict: The proto-solar X, Y and Z of Asplund et al. 2021 (a test target, section 11)."""
+"""dict: The proto-solar X, Y and Z of [R0168] (a test target, section 11)."""
 
 ZERO = {symbol: 0.0 for symbol in sa.METAL_SYMBOLS}
 NORMALS_ZERO = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -38,7 +38,7 @@ def test_the_scale_reproduces_itself():
 
 def test_the_helium_per_metal_ratio_is_derived_and_inside_the_observed_one():
     assert sa.HELIUM_PER_METAL == pytest.approx(1.674, abs=1e-3)
-    assert abs(sa.HELIUM_PER_METAL - 2.1) < 0.9, "Casagrande et al. 2007: 2.1 +- 0.9"
+    assert abs(sa.HELIUM_PER_METAL - 2.1) < 0.9, "observed: 2.1 +- 0.9"
     assert sa.PROTO_Y == pytest.approx(SUN["y"], abs=1e-9)
 
 
@@ -262,7 +262,7 @@ def test_the_solar_neighbourhood_mix_reproduces_the_research_ranges():
         mg_si.append(sa.mass_ratio(star, "Mg", "Si"))
         c_o.append(sa.mass_ratio(star, "C", "O"))
     median = lambda values: sorted(values)[len(values) // 2]  # noqa: E731
-    # The medians of Brewer and Fischer 2016 (Fe/Si 1.81, Mg/Si 0.93, C/O 0.385), which the thin Mg and Si were refitted to (GEN.989).
+    # The medians of [R0535] (Fe/Si 1.81, Mg/Si 0.93, C/O 0.385), which the thin Mg and Si were refitted to (GEN.989).
     assert median(fe_si) == pytest.approx(1.81, abs=0.2) and median(mg_si) == pytest.approx(0.93, abs=0.1)
     assert median(c_o) == pytest.approx(0.385, abs=0.05)
     assert high / 6000 == pytest.approx(0.216, abs=0.03), "the high-alpha share with the age gate off, as part A drew it"
@@ -338,7 +338,7 @@ def test_the_white_dwarf_core_by_mass():
 
 def test_the_neutron_star_constants():
     low, high = tuning.STELLAR_NS_RADIUS_BAND_KM
-    assert (low, high) == (11.6, 13.1) and low < 12.45 < high, "Miller 2021's R(1.4)"
+    assert (low, high) == (11.6, 13.1) and low < 12.45 < high, "[R3075]'s R(1.4)"
     assert tuning.STELLAR_NS_MASS_FLOOR_SOL < tuning.STELLAR_NS_MAXIMUM_NONROTATING_MASS_SOL[0]
     assert (tuning.STELLAR_NS_MASS_HEAVIEST_SOL, tuning.STELLAR_NS_MASS_HEAVIEST_SIGMA_SOL) == (2.35, 0.17)
     # Mean density of example K: 1.36 solar masses within 12.45 km is 1.22 times saturation.
@@ -369,9 +369,10 @@ def test_brown_dwarf_limits_and_radius():
     assert sa.lithium_burning_limit_sol() * 1.98841e30 / 1.89813e27 == pytest.approx(63, abs=1.0)
     assert sa.hydrogen_burning_limit_sol(0.0) == pytest.approx(0.092) and sa.hydrogen_burning_limit_sol(0.0154) == pytest.approx(0.074)
     assert sa.hydrogen_burning_limit_sol(0.0154) < sa.hydrogen_burning_limit_sol(0.005) < sa.hydrogen_burning_limit_sol(0.0)
-    assert sa.brown_dwarf_radius_solar(0.07) == pytest.approx(0.0944, rel=0.05)
-    assert sa.brown_dwarf_radius_solar(0.065) == pytest.approx((0.0940 + 0.0944) / 2, rel=1e-9)
-    for mass in (0.04, 0.6):
+    assert sa.brown_dwarf_radius_solar(0.07) == pytest.approx(0.0944, rel=0.05)           # at 1 Gyr, the default
+    assert sa.brown_dwarf_radius_solar(0.04, 0.1) == pytest.approx(0.13)                   # GEN.948: any age of the table
+    assert sa.brown_dwarf_radius_solar(0.07, 0.1) > sa.brown_dwarf_radius_solar(0.07, 1.0) >= sa.brown_dwarf_radius_solar(0.07, 10.0)
+    for mass in (0.005, 2.0):
         with pytest.raises(sa.StellarAbundanceError):
             sa.brown_dwarf_radius_solar(mass)
     # A fifty-two Jupiter-mass object (example I) burned its deuterium, kept its lithium and burns no hydrogen.
@@ -397,3 +398,13 @@ def test_no_generator_table_holds_the_suns_composition_as_a_default():
     assert not hasattr(sa, "SUN") and not hasattr(sa, "SOLAR_COMPOSITION")
     for fits in tuning.STELLAR_XFE_FITS.values():
         assert "Fe" not in fits, "iron is the reference of [X/Fe]"
+
+
+def test_alpha_enhancement_is_the_mean_of_the_four_alpha_offsets_and_the_high_alpha_branch_has_more():
+    offsets = {symbol: 0.0 for symbol in sa.METAL_SYMBOLS}
+    offsets.update(O=0.1, Mg=0.3, Si=0.2, Ca=0.0, Fe=0.5)    # iron and the others do not count
+    assert sa.alpha_enhancement(offsets) == pytest.approx(0.15)
+    thin = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_THIN, (0.0,) * 5))
+    high = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_HIGH_ALPHA, (0.0,) * 5))
+    assert sa.alpha_enhancement(thin) == sa.alpha_enhancement(thin.offsets)
+    assert 0.0 < sa.alpha_enhancement(thin) < 0.25 < sa.alpha_enhancement(high) < 0.45

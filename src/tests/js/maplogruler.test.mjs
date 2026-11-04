@@ -43,3 +43,11 @@ test("the readout names the distance in the reader's units and the nearest thing
   assert.equal(R.scaleNamed(1e7, R.stopsBetween(FAR, FLOOR)).key, "galaxy");
   assert.equal(R.scaleNamed(1e-10, R.stopsBetween(FAR, FLOOR)).key, "moon");
 });
+
+test("a surface stop stands at the new floor, 30 km, and is left off a ruler that stops short of it", () => {
+  const deep = R.stopsBetween(FAR, 1e-12);
+  assert.equal(deep[deep.length - 1].key, "surface");
+  assert.ok(Math.abs(deep[deep.length - 1].share - 1) < 1e-12);
+  assert.equal(R.scaleNamed(1e-12, deep).key, "surface");
+  assert.ok(!R.stopsBetween(FAR, FLOOR).some((s) => s.key === "surface"));
+});

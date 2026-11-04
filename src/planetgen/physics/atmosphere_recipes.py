@@ -53,7 +53,7 @@ weights for the sourced rows are the same expressions; the open rows carry `open
 
 The corrections of the later research are applied (the part's section 5 and tunable-gaps.md): the C/O recipe of part 05 that
 put 13.9 percent of giants above 0.8 is the explicit core and tail of f7, the lava-world boundaries are the text edges of
-Miguel 2011 (the difference to the caption list is 63 K and not 130 K), the shoreline of d is the Berta-Thompson logistic and
+[R3059] (the difference to the caption list is 63 K and not 130 K), the shoreline of d is the Berta-Thompson logistic and
 not the K window fitted to 13 Solar System bodies, a3 and a4 follow the 22 polluted white dwarfs, f7 has the planet tail and
 the core centre of the data, and p4 depends on the stellar mass.
 
@@ -76,7 +76,7 @@ from dataclasses import dataclass, field
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
 from planetgen.generation import tuning_harness
-from planetgen.physics import elements, envelope_escape
+from planetgen.physics import comet_species, elements, envelope_escape, magma_ocean_redox, saturation_time
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
@@ -147,10 +147,13 @@ INPUTS = {
     "profile_t_max_k": "hottest temperature of the atmospheric profile (K)",
     "metallicity": "metallicity relative to solar (set by f5)",
     "c_to_o": "carbon-to-oxygen ratio (set by f7)",
+    "n_over_c": "the host's nitrogen-to-carbon number ratio over the proto-solar one (1 for a solar composition; stellar_abundances.number_ratio)",
+    "ar_over_c": "the host's argon-to-carbon number ratio over the proto-solar one",
+    "s_over_c": "the host's sulfur-to-carbon number ratio over the proto-solar one",
 }
 """dict: Every stored quantity a gate or a weight may read, with its meaning and unit. `body_class` is the class of the subject."""
 
-FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "w", "p", "pdist")
+FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "saturation_time_myr", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "comet_species_median", "comet_species_sigma", "w", "p", "pdist")
 SHAPES = ("log", "uniform")
 DIST_KINDS = ("normal", "uniform", "loguniform", "mixture")
 
@@ -194,7 +197,11 @@ def loglog(x, *anchors):
 
 
 _PLAIN = {"phi": phi, "window": window, "exp": math.exp, "log": math.log, "log10": math.log10, "sqrt": math.sqrt,
-          "min": min, "max": max, "abs": abs, "clamp": clamp, "loglog": loglog, "envelope_lost_fraction": envelope_escape.lost_fraction}
+          "min": min, "max": max, "abs": abs, "clamp": clamp, "loglog": loglog, "envelope_lost_fraction": envelope_escape.lost_fraction,
+          "saturation_time_myr": saturation_time.saturation_time_myr,
+          "magma_ocean_diw": magma_ocean_redox.surface_diw, "magma_ocean_diw_sigma": magma_ocean_redox.diw_sigma,
+          "later_mantle_diw": magma_ocean_redox.later_mantle_diw,
+          "comet_species_median": comet_species.median_over_h2o, "comet_species_sigma": comet_species.sigma_dex}
 
 
 class Expression:

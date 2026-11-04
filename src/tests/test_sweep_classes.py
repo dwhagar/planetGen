@@ -67,7 +67,7 @@ def test_the_stored_letter_must_be_the_conditions_letter():
     check = _rule("class-from-conditions").check
     assert check(_entry(_body(planet_class="C"))) != []
     dry = _body(atmospheric_pressure=0.0, hydrosphere="dry", ocean_fraction=0.0, planet_class="C", **{atmosphere.GAS_FIELD: {}})
-    dry.mass, dry.gravity = 0.05 * constants.EARTH_MASS_TO_KG, 0.3
+    dry.mass, dry.gravity = 0.15 * constants.EARTH_MASS_TO_KG, 0.3      # Class C from 0.1 Earth masses (GEN.1160)
     assert check(_entry(dry)) == []
     assert check(_entry(_body(planet_class="D"))) and "'D'" in check(_entry(_body(planet_class="D")))[0]
 

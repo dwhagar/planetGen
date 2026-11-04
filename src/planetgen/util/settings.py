@@ -60,6 +60,7 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from planetgen.util import logpaths
+from planetgen.util.wordlist import join_words
 
 CONFIG_VERSION = 1
 """int: The `config_version` this code writes and reads. A file without one
@@ -156,7 +157,7 @@ class RatePages(_Section):
                       summary="How often one visitor may open the Galaxy Map page; empty turns the "
                               "limit off.",
                       control="rate")
-    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near and /galaxy/territories, "
+    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near, and /galaxy/territories, "
                             "fetched as the map's camera moves. Empty turns it off.", restart=True,
                             group="protection",
                             label="Map data limit",
@@ -497,7 +498,7 @@ class Site(_Section):
     language: str = opt("en", "The pages' language as a code (en, de, en-GB): the `lang` of every page and the Open "
                         "Graph locale.", group="site",
                         label="Language",
-                        summary="The language code of the pages, such as en or en-GB.",
+                        summary="The language code of the pages, such as en, or en-GB.",
                         control="language")
 
     @field_validator("language")
@@ -585,17 +586,17 @@ class Seo(_Section):
     indexing: Literal["off", "top_pages", "all"] = opt(
         "top_pages", "Whether search engines may index the site: off (robots.txt disallows everything and every page "
         "says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the "
-        "system, sector and phenomenon pages).", group="search",
+        "system, sector, and phenomenon pages).", group="search",
         choice_labels={"off": "Off", "top_pages": "Main pages only", "all": "All pages"},
         label="Search engine indexing",
         summary="Which pages search engines may list: none, the main pages, or all of them.")
     detail_pages: Literal["noindex", "index"] = opt(
-        "noindex", "Whether the generated system, sector and phenomenon pages may be indexed when indexing is "
+        "noindex", "Whether the generated system, sector, and phenomenon pages may be indexed when indexing is "
         "top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by "
         "default; a small galaxy can switch this to index.", group="search",
         choice_labels={"noindex": "Keep out of search", "index": "Allow in search"},
         label="Index generated pages",
-        summary="Whether the generated system, sector and phenomenon pages may be indexed.")
+        summary="Whether the generated system, sector, and phenomenon pages may be indexed.")
     description: str = opt("", "The description search engines show for pages that give none of their own (about 155 "
                            "characters are shown); empty uses the tagline.", group="search", max_length=300,
                            label="Search description",
@@ -679,9 +680,9 @@ class Seo(_Section):
 
 class OpenGraph(_Section):
     enabled: bool = opt(True, "Add Open Graph and Twitter tags to the public pages, so a link shows a title, a "
-                        "description and a picture when shared.", group="previews",
+                        "description, and a picture when shared.", group="previews",
                         label="Link previews",
-                        summary="Show a title, description and picture when a link to the site is "
+                        summary="Show a title, description, and picture when a link to the site is "
                                 "shared.")
     site_name: str = opt("", "The site name in link previews; empty uses the site name.", group="previews",
                          max_length=100,
@@ -747,15 +748,15 @@ class Settings(_Section):
                               summary="Which format version this settings file is in; the program "
                                       "keeps it up to date.")
     site_name: str = opt("planetGen", "Display name for this deployment, shown in the header, the home page "
-                         "heading, every page title and the footer.", group="site", min_length=1,
+                         "heading, every page title, and the footer.", group="site", min_length=1,
                          label="Site name",
-                         summary="The name shown in the header, the home page, page titles and the "
+                         summary="The name shown in the header, the home page, page titles, and the "
                                  "footer.")
     base_url: str = opt("http://localhost/", "The address this site is reached at, as an absolute http or https "
                         "address with a trailing slash. Canonical links, link previews, the sitemap and emailed links "
                         "are built from it, never from the request's Host header.", role="owner", group="site",
                         label="Site address",
-                        summary="The public address of the site, used for canonical links, previews "
+                        summary="The public address of the site, used for canonical links, previews, "
                                 "and the sitemap.")
 
     @field_validator("base_url")
@@ -768,14 +769,27 @@ class Settings(_Section):
                              "fragment or password)")
         return value if value.endswith("/") else value + "/"
 
-    api_base_url: str = opt("http://127.0.0.1/api", "Base URL of the Flask API's /api mount point, used by "
-                            "web/lib/apiclient.py only outside the Flask app.", env="PLANETGEN_API_BASE_URL",
+    api_base_url: str = opt("", "Base URL of the Flask API's /api mount point (for example https://example.org/api). "
+                            "The update asks it whether the site answers, and web/lib/apiclient.py calls it outside "
+                            "the Flask app. There is no default: nothing guesses a loopback address, so it must be "
+                            "set for either to work.", env="PLANETGEN_API_BASE_URL",
                             restart=True, editable=False, group="paths",
                             label="API address",
-                            summary="Where the API lives, for scripts that call it from outside the "
-                                    "web app.")
+                            summary="Where the API lives; the update's health check asks it. No default.")
+
+    @field_validator("api_base_url")
+    @classmethod
+    def _api_base_url(cls, value):
+        if not value:
+            return value
+        parts = urlsplit(value)
+        if parts.scheme not in ("http", "https") or not parts.netloc or parts.query or parts.fragment \
+                or parts.username or parts.password:
+            raise ValueError("must be empty or an absolute http or https address such as https://example.org/api "
+                             "(no query, fragment or password)")
+        return value.rstrip("/")
     debug: bool = opt(False, "Debug mode: every decision the generator makes, every "
-                      "random roll, every SQL statement, queue event and request, written to the console of each "
+                      "random roll, every SQL statement, queue event, and request, written to the console of each "
                       "planetgen command (stdout) and to log_file. The output is large.", env="PLANETGEN_DEBUG",
                       restart=True, editable=False, group="logging",
                       label="Debug log",
@@ -823,11 +837,11 @@ class Settings(_Section):
     seo: Seo = Seo()
     og: OpenGraph = OpenGraph()
     mysql: MySQL = MySQL()
-    control_database: str = opt("planetgen_control", "The MySQL schema holding admin identities, sessions, API keys "
+    control_database: str = opt("planetgen_control", "The MySQL schema holding admin identities, sessions, API keys, "
                                 "and the audit log. Never listed or selectable as a galaxy.",
                                 env="PLANETGEN_CONTROL_DATABASE", restart=True, editable=False, group="database",
                                 label="Control database",
-                                summary="The database that holds admin accounts, sessions, API keys "
+                                summary="The database that holds admin accounts, sessions, API keys, "
                                         "and the audit log.")
     redis: Redis = Redis()
     queue: Queue = Queue()
@@ -846,12 +860,12 @@ class Settings(_Section):
                                       label="Admin login over plain HTTP",
                                       summary="Only for local development without TLS; never turn "
                                               "it on in production.")
-    secret_key: str = opt("", "Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a "
-                          "form open across a restart then fails once).", env="PLANETGEN_SECRET_KEY", restart=True,
+    secret_key: str = opt("", "Signs the CSRF tokens on the pages' forms. Empty makes one and keeps it in the state folder "
+                          "(mode 0600), so every worker and restart shares it.", env="PLANETGEN_SECRET_KEY", restart=True,
                           secret=True, editable=False, group="security",
                           label="Form signing key",
-                          summary="Signs the security tokens on forms; empty makes a random one at "
-                                  "each start.")
+                          summary="Signs the security tokens on forms; empty makes one and keeps it in "
+                                  "the state folder.")
     password_hash: PasswordHash = PasswordHash()
     proxy_fix: ProxyFix = ProxyFix()
     cache: Cache = Cache()
@@ -911,7 +925,7 @@ def type_name(annotation):
     """`"integer"`, `"text"`, `"list of text"`, ... for the docs table."""
     origin = get_origin(annotation)
     if origin is Literal:
-        return " or ".join(f'"{a}"' for a in get_args(annotation))
+        return join_words((f'"{a}"' for a in get_args(annotation)), "or")
     if origin in (list, List):
         return "list of text"
     return {bool: "true or false", int: "whole number", float: "number", str: "text"}.get(annotation, str(annotation))

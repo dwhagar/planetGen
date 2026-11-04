@@ -2,8 +2,8 @@
 
 """
 What a place does to the stars drawn in it (GEN.103, docs/design/generation/placement-by-population.md 3.1 and 3.3):
-the close-companion odds factor that follows a star's own [Fe/H], the widest axis a wide pair can keep and the widest
-orbit a planet keeps (GEN.325).
+the widest axis a wide pair can keep and the widest orbit a planet keeps (GEN.325). The close-companion odds factor that
+follows a star's own [Fe/H] is `generation.close_binary_trend`.
 
 All are functions of numbers the sector profile already holds (the density, the populations' velocity
 dispersions and the star's own [Fe/H] and age), so nothing here is a catalogue by place. `PlaceTerms` carries the
@@ -20,6 +20,8 @@ from planetgen.generation import system_mass
 from planetgen.physics import constants, planet_survival
 from planetgen.physics import unit_registry as units
 
+_kg_to_msun = units.converter("kg", "Msun")
+
 _yr_to_s = units.converter("yr", "s")
 _gyr_to_yr = units.converter("Gyr", "yr")
 _m_to_au = units.converter("m", "au")
@@ -28,14 +30,14 @@ _pc_to_m = units.converter("pc", "m")
 
 RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
 """float: A pair's perturbers move past it with the *relative* velocity dispersion, root 2 times a population's own
-one-dimensional dispersion for two stars drawn from the same distribution (Jiang and Tremaine 2010, section 5: "the
+one-dimensional dispersion for two stars drawn from the same distribution ([R2166], section 5: "the
 relative velocity dispersion to be 2^(1/2) times this", 29 km/s becoming 40 km/s). The population dispersions of
 `tuning.STELLAR_POPULATION_DISPERSION_KMS` are one-dimensional, so `encounter_limit_au` multiplies by this (GEN.447)."""
 
 
 def mass_weighted_perturber_mass_solar(populations, remnants=True):
     """
-    The perturber mass of Jiang and Tremaine 2010's `rho_2` (their eq. 47): the second moment of the mass function over
+    The perturber mass of [R2166]'s `rho_2` (their eq. 47): the second moment of the mass function over
     its first, `<M^2> / <M>`, so that `rho_2 = rho * <M^2> / <M>` for a mass density `rho` (GEN.447). The mass function is
     the generator's own: its initial mass function, aged to each population's age range, with the remnants of what has
     left the main sequence.
@@ -117,44 +119,10 @@ def from_profile(profile):
                       perturber_mass_solar=perturber, mean_system_mass_solar=mean_mass)
 
 
-def close_companion_factor(fe_h):
-    """
-    `F(fe_h) / F(0)`, the factor on the odds of a star's companion inside 10 AU (`scaled_close_chance`): `F` is the
-    straight line through `tuning.CLOSE_BINARY_FRACTION_BY_FE_H`, held flat past its ends. 1 for a star with no [Fe/H].
-    """
-    if fe_h is None:
-        return 1.0
-    return _fraction_at(fe_h) / _fraction_at(0.0)
-
-
-def scaled_close_chance(chance, fe_h):
-    """
-    A close-companion chance moved by the star's [Fe/H] (Boss, 2026-10-16, 7:19 PM EDT): the factor
-    `close_companion_factor` multiplies the *odds* `p / (1 - p)`, not `p`, for every primary mass. The result never passes 1,
-    and a star already likely to have a companion rises less in absolute terms: a G dwarf (0.22) goes 0.43, 0.36, 0.25
-    and 0.12 at [Fe/H] -3.0, -1.0, -0.2 and +0.5, inside Moe, Kratter and Badenes 2019's ranges, and an O star (0.45)
-    goes to 0.58 at -0.7, inside the "no change within about 30%" the O and early-B surveys find.
-    """
-    if chance <= 0.0 or chance >= 1.0:
-        return min(max(chance, 0.0), 1.0)
-    odds = chance / (1.0 - chance) * close_companion_factor(fe_h)
-    return odds / (1.0 + odds)
-
-
-def _fraction_at(fe_h):
-    points = sorted(tuning.CLOSE_BINARY_FRACTION_BY_FE_H.items())
-    if fe_h <= points[0][0]:
-        return points[0][1]
-    for (low_x, low_y), (high_x, high_y) in zip(points, points[1:]):
-        if fe_h <= high_x:
-            return low_y + (high_y - low_y) * (fe_h - low_x) / (high_x - low_x)
-    return points[-1][1]
-
-
 def encounter_limit_au(terms, total_mass_solar, age_gy):
     """
     The semi-major axis at which half the pairs of this age survive passing stars (Bahcall, Hut and Tremaine
-    1985, as Jiang and Tremaine 2010 restate it): `0.002 (M1 + M2) sigma / (G rho_2 t)`, with `rho_2` the mass
+    1985, as [R2166] restate it): `0.002 (M1 + M2) sigma / (G rho_2 t)`, with `rho_2` the mass
     density times the mass-weighted perturber mass (`<M^2> / <M>`) and `sigma` the dispersion of the relative velocity,
     `RELATIVE_VELOCITY_FACTOR` times the field's one-dimensional dispersion (their eq. 1 and section 5; GEN.447).
     Infinite where nothing passes (a zero density) or the pair has no age.
@@ -196,4 +164,4 @@ def wide_axis_limit_au(terms, total_mass_solar, age_gy):
 def born_mass_solar(star):
     """A star's mass at birth in solar masses (its present mass for a star with no model initial mass)."""
     initial = getattr(star, "initial_mass_sol", None)
-    return initial if initial is not None else star.mass / constants.SOLAR_MASS_TO_KG
+    return initial if initial is not None else _kg_to_msun(star.mass)

@@ -249,16 +249,43 @@ def test_the_pair_coefficient_is_interpolated_between_its_temperatures():
     assert np.all(np.isfinite(below)) and below.sum() > 0.0
 
 
-# ---- the far wing of carbon dioxide ----
+# ---- the far wings (co2_far_wing) ----
 
-def test_the_far_wing_of_carbon_dioxide_is_unity_thick_at_a_bar_and_grows_faster_than_the_pressure():
-    near = ir._far_wing_depth(np.array([1.0e4]), np.array([1.0e5]))[0]
-    thick = ir._far_wing_depth(np.array([1.0e4]), np.array([1.0e7]))[0]
-    assert near[near > 0.0].min() == pytest.approx(ir.CO2_FAR_WING_M2_KG * 1.0e4)          # a bar of carbon dioxide: 3 (Koll 2019)
-    assert thick.sum() > 100.0 * near.sum() and np.count_nonzero(thick) > np.count_nonzero(near)
-    plain = {"Ar": 1.0e5}
-    with_gas = _depth({**plain, "CO2": 1.0e5}, 300.0, 1.0e5)
-    assert _mean(with_gas).sum() > near.sum() * 0.99
+def _wing(partials, temperature, pressure):
+    prepared = ir.prepare(partials)
+    water = np.array([0.0])
+    return ir._wing_depth(prepared, np.array([temperature]), np.array([pressure]), water, np.array([_molecules_cm2(pressure)]))[0]
+
+
+def test_a_dense_carbon_dioxide_air_has_a_far_wing_and_a_thin_one_has_none():
+    thick = _wing({"CO2": 9.0e6, "N2": 3.0e5}, 600.0, 9.3e6)
+    thin = _wing({"N2": 0.78e5, "O2": 0.21e5, "CO2": 28.0}, 288.0, 1.0e5)
+    assert thick.sum() > 0.0 and not thin.any()
+
+
+def test_the_wing_grows_faster_than_the_pressure():
+    """Its cross section goes with the pressure and the column with it: the depth with the square."""
+    one = _wing({"CO2": 3.0e6, "N2": 1.0e5}, 500.0, 3.1e6)
+    ten = _wing({"CO2": 3.0e7, "N2": 1.0e6}, 500.0, 3.1e7)
+    assert ten.sum() > 50.0 * one.sum()
+
+
+def test_the_wing_falls_between_the_bands_and_is_not_flat():
+    wing = _wing({"CO2": 9.0e6, "N2": 3.0e5}, 600.0, 9.3e6)
+    assert wing.max() > 10.0 * wing[wing > 0.0].min()
+
+
+def test_the_wing_ends_where_the_carbon_dioxide_pressure_is_under_the_floor():
+    below = _wing({"CO2": 0.9 * ir.WING_MIN_CO2_PA, "N2": 1.0e5}, 300.0, 1.0e5)
+    assert not below.any()
+
+
+def test_the_water_wing_adds_to_a_carbon_dioxide_air_and_not_to_a_thin_one():
+    dry = _wing({"CO2": 9.0e6, "N2": 3.0e5}, 600.0, 9.3e6)
+    prepared = ir.prepare({"CO2": 9.0e6, "N2": 3.0e5, "H2O": 3.0e3})
+    water = np.array([3.0e3 / 9.303e6])
+    wet = ir._wing_depth(prepared, np.array([600.0]), np.array([9.3e6]), water, np.array([_molecules_cm2(9.3e6)]))[0]
+    assert wet.sum() > 0.99 * dry.sum()
 
 
 # ---- gases without a table ----

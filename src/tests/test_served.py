@@ -72,6 +72,35 @@ def test_stopping_gives_up_after_the_wait_and_names_the_request():
         release.set()
 
 
+def test_the_warning_names_the_route_still_running():
+    started, release = threading.Event(), threading.Event()
+    try:
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            with served(_slow_app(started, release), drain_seconds=0.5) as url:
+                client = threading.Thread(target=_get, args=(url + "/admin/generate/shape-report?mass=1", []), daemon=True)
+                client.start()
+                assert started.wait(timeout=10)
+        assert any("GET /admin/generate/shape-report x1" in str(w.message) for w in caught), [str(w.message) for w in caught]
+    finally:
+        release.set()
+
+
+def test_a_static_file_still_being_read_is_not_waited_for_or_named():
+    started, release = threading.Event(), threading.Event()
+    began = time.monotonic()
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            with served(_slow_app(started, release), drain_seconds=10) as url:
+                client = threading.Thread(target=_get, args=(url + "/static/vendor/shoelace/chunks/chunk.js", []), daemon=True)
+                client.start()
+                assert started.wait(timeout=10)
+        assert time.monotonic() - began < 5
+    finally:
+        release.set()
+
+
 def test_the_count_includes_a_request_that_raises():
     def app(environ, start_response):
         raise RuntimeError("boom")

@@ -26,7 +26,7 @@ the life model no longer re-rolls the names and flavour text of every later body
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation
+from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -80,8 +80,12 @@ def _apply(planet, keep_stored):
         return
     _build_air(planet, row)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
+    if not (final.get(row.id) and final[row.id].score > 0):
+        # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
+        # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
+        final = {**final, row.id: chosen}
     _set_best(planet, final)
-    result = final[row.id] if final.get(row.id) and final[row.id].score > 0 else chosen
+    result = final[row.id]
     anoxic = _anoxic_animals(planet, row, keep_stored)
     complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), planet.surface_temperature, anoxic)
     _set_evolutionary_state(planet, evolution.get_evolutionary_state(
@@ -149,7 +153,7 @@ def _set_best(planet, scores):
 def _set_description(planet):
     """The class's own description. It claims no life and no planet, so a moon reads it as it stands; what the index
     allows is said by the life sentences."""
-    planet.description = tuning.PLANET_CLASSES[planet.planet_class]["description"]
+    planet.description = planet_classes.ASTEROID.sentence if planet.planet_class is None else tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
 def _draw_schedule(planet, row):
@@ -158,17 +162,16 @@ def _draw_schedule(planet, row):
     (`life_timeline.rate_factor`), the first step scaled by the class's (`life.first_step_scale`: anoxygenic photosynthesis comes before the
     oxygenic kind), and the wait for complex cells starting once the class has its oxidant: at once for one that breathes something else, and for
     one that breathes oxygen when the air already holds it (an abiotic oxygen air) or a delay after the first photosynthesis when the class makes
-    it and the world can make enough (`biogenic_oxygen.profile_of`). A forced technological civilization draws a timeline that finishes in the
-    star's age.
+    it and the world can make enough (`biogenic_oxygen.profile_of`). A request for a technological civilization raises the odds of a timeline that finishes in the
+    star's age (GEN.1130).
     """
     factor = life_timeline.rate_factor(getattr(planet, "surface_temperature", None))
     needs_oxygen = row.oxidant == "o2"
     at_start = (not needs_oxygen) or atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
     delay = biogenic_oxygen.profile_of(planet).delay_gyr if needs_oxygen and row.releases_oxygen else None
-    waits = None
     if planet.star.system_config.INTELLIGENT_LIFE is True:
-        waits = life_timeline.forced_waits(planet.star.age, factor, delay, at_start)
-    if waits is None:
+        waits = life_timeline.raised_waits(planet.star.age, factor, delay, at_start)
+    else:
         waits = life_timeline.unit_waits()
     waits = (waits[0], waits[1] * row.life["first_step_scale"], *waits[2:])
     ages = life_timeline.schedule(waits, factor, delay, at_start)
@@ -218,9 +221,11 @@ def _build_oxygen(planet, row):
 
 def _rebuild(planet):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
-    stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the habitability score and the class (derived from the air as it is now, GEN.980)."""
+    stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the surface liquid (a different temperature and pressure
+    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
     aerosols.generate_aerosols(planet)
+    surface_liquid_world.generate(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)
     body_colour.generate(planet)

@@ -2,7 +2,7 @@
 
 How a galaxy will be rebuilt from a 128-bit seed and a version key, how
 admin changes and the passage of time are kept on top of that, and how a
-damaged database is found and repaired. Recorded 2026-10-02 from Boss's
+damaged database is found and repaired. Recorded on 2026-10-02 from Boss's
 decisions of 01:34Z to 02:31Z and the seed math report (dependency tree
 thread). This is the design note OPS.11 asks for.
 

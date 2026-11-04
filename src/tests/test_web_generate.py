@@ -1187,6 +1187,29 @@ def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_
     assert _wait_finished(job_id, jobs_root)["status"] == "cancelled"
 
 
+def test_cancel_on_a_job_page_returns_to_the_page_it_was_opened_from(site, client, jobs_root, redis_server):
+    """UX.256: the job page's Cancel carries the page the admin came from (`?next=` or the referrer, same site only) and
+    returns there; a job page opened with nothing, or from off site, falls back to the Generate page."""
+    job_id = jobs.start_job("galaxy", "Slow", [_step("x", "pass")], spawn=False)
+    page = f"/admin/generate/jobs/{job_id}"
+    html = client.get(page, headers={"Referer": "http://localhost/admin/queue?page=2"}).get_data(as_text=True)
+    assert 'name="next" value="/admin/queue?page=2"' in html
+    html = client.get(page + "?next=/admin/stats", headers={"Referer": "http://localhost/admin/queue"}).get_data(as_text=True)
+    assert 'name="next" value="/admin/stats"' in html
+    for hostile in ("http://evil.example/admin", "//evil.example/x", page):
+        html = client.get(page, headers={"Referer": hostile}).get_data(as_text=True)
+        assert 'name="next"' not in html
+    html = client.get(page + "?next=//evil.example", headers={"Referer": "http://localhost" + page}).get_data(as_text=True)
+    assert 'name="next"' not in html
+    token = _token(client)
+    resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "next": "/admin/queue?page=2", "csrf_token": token})
+    assert resp.status_code == 303 and resp.headers["Location"].endswith("/admin/queue?page=2")
+    resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "next": "https://evil.example/", "csrf_token": token})
+    assert resp.headers["Location"].endswith("/admin/generate#current-job")
+    resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "csrf_token": token})
+    assert resp.headers["Location"].endswith("/admin/generate#current-job")
+
+
 def test_the_job_page_lists_the_runs_the_job_started(site, client, jobs_root, redis_server):
     from planetgen.queue import runrecord
     from planetgen.queue.runrecord import Stage
@@ -1892,6 +1915,24 @@ def test_the_shape_report_is_the_line_the_plan_prints(site, client):
     assert answer["sample"] is True and any("under 20" in note for note in answer["warnings"])
 
 
+def test_the_shape_report_works_the_same_dials_out_once(site, client, monkeypatch):
+    """TEST.219: a page asks again at every change of a dial, and a closed page leaves its asks running."""
+    from planetgen.generation import plan_outline
+    from planetgen.web import generate_page
+    generate_page._shape_answers.clear()
+    real = plan_outline.preview
+    calls = []
+    monkeypatch.setattr(plan_outline, "preview", lambda argv, galaxy_seed=None: calls.append(list(argv)) or real(argv, galaxy_seed=galaxy_seed))
+    query = "mass=1e8&disk_scale_length=2000pc&flatness=20&bulge_share=0.001"
+    first = client.get(f"/admin/generate/shape-report?{query}").get_json()
+    again = client.get(f"/admin/generate/shape-report?{query}").get_json()
+    other = client.get("/admin/generate/shape-report?mass=2e8&disk_scale_length=2000pc&flatness=20&bulge_share=0.001").get_json()
+    assert first == again and len(calls) == 2 and first["line"] != other["line"]
+    client.get("/admin/generate/shape-report?mass=1")
+    client.get("/admin/generate/shape-report?mass=1")
+    assert len(calls) == 2, "a refusal never reached the preview"
+
+
 def test_the_shape_report_refuses_an_empty_outline_and_a_value_out_of_range(site, client):
     empty = client.get("/admin/generate/shape-report?mass=3e5&disk_scale_length=500pc")
     assert empty.status_code == 200 and "one-star-per-sector density" in empty.get_json()["refusal"]
@@ -2023,8 +2064,7 @@ def test_no_choice_on_a_task_page_is_a_bare_number(site, client):
 
 def _finish_found(**over):
     found = {"error": None, "run": "20261029-120000-ab12", "title": "New galaxy", "stopped_in": "Scatter the phenomena",
-             "carried": ["Plan", "Sectors"], "again": ["Scatter the phenomena", "Index the phenomena"],
-             "later": [{"label": "Link the sectors", "argv": ["python3", "x", "link"]}]}
+             "carried": ["Plan", "Sectors"], "again": ["Scatter the phenomena", "Index the phenomena"]}
     found.update(over)
     return found
 
@@ -2033,7 +2073,7 @@ def test_finish_run_page_says_which_run_it_carries_on_and_what_it_keeps(site, cl
     monkeypatch.setattr(generate_flow, "finish_status", lambda database: _finish_found())
     html = _task_html(client, "finish-run")
     assert "New galaxy" in html and "stopped in <strong>Scatter the phenomena</strong>" in html
-    assert "Plan, Sectors" in html and "Link the sectors" in html
+    assert "Plan, Sectors" in html and "Scatter the phenomena, Index the phenomena" in html
     assert 'name="action" value="finish_run"' in html and "data-review" in html
 
 
@@ -2043,14 +2083,14 @@ def test_finish_run_page_says_why_there_is_nothing_to_carry_on(site, client, mon
     assert "No run stopped before it was done." in html and "data-review" not in html
 
 
-def test_finish_run_job_carries_on_the_run_then_the_steps_of_its_job_that_never_started(site, client, no_spawn, monkeypatch):
+def test_finish_run_job_is_the_one_command_that_carries_on_the_run(site, client, no_spawn, monkeypatch):
     monkeypatch.setattr(generate_page, "finish_status", lambda database: _finish_found())
     assert _post(client, action="finish_run").status_code == 303
     (job,) = no_spawn
     assert job["kind"] == "finish_run"
     assert [_argv(step) for step in job["steps"][:1]] == [["finish-run", "--run", "20261029-120000-ab12"]]
-    assert [step["label"] for step in job["steps"]] == ["Finish the last run: New galaxy", "Link the sectors"], \
-        "no data check of its own: the run being carried on made it"
+    assert [step["label"] for step in job["steps"]] == ["Finish the last run: New galaxy"], \
+        "a job is one run, so the stages that never started are the run's own: nothing follows it"
 
 
 def test_finish_run_does_not_start_when_no_run_can_be_carried_on(site, client, no_spawn, monkeypatch):

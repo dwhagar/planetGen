@@ -18,11 +18,13 @@ returned `EditResult` says what moved and what is still wrong.
 from collections import namedtuple
 
 from planetgen.generation import validation
-from planetgen.physics import constants, daylight, magnetism, planet_kind, planets as planetPhysics
+from planetgen.physics import constants, daylight, magnetism, planet_kind, planets as planetPhysics, radiation
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
 from planetgen.generation.planet import Planet
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _au_to_km = units.converter("au", "km")
 
@@ -89,8 +91,11 @@ def regenerate_planet(system, planet, owner):
     fresh.name = planet.name
     fresh.db_id = planet.db_id
     _name_moons(fresh)
+    for moon in fresh.moons:
+        radiation.apply_parent_belts(moon, fresh)  # GEN.983
     for body in [fresh] + fresh.moons:
         validation.reapply_life(body)
+    magnetism.generate_stellar_induction(fresh)  # GEN.981
     for moon in fresh.moons:
         magnetism.generate_induced_field(moon, fresh)
     owner[owner.index(planet)] = fresh
@@ -108,6 +113,7 @@ def make_moon(planet, distance_au):
                   mass=mass_kg, zone_override=planet.zone,
                   distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
     magnetism.generate_induced_field(moon, planet)
+    radiation.apply_parent_belts(moon, planet)  # GEN.983
     daylight.generate(moon, planet)
     return moon
 
@@ -286,7 +292,7 @@ def change_star(system, star_type):
             validation.reapply_life(item)
 
     for comet in system.comets:
-        _rescale_comet(comet, factor, mass_ratio, new.mass / constants.SOLAR_MASS_TO_KG)
+        _rescale_comet(comet, factor, mass_ratio, _kg_to_msun(new.mass))
 
     report = validation.stabilize_star_system(system, allow_removal=True)
     warnings = [f"{p.body}: {p.message}." for p in report.problems]

@@ -1,7 +1,7 @@
 # planetgen/web/lib/property_help.py
 
 """
-The text of the properties page (`/help/properties`, UX.187): for each physics value of a star, planet or moon page, what it is
+The text of the properties page (`/help/properties`, UX.187): for each physics value of a star, planet, or moon page, what it is
 called, the unit it is shown in, which bodies have it, and the one-line source the page shows under it. The rows are read from
 the property sheet (`describe/sheet.py`) and its source table (`describe/sheet_sources.py`), so this page and the pages it
 explains cannot disagree.
@@ -11,6 +11,7 @@ from planetgen.db import column_units
 from planetgen.describe import sheet
 from planetgen.describe.sheet_sources import source_of
 from planetgen.physics import unit_registry
+from planetgen.web.lib import help_registry
 
 KINDS = (("planet", "Planets"), ("moon", "Moons"), ("star", "Stars"))
 """tuple: The kinds with source lines, in the order the page lists them, and what the page calls them."""
@@ -22,7 +23,7 @@ WORDS = "words"
 def unit_text(kind, spec):
     """The unit a sheet row is shown in, as the page's unit column writes it: the registry's symbol, a local unit's noun or
     scale, or `WORDS` for a row that is text."""
-    if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.TIER, sheet.RATING):
+    if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.TIER, sheet.RATING, sheet.LIMIT):
         return WORDS
     unit = column_units.COLUMNS[(sheet.TABLES[kind], spec.stored_column())]
     if unit in sheet._SYMBOLS:
@@ -52,6 +53,10 @@ def rows():
                 "group": sheet.GROUPS[spec.group], "label": spec.label, "unit": unit_text(kind, spec), "applies": [], "source": line,
                 "order": len(found)})
             entry["applies"].append(name)
+    for key, (label, unit) in sheet.CHEMISTRY_ROWS.items():    # UX.254: the star's rows worked out from its stored values
+        found[("composition", label, source_of("star", key))] = {
+            "group": sheet.GROUPS["composition"], "label": label, "unit": unit, "applies": ["Stars"], "source": source_of("star", key),
+            "order": len(found)}
     return [{**entry, "applies": ", ".join(entry["applies"])} for entry in sorted(found.values(), key=lambda e: e["order"])]
 
 
@@ -65,3 +70,8 @@ def page():
         if members:
             groups.append({"label": label, "rows": members})
     return {"groups": groups}
+
+
+help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
+help_registry.register_topic("property_help_page", "Properties", "objects",
+                             "Where the orbit, heat, spin, field, ring, and life values on a star, planet, or moon page come from.", order=30)

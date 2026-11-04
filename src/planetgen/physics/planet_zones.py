@@ -185,6 +185,37 @@ def planet_zones(nodes, members, floors_au=None, disk_cap_au=None):
     return zones
 
 
+def ancestor_limits_au(zone, nodes, members):
+    """
+    Every S-type limit above `zone`'s host, nearest first: the host (a star, or a close pair taken as one body) against the stars beside it at
+    its own node, then against those beside that node, up to the root. `planet_zones` takes only the nearest one; a planet must stay inside
+    all of them (GEN.1014).
+    """
+    tree = _Tree(list(nodes), list(members))
+    child = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    limits = []
+    parent = tree.parent_of(child)
+    while parent is not None and parent.kind != "group":
+        limits.append(_s_limit_au(tree, child, parent))
+        child = ("node", parent.node_no)
+        parent = tree.parent_of(child)
+    return limits
+
+
+def host_mass_solar(zone, nodes, members):
+    """The mass a body in `zone` goes round, in solar masses: the host star's, or the sum of the pair node's two sides'."""
+    tree = _Tree(list(nodes), list(members))
+    host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    return tree.mass(host)
+
+
+def pair_sides_solar(nodes, members, node_no):
+    """The masses of the two sides of pair node `node_no`, in solar masses: `(slot 0, slot 1)`."""
+    tree = _Tree(list(nodes), list(members))
+    sides = tree.children[node_no]
+    return tree.mass(sides[0]), tree.mass(sides[1])
+
+
 def sibling_of(nodes, members, member_no):
     """
     The node a member hangs from and the numbers of the members in the subtree beside it, which its planets see as the

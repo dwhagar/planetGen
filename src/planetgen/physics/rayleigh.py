@@ -20,12 +20,12 @@ outside 400 to 700 nm that holds from 200 nm up to 1100 nm for the gases whose f
 (the research: no use within about 80 nm of a strong absorption band, so SO2, H2S and O3 are scattering stand-ins
 below 300 nm, where their absorption is a hundred times larger anyway).
 
-Checks against the sources, in `tests/test_rayleigh.py`: dry Earth air at 550 nm gives 0.0970 (Bucholtz 1995 Table 4:
+Checks against the sources, in `tests/test_rayleigh.py`: dry Earth air at 550 nm gives 0.0970 ([R0575: Table 4]:
 0.09721, 1 percent); Venus-like air (96.5 percent CO2) at 92 bar gives tau 16.4 at 550 nm (radiation-model.md section 11,
 world C); 1 bar of 86/14 H2/He gives 0.089 at 550 nm (part 03 7.1, the giant reference level).
 
 The cross sections are good to 2.5 to 4 percent for N2 and Ar, 7 for CO2 and 10 to 18 for CO, CH4 and N2O
-(Sneep and Ubachs 2005, a measurement at 532 nm); the generic polarizability route is good to -9 to +6 percent.
+([R4138] measurement at 532 nm); the generic polarizability route is good to -9 to +6 percent.
 `Rayleigh.state` and `Rayleigh.limit` of each row say which a gas is. Nothing here draws a value: it is a function of the
 stored mixture and gravity.
 
@@ -124,36 +124,3 @@ def optical_depth(column, wavelength_nm):
     return total
 
 
-def optical_depth_by_gas(column, wavelength_nm):
-    """The vertical Rayleigh optical depth at `wavelength_nm` as a dict formula -> tau (gases without a cross section are left out)."""
-    result = {}
-    for formula in column.partials_pa:
-        try:
-            result[formula] = column.number_column_cm2(formula) * cross_section_cm2(formula, wavelength_nm)
-        except NoRayleigh:
-            continue
-    return result
-
-
-def band_optical_depth(column, low_nm, high_nm, weight=None, steps=24):
-    """
-    The Rayleigh optical depth averaged over `low_nm` to `high_nm`, nm, weighted by `weight(wavelength_nm)` (equal weights
-    when `None`) with the midpoint rule on `steps` equal pieces. The mean of the depth, not the depth of the mean: the
-    band-resolved transmission of `physics/atmospheric_radiation.py` averages the transmission instead.
-    """
-    if high_nm <= low_nm:
-        raise ValueError("the band's upper edge must be above its lower edge")
-    width = (high_nm - low_nm) / steps
-    numerator = denominator = 0.0
-    for step in range(steps):
-        wavelength = low_nm + (step + 0.5) * width
-        w = 1.0 if weight is None else weight(wavelength)
-        numerator += w * optical_depth(column, wavelength)
-        denominator += w
-    return numerator / denominator if denominator > 0.0 else 0.0
-
-
-def uncovered_fraction(column):
-    """The mole fraction of `column` made of gases with no Rayleigh cross section: the share of the air that scatters
-    in `optical_depth` as if it did not (zero for every mixture the generator stores)."""
-    return sum(column.fraction(formula) for formula in column.partials_pa if gases.gas(formula).rayleigh is None)

@@ -183,6 +183,28 @@ def test_measure_reports_the_wall_time_the_memory_and_the_exit_code(tmp_path):
     assert got["database"] is None and "done" in got["log_tail"]
 
 
+def test_stopping_the_workers_ends_those_of_its_own_control_database_and_leaves_any_other(tmp_path):
+    """TEST.302: the benchmark's `stop_workers` once killed every queue worker on the machine, other tests' included."""
+    import subprocess
+    import time
+    from planetgen.db import store
+    if not os.path.isdir("/proc"):
+        pytest.skip("no /proc")
+    sleeper = ["python3", "-c", "import time; time.sleep(120)", "planetgen.cli.worker"]
+    env = lambda control: {**os.environ, store.CONTROL_DB_ENV_VAR: control}
+    own = subprocess.Popen(sleeper, env=env("bench_control_own"))
+    foreign = subprocess.Popen(sleeper, env=env("bench_control_foreign"))
+    try:
+        time.sleep(0.5)
+        benchmark_suite.stop_workers("bench_control_own")
+        assert own.wait(timeout=30) == -9
+        assert foreign.poll() is None
+    finally:
+        for process in (own, foreign):
+            process.kill()
+            process.wait()
+
+
 def test_a_step_over_its_time_is_stopped_and_recorded_as_not_finished(tmp_path):
     script = tmp_path / "slow.py"
     script.write_text("import time\ntime.sleep(120)\n")

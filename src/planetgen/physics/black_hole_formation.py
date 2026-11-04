@@ -8,7 +8,7 @@ A black hole is the remnant of a massive star that fails to explode. Of the star
 (`imf_massive_share`) a share `f` fail, and `f` falls as the star's metallicity rises: the failed-supernova share of a
 metal-poor population is the larger. Only the range of `f` at two metallicities is known (`tuning.BLACK_HOLE_*`), so
 a galaxy draws its two ends from its seed (`draw_failed_shares`), and `failed_share` runs linearly in the metal mass
-fraction Z between them (the share saturates toward low Z, as Ebinger et al. 2020's grid does) and is held at the solar
+fraction Z between them (the share saturates toward low Z, as [R1208]'s grid does) and is held at the solar
 end above solar. A population whose stars are older than the lives of its massive stars has made all it will
 (`remnant_formed_share`); one still forming has made the share of them whose lives are over.
 """
@@ -102,7 +102,9 @@ def draw_failed_shares(uniform_solar, uniform_metal_free, cap):
     return solar, max(free, solar)
 
 
-def middle_failed_shares(neutron_star_unbound_share):
-    """`draw_failed_shares` for the middle of both draws and a neutron star unbound share: the shares of a galaxy built with
-    no seed (`galaxy.structure.REFERENCE_STRUCTURE`, whose unbound share is `galaxy.natal_kick`'s for the Milky Way's masses)."""
-    return draw_failed_shares(0.5, 0.5, share_cap(neutron_star_unbound_share))
+def reference_failed_shares(neutron_star_unbound_share):
+    """`draw_failed_shares` for the draws of a galaxy built with no seed (`tuning.REFERENCE_BLACK_HOLE_DRAWS`) and a neutron star
+    unbound share: the shares of the reference structure (`galaxy.structure.REFERENCE_STRUCTURE`, whose unbound share is
+    `galaxy.natal_kick`'s for the Milky Way's masses)."""
+    solar_draw, metal_free_draw = tuning.REFERENCE_BLACK_HOLE_DRAWS
+    return draw_failed_shares(solar_draw, metal_free_draw, share_cap(neutron_star_unbound_share))

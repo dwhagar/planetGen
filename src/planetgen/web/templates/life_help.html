@@ -1,0 +1,37 @@
+{#- The help pages about life (/help/life, web/class_pages.py, web/lib/life_help.py, DOC.84). -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" id="life-help" aria-labelledby="life-help-heading">
+  <div class="panel-header"><h2 id="life-help-heading">{{ page.title }}</h2></div>
+  <nav class="life-help-nav" aria-label="Life help pages">
+    <ul class="inline-links">
+      {%- for topic in page.topics %}<li><a href="{{ topic.url }}"{% if topic.slug == page.topic %} aria-current="page"{% endif %}>{{ topic.title }}</a></li>{% endfor %}
+    </ul>
+  </nav>
+  {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+</section>
+{%- for section in page.sections %}
+<section class="panel" id="{{ section.id }}" aria-labelledby="{{ section.id }}-heading">
+  <div class="panel-header"><h2 id="{{ section.id }}-heading">{{ section.heading }}</h2></div>
+  {%- for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- if section.facts %}
+  <dl class="life-help-facts">
+    {%- for label, value in section.facts %}
+    <dt>{{ label }}</dt>
+    <dd>{% if value is string %}{{ value }}{% else %}<ul>{% for phrase in value %}<li>{{ phrase }}</li>{% endfor %}</ul>{% endif %}</dd>
+    {%- endfor %}
+  </dl>
+  {%- endif %}
+  {%- if section.table %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr>{% for head in section.table.head %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {%- for row in section.table.rows %}
+      <tr>{% for cell in row %}{% set text, url = (cell if cell is not string else (cell, None)) %}{% if loop.first %}<th scope="row">{% if url %}<a href="{{ url }}">{{ text }}</a>{% else %}{{ text }}{% endif %}</th>{% else %}<td>{% if url %}<a href="{{ url }}">{{ text }}</a>{% else %}{{ text }}{% endif %}</td>{% endif %}{% endfor %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+</section>
+{%- endfor %}
+{% endblock %}

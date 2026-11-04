@@ -14,6 +14,7 @@ import os
 
 import pytest
 
+from planetgen.describe import build
 from planetgen.generation import run_system
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -29,15 +30,10 @@ EXAMPLE_FILES = sorted(glob.glob(os.path.join(EXAMPLES_DIR, "*.json")))
 # A handful of independent trials per fixture, since generation is randomized.
 TRIALS = 3
 
-# Substrings from STAR_EVOLUTION's evolutionary_constraint_notes that describe
-# a *main-sequence* star's habitable-zone lifespan. These should never appear
+# The sentences that say what a *main-sequence* star's lifespan allows. These should never appear
 # in a star's narrative text for a non-main-sequence (Yerkes != 'V') star --
-# see get_star_evolutionary_profile and describe.build._star_age_sentence.
-_MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
-    note["evolutionary_constraint_notes"]
-    for note in tuning.STAR_EVOLUTION.values()
-    if "evolutionary_constraint_notes" in note
-]
+# see supported_evolutionary_scales and describe.build._star_age_sentence.
+_MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = list(build.LIFESPAN_SENTENCES.values())
 
 
 def build_system(path):
@@ -79,7 +75,7 @@ def test_example_narrative_never_misapplies_main_sequence_notes(path):
     for _ in range(TRIALS):
         system = build_system(path)
         for star in system.stars:
-            if star.yerkes_class == "V":
+            if star.yerkes_class in ("V", "VI"):  # a subdwarf is a main-sequence star; the note is written for both (describe/build.py)
                 continue
             # Only this star's own paragraphs: a main-sequence companion
             # (GEN.54) rightly carries its own note.

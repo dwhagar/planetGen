@@ -18,8 +18,8 @@ radius and its distance. For a moon it adds the extra night when its planet stan
   too (a point star gives one half). It holds for a locked world as well.
 * **The solar day** (`solar_day_hours`): the star returns to the same place in `1 / |1/P_rot -/+ 1/P_orb|` (the sign for a
   prograde or a retrograde spin), `P_orb` the period round the star (a moon's star orbit is its parent's). It is `None` for a world
-  that turns once an orbit: it has no day, only the day side, the terminator and the night side (`locked_zone_shares`: 100,
-  50 and 0 percent). `daylight_hours` is the solar day times the equatorial share.
+  that turns once an orbit: it has no day, only the day side, the terminator and the night side (the day side is lit all the time, the terminator
+  half of it, the night side never). `daylight_hours` is the solar day times the equatorial share.
 * **The polar circle** (`polar_circle_deg`): the latitude beyond which the star does not set for at least a day,
   `90 - e - alpha` degrees (zero or less becomes 0: the whole world has polar days and nights; a tilt past 90 degrees
   counts as `180 - tilt`).
@@ -38,16 +38,18 @@ taken at the parent's distance for a moon (the moon's own distance from its plan
 
 import math
 
-from planetgen.physics import constants, spin
+from planetgen.physics import constants, day_night, spin
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
 
-FIELDS = ("day_share_equator", "day_share_mean", "parent_shadow_share", "solar_day_hours", "daylight_hours", "polar_circle_deg")
+FIELDS = ("day_share_equator", "day_share_mean", "parent_shadow_share", "solar_day_hours", "daylight_hours", "polar_circle_deg",
+          "day_night_state", "night_hours", "days_per_year")
 """tuple: The stored columns on `planets` and `moons`. `day_share_equator`, `day_share_mean` and `parent_shadow_share` are shares
 of the time (0 to 1); `solar_day_hours` and `daylight_hours` are hours; `polar_circle_deg` is a latitude in degrees. A
 world that turns once an orbit has no `day_share_equator`, `solar_day_hours` or `daylight_hours` (`None`); only a moon has a
-`parent_shadow_share` (`None` for a planet)."""
+`parent_shadow_share` (`None` for a planet). `day_night_state` is the word of `day_night.state`, `night_hours` the solar day less the daylight and `days_per_year` the
+solar days in one orbit (GEN.1097); the last two are `None` where the solar day is."""
 
 YEAR_SAMPLES = 720
 """int: The points of the circular year the declination and the shadow are averaged over."""
@@ -100,12 +102,6 @@ def equator_day_share(tilt_deg, alpha):
 def mean_day_share(alpha):
     """The share of the time the star is up, averaged over the whole surface: the lit part of a sphere, `(1 + sin alpha) / 2`."""
     return 0.5 * (1.0 + math.sin(alpha))
-
-
-def locked_zone_shares():
-    """The shares of a world that turns once an orbit: the day side is always lit, the terminator ring is on the line, the night
-    side never is."""
-    return {"day_side": 1.0, "terminator": 0.5, "night_side": 0.0}
 
 
 def polar_circle_deg(tilt_deg, alpha):
@@ -184,9 +180,12 @@ def compute(body, parent=None):
     out = dict.fromkeys(FIELDS)
     rotation = getattr(body, "rotation_period_hours", None)
     star = getattr(body, "star", None)
+    host = parent if parent is not None else body
+    solid = getattr(body, "body_type", "t") != "g"
+    if not solid:
+        out["day_night_state"] = day_night.NO_SURFACE
     if not rotation or rotation <= 0.0 or star is None:
         return out
-    host = parent if parent is not None else body
     distance_au = getattr(host, "distance", None)
     orbital_hours = _yr_to_h(getattr(host, "period", None) or 0.0)
     alpha = angular_radius(getattr(star, "radius", None), distance_au)
@@ -213,6 +212,9 @@ def compute(body, parent=None):
             out["day_share_equator"] *= 1.0 - shadow
     if out["day_share_equator"] is not None:
         out["daylight_hours"] = out["solar_day_hours"] * out["day_share_equator"]
+    out["day_night_state"] = day_night.state(rotation, getattr(host, "period", None), out["polar_circle_deg"], solid)
+    out["night_hours"] = day_night.night_hours(out["solar_day_hours"], out["daylight_hours"])
+    out["days_per_year"] = day_night.days_per_year(orbital_hours, out["solar_day_hours"])
     return out
 
 

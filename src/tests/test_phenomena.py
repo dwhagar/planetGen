@@ -410,7 +410,7 @@ def test_star_system_anchored_by_neutron_star_can_force_planets():
 
 
 def test_star_system_anchored_by_black_hole_defaults_to_no_planets():
-    # Disk-physics-driven generation (StarSystem._estimate_max_objects_from_disk_physics)
+    # Disk-driven generation (StarSystem._plan_architecture)
     # is snow-line-driven, which naturally collapses to zero for a
     # zero-luminosity remnant -- the real-world rarity of confirmed
     # planets around black holes falls out of the existing physics model

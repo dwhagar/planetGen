@@ -16,7 +16,7 @@ import pytest
 
 from planetgen.admin import activity_log
 from planetgen.cli import generate as generate_cli
-from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hitran_cia, ir_ktables, isochrones, neutron_star_matter,
+from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hhe_eos, hitran_cia, ir_ktables, isochrones, neutron_star_matter,
                                 noaa_proton_events, ozone_uv, stellar_spectra, white_dwarf_models)
 from planetgen.generation import run_galaxy
 from planetgen.physics import stellar_abundances as sa
@@ -37,6 +37,15 @@ def cache(tmp_path, monkeypatch):
     yield tmp_path / "cache"
     fetch.set_disregard_missing_data(False)
     fetch._STAND_INS.clear()
+
+
+@pytest.fixture
+def mamajek(monkeypatch, cache):
+    """The Mamajek sequence downloaded: it has no fallback (GEN.943), so a run told to disregard missing data is still refused while
+    it is missing. A test of the gate that lets a run through takes it, so that only datasets with a labelled fallback are missing."""
+    installed = support.install_mamajek(monkeypatch)
+    monkeypatch.setattr(catalogue, "ALL", tuple(installed if dataset.key == installed.key else dataset for dataset in catalogue.ALL))
+    return installed
 
 
 @pytest.fixture
@@ -87,16 +96,16 @@ def test_a_dataset_without_a_fallback_is_refused_whatever_the_run_was_told(monke
 
 # --- The option --------------------------------------------------------------------------------------------------------
 
-def test_the_option_lets_the_gate_through_and_says_what_each_missing_dataset_is_replaced_by():
+def test_the_option_lets_the_gate_through_and_says_what_each_missing_dataset_is_replaced_by(mamajek):
     missing = run_galaxy.require_datasets(True)
     assert [located.dataset.key for located in missing] == ["isochrones", "white_dwarf_models", "neutron_star_matter", "ozone_uv", "ir_ktables", "ir_cia",
-                                                        "harris_clusters", "noaa_proton_events", "baraffe_isochrones", "stellar_spectra"]
+                                                        "harris_clusters", "noaa_proton_events", "baraffe_isochrones", "stellar_spectra", "hhe_eos"]
     lines = run_galaxy.disregard_notice(missing)
     assert "--disregard-missing-data" in lines[0]
     assert len(lines) == 11
     for line, dataset in zip(lines[1:], (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET, ozone_uv.DATASET,
                                          ir_ktables.DATASET, hitran_cia.DATASET, harris_clusters.DATASET, noaa_proton_events.DATASET,
-                                         baraffe_isochrones.DATASET, stellar_spectra.DATASET)):
+                                         baraffe_isochrones.DATASET, stellar_spectra.DATASET, hhe_eos.DATASET)):
         assert dataset.key in line and dataset.fallback in line
     assert run_galaxy.disregard_notice([]) == []
 
@@ -161,7 +170,7 @@ def test_a_dataset_missing_one_file_takes_its_fallback_and_the_others_do_not(mon
 # --- Where the option is given -----------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("argv", [["galaxy", "--shell", "5"], ["plan"], ["population"]])
-def test_a_bulk_command_refuses_without_the_option_and_goes_ahead_with_it(handlers, monkeypatch, capsys, argv):
+def test_a_bulk_command_refuses_without_the_option_and_goes_ahead_with_it(mamajek, handlers, monkeypatch, capsys, argv):
     with pytest.raises(SystemExit) as exit_info:
         _main(monkeypatch, *argv)
     assert exit_info.value.code == 1 and handlers == []
@@ -194,11 +203,15 @@ def test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_t
     run = lambda *extra: subprocess.run(  # noqa: E731
         [sys.executable, "-m", "planetgen.cli.datasets", "status", *extra], capture_output=True, text=True, cwd=REPO,
         env=env, timeout=120)
-    refused, told = run(), run("--disregard-missing-data")
+    with_fallback = ("isochrones", "white_dwarf_models", "neutron_star_matter")
+    refused, told = run(*with_fallback), run(*with_fallback, "--disregard-missing-data")
     assert refused.returncode == 1 and "generation will not start" in refused.stdout
     assert told.returncode == 0, told.stdout + told.stderr
     assert "the run takes a labelled fallback" in told.stdout and "generation will not start" not in told.stdout
     assert "https://mist.science" in told.stdout, "the missing files are still listed with their URLs"
+    # the Mamajek sequence has no fallback (GEN.943): told to disregard, the command still exits 1 and says generation will not start
+    bare = run("mamajek_dwarf_sequence", "--disregard-missing-data")
+    assert bare.returncode == 1 and "generation will not start" in bare.stdout, bare.stdout + bare.stderr
 
 
 def test_the_neighborhood_job_sets_the_switch_in_its_worker(monkeypatch):
@@ -210,7 +223,7 @@ def test_the_neighborhood_job_sets_the_switch_in_its_worker(monkeypatch):
     assert seen == [True, False]
 
 
-def test_the_neighborhood_route_takes_the_field(monkeypatch):
+def test_the_neighborhood_route_takes_the_field(mamajek, monkeypatch):
     from planetgen.api import routes
     from planetgen.api.config import Config
     from planetgen.web.app import create_app
@@ -258,3 +271,12 @@ def test_a_reset_or_a_database_check_has_no_data_check_to_tell():
     for action in ("reset", "check_db"):
         kind, _title, steps = generate_page.build_job(action, {"disregard_missing_data": "1", "confirm": "galaxy"}, "galaxy")
         assert all(generate_page.DISREGARD_FLAG not in step["argv"] for step in steps)
+
+
+def test_the_brown_dwarf_cap_without_the_baraffe_table_is_the_peak_when_told_to_disregard_and_a_refusal_otherwise():
+    from planetgen.physics import substellar_ceiling
+    with pytest.raises(fetch.DataMissing):
+        substellar_ceiling.cap_k(0.05, 1.0)
+    with fetch.disregard_missing_data():
+        assert substellar_ceiling.cap_k(0.05, 5.0) == substellar_ceiling.HOTTEST_K
+        assert ("baraffe_isochrones", "brown dwarf cap at the 2,950 K peak at every age") in fetch.stand_ins_used()

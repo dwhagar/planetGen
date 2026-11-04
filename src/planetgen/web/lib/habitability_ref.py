@@ -10,10 +10,10 @@ their sources (`domains`), so the tables cannot disagree with the score.
 """
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, habitability, orbits
+from planetgen.physics import atmosphere, constants, habitability, latitude_bands, life_classes, orbits
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
-from planetgen.web.lib import habitability_symbols
+from planetgen.web.lib import habitability_symbols, help_registry
 
 EQUIPMENT_ITEMS = (
     ("Clothing", "Cold-weather, cooling or sun-cover clothing: the temperature is a little outside comfort or the "
@@ -23,12 +23,14 @@ EQUIPMENT_ITEMS = (
     ("Sealed suit", "A fully enclosed suit with its own climate: heated for the deep cold, heat-shielded for the "
                     "hot, chemical-barrier where a corrosive gas or liquid is about."),
     ("Pressure suit", "The ambient pressure is too low for a mask to give enough oxygen."),
-    ("Armoured suit", "A rigid suit that holds one atmosphere inside: crushing pressure or heat past 400 C."),
-    ("Vehicle only", "No suit exists for it: heat past 500 C, pressure past 100 MPa or gravity past 3 g."),
-    ("Powered frame", "The gravity is past 1.5 g (recommended from 1.25 g)."),
+    ("Armored suit", f"A rigid suit that holds one atmosphere inside: crushing pressure or heat past {limit('armoured_heat_c'):g} C."),
+    ("Vehicle only", f"No suit exists for it: heat past {limit('vehicle_heat_c'):g} C, pressure past {limit('vehicle_pressure_kpa') / 1000:g} MPa "
+                      f"or gravity past {limit('vehicle_gravity_g'):g} g."),
+    ("Powered frame", f"The gravity is past {limit('frame_gravity_g'):g} g (recommended from {limit('frame_gravity_rec_g'):g} g)."),
     ("Dust filter or seals", "Fine regolith dust wrecks open seals (a rocky body with almost no air), or the dust in the "
-                            "air passes 0.1 mg/m3 (recommended) or 10 mg/m3 (required)."),
-    ("Gas filter, full-face or powered", "A gas such as carbon monoxide, hydrogen sulfide or sulfur dioxide is above "
+                            f"air passes {limit('dust_recommended_mg_m3'):g} mg/m3 (recommended) or "
+                            f"{limit('dust_required_mg_m3'):g} mg/m3 (required)."),
+    ("Gas filter, full-face, or powered", "A gas such as carbon monoxide, hydrogen sulfide, or sulfur dioxide is above "
                                          "its long-term limit and has to be filtered out."),
     ("CO2 scrubber", "Carbon dioxide is above its long-term limit but short of what is acutely dangerous."),
     ("Gas-mix mask", "Oxygen is low or high, or the pressure is dense: an open mask fixes the mix."),
@@ -50,11 +52,11 @@ EQUIPMENT_ROW_IDS = {
     "Thermal suit": "equipment-thermal-suit",
     "Sealed suit": "equipment-sealed-suit",
     "Pressure suit": "equipment-pressure-suit",
-    "Armoured suit": "equipment-armoured-suit",
+    "Armored suit": "equipment-armored-suit",
     "Vehicle only": "equipment-vehicle",
     "Powered frame": "equipment-powered-frame",
     "Dust filter or seals": "equipment-dust",
-    "Gas filter, full-face or powered": "equipment-gas-filter",
+    "Gas filter, full-face, or powered": "equipment-gas-filter",
     "CO2 scrubber": "equipment-co2-scrubber",
     "Gas-mix mask": "equipment-gas-mix-mask",
     "Self-contained air": "equipment-self-contained-air",
@@ -71,7 +73,7 @@ DOMAIN_TIERS = (
     ("Yellow", "Needs equipment or limits the time spent outside."),
     ("Red", "Beyond what a person can survive without heavy protection."),
 )
-"""tuple: `(colour, meaning)` of a PHI-6 domain's score, best first."""
+"""tuple: `(color, meaning)` of a PHI-6 domain's score, best first."""
 
 def _n(value):
     """A limit as the page prints it: whole numbers with thousands separators, others as they are."""
@@ -123,7 +125,7 @@ def domains(bands=habitability.HUMAN):
              _under(bands.wet_bulb, "C"), f"{_n(bands.wet_bulb)} C or more (a body can no longer shed heat)"),
         ]),
         ("Air", [
-            (f"Oxygen the lungs get (the pressure minus {_n(bands.armstrong)} kPa of water vapour), too little",
+            (f"Oxygen the lungs get (the pressure minus {_n(bands.armstrong)} kPa of water vapor), too little",
              f"{_n(bands.o2_min)} kPa or more", f"{_under(bands.o2_min, 'kPa')} (a mask works)", ""),
             ("Oxygen the lungs get, too much", _up_to(bands.o2_high[4], "kPa"), "",
              _up_to(bands.o2_high[6], "kPa")),
@@ -146,8 +148,8 @@ def domains(bands=habitability.HUMAN):
         ]),
         ("Suitability", [
             ("Water within reach (the lowest of the three rungs scores)", "fresh liquid water",
-             "rivers, lakes and rain", "ice or an ocean under ice"),
-            ("Food", "forests and animals", "algae, mosses and the first land plants",
+             "rivers, lakes, and rain", "ice or an ocean under ice"),
+            ("Food", "forests and animals", "algae, mosses, and the first land plants",
              "microbial mats and plankton only"),
             ("Shelter", "the surface dose is Blue", "the surface dose is Green",
              "the surface dose is Yellow (caves or burial)"),
@@ -155,22 +157,25 @@ def domains(bands=habitability.HUMAN):
     )
 
 
+_BLUE, _GREEN, _YELLOW = habitability._EDGE_SCORES[3], habitability._EDGE_SCORES[2], habitability._EDGE_SCORES[1]
+"""float: The domain score at the edge of Blue, Green, and Yellow (`habitability._EDGE_SCORES`)."""
+
 SCORE_RULE = (
-    "Each variable scores 1 in Blue and falls to 0.75 at the edge of Green, 0.4 at the edge of Yellow and 0 "
-    "at the outer edge of Red. A domain takes the score of its worst variable: Blue at 1, Green from 0.75, "
-    "Yellow from 0.4, Red below. The PHI-6 score on a "
-    "planet's tooltip is the geometric mean of the six domains, held under the colour gates: Radiation and "
-    "Temperature cap it at their own colour, Pressure in Yellow or Red caps it there (unless a full suit is "
-    "needed anyway), Air, Water or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "
-    "Suitability, the long-term domain, is the lowest of water, food and shelter, and is never better than "
-    "the colour the other five allow."
+    f"Each variable scores {_BLUE:g} in Blue and falls to {_GREEN:g} at the edge of Green, {_YELLOW:g} at the edge of Yellow and 0 "
+    f"at the outer edge of Red. A domain takes the score of its worst variable: Blue at {_BLUE:g}, Green from {_GREEN:g}, "
+    f"Yellow from {_YELLOW:g}, Red below. The PHI-6 score on a "
+    "planet's tooltip is the geometric mean of the six domains, held under the color gates: Radiation and "
+    "Temperature cap it at their own color, Pressure in Yellow, or Red caps it there (unless a full suit is "
+    "needed anyway), Air, Water, or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "
+    "Suitability, the long-term domain, is the lowest of water, food, and shelter, and is never better than "
+    "the color the other five allow."
 )
 
 EQUIPMENT_RULE = (
     "A planet's equipment line lists only what a visitor needs, never what is not needed. Each item is required "
     "(past the physical limit) or recommended (in the band before it, where a person is impaired or at risk, or "
     "where only a region or the night asks for it); a body gives a Required line and a Recommended line, and leaves off one with nothing in it. The line follows the "
-    "physics, so it can be stricter than a domain's colour: a gas past its immediate danger limit needs sealed "
+    "physics, so it can be stricter than a domain's color: a gas past its immediate danger limit needs sealed "
     "air even where the score only says Yellow. Radiation goes up in steps: a shielded garment, a storm vest, a "
     "hardened suit, then a shielded shelter and a hardened habitat, each worked out from how much of the dose is "
     "cosmic rays and how much is storm particles. Where no lighter gear brings the year under the Green edge (cosmic "
@@ -186,13 +191,13 @@ COMPACT_HOST_RULE = (
 )
 
 CHIPS = (
-    ("Habitable", "The world's overall PHI-6 colour is Blue or Green, so it needs at most a mask. It is not a promise "
-                  "that anything lives there."),
-    ("Habitable moon", "A moon of this planet is habitable in that sense."),
+    ("Habitable", "The world's overall PHI-6 color is Blue or Green, so it needs at most a mask. It is not a promise "
+                  "that anything lives there. A habitable world is shown as this chip alone, not with Habitable class as well."),
+    ("Habitable moon", "A moon of this planet is habitable in that sense (shown instead of Habitable-class moon when both hold)."),
     ("Habitable class", "The planet's class can carry life (an Earth-like or similar world). It is not a rating "
                         "and not a promise that anything lives there: the equipment level beside it is the rating."),
     ("Habitable-class moon", "A moon of this planet is of a habitable class in that sense."),
-    ("Inhabited", "A species lives here."),
+    ("Inhabited", "A species lives here. Such a world is habitable and of a habitable class, so it shows this chip alone, not those two as well."),
 )
 """tuple: The chips a planet or moon row can show beside its equipment level."""
 
@@ -201,8 +206,8 @@ CHIP_IDS = {chip: habitability_symbols.CHIP_ANCHORS[chip.lower()] for chip, _mea
 
 
 SYMBOL_INTRO = (
-    "Lists show a rating as a small shape drawn in its colour. The shape says which domain it is, and its tooltip "
-    "and its screen-reader text give the domain and the colour in words, so the colour is never the only sign."
+    "Lists show a rating as a small shape drawn in its color. The shape says which domain it is, and its tooltip "
+    "and its screen-reader text give the domain and the color in words, so the color is never the only sign."
 )
 
 LIFE_INTRO = (
@@ -252,15 +257,20 @@ WHERE_ROWS = (
     ("A system page", "Each planet and moon row carries the seven symbols in place of the old notes."),
     ("Search", "The planet and moon panels of Search show the same symbols beside each result."),
     ("The equipment chips", "A system page row and the Equipment column of Search show one chip per item of the "
-                            "equipment line: solid for a required item, outlined for a recommended one, in the colour "
+                            "equipment line: solid for a required item, outlined for a recommended one, in the color "
                             "of the domain it comes from."),
 )
 """tuple: `(place, what it shows)` for the places the symbols appear (UX.100, UX.155, UX.156)."""
 
 
+def _class_ids():
+    """The first life class ids, as the map names them (`1a, 1b, 1c, 2, 3a`)."""
+    return ", ".join(row.id for row in life_classes.CLASSES[:5])
+
+
 MAP_INTRO = (
     "The Galaxy Map shows where habitable worlds are, in two ways that you choose. A habitable world here means a "
-    "planet or moon whose overall PHI-6 colour is Blue or Green; Yellow and Red worlds are not counted."
+    "planet or moon whose overall PHI-6 color is Blue or Green; Yellow and Red worlds are not counted."
 )
 
 MAP_ROWS = (
@@ -272,14 +282,14 @@ MAP_ROWS = (
                                  "marker. Hovering names the system and how many habitable worlds it has; a click "
                                  "opens its summary."),
     ("Marker: Life", "The Menu's Points of interest group also has three markers for worlds with life: Life (any of the four "
-                     "life scores is 1 or more), Sentient life and Civilizations. They are off until you turn them on "
+                     "life scores is 1 or more), Sentient life, and Civilizations. They are off until you turn them on "
                      "(show=marker-life, marker-sentient, marker-civilization in the address); a system with several is "
                      "marked once, by the strongest."),
     ("Marker: World classes", "The Menu's World classes group has a marker for each planet class, all off until you turn "
                               "one on (kept in the address as show=marker-class-K for class K). A system with a world of "
                               "the class gets a disc with the class letter, once the map is close enough to have its "
                               "sector; hovering names the system and how many worlds of the class it holds."),
-    ("Marker: Life classes", "The Menu's Life classes group has a marker for each of the 15 life classes (1a, 1b, 1c, 2, 3a and "
+    ("Marker: Life classes", f"The Menu's Life classes group has a marker for each of the {len(life_classes.CLASSES)} life classes ({_class_ids()} and "
                              "so on), all off until you turn one on (kept in the address as show=marker-lifeclass-1a for "
                              "class 1a). A system with a world on which that class of life lives gets a green disc with the "
                              "class id, once the map is close enough to have its sector; hovering names the system and how "
@@ -287,17 +297,27 @@ MAP_ROWS = (
 )
 """tuple: `(control, what it does)` for the habitable-world views of the Galaxy Map (MAP.143, MAP.220)."""
 
-TEMPERATURE_TEXT = (
-    "The surface temperature of a world is its mean, and the ratings use the mean. The Temperature row of a planet's "
-    "page also says how the mean is spread: a world that turns on its own has an annual mean for each of four bands "
-    "(Polar from 60 degrees to the pole, 13 percent of the surface; Northern and Southern, 20 to 60 degrees, 26 percent "
-    "each; Equatorial, 20 south to 20 north, 34 percent), found from the sunlight each band gets over a year at the "
-    "world's axial tilt, with a thick atmosphere carrying heat toward the poles. It also gives the day and night swing "
-    "at the equator, which a slow turn on bare ground makes as large as the mean itself and a thick atmosphere shrinks "
-    "to a few degrees. A world that is tidally locked has no day and night; its page gives the day side, the "
-    "terminator ring and the night side. Where a band or the night needs heavier gear than the mean does, the row names "
-    "the place and the gear as recommended."
-)
+_NUMBER_WORDS = {3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
+
+
+def temperature_text():
+    """The temperature paragraph, with the bands read from `physics/latitude_bands.py` (their number, their width and each one's share of the surface)."""
+    count = latitude_bands.BAND_COUNT
+    shares = [latitude_bands._area_share(high, low) for high, low in latitude_bands._bounds()]
+    middle = count // 2
+    return (
+        "The surface temperature of a world is its mean, and the ratings use the mean. The Temperature row of a planet's "
+        f"page also says how the mean is spread: a world that turns on its own has an annual mean for each of {_NUMBER_WORDS.get(count, count)} bands "
+        f"of latitude, each {latitude_bands.BAND_WIDTH_DEG:.1f} degrees wide. The equator band reaches {latitude_bands.BAND_WIDTH_DEG / 2:.1f} degrees "
+        f"each side of the equator and holds {shares[middle] * 100:.0f} percent of the surface; the bands on each side of it hold "
+        f"{', '.join(f'{share * 100:.0f}' for share in shares[:middle][::-1][:-1])} and, for the one that takes the pole, "
+        f"{shares[0] * 100:.0f} percent. Each is found from the sunlight it gets over a year at the "
+        "world's axial tilt, with a thick atmosphere carrying heat toward the poles. It also gives the day and night swing "
+        "of each band, which a slow turn on bare ground makes as large as the mean itself and a thick atmosphere shrinks "
+        "to a few degrees. A world that is tidally locked has no day and night; its page gives rings from the day side, through the "
+        "terminator ring, to the night side. Where a band or the night needs heavier gear than the mean does, the row names "
+        "the place and the gear as recommended."
+    )
 
 
 def radiation_text():
@@ -308,16 +328,16 @@ def radiation_text():
     return (
         "The Radiation rating is the worse of two scores: the yearly dose and the ground ultraviolet. The dose adds four terms, "
         "each set by the world's make-up. Cosmic rays are cut by the air above the ground (its column, the pressure over the "
-        "gravity, in grams per square centimetre) and by the dipole magnetic field; a body with no air takes them whole. "
+        "gravity, in grams per square centimeter) and by the dipole magnetic field; a body with no air takes them whole. "
         "Stellar particles come from the star's flares, fall with the square of the distance, and are cut by the same air and "
         "field. The ground gives the gamma rays and the radon of the potassium, thorium and uranium in its rock: the same "
         "stored content that heats the interior, so a world rich in them is hotter inside and carries a larger ground dose. "
         "The ultraviolet is the DNA-damaging dose at the ground as a multiple of Earth's: the star's own light through the "
-        "world's air, its ozone (made from its oxygen), haze, dust and cloud, and the unfiltered light for a world with no air. "
+        "world's air, its ozone (made from its oxygen), haze, dust, and cloud, and the unfiltered light for a world with no air. "
         f"The dose is Blue under {limit('dose_blue_sv_yr') * 1000:g} mSv a year, Green to {limit('dose_green_sv_yr') * 1000:g}, "
         f"Yellow to {limit('dose_yellow_sv_yr') * 1000:g} mSv, and the ultraviolet is Blue under {limit('uv_cover_index'):g} times "
         f"Earth's, Green to {limit('uv_suit_index'):g} times and Yellow to {limit('uv_lethal_index'):g} times. A planet's page lists "
-        "each term with the air, the field, the ozone and the rock that set it, and says which of the two sets the rating."
+        "each term with the air, the field, the ozone, and the rock that set it, and says which of the two sets the rating."
     )
 
 
@@ -335,7 +355,7 @@ def zone_text():
         "A star's habitable zone is the ring of orbits where a planet like Earth could keep liquid water on its "
         "surface. Its inner edge is the runaway greenhouse limit, where a planet loses its water to space, and its "
         "outer edge is the maximum greenhouse limit, beyond which a carbon dioxide atmosphere can no longer keep the "
-        "surface warm (Kopparapu et al., 2014). Both edges are a flux, in units of the sunlight Earth gets, that "
+        "surface warm [R2447]. Both edges are a flux, in units of the sunlight Earth gets, that "
         "depends on the star's temperature: a cool star's light is redder, so a planet takes more of it at the same "
         "flux and the zone lies nearer in than the star's brightness alone says. "
         f"For the Sun the edges are {inner:.2f} and {outer:.2f} AU. The inner edge moves with the planet's mass, because a "
@@ -346,7 +366,7 @@ def zone_text():
         f"The fits cover stars from {low:,.0f} to "
         f"{high:,.0f} K; a star outside that range (a brown dwarf, a white dwarf, a remnant) takes the nearest end's "
         "edges. The zone is a guide to where to look and is not the rating: a planet is rated by the six domains "
-        "above, from its own air, water, temperature and radiation, wherever it orbits."
+        "above, from its own air, water, temperature, and radiation, wherever it orbits."
     )
 
 
@@ -364,7 +384,7 @@ def page():
         "where_rows": WHERE_ROWS,
         "map_intro": MAP_INTRO,
         "map_rows": MAP_ROWS,
-        "temperature_text": TEMPERATURE_TEXT,
+        "temperature_text": temperature_text(),
         "radiation_text": radiation_text(),
         "zone_text": zone_text(),
         "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),
@@ -381,3 +401,8 @@ def page():
         "life_ids": habitability_symbols.LIFE_ANCHORS,
         "overall_id": habitability_symbols.SYMBOL_ANCHORS[habitability_symbols.OVERALL],
     }
+
+
+help_registry.register_category("worlds", "Worlds and life", "How a visitor's gear is judged on a world and how life on it is described.", order=20)
+help_registry.register_topic("habitability_levels", "Habitability", "worlds",
+                             "What the equipment levels, the Blue to Red domain colors and the Habitable chips mean.", order=20)

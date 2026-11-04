@@ -6,7 +6,7 @@ letter; GEN.915): a world that can hold life can hold it whatever its class lett
 
 Two checks, both on the shared body sweep (`tests.audit.sweep`):
 
-- `scores-class-blind` (a `Rule`): every terrestrial planet and moon of the sweep is given each of the 20 class letters in turn, its stored
+- `scores-class-blind` (a `Rule`): every terrestrial planet and moon of the sweep is given each class letter the rules hold in turn, its stored
   conditions unchanged, and the life model (`physics.life_classes.score_classes`) must answer the same scores for every letter. A failure
   names the body (its conditions), the letter and the life class whose score moved. Because the sweep's own bodies reach life-capable
   conditions on only a few letters, this is what proves that the conditions that host life on one class host it on every class.
@@ -16,7 +16,7 @@ Two checks, both on the shared body sweep (`tests.audit.sweep`):
   reported as stale.
 
 The second layer (`draw_problems`) is on the generator itself, with the class store of epoch 120 (GEN.889): every planet and moon of the sweep that has not been through the life step (`fresh_planets`)
-has the life step of the generator (`generation.life.apply_life_data`) run on a copy of it. A body the life model supports (a class scores above 0) must be given life, one
+has the life step of the generator (`generation.life.apply_life_data`) run on a copy of it. A body the life model supports (a class scores above 0) must be given life (unless its star is younger than any life needs or the first step of its schedule comes after the star's age, GEN.997 and GEN.1001), one
 that no class supports must not, and the class that lives there must be one the model supports. Then the same conditions are put under every
 other class letter and the life step is run again on the same stream: the class, the stage and the schedule must be identical. The odds are
 those of the model (a supported world always gets life), so a rate that is not the model's, or that depends on the letter, fails and names the
@@ -66,8 +66,8 @@ def _scores(body):
 
 def _check_scores_class_blind(entry):
     body = entry.body
-    if getattr(body, "body_type", None) != "t":
-        return []
+    if getattr(body, "body_type", None) != "t" or getattr(body, "planet_class", None) is None:
+        return []                   # an Asteroid (GEN.1160) has no class letter to swap
     reference = _scores(body)
     problems = []
     for letter in letters():
@@ -95,7 +95,7 @@ def capable_by_class(entries):
     out = {}
     for entry in entries:
         body = entry.body
-        if getattr(body, "body_type", None) != "t":
+        if getattr(body, "body_type", None) != "t" or body.planet_class is None:
             continue
         total, capable = out.get(body.planet_class, (0, 0))
         out[body.planet_class] = (total + 1, capable + (1 if _scores(body)[1] else 0))
@@ -174,8 +174,16 @@ def _supported(planet):
 
 def life_outcome(planet, letter=None):
     """What the life step of the generator gives a copy of `planet` (under `letter` when given): `(class id, stage, schedule ages)`."""
-    import copy
+    return _run_life(planet, letter)[0]
 
+
+def _run_life(planet, letter=None):
+    """`(life_outcome, waiting)`: `waiting` is True when the body went without life only because its star is too young for any (GEN.997) or the
+    first step of its schedule comes after the star's age (GEN.1001), a world the model supports but on which life has not begun yet."""
+    import copy
+    from unittest import mock
+
+    from planetgen import tuning
     from planetgen.generation import evolution, life
     from planetgen.util import draw
 
@@ -183,21 +191,32 @@ def life_outcome(planet, letter=None):
     assert clone is not planet and getattr(clone, "star", None) is not None
     if letter is not None:
         clone.planet_class = letter
+    begun = []
+    real = life._life_has_begun
+
+    def recorded(body):
+        begun.append(real(body))
+        return begun[-1]
+
     draw.set_run_seed(LIFE_STREAM_SEED)
-    life.apply_life_data(clone)
-    return clone.life_class_id, clone.life_stage, tuple(getattr(clone, field, None) for field in evolution.SCHEDULE_FIELDS)
+    with mock.patch.object(life, "_life_has_begun", recorded):
+        life.apply_life_data(clone)
+    outcome = clone.life_class_id, clone.life_stage, tuple(getattr(clone, field, None) for field in evolution.SCHEDULE_FIELDS)
+    age = getattr(clone.star, "age", None)
+    waiting = outcome[0] is None and ((age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY) or begun == [False])
+    return outcome, waiting
 
 
 def draw_problems(planet, other_letters=None):
     """The problems of one planet: a supported world without life, life on an unsupported one, a class that lives where the model
     does not support it, and any difference in the outcome when the same conditions carry another class letter (`other_letters`, default all)."""
-    if getattr(planet, "body_type", None) != "t":
+    if getattr(planet, "body_type", None) != "t" or planet.planet_class is None:
         return []
     supported = _supported(planet)
     letter = planet.planet_class
-    outcome = life_outcome(planet)
+    outcome, waiting = _run_life(planet)
     problems = []
-    if supported and outcome[0] is None:
+    if supported and outcome[0] is None and not waiting:
         problems.append(f"class {letter}: the model supports {', '.join(sorted(supported))} and the generator drew no life")
     if not supported and outcome[0] is not None:
         problems.append(f"class {letter}: no life class is supported and the generator drew {outcome[0]}")
@@ -214,12 +233,14 @@ def draw_problems(planet, other_letters=None):
 
 
 def draw_rates(planets):
-    """`{class letter: (terrestrial planets, supported by the model, given life by the generator)}` over `[(label, planet), ...]`."""
+    """`{class letter: (terrestrial planets, supported by the model, given life by the generator, supported but waiting for the star's age)}`
+    over `[(label, planet), ...]`."""
     out = {}
     for _, planet in planets:
-        if getattr(planet, "body_type", None) != "t":
+        if getattr(planet, "body_type", None) != "t" or planet.planet_class is None:
             continue
-        total, supported, drawn = out.get(planet.planet_class, (0, 0, 0))
+        total, supported, drawn, waiting = out.get(planet.planet_class, (0, 0, 0, 0))
         has = bool(_supported(planet))
-        out[planet.planet_class] = (total + 1, supported + has, drawn + (1 if has and life_outcome(planet)[0] is not None else 0))
+        outcome, young = _run_life(planet) if has else (None, False)
+        out[planet.planet_class] = (total + 1, supported + has, drawn + (1 if has and outcome[0] is not None else 0), waiting + (1 if has and young else 0))
     return out

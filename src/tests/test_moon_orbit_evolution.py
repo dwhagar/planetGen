@@ -23,7 +23,7 @@ def _earth_torques(k2_over_q):
 
 
 def test_the_moon_recedes_at_the_rate_lunar_laser_ranging_measures():
-    """3.82 cm a year (Dickey et al. 1994, recalled): the Earth's effective k2/Q of 0.025 and the standard 3/2 torque give it to 10 percent."""
+    """3.82 cm a year ([R1107], recalled): the Earth's effective k2/Q of 0.025 and the standard 3/2 torque give it to 10 percent."""
     rate = moon_orbits.drift_rate_m_s(_earth_torques(0.025), EARTH_SPIN, EARTH.mass_kg, MOON)
     assert rate * YEAR == pytest.approx(0.0382, rel=0.1)
     assert rate > 0.0
@@ -66,7 +66,7 @@ def test_the_heat_in_the_planet_is_the_work_the_tide_does():
 
 
 def test_phobos_spirals_in_at_a_rate_of_the_order_measured():
-    """Phobos: Mars turns slower than Phobos goes round, so it falls, about 1.8 cm a year (Bills et al. 2005, recalled; Q of 88 and k2 of 0.14)."""
+    """Phobos: Mars turns slower than Phobos goes round, so it falls, about 1.8 cm a year ([R0394], recalled; Q of 88 and k2 of 0.14)."""
     mars = spin_torques.Planet(6.417e23, 3.3895e6)
     phobos = moon_orbits.Moon(1.066e16, 9.376e6, 1876.0)
     torques = spin_torques.Torques(mars, (), spin_torques.constant_dissipation(0.14, 88.0), None, 1.5, moon_orbits.COROTATION_SOFTNESS)
@@ -76,7 +76,7 @@ def test_phobos_spirals_in_at_a_rate_of_the_order_measured():
 
 
 def test_triton_goes_in_because_it_is_retrograde_and_never_recedes():
-    """Triton at Neptune: retrograde, so the tide takes its orbital angular momentum; the decay time to the Roche limit is some Gy at Q of 1e4 (Chyba et al. 1989)."""
+    """Triton at Neptune: retrograde, so the tide takes its orbital angular momentum; the decay time to the Roche limit is some Gy at Q of 1e4."""
     neptune = spin_torques.Planet(1.024e26, 2.4622e7)
     triton = moon_orbits.Moon(2.139e22, 3.548e8, 2061.0, retrograde=True)
     torques = spin_torques.Torques(neptune, (), spin_torques.constant_dissipation(0.41, 1.0e4), None, 1.5, moon_orbits.COROTATION_SOFTNESS)
@@ -135,3 +135,24 @@ def test_several_moons_are_followed_together():
     assert [f.moon for f in result.moons] == moons
     assert result.moons[0].fate == "stays" or result.moons[0].fate == "fell"
     assert result.moons[2].distance_m >= moons[2].distance_m
+
+
+def test_a_planet_held_near_a_balance_of_the_tides_integrates_in_seconds():
+    """A planet of 0.2 Earth masses with a thermal tide and three moons, one inside its Roche limit, whose spin hovers at a balance of the thermal and rheology
+    tides: at a relative tolerance of 1e-7 LSODA took minutes; at the module's tolerance it takes about a second, and the answer (the spin it ends at) agrees."""
+    import time
+    from planetgen.physics import tidal_rheology
+    planet = spin_torques.Planet(1.1944335735582758e+24, 3931635.019609854, 0.33)
+    star = spin_torques.Raiser(1.9471535274991518e+30, 68448422524.914894, 6.365870419227959e-07)
+    thermal = spin_torques.ThermalTide(star, 17.65749914006499, 7.491435544865652e-06)
+
+    def dissipation(frequency):
+        return tidal_rheology.response(planet.mass_kg, planet.radius_m, max(frequency, 1.0e-20), 1746.3423804466247, 640405843720.1215, 265994.4516871315, 0.0).k2_over_q
+
+    moons = [moon_orbits.Moon(6.082467392073513e+21, 8958795.337131515, 2355.2), moon_orbits.Moon(9.227560476330121e+20, 128270066.15492842, 2310.6),
+             moon_orbits.Moon(2.257114046278461e+22, 169499247.46339804, 2061.5)]
+    start = time.time()
+    result = moon_orbits.evolve(planet, star, dissipation, moons, 1.1462362329176932e-05, 3.3536155063031206e+17, thermal, 4691.9546812192075, 403252317.70733774)
+    assert time.time() - start < 30.0
+    assert result.spin_rate == pytest.approx(8.2504e-6, rel=1.0e-3)
+    assert all(f.fate == "fell" for f in result.moons) and result.ring_mass_kg == pytest.approx(sum(m.mass_kg for m in moons))

@@ -50,7 +50,7 @@ MAX_VALUE_LENGTH = 80
 """int: Longest filter value kept."""
 
 Column = namedtuple("Column", "key label sortable", defaults=(True,))
-"""A column: its key (the API's `sort` name), header text and whether it sorts."""
+"""A column: its key (the API's `sort` name), header text, and whether it sorts."""
 
 Facet = namedtuple("Facet", "param label")
 """A filter menu: the query parameter its checked values travel in, and its name."""

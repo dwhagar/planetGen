@@ -10,9 +10,15 @@ from planetgen.web import object_lists
 
 
 def _item(index, kind="planet"):
-    return {"kind": kind, "id": f"FE81000A2B-0000005-00{index}", "source_id": index, "name": f"Thing {index}",
+    item = {"kind": kind, "id": f"FE81000A2B-0000005-00{index}", "source_id": index, "name": f"Thing {index}",
             "sector_id": 4, "system_id": 9, "parent_id": None, "object_class": "gas_giant", "mass_kg": 1.9e27,
             "radius_km": 7.0e4, "placed": True}
+    if kind == "star":
+        item.update(temperature_k=5772.0, luminosity_w=3.828e26, age_gy=4.6)
+    if kind in ("planet", "moon"):
+        item.update(distance_km=1.496e8 if index == 1 else None, eccentricity=0.0167 if index == 1 else None,
+                    surface_temperature_k=288.0 if index == 1 else None)
+    return item
 
 
 @pytest.fixture
@@ -24,8 +30,9 @@ def site(monkeypatch):
     seen = []
 
     def get_object_list(db, kind, limit=None, sort=None, descending=False, after=None, name=None, object_class=None,
-                        sector_id=None, start=None):
-        seen.append({"kind": kind, "limit": limit, "sort": sort, "descending": descending, "after": after, "start": start})
+                        sector_id=None, start=None, ranges=None):
+        seen.append({"kind": kind, "limit": limit, "sort": sort, "descending": descending, "after": after, "start": start,
+                     "ranges": ranges})
         items = [_item(index, kind) for index in range(1, 3)]
         return {"items": items, "next": items[-1]["id"], "total": 7, "total_capped": False}
 
@@ -55,11 +62,30 @@ def test_a_list_page_shows_the_first_rows_and_links_each_to_its_object(site):
     assert "Gas giant" in body and "Sector 4" in body and seen[-1]["kind"] == "planet" and seen[-1]["after"] is None
 
 
+def test_a_star_list_shows_its_temperature_luminosity_and_age(site):
+    """UX.187: the stored physics values of a star, in the reader's units."""
+    client, _seen = site
+    body = client.get("/lists/star").get_data(as_text=True)
+    for heading in ("Temperature", "Luminosity", "Age"):
+        assert heading in body
+    assert "5,772 K" in body and "1 L" in body and "4.6 Gyr" in body
+
+
+def test_a_planet_or_moon_list_shows_its_orbit_eccentricity_and_surface_temperature_and_a_dash_where_none_is_stored(site):
+    client, _seen = site
+    for kind in ("planet", "moon"):
+        body = client.get(f"/lists/{kind}").get_data(as_text=True)
+        for heading in ("Orbit", "Eccentricity", "Surface temperature"):
+            assert heading in body
+        assert "1 AU" in body and "0.017" in body and "288 K" in body
+        assert body.count("\u2013") >= 3     # the second row stores none of the three
+
+
 def test_the_table_route_passes_the_key_on_and_gives_the_last_object_as_next(site):
     client, seen = site
     body = client.get("/table/list-moon?after=FE81000A2B-0000005-001&sort=mass&order=desc&limit=2").get_json()
     assert seen[-1] == {"kind": "moon", "limit": 2, "sort": "mass", "descending": True,
-                        "after": "FE81000A2B-0000005-001", "start": None}
+                        "after": "FE81000A2B-0000005-001", "start": None, "ranges": None}
     assert body["next"] == "FE81000A2B-0000005-002" and len(body["rows"]) == 2 and body["total"] == 7
     assert body["rows"][0][0]["href"] == "/object/moon:FE81000A2B-0000005-001"
 
@@ -80,13 +106,13 @@ def test_planet_and_moon_lists_have_a_habitability_column_of_symbols(site, monke
     for label in ("Overall habitability: Green", "Air chemistry: Yellow", "Radiation: Red"):
         assert f'aria-label="{label}"' in body, label
     served = client.get("/table/list-moon").get_json()["rows"]
-    assert [symbol["name"] for symbol in served[0][4]["symbols"]] == [
+    assert [symbol["name"] for symbol in served[0][7]["symbols"]] == [
         "overall", "pressure", "temperature", "air", "water", "radiation", "suitability"]
-    assert served[1][4] == {"text": "—", "muted": True}
+    assert served[1][7] == {"text": "—", "muted": True}
     assert 'data-col="habitability"' not in client.get("/lists/star").get_data(as_text=True)
     # UX.181: each symbol of the page's rows, and of the rows the table serves, links to its habitability section.
-    assert [symbol["anchor"] for symbol in served[0][4]["symbols"]][:3] == ["habitability"] * 3
-    assert served[0][4]["page"].startswith("/object/moon:")
+    assert [symbol["anchor"] for symbol in served[0][7]["symbols"]][:3] == ["habitability"] * 3
+    assert served[0][7]["page"].startswith("/object/moon:")
 
 
 def test_an_unknown_kind_has_no_page_or_table(site):
@@ -132,3 +158,39 @@ def test_planet_and_moon_lists_link_to_the_score_filters(site):
         html = client.get(f"/lists/{kind}").get_data(as_text=True)
         assert f"type={kind}" in html and f"{kind}s_sort=phi4" in html and f"{kind}s_order=desc" in html
     assert "list-filter-link" not in client.get("/lists/star").get_data(as_text=True)
+
+
+def test_a_list_takes_the_search_pages_ranges_and_orders_and_says_so(site):
+    """UX.228: `planet_min_gravity` and `planet_value_sort` on a list go to the API as ranges and a sort, show as chips, add the Values column."""
+    client, seen = site
+    body = client.get("/lists/planet?planet_min_gravity=0.8&planet_max_gravity=1.2&planet_surface_dose_unit=Sv&planet_value_sort=-gravity",
+                      follow_redirects=True).get_data(as_text=True)
+    assert seen[-1]["ranges"] == {"gravity": (0.8, 1.2, None)} and seen[-1]["sort"] == "gravity" and seen[-1]["descending"] is True
+    assert "surface gravity: 0.8" in body and "1.2" in body and "ordered by surface gravity, high to low" in body
+    assert 'data-source="' in body and "planet_min_gravity=0.8" in body            # the table's own address carries the range
+    assert ">Values<" in body                                                      # gravity has no column of its own
+    assert "Filter and order by physical values" in body and 'name="planet_min_gravity"' in body
+
+
+def test_a_column_that_is_a_value_sorts_by_it_and_a_range_on_one_it_shows_adds_no_values_column(site):
+    client, seen = site
+    body = client.get("/lists/planet?planet_sort=surface_temperature&planet_order=desc&planet_max_surface_temperature=300").get_data(as_text=True)
+    assert seen[-1]["sort"] == "surface_temperature" and seen[-1]["descending"] is True
+    assert seen[-1]["ranges"] == {"surface_temperature": (None, 300.0, None)} and ">Values<" not in body
+    assert client.get("/lists/planet").get_data(as_text=True).count(">Values<") == 0
+    assert seen[-1]["ranges"] is None
+
+
+def test_a_list_of_a_kind_with_no_values_has_no_filter_form_and_bad_boxes_are_ignored(site):
+    client, seen = site
+    assert "physical values" not in client.get("/lists/belt?belt_min_gravity=1").get_data(as_text=True)
+    client.get("/lists/planet?planet_min_gravity=abc&planet_min_surface_dose=3&planet_max_surface_dose=1")
+    assert seen[-1]["ranges"] is None
+
+
+def test_a_submitted_form_is_redirected_to_the_short_address(site):
+    client, _seen = site
+    response = client.get("/lists/planet?planet_min_gravity=0.8&planet_max_gravity=&planet_gravity_unit=g0&planet_surface_dose_unit=Sv&planet_value_sort=")
+    assert response.status_code == 302 and response.headers["Location"].endswith("/lists/planet?planet_min_gravity=0.8")
+    assert client.get("/lists/planet?planet_min_gravity=0.8").status_code == 200
+    assert client.get("/lists/planet").status_code == 200

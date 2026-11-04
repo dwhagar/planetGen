@@ -31,9 +31,10 @@ import multiprocessing
 
 from planetgen.db import kind_tables, point_columns
 from planetgen.galaxy import spherical as geometry
-from planetgen.physics import constants
 from planetgen.physics import sector_path as sp
 from planetgen.physics import unit_registry as units
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 _pc_to_m = units.converter("pc", "m")
 _yr_to_s = units.converter("yr", "s")
@@ -93,7 +94,7 @@ def _point_masses(conn, centers):
             f" WHERE sector_id IN ({marks}) AND center_x_pc IS NOT NULL", ids
         ).fetchall():
             masses.append(sp.PointMass(tuple(row[f"center_{axis}_pc"] * _PC for axis in "xyz"),
-                                       row["mass_solar"] * constants.SOLAR_MASS_TO_KG, (table, row["id"])))
+                                       _msun_to_kg(row["mass_solar"]), (table, row["id"])))
     return sp.MassTable(masses)
 
 

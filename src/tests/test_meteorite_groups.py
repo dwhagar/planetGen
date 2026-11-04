@@ -1,6 +1,6 @@
 # tests/test_meteorite_groups.py
 
-"""GEN.475: the chondrite groups as regions of composition space with a nearest-group label (`physics/meteorite_groups.py`; Weisberg et al. 2006 Table 1)."""
+"""GEN.475: the chondrite groups as regions of composition space with a nearest-group label (`physics/meteorite_groups.py`; [R4658: Table 1])."""
 
 import pytest
 

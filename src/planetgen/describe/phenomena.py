@@ -44,7 +44,7 @@ def _orbit(obj):
 
 
 def _orbit_fact(obj):
-    return fact("orbit", "Galactic Orbit", build._galactic_orbit(obj.galactic_orbital_speed_kms,
+    return fact("orbit", "Galactic orbit", build._galactic_orbit(obj.galactic_orbital_speed_kms,
                                                                 obj.galactic_orbital_period_gy))
 
 
@@ -158,7 +158,7 @@ def _rogue_planet(planet):
 def _interstellar_comet(comet):
     rows = [
         fact("type", "Type", "Interstellar Comet"),
-        fact("nucleus", "Nucleus Diameter", build._km(comet.nucleus_diameter_km)),
+        fact("nucleus", "Nucleus diameter", build._km(comet.nucleus_diameter_km)),
         fact("speed", "Excess Speed", build._kms(comet.velocity_kms)),
         fact("activity", "Activity", "Active" if comet.is_active else "Dormant"),
         _orbit_fact(comet),
@@ -180,6 +180,7 @@ def _asteroid_field(field):
         fact("density", "Density", field.density),
         fact("family", "Family", f"{field.composition_family.capitalize()} ({family})"),
         fact("radius", "Radius", _ly(field.radius_ly)),
+        build.meteorite_group_fact(field),
         _orbit_fact(field),
     ]
     parts = [{"name": component, "level": level} for component, level in field.composition]

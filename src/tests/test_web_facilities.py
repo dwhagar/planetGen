@@ -562,6 +562,8 @@ def test_real_colony_makes_its_world_inhabited(db_app, mysql_config):
     # UX.176: the Inhabited chip and the facilities a body hosts are on the body's own page.
     page = client.get(f"/object/planet:{pid('planet', planet['id'])}").get_data(as_text=True)
     assert '<span class="flag flag-yes">Inhabited</span>' in page and "New Hope" in page
+    # UX.224: Inhabited says the world is habitable and of a habitable class, so those two chips are not shown beside it.
+    assert '<span class="flag flag-yes">Habitable</span>' not in page and '<span class="flag flag-yes">Habitable class</span>' not in page
 
 
 def _login_fresh_admin(client, mysql_config):
@@ -709,7 +711,7 @@ def test_free_text_affiliation_wins_and_an_untyped_save_sends_no_fields(app, cli
     ({"type_id": "4", "field_staff": "many"}, "Staff must be a whole number."),
     ({"type_id": "4", "field_output": "lots"}, "Output must be a number."),
     ({"type_id": "4", "field_armed": "maybe"}, "Armed must be yes or no."),
-    ({"rating_crime": "amber"}, "A rating is Green, Yellow or Red."),
+    ({"rating_crime": "amber"}, "A rating is Green, Yellow, or Red."),
 ])
 def test_a_bad_type_field_or_rating_is_reported_before_the_api_is_asked(app, client, fake, form, message):
     fake.types = _types()

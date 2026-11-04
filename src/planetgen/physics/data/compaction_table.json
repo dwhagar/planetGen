@@ -2,9 +2,9 @@
  "title": "Radius and bulk density of an ice-and-rock body by mass and rock fraction (GEN.442)",
  "method": "uniform sphere in hydrostatic balance, third-order Birch-Murnaghan grains, brittle porosity laws mixed by volume, porosity tapered to zero between 1e19 and 1e21 kg",
  "sources": {
-  "bierson-nimmo-2019": "Bierson and Nimmo 2019, Icarus 326, 10 (accepted manuscript Table 1 and Eqs. 1 and 2): ice grains 920 and silicate grains 3500 kg/m3, ice phi = max(0.60 exp(-0.1 P), 0.20), silicate phi = min(0.6 P^-0.11, 0.6), P in MPa",
+  "bierson-nimmo-2019": "[R0390] (accepted manuscript Table 1 and Eqs. 1 and 2): ice grains 920 and silicate grains 3500 kg/m3, ice phi = max(0.60 exp(-0.1 P), 0.20), silicate phi = min(0.6 P^-0.11, 0.6), P in MPa",
   "stand-in-eos": "the third-order Birch-Murnaghan constants (ice K0 9.2 GPa K' 5.5, silicate K0 110 GPa K' 4.0) are the design note's stand-ins for the structure solver's equation of state (GEN.429)",
-  "taper": "the 1e19 to 1e21 kg taper is Boss's decision S9 (8:13 PM EDT on 2026-10-21); its endpoints are two numbers read off Carry 2012's statements and are a stand-in until viscous compaction replaces them"
+  "taper": "the 1e19 to 1e21 kg taper is Boss's decision S9 (8:13 PM EDT on 2026-10-21); its endpoints are two numbers read off [R0666]'s statements and are a stand-in until viscous compaction replaces them"
  },
  "taper_start_kg": 1e+19,
  "taper_end_kg": 1e+21,

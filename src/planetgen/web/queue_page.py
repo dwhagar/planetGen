@@ -24,7 +24,7 @@ from planetgen.util import log, logrecord
 from planetgen.util.format import counted
 
 from . import bp, jobs, tables
-from .admin_pages import format_bytes, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
+from .admin_pages import came_from, format_bytes, safe_next, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb, db_name
 
 KIND_LABELS = {"generation": "Generation", "maintenance": "Maintenance", "check": "Database check"}
@@ -48,14 +48,14 @@ ACTION_TEXT = {
     "delete": ("Delete", "The run's record and log are deleted. Nothing it generated is touched."),
     "fill-habitability": ("Regenerate habitability",
                           "Re-scores the habitability of every planet and moon from the conditions already stored: the "
-                          "PHI-6 index, the six domains with their tiers, the survival equipment levels, the note and "
+                          "PHI-6 index, the six domains with their tiers, the survival equipment levels, the note, and "
                           "the double-star flux swing. It does not re-draw a planet, so after a change that alters how "
                           "planets are drawn a regeneration is needed instead. It runs as a queue run you can follow "
-                          "here, stop and start again; the result is the same however often it runs."),
+                          "here, stop, and start again; the result is the same however often it runs."),
     "fill-map-luminosity": ("Fill map luminosity",
                             "Fills the map luminosity of the scattered phenomena that do not have it yet, from their "
                             "stored masses, so the Galaxy Map's glow includes them. It only fills rows still empty. It "
-                            "runs as a queue run you can follow here, stop and start again."),
+                            "runs as a queue run you can follow here, stop, and start again."),
     "clear-finished": ("Clear finished runs", "Every finished run's record is deleted, leaving the ones still running. "
                                               "Nothing they generated is touched."),
     "queue-pause": ("Pause the queue", "No run starts or takes another unit until you resume the queue. "
@@ -74,7 +74,7 @@ QUEUE_WIDE_ACTIONS = ("clear-finished",)
 
 FILL_COMMANDS = {"fill-habitability": "rescore-habitability", "fill-map-luminosity": "fill-map-luminosity"}
 """dict: The Queue page's start buttons (ADM.129) and the `planetgen` command each starts as a job, with the rules of
-any generation run: refused while another run is live, one run lock, the audit entry, Stop and Retry."""
+any generation run: refused while another run is live, one run lock, the audit entry, Stop, and Retry."""
 
 
 def _is_site_wide(action):
@@ -325,7 +325,7 @@ def admin_queue():
     return _render(
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
-        description="The generation runs on this server, and the controls to cancel, clear, retry or delete them.",
+        description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
         admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
@@ -348,7 +348,14 @@ def _stage_rows(run):
         "started": _iso(stage["started"]),
         "duration": _duration(stage["seconds"]),
         "longest": _duration(stage["longest_unit"]) if stage.get("longest_unit") else "",
+        "peak": f"{stage['peak_mb']:.0f} MB" if stage.get("peak_mb") else "",
     } for number, stage in enumerate(run["stages"], 1)]
+
+
+def _run_back_url():
+    """Where Cancel returns to: the page the run's page was opened from, not a confirmation step or the page itself."""
+    back = came_from(request.path)
+    return "" if back.startswith("/admin/queue/confirm/") else back
 
 
 @bp.route("/admin/queue/<run_id>")
@@ -367,6 +374,7 @@ def admin_queue_run(run_id):
         "admin_queue_run.html", flashed=True, title=run["title"][:80] or "Run", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Run")],
         admin=admin, run=run_view(run), stages=_stage_rows(run), events=[_event_view(event) for event in body["events"]],
+        back_url=_run_back_url(),
         error=flashed.get("error"), message=flashed.get("message"),
     )
 
@@ -430,7 +438,7 @@ def admin_queue_confirm(action):
         "admin_queue_confirm.html", title="Confirm", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Confirm")],
         admin=admin, heading=heading, explanation=explanation, action=action, run_id=run_id,
-        button=ACTION_TEXT[action][0], back=back,
+        button=ACTION_TEXT[action][0], back=back, next_url=safe_next(request.args.get("next"), default=""),
     )
 
 
@@ -545,6 +553,8 @@ def admin_queue_action():
                 ok = apiclient.admin_work_control(cookie_header, run_id, action)
                 if ok:
                     message = f"{'Cancelled' if action == 'cancel' else 'Cleared'} “{run['title']}”."
+                    if action == "cancel":     # back to the page the run's page was opened from, as the Generate job page does
+                        target = safe_next(request.form.get("next"), default=target)
                 elif action == "clear":
                     error = f"“{run['title']}” is still answering, or has finished. Cancel it instead."
                 else:

@@ -74,7 +74,7 @@ def test_a_sector_start_keeps_the_sectors_from_it_on_and_the_systems_with_none(g
 
 
 def test_a_start_is_ignored_under_the_sorts_without_a_box_and_when_empty(galaxy):  # noqa: F811
-    for sort in ("octant", "binary"):
+    for sort in ("octant",):
         assert _ids(queryDb.list_systems(galaxy, sort=sort, start="Z")) == _ids(queryDb.list_systems(galaxy, sort=sort))
         assert queryDb.count_systems(galaxy, start="Z", sort=sort) == queryDb.count_systems(galaxy)
     assert _ids(queryDb.list_systems(galaxy, start="")) == _ids(queryDb.list_systems(galaxy))

@@ -560,7 +560,7 @@ class _BrightStarBook:
                   f"mass limit {self.mass_limit:g} solar masses")
 
 
-def bright_star_followers(args, passes=("mass", "luminosity")):
+def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=""):
     """
     The stages that pre-place the galaxy's bright stars on the stored plan into `bright_stars`, in the three star
     passes of GEN.185 (pass 1, the phenomena above the mass limit, and pass 5, the other phenomena, are
@@ -581,6 +581,11 @@ def bright_star_followers(args, passes=("mass", "luminosity")):
     luminosity pass works at the mass limit the mass pass stored, and needs one (`planetgen scatter --mass` first).
     The last pass stores what the scatter used (`conclude_scatter_pass`), which the stages after it read.
 
+    Args:
+        refuse (str, optional): The kind of scatter that is refused when its rows are stored (`_refuse_stored_scatter`, what
+            `planetgen scatter` does), when the first pass opens.
+        tag (str): Names this scatter among the others of the run that holds it (PERF.203), for what it reads when it opens.
+
     Returns:
         tuple: `(followers, book)`: a `ScatterFollower` for each pass, and the `_BrightStarBook` that adds them up.
 
@@ -596,7 +601,7 @@ def bright_star_followers(args, passes=("mass", "luminosity")):
         return wrapper.deferred("scatter-settings", merge=True, scope="bright-stars", stage=stage,
                                 database=wrapper.database_args(mysql_config), min_luminosity_sol=min_luminosity_sol,
                                 phenomenon_min_mass=getattr(args, "phenomenon_min_mass", None), passes=passes,
-                                run_id=getattr(args, "generation_run_id", None))
+                                run_id=getattr(args, "generation_run_id", None), refuse=refuse, tag=tag)
 
     book = _BrightStarBook(min_luminosity_sol)
     if "mass" in passes:
@@ -620,6 +625,8 @@ def _bright_star_settings(marker):
     """
     conn = store.get_connection(_mysql_config_of(marker))
     try:
+        if marker.get("refuse"):
+            _refuse_stored_scatter(conn, marker["refuse"])
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             raise RuntimeError(SKELETON_NEVER_BUILT)
@@ -659,7 +666,7 @@ def resolve_scatter_settings(conn, run_id, marker):
     emptied what they were read from, and the stage's conclude, take the same.
     """
     work = _bright_star_settings if marker["scope"] == "bright-stars" else _phenomena_settings
-    return wrapper.cached(conn, run_id, marker["scope"], lambda: work(marker))[marker["stage"]]
+    return wrapper.cached(conn, run_id, wrapper.scatter_settings_name(marker), lambda: work(marker))[marker["stage"]]
 
 
 def prepare_scatter_pass(params):
@@ -700,7 +707,7 @@ def conclude_scatter_pass(params, plan, results, seconds):
     return {}
 
 
-def scatter_bright_stars(args, passes=("mass", "luminosity")):
+def scatter_bright_stars(args, passes=("mass", "luminosity"), refuse=None):
     """
     Pre-places the galaxy's bright stars (`bright_star_followers`) as one run: the passes, then the Galaxy Map's block
     light totals made again (`BlockLightsFollower`).
@@ -711,7 +718,7 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
     Raises:
         RuntimeError: The skeleton was never built, or a luminosity pass is asked for with no mass pass stored.
     """
-    planned = planned_bright_stars(args, passes)
+    planned = planned_bright_stars(args, passes, refuse)
     if len(passes) == 1:          # the seed the run record names is the one pass's own (a galaxy's two passes have two)
         planned.options["seed"] = _recorded_seed(args, lambda skeleton: _bright_star_seed(
             skeleton, "mass-scatter" if "mass" in passes else "scatter"))
@@ -741,9 +748,9 @@ def _refusals_as_errors(run):
         raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
 
 
-def planned_bright_stars(args, passes=("mass", "luminosity")):
+def planned_bright_stars(args, passes=("mass", "luminosity"), refuse=None, tag=""):
     """The bright-star passes of `scatter_bright_stars` as a `followed.Planned`; its result is `book.summary()`."""
-    followers, book = bright_star_followers(args, passes)
+    followers, book = bright_star_followers(args, passes, refuse, tag)
     return followed.Planned(followers + [BlockLightsFollower(args)], "Bright stars", book.summary)
 
 
@@ -2741,6 +2748,7 @@ class BlockLightsFollower(followed.Follower):
 
     key = "block-lights"
     label = "Make the block light totals"
+    repeatable = True
 
     def __init__(self, args):
         super().__init__(args)
@@ -2887,7 +2895,7 @@ class PhenomenaIndexFollower(followed.Follower):
         self.book.log()
 
 
-def phenomena_followers(args):
+def phenomena_followers(args, refuse=None, tag=""):
     """
     The stages that pre-place the galaxy's black holes, neutron stars, planetary nebulae and supernova remnants
     (`phenomenon_scatter.scatter_shell`; neutron stars and black holes only from `--compact-min-mass` up, GEN.195), its
@@ -2896,6 +2904,10 @@ def phenomena_followers(args):
     cells to a unit. Sectors already filled are left out, as the bright-star scatter does (GEN.30), and the nucleus and
     the hypervelocity stars are left out of a cell already filled.
 
+    Args:
+        refuse (str, optional): The kind of scatter that is refused when its rows are stored (`bright_star_followers`).
+        tag (str): Names this scatter among the others of the run that holds it (PERF.203).
+
     Returns:
         tuple: `(followers, book)`: the stages' followers and the `_PhenomenaBook` that adds the scatter up.
 
@@ -2903,18 +2915,18 @@ def phenomena_followers(args):
         RuntimeError: The skeleton was never built.
     """
     book = _PhenomenaBook()
-    followers = [PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena")),
-                 PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index")),
+    followers = [PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
+                 PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
                  NebulaFieldFollower(args)]
     return followers, book
 
 
-def _phenomena_settings_marker(args, stage):
+def _phenomena_settings_marker(args, stage, refuse=None, tag=""):
     """The deferred parameter that gives a stage of the phenomenon scatter its seed and lowest compact mass when it opens."""
     return wrapper.deferred("scatter-settings", merge=True, scope="phenomena", stage=stage,
                             database=wrapper.database_args(store.mysql_config_from_args(args)),
                             phenomenon_min_mass=getattr(args, "phenomenon_min_mass", None),
-                            compact_min_mass=getattr(args, "compact_min_mass", None))
+                            compact_min_mass=getattr(args, "compact_min_mass", None), refuse=refuse, tag=tag)
 
 
 def _phenomena_settings(marker):
@@ -2929,6 +2941,8 @@ def _phenomena_settings(marker):
     args = types.SimpleNamespace(phenomenon_min_mass=marker["phenomenon_min_mass"], compact_min_mass=marker["compact_min_mass"])
     conn = store.get_connection(_mysql_config_of(marker))
     try:
+        if marker.get("refuse"):
+            _refuse_stored_scatter(conn, marker["refuse"])
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             raise RuntimeError(SKELETON_NEVER_BUILT)
@@ -2940,7 +2954,7 @@ def _phenomena_settings(marker):
     return {"phenomena": params, "phenomena-index": params}
 
 
-def scatter_phenomena(args):
+def scatter_phenomena(args, refuse=None):
     """
     Pre-places the galaxy's phenomena and its nebula field (`phenomena_followers`) as one run, then makes the Galaxy
     Map's block light totals again (`BlockLightsFollower`).
@@ -2948,14 +2962,14 @@ def scatter_phenomena(args):
     Returns:
         dict: `counts` (per kind), `total` and `elapsed_s`.
     """
-    planned = planned_phenomena(args)
+    planned = planned_phenomena(args, refuse)
     planned.options["seed"] = _recorded_seed(args, _phenomenon_scatter_seed)
     return _refusals_as_errors(lambda: followed.run_planned(args, planned))
 
 
-def planned_phenomena(args):
+def planned_phenomena(args, refuse=None, tag=""):
     """The phenomena scatter and the block lights after it as a `followed.Planned`; its result is `book.summary()`."""
-    followers, book = phenomena_followers(args)
+    followers, book = phenomena_followers(args, refuse, tag)
     return followed.Planned(followers + [BlockLightsFollower(args)], "Phenomena", book.summary)
 
 
@@ -3113,6 +3127,12 @@ def run_plan(args):
     stages.begin(stages.plan_stages(args), args, "plan")
     stages.enter("skeleton")
     summary = _skeleton_on_queue(args)
+    log_skeleton_summary(args, summary)
+    stages.finish("the galaxy has no shells" if not summary["shell_count"] else None)
+
+
+def log_skeleton_summary(args, summary):
+    """Says what the skeleton build (`plan_skeleton_unit`'s `summary`) made, and warns when the galaxy's edge was not reached."""
     if summary["shell_count"]:
         shells = f"{summary['shell_count']:,} shells"
     else:
@@ -3127,7 +3147,6 @@ def run_plan(args):
             f"galaxy's true edge was not reached. Re-run with a larger --edge, or none, if these shape "
             f"parameters really do produce a galaxy this large."
         )
-    stages.finish("the galaxy has no shells" if not summary["shell_count"] else None)
 
 
 SCATTER_NAMES = {"mass": "massive-star", "luminosity": "bright-star", "phenomena": "phenomena",
@@ -3135,24 +3154,27 @@ SCATTER_NAMES = {"mass": "massive-star", "luminosity": "bright-star", "phenomena
 """dict: What each kind of scatter is called in a message."""
 
 
-def _refuse_stored_scatter(args, kind):
+def _refuse_stored_scatter(conn, kind):
     """
     Stops a `planetgen scatter` of `kind` when that scatter already has rows (Boss's F7): a scatter draws where none is
-    stored, and `planetgen clear-scatter` empties a kind first. The band adds to the bright stars and is not refused.
+    stored, and `planetgen clear-scatter` empties a kind first. The band adds to the bright stars and is not refused. It is
+    made when the scatter's first stage opens (PERF.203), so a run that clears a kind and draws it again is not refused.
 
     Raises:
         RuntimeError: The kind's rows are stored.
     """
-    if kind == "band":
-        return
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        stored = store.scatter_stored(conn, kind)
-    finally:
-        conn.close()
-    if stored:
+    if kind != "band" and store.scatter_stored(conn, kind):
         raise RuntimeError(f"The {SCATTER_NAMES[kind]} scatter is already stored -- run "
                            f"'planetgen clear-scatter --{kind}' first.")
+
+
+def _refuse_stored_scatter_of(args, kind):
+    """`_refuse_stored_scatter` for the database `args` name, for a scatter that is drawn from the starting process."""
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        _refuse_stored_scatter(conn, kind)
+    finally:
+        conn.close()
 
 
 def run_scatter(args):
@@ -3164,18 +3186,19 @@ def run_scatter(args):
     `--down-to` (`add_bright_star_band`).
     """
     kind = stages.scatter_kind(args)
-    _refuse_stored_scatter(args, kind)
+    if kind == "nebula-field":
+        _refuse_stored_scatter_of(args, kind)
     stages.begin(stages.scatter_stages(args), args, "scatter")
     if kind == "band":
         stages.enter("band")
         add_bright_star_band(args)
     elif kind == "phenomena":
-        scatter_phenomena(args)
+        scatter_phenomena(args, refuse=kind)
     elif kind == "nebula-field":
         stages.enter(NEBULA_DRAW_KEY)
         redraw_nebula_field(args)
     else:
-        scatter_bright_stars(args, passes=(kind,))
+        scatter_bright_stars(args, passes=(kind,), refuse=kind)
     stages.finish()
 
 

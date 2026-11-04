@@ -1,8 +1,8 @@
 # planetgen/physics/giant_radius_tables.py
 
 """
-The giant-planet radius tables of Fortney, Marley and Barnes 2007 (ApJ 659:1661, arXiv:astro-ph/0612671, Tables 2 to
-4), in Jupiter radii (GEN.460). Read from the paper's own tables; the code that interpolates them is `giant_radius`.
+The giant-planet radius tables of [R1429] (ApJ 659:1661, [R1429: Tables 2 to
+4]), in Jupiter radii (GEN.460). Read from the paper's own tables; the code that interpolates them is `giant_radius`.
 
 `RADII_RJ[age][distance][core]` is a tuple of the radius at each of `MASSES_MJ`, with `None` where the paper has no
 value (a planet lighter than its core, or the one cell it marks `*`, a planet that does not survive 0.3 Gy at 0.02

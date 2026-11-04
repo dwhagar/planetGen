@@ -38,8 +38,8 @@ from planetgen.util.settings import get_settings
 from planetgen.web.lib import pagecache, slowpages
 
 API_BASE_URL = get_settings().api_base_url
-"""str: Base URL of the planetGen API's `/api` mount point. Defaults to
-the same host (see `examples/apache/planetgen.conf.example`) -- only used
+"""str: Base URL of the planetGen API's `/api` mount point, empty when none is configured (there is no default, OPS.86:
+the HTTP transport then refuses instead of trying 127.0.0.1). Only used
 by the HTTP transport, not by the Flask pages' in-process one --
 override via the `PLANETGEN_API_BASE_URL` Apache `SetEnv` (or shell env,
 for local testing), or `config.json`'s `api_base_url` (see
@@ -171,7 +171,11 @@ def _cache_db(params):
 
 
 def _http_transport(method, target, data, headers, timeout):
-    """The default transport: a real HTTP request to `API_BASE_URL`."""
+    """The default transport: a real HTTP request to `API_BASE_URL` (OPS.86: with none configured it raises `ApiError`,
+    never reaching for a loopback address)."""
+    if not API_BASE_URL:
+        raise ApiError("No API address is configured: set api_base_url in config.json (or PLANETGEN_API_BASE_URL), "
+                       "for example https://example.org/api. Nothing is tried until it is set.")
     request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers={"User-Agent": user_agent(), **headers},
                                      method=method)
     try:
@@ -204,6 +208,9 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
         ApiError: On any other error status (with `.status_code` set), or
             if the API can't be reached.
     """
+    if method == "GET":
+        from planetgen.web import rebuild_gate
+        rebuild_gate.check(target)    # a visitor's heavy read while the caches are rebuilt: CacheRebuilding, a 503
     data = None
     headers = {}
     if json_body is not None:
@@ -428,7 +435,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False, after=None, start=None):
+                binary=None, placement=None, octants=(), facets=False, after=None, start=None, ranges=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -443,12 +450,17 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
             it and `offset` is ignored.
         start: The jump-by-value box's text (PERF.75, the API's `from`): the list begins at the first name (name
             sort) or sector (sector sort) from it on.
+        ranges: `{entity: {key: (least, most, unit)}}`, the physical-value ranges (UX.228): only the systems that hold a star, planet or moon in
+            them; sent as `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit` (`unit` a unit key or `None`).
     """
     _require_db(db)
     params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
               ("offset", offset), ("after", after), ("from", start or None), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
+    for entity, by_key in (ranges or {}).items():
+        for key, (least, most, unit) in by_key.items():
+            params += [(f"{entity}_min_{key}", least), (f"{entity}_max_{key}", most), (f"{entity}_{key}_unit", unit or None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
@@ -482,6 +494,13 @@ def get_life_air(db, kind, body_id):
     `life_air` being `None` when the body has nothing to chart (UX.237)."""
     _require_db(db)
     return _request(f"/{kind}s/{body_id}/life-air", {"db": db})
+
+
+def get_life_readings(db, kind, body_id):
+    """Returns `GET /api/planets/<id>/life-readings` (or `moons`)'s `{id, life_class_id, readings}`: the three words for each kind of life
+    on the body, `readings` being empty when there is nothing to say (UX.251)."""
+    _require_db(db)
+    return _request(f"/{kind}s/{body_id}/life-readings", {"db": db})
 
 
 def get_system_text(db, system_id, fmt):
@@ -824,15 +843,23 @@ def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, type
 
 
 def get_object_list(db, kind, limit=None, sort=None, descending=False, after=None, name=None, object_class=None,
-                    sector_id=None, start=None):
+                    sector_id=None, start=None, ranges=None):
     """Returns `GET /api/object-lists/<kind>`'s `items`/`next`/`total` -- one keyset page of the object index
     (`db.objectlist.list_objects`). `after` is the printed object ID the previous page ended on and `start` begins a
-    name-sorted list at the first name from it on (UX.141)."""
+    name-sorted list at the first name from it on (UX.141). `ranges` is `{key: (least, most, unit)}` of this kind's physical
+    values, sent as `<kind>_min_<key>`, `<kind>_max_<key>` and `<kind>_<key>_unit` (UX.228); `unit` is a unit key or `None`."""
     _require_db(db)
     params = [("db", db), ("limit", limit), ("sort", sort), ("order", "desc" if descending else None),
               ("after", after), ("name", name), ("class", object_class), ("sector_id", sector_id),
               ("from", start or None)]
-    return _request(f"/object-lists/{kind}", [(key, value) for key, value in params if value is not None])
+    pairs = [(key, value) for key, value in params if value is not None]
+    for key, (least, most, unit) in (ranges or {}).items():
+        for part, bound in (("min", least), ("max", most)):
+            if bound is not None:
+                pairs.append((f"{kind}_{part}_{key}", bound))
+        if unit:
+            pairs.append((f"{kind}_{key}_unit", unit))
+    return _request(f"/object-lists/{kind}", pairs)
 
 
 def get_phenomenon(db, phenomenon_type, phenomenon_id):
@@ -877,7 +904,7 @@ def get_object_children(db, ref, limit=None, after=None):
     return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `db.query.search`'s docstring for the full shape.
@@ -900,8 +927,12 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             `<panel>_offset`, one page per result panel.
         panels (iterable, optional): Run just these result panels; an empty one runs none, which still answers
             the facets and the name suggestions.
-        sorts (dict, optional): `{"planet", "moon"} -> sort key` (`-` in front for the best first), sent as
-            `planet_sort`/`moon_sort` (UX.214).
+        sorts (dict, optional): `{"star", "planet", "moon"} -> sort key` (`-` in front for the best first), sent as
+            `star_sort`/`planet_sort`/`moon_sort` (UX.214; the keys of the physical values, UX.226).
+        stars (str, optional): The stars filter (UX.239), sent as `stars`: a count, a count and a plus, or a name.
+        ranges (dict, optional): `{entity: {key: (least, most, unit)}}`, the range filters on the physical values (UX.226), sent as
+            `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit`; either bound `None` is left out, and a `None` unit
+            is the key's own.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -923,6 +954,16 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
     for entity, sort in (sorts or {}).items():
         if sort:
             pairs.append((f"{entity}_sort", sort))
+    if stars:
+        pairs.append(("stars", stars))
+    for entity, by_key in (ranges or {}).items():
+        for key, (least, most, unit) in by_key.items():
+            if least is not None:
+                pairs.append((f"{entity}_min_{key}", least))
+            if most is not None:
+                pairs.append((f"{entity}_max_{key}", most))
+            if unit:
+                pairs.append((f"{entity}_{key}_unit", unit))
     if panels is not None:
         pairs.append(("panels", ",".join(panels) or "none"))
     return _request("/search", pairs)

@@ -3,9 +3,8 @@ Disk-physics regression tests for `StarSystem.estimate_num_objects`.
 
 Covers the rework replacing the old `BASE_MAX_SYSTEM_OBJECTS *
 (1 + log10(solar_masses))` curve fit with a physically-derived ceiling: a
-protoplanetary-disk isolation-mass/mutual-Hill-radius walk (Lissauer 1993;
-Kokubo & Ida 2000, 2002) from real Minimum Mass Solar Nebula surface-density
-scaling (Hayashi 1981) -- see `formation.snow_line_au`,
+protoplanetary-disk isolation-mass/mutual-Hill-radius walk ([R2430, R2709], 2002) from real Minimum Mass Solar Nebula surface-density
+scaling [R1854] -- see `formation.snow_line_au`,
 `formation.disk_surface_density_scale`, `formation.mmsn_surface_density_gcm2`,
 `formation.isolation_mass_kg`, and
 `StarSystem._estimate_max_objects_from_disk_physics`'s own docstring for the
@@ -57,8 +56,8 @@ def _max_objects(star_type):
 
 def test_snow_line_scales_with_sqrt_luminosity():
     solar = snow_line_au(constants.SOLAR_LUMINOSITY)
-    # the 170 K blackbody position, (278.3 K / 170 K)^2 AU for the Sun (bulk-composition-sources-check.md)
-    assert solar == pytest.approx(2.68, abs=0.005)
+    # the 182 K blackbody position, (278.3 K / 182 K)^2 AU for the Sun ([R2726: Table 10])
+    assert solar == pytest.approx(2.339, abs=0.005)
     quadruple_lum = snow_line_au(4 * constants.SOLAR_LUMINOSITY)
     # L -> 4L should push the snow line out by sqrt(4) = 2x.
     assert quadruple_lum == pytest.approx(2 * solar)
@@ -135,3 +134,18 @@ def test_more_luminous_star_has_a_larger_snow_line_and_disk():
     dim = snow_line_au(0.01 * constants.SOLAR_LUMINOSITY)
     bright = snow_line_au(100 * constants.SOLAR_LUMINOSITY)
     assert bright > dim
+
+
+# --- A belt is what the planets leave unfinished, never a planet's slot (GEN.1068) ---
+
+def test_a_belt_stands_in_a_gap_never_on_a_planets_orbit():
+    from planetgen.physics import belt_origin
+    seen = 0
+    for _ in range(4):
+        system = StarSystem(system_config=_make_config("M2V", PLANETS=True, MAX_PLANETS=True, MOONS=False))
+        belts = [body for body in system.planets if body.body_type == 'a']
+        for belt in belts:
+            seen += 1
+            assert belt.origin in belt_origin.CAUSES
+            assert not any(belt.lower_limit < body.distance < belt.upper_limit for body in system.planets if body.body_type != 'a')
+    assert seen

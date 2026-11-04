@@ -299,10 +299,10 @@ def test_the_ultraviolet_search_for_the_longest_absorbing_wavelength():
 
 def test_the_limits_the_research_names_for_the_ultraviolet_bins_are_kept():
     assert "k-distribution" in gases.gas("O2").uv.limit and gases.gas("O2").uv.state == "partly verified"
-    assert "Karkoschka" in gases.gas("CH4").uv.limit
+    assert "[R2258]" in gases.gas("CH4").uv.limit
     assert gases.gas("O3").uv.state == "verified" and gases.gas("O3").uv.limit == ""
-    assert "Huebner 2015 below 52.7 nm" in gases.gas("O3").uv.origin
-    assert gases.gas("O2").uv.origin == "Heays 2017 or Huebner 2015"
+    assert "[R2040] below 52.7 nm" in gases.gas("O3").uv.origin
+    assert gases.gas("O2").uv.origin == "[R1873] or [R2040]"
 
 
 def test_the_loader_refuses_an_infrared_or_ultraviolet_entry_that_is_not_physical(broken):

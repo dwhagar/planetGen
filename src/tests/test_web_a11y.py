@@ -155,7 +155,7 @@ def _add_bright_stars(config, count=300):
             point = (r * math.cos(theta), r * math.sin(theta), rng.uniform(-30.0, 30.0))
             rows.append((*sector_address_at(point, edge_pc), *(int(round(v * 1000)) for v in point), "young", "B",
                          "III", 2e31, 1e7, rng.uniform(3000.0, 30000.0), rng.uniform(500.0, 1e6) * 3.82e26,
-                         0.05, 0.1, 10.0, None, 1, None, None))
+                         0.05, 0.1, 10.0, None, 1, None, None, None))
         store.insert_bright_stars(conn, rows)
         conn.commit()
     finally:
@@ -448,6 +448,8 @@ def sample_params(site_app, sample_job, sample_run):
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
         "type_slug": "nebula",  # web.class_type_page / web.class_page
+        "topic": "abundance",  # web.life_help_topic (DOC.84)
+        "number": 3,  # web.life_help_class: the Class 3 family
         "kind": "planet",  # web.object_list: /lists/planet
         "code": "D",
         "species_id": items("/api/species")[0]["id"],

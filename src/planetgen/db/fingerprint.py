@@ -72,6 +72,7 @@ CHILD_TABLES = (
     ("asteroid_field_composition", "field_id", "asteroid_fields"),
     ("nebula_shape_balls", "nebula_id", "nebulae"),
     ("orbit_nodes", "star_system_id", "star_systems"),
+    ("dark_members", "star_system_id", "star_systems"),
 )
 """tuple: `(table, foreign key, parent table)` of the child rows of an
 object a sector holds."""
@@ -89,7 +90,7 @@ CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS
 
 SECTIONS = {
     "sector": ("sectors",),
-    "system": ("star_systems", "orbit_nodes"),
+    "system": ("star_systems", "orbit_nodes", "dark_members"),
     "star": ("stars", "black_holes", "neutron_stars"),
     "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_gases", "planet_life_class_scores", "rogue_planets"),
     "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_gases", "moon_life_class_scores"),

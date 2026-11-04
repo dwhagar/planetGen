@@ -85,8 +85,8 @@ def test_a_world_with_no_stored_dose_reads_the_one_cosmic_ray_curve_of_the_radia
     moon = World(0.0, -20, {}, gravity_ms2=1.62)
     mars = World(0.6, -60, {"CO2": 0.95}, gravity_ms2=3.71)
     earth = World(101.3, 15, {"O2": 0.21})
-    assert moon.dose_sv_yr == pytest.approx(0.5, rel=0.1)                 # the Moon's surface, 0.50 Sv/yr (Zhang 2020)
-    assert 0.2 < mars.dose_sv_yr < 0.3                                    # Mars, about 0.25 Sv/yr (Hassler 2014)
+    assert moon.dose_sv_yr == pytest.approx(0.5, rel=0.1)                 # the Moon's surface, 0.50 Sv/yr [R4884, R4888]
+    assert 0.2 < mars.dose_sv_yr < 0.3                                    # Mars, about 0.25 Sv/yr [R1843]
     assert earth.dose_sv_yr == pytest.approx(radiation.gcr_dose_msv_yr(1033.0) / 1000.0, rel=0.02)
     assert moon.dose_sv_yr > mars.dose_sv_yr > earth.dose_sv_yr
     assert World(101.3, 15, {}, surface_dose_sv_yr=0.01).dose_sv_yr == 0.01

@@ -129,3 +129,32 @@ def test_refused_inputs():
         ge.solve({"H": 1.0, "O": 1.0}, 1000.0, 1.0, fixed_o2_log_fugacity=-12.0)
     with pytest.raises(ge.EquilibriumError):
         ge.solve({"Zz": 1.0}, 1000.0, 1.0)
+
+
+@pytest.mark.parametrize("abundances", [
+    {"H": 2.0000000259769655, "O": 1.0, "Ar": 1.0608501544615678e-12},
+    {"H": 2.0000000024410274, "O": 1.0, "Ar": 1.01370169311403e-12, "C": 3.021494751116587e-11},
+    {"H": 1.9980520712128589, "O": 1.0, "Ar": 1.2121667733025634e-12, "N": 2.043517676950264e-06},
+])
+def test_water_with_a_trace_of_argon_at_726_k_converges(abundances):
+    """GEN.1003: the generator reached 'no convergence at 725.97 K and 1.0 bar' on a mixture of hydrogen and oxygen at the proportion of water with
+    argon at 1e-12 of it. The Newton step jittered at the 1e-3 level for ever (the total row of the scaled system was rounding noise), so the solve
+    is retried with that row scaled by the total."""
+    result = ge.solve(abundances, 725.97, 1.0)
+    assert result.mole_fractions["H2O"] > 0.999
+    assert result.mole_fractions["Ar"] == pytest.approx(abundances["Ar"] / sum(abundances.values()), rel=1e-2)
+    assert result.iterations < 150
+    balance = sum(result.moles[name] * st.SPECIES[name].elements.get("H", 0) for name in result.moles) / abundances["H"]
+    assert balance == pytest.approx(1.0, abs=1e-8)
+
+
+def test_a_nitrogen_gas_with_1e_15_of_everything_else_leaves_the_rarest_elements_out_when_it_will_not_settle_with_them():
+    """GEN.819: the late nitrogen leaves an air of N2 with the carbon, hydrogen, oxygen, sulfur and argon at 1e-9 to 1e-16 of it; the Newton step
+    of that gas stalls with all five in ("the element balance is off"), and settles when the two rarest (under `TRACE_ELEMENT_FRACTION`) are out."""
+    abundances = {"H": 3.735440154784931e-16, "Ar": 3.379812146652516e-21, "O": 6.93043683615438e-15, "C": 6.583546815986791e-15,
+                  "N": 1.1914940104724934e-05, "S": 6.894484200178456e-20}
+    with pytest.raises(ge.EquilibriumError):
+        ge._solve(abundances, 434.2659729417367, 1.0000000000000002)
+    result = ge.solve(abundances, 434.2659729417367, 1.0000000000000002)
+    assert result.mole_fractions["N2"] > 0.999999
+    assert "Ar" not in result.moles and "H2S" not in result.moles and "SO2" not in result.moles

@@ -38,6 +38,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.physics.orbits import orbital_position_au
 from tests import render_support
+from tests.bright_star_rows import B2V, star_row
 
 
 
@@ -368,6 +369,7 @@ def test_lifespan_gy_null_round_trips_to_infinite_lifespan(mysql_config):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "M2VII"  # white dwarf: lifespan == float('inf')
     cfg.PLANETS = False
+    cfg.BINARY_SYSTEM = False  # one star: with a companion (about one draw in eight) `system.star` is the primary or the pair, not the white dwarf alone
     system = StarSystem(system_config=cfg)
     assert system.star.lifespan == float('inf')
 
@@ -1575,9 +1577,7 @@ def test_phenomena_store_their_octant_and_nearest_systems(mysql_config):
 
 
 def _bright_row(shell=3, band=0, wedge=0, luminosity_sol=800.0):
-    return (shell, band, wedge, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
-            luminosity_sol * 3.828e26,
-            0.02, 0.03, 7.0, 0.03, 42, None)
+    return star_row((shell, band, wedge), (12000, 3000, 0), luminosity_w=luminosity_sol * 3.828e26, **B2V)
 
 
 def test_bright_stars_store_and_clear(mysql_config):
@@ -1676,22 +1676,19 @@ def test_bright_star_web_queries(mysql_config):
         conn.close()
 
 
-def _bright_row_at(z_pc, luminosity_sol, slot=1):
+def _bright_row_at(z_pc, luminosity_sol, slot=1, population="young"):
     """A bright star `z_pc` above the plane, addressed as the scatter would (`slot` only tells stars apart)."""
     from planetgen.galaxy.spherical import sector_address_at
 
     shell, band, wedge = sector_address_at((12.0, 3.0, z_pc), 4.0)
-    return (shell, band, wedge, 12000, 3000, int(z_pc * 1000), "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
-            luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)
+    return star_row((shell, band, wedge), (12000, 3000, int(z_pc * 1000)), luminosity_w=luminosity_sol * 3.828e26, population=population, **B2V)
 
 
 def _bright_galaxy(conn):
     """Four populations over several heights, with luminosities near each one's top so their
     weighted keys (`BRIGHT_STAR_POPULATION_WEIGHT`) compete."""
     def row(z_pc, luminosity_sol, population, slot):
-        stored = list(_bright_row_at(z_pc, luminosity_sol, slot))
-        stored[6] = population
-        return tuple(stored)
+        return _bright_row_at(z_pc, luminosity_sol, slot, population=population)
 
     with conn:
         conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
@@ -1768,9 +1765,7 @@ def test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness(mysq
         _bright_galaxy(conn)
 
         def row(z_pc, luminosity_sol, population, slot):
-            stored = list(_bright_row_at(z_pc, luminosity_sol, slot))
-            stored[6] = population
-            return tuple(stored)
+            return _bright_row_at(z_pc, luminosity_sol, slot, population=population)
 
         with conn:
             # Brighter than every star of the disc and the bulge: only the tier keeps them last.

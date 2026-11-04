@@ -13,7 +13,7 @@ the bands of R6 (UV-C, UV-B, UV-A, visible, near infrared), the CIE erythemal UV
 them, a Lambertian ground below):
 
 1. the air above the ozone layer: the mixture's Rayleigh scattering (`physics/rayleigh`) and the absorption of every gas the
-   gas table has ultraviolet cross sections for (`physics/uv_cross_sections`, band means of Heays 2017 and Huebner 2015:
+   gas table has ultraviolet cross sections for (`physics/uv_cross_sections`, band means of [R1873, R2040]:
    O2, CO2, H2O, SO2, H2S, NH3, CH4 ...), a share `p_ozone / P` of the whole column;
 2. the ozone (a pure absorber): the column in Dobson units times the high-resolution cross section at the layer's temperature;
 3. the rest of the air, with the haze that is mixed with it;
@@ -55,7 +55,7 @@ SETLOW_NM = (256.0, 260.0, 266.0, 268.0, 270.0, 276.0, 280.0, 286.0, 290.0, 294.
              340.0, 350.0, 360.0)
 SETLOW_WEIGHT = (1.07, 1.12, 1.23, 1.23, 1.13, 0.933, 0.791, 0.530, 0.309, 0.163, 0.0552, 0.0333, 0.00901, 0.00115, 2.5e-4, 4.3e-5,
                  1.1e-5, 4.6e-6, 2.6e-6, 1.8e-6)
-"""The Setlow 1974 DNA-damage action spectrum, per quantum (TUV-x data; the file says it is normalised at 300 nm but stores 0.0333 there,
+"""The [R4033, R4035] DNA-damage action spectrum, per quantum (TUV-x data; the file says it is normalised at 300 nm but stores 0.0333 there,
 reported not resolved: part 02 2.6). Multiplied by `lambda / 300` for an energy irradiance."""
 
 CLOUD_OMEGA = 1.0 - 1e-6
@@ -231,7 +231,7 @@ def ozone_layer_temperature_k(flux_w_m2, bond_albedo=None):
 
 def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone_du=0.0, ozone_temperature_k=None,
                       ozone_pressure_pa=None, mu0=1.0, ground_albedo=0.15, haze=None, low_aerosol=None, cloud_cover=1.0,
-                      edges_nm=None):
+                      edges_nm=None, uv_shares=None):
     """
     The spectrum that reaches the ground below `column`.
 
@@ -240,6 +240,7 @@ def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone
         temperature_k (float): The star's effective temperature, K.
         flux_w_m2 (float): The star's bolometric flux at the planet, W/m2.
         uv_c_share (float, optional): The star's UV-C share of its blackbody (R17; 1 is the blackbody).
+        uv_shares (dict, optional): The star's `uv_c`, `uv_b` and `uv_a` shares of its blackbody (`stellar_library.uv_shares`); when given, `uv_c_share` is not used.
         ozone_du (float, optional): The ozone column, Dobson units (GEN.413).
         ozone_temperature_k (float, optional): The temperature of the ozone layer, K (`ozone_layer_temperature_k`; 220 when `None`).
         ozone_pressure_pa (float, optional): The pressure of the ozone layer, Pa; the Chapman peak of `ozone_peak_pressure_pa` when `None`.
@@ -257,7 +258,7 @@ def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone
         raise ValueError("the two-stream model is made for the star between 0.2 and 1 in cosine of the zenith angle")
     edges = uv_cross_sections.standard_edges() if edges_nm is None else np.asarray(edges_nm, dtype=float)
     centres = uv_cross_sections.centres(edges)
-    top = stellar_spectrum.irradiance_w_m2(edges, temperature_k, flux_w_m2, uv_c_share)
+    top = stellar_spectrum.irradiance_w_m2(edges, temperature_k, flux_w_m2, uv_c_share, uv_shares)
     tau_rayleigh, tau_absorption = gas_layers(column, centres, edges)
 
     pressure_ozone = ozone_peak_pressure_pa(column, ozone_du) if ozone_pressure_pa is None else ozone_pressure_pa

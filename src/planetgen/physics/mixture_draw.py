@@ -16,7 +16,7 @@ input to the chemistry: it only gates which rows of the recipe tables apply.
     draw.mole_fractions       # {"H2O": 0.78, "CO2": 0.16, ...}, gas-table formulas, sums to 1
     draw.family               # "rocky", "giant", "brown-dwarf", "hot-jupiter", "envelope", ...
     draw.drawn                # {"a": "a6", "b": "b2", "c": "c3", ...}
-    draw.redox_diw            # log10 fO2 above the iron-wuestite buffer (Hirschmann 2021 scale); None for a giant
+    draw.redox_diw            # log10 fO2 above the iron-wuestite buffer ([R1951] scale); None for a giant
 
 It is a pure function of the subject and the seeded stream (`util/draw.py`): no pressure logic and no storage. The total pressure of
 the air (the retention row `d`), the freeze-out of what the surface temperature condenses, the sum of the partial pressures and the
@@ -131,7 +131,7 @@ def family_of(recipe, subject):
     return "rocky"
 
 
-def draw_mixture(subject, recipe_subject=None, supply=None):
+def draw_mixture(subject, recipe_subject=None, supply=None, escape=True, escape_column_bar=None):
     """
     The mixture of `subject`'s atmosphere.
 
@@ -144,6 +144,9 @@ def draw_mixture(subject, recipe_subject=None, supply=None):
         supply (callable, optional): `(inventory) -> {element: share}`, the share of each element of the delivered inventory
             that the surface holds (`physics/surface_pressure.py`), for the families that outgas (`mixture_rocky.volcanic_gas`);
             the whole inventory when not given.
+        escape (bool): Whether the light-gas escape (`mixture_escape.apply`) takes its share from the mixture. A caller that iterates on
+            the pressure (`surface_air`) leaves it off until the air has settled without it.
+        escape_column_bar (float, optional): The pressure, bar, the escape compares the loss to when it is not the subject's.
 
     Returns:
         MixtureDraw: The mixture. Its `recipe` is the `RecipeDraw` of `CATEGORIES` that decided it (the retention regime `d`, the
@@ -162,7 +165,8 @@ def draw_mixture(subject, recipe_subject=None, supply=None):
     except NotApplicable:
         result = MixtureDraw(mole_fractions={}, family="airless", drawn=drawn, redox_diw=None,
                              temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
-    result = mixture_escape.apply(subject, result)
+    if escape:
+        result = mixture_escape.apply(subject, result, escape_column_bar)
     return dataclasses.replace(result, recipe=recipe)
 
 

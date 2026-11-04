@@ -197,7 +197,7 @@ def elements_from_state(position, velocity, mu):
 
 def equinoctial_from_state(position, velocity, mu):
     """
-    The modified equinoctial elements (Walker, Ireland and Owens 1985) of
+    The modified equinoctial elements (Walker) of
     the orbit through `position` and `velocity`: `p` (semi-latus rectum),
     `f`, `g` (the eccentricity vector in the equinoctial frame), `h`, `k`
     (the orbit pole), and `L` (true longitude, radians in [0, 2 pi)).

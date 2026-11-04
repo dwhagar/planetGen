@@ -26,7 +26,8 @@ Kepler elements (`kepler`: perihelion, eccentricity, argument of
 periapsis, mean anomaly). `position_km` is the object's position relative
 to what it goes round, as stored; the scene's frame has the system's
 barycenter (a single star: the star) at the origin, except a wide binary,
-whose second star orbits the first and whose own bodies orbit each star.
+whose second star orbits the first and whose own bodies orbit each star. A close pair that hangs below another orbit
+of the tree (a third star far out) has its bodies go round `node:N`, the pair's centre of mass, not the barycenter.
 
 `tree` (GEN.311) is the stored tree of orbits the stars hang in: `nodes` (`physics.system_tree.OrbitNode` as dicts,
 each the relative orbit of its slot-1 child about its slot-0 child, with its own epoch), `members` (one per star: `ref`,
@@ -43,10 +44,12 @@ import math
 from datetime import datetime, timezone
 
 from planetgen.db import orbit_trees, query
-from planetgen.physics import body_state, constants, habitability, state_vectors
+from planetgen.physics import body_state, habitability, state_vectors
 from planetgen.web.maps.bodylook import comet_nucleus_color, planet_look, star_look
 from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _au_to_km = units.converter("au", "km")
 
@@ -83,13 +86,26 @@ def _orbit(row, around):
     }
 
 
-def _star_around(planet_or_belt, stars, system):
+def _pair_around(tree, stars):
+    """What a close pair's own bodies go round: the pair's centre of mass. That is the barycenter when the pair is the root
+    of the tree of orbits, else the node it hangs in (`node:N`), which a further star holds the pair's centre away from the
+    barycenter of."""
+    roles = {f"star:{star['id']}": star["role"] for star in stars}
+    nodes = {member["parent_node_no"] for member in tree["members"] if roles.get(member["ref"]) in ("primary", "secondary")}
+    if len(nodes) != 1:
+        return "barycenter"
+    node_no = nodes.pop()
+    parent = next((node["parent_node_no"] for node in tree["nodes"] if node["node_no"] == node_no), None)
+    return "barycenter" if parent is None else f"node:{node_no}"
+
+
+def _star_around(planet_or_belt, stars, system, pair_around="barycenter"):
     """What a planet or belt goes round: its own star in a wide binary, a
-    single-star system or a further star of the tree (GEN.332), else the barycenter."""
+    single-star system or a further star of the tree (GEN.332), else the close pair's centre of mass."""
     star_id = planet_or_belt.get("star_id")
     if system["binary_configuration"] == "close" and not any(
             s["id"] == star_id and s["role"] == "member" for s in stars):    # a member star's own planets (GEN.332)
-        return "barycenter"
+        return pair_around
     if star_id is not None and any(s["id"] == star_id for s in stars):
         return f"star:{star_id}"
     return f"star:{stars[0]['id']}" if stars else "barycenter"
@@ -149,7 +165,7 @@ def _tree(conn, system_id, stars, row):
     for number, star in enumerate(sorted(stars, key=lambda s: s["id"])):
         parent, slot = places[star["id"]]["parent_node_id"], places[star["id"]]["slot"] or 0
         members.append({"ref": f"star:{star['id']}", "member_no": number, "parent_node_no": parent, "slot": slot,
-                        "mass_solar": star["mass_kg"] / constants.SOLAR_MASS_TO_KG})
+                        "mass_solar": _kg_to_msun(star["mass_kg"])})
     origin = members[0]["ref"] if row["binary_configuration"] == "wide" else None
     return {"nodes": [dataclasses.asdict(node) for node in nodes], "members": members, "origin": origin}
 
@@ -237,9 +253,11 @@ def build_scene(conn, system_id):
     row = dict(conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone())
     stars = detail["stars"]
     put_star_temperatures(stars, detail["planets"])
+    tree = _tree(conn, system_id, stars, row)
+    pair_around = _pair_around(tree, stars)
     planets = []
     for planet in detail["planets"]:
-        item = _planet(planet, _star_around(planet, stars, row))
+        item = _planet(planet, _star_around(planet, stars, row, pair_around))
         item["moons"] = [_planet(moon, item["ref"], kind="moon", parent=item["ref"]) for moon in planet["moons"]]
         planets.append(item)
     epoch, epoch_unix = _epoch(conn)
@@ -251,8 +269,8 @@ def build_scene(conn, system_id):
         },
         "epoch": epoch, "epoch_unix": epoch_unix,
         "stars": _stars(conn, system_id, stars, row),
-        "tree": _tree(conn, system_id, stars, row),
+        "tree": tree,
         "planets": planets,
-        "belts": [_belt(b, _star_around(b, stars, row)) for b in detail["belts"]],
-        "comets": [_comet(c, _star_around(c, stars, row)) for c in detail["comets"]],
+        "belts": [_belt(b, _star_around(b, stars, row, pair_around)) for b in detail["belts"]],
+        "comets": [_comet(c, _star_around(c, stars, row, pair_around)) for c in detail["comets"]],
     }

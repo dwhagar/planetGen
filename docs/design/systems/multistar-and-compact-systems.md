@@ -67,7 +67,7 @@ were rerun while writing this document.
 - **Close (P-type) pair.** `BinaryStarProxy` (`generation/binary.py`) merges two
   stars into one effective star: separation `uniform(0.05, 0.25)` AU plus both
   radii, eccentricity 0, circular position, random orientation, mass ratio
-  `uniform(0.1, 1.0)` (`tuning.BINARY_MASS_RATIO_RANGE`), same age as the primary
+  from the law of [R3108] over 0.1 to 1 (`generation/mass_ratio.py`, GEN.951, with `tuning.BINARY_MASS_RATIO_RANGE` the ends), same age as the primary
   (GEN.53). The orbit lives in `binary_*` columns on `star_systems`; the proxy has
   no `stars` row ([database-schema.md](../../reference/database-schema.md), "Binary
   configuration").
@@ -144,19 +144,19 @@ in hours, so a next-due column would fire constantly.
 
 | Quantity | Value | Tag and source |
 |---|---|---|
-| FGK dwarfs within 25 pc, single / double / triple / higher | 56% / 33% / 8% / 3% (454 stars) | [S] Raghavan et al. 2010 |
-| F and G dwarfs within 67 pc, n = 1 to 5 | 54 : 33 : 8 : 4 : 1; 2+2 quadruples 4% | [S] Tokovinin 2014 |
-| Bright systems (about V < 6), 1 to 7 components | 2718, 1437, 285, 86, 20, 11, 2 | [S] Eggleton and Tokovinin 2008 |
-| Updated Multiple Star Catalog | 17 systems with 6 components, 4 with 7, none of the 7s certain (65 UMa best) | [S] Tokovinin 2018 |
-| Companions per primary (q > 0.1, log P < 8) | 0.50 solar-type, 2.1 O-type; single most probable below about 2 Msun, triple above about 12, quadruple above about 23 | [S] Moe and Di Stefano 2017 |
-| M dwarfs | multiplicity about 26%, higher order about 3% of systems | [S] Winters et al. 2019 summary; 26% is in `tuning.py` |
-| O stars | 91 +- 3% multiple; over 70% exchange mass with a companion | [S] Sana et al. 2012, SMaSH+ |
-| O/B companion peak | log P (days) near 3.5 (about 10 AU) | [S] Moe and Di Stefano 2017 |
-| Solar-type period law | log-normal in log10 P (days), mean 5.03, sigma 2.28 | [R] Raghavan 2010; every period share below depends on it |
-| Close-binary fraction (a < 10 AU) against metallicity | about 10% at [Fe/H] +0.5, 24% at -0.5, 40% at -1, 53% at -3 | [R] Moe, Kratter and Badenes 2019 |
+| FGK dwarfs within 25 pc, single / double / triple / higher | 56% / 33% / 8% / 3% (454 stars) | [S] [R3646] |
+| F and G dwarfs within 67 pc, n = 1 to 5 | 54 : 33 : 8 : 4 : 1; 2+2 quadruples 4% | [S] [R4384] |
+| Bright systems (about V < 6), 1 to 7 components | 2718, 1437, 285, 86, 20, 11, 2 | [S] [R1223] |
+| Updated Multiple Star Catalog | 17 systems with 6 components, 4 with 7, none of the 7s certain (65 UMa best) | [S] [R4385] |
+| Companions per primary (q > 0.1, log P < 8) | 0.50 solar-type, 2.1 O-type; single most probable below about 2 Msun, triple above about 12, quadruple above about 23 | [S] [R3108] |
+| M dwarfs | multiplicity about 26%, higher order about 3% of systems | [S] [R4724] summary; 26% is in `tuning.py` |
+| O stars | 91 +- 3% multiple; over 70% exchange mass with a companion | [S] [R3892], SMaSH+ |
+| O/B companion peak | log P (days) near 3.5 (about 10 AU) | [S] [R3108] |
+| Solar-type period law | log-normal in log10 P (days), mean 5.03, sigma 2.28 | [R] [R3646]; every period share below depends on it |
+| Close-binary fraction (a < 10 AU) against metallicity | about 10% at [Fe/H] +0.5, 24% at -0.5, 40% at -1, 53% at -3 | [R] [R3109] |
 
 Theory allows several hundred components and observation confirms at most seven
-[S, Gebrehiwot et al. 2016]. The single fraction counts systems; by star count
+[S, [R1529]]. The single fraction counts systems; by star count
 about half of Sun-like stars sit in multiples (singles outnumber primaries of
 multiples 1.28 to 1, arxiv.org/pdf/1502.04018 [S]). The generator draws a primary
 from a per-star census and then adds companions, which slightly over-produces
@@ -170,7 +170,7 @@ low-mass stars: a refinement, not a blocker.
 | HD 98800 | 4 | 2+2, each a spectroscopic binary (262 d and 315 d) | [S] |
 | Castor | 6 | three binaries, the outer one eclipsing | [S] |
 | Mizar / Alcor | 6 | Mizar a quadruple, Alcor a binary; whether Alcor is bound has been debated | [S], [R] on the debate |
-| TIC 168789840 | 6 | three eclipsing binaries, outer period about 2 kyr | [S] Powell et al. 2021 |
+| TIC 168789840 | 6 | three eclipsing binaries, outer period about 2 kyr | [S] |
 | Nu Scorpii | 7 (probably) | groups AB and CD 41 arcsec apart; AB a triple, CD a binary within a wider pair | [S] "most likely a septuple" |
 | AR Cassiopeiae, 65 UMa | 7 (candidates) | structure not confirmed; 65 UMa has four hierarchy levels | [S] |
 
@@ -271,10 +271,10 @@ m3 in its parent's orbit (a_out, e_out). q_out = m3 / m_in, q_in = m1 / m2, and 
 is the mutual inclination of the two orbital planes (0 coplanar prograde, pi
 coplanar retrograde).
 
-- **Mardling and Aarseth 2001** [S]: `a_out (1 - e_out) / a_in > 2.8 *
+- **[R2868]** [S]: `a_out (1 - e_out) / a_in > 2.8 *
   [(1 + q_out)(1 + e_out) / sqrt(1 - e_out)]^(2/5) * (1 - 0.3 i / pi)`. Valid for
   m3 / m_in below about 5.
-- **Eggleton and Kiseleva 1995** [S, as quoted in arxiv.org/pdf/1408.5431]:
+- **[R1221]** [S, as quoted in arxiv.org/pdf/1408.5431]:
   `a_out (1 - e_out) / (a_in (1 + e_in)) > Y`, `Y = 1 + 3.7 / q^(1/3) - 2.2 /
   (1 + q^(1/3)) + 1.4 / q_in^(1/3) * (q^(1/3) - 1) / (q^(1/3) + 1)` with q = q_out.
 - **Observed period ratios** [R]: P_out / P_in above about 5, mostly above 10; the
@@ -286,14 +286,13 @@ coplanar retrograde).
 - **Several levels:** test every node against its own parent (the parent's orbit
   and the sibling's total mass), deeper subsystems as point masses. Per-level
   triples and whole-system integrations agree (5.4).
-- **Holman and Wiegert 1999** [S]: S-type `a_c / a_b = 0.464 - 0.380 mu - 0.631 e +
+- **[R1990]** [S]: S-type `a_c / a_b = 0.464 - 0.380 mu - 0.631 e +
   0.586 mu e + 0.150 e^2 - 0.198 mu e^2` (mu = perturbing companion's mass
   fraction); P-type `a_c / a_b = 1.60 + 5.10 e - 2.22 e^2 + 4.12 mu - 4.27 e mu -
   5.09 mu^2 + 4.61 e^2 mu^2` (mu = the lighter star's fraction). Quoted accuracy:
   S-type about 4% typical and 11% worst for 0.1 <= mu <= 0.9, 0 <= e <= 0.8; P-type
-  about 3% and 6%, with resonance "islands" of instability. Quarles et al. 2018
-  refit a wider grid with different coefficients; do not mix the sets.
-- **Mardling and Aarseth, verified; updated criterion read from the paper.** The formula above was checked by Boss's engine on 2026-10-09 (18:45Z): P-type coplanar circular gives 2.80; S-type with `m1 = m3 = 1`, `e_out = 0.5` gives `R_p/a_in = 4.99` and `a_out/a_in = 9.98` (use as unit tests). Vynatheya et al. 2022 (MNRAS 516, 4146) refine it (Equations 3 and 4 of the paper: an effective inner eccentricity `e~_in` and a new inclination bracket; 93% accuracy against 90%). Their equations were read from the paper Boss supplied at 18:51Z and are written out, with unit tests and the decided use (Boss, 18:56Z: Equation 4 for star-only triples inside the fitted mass-ratio range, this formula for planets), in [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 2.3.
+  about 3% and 6%, with resonance "islands" of instability. 
+- **Mardling and Aarseth, verified; updated criterion read from the paper.** The formula above was checked by Boss's engine on 2026-10-09 (18:45Z): P-type coplanar circular gives 2.80; S-type with `m1 = m3 = 1`, `e_out = 0.5` gives `R_p/a_in = 4.99` and `a_out/a_in = 9.98` (use as unit tests). [R4574] refine it (Equations 3 and 4 of the paper: an effective inner eccentricity `e~_in` and a new inclination bracket; 93% accuracy against 90%). Their equations were read from the paper Boss supplied at 18:51Z and are written out, with unit tests and the decided use (Boss, 18:56Z: Equation 4 for star-only triples inside the fitted mass-ratio range, this formula for planets), in [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 2.3.
 
 ### 5.2 The criteria alone are not enough
 
@@ -429,7 +428,7 @@ somewhere: higher N removes zones around single stars but rarely all of them.
 
 **As built (GEN.630).** The N-star host and its storage, with the fill still building single stars and pairs (no seed changes, no epoch). `StarSystem.stars` is every star; `member_stars` is the ones after the pair, and `star_slots` says for each star in `stars` order the node and the slot (0 or 1) it hangs in, `None` for a single star and for the pair on the one root node. Migration 0133 (schema v133) lets `stars.role` be `member` and adds `stars.slot`, which a stored pair gets from its roles; `db/orbit_trees.star_places` gives each star `(parent_node_id, offset, slot)`, a system with members placing every star by the whole tree at the nodes' epoch (`physics.system_tree.star_offsets_au`), and `insert_star_system` writes a `member` row for each further star. `load_star_system` reads them back into `member_stars` and `star_slots`, and the JSON form carries both (serialization version 6). A member has no planets, comets or belts of its own yet: an S-type window around it is GEN.332's. The readers that took a system to have one or two stars: the sector list orders the stars primary, secondary, then members; the system scene's tree reads each star's stored node and slot instead of guessing the free one, and a member sits at its stored offset (the pair stars keep following the binary columns the orbit update moves; a member's offset is the one stored with the system until the update moves the whole tree); `galaxy/system_position` places every star of the tree; the system page's map draws the pair (the stars table and the scene list all of them); a facility around a close pair counts the pair only; the Galaxy Map tiles treat a member like a secondary (never a bright-stars duplicate); and the body slots that an ID follows number the members by their place among them. Nothing generates a third star until GEN.631 (stages D and G draw member trees).
 
-**As built (GEN.631).** A system the fill makes from nothing draws its stars as a tree: `StarSystem._drawn_plan` calls `multistar.draw_member_tree` for the primary at the odds of the `star-count` table (`hosts.STAR_COUNT_PROBABILITIES`), cuts out the members a build cannot make from a birth mass and an age (a brown dwarf, a neutron star, a black hole: `multistar.without_members`, the orbit above a cut member closed and its masses and periods redone), and `StarSystem._add_companions` builds the rest from their own seeds (`generation/stored_trees.py`: `drawn` for a tree just drawn, `plan` for a stored one, both a `StoredPlan` of every star and its nodes numbered from 0). The pair is the two stars of the node of the placed star when its children are both stars, else of the heaviest such node, the heavier its primary; every other star is one of `member_stars` (GEN.630), hung in the tree by `star_slots`. The pair is a P-type `close` pair (circular) when its axis is under `tuning.WIDE_BINARY_SEPARATION_MIN_AU` and an S-type `wide` pair otherwise (eccentricity held under `WIDE_BINARY_ECCENTRICITY_MAX`); the other nodes keep the kind the tree drew them with. The widest axis is the place's (`place_terms.wide_axis_limit_au`, passed as `max_axis_au`). The nodes hold their phases at `stored_trees.GENERATED_EPOCH_UNIX` until the store saves the system and puts the database's orbit epoch there; a stored row's tree builds the same way, three or more stars included. The directives: `BINARY_SYSTEM` false is one star, true two or more, `WIDE_BINARY` and a `wide_binary` prevalence ask for the kind of the pair, a `binary_system` prevalence moves the share with a companion, and a protostar's or Wolf-Rayet star's own chance of a companion (GEN.242, GEN.243) replaces the table's; a tree that is not what the directives and the place need is drawn again (`tuning.COMPANION_DRAW_ATTEMPTS`). `StarSystem._companion`, `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` and the [Fe/H] factor on the close and inner ranges (GEN.103) are gone from the fill; the tree does not take the factor yet. (GEN.899, which moved the draw: a companion's mass was drawn from 0.1 to 1 times the primary's, so more than half of a low-mass M dwarf's companions were brown dwarfs, cut out here, and an M2V primary kept a companion star in 16% of systems against the table's 27%. Now every other star of a tree has at least the hydrogen-burning limit, 0.08 solar masses (`multistar.companion_ratio_range`), so the table's count is a count of stars, and a brown dwarf is one more member in 3% of the drawn trees, whatever the star count (`tuning.BROWN_DWARF_COMPANION_CHANCE`; a directive's count adds none). The census draw gives 26.6% for an M2V primary.) The members have no planets of their own yet (GEN.332).
+**As built (GEN.631).** A system the fill makes from nothing draws its stars as a tree: `StarSystem._drawn_plan` calls `multistar.draw_member_tree` for the primary at the odds of the `star-count` table (`hosts.STAR_COUNT_PROBABILITIES`), keeps the members a build cannot make from a birth mass and an age (a brown dwarf, a neutron star, a black hole, a stripped helium star) in the tree as dark members (GEN.1013: `StarSystem.dark_members`, stored in `dark_members`; `multistar.without_members` is gone), and `StarSystem._add_companions` builds the others from their own seeds (`generation/stored_trees.py`: `drawn` for a tree just drawn, `plan` for a stored one, both a `StoredPlan` of every star and its nodes numbered from 0). The pair is the two stars of the node of the placed star when its children are both stars, else of the heaviest such node, the heavier its primary; every other star is one of `member_stars` (GEN.630), hung in the tree by `star_slots`. The pair is a P-type `close` pair (circular) when its axis is under `tuning.WIDE_BINARY_SEPARATION_MIN_AU` and an S-type `wide` pair otherwise (eccentricity held under `WIDE_BINARY_ECCENTRICITY_MAX`); the other nodes keep the kind the tree drew them with. The widest axis is the place's (`place_terms.wide_axis_limit_au`, passed as `max_axis_au`). The nodes hold their phases at `stored_trees.GENERATED_EPOCH_UNIX` until the store saves the system and puts the database's orbit epoch there; a stored row's tree builds the same way, three or more stars included. The directives: `BINARY_SYSTEM` false is one star, true two or more, `WIDE_BINARY` and a `wide_binary` prevalence ask for the kind of the pair, a `binary_system` prevalence moves the share with a companion, and a protostar's or Wolf-Rayet star's own chance of a companion (GEN.242, GEN.243) replaces the table's; a tree that is not what the directives and the place need is drawn again (`tuning.COMPANION_DRAW_ATTEMPTS`). `StarSystem._companion`, `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` and the [Fe/H] factor on the close and inner ranges (GEN.103) are gone from the fill; the tree does not take the factor yet. (GEN.899, which moved the draw: a companion's mass was drawn from 0.1 to 1 times the primary's, so more than half of a low-mass M dwarf's companions were brown dwarfs, cut out here, and an M2V primary kept a companion star in 16% of systems against the table's 27%. Now every other star of a tree has at least the hydrogen-burning limit, 0.08 solar masses (`multistar.companion_ratio_range`), so the table's count is a count of stars, and a brown dwarf is one more member in 3% of the drawn trees, whatever the star count (`tuning.BROWN_DWARF_COMPANION_CHANCE`; a directive's count adds none). The census draw gives 26.6% for an M2V primary.) The members have no planets of their own yet (GEN.332).
 
 **As built (GEN.332, slice 1).** The stars beyond the pair have planets. `StarSystem.set_stability_limits` works out the tree's windows (`planet_zones.planet_zones`, the member number being the star's place in `stars`) and gives each of `member_stars` the outer edge of its S-type window as `a_crit_au`, which `validation.orbit_ceiling_au` reads like a wide pair's; a close pair beside other stars gets the outer edge of its P-type window the same way, so its circumbinary planets stop short of the stars beside it (a pair that is the whole tree keeps the Hill sphere against the galaxy alone). `StarSystem._generate_member_planets` then draws each member's planets and belts exactly as a wide pair's secondary's are drawn (`_generate_planets` with no guarantees, spaced, trimmed to the ceiling, aged by the star's history), into `member_planets`, a list per member in the members' order, with `all_planets` the whole system's and `member_hosts()` the `(star, planets)` pairs. All the stars of the tree share one age, so a member's planets set a minimum for it and its state a ceiling (`adjust_pair_age_for_planets` takes the members). A member's planets are named after it (`Voranthis C I`), saved under its own `stars` row (`planets.star_id`), read back by `load_star_system` and `from_dict` (serialization version 7), listed under it by `describe`, lit and placed like a wide secondary's (`insolation.refresh_system` takes the swing from the node and the stars of the subtree beside it, `planet_zones.sibling_of`), counted in the system's totals and given a reflex offset of the star. A member has no comets yet. The system page's map still draws the pair; a member's planets are in the table and the 3D scene, which goes round the member (`systemscene._star_around`). Not yet built: circumbinary planets at the inner nodes of a tree (`planets.host_node_id`), the pair's own planets taken from the tree rather than the pair classes (GEN.640 needs that), circumbinary disks and planet pairs.
 
@@ -492,10 +491,31 @@ comets): N-1 Kepler solves per system. `physics/body_positions.positions_at` and
 `static/orbitpositions.js` change together (`tests/test_js_unit.py` checks the two
 agree).
 
+As built (TEST.477, the overlap verifier): `physics/clearance.py` `audit(rows)` reads only what a finished system stores (its stars,
+the nodes of its tree, planets, moons and belts, `stored_rows` reads them with plain SELECTs) and lists every place two bodies
+overlap or a limit the generator promises is broken (a **hard** violation: Roche fill at pericentre, overlap of a node's two sides,
+stability by Mardling and [R4574] together, node masses, a planet inside its
+star, the Holman and Wiegert S-type and P-type axes, planets crossing or under 10 mutual Hill radii apart, moons outside 0.4895 of
+the Hill radius or touching their planet, a belt over a planet's orbit) and the physical limits it does not promise today (an
+**advisory**: the rigid-body Roche limit of a planet or moon). It imports no placement or screening code and re-derives every form;
+`tests/test_clearance.py` holds each form against the generator's own copy and sweeps stored systems of one to five stars
+(`PLANETGEN_CLEARANCE_SCALE=12` gave 864: one hard failure, `triple-208`, a planet pair 9.93 mutual Hill radii apart where the
+generator promises 10; it is the one entry of `KNOWN`, expected to fail). Not yet checked, because the rows do not hold what it needs:
+the history rule, the Kozai-Lidov screen and the 3+1 quadruple margin (GEN.1006 4.3 and section 5).
+
 As built (MAP.255): `orbitpositions.js` walks the scene's `tree` the way `system_tree.member_offsets_au` does (the slot-1 child of a node
 on the node's Kepler orbit, both children about the node's centre by the other's mass, a group node's members at its centre, the
 wide pair's first star shifted to the origin) and `relativeAt` answers each star relative to the star its scene orbit names, or to
 the frame's origin. A scene with stars and no tree is refused.
+
+As built (MAP.213, slice A, the 3D system view): `relativeAt` also answers a point for each node's centre of mass (`node:<n>`, `virtual`),
+stars hang from their node's centre and nodes from their parent's, `nodePaths` gives each child's real ellipse about its node's centre
+(the slot-0 child opposite the slot-1 child, each at the other's share), and the compressed layout (`systemscale.js`) scales each node on
+its own: the node's separation is as many units as its two sides need to clear at periapsis (a star with bodies going round it needs
+their whole span, a sub-pair the reach of its own orbit), the orbit itself drawn straight-scaled so its ellipse keeps its shape. True
+scale draws the real distances. Slices B (the System Map diagram) and C (the system page lists the tree) follow.
+
+As built (MAP.213, slice C, the system page): `db.query.system_detail` carries the stored tree as `orbits` (the `orbit_nodes` rows in node order) and each star's `parent_node_no` and `slot`, and the page draws "Orbits of the stars" from `web/system_orbits_view.orbit_rows`: one row per node naming what it joins (slot 0 first, a star's name or `orbit N` for a pair hung below), with the same kind, separation, period and eccentricity columns an unbuilt scatter row's Orbits table has, plus the node's mass and its Roche `interaction`. A single star, or a system built before it stored a tree, has no panel.
 
 ### 6.3 Naming (extends GEN.62)
 
@@ -583,14 +603,12 @@ GEN.100's densities.
 
 **Research supplied (Boss, 2026-10-16, 5:55 PM EDT, for GEN.103).** Two constants Core 4 could not look up
 arrived as research, and they are written here as rules the type draw derives, not as values it stores. The
-sources Boss named are Badenes et al. 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018, El-Badry, Rix
-and Heintz 2021, Kratter and Lodato 2016, Bate 2018, Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and
-Tremaine 2010 and Stegmann et al. 2024. **The reference list is unverified; Core 4 checks each source and each
+sources Boss named are [R0223, R0229, R0281, R1235, R1880, R2166, R2474, R3109, R4204]. **The reference list is unverified; Core 4 checks each source and each
 number before any of it is coded.**
 
 1. **Close-binary fraction against metallicity.** For solar-type primaries (about 0.6 to 1.2 Msun) the fraction
    inside about 10 AU (P below about 10^3.5 days) falls as [Fe/H] rises: about 50% to 60% at [Fe/H] below -1
-   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the Moe et al. 2019
+   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the [R3109]
    points as 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5, and El-Badry and Rix as 2019, so the
    rounder figures here are summaries to be replaced by the points). The dependence vanishes
    for separations above about 200 AU. The cause is disk fragmentation: low metallicity means low dust
@@ -603,8 +621,7 @@ number before any of it is coded.**
    tide. **Rule:** the survival limit is computed from the cell's own environment, never read from a table.
    (a) The diffusive limit: the largest separation whose binding energy survives the summed impulses of
    perturbers over the age of the population, from the local stellar number density, the mean perturber
-   mass, the velocity dispersion, the Coulomb logarithm and the age (Bahcall et al. 1985; Jiang and
-   Tremaine 2010; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
+   mass, the velocity dispersion, the Coulomb logarithm and the age ([R0229, R2166]; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
    the Jacobi radius from the galactic potential at the cell, (G M / (4 Omega^2 - kappa^2))^(1/3) = (G M /
    (2 A (A - B)))^(1/3) for a pair of total mass M, which the generator evaluates from the same potential
    as the orbital update. A pair is kept only below the smaller of the two. **Check values, not inputs:** the
@@ -655,7 +672,7 @@ the mass-loss ratio.
 | White dwarfs | about 22% of field white dwarfs in wide binaries; 25 to 50% of cool ones show metals (pollution) | [S] |
 | Pulsar planets | PSR B1257+12: three planets at about 0.19, 0.36, 0.46 AU, about 0.02, 4.3, 3.9 Earth masses; PSR B1620-26 b in M4 (probably captured); PSR J1719-1438 b (about 1 Jupiter mass, stripped white dwarf companion); about 1% of millisecond pulsars have planets, 0 of 151 young pulsars surveyed | [S] existence and rates; [R] B1257 orbits and masses |
 | WD 1856+534 b | transiting, P = 1.4 d, Jupiter-sized, at most about 6 Jupiter masses, about 186 K | [S]; host in a wide triple [R] |
-| Compact triple | PSR J0337+1715: millisecond pulsar with 1.6 d and 327 d white dwarfs (ratio about 200) | [R] Ransom et al. 2014 |
+| Compact triple | PSR J0337+1715: millisecond pulsar with 1.6 d and 327 d white dwarfs (ratio about 200) | [R] [R3664] |
 
 ### 7.3 Companion fractions, conditional on a compact primary
 
@@ -697,7 +714,7 @@ The black hole fraction rests on the three Gaia systems and is low confidence.
   Teff 10,000 K; 0.013 to 0.023 at 6,000 K; 0.0058 to 0.010 at 4,000 K; 0.0032 to
   0.0058 at 3,000 K. The zone moves inward as the star cools, reaches the Roche
   limit near 3,000 to 4,000 K, and has periods of 0.3 to 5 days, so planets there are
-  tidally locked (Agol 2011 and Heller et al. 2011: continuously habitable within
+  tidally locked ([R0038, R1898]: continuously habitable within
   about 0.02 AU, locking in 10 to 1,000 years [S]).
 - **Gaia-type stable zones** (Holman and Wiegert on the measured orbits, mass
   fraction clamped to the fit's range): BH1's Sun-like star keeps planets only
@@ -787,11 +804,10 @@ still [R], to verify when paper access is allowed:
 
 - Log-normal period law for solar-type stars (mean 5.03, sigma 2.28 in log10 days);
   every period share in section 4 depends on it.
-- Close-binary fraction against metallicity (Moe, Kratter and Badenes 2019).
-- Per-mass-bin companion, triple and quadruple fractions (Moe and Di Stefano table,
-  Offner 2023): the table in 3.3 is a design blend, and its A, B and O rows and every
+- Close-binary fraction against metallicity [R3109].
+- Per-mass-bin companion, triple and quadruple fractions (Moe and Di Stefano table,): the table in 3.3 is a design blend, and its A, B and O rows and every
   N >= 4 split are the least certain.
-- Harrington 1977; Tokovinin's "ratio above 5" rule; the WDS/WMC/MSC notation (6.3).
+- Tokovinin's "ratio above 5" rule; the WDS/WMC/MSC notation (6.3).
 - Gaia BH1 period and eccentricity, BH2 mass and orbit, BH3 beyond the periods;
   PSR B1257+12 masses and orbits; PSR J0337+1715.
 - Moment of inertia 1e38 kg m^2, Kerr ISCO factor, Eddington 1.26e31 W per Msun,
@@ -808,33 +824,30 @@ outside the repository; GEN.129 step 4 recreates the generator from 5.1 to 5.3.
 
 Seen in search results (summaries only; no paper text was read):
 
-- Raghavan et al. 2010: https://arxiv.org/pdf/1007.0414; 2015 reanalysis
-  https://arxiv.org/pdf/1502.04018
-- Duchene and Kraus 2013: https://arxiv.org/pdf/1303.3028
-- Moe and Di Stefano 2017: https://arxiv.org/pdf/1606.05347; Offner et al. 2023:
-  https://arxiv.org/pdf/2203.10066
-- Tokovinin 2014: https://arxiv.org/pdf/1401.6827; 2018 catalogue
-  https://arxiv.org/pdf/1712.04750; 2021 review https://arxiv.org/pdf/2109.09118
-- Eggleton and Tokovinin 2008: https://arxiv.org/pdf/0806.2878; Gebrehiwot et al.
-  2016: https://arxiv.org/pdf/1701.01135
+- [R3646]: [R3646]; 2015 reanalysis
+  [R4693]
+- [R1175]: [R1175]
+- [R3108]: [R3108, R3334]:
+  [R3333]
+- [R4384]: [R4384]; 2018 catalogue
+  [R4385]; 2021 review [R4386]
+- [R1223]: [R1223]; Gebrehiwot et al.
+  2016: [R1529]
 - Nu Scorpii and Mizar/Alcor (Wikipedia); HD 98800
-  https://arxiv.org/pdf/astro-ph/0011135; TIC 168789840
-  https://ar5iv.labs.arxiv.org/html/2101.03433
-- Stability: https://arxiv.org/pdf/1408.5431 (Eggleton and Kiseleva form); Mardling
-  and Aarseth forms quoted in https://arxiv.org/pdf/2006.11872,
-  https://arxiv.org/pdf/2306.09400, https://arxiv.org/pdf/2209.08487; Holman and
-  Wiegert coefficients quoted in https://arxiv.org/pdf/2407.13901 and
-  https://arxiv.org/pdf/2108.07815; Quarles et al. refit
-  https://ar5iv.arxiv.org/html/1802.08868
-- Gaia black holes: https://arxiv.org/abs/2209.06833 (BH1),
-  https://arxiv.org/pdf/2404.17568 (BH3)
-- Pulsars: https://arxiv.org/pdf/2011.08075, https://arxiv.org/pdf/1609.06409,
-  https://arxiv.org/pdf/1709.09434, https://arxiv.org/pdf/2109.10362 (natal kicks);
-  X-ray binaries: https://arxiv.org/pdf/1510.08869, https://arxiv.org/pdf/2304.09368
-- White dwarfs: https://arxiv.org/pdf/1103.2791, https://arxiv.org/pdf/2501.06613,
+  [R3603]; TIC 168789840
+  [R4989]
+- Stability: [R1537] (Eggleton and Kiseleva form); Mardling
+  and Aarseth forms quoted in [R1855, R2519, R3864]; Holman and
+  Wiegert coefficients quoted in [R0243, R3631]; Quarles et al. refit
+  [R3633]
+- Gaia black holes: [R1238] (BH1),
+  [R2091] (BH3)
+- Pulsars: [R0126, R2078, R2849, R2902] (natal kicks);
+  X-ray binaries: [R0893, R2797]
+- White dwarfs: [R0038, R4493],
   https://astrobites.org/2020/09/22/the-first-planet-found-orbiting-a-white-dwarf/,
   https://doaj.org/article/6ee22a7610b842f98a9ddef9f43c063e (WD 1856+534 b),
-  https://arxiv.org/pdf/2403.08870 (pollution)
+  [R3306] (pollution)
 - Package page: https://pypi.org/pypi/rebound/json (rebound 5.2.2)
 - Repo files read: `generation/binary.py`, `wide_binary.py`, `system.py`, `star.py`,
   `phenomena/compact_remnant.py`, `physics/orbits.py`, `physics/kepler.py`,

@@ -69,7 +69,7 @@ def test_a_white_dwarf_debris_body_takes_its_own_redox_row_and_a_small_body_the_
 
 
 def test_the_later_mantle_is_never_more_reduced_than_the_magma_ocean_surface_of_the_same_body():
-    """GEN.482b: Deng 2020 and Hirschmann 2022 find that the later processes only oxidise the mantle."""
+    """GEN.482b: [R1075, R1951] find that the later processes only oxidise the mantle."""
     old = subject(long_lived_geology=True, age_gy=9.0)
     recipe = RecipeDraw(values={"a1": 1.2, "a2": -0.5})
     assert md.draw_redox(old, recipe, {}) == pytest.approx(1.2)

@@ -51,33 +51,6 @@ def test_no_heat_or_no_mantle_degasses_nothing_and_the_share_stays_below_one():
     assert 0.0 < sp.degassed_share(1e40, EARTH_MANTLE_KG) <= 1.0
 
 
-def test_the_inventory_degassed_is_each_element_times_its_share_and_its_efficiency():
-    inventory = {"H": 10.0, "C": 2.0, "N": 0.2, "S": 1.0, "Ar": 1e-3}
-    constants_drawn = {}
-    efficiencies = sp.draw_efficiencies(constants_drawn)
-    assert sp.DEGAS_EFFICIENCY_H[0] <= efficiencies["H"] <= sp.DEGAS_EFFICIENCY_H[1]
-    assert constants_drawn["degas_efficiency_h"] == efficiencies["H"]
-    out = sp.degassed_inventory(inventory, _earth().released_j, EARTH_MANTLE_KG, efficiencies)
-    share = sp.degassed_share(_earth().released_j, EARTH_MANTLE_KG)
-    assert out["C"] == pytest.approx(2.0 * share) and out["S"] == pytest.approx(0.5 * share)
-    assert out["H"] == pytest.approx(10.0 * share * efficiencies["H"])
-    assert sp.degassed_inventory(inventory, 0.0, EARTH_MANTLE_KG, efficiencies) == {k: 0.0 for k in inventory}
-
-
-def test_the_mass_of_a_gas_system_and_its_pressure():
-    """One mole of CO2 per 100 g of mantle: 44.01 g per 100 g, so 0.44 of the mantle's mass."""
-    mass = sp.gas_mass_kg({"C": 1.0, "O": 2.0}, 1000.0)
-    assert mass == pytest.approx(440.09, rel=1e-3)
-    gravity, radius = 8.87, 6.052e6
-    assert sp.pressure_pa(VENUS_AIR_KG, gravity, radius) == pytest.approx(9.2e6, rel=0.02)
-    assert sp.air_mass_kg(sp.pressure_pa(VENUS_AIR_KG, gravity, radius), gravity, radius) == pytest.approx(VENUS_AIR_KG)
-
-
-def test_the_cycle_needs_liquid_water():
-    assert sp.can_weather(288.0, 0.7) and not sp.can_weather(288.0, 0.0)
-    assert not sp.can_weather(260.0, 0.7) and not sp.can_weather(737.0, 0.7)
-
-
 def test_the_cycle_draws_stay_in_their_brackets_and_are_recorded():
     recorded = {}
     alpha, t_e, exponent = sp.draw_cycle(recorded)

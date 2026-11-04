@@ -57,15 +57,18 @@ def test_the_moon_draw_stops_at_a_host_the_gate_refuses(sun_like, monkeypatch):
 
 
 def test_a_directed_moon_count_still_goes_through_the_gate(sun_like):
-    counts = []
-    for seed in range(12):
+    born, kept = [], []
+    for seed in range(24):
         with draw.bound(seed):
             planet = _planet(sun_like, "earth", "e", moon_count=2)
         assert hosting_gate.can_host(planet_physics.hosting_host(planet)).allowed
-        counts.append(len(planet.moons))
-    assert counts == [2] * len(counts)                   # the directive holds where there is room, as before
-
-
+        kept.append(len(planet.moons))
+        # a moon the planet's spin history (GEN.959) let fall into it, becoming ring material (GEN.1057), was born all the same
+        born.append(len(planet.moons) + len(planet.fallen_moons))
+    # the directive holds where there is room: never more than asked, and a planet whose orbits cannot take the second moon keeps one (about 1 in 12);
+    # a moon that fell in the first million years or so leaves the planet with fewer than were born (`kept`), which is the spin history, not the direction
+    assert max(born) == 2 and min(born) >= 1 and born.count(2) >= 0.8 * len(born)
+    assert max(kept) <= 2 and all(n <= b for n, b in zip(kept, born))
 @pytest.mark.parametrize("zone,distance_au,inclination,expected", [
     ("h", 0.3, 0.0, "inner-small-body"),
     ("e", 1.0, 0.0, "inner-small-body"),

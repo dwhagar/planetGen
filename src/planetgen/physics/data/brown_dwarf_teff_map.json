@@ -1,6 +1,6 @@
 {
  "title": "Effective temperature against spectral type of L, T and Y dwarfs (GEN.517)",
- "source": "Kirkpatrick et al. 2021 (arXiv 2011.11616, ApJS 253, 7), Table 13: the Teff(SpT) polynomials fitted to 525 L, T and Y dwarfs within 20 pc; the spectral type s counts L0 = 0, T0 = 10, Y0 = 20",
+ "source": "[R2374: Table 13]: the Teff(SpT) polynomials fitted to 525 L, T and Y dwarfs within 20 pc; the spectral type s counts L0 = 0, T0 = 10, Y0 = 20",
  "label": "READ",
  "pieces": [
   {"name": "L0 to L8.75", "s_min": 0.0, "s_max": 8.75, "coefficients": [2237.5, -144.96, 4.0301], "rms_k": 134.0},

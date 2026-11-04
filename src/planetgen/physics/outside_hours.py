@@ -28,9 +28,9 @@ Use:
 
 A body's stored columns give the inputs (`for_body`): the equipment levels `equipment.compute` lists, the stored `daylight_hours`
 (GEN.767) and the day's coldest and hottest temperature from the cycle of the light (`habitability.temperature_extremes_c`)
-widened by half the stored day-night swing (`temp_swing_k`). A tidally locked world has no day of its own: a person stays in the
+widened by half the stored day-night swing of the equator band (`band4_swing_k`). A tidally locked world has no day of its own: a person stays in the
 terminator belt, where the star sits on the horizon for the whole 24-hour shift (`LOCKED_BELT_LIGHT_HOURS`) at the belt's stored
-temperature (`temp_terminator_k`).
+temperature (`band4_mean_k`, the middle ring).
 """
 
 import math
@@ -41,6 +41,16 @@ from planetgen.physics.protection_limits import GARMENTS, limit, supply_hours
 
 LIMITS = ("daylight", "dose", "heat", "cold", "air", "uv", "vehicle")
 """tuple: The binding limits by the order of the ties (the first of equal hours wins) and by stored number."""
+
+FIELDS = ("outside_hours_day", "outside_hours_limit")
+"""tuple: What a body stores of this module (GEN.768): `outside_hours_day`, the hours of one local day a person can be outside, and
+`outside_hours_limit`, the name in `LIMITS` of the limit that sets them. Both are `None` where the stored columns do not say."""
+
+LIMIT_WORDS = {
+    "daylight": "the hours of daylight", "dose": "the radiation dose allowance", "heat": "heat", "cold": "cold",
+    "air": "the breathing gas it carries", "uv": "ultraviolet light", "vehicle": "a body that needs a vehicle outside",
+}
+"""dict: A limit and the plain words a page says it in."""
 
 Temperatures = namedtuple("Temperatures", "cold_k hot_k")
 """The coldest and the hottest ambient temperature of the day outside, kelvin."""
@@ -199,6 +209,10 @@ def outside_hours_day(world, levels, daylight_hours, days_per_year, temperatures
     return max(0.0, hours), name
 
 
+MIDDLE_BAND = 4
+"""int: The band of the equator (a locked world's terminator ring), `regional_temperature.column(MIDDLE_BAND, field)`."""
+
+
 def for_body(world, levels, values):
     """
     `(hours, limit)` of a body from its stored columns, or `(None, None)` when they do not say enough (no rotation period, no
@@ -208,14 +222,14 @@ def for_body(world, levels, values):
     Args:
         world (habitability.World): The body as `habitability_world.world_from` builds it.
         levels (dict): The equipment levels `equipment.compute(world)` lists for it.
-        values (dict): Its column-named values: `rotation_period_hours`, `period_years`, `daylight_hours`, `temp_swing_k`,
-            `temp_terminator_k`.
+        values (dict): Its column-named values: `rotation_period_hours`, `period_years`, `daylight_hours`, `band4_swing_k`,
+            `band4_mean_k`.
     """
     rotation, period = values.get("rotation_period_hours"), values.get("period_years")
     if not rotation or not period:
         return None, None
     if regional_temperature.is_locked(rotation, period):
-        belt = values.get("temp_terminator_k")
+        belt = values.get(regional_temperature.column(MIDDLE_BAND, "mean_k"))
         if not belt:
             return None, None
         days = work_days_per_year(rotation, period, locked=True)
@@ -224,6 +238,12 @@ def for_body(world, levels, values):
     if daylight is None:
         return None, None
     cold_c, hot_c = habitability.temperature_extremes_c(world)
-    half_swing = (values.get("temp_swing_k") or 0.0) / 2.0
+    half_swing = (values.get(regional_temperature.column(MIDDLE_BAND, "swing_k")) or 0.0) / 2.0
     temperatures = Temperatures(cold_c + constants.CELSIUS_ZERO_K - half_swing, hot_c + constants.CELSIUS_ZERO_K + half_swing)
     return outside_hours_day(world, levels, daylight, work_days_per_year(rotation, period), temperatures)
+
+
+def fields(world, levels, values):
+    """`{FIELDS name: value}` of a body: `for_body`'s hours and limit, both `None` when its columns do not say enough."""
+    hours, limit_name = for_body(world, levels, values)
+    return {"outside_hours_day": hours, "outside_hours_limit": limit_name}

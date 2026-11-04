@@ -145,3 +145,32 @@ def test_a_run_of_the_stages_after_the_sectors_stopped_in_a_stage_is_carried_on_
         "the stages the stopped run finished were carried over, not done again"
     _sectors_then_tail(second_mysql_config)
     _same_galaxy(mysql_config, second_mysql_config)
+
+
+def test_a_job_stopped_before_its_later_scatter_opened_is_carried_on_to_the_uninterrupted_galaxy(
+        mysql_config, second_mysql_config, tmp_path, conn):
+    """PERF.203 step 5: the job is one run, so the stages it never started are the stopped run's own. Finishing it plans them from
+    the run record, and a scatter whose stage had not opened takes its mass limit when it opens, not from the stars the stopped
+    stage left behind."""
+    from planetgen.generation import job, run_common, run_plan
+    from tests.test_bright_star_scatter import _seed_galaxy
+    from tests.test_run_job import FLOOR, _job_args, _stars
+
+    spec = [("scatter", ["--mass", *FLOOR]), ("scatter", ["--luminosity", *FLOOR])]
+    _seed_galaxy(mysql_config)
+    with pytest.MonkeyPatch.context() as failing:
+        _stops(failing, tmp_path, run_plan, "scatter_shells_unit", 1)
+        with pytest.raises(units.RunStopped, match="Interrupted"):
+            job.run_job(_job_args(mysql_config, spec))
+    run_common._RUN_STATS.clear()
+    stopped = runrecord.read_run(conn, _last_run(conn))
+    assert stopped["state"] == "failed" and stopped["title"] == "Generate job"
+    assert stopped["stages"][stopped["current"]]["label"] != stopped["stages"][-1]["label"]
+
+    run_cli("finish-run", mysql_argv(mysql_config))
+
+    finished = runrecord.read_run(conn, _last_run(conn))
+    assert finished["state"] == "done" and finished["finishes"] == stopped["id"]
+    _seed_galaxy(second_mysql_config)
+    job.run_job(_job_args(second_mysql_config, spec))
+    assert _stars(mysql_config) == _stars(second_mysql_config) != []

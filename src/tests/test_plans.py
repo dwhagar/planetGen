@@ -103,7 +103,7 @@ def test_a_reference_names_one_object_and_a_system_has_no_id_of_its_own():
 def test_every_operation_round_trips_through_its_envelope():
     refs = Ref("s1", plans.PLANET, 12)
     for op in (Move(refs, distance_au=1.5, before={"distance_au": 1.0}), Move(Ref("s1"), position=(1.0, 2.0, 3.0)),
-               SetAspect(refs, "name", "Vesper"), Regenerate(refs, keep=("name", "orbit", "class")),
+               SetAspect(refs, "name", "Vesper"), Regenerate(refs, keep=("name", "orbit")),
                Add(Ref("s1"), plans.BELT, 4.0, lower_au=3.0, upper_au=5.0, new_id="new-1"), Remove(refs, forced=True)):
         data = json.loads(json.dumps(op.to_dict()))
         assert data["op"] == op.OP and data["schema_version"] == plans.ENVELOPE_VERSION
@@ -230,23 +230,13 @@ def test_a_system_can_be_renamed_and_a_blank_name_is_refused(world):
         planned(world, SetAspect(Ref("s1"), "name", "  "))
 
 
-def test_a_recommended_class_is_accepted_and_another_needs_the_force(world):
-    for planet in planets_of(world):
-        options = edits.recommended_classes(world.systems["s1"], planet, world.systems["s1"].planets)
-        others = [c for c in plans.tuning.PLANET_CLASSES if c != planet.planet_class and c not in options]
-        if options and others:
-            break
-    else:
-        pytest.skip("no planet with both kinds of class")
-    target = ref(world, planet)
-    plan = planned(world, SetAspect(target, "planet_class", options[0]))
-    assert fields_of(plan, target.key)["planet_class"].after == options[0]
-    refused = Plan()
-    refused.add(SetAspect(target, "planet_class", others[0]))
-    with pytest.raises(PlanError, match="Confirm to set it anyway"):
-        refused.propose(world, *ADMIN)
-    forced = planned(world, SetAspect(target, "planet_class", others[0], forced=True))
-    assert fields_of(forced, target.key)["planet_class"].after == others[0]
+def test_a_class_is_derived_from_the_body_so_a_plan_cannot_set_it(world):
+    """ADM.137: a body's class follows from its conditions (epoch 121), so the class aspect is gone: it is refused as unknown, with
+    or without the force."""
+    target = ref(world, planets_of(world)[0])
+    for forced in (False, True):
+        with pytest.raises(PlanError, match="unknown aspect"):
+            planned(world, SetAspect(target, "planet_class", "M", forced=forced))
 
 
 def test_changing_the_star_changes_the_planets_as_indirect_effects(world):
@@ -262,7 +252,7 @@ def test_an_unknown_aspect_or_one_aimed_at_the_wrong_kind_is_refused(world):
     with pytest.raises(PlanError, match="unknown aspect"):
         planned(world, SetAspect(ref(world, planets_of(world)[0]), "mood", "calm"))
     with pytest.raises(PlanError, match="cannot be set"):
-        planned(world, SetAspect(ref(world, belt_of(world)), "planet_class", "M"))
+        planned(world, SetAspect(ref(world, belt_of(world)), "star_type", "K2V"))
 
 
 def test_a_registered_aspect_joins_the_list(world, monkeypatch):
@@ -287,15 +277,10 @@ def test_regenerating_a_planet_keeps_its_name_and_its_orbit(world):
     assert redrawn.name == planet.name and redrawn.distance == planet.distance
 
 
-def test_a_regeneration_can_keep_the_class(world):
-    for planet in planets_of(world):
-        for seed in range(12):
-            sim, _ = plans.simulate(world, [Regenerate(ref(world, planet))], seed)
-            if edits.find_body(sim.systems["s1"], "planet", planet.db_id)[0].planet_class != planet.planet_class:
-                kept, _ = plans.simulate(world, [Regenerate(ref(world, planet), keep=("name", "orbit", "class"))], seed)
-                assert edits.find_body(kept.systems["s1"], "planet", planet.db_id)[0].planet_class == planet.planet_class
-                return
-    pytest.skip("every redraw kept the class")
+def test_a_regeneration_cannot_keep_the_class_which_is_derived(world):
+    """ADM.137: the class is derived from the redrawn body's conditions, so it is not an aspect a regeneration keeps."""
+    with pytest.raises(PlanError, match="cannot keep class"):
+        planned(world, Regenerate(ref(world, planets_of(world)[0]), keep=("name", "orbit", "class")))
 
 
 def test_a_belt_and_a_moon_can_be_regenerated(world):
@@ -309,8 +294,6 @@ def test_a_regeneration_that_asks_for_what_the_engine_cannot_do_is_refused(world
     for keep, message in ((("name",), "keeps the name and the orbit"), (("name", "orbit", "mood"), "cannot keep mood")):
         with pytest.raises(PlanError, match=message):
             planned(world, Regenerate(target, keep=keep))
-    with pytest.raises(PlanError, match="no class to keep"):
-        planned(world, Regenerate(ref(world, belt_of(world)), keep=("name", "orbit", "class")))
     with pytest.raises(PlanError, match="cannot be regenerated"):
         planned(world, Regenerate(Ref("s1")))
 

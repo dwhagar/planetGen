@@ -61,7 +61,7 @@ def test_giants_have_real_densities_and_super_jupiters_occur(systems):
     # the median was 0.25 before GEN.34.
     assert 0.69 <= statistics.median(densities) <= 1.64
     # GEN.460: a light giant of the radius tables, or a hot one swollen by its starlight, can be very puffy (measured
-    # super-puffs run down to 0.03 g/cm^3, Masuda 2014).
+    # super-puffs run down to 0.03 g/cm^3).
     assert all(0.05 < d < 40 for d in densities)
     super_jupiters = [p for p in giants if p.mass > pc.JUPITER_MASS_TO_KG]
     assert len(super_jupiters) / len(giants) > 0.05
@@ -114,14 +114,14 @@ def test_moved_planet_makes_its_moons_again_as_moons():
 
 
 def test_rogue_planet_split_follows_the_mass_function():
-    """GEN.45: about 96% terrestrial and 4% gas giants, as dN/dlogM ~
-    M^-0.65 from 0.1 Earth masses to 13 Jupiter masses gives."""
+    """GEN.45, GEN.1133: about 95% terrestrial and 5% giants (the line is the 10 Earth masses a core needs to hold a
+    gas envelope), as dN/dlogM ~ M^-0.65 from 0.1 Earth masses to 13 Jupiter masses gives."""
     slope = prog_c.ROGUE_PLANET_MASS_FUNCTION_SLOPE
     low = min(b[0] for b in prog_c.ROGUE_PLANET_MASS_BINS.values())
     high = max(b[1] for b in prog_c.ROGUE_PLANET_MASS_BINS.values())
     threshold = prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG
     expected = (threshold ** -slope - high ** -slope) / (low ** -slope - high ** -slope)
-    assert expected == pytest.approx(0.036, abs=0.002)
+    assert expected == pytest.approx(0.049, abs=0.002)
     assert sum(rate for _lo, _hi, rate in prog_c.ROGUE_PLANET_MASS_BINS.values()) == pytest.approx(5.8)
 
     cfg = SystemConfig()

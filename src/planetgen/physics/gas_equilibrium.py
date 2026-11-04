@@ -6,7 +6,7 @@ Ideal-gas chemical equilibrium at a given temperature and pressure (GEN.451, GEN
 
 The one equilibrium solver of the atmosphere chain: the mole fractions of every gas of `physics/species_thermo.py` that can
 be made of the given elements, at the temperature and total pressure of the layer. It minimises the Gibbs energy of an ideal gas
-at constant temperature and pressure under the element balance by the method of Gordon and McBride (1994, NASA RP-1311,
+at constant temperature and pressure under the element balance by the method, NASA RP-1311,
 section 2): Newton's method on the element potentials, with the step damped so that no species changes by more than a factor
 of e^2 per iteration and a negligible species stays negligible. Two things beyond their problem are added: an element whose
 potential is held (the oxygen of a mantle whose oxygen fugacity is given, `fixed_o2_log_fugacity`), and a result that carries
@@ -55,6 +55,11 @@ CONVERGED_FRACTION = 1e-12
 """float: Species rarer than this are not waited for: the trace species of a stiff system jitter at 1e-8 in the Newton step while
 the rest has converged to 1e-12, and they are recomputed exactly from the converged element potentials at the end."""
 
+TRACE_ELEMENT_FRACTION = 1e-12
+"""float: An element rarer than this against the commonest one is left out of a second try when the first does not settle: the
+Newton step of a gas that is all one element (a nitrogen air with 1e-15 of everything else) can stall with the rarest elements
+in, and what they would add is below the precision of the rest."""
+
 MOLES_FLOOR = 1e-290
 """float: The least moles a species is allowed, so that no logarithm is minus infinity."""
 
@@ -95,6 +100,23 @@ class Equilibrium:
 
 
 def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
+    """
+    The equilibrium gas of `abundances`, tried again without the trace elements (`TRACE_ELEMENT_FRACTION`) when it does not settle
+    with them in.  See `_solve` for the arguments.
+    """
+    try:
+        return _solve(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+    except EquilibriumError:
+        given = {symbol: float(value) for symbol, value in abundances.items() if value and value > 0}
+        if not given:
+            raise
+        kept = {symbol: value for symbol, value in given.items() if value >= TRACE_ELEMENT_FRACTION * max(given.values())}
+        if len(kept) == len(given):
+            raise
+        return _solve(kept, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+
+
+def _solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
     """
     The equilibrium gas of `abundances` at `temperature_k` and `pressure_bar`.
 
@@ -162,55 +184,64 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
         chemical_constant = chemical_constant - oxygen_atoms * potential_of_oxygen
 
     count = len(chosen)
-    moles = np.full(count, 0.1 / count)
-    total = 0.1
-    best_step, best_at = math.inf, 0
-    for iterations in range(1, MAX_ITERATIONS + 1):
-        log_fraction = np.log(moles / total)
-        potentials = chemical_constant + log_fraction
-        weighted = matrix * moles
-        row_sums = weighted.sum(axis=1)
-        lhs = np.empty((len(free) + 1, len(free) + 1))
-        lhs[:-1, :-1] = detmath.matmul(weighted, matrix.T)
-        lhs[:-1, -1] = row_sums
-        lhs[-1, :-1] = row_sums
-        lhs[-1, -1] = moles.sum() - total
-        rhs = np.empty(len(free) + 1)
-        rhs[:-1] = totals - row_sums + _times_vector(weighted, potentials)
-        rhs[-1] = total - moles.sum() + float(_times_vector(moles[None, :], potentials)[0])
-        # The rows of a trace element weigh 1e-9 or less against the main ones: scale the symmetric system by its diagonal so that
-        # the solve keeps its digits (the unscaled Newton step jitters at 1e-8 and never meets `CONVERGED_LOG_STEP`).
-        diagonal = np.abs(np.diag(lhs))
-        scale_of = 1.0 / np.sqrt(np.where(diagonal > 0.0, diagonal, 1.0))
-        scaled = lhs * scale_of[:, None] * scale_of[None, :]
-        try:
-            solution = np.linalg.solve(scaled, rhs * scale_of) * scale_of
-        except np.linalg.LinAlgError:
-            solution = np.linalg.lstsq(scaled, rhs * scale_of, rcond=None)[0] * scale_of
-        element_potentials, d_ln_total = solution[:-1], solution[-1]
-        d_ln_moles = _times_vector(matrix.T, element_potentials) - potentials + d_ln_total
-        significant = log_fraction > NEGLIGIBLE_LOG_FRACTION
-        biggest = max(5.0 * abs(d_ln_total), float(np.max(np.abs(d_ln_moles[significant]))) if significant.any() else 0.0)
-        factor = 1.0 if biggest <= 2.0 else 2.0 / biggest
-        rising = ~significant & (d_ln_moles >= 0.0)
-        if rising.any():
-            gap = d_ln_moles[rising] - d_ln_total
-            gap = gap[gap != 0.0]
-            if gap.size:
-                room = np.abs((-log_fraction[rising][d_ln_moles[rising] - d_ln_total != 0.0] - 9.2103) / gap)
-                factor = min(factor, float(room.min()))
-        moles = np.maximum(moles * np.exp(factor * d_ln_moles), MOLES_FLOOR)
-        total = total * math.exp(factor * d_ln_total)
-        live = moles > CONVERGED_FRACTION * total
-        step = float(np.max(np.abs(d_ln_moles[live]))) if live.any() else 0.0
-        if factor == 1.0 and step < CONVERGED_LOG_STEP and abs(d_ln_total) < CONVERGED_LOG_STEP:
-            break
-        if factor == 1.0 and step < best_step:
-            best_step, best_at = step, iterations
-        if iterations - best_at > STALL_ITERATIONS and best_step < STALL_LOG_STEP:
-            break
-    else:
-        raise EquilibriumError(f"no convergence at {temperature_k} K and {pressure_bar} bar")
+    for anchored in (False, True):
+        moles = np.full(count, 0.1 / count)
+        total = 0.1
+        best_step, best_at = math.inf, 0
+        for iterations in range(1, MAX_ITERATIONS + 1):
+            log_fraction = np.log(moles / total)
+            potentials = chemical_constant + log_fraction
+            weighted = matrix * moles
+            row_sums = weighted.sum(axis=1)
+            lhs = np.empty((len(free) + 1, len(free) + 1))
+            lhs[:-1, :-1] = detmath.matmul(weighted, matrix.T)
+            lhs[:-1, -1] = row_sums
+            lhs[-1, :-1] = row_sums
+            lhs[-1, -1] = moles.sum() - total
+            rhs = np.empty(len(free) + 1)
+            rhs[:-1] = totals - row_sums + _times_vector(weighted, potentials)
+            rhs[-1] = total - moles.sum() + float(_times_vector(moles[None, :], potentials)[0])
+            # The rows of a trace element weigh 1e-9 or less against the main ones: scale the symmetric system by its diagonal so that
+            # the solve keeps its digits (the unscaled Newton step jitters at 1e-8 and never meets `CONVERGED_LOG_STEP`).
+            diagonal = np.abs(np.diag(lhs))
+            if anchored:
+                # The last row holds `sum(n) - total`, which is rounding noise (1e-16) once the solve is near its end; scaled by its own
+                # diagonal it blows the coupling to a trace element up and the step jitters for ever (GEN.1003: near-stoichiometric water with
+                # 1e-12 of argon at 726 K). The retry scales it by the total, its natural size. A solve that converges first time never gets here.
+                diagonal[-1] = total
+            scale_of = 1.0 / np.sqrt(np.where(diagonal > 0.0, diagonal, 1.0))
+            scaled = lhs * scale_of[:, None] * scale_of[None, :]
+            try:
+                solution = np.linalg.solve(scaled, rhs * scale_of) * scale_of
+            except np.linalg.LinAlgError:
+                solution = np.linalg.lstsq(scaled, rhs * scale_of, rcond=None)[0] * scale_of
+            element_potentials, d_ln_total = solution[:-1], solution[-1]
+            d_ln_moles = _times_vector(matrix.T, element_potentials) - potentials + d_ln_total
+            significant = log_fraction > NEGLIGIBLE_LOG_FRACTION
+            biggest = max(5.0 * abs(d_ln_total), float(np.max(np.abs(d_ln_moles[significant]))) if significant.any() else 0.0)
+            factor = 1.0 if biggest <= 2.0 else 2.0 / biggest
+            rising = ~significant & (d_ln_moles >= 0.0)
+            if rising.any():
+                gap = d_ln_moles[rising] - d_ln_total
+                gap = gap[gap != 0.0]
+                if gap.size:
+                    room = np.abs((-log_fraction[rising][d_ln_moles[rising] - d_ln_total != 0.0] - 9.2103) / gap)
+                    factor = min(factor, float(room.min()))
+            moles = np.maximum(moles * np.exp(factor * d_ln_moles), MOLES_FLOOR)
+            total = total * math.exp(factor * d_ln_total)
+            live = moles > CONVERGED_FRACTION * total
+            step = float(np.max(np.abs(d_ln_moles[live]))) if live.any() else 0.0
+            if factor == 1.0 and step < CONVERGED_LOG_STEP and abs(d_ln_total) < CONVERGED_LOG_STEP:
+                break
+            if factor == 1.0 and step < best_step:
+                best_step, best_at = step, iterations
+            if iterations - best_at > STALL_ITERATIONS and best_step < STALL_LOG_STEP:
+                break
+        else:
+            if anchored:
+                raise EquilibriumError(f"no convergence at {temperature_k} K and {pressure_bar} bar")
+            continue
+        break
     # one undamped pass on every species from the converged potentials, so the trace species are exact too
     moles = np.maximum(np.exp(math.log(total) - chemical_constant + _times_vector(matrix.T, element_potentials)), 0.0)
     if np.abs(_times_vector(matrix, moles) - totals).max() / totals.max() > BALANCE_TOLERANCE:

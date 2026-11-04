@@ -184,7 +184,9 @@ def _has_territories(db):
 @page_limit("galaxy")
 def galaxy():
     """The 3D Galaxy Map plus the Quadrant table (`?quadrant=`, `?page=`)."""
-    if maintenance.is_on():  # UX.112: the map is being rebuilt; one page says so
+    # UX.112: the map is being rebuilt; one page says so. The cache warm-up's own visits (`WARMUP`) are let through: they are what
+    # builds the map's caches while the update holds the site closed.
+    if maintenance.is_on() and not current_app.config.get("WARMUP"):
         return redirect(url_for("web.maintenance_page"), code=302)
     db = db_name()
     running = galaxystatus.status(db)

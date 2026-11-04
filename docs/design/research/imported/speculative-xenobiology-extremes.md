@@ -47,35 +47,3 @@ Some terrestrial lifeforms demonstrate extremes in scale or are the result of ar
 * **A't'trr**: A microscopic, hive-minded species possessing high intelligence. When their home planet was rendered uninhabitable, they ensured their survival by storing their collective population in a cryogenic device for centuries. They are highly unique in that their metabolic processes feed directly on ambient heat and oxygen.
 
 * **Sith Abominations**: According to the file named "Star Wars", biological organisms can be forcibly mutated via dark side alchemy into horrific terrestrial edge cases. Through a combination of genetic engineering and dark side manipulation, these "Sithspawn" undergo violent physical transformations that alter their fundamental creature type. This process induces extreme kinetic resistance, massive physiological growth, and highly necrotic traits, transforming typical fauna into resilient apex predators.
-
-### References
-
-* Stargate Lore Database: The Nox. (n.d.).
-
-* StargateWiki: Symbiote. (n.d.).
-
-* Stargate SG-1: Alien Races and the A't'trr. (n.d.).
-
-* Stargate Atlantis: Origins of the Wraith. (n.d.).
-
-* Stargate Atlantis: The Wraith Physiology. (n.d.).
-
-* Multiversal Omnipedia: Wraith (Stargate). (n.d.).
-
-* Star Wars: Sith Abominations and Mutagenic Alchemy. (n.d.).
-
-* Star Trek: Vulcan Biology and Physiology. (n.d.).
-
-* Star Trek: Ferengi Physiological Architecture. (n.d.).
-
-* List of Star Trek Aliens: Tholians, Horta, and Ocampa. (n.d.).
-
-* Star Trek Voyager: Species Encounters (Drayans and Ocampa). (n.d.).
-
-* Star Trek: Tholian Biology and Ecology. (n.d.).
-
-* Memory Alpha: Ferengi Biology. (n.d.).
-
-* Star Trek: Klingon Anatomy and Redundancy. (n.d.).
-
-* Comprehensive Analysis of Planetary Habitability and Speculative Xenobiology. (2024).

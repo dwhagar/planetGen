@@ -85,6 +85,8 @@ def _swapped_pair(mysql_config, wide):
         system.wide_binary.primary, system.wide_binary.secondary = secondary, primary
     else:
         system.star._primary, system.star._secondary = secondary, primary
+    # The stability windows are worked out from the masses, which were just swapped by hand, so work them out again (the reload does).
+    system.build_ledger()
     return system, cfg
 
 

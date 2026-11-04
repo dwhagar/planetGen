@@ -1,6 +1,6 @@
 # tests/test_comet_ice_budget.py
 
-"""GEN.595: the ices of a comet from the zone of the disc it formed in (`physics/comet_ice_budget.py`; Oberg, Murray-Clay and Bergin 2011)."""
+"""GEN.595: the ices of a comet from the zone of the disc it formed in (`physics/comet_ice_budget.py`; [R3322])."""
 
 import math
 
@@ -74,7 +74,7 @@ def test_equal_masses_form_in_equal_intervals_of_ln_r():
 
 
 def test_borisov_is_a_comet_of_the_carbon_monoxide_zone():
-    """2I/Borisov had CO/H2O of 130 to 155 percent (Bodewits et al. 2020): the zone beyond the CO line holds 167 percent for a Sun-like budget, to within 30 percent."""
+    """2I/Borisov had CO/H2O of 130 to 155 percent [R0439]: the zone beyond the CO line holds 167 percent for a Sun-like budget, to within 30 percent."""
     _, co = cib.ice_ratios(100.0)
     for measured in (1.30, 1.55):
         assert abs(math.log(co / measured)) < math.log(1.3)
@@ -91,6 +91,28 @@ def test_the_median_comet_of_the_solar_system_lies_between_the_zones_not_in_one(
 
 
 def test_the_co2_of_3i_atlas_is_beyond_any_zone_of_this_budget():
-    """CO2/H2O 7.6 (Cordiner et al. 2025) is over twenty times the most carbon and oxygen of a solar star give."""
+    """CO2/H2O 7.6 [R0890] is over twenty times the most carbon and oxygen of a solar star give."""
     assert 7.6 / cib.nebular_ratios()[0] > 20.0
     assert 7.6 / cib.nebular_ratios(carbon=2.0)[0] > 10.0
+
+
+def test_a_comet_forms_between_the_snow_line_and_the_edge_of_the_disc_in_equal_masses_per_interval_of_ln_r():
+    """GEN.595 wiring: the uniform draw is a position in ln r, so u = 0 is the inner edge (the water zone) and u near 1 the outer (the CO zone)."""
+    inner = cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 0.0)
+    outer = cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 0.999)
+    assert inner == cib.ice_ratios(2.7, SOLAR)
+    assert outer == cib.ice_ratios(50.0 ** 0.999 * 2.7 ** 0.001, SOLAR) and outer[1] > inner[1]
+    shares = cib.zone_shares(2.7, 50.0, SOLAR)
+    hits = [cib.zone_of(2.7 * (50.0 / 2.7) ** ((i + 0.5) / 4000), SOLAR) for i in range(4000)]
+    for zone in ("water", "carbon dioxide", "carbon monoxide"):
+        assert hits.count(zone) / 4000 == pytest.approx(shares[zone], abs=0.01)
+
+
+def test_a_disc_that_ends_inside_the_water_line_still_gives_the_ice_at_its_inner_edge():
+    assert cib.formation_ratios(SOLAR, 1.0, 1.5, 1.0, 1.0, 0.5) is not None
+    assert cib.formation_ratios(SOLAR, 1.0, 0.5, 1.0, 1.0, 0.5) is not None
+
+
+def test_a_formation_draw_must_be_a_fraction():
+    with pytest.raises(ValueError):
+        cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 1.0)

@@ -1,8 +1,8 @@
 # tests/test_moon_and_rogue_rings.py
 
 """
-GEN.836: a moon and a rogue planet draw a ring system by the law of GEN.732 (`planetgen.physics.rings`). Across the mass range every ring
-ends inside the Roche limit of its material, a brown dwarf has none, and a rogue giant always has one.
+GEN.836, GEN.1057: a moon has the ring its history made by the law of GEN.732 (`planetgen.physics.rings`), a rogue planet has none (its moons and comets are not followed). A moon's
+ring, when it has one, ends inside the Roche limit of its material.
 """
 
 import math
@@ -29,32 +29,9 @@ def _rogues(count=150):
             yield RoguePlanet(cfg)
 
 
-def test_a_rogue_giant_always_has_a_ring_inside_its_roche_limit():
-    giants = 0
+def test_a_rogue_planet_has_no_ring_because_no_moon_or_comet_history_is_followed_for_it():
     for rogue in _rogues():
-        if rogue.planet_class is None:
-            assert rogue.ring_kind is None  # a brown dwarf is no planet
-            continue
-        if rogue.planet_type == "g":
-            giants += 1
-            assert rogue.ring_kind is not None
-        if rogue.ring_kind is not None:
-            assert rogue.ring_kind in rings.KINDS and rogue.ring_origin in rings.ORIGINS
-            assert rogue.radius_km < rogue.ring_inner_km < rogue.ring_outer_km <= _roche_ceiling_km(rogue.radius_km, rogue.mass_kg)
-            assert 0.0 < rogue.ring_mass_kg <= rings.MAX_MASS_OVER_PLANET * rogue.mass_kg
-            assert rogue.ring_optical_depth > 0.0 and 0.0 <= rogue.ring_ice_fraction <= 1.0
-    assert giants > 5
-
-
-def test_a_cold_rogue_ring_keeps_its_ice_and_a_warm_one_has_none():
-    seen = set()
-    for rogue in _rogues(300):
-        if rogue.ring_kind is None:
-            continue
-        cold = rogue.effective_temperature_k < constants.SNOW_LINE_TEMPERATURE_K
-        assert cold or rogue.ring_ice_fraction == 0.0
-        seen.add(cold)
-    assert True in seen
+        assert all(getattr(rogue, name) is None for name in rings.BODY_FIELDS)
 
 
 def test_the_same_seed_gives_the_same_rogue_ring():
@@ -83,4 +60,4 @@ def test_a_moon_s_ring_obeys_the_same_law_and_a_moon_has_no_moon_to_stop_it():
                 assert moon.radius < moon.ring_inner_km < moon.ring_outer_km <= _roche_ceiling_km(moon.radius, moon.mass)
                 assert moon.ring_mass_kg <= rings.MAX_MASS_OVER_PLANET * moon.mass
                 assert moon.born_beyond_snow_line or moon.ring_ice_fraction == 0.0
-    assert moons > 50 and ringed < 0.1 * moons
+    assert moons > 50 and ringed < 0.1 * moons    # a moon's Roche sphere is a tiny target for a comet, and it has no moon to lose

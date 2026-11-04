@@ -32,7 +32,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
-from planetgen.physics import constants, wolf_rayet
+from planetgen.physics import brown_dwarf, constants, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
 from planetgen.physics import post_main_sequence
@@ -120,8 +120,12 @@ def ladder_stars():
         lifetime = main_sequence_lifetime_gy(mass)
         for age in LADDER_AGES + tuple(lifetime * share for share in LADDER_LIFETIME_SHARES):
             fe_h = -2.0 + 2.4 * stream.random()
-            state = evolve_star(mass, age, rng=stream, fe_h=fe_h)
             key = sc.abundance_key(mass=mass, distance_ly=SOLAR_DISTANCE_LY)
+            if mass < sa.hydrogen_burning_limit_for_fe_h(fe_h):
+                # GEN.936: under the burning limit of its place an object has no main sequence; it is a brown dwarf on its cooling track
+                found.append(Star("ladder", sc.BROWN_DWARF, fe_h, age, mass, key, teff_k=brown_dwarf.state(mass, age)["temperature_k"]))
+                continue
+            state = evolve_star(mass, age, rng=stream, fe_h=fe_h)
             if state is None:
                 if mass < 25.0:
                     found.append(Star("ladder", sc.NEUTRON_STAR, None, age, 1.4, key))
@@ -523,8 +527,8 @@ def test_the_set_rules_fail_when_they_are_broken(galaxy):
 
 def test_the_solar_neighbourhood_mix_of_stars_has_the_ratios_the_survey_measured():
     """A-V2: the stars of a solar-neighbourhood-like draw ([Fe/H] normal about -0.10 with 0.22 dex, ages to 12 Gy), taken through the
-    generator's own derivation, against the medians of Brewer and Fischer 2016 (Fe/Si 1.81 within 0.2, Mg/Si 0.93 within 0.1, C/O 0.385
-    within 0.05) and inside the Thiabaud 2015 box (Fe/Si 1.34 to 2.81, Mg/Si 0.66 to 1.85, C/O 0.12 to 0.75) for 80 percent or more."""
+    generator's own derivation, against the medians of [R0535] (Fe/Si 1.81 within 0.2, Mg/Si 0.93 within 0.1, C/O 0.385
+    within 0.05) and inside the [R4336] box (Fe/Si 1.34 to 2.81, Mg/Si 0.66 to 1.85, C/O 0.12 to 0.75) for 80 percent or more."""
     generator = random.Random(2026)
     ratios = []
     for index in range(20000):

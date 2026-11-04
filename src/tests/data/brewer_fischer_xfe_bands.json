@@ -1,5 +1,5 @@
 {
- "source": "Brewer and Fischer 2016, ApJS 225, 32 (VizieR J/ApJS/225/32), 1,615 SPOCS dwarfs; [X/Fe] = [X/H] - [Fe/H]",
+ "source": "[R0535] (VizieR J/ApJS/225/32), 1,615 SPOCS dwarfs; [X/Fe] = [X/H] - [Fe/H]",
  "thick_start_gy": 8.0,
  "bins": [
   {

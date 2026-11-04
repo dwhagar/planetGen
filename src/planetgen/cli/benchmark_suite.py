@@ -304,12 +304,23 @@ class Sampler(threading.Thread):
         self.sample()
 
 
-def stop_workers():
-    """Ends every queue worker on the machine, so the next step starts with cold ones (a worker keeps what it warmed,
-    and a step that follows another within the workers' idle time would otherwise start warm)."""
+def _environment_has(pid, name, value):
+    """Whether process `pid` was started with `name=value` in its environment; false for one that is gone or not ours to read."""
+    try:
+        with open(f"/proc/{pid}/environ", "rb") as handle:
+            return f"{name}={value}".encode() in handle.read().split(b"\0")
+    except OSError:
+        return False
+
+
+def stop_workers(control):
+    """Ends the queue workers of this run's control database `control`, so the next step starts with cold ones (a worker
+    keeps what it warmed, and a step that follows another within the workers' idle time would otherwise start warm). A
+    worker of any other control database, another test's or the machine's own, is left running (TEST.302): the run's
+    workers are the ones started with its `PLANETGEN_CONTROL_DATABASE`, which the steps it runs hand on."""
     own = os.getpid()
     for pid, command in _processes():
-        if pid != own and "planetgen.cli.worker" in command:
+        if pid != own and "planetgen.cli.worker" in command and _environment_has(pid, store.CONTROL_DB_ENV_VAR, control):
             try:
                 os.kill(pid, signal.SIGKILL)
             except OSError:
@@ -499,13 +510,13 @@ class Pipeline:
         """Runs `step` and returns its record."""
         self.prepare(step)
         _skipped, self.stage_id = _stage_rows(self.config, self.control, self.database, self.stage_id)
-        stop_workers()
+        stop_workers(self.control)
         noun, sql = MADE[step]
         before = _count(self.admin, self.database, sql)
         words = self.command(step)
         argv = [sys.executable, "-m", "planetgen.cli.generate", *words, *([] if step in NO_DATABASE_ARGS else self._connection())]
         result = measure(argv, self.env, self.timeout, self.admin)
-        stop_workers()
+        stop_workers(self.control)
         after = _count(self.admin, self.database, sql)
         stages, self.stage_id = _stage_rows(self.config, self.control, self.database, self.stage_id)
         made = after if step in ABSOLUTE_COUNT else after - before

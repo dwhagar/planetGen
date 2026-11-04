@@ -15,21 +15,21 @@ A survey is `PLANETS` planets drawn by the one random wrapper (`draw`):
 
 1. a host of 0.8 to 1.3 solar masses (the California-Kepler Survey range) with `L = M^3.5` and `R = M^0.9` (Kepler magnitude 14);
 2. a period log-uniform from 2 to 100 days;
-3. a core mass log-normal around `CORE_MASS_MEDIAN_EARTH` with `CORE_MASS_SIGMA` (the peak of Rogers and Owen 2021) and a core
-   radius `M^0.25` (Lopez and Fortney 2014 Eq. 1);
+3. a core mass log-normal around `CORE_MASS_MEDIAN_EARTH` with `CORE_MASS_SIGMA` (the peak of [R3797]) and a core
+   radius `M^0.25` ([R2741: Eq. 1]);
 4. a starting envelope `f_env0 * exp(ENVELOPE_SIGMA z)` of the planet's mass (held to `envelope_escape.MAX_ENVELOPE`);
-5. the loss of the recipe row: `envelope_escape.envelope_left_earth`, the hydro-based rate of Kubyshkina et al. 2018 integrated over the star's
+5. the loss of the recipe row: `envelope_escape.envelope_left_earth`, the hydro-based rate of [R2512] integrated over the star's
    XUV history from `ONSET_GY` to 5 Gyr while the envelope thins (bare below `envelope_escape.BARE_BELOW`);
-6. what is left is an envelope whose radius is the Lopez and Fortney 2014 Eq. 3 law at the planet's flux and 5 Gyr
+6. what is left is an envelope whose radius is the [R2741: Eq. 3] law at the planet's flux and 5 Gyr
    (`bulk_structure.envelope_radius_earth`);
 7. the Kepler transit-plus-recovery chance of the planet (`kepler_recovery.detection_probability`, GEN.504) weights it.
 
 The valley of a period bin is the minimum of the smoothed histogram of log10 R between 1.2 and 3.2 Earth radii, weighted by that
 chance. A line through the valleys of the period bins gives the slope d log10 R / d log10 P and the radius at 10 days. They are
-compared with the published -0.11 +- 0.02 (Petigura et al. 2022) and 1.84 +- 0.03 Earth radii at 10 days (the target table).
+compared with the published -0.11 +- 0.02 [R3500] and 1.84 +- 0.03 Earth radii at 10 days (the target table).
 
 Stellar-mass slopes (GEN.722): `survey(..., host_range=WIDE_HOST_MASS_RANGE_SOLAR)` draws hosts of 0.5 to 1.4 solar masses and
-`mass_slopes_of` fits `log R = c + alpha log F + beta log M*` to the valley of cells of flux and host mass, the form Berger et al. 2023
+`mass_slopes_of` fits `log R = c + alpha log F + beta log M*` to the valley of cells of flux and host mass, the form [R0354]
 fit (`alpha` 0.069, `beta` -0.046 +- 0.12). GEN.722 recorded that the energy-limited loss gave core-powered mass loss's pair (alpha 0.07, beta 0.00); the hydro-based loss of GEN.822 is
 checked against the same two numbers (envelope-escape-wiring.md section 4). The mechanism stays an open stand-in.
 
@@ -49,7 +49,7 @@ WIDE_SURVEY_PLANETS = 12000
 """int: Planets per survey of the stellar-mass slopes (eighteen cells of them, so three times as many)."""
 
 CORE_MASS_MEDIAN_EARTH = 3.72
-"""float: Median core mass, Earth masses (the peak of Rogers and Owen 2021, arXiv:2007.11006, 3.72 +0.45 -0.33)."""
+"""float: Median core mass, Earth masses (the peak of [R3797], 3.72 +0.45 -0.33)."""
 
 CORE_MASS_SIGMA = 0.25
 """float: Log-normal width of the core mass, in ln (a stand-in: no published width is read; narrowed from 0.4 with the onset age of the loss, GEN.822, registry row RV2)."""
@@ -65,7 +65,7 @@ WIDE_HOST_MASS_RANGE_SOLAR = (0.5, 1.4)
 tuned on."""
 MASS_BINS_SOLAR = ((0.5, 0.7), (0.7, 1.0), (1.0, 1.4))
 FLUX_BINS_EARTH = ((1.0, 3.0), (3.0, 10.0), (10.0, 30.0), (30.0, 100.0), (100.0, 300.0), (300.0, 1000.0))
-"""tuple: The stellar-mass bins and the insolation bins (Earth units) in which `slopes_of` finds a valley each, as Berger et al. 2023 bin the
+"""tuple: The stellar-mass bins and the insolation bins (Earth units) in which `slopes_of` finds a valley each, as [R0354] bin the
 Kepler planets."""
 KEPMAG = 14.0
 AGE_GY = 5.0
@@ -177,7 +177,7 @@ def _fit_plane(rows):
 
 def mass_slopes_of(candidates):
     """
-    The valley against insolation and stellar mass, as Berger et al. 2023 fit it: a valley in each cell of `MASS_BINS_SOLAR` by
+    The valley against insolation and stellar mass, as [R0354] fit it: a valley in each cell of `MASS_BINS_SOLAR` by
     `FLUX_BINS_EARTH` (the minimum of the smoothed weighted histogram, as `valley_of`), then `log10 R_valley = c + alpha log10 F + beta log10 M`
     through the cells. Returns `(alpha, beta)`, or None when fewer than four cells hold `MIN_PLANETS_PER_BIN` planets.
     """

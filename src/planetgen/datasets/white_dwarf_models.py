@@ -3,7 +3,7 @@
 """
 White-dwarf cooling sequences with their layers (GEN.548).
 
-Source: Bédard, Bergeron, Brassard and Fontaine 2020, ApJ 901, 93 (doi:10.3847/1538-4357/abafbe, arXiv:2008.07469),
+Source: [R0308],
 23 masses from 0.20 to 1.30 solar masses for a thick (q_He = 1e-2, q_H = 1e-4) and a thin (q_He = 1e-2, q_H = 1e-10)
 hydrogen layer, on Antoine Bédard's page at the University of Warwick (`sequences.tar`, 2.5 MB, 46 text files). Each
 model lists the effective temperature, log g, radius, cooling age, photon luminosity, central conditions, the
@@ -41,8 +41,8 @@ ARCHIVE = "sequences.tar"
 
 DATASET = fetch.Dataset(
     key="white_dwarf_models",
-    title="Bédard et al. 2020 white-dwarf cooling sequences",
-    source="Bédard, Bergeron, Brassard and Fontaine 2020, ApJ 901, 93 (doi:10.3847/1538-4357/abafbe)",
+    title="[R0308] white-dwarf cooling sequences",
+    source="[R0308]",
     pieces=(fetch.Piece(ARCHIVE, "https://warwick.ac.uk/fac/sci/physics/research/astro/people/antoinebedard/models/"
                         + ARCHIVE, "5c99114fcba0087395fcde2779ad7bdc9b7ace224abb71322d45165facae45ac", 2519040),),
     replaces="the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split",

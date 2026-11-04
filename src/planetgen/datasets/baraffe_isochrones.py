@@ -1,9 +1,9 @@
 # planetgen/datasets/baraffe_isochrones.py
 
 """
-The Baraffe et al. 2015 (BHAC15) isochrones for low-mass stars and brown dwarfs (GEN.936, GEN.948): at each of 30 ages from
+The [R0254] (BHAC15) isochrones for low-mass stars and brown dwarfs (GEN.936, GEN.948): at each of 30 ages from
 0.5 Myr to 10 Gyr, the effective temperature, luminosity, surface gravity and radius of stars from 0.01 to 1.4 solar masses at
-solar metallicity (Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42).
+solar metallicity [R0254].
 
 The file is `BHAC15_iso.2mass`, from Isabelle Baraffe's page at ENS Lyon
 (https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass). It is one block per age, headed `! t (Gyr) = ...`,
@@ -11,8 +11,9 @@ with a row of mass, effective temperature, log luminosity, log g, radius, lithiu
 reader keeps the first five columns. The lightest masses are missing from the older blocks (the 10 Gyr block starts at 0.07
 solar masses); `interpolate` answers None where the grid does not reach.
 
-Until now the pre-main-sequence times were three constants fitted to this file by hand and the brown dwarf radius was nine
-points copied from it at one age (`tuning.BROWN_DWARF_TRACKS`).
+The pre-main-sequence times are three constants fitted to this file by hand. The brown dwarf's temperature and radius at an age
+(`physics/brown_dwarf.py`, GEN.948) and the main sequence under the MIST grid's 0.1 solar masses (`physics/main_sequence.py`,
+GEN.936) are read from it.
 
 The reader raises `fetch.DataMissing` when the file has not been downloaded.
 """
@@ -24,19 +25,21 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from planetgen import tuning
 from planetgen.datasets import fetch
 
 FILE = "BHAC15_iso.2mass"
 
 DATASET = fetch.Dataset(
     key="baraffe_isochrones",
-    title="Baraffe et al. 2015 (BHAC15) isochrones of low-mass stars and brown dwarfs",
-    source="Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42",
+    title="[R0254] (BHAC15) isochrones of low-mass stars and brown dwarfs",
+    source="[R0254]",
     pieces=(fetch.Piece(FILE, "https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass",
                         "e86198b15e0f28437f7ee83bcebe93cbbf2b02ee2ab6097295eee3155a28bcf2", 64951),),
-    replaces="the three pre-main-sequence constants fitted to Baraffe 2015 and the nine brown dwarf radius points of tuning.py",
+    replaces="the nine brown dwarf radius points and the power-law extension of the main sequence under 0.1 solar masses (the three "
+             "pre-main-sequence constants of tuning.py stay as fitted to it)",
     fill="SC6",
-    fallback="the nine hard-coded brown dwarf points and the fitted pre-main-sequence constants of tuning.py",
+    fallback="the fitted pre-main-sequence constants of tuning.py; a brown dwarf's radius and the main sequence under 0.1 solar masses are left out",
 )
 
 _AGE = re.compile(r"!\s+t \(Gyr\)\s*=\s*([0-9.]+)")
@@ -117,3 +120,36 @@ def interpolate(mass_solar, age_gyr, grid=None):
     first, second = states
     mixed = [a + weight * (b - a) for a, b in zip(first, second)]
     return dict(zip(("teff_k", "log_luminosity_solar", "log_g", "radius_solar"), mixed))
+
+
+def cooling_track(mass_sol, age_gyr):
+    """
+    `(teff_k, radius_solar)` of a body of `mass_sol` solar masses at `age_gyr`, for the objects that only cool (GEN.948): `interpolate`
+    where the table holds the mass, the first age's values before it. The table loses a mass at the age it has cooled below the
+    models' range (the lightest after 0.01 Gyr, 0.05 solar masses after 0.625 Gyr): past that age a mass the table still holds
+    at `tuning.BROWN_DWARF_TRACK_END_GY` holds its last values (the objects near the hydrogen-burning limit settle on a plateau),
+    and one that ended sooner cools on at [R0606]'s `tuning.BROWN_DWARF_TEMPERATURE_AGE_EXPONENT` with its last radius at the lightest
+    mass of the table of its last age, and between that mass and the next heavier one (which the table keeps longer) by the heavier mass's own change
+    since the same age, so the track has no jump in mass (GEN.1137).
+
+    Raises:
+        ValueError: The mass is outside the table (0.01 to 1.4 solar masses).
+    """
+    grid = isochrones()
+    if not grid[0].mass_solar[0] <= mass_sol <= grid[0].mass_solar[-1]:
+        raise ValueError(f"no cooling track for {mass_sol} solar masses (the models run {grid[0].mass_solar[0]} to {grid[0].mass_solar[-1]})")
+    index = max(index for index, iso in enumerate(grid) if iso.mass_solar[0] <= mass_sol)
+    last_age = grid[index].age_gyr
+    state = interpolate(mass_sol, min(max(age_gyr, grid[0].age_gyr), last_age), grid)
+    temperature, radius = state["teff_k"], state["radius_solar"]
+    if age_gyr > last_age and last_age < tuning.BROWN_DWARF_TRACK_END_GY:
+        # Past its last age the body cools on at the power law, but the next heavier mass the table keeps longer does not (the
+        # objects near the hydrogen-burning limit settle on a plateau), so the continuation goes from the power law at the lightest
+        # mass of this age's table to the heavier mass's own change since this age at its edge: the track is continuous in mass.
+        low, edge = grid[index].mass_solar[0], grid[index + 1].mass_solar[0]
+        power = (edge - mass_sol) / (edge - low)
+        edge_temperature, edge_radius = cooling_track(edge, age_gyr)
+        edge_last_temperature, edge_last_radius = cooling_track(edge, last_age)
+        temperature *= power * (age_gyr / last_age) ** tuning.BROWN_DWARF_TEMPERATURE_AGE_EXPONENT + (1.0 - power) * edge_temperature / edge_last_temperature
+        radius *= power + (1.0 - power) * edge_radius / edge_last_radius
+    return temperature, radius

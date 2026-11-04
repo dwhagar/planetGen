@@ -192,6 +192,7 @@ def test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorde
     try:
         assert [(name, timeout) for name, _func, timeout in limits] == [(jobs.QUEUE_PREFIX + job_id, limit)]
     finally:
+        jobs.release_lock(job_id)       # the job lock is one Redis key: a job left holding it makes the next case's start raise JobBusy
         redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
 
 

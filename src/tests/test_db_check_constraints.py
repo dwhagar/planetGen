@@ -92,6 +92,10 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
         " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind)"
         " VALUES (1, 1, 2, 1e8, 0, 0, 0, 0, 0, 0, 1, 'close')"),
+    # GEN.1013: a member of a built system's tree that is not one of its stars.
+    "dark_members": (
+        "INSERT INTO dark_members (star_system_id, member_no, parent_node_no, slot, kind, mass_solar)"
+        " VALUES (1, 1, 0, 1, 'brown-dwarf', 0.05)"),
     # DB.56: GEN.197's `record_event` writes these; the migration only makes the tables.
     "orbital_events": (
         "INSERT INTO orbital_events (kind, event_time_unix, detected_time_unix, seed_string)"

@@ -287,3 +287,17 @@ def test_a_comets_position_at_the_epoch_is_the_one_it_was_generated_with(orbit_t
             "primary_mass_solar": mass}}
         stored = [comet.position_x_au * AU_KM, comet.position_y_au * AU_KM, comet.position_z_au * AU_KM]
         assert _comet_relative_km(orbit, 0.0) == pytest.approx(stored, rel=1e-5, abs=1e6), vars(comet)
+
+
+def test_a_planet_of_a_pair_below_a_further_star_goes_round_the_pairs_centre_not_the_barycenter():
+    """A close pair that hangs below another orbit has its planets round `node:N`, the pair's centre of mass, which is
+    away from the barycenter the third star pulls it from."""
+    scene = triple_scene()
+    scene["planets"] = [{"ref": "planet:1", "orbit": state_orbit("node:0", 1.5, 1.8, 3.0, 80.0, 10.0, SCENE_EPOCH), "moons": []}]
+    here = positions_at(scene, 0.0)
+    members = [m for m in scene["tree"]["members"] if m["parent_node_no"] == 0]
+    total = sum(m["mass_solar"] for m in members)
+    centre = [sum(m["mass_solar"] * here[m["ref"]][axis] for m in members) / total for axis in range(3)]
+    away = [here["planet:1"][axis] - centre[axis] for axis in range(3)]
+    assert norm(away) == pytest.approx(1.5 * AU_KM, rel=1e-9)
+    assert norm(centre) > 1.0 * AU_KM, "the pair's centre is far from the barycenter"

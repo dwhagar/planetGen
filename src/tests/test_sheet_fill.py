@@ -27,10 +27,9 @@ def test_conditional_rules_read_the_bodys_own_columns():
     assert not sheet.applies("planet", "M", "magnetopause_rp", {"magnetic_moment_a_m2": 0})
     locked = {"rotation_period_hours": 8766.0, "period_years": 1.0}
     turning = {"rotation_period_hours": 24.0, "period_years": 1.0}
-    assert sheet.applies("planet", "M", "temp_day_side_k", locked) and not sheet.applies("planet", "M", "temp_polar_k", locked)
-    assert sheet.applies("planet", "M", "temp_polar_k", turning) and not sheet.applies("planet", "M", "temp_day_side_k", turning)
+    assert not sheet.applies("planet", "M", "day_share_equator", locked) and sheet.applies("planet", "M", "day_share_equator", turning)
     # a rule that reads the body does not rule a column out when the body is not known
-    assert sheet.applies("planet", "M", "ocean_depth_km") and sheet.applies("planet", "M", "temp_polar_k")
+    assert sheet.applies("planet", "M", "ocean_depth_km") and sheet.applies("planet", "M", "day_share_equator")
 
 
 def test_the_new_rules_read_the_physics_they_state():
@@ -41,13 +40,15 @@ def test_the_new_rules_read_the_physics_they_state():
     assert not sheet.applies("planet", "M", "solar_day_hours", locked) and sheet.applies("planet", "M", "solar_day_hours", {"rotation_period_hours": 24.0, "period_years": 1.0})
     assert sheet.applies("planet", "C", "shelter_column_g_cm2", {"eq_shelter": 0, "eq_shelter_rec": 2})
     assert not sheet.applies("planet", "C", "shelter_column_g_cm2", {"eq_shelter": 0, "eq_shelter_rec": 0})
-    assert sheet.applies("moon", "C", "outside_hours", {"eq_shelter": 2}) and not sheet.applies("moon", "C", "outside_hours", {"eq_shelter": 0})
+    assert sheet.applies("moon", "C", "outside_hours", {"outside_hours": 800.0}) and not sheet.applies("moon", "C", "outside_hours", {"outside_hours": None})
     assert sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "ice"}) and not sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "dry"})
-    assert sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean"}) and not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "surface ocean"})
+    assert sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean", "water_base_pressure_pa": 1.0e9})
+    assert not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "surface ocean", "water_base_pressure_pa": 1.0e9})
+    assert not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean", "water_base_pressure_pa": 2.0e8})    # GEN.781: too shallow for ice VI
     assert sheet.applies("planet", "M", "ring_kind", {"ring_kind": "ice"}) and not sheet.applies("planet", "M", "ring_mass_kg", {"ring_kind": None})
     assert sheet.applies("moon", "C", "aquifer_depth_km", {"aquifer_depth_km": 1.0}) and not sheet.applies("moon", "C", "aquifer_depth_km", {})
     assert sheet.applies("moon", "C", "parent_shadow_share") and not sheet.applies("planet", "C", "parent_shadow_share")
-    assert sheet.applies("moon", "C", "induced_moment_a_m2") and not sheet.applies("planet", "C", "induced_moment_a_m2")
+    assert sheet.applies("moon", "C", "induced_moment_a_m2") and sheet.applies("planet", "C", "induced_moment_a_m2")      # GEN.981: a planet in its star's field
 
 
 def test_the_ages_after_oxygen_apply_only_to_a_world_that_reached_them():
@@ -60,8 +61,117 @@ def test_the_ages_after_oxygen_apply_only_to_a_world_that_reached_them():
     assert sheet.applies("planet", "M", "life_age_photosynthesis_gyr", {"life_microbial": 2, "life_stage": "photosynthesis"})
 
 
+def test_the_tide_heat_applies_to_a_rocky_or_icy_body_on_an_orbit_with_an_eccentricity():
+    """GEN.778: `interior_heat.update_heat` stores the flow for a rocky or icy body whose orbit is eccentric; a giant or a circular orbit stores none."""
+    key = "tidal_flux_w_m2"
+    assert sheet.applies("moon", "D", key, {"eccentricity": 0.01}) and sheet.applies("planet", "C", key, {"eccentricity": 0.2})
+    assert not sheet.applies("moon", "D", key, {"eccentricity": 0.0}) and not sheet.applies("moon", "D", key, {"eccentricity": 3e-170})
+    assert not sheet.applies("planet", "I", key, {"eccentricity": 0.05}) and not sheet.applies("planet", "J", key, {"eccentricity": 0.05})
+    assert ("planet", key) not in sheet.OPEN_GAPS and ("moon", key) not in sheet.OPEN_GAPS
+
+
+def test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
+    seen = {True: 0, False: 0}
+    for seed in range(7100, 7112):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if not hasattr(planet, "moons"):
+                continue
+            for body in [planet, *planet.moons]:
+                if body.body_type == "g":
+                    assert body.tidal_flux_w_m2 is None
+                    continue
+                eccentric = (body.eccentricity or 0.0) >= sheet.NEGLIGIBLE_TIDE_ECCENTRICITY
+                assert body.tidal_flux_w_m2 is not None or not eccentric, (body.name, body.eccentricity)      # empty only where the rule excuses it
+                seen[eccentric] += 1
+    assert seen[True] > 5 and seen[False] > 0
+
+
+def test_porosity_applies_to_a_body_lighter_than_the_taper_end():
+    """GEN.780: `bulk_draw` stores a porosity for a heap lighter than 1e21 kg and none above it."""
+    assert sheet.applies("moon", "D", "porosity", {"mass_kg": 5e20}) and not sheet.applies("moon", "C", "porosity", {"mass_kg": 3e22})
+    assert not sheet.applies("planet", "N", "porosity", {"mass_kg": 6e24})
+    assert ("planet", "porosity") not in sheet.OPEN_GAPS and ("moon", "porosity") not in sheet.OPEN_GAPS
+    assert ("planet", "hp_ice_km") not in sheet.OPEN_GAPS and ("moon", "hp_ice_km") not in sheet.OPEN_GAPS
+
+
+def test_a_generated_body_stores_porosity_and_high_pressure_ice_wherever_the_sheet_says_they_apply():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
+    seen = {"light": 0, "heavy": 0, "deep": 0}
+    for seed in range(7100, 7106):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if not hasattr(planet, "moons"):
+                continue
+            for body in [planet, *planet.moons]:
+                if body.body_type == "g":
+                    continue
+                light = body.mass < sheet.POROSITY_MAX_MASS_KG
+                assert (body.porosity is not None) == light, (body.name, body.mass, body.porosity)
+                seen["light" if light else "heavy"] += 1
+                deep = (body.hydrosphere in sheet.ICE_SHELL_STATES and (body.water_base_pressure_pa or 0.0) >= sheet.HP_ICE_MIN_BASE_PA)
+                if deep:
+                    assert body.hp_ice_km, (body.name, body.water_base_pressure_pa)
+                    seen["deep"] += 1
+                else:
+                    assert body.hydrosphere not in sheet.ICE_SHELL_STATES or not body.hp_ice_km or (body.water_base_pressure_pa or 0.0) >= sheet.HP_ICE_MIN_BASE_PA
+    assert seen["light"] > 0 and seen["heavy"] > 5
+
+
+def test_a_giant_keeps_no_starlight_while_its_moons_and_a_rocky_planet_do():
+    """GEN.784: `insolation` and `habitability_world` leave a giant's `energy_flux_w_m2` and `flux_variation` none; every other planet and moon stores them."""
+    for key in ("energy_flux_w_m2", "flux_variation"):
+        assert not sheet.applies("planet", "J", key, {}) and not sheet.applies("planet", "I", key, {})
+        assert sheet.applies("planet", "N", key, {}) and sheet.applies("moon", "D", key, {})
+        assert ("planet", key) not in sheet.OPEN_GAPS and ("moon", key) not in sheet.OPEN_GAPS
+
+
+def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
+    """GEN.785: the rate is worked out from the star's place in the galaxy (`activity.set_galactic_hazard`) and stored with the star; a system
+    built with no place is rated where such a system is taken to be (`scales.default_galactocentric_ly`), so every star has one."""
+    from planetgen.db import store
+    from planetgen.generation.config import SystemConfig
+    from planetgen.galaxy import scales
+    from planetgen.generation.system import StarSystem
+    from planetgen.physics import activity
+    from planetgen.util import draw
+    assert ("star", "lethal_event_rate_per_gyr") not in sheet.OPEN_GAPS
+    rates = {}
+    for placed in (True, False):
+        draw.set_run_seed(7100)
+        config = SystemConfig()
+        system = StarSystem(system_config=config, **({"galactic_center_dist_ly": support.SAMPLE_GALACTIC_DISTANCE_LY} if placed else {}))
+        system_id = store.save_system(system, config, config=mysql_config)
+        conn = store.get_connection(mysql_config)
+        try:
+            rates[placed] = [row["lethal_event_rate_per_gyr"] for row in conn.execute(
+                "SELECT lethal_event_rate_per_gyr FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()]
+        finally:
+            conn.close()
+    assert rates[True] and all(rate is not None and rate > 0.0 for rate in rates[True])
+    default_rate = activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly())
+    assert rates[False] and all(rate == default_rate for rate in rates[False])
+
+
 def test_star_and_comet_rules():
-    assert sheet.applies("star", "M", "wide_binary_a_crit_km", {"role": "primary"}) and not sheet.applies("star", "M", "wide_binary_a_crit_km", {"role": "single"})
+    key = "wide_binary_a_crit_km"
+    assert sheet.applies("star", "M", key, {"role": "primary", "binary_configuration": "wide"})
+    assert sheet.applies("star", "M", key, {"role": "secondary", "binary_configuration": "wide"})
+    assert sheet.applies("star", "M", key, {"role": "member", "binary_configuration": "close"})      # GEN.789: a further member has its window
+    assert not sheet.applies("star", "M", key, {"role": "primary", "binary_configuration": "close"})  # a close pair is orbited as one body
+    assert not sheet.applies("star", "M", key, {"role": "single", "binary_configuration": None})
+    assert ("star", key) not in sheet.OPEN_GAPS
     assert sheet.applies("comet", "comet", "orbital_period_years", {"orbit_type": "elliptical"})
     assert not sheet.applies("comet", "comet", "orbital_period_years", {"orbit_type": "parabolic"})
     assert sheet.applies("comet", "comet", "eccentricity", {"orbit_type": "parabolic"})

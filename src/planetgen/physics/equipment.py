@@ -8,7 +8,7 @@ Four slots, each a ladder of levels, and every item is **required** (past the ph
 (the fuzzy band before it, where a person survives but is impaired or at risk):
 
 * **Body Protection**, the lowest suit that fits: 0 none, 1 clothing, 2 thermal suit, 3 sealed suit, 4 pressure suit,
-  5 armoured suit, 6 vehicle only, with the stress that set it (`BODY_KINDS`) and a powered frame for high gravity.
+  5 armored suit, 6 vehicle only, with the stress that set it (`BODY_KINDS`) and a powered frame for high gravity.
 * **Air Filter or Scrubber**, three parts that combine: dust, a gas filter of three grades and a CO2 scrubber.
 * **Air Supply**: 0 ambient, 1 gas-mix mask, 2 own gas, 3 mixed gas, 4 isolated.
 * **Radiation Protection**, a five-step ladder (`protection_limits.RADIATION_STEPS`): shielded garment, storm vest,
@@ -26,7 +26,7 @@ the stored levels alone (`items`, `required_names`, `recommended_names`, `code`,
 from collections import namedtuple
 from dataclasses import replace
 
-from planetgen.physics import constants, habitability, radiation, regional_temperature
+from planetgen.physics import constants, habitability, radiation, radiation_belts, regional_temperature
 from planetgen.physics.protection_limits import RADIATION_STEPS, TOXIC, limit
 
 FIELDS = (
@@ -55,12 +55,12 @@ BODY_NAMES = {
     (2, "cold"): "insulated suit", (2, "heat"): "liquid-cooled suit", (2, "diving"): "heated diving suit",
     (2, "uv"): "full-cover suit",
     (3, "cold"): "heated sealed suit", (3, "heat"): "heat-shielded suit", (3, "chemical"): "chemical-barrier suit",
-    (4, "pressure"): "pressure suit", (5, "pressure"): "armoured suit", (5, "heat"): "armoured suit",
+    (4, "pressure"): "pressure suit", (5, "pressure"): "armored suit", (5, "heat"): "armored suit",
     (6, "heat"): "vehicle only", (6, "gravity"): "vehicle only", (6, "pressure"): "vehicle only",
 }
 """dict: The body word of `(level, kind)`."""
 
-BODY_DEFAULT = {1: "weather clothing", 2: "thermal suit", 3: "sealed suit", 4: "pressure suit", 5: "armoured suit",
+BODY_DEFAULT = {1: "weather clothing", 2: "thermal suit", 3: "sealed suit", 4: "pressure suit", 5: "armored suit",
                 6: "vehicle only"}
 SUPPLY_NAMES = {1: "gas-mix mask", 2: "self-contained air", 3: "mixed-gas rig", 4: "isolated air"}
 GAS_FILTER_NAMES = {1: "gas filter", 2: "full-face gas filter", 3: "powered gas filter"}
@@ -289,6 +289,7 @@ class _Shield:
 
     def __init__(self, world):
         self.gcr, self.sep, self.ground = _dose_parts(world)
+        self.belt = world.dose_belt_sv_yr or 0.0
         pressure_pa = world.pressure_kpa * 1000.0
         self.column = radiation.column_g_cm2(pressure_pa, _gravity_g(world))
         self.cutoff = world.cutoff_gv
@@ -310,12 +311,12 @@ class _Shield:
         if found is not None:
             return found
         if grams <= 0:
-            found = self.gcr + self.sep
+            found = self.gcr + self.sep + self.belt
         else:
             column = self.column + grams
             gcr = self.gcr * radiation.gcr_dose_msv_yr(column, self.cutoff) / self.gcr_base if self.gcr_base > 0 else 0.0
             sep = self.sep * radiation.sep_dose_msv_yr(1.0, column, self.cutoff) / self.sep_base if self.sep_base > 0 else 0.0
-            found = gcr + sep
+            found = gcr + sep + self.belt * radiation_belts.air_cut(grams)
         self._attenuated_at[grams] = found
         return found
 
@@ -398,7 +399,7 @@ def compute(world, limits=habitability.HUMAN):
     The stored levels (`FIELDS`) of a world, for a visitor whose limits are `limits` (`habitability.bands`; a species'
     own for its fit).
 
-    Cross-slot rules, in this order: a pressure suit carries its own loop (Supply 2 at least); an armoured suit or a
+    Cross-slot rules, in this order: a pressure suit carries its own loop (Supply 2 at least); an armored suit or a
     vehicle carries its own isolated air (Supply 4); an open mask that is also wanted with a filter becomes a sealed
     supply; with a sealed supply the gas filter and the CO2 scrubber drop out (the person breathes own gas) and the
     dust part stays as seals.
@@ -437,7 +438,7 @@ def compute(world, limits=habitability.HUMAN):
 TICKS = (
     ("clothing", "Weather clothing", "{a}.eq_body = 1"), ("thermal_suit", "Thermal suit", "{a}.eq_body = 2"),
     ("sealed_suit", "Sealed suit", "{a}.eq_body = 3"), ("pressure_suit", "Pressure suit", "{a}.eq_body = 4"),
-    ("armoured_suit", "Armoured suit", "{a}.eq_body = 5"), ("vehicle_only", "Vehicle only", "{a}.eq_body = 6"),
+    ("armoured_suit", "Armored suit", "{a}.eq_body = 5"), ("vehicle_only", "Vehicle only", "{a}.eq_body = 6"),
     ("powered_frame", "Powered frame", "{a}.eq_mobility = 2"),
     ("shielded_garment", "Shielded garment", "{a}.eq_rad_suit = 1"), ("storm_vest", "Storm vest", "{a}.eq_rad_suit = 2"),
     ("hardened_suit", "Hardened suit", "{a}.eq_rad_suit = 3"),
@@ -615,7 +616,7 @@ def code(levels):
 
 def summary(levels):
     """The `equipment` object the API serves (`None` for an unscored body): `required` and `recommended` names, the
-    `code`, the `items` (slot, item, severity, domain), the `line` and the shelter's depth and the hours outside."""
+    `code`, the `items` (slot, item, severity, domain), the `line` and the shelter's depth and the hours outside (a year under the dose limit, and a day with what limits it, GEN.768)."""
     if not scored(levels):
         return None
     return {
@@ -625,7 +626,8 @@ def summary(levels):
                   for item in items(levels)],
         "line": line(levels), "required_line": lines(levels)[0], "recommended_line": lines(levels)[1],
         "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
-        "outside_hours": levels.get("outside_hours"), "regions": regional_temperature.summary(levels),
+        "outside_hours": levels.get("outside_hours"), "outside_hours_day": levels.get("outside_hours_day"),
+        "outside_hours_limit": levels.get("outside_hours_limit"), "regions": regional_temperature.summary(levels),
     }
 
 

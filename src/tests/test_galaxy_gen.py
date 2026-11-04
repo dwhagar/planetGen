@@ -1758,3 +1758,25 @@ def test_a_batch_says_how_many_sectors_it_runs_and_reports_each_with_its_stats(m
     out = capsys.readouterr().out
     assert "Generating 2 sector(s) with" in out
     assert out.count("Saved sector") == 2 and out.count("Totals:") == 2 and out.count("Star density: actual") == 2
+
+
+def test_the_freshness_state_does_not_build_the_galaxy_shape(mysql_config, monkeypatch):
+    """A page view's freshness check (`galaxy_content_state`) read the whole shape, whose component field works out a mean
+    system mass for every stored cluster: minutes on a big galaxy, past the web daemon's 60-second limit, for every page.
+    It reads what the shape is made from instead, and still moves when the stored shape does."""
+    _seed_skeleton(mysql_config, outer_shell_index=42, e_value=2.5)
+
+    def not_here(*args, **kwargs):
+        raise AssertionError("the freshness state built the galaxy shape")
+
+    monkeypatch.setattr(query, "galaxy_density_shape", not_here)
+    conn = _db.get_connection(mysql_config)
+    try:
+        first = query.galaxy_content_state(conn)
+        assert query.galaxy_content_state(conn) == first
+        conn.execute("UPDATE galaxy_shape SET outer_shell_index = 43 WHERE id = 1")
+        conn.commit()
+        changed = query.galaxy_content_state(conn)
+    finally:
+        conn.close()
+    assert changed["base"] != first["base"] and changed["tile_base"] != first["tile_base"]

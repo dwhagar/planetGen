@@ -17,7 +17,8 @@ gets exactly one letter (`tests/test_planet_classes.py` also proves it over gene
 Quantities (all derived here from the stored columns, named as `db.models` names them):
 
 * `mass_earth`, `gravity_g`, `temperature_k`, `pressure_pa` (0 for no air), `ocean_fraction`, `water_mass_fraction`,
-  `hydrosphere`, `flux_variation`, `ocean_ph` (`None` without an ocean; no class reads it, the pigments of life do);
+  `hydrosphere`, `flux_variation` (no class reads it since GEN.1135; the At a glance flag does), `ocean_ph` (`None` without an ocean; no class reads it, the
+  pigments of life do);
 * `share_o2` ... `share_so2`: a stored gas's partial pressure over the surface pressure;
 * `reducing_share`: the methane and hydrogen shares together.
 
@@ -35,7 +36,10 @@ import json
 import os
 from collections.abc import Mapping
 
-from planetgen.physics import atmosphere, constants, elements
+from planetgen.physics import atmosphere, elements, unit_registry as units
+from planetgen.util.wordlist import join_words
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_classes.json")
 
@@ -63,6 +67,7 @@ def values_from_body(body):
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
         "flux_variation": getattr(body, "flux_variation", None),
         "ocean_ph": getattr(body, "ocean_ph", None),
+        "roundness_ratio": getattr(body, "roundness_ratio", None),
     }
     values[atmosphere.GAS_FIELD] = atmosphere.gas_partials_pa(body)
     return values
@@ -79,7 +84,7 @@ def quantities(values):
     pressure = values.get("atmospheric_pressure_pa") or 0.0
     found = {
         "body_type": body_type,
-        "mass_earth": mass_kg / constants.EARTH_MASS_TO_KG,
+        "mass_earth": _kg_to_mearth(mass_kg),
         "pressure_pa": pressure,
         "gravity_g": values.get("gravity_g"),
         "temperature_k": values.get("surface_temperature_k"),
@@ -88,6 +93,7 @@ def quantities(values):
         "water_mass_fraction": values.get("water_mass_fraction") or 0.0,
         "flux_variation": values.get("flux_variation") or 0.0,
         "ocean_ph": values.get("ocean_ph"),
+        "roundness_ratio": values.get("roundness_ratio"),
     }
     for gas in GASES:
         partial_pa = atmosphere.partial_kpa(values, gas) * 1000.0
@@ -152,8 +158,10 @@ def _load():
         if any(not c.when for c in rows[:-1]):
             raise ClassError(f"a {kind!r} row before the last has no conditions, so the rows after it never match")
     letters = [c.letter for c in classes]
-    if len(set(letters)) != len(letters):
-        raise ClassError("a class letter is used by two rows")
+    if len({(c.letter, c.kind) for c in classes}) != len(letters):
+        raise ClassError("a class letter is used by two rows of one kind")
+    if any(len({c.name for c in classes if c.letter == letter}) != 1 for letter in letters):
+        raise ClassError("the rows of one letter in the two kinds have different names")
     reserve = tuple(document["reserve"])
     if set(reserve) & set(letters):
         raise ClassError("a reserved letter is also a class")
@@ -163,15 +171,42 @@ def _load():
 DOCUMENT, CLASSES, RESERVE = _load()
 """tuple: The `Class` rows in rule order; `RESERVE` the free letters kept for new designations."""
 
-BY_LETTER = {c.letter: c for c in CLASSES}
+BY_LETTER = {}
+for _c in CLASSES:
+    BY_LETTER.setdefault(_c.letter, _c)     # GEN.1142: class T has a giant row and a terrestrial one; the first is the letter's own
+del _c
 LETTERS = tuple(sorted(BY_LETTER))
 CORE_LETTERS = tuple(DOCUMENT["core"])
 VERSION = DOCUMENT["version"]
 
 
+class AsteroidType:
+    """The object type of a body under a roundness ratio of 1 (GEN.1160): not a planet class, so no letter. It can be a moon."""
+
+    __slots__ = ("letter", "name", "kind", "sentence", "basis", "when", "core")
+
+    def __init__(self, row):
+        self.letter = None
+        self.name = row["name"]
+        self.kind = row["kind"]
+        self.sentence = row["sentence"]
+        self.basis = row["basis"]
+        self.when = tuple(row["when"])
+        self.core = False
+
+    def matches(self, found):
+        return found["roundness_ratio"] is not None and holds(self.when, found, owner="the Asteroid type")
+
+
+ASTEROID = AsteroidType(DOCUMENT["asteroid"])
+"""AsteroidType: What a terrestrial body whose roundness ratio is under 1 is. `classify_values` gives it and `classify` gives `None` for it."""
+
+
 def classify_values(values):
-    """The `Class` of a body's stored `values` (a column-named mapping): the first row of its kind whose conditions hold."""
+    """The `Class` of a body's stored `values` (a column-named mapping): the first row of its kind whose conditions hold. A terrestrial body under a roundness ratio of 1 is `ASTEROID`, which has no letter."""
     found = quantities(values)
+    if found["body_type"] == TERRESTRIAL and ASTEROID.matches(found):
+        return ASTEROID
     for cls in CLASSES:
         if cls.kind == found["body_type"] and cls.matches(found):
             return cls
@@ -179,7 +214,7 @@ def classify_values(values):
 
 
 def classify(body):
-    """The class letter of a finished planet or moon (an object, or a column-named mapping of its stored values)."""
+    """The class letter of a finished planet or moon (an object, or a column-named mapping of its stored values); `None` for an Asteroid."""
     values = body if isinstance(body, Mapping) else values_from_body(body)
     return classify_values(values).letter
 
@@ -218,7 +253,7 @@ def condition_words(condition):
         parts.append(f"{label} is {condition['equals']}")
     if "not_equals" in condition:
         parts.append(f"{label} is not {condition['not_equals']}")
-    return " and ".join(parts)
+    return join_words(parts)
 
 
 def rule_words(cls):

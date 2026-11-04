@@ -47,6 +47,7 @@ Generation without a database, uploads, verification and the incomplete uploads 
 | ADM.13 | Incomplete uploads page | API.10, API.8 |  |
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | API.5, API.12, API.13, API.14, API.8 | Split from API.3. |
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | API.10, API.14, API.8 | Split from API.3. |
+| ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) |  |  |
 | API.3 | Remote generate: generate on a local machine, upload through the API | API.30, ADM.95 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
 | API.17 | Remote generation reproduces what the server would make | API.12, API.13, API.8 |  |
 
@@ -67,7 +68,6 @@ The sky's data table and the research that settles the view from a planet, moved
 |---|---|---|---|
 | VIEW.4 | Constellation names in the name generator |  | Constellation names from the codec under the naming key, not sliced word lists. Floats: no blockers, can run any time. |
 | VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates |  | Research: needed before real sky coordinates. |
-| VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) |  | Research. |
 
 ### Sky research
 
