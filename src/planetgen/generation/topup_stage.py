@@ -14,12 +14,12 @@ import collections
 import math
 
 from planetgen.db import chart_ledger, sector_mass, store
-from planetgen.galaxy import dials, resident_mass, system_mass
+from planetgen.galaxy import dials, resident_mass
 from planetgen.galaxy import seed as galaxy_seed
 from planetgen.galaxy.profile import sector_profile
 from planetgen.generation.config import SystemConfig
 from planetgen.generation import field_topup_build, rogue_topup_build
-from planetgen.physics import constants, rogue_topup, topup_field
+from planetgen.physics import rogue_topup, topup_field
 from planetgen.util import draw
 
 MAX_HOSTS = 8
@@ -41,11 +41,6 @@ def level_word(args_or_value):
 def galaxy_level(conn):
     """The Rogues level the stored plan was told (`galaxy_shape_pins`), or `normal` when it was left on Auto."""
     return dials.choice_pinned(store.get_galaxy_shape_pins(conn), "rogues") or "normal"
-
-
-def expected_mass_kg(profile):
-    """The mass a sector is calculated to hold, kg: its expected systems times the mean system mass of its populations."""
-    return profile.expected_systems * system_mass.mean_over_solar(profile.mix, profile.shape) * constants.SOLAR_MASS_TO_KG
 
 
 def topup_sector(conn, address, profile, level, system_config, edge_pc, stream_key=None):
@@ -74,7 +69,7 @@ def topup_sector(conn, address, profile, level, system_config, edge_pc, stream_k
     held = sector_mass.sector_mass_kg(conn, sector_id)
     if held is None:
         return TopUpResult(0, 0.0, 0.0, False, "a body has no stored mass")
-    short = resident_mass.shortfall_kg(resident_mass.remaining_budget(expected_mass_kg(profile)), held)
+    short = resident_mass.shortfall_kg(resident_mass.remaining_budget(resident_mass.expected_mass_kg(profile)), held)
     stars = conn.execute("SELECT COUNT(*) AS n FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?",
                          (sector_id,)).fetchone()["n"]
     system_ids = [r["id"] for r in conn.execute("SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id LIMIT ?", (sector_id, MAX_HOSTS)).fetchall()]

@@ -57,7 +57,7 @@ from planetgen.physics.stellar_evolution import birth_fe_h
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.galaxy import disk_history
+from planetgen.galaxy import disk_history, resident_mass
 from planetgen.galaxy import skeleton as galaxySkeleton
 from planetgen.galaxy.density import halo_density, population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
@@ -1422,11 +1422,14 @@ class FillContext:
             (`db.scatter_systems.read_stored_trees`, GEN.315); a row not in it is a single star.
         orbit_epoch_unix (float or None): The orbit epoch a built system holds its phases at; a stored node is carried
             to it. `None` when no orbit update has run (a node keeps the time it was drawn at).
+        residents (tuple): The `resident_mass.Resident`s the sector already holds from elsewhere when it is filled (rogue planets and asteroid fields that
+            landed in it, GEN.1124): their mass comes off the sector's system draw (`resident_share`).
     """
 
     def __init__(self, profile, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
                  below_cut=None, star_mass_limit_sol=None, resolution=None, emission_hosts=(), member_trees=None,
-                 orbit_epoch_unix=None):
+                 orbit_epoch_unix=None, residents=()):
+        self.residents = tuple(residents)
         self.member_trees = dict(member_trees or {})
         self.orbit_epoch_unix = orbit_epoch_unix
         self.emission_hosts = tuple(emission_hosts)
@@ -1457,6 +1460,13 @@ class FillContext:
         """Whether the cell expects more systems than the cell star ceiling (GEN.281): it is built from its
         pre-placed stars alone, and draws no dimmer system of its own."""
         return self.resolution is not None and self.resolution.capped
+
+    def resident_share(self):
+        """The share of the sector's calculated mass that its residents hold (stage 0, GEN.1124), 0 with none: the part of the system draw the residents have
+        already made. A capped cell makes no system of its own, so it takes nothing off."""
+        if self.capped or not self.residents:
+            return 0.0
+        return resident_mass.resident_share(self.profile, self.residents)
 
     def bright_share(self):
         """The share of this position's stars at or above the threshold

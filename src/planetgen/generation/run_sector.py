@@ -888,6 +888,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             mean = min(sector.expected_system_count() * args.density, sys.float_info.max)
             if fill is not None:
                 mean *= 1.0 - fill.bright_share()
+                mean *= 1.0 - fill.resident_share()      # stage 0 (GEN.1124): what landed here from elsewhere is mass the draw need not make
             args.num_systems = _sample_poisson_count(mean)
 
         total = args.num_systems

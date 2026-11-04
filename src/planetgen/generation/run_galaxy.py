@@ -322,6 +322,7 @@ def _fill_context(args, address):
         if skeleton is None:
             return None
         profile = sector_profile(address, skeleton)
+        residents = store.arrived_residents(conn, address)
         limits, backfill_seed = run_plan._scatter_limits_and_seed(conn, skeleton)
         # The resolution reads the reference metallicity, which depends on the galaxy's own disk scale length: bind the
         # galaxy as the fill will, so the cell is aimed at the number its stored stats then record.
@@ -353,7 +354,7 @@ def _fill_context(args, address):
         emission_hosts = _emission_hosts(conn, skeleton, address, profile)
         if level is None and mass_limit is None:
             return brightStars.FillContext(profile, phenomenon_rows=phenomena, below_cut=below_cut,
-                                           resolution=resolution, emission_hosts=emission_hosts)
+                                           resolution=resolution, emission_hosts=emission_hosts, residents=residents)
         rows = store.bright_stars_for_sector(conn, *address)
         # GEN.315: a row with members is built from the tree it stored
         member_trees = scatter_systems.read_stored_trees(conn, "bright_stars", [r["id"] for r in rows if r.get("member_count")])
@@ -363,7 +364,7 @@ def _fill_context(args, address):
     return brightStars.FillContext(profile, rows, min_luminosity_sol=level,
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
                                    resolution=resolution, emission_hosts=emission_hosts, member_trees=member_trees,
-                                   orbit_epoch_unix=orbit_epoch_unix)
+                                   orbit_epoch_unix=orbit_epoch_unix, residents=residents)
 
 
 def _take_to_the_deepest_floor(config, skeleton, address, limits, seed):

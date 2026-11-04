@@ -93,6 +93,33 @@ def test_a_saved_top_up_has_no_donor_and_is_replaced_not_doubled(mysql_config, h
 
 
 @pytest.mark.fresh_database
+def test_a_rogue_born_elsewhere_is_a_resident_but_one_born_here_is_not(mysql_config, host):
+    from planetgen.db import store
+    from planetgen.galaxy import object_uid
+    from planetgen.galaxy.sector import SpaceSector
+
+    sector = SpaceSector("Resident Sector", edge_ly=13.0)
+    x, y, z = spherical.sector_position_pc(*DB_ADDRESS, 4.0)
+    position = {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
+                "shell_index": DB_ADDRESS[0], "band_index": DB_ADDRESS[1], "wedge_index": DB_ADDRESS[2]}
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=position)
+    made = rogue_topup_build.build(_plan().rogues, [host], SystemConfig(), "sector-RES", DB_ADDRESS, 4.0)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.arrived_residents(conn, DB_ADDRESS) == []
+        with conn:
+            store.save_topup_rogues(conn, sector_id, made)
+        assert store.arrived_residents(conn, DB_ADDRESS) == []                       # born here: this sector's own fill replaces it
+        other = object_uid.pack(DB_ADDRESS[0], DB_ADDRESS[1], DB_ADDRESS[2] + 1, object_uid.SERIAL_GENERATED, 1)
+        with conn:
+            conn.execute("UPDATE rogue_planets SET uid = ? WHERE sector_id = ? LIMIT 1", (object_uid.to_bytes(other), sector_id))
+        found = store.arrived_residents(conn, DB_ADDRESS)
+        assert len(found) == 1 and found[0].kind == "rogue" and found[0].mass_kg > 0.0
+    finally:
+        conn.close()
+
+
+@pytest.mark.fresh_database
 def test_the_stage_tops_a_charted_sector_up_once(mysql_config, redis_server):
     from types import SimpleNamespace
 

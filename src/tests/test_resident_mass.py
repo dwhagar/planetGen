@@ -83,3 +83,36 @@ def test_a_kind_it_does_not_know_and_a_stray_entry_are_refused():
         rm.Resident("comet", 1.0)
     with pytest.raises(rm.ResidentMassError):
         rm.remaining_budget(1.0, [(1.0, "star")])
+
+
+def _profile(systems=100.0):
+    from types import SimpleNamespace
+
+    from planetgen.galaxy import shape_draw
+    return SimpleNamespace(expected_systems=systems, mix={"old": 1.0}, shape=shape_draw.default_shape(b"resident-seed-16"), position_pc=(8000.0, 0.0, 0.0))
+
+
+def test_a_sector_with_no_resident_takes_nothing_off_the_system_draw():
+    assert rm.resident_share(_profile(), []) == 0.0
+
+
+def test_the_share_is_the_residents_part_of_the_calculated_mass():
+    profile = _profile()
+    total = rm.expected_mass_kg(profile)
+    assert rm.resident_share(profile, [rm.Resident("rogue", 0.1 * total)]) == pytest.approx(0.1)
+    assert rm.resident_share(profile, [rm.Resident("rogue", 0.1 * total), rm.Resident("phenomenon", 0.2 * total)]) == pytest.approx(0.3)
+    assert rm.resident_share(profile, [rm.Resident("rogue", 5.0 * total)]) == 1.0                          # over the total: the whole draw is taken
+
+
+def test_a_resident_whose_centre_is_elsewhere_takes_nothing_off():
+    profile = _profile()
+    assert rm.resident_share(profile, [rm.Resident("extended", rm.expected_mass_kg(profile), centre_inside=False)]) == 0.0
+
+
+def test_the_fill_takes_the_share_off_unless_the_cell_is_capped():
+    from planetgen.generation import bright_stars
+
+    profile = _profile()
+    held = [rm.Resident("rogue", 0.25 * rm.expected_mass_kg(profile))]
+    assert bright_stars.FillContext(profile).resident_share() == 0.0
+    assert bright_stars.FillContext(profile, residents=held).resident_share() == pytest.approx(0.25)

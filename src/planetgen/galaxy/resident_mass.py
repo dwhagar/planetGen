@@ -18,11 +18,16 @@ rings, the system draw, phenomena, remnants, belts) draw against. The residents 
 
 `shortfall_kg(budget, drawn_kg)` is the stage 3 measure: the budget less everything the sector's build drew, never negative, which the rogue top-up (`physics/rogue_topup`) makes up.
 
-Nothing calls this module yet; the generation phases and the region run wire it (GEN.1120).
+`expected_mass_kg(profile)` is the total a sector is calculated to hold (its expected systems times the mean system mass of its populations), and `resident_share(profile, residents)`
+the share of it the counted residents already hold, which the system draw of the fill (`bright_stars.FillContext.resident_share`) takes off its Poisson mean (stage 0, GEN.1124) and the
+rogue top-up (`generation/topup_stage`) reads as the budget it measures its shortfall against.
 """
 
 import math
 from dataclasses import dataclass, field
+
+from planetgen.galaxy import system_mass
+from planetgen.physics import constants
 
 KINDS = ("rogue", "star", "phenomenon", "belt parent", "extended")
 """tuple: The kinds of resident a sector can hold, for the split of the held mass."""
@@ -137,3 +142,23 @@ def shortfall_kg(budget, drawn_kg):
     if not math.isfinite(drawn_kg) or drawn_kg < 0.0:
         raise ResidentMassError(f"drawn_kg must be a finite number, not negative: {drawn_kg!r}")
     return max(0.0, budget.remaining_kg - drawn_kg)
+
+
+def expected_mass_kg(profile):
+    """The mass a sector is calculated to hold, kg: its expected systems times the mean system mass of its populations (`galaxy.system_mass.mean_over_solar`)."""
+    return profile.expected_systems * system_mass.mean_over_solar(profile.mix, profile.shape) * constants.SOLAR_MASS_TO_KG
+
+
+def resident_share(profile, residents):
+    """
+    The share, 0 to 1, of the sector's calculated mass that its counted residents hold: what the system draw takes off its mean (stage 0). Zero with no
+    resident (so a sector that holds nothing from elsewhere draws exactly as it did), and 1 when the residents hold the whole calculated mass.
+    """
+    residents = list(residents)
+    if not residents:
+        return 0.0
+    total = expected_mass_kg(profile)
+    if total <= 0.0:
+        return 0.0
+    budget = remaining_budget(total, residents, profile.expected_systems)
+    return min(1.0, budget.held_kg / total)

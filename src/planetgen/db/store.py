@@ -73,7 +73,7 @@ from planetgen.db import alembic_runner, chart_ledger, kind_tables, login, objec
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
@@ -3897,6 +3897,31 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
             _assign_rogue_uids(conn, row_ids, birth_sector_id)
             written += len(row_ids)
     return written
+
+
+def arrived_residents(conn, address):
+    """
+    What a sector already holds that was born elsewhere, for the mass its fill need not make (GEN.1124, stage 0): the rogue planets and asteroid fields filed in
+    it whose object IDs belong to another sector (a rogue a neighbour's system threw into it, or a field it made). Rows born in this sector are left out: its own
+    fill replaces them.
+
+    Args:
+        conn (Connection): An open connection.
+        address (tuple): The `(shell, band, wedge)` of the sector.
+
+    Returns:
+        list: A `resident_mass.Resident` for each, with the mass the row stores (rows with no stored mass are left out).
+    """
+    sector_id = kept_sector_id_at(conn, *address)
+    if sector_id is None:
+        return []
+    own = objectUid.sector_bytes(*address)
+    found = []
+    for table, kind in (("rogue_planets", "rogue"), ("asteroid_fields", "phenomenon")):
+        for row in conn.execute(f"SELECT mass_kg FROM {table} WHERE sector_id = ? AND mass_kg > 0 AND (uid IS NULL OR SUBSTRING(uid, 1, {len(own)}) <> ?)",
+                                (sector_id, own)).fetchall():
+            found.append(resident_mass.Resident(kind, float(row["mass_kg"])))
+    return found
 
 
 def save_topup_fields(conn, sector_id, made):
