@@ -14364,6 +14364,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1242. Related: GEN.1242, GEN.1230, GEN.1202,
   GEN.725.
 
+- [ ] **GEN.1247 Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug)**
+  Found by Aux 7 with TEST.563 (as the lane reported 11:05 AM EST on
+  2026-11-04), sampled on G2V systems. The belt mass is what the
+  collisional law leaves (belt_ledger.belt_state, GEN.477) and is stored
+  and read by sector_mass. Many outer belts end at about 4.5e25 kg, the
+  same value across 11 to 74 AU, which looks like a cap or a start mass
+  the law never grinds down at long collision times; the Solar System
+  belt (0.03 Earth masses) is a plausibility target only, never fixed
+  content. Do: reproduce on a sample of systems, find whether the cap,
+  the disc solid mass, the collision time at that distance or the age
+  grinding is the cause, fix it from the physics (a source or a
+  derivation), and register any stand-in in GEN.725. If stored belt
+  masses change: epoch with --affects fill, lock work. Owner: Aux 5
+  (belt owner, GEN.1068 and GEN.1156). Version 8.1.
+  Prerequisites: none. Related: GEN.1068, GEN.1156, GEN.477.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19084,28 +19100,6 @@ clears each one.
   companion law), fix the cause, and say which in the change note. If
   the generator changed on purpose, update the test with the reason; if
   a defect, fix it and note whether stored output changes. Owner: Aux 7.
-  Prerequisites: none.
-
-- [ ] **TEST.563 test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass fails on main: the belt mass reads 1.86e19 kg where 0.0 is expected (bug)**
-  Found by the full-suite run (as the lane reported 9:36 AM EST on
-  2026-11-04) and reproduced alone on main 6d1d104.
-  tests/test_gen337_point_fill.py (64 s alone). A belt stated with zero
-  mass should store zero mass; it stores 1.86e19 kg, so a rule fills in
-  a belt mass the directive said not to. Do: find whether a recent
-  belt-mass rule (the belt ledger, GEN.1156) overrides a stated zero or
-  the test predates it, fix the cause, and say which in the change note.
-  Owner: Aux 7.
-  Prerequisites: none.
-
-- [ ] **TEST.565 test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug)**
-  Found by the full-suite run (as the lane reported 9:36 AM EST on
-  2026-11-04) and reproduced alone on main 6d1d104.
-  tests/test_slowpages.py. While an update is in progress a slow page
-  should build in the request; it raises CacheRebuilding instead. Needs
-  the MySQL test setup. Do: find whether the cache rule (PERF.209,
-  PERF.218 or the slow-pages work) changed the update-in-progress path
-  on purpose or broke it, fix the cause, and say which. Owner: Aux 3,
-  after GEN.1245.
   Prerequisites: none.
 
 ## USR: User accounts
