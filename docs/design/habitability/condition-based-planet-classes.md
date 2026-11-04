@@ -21,9 +21,9 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | T | Gas dwarf | giant under 10 Earth masses |
 | I | Ice giant | giant under 35 Earth masses |
 | J | Gas giant | the rest of the giants |
-| D | Small icy body | pressure under 10 Pa and water 1 percent of the mass or more |
+| D | Small airless world | pressure under 10 Pa, round, and under 0.1 Earth masses (GEN.1160) |
 | S | Airless super-Earth | pressure under 10 Pa and 1.5 Earth masses or more |
-| C | Dead world | pressure under 10 Pa |
+| C | Dead world | pressure under 10 Pa and 0.1 Earth masses or more |
 | A | Volcanic world | sulfur dioxide 3 percent of the air or more |
 | T | Gas dwarf (terrestrial kind) | hydrogen 30 percent of the air or more and under 10 Earth masses (GEN.1142; the same T as the giant row) |
 | N | Hot dense world | pressure of 10 bar or more, 400 K or more, hydrogen under 30 percent of the air (GEN.1142) |
