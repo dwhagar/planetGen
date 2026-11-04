@@ -16885,38 +16885,6 @@ clears each one.
   Prerequisites: GEN.202. Related: PERF.68.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
-- [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
-  Reported by Bugfixes lane 2 (2026-10-10 22:47Z):
-  tests/test_neighborhood_edge.py::test_a_neighborhood_from_the_generate_page[core]
-  failed once in a full run (started 21:43Z, 57 min) under load and
-  passed alone; the traceback was not kept. Done: the next failure's
-  traceback is captured (or a loaded run reproduces it), the cause is
-  found (a timeout, a shared table between workers, or a real defect in
-  the neighborhood path) and the test is made reliable without loosening
-  it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Update (2026-10-09): The regression test review (2026-10-23) found
-  that tests/test_neighborhood_edge.py has a module-level skip and
-  imports a function that no longer exists, so this item may be moot; it
-  closes if Boss agrees to delete the file (Boss reviews
-  reports/regression-test-review-2026-10-23.md before any delete).
-  Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
-
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
   Step 9 (design note section 9, tests 1 to 9). Companion states within
   four Poisson sigma over a seeded scatter of 1e6 rows; object density
@@ -17180,26 +17148,6 @@ clears each one.
   reproduce. The test passed in repeated runs on an idle machine. Needed
   next time: The failure text of a loaded run (the captured traceback
   and the browser console) and the load at the time. Running log: the
-  comments on issue #1694.
-  Prerequisites: none.
-
-- [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
-  Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
-  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_map_does_not_prefetch_on_a_data_saving_connection`
-  failed with "request failed ... /galaxy/tiles?... net::ERR" in the
-  same full run (load 9.6) and passed alone. Done: the cause is found
-  (the test or the server drops a request when a page closes under load,
-  or the test reads the request log too early), the test waits on the
-  condition it needs, and it passes under the same load, with no
-  quarantine. Fails on main: not checked. Frequency: once. Reproducer:
-  none beyond the full suite at load about 9.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. The test passed in repeated runs on an idle machine. The
-  `/galaxy/tiles` net::ERR text this item quotes matches the
-  request-error handler of the accessibility test, so it may have come
-  from another test's page. Needed next time: The full run's traceback
-  naming the failing test and the load at the time. Running log: the
   comments on issue #1694.
   Prerequisites: none.
 
@@ -17677,76 +17625,6 @@ clears each one.
   item, and say in each PR which item keeps what is left.
   Prerequisites: none. Related: SEC.33.
 
-- [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
-  Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the
-  TODO thread. Kind: flaky browser test
-  (test_web_browser_sector_reach.py, the TEST.252 test). It failed once
-  in gate 23, in the browser phase at machine load 9.7, on the branch
-  build of PERF.142 and PERF.143: the camera target stayed at (3.56,
-  -1.36, -0.29) where the test expects (0, 0, 0). It passes alone. Fails
-  on main: unknown, not reproduced yet. Frequency: 1 in about 4 browser
-  gates. Reproducer: none yet; it needs another lane's gate running
-  beside it. Do: root-cause it (a real slow-first-click race in the map
-  code, or a test that does not wait for the fly to finish) and fix the
-  cause, not the load. Done: the cause is on this item and the test
-  passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
-  TEST.252 test). Fifth sighting (Bug Hunt, #2416's gate, about 3:03 AM
-  EDT 2026-10-22 as the lane reported, filed by the TODO thread): under
-  load five browser tests failed in module-fixture setup after 1,988 to
-  2,063 seconds (test_web_browser_crumbs at 1280 and at 320, and three
-  in test_web_browser_units), and test_old_jobs_are_pruned timed out at
-  30 seconds once; all pass alone. A browser and job-timing load class,
-  separate from the MySQL sightings, which #2442 closed; Bug Hunt looks
-  at them with this item. Sixth sighting (Bug Hunt, #2425's gate, about
-  4:43 AM EDT 2026-10-22 as the lane reported, filed by the TODO
-  thread):
-  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
-  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
-  Same load class as the fifth sighting; Bug Hunt took this item next.
-  Update (Bug Hunt, about 5:30 AM EDT 2026-10-22 as the lane reported):
-  PR #2430 merged: the flight tests wait for a still camera, and the
-  slow-click test's failure message now carries the pointer event times.
-  The double-click failure itself did not reproduce in 41 runs under
-  four-way browser load, so this item stays open for the double-click
-  part only, as "watch for the new message". The MySQL lost-connection
-  sightings moved to their own item, TEST.265, which #2442 fixed.
-  Watch period (the TODO thread's judgment, about 7:05 AM EDT 2026-10-22
-  as the lane reported): #2442 (Bug Hunt, about 7:03 AM EDT) fixed the
-  MySQL cause: `tests/dbpool.py` `drop_database` no longer kills other
-  workers' `list_databases` connections (it ends only connections whose
-  current database it is, gives other lock holders 3 s, then ends them),
-  which closes every "Lost connection to MySQL server during query" and
-  503 "database unavailable" sighting recorded here (facilities,
-  /sectors, the information_schema size query, admin/stats, the
-  hostile-query routes). What stays open is the double-click test (and
-  the fifth and sixth sightings, which are browser-load timeouts):
-  retire this item when five full gates across the lanes pass with no
-  recurrence, or file the cause from the new failure message (pointer
-  event times) if one appears.
-  Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.287 test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug)**
-  Found by Core 2 (relayed 1:32 AM EDT 2026-10-23 as the lane reported)
-  in its gate for ADM.127 and UX.146; neither diff touches it, and it
-  passed alone on re-run. Kind: flaky test. Test:
-  src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names.
-  Failure text: TimeoutError waiting for '#galaxymap3d-steps
-  [data-steps-panel] li' (120 s) in the browser phase. Fails on main:
-  unknown. Frequency: once in about 2 runs on that lane, with 2 workers
-  and a load average of about 8. Reproducer: the browser phase of
-  `scripts/test.py changed` beside another load, or the test alone under
-  a loop with a loaded machine. Do: find what the steps panel waits for
-  (the map scene built, or the steps list filled after the first frame),
-  make the test wait for that state, not a fixed 120 s selector, and say
-  in the test what it waits for. Done: the test passes 50 times in a row
-  on a machine at load 8. Owner: Bug Hunt (proposed by the TODO thread).
-  Progress (Bug Hunt, #2630 merged 5:49 AM EDT 2026-10-23 as the lane
-  reported): did not reproduce; the fresh-load helper now reports the
-  address, title, text and page errors when no steps appear. The item
-  stays open until the next sighting shows the text or two clean gates
-  pass.
-  Prerequisites: none. Related: TEST.284, TEST.281.
-
 - [ ] **TEST.290 test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug)**
   Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
   lane reported) in its gate for PERF.164; neither test is touched by
@@ -17834,28 +17712,6 @@ clears each one.
   writes the class, and that editing a stored input recomputes it. Done:
   both tests pass. Owner: Condition-based classes lane.
   Prerequisites: GEN.679.
-
-- [ ] **TEST.317 test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug)**
-  Found by Core 2 at 12:40 AM EDT 2026-10-24 (as the lane reported), in
-  src/tests/test_web_browser_sector_reach.py: the test fails alone only
-  under heavy machine load (it passes alone in 112 s on Core 2's branch
-  and 319 s on older main; it needs 80 wheel ticks with 900 ms waits).
-  Fails on main: no (passes alone); frequency once in 2 gates under load
-  9. Do: make the test cheaper and load-proof (fewer or larger wheel
-  steps, wait on a camera-state condition and not on fixed sleeps),
-  without loosening what it checks. Done: the test passes under load 9
-  in repeated gates and its run time drops well below 112 s. Owner: Core
-  2 (the test belongs to the sector reach work), or Bug Hunt if Core 2
-  is busy.
-  Prerequisites: none. Related: TEST.313.
-
-- [ ] **TEST.321 test_web_browser_tables: the jump box test flakes under load (bug)**
-  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
-  the lane reported): the jump box test in test_web_browser_tables fails
-  only under heavy machine load. Do: wait on the table state instead of
-  fixed sleeps. Done: the test passes under load 9 in repeated gates.
-  Owner: Bug Hunt.
-  Prerequisites: none. Related: TEST.317.
 
 - [ ] **TEST.324 test_web_header_menus top-bar [1280x720-light] times out under load (bug)**
   Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported):
