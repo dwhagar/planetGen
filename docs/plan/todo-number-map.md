@@ -1444,7 +1444,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | done, PR #3373 |
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | done, PR #3307 |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
-| GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | open |
+| GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | done, PR #4826 |
 | GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | done, PR #2883 |
 | GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver | none | done, PR #3061 |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | none | done, PR #3373 |
