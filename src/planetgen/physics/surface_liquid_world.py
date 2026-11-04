@@ -50,6 +50,8 @@ mass as methane ice (a guess, the ices are drawn) covers 1.7 percent of its surf
 ICE_LIQUID = {"CH4": "methane", "N2": "nitrogen", "CO2": "carbon_dioxide", "CO": "carbon_monoxide", "HCN": "hydrogen_cyanide",
               "SO2": "sulfur_dioxide"}
 """dict: The liquid each stored ice species supplies when it melts. Ammonia is not here: ice with water makes the ammonia-water solution (`AMMONIA_WATER_LIQUID`)."""
+ETHANE_LIQUID = "ethane"
+"""str: The liquid the ethane among the ices with no column of their own supplies when it melts (GEN.1218a)."""
 AMMONIA_WATER_LIQUID = "ammonia_water"
 """str: The liquid the ammonia ice makes with the water ice of a cold body (GEN.1218a): the eutectic of the table, liquid from 176 K."""
 AMMONIA_WATER_MASS_PERCENT = 32.0
@@ -88,6 +90,10 @@ def _reservoir(body):
         amount = getattr(body, ice_species.FIELD_OF[formula], None) if formula in ice_species.FIELD_OF else None
         if amount and amount > 0.0:
             out[liquid] = amount
+    other = getattr(body, ice_species.FIELD_OF[ice_species.OTHER], None) or 0.0
+    ethane = other * ice_species.ethane_share_of_other()
+    if ethane > 0.0:
+        out[ETHANE_LIQUID] = ethane
     ammonia = getattr(body, ice_species.FIELD_OF["NH3"], None) or 0.0
     water_ice = getattr(body, "water_mass_fraction", None) or 0.0
     if ammonia > 0.0 and water_ice > 0.0:         # a solution needs both: the ammonia fills the eutectic's 32 percent, the water the rest
