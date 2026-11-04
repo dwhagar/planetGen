@@ -190,7 +190,12 @@ def test_the_spiral_written_as_components_gives_the_density_it_gave_before(name)
     and GEN.931, which move two things of the old code's output and nothing else: every density is the old one times one
     number per shape (0.9515 to 0.9540: the model's units per solar mass follow the primary mass function's systems per solar
     mass, GEN.929; checked point by point before the fixture was rewritten, and the total mass is unchanged), and the split of
-    a place into populations follows the arm contrast of each (GEN.931; it moves the mix of a place, never its total)."""
+    a place into populations follows the arm contrast of each (GEN.931; it moves the mix of a place, never its total). It was made
+    again for GEN.951 (epoch 130: the mass ratio of a companion follows a sourced law, not a uniform 0.1 to 1, which moved the mean
+    mass of a system at every age): every total density, the halo, the bulge and the nuclear terms are the old ones times one number
+    per shape (0.9941 to 0.9944, checked point by point before the fixture was rewritten, the total mass unchanged), and the
+    per-population units follow the mean system mass at each population's ages (young about 1.03 to 1.11 times, intermediate 1.02 to
+    1.08, old 0.99), which also shifts the mix of a place between the age groups."""
     with open(IDENTITY, encoding="utf-8") as handle:
         data = json.load(handle)
     shape, wanted = IDENTITY_SHAPES[name](), data["shapes"][name]
