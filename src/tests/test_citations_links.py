@@ -83,7 +83,7 @@ def test_every_source_of_the_list_has_a_name_and_a_working_address():
     listed = {sid for sid in cache["ids"].values() if sid not in cache["id_aliases"]}
     assert set(built["sources"]) == listed
     for sid, entry in built["sources"].items():
-        assert entry["label"].strip() and entry["kind"] in ("paper", "book", "data")
-        assert re.fullmatch(r"/references/(papers|data)#paper-r\d{4,}", reference_urls.reference_path("data" if entry["kind"] == "data" else "papers", sid))
+        assert entry["label"].strip() and entry["kind"] in ("paper", "book", "data", "web")
+        assert re.fullmatch(r"/references/(papers|data)#paper-r\d{4,}", reference_urls.reference_path("data" if entry["kind"] in ("data", "web") else "papers", sid))
     for old, new in built["aliases"].items():
         assert new in built["sources"]

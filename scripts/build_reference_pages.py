@@ -157,6 +157,8 @@ def build_citations():
         }
     for a in cache.get("archives", []):
         sources[cache["ids"]["archive:" + a["url"].lower()]] = {"kind": "data", "label": a["name"], "title": a["name"]}
+    for w in cache.get("web_sources", []):
+        sources[cache["ids"]["web:" + w["url"].lower()]] = {"kind": "web", "label": w["name"], "title": w["name"]}
     for d in cache.get("setup_datasets", []):
         sources[cache["ids"]["setup:" + d["url"].lower()]] = {"kind": "data", "label": d["title"], "title": d["title"]}
     return {"aliases": dict(sorted(cache.get("id_aliases", {}).items())), "sources": sources}

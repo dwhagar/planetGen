@@ -482,9 +482,7 @@ function makeCloudVolume(cloud, volume) {
 // star's radius, luminosity and temperature, or a fixed recipe for a
 // phenomenon), with the Galaxy Map's own ranges and halo falloff, so a star
 // looks the same here as on the map the person just left (MAP.203); a
-// point never changes size with the zoom. On the light theme's pale background
-// a white core would vanish, so there the core is a darker shade of its
-// own color instead, and the halo blends as usual.
+// point never changes size with the zoom.
 // A highlighted kind of phenomenon (MAP.123) is drawn this many times larger.
 var HIGHLIGHT_GROWTH = 2.2;
 // A click within this many pixels of a point's center (or inside its
@@ -556,7 +554,6 @@ var POINT_VERTEX_SHADER = [
 var POINT_FRAGMENT_SHADER = [
   "#include <common>",
   "#include <logdepthbuf_pars_fragment>",
-  "uniform float lightBackground;",
   "uniform float fade;",
   "varying vec3 vColor;",
   "varying float vCore;",
@@ -570,14 +567,13 @@ var POINT_FRAGMENT_SHADER = [
   "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
   "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
   "  vec3 lit = mix(vColor, vec3(1.0), " + GROWN_WHITEN.toFixed(3) + " * vBright * vWhiten);",
-  "  vec3 coreColor = mix(lit, vColor * 0.55, lightBackground);",
-  "  gl_FragColor = vec4(mix(vColor, coreColor, core), clamp(core * vBright + halo, 0.0, 1.0) * fade);",
+  "  gl_FragColor = vec4(mix(vColor, lit, core), clamp(core * vBright + halo, 0.0, 1.0) * fade);",
   "}",
 ].join("\n");
 
 // One THREE.Points holding every entry with a `light`; a neighboring
 // sector's phenomenon (`neighbor`) is dimmed as its cloud would be.
-function makePointsOfLight(entries, lightBackground) {
+function makePointsOfLight(entries) {
   var n = entries.length;
   var positions = new Float32Array(3 * n);
   var colors = new Float32Array(3 * n);
@@ -620,7 +616,6 @@ function makePointsOfLight(entries, lightBackground) {
   var material = new THREE.ShaderMaterial({
     uniforms: {
       pixelRatio: { value: 1 },
-      lightBackground: { value: lightBackground ? 1 : 0 },
       fade: { value: 1 },
     },
     vertexShader: POINT_VERTEX_SHADER,
@@ -671,7 +666,6 @@ export function starClassOf(entry) {
 // of this file). `options`:
 //   origin, unit, flipY  where it goes (see the top of this file);
 //   accentColor          the accent (default the page's --accent);
-//   lightBackground      whether the map's background is light;
 //   pixelRatio           the renderer's device pixels per CSS pixel;
 // Returns {group, pointEntries, entries (every entry, list order), layers
 // (the picker layers, nearest first: points, bodies, volumes), ringSize(entry),
@@ -809,7 +803,7 @@ export function buildSectorScene(data, options) {
   }));
   var pointsOfLight = null;
   if (pointEntries.length) {
-    pointsOfLight = makePointsOfLight(pointEntries, !!o.lightBackground);
+    pointsOfLight = makePointsOfLight(pointEntries);
     pointsOfLight.material.uniforms.pixelRatio.value = o.pixelRatio || 1;
     group.add(pointsOfLight);
   }
