@@ -19129,20 +19129,6 @@ clears each one.
   the re-tag. Owner: Train Manager.
   Prerequisites: none.
 
-- [ ] **TEST.553 test_every_author_year_citation_has_an_outcome in test_references.py is red on main (19 keys, bug) (bug)**
-  Found by Core 3 and Citations (as the lanes reported, 1:05 AM EDT
-  2026-11-01):
-  src/tests/test_references.py::test_every_author_year_citation_has_an_outcome
-  fails on main itself with 19 keys, not from any branch. The citation
-  sweep moved author-year text into [R....] IDs, so the test's key list
-  is likely stale: decide whether the test still has a job (the lock
-  test test_citations_outside_the_registry.py now covers the same
-  ground) and either update it to the registry or delete it with its
-  helpers (no shim). Done: the file passes on main or the test is gone
-  with a note saying what covers it. Lock-free. Owner: Citations.
-  Prerequisites: none.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20825,26 +20811,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   plain-words guide and docs/design/interface/references.md. No author,
   year, journal, DOI or arXiv number outside the registry, REFERENCES.md
   and the References pages.
-
-- [ ] **DOC.101 Imported research notes: about 140 web-page, standards and fan-wiki lines in 8 notes have no home in the reference registry**
-  Found by Citations (2026-11-01 12:59 AM EDT as the lane reported)
-  while turning the imported notes' bibliographies into [R....] IDs
-  (#4738). About 140 lines in 8 imported notes are not papers: web
-  pages, standards (NFPA and similar), vendor documents (DuPont, Celery)
-  and fan-wiki pages (Memory Alpha). The registry
-  (docs/reference/references-data.json) has no kind for them, and the
-  lock test now fails on APA-form lines in Markdown. Decide per line:
-  (a) real standards and datasheets that a number rests on: add a web or
-  standard kind to the registry with its stable identifier and check
-  date, cite as [R....]; (b) lines that are fiction or game material
-  (Memory Alpha and similar): remove, since nothing fixed may come from
-  fiction (Boss rule: physics drives, no fixed Milky Way or Solar System
-  content, no game rates); (c) anything else nobody can open: remove, as
-  for unverifiable papers. Done: no APA-form line left in the 8 notes,
-  the registry and the References page show any new kind, the removed
-  lines are listed in a report. Owner: Citations. Lock-free.
-  Related: DOC.97, DOC.98.
-  Prerequisites: none.
 
 ## POP: Population and politics
 
