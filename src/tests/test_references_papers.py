@@ -182,7 +182,7 @@ def test_a_scan_finds_the_places_of_a_source_by_kind_and_area(tmp_path):
     assert found["files"] == 3
     one = found["uses"]["R0001"]
     assert one["values"] == ["src/planetgen/physics/data/gases.json", "src/planetgen/physics/ozone.py"]
-    assert one["notes"] == ["docs/design/habitability/life-classes.md"] and one["stand_ins"] == ["GR1"]
+    assert one["notes"] == ["docs/design/habitability/life-classes.md"] and one["stand_ins"] == ["5.1:GR1"]
     assert one["areas"] == ["galaxy", "atmospheres", "life"] or sorted(one["areas"]) == ["atmospheres", "galaxy", "life"]
     assert found["uses"]["R0003"]["areas"] == ["life"] and references_usage.cited_by(one) == 4
 

@@ -53,15 +53,17 @@ def load(name, folder=None):
     return _read(path, stamp)
 
 
-def cite(text, folder=None):
+def cite(text, folder=None, strict=True):
     """
     A sentence of a References page as HTML, each citation ID in it (`[R0123]`) replaced by a link to the source's entry (DOC.97). Only these pages
     name a source; everywhere else a citation stays an ID. A source the list does not hold, or a name written out, raises `citations.CitationError`.
+    `strict=False` skips the check for a name written out: the registry rows (DOC.90) carry decisions ("Boss, 2026-10-21") that are not citations,
+    and the build has already refused an unknown ID in them.
     """
     data = load("citations.json", folder)
     if data is None:
         raise citations.CitationError("docs/references/citations.json is missing: run python scripts/build_reference_pages.py")
-    return citations.link(text, data)
+    return citations.link(text, data, strict)
 
 
 def count(number):
@@ -190,6 +192,31 @@ def _listed(names):
     return {"names": names[:SHOWN], "more": max(0, len(names) - SHOWN)}
 
 
+@functools.lru_cache(maxsize=2)
+def _keys_of(stamp):
+    return frozenset(row["key"] for _part, row in rows_of(load("stand-ins.json")))
+
+
+def _stand_in_keys():
+    """The registry keys that have a page, read again when `stand-ins.json` changes; empty before the build has run."""
+    try:
+        stamp = os.stat(os.path.join(DOCS, "stand-ins.json")).st_mtime_ns
+    except OSError:
+        return frozenset()
+    return _keys_of(stamp)
+
+
+def _stand_in_places(keys):
+    """
+    The stand-ins that cite a source, as `{"names": [{"text", "url"}], "more": number}`: each name is the row ID and links to the page of the row (DOC.90)
+    when the stand-in pages are built and hold that row (the registry key is `5.1:GR1`).
+    """
+    known = _stand_in_keys()
+    keys = list(keys)
+    names = [{"text": key.split(":", 1)[-1], "url": reference_path("stand-in", key) if key in known else ""} for key in keys[:SHOWN]]
+    return {"names": names, "more": max(0, len(keys) - SHOWN)}
+
+
 def paper_entry(row, usage, anchor_id=True, compact=False):
     """
     One source as the page shows it: its ID, name, authors, title, where it was published, its links, and the places that cite it. A compact entry
@@ -213,7 +240,7 @@ def paper_entry(row, usage, anchor_id=True, compact=False):
         "links": links[:1] if compact else links,
         "areas": [references_usage.AREA_TITLES[area] for area in used["areas"]],
         "code": _listed(_place(path, "src/planetgen/") for path in used["values"]),
-        "stand_ins": _listed(used["stand_ins"]),
+        "stand_ins": _stand_in_places(used["stand_ins"]),
         "notes": _listed(_place(path, "docs/design/") for path in used["notes"]),
         "cited_by": references_usage.cited_by(used) if used["areas"] else 0,
     }
@@ -527,3 +554,164 @@ def data_page(data, licences=""):
         "This project would not be possible without the researchers, observers, instrument teams, and data archives whose work it builds on. "
         "Their papers are on the Papers page."]})
     return page
+
+# --- The stand-in pages (DOC.90, References R4) -------------------------------------------------------------------------------------
+
+FITTED_TWEAKS = ("L2", "L3", "L4")
+"""tuple: The tweak levels that were bent toward a result; the Fitted to a result page lists these rows."""
+
+SUMMARY_WORDS = 28
+"""int: How many words of a row's description the index shows."""
+
+_BRACKET = re.compile(r"\s*\[R\d{4,}(?:,\s*R\d{4,})*(?::[^\]]*)?\]")
+
+_UNREAD = {
+    "by design": "Nothing in the app reads this value, by design: it is a record of a choice and not an input.",
+}
+
+
+def summary(text, words=SUMMARY_WORDS):
+    """The first `words` words of a description with its citations left out, and an ellipsis where it was cut."""
+    plain = _BRACKET.sub("", text).split()
+    return " ".join(plain[:words]) + (" ..." if len(plain) > words else "")
+
+
+def _lookup(table, code):
+    """The `(name, meaning)` of a tier or tweak code in the legend rows `[[code, name, meaning]]`."""
+    return next(((name, meaning) for found, name, meaning in table if found == code), ("", ""))
+
+
+def rows_of(data):
+    """Every row of `stand-ins.json` as `(section, row)`, in the order the registry lists them."""
+    return [(section, row) for section in data["sections"] for row in section["rows"]]
+
+
+def find(data, slug):
+    """The `(section, row)` whose page address is `slug`, or `None`."""
+    for section, row in rows_of(data):
+        if row["slug"] == slug:
+            return section, row
+    return None
+
+
+def _filtered(data, tier=None, tweak=None, section=None, text=None):
+    """The sections of `data` cut down to the rows that match every filter given; a section with no row left is dropped."""
+    words = (text or "").lower().split()
+    kept = []
+    for part in data["sections"]:
+        if section and section not in (part["slug"], part["number"], part["key"]):
+            continue
+        rows = []
+        for row in part["rows"]:
+            if tier and row["tier_code"] != tier:
+                continue
+            if tweak and row["tweak"] != tweak:
+                continue
+            if words:
+                hay = " ".join([row["id"], row["what"], part["title"]] + [value for _label, value in row["fields"]]).lower()
+                if not all(word in hay for word in words):
+                    continue
+            rows.append(row)
+        if rows:
+            kept.append(dict(part, rows=rows))
+    return kept
+
+
+def standins(data, overview, tier=None, tweak=None, section=None, text=None):
+    """
+    The registry page, `/references/stand-ins`, as `{"title", "intro", "filters", "found", "total", "sections", "tiers", "tweaks"}`. `data` is
+    `stand-ins.json` and `overview` is `overview.json`; the filters narrow the rows to one tier, one tweak level, one section, or the words
+    in a text. Every row is `{"slug", "id", "what", "tier", "tweak", "kind"}` and links to its own page.
+    """
+    kept = _filtered(data, tier, tweak, section, text)
+    sections = [{"slug": part["slug"], "number": part["number"], "title": part["title"], "rows": [
+        {"slug": row["slug"], "url": reference_path("stand-in", row["key"]), "id": row["id"], "what": summary(row["what"]), "tier": row["tier"], "tweak": row["tweak"],
+         "kind": data["kinds"].get(row["kind"], row["kind"])} for row in part["rows"]]} for part in kept]
+    found = sum(len(part["rows"]) for part in sections)
+    total = sum(len(part["rows"]) for part in data["sections"])
+    return {
+        "title": "Stand-ins",
+        "intro": [
+            f"This is the registry of every stand-in: {count(total)} values that are not a verified measurement of the thing they stand for. "
+            "Each has its own page that says what it is, how it was made, and what would replace it.",
+            "A tier says where the number came from. A tweak level says how far it was bent. The legends are on the start page and below.",
+        ],
+        "filters": {"tier": tier or "", "tweak": tweak or "", "section": section or "", "text": text or ""},
+        "found": found, "total": total, "sections": sections,
+        "tiers": [list(row) for row in overview["tiers"]], "tweaks": [list(row) for row in overview["tweaks"]],
+        "tier_options": [{"value": "", "label": "Any tier"}] + [{"value": code, "label": f"{code}: {name}"} for code, name, _meaning in overview["tiers"]],
+        "tweak_options": [{"value": "", "label": "Any tweak level"}] + [{"value": code, "label": f"{code}: {name}"} for code, name, _meaning in overview["tweaks"]],
+        "section_options": [{"value": "", "label": "Every section"}] + [{"value": part["slug"], "label": f"{part['number']} {part['title']}"}
+                                                                         for part in data["sections"]],
+    }
+
+
+def _near(row):
+    """The next or the last stand-in of a section, for the links at the foot of a page."""
+    return {"id": row["id"], "url": reference_path("stand-in", row["key"])}
+
+
+def standin(data, overview, slug):
+    """
+    The page of one stand-in, `/references/stand-ins/<slug>`, or `None` when the registry has no such row: `{"title", "section", "row", "head",
+    "paragraphs", "fields", "before", "after"}`. Each field is `[label, html]`; the html links its citations.
+    """
+    found = find(data, slug)
+    if found is None:
+        return None
+    section, row = found
+    rows = section["rows"]
+    at = rows.index(row)
+    tier_name, tier_meaning = _lookup(overview["tiers"], row["tier_code"])
+    tweak_name, tweak_meaning = _lookup(overview["tweaks"], row["tweak"])
+    kind = data["kinds"].get(row["kind"], row["kind"])
+    paragraphs = [
+        f"This is stand-in {row['id']}, row {row['key']} of the registry.",
+        f"Its source tier is {row['tier']}: {tier_name.lower()}. {tier_meaning[:1].upper()}{tier_meaning[1:]}." if tier_name else "",
+        f"Its tweak level is {row['tweak']}: {tweak_name.lower()}. {tweak_meaning[:1].upper()}{tweak_meaning[1:]}.",
+    ]
+    if kind:
+        paragraphs.append(f"It is a {kind} fill.")
+    if row["unread"] == "by design":
+        paragraphs.append(_UNREAD["by design"])
+    elif row["unread"]:
+        paragraphs.append(f"Nothing in the app reads this value yet. The item {row['unread']} will wire it.")
+    if row["burn_down"]:
+        disposition, item, reason = row["burn_down"]
+        lead = {"no data": "Nothing we hold or can reach measures it, so it stays as it is.",
+                "replace": f"The item {item} replaces it with data.",
+                "replaced": "It has been replaced by data; this line stays for one release so the change can be found."}[disposition]
+        paragraphs.append(f"{lead} {reason[:1].upper()}{reason[1:]}.")
+    return {
+        "title": f"Stand-in {row['id']}", "section": {"slug": section["slug"], "number": section["number"], "title": section["title"]},
+        "row": row, "head": cite(row["what"], strict=False), "paragraphs": [text for text in paragraphs if text],
+        "fields": [[label, cite(text, strict=False)] for label, text in row["fields"]],
+        "before": _near(rows[at - 1]) if at else None, "after": _near(rows[at + 1]) if at + 1 < len(rows) else None,
+        "all": reference_path("stand-in"),
+    }
+
+
+def fitted(data, targets, overview):
+    """
+    The Fitted to a result page, `/references/fitted`: every stand-in at a tweak level of L2 to L4, grouped by level, and the table of tuning targets
+    the L2 rows were tuned to. `{"title", "intro", "levels", "targets", "total"}`.
+    """
+    levels = []
+    for code in FITTED_TWEAKS:
+        name, meaning = _lookup(overview["tweaks"], code)
+        rows = [{"slug": row["slug"], "url": reference_path("stand-in", row["key"]), "id": row["id"], "section": f"{part['number']} {part['title']}", "what": summary(row["what"]), "tier": row["tier"]}
+                for part, row in rows_of(data) if row["tweak"] == code]
+        levels.append({"code": code, "name": name, "meaning": meaning, "rows": rows})
+    return {
+        "title": "Fitted to a result",
+        "intro": [
+            "A stand-in is fitted when it was bent toward a result. Level L2 was tuned until a published count or distribution came out. "
+            "Level L3 was chosen by running the generator over many draws and looking at the outcome. Level L4 is whatever made the output right, with no independent source.",
+            f"{count(sum(len(level['rows']) for level in levels))} stand-ins are at these levels. The tuning targets they were tuned to are listed last.",
+        ],
+        "levels": levels,
+        "targets": [dict(target, statistic=cite(target["statistic"] or "", strict=False), source=cite(target["source"] or "", strict=False),
+                         falsifier=cite(target["falsifier"] or "", strict=False))
+                    for target in (targets["targets"] if targets else [])],
+        "total": sum(len(level["rows"]) for level in levels),
+    }

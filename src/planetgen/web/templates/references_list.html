@@ -7,6 +7,9 @@
 {% macro places(label, found) -%}
   {%- if found.names %}<li><span class="reference-place-label">{{ label }}:</span> {{ found.names | join(", ") }}{% if found.more %}, and {{ found.more }} more{% endif %}</li>{% endif -%}
 {%- endmacro %}
+{% macro stand_in_places(found) -%}
+  {%- if found.names %}<li><span class="reference-place-label">Stand-ins:</span> {% for name in found.names %}{% if name.url %}<a href="{{ name.url }}">{{ name.text }}</a>{% else %}{{ name.text }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% if found.more %}, and {{ found.more }} more{% endif %}</li>{% endif -%}
+{%- endmacro %}
 {% block content %}
 <aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>
 <section class="panel" id="references" aria-labelledby="references-heading">
@@ -63,7 +66,7 @@
         <li>{{ entry.type }}, {{ entry.field }}</li>
         {%- if entry.areas %}<li><span class="reference-place-label">Used in:</span> {{ entry.areas | join(", ") }}</li>{% else %}<li><span class="reference-place-label">Used in:</span> no code, data, or design note cites it</li>{% endif %}
         {{ places("Code and data", entry.code) }}
-        {{ places("Stand-ins", entry.stand_ins) }}
+        {{ stand_in_places(entry.stand_ins) }}
         {{ places("Design notes", entry.notes) }}
       </ul>
     </li>

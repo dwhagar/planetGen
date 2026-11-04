@@ -80,7 +80,7 @@ ADVICE = ("\nSay it in universe and, where a reader may want the why, link to th
     ("method", "atmospheres", "/references/method/atmospheres"),
     ("method", "atmospheres/surface_pressure", "/references/method/atmospheres#surface-pressure"),
     ("stand-in", None, "/references/stand-ins"),
-    ("stand-in", "GR1", "/references/stand-ins/gr1"),
+    ("stand-in", "5.1:GR1", "/references/stand-ins/5-1-gr1"),
     ("fitted", None, "/references/fitted"),
     ("fitted", "AM10", "/references/fitted#am10"),
     ("speculative", None, "/references/speculative"),
@@ -96,7 +96,7 @@ def test_each_kind_of_entry_has_one_address(kind, entry, path):
 
 @pytest.mark.parametrize("kind, entry", [
     ("nope", None), ("method", None), ("method", "wizardry"), ("method", "wizardry/surface_pressure"), ("about", "x"), ("overview", "x"),
-    ("papers", "!!"), ("papers", "10.1086/151682"), ("papers", "R12"), ("data", "Isochrones"), ("stand-in", ""),
+    ("papers", "!!"), ("papers", "10.1086/151682"), ("papers", "R12"), ("data", "Isochrones"), ("stand-in", ""), ("stand-in", "GR1"),
 ])
 def test_a_typo_in_a_kind_or_an_id_is_an_error_not_a_dead_link(kind, entry):
     with pytest.raises(ValueError):
@@ -127,14 +127,14 @@ def test_the_word_rule_is_exempt_where_the_addresses_begin():
 def test_only_the_references_addresses_are_references_paths():
     assert not reference_urls.is_reference_path("/referencesx")
     assert not reference_urls.is_reference_path("/help/references")
-    assert reference_urls.is_reference_path("/references/stand-ins/gr1")
+    assert reference_urls.is_reference_path("/references/stand-ins/5-1-gr1")
 
 
 def test_the_link_helper_is_a_template_global_and_escapes_its_label(app):
     from flask import render_template_string
     with app.test_request_context("/"):
-        html = render_template_string("{{ reference_link('stand-in', 'GR1') }} {{ reference_link('about', label='<b>Credits</b>') }}")
-    assert html == ('<a class="reference-link" href="/references/stand-ins/gr1">Where this comes from</a> '
+        html = render_template_string("{{ reference_link('stand-in', '5.1:GR1') }} {{ reference_link('about', label='<b>Credits</b>') }}")
+    assert html == ('<a class="reference-link" href="/references/stand-ins/5-1-gr1">Where this comes from</a> '
                     '<a class="reference-link" href="/references/about">&lt;b&gt;Credits&lt;/b&gt;</a>')
     with pytest.raises(ValueError):
         helpers.reference_link("method", "wizardry")
@@ -177,7 +177,7 @@ def test_the_checker_flags_the_out_of_universe_words_and_only_them(text, words):
 
 
 @pytest.mark.parametrize("path, free", [
-    ("/references", True), ("/references/papers", True), ("/references/stand-ins/gr1", True), ("/admin", True), ("/admin/settings", True),
+    ("/references", True), ("/references/papers", True), ("/references/stand-ins/5-1-gr1", True), ("/admin", True), ("/admin/settings", True),
     ("/referencesx", False), ("/help/life", False), ("/help/references", False), ("/system/ABC", False), ("/", False),
 ])
 def test_the_references_and_admin_pages_may_use_the_words(path, free):

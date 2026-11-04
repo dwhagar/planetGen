@@ -14,7 +14,8 @@ differ.
 Three kinds of place:
 
 * `values`: a code or data file (`src/planetgen/...`, `scripts/...`) that cites the source;
-* `stand_ins`: a row of the stand-in registry (`docs/design/research/gap-filling-plan.md`, GEN.725) that cites it;
+* `stand_ins`: a row of the stand-in registry (`docs/design/research/gap-filling-plan.md`, GEN.725) that cites it, by its registry key (`5.1:GR1`, the section number
+  and the row ID, which is also the key of its page, DOC.90);
 * `notes`: a design note (`docs/design/...`) that cites it.
 
 The area of a place is read from its name: the first rule of `RULES` that matches the path of a file, or the section title of a registry row. A
@@ -138,7 +139,7 @@ def registry_rows(text):
 
 def scan(root=None):
     """
-    `{"uses": {id: {"values": [path], "notes": [path], "stand_ins": [row id], "areas": [area]}}, "files": number read}`: where every source ID
+    `{"uses": {id: {"values": [path], "notes": [path], "stand_ins": [section:row id], "areas": [area]}}, "files": number read}`: where every source ID
     that some text cites is cited. The lists are sorted, once each.
     """
     root = root or ROOT
@@ -161,8 +162,10 @@ def scan(root=None):
     if os.path.isfile(registry):
         with open(registry, encoding="utf-8") as handle:
             for row, section, cited in registry_rows(handle.read()):
+                number = re.match(r"\d+\.\d+a?\b", section)
+                key = f"{number.group(0)}:{row}" if number else row
                 for sid in cited:
-                    place(sid, "stand_ins", row, area_of(section))
+                    place(sid, "stand_ins", key, area_of(section))
     for entry in uses.values():
         for kind in ("values", "notes", "stand_ins"):
             entry[kind].sort()
