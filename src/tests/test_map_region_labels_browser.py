@@ -99,18 +99,41 @@ def test_the_region_names_switch_takes_the_names_away_and_the_address_keeps_it(p
     _wait_for_names(page, 2)
 
 
+def _bare_spot(page, label):
+    """A point on the name that no region point button lies over (the buttons sit above their region's middle, often over its name)."""
+    x, y = _label_spot(page, label)
+    for dx in (0, -1, 1, -2, 2, -3, 3):
+        for dy in (0, -1, 1):
+            spot = (x + dx * label["width"] / 8, y + dy * label["height"] / 3)
+            if page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && !e.closest('.map-region-poi'); }", list(spot)):
+                return spot
+    return x, y
+
+
 def test_a_click_on_the_family_flies_to_its_block_and_on_a_region_to_the_region(page, map_site):
     _look(page, map_site, _centre(), BIG_NODES)
     _wait_for_names(page)
     family = next(label for label in page.evaluate(LABELS) if label["kind"] == "region")
-    page.mouse.click(*_label_spot(page, family))
+    page.mouse.click(*_bare_spot(page, family))
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     assert _window_size(page) == 81
     _look(page, map_site, _centre(), MIDDLE_NODES)
     _wait_for_names(page, 2)
     region = next(label for label in page.evaluate(LABELS) if label["kind"] == "region" and label["text"] == REGION_NAMES[(0, 0, 0)])
-    page.mouse.click(*_label_spot(page, region))
+    page.mouse.click(*_bare_spot(page, region))
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     assert _window_size(page) == 9
+
+
+def test_a_click_on_a_group_of_regions_flies_to_a_block_that_holds_them_all(page, map_site):
+    _look(page, map_site, _centre(), BIG_NODES)
+    _wait_for_names(page)
+    page.wait_for_selector(".map-region-poi")
+    groups = page.evaluate("() => [...document.querySelectorAll('.map-region-poi')].map((e) => e.querySelector('.map-region-poi-count').textContent)")
+    assert any(count and int(count) > 1 for count in groups), groups
+    page.locator(".map-region-poi", has=page.locator(".map-region-poi-count:not(:empty)")).first.click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    assert _window_size(page) >= 27
