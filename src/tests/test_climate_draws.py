@@ -101,6 +101,26 @@ def test_a_giant_stores_the_pair_that_gives_its_temperature_with_its_own_heat_in
             climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, _flux(planet, host_star)), rel=TOLERANCE)
 
 
+def test_a_body_held_at_the_surface_temperature_cap_stores_the_greenhouse_that_gives_the_cap(host_star, monkeypatch):
+    """GEN.1236: the fixed point holds a runaway greenhouse at `MAX_SURFACE_TEMPERATURE_K`, and the stored G follows the stored temperature (it kept the
+    uncapped warming's, 107 and 79 on two class N planets, which with the albedo gave 2370 K and 2600 K)."""
+    import dataclasses
+
+    from planetgen.physics import surface_air
+
+    real = surface_air.atmosphere_state.greenhouse_warming
+    monkeypatch.setattr(surface_air.atmosphere_state, "greenhouse_warming",
+                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0, factor=300.0))
+    with draw.bound(3):
+        planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, 0.5 * sum(host_star.habitable_zone),
+                        mass=constants.EARTH_MASS_TO_KG, moon_count=0)
+    assert planet.atmospheric_pressure > 0.0
+    assert planet.surface_temperature == pytest.approx(surface_air.MAX_SURFACE_TEMPERATURE_K)
+    assert planet.greenhouse_factor != 300.0
+    assert climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, _flux(planet, host_star)) == pytest.approx(
+        surface_air.MAX_SURFACE_TEMPERATURE_K, rel=TOLERANCE)
+
+
 def _old_convention_row(albedo, factor, flux, gravity_g, molar_kg_mol=0.029):
     """The columns of a body saved before the albedo and greenhouse columns existed: its scale height keeps the no-air temperature
     (`H = R T_e / (M g)`, the barometric law the generator then used), its temperature is `T_e (1 + G)^(1/4)`."""
