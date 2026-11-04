@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3195] - 2026-11-04
+
+**Headline:** The stand-in rows of the ring picture are numbered 6.170 and RNG1 to RNG8, clear of two other rows.
+
+### Changed
+- **MAP.275.** The stand-ins of the ring picture (the colour from the ice share, the resonance gaps and the display constants) were filed under section 6.166 and row names RG1 to RG8, which two other lists already held (the interior viscosity ranges, and the rogue ejection delay rows). They are now section 6.170 and rows RNG1 to RNG8 in the stand-in list (GEN.725). No picture changes.
+
+generation-output: unchanged
+
 ## [8.0.3194] - 2026-11-04
 
 **Headline:** A planet's rings on the System Map are drawn from what it stores: their edges, depth, ice share, a colour from the ice, and a gap where each moon's resonance falls.
