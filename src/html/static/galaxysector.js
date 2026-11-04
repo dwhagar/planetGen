@@ -11,7 +11,7 @@
 //
 // host:
 // - THREE, scene, camera, canvasEl, picker (the map's);
-// - accentColor, lightBackground, pixelRatio();
+// - accentColor, pixelRatio();
 // - fetchScene(id): a Promise of GET /sector/<id>/scene's JSON;
 // - fetchUnchartedScene(at) (optional): a Promise of the scene JSON of the
 //   cell `at` ({ring, layer, slot}) nothing was generated in, which holds
@@ -297,7 +297,7 @@ export function createSectorStage(host) {
       state.halfEdge = data.halfEdgePc;
       state.sector = buildSectorScene(data, {
         origin: data.centerPc, unit: data.halfEdgePc / half, flipY: true,
-        accentColor: host.accentColor, lightBackground: host.lightBackground, pixelRatio: host.pixelRatio(),
+        accentColor: host.accentColor, pixelRatio: host.pixelRatio(),
         // How many nebulae are drawn from their shape now (read by the browser tests).
         onShape: function (count) { host.canvasEl.dataset.sectorNebulaMeshes = String(count); },
       });

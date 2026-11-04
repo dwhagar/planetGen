@@ -2032,7 +2032,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
 <div class="sysmap-map-col">
 {view_switch}
 <div class="sysmap-diagram" id="sysmap-diagram">
-<div class="starmap-viewport sysmap-viewport{wash_class}" id="sysmap-viewport">
+<div class="starmap-viewport sysmap-viewport{wash_class}" id="sysmap-viewport" data-fit-aspect="1/1">
 {spheres_html}
 {''.join(scenes)}
 {info_panel}

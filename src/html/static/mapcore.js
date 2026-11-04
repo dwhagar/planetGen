@@ -37,12 +37,6 @@ export function mapVar(name, fallback) {
   return value || fallback;
 }
 
-// Whether the maps' background is light. It never is: every map is drawn on black in either theme (`--map-bg` in style.css; Boss, 2026-10-31), and the
-// map viewports take the dark theme's colors. The light-background branches that remain in the map scripts are dead until they are removed (UX.255).
-export function isLightBackground() {
-  return false;
-}
-
 // One "label: value" row of an info panel's <dl>, left out when there's
 // no value (0 is a value). Plain text, never markup: names are database
 // content.

@@ -444,72 +444,20 @@ Ultimately, these systems reflect the core physics of life support: as an operat
 
 ### References
 
-Diving Medical Advisory Committee. (2024). *Guidance on hyperbaric thermal hazards and saturation diving limits* (DMAC Guidance Note 29). DMAC / European Diving Technology Committee.
-
-DuPont Personal Protection. (2019). *DuPont SafeSpec chemical permeation guide: ASTM F739 normalized breakthrough times*. Syracuse University Environmental Health and Safety Services.
-
-European Space Agency. (2026). *Top five Venus mysteries EnVision will solve: Atmospheric oxidants and surface conditions*. ESA Science & Exploration.
-
-Humans to Titan Organization. (2026). *Human exploration of Titan: Atmospheric thermal environments and life support requirements*. Humans to Titan.
-
-IntechOpen. (2026). *Planetary regolith chemistry and biological hazards: Martian perchlorates and respiratory toxicology*. IntechOpen Publishing.
-
-International Conference on Environmental Systems. (2020). *Martian spacesuit thermal modeling, contact conductivity, and Ortho-fabric radiative characteristics* (ICES Paper Series). ICES.
-
-International Conference on Environmental Systems. (2023). *Advanced LCVG tubing and thermal resistance modeling for exploration spacesuits* (ICES Paper Series). ICES.
-
-International Enviroguard. (2026). *Hazardous materials hazmat protection levels: OSHA Level A through Level D standards*. International Enviroguard Technical Bulletin.
-
-Mission Orbit. (2025). *Extravehicular activity (EVA) spacesuit biomechanics, PLSS architecture, and spacewalk ergonomics*. Mission Orbit Aerospace Publications.
-
 [R5002]
 
-National Aeronautics and Space Administration. (1993). *LCVG and development of new concepts for EMU heat sink* (NASA-CR-19930005417). NASA NTRS.
+[R5029]
 
-National Aeronautics and Space Administration. (2016). *Exploration life support baseline values and assumptions document* (NASA/TP-2015-218570). NASA Johnson Space Center.
+[R5028]
 
-National Aeronautics and Space Administration. (2020). *EVA lunar surface concept of operations: xEMU capabilities, pressure settings, and suitport architecture* (EVA-EXP-0075). NASA Johnson Space Center.
+[R5027]
 
-National Aeronautics and Space Administration. (2022). *Aerogel-based thermal insulation systems for cryogenic-vacuum applications* (NESC Technical Assessment). NASA Engineering and Safety Center.
+[R5023]
 
-National Aeronautics and Space Administration. (2023). *Walking in space: The Russian Orlan spacesuit history and design* (NASA SP-4507). NASA History Division.
+[R5025]
 
-National Aeronautics and Space Administration. (2026a). *Establishing crew exposure limits of Martian dust: Technical standard V2 6253 rationale*. NASA Human Research Program.
+[R5022]
 
-National Aeronautics and Space Administration. (2026b). *Martian dust exposure limits special publication* (NASA/SP-20260005907). NASA Johnson Space Center.
-
-National Aeronautics and Space Administration. (2026c). *NASA spaceflight human-system standard: Volume 2, Revision F* (NASA-STD-3001). NASA Office of the Chief Health and Medical Officer.
-
-National Aeronautics and Space Administration. (2026d). *Mars portable life support system plan and exploration architecture* (ICES-2026-Presentation). NASA Johnson Space Center.
-
-National Fire Protection Association. (2018). *NFPA 1991: Standard on vapor-protective ensembles for hazardous materials emergencies and CBRN terrorism incidents*. NFPA.
-
-National Institute for Occupational Safety and Health. (2004). *NIOSH respirator selection logic* (DHHS/NIOSH Publication No. 2005-100). Centers for Disease Control and Prevention.
-
-New Space Economy. (2025). *What is the NASA ISS EVA suit? Operating pressures, onycholysis, and joint kinematics*. New Space Economy Aerospace Series.
-
-New Space Economy. (2026). *How will Martian dust exposure limits shape human Mars missions? NASA-STD-3001 Revision F analysis*. New Space Economy Aerospace Series.
-
-Occupational Safety and Health Administration. (2003). *Commercial diving operations: Oxygen partial pressure boundaries and decompression tables* (68 FR 1928). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2024). *Hazardous waste operations and emergency response (HAZWOPER) and personal protective equipment selection guidelines* (29 CFR 1910.120). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2026a). *OSHA technical manual: Chemical protective clothing and respiratory protection* (Section VIII, Chapter 1). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2026b). *Respiratory protection: Assigned protection factors and maximum use concentrations* (29 CFR 1910.134). U.S. Department of Labor.
-
-Occupational Safety and Health Administration. (2026c). *Fit testing and seal integrity protocols for tight-fitting respirators* (29 CFR 1910.134 Appendix A & B). U.S. Department of Labor.
+[R5021]
 
 [R4185]
-
-Space Voyage Ventures. (2025). *Space gloves: Tactility, ergonomics, and environmental protection in harsh extravehicular environments*. Space Voyage Ventures Engineering Reports.
-
-StemRad. (2026). *AstroRad radiation protective equipment evaluations on Orion and ISS: SPE and HZE attenuation*. StemRad Space Systems & Lockheed Martin.
-
-TwinMind. (2026). *Why NASA's next exploration spacesuits operate at elevated hypobaric pressures*. Aerospace Systems Review.
-
-U.S. Environmental Protection Agency. (2026). *Vapor-protective ensembles and emergency chemical guidelines under NFPA 1991*. EPA Office of Emergency Management.
-
-U.S. Navy. (2016). *U.S. Navy diving manual: Revision 7* (NAVSEA 0910-LP-115-1921). Naval Sea Systems Command.
-
-Void Orbital. (2026). *Cosmos exploration spacesuit: Structural capability, joint torque kinematics, and environmental seals*. Void Orbital Technical Reports.

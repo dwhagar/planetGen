@@ -118,3 +118,48 @@ export function watchWindowFit(view, below, options) {
     },
   };
 }
+
+// UX.142: the widest a box of fixed shape (a nav chart, the system diagram: `aspect` is width over height) may be so that its height stays
+// within what the window leaves it (`fillHeight`), in pixels; the box takes the width of its column when that is less.
+export function fitWidth(windowHeight, aspect, options) {
+  if (!Number.isFinite(aspect) || aspect <= 0) return Infinity;
+  return Math.max(1, Math.round(fillHeight(windowHeight, options) * aspect));
+}
+
+// Keeps a box of fixed shape inside the window: sets `view.style.maxWidth` to `fitWidth` now, when the window is resized, when the header
+// above it changes height and when the box itself is shown (a diagram hidden behind a switch). The CSS keeps its `aspect-ratio`, so its
+// height follows. Returns {refit, stop}.
+export function watchWindowBox(view, aspect, options) {
+  let busy = false;
+  function covered() {
+    const header = document.querySelector("header");
+    if (!header) return 0;
+    const position = window.getComputedStyle(header).position;
+    return position === "fixed" || position === "sticky" ? Math.round(header.getBoundingClientRect().bottom) : 0;
+  }
+  function refit() {
+    if (busy) return;
+    busy = true;
+    try {
+      const wanted = fitWidth(window.innerHeight, aspect, Object.assign({}, options, { covered: covered() })) + "px";
+      if (view.style.maxWidth !== wanted) view.style.maxWidth = wanted;
+    } finally {
+      busy = false;
+    }
+  }
+  let observer = null;
+  if (typeof ResizeObserver !== "undefined") {
+    observer = new ResizeObserver(refit);
+    observer.observe(view);
+    if (document.querySelector("header")) observer.observe(document.querySelector("header"));
+  }
+  window.addEventListener("resize", refit);
+  refit();
+  return {
+    refit: refit,
+    stop: function () {
+      if (observer) observer.disconnect();
+      window.removeEventListener("resize", refit);
+    },
+  };
+}
