@@ -318,3 +318,17 @@ def test_the_ultraviolet_dose_is_part_of_the_radiation_score_and_moves_it():
     assert tier_at(1.0, dose=0.5) == "Yellow"                       # the dose is the worse of the two
     assert tier_at(1000.0, dose=0.5) == "Red"                       # and so is the UV
     assert hab.radiation_score(World(101.3, 15, {}, surface_dose_sv_yr=0.002, uv_index=1e4)) == 0.0
+
+
+def test_hydrogen_sulfide_and_sulfur_dioxide_leave_less_of_animal_life_as_they_rise():
+    """GEN.1253: the air an acid-eating life makes is not clean air for an animal; the factor is 1 for none and falls at the chronic limits' scale."""
+    clean = World(101.3, 15, {"N2": 0.78, "O2": 0.21}, ph=8.1, relative_humidity=0.7)
+    assert hab.toxin_factor(clean) == pytest.approx(1.0)
+    for gas, scale in (("H2S", hab.H2S_TOX_KPA), ("SO2", hab.SO2_TOX_KPA)):
+        share = scale / 101.3
+        mild = World(101.3, 15, {"N2": 0.78 - share, "O2": 0.21, gas: share}, ph=8.1, relative_humidity=0.7)
+        assert hab.toxin_factor(mild) == pytest.approx(math.exp(-1.0), rel=1e-6), gas
+        assert hab.t_metazoa(mild) < hab.t_metazoa(clean)
+        idlh = World(101.3, 15, {"N2": 0.68, "O2": 0.21, gas: 0.1}, ph=8.1, relative_humidity=0.7)
+        assert hab.toxin_factor(idlh) < 1e-6, gas
+    assert hab.H2S_TOX_KPA == 2.0 * hab.GAS_LIMITS_KPA["H2S"][0] and hab.SO2_TOX_KPA == 2.0 * hab.GAS_LIMITS_KPA["SO2"][0]

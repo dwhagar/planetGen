@@ -227,6 +227,10 @@ higher in Gy than this says, which no world near the 10 Gy/yr line notices."""
 CO_TOX_KPA = 0.01
 CO2_TOX_KPA = 2.0
 """float: T_metazoa's CO and CO2 scales, kPa (the Xenobiology doc)."""
+H2S_TOX_KPA = 0.002
+SO2_TOX_KPA = 0.001
+"""float: T_metazoa's hydrogen sulfide and sulfur dioxide scales, kPa (GEN.1253): twice the chronic limit of `GAS_LIMITS_KPA`, which is how CO (0.01 against 0.005)
+and CO2 (2.0 against 0.93) sit against theirs. Source tier T6, tweak level L1 (registry LF22)."""
 
 METAZOA_O2_LOW_KPA = 8.0
 METAZOA_O2_HIGH_KPA = 50.0
@@ -659,8 +663,10 @@ def phi_bio(world):
 
 
 def toxin_factor(world):
-    """The share of animal life that carbon monoxide and carbon dioxide leave (the toxic terms of `t_metazoa`): 1 for clean air."""
-    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2))
+    """The share of animal life that carbon monoxide, carbon dioxide, hydrogen sulfide and sulfur dioxide leave (the toxic terms of `t_metazoa`; the last two
+    are the air an acid-eating life makes, GEN.1253): 1 for clean air."""
+    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2)
+            * math.exp(-(world.partial_kpa("H2S") / H2S_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("SO2") / SO2_TOX_KPA) ** 2))
 
 
 def t_metazoa(world):
