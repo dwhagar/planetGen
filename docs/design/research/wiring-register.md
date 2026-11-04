@@ -17,10 +17,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.photolysis.inverse_square | by design | the bare 1 / r^2 of the Sun for the table's tests and notes; the generator's flux ratio is `activity.far_uv_flux_ratio` |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.generation.remnant_orbits.pollution_rate_g_s | GEN.1231 | the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too |
-| function | planetgen.physics.activity.far_uv_flux_ratio | GEN.982 | the star's 91.2 to 200 nm flux at the body relative to the quiet Sun at 1 AU, the `flux_ratio` of the photolysis rates; part 3 of GEN.982 hands it to the haze supply through `surface_air.Setting` |
 | function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
-| data | photolysis_lifetimes.json | GEN.982 | read by `physics/photolysis.py` only |
-| module | planetgen.physics.mixture_trace | GEN.524 | the trace gases of an air drawn after the life stage; no caller yet |
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
