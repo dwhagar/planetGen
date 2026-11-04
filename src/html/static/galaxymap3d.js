@@ -2746,10 +2746,15 @@ function initGalaxyMap3d(canvasEl, data) {
     return { total: starList.length, hidden: hidden };
   };
 
+  // MAP.368: whether `star` is a black hole while the Black holes layer is off (it starts off): its purple dot and its mark are not drawn.
+  function holeHidden(star) {
+    return !!star.phenomenon && star.type === "black_hole" && typeof stageView !== "undefined" && !!stageView && !stageView.layers.isOn("marker-black-hole");
+  }
+
   // 1 for a star the shader drops: one inside the opened sector's cell (it draws its own) and, with a sector opened, a
   // phenomenon outside it (no comets, rogue planets or black holes of the space around, MAP.327).
   function clippedByTheSector(star) {
-    if (!drawnByTheGalaxy(star.x, star.y, star.z)) return 1;
+    if (!drawnByTheGalaxy(star.x, star.y, star.z) || holeHidden(star)) return 1;
     return hiddenCell && star.phenomenon ? 1 : 0;
   }
 
@@ -4087,6 +4092,7 @@ function initGalaxyMap3d(canvasEl, data) {
     // stage writing the address back before it has taken its marks from it).
     stageView.readLayersFromLocation();
     stageView.layers.refresh();   // the Menu and legend were drawn before these kinds existed
+    markHiddenStars();    // MAP.368: the black holes' purple dots follow the Black holes layer, which exists from here on
     // MAP.306: the point-of-interest rows open as the visitor left them unless the address chose.
     var poiIds = markerKinds.kinds().filter(function (kind) { return kind.interest; }).map(function (kind) { return kind.id; });
     var poiDefaults = {};
@@ -4192,6 +4198,18 @@ function initGalaxyMap3d(canvasEl, data) {
     canvasEl.__mapNebulae = nebulaLayer;    // the browser tests read what is drawn
     canvasEl.__mapNebulaVolumes = nebulaVolumes;
     canvasEl.__mapNebulaTint = nebulaTintUniforms;
+    canvasEl.__mapHoleDots = function () {    // the browser tests count the black holes drawn as purple dots, and the colour they take
+      var clipped = starPoints.geometry.getAttribute("starClipped");
+      var drawn = 0;
+      var held = 0;
+      for (var i = 0; i < starList.length; i++) {
+        if (starList[i].phenomenon && starList[i].type === "black_hole") {
+          held++;
+          if (!(clipped && clipped.array[i] > 0.5)) drawn++;
+        }
+      }
+      return { held: held, drawn: drawn, colour: POINT_COLORS.black_hole };
+    };
     canvasEl.__mapNebulaWindow = function () {    // the browser tests read the open window and how many stars are drawn
       var clipped = starPoints.geometry.getAttribute("starClipped");
       var drawn = 0;
@@ -4210,6 +4228,8 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.layers.refresh();
   stageView.layers.onChange(function (id, on) {
     if (id === "spin") stageView.spinSwitch.set(on);
+    // MAP.368: the Black holes layer shows or hides the purple dots as well as the marks.
+    if (id === "marker-black-hole") markHiddenStars();
   });
   // The superbubbles are a layer of the Menu, off unless the visitor shows them.
   if (bubbleMeshes.length) {
@@ -4729,7 +4749,7 @@ function initGalaxyMap3d(canvasEl, data) {
     enabled: function () { return stageView.inContainer(); },
     points: function () { return starList; },
     reach: function () { return POINT_PICK_PX; },
-    accept: function (star) { return star.phenomenon && drawnByTheGalaxy(star.x, star.y, star.z); },
+    accept: function (star) { return star.phenomenon && drawnByTheGalaxy(star.x, star.y, star.z) && !holeHidden(star); },
     lastWins: true,
     tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
     hover: hoverWith(pointFacts),

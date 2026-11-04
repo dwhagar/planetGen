@@ -470,3 +470,8 @@ test("the card names the most advanced species' band of a civilization (MAP.344)
   assert.equal(kind.describe(item), "Forge, 2 worlds with a civilization, most advanced Industrial");
   assert.equal(item.tech, 2.1);
 });
+
+test("the black hole kind starts off (MAP.368): a stored choice still wins, so the registry's default is the only thing it sets", () => {
+  assert.equal(M.BLACK_HOLE_KIND.defaultOn, false);
+  assert.equal(M.BLACK_HOLE_KIND.id, "marker-black-hole");
+});

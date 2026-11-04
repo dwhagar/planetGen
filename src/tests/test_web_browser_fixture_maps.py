@@ -80,6 +80,7 @@ def page(gl_browser, request):
                                      color_scheme="dark")
     page = context.new_page()
     page.names_hidden = request.node.get_closest_marker("names_hidden") is not None
+    page.holes_default = request.node.get_closest_marker("holes_default") is not None
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     try:
@@ -95,6 +96,9 @@ DOUBLE_CLICK_GAP_MS = 400
 def _open(page, url, ready):
     if getattr(page, "names_hidden", False) and "hide=" not in url:
         url += ("&" if "?" in url else "?") + "hide=" + HIDE_NAMES
+    if not getattr(page, "holes_default", False) and "/galaxy" in url and "marker-black-hole" not in url:
+        # MAP.368: the Black holes layer starts off; the tests that look at black holes ask for it, those of its default are marked `holes_default`.
+        url = url.replace("show=", "show=marker-black-hole,", 1) if "show=" in url else url + ("&" if "?" in url else "?") + "show=marker-black-hole"
     response = page.goto(url, wait_until="load")
     assert response.status == 200, f"{url} answered {response.status}"
     page.wait_for_selector(ready, state="attached")
@@ -2980,20 +2984,35 @@ def _spot_clear_of_names(page, spot, tooltip_text):
     raise AssertionError(f"no pixel near {spot} names {tooltip_text!r} on hover")
 
 
-def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked(page, map_site):
-    """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
-    address, a legend line while on, and a click on the glyph shows the black hole's card."""
+HOLE_DOTS = "() => document.querySelector('#galaxymap3d-canvas').__mapHoleDots()"
+
+
+@pytest.mark.holes_default
+def test_galaxy_map_black_holes_start_off_and_the_layer_turns_on_marks_and_purple_dots(page, map_site):
+    """MAP.368 (MAP.219): the Black holes layer starts off, so no mark, no purple dot and no legend line; turning it on draws the glyph
+    over each black hole in view and the dots in purple (#a43cff) with a legend line, rides in the address as `show`, is kept by a
+    reload, and a click on the glyph shows the black hole's card; turning it off takes all of it away again."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     _poi_layers(page)    # a crowd of a black hole with a world's mark has no name of its own (MAP.305), which the long runs hit
-    page.locator("#galaxymap3d-menu > summary").click()
     holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]')
+    legend = page.locator("#galaxymap3d-layer-legend")
+    _open_menu(page)
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false", "off until the visitor turns it on"
+    page.wait_for_function(f"() => ({HOLE_DOTS})().held > 0")
+    assert page.evaluate(HOLE_DOTS)["drawn"] == 0, "no purple dot while it is off"
+    page.wait_for_timeout(500)
+    assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
+    assert "Black holes" not in legend.inner_text()
+    # On: the marks, the dots in purple, the legend line and the address.
+    button.click()
+    assert button.get_attribute("aria-pressed") == "true"
+    assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("show", [""])[0].split(",")
     drawn = _markers_until(page, lambda found: {e["name"] for e in found if e["kind"] == "marker-black-hole"} >= set(holes))
     assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
-    legend = page.locator("#galaxymap3d-layer-legend")
+    dots = page.evaluate(HOLE_DOTS)
+    assert dots["drawn"] == dots["held"] > 0 and dots["colour"].lower() == "#a43cff", dots
     assert "Black holes" in legend.inner_text()
-    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]')
-    _open_menu(page)
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
     # The keyboard and screen readers get a button per marker.
     page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
@@ -3012,23 +3031,20 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     spot = _spot_clear_of_names(page, spot, "Fixture Maw")
     page.mouse.click(*spot)
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
-    # Off: no markers, no legend line, and the address says so.
-    _open_menu(page)
-    button.click()
-    assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
-    assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
-            if e["kind"] == "marker-black-hole"] == []
-    assert "Black holes" not in legend.inner_text()
-    # A reload keeps it off; on again brings them back.
+    # A reload keeps it on.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
-    page.wait_for_timeout(800)
-    assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
+    assert {e["name"] for e in _markers_until(page, lambda found: any(e["kind"] == "marker-black-hole" for e in found))
+            if e["kind"] == "marker-black-hole"} >= set(holes)
+    # Off again: no marks, no dots, no legend line, and the address no longer lists it.
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
-    assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
-    assert "marker-black-hole" not in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
+    assert "marker-black-hole" not in parse_qs(urlparse(page.url).query).get("show", [""])[0].split(",")
+    assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
+            if e["kind"] == "marker-black-hole"] == []
+    assert page.evaluate(HOLE_DOTS)["drawn"] == 0
+    assert "Black holes" not in legend.inner_text()
 
 
 GLOW = "() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && {count: g.count(), drawn: g.drawn(), visible: g.isVisible()}; }"
@@ -3340,6 +3356,7 @@ def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_s
     assert page.evaluate(GLOW)["visible"] is False
 
 
+@pytest.mark.holes_default
 def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_system(page, map_site):
     """MAP.220, MAP.303: systems with a habitable world get a marker of their own kind, on until the Menu turns it off (and
     `hide=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds; the
@@ -3350,7 +3367,7 @@ def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_syste
                   [list(STAR_FIELD_CENTER_PC), 16])
     _settle(page)
     page.wait_for_timeout(1000)
-    wanted = {"marker-black-hole", *POI_DEFAULT_ON}
+    wanted = set(POI_DEFAULT_ON)    # MAP.368: the black holes are not among them any more
     found = _markers_until(page, lambda entries: wanted <= {e["kind"] for e in entries})
     assert {e["kind"] for e in found} == wanted, found
     assert "show=" not in page.url and "hide=marker" not in page.url
@@ -3479,6 +3496,7 @@ def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_c
     assert not [e for e in found if e["kind"] == "marker-class-G"]
 
 
+@pytest.mark.holes_default
 def test_galaxy_map_life_class_markers_are_off_until_chosen_and_mark_the_systems_where_the_class_lives(page, map_site):
     """MAP.351: the Menu has a Life classes group with a marker for each of the 15 life classes, all off until the visitor picks them;
     choosing one marks the systems with a world where that class lives once the map is close enough to have their sector, and the hover
