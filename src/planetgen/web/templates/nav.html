@@ -18,6 +18,7 @@
   </form>
 {%- endmacro %}
 {% block head %}
+<script type="module" src="{{ static_url('boxfit.js') }}"></script>
 {%- if bookmark_pick or bookmark_changes %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- endif %}

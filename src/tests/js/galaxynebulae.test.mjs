@@ -8,7 +8,7 @@ import { STATIC_URL } from "./fakedom.mjs";
 const N = await import(new URL("galaxynebulae.js", STATIC_URL).href);
 const L = await import(new URL("nebulalook.js", STATIC_URL).href);
 
-const looks = L.nebulaLooks(false);
+const looks = L.NEBULA_LOOKS;
 const block = { m: 81, shell: 4, band: 1, wedge: 2 };
 
 const region = (key, extra) => Object.assign({
@@ -17,14 +17,14 @@ const region = (key, extra) => Object.assign({
 const node = (regions) => ({ key: "81.4.1.2", block, node: { nebula_regions: regions } });
 
 test("a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several", () => {
-  const [blob] = N.regionBlobs([node([region("27.12.3.1")])], looks, false, null);
+  const [blob] = N.regionBlobs([node([region("27.12.3.1")])], looks, null);
   assert.deepEqual([blob.x, blob.y, blob.z, blob.radiusPc, blob.count], [100, 20, 5, 40, 12]);
   assert.equal(blob.key, "27.12.3.1");
   assert.equal(blob.family, "emission");
   assert.deepEqual(blob.block, block);
   assert.deepEqual(blob.color, N.colourOf(looks.emission[0]));
   assert.equal(blob.ring, true);
-  const [one] = N.regionBlobs([node([region("27.1.1.1", { count: 1 })])], looks, false, null);
+  const [one] = N.regionBlobs([node([region("27.1.1.1", { count: 1 })])], looks, null);
   assert.equal(one.ring, false);
 });
 
@@ -32,7 +32,7 @@ test("a malformed group, a repeated key and a hidden family are left out", () =>
   const list = N.regionBlobs([node([
     region("a"), region("a"), region("b", { centre: null }), region("c", { radius_pc: 0 }), region("d", { count: 0 }),
     region("e", { shares: { dark: 1 } }), region("f", { shares: {} }), null,
-  ])], looks, false, (family) => family !== "dark");
+  ])], looks, (family) => family !== "dark");
   assert.deepEqual(list.map((b) => b.key), ["a"]);
 });
 
@@ -43,14 +43,14 @@ test("the dominant family is the largest share, a tie going to the earlier famil
   assert.equal(N.dominantFamily(null), null);
 });
 
-test("every family has a colour on both themes and a label", () => {
-  [false, true].forEach((light) => N.FAMILIES.forEach((family) => {
-    const colour = N.familyColour(family, L.nebulaLooks(light), light);
+test("every family has a colour and a label", () => {
+  N.FAMILIES.forEach((family) => {
+    const colour = N.familyColour(family, looks);
     assert.equal(colour.length, 3);
     colour.forEach((v) => assert.ok(v >= 0 && v <= 1));
     assert.ok(N.FAMILY_LABELS[family]);
-  }));
-  assert.notDeepEqual(N.familyColour("emission", looks, false), N.familyColour("reflection", looks, false));
+  });
+  assert.notDeepEqual(N.familyColour("emission", looks), N.familyColour("reflection", looks));
 });
 
 test("a region shows from 2 px across, is stronger with more nebulae and is gone when it fills the screen", () => {
@@ -92,7 +92,7 @@ test("3,000 candidates: exactly the strongest 600 are drawn, the same ones every
       shares: { [N.FAMILIES[i % N.FAMILIES.length]]: 1 },
     }));
   }
-  const blobs = N.regionBlobs([node(regions)], looks, false, null);
+  const blobs = N.regionBlobs([node(regions)], looks, null);
   assert.equal(blobs.length, 3000);
   const camera = [0, 0, 9000];
   const alphasOf = () => blobs.map((blob) => N.regionLook(blob, camera, 800).alpha);

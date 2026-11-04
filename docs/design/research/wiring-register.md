@@ -112,6 +112,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
+| module | planetgen.generation.rogue_landing | GEN.1111 | where a rogue an ejection event made is now (the ring drift from its donor's place, its velocity and the sector that holds it); the donor's save reads it when the lock wiring lands |
+| module | planetgen.generation.ejection_events | GEN.1111 | the events a rogue is built from (whether, when, how fast and which way a body a donor threw out left, its age and its moon limit); the donor's save reads it when the lock wiring lands |
 | module | planetgen.generation.phenomena.starless_host | GEN.1111 | the host a rogue planet is built against (the donor's mass and snow line, no light, the rogue's age) and `build_ejected_planet`; the rogue rows from the architecture's ejections read it when the lock wiring lands, after the table's no-host rule |
 | module | planetgen.physics.rogue_drift | GEN.1111 | the closed-form drift of an ejected planet from its star; the virtual-donor placement of rogue planets reads it |
 | row | 6.89:GD1 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
@@ -371,3 +373,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.designations.resolve_name | GEN.1140 | the search by a past name; GEN.1140 calls it |
 | function | planetgen.galaxy.designations.resolve_uid | GEN.1139 | the redirect, 409 and 410 lookup of a retired ID; GEN.1139 calls it |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
+| module | planetgen.physics.system_bodies | GEN.1241 | the system body ledger (rows, tree checks, mass sums, the barycentre that includes the belts, the belt wobble); lock-free pure part of GEN.1066, the view over the typed tables reads it when the wiring lands |
