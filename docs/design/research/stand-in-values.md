@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1044 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1049 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 83 | 38 | 7 | 9 | 0 | 137 |
 | T4 | 51 | 5 | 1 | 17 | 10 | 84 |
 | T5 | 44 | 18 | 3 | 1 | 0 | 66 |
-| T6 | 96 | 82 | 20 | 51 | 0 | 249 |
-| T7 | 32 | 14 | 7 | 12 | 0 | 65 |
+| T6 | 96 | 84 | 21 | 52 | 0 | 253 |
+| T7 | 32 | 14 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 23 | 14 | 5 | 46 | 21 | 109 |
-| All | 590 | 227 | 52 | 143 | 32 | 1044 |
+| All | 590 | 229 | 53 | 145 | 32 | 1049 |
 
 ## How the labels were given
 
@@ -1027,6 +1027,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RO11 | P | T3 | L0 | ring_origin.METEOROID_FLUX_KG_M2_S 1e-16, the meteoroid mass flux on Saturn's rings in kg per square metre per second | 3e-17 to 3e-16 | the erosion of rings at 1 to 30 AU | a measured meteoroid flux at Saturn's rings over 3 times or under a third of this | the meteoroid flux by distance and size from a dust-environment model [R5070] and the Cassini dust analyser | [R5074] give 1e-17 g per square cm per second, recalled; the Cassini dust analyser measures the same order | - | - |
 | RO12 | P | T6 | L1 | ring_origin.METEOROID_FLUX_EXPONENT 1.5, how the flux falls with distance from the star | 1.0 to 2.0 | planets at 0.1 to 30 AU | a dust-flux model whose slope between 1 and 10 AU is outside 1.0 to 2.0 | the interplanetary dust flux by distance [R5070] | the dust flux of the outer Solar System falls faster than the first power of the distance, recalled | - | - |
 | RO13 | P | T4 | L3 | ring_origin.EROSION_YIELD 1.0, the ring mass an impactor takes away in impactor masses | 1 to 100 | icy and rocky rings | an impact-ejecta experiment on ring ice whose mass yield at 30 km/s is under 1 or over 100 | the ejecta yield by impact speed and ring material from impact experiments | the ejecta of a hypervelocity impact on ice are tens to thousands of impactor masses, most of it falling back; 1 is the least | - | no data |
+| RO14 | P | T7 | L3 | ring_origin.FEEDER_MEAN_COUNT 6, the mean number of small moonlets a giant has inside 3 radii (the generator makes no moon under a few hundred km, so these are drawn, not stored) | 2 to 15 | giants | a survey of giants' inner moonlets whose mean inside 3 radii is outside 2 to 15, or a giant with a dust ring and none | a moonlet population from the ring-moon cycle (the Roche-limit spreading and re-accretion, [R0920]) | Jupiter 4, Saturn 6 to 8, Uranus 13 and Neptune 6 inner moons; four giants, none without any | - | no data |
+| RO15 | P | T6 | L2 | ring_origin.FEEDER_MAX_DISTANCE_RADII 3 and FEEDER_MAX_RADIUS_KM 100: a moon feeds the dust ring if it orbits inside 3 planet radii and is under 100 km | 2 to 4 radii; 50 to 150 km | giants | a ring-feeding moon found over 150 km or outside 4 radii | the ejecta escape speed and the dust lifetime of each moon from its size and orbit | Amalthea (84 km, 2.5 Jupiter radii) feeds the gossamer ring; larger moons keep their ejecta | - | no data |
+| RO16 | P | T6 | L3 | ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon | 1 to 100 | feeding moons of 5 to 100 km | an impact-ejecta measurement whose kept share is under 1 or over 100 | the ejecta yield and speed distribution of a hypervelocity impact on a small moon's surface (the escape fraction) | puts Jupiter's four inner moons at 2.4e7 kg, inside the 1e7 to 1e9 kg of its ring | - | no data |
+| RO17 | P | T6 | L1 | ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow | 1e3 to 1e5 | micron grains round a giant | a measured grain lifetime outside 1e3 to 1e5 years | the Poynting-Robertson, plasma and Lorentz drag of each grain size at the planet | 1e3 to 1e5 years for micron grains round Jupiter, [R5081], recalled | - | - |
+| RO18 | P | T6 | L1 | ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet | one factor | giants | an inner moonlet found outside 3 to 150 km or 1.2 to 4 radii | the size distribution of the moonlets from the ring-moon cycle | Metis 22, Adrastea 8, Pan 14, Cordelia 20, Galatea 79 km; between 1.7 and 3 radii | - | - |
 
 ## 6.71 Stand-ins of the resonance rings of small bodies
 
