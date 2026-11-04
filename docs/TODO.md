@@ -17745,24 +17745,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.571 test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug)**
-  Found by Bug 1 in its PERF.229 work, 1:50 PM EST on 2026-11-04 (as the
-  lane reported). The hypothesis test
-  test_random_valid_configs_generate_sane_systems runs past 2900 s on
-  plain main: the heavy star draws (giant classes on late subclasses,
-  supergiant cells) cost minutes per system through per-body air and
-  climate work (gas_equilibrium solve, reconcile_moved_planet). Do: cap
-  the number of hypothesis examples, or bound the heavy star draws in
-  the test (as PERF.229 did for the star-type fuzz test, by spectral
-  letter and subclasses 0/5/9), so the test finishes in under 10 minutes
-  on a 4-core machine; keep the sanity checks. Done: the test passes on
-  main in the time. A separate performance item may be filed for the
-  intrinsic per-body air and climate cost if it matters beyond this
-  test. Lock-free (test only). Related: TEST.417, PERF.229. Owner Aux 3
-  after PERF.232 (proposed by the TODO thread). Filed by the TODO
-  thread.
-  Prerequisites: none.
-
 - [ ] **TEST.572 Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug)**
   Found by Tides 1, about 2:30 PM EST on 2026-11-04 (as the lane
   reported), red with and without its GEN.1218b change. (1) A
