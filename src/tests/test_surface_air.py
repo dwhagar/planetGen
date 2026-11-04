@@ -5,12 +5,13 @@ acceleration of a creep, the cages of the ice, and the stored air of generated s
 
 import dataclasses
 import math
+import types
 
 import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, giant_draw, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -288,8 +289,8 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
     the scale height `R T / (M g)`, and the multiplier is the warming `atmosphere_state.greenhouse_warming` finds for the stored mixture
     at the starlight the body absorbs, with the sunlight its haze takes aloft (GEN.851), which is the one its stored temperature `T_e (1 + G)^(1/4)` is made
-    of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away), and a giant that radiates more than it absorbs
-    (its internal flux) has a haze share of the radiated flux the test reads as the absorbed one (under 1 percent of the factor)."""
+    of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away; a giant's haze is the one of its single step), and a giant that radiates more than it absorbs
+    (its internal flux) has a haze share of the radiated flux, which the test scales from the starlight it absorbs."""
     bodies = 0
     for body in _generated(range(10)):
         air = atmosphere.gas_partials_pa(body)
@@ -308,8 +309,13 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             continue            # the table holds its edge above 1000 bar and the fixed point caps the temperature (2000 K): no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
-        haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
-                                body.star.temperature)
+        haze_temperature = body.surface_temperature
+        if body.body_type == "g":
+            # a giant takes one step of the fixed point, so its haze is the one of the temperature the step starts from (the no-air one at the stored albedo)
+            starlight = body.star.luminosity / (4.0 * math.pi * (body._star_distance_au * constants.AU_M) ** 2)
+            haze_temperature = climate_draws.equilibrium_temperature_k(body.bond_albedo, starlight)
+        haze = aerosols.haze_of(air, gravity, haze_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
+                                body.star.temperature, aerosols.far_uv_of(body.star, body._star_distance_au))
         if body.body_type == "g":
             # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
             # the air it has is warmed under the starlight and its own heat together
@@ -388,6 +394,74 @@ def test_a_stalled_equilibrium_is_tried_again_from_the_middle_of_the_way_back(mo
     monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_once)
     planet = _earth_like_planet()
     assert len(calls) > 2 and planet.atmospheric_pressure > 0.0
+
+
+# --- GEN.972: the ice-albedo law in the fixed point -------------------------------------------------------------------------------
+
+def _iced_body(water_mass_fraction=0.2, body_type="t"):
+    return types.SimpleNamespace(body_type=body_type, mass=6.0e24, star=types.SimpleNamespace(temperature=5770.0))
+
+
+def test_a_body_with_surface_water_gets_an_ice_law_that_starts_at_its_drawn_albedo_and_reaches_the_bright_ice():
+    law = sa.ice_albedo_law(_iced_body(), 0.31, surface_w=0.1)
+    assert law.ice_free == 0.31 and law.ice_covered == pytest.approx(0.62)
+    assert law.albedo(320.0) == 0.31 and law.albedo(200.0) == pytest.approx(0.62)
+
+
+def test_a_bright_ice_never_covers_under_the_albedo_of_the_ice_free_body():
+    law = sa.ice_albedo_law(_iced_body(), 0.8, surface_w=0.1)
+    assert law.ice_covered == 0.8 and law.albedo(150.0) == 0.8
+
+
+def test_a_giant_and_a_dry_body_keep_the_albedo_they_drew():
+    assert sa.ice_albedo_law(_iced_body(body_type="g"), 0.3, surface_w=0.1) is None
+    assert sa.ice_albedo_law(_iced_body(), 0.3, surface_w=0.0) is None
+    assert sa.ice_albedo_law(_iced_body(), 0.3, surface_w=None) is None
+
+
+def test_the_flux_of_a_setting_follows_the_law_at_the_temperature_and_is_held_without_one():
+    held = _setting()
+    assert held.absorbed_flux_at(100.0) == held.absorbed_flux_at(400.0) == held.absorbed_flux_w_m2
+    law = sa.climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.6)
+    follows = dataclasses.replace(held, starlight_w_m2=1000.0, albedo_law=law)
+    assert follows.absorbed_flux_at(320.0) == pytest.approx(0.7 * 250.0)
+    assert follows.absorbed_flux_at(200.0) == pytest.approx(0.4 * 250.0)
+
+
+def test_a_cold_world_with_the_law_is_brighter_and_colder_than_the_same_world_with_the_ice_free_albedo(monkeypatch):
+    from tests.test_climate_sweep import _earth_twin, _hold_the_air_of_the_earth
+
+    with monkeypatch.context() as held_air:
+        _hold_the_air_of_the_earth(held_air)
+        law_free = _earth_twin(150.0)
+        held = dataclasses.replace(law_free, albedo_law=None, starlight_w_m2=0.0)
+        with draw.bound("ice-law"):
+            with_ice = sa.solve(law_free, 255.0)
+        with draw.bound("ice-law"):
+            without = sa.solve(held, 255.0)
+    assert with_ice.albedo is not None and without.albedo is None
+    assert with_ice.albedo > sa.climate_branches.ICE_FREE_ALBEDO
+    assert with_ice.temperature_k < without.temperature_k
+
+
+def test_the_albedo_and_greenhouse_a_generated_body_stores_give_back_its_temperature_with_the_ice_law():
+    checked = 0
+    for planet in _generated(range(8)):
+        if planet.body_type != "t" or planet.is_moon or (planet.water_mass_fraction or 0) <= 1.0e-4:
+            continue
+        flux = climate_draws.starlight_w_m2(planet.star.luminosity, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity) * constants.AU_TO_KM)
+        assert planet.surface_temperature == pytest.approx(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=1e-6)
+        checked += 1
+    assert checked > 0
+
+
+def test_an_airless_wet_body_settles_on_the_albedo_its_temperature_keeps():
+    law = sa.climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    cold, albedo_cold = sa.airless_state(law, 30.0, climate_draws.equilibrium_temperature_k(0.3, 30.0))
+    assert albedo_cold == pytest.approx(0.62) and cold == pytest.approx(climate_draws.equilibrium_temperature_k(0.62, 30.0), rel=1e-12)
+    hot_light = 3500.0                  # an ice-free equilibrium over 305 K
+    warm, albedo_warm = sa.airless_state(law, hot_light, climate_draws.equilibrium_temperature_k(0.3, hot_light))
+    assert albedo_warm == 0.3 and warm == pytest.approx(climate_draws.equilibrium_temperature_k(0.3, hot_light), rel=1e-12)
 
 
 def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(monkeypatch):

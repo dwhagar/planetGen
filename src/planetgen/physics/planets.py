@@ -540,6 +540,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `_past_runaway_with_water`)
     air = surface_air.solve(setting, start_k)
     if air is None or not air.partials_pa:
+        if setting.albedo_law is not None:
+            # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other
+            planet.surface_temperature, albedo = surface_air.airless_state(setting.albedo_law, solar_output_at_orbit, surface_temperature_no_atmosphere)
+            climate_draws.record(planet, albedo, 0.0)
         planet.atm_density = planet.atm_molar_density = planet.scale_height = None
         atmosphere.store_air(planet, {}, None if giant else _mantle_redox(planet, air, distance, water_lost))
     else:
@@ -549,6 +553,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
         factor = air.greenhouse_factor
+        albedo_kept = albedo if air.albedo is None else air.albedo      # a body with ice has the albedo of its last step (GEN.972)
         # GEN.1236: the fixed point holds the surface at `surface_air.MAX_SURFACE_TEMPERATURE_K` (a stand-in guard, the equilibrium of the gas does
         # not converge far above it), but the warming it keeps is the uncapped one, so a body at the cap kept a greenhouse factor that gave 2370 K
         # or 2600 K; its stored G is taken from the stored temperature too, so the three numbers agree.
@@ -556,9 +561,9 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         if giant or capped:
             # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
             # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
-            factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo, solar_output_at_orbit)
+            factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo_kept, solar_output_at_orbit)
             factor = air.greenhouse_factor if factor is None else max(factor, 0.0)
-        climate_draws.record(planet, albedo, factor)     # GEN.412: the two numbers the temperature is made of
+        climate_draws.record(planet, albedo_kept, factor)     # GEN.412: the two numbers the temperature is made of
         atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
 
     # GEN.88: water, land, ice and the ocean's chemistry.
