@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1071 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1073 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 152 | 15 | 8 | 1 | 0 | 176 |
-| T2 | 114 | 42 | 0 | 1 | 0 | 157 |
+| T2 | 115 | 42 | 0 | 1 | 0 | 158 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
 | T5 | 48 | 19 | 2 | 1 | 0 | 70 |
 | T6 | 102 | 82 | 21 | 51 | 0 | 256 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 22 | 14 | 5 | 46 | 25 | 112 |
-| All | 607 | 232 | 52 | 144 | 36 | 1071 |
+| T9 | 22 | 14 | 5 | 47 | 25 | 113 |
+| All | 608 | 232 | 52 | 145 | 36 | 1073 |
 
 ## How the labels were given
 
@@ -1475,7 +1475,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
 
-## 6.170 Stand-ins of the picture of a ring
+## 6.170 Stand-ins of the picture of a ring and of a glowing body
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1487,6 +1487,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RNG6 | P | T9 | L4 | ringlook.DISPLAY_GAIN 1.6, DUST_ALPHA_FLOOR 0.06, MAX_ALPHA 0.95: the picture is 1.6 times brighter than the albedo, no ring is less opaque than 0.06 or more than 0.95 | gain 1 to 2.5; floor 0.03 to 0.1 | any ring | none: display choices | a rendering model that works the light of the ring | chosen so an icy ring reads as a bright ring and a dust ring is still seen; [R5090] the visible I/F of Saturn's rings is about 0.5 | - | - |
 | RNG7 | P | T6 | L2 | ringlook.RESONANCES 2:1 (weight 1), 3:2 (0.6), 3:1 (0.35), 4:3 (0.35) and GAP_COEFFICIENT 2500: a gap at a moon's resonance with width over radius = weight times 2500 times (moon mass over planet mass) to the 2/3 | weights 0.2 to 1; coefficient 1000 to 5000 | a ring with a moon outside it | a stored ring and moon set whose measured gaps differ by more than a factor of 3 in width | a gap width from the resonance torque and the ring's viscosity | the coefficient is fitted to the Cassini Division (0.04 of the radius for Mimas, 6.6e-8 of Saturn's mass); the form is the resonance radius a (q/p)^(2/3) | - | - |
 | RNG8 | P | T9 | L4 | ringlook.GAP_MAX_SHARE 0.25, GAP_MIN_SHARE 0.006 and ringpaint.js RINGLET_SWING 0.35, NARROW_RINGLETS 4, NARROW_WIDTH 0.025, NARROW_CONCENTRATION 6, edge fades 0.35 (dusty), 0.04 (narrow), 0.03 (broad): the drawn gap widths and the seeded ringlet pattern | each by a factor of 2 | any ring | none: a picture | a ring structure worked out from the ring's dynamics | choices of the item; no source | - | - |
+| RNG9 | P | T2 | L0 | bodylook.THERMAL_ONSET_K 800: a body starts to shine by its own heat at the Draper point, about 800 K (525 C) | 700 to 900 K | any planet or moon with a stored temperature | a body that is seen to glow red cooler than 700 K | a glow worked out from the emissivity and the eye's sensitivity | recalled (the Draper point); the gap plan has no registry source for it yet | - | - |
+| RNG10 | P | T9 | L3 | bodylook.THERMAL_FULL_K 2400 and thermalglow.js EMISSION_GAIN 1.1: the glow rises linearly from 0 at 800 K to full at 2400 K, and a full glow adds as much light as the body's own colour; the glow is the blackbody colour of the body's temperature over its own picture | full at 1800 to 3000 K; gain 0.5 to 2 | a hot giant or a molten world | none: tuned by eye so that 1000 K reads dull red and 2000 K bright orange | a rendering model that works the emitted light | tuned by eye | - | - |
 
 ## 6.165 Stand-ins of the habitable bodies per system
 
