@@ -39,19 +39,7 @@ PLANET_CLASS_TYPES = ("planet", "rogue-planet", "asteroid-field", "comet")
 GUIDE = Path(__file__).resolve().parents[2] / "docs" / "design" / "interface" / "text-style.md"
 
 KNOWN = {
-    ('class-name', 'Animals have appeared among'): 'UX.252',  # Animals have appeared among Class 1 life.
-    ('class-name', 'Cells with internal structure'): 'UX.252',  # Cells with internal structure have appeared among Class 3 life.
-    ('class-name', 'Class # life has'): 'UX.252',  # Class 3 life has grown into colonies, mats or bodies big enough to see.
-    ('ideas', 'Size digit d means'): 'UX.252',  # Size digit d means a radius of 10^d to 10^(d+1) AU, from 1 to 4: 1: 10 to 100 AU; 2: 100 to 1,000 AU; 3: 1 × 1
     ('spelling', "Offset from the system's centre, x"): 'UX.253',
-    ('spelling', 'Soundings read a gas'): 'UX.252',
-    ('length', 'A class is never'): 'UX.252',  # A class is never drawn first: once a planet or moon is complete, its class is the first class in the check ord
-    ('length', 'A marginal world, Earth-like'): 'UX.252',  # A marginal world, Earth-like but hard to breathe without a mask and not toxic: air of 30 kPa to 3 bar at 273 t
-    ('length', 'Size digit d means'): 'UX.252',  # Size digit d means a radius of 10^d to 10^(d+1) AU, from 1 to 4: 1: 10 to 100 AU; 2: 100 to 1,000 AU; 3: 1 × 1
-    ('length', 'Soundings read a gas'): 'UX.252',  # Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core, with hydrogen squeezed
-    ('length', 'Soundings read an ice'): 'UX.252',  # Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia a
-    ('length', 'The dilute core (metallic'): 'UX.252',  # The dilute core (metallic fluid) holds 2.8 Earth masses, from 0.98 Mbar down to 1.17 Mbar; it is rock 36%, sup
-    ('length', 'The molecular hydrogen and'): 'UX.252',  # The molecular hydrogen and helium envelope (molecular fluid) holds 3.3 Earth masses, from 1 bar down to 0.28 M
 }
 """dict: `{(rule, start of the sentence or the whole label): the item that rewrites it}` for the text that breaks a rule today. The
 comment is one example. A rewrite item removes its entries; nothing is added without an owner."""
