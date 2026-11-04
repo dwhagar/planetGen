@@ -11907,30 +11907,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
-- [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 5: a generated
-  index over planets, moons, asteroid_belts, comets, rings and the
-  individual belt members, recommended as a view first (no new storage),
-  with the mass-conservation sum and the barycentre test (the star's
-  wobble from the belts). Output: a design note under
-  docs/design/systems/ and the pure barycentre function. Done: note
-  merged, function tested. Lock-free. Where we think it belongs (best
-  guess, can move): Planets 1 (owns the clearance ledger GEN.1014 the
-  belt gap map plugs into), after the GEN.1014 wiring; separate branch.
-  Prerequisites: GEN.1014. Related: GEN.1006.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -14319,6 +14295,54 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1238.
   Prerequisites: none.
 
+- [ ] **GEN.1241 Wire the system body view: the ledger and barycentre function read the typed tables for the system page**
+  From Planets 1's GEN.1066 (merged as #4754, 7:11 AM EST on
+  2026-11-04), filed by the TODO thread. The pure ledger and barycentre
+  module (physics/system_bodies.py, design note
+  docs/design/systems/system-bodies-ledger.md) is on main and tested,
+  but nothing calls it: the view over the typed tables (stars, planets,
+  moons, belts, comets) that gives a system its body ledger and
+  barycentre is a view with no new storage, and it needs the belt member
+  rows of GEN.1069. Do: add the view (read-side only) and wire it to the
+  system page and the API, listing every body with its mass and its
+  barycentre offset, and remove the wiring-register line for the module.
+  Done: a system page shows its barycentre and the belt wobble, with
+  units, from the stored rows; a test pins it. Lock-free if no stored
+  value changes. Owner: Planets 1.
+  Prerequisites: GEN.1069.
+  Prerequisites: none.
+
+- [ ] **GEN.1242 The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread.
+  tests/test_prevalence_phenomena_census.py: the reference galaxy's star
+  formation rate reads 4.0 solar masses a year against a hard assert of
+  1 to 3; the Milky Way is about 1.7. It is a hard assert, not a
+  taggable range, so the census stays red until someone looks. Likely
+  moved by trains 6 to 8 (halo mass function GEN.1154, alpha tracks
+  GEN.1024, the disc gas law GEN.999, clusters). Do: find which change
+  moved it, check the reference galaxy against the source-derived range
+  (the Milky Way is a plausibility target, never fixed content), and fix
+  the law or the test range with the reason stated; register any
+  stand-in in GEN.725. Lock work if stored values change. Related:
+  GEN.1202. Owner: Core 3 (galaxy history).
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1243 The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. The class
+  census white dwarf share is 8.2 percent against the observed range of
+  4.1 to 7.5 percent (the nearby-star census gives 5.6). Candidates: the
+  helium-core white dwarfs and the continuous cooling track of train 8
+  (GEN.996, GEN.1137, now retired), the star mass function epoch
+  (GEN.927), or the age-metallicity history. Do: print the white dwarf
+  share per population with each candidate switched off, find the cause,
+  and fix the law or register a stand-in in GEN.725. Lock work if stored
+  values change. Owner: Bug 1.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14892,6 +14916,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
+  Prerequisites: none.
+
+- [ ] **PERF.231 The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. In two
+  separate runs the class census timed out in 8 cells: F5V, G2V, K0III,
+  K5V and M2V in the ecosphere, hot and cold (K5V ecosphere 4 draws);
+  zero before epoch 130. Do: bisect the draw time (an air solve that no
+  longer converges quickly, the hot start of GEN.1238 is not on main yet
+  so look at the train 8 changes: GEN.1160 roundness, giants, belts,
+  GEN.1174), print the time per stage for one slow seed per cell, and
+  fix the slow stage. Done: the census cells finish under the limit and
+  a test pins the slow seed. Lock-free if output is unchanged. Owner:
+  Bug 1.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19128,19 +19167,6 @@ clears each one.
   (many commits since 7eef24a), keep only those that still fail,
   root-cause each, and file or fix. Done: each failing test has a cause
   and an owner or a fix. Owner: full-suite thread, with Bug 1.
-  Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **TEST.556 test_db_column_round_trip fails on main: stars.nuclear_arrival_age_gy is NULL in every row of the test fixture (bug)**
-  Found by Core 1 (as the lane reported, 6:49 AM EST on 2026-11-04) while
-  running the slow suites on its designations stack:
-  tests/test_db_column_round_trip.py::test_every_column_is_written fails
-  with "NULL in every row (never written?):
-  stars.nuclear_arrival_age_gy". The column is GEN.1174's (merged with
-  train 8, migration 0198); the suite passed before train 8. Do: write
-  the column in the test's star fixture with a real value, or exempt it
-  with a stated reason if it is only set for some stars. Done: the round
-  trip test passes on main. Lock-free. Owner: Aux 7 (GEN.1174's lane).
   Prerequisites: none.
   Prerequisites: none.
 
