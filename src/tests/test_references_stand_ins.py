@@ -229,3 +229,20 @@ def test_the_sentences_of_the_pages_keep_the_guide(data, overview):
     broken = [(sentence, rule) for text in texts for sentence in plainwords.sentences(text)
               for rule, _detail in plainwords.check_sentence(sentence, references=True)]
     assert not broken, broken[:5]
+
+
+# --- The Papers page links the stand-ins that cite a source ------------------------------------------------------------------------
+
+def test_a_paper_entry_links_the_stand_in_rows_that_cite_it_when_their_pages_exist():
+    row = {"id": "R0001", "label": "A 2000", "type": "Journal article", "field": "Other", "title": "t", "who": "A."}
+    usage = {"uses": {"R0001": {"values": [], "notes": [], "stand_ins": ["5.1:GR1", "9.9:ZZ9", "AB1"], "areas": ["galaxy"]}}}
+    names = references_site.paper_entry(row, usage)["stand_ins"]["names"]
+    assert names == [{"text": "GR1", "url": "/references/stand-ins/5-1-gr1"}, {"text": "ZZ9", "url": ""}, {"text": "AB1", "url": ""}]
+
+
+def test_the_scan_keeps_the_section_with_the_row_id(tmp_path):
+    from planetgen.web.lib import references_usage
+    plan = tmp_path / "docs" / "design" / "research"
+    plan.mkdir(parents=True)
+    (plan / "gap-filling-plan.md").write_text("## 5.1 Galaxy laws\n\n| Id | Fill |\n|---|---|\n| GR1 | [R0001] |\n", encoding="utf-8")
+    assert references_usage.scan(str(tmp_path))["uses"]["R0001"]["stand_ins"] == ["5.1:GR1"]
