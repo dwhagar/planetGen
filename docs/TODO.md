@@ -19372,27 +19372,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. UX.252 and UX.253 wait for R1 and do their
-  own links in the same pass over the text they already rewrite; this
-  item covers only what they leave: color note, sector estimated text,
-  life class reaches, sheet source lines to links, class page basis.
-  Split by page kind if large. Related: UX.252, UX.253, DOC.83. Owner:
-  Core 5.
-  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
-  References crawl test (tests/test_references_crawl.py) lists today's
-  out-of-universe hits in its KNOWN table; this item's are the sheet
-  source line for the Urey ratio: model. Delete those entries in the
-  same PR that removes the words: an entry that no longer happens fails
-  the test.
-  Prerequisites: DOC.91.
-
 - [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
@@ -19401,7 +19380,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
   (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
   computed change, lock-free.  Related: DOC.83. Owner: Core 1.
-  Prerequisites: DOC.93.
 
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
@@ -19789,7 +19767,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   still resolves to a registry entry. Lock-free, no generator output
   change. Owner: the Citations thread, with Core 5 for the user pages
   (DOC.93) and Sources 1 for the registry. Version 8.1. Prerequisites:
-  DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
+  DOC.100. Related: DOC.94, DOC.96.
   Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
   #4648 (Citations thread): every source has a fixed ID R0123 (anchor
   #paper-r0123 on /references/papers and in docs/REFERENCES.md;
