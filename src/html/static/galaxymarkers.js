@@ -211,11 +211,12 @@ export function nearFieldRule(view) {
 // not yet built into a sector), heaviest first. Nodes of every block size list the biggest, so every node counts.
 export const BLACK_HOLE_KIND = {
   id: "marker-black-hole",
-  label: "Black holes",
+  label: "Black hole marks",
+  title: "Show or hide the marks over the black holes; the black holes themselves are always drawn, as purple dots among the stars",
   glyph: "black-hole",
   color: "#c58cff",
   maxBlock: Infinity,
-  defaultOn: true,
+  defaultOn: false,   // MAP.368: the marks are off until the visitor turns them on (the stored choice wins); MAP.370: the purple dots among the stars always draw
   crowds: true,       // MAP.340: marks too close on the screen merge into one with a count (`mergeMarks`), among black holes only
   nearField: true,    // MAP.339: chosen by `nearFieldRule` (the view's near field, then by mass over distance squared, then by screen area)
   source: function (node) {

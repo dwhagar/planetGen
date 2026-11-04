@@ -21,7 +21,7 @@ _BODY = {
     "tidal_flux_w_m2": "[R3464] tidal power from the stored eccentricity and the body's rheology.",
     "internal_heat_flux_w_m2": "Radiogenic plus primordial heat in one-box parameterised mantle convection ([R4339]; "
                                "[R1716]).",
-    "urey_ratio": "The radiogenic share of the interior heat, an output of the mantle model and not a draw.",
+    "urey_ratio": "The radiogenic share of the interior heat, worked out from the mantle and not a draw.",
     "lid_regime": "One of " + _LID + ".",
     "c_th0_ppm": "Follows the host star's thorium (its Eu relation, truncated at plus or minus 0.5 dex), not a draw of its own.",
     "c_u0_ppm": "Worked out from the thorium by the r-process production ratio and the decay of the galaxy's earlier ejecta.",

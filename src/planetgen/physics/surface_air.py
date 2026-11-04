@@ -42,13 +42,15 @@ from dataclasses import dataclass, field
 from planetgen.physics import (
     aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw,
     mixture_escape, mixture_rocky,
-    mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, waterworld_carbon,
+    mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import bracket
 from planetgen.util import draw
+
+_kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 # --- numerical ----------------------------------------------------------------------------------------------------------------
 
@@ -534,7 +536,7 @@ def _late_accretion(setting, design):
     if setting.giant or setting.orbital_speed_ms is None or setting.mantle_kg <= 0.0:
         return {}
     mass_kg = setting.gravity_m_s2 * setting.radius_m ** 2 / constants.G
-    fraction = impact_history.late_accreted_fraction(mass_kg / constants.EARTH_MASS_TO_KG, design)
+    fraction = impact_history.late_accreted_fraction(_kg_to_mearth(mass_kg), design)
     volatiles = impact_history.veneer_volatiles(design)
     temperature_k = setting.effective_temperature_k
     caps = {}

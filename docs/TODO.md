@@ -1331,35 +1331,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here with the region landing (the largest region is regions[0] of the
   endpoint; a user's home overrides it later, USR.11). Owner: Core 2.
 
-- [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
-  GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
-  (Boss, 2026-10-14 00:17Z): "Default view should in the galaxy map
-  should be no density shading, only shading should be that of nebulae
-  that should change the colors of the stars shining through the nebulae
-  and the boundaries should be fussy and translucent... going to the
-  infinite zoom model we don't need to see the densities and anything
-  but the stars and markers for where on the map known space is." Done:
-  the default Galaxy Map shows stars and markers for known space with no
-  density, age or luminosity fill; the "Color by" density and age views
-  stay as options; nebulae tint the colour of the stars seen through
-  them and have soft translucent boundaries (MAP.142). Owner:
-  Foundations lane 2, after the nebula map work (MAP.176; MAP.155 merged in #1253).
-  Prerequisites: none. Related: MAP.131, MAP.142, MAP.176,
-  MAP.146.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: MAP.214, MAP.215. Its Done has two halves of
-  different versions.
-  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
-  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
-  irregular, bulbous, wispy shapes from the galaxy model, tinting the
-  regions they cover, overlapping additively with a cap, crossing
-  sectors (full text and his five answers in MAP.365). This item moves
-  from version 8.8 into 8.1 and is built by Core 2 after or with
-  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
-  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
-  MAP.222 (nebula zoom window). Owner: Core 2.
-
 - [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
   GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
   (Boss, 2026-10-13 16:41Z): "I would like to be able to see the
@@ -1403,7 +1374,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   view of that object alone, showing its own arrangement (cloud shape,
   cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
   after the nebula map work (MAP.176 to MAP.180).
-  Prerequisites: MAP.222, MAP.223. Related: MAP.176, MAP.178, MAP.180,
+  Prerequisites: MAP.223. Related: MAP.176, MAP.178, MAP.180,
   GEN.209.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -1514,28 +1485,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finds a user's ship and a scattered station.
   Prerequisites: USR.29, POP.11. Related: MAP.132.
 
-- [ ] **MAP.222 Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone**
-  Split from MAP.194 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Choosing a nebula (a region of
-  MAP.176, a cloud of MAP.178) flies into a view that shows that nebula
-  only: its shape and member clouds or hosted stars, centred and framed
-  on its bounds, whatever sectors it crosses, with a way back to the
-  Galaxy Map. Build the view as a generic 'group window' (a bounding
-  volume, a member list, a draw function per kind) so a second kind can
-  plug in. Done: the window for nebulae, entered from the map and from
-  the keyboard, and a browser test that opens it on a nebula spanning
-  two sectors.
-  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
-  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
-  irregular, bulbous, wispy shapes from the galaxy model, tinting the
-  regions they cover, overlapping additively with a cap, crossing
-  sectors (full text and his five answers in MAP.365). This item moves
-  from version 8.8 into 8.1 and is built by Core 2 after or with
-  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
-  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
-  MAP.222 (nebula zoom window). Owner: Core 2.
-  Prerequisites: MAP.176. Related: MAP.194.
-
 - [ ] **MAP.223 Globular cluster zoom window: choosing a cluster flies into a view of its own stars**
   Split from MAP.194 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Plug the cluster kind into the
@@ -1544,7 +1493,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   yet filled. Done: choosing a cluster on the Galaxy Map opens its
   window, and a browser test checks the window on a seeded cluster that
   crosses two sectors.
-  Prerequisites: MAP.222, MAP.224. Related: MAP.194.
+  Prerequisites: MAP.224. Related: MAP.194.
 
 - [ ] **MAP.224 Cluster pages and the Galaxy Map use the parent link**
   Split from GEN.209 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2078,23 +2027,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner Core 2 (Boss's request relayed 1:03 PM EST on 2026-11-04; 8.1,
   one lock-free item at a time, behind MAP.365 unless Core 2 says it
   clashes). Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **MAP.368 Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on**
-  Boss, 1:03 PM EST on 2026-11-04: "let's have black holes off by
-  default. We'll still show them as purple dots. I think cyan or purpley
-  dots are what we went through for pulsars and neutron stars." Do: the
-  black-hole layer in the layer menu starts off (the stored choice still
-  wins for a viewer who set it); when on, black holes draw as purple
-  dots (today black_hole is #a43cff, a purple; keep it); neutron stars
-  and pulsars keep the colour already chosen for them (today
-  neutron_star is #3200ff, a deep blue; Boss recalls cyan or purple:
-  Core 2 checks the decision in MAP.80 and MAP.208 and asks Boss only if
-  the code differs from what was decided). Done: default-off test,
-  on-state test, and the legend matches. Lock-free. Related: MAP.80,
-  MAP.208, MAP.339. Owner Core 2 (Boss's request relayed 1:03 PM EST on
-  2026-11-04; 8.1, one lock-free item at a time, behind MAP.365 unless
-  Core 2 says it clashes). Filed by the TODO thread.
   Prerequisites: none.
 
 - [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
@@ -13383,6 +13315,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
+  Boss decision on class T (answered "1.1") (2026-11-04 2:57 PM EST):
+  With the true air share Boss approved for GEN.1226, the generated
+  class T hydrogen-air dwarfs hold only 1e-8 to 5e-5 of their mass in
+  air (21 sampled), under the 5e-3 line for transitional, so they stay
+  terrestrial; their air is thin hydrogen at 0.01 to 27 bar, not an
+  envelope (Core 4's finding). Boss, 2:57 PM EST on 2026-11-04: keep the
+  honest share, and define the terrestrial-kind class T by its thin
+  hydrogen air instead of calling it a gas dwarf. The giant-kind T
+  bodies keep their stored envelope and are the real gas dwarfs.
   Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
@@ -14304,6 +14245,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt owner, GEN.1068 and GEN.1156). Version 8.1.
   Prerequisites: none. Related: GEN.1068, GEN.1156, GEN.477.
 
+- [ ] **GEN.1249 A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree**
+  Found by Tides 1 in its GEN.1218b build, about 2:30 PM EST on
+  2026-11-04 (as the lane reported); notes in
+  /mnt/project-files/reports/tides1/gen1218/gen1218b-notes-2026-11-04.md.
+  The main liquid label follows the supply (which ice or volatile feeds
+  the sea) while the stored mole fractions follow the air (Raoult's
+  law), so about 7 of 24 hydrocarbon seas in the 150-system sample show
+  under 0.1 of their own labelled liquid. Do: make the two agree by
+  physics, either label by the largest mole fraction or let the supplied
+  liquid take the share the supply gives, whichever the sources support;
+  record the choice and any stand-in in GEN.725. Done: no sea carries a
+  label whose mole fraction is under a stated floor, with a census
+  guard. Needs GEN.1218b merged. Owner Tides 1 (proposed by the TODO
+  thread). Filed by the TODO thread.
+  Prerequisites: GEN.1218.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14874,6 +14831,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are bit-identical (golden unchanged). Lock-free if no value changes.
   Related: PERF.188, TEST.290, TEST.417. Owner Star 2 (it built
   PERF.188; proposed by the TODO thread). Filed by the TODO thread.
+  Core 5 finding (2026-11-04 3:35 PM EST):
+  tests/test_emission_members.py (the pre-placed hot star test) also
+  times out past 900 s on main. Take it with this item; it is a
+  slow-test cost, not a spelling effect.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -16885,38 +16846,6 @@ clears each one.
   Prerequisites: GEN.202. Related: PERF.68.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
-- [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
-  Reported by Bugfixes lane 2 (2026-10-10 22:47Z):
-  tests/test_neighborhood_edge.py::test_a_neighborhood_from_the_generate_page[core]
-  failed once in a full run (started 21:43Z, 57 min) under load and
-  passed alone; the traceback was not kept. Done: the next failure's
-  traceback is captured (or a loaded run reproduces it), the cause is
-  found (a timeout, a shared table between workers, or a real defect in
-  the neighborhood path) and the test is made reliable without loosening
-  it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Update (2026-10-09): The regression test review (2026-10-23) found
-  that tests/test_neighborhood_edge.py has a module-level skip and
-  imports a function that no longer exists, so this item may be moot; it
-  closes if Boss agrees to delete the file (Boss reviews
-  reports/regression-test-review-2026-10-23.md before any delete).
-  Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
-
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
   Step 9 (design note section 9, tests 1 to 9). Companion states within
   four Poisson sigma over a seeded scatter of 1e6 rows; object density
@@ -17180,26 +17109,6 @@ clears each one.
   reproduce. The test passed in repeated runs on an idle machine. Needed
   next time: The failure text of a loaded run (the captured traceback
   and the browser console) and the load at the time. Running log: the
-  comments on issue #1694.
-  Prerequisites: none.
-
-- [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
-  Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
-  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_map_does_not_prefetch_on_a_data_saving_connection`
-  failed with "request failed ... /galaxy/tiles?... net::ERR" in the
-  same full run (load 9.6) and passed alone. Done: the cause is found
-  (the test or the server drops a request when a page closes under load,
-  or the test reads the request log too early), the test waits on the
-  condition it needs, and it passes under the same load, with no
-  quarantine. Fails on main: not checked. Frequency: once. Reproducer:
-  none beyond the full suite at load about 9.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. The test passed in repeated runs on an idle machine. The
-  `/galaxy/tiles` net::ERR text this item quotes matches the
-  request-error handler of the accessibility test, so it may have come
-  from another test's page. Needed next time: The full run's traceback
-  naming the failing test and the load at the time. Running log: the
   comments on issue #1694.
   Prerequisites: none.
 
@@ -17677,76 +17586,6 @@ clears each one.
   item, and say in each PR which item keeps what is left.
   Prerequisites: none. Related: SEC.33.
 
-- [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
-  Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the
-  TODO thread. Kind: flaky browser test
-  (test_web_browser_sector_reach.py, the TEST.252 test). It failed once
-  in gate 23, in the browser phase at machine load 9.7, on the branch
-  build of PERF.142 and PERF.143: the camera target stayed at (3.56,
-  -1.36, -0.29) where the test expects (0, 0, 0). It passes alone. Fails
-  on main: unknown, not reproduced yet. Frequency: 1 in about 4 browser
-  gates. Reproducer: none yet; it needs another lane's gate running
-  beside it. Do: root-cause it (a real slow-first-click race in the map
-  code, or a test that does not wait for the fly to finish) and fix the
-  cause, not the load. Done: the cause is on this item and the test
-  passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
-  TEST.252 test). Fifth sighting (Bug Hunt, #2416's gate, about 3:03 AM
-  EDT 2026-10-22 as the lane reported, filed by the TODO thread): under
-  load five browser tests failed in module-fixture setup after 1,988 to
-  2,063 seconds (test_web_browser_crumbs at 1280 and at 320, and three
-  in test_web_browser_units), and test_old_jobs_are_pruned timed out at
-  30 seconds once; all pass alone. A browser and job-timing load class,
-  separate from the MySQL sightings, which #2442 closed; Bug Hunt looks
-  at them with this item. Sixth sighting (Bug Hunt, #2425's gate, about
-  4:43 AM EDT 2026-10-22 as the lane reported, filed by the TODO
-  thread):
-  test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse
-  took 120 s on gw3 at machine load 18.5 and failed; it passes alone.
-  Same load class as the fifth sighting; Bug Hunt took this item next.
-  Update (Bug Hunt, about 5:30 AM EDT 2026-10-22 as the lane reported):
-  PR #2430 merged: the flight tests wait for a still camera, and the
-  slow-click test's failure message now carries the pointer event times.
-  The double-click failure itself did not reproduce in 41 runs under
-  four-way browser load, so this item stays open for the double-click
-  part only, as "watch for the new message". The MySQL lost-connection
-  sightings moved to their own item, TEST.265, which #2442 fixed.
-  Watch period (the TODO thread's judgment, about 7:05 AM EDT 2026-10-22
-  as the lane reported): #2442 (Bug Hunt, about 7:03 AM EDT) fixed the
-  MySQL cause: `tests/dbpool.py` `drop_database` no longer kills other
-  workers' `list_databases` connections (it ends only connections whose
-  current database it is, gives other lock holders 3 s, then ends them),
-  which closes every "Lost connection to MySQL server during query" and
-  503 "database unavailable" sighting recorded here (facilities,
-  /sectors, the information_schema size query, admin/stats, the
-  hostile-query routes). What stays open is the double-click test (and
-  the fifth and sixth sightings, which are browser-load timeouts):
-  retire this item when five full gates across the lanes pass with no
-  recurrence, or file the cause from the new failure message (pointer
-  event times) if one appears.
-  Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.287 test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug)**
-  Found by Core 2 (relayed 1:32 AM EDT 2026-10-23 as the lane reported)
-  in its gate for ADM.127 and UX.146; neither diff touches it, and it
-  passed alone on re-run. Kind: flaky test. Test:
-  src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names.
-  Failure text: TimeoutError waiting for '#galaxymap3d-steps
-  [data-steps-panel] li' (120 s) in the browser phase. Fails on main:
-  unknown. Frequency: once in about 2 runs on that lane, with 2 workers
-  and a load average of about 8. Reproducer: the browser phase of
-  `scripts/test.py changed` beside another load, or the test alone under
-  a loop with a loaded machine. Do: find what the steps panel waits for
-  (the map scene built, or the steps list filled after the first frame),
-  make the test wait for that state, not a fixed 120 s selector, and say
-  in the test what it waits for. Done: the test passes 50 times in a row
-  on a machine at load 8. Owner: Bug Hunt (proposed by the TODO thread).
-  Progress (Bug Hunt, #2630 merged 5:49 AM EDT 2026-10-23 as the lane
-  reported): did not reproduce; the fresh-load helper now reports the
-  address, title, text and page errors when no steps appear. The item
-  stays open until the next sighting shows the text or two clean gates
-  pass.
-  Prerequisites: none. Related: TEST.284, TEST.281.
-
 - [ ] **TEST.290 test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug)**
   Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
   lane reported) in its gate for PERF.164; neither test is touched by
@@ -17834,37 +17673,6 @@ clears each one.
   writes the class, and that editing a stored input recomputes it. Done:
   both tests pass. Owner: Condition-based classes lane.
   Prerequisites: GEN.679.
-
-- [ ] **TEST.317 test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug)**
-  Found by Core 2 at 12:40 AM EDT 2026-10-24 (as the lane reported), in
-  src/tests/test_web_browser_sector_reach.py: the test fails alone only
-  under heavy machine load (it passes alone in 112 s on Core 2's branch
-  and 319 s on older main; it needs 80 wheel ticks with 900 ms waits).
-  Fails on main: no (passes alone); frequency once in 2 gates under load
-  9. Do: make the test cheaper and load-proof (fewer or larger wheel
-  steps, wait on a camera-state condition and not on fixed sleeps),
-  without loosening what it checks. Done: the test passes under load 9
-  in repeated gates and its run time drops well below 112 s. Owner: Core
-  2 (the test belongs to the sector reach work), or Bug Hunt if Core 2
-  is busy.
-  Prerequisites: none. Related: TEST.313.
-
-- [ ] **TEST.321 test_web_browser_tables: the jump box test flakes under load (bug)**
-  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
-  the lane reported): the jump box test in test_web_browser_tables fails
-  only under heavy machine load. Do: wait on the table state instead of
-  fixed sleeps. Done: the test passes under load 9 in repeated gates.
-  Owner: Bug Hunt.
-  Prerequisites: none. Related: TEST.317.
-
-- [ ] **TEST.324 test_web_header_menus top-bar [1280x720-light] times out under load (bug)**
-  Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported):
-  test_web_header_menus top-bar [1280x720-light] timed out once in a
-  loaded gate and passes alone on its branch and on main. Do: wait on
-  the menu state, not on fixed time. Done: passes under load 9 in
-  repeated gates. Note: UX.180 changes the header menus (the Help menu),
-  so the fix should land with or after it. Owner: Bug Hunt.
-  Prerequisites: none. Related: UX.180, TEST.317.
 
 - [ ] **TEST.344 Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory**
   Efficiency scan suggestion 4, applied by Boss ("ALL", 2:21 PM EDT
@@ -18421,23 +18229,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.570 test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug)**
-  Found by Core 5 and confirmed on main by the TODO thread
-  (test_no_generated_page_contradicts_itself_about_its_life fails), 1:15
-  PM EST on 2026-11-04. tests/test_life_text_consistency.py has 49
-  failures of the form "the text says [], the body has
-  ['hyper-accelerated']": a generated page's life text omits the pace
-  (hyper-accelerated) that the body carries. Not from DOC.92. Do: find
-  the change that made the text drop the pace term (the life text
-  builder against the pace/timeline rules of GEN.750, or a recently
-  merged life or class change), fix the text builder or the test's
-  expectation at the cause (the page must say what the body has), and
-  run the file 3 times. Done: the file passes on main. Lock-free (text
-  only) unless the body value is the wrong one. Owner Aux 2 (life;
-  proposed by the TODO thread, it says if it clashes). Filed by the TODO
-  thread.
-  Prerequisites: none.
-
 - [ ] **TEST.571 test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug)**
   Found by Bug 1 in its PERF.229 work, 1:50 PM EST on 2026-11-04 (as the
   lane reported). The hypothesis test
@@ -18454,6 +18245,37 @@ clears each one.
   test. Lock-free (test only). Related: TEST.417, PERF.229. Owner Aux 3
   after PERF.232 (proposed by the TODO thread). Filed by the TODO
   thread.
+  Prerequisites: none.
+
+- [ ] **TEST.572 Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug)**
+  Found by Tides 1, about 2:30 PM EST on 2026-11-04 (as the lane
+  reported), red with and without its GEN.1218b change. (1) A
+  test_sheet_fill check on life_class_variant fails for 1 of 30 bodies.
+  (2) nuclear_arrival_age_gy comes out NULL in every star row, so the
+  column is not being filled (or the test reads the wrong place). Do:
+  run each alone on current main, find the cause (a train 8 change that
+  stopped writing the column, or a stale test), and fix it at the
+  source. If the column is meant to be filled and is not, that is a
+  generation bug: fix the writer and add a guard. Done: both checks pass
+  on main in 3 runs. Owner Aux 7 after TEST.571 (proposed by the TODO
+  thread; Bug 1 or Star 2 if the star column proves theirs). Filed by
+  the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.575 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug)**
+  Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
+  reported). Not from the spelling sweep: they fail on the map pages on
+  pixel positions and waits. Possible causes seen since: the log ruler
+  over the halo point and continuous zoom no longer changing crumbs
+  (TEST.573 found the same in two tests), the MAP.367 and MAP.370
+  changes, and leftover planetgen_* databases slowing fixtures (see
+  lanes.md). Do: first drop leftover planetgen_* databases, then run
+  each file alone on current main, split real causes from load, fix the
+  tests at the cause (not by loosening waits that hide a bug), and file
+  any real map bug as its own item. Done: all four files pass on main in
+  3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
+  test that follows its map changes (proposed by the TODO thread). Filed
+  by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts

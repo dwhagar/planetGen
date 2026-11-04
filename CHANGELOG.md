@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3162] - 2026-11-04
+
+**Headline:** Black holes are off by default on the Galaxy Map, and drawn as purple dots when turned on.
+
+### Changed
+- **MAP.368.** The Black holes layer in the Menu now starts off: a new viewer sees no black-hole marks and no purple dots for them, and the Key has no line for them. Turning the layer on draws the marks and the purple dots (black holes stay #a43cff; neutron stars and quasars keep the colors MAP.164 and MAP.80 chose, deep blue and pink, and are not affected). The choice rides in the address (`show=marker-black-hole`) and a reload keeps it, so a viewer who already set it keeps their choice.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.368.
+
+## [8.0.3161] - 2026-11-04
+
+**Headline:** Choosing a nebula on the Galaxy Map flies into a window that shows that nebula alone, with a way back.
+
+### Changed
+- **MAP.222.** A double click on a nebula, Enter with its card up, a click on its name, or the card's "Open nebula window" button flies the camera to frame the nebula and the nebulae that overlap it, and draws only what lies inside: the stars, names and markers in its sphere and the nebulae's shape cut to it, whatever sectors it crosses. A bar over the map names the window and has "Back to the Galaxy Map" (Escape does the same), which returns the camera to where it was. The window is a generic group window (`groupwindow.js`) so a globular cluster can plug in later (MAP.223).
+
+generation-output: unchanged
+
+TODO items resolved: MAP.222.
+
+## [8.0.3160] - 2026-11-04
+
+**Headline:** The top-bar menu test follows the Help menu's new first item, so it opens the Habitability page it means to.
+
+### Changed
+
+- `test_the_top_bar_menus` expected the Help menu to hold Classes, Habitability, Properties, Life and References, and clicked its second item. Since the help registry (the "All help" index first) the second item is Classes, so the click went to the wrong page and the test waited out its 120 second timeout (TEST.324). The test now expects "All help" first and clicks the item named Habitability. The file passes, 11 of 11, in about two minutes.
+
 ## [8.0.3159] - 2026-11-04
 
 **Headline:** The Galaxy Map's default view shades only with nebulae: no density, age or luminosity fill.
