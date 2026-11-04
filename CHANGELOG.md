@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3120] - 2026-11-04
+
+**Headline:** Adding sectors no longer makes the Galaxy Map throw away every node it has cached; it now fetches only the sectors that changed.
+
+### Changed
+- **Fix (TEST.555 part 2).** `db.query.galaxy_shape_inputs` read the whole `galaxy_shape` row, including `density_ratio_avg` and `density_ratio_samples`, the decaying average that every sector fill moves (PERF.11). Those two columns feed `tile_base`, so each new sector changed it, and `/api/galaxy/changes` then answered "everything" with an empty history instead of the changed sectors. A browser that had loaded the map reloaded the whole galaxy after any CLI `sectors` run. Only the fill estimate in `db.stats` reads the two columns, and no node, tile or density cloud depends on them, so they are left out of the shape inputs. `test_galaxy_map_and_nodes_show_sectors_the_cli_placed` passes again.
+generation-output: unchanged
+
 ## [8.0.3119] - 2026-11-04
 
 **Headline:** The star census now draws the ages of the old stars the way the galaxy does, so its white dwarf share reads 7.95 percent instead of 8.4 and the rest of the excess is named.
