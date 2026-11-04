@@ -777,6 +777,12 @@ def near():
     (default 50, at most 200) and `offset`. `stars` (UX.239; a count such as `3`, `3+` for three or more, or `single`, `binary`,
     `trinary`, `quaternary`, `quintenary`) keeps the systems with that many stars and what lives in them; phenomena and facilities
     outside a system are left out, and each `system` row carries its `star_count`.
+    UX.228: the range filters of `GET /api/search` (`star_`, `planet_` or `moon_` in front: `planet_min_gravity=0.8&planet_max_gravity=1.2`,
+    `<entity>_<key>_unit` for another unit of the same kind) keep only the stars, planets or moons whose stored value lies in every range (a
+    kind with a range is listed even when `kinds` leaves it out, and with no `kinds` only those kinds are), with `values`
+    (`{key: {value, unit, symbol}}`) on their rows; `nearest=K` takes them too. `planet_sort=gravity` (or `-gravity`, largest first;
+    `star_sort`, `moon_sort` likewise, one of them at most) lists only that kind's bodies that have the value, ordered by it, nearest
+    first among equals; it does not go with `nearest`.
 
     `nearest=K` (NAV.61) asks for the nearest K rows instead: the search tries 2, 4, 8, 16 and 32 pc and stops at the
     first sphere that holds K, so it is quick at the dense core as well as at the Sun; `distance` is then optional and
@@ -787,6 +793,13 @@ def near():
     args = request.args
     conn = get_db()
     stars = _parse_stars(args)
+    try:
+        ranges = search_values.ranges_from_args(args)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    value_sort = _parse_value_sort(args)
+    if value_sort is not None and args.get("nearest") is not None:
+        raise ApiError(f"{value_sort[0]}_sort orders by a value, which does not go with nearest")
     if (args.get("from") is None) == (args.get("point") is None):
         raise ApiError("give exactly one of from (an object reference) or point (x,y,z in parsecs)")
     if args.get("distance") is None and args.get("nearest") is None:
@@ -804,14 +817,36 @@ def near():
         if args.get("nearest") is not None:
             result = near_search.nearest(
                 conn, place, _int_arg(args, "nearest", 1), kinds=kinds,
-                max_distance_pc=args.get("distance", near_search.MAX_DISTANCE_PC), stars=stars)
+                max_distance_pc=args.get("distance", near_search.MAX_DISTANCE_PC), stars=stars, ranges=ranges)
         else:
             result = near_search.objects_within(
                 conn, place, args["distance"], kinds=kinds,
-                limit=_int_arg(args, "limit", near_search.DEFAULT_LIMIT), offset=_int_arg(args, "offset", 0), stars=stars)
+                limit=_int_arg(args, "limit", near_search.DEFAULT_LIMIT), offset=_int_arg(args, "offset", 0), stars=stars,
+                ranges=ranges, value_sort=value_sort)
     except near_search.NearError as exc:
         raise ApiError(str(exc))
     return jsonify(result)
+
+
+def _parse_value_sort(args):
+    """`(entity, key, descending)` of the `<entity>_sort` parameter of `GET /api/near` (UX.228), `None` when there is none.
+
+    Raises:
+        ApiError: More than one kind is ordered, or the key is not one the kind has.
+    """
+    found = []
+    for entity in near_search.VALUE_ENTITIES:
+        sort = (args.get(f"{entity}_sort") or "").strip()
+        if not sort:
+            continue
+        key = search_values.sorts_in(sort, entity)
+        if key is None:
+            raise ApiError(f"{entity}_sort must be a value a {entity} has ({', '.join(k for k, v in search_values.KEYS.items() if entity in v.entities)}), "
+                           f"with - in front for largest first, got {sort!r}")
+        found.append((entity, key[0].key, key[1]))
+    if len(found) > 1:
+        raise ApiError("order by the values of one kind at a time: " + ", ".join(f"{entity}_sort" for entity, _k, _d in found))
+    return found[0] if found else None
 
 
 def _int_arg(query_args, name, default):

@@ -96,7 +96,7 @@ def _add_unbuilt_bright_star(mysql_config, system_id):
         point = (row["x"] + 1.0, row["y"], row["z"])
         store.insert_bright_stars(conn, [(*spherical.sector_address_at(point, EDGE_PC),
                                           *(int(round(v * 1000)) for v in point), "young", "B", "III", 1e31, 1e7,
-                                          15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None, None)])   # the last value: the rotation period (GEN.846), which a scattered star stores
+                                          15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None, None, None)])   # the last values: the rotation period (GEN.846) and the nuclear arrival age, which a scattered star stores
         conn.commit()
     finally:
         conn.close()
@@ -152,3 +152,43 @@ def test_system_sector_and_phenomenon_pages_link_here(client, mysql_config):
     assert f"/nearby?place=sector:{system['sector_pid']}" in client.get(
         f"/sector/{pid('sector', system['sector_id'])}").get_data(as_text=True)
     assert 'href="/nearby"' in client.get("/").get_data(as_text=True)
+
+
+def test_ranges_and_an_order_by_a_value_list_the_bodies_that_pass_with_their_values(client, mysql_config):
+    """UX.228: the search page's physical-value fields on What's nearby: chips, a Values column, the order, a short address."""
+    system = _first_system(mysql_config)
+    base = f"/nearby?place=system:{system['pid']}&distance=10"
+    html = client.get(base + "&star_max_age=1000&star_age_unit=Gyr", follow_redirects=True).get_data(as_text=True)
+    assert "Star age: " in html and "≤ 1000 Gyr" in html          # the chip says the range with its unit
+    assert "<th scope=\"col\">Values</th>" in html and re.search(r"Age [0-9.e+-]+ Gyr", html)
+    assert "Star system</td>" not in html and "<td>Star</td>" in html                    # a ranged kind alone: stars, no systems
+    assert "Filter and order by physical values" in html and 'name="planet_min_gravity"' in html
+
+    ordered = client.get(base + "&star_value_sort=-age", follow_redirects=True).get_data(as_text=True)
+    ages = [float(value) for value in re.findall(r"Age ([0-9.]+(?:e[+-]?[0-9]+)?) Gyr", ordered)]
+    assert len(ages) >= 2 and ages == sorted(ages, reverse=True) and "ordered by age, high to low" in ordered
+
+    first = client.get(base + "&planet_value_sort=gravity&star_value_sort=age", follow_redirects=True).get_data(as_text=True)
+    assert "Planets ordered by surface gravity" in first and "Stars ordered by age" not in first          # one kind at a time: the first set is used
+
+    plain = client.get(base).get_data(as_text=True)
+    assert "<th scope=\"col\">Values</th>" not in plain and "filter-chip" not in plain
+
+
+def test_a_submitted_nearby_form_is_redirected_to_the_short_address_and_pages_keep_the_ranges(client, mysql_config):
+    system = _first_system(mysql_config)
+    base = f"/nearby?place=system:{system['pid']}&distance=10"
+    response = client.get(base + "&stars=&kinds=star&kinds=planet&star_min_age=100000000&star_max_age=&star_age_unit=yr&planet_min_gravity=&planet_value_sort=")
+    assert response.status_code == 302
+    location = response.headers["Location"]
+    assert "kinds=star" in location and "kinds=planet" in location and "star_min_age=100000000" in location
+    assert "star_max_age" not in location and "planet_min_gravity" not in location and "_value_sort" not in location and "stars=" not in location
+    assert "star_age_unit=yr" in location                            # a unit that has a bound beside it and is not the key's own stays
+    html = client.get(location).get_data(as_text=True)
+    assert "Star age: " in html
+
+
+def test_a_bad_range_box_is_ignored_on_the_page(client, mysql_config):
+    system = _first_system(mysql_config)
+    html = client.get(f"/nearby?place=system:{system['pid']}&distance=10&star_min_age=abc&star_min_luminosity=2&star_max_luminosity=1")
+    assert html.status_code == 200 and "filter-chip" not in html.get_data(as_text=True)

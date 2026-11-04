@@ -19,7 +19,7 @@ from planetgen.web.lib.habitability_cells import COLUMN as HABITABILITY_COLUMN, 
 
 from . import bp, tables
 from .helpers import crumb, db_name, page_url, render_page
-from .searchpage import OTHER_GAS, VALUE_FIELDS, VALUE_SORT_FIELDS, SearchState, value_form
+from .searchpage import SearchState, tidy_value_args, value_form
 
 KIND_LABELS = {
     "star": ("star", "stars", "Stars"),
@@ -242,15 +242,11 @@ def _chips(kind, ranges):
 
 def _canonical_url(kind):
     """The short form of this request's address (a submitted form sends every box, filled or not, and every row's unit), or `None` when it already is
-    that: only the filled boxes, the units that say something, and the form's "another gas" row turned into the key of that gas (UX.228)."""
+    that (`searchpage.tidy_value_args`, UX.228)."""
     if kind not in objectlist.VALUE_KINDS:
         return None
-    state = _value_state()
-    mine = [name for name in (*VALUE_FIELDS, *VALUE_SORT_FIELDS) if name.startswith(f"{kind}_") and state.texts.get(name)]
-    other = {key for key in request.args if f"_{OTHER_GAS}" in key or key in VALUE_FIELDS or key in VALUE_SORT_FIELDS}
-    pairs = {key: value for key, value in request.args.items() if key not in other and value.strip()}
-    pairs.update({name: state.texts[name] for name in mine})
-    return None if pairs == dict(request.args.items()) else page_url("object_list", kind=kind, **pairs)
+    pairs, changed = tidy_value_args(request.args, (kind,))
+    return page_url("object_list", kind=kind, **dict(pairs)) if changed else None
 
 
 @bp.route("/lists/<kind>")
