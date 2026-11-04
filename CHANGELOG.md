@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3156] - 2026-11-04
+
+**Headline:** Nebulae on the Galaxy Map are irregular, wispy shapes taken from the galaxy's gas and star-forming density, not circles.
+
+### Changed
+- **MAP.365.** A nebula is no longer a round sprite or a random blob per object. For each node the map draws, a new read-only endpoint (`GET /galaxy/nebula-volume?key=<node key>`, `/api/galaxy/nebula-volume`) samples the model's density (`galaxy.nebula_density`) at points on one absolute lattice (`galaxy/nebula_volume.py`): every lattice point in the node that a nebula reaching the node holds, with a strength from the density and the family of the nebula it is nearest to in its own radii. A nebula that crosses a node or sector border is drawn half by each node, with no seam, and the lattice gets finer (and the density adds noise octaves, so more filaments) as the nodes get finer. A dense core fades unevenly into a soft edge; a planetary nebula or a supernova remnant is a shell. Nothing is stored, so there is no migration and no epoch: the same galaxy draws the same shapes.
+- The map draws the points as soft splats (`static/nebulavolume.js` chooses and decodes, `static/nebulavolumelayer.js` draws). Where nebulae overlap on the screen their colors add up in a half-resolution target, and a full-screen pass bends the sum under a cap that keeps its hue, so a crowd of nebulae never washes to white. The group circles of MAP.176 and the per-nebula circle and GEN.75 mesh give way where a node's volume shows; the circles stay far out and while a volume loads, and a browser that cannot render to a float target keeps them. The family switches of the Menu switch the volumes too.
+- The tests hold a nebula's outline away from a circle (the circularity of its projected points, with the model's own clouds and a stand-in), two blocks that share a nebula drawing each place once, the same points whichever object it is, the node reader against a stored nebula, the capped sum against the shader's own output at every pixel of a browser frame, and the volume's packed bytes.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.365.
+
 ## [8.0.3155] - 2026-11-04
 
 **Headline:** A system that was asked for a habitable world now answers `aim` when it holds a body that meets the request's conditions and `unmet` when it does not, where the answer used to disagree with the world count.
