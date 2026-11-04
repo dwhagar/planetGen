@@ -2,6 +2,108 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3162] - 2026-11-04
+
+**Headline:** Black holes are off by default on the Galaxy Map, and drawn as purple dots when turned on.
+
+### Changed
+- **MAP.368.** The Black holes layer in the Menu now starts off: a new viewer sees no black-hole marks and no purple dots for them, and the Key has no line for them. Turning the layer on draws the marks and the purple dots (black holes stay #a43cff; neutron stars and quasars keep the colors MAP.164 and MAP.80 chose, deep blue and pink, and are not affected). The choice rides in the address (`show=marker-black-hole`) and a reload keeps it, so a viewer who already set it keeps their choice.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.368.
+
+## [8.0.3161] - 2026-11-04
+
+**Headline:** Choosing a nebula on the Galaxy Map flies into a window that shows that nebula alone, with a way back.
+
+### Changed
+- **MAP.222.** A double click on a nebula, Enter with its card up, a click on its name, or the card's "Open nebula window" button flies the camera to frame the nebula and the nebulae that overlap it, and draws only what lies inside: the stars, names and markers in its sphere and the nebulae's shape cut to it, whatever sectors it crosses. A bar over the map names the window and has "Back to the Galaxy Map" (Escape does the same), which returns the camera to where it was. The window is a generic group window (`groupwindow.js`) so a globular cluster can plug in later (MAP.223).
+
+generation-output: unchanged
+
+TODO items resolved: MAP.222.
+
+## [8.0.3160] - 2026-11-04
+
+**Headline:** The top-bar menu test follows the Help menu's new first item, so it opens the Habitability page it means to.
+
+### Changed
+
+- `test_the_top_bar_menus` expected the Help menu to hold Classes, Habitability, Properties, Life and References, and clicked its second item. Since the help registry (the "All help" index first) the second item is Classes, so the click went to the wrong page and the test waited out its 120 second timeout (TEST.324). The test now expects "All help" first and clicks the item named Habitability. The file passes, 11 of 11, in about two minutes.
+
+## [8.0.3159] - 2026-11-04
+
+**Headline:** The Galaxy Map's default view shades only with nebulae: no density, age or luminosity fill.
+
+### Changed
+- **MAP.191.** The default Galaxy Map shows stars and markers for known space with no block fill; the nebulae (drawn from the galaxy's density, MAP.365) are the only shading and tint the stars and regions behind them (MAP.215). This closes the item: the blocks were already hidden unless asked for (MAP.214), and the Color by menu's first choice now reads "No fill (stars, markers and nebulae)" instead of naming the age, density and luminosity colors it does not draw.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.191.
+
+## [8.0.3158] - 2026-11-04
+
+**Headline:** Stars, glows and charted regions seen through a nebula on the Galaxy Map take its hue.
+
+### Changed
+- **MAP.215.** The nebulae's raw sum (the volume layer's target, before the cap) is read by the star shader, the unresolved star glow and the charted-region layer: what is behind a nebula leans toward the sum's hue (`nebulavolume.tinted`, the same formula in the shaders as `nebulaTinted`), more the denser the core and levelling off at 0.6 so the tint stays subtle, and loses a fifth of its light at full tint so a dense cloud dims what is behind it. Nothing is tinted while no nebula is drawn, in the Sector Map, or with the nebula layers off. The density views are unchanged.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.215.
+
+## [8.0.3157] - 2026-11-04
+
+**Headline:** Nebulae on the Galaxy Map fade out at the edge by family: a reflection nebula over the longest way, a supernova shell crisp.
+
+### Changed
+- **MAP.142 (the Galaxy Map's part).** The strength of a nebula's points now follows `smoothstep(FORM_LEVEL - w / 2, FORM_LEVEL + w / 2, density)` with a width `w` for each family (`galaxy/nebula_volume.EDGE_WIDTH`: reflection 0.60, diffuse 0.50, emission 0.40, dark 0.30, planetary 0.15, supernova remnant 0.10 of the density's span, from the "Appearance by class" table), so a nebula has no hard outline and its extent is the half-strength contour, the density the model calls inside a nebula, whatever its width. A planetary nebula and a remnant keep their shell profile, so the families differ by more than color: shells are rings, solid nebulae fade over their own width. The widths are display settings, not measurements. The Sector Map's and the nebula page's meshes keep their edges for now.
+
+generation-output: unchanged
+
+TODO items resolved: none (MAP.142 stays open for the Sector Map and the nebula view).
+
+## [8.0.3156] - 2026-11-04
+
+**Headline:** Nebulae on the Galaxy Map are irregular, wispy shapes taken from the galaxy's gas and star-forming density, not circles.
+
+### Changed
+- **MAP.365.** A nebula is no longer a round sprite or a random blob per object. For each node the map draws, a new read-only endpoint (`GET /galaxy/nebula-volume?key=<node key>`, `/api/galaxy/nebula-volume`) samples the model's density (`galaxy.nebula_density`) at points on one absolute lattice (`galaxy/nebula_volume.py`): every lattice point in the node that a nebula reaching the node holds, with a strength from the density and the family of the nebula it is nearest to in its own radii. A nebula that crosses a node or sector border is drawn half by each node, with no seam, and the lattice gets finer (and the density adds noise octaves, so more filaments) as the nodes get finer. A dense core fades unevenly into a soft edge; a planetary nebula or a supernova remnant is a shell. Nothing is stored, so there is no migration and no epoch: the same galaxy draws the same shapes.
+- The map draws the points as soft splats (`static/nebulavolume.js` chooses and decodes, `static/nebulavolumelayer.js` draws). Where nebulae overlap on the screen their colors add up in a half-resolution target, and a full-screen pass bends the sum under a cap that keeps its hue, so a crowd of nebulae never washes to white. The group circles of MAP.176 and the per-nebula circle and GEN.75 mesh give way where a node's volume shows; the circles stay far out and while a volume loads, and a browser that cannot render to a float target keeps them. The family switches of the Menu switch the volumes too.
+- The tests hold a nebula's outline away from a circle (the circularity of its projected points, with the model's own clouds and a stand-in), two blocks that share a nebula drawing each place once, the same points whichever object it is, the node reader against a stored nebula, the capped sum against the shader's own output at every pixel of a browser frame, and the volume's packed bytes.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.365.
+
+## [8.0.3155] - 2026-11-04
+
+**Headline:** A system that was asked for a habitable world now answers `aim` when it holds a body that meets the request's conditions and `unmet` when it does not, where the answer used to disagree with the world count.
+
+### Changed
+- **Habitable request answer (GEN.1248).** `StarSystem.habitable_request` was worked out from the PHI-6 index of each body (`habitability.habitable_request_result`) while the request steers by conditions (`habitable_request.count`: temperate, air, a surface ocean) since GEN.1130, so a probe of 14 A0V systems found 4 with a world that said `unmet` and 1 with none that said `fallback`. It is now `aim` when `count` finds a body (a moon of a giant counts) and `unmet` otherwise. The `fallback` answer is gone: the request has settled for nothing since GEN.1130. The code that gave it (`habitable_request_result`, `FALLBACK_TIERS`, `FALLBACK_SUITABILITY_TIERS` in `physics/habitability.py`) is deleted, with no shim, and the design text and the tests that quoted it are changed (a new test builds 12 requested systems and checks the answer against `count`).
+- **Not stored.** The answer is an attribute of the finished system, worked out again when a system is read back from the database; no column, golden file or draw reads it, so no migration, epoch or census change is needed.
+generation-output: unchanged
+
+## [8.0.3154] - 2026-11-04
+
+**Headline:** The References section now explains how each area is worked out, what we lack, and how well known each part is.
+
+### Changed
+- New References pages: a method page for each of the 11 areas, a page that says what we have and lack, and a scorecard counted from the stand-in registry.
+- The Properties help page moved into the method pages, with the same unit, who-has-it and source lines for each value. Its address, /help/properties, is gone with no redirect, and the body pages link to the method pages instead.
+- The References start page now links to every References page.
+
+## [8.0.3153] - 2026-11-04
+
+**Headline:** The speculative chemistry notes moved out of the life pages into a References page.
+
+### Changed
+- The life help pages and the Life and air chart no longer explain how sure each class is. A "Where this comes from" link on each leads to a new References page, Speculative chemistry, with one section per life class.
+- The class "Oxygenic light-eaters: blue and UV tuned" is now "blue and UV adapted".
+
 ## [8.0.3152] - 2026-11-04
 
 **Headline:** The two system tests that force a habitable world now check what the request promises since GEN.1130, so the A0V test no longer fails on about half its trials.

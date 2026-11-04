@@ -89,7 +89,11 @@ def overview(data):
             "from used as its source gives it to fitted with no source.",
         ],
         "sections": [],
-        "pages": [{"text": "Papers", "href": reference_path("papers")}, {"text": "Data sets and archives", "href": reference_path("data")}],
+        "pages": [{"text": "Papers", "href": reference_path("papers")}, {"text": "Data sets and archives", "href": reference_path("data")},
+                  {"text": "Stand-ins", "href": reference_path("stand-in")}, {"text": "Fitted to a result", "href": reference_path("fitted")},
+                  {"text": "Speculative chemistry", "href": reference_path("speculative")},
+                  *[{"text": f"Method: {references_usage.AREA_TITLES[area]}", "href": reference_path("method", area)} for area in references_usage.AREAS],
+                  {"text": "What we have and lack", "href": reference_path("gaps")}, {"text": "Scorecard", "href": reference_path("scorecard")}],
     }
     if data is None:
         page["sections"].append({
@@ -714,4 +718,239 @@ def fitted(data, targets, overview):
                          falsifier=cite(target["falsifier"] or "", strict=False))
                     for target in (targets["targets"] if targets else [])],
         "total": sum(len(level["rows"]) for level in levels),
+    }
+
+
+def _tier_name(data, code):
+    return next(name for tier, name, _meaning in data["tiers"] if tier == code)
+
+
+def _level_name(data, code):
+    return next(name for level, name, _meaning in data["tweaks"] if level == code)
+
+
+def speculative(data, folder=None):
+    """
+    `/references/speculative` (DOC.92, References R6) as `{"title", "intro", "sections"}`, in the shape of `overview`: how sure the air
+    chemistry of each life class is, which classes are speculative, and how sure it is that each class can exist. `data` is `speculative.json`,
+    or `None` before the build has run. A basis that cites a source (`[R2336]`) is shown with the citation as a link (`cite`).
+    """
+    page = {
+        "title": "Speculative chemistry",
+        "intro": [
+            "This page says how sure the air chemistry of each life class is. The planet pages show the result: which gases a class "
+            "adds to the air and takes out of it. Here is how well each part is known.",
+            "A class is speculative when its air numbers are hand-tuned against many worlds (level L3) or fitted with no independent source (level L4).",
+        ],
+        "sections": [],
+    }
+    if data is None:
+        page["sections"].append({
+            "id": "not-built", "heading": "The pages are not built", "table": None,
+            "paragraphs": ["The numbers on this page are built at setup by scripts/build_reference_pages.py. Run it, or run update.sh, and reload."]})
+        return page
+    classes = data["classes"]
+    page["sections"].append({
+        "id": "classes", "heading": "All the life classes", "paragraphs": [
+            "Each class has two tiers. The first says how sure we are that the class can exist at all. The second, with its level, says how sure we are "
+            "of how the class changes the air."],
+        "table": {"head": ["Class", "Can exist", "Air chemistry tier", "Adjustment level", "Speculative"], "rows": [
+            [f"Class {row['id']}", f"{row['exists_tier']}: {_tier_name(data, row['exists_tier'])}",
+             f"{row['air_tier']}: {_tier_name(data, row['air_tier'])}", f"{row['air_tweak']}: {_level_name(data, row['air_tweak'])}",
+             "Yes" if row["speculative"] else "No"] for row in classes]}})
+    page["sections"].append({
+        "id": "several", "heading": "Several classes at once", "paragraphs": [
+            "A world can hold more than one class of life. Its air is then the sum of what each class adds and takes out. "
+            "The combined air is only as sure as its least sure class."],
+        "table": None})
+    seen = set()
+    for row in classes:
+        paragraphs = [
+            f"Air chemistry: tier {row['air_tier']} ({_tier_name(data, row['air_tier']).lower()}), level {row['air_tweak']} "
+            f"({_level_name(data, row['air_tweak']).lower()}). " + ("This class is speculative." if row["speculative"] else "This class is not speculative."),
+            f"Can exist: tier {row['exists_tier']} ({_tier_name(data, row['exists_tier']).lower()}). How far it can go: {row['reaches'].lower()}.",
+        ]
+        if row["number"] not in seen:
+            seen.add(row["number"])
+            paragraphs.append(f"The air numbers of the whole Class {row['number']} family ({row['air_name'].lower()}) rest on: {row['air_basis']}.")
+        page["sections"].append({"id": f"class-{row['id'].lower()}", "heading": f"Class {row['id']}: {row['name']}", "paragraphs": paragraphs, "table": None})
+    for section in page["sections"]:
+        section["paragraphs"] = [cite(text, folder) if "[R" in text else text for text in section["paragraphs"]]
+    return page
+
+
+# ------------------------------------------------------------------------------------------------------ method, gaps and scorecard (DOC.91)
+
+READ_TIERS = ("T1", "T2")
+GUESS_TIERS = ("T5", "T6", "T7", "T8")
+CHOSEN_TIERS = ("T9",)
+LACKING_TIERS = ("T8", "T9")
+"""tuple: The tier codes of the kinds of value the scorecard counts: read from a source, an educated guess from physics, chosen for the output.
+`LACKING_TIERS` are the tiers the gaps page lists by name: physics fixes no form, or the value was chosen for the output."""
+
+MAX_GAP_ROWS = 40
+"""int: How many weak values one area lists on the gaps page before it says how many more the Stand-ins page has."""
+
+
+def _area_title(area):
+    return references_usage.AREA_TITLES[area]
+
+
+def _area_rows(data):
+    """`{area: [(section, row)]}` for every area of the method pages and `other`: the area is read from the registry section's title."""
+    found = {area: [] for area in (*references_usage.AREAS, references_usage.OTHER)}
+    for section, row in rows_of(data):
+        found[references_usage.area_of(section["title"])].append((section, row))
+    return found
+
+
+def _tier_code(row):
+    return row["tier_code"]
+
+
+def _tiers_of(rows):
+    """`{kind: how many of rows}` for the kinds of the scorecard: read, unverified, guess, chosen, fitted."""
+    codes = [_tier_code(row) for _section, row in rows]
+    read = sum(code in READ_TIERS for code in codes)
+    guess = sum(code in GUESS_TIERS for code in codes)
+    chosen = sum(code in CHOSEN_TIERS for code in codes)
+    return {"total": len(rows), "read": read, "guess": guess, "chosen": chosen, "unverified": len(rows) - read - guess - chosen,
+            "fitted": sum(row["tweak"] in FITTED_TWEAKS for _section, row in rows)}
+
+
+def _percent(part, whole):
+    return f"{(200 * part + whole) // (2 * whole)}%" if whole else "none"
+
+
+def _sources_by_area(usage):
+    """`{area: [source ids]}` from `references_usage.uses()`."""
+    found = {}
+    for source_id, entry in (usage or {}).get("uses", {}).items():
+        for area in entry["areas"]:
+            found.setdefault(area, []).append(source_id)
+    return found
+
+
+def _nav(current=None):
+    pages = [{"text": _area_title(area), "href": reference_path("method", area)} for area in references_usage.AREAS]
+    pages += [{"text": "What we have and lack", "href": reference_path("gaps")}, {"text": "Scorecard", "href": reference_path("scorecard")}]
+    return [page for page in pages if page["href"] != current]
+
+
+def method_page(area, data, properties, usage):
+    """
+    `/references/method/<area>` (DOC.91, References R5) as `{"title", "intro", "pages", "sections"}`: the values of the star, planet and moon
+    pages that belong to the area (`properties`: `property_help.by_area()[area]`, with their unit, who has them and how they are worked out), the
+    stand-ins of the area with their tier and level, and how many sources the area cites. `data` is `stand-ins.json`, `usage` is
+    `references_usage.uses()`. A value's row has the anchor of its name, so `reference_link("method", "atmospheres/surface_pressure")` lands on it.
+    """
+    title = _area_title(area)
+    rows = _area_rows(data)[area]
+    kinds = _tiers_of(rows)
+    sources = _sources_by_area(usage).get(area, [])
+    page = {
+        "title": f"Method: {title}",
+        "intro": [
+            f"This page says how the {title.lower()} part of the galaxy is worked out: the values it gives a star, planet or moon page, the stand-ins "
+            f"behind them, and the sources it cites.",
+            f"It holds {count(len(properties))} values of the body pages and {count(len(rows))} stand-ins. "
+            f"{_percent(kinds['read'], kinds['total'])} of the stand-ins are read from a source we trust and {_percent(kinds['fitted'], kinds['total'])} were bent toward a result.",
+        ],
+        "pages": _nav(reference_path("method", area)),
+        "sections": [],
+    }
+    if properties:
+        page["sections"].append({
+            "id": "values", "heading": "Values on the body pages", "paragraphs": [
+                "A star, planet or moon page lists what is known about it. Under each value here is the one line the page shows for where it comes from."],
+            "table": {"head": ["Value", "Unit", "Has it", "How it is worked out"], "ids": [anchor(row["label"]) for row in properties],
+                      "rows": [[row["label"], row["unit"], row["applies"], cite(row["source"], strict=False)] for row in properties]}})
+    if rows:
+        page["sections"].append({
+            "id": "stand-ins", "heading": "Stand-ins of this area", "paragraphs": [
+                "Each is a value that is not a verified measurement of the thing it stands for. Its page says how it is filled, where it is wrong, and what would replace it."],
+            "table": {"head": ["Stand-in", "What it is", "Tier", "Level"], "rows": [
+                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), row["id"]), summary(row["what"]), row["tier_code"], row["tweak"]]
+                for _section, row in rows]}})
+    page["sections"].append({
+        "id": "sources", "heading": "Sources of this area", "paragraphs": [
+            Markup("{} sources of the reference list are cited in this area. <a href=\"{}\">See them by area</a>.").format(
+                count(len(sources)), _paper_href("area", area))],
+        "table": None})
+    return page
+
+
+def gaps_page(data, usage):
+    """
+    `/references/gaps` (DOC.91): what we have and what we lack, by area. A table counts the stand-ins of each area by kind; then each area lists its
+    weakest values, those at tier T8 or T9 or at tweak level L4 (no physics fixes the form, or nothing independent sets the value). A section's id is
+    its area, so `reference_link("gaps", "life")` lands on it.
+    """
+    by_area = _area_rows(data)
+    sources = _sources_by_area(usage)
+    page = {
+        "title": "What we have and lack",
+        "intro": [
+            "For each part of the galaxy this page says how much rests on a source and how much on a stand-in. The weakest values are listed by name, "
+            "so that research can replace them first.",
+            "A value is weak when no physics fixes its form (tier T8), when it was chosen so the output comes out right (tier T9), or when it was fitted with no source (level L4).",
+        ],
+        "pages": _nav(reference_path("gaps")),
+        "sections": [],
+    }
+    head = ["Area", "Sources cited", "Stand-ins", "Read from a source", "Weak"]
+    table = []
+    for area in (*references_usage.AREAS, references_usage.OTHER):
+        rows = by_area[area]
+        weak = [(section, row) for section, row in rows if _tier_code(row) in LACKING_TIERS or row["tweak"] == "L4"]
+        table.append([_area_title(area), count(len(sources.get(area, []))), count(len(rows)),
+                      _percent(_tiers_of(rows)["read"], len(rows)), count(len(weak))])
+    page["sections"].append({"id": "summary", "heading": "By area", "paragraphs": [], "table": {"head": head, "rows": table}})
+    for area in (*references_usage.AREAS, references_usage.OTHER):
+        weak = [(section, row) for section, row in by_area[area] if _tier_code(row) in LACKING_TIERS or row["tweak"] == "L4"]
+        shown = weak[:MAX_GAP_ROWS]
+        paragraphs = [f"{count(len(weak))} of the {count(len(by_area[area]))} stand-ins of this area are weak." if weak else "No stand-in of this area is weak."]
+        if len(weak) > len(shown):
+            paragraphs.append(f"The first {count(len(shown))} are listed. The Stand-ins page has the rest.")
+        page["sections"].append({
+            "id": area, "heading": _area_title(area), "paragraphs": paragraphs,
+            "table": {"head": ["Stand-in", "What it is", "Tier", "Level"], "rows": [
+                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), row["id"]), summary(row["what"]), row["tier_code"], row["tweak"]]
+                for _section, row in shown]} if shown else None})
+    return page
+
+
+def scorecard_page(data, usage):
+    """
+    `/references/scorecard` (DOC.91): how scientific each area is, computed from the stand-in registry and the sources and never rated by hand. For
+    each area: its stand-ins, the share read from a source we trust, the share of unverified values, educated guesses, values chosen for the output
+    and values bent toward a result, and the sources it cites. A row's id is its area, so `reference_link("scorecard", "life")` lands on it.
+    """
+    by_area = _area_rows(data)
+    sources = _sources_by_area(usage)
+    areas = (*references_usage.AREAS, references_usage.OTHER)
+    rows, ids = [], []
+    for area in areas:
+        kinds = _tiers_of(by_area[area])
+        total = kinds["total"]
+        rows.append([_area_title(area), count(total), _percent(kinds["read"], total), _percent(kinds["unverified"], total),
+                     _percent(kinds["guess"], total), _percent(kinds["chosen"], total), _percent(kinds["fitted"], total),
+                     count(len(sources.get(area, [])))])
+        ids.append(area)
+    every = _tiers_of(rows_of(data))
+    rows.append(["All areas", count(every["total"]), _percent(every["read"], every["total"]), _percent(every["unverified"], every["total"]),
+                 _percent(every["guess"], every["total"]), _percent(every["chosen"], every["total"]), _percent(every["fitted"], every["total"]),
+                 count(len((usage or {}).get("uses", {})))])
+    ids.append("all")
+    return {
+        "title": "Scorecard",
+        "intro": [
+            "This is how well known each part of the galaxy is. Every number is counted from the stand-in registry and the sources the project cites.",
+            "Read from a source is tiers T1 and T2. Unverified is tiers T3 and T4. Educated guess is tiers T5 to T8, chosen for the output is tier T9, "
+            "and fitted is any value at levels L2 to L4. A stand-in that is fitted is counted in its tier too.",
+        ],
+        "pages": _nav(reference_path("scorecard")),
+        "sections": [{"id": "areas", "heading": "By area", "paragraphs": [], "table": {
+            "head": ["Area", "Stand-ins", "Read from a source", "Unverified", "Educated guess", "Chosen for the output", "Fitted", "Sources cited"],
+            "ids": ids, "rows": rows}}],
     }

@@ -153,7 +153,7 @@ class StarSystem:
         moon_count (int): The total number of moons in the system.
         hab_count (int): The total number of habitable worlds (overall PHI-6 Blue or Green, `habitability.is_habitable`).
         habitable_class_count (int): The planets and moons of a class that can carry life (`count_habitable_class_worlds`).
-        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`).
+        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`): `"aim"` when a body meets the request's conditions, else `"unmet"`.
         m_count (int): The total number of Class M worlds.
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
         system_flavor_text (str or None): The system-level flavor text sentence,
@@ -2111,27 +2111,13 @@ class StarSystem:
     def habitable_request_status(self, planets=None):
         """
         How the system answers a request for a habitable world (`system_config.HABITABLE_WORLD`), `None` when none was made:
-        `"aim"` when a planet or moon is habitable (overall PHI-6 Blue or Green), `"fallback"` when the best it has is overall
-        Yellow with Suitability at least Yellow (Boss, 2026-10-23: accepted when the request must fall short), else
-        `"unmet"`. A report only (GEN.1130): the request raises the odds of a world that meets its conditions
-        (`habitable_request.meets`) and steers by no score, so `"unmet"` is an ordinary answer.
+        `"aim"` when a planet or moon meets the request's conditions (`habitable_request.count`: temperate, air, a surface ocean),
+        else `"unmet"`. A report only (GEN.1130, GEN.1248): the request raises the odds of a world that meets those conditions
+        and steers by no score, so `"unmet"` is an ordinary answer, and it is the answer exactly when no body meets them.
         """
         if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
             return None
-        if planets is None:
-            planets = self.all_planets
-        best = "unmet"
-        for planet in planets:
-            if planet.body_type == 'a':
-                continue
-            for body in (planet, *planet.moons):
-                result = habitability.habitable_request_result(
-                    getattr(body, "phi4", None), getattr(body, "phi4_suitability", None))
-                if result == "aim":
-                    return "aim"
-                if result == "fallback":
-                    best = "fallback"
-        return best
+        return "aim" if habitable_request.count(self.all_planets if planets is None else planets) > 0 else "unmet"
 
     def _settle_to_final_age(self):
         """

@@ -5144,6 +5144,29 @@ body.app {
   text-align: right;
 }
 
+/* MAP.222: the bar over a group window (a nebula alone) with its way back. */
+.galaxy-window-bar {
+  position: absolute;
+  left: 50%;
+  top: 0.75rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.galaxy-window-bar[hidden] {
+  display: none;
+}
+.galaxy-window-title {
+  font-weight: 700;
+}
+
 /* NAV.20: the Galaxy Map's course legend and readout. */
 .course-readout {
   display: flex;

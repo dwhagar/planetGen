@@ -29,7 +29,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
-    map_site,
+    map_site, nebula_volume_payload,
 )
 
 PRIME_CODE = provisional_sector_designation(1, 0, 1)
@@ -80,6 +80,7 @@ def page(gl_browser, request):
                                      color_scheme="dark")
     page = context.new_page()
     page.names_hidden = request.node.get_closest_marker("names_hidden") is not None
+    page.holes_default = request.node.get_closest_marker("holes_default") is not None
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     try:
@@ -95,6 +96,9 @@ DOUBLE_CLICK_GAP_MS = 400
 def _open(page, url, ready):
     if getattr(page, "names_hidden", False) and "hide=" not in url:
         url += ("&" if "?" in url else "?") + "hide=" + HIDE_NAMES
+    if not getattr(page, "holes_default", False) and "/galaxy" in url and "marker-black-hole" not in url:
+        # MAP.368: the Black holes layer starts off; the tests that look at black holes ask for it, those of its default are marked `holes_default`.
+        url = url.replace("show=", "show=marker-black-hole,", 1) if "show=" in url else url + ("&" if "?" in url else "?") + "show=marker-black-hole"
     response = page.goto(url, wait_until="load")
     assert response.status == 200, f"{url} answered {response.status}"
     page.wait_for_selector(ready, state="attached")
@@ -1618,6 +1622,172 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
 
 
+VOLUMES = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes"
+
+
+def _volume_open(page, map_site):
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.drawn() > 0; }}", timeout=30000)
+
+
+def _circularity(points, cell):
+    """4 pi A / P^2 of the grid cells `points` (x, y in parsecs) fall in: 1 for a disc, well under for a ragged outline."""
+    import numpy as np
+
+    cells = {(int(math.floor(x / cell)), int(math.floor(y / cell))) for x, y in points}
+    area = len(cells)
+    perimeter = sum(1 for (i, j) in cells for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)) if (i + di, j + dj) not in cells)
+    return 4 * math.pi * area / perimeter ** 2 if perimeter else 1.0
+
+
+def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_site):
+    """MAP.365: the fixture nebula (a 30 pc cloud) is drawn from the points the node's volume holds, taken from the density, so its
+    outline is irregular (the circularity of the projected points is under a stated bound), its circle sprite and per-ID mesh give way
+    (the mesh is not asked for once the volume shows), and the points lie on the absolute lattice inside the cloud's radius."""
+    shape_requests = []
+    page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
+    _volume_open(page, map_site)
+    volumes = page.evaluate(f"() => ({VOLUMES})().volumes()")
+    assert volumes, "a volume is held"
+    spots = []
+    for volume in volumes:
+        step = volume["spacingPc"]
+        for ix, iy, iz in zip(volume["ix"], volume["iy"], volume["iz"]):
+            spots.append((ix * step, iy * step, iz * step))
+        assert volume["level"] >= 0 and all(0 < s <= 255 for s in volume["strength"])
+    cloud = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
+    near = [p for p in spots if math.dist(p, cloud) <= 30.0 + 1e-6]
+    assert len(near) > 80, len(near)
+    assert _circularity([(p[0], p[1]) for p in near], volumes[0]["spacingPc"]) < 0.55
+    assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().map((x) => v.coverage(x.key))); }}") > 0.5
+
+
+def test_galaxy_map_default_view_shades_only_with_nebulae(page, map_site):
+    """MAP.191: the default Galaxy Map draws no block fill (no density, age or luminosity shading) and the Color by choice is its
+    default; the only shading is the nebulae's, which are drawn, and the stars behind them read their sum (MAP.215)."""
+    _volume_open(page, map_site)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-color-by').value") == "default"
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blocksDrawn") == 0
+    assert page.evaluate(f"() => ({VOLUMES})().volumes().length") > 0
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value") == 1
+
+
+WINDOW = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaWindow()"
+
+
+def _click_nebula_name(page):
+    """Clicks the fixture nebula's name where the label engine placed it (a label takes no pointer events: the map finds it under the pointer)."""
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'nebula' && label.text === 'Fixture Cloud')")
+    label = page.evaluate(f"() => ({LABELS})().find((l) => l.kind === 'nebula' && l.text === 'Fixture Cloud')")
+    canvas = page.locator("#galaxymap3d-canvas")
+    canvas.scroll_into_view_if_needed()
+    box = canvas.bounding_box()
+    page.mouse.click(box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2)
+
+
+def _open_nebula_window(page, map_site):
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    _click_nebula_name(page)
+    page.wait_for_function(f"() => ({WINDOW})().window !== null")
+
+
+def test_choosing_a_nebula_opens_its_window_and_the_way_back_returns(page, map_site):
+    """MAP.222: choosing the fixture nebula by its name flies to a window on it alone: the bar names it with a button back, the camera
+    frames its bounding sphere (centred on it, whatever sectors it crosses), only the stars inside are drawn, and the other layers (the
+    glow, the regions) give way; the button returns the camera to where it was and brings everything back."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    before = _camera(page)
+    everything = page.evaluate(WINDOW)
+    assert everything["window"] is None and everything["total"] > 0 and everything["drawn"] == everything["total"]
+    _click_nebula_name(page)
+    page.wait_for_function(f"() => ({WINDOW})().window !== null")
+    opened = page.evaluate(WINDOW)
+    win = opened["window"]
+    assert win["kind"] == "nebula" and win["title"] == "Fixture Cloud" and win["count"] >= 1
+    assert page.locator("#galaxymap3d-window").is_visible()
+    assert "Fixture Cloud" in page.locator("#galaxymap3d-window").inner_text()
+    camera = _camera(page)
+    assert math.dist(camera["target"], win["centre"]) < 0.05 * win["radiusPc"] + 1.0, (camera["target"], win["centre"])
+    assert opened["drawn"] < opened["total"], "stars outside the window are not drawn"
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').dataset.groupWindow") == win["key"]
+    page.click('#galaxymap3d-window [data-action="close-window"]')
+    page.wait_for_function(f"() => ({WINDOW})().window === null")
+    after = page.evaluate(WINDOW)
+    assert after["drawn"] == after["total"] and not page.locator("#galaxymap3d-window").is_visible()
+    back = _camera(page)
+    assert math.dist(back["target"], before["target"]) < 1.0 and abs(back["dist"] - before["dist"]) < 0.02 * before["dist"] + 1.0
+
+
+def test_escape_leaves_a_nebula_window_before_it_steps_out(page, map_site):
+    """MAP.222: Escape closes the window and goes no further out; the Open nebula window button of the card opens it again."""
+    _open_nebula_window(page, map_site)
+    stage = parse_qs(urlparse(page.url).query).get("win")
+    page.locator("#galaxymap3d-canvas").focus()
+    page.keyboard.press("Escape")
+    page.wait_for_function(f"() => ({WINDOW})().window === null", timeout=15000)
+    assert parse_qs(urlparse(page.url).query).get("win") == stage, "the stage stayed"
+    _camera(page)    # the flight back has landed
+    _click_nebula_name(page)
+    page.wait_for_function(f"() => ({WINDOW})().window !== null", timeout=15000)
+
+
+def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
+    """MAP.365: where nebulae overlap their colors add and the sum is bent under the cap (never white): the pass that does it, drawn
+    alone, matches `cappedSum` of the raw sums at every pixel, the raw sum passes the cap somewhere (so the cap is working) and
+    nothing drawn passes it."""
+    import numpy as np
+
+    from planetgen.galaxy import nebula_blocks, nebula_volume
+    from tests import nebula_density_stand_in as stand_in
+
+    centre = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
+    pair = [{"x": centre[0], "y": centre[1], "z": centre[2], "radius_pc": 30.0, "family": "emission"},
+            {"x": centre[0] + 18.0, "y": centre[1] + 6.0, "z": centre[2], "radius_pc": 26.0, "family": "reflection"}]
+    packed = nebula_volume.pack(nebula_volume.sample_group(pair, None, stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL,
+                                                           nebula_blocks.FAMILIES, level=2))
+    empty = nebula_volume.pack(nebula_volume.sample_group([], None, None, 0.0, 0, nebula_blocks.FAMILIES))
+    given = []
+
+    def answer(route):
+        # The pair stands in for what the fixture's own nebulae make, in the nodes that would hold them.
+        key = parse_qs(urlparse(route.request.url).query)["key"][0]
+        holds = nebula_volume_payload(key)["count"] > 0
+        given.append(key)
+        route.fulfill(status=200, content_type="application/octet-stream", body=packed if holds else empty)
+
+    page.route("**/galaxy/nebula-volume*", answer)
+    _volume_open(page, map_site)
+    shot = page.evaluate(f"() => {{ const s = ({VOLUMES})().snapshot(); "
+                         "return s && {width: s.width, height: s.height, sums: Array.from(s.sums), capped: Array.from(s.capped)}; }")
+    assert shot, "something is drawn"
+    sums = np.array(shot["sums"], dtype=float).reshape(-1, 3)
+    capped = np.array(shot["capped"], dtype=float).reshape(-1, 4)[:, :3] / 255.0
+    cap = page.evaluate(f"() => ({VOLUMES})().capLimit")
+    lit = sums.max(axis=1) > 0
+    assert lit.sum() > 200, "the nebulae cover pixels"
+    assert sums.max() > cap, "the raw sum passes the cap somewhere, so the cap is working"
+    assert capped.max() <= cap + 2.0 / 255.0, (capped.max(), cap)
+    m = sums.max(axis=1, keepdims=True)
+    expect = np.where(m > 0, sums * (cap * (1 - np.exp(-m / cap)) / np.maximum(m, 1e-9)), 0.0)
+    assert np.abs(expect[lit] - capped[lit]).max() < 3.0 / 255.0, np.abs(expect[lit] - capped[lit]).max()
+    # Two colors over one pixel give a third: some pixel has both a strong red and a strong blue channel.
+    both = (capped[:, 0] > 0.12) & (capped[:, 2] > 0.12)
+    assert both.sum() > 20, "overlapping emission and reflection nebulae add their colors"
+
+
+def test_stars_and_glows_read_the_nebulae_sum_only_while_nebulae_are_drawn(page, map_site):
+    """MAP.215: the star and glow shaders take the hue of the nebulae in front of them from the volume layer's raw sum; the switch is on
+    while a nebula volume is drawn, and off in a view with none (the shared uniforms hold a black texture then)."""
+    tint = "() => { const t = document.querySelector('#galaxymap3d-canvas').__mapNebulaTint; return t && {tint: t.nebulaTint.value, w: t.drawSize.value.x, textured: !!t.nebulaSum.value}; }"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.drawn() > 0; }}", timeout=30000)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value === 1", timeout=15000)
+    state = page.evaluate(tint)
+    assert state["textured"] and state["w"] > 100, state
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes.setVisible(false)")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value === 0", timeout=15000)
+
+
 LABELS = "() => (document.querySelector('#galaxymap3d-canvas').__mapLabels.shown())"
 
 
@@ -2814,20 +2984,35 @@ def _spot_clear_of_names(page, spot, tooltip_text):
     raise AssertionError(f"no pixel near {spot} names {tooltip_text!r} on hover")
 
 
-def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked(page, map_site):
-    """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
-    address, a legend line while on, and a click on the glyph shows the black hole's card."""
+HOLE_DOTS = "() => document.querySelector('#galaxymap3d-canvas').__mapHoleDots()"
+
+
+@pytest.mark.holes_default
+def test_galaxy_map_black_holes_start_off_and_the_layer_turns_on_marks_and_purple_dots(page, map_site):
+    """MAP.368 (MAP.219): the Black holes layer starts off, so no mark, no purple dot and no legend line; turning it on draws the glyph
+    over each black hole in view and the dots in purple (#a43cff) with a legend line, rides in the address as `show`, is kept by a
+    reload, and a click on the glyph shows the black hole's card; turning it off takes all of it away again."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     _poi_layers(page)    # a crowd of a black hole with a world's mark has no name of its own (MAP.305), which the long runs hit
-    page.locator("#galaxymap3d-menu > summary").click()
     holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]')
+    legend = page.locator("#galaxymap3d-layer-legend")
+    _open_menu(page)
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false", "off until the visitor turns it on"
+    page.wait_for_function(f"() => ({HOLE_DOTS})().held > 0")
+    assert page.evaluate(HOLE_DOTS)["drawn"] == 0, "no purple dot while it is off"
+    page.wait_for_timeout(500)
+    assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
+    assert "Black holes" not in legend.inner_text()
+    # On: the marks, the dots in purple, the legend line and the address.
+    button.click()
+    assert button.get_attribute("aria-pressed") == "true"
+    assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("show", [""])[0].split(",")
     drawn = _markers_until(page, lambda found: {e["name"] for e in found if e["kind"] == "marker-black-hole"} >= set(holes))
     assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
-    legend = page.locator("#galaxymap3d-layer-legend")
+    dots = page.evaluate(HOLE_DOTS)
+    assert dots["drawn"] == dots["held"] > 0 and dots["colour"].lower() == "#a43cff", dots
     assert "Black holes" in legend.inner_text()
-    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]')
-    _open_menu(page)
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
     # The keyboard and screen readers get a button per marker.
     page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
@@ -2846,23 +3031,20 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     spot = _spot_clear_of_names(page, spot, "Fixture Maw")
     page.mouse.click(*spot)
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
-    # Off: no markers, no legend line, and the address says so.
-    _open_menu(page)
-    button.click()
-    assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
-    assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
-            if e["kind"] == "marker-black-hole"] == []
-    assert "Black holes" not in legend.inner_text()
-    # A reload keeps it off; on again brings them back.
+    # A reload keeps it on.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
-    page.wait_for_timeout(800)
-    assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
+    assert {e["name"] for e in _markers_until(page, lambda found: any(e["kind"] == "marker-black-hole" for e in found))
+            if e["kind"] == "marker-black-hole"} >= set(holes)
+    # Off again: no marks, no dots, no legend line, and the address no longer lists it.
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
-    assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
-    assert "marker-black-hole" not in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
+    assert "marker-black-hole" not in parse_qs(urlparse(page.url).query).get("show", [""])[0].split(",")
+    assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
+            if e["kind"] == "marker-black-hole"] == []
+    assert page.evaluate(HOLE_DOTS)["drawn"] == 0
+    assert "Black holes" not in legend.inner_text()
 
 
 GLOW = "() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && {count: g.count(), drawn: g.drawn(), visible: g.isVisible()}; }"
@@ -3174,6 +3356,7 @@ def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_s
     assert page.evaluate(GLOW)["visible"] is False
 
 
+@pytest.mark.holes_default
 def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_system(page, map_site):
     """MAP.220, MAP.303: systems with a habitable world get a marker of their own kind, on until the Menu turns it off (and
     `hide=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds; the
@@ -3184,7 +3367,7 @@ def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_syste
                   [list(STAR_FIELD_CENTER_PC), 16])
     _settle(page)
     page.wait_for_timeout(1000)
-    wanted = {"marker-black-hole", *POI_DEFAULT_ON}
+    wanted = set(POI_DEFAULT_ON)    # MAP.368: the black holes are not among them any more
     found = _markers_until(page, lambda entries: wanted <= {e["kind"] for e in entries})
     assert {e["kind"] for e in found} == wanted, found
     assert "show=" not in page.url and "hide=marker" not in page.url
@@ -3313,6 +3496,7 @@ def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_c
     assert not [e for e in found if e["kind"] == "marker-class-G"]
 
 
+@pytest.mark.holes_default
 def test_galaxy_map_life_class_markers_are_off_until_chosen_and_mark_the_systems_where_the_class_lives(page, map_site):
     """MAP.351: the Menu has a Life classes group with a marker for each of the 15 life classes, all off until the visitor picks them;
     choosing one marks the systems with a world where that class lives once the map is close enough to have their sector, and the hover

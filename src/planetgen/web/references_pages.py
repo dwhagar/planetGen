@@ -15,6 +15,7 @@ fitted to a result and how sure each part is. Every other page keeps a quiet "Wh
   the anchor `#paper-r0123`;
 - `/references/data` (DOC.89): the data sets fetched at setup, the archives and catalogs, the standards and web pages, and the terms of use that
   `DATA-LICENSE.md` records.
+- `/references/speculative` (DOC.92): how sure the air chemistry of each life class is, with one section for each class.
 
 The pages are static: no database, no script. Their numbers are read from `docs/references/*.json`, built at setup from the registries by
 `scripts/build_reference_pages.py`. Every page opens with the Out of universe banner (`id="out-of-universe-banner"`) and the site header
@@ -23,11 +24,11 @@ takes another tint (`body.references-mode`), so a reader always knows they have 
 
 from flask import abort, request
 
-from planetgen.web.lib import help_registry, references_site, references_usage
+from planetgen.web.lib import help_registry, property_help, references_site, references_usage
 
 from . import bp
 from .helpers import crumb, render_page
-from .lib.reference_urls import reference_path
+from .lib.reference_urls import AREAS, reference_path
 
 
 def _built(*names):
@@ -65,6 +66,21 @@ def references_papers_page():
         description="Every paper, book, and data set the project cites, with its links and where it is used.",
         page=page,
         search_action=reference_path("papers"),
+        banner=references_site.BANNER,
+        banner_text=references_site.BANNER_TEXT,
+    )
+
+
+@bp.route("/references/speculative")
+def references_speculative_page():
+    """DOC.92: how sure the air chemistry of each life class is, and which classes are speculative."""
+    return render_page(
+        "references.html",
+        title="Speculative chemistry",
+        section="references",
+        breadcrumbs=[crumb("References", "references_page"), crumb("Speculative chemistry")],
+        description="How sure the air chemistry of each life class is, and which classes are speculative.",
+        page=references_site.speculative(references_site.load("speculative.json")),
         banner=references_site.BANNER,
         banner_text=references_site.BANNER_TEXT,
     )
@@ -138,6 +154,48 @@ def references_fitted():
         "references_fitted.html", title="Fitted to a result", section="references", breadcrumbs=crumbs,
         description="The values that were bent toward a result, and the published statistics they were tuned to.",
         page=references_site.fitted(built[0], built[2], built[1]), banner=references_site.BANNER, banner_text=references_site.BANNER_TEXT)
+
+
+@bp.route("/references/method/<area>")
+def references_method(area):
+    """DOC.91: how one area is worked out: the values of the body pages, the stand-ins and the sources of the area."""
+    if area not in AREAS:
+        abort(404)
+    crumbs = [crumb("References", "references_page"), crumb(references_usage.AREA_TITLES[area])]
+    built = _built("stand-ins.json")
+    if built is None:
+        return _not_built(references_usage.AREA_TITLES[area], crumbs)
+    page = references_site.method_page(area, built[0], property_help.by_area()[area], references_usage.uses())
+    return render_page(
+        "references.html", title=page["title"], section="references", breadcrumbs=crumbs,
+        description=f"How the {references_usage.AREA_TITLES[area].lower()} part of the galaxy is worked out, and what it rests on.",
+        page=page, banner=references_site.BANNER, banner_text=references_site.BANNER_TEXT)
+
+
+@bp.route("/references/gaps")
+def references_gaps():
+    """DOC.91: what we have and what we lack, by area."""
+    crumbs = [crumb("References", "references_page"), crumb("What we have and lack")]
+    built = _built("stand-ins.json")
+    if built is None:
+        return _not_built("What we have and lack", crumbs)
+    return render_page(
+        "references.html", title="What we have and lack", section="references", breadcrumbs=crumbs,
+        description="For each part of the galaxy, how much rests on a source and which values are weakest.",
+        page=references_site.gaps_page(built[0], references_usage.uses()), banner=references_site.BANNER, banner_text=references_site.BANNER_TEXT)
+
+
+@bp.route("/references/scorecard")
+def references_scorecard():
+    """DOC.91: how well known each area is, computed from the registries."""
+    crumbs = [crumb("References", "references_page"), crumb("Scorecard")]
+    built = _built("stand-ins.json")
+    if built is None:
+        return _not_built("Scorecard", crumbs)
+    return render_page(
+        "references.html", title="Scorecard", section="references", breadcrumbs=crumbs,
+        description="How well known each part of the galaxy is, counted from the stand-in registry and the sources.",
+        page=references_site.scorecard_page(built[0], references_usage.uses()), banner=references_site.BANNER, banner_text=references_site.BANNER_TEXT)
 
 
 help_registry.register_category("references", "Sources", "Where the numbers come from, and how sure each part is.", order=1000)

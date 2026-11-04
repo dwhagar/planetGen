@@ -9,7 +9,10 @@ marked, and the same figures as a table. The data is `GET /api/planets/<id>/life
 import math
 from html import escape
 
+from markupsafe import Markup
+
 from planetgen.generation import evolution
+from planetgen.web.lib import reference_urls
 
 WIDTH, HEIGHT = 640, 280
 LEFT, RIGHT, TOP, BOTTOM = 64, 14, 24, 40
@@ -104,7 +107,7 @@ def chart(history, class_id, grade=0):
         rows.append(row)
     note = ""
     if history.get("speculative"):
-        note = escape(f"Speculative chemistry: this class's numbers are tier {history['speculative']['tier']}, tweak level "
-                      f"{history['speculative']['tweak']} (stand-ins, not measured).")
+        note = Markup('This class\'s air numbers are less sure than the rest. <a class="reference-link" href="{}">Where this comes from</a>').format(
+            reference_urls.reference_path("speculative", class_id))
     return {"svg": "".join(parts), "legend": legend, "stages": stages, "note": note,
             "table": {"header": ["Age (Gyr)"] + [gas["name"] for gas in history["gases"]], "rows": rows}}
