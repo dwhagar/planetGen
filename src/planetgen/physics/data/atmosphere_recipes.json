@@ -913,7 +913,7 @@
    "group": "d",
    "weight": "1 - p_atm",
    "lets": {
-    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "delta": "-6 if luminosity_solar <= 0 else log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
     "p_atm": "1/(1 + 10**(delta/0.247))"
    }
   },
@@ -943,7 +943,7 @@
    "conditions": [],
    "group": "d",
    "lets": {
-    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "delta": "-6 if luminosity_solar <= 0 else log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
     "p_atm": "1/(1 + 10**(delta/0.247))"
    },
    "weight": "p_atm*window(delta, -0.3, None, 0.247)"
@@ -974,7 +974,7 @@
    "conditions": [],
    "group": "d",
    "lets": {
-    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "delta": "-6 if luminosity_solar <= 0 else log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
     "p_atm": "1/(1 + 10**(delta/0.247))"
    },
    "weight": "p_atm*window(delta, -0.8, -0.3, 0.247)"
@@ -1005,7 +1005,7 @@
    "conditions": [],
    "group": "d",
    "lets": {
-    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "delta": "-6 if luminosity_solar <= 0 else log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
     "p_atm": "1/(1 + 10**(delta/0.247))"
    },
    "weight": "p_atm*window(delta, -1.4, -0.8, 0.247)"
@@ -1036,7 +1036,7 @@
    "conditions": [],
    "group": "d",
    "lets": {
-    "delta": "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
+    "delta": "-6 if luminosity_solar <= 0 else log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))",
     "p_atm": "1/(1 + 10**(delta/0.247))"
    },
    "weight": "p_atm*window(delta, None, -1.4, 0.247)"
