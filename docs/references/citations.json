@@ -25390,6 +25390,71 @@
       "kind": "paper",
       "label": "De Vito and Benvenuto 2012",
       "title": "Evolution of low mass close binary systems with a neutron star: its dependence with the initial neutron star mass"
+    },
+    "R5081": {
+      "kind": "paper",
+      "label": "Kaspi and Flierl 2007",
+      "title": "Formation of Jets by Baroclinic Instability on Gas Planet Atmospheres"
+    },
+    "R5082": {
+      "kind": "paper",
+      "label": "Gastine et al. 2014",
+      "title": "Zonal flow scaling in rapidly-rotating compressible convection"
+    },
+    "R5083": {
+      "kind": "paper",
+      "label": "Verhoeven and Stellmach 2014",
+      "title": "The compressional beta effect: A source of zonal winds in planets?"
+    },
+    "R5084": {
+      "kind": "paper",
+      "label": "Nicoski et al. 2024",
+      "title": "Asymptotic scaling relations for rotating spherical convection with strong zonal flows"
+    },
+    "R5085": {
+      "kind": "paper",
+      "label": "Bouchet and Sommeria 2002",
+      "title": "Emergence of intense jets and Jupiter's Great Red Spot as maximum-entropy structures"
+    },
+    "R5086": {
+      "kind": "paper",
+      "label": "Zhang and Marcus 2024",
+      "title": "Stable three-dimensional vortex families consistent with Jovian observations including the Great Red Spot"
+    },
+    "R5087": {
+      "kind": "paper",
+      "label": "Lemasquerier et al. 2020",
+      "title": "Remote determination of the shape of Jupiter’s vortices from laboratory experiments"
+    },
+    "R5088": {
+      "kind": "paper",
+      "label": "Lehmer et al. 2021",
+      "title": "The Peak Absorbance Wavelength of Photosynthetic Pigments Around Other Stars From Spectral Optimization"
+    },
+    "R5089": {
+      "kind": "paper",
+      "label": "Schwieterman 2018",
+      "title": "Surface and Temporal Biosignatures"
+    },
+    "R5090": {
+      "kind": "paper",
+      "label": "Miller et al. 2024",
+      "title": "The Composition of Saturn’s Rings"
+    },
+    "R5091": {
+      "kind": "paper",
+      "label": "Filacchione et al. 2013",
+      "title": "THE RADIAL DISTRIBUTION OF WATER ICE AND CHROMOPHORES ACROSS SATURN'S SYSTEM"
+    },
+    "R5092": {
+      "kind": "paper",
+      "label": "Filacchione et al. 2012",
+      "title": "Saturn’s icy satellites and rings investigated by Cassini–VIMS: III – Radial compositional variability"
+    },
+    "R5093": {
+      "kind": "paper",
+      "label": "Hedman et al. 2013",
+      "title": "Connections between spectra and structure in Saturn’s main rings based on Cassini VIMS data"
     }
   }
 }
