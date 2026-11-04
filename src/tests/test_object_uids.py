@@ -54,7 +54,7 @@ def _decoded(row):
 def test_a_saved_sector_gives_every_object_its_id(mysql_config):
     store.save_sector(_sector("Uid One", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
 
-    [sector] = _rows(mysql_config, "SELECT uid FROM sectors")
+    [sector] = _rows(mysql_config, "SELECT uid FROM sectors ORDER BY id LIMIT 1")   # the saved sector; a rogue lands in rows after it
     assert sector["uid"] == galaxy_uid.sector_uid(250, 0, 5)
 
     systems = _rows(mysql_config, "SELECT id, uid FROM star_systems ORDER BY id")
@@ -109,7 +109,7 @@ def test_the_assigning_pass_gives_run_time_births_and_never_reuses_a_number(mysq
     store.save_sector(_sector("Uid Issued", 2, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
     conn = store.get_connection(mysql_config)
     try:
-        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
+        [sector] = conn.execute("SELECT id FROM sectors ORDER BY id LIMIT 1").fetchall()
         conn.execute("UPDATE rogue_planets SET uid = NULL")
         [system] = conn.execute("SELECT id, uid FROM star_systems ORDER BY id LIMIT 1").fetchall()
         stars = conn.execute("SELECT id, uid FROM stars WHERE star_system_id = ? ORDER BY id", (system["id"],)).fetchall()
@@ -201,7 +201,7 @@ def test_a_system_added_to_a_sector_is_a_run_time_birth_there(mysql_config):
     store.save_sector(_sector("Uid Added", 1, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
     conn = store.get_connection(mysql_config)
     try:
-        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
+        [sector] = conn.execute("SELECT id FROM sectors ORDER BY id LIMIT 1").fetchall()
         system, cfg = _make_system("Uidadded Late")
         with conn:
             system_id, _position = store.add_system_to_sector(conn, sector["id"], system, cfg)
@@ -229,7 +229,7 @@ def test_a_run_time_number_is_not_given_again_after_its_object_is_deleted(mysql_
     store.save_sector(_sector("Uid Deleted", 1, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
     conn = store.get_connection(mysql_config)
     try:
-        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
+        [sector] = conn.execute("SELECT id FROM sectors ORDER BY id LIMIT 1").fetchall()
         serials = []
         for name in ("Uiddel One", "Uiddel Two"):
             system, cfg = _make_system(name)

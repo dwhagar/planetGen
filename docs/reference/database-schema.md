@@ -1651,7 +1651,7 @@ white dwarf).
 ### `rogue_planets`
 
 Added in v16. Always standalone — a rogue planet is by definition unbound
-from any star.
+from any star. Since v201 (GEN.1111) it also carries every `planets` column apart from the orbit, its `donor_uid` and `event_index`, and the ejection (see the v201 entry).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2233,6 +2233,10 @@ Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` tak
 ### v176 (MAP.351): the life class reasons
 
 Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch. Since GEN.1001 a body counts only when it also has a `life_stage` (a world that suits a class but whose life has not started gives none); a database migrated before that keeps the rows of such bodies until its systems are saved again.
+
+### v201 (GEN.1111): a rogue planet is a planet with no star
+
+Migration 0201 gives `rogue_planets` every column `planets` has apart from the orbit round a host (the same names and types, all NULL on a row the flat-rate rogue wrote), so the one planet chain writes both. It adds six columns of its own: `donor_uid` (BINARY(12), the uid of the system that threw the body out) and `event_index` (INT, which of that system's ejections it is; the two are unique together, `uq_rogue_planets_donor_event`, so saving a donor again replaces its rogues and never doubles them), `ejection_delay_gy` (how long after the system formed it was thrown out), `since_ejection_gy` (how long ago), `ejection_speed_kms` (the kick) and `rogue_note` (TEXT, the sentence that says where it came from). It also creates four child tables, `rogue_planet_reflection_spectrum`, `rogue_planet_interior_layers`, `rogue_planet_gases` and `rogue_planet_life_class_scores`, which hold what the `planet_*` tables hold for a planet, and makes `planet_type`, `composition`, `has_internal_heat` and `has_moons` NULLable (a physics rogue leaves them NULL; the revision that removes the flat-rate rogue drops them). A column or table already there is skipped, so a stopped run can be started again. A rogue's moons are `moons` rows with `rogue_planet_id` set. A rogue's `uid` is born in its donor's sector, not the sector that files it, so deleting the donor's sector takes its rogues wherever they have landed. Downgrade is not supported.
 
 ### v200 (GEN.1127): the chart ledger, and a sector row that cannot vanish under its residents
 

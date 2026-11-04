@@ -113,35 +113,21 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| module | planetgen.generation.rogue_landing | GEN.1111 | where a rogue an ejection event made is now (the ring drift from its donor's place, its velocity and the sector that holds it); the donor's save reads it when the lock wiring lands |
-| module | planetgen.generation.ejection_events | GEN.1111 | the events a rogue is built from (whether, when, how fast and which way a body a donor threw out left, its age and its moon limit); the donor's save reads it when the lock wiring lands |
-| module | planetgen.generation.phenomena.starless_host | GEN.1111 | the host a rogue planet is built against (the donor's mass and snow line, no light, the rogue's age) and `build_ejected_planet`; the rogue rows from the architecture's ejections read it when the lock wiring lands, after the table's no-host rule |
-| module | planetgen.physics.rogue_drift | GEN.1111 | the closed-form drift of an ejected planet from its star; the virtual-donor placement of rogue planets reads it |
-| row | 6.89:GD1 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| row | 6.89:GD2 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| row | 6.89:GD3 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| row | 6.89:GD4 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| module | planetgen.physics.rogue_age | GEN.1111 | a rogue's age, ejection delay and time since ejection; the rogue rows read them for the heat law, the drift and the history sentence |
-| row | 6.88:RG1 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
-| row | 6.88:RG2 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
-| module | planetgen.physics.rogue_kick | GEN.1111 | the ejection speed of a rogue and its velocity through the Galaxy; the rogue rows read them |
-| row | 6.87:RK1 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK2 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK3 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK4 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK5 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK6 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK7 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK8 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| function | planetgen.generation.phenomena.starless_host.build_ejected_planet | GEN.1111 | the body of an ejected planet from a mass, a donor star and a formation distance with no event; the donor save builds through `build_rogue_body`, so only the tests read it, and part 8 deletes it with the flat-rate rogue unless a later item reads it |
+| function | planetgen.physics.rogue_drift.along_orbit_speed_pc_myr | GEN.1111 | the along-orbit speed of a drifting rogue, written for the virtual-donor placement; the donor save places a rogue with `rogue_landing.landing`, so part 8 deletes it unless a later item reads it |
+| function | planetgen.physics.rogue_drift.donor_offset_pc | GEN.1111 | the donor's place relative to a rogue found far from it (the virtual donor); nothing reads it once a rogue's donor is a stored system, and part 8 deletes it unless a later item reads it |
+| function | planetgen.physics.rogue_kick.ejects | GEN.1111 | whether a scattering ejects a body; the share that ends ejected comes from the architecture's loss record now, so part 8 deletes it unless a later item reads it |
+| function | planetgen.physics.rogue_kick.moon_survival_probability | GEN.1111 | the chance a moon leaves with its planet; the moon limit of the event decides it now, so part 8 deletes it unless a later item reads it |
+| function | planetgen.physics.rogue_kick.moon_survives | GEN.1111 | as `moon_survival_probability`: a draw of it; part 8 deletes it unless a later item reads it |
+| function | planetgen.physics.rogue_kick.relative_speed_km_s | GEN.1111 | the speed of a rogue relative to its donor; `rogue_landing` works the velocity from the kick directly, so part 8 deletes it unless a later item reads it |
+| function | planetgen.physics.rogue_moons.moon_survives | GEN.1111 | a draw of whether a moon stays with a rogue; the moon limit of the event decides it now, so part 8 deletes it unless a later item reads it |
+| function | planetgen.physics.rogue_moons.survival_probability | GEN.1111 | the chance a moon stays with a rogue; part 8 deletes it unless a later item reads it |
 | module | planetgen.physics.rogue_mass_function | GEN.1111 | the masses of the bodies a system ejects and their shares; the rogue rows draw their masses from it |
 | row | 6.110:RM1 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
 | row | 6.110:RM2 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
 | module | planetgen.physics.rogue_volatiles | GEN.1111 | the envelope, water, giant class and frozen air of an ejected planet; the rogue rows read them |
 | row | 6.111:EV1 | GEN.1111 | a constant of the rogue volatiles module, read when its wiring step lands |
 | row | 6.111:EV2 | GEN.1111 | a constant of the rogue volatiles module, read when its wiring step lands |
-| module | planetgen.physics.rogue_moons | GEN.1111 | whether a moon leaves with its planet and the tide it raises there; the rogue rows read them |
-| row | 6.112:MO1 | GEN.1111 | a constant of the rogue moons module, read when its wiring step lands |
-| row | 6.112:MO3 | GEN.1111 | a constant of the rogue moons module, read when its wiring step lands |
 | module | planetgen.physics.cluster_unbinding | GEN.1111 | the share of planets a birth cluster has unbound; the rogue rows add it to the ejections |
 | module | planetgen.physics.rogue_radiogenic | GEN.1111 | the radiogenic content and heat of a rogue from the star it left; the rogue rows read them in place of the host-less draw |
 | row | 6.114:RY1 | GEN.1111 | a constant of the rogue radiogenic module, read when its wiring step lands |

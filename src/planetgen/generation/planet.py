@@ -515,7 +515,8 @@ class Planet(PlanetaryObject):
         return planet
 
     def _decode(self, data):
-        self.habitable_zone = tuple(data["habitable_zone"])
+        # a rogue planet (GEN.1111) has no host and so no habitable zone of one's own
+        self.habitable_zone = tuple(data["habitable_zone"]) if data.get("habitable_zone") is not None else None
 
     @property
     def life_class_id(self):

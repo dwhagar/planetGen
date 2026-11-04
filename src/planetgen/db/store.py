@@ -79,7 +79,7 @@ from planetgen.physics import aerosols, body_colour, body_strength, bulk_composi
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import cloud as cloudContext, multistar, steps, stored_trees
+from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -91,9 +91,9 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.density import GalaxyShape, with_family_columns, with_system_richness
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
-    CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at,
+    CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at, sector_position_pc,
 )
-from planetgen.names.bodies import rename_prefix, wide_pair_first_word
+from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -937,6 +937,8 @@ class Connection:
         self.uid_issuer = None
         """`_UidIssuer` or `None`: while a sector is being saved, gives each new row its unique ID in the INSERT
         (PERF.44)."""
+        self.saved_donors = []
+        """list: `(star_system_id, StarSystem, position_pc)` of every system `_insert_sector_rows` wrote, for the rogues each made (GEN.1111)."""
         self.sector_centers_pc = {}
         """dict: `sector_id -> (x, y, z)` or `None`, the sector centers `_system_velocity_kms` has read inside the
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
@@ -3022,9 +3024,18 @@ def _insert_interior_layers(conn, table, id_column, owner_id, layers):
         )
 
 
-def body_child_rows(conn, body, body_id):
-    """Writes a planet's or moon's reflection spectrum, interior layer rows, gas rows and life class score rows (after any old ones were deleted)."""
-    prefix, id_column = ("moon", "moon_id") if body.is_moon else ("planet", "planet_id")
+BODY_OWNERS = {"planet": ("planet", "planet_id"), "moon": ("moon", "moon_id"), "rogue_planet": ("rogue_planet", "rogue_planet_id")}
+"""dict: The owners of the per-body child tables (`<prefix>_gases` and the rest) by kind, each with its table prefix and its id column (GEN.1111: a rogue planet has its own)."""
+
+
+def body_owner(body, owner=None):
+    """`(prefix, id column)` of the child tables of `body`: the named `owner` of `BODY_OWNERS`, else the moon's or the planet's."""
+    return BODY_OWNERS[owner or ("moon" if body.is_moon else "planet")]
+
+
+def body_child_rows(conn, body, body_id, owner=None):
+    """Writes a planet's, moon's or (with `owner="rogue_planet"`) rogue planet's reflection spectrum, interior layer rows, gas rows and life class score rows (after any old ones were deleted)."""
+    prefix, id_column = body_owner(body, owner)
     _insert_reflection_spectrum(
         conn, f"{prefix}_reflection_spectrum", id_column, body_id,
         body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
@@ -3040,10 +3051,11 @@ def body_child_rows(conn, body, body_id):
                          (body_id, class_id, score))
 
 
-def body_gases(conn, body_ids, is_moon):
+def body_gases(conn, body_ids, is_moon, owner=None):
     """`{body id: {gas formula: partial pressure Pa}}` of the planets or moons `body_ids`: the air their rows keep in
-    `planet_gases` or `moon_gases` (a body with none has no key)."""
-    table, id_column = ("moon_gases", "moon_id") if is_moon else ("planet_gases", "planet_id")
+    `planet_gases` or `moon_gases` (`rogue_planet_gases` for `owner="rogue_planet"`; a body with none has no key)."""
+    prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
+    table = f"{prefix}_gases"
     air = {}
     ids = list(body_ids)
     for start in range(0, len(ids), 1000):
@@ -3055,10 +3067,11 @@ def body_gases(conn, body_ids, is_moon):
     return air
 
 
-def body_class_scores(conn, body_ids, is_moon):
+def body_class_scores(conn, body_ids, is_moon, owner=None):
     """`{body id: {class id: score 1 to 9}}` of the planets or moons `body_ids`: the life classes their rows keep in
-    `planet_life_class_scores` or `moon_life_class_scores` (a body that supports none has no key)."""
-    table, id_column = ("moon_life_class_scores", "moon_id") if is_moon else ("planet_life_class_scores", "planet_id")
+    `planet_life_class_scores` or `moon_life_class_scores` (`rogue_planet_life_class_scores` for `owner="rogue_planet"`; a body that supports none has no key)."""
+    prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
+    table = f"{prefix}_life_class_scores"
     found = {}
     ids = list(body_ids)
     for start in range(0, len(ids), 1000):
@@ -3750,6 +3763,155 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
         "sector_id": sector_id, "placement": placement})
     confirm_object_name(conn, name_base, "rogue_planets", row_id, diminutive_index)
     return row_id
+
+
+ROGUE_HOST_ONLY_COLUMNS = frozenset({
+    "distance_km", "period_years", "zone", "hill_radius_km", "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
+    "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity", "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
+    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", *_VELOCITY_COLUMNS})
+"""frozenset: The `planets` columns that are the orbit round a host (GEN.1111): a rogue planet has no host, so its `velocity_*_kms` is the galaxy-frame movement (`_FREE_VECTOR_FIELD`)."""
+
+ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
+"""tuple: The `Field`s of a planet that a rogue planet shares (every one but the orbit round a host)."""
+
+ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note")
+"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note."""
+
+
+def _from_context(column):
+    """A column filled from the context, `None` when the caller gave none."""
+    return object_rows.Field((column,), lambda obj, context: context.get(column))
+
+
+ROGUE_BODY_ROW_FIELDS = (
+    object_rows.context("sector_id"), *ROGUE_BODY_FIELDS, _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
+    *(_from_context(column) for column in ROGUE_EJECTION_COLUMNS),
+)
+"""tuple: The `Field`s of a `rogue_planets` row of a rogue planet built through the planet chain (GEN.1111)."""
+
+_row_columns = object_rows.columns_of(ROGUE_BODY_ROW_FIELDS)
+assert len(_row_columns) == len(set(_row_columns)), sorted({c for c in _row_columns if _row_columns.count(c) > 1})
+
+
+def insert_rogue_body(conn, planet, sector_id=None, placement=None, **ejection) -> int:
+    """
+    Inserts a `rogue_planets` row for a planet built with no star (GEN.1111), its moons (`moons` rows whose parent is the row) and the child
+    rows of the planet and of each moon.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        planet (Planet): The rogue planet, with `galactic_orbital_period_gy`, `galactic_orbital_phase_deg`, `galactic_min_update_interval_years`
+            and (for the movement it was stored with) `ejecta_velocity_kms` set (`generation.rogue_landing.apply_motion`).
+        sector_id (int, optional): The sector that holds it now.
+        placement (dict, optional): As in `insert_supernova_remnant`.
+        **ejection: Any of `ROGUE_EJECTION_COLUMNS`: `donor_uid` (bytes), `event_index`, `ejection_delay_gy`, `since_ejection_gy`,
+            `ejection_speed_kms` and `rogue_note`.
+
+    Returns:
+        int: The new `rogue_planets.id`.
+    """
+    unknown = set(ejection) - set(ROGUE_EJECTION_COLUMNS)
+    if unknown:
+        raise TypeError(f"not a rogue planet column: {sorted(unknown)}")
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, planet, "rogue-planet", placement)
+    for position, moon in enumerate(planet.moons or []):
+        if moon.name is None:    # a moon is named by its planet, the way a system's are (`names.bodies.name_bodies`)
+            moon.name = f"{planet.name}{moon_letters(position)}"
+    row_id = object_rows.insert_row(conn, "rogue_planets", ROGUE_BODY_ROW_FIELDS, planet, {
+        "sector_id": sector_id, "placement": placement, **ejection})
+    confirm_object_name(conn, name_base, "rogue_planets", row_id, diminutive_index)
+    body_child_rows(conn, planet, row_id, "rogue_planet")
+    for position, moon in enumerate(planet.moons or []):
+        insert_moon_of_rogue_planet(conn, moon, row_id, position)
+    return row_id
+
+
+def delete_rogues_of_donor(conn, donor_uid):
+    """
+    Deletes every rogue planet a donor system made (by `donor_uid`), so saving the donor again writes them afresh (GEN.1111). A rogue's moons and
+    child rows go with it (`ON DELETE CASCADE`).
+
+    Returns:
+        int: How many rogue planets were deleted.
+    """
+    return conn.execute("DELETE FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).rowcount
+
+
+def uncharted_sector_id(conn, address, edge_pc, run_id=None):
+    """
+    The `sectors.id` of the cell at `address`, creating the row when the cell has none (GEN.1111, part 7): a rogue planet lands in a sector
+    that may never have been charted, and its row has to point at one. The new row is named by the cell's designation, has its centre and no
+    contents, and is not in the chart ledger (`chart_ledger` records charted cells only), so the fill that charts the cell later writes
+    into the same row (`kept_sector_id_at`) and gives it its name then.
+    """
+    found = kept_sector_id_at(conn, *address)
+    if found is not None:
+        return found
+    x, y, z = sector_position_pc(*address, edge_pc)
+    cur = conn.execute(
+        "INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, shell_index, band_index, wedge_index,"
+        " generator_epoch, run_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (provisional_sector_designation(*address), edge_pc * 1000.0, x, y, z, math.sqrt(x * x + y * y + z * z), *address,
+         generatorEpoch.generator_epoch(), sector_run_id(conn, run_id)))
+    return cur.lastrowid
+
+
+def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
+    """
+    Saves the rogue planets of freshly saved donor systems (GEN.1111, part 7). For each donor: the rogues it made before are deleted (by its
+    uid, so saving a donor twice never doubles them), `rogue_yield.rogues_of` builds the new ones from its uid and ejection record, and each is
+    written in the sector where it landed (`uncharted_sector_id`) with its object ID born in the donor's sector (`birth_sector_id`), so
+    deleting the donor's sector takes its rogues wherever they are filed.
+
+    Args:
+        conn (Connection): Not mid-`batched`.
+        donors (iterable): `(star_system_id, StarSystem, placement)`, `placement` the dict with the donor's galaxy-frame `center_*_pc`.
+        birth_sector_id (int): The sector the donors were saved in.
+        edge_pc (float): The sector edge of the grid, pc.
+        run_id (int, optional): As in `insert_sector`.
+
+    Returns:
+        int: How many rogue planets were written.
+    """
+    written = 0
+    for system_id, system, placement in donors:
+        uid = conn.execute("SELECT uid FROM star_systems WHERE id = ?", (system_id,)).fetchone()["uid"]
+        if uid is None:
+            continue
+        uid = bytes(uid)
+        delete_rogues_of_donor(conn, uid)
+        position = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
+        row_ids = []
+        for rogue in rogue_yield.rogues_of(uid, system, position, edge_pc):
+            sector_id = uncharted_sector_id(conn, rogue.landing.address, edge_pc, run_id)
+            row_ids.append(insert_rogue_body(
+                conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
+                event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
+                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note))
+        if row_ids:
+            _assign_rogue_uids(conn, row_ids, birth_sector_id)
+            written += len(row_ids)
+    return written
+
+
+def _assign_rogue_uids(conn, row_ids, birth_sector_id):
+    """Run-time IDs for new rogue planets (and their moons) born in the donor's sector, wherever they are filed."""
+    uids = _runtime_uids(conn, _sector_birth_address(conn, birth_sector_id), len(row_ids))
+    _update_by_id(conn, "rogue_planets", ("uid",), list(zip(row_ids, uids)))
+    _assign_rogue_moon_uids(conn, row_ids)
+
+
+def load_rogue_body(conn, row, system_config=None):
+    """
+    Rebuilds the `Planet` a `rogue_planets` row of the physics rogue holds, with its moons (`load_moons_of_rogue_planet`); it has no star, so
+    `planet.star` is `None`, and the ejection columns stay on the row. The planet carries its row id as `db_id`.
+    """
+    config = system_config if system_config is not None else SystemConfig()
+    data = _planet_or_moon_row_to_dict(conn, row, is_moon=False, owner="rogue_planet")
+    planet = Planet.from_dict(data, None, config)
+    planet.db_id = row["id"]
+    planet.moons = load_moons_of_rogue_planet(conn, row["id"], config)
+    return planet
 
 
 def sector_code(conn, sector_id):
@@ -7190,6 +7352,9 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
         assign_uids(conn, sector_id=sector_id)
     else:
         set_sector_uid(conn, sector_id)
+    donors, conn.saved_donors = conn.saved_donors, []
+    if donors:
+        save_donor_rogues(conn, donors, sector_id, ly_to_pc(sector.edge_ly), run_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("shell_index", "band_index", "wedge_index"))
     if address is not None and None not in address:
@@ -7333,6 +7498,8 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
                 sector_id=sector_id, position=entry.position,
                 location=_location_for_entry(sector, entry, neighbors),
             )
+            if galaxy_position is not None:
+                conn.saved_donors.append((star_system_id, entry.star_system, _galaxy_placement_from_sector_offset(galaxy_position, entry.position)))
             bright_star_id = getattr(entry, "bright_star_id", None)
             if bright_star_id is not None:
                 bright_star_links.append((bright_star_id, star_system_id))
@@ -9109,7 +9276,7 @@ def _wide_binary_row_to_dict(star_system_row):
     }
 
 
-def _planet_or_moon_row_to_dict(conn, row, is_moon):
+def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
     """
     Maps a `planets` or `moons` row (identical column shape -- see
     `schema.sql`'s "v2" header note) to `Planet.from_dict`'s expected dict
@@ -9126,8 +9293,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         dict: In the shape `Planet.to_dict()` produces (`moons` left as
              `[]` -- the caller fills it in for a top-level planet).
     """
-    table_prefix = "moon" if is_moon else "planet"
-    id_column = "moon_id" if is_moon else "planet_id"
+    table_prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
 
     spectrum_rows = conn.execute(
         f"SELECT spectrum_type, value FROM {table_prefix}_reflection_spectrum "
@@ -9143,10 +9309,10 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         (row["id"],),
     ).fetchall()
 
-    data = object_rows.load_dict(PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
+    data = object_rows.load_dict(ROGUE_BODY_FIELDS if owner == "rogue_planet" else PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
     data.update({
-        atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon).get(row["id"], {}),
-        life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon).get(row["id"]),
+        atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon, owner).get(row["id"], {}),
+        life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon, owner).get(row["id"]),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,

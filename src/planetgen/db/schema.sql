@@ -3739,7 +3739,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
-    planet_type         VARCHAR(4) NOT NULL CHECK (planet_type IN ('t', 'g')),
+    planet_type         VARCHAR(4) NULL CHECK (planet_type IN ('t', 'g')),   -- v201: NULL for a row of the physics rogue (its type is `body_type`)
     -- v47: its PLANET_CLASSES letter (GEN.8); NULL for a brown dwarf.
     planet_class        VARCHAR(4),
     -- v37: the mass bin it was drawn from (program_constants.
@@ -3747,9 +3747,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     mass_bin            VARCHAR(16) NOT NULL DEFAULT 'terrestrial',
     mass_kg             DOUBLE NOT NULL,
     radius_km           DOUBLE NOT NULL,
-    composition         TEXT NOT NULL,
-    has_internal_heat   TINYINT(1) NOT NULL CHECK (has_internal_heat IN (0, 1)),
-    has_moons           TINYINT(1) NOT NULL CHECK (has_moons IN (0, 1)),
+    composition         TEXT NULL,
+    has_internal_heat   TINYINT(1) NULL CHECK (has_internal_heat IN (0, 1)),   -- v201: NULL for a row of the physics rogue
+    has_moons           TINYINT(1) NULL CHECK (has_moons IN (0, 1)),   -- v201: NULL for a row of the physics rogue (its moons are `moons` rows)
     -- v48: surface conditions (rogueSurface.rogue_surface_conditions).
     age_gy                   DOUBLE,
     internal_heat_flux_w_m2  DOUBLE,
@@ -3849,8 +3849,213 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     eq_shelter_rec              TINYINT NULL,  -- v153
     shelter_column_g_cm2        DOUBLE NULL,  -- v153
     energy_flux_w_m2            DOUBLE NULL,  -- v153
+    -- v201 (GEN.1111): a rogue planet is a planet with no star, so it carries every column a planet does except the orbit round a host (the columns below),
+    -- and the system that ejected it, when, and how fast. The older columns named for the flat-rate rogue (planet_type, mass_bin, has_*) are NULL for these rows.
+    body_type                   VARCHAR(4) CHECK (body_type IN ('t', 'g')),  -- v201 (GEN.1111)
+    volume_km3                  DOUBLE,  -- v201 (GEN.1111)
+    description                 TEXT,  -- v201 (GEN.1111)
+    gravity_g                   DOUBLE,  -- v201 (GEN.1111)
+    density_g_cm3               DOUBLE,  -- v201 (GEN.1111)
+    atmosphere                  TEXT,  -- v201 (GEN.1111)
+    atm_density                 DOUBLE,  -- v201 (GEN.1111)
+    atm_molar_density           DOUBLE,  -- v201 (GEN.1111)
+    atmospheric_pressure_pa     DOUBLE,  -- v201 (GEN.1111)
+    scale_height_km             DOUBLE,  -- v201 (GEN.1111)
+    flavor_text_count           INT NOT NULL DEFAULT 0,  -- v201 (GEN.1111)
+    life_stage                  VARCHAR(32),  -- v201 (GEN.1111)
+    evolutionary_pace           VARCHAR(16),  -- v201 (GEN.1111)
+    life_milestone_age_gyr      DOUBLE,  -- v201 (GEN.1111)
+    life_system_age_gyr         DOUBLE,  -- v201 (GEN.1111)
+    life_age_abiogenesis_gyr    DOUBLE,  -- v201 (GEN.1111)
+    life_age_photosynthesis_gyr DOUBLE,  -- v201 (GEN.1111)
+    life_age_complex_cells_gyr  DOUBLE,  -- v201 (GEN.1111)
+    life_age_multicellularity_gyr DOUBLE,  -- v201 (GEN.1111)
+    life_age_technological_civilization_gyr DOUBLE,  -- v201 (GEN.1111)
+    flavor_key                  VARCHAR(32),  -- v201 (GEN.1111)
+    mantle_redox                VARCHAR(16) CHECK (mantle_redox IN ('reduced', 'intermediate', 'oxidized')),  -- v201 (GEN.1111)
+    mantle_delta_iw             DOUBLE,  -- v201 (GEN.1111)
+    magnetic_moment_a_m2        DOUBLE,  -- v201 (GEN.1111)
+    dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),  -- v201 (GEN.1111)
+    induced_moment_a_m2         DOUBLE,  -- v201 (GEN.1111)
+    magnetopause_rp             DOUBLE,  -- v201 (GEN.1111)
+    xuv_flux_earth              DOUBLE,  -- v201 (GEN.1111)
+    xuv_exposure_index          DOUBLE,  -- v201 (GEN.1111)
+    flare_irradiation_index     DOUBLE,  -- v201 (GEN.1111)
+    water_mass_fraction         DOUBLE,  -- v201 (GEN.1111)
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),  -- v201 (GEN.1111)
+    ocean_fraction              DOUBLE,  -- v201 (GEN.1111)
+    land_fraction               DOUBLE,  -- v201 (GEN.1111)
+    ice_shell_km                DOUBLE,  -- v201 (GEN.1111)
+    ocean_class                 VARCHAR(16) CHECK (ocean_class IN ('ice-sealed', 'chloride brine', 'acid sulfate', 'soda', 'neutral')),  -- v201 (GEN.1111)
+    ocean_ph                    DOUBLE,  -- v201 (GEN.1111)
+    water_activity              DOUBLE,  -- v201 (GEN.1111)
+    phosphorus                  VARCHAR(8) CHECK (phosphorus IN ('high', 'limited', 'starved')),  -- v201 (GEN.1111)
+    surface_dose_msv_yr         DOUBLE,  -- v201 (GEN.1111)
+    dose_gcr_msv_yr             DOUBLE,  -- v201 (GEN.1111)
+    dose_sep_msv_yr             DOUBLE,  -- v201 (GEN.1111)
+    dose_ground_msv_yr          DOUBLE,  -- v201 (GEN.1111)
+    dose_belt_msv_yr            DOUBLE,  -- v201 (GEN.1111)
+    dose_helio_mult             DOUBLE,  -- v201 (GEN.1111)
+    uv_surface_index            DOUBLE,  -- v201 (GEN.1111)
+    ozone_loss_flag             BOOLEAN,  -- v201 (GEN.1111)
+    outside_hours               DOUBLE,  -- v201 (GEN.1111)
+    band1_mean_k                DOUBLE,  -- v201 (GEN.1111)
+    band1_swing_k               DOUBLE,  -- v201 (GEN.1111)
+    band1_day_hours             DOUBLE,  -- v201 (GEN.1111)
+    band1_night_hours           DOUBLE,  -- v201 (GEN.1111)
+    band1_longest_day_days      DOUBLE,  -- v201 (GEN.1111)
+    band1_longest_night_days    DOUBLE,  -- v201 (GEN.1111)
+    band1_state                 VARCHAR(24),  -- v201 (GEN.1111)
+    band2_mean_k                DOUBLE,  -- v201 (GEN.1111)
+    band2_swing_k               DOUBLE,  -- v201 (GEN.1111)
+    band2_day_hours             DOUBLE,  -- v201 (GEN.1111)
+    band2_night_hours           DOUBLE,  -- v201 (GEN.1111)
+    band2_longest_day_days      DOUBLE,  -- v201 (GEN.1111)
+    band2_longest_night_days    DOUBLE,  -- v201 (GEN.1111)
+    band2_state                 VARCHAR(24),  -- v201 (GEN.1111)
+    band3_mean_k                DOUBLE,  -- v201 (GEN.1111)
+    band3_swing_k               DOUBLE,  -- v201 (GEN.1111)
+    band3_day_hours             DOUBLE,  -- v201 (GEN.1111)
+    band3_night_hours           DOUBLE,  -- v201 (GEN.1111)
+    band3_longest_day_days      DOUBLE,  -- v201 (GEN.1111)
+    band3_longest_night_days    DOUBLE,  -- v201 (GEN.1111)
+    band3_state                 VARCHAR(24),  -- v201 (GEN.1111)
+    band4_mean_k                DOUBLE,  -- v201 (GEN.1111)
+    band4_swing_k               DOUBLE,  -- v201 (GEN.1111)
+    band4_day_hours             DOUBLE,  -- v201 (GEN.1111)
+    band4_night_hours           DOUBLE,  -- v201 (GEN.1111)
+    band4_longest_day_days      DOUBLE,  -- v201 (GEN.1111)
+    band4_longest_night_days    DOUBLE,  -- v201 (GEN.1111)
+    band4_state                 VARCHAR(24),  -- v201 (GEN.1111)
+    band5_mean_k                DOUBLE,  -- v201 (GEN.1111)
+    band5_swing_k               DOUBLE,  -- v201 (GEN.1111)
+    band5_day_hours             DOUBLE,  -- v201 (GEN.1111)
+    band5_night_hours           DOUBLE,  -- v201 (GEN.1111)
+    band5_longest_day_days      DOUBLE,  -- v201 (GEN.1111)
+    band5_longest_night_days    DOUBLE,  -- v201 (GEN.1111)
+    band5_state                 VARCHAR(24),  -- v201 (GEN.1111)
+    band6_mean_k                DOUBLE,  -- v201 (GEN.1111)
+    band6_swing_k               DOUBLE,  -- v201 (GEN.1111)
+    band6_day_hours             DOUBLE,  -- v201 (GEN.1111)
+    band6_night_hours           DOUBLE,  -- v201 (GEN.1111)
+    band6_longest_day_days      DOUBLE,  -- v201 (GEN.1111)
+    band6_longest_night_days    DOUBLE,  -- v201 (GEN.1111)
+    band6_state                 VARCHAR(24),  -- v201 (GEN.1111)
+    band7_mean_k                DOUBLE,  -- v201 (GEN.1111)
+    band7_swing_k               DOUBLE,  -- v201 (GEN.1111)
+    band7_day_hours             DOUBLE,  -- v201 (GEN.1111)
+    band7_night_hours           DOUBLE,  -- v201 (GEN.1111)
+    band7_longest_day_days      DOUBLE,  -- v201 (GEN.1111)
+    band7_longest_night_days    DOUBLE,  -- v201 (GEN.1111)
+    band7_state                 VARCHAR(24),  -- v201 (GEN.1111)
+    temp_mean_swing_k           DOUBLE,  -- v201 (GEN.1111)
+    outside_hours_day           DOUBLE,  -- v201 (GEN.1111)
+    outside_hours_limit         VARCHAR(16),  -- v201 (GEN.1111)
+    day_night_state             VARCHAR(24),  -- v201 (GEN.1111)
+    night_hours                 DOUBLE,  -- v201 (GEN.1111)
+    days_per_year               DOUBLE,  -- v201 (GEN.1111)
+    roundness_ratio             DOUBLE,  -- v201 (GEN.1111)
+    yield_strength_pa           DOUBLE,  -- v201 (GEN.1111)
+    binding_energy_j            DOUBLE,  -- v201 (GEN.1111)
+    flux_variation              DOUBLE,  -- v201 (GEN.1111)
+    ozone_column_du             DOUBLE NULL,  -- v201 (GEN.1111)
+    tau_haze                    DOUBLE NULL,  -- v201 (GEN.1111)
+    tau_dust                    DOUBLE NULL,  -- v201 (GEN.1111)
+    tau_cloud                   DOUBLE NULL,  -- v201 (GEN.1111)
+    cloud_cover                 DOUBLE NULL,  -- v201 (GEN.1111)
+    aerosol_draw                DOUBLE NULL,  -- v201 (GEN.1111)
+    c_k0_ppm                    DOUBLE,  -- v201 (GEN.1111)
+    c_th0_ppm                   DOUBLE,  -- v201 (GEN.1111)
+    c_u0_ppm                    DOUBLE,  -- v201 (GEN.1111)
+    al26_ratio                  DOUBLE,  -- v201 (GEN.1111)
+    urey_ratio                  DOUBLE,  -- v201 (GEN.1111)
+    bond_albedo                 DOUBLE NULL,  -- v201 (GEN.1111)
+    greenhouse_factor           DOUBLE NULL,  -- v201 (GEN.1111)
+    albedo_basis                TINYINT UNSIGNED NULL,  -- v201 (GEN.1111)
+    metal_mass_fraction         DOUBLE,  -- v201 (GEN.1111)
+    rock_mass_fraction          DOUBLE,  -- v201 (GEN.1111)
+    ice_mass_fraction           DOUBLE,  -- v201 (GEN.1111)
+    ice_co2_mass_fraction       DOUBLE,  -- v201 (GEN.1111)
+    ice_ch4_mass_fraction       DOUBLE,  -- v201 (GEN.1111)
+    ice_nh3_mass_fraction       DOUBLE,  -- v201 (GEN.1111)
+    ice_n2_mass_fraction        DOUBLE,  -- v201 (GEN.1111)
+    ice_so2_mass_fraction       DOUBLE,  -- v201 (GEN.1111)
+    ice_co_mass_fraction        DOUBLE,  -- v201 (GEN.1111)
+    ice_hcn_mass_fraction       DOUBLE,  -- v201 (GEN.1111)
+    ice_other_mass_fraction     DOUBLE,  -- v201 (GEN.1111)
+    envelope_mass_fraction      DOUBLE,  -- v201 (GEN.1111)
+    rock_feo_fraction           DOUBLE,  -- v201 (GEN.1111)
+    rock_al2o3_fraction         DOUBLE,  -- v201 (GEN.1111)
+    rock_mg_si_ratio            DOUBLE,  -- v201 (GEN.1111)
+    envelope_helium_fraction    DOUBLE,  -- v201 (GEN.1111)
+    envelope_z_fraction         DOUBLE,  -- v201 (GEN.1111)
+    porosity                    DOUBLE,  -- v201 (GEN.1111)
+    carbon_rock                 BOOLEAN,  -- v201 (GEN.1111)
+    composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v201 (GEN.1111)
+    ground_type                 VARCHAR(16),  -- v201 (GEN.1111)
+    ground_grain                VARCHAR(8),  -- v201 (GEN.1111)
+    ground_ocean_fraction       DOUBLE,  -- v201 (GEN.1111)
+    ground_ice_fraction         DOUBLE,  -- v201 (GEN.1111)
+    ground_ultramafic_fraction  DOUBLE,  -- v201 (GEN.1111)
+    ground_anorthositic_fraction DOUBLE,  -- v201 (GEN.1111)
+    ground_basaltic_fraction    DOUBLE,  -- v201 (GEN.1111)
+    ground_felsic_fraction      DOUBLE,  -- v201 (GEN.1111)
+    ground_clay_fraction        DOUBLE,  -- v201 (GEN.1111)
+    ground_oxidised_fraction    DOUBLE,  -- v201 (GEN.1111)
+    ground_metal_fraction       DOUBLE,  -- v201 (GEN.1111)
+    ground_carbon_fraction      DOUBLE,  -- v201 (GEN.1111)
+    ground_evaporite_fraction   DOUBLE,  -- v201 (GEN.1111)
+    ground_sulfur_fraction      DOUBLE,  -- v201 (GEN.1111)
+    ground_intermediate_fraction DOUBLE,  -- v201 (GEN.1111)
+    surface_liquid              VARCHAR(32),  -- v201 (GEN.1111)
+    surface_liquid_fraction     DOUBLE,  -- v201 (GEN.1111)
+    surface_liquid_depth_km     DOUBLE,  -- v201 (GEN.1111)
+    surface_liquid_acid_wt      DOUBLE,  -- v201 (GEN.1111)
+    surface_liquid_acid_layer   VARCHAR(8),  -- v201 (GEN.1111)
+    surface_liquid_ammonia_wt   DOUBLE,  -- v201 (GEN.1111)
+    moon_origin                 VARCHAR(8),  -- v201 (GEN.1111)
+    moon_disk_lifetime_myr      DOUBLE,  -- v201 (GEN.1111)
+    moon_disk_alpha_over_f      DOUBLE,  -- v201 (GEN.1111)
+    moon_disk_f_inf             DOUBLE,  -- v201 (GEN.1111)
+    moon_disk_ice_line_km       DOUBLE,  -- v201 (GEN.1111)
+    water_base_pressure_pa      DOUBLE NULL,  -- v201 (GEN.1111)
+    tidal_flux_w_m2             DOUBLE NULL,  -- v201 (GEN.1111)
+    aquifer_depth_km            DOUBLE NULL,  -- v201 (GEN.1111)
+    aquifer_thickness_km        DOUBLE NULL,  -- v201 (GEN.1111)
+    mantle_eta0_pa_s            DOUBLE NULL,  -- v201 (GEN.1111)
+    mantle_activation_kj_mol    DOUBLE NULL,  -- v201 (GEN.1111)
+    interior_kind               VARCHAR(16) CHECK (interior_kind IN ('gas_giant', 'ice_giant', 'brown_dwarf')),  -- v201 (GEN.1111)
+    core_mass_earth             DOUBLE,  -- v201 (GEN.1111)
+    dilute_core_mass_earth      DOUBLE,  -- v201 (GEN.1111)
+    metallization_pressure_gpa  DOUBLE,  -- v201 (GEN.1111)
+    helium_depletion            DOUBLE,  -- v201 (GEN.1111)
+    has_helium_shell            BOOLEAN,  -- v201 (GEN.1111)
+    atmosphere_colour           INT UNSIGNED,  -- v201 (GEN.1111)
+    lid_regime                  VARCHAR(10) NULL,  -- v201 (GEN.1111)
+    day_share_equator           DOUBLE NULL,  -- v201 (GEN.1111)
+    day_share_mean              DOUBLE NULL,  -- v201 (GEN.1111)
+    parent_shadow_share         DOUBLE NULL,  -- v201 (GEN.1111)
+    solar_day_hours             DOUBLE NULL,  -- v201 (GEN.1111)
+    daylight_hours              DOUBLE NULL,  -- v201 (GEN.1111)
+    polar_circle_deg            DOUBLE NULL,  -- v201 (GEN.1111)
+    life_class                  TINYINT UNSIGNED NULL,  -- v201 (GEN.1111)
+    life_class_variant          CHAR(1) NULL,  -- v201 (GEN.1111)
+    life_class_best             VARCHAR(2) NULL,  -- v201 (GEN.1111)
+    life_class_best_score       TINYINT UNSIGNED NULL,  -- v201 (GEN.1111)
+    life_animal_grade           TINYINT UNSIGNED NULL,  -- v201 (GEN.1111)
+    life_complexity             DOUBLE NULL,  -- v201 (GEN.1111)
+    tide_range_spring_m         DOUBLE NULL,  -- v201 (GEN.1111)
+    tide_range_neap_m           DOUBLE NULL,  -- v201 (GEN.1111)
+    ocean_liquid                VARCHAR(40) NULL,  -- v201 (GEN.1111)
+    donor_uid                   BINARY(12) NULL,  -- v201 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    event_index                 INT NULL,  -- v201 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    ejection_delay_gy           DOUBLE NULL,  -- v201 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    since_ejection_gy           DOUBLE NULL,  -- v201 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    ejection_speed_kms          DOUBLE NULL,  -- v201 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    rogue_note                  TEXT NULL,  -- v201 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
+    UNIQUE KEY uq_rogue_planets_donor_event (donor_uid, event_index),  -- v201 (GEN.1111): a donor's rogues are replaced, never duplicated
     KEY idx_rogue_planets_parent (parent_type, parent_id),
     CONSTRAINT chk_rogue_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
@@ -3877,6 +4082,70 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
         FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
     CONSTRAINT fk_rogue_planets_inside_remnant
         FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- v201 (GEN.1111): the rows a rogue planet keeps as a planet does -- its reflection spectrum, interior layers, gases and life class
+-- scores, in tables of the same shape as `planet_*` keyed by `rogue_planet_id` (the moons of a rogue planet use `moon_*`).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS rogue_planet_reflection_spectrum (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id   BIGINT UNSIGNED NOT NULL,
+    spectrum_type     VARCHAR(16) NOT NULL CHECK (spectrum_type IN ('visible', 'non_visible')),
+    position          INT NOT NULL,
+    value             VARCHAR(255) NOT NULL,
+
+    CONSTRAINT fk_rogue_planet_reflection_spectrum_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
+    KEY idx_rogue_planet_reflection_spectrum_rogue_planet_id (rogue_planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rogue_planet_interior_layers (
+    id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id         BIGINT UNSIGNED NOT NULL,
+    layer_index             SMALLINT UNSIGNED NOT NULL,
+    kind                    VARCHAR(24) NOT NULL CHECK (kind IN ('molecular_envelope', 'metallic_envelope', 'helium_gradient', 'helium_shell', 'dilute_core', 'compact_core', 'ice_mantle', 'rock_core')),
+    state                   VARCHAR(16) NOT NULL CHECK (state IN ('molecular_fluid', 'metallic_fluid', 'ionic_fluid', 'superionic', 'molten')),
+    top_pressure_gpa        DOUBLE NOT NULL,
+    bottom_pressure_gpa     DOUBLE NOT NULL,
+    mass_earth              DOUBLE NOT NULL,
+    top_radius_fraction     DOUBLE NOT NULL,
+    bottom_radius_fraction  DOUBLE NOT NULL,
+    hydrogen                DOUBLE NOT NULL,
+    helium                  DOUBLE NOT NULL,
+    iron                    DOUBLE NOT NULL,
+    rock                    DOUBLE NOT NULL,
+    water_liquid            DOUBLE NOT NULL,
+    ice_x                   DOUBLE NOT NULL,
+    nh3_ice                 DOUBLE NOT NULL,
+    ch4_ice                 DOUBLE NOT NULL,
+
+    UNIQUE KEY uq_rogue_planet_interior_layers_index (rogue_planet_id, layer_index),
+    CONSTRAINT fk_rogue_planet_interior_layers_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rogue_planet_gases (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id   BIGINT UNSIGNED NOT NULL,
+    gas               VARCHAR(16) NOT NULL,
+    partial_pa        DOUBLE NOT NULL CHECK (partial_pa > 0),
+
+    CONSTRAINT fk_rogue_planet_gases_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rogue_planet_gases (rogue_planet_id, gas)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rogue_planet_life_class_scores (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id   BIGINT UNSIGNED NOT NULL,
+    life_class        VARCHAR(2) NOT NULL,
+    score             TINYINT UNSIGNED NOT NULL CHECK (score BETWEEN 1 AND 9),
+
+    CONSTRAINT fk_rogue_planet_life_class_scores_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rogue_planet_life_class_scores (rogue_planet_id, life_class),
+    KEY idx_rogue_planet_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
