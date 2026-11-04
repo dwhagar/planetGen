@@ -155,6 +155,10 @@ NULL_IN_THIS_GALAXY = {
     **{("asteroid_belts", column): "a ring about its star: no motion or clock of its own (GEN.337)"
        for column in ("epoch_unix", "next_update_due")},
     **{("quasars", column): CHANCE for column in ("epoch_unix", "next_update_due")},
+    # GEN.1069: the sentences of what shaped a belt (none for a belt only the giants' gaps made) and the scatter shares of an outer disc (only an outer disc has them);
+    # test_belt_origin_stored.py writes and reads both back. GEN.1070: the scatter tag of a member waits for the scatter step (GEN.1092).
+    **{("asteroid_belts", column): CHANCE for column in ("origin_history", "scatter_fates")},
+    ("belt_members", "scatter_tag"): "NULL until the scatter step tags the members (GEN.1092)",
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
@@ -183,10 +187,10 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs")},
+        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"),
+        ("asteroid_field_composition", "field_id"), ("belt_members", "belt_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),

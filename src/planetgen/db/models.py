@@ -65,7 +65,7 @@ asteroid_belts = sa.Table(
     sa.Column('primordial_mass_earth', mysql.DOUBLE(), nullable=True),
     sa.Column('cleared_mass_earth', mysql.DOUBLE(), nullable=True),
     sa.Column('scattered_mass_earth', mysql.DOUBLE(), nullable=True),
-    sa.Column('stirred', mysql.TINYINT(1), nullable=True),
+    sa.Column('stirred', mysql.TINYINT(), nullable=True),
     sa.Column('origin_history', sa.Text(), nullable=True),
     sa.Column('origin_sentence', sa.Text(), nullable=True),
     sa.Column('scatter_fates', sa.Text(), nullable=True),
@@ -153,6 +153,35 @@ asteroid_fields = sa.Table(
     sa.ForeignKeyConstraint(['inside_nebula_id'], ['nebulae.id'], name='fk_asteroid_fields_inside_nebula', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['inside_remnant_id'], ['supernova_remnants.id'], name='fk_asteroid_fields_inside_remnant', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_asteroid_fields_sector', ondelete='SET NULL'),
+    mysql_engine="InnoDB",
+)
+
+
+belt_members = sa.Table(
+    'belt_members',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('belt_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('member_rank', mysql.INTEGER(), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
+    sa.Column('radius_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('distance_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('eccentricity', mysql.DOUBLE(), nullable=False),
+    sa.Column('inclination_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('ascending_node_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('arg_periapsis_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('mean_anomaly_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('taxon', sa.String(4), nullable=False),
+    sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=False),
+    sa.Column('rock_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('metal_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('water_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('ice_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('status', sa.String(16), nullable=False),
+    sa.Column('soter_mu', mysql.DOUBLE(), nullable=True),
+    sa.Column('scatter_tag', sa.String(24), nullable=True),
+    sa.Index('uq_belt_members_belt_rank', 'belt_id', 'member_rank', unique=True),
+    sa.ForeignKeyConstraint(['belt_id'], ['asteroid_belts.id'], name='fk_belt_members_belt', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 
@@ -277,22 +306,6 @@ bright_stars = sa.Table(
 )
 
 
-chart_ledger = sa.Table(
-    'chart_ledger',
-    metadata,
-    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=True),
-    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
-    sa.Column('charted_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
-    sa.Column('topped_up_at', mysql.TIMESTAMP(fsp=3), nullable=True),
-    sa.Index('idx_chart_ledger_run', 'run_id'),
-    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_chart_ledger_run', ondelete='SET NULL'),
-    mysql_engine="InnoDB",
-)
-
-
 change_plan_ops = sa.Table(
     'change_plan_ops',
     metadata,
@@ -334,6 +347,22 @@ change_plans = sa.Table(
     sa.CheckConstraint("((`approver_role` is null) or (`approver_role` in (_utf8mb4'moderator',_utf8mb4'admin')))", name='chk_change_plans_approver_role'),
     sa.CheckConstraint("(`requester_role` in (_utf8mb4'user',_utf8mb4'moderator',_utf8mb4'admin'))", name='chk_change_plans_requester_role'),
     sa.CheckConstraint("(`state` in (_utf8mb4'draft',_utf8mb4'requested',_utf8mb4'proposed',_utf8mb4'approved',_utf8mb4'applied',_utf8mb4'undone',_utf8mb4'stale',_utf8mb4'rejected',_utf8mb4'withdrawn'))", name='chk_change_plans_state'),
+    mysql_engine="InnoDB",
+)
+
+
+chart_ledger = sa.Table(
+    'chart_ledger',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('charted_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Column('topped_up_at', mysql.TIMESTAMP(fsp=3), nullable=True),
+    sa.Index('idx_chart_ledger_run', 'run_id'),
+    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_chart_ledger_run', ondelete='SET NULL'),
     mysql_engine="InnoDB",
 )
 
@@ -460,12 +489,12 @@ designations = sa.Table(
     sa.Column('reason', sa.String(16), nullable=False),
     sa.Column('gone_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('retired_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
-    sa.CheckConstraint("(`designation_kind` in (_utf8mb4'uid',_utf8mb4'name'))", name='chk_designations_kind'),
-    sa.CheckConstraint("(`reason` in (_utf8mb4'collision bump',_utf8mb4'rename',_utf8mb4'regeneration',_utf8mb4'parent change',_utf8mb4'admin renumber'))", name='chk_designations_reason'),
-    sa.CheckConstraint("(((`designation_kind` = _utf8mb4'uid') and (`designation_uid` is not null) and (`designation_name` is null)) or ((`designation_kind` = _utf8mb4'name') and (`designation_name` is not null) and (`designation_uid` is null)))", name='chk_designations_shape'),
     sa.Index('idx_designations_name', 'designation_name', 'retired_epoch'),
     sa.Index('idx_designations_object', 'object_kind', 'object_row_id', 'retired_epoch'),
     sa.Index('uq_designations_uid', 'designation_uid', unique=True),
+    sa.CheckConstraint("(`designation_kind` in (_utf8mb4'uid',_utf8mb4'name'))", name='chk_designations_kind'),
+    sa.CheckConstraint("(`reason` in (_utf8mb4'collision bump',_utf8mb4'rename',_utf8mb4'regeneration',_utf8mb4'parent change',_utf8mb4'admin renumber'))", name='chk_designations_reason'),
+    sa.CheckConstraint("(((`designation_kind` = _utf8mb4'uid') and (`designation_uid` is not null) and (`designation_name` is null)) or ((`designation_kind` = _utf8mb4'name') and (`designation_name` is not null) and (`designation_uid` is null)))", name='chk_designations_shape'),
     mysql_engine="InnoDB",
 )
 
@@ -3007,7 +3036,6 @@ stars = sa.Table(
     sa.Column('lethal_event_rate_per_gyr', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
     sa.Column('metallicity_fe_h', mysql.DOUBLE(), nullable=True),
-    sa.Column('nuclear_arrival_age_gy', mysql.DOUBLE(), nullable=True),
     sa.Column('parent_node_id', mysql.SMALLINT(), nullable=True),
     sa.Column('slot', mysql.TINYINT(unsigned=True), nullable=True),
     sa.Column('state', sa.String(16), nullable=True),
@@ -3019,6 +3047,7 @@ stars = sa.Table(
     sa.Column('velocity_y_kms', mysql.DOUBLE(), nullable=True),
     sa.Column('velocity_z_kms', mysql.DOUBLE(), nullable=True),
     sa.Column('decay_age_yr', mysql.DOUBLE(), nullable=True),
+    sa.Column('nuclear_arrival_age_gy', mysql.DOUBLE(), nullable=True),
     sa.Column('epoch_unix', mysql.DOUBLE(), nullable=True),
     sa.Column('disk_kind', sa.String(16), nullable=True),
     sa.Column('disk_mass_solar', mysql.DOUBLE(), nullable=True),
