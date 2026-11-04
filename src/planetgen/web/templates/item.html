@@ -154,6 +154,10 @@
     <ul class="life-air-legend">{{ life_air.legend }}</ul>
     <ol class="life-air-stages">{% for stage in life_air.stages %}<li value="{{ stage.number }}">{{ stage.name }}, {{ stage.age }} Gyr</li>{% endfor %}</ol>
     {%- if life_air.note %}<p class="sheet-help life-air-note">{{ life_air.note }}</p>{% endif %}
+    {%- if life_air.makers %}
+    <p class="sheet-help">Several kinds of life changed this air. What each made of the change:</p>
+    <ul class="life-air-makers">{% for maker in life_air.makers %}<li>{{ maker.gas }}: {{ maker.text }}</li>{% endfor %}</ul>
+    {%- endif %}
     <table class="life-air-table">
       <thead><tr>{% for head in life_air.table.header %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
       <tbody>{% for row in life_air.table.rows %}<tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>

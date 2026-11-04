@@ -30,6 +30,7 @@ def _living_planet_system(mysql_config, monkeypatch):
                 bo.store_air(planet, {"N2": 70000.0, "CO2": 30000.0})
                 system.star.age = 3.0
                 planet.life_class, planet.life_class_variant, planet.life_stage = 1, "a", "photosynthesis"
+                planet.life_living = None                   # the draw may have given the planet other classes; this one has only the forced class
                 planet.life_age_photosynthesis_gyr, planet.life_age_abiogenesis_gyr = 0.5, 0.2
                 assert bo.apply(planet, 2.0e19)
                 system_id = store.save_system(system, config, config=mysql_config)
@@ -79,3 +80,19 @@ def test_a_planet_without_a_living_class_has_no_history(client, mysql_config):
 def test_an_unknown_planet_or_moon_is_a_404(client):
     assert client.get(f"/api/planets/{pid('planet', 999999)}/life-air").status_code == 404
     assert client.get(f"/api/moons/{pid('moon', 999999)}/life-air").status_code == 404
+
+
+def test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made(client, mysql_config, monkeypatch):  # noqa: F811
+    _system_id, planet_id = _living_planet_system(mysql_config, monkeypatch)
+    ages = [0.2, 0.5, 0.9, 1.5, 2.5]
+
+    def entry(class_id, share):
+        return {"life_class": class_id, "share": share, "stage": "photosynthesis", "milestone_age_gyr": 0.5, "system_age_gyr": 3.0, "animal_grade": 0,
+                "complexity": 1.0, "ages": ages, "kinds": [3, 0, 0, 0]}
+
+    monkeypatch.setattr(store, "body_living", lambda conn, ids, is_moon: {planet_id: [entry("1a", 0.6), entry("2", 0.4)]})
+    history = client.get(f"/api/planets/{pid('planet', planet_id)}/life-air").get_json()["life_air"]
+    assert [(one["life_class"], one["share"]) for one in history["classes"]] == [(1, 0.6), (2, 0.4)]
+    assert all("by_class" in gas for gas in history["gases"])
+    methane = next((gas for gas in history["gases"] if gas["formula"] == "CH4"), None)
+    assert methane is not None and sum(one["share"] for one in methane["by_class"]) == pytest.approx(1.0, abs=1e-5)

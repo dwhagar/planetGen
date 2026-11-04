@@ -714,7 +714,13 @@ def _life_air(table, body_id):
         body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
         if body is not None:
             ages = dict(zip(evolution.MILESTONE_KEYS, (getattr(body, field, None) for field in evolution.SCHEDULE_FIELDS)))
-            history = life_air.air_history(body, [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))], ages)
+            living = [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))]
+            stored = store.body_living(conn, [body_id], table == "moons").get(body_id) or []
+            if len(stored) > 1:
+                living = [life_air.Living(life_classes.BY_ID[entry["life_class"]], entry["share"], entry["ages"][1])
+                          for entry in store.dominant_first(stored, row["life_class"], row["life_class_variant"])
+                          if entry["life_class"] in life_classes.BY_ID and entry["ages"][1] is not None]
+            history = life_air.air_history(body, living, ages)
     return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
 
 
@@ -726,8 +732,9 @@ def planet_life_air(planet_id):
     "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class, a giant, or an air the life did not change.
     Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the first producers began and the oxygen rose,
     Gyr, the latter `null` when no class makes any), `classes` (`{"life_class", "variant", "share", "producers_gyr"}` for each class whose life
-    the air sums, with its share of the food production), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
-    value holding until the next age), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
+    the air sums, with its share of the food production; every class that lives on the body, GEN.1213), `gases` (`{"formula", "name", "steps":
+    [[age_gyr, partial_pressure_kpa], ...], "by_class": [{"life_class", "variant", "share"}, ...]}`, each value holding until the next age and
+    `by_class` the share of what life changed in the gas that each class made), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
     ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`).
     """
     return _life_air("planets", planet_id)
