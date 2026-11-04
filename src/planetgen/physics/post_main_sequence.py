@@ -32,7 +32,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.datasets import evolved_tracks, isochrones
-from planetgen.physics import giant_branch, ms_lifetime, remnant_mass
+from planetgen.physics import bright_piece_kernel, giant_branch, ms_lifetime, remnant_mass
 
 SUBGIANT = "subgiant"
 GIANT = "giant"
@@ -67,11 +67,11 @@ def has_core_helium_phases(mass_sol):
 class Timeline:
     """The windows of one initial mass and birth [Fe/H], in order, and the state in each (see the module note)."""
 
-    __slots__ = ("mass_sol", "fe_h", "main_sequence_gy", "windows", "_track", "_light")
+    __slots__ = ("mass_sol", "fe_h", "main_sequence_gy", "windows", "_track", "_light", "_plans")
 
     def __init__(self, mass_sol, fe_h, main_sequence_gy, windows):
         self.mass_sol, self.fe_h, self.main_sequence_gy, self.windows = mass_sol, fe_h, main_sequence_gy, windows
-        self._track = self._light = None
+        self._track = self._light = self._plans = None
 
     @property
     def end_gy(self):
@@ -163,17 +163,76 @@ class Timeline:
         Every age interval, as `(window name, start_gy, end_gy)`, in which the star is at least `min_luminosity_sol` bright
         on the track (log L linear between the track's samples), except the windows named in `skip` (the horizontal
         branch of a lighter star, whose luminosity is not the track's).
+
+        The stretches of a phase are where, in the share of the main-sequence lifetime, each interval between two samples is bright: the whole of it when both
+        ends are, the part after the crossing when only the later one is, the part before it when only the earlier one is
+        (`bright_piece_kernel.bright_ranges`, which does the arithmetic of the array version, `_bright_pieces_by_array`, in one pass).
         """
+        skip = tuple(skip)
         if self._light is None:
             self._light = isochrones.post_main_sequence_light(self.mass_sol, self.fe_h)
+            frac, log_l = self._light
+            self._plans = {None: (float(log_l.max()), bool(np.isfinite(frac).all() and np.isfinite(log_l).all()))}
         frac, log_l = self._light
-        excess = log_l - math.log10(min_luminosity_sol)
+        peak, finite = self._plans[None]       # the brightest sample, and whether every sample is a number
+        floor = math.log10(min_luminosity_sol)
+        if peak - floor < 0.0:
+            return []                 # the track's brightest sample is under the threshold: `(log_l - floor).max() < 0.0`
+        if not finite:
+            return self._bright_pieces_by_array(floor, skip)
+        plan = self._plans.get(skip)
+        if plan is None:
+            plan = self._plans[skip] = self._plan(skip, len(frac))
+        windows, ranged, lows, highs, f_starts, f_ends = plan
+        counts, starts, ends = bright_piece_kernel.bright_ranges(frac, log_l, floor, lows, highs, f_starts, f_ends)
+        starts, ends = starts.tolist(), ends.tolist()
+        pieces = []
+        found = 0
+        for window, index in zip(windows, ranged):
+            if index < 0:
+                # a phase of no span or of one sample: the whole of it when its sample is bright
+                if log_l[-index - 1] - floor >= 0.0:
+                    pieces.append((window.name, window.start_gy, window.end_gy))
+                continue
+            count = int(counts[index])
+            if count:
+                scale = (window.end_gy - window.start_gy) / (window.f_end - window.f_start)
+                for k in range(found, found + count):
+                    pieces.append((window.name, window.start_gy + (starts[k] - window.f_start) * scale,
+                                   window.start_gy + (ends[k] - window.f_start) * scale))
+                found += count
+        return pieces
+
+    def _plan(self, skip, samples):
+        """The phases `bright_pieces` reads when `skip` is left out and where in the samples each one reads: `(windows, ranged, lows, highs,
+        f_starts, f_ends)`, where `ranged[k]` is the phase's place among the arrays, or `-(sample + 1)` for a phase of no span or of
+        one sample, which is bright when that sample is."""
+        windows, ranged, lows, highs, f_starts, f_ends = [], [], [], [], [], []
+        for window in self.windows:
+            if window.name in skip:
+                continue
+            low = evolved_tracks.sample_index(window.first_eep, samples)
+            high = evolved_tracks.sample_index(window.last_eep, samples)
+            windows.append(window)
+            if window.f_end - window.f_start <= 0.0 or high <= low:
+                ranged.append(-low - 1)
+            else:
+                ranged.append(len(lows))
+                lows.append(low)
+                highs.append(high)
+                f_starts.append(window.f_start)
+                f_ends.append(window.f_end)
+        return (tuple(windows), tuple(ranged), np.array(lows, dtype=np.int64), np.array(highs, dtype=np.int64),
+                np.array(f_starts, dtype=np.float64), np.array(f_ends, dtype=np.float64))
+
+    def _bright_pieces_by_array(self, floor, skip):
+        """`bright_pieces` by array operations, for a track with a sample that is not a number (the kernel's comparisons assume there is none)."""
+        frac, log_l = self._light
+        excess = log_l - floor
         if excess.max() < 0.0:
             return []
         above = excess >= 0.0
         pieces = []
-        # Where, in the share of the main-sequence lifetime, each stretch between two samples is bright: the whole of it when both
-        # ends are, the part after the crossing when only the later one is, the part before it when only the earlier one is.
         delta = np.diff(excess)
         cross = frac[:-1] + (-excess[:-1] / np.where(delta == 0.0, np.inf, delta)) * np.diff(frac)
         first = np.where(above[:-1], frac[:-1], cross)
