@@ -1,0 +1,41 @@
+{#- One kind's physical-value rows (UX.227, UX.228): the range boxes with their unit menus, the gas rows and the order menu.
+    `group` is a `searchpage.value_form` group. Used by the search page and by the object lists. -#}
+{% from "partials/ui_fields.html" import ui_input with context %}
+{% macro value_group(group) -%}
+      <div class="search-fields search-fields-size search-fields-values" data-values-group="{{ group.entity }}">
+        {%- for row in group.rows %}
+        <div class="search-field search-field-size search-field-value" role="group" aria-label="{{ group.label }} {{ row.label|lower }}">
+          <span>{{ row.label|chem }}</span>
+          {{ ui_input(row.min_name, "Minimum " ~ group.label|lower ~ " " ~ row.label|lower, row.min, type="number", bare=True, step="any", placeholder="least") }}
+          <span aria-hidden="true">&ndash;</span>
+          {{ ui_input(row.max_name, "Maximum " ~ group.label|lower ~ " " ~ row.label|lower, row.max, type="number", bare=True, step="any", placeholder="most") }}
+          {%- if row.units|length > 1 %}
+          <select name="{{ row.unit_name }}" aria-label="Unit of the {{ group.label|lower }} {{ row.label|lower }}">
+            {%- for unit in row.units %}<option value="{{ unit.value }}"{% if unit.selected %} selected{% endif %}>{{ unit.label }}</option>{% endfor %}
+          </select>
+          {%- elif row.symbol %}<span class="search-unit">{{ row.symbol }}</span>{% endif %}
+        </div>
+        {%- endfor %}
+        {%- if group.other_gas and group.other_gas.gases %}
+        {%- set gas = group.other_gas %}
+        <div class="search-field search-field-size search-field-value" role="group" aria-label="{{ group.label }} partial pressure of another gas">
+          <span>Partial pressure of another gas</span>
+          <select name="{{ gas.name }}" aria-label="Gas for the {{ group.label|lower }} partial pressure">
+            <option value="">Pick a gas</option>
+            {%- for formula in gas.gases %}<option value="{{ formula }}">{{ formula|formula_text }}</option>{% endfor %}
+          </select>
+          {{ ui_input(gas.min_name, "Minimum " ~ group.label|lower ~ " partial pressure of the gas picked", "", type="number", bare=True, step="any", placeholder="least") }}
+          <span aria-hidden="true">&ndash;</span>
+          {{ ui_input(gas.max_name, "Maximum " ~ group.label|lower ~ " partial pressure of the gas picked", "", type="number", bare=True, step="any", placeholder="most") }}
+          <select name="{{ gas.unit_name }}" aria-label="Unit of the {{ group.label|lower }} partial pressure of the gas picked">
+            {%- for unit in gas.units %}<option value="{{ unit.value }}"{% if unit.selected %} selected{% endif %}>{{ unit.label }}</option>{% endfor %}
+          </select>
+        </div>
+        {%- endif %}
+        <label class="search-field search-field-value-sort">Order the {{ group.label|lower }}s by
+          <select name="{{ group.sort.name }}">
+            {%- for option in group.sort.options %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label|chem_text }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+{%- endmacro %}

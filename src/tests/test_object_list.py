@@ -146,7 +146,7 @@ def test_a_cursor_for_a_gone_object_starts_from_the_top_and_a_bad_one_is_refused
         with pytest.raises(ValueError):
             objectlist.list_objects(conn, "galaxy")
         with pytest.raises(ValueError):
-            objectlist.list_objects(conn, "star", sort="age")
+            objectlist.list_objects(conn, "star", sort="colour")
         with pytest.raises(ValueError):
             objectlist.list_objects(conn, "star", limit=0)
         assert len(objectlist.list_objects(conn, "star", limit=10 ** 6)["items"]) <= objectlist.MAX_LIMIT
@@ -177,7 +177,7 @@ def test_the_api_pages_a_kind_and_refuses_what_it_cannot_serve(client, indexed):
     second = client.get(f"/api/object-lists/star?limit=2&sort=mass&order=desc&after={first['next']}").get_json()
     assert second["items"][0]["mass_kg"] <= first["items"][-1]["mass_kg"]
     assert {i["id"] for i in first["items"]}.isdisjoint(i["id"] for i in second["items"])
-    for bad in ("/api/object-lists/galaxy", "/api/object-lists/star?sort=age", "/api/object-lists/star?order=up",
+    for bad in ("/api/object-lists/galaxy", "/api/object-lists/star?sort=colour", "/api/object-lists/star?order=up",
                 "/api/object-lists/star?limit=x", "/api/object-lists/star?after=zz", "/api/object-lists/star?sector_id=a"):
         assert client.get(bad).status_code == 400, bad
 

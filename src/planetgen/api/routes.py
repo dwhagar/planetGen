@@ -1427,8 +1427,13 @@ def object_list(kind):
     """
     `GET /api/object-lists/<kind>` -- one keyset page of the objects of a kind from the object index (UX.141): `kind` is
     `system`, `star`, `planet`, `moon`, `belt`, `comet`, `facility` or a phenomenon type. Query parameters: `sort`
-    (`name` -- the default --, `class`, `mass` or `radius`; the last three list the objects that have one) with
-    `order` (`asc` or `desc`), `limit` (50 by default, 200 at most), `after=<object ID>` (the `next` of the previous
+    (`name` -- the default --, `class`, `mass` or `radius`; the last three list the objects that have one; a star, planet or
+    moon list also sorts by any numeric key of `GET /api/search` that kind has, UX.228: `gravity`, `surface_temperature`,
+    `orbit_distance`, `luminosity`, ..., listing the bodies that have a value) with
+    `order` (`asc` or `desc`), `limit` (50 by default, 200 at most), the range filters of `GET /api/search` for that kind
+    (`<kind>_min_<key>`, `<kind>_max_<key>` and `<kind>_<key>_unit`, `planet_min_gravity=0.8`, UX.228: only the bodies whose
+    stored value lies in every range; each item then carries `values`, `{key: {value, unit, symbol}}`, for the keys in use),
+    `after=<object ID>` (the `next` of the previous
     page: no `offset`), `name` (names starting with it), `class` (exactly this class), `sector_id` and `from` (begin the list at the first
     name from this one on, with `sort=name` only; `past_end` is true when none lies at or past it and the last page
     is answered). Answers `items`
@@ -1436,18 +1441,19 @@ def object_list(kind):
     `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
     that is not an object ID, a `from` with another sort, or a `sector_id` that is not a number.
     """
-    sort, descending = _parse_sort(request.args, objectlist.SORTS)
+    sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])
     try:
         limit = int(request.args.get("limit") or objectlist.DEFAULT_LIMIT)
         sector_id = int(request.args["sector_id"]) if request.args.get("sector_id") else None
     except ValueError:
         raise ApiError("limit and sector_id must be whole numbers")
     try:
+        ranges = search_values.ranges_from_args(request.args).get(kind) if kind in objectlist.VALUE_KINDS else None
         page = objectlist.list_objects(
             get_db(), kind, limit=limit, sort=sort, descending=descending, after=request.args.get("after") or None,
             name=(request.args.get("name") or "").strip()[:MAX_START_LENGTH] or None,
             object_class=request.args.get("class") or None, sector_id=sector_id,
-            start=(request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None)
+            start=(request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None, ranges=ranges)
     except ValueError as exc:
         raise ApiError(str(exc))
     return jsonify({**page, "total_capped": is_capped(page["total"]), "limit": min(limit, objectlist.MAX_LIMIT)})
