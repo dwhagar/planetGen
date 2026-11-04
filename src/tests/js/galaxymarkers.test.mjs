@@ -84,7 +84,7 @@ test("an item with its own size is hidden while it is under two pixels", () => {
 });
 
 test("the legend line carries the kind's color", () => {
-  assert.deepEqual(M.legendOf(M.BLACK_HOLE_KIND), { text: "Black holes", swatch: M.BLACK_HOLE_KIND.color, swatchClass: "map-marker-swatch" });
+  assert.deepEqual(M.legendOf(M.BLACK_HOLE_KIND), { text: "Black hole marks", swatch: M.BLACK_HOLE_KIND.color, swatchClass: "map-marker-swatch" });
 });
 
 test("every glyph draws without error on a recording context", () => {

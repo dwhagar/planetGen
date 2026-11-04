@@ -97,7 +97,7 @@ def _open(page, url, ready):
     if getattr(page, "names_hidden", False) and "hide=" not in url:
         url += ("&" if "?" in url else "?") + "hide=" + HIDE_NAMES
     if not getattr(page, "holes_default", False) and "/galaxy" in url and "marker-black-hole" not in url:
-        # MAP.368: the Black holes layer starts off; the tests that look at black holes ask for it, those of its default are marked `holes_default`.
+        # MAP.368: the Black hole marks layer starts off; the tests that look at the marks ask for it, those of its default are marked `holes_default`.
         url = url.replace("show=", "show=marker-black-hole,", 1) if "show=" in url else url + ("&" if "?" in url else "?") + "show=marker-black-hole"
     response = page.goto(url, wait_until="load")
     assert response.status == 200, f"{url} answered {response.status}"
@@ -2988,10 +2988,11 @@ HOLE_DOTS = "() => document.querySelector('#galaxymap3d-canvas').__mapHoleDots()
 
 
 @pytest.mark.holes_default
-def test_galaxy_map_black_holes_start_off_and_the_layer_turns_on_marks_and_purple_dots(page, map_site):
-    """MAP.368 (MAP.219): the Black holes layer starts off, so no mark, no purple dot and no legend line; turning it on draws the glyph
-    over each black hole in view and the dots in purple (#a43cff) with a legend line, rides in the address as `show`, is kept by a
-    reload, and a click on the glyph shows the black hole's card; turning it off takes all of it away again."""
+def test_galaxy_map_black_hole_marks_start_off_and_the_dots_always_draw(page, map_site):
+    """MAP.368, MAP.370 (MAP.219): the Black hole marks layer starts off, so no glyph and no legend line, but the black holes are
+    always drawn as purple dots (#a43cff) among the stars; turning the layer on adds the glyph over each black hole in view and a
+    legend line, rides in the address as `show`, is kept by a reload, and a click on the glyph shows the black hole's card;
+    turning it off takes only the marks away again, never the dots."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     _poi_layers(page)    # a crowd of a black hole with a world's mark has no name of its own (MAP.305), which the long runs hit
     holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
@@ -3000,10 +3001,11 @@ def test_galaxy_map_black_holes_start_off_and_the_layer_turns_on_marks_and_purpl
     _open_menu(page)
     assert button.count() == 1 and button.get_attribute("aria-pressed") == "false", "off until the visitor turns it on"
     page.wait_for_function(f"() => ({HOLE_DOTS})().held > 0")
-    assert page.evaluate(HOLE_DOTS)["drawn"] == 0, "no purple dot while it is off"
+    off = page.evaluate(HOLE_DOTS)
+    assert off["drawn"] == off["held"] > 0 and off["colour"].lower() == "#a43cff", "the purple dots draw with the marks off"
     page.wait_for_timeout(500)
     assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
-    assert "Black holes" not in legend.inner_text()
+    assert "Black hole marks" not in legend.inner_text()
     # On: the marks, the dots in purple, the legend line and the address.
     button.click()
     assert button.get_attribute("aria-pressed") == "true"
@@ -3012,7 +3014,7 @@ def test_galaxy_map_black_holes_start_off_and_the_layer_turns_on_marks_and_purpl
     assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
     dots = page.evaluate(HOLE_DOTS)
     assert dots["drawn"] == dots["held"] > 0 and dots["colour"].lower() == "#a43cff", dots
-    assert "Black holes" in legend.inner_text()
+    assert "Black hole marks" in legend.inner_text()
     # The keyboard and screen readers get a button per marker.
     page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
@@ -3037,14 +3039,14 @@ def test_galaxy_map_black_holes_start_off_and_the_layer_turns_on_marks_and_purpl
     _settle(page)
     assert {e["name"] for e in _markers_until(page, lambda found: any(e["kind"] == "marker-black-hole" for e in found))
             if e["kind"] == "marker-black-hole"} >= set(holes)
-    # Off again: no marks, no dots, no legend line, and the address no longer lists it.
+    # Off again: no marks and no legend line, the dots stay, and the address no longer lists it.
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
     assert "marker-black-hole" not in parse_qs(urlparse(page.url).query).get("show", [""])[0].split(",")
     assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
             if e["kind"] == "marker-black-hole"] == []
-    assert page.evaluate(HOLE_DOTS)["drawn"] == 0
-    assert "Black holes" not in legend.inner_text()
+    assert page.evaluate(HOLE_DOTS)["drawn"] == page.evaluate(HOLE_DOTS)["held"] > 0
+    assert "Black hole marks" not in legend.inner_text()
 
 
 GLOW = "() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && {count: g.count(), drawn: g.drawn(), visible: g.isVisible()}; }"
@@ -3448,6 +3450,7 @@ def _fly_to_system(page, system):
     _settle(page)
 
 
+@pytest.mark.holes_default
 def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_come_in_with_the_sector(page, map_site):
     """MAP.220: every planet class has a marker of its own in the Menu's World classes group, all off until the visitor picks them;
     choosing a class marks the systems that hold a world of it once the map is close enough to have their sector (its glyph carries the
@@ -3458,7 +3461,9 @@ def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_c
     _open_menu(page)
     group = page.locator("#galaxymap3d-kinds")
     assert "World classes" in group.inner_text()
-    assert group.locator('button[data-layer^="marker-class-"]').count() == 20
+    from planetgen import tuning
+    # One button for each planet class there is (TEST.573: 19 since Class Q's retirement, GEN.1135; counted, not written down).
+    assert group.locator('button[data-layer^="marker-class-"]').count() == len(tuning.PLANET_CLASSES)
     assert all(group.locator(f'button[data-layer="marker-class-{letter}"]').get_attribute("aria-pressed") == "false" for letter in "KOGJ")
     eden = next(s for s in WORLD_FIELD if s["name"] == "Fixture Eden")
     rock = next(s for s in BARREN_FIELD if s["name"] == "Fixture Rock")
@@ -5027,6 +5032,14 @@ def _hover_spot(page, point):
     for _ in range(40):
         spot = _screen_of(page, point)
         assert spot, f"{point} is not on the map"
+        free = "([x, y]) => document.elementFromPoint(x, y) === document.querySelector('#galaxymap3d-canvas')"
+        if not page.evaluate(free, list(spot)):
+            # TEST.573: the point lies under one of the map's own controls (the log ruler, MAP.336, down the right side): the camera
+            # centres on it, keeping its distance, which leaves the whole-galaxy view as it is.
+            page.evaluate("([c, d]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, dist: d})",
+                          [list(point), _camera(page)["dist"]])
+            _camera(page)
+            continue
         page.mouse.move(spot[0] + 1, spot[1] + 1)
         page.mouse.move(*spot)
         if _tooltip(page):
@@ -5036,9 +5049,11 @@ def _hover_spot(page, point):
 
 
 @pytest.mark.names_hidden
+@pytest.mark.holes_default
 def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_site):
-    """MAP.243: beyond the galaxy's outline no block is under the pointer; a phenomenon there is picked on the screen
-    like one inside a window, its details shown."""
+    """MAP.243, MAP.370: beyond the galaxy's outline no block is under the pointer; a black hole there is drawn as a dot whatever the
+    Black hole marks layer says (off by default, so no mark takes the pointer first) and is picked on the screen like a phenomenon
+    inside a window, its details shown."""
     _open_galaxy(page, halo_site)
     black_hole = HALO_POINTS[0]
     point = (black_hole["x"], black_hole["y"], black_hole["z"])
@@ -5052,7 +5067,7 @@ def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_
 @pytest.mark.names_hidden
 def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(page, halo_site):
     """MAP.243: a star of a loose group beyond the outline is picked (its position and brightness shown), and the
-    wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before.
+    wheel run toward it reaches the zoom level of the sector round it (MAP.337), where there was no block to open before.
     (The black hole markers, MAP.219, are off: on this view a marker's reach covers the star beside it.)"""
     _open_galaxy(page, halo_site, "?hide=marker-black-hole")
     star = HALO_STARS[0]
@@ -5063,7 +5078,7 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
     page.mouse.click(*spot)
     page.wait_for_function("() => { const h = document.querySelector('#galaxymap3d-info h3'); return h && h.textContent.includes('Star beyond'); }")
     assert _crumbs(page) == ["Galaxy"]
-    # The wheel toward the star hands off to the window round the cell that holds it, and on, level by level. Once
+    # The wheel toward the star runs on through the zoom levels to the sector round it. Once
     # the star is out of the visible part of the page the wheel goes on at the middle of what is shown.
     viewport = page.viewport_size
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
@@ -5074,11 +5089,12 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
         page.mouse.move(*spot)
         page.mouse.wheel(0, -400)
         page.wait_for_timeout(1000)  # a moment for the next window to arrive
-        if len(_crumbs(page)) >= 6:
+        if page.evaluate(STAGE_M) == 1:
             break
     _settle(page)
-    crumbs = _crumbs(page)
-    assert len(crumbs) >= 6 and crumbs[0] == "Galaxy", crumbs
+    # MAP.337: the zoom is the camera's distance alone, so the wheel runs on through the window sizes (243 down to 1) without the crumbs
+    # changing; the level the camera is at is read from its distance.
+    assert page.evaluate(STAGE_M) == 1, page.evaluate(STAGE_M)
     camera = _camera(page)
     # The blocks are not drawn (MAP.265, MAP.292), so once the star is off the screen the wheel goes on toward the
     # focus plane at the middle of what is shown, not a block face beside the star: a little wider than it was.

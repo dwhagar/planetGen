@@ -2746,15 +2746,10 @@ function initGalaxyMap3d(canvasEl, data) {
     return { total: starList.length, hidden: hidden };
   };
 
-  // MAP.368: whether `star` is a black hole while the Black holes layer is off (it starts off): its purple dot and its mark are not drawn.
-  function holeHidden(star) {
-    return !!star.phenomenon && star.type === "black_hole" && typeof stageView !== "undefined" && !!stageView && !stageView.layers.isOn("marker-black-hole");
-  }
-
   // 1 for a star the shader drops: one inside the opened sector's cell (it draws its own) and, with a sector opened, a
   // phenomenon outside it (no comets, rogue planets or black holes of the space around, MAP.327).
   function clippedByTheSector(star) {
-    if (!drawnByTheGalaxy(star.x, star.y, star.z) || holeHidden(star)) return 1;
+    if (!drawnByTheGalaxy(star.x, star.y, star.z)) return 1;
     return hiddenCell && star.phenomenon ? 1 : 0;
   }
 
@@ -4085,14 +4080,13 @@ function initGalaxyMap3d(canvasEl, data) {
         group: kind.family === "class" ? CLASS_GROUP : kind.family === "lifeclass" ? LIFE_CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
         data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
-        title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
+        title: kind.title || "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
     });
     // The registry forgets ids nobody registered when it read the address, so read it again for these (without the
     // stage writing the address back before it has taken its marks from it).
     stageView.readLayersFromLocation();
     stageView.layers.refresh();   // the Menu and legend were drawn before these kinds existed
-    markHiddenStars();    // MAP.368: the black holes' purple dots follow the Black holes layer, which exists from here on
     // MAP.306: the point-of-interest rows open as the visitor left them unless the address chose.
     var poiIds = markerKinds.kinds().filter(function (kind) { return kind.interest; }).map(function (kind) { return kind.id; });
     var poiDefaults = {};
@@ -4228,8 +4222,6 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.layers.refresh();
   stageView.layers.onChange(function (id, on) {
     if (id === "spin") stageView.spinSwitch.set(on);
-    // MAP.368: the Black holes layer shows or hides the purple dots as well as the marks.
-    if (id === "marker-black-hole") markHiddenStars();
   });
   // The superbubbles are a layer of the Menu, off unless the visitor shows them.
   if (bubbleMeshes.length) {
@@ -4749,7 +4741,7 @@ function initGalaxyMap3d(canvasEl, data) {
     enabled: function () { return stageView.inContainer(); },
     points: function () { return starList; },
     reach: function () { return POINT_PICK_PX; },
-    accept: function (star) { return star.phenomenon && drawnByTheGalaxy(star.x, star.y, star.z) && !holeHidden(star); },
+    accept: function (star) { return star.phenomenon && drawnByTheGalaxy(star.x, star.y, star.z); },
     lastWins: true,
     tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
     hover: hoverWith(pointFacts),
