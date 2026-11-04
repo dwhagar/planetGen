@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.259 |
 | MAP | MAP.371 |
 | NAV | NAV.65 |
-| GEN | GEN.1250 |
+| GEN | GEN.1251 |
 | PERF | PERF.233 |
 | DB | DB.110 |
 | API | API.38 |
@@ -2024,6 +2024,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) | none | open |
 | GEN.1248 | The stored habitable-request answer (habitable_request_status) disagrees with the world count: answer from habitable_request.count and meets (bug) | none | done, PR #4842 |
 | GEN.1249 | A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree | none | open |
+| GEN.1250 | With HABITABLE_WORLD off, about 3 percent of sampled dwarf systems still hold a planet that meets the request's conditions (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
