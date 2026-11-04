@@ -18262,22 +18262,6 @@ clears each one.
   the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.574 Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug)**
-  Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
-  reported), while running every test file that names an old spelling.
-  (1) tests/test_class_fit.py and tests/test_class_fit_cli.py: a Class D
-  case now scores C, since GEN.1160 made Class D and C read the
-  roundness ratio. Decide whether the case or the scorer is stale and
-  fix it at the cause. (2)
-  tests/test_materials_table.py::test_every_class_composition_text_is_mapped_to_rows:
-  the text "rock, ice, and frozen hydrocarbons" in tuning.py has no
-  entry in materials.json legacy_names.class_compositions; GEN.1160
-  added the text, so add the row (and keep one text, one row). Done:
-  both test files pass on main in 3 runs. Lock-free (test and data).
-  Owner Aux 5, GEN.1160's owner, before GEN.1070 part 1 starts (proposed
-  by the TODO thread). Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.575 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug)**
   Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
   reported). Not from the spelling sweep: they fail on the map pages on
