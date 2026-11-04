@@ -834,7 +834,8 @@ def test_scripts_only_name_repo_paths_that_exist():
     if not scripts:
         pytest.skip("not a git checkout")
     literal = re.compile(r"""(?<![\w./-])((?:src|scripts|examples|db)/[\w./-]*\.(?:py|sh|sql|json|conf|plist|service|timer)(?:\.example)?)(?![\w-])""")
-    joined = re.compile(r'"src"((?:,\s*"[\w.-]+")+)')
+    # `join(..., "src", "planetgen", ...)`: only a path built by a join, not a record key such as `e.setdefault("src", "crossref")`
+    joined = re.compile(r'\bjoin\(.*?"src"((?:,\s*"[\w.-]+")+)')
     missing = []
     for rel in scripts:
         with open(os.path.join(REPO_DIR, rel), encoding="utf-8") as f:
