@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.573 |
+| TEST | TEST.574 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.104 |
@@ -2391,7 +2391,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.365 | Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively | none | done, PR #4844 |
 | MAP.366 | Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug) | none | open |
 | MAP.367 | Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown | none | open |
-| MAP.368 | Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on | none | open |
+| MAP.368 | Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on | none | done, PR #4859 |
 | MAP.369 | Region labels still do not show as clickable points of interest that zoom into the charted region (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
@@ -3830,6 +3830,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.570 | test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug) | none | done, PR #4852 |
 | TEST.571 | test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug) | none | open |
 | TEST.572 | Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug) | none | open |
+| TEST.573 | Two galaxy map browser tests red on main: the class buttons count (19 against 20) and a halo black hole not picked on the whole-galaxy view (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
