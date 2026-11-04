@@ -3817,7 +3817,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.565 | test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug) | none | done, PR #4796 |
 | TEST.566 | test_deploy_scripts fails on main: scripts/settle_references.py names src/crossref, which is not in the repo (bug) | none | done, PR #4815 |
 | TEST.567 | Two tests red on main: test_helium_fractionation (0.29985 over 0.3) and test_disregard_missing_data (12 lines against 11) (bug) | none | done, PR #4818 |
-| TEST.568 | test_page_shell::test_js_modules_import_siblings_with_their_own_version fails on main: boxfit.js has a static import (bug) | none | open |
+| TEST.568 | test_page_shell::test_js_modules_import_siblings_with_their_own_version fails on main: boxfit.js has a static import (bug) | none | done, PR #4823 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
