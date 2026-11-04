@@ -57,6 +57,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     gas         a giant's cloud-forming gases as mole fractions of its stored mixture, `{"CH4": .., "NH3": .., "H2O": .., "H2S": ..}`
                 (`GIANT_CLOUD_GASES`, rounded to 4 significant digits, a gas the mixture lacks is left out); `static/giantpaint.js` reads it for the
                 palette. Left out when the row stores no mixture, and the painter then goes by temperature alone
+    gravG       a giant's surface gravity, in g (MAP.275: the size of its storms); left out when none is stored
     spinH       rotation period, hours (MAP.328); left out when none is stored, and the body is drawn still
     axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
                 orbit's normal)
@@ -344,6 +345,7 @@ def planet_look(planet, kind="planet"):
     _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
     if gas:
         _put(look, "gas", giant_gas_fractions(planet))
+        _put(look, "gravG", _rounded(planet.get("gravity_g"), 3))      # MAP.275: the Rossby deformation radius of its storms
     _put_spin(look, planet)
     _put(look, "ring", ring_look(planet))     # MAP.275: the rings the body stores, with the gaps its moons dig
     if has_atmosphere:

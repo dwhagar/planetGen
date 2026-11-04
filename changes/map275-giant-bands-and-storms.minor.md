@@ -1,0 +1,6 @@
+**Headline:** Giant planets are drawn with a wide equatorial zone, belts and zones from the equator outward, and storms sized by the Rossby deformation radius.
+
+### Changed
+- **MAP.275, part 2 (bands and storms).** The belts and zones of a gas or ice giant are laid out from the equator outward: one equatorial zone, 15 to 30 degrees either side of the equator, then belts and zones by turns, the same number on each side. An ice giant (cloud tops under 130 K) gets 5 or 7 bands. The storms follow the research of GEN.670: each large storm is 1 to 6.3 Rossby deformation radii long (2000 km at Jupiter, scaled by the cloud-top temperature, the surface gravity, which the look record now carries as `gravG`, and the spin), 1.2 to 1.9 times as long as high, nine in ten an anticyclone and one in ten a dark cyclone, with one to four of them (more for more bands) and a field of small faint ones, so a fast spinner or a small cold giant has smaller storms than Jupiter. The pictures of every giant change. The band count law is unchanged: the research found no usable jet-speed law to replace it (the heat-flux law gives Saturn 26 to 33 bands against 17 observed). The numbers are stand-ins GEN.725 lists as rows RNG11 to RNG19 (section 6.170), which also now register the colour and contrast tables of the giant painter.
+
+generation-output: unchanged
