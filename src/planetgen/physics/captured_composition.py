@@ -104,7 +104,7 @@ def source_annulus(window, planet_distance_au, planet_mass_kg, star_mass_kg, dis
         half = FEEDING_ZONE_HILL_RADII * irregular_zone.hill_radius_au(planet_distance_au, planet_mass_kg, star_mass_kg)
         return max(planet_distance_au - half, 0.1 * planet_distance_au), planet_distance_au + half
     if not 0.0 < disc_inner_au < disc_outer_au:
-        raise CapturedCompositionError("the disc needs 0 < inner < outer")
+        raise CapturedCompositionError("the disk needs 0 < inner < outer")
     return disc_inner_au, disc_outer_au
 
 

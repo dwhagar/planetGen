@@ -117,7 +117,7 @@ def table():
     if tuple(data["features"]) != FEATURE_NAMES:
         raise elements.DataError(f"{DATA_FILE}: the features are not the module's; fit the table again (scripts/fit_greenhouse_table.py)")
     if data["data_digest"] != data_digest():
-        raise elements.DataError(f"{DATA_FILE}: the table was fitted to other k-tables or collision-induced files than the catalogue's; "
+        raise elements.DataError(f"{DATA_FILE}: the table was fitted to other k-tables or collision-induced files than the catalog's; "
                                  "fit it again (scripts/fit_greenhouse_table.py)")
     return Table(mean=np.array(data["mean"]), scale=np.array(data["scale"]), low=np.array(data["low"]), high=np.array(data["high"]),
                  weights=tuple(np.array(layer) for layer in data["weights"]), biases=tuple(np.array(layer) for layer in data["biases"]),
@@ -151,6 +151,21 @@ def log_ratio(vector, fitted=None):
     return max(float((detmath.matmul(hidden, fitted.weights[-1]) + fitted.biases[-1])[0]), 0.0)
 
 
+def _deep_air_rise(total_pa, vector):
+    """
+    `ln(T_s / T_e)` an air gains by being thicker than the table was fitted (GEN.1240): the adiabat from a radiating level that stays where it is. Where the air is
+    so thick that it is convective from its radiating level down, the surface is as warm as the adiabat takes the air there from that level,
+    `T_s = T_rad (P_s / P_rad)^kappa` with `kappa = 1 - 1 / gamma` of the air (the table's own feature), and the level (its pressure and temperature) is the opacity's, not the
+    column's, so it does not move with the surface pressure: past the table's top pressure `ln(T_s / T_e)` rises by `kappa ln(P_s / P_top)`. Nil at and below `P_top`, so no air the
+    table was fitted on moves. Stand-in, registry row IR16.
+    """
+    top_pa = math.exp(float(table().high[FEATURE_NAMES.index("ln_pressure")]))
+    if total_pa <= top_pa:
+        return 0.0
+    gamma = float(vector[FEATURE_NAMES.index("heat_capacity_ratio")])
+    return max(1.0 - 1.0 / gamma, 0.0) * math.log(total_pa / top_pa)
+
+
 def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None):
     """
     The warming of an air under an absorbed flux (the globally averaged W/m2 of `greenhouse.absorbed_flux_w_m2`): the table's reading of what
@@ -165,8 +180,10 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
     if not 0.0 <= aloft_share < 1.0:
         raise ValueError(f"aloft_share must be in [0, 1), not {aloft_share!r}")
     effective = (absorbed_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
-    ratio = log_ratio(features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
+    vector = features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
+    ratio = log_ratio(vector)
     total = mixture.total_pressure_pa(partial_pressures_pa)
+    ratio += _deep_air_rise(total, vector)
     absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
     ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)
     surface = min(effective * math.exp(ratio), HIGHEST_SURFACE_K) if effective < HIGHEST_SURFACE_K else effective

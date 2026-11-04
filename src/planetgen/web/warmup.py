@@ -43,7 +43,7 @@ PHASES = (
     ("opening", "the galaxy's cluster field, the object index, the opening views and the first page of each list",
      ("cluster-field", "object-index", "galaxy-map", "lists")),
     ("built-levels", "the Galaxy Map's sector-block nodes down to the built level", ("galaxy-nodes",)),
-    ("deep-nodes", "the deep nodes along the zoom run in to the centre", ("galaxy-deep-nodes",)),
+    ("deep-nodes", "the deep nodes along the zoom run in to the center", ("galaxy-deep-nodes",)),
     ("objects", "the sector, system, and phenomenon pages", ("sectors", "systems", "phenomena")),
     ("search", "the search page and its answers", ("search",)),
 )
@@ -58,7 +58,7 @@ _FAMILY_TEXT = {
     "lists": "the first page of every list, and its counts",
     "galaxy-nodes": "the Galaxy Map's sector-block nodes: every populated block from the whole galaxy down to level "
                     "`NODE_WARM_FLOOR`",
-    "galaxy-deep-nodes": "the Galaxy Map's deep nodes: the zoom run in to the centre, down to `tile_cache.warm_zoom_floor`",
+    "galaxy-deep-nodes": "the Galaxy Map's deep nodes: the zoom run in to the center, down to `tile_cache.warm_zoom_floor`",
     "sectors": "every sector page",
     "systems": "every system page",
     "phenomena": "every phenomenon page",

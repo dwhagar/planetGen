@@ -560,8 +560,11 @@ def test_create_cache_dir_gives_apache_only_the_runtime_dirs(tmp_path):
     env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
     env.update(PLANETGEN_TILE_CACHE_DIR=str(tmp_path / "cache" / "tiles"),
                PLANETGEN_JOBS_DIR=str(tmp_path / "lib" / "jobs"),
-               PLANETGEN_STATE_DIR=str(tmp_path / "lib" / "state"))
+               PLANETGEN_STATE_DIR=str(tmp_path / "lib" / "state"),
+               PLANETGEN_BAND_TABLE_CACHE=str(tmp_path / "cache" / "band-tables"))
     subprocess.run([os.path.join(APACHE_DIR, "create-cache-dir.sh")], env=env, check=True, capture_output=True)
+    kept = os.stat(tmp_path / "cache" / "band-tables")     # PERF.188: the workers write the kept star tables
+    assert (kept.st_uid, kept.st_gid) == (uid, gid) and stat.S_IMODE(kept.st_mode) == 0o750
     for path in (tmp_path / "cache" / "tiles", tmp_path / "lib" / "jobs"):
         info = os.stat(path)
         assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o750)
@@ -831,7 +834,8 @@ def test_scripts_only_name_repo_paths_that_exist():
     if not scripts:
         pytest.skip("not a git checkout")
     literal = re.compile(r"""(?<![\w./-])((?:src|scripts|examples|db)/[\w./-]*\.(?:py|sh|sql|json|conf|plist|service|timer)(?:\.example)?)(?![\w-])""")
-    joined = re.compile(r'"src"((?:,\s*"[\w.-]+")+)')
+    # `join(..., "src", "planetgen", ...)`: only a path built by a join, not a record key such as `e.setdefault("src", "crossref")`
+    joined = re.compile(r'\bjoin\(.*?"src"((?:,\s*"[\w.-]+")+)')
     missing = []
     for rel in scripts:
         with open(os.path.join(REPO_DIR, rel), encoding="utf-8") as f:

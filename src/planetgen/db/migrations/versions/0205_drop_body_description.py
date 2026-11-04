@@ -1,6 +1,6 @@
 """A planet or moon keeps no description text (GEN.1212).
 
-Schema v200. `planets` and `moons` lose `description`, the sentence of the body's class that generation copied from `tuning.PLANET_CLASSES` into every
+Schema v205. `planets` and `moons` lose `description`, the sentence of the body's class that generation copied from `tuning.PLANET_CLASSES` into every
 row. The words are now read at view time from `physics/data/planet_class_text.json` (`physics/planet_class_text.py`), so one change to the
 wording reaches every stored body. A column already gone is skipped, so a stopped run can be started again.
 """
@@ -10,8 +10,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0200"
-down_revision = "0199"
+revision = "0205"
+down_revision = "0204"
 branch_labels = None
 depends_on = None
 

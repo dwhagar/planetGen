@@ -30,7 +30,7 @@ from planetgen.util import log
 
 
 _CONSEQUENCE = " -- generation will not start until it is fetched (it replaces: {})"
-_DISREGARDED = " -- the run takes a labelled fallback: {}"
+_DISREGARDED = " -- the run takes a labeled fallback: {}"
 
 
 def _chosen(keys):

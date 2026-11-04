@@ -27,6 +27,7 @@ import numpy as np
 
 from planetgen.galaxy import potential as galactic
 from planetgen.physics import constants
+from planetgen.util import detmath
 
 MEMBER_SOFTENING_PC = 1.0e-3
 """float: The softening of a member's pull, parsecs: the stand-in that keeps the pull of two masses at one point finite (registry row AK1)."""
@@ -50,7 +51,7 @@ def set_pull(position_pc, influence, softening_pc=MEMBER_SOFTENING_PC):
     offset = positions - here
     distance2 = np.einsum("ij,ij->i", offset, offset) + softening_pc ** 2
     weight = galactic.G_PC_KMS2_PER_MSUN * (masses / _KG_PER_MSUN) / distance2 ** 1.5
-    pull = weight @ offset
+    pull = detmath.matmul(weight, offset)
     return float(pull[0]), float(pull[1]), float(pull[2])
 
 

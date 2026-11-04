@@ -126,7 +126,7 @@ def _points(points):
     if array.ndim == 1:
         array = array.reshape(1, -1)
     if array.ndim != 2 or array.shape[1] != 3:
-        raise ValueError(f"points must be (n, 3) metres, got shape {array.shape}")
+        raise ValueError(f"points must be (n, 3) meters, got shape {array.shape}")
     return array
 
 

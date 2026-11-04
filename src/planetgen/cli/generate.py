@@ -230,7 +230,7 @@ def add_logging_arguments(parser):
                         help="Suppress all output except errors.")
     parser.add_argument('--disregard-missing-data', action='store_true',
                         help="Generate even when a downloaded data file is missing (refused by default), taking "
-                             "each missing dataset's labelled fallback; the run says which. Setup downloads the files.")
+                             "each missing dataset's labeled fallback; the run says which. Setup downloads the files.")
 
 
 def validate_logging_args(args, parser):
@@ -698,7 +698,7 @@ def add_sectors_arguments(parser):
                                  "the same progress and cancel as the other modes.")
     mode_group.add_argument('--around', type=finite_float, nargs=3, metavar=('X', 'Y', 'Z'),
                             help="Region mode: generate every not-yet-generated sector a sphere of --radius-pc touches, "
-                                 "centred on this point (parsecs from the galactic centre), nearest first, in units of at most "
+                                 "centered on this point (parsecs from the galactic center), nearest first, in units of at most "
                                  "--unit-sectors consecutive wedges of one shell and band. The same seed gives the same sectors "
                                  "whatever the point, the radius or the order regions are run in. Rerun it after a stop: charted "
                                  "sectors are skipped.")
@@ -792,9 +792,9 @@ def add_sectors_arguments(parser):
                              "probability min(1, relative density) ** G; 0 (the default) keeps every one, "
                              "so starts are uniform by volume.")
     parser.add_argument('--avoid-filled-space', action='store_true',
-                        help="Random-start mode: drop any random centre whose neighborhood touches a "
+                        help="Random-start mode: drop any random center whose neighborhood touches a "
                              "sector that is already generated, so every neighborhood grows in empty space. "
-                             "Logs how many candidate centres qualified. Without it, a neighborhood may "
+                             "Logs how many candidate centers qualified. Without it, a neighborhood may "
                              "overlap filled space (the sectors already there are kept, not redone).")
     store.add_mysql_connection_args(parser)
 
@@ -1633,7 +1633,7 @@ def build_parser():
         'fill-block-totals',
         description="Make the totals of the Galaxy Map's blocks again, for every block of the ladder: what its "
                     "generated sectors hold (sectors, systems, stars, luminosity) and the light of the pre-placed "
-                    "bright stars and scattered phenomena nothing was built from (count, summed luminosity, centre "
+                    "bright stars and scattered phenomena nothing was built from (count, summed luminosity, center "
                     "of light, mean temperature). A scatter, a clear and the map luminosity fill make the light at "
                     "their end and a galaxy run brings in its sectors; this is for a galaxy whose totals were "
                     "never made, or after a run stopped before it finished. Nothing else changes; it can be run "
@@ -1651,10 +1651,10 @@ def build_parser():
 
     link_parser = subparsers.add_parser(
         'link',
-        description="Link the galaxy sectors saved since a time to their neighbours: containment, nearest systems and "
+        description="Link the galaxy sectors saved since a time to their neighbors: containment, nearest systems and "
                     "quadrants, and the new systems merged into the lists of the sectors around them. Nothing else "
                     "changes; it can be run again.",
-        help="Link the sectors saved since a time to their neighbours.")
+        help="Link the sectors saved since a time to their neighbors.")
     add_since_arguments(link_parser)
 
     backfill_parser = subparsers.add_parser(
@@ -1667,7 +1667,7 @@ def build_parser():
     settle_parser = subparsers.add_parser(
         'settle',
         description="Save the path of every body in the galaxy sectors saved since a time and in the sectors around "
-                    "them, so each path sees the final set of neighbours.",
+                    "them, so each path sees the final set of neighbors.",
         help="Save the sector paths of the sectors saved since a time.")
     add_since_arguments(settle_parser)
     settle_parser.add_argument('--sector-id', type=int, nargs='+', default=None, metavar='ID',

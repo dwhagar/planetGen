@@ -33,7 +33,7 @@ ROGUE_ONLY_PREFIXES = ("rogue_", "galactic_", "ejection_", "parent_system")
 """tuple: The columns only a rogue planet has: its note (`rogue_note`), its motion round the galaxy in place of an orbit, and the system it was
 ejected from (GEN.1111)."""
 
-MISSING_CEILING = 202
+MISSING_CEILING = 200
 """int: Planet columns (net of `HOST_ONLY`) the rogue planet does not carry under the same name: 148 when the test was written (TEST.498), plus the
 columns the planet gained while the rogue is still a generator of its own (below). It falls to zero when the rogue is built through the planet code
 (GEN.1111 and the rogue train, where every one of them comes with the planet); until then it rises only by the planet columns a lane adds, named in
@@ -50,7 +50,7 @@ PLANET_COLUMNS_ADDED = {
     "GEN.1034 (open-ocean tide)": ("ocean_liquid", "tide_range_neap_m", "tide_range_spring_m"),
     "GEN.1035 (stored surface liquid)": ("surface_liquid", "surface_liquid_depth_km", "surface_liquid_fraction"),
     "GEN.1215 (what the surface liquids hold)": ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt"),
-    "GEN.1159 (roundness, strength and binding energy)": ("roundness_ratio", "yield_strength_pa", "binding_energy_j"),
+    "GEN.1209 (the living classes of a body)": ("life_living",),
     "GEN.1097 (day and night state)": ("day_night_state", "days_per_year", "night_hours"),
     "GEN.983 (belt dose of a moon)": ("dose_belt_msv_yr",),
     "GEN.1108 (seven latitude bands)": tuple(f"band{n}_{name}" for n in range(1, 8) for name in (
@@ -59,7 +59,7 @@ PLANET_COLUMNS_ADDED = {
 """dict: The planet columns added since TEST.498 was written, by the item that added them. A lane that adds a planet column raises
 `MISSING_CEILING` by its count and lists the names here; `test_the_columns_added_since_the_test_was_written_are_all_missing_from_the_rogue` checks
 them against the gap, so a name that is not a planet column, or that the rogue now carries, is caught."""
-EXTRA_CEILING = 13
+EXTRA_CEILING = 14
 """int: Rogue columns that are neither a planet column nor a rogue-only one (the rogue's own names for what a planet stores, `mass_kg` for
 `mass`). It falls to zero with the above."""
 

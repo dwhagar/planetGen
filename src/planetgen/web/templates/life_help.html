@@ -22,6 +22,9 @@
     {%- endfor %}
   </dl>
   {%- endif %}
+  {%- if section.reference %}
+  <p>{{ reference_link(section.reference[0], section.reference[1]) }}</p>
+  {%- endif %}
   {%- if section.table %}
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr>{% for head in section.table.head %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>

@@ -141,7 +141,7 @@ DATASET = fetch.Dataset(
     title="Collision-induced absorption of N2, O2, CO2, H2, He and CH4 pairs (HITRAN CIA, 2011 to 2024 releases)",
     source="[R2267], HITRAN collision-induced absorption files from hitran.org",
     pieces=tuple(fetch.Piece(name, URL + name, sha, size, transient=True) for name, sha, size in FILES.values()),
-    replaces="the coarse pair coefficients of the grey infrared opacity, read at six temperatures from a part-03 table",
+    replaces="the coarse pair coefficients of the gray infrared opacity, read at six temperatures from a part-03 table",
     fill="AD11",
     fallback="none at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the pairs are read to fit and check it",
     derived=(DERIVED,),

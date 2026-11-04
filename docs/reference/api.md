@@ -246,7 +246,7 @@ connectivity to that specific schema rather than the default one.
   `runaway_speed_kms`, `stars` (each with `parent_node_no` and `slot`, the node of the orbit tree it hangs in and which of its two places it holds), `orbits` (MAP.213: the
   system's tree of orbits, one entry per node with `node_no`, `parent_node_no`, `slot`, `kind`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`, `period_years`, `interaction` and `flags`; empty for a single star), `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
-  `habitable_class` (its class can carry life), `life_class_id` and `life_class_scores` (API.37: the life class that lives on it, such as `1a`, and `{class id: score}` for each class it supports; `life_class_id` is `null` for a world that suits a class but whose life has not started, a star younger than the first step of its schedule, GEN.1001, where the stored `life_class` stays), `life_stage` — the furthest evolutionary milestone its timeline reached,
+  `habitable_class` (its class can carry life), `life_class_id` and `life_class_scores` (API.37: the life class that lives on it, such as `1a`, and `{class id: score}` for each class it supports; `life_class_id` is `null` for a world that suits a class but whose life has not started, a star younger than the first step of its schedule, GEN.1001, where the stored `life_class` stays), `life_classes` (GEN.1209: every class that lives on it, the dominant one first, each `{life_class_id, share, life_stage, animal_grade, kinds}` with `share` its part of the body's food production and `kinds` its four kind scores `{microbial, flora, fauna, sentient}`; empty for a world with no life, and one entry from the body's own columns for a world stored before the classes were kept; the body's own `life_class_id` and kind scores stay the dominant class and the highest of each), `life_stage` — the furthest evolutionary milestone its timeline reached,
   or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` (the hours a year the dose allows), `outside_hours_day` (the hours of one local day a person can be outside, GEN.768) with `outside_hours_limit` (what sets them: `daylight`, `dose`, `heat`, `cold`, `air`, `uv` or `vehicle`) and `regions` (GEN.656, GEN.1108: the climate of the body in seven bands of latitude, `bands`, from the north pole to the south pole, or from the day centre to the night centre for a world that turns once an orbit; each band is `{name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}` (the annual mean in kelvin, the day and night swing in kelvin of difference, the hours of day and of night in a solar day, the longest polar day and night of the year in days, and the state word), a locked world's rings having no hours; `mean_swing_k` is the swing of the whole surface; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
@@ -345,6 +345,13 @@ connectivity to that specific schema rather than the default one.
   answer carries `systems_in_range` (the systems in the sphere, counted no
   further than 10,000) and `systems_in_range_capped` (`true` above that),
   which the What's nearby page shows as "10,000+".
+- `GET /api/lookup?text=<Object ID or name>` (GEN.1140) — what an Object ID or a name is now, including one the object used to have
+  (`designations`, GEN.1138). `200` with `status` `current` (the object has it now) or `redirect` (it had it once: the body is the object that has it
+  now, and `retired` is the text asked for) and `kind`, `ref`, `id`, `name`, `former_designations`; a name that other objects once had too
+  also lists them in `also` (`{kind, ref, name, retired_epoch}`, newest first). `410` with `status` `gone` for a designation of a deleted object,
+  `404` with `status` `unknown` for one nobody had, `400` for no text. An ID is 24 hex digits written `XXXXXXXXXXXXXX-XXXXXXX-XXX`; any other text
+  is a name (an exact match on the name now, else on a name an object gave up; a name is not unique, so the first holder wins, sectors and
+  systems first). The Search page uses it to say where a typed ID or past name went.
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
   `planet`, `moon`, `belt`, `comet`, `facility` (UX.183: its parents run down to the body it is built on, or to its
@@ -359,7 +366,9 @@ connectivity to that specific schema rather than the default one.
   (kilometers from the system's origin), each `[x, y, z]` or `null` where
   the object has none (a body inside a system takes the system's galaxy and
   sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
-  or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24) is the object's keep-out
+  or a missing row is a `404`. The answer carries `former_designations` (GEN.1140): the names and IDs the object used to have, newest first, each
+  `{designation, kind, reason, retired_epoch, retired_on}` (`kind` is `name` or `uid`; `retired_on` is the date of the change), `[]` for an object that
+  never changed; so do the details of a sector, a system and a phenomenon. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron
@@ -515,6 +524,7 @@ connectivity to that specific schema rather than the default one.
   sector, `region_stats`) also has `name` ("Fardoo Beez Region") and `parent` (the name of its 81-block family, "Fardoo Reach"), from the
   gated phoneme codec under the naming key in force (API.35); no other node has them, and none has them while no key is in force. The same node has `extent` (MAP.319), `{"centre": [x, y, z], "radius"}` in parsecs: the bounding sphere of the region's largest face-connected clump of generated sectors, at least the 12 pc framing sphere, which the map flies to; it needs no key; and `charted` (MAP.314), `{"sectors", "percent"}`, how much of the region is generated. A node of 27, 81 or 243 sectors that holds charted regions has `regions` (MAP.314), a list of `{"key", "name", "parent", "centre", "radius", "sectors", "percent"}` per charted region inside it, most sectors first (names need a key in force); no other node has it. `400` for a malformed key or too many keys.
 - `GET /api/galaxy/charted-regions` (MAP.316) — every charted region (a 9-block that holds at least one generated sector, `region_stats`), by share charted then cell: `{"regions": [{key, m, shell, band, wedge, centre: [x, y, z], radius, sector_count, capacity, share, clumps, name?, parent?, inhabited?}], "edge_pc"}`. `key` is the cell's node key (`9.shell.band.wedge`), `centre` and `radius` the extent in parsecs (as the node's `extent`), `share` the sectors generated over the sectors the cell's outline holds (0 to 1, above 0 for every region), `name` and `parent` as on the node (API.35, only with a naming key in force), `population` (MAP.318: the people counted in the region, `db/population_slot.py`; present only on a region that has a count, so absent on every region until the world population simulation, POP.30, stores head counts), `inhabited` (MAP.321) only on a region with an inhabited world: `{systems, worlds, score?, tier?}`, the systems with an `inhabited` interest in the region, their inhabited worlds, and the best PHI-6 score and its tier when one is scored (read from `system_interests` when asked, so a colony just founded is in it). The Galaxy Map draws its galactic-scale region spheres and its Menu's charted-regions list from it, through the web page's `GET /galaxy/regions`.
+- `GET /api/galaxy/nebula-volume?key=<block key>` (MAP.365) — the points that draw the nebulae of one Galaxy Map node: `{"key", "format": "NVOL1", "level", "count", "data"}`, `data` the base64 of the packed points (`galaxy.nebula_volume.pack`: a lattice of whole multiples of one spacing from the galaxy's origin, each point with a strength and the family of the nebula that owns it, for every lattice point that lies in the block and that a nebula reaching the block holds). The strength is taken from the model's gas and star-forming density (`galaxy.nebula_density`), so the outline is irregular and the same everywhere it is asked for, and the object ID is never read. Nothing is stored; a block no nebula reaches answers `count` 0. A malformed key is a 400.
 - `GET /api/galaxy/nebula-cover?at=<block key>[&g=<n>]` — the share of each cell of a Galaxy Map stage (`at` alone,
   or none for the galaxy) or data window (`at` the middle cell and `g` the cells across) that lies inside a nebula
   (`queryDb.galaxy_nebula_cover`, MAP.174), for the cells that hold a generated sector and the ones that do not: the
@@ -666,7 +676,8 @@ connectivity to that specific schema rather than the default one.
   and phenomenon class, the class tag written `<type>:<class>` such as
   `phenomenon_class=nebula:D` — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
-  name search, and a min/max size range per entity (UX.214 also adds the score filters below) —
+  name search (GEN.1140: it also matches a name the object used to have, and such a row carries `formerly`, the past names that matched, newest first),
+  and a min/max size range per entity (UX.214 also adds the score filters below) —
   `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
   in km, either bound optional (a size range is a continuous quantity,
   not a discrete facet value, so it's its own pair of query parameters
@@ -1253,6 +1264,15 @@ answers its own HTML page), and an unexpected server-side failure is a
 `500` — the API never falls through to Flask's default HTML error page or
 leaks a stack trace, a connection error or the database's user/host to
 the client (the real detail still reaches Flask's own logger).
+
+An ID an object gave up (GEN.1138, `designations`; docs/design/architecture/designation-history.md) still answers, for the kinds whose IDs can change
+(systems, stars, planets, moons, belts, comets, facilities and the phenomena; not sectors or containers): a read (`GET`, `HEAD`) is a `301` whose
+`Location` is the same URL with the object's current ID (the rest of the path and the query string kept) and which carries `X-Designation-Formerly`,
+the ID asked for; a write against it (`PATCH`, `POST`, `DELETE`) is a `409` that does nothing, so a write never acts on a guess; the retired ID of
+an object that was deleted is a `410` for both. The JSON body of all three is `{"error", "retired_id", "former_designations"}` with the current
+`id` in the first two and `gone_epoch` in the third; `former_designations` is the object's earlier IDs and names newest first, each
+`{designation, kind, reason, retired_epoch, retired_on}`. An ID nobody ever had, or one retired from an object of another kind, is a `404` as before. Additive:
+the API version does not change.
 
 Every response also carries `X-Content-Type-Options: nosniff`,
 `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` and
