@@ -337,7 +337,7 @@ def plan_skeleton_unit(params, report):
             f"disk scale height {shape.disk_scale_height_pc:.0f} pc, "
             f"bulge scale radius {shape.bulge_scale_radius_pc:.0f} pc, bulge-to-total mass ratio {drawn.bulge_to_total:.3f}, "
             f"{shape.arm_count} spiral arms, pitch angle {drawn.pitch_angle_deg:.1f} degrees, "
-            f"density normalisation {shape.k_norm:.4f} (a factor, no unit), "
+            f"density normalization {shape.k_norm:.4f} (a factor, no unit), "
             f"lowest density kept {threshold_rho:.6f} x the local average"
         )
         say(f"{dials.describe_pins(shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc))}.")

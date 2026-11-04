@@ -121,6 +121,8 @@ SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity, _l, _p in SIZE_ENT
 
 VALUE_ENTITIES = (("planet", "Planet"), ("moon", "Moon"), ("star", "Star"))
 """tuple: The kinds of object that take ranges on physical values (UX.227), `(entity, label)`, in the order the form shows them."""
+ENTITY_NAMES = tuple(entity for entity, _label in VALUE_ENTITIES)
+"""tuple: The names of the kinds that take ranges on physical values (`planet`, `moon`, `star`)."""
 VALUE_KEYS = {entity: tuple(key for key, value in search_values.KEYS.items() if entity in value.entities) for entity, _label in VALUE_ENTITIES}
 """dict: Entity -> the keys of `planetgen.db.search_values` it has."""
 DEFAULT_GASES = ("N2", "O2", "CO2", "H2O", "CH4", "Ar", "H2", "He", "NH3", "SO2")
@@ -401,6 +403,39 @@ def tidy_value_args(args, entities):
     pairs = [(key, value) for key, value in args.items(multi=True) if key not in dropped and value.strip()]
     pairs += [(name, state.texts[name]) for name in mine]
     return pairs, sorted(pairs) != sorted(args.items(multi=True))
+
+
+def value_chips(ranges, query_pairs, base_url, with_entity=True, anchor=""):
+    """
+    The "remove this range" chips of a page that takes the physical-value fields (UX.228): `[{label, url}]`, one per key with a range.
+
+    Args:
+        ranges (dict): `SearchState.value_ranges()`, `{entity: {key: (least, most, unit or None)}}`.
+        query_pairs (list): The page's address as `[(name, value)]`; the chip's link is that without the range's three fields (and, for a
+            gas, without the form's "another gas" row, which may be where the range came from).
+        base_url (str): The page's path.
+        with_entity (bool): Write the kind before the label ("Planet surface gravity"), for a page that lists several kinds.
+        anchor (str): A `#id` the link lands on.
+    """
+    chips = []
+    entity_labels = dict(VALUE_ENTITIES)
+    for entity, by_key in ranges.items():
+        for key, (least, most, unit) in by_key.items():
+            symbol = _unit_symbol(unit or search_values.KEYS[key].default_unit(entity))
+            tail = f" {symbol}" if symbol else ""
+            if least is not None and most is not None:
+                text = f"{_plain(least)}\u2013{_plain(most)}{tail}"
+            elif least is not None:
+                text = f"\u2265 {_plain(least)}{tail}"
+            else:
+                text = f"\u2264 {_plain(most)}{tail}"
+            names = value_field_names(entity, key)
+            gas = key.startswith(search_values.GAS_PREFIX)
+            pairs = [(name, value) for name, value in query_pairs if name not in names and not (gas and f"_{OTHER_GAS}" in name)]
+            label = _key_label(entity, key)
+            chips.append({"label": f"{entity_labels[entity]} {label}: {text}" if with_entity else f"{label}: {text}",
+                          "url": (f"{base_url}?{urlencode(pairs)}" if pairs else base_url) + anchor})
+    return chips
 
 
 # ---------------------------------------------------------------------
@@ -829,6 +864,6 @@ def api_offsets(state):
 
 
 __all__ = [
-    "PAGE_SIZE", "NAME_FIELDS", "SIZE_ENTITIES", "SearchState", "needs_canonical_redirect", "tidy_value_args",
+    "PAGE_SIZE", "NAME_FIELDS", "SIZE_ENTITIES", "SearchState", "needs_canonical_redirect", "tidy_value_args", "value_chips",
     "tag_groups", "active_filters", "result_panels", "api_offsets", "value_form", "VALUE_FIELDS",
 ]

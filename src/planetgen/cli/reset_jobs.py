@@ -133,7 +133,7 @@ def reset_jobs(redis_url=None, assume_yes=False, dry_run=False, sources=None, wr
         except EOFError:
             reply = ""
         if str(reply).strip().lower() not in ("y", "yes"):
-            write("Cancelled: nothing was changed.")
+            write("Canceled: nothing was changed.")
             return False
 
     if running:
@@ -155,7 +155,7 @@ def reset_jobs(redis_url=None, assume_yes=False, dry_run=False, sources=None, wr
         for start in range(0, len(keys), 500):
             connection.delete(*keys[start:start + 500])
         write(f"Redis: removed {len(keys)} key(s)")
-    write("Jobs and queue reset. Anything that was cancelled has to be started again.")
+    write("Jobs and queue reset. Anything that was canceled has to be started again.")
     return True
 
 

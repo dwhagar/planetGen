@@ -17,6 +17,8 @@ own copy in IndexedDB, so a visitor's cached nodes survive a reload.
 """
 
 
+import base64
+
 from flask import Response, current_app, jsonify, make_response, redirect, request, url_for
 
 from planetgen.web.lib import apiclient, galaxystatus
@@ -30,6 +32,7 @@ from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.web.lib import tilepack
+from planetgen.galaxy.drill import parse_node_key
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.web.lib import tileprefetch
 from planetgen.web.lib import tilecache
@@ -352,6 +355,32 @@ def galaxy_nodes():
     return response
 
 
+@bp.route("/galaxy/nebula-volume")
+@page_limit("galaxy_tiles")
+def galaxy_nebula_volume():
+    """
+    The points that draw the nebulae of one node of the Galaxy Map (MAP.365): `?key=<m.shell.band.wedge>`. The packed bytes
+    (`static/nebulavolume.js` reads them), as the API sampled them from the model's density. A malformed key is a 400 and an API
+    failure a 502, both as `{"error": ...}` JSON.
+    """
+    key = request.args.get("key") or ""
+    try:
+        parse_node_key(key)
+    except ValueError as exc:
+        return _json_error(str(exc), 400)
+    try:
+        found = apiclient.get_galaxy_nebula_volume(db_name(), key)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a nebula volume: {exc}")
+        return _json_error("The nebulae could not be loaded. Please try again shortly.", 502)
+    response = Response(base64.b64decode(found["data"]), mimetype="application/octet-stream")
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+galaxy_nebula_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/galaxy/regions")
 @page_limit("galaxy_tiles")
 def galaxy_regions():
@@ -586,7 +615,7 @@ def galaxy_system_nearest(system_id):
     except apiclient.NotFoundError as exc:
         return _json_error(str(exc) or "Not found.", 404)
     except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a system's nearest neighbours: {exc}")
+        log.exception(f"API error while fetching a system's nearest neighbors: {exc}")
         return _json_error("The nearest systems could not be loaded. Please try again shortly.", 502)
     nearest = [
         {"id": near["id"], "name": near["name"], "distance_ly": near["distance_ly"], "url": page_url("system", system_id=near["id"])}

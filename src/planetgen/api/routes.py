@@ -27,6 +27,7 @@ separate, write-capable database account -- see `docs/reference/api.md`'s
 "Write endpoints" section and `planetgen/admin/auth.py`.
 """
 
+import base64
 import math
 
 import pymysql
@@ -98,7 +99,7 @@ from planetgen.db.query import (
 from planetgen.db import near as near_search
 from planetgen.db import region_stats
 from planetgen.names import naming_key
-from planetgen.db import cloudcontents, containers as containersDb, nodes, objectlist
+from planetgen.db import cloudcontents, containers as containersDb, nebula_volumes, nodes, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
 from planetgen.db import edits as dbEdits
@@ -578,6 +579,9 @@ def systems():
     The systems, by name, paginated; `star_type` and `sector_id` filter them, and so does `stars` (UX.239): a count (`stars=3`, exactly
     three), a count and a plus (`stars=3+`, three or more) or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many;
     `quintenary`: five or more), anything else a 400.
+    UX.228: the numeric range filters of `GET /api/search` (UX.226; `star_`, `planet_` or `moon_` in front of `min_<key>`, `max_<key>` and `<key>_unit`,
+    `planet_min_gravity=0.8&planet_max_gravity=1.2`) keep the systems that hold a star, planet or moon whose stored value lies in every range on its
+    kind (one body of each ranged kind is enough); the counts and `facets` follow.
     The Systems tables (UX.41) also take `sort` (`name`, `sector`, `octant` or `stars`, the number of stars) with `order=asc|desc`, the filters `binary=yes|no`,
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
@@ -600,6 +604,12 @@ def systems():
         "in_sector": None if not placement else placement == "sector",
         "stars": _parse_stars(request.args),
     }
+
+    try:
+        values = search_values.ranges_from_args(request.args)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    filters["values"] = values
 
     limit, offset = _paginate(request.args)
     db = get_db()
@@ -1311,6 +1321,24 @@ def galaxy_nodes_route():
         return jsonify(nodes.galaxy_nodes(get_db(), node_keys))
     except ValueError as exc:
         raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/nebula-volume")
+def galaxy_nebula_volume_route():
+    """
+    The points that draw the nebulae of one Galaxy Map node (MAP.365): `?key=<m.shell.band.wedge>`. Answers `{"key", "format",
+    "level", "count", "data"}`: `data` is the base64 of the packed volume (`galaxy.nebula_volume.pack`: the nebulae whose centre lies
+    in the block, sampled on an absolute lattice from the model's gas and star-forming density). Nothing is stored; a block with no
+    nebula answers `count` 0. A malformed key is a 400.
+    """
+    key = request.args.get("key") or ""
+    try:
+        packed = nebula_volumes.group_volume(get_db(), key)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    count = int.from_bytes(packed[6:10], "little")
+    return jsonify({"key": key, "format": "NVOL1", "level": packed[5], "count": count,
+                    "data": base64.b64encode(packed).decode("ascii")})
 
 
 @bp.route("/galaxy/locate")

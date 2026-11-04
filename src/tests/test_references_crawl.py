@@ -45,21 +45,6 @@ BANNER = 'id="out-of-universe-banner"'
 """str: What a References page carries so a reader always knows they left the story (DOC.88 builds it)."""
 
 KNOWN = {
-    ("educated guess", "web.life_help_class"): "DOC.92",
-    ("educated guess", "web.life_help_topic"): "DOC.92",
-    ("fitted", "web.life_help_class"): "DOC.92",
-    ("fitted", "web.life_help_topic"): "DOC.92",
-    ("generated", "web.life_help_class"): "DOC.92",
-    ("generated", "web.life_help_topic"): "DOC.92",
-    ("speculative", "web.life_help_class"): "DOC.92",
-    ("speculative", "web.life_help_topic"): "DOC.92",
-    ("tier", "web.life_help_class"): "DOC.92",
-    ("tier", "web.life_help_topic"): "DOC.92",
-    ("tiers", "web.life_help_class"): "DOC.92",
-    ("tuned", "web.life_help_class"): "DOC.92",
-    ("tuned", "web.life_help_topic"): "DOC.92",
-    ("generator", "web.property_help_page"): "DOC.91",
-    ("model", "web.property_help_page"): "DOC.91",
     ("model", "sheet source line"): "DOC.93",
 }
 """dict: `{(word, where): the item that rewrites it}` for the out-of-universe words on in-universe pages today. `where` is the page's
@@ -80,7 +65,7 @@ ADVICE = ("\nSay it in universe and, where a reader may want the why, link to th
     ("method", "atmospheres", "/references/method/atmospheres"),
     ("method", "atmospheres/surface_pressure", "/references/method/atmospheres#surface-pressure"),
     ("stand-in", None, "/references/stand-ins"),
-    ("stand-in", "GR1", "/references/stand-ins/gr1"),
+    ("stand-in", "5.1:GR1", "/references/stand-ins/5-1-gr1"),
     ("fitted", None, "/references/fitted"),
     ("fitted", "AM10", "/references/fitted#am10"),
     ("speculative", None, "/references/speculative"),
@@ -96,7 +81,7 @@ def test_each_kind_of_entry_has_one_address(kind, entry, path):
 
 @pytest.mark.parametrize("kind, entry", [
     ("nope", None), ("method", None), ("method", "wizardry"), ("method", "wizardry/surface_pressure"), ("about", "x"), ("overview", "x"),
-    ("papers", "!!"), ("papers", "10.1086/151682"), ("papers", "R12"), ("data", "Isochrones"), ("stand-in", ""),
+    ("papers", "!!"), ("papers", "10.1086/151682"), ("papers", "R12"), ("data", "Isochrones"), ("stand-in", ""), ("stand-in", "GR1"),
 ])
 def test_a_typo_in_a_kind_or_an_id_is_an_error_not_a_dead_link(kind, entry):
     with pytest.raises(ValueError):
@@ -127,14 +112,14 @@ def test_the_word_rule_is_exempt_where_the_addresses_begin():
 def test_only_the_references_addresses_are_references_paths():
     assert not reference_urls.is_reference_path("/referencesx")
     assert not reference_urls.is_reference_path("/help/references")
-    assert reference_urls.is_reference_path("/references/stand-ins/gr1")
+    assert reference_urls.is_reference_path("/references/stand-ins/5-1-gr1")
 
 
 def test_the_link_helper_is_a_template_global_and_escapes_its_label(app):
     from flask import render_template_string
     with app.test_request_context("/"):
-        html = render_template_string("{{ reference_link('stand-in', 'GR1') }} {{ reference_link('about', label='<b>Credits</b>') }}")
-    assert html == ('<a class="reference-link" href="/references/stand-ins/gr1">Where this comes from</a> '
+        html = render_template_string("{{ reference_link('stand-in', '5.1:GR1') }} {{ reference_link('about', label='<b>Credits</b>') }}")
+    assert html == ('<a class="reference-link" href="/references/stand-ins/5-1-gr1">Where this comes from</a> '
                     '<a class="reference-link" href="/references/about">&lt;b&gt;Credits&lt;/b&gt;</a>')
     with pytest.raises(ValueError):
         helpers.reference_link("method", "wizardry")
@@ -177,7 +162,7 @@ def test_the_checker_flags_the_out_of_universe_words_and_only_them(text, words):
 
 
 @pytest.mark.parametrize("path, free", [
-    ("/references", True), ("/references/papers", True), ("/references/stand-ins/gr1", True), ("/admin", True), ("/admin/settings", True),
+    ("/references", True), ("/references/papers", True), ("/references/stand-ins/5-1-gr1", True), ("/admin", True), ("/admin/settings", True),
     ("/referencesx", False), ("/help/life", False), ("/help/references", False), ("/system/ABC", False), ("/", False),
 ])
 def test_the_references_and_admin_pages_may_use_the_words(path, free):
@@ -226,7 +211,7 @@ def _read(html):
 
 def _paths():
     """The in-universe pages this suite can render without a database."""
-    paths = ["/help/habitability", "/help/properties", "/help/life", "/classes", "/references"]
+    paths = ["/help/habitability", "/help/life", "/classes", "/references"]
     paths += [f"/help/life/{slug}" for slug, _title, _summary in life_help.TOPICS if slug != "kinds"]
     paths += [f"/help/life/classes/{number}" for number in range(1, 10)]
     if classref.preload():
@@ -276,7 +261,7 @@ def _found(crawl):
 
 def test_the_crawl_reads_a_real_corpus(crawl):
     paths = {path for path, _endpoint, _text, _links in crawl}
-    assert len(paths) > 15 and "/help/life/classes/1" in paths and "/help/properties" in paths
+    assert len(paths) > 15 and "/help/life/classes/1" in paths
     assert sum(len(text.split()) for _path, _endpoint, text, _links in crawl) > 5000
 
 

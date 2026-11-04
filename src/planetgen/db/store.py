@@ -5355,7 +5355,7 @@ def link_sector_neighbors(config, sector_ids, on_progress=None, skip=None):
             refresh_containment(conn, batch)
             report(base, 1, "nearest systems", len(batch))
             refresh_nearest_systems(conn, batch)
-            report(base, 2, "neighbours' lists", len(batch))
+            report(base, 2, "neighbors' lists", len(batch))
             _merge_into_neighbors(conn, batch, skip=skip)
         return work
 

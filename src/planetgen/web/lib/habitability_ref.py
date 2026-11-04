@@ -287,11 +287,11 @@ MAP_ROWS = (
                      "marked once, by the strongest."),
     ("Marker: World classes", "The Menu's World classes group has a marker for each planet class, all off until you turn "
                               "one on (kept in the address as show=marker-class-K for class K). A system with a world of "
-                              "the class gets a disc with the class letter, once the map is close enough to have its "
+                              "the class gets a disk with the class letter, once the map is close enough to have its "
                               "sector; hovering names the system and how many worlds of the class it holds."),
     ("Marker: Life classes", f"The Menu's Life classes group has a marker for each of the {len(life_classes.CLASSES)} life classes ({_class_ids()} and "
                              "so on), all off until you turn one on (kept in the address as show=marker-lifeclass-1a for "
-                             "class 1a). A system with a world on which that class of life lives gets a green disc with the "
+                             "class 1a). A system with a world on which that class of life lives gets a green disk with the "
                              "class id, once the map is close enough to have its sector; hovering names the system and how "
                              "many worlds have the class."),
 )

@@ -387,29 +387,46 @@ def _cells(line):
     return [cell.strip() for cell in line.strip().strip("|").split("|")]
 
 
+def section_key(number, title):
+    """
+    The key of a registry table in `registry_tables`: its section number, or its full title when the plan numbers two tables alike (6.127 and
+    6.134 each head two tables), so no table is read twice and none is left out.
+    """
+    return number if sum(1 for n, _, _ in SECTIONS if n == number) == 1 else title
+
+
+def sections():
+    """`[(key, number, title, columns)]` for every registry table, in the order the list prints them."""
+    return [(section_key(number, title), number, title, columns) for number, title, columns in SECTIONS]
+
+
 def registry_tables(text):
     """
     Every registry table of the plan.
 
     Returns:
-        dict: Section number to `(header, rows)`; `header` the list of column names and `rows` lists of cells. Rows whose cell
-            count differs from the header are returned too (the test names them).
+        dict: Section key to `(header, rows)` (the key is the section number, or the title where two tables share a number: `section_key`);
+            `header` the list of column names and `rows` lists of cells. Rows whose cell count differs from the header are returned too (the
+            test names them).
     """
-    tables, section, lines = {}, None, text.splitlines()
+    tables, section, heading_text, lines = {}, None, "", text.splitlines()
     wanted = {number for number, _, _ in SECTIONS}
     i = 0
     while i < len(lines):
         line = lines[i]
-        heading = re.match(r"#{2,4} (\d+\.\d+a?)\b", line)
+        heading = re.match(r"#{2,4} (\d+\.\d+a?)\b(.*)", line)
         if heading:
-            section = heading.group(1)
-        if section in wanted and section not in tables and line.startswith("|") and i + 1 < len(lines) and lines[i + 1].startswith("|---"):
-            header, rows, i = _cells(line), [], i + 2
-            while i < len(lines) and lines[i].startswith("|"):
-                rows.append(_cells(lines[i]))
-                i += 1
-            tables[section] = (header, rows)
-            continue
+            section, heading_text = heading.group(1), line.lstrip("#").strip()
+        if section in wanted and line.startswith("|") and i + 1 < len(lines) and lines[i + 1].startswith("|---"):
+            options = [(k, title) for k, number, title, _ in sections() if number == section]
+            key = options[0][0] if len(options) == 1 else next((k for k, title in options if heading_text.startswith(title)), None)
+            if key is not None and key not in tables:
+                header, rows, i = _cells(line), [], i + 2
+                while i < len(lines) and lines[i].startswith("|"):
+                    rows.append(_cells(lines[i]))
+                    i += 1
+                tables[key] = (header, rows)
+                continue
         i += 1
     return tables
 
@@ -417,11 +434,11 @@ def registry_tables(text):
 def problems(tables):
     """The registry rows that lack a tier or a tweak, or that have the wrong number of cells, one sentence each."""
     found = []
-    for number, _, _ in SECTIONS:
-        if number not in tables:
+    for key, number, _, _ in sections():
+        if key not in tables:
             found.append(f"section {number} has no registry table")
             continue
-        header, rows = tables[number]
+        header, rows = tables[key]
         lowered = [name.lower() for name in header]
         if "tier" not in lowered or "tweak" not in lowered:
             found.append(f"section {number} has no Tier and Tweak columns")
@@ -452,8 +469,8 @@ def _counts(tables):
     tweak_count = {code: 0 for code, _, _ in TWEAKS}
     cross = {(t, w): 0 for t, _, _ in TIERS for w, _, _ in TWEAKS}
     total = 0
-    for number, _, _ in SECTIONS:
-        header, rows = tables[number]
+    for key, _, _, _ in sections():
+        header, rows = tables[key]
         lowered = [name.lower() for name in header]
         for row in rows:
             tier, tweak = TIER_CODE.match(row[lowered.index("tier")]).group(0), row[lowered.index("tweak")]
@@ -521,8 +538,8 @@ def render(plan_text, wiring_text="", burn_down_text=""):
         " statistic.",
         "",
     ]
-    for number, title, columns in SECTIONS:
-        header, rows = tables[number]
+    for key, number, title, columns in sections():
+        header, rows = tables[key]
         out += [f"## {title}", "", "| " + " | ".join(columns + (UNREAD_COLUMN, BURN_DOWN_COLUMN)) + " |", "|" + "---|" * (len(columns) + 2)]
         for row in rows:
             cells = dict(zip(header, row))

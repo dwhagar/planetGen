@@ -471,7 +471,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False, after=None, start=None):
+                binary=None, placement=None, octants=(), facets=False, after=None, start=None, ranges=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -486,12 +486,17 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
             it and `offset` is ignored.
         start: The jump-by-value box's text (PERF.75, the API's `from`): the list begins at the first name (name
             sort) or sector (sector sort) from it on.
+        ranges: `{entity: {key: (least, most, unit)}}`, the physical-value ranges (UX.228): only the systems that hold a star, planet or moon in
+            them; sent as `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit` (`unit` a unit key or `None`).
     """
     _require_db(db)
     params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
               ("offset", offset), ("after", after), ("from", start or None), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
+    for entity, by_key in (ranges or {}).items():
+        for key, (least, most, unit) in by_key.items():
+            params += [(f"{entity}_min_{key}", least), (f"{entity}_max_{key}", most), (f"{entity}_{key}_unit", unit or None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
@@ -720,6 +725,13 @@ def get_galaxy_nebula_cover(db, at=None, g=None):
     it changes without a sector changing."""
     _require_db(db)
     return _request("/galaxy/nebula-cover", {"db": db, "at": at, "g": g})
+
+
+def get_galaxy_nebula_volume(db, key):
+    """Returns `GET /api/galaxy/nebula-volume`'s payload (`key`/`format`/`level`/`count`/`data`, the base64 of the packed points that
+    draw the nebulae centred in the node `key`, MAP.365 -- see `db.nebula_volumes.group_volume`)."""
+    _require_db(db)
+    return _request("/galaxy/nebula-volume", {"db": db, "key": key})
 
 
 def get_galaxy_charted_regions(db):

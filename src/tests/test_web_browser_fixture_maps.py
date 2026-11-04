@@ -29,7 +29,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
-    map_site,
+    map_site, nebula_volume_payload,
 )
 
 PRIME_CODE = provisional_sector_designation(1, 0, 1)
@@ -1616,6 +1616,113 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     parsecs away), in a close view of the block as well as a far one."""
     _open_window(page, map_site, 3, 250, 0, 0, g=3)
     page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
+
+
+VOLUMES = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes"
+
+
+def _volume_open(page, map_site):
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.drawn() > 0; }}", timeout=30000)
+
+
+def _circularity(points, cell):
+    """4 pi A / P^2 of the grid cells `points` (x, y in parsecs) fall in: 1 for a disc, well under for a ragged outline."""
+    import numpy as np
+
+    cells = {(int(math.floor(x / cell)), int(math.floor(y / cell))) for x, y in points}
+    area = len(cells)
+    perimeter = sum(1 for (i, j) in cells for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)) if (i + di, j + dj) not in cells)
+    return 4 * math.pi * area / perimeter ** 2 if perimeter else 1.0
+
+
+def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_site):
+    """MAP.365: the fixture nebula (a 30 pc cloud) is drawn from the points the node's volume holds, taken from the density, so its
+    outline is irregular (the circularity of the projected points is under a stated bound), its circle sprite and per-ID mesh give way
+    (the mesh is not asked for once the volume shows), and the points lie on the absolute lattice inside the cloud's radius."""
+    shape_requests = []
+    page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
+    _volume_open(page, map_site)
+    volumes = page.evaluate(f"() => ({VOLUMES})().volumes()")
+    assert volumes, "a volume is held"
+    spots = []
+    for volume in volumes:
+        step = volume["spacingPc"]
+        for ix, iy, iz in zip(volume["ix"], volume["iy"], volume["iz"]):
+            spots.append((ix * step, iy * step, iz * step))
+        assert volume["level"] >= 0 and all(0 < s <= 255 for s in volume["strength"])
+    cloud = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
+    near = [p for p in spots if math.dist(p, cloud) <= 30.0 + 1e-6]
+    assert len(near) > 80, len(near)
+    assert _circularity([(p[0], p[1]) for p in near], volumes[0]["spacingPc"]) < 0.55
+    assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().map((x) => v.coverage(x.key))); }}") > 0.5
+
+
+def test_galaxy_map_default_view_shades_only_with_nebulae(page, map_site):
+    """MAP.191: the default Galaxy Map draws no block fill (no density, age or luminosity shading) and the Color by choice is its
+    default; the only shading is the nebulae's, which are drawn, and the stars behind them read their sum (MAP.215)."""
+    _volume_open(page, map_site)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-color-by').value") == "default"
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blocksDrawn") == 0
+    assert page.evaluate(f"() => ({VOLUMES})().volumes().length") > 0
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value") == 1
+
+
+def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
+    """MAP.365: where nebulae overlap their colors add and the sum is bent under the cap (never white): the pass that does it, drawn
+    alone, matches `cappedSum` of the raw sums at every pixel, the raw sum passes the cap somewhere (so the cap is working) and
+    nothing drawn passes it."""
+    import numpy as np
+
+    from planetgen.galaxy import nebula_blocks, nebula_volume
+    from tests import nebula_density_stand_in as stand_in
+
+    centre = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
+    pair = [{"x": centre[0], "y": centre[1], "z": centre[2], "radius_pc": 30.0, "family": "emission"},
+            {"x": centre[0] + 18.0, "y": centre[1] + 6.0, "z": centre[2], "radius_pc": 26.0, "family": "reflection"}]
+    packed = nebula_volume.pack(nebula_volume.sample_group(pair, None, stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL,
+                                                           nebula_blocks.FAMILIES, level=2))
+    empty = nebula_volume.pack(nebula_volume.sample_group([], None, None, 0.0, 0, nebula_blocks.FAMILIES))
+    given = []
+
+    def answer(route):
+        # The pair stands in for what the fixture's own nebulae make, in the nodes that would hold them.
+        key = parse_qs(urlparse(route.request.url).query)["key"][0]
+        holds = nebula_volume_payload(key)["count"] > 0
+        given.append(key)
+        route.fulfill(status=200, content_type="application/octet-stream", body=packed if holds else empty)
+
+    page.route("**/galaxy/nebula-volume*", answer)
+    _volume_open(page, map_site)
+    shot = page.evaluate(f"() => {{ const s = ({VOLUMES})().snapshot(); "
+                         "return s && {width: s.width, height: s.height, sums: Array.from(s.sums), capped: Array.from(s.capped)}; }")
+    assert shot, "something is drawn"
+    sums = np.array(shot["sums"], dtype=float).reshape(-1, 3)
+    capped = np.array(shot["capped"], dtype=float).reshape(-1, 4)[:, :3] / 255.0
+    cap = page.evaluate(f"() => ({VOLUMES})().capLimit")
+    lit = sums.max(axis=1) > 0
+    assert lit.sum() > 200, "the nebulae cover pixels"
+    assert sums.max() > cap, "the raw sum passes the cap somewhere, so the cap is working"
+    assert capped.max() <= cap + 2.0 / 255.0, (capped.max(), cap)
+    m = sums.max(axis=1, keepdims=True)
+    expect = np.where(m > 0, sums * (cap * (1 - np.exp(-m / cap)) / np.maximum(m, 1e-9)), 0.0)
+    assert np.abs(expect[lit] - capped[lit]).max() < 3.0 / 255.0, np.abs(expect[lit] - capped[lit]).max()
+    # Two colors over one pixel give a third: some pixel has both a strong red and a strong blue channel.
+    both = (capped[:, 0] > 0.12) & (capped[:, 2] > 0.12)
+    assert both.sum() > 20, "overlapping emission and reflection nebulae add their colors"
+
+
+def test_stars_and_glows_read_the_nebulae_sum_only_while_nebulae_are_drawn(page, map_site):
+    """MAP.215: the star and glow shaders take the hue of the nebulae in front of them from the volume layer's raw sum; the switch is on
+    while a nebula volume is drawn, and off in a view with none (the shared uniforms hold a black texture then)."""
+    tint = "() => { const t = document.querySelector('#galaxymap3d-canvas').__mapNebulaTint; return t && {tint: t.nebulaTint.value, w: t.drawSize.value.x, textured: !!t.nebulaSum.value}; }"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.drawn() > 0; }}", timeout=30000)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value === 1", timeout=15000)
+    state = page.evaluate(tint)
+    assert state["textured"] and state["w"] > 100, state
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes.setVisible(false)")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value === 0", timeout=15000)
 
 
 LABELS = "() => (document.querySelector('#galaxymap3d-canvas').__mapLabels.shown())"
@@ -5485,3 +5592,89 @@ def test_the_opened_sector_draws_and_picks_one_of_every_kind_it_holds(page, map_
         assert title == entry["name"], f"a click on the {kind} {entry['name']!r} picked {title!r}"
         page.mouse.click(box["x"] + 3, box["y"] + 3)  # empty space between picks (it keeps the selection; the next pick replaces it)
     assert not missed, f"no hover named a {missed} where it is drawn"
+
+
+BAR_WATCH = """() => {
+    window.__bars = { seen: [], stalled: [] };
+    const read = () => {
+        document.querySelectorAll('.map-level-progress [role="progressbar"]').forEach((bar) => {
+            window.__bars.seen.push([bar.getAttribute("aria-label"), Number(bar.getAttribute("aria-valuenow")), Number(bar.getAttribute("aria-valuemax"))]);
+        });
+        document.querySelectorAll('.map-level-progress [role="status"]').forEach((line) => window.__bars.stalled.push(line.textContent));
+    };
+    new MutationObserver(read).observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
+    read();
+}"""
+
+
+def _zoom_in_for_nodes(page, ticks=8):
+    box = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }")
+    page.mouse.move(*box)
+    for _ in range(ticks):
+        page.mouse.wheel(0, -300)
+        page.wait_for_timeout(60)
+
+
+def test_galaxy_map_shows_a_progress_bar_for_each_level_of_nodes_on_a_slow_network_and_it_is_gone_at_the_end(page, map_site):
+    """MAP.364: the nodes a zoom asks for arrive over a slow connection; each level with nodes still to come shows a progressbar named
+    for it that counts nodes received over nodes requested, rising as the response is read, and the bars are gone once every level is in."""
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
+    page.evaluate(BAR_WATCH)
+    asked = _node_requests(page)
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("Network.enable")
+    cdp.send("Network.emulateNetworkConditions", {"offline": False, "latency": 600, "downloadThroughput": 25 * 1024, "uploadThroughput": 1024 * 1024})
+    _zoom_in_for_nodes(page, 40)
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
+        if page.evaluate("() => window.__bars.seen.length") and not page.evaluate("() => !!document.querySelector('.map-level-progress')") and asked:
+            break
+        page.wait_for_timeout(250)
+    cdp.send("Network.emulateNetworkConditions", {"offline": False, "latency": 0, "downloadThroughput": -1, "uploadThroughput": -1})
+    seen = page.evaluate("() => window.__bars.seen")
+    assert asked, "zooming in asked for nodes"
+    assert seen, "a slow load showed a bar"
+    for label, now, total in seen:
+        assert label.startswith("Loading ") and 0 <= now <= total and total >= 1, (label, now, total)
+    # A request that ends hands over to the next, whose bar starts again from none; inside one request a bar only rises.
+    rises = 0
+    last = {}
+    for label, now, total in seen:
+        before = last.get(label)
+        if before is not None and now > before:
+            rises += 1
+        last[label] = now
+    assert rises, "a bar rose as the nodes were read"
+    assert not page.evaluate("() => !!document.querySelector('.map-level-progress')"), "the bars are gone at the end"
+
+
+def test_galaxy_map_shows_no_bar_for_nodes_it_kept_from_an_earlier_visit(page, map_site):
+    """MAP.364: a level served from this browser's store shows no flash of a bar."""
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
+    page.wait_for_timeout(2500)
+    page.add_init_script("""(() => {
+        window.__flash = 0;
+        new MutationObserver((records) => records.forEach((r) => r.addedNodes.forEach((n) => {
+            if (n.nodeType === 1 && (n.matches('.map-level-progress') || n.querySelector('.map-level-progress'))) window.__flash += 1;
+        }))).observe(document, { subtree: true, childList: true });
+    })()""")
+    page.reload(wait_until="load")
+    page.wait_for_selector(GALAXY_CANVAS, state="attached")
+    _settle(page)
+    page.wait_for_timeout(2500)
+    assert page.evaluate("() => window.__flash") == 0
+
+
+def test_galaxy_map_says_in_plain_words_that_a_level_stalled_when_its_nodes_do_not_come(page, map_site):
+    """MAP.364: a failed request leaves no bar stuck part way: each level still to come says it could not load and that it will try again,
+    and the line is gone once the nodes do arrive."""
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
+    page.evaluate(BAR_WATCH)
+    page.route("**/galaxy/nodes*", lambda route: route.abort())
+    _zoom_in_for_nodes(page)
+    page.wait_for_function("() => !!document.querySelector('.map-level-progress [role=status]')", timeout=20000)
+    text = page.evaluate("() => document.querySelector('.map-level-progress [role=status]').textContent")
+    assert text.startswith("Could not load all of the ") and "Trying again in " in text, text
+    assert not page.evaluate("() => !!document.querySelector('.map-level-progress [role=progressbar]')"), "no bar is left stuck"
+    page.unroute("**/galaxy/nodes*")
+    page.wait_for_function("() => !document.querySelector('.map-level-progress')", timeout=40000)

@@ -148,33 +148,15 @@ def _value_state(state):
 
 def _value_chips(ranges, sort, query_pairs):
     """The "remove this" chips of the ranges and the order in use: `[{label, url}]`; `query_pairs` is the request's address as pairs."""
-    from .searchpage import VALUE_SORT_FIELDS     # searchpage imports item_pages, which imports this module
-    chips = []
-    entity_labels = {"planet": "Planet", "moon": "Moon", "star": "Star"}
-
-    def without(*names, gas=False):
-        pairs = [(key, value) for key, value in query_pairs if key not in names and not (gas and ("_other_gas" in key))]
-        return f"{url_for('web.nearby')}?{urlencode(pairs)}"
-
-    for entity, by_key in ranges.items():
-        for key, (least, most, unit) in by_key.items():
-            symbol = search_values.symbol(unit or search_values.KEYS[key].default_unit(entity))
-            tail = f" {symbol}" if symbol else ""
-            if least is not None and most is not None:
-                text = f"{least:.6g}\u2013{most:.6g}{tail}"
-            elif least is not None:
-                text = f"\u2265 {least:.6g}{tail}"
-            else:
-                text = f"\u2264 {most:.6g}{tail}"
-            label = search_values.KEYS[key].label.split(" (")[0]
-            chips.append({"label": f"{entity_labels[entity]} {label[:1].lower()}{label[1:]}: {text}",
-                          "url": without(f"{entity}_min_{key}", f"{entity}_max_{key}", f"{entity}_{key}_unit",
-                                         gas=key.startswith(search_values.GAS_PREFIX))})
+    from .searchpage import VALUE_SORT_FIELDS, value_chips     # searchpage imports item_pages, which imports this module
+    chips = value_chips(ranges, query_pairs, url_for("web.nearby"))
     if sort:
         entity, ordered = sort
         label = search_values.KEYS[ordered.lstrip("-")].label.split(" (")[0].lower()
-        chips.append({"label": f"{entity_labels[entity]}s ordered by {label}, {'high to low' if ordered.startswith('-') else 'low to high'}",
-                      "url": without(*VALUE_SORT_FIELDS)})
+        remaining = [(key, value) for key, value in query_pairs if key not in VALUE_SORT_FIELDS]
+        chips.append({"label": f"{ {'planet': 'Planet', 'moon': 'Moon', 'star': 'Star'}[entity] }s ordered by {label}, "
+                               f"{'high to low' if ordered.startswith('-') else 'low to high'}",
+                      "url": f"{url_for('web.nearby')}?{urlencode(remaining)}"})
     return chips
 
 

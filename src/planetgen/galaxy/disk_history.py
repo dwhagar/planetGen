@@ -21,8 +21,8 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
 2. **The return** `R` is the share of a stellar generation's mass that goes back into the gas (`return_fraction`),
    worked out from the generator's own mass function with the remnant masses of [R2798].
 3. **The inflow** is an exponential infall whose time scale grows outward (inside-out formation): `tau(R) = 1.033 R - 1.267` Gy of the
-   Milky Way's chemical evolution model ([R5082], section 3), stopped at 2 Gy inside and 8 Gy outside, the shortest and longest of
-   the later model of [R5081] (`infall_time_gy`, `tuning.DISK_INFALL_*`). The ring at `x` scale lengths has the time scale of the
+   Milky Way's chemical evolution model ([R5095], section 3), stopped at 2 Gy inside and 8 Gy outside, the shortest and longest of
+   the later model of [R5094] (`infall_time_gy`, `tuning.DISK_INFALL_*`). The ring at `x` scale lengths has the time scale of the
    Milky Way's ring at `x` of its own 2.6 kpc: no source gives how the infall scales with a galaxy's size (GEN.725 row GI1).
    Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's density
    gives it. (Until GEN.1230 the inflow followed the stars the galaxy's halo builds, which for the lighter halos of GEN.1154 kept
@@ -110,7 +110,7 @@ class DiskHistory:
 
 def infall_time_gy(radius_scale_lengths):
     """
-    The infall time scale (Gy) of the rings at `radius_scale_lengths` (array or float): the line of [R5082] in the radius the Milky Way's
+    The infall time scale (Gy) of the rings at `radius_scale_lengths` (array or float): the line of [R5095] in the radius the Milky Way's
     ring of that many scale lengths has, between `tuning.DISK_INFALL_MIN_GY` and `tuning.DISK_INFALL_MAX_GY`.
     """
     radius_kpc = np.asarray(radius_scale_lengths, dtype=float) * tuning.DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC

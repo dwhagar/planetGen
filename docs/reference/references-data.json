@@ -78146,6 +78146,25 @@
    "volume": "",
    "year": 2017
   },
+  "10.1007/978-3-319-30648-3_69-1": {
+   "authors": [
+    [
+     "Schwieterman",
+     "E. W."
+    ]
+   ],
+   "book": "Handbook of Exoplanets",
+   "doi": "10.1007/978-3-319-30648-3_69-1",
+   "editors": [],
+   "journal": "Handbook of Exoplanets",
+   "page": "1",
+   "publisher": "Springer International Publishing",
+   "src": "crossref",
+   "title": "Surface and Temporal Biosignatures",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2018
+  },
   "10.1007/978-3-319-40030-3_41": {
    "authors": [
     [
@@ -82104,6 +82123,85 @@
    "publisher": "Springer Science and Business Media LLC",
    "src": "crossref",
    "title": "Planet Mass and Metallicity: The Exoplanets and Solar System Connection",
+   "type": "journal-article",
+   "volume": "220",
+   "year": 2024
+  },
+  "10.1007/s11214-024-01104-y": {
+   "authors": [
+    [
+     "Miller",
+     "K. E."
+    ],
+    [
+     "Filacchione",
+     "G."
+    ],
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Nicholson",
+     "P. D."
+    ],
+    [
+     "Hedman",
+     "M. M."
+    ],
+    [
+     "Baillié",
+     "K."
+    ],
+    [
+     "Johnson",
+     "R. E."
+    ],
+    [
+     "Tseng",
+     "W. L."
+    ],
+    [
+     "Estrada",
+     "P. R."
+    ],
+    [
+     "Waite",
+     "J. H."
+    ],
+    [
+     "Ciarniello",
+     "M."
+    ],
+    [
+     "Ferrari",
+     "C."
+    ],
+    [
+     "Zhang",
+     "Z."
+    ],
+    [
+     "Hendrix",
+     "A."
+    ],
+    [
+     "Moses",
+     "J. I."
+    ],
+    [
+     "Hsu",
+     "H. W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s11214-024-01104-y",
+   "editors": [],
+   "journal": "SSRv",
+   "page": "70",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The Composition of Saturn’s Rings",
    "type": "journal-article",
    "volume": "220",
    "year": 2024
@@ -93543,6 +93641,97 @@
    "volume": "220",
    "year": 2012
   },
+  "10.1016/j.icarus.2012.06.040": {
+   "authors": [
+    [
+     "Filacchione",
+     "G."
+    ],
+    [
+     "Capaccioni",
+     "F."
+    ],
+    [
+     "Ciarniello",
+     "M."
+    ],
+    [
+     "Clark",
+     "R."
+    ],
+    [
+     "Cuzzi",
+     "J."
+    ],
+    [
+     "Nicholson",
+     "P."
+    ],
+    [
+     "Cruikshank",
+     "D."
+    ],
+    [
+     "Hedman",
+     "M."
+    ],
+    [
+     "Buratti",
+     "B."
+    ],
+    [
+     "Lunine",
+     "J."
+    ],
+    [
+     "Soderblom",
+     "L."
+    ],
+    [
+     "Tosi",
+     "F."
+    ],
+    [
+     "Cerroni",
+     "P."
+    ],
+    [
+     "Brown",
+     "R."
+    ],
+    [
+     "McCord",
+     "T."
+    ],
+    [
+     "Jaumann",
+     "R."
+    ],
+    [
+     "Stephan",
+     "K."
+    ],
+    [
+     "Baines",
+     "K."
+    ],
+    [
+     "Flamini",
+     "E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2012.06.040",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "1064",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Saturn’s icy satellites and rings investigated by Cassini–VIMS: III – Radial compositional variability",
+   "type": "journal-article",
+   "volume": "220",
+   "year": 2012
+  },
   "10.1016/j.icarus.2012.07.032": {
    "authors": [
     [
@@ -93638,6 +93827,49 @@
    "title": "Global modelling of the early martian climate under a denser CO2 atmosphere: Water cycle and ice evolution",
    "type": "journal-article",
    "volume": "222",
+   "year": 2013
+  },
+  "10.1016/j.icarus.2012.10.014": {
+   "authors": [
+    [
+     "Hedman",
+     "M."
+    ],
+    [
+     "Nicholson",
+     "P."
+    ],
+    [
+     "Cuzzi",
+     "J."
+    ],
+    [
+     "Clark",
+     "R."
+    ],
+    [
+     "Filacchione",
+     "G."
+    ],
+    [
+     "Capaccioni",
+     "F."
+    ],
+    [
+     "Ciarniello",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2012.10.014",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "105",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Connections between spectra and structure in Saturn’s main rings based on Cassini VIMS data",
+   "type": "journal-article",
+   "volume": "223",
    "year": 2013
   },
   "10.1016/j.icarus.2012.10.015": {
@@ -94183,6 +94415,29 @@
    "type": "journal-article",
    "volume": "246",
    "year": 2015
+  },
+  "10.1016/j.icarus.2014.04.019": {
+   "authors": [
+    [
+     "Verhoeven",
+     "J."
+    ],
+    [
+     "Stellmach",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2014.04.019",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "143",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The compressional beta effect: A source of zonal winds in planets?",
+   "type": "journal-article",
+   "volume": "237",
+   "year": 2014
   },
   "10.1016/j.icarus.2014.08.031": {
    "authors": [
@@ -99198,6 +99453,33 @@
    "volume": "224",
    "year": 2013
   },
+  "10.1016/j.pepi.2014.03.011": {
+   "authors": [
+    [
+     "Gastine",
+     "T."
+    ],
+    [
+     "Heimpel",
+     "M."
+    ],
+    [
+     "Wicht",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.pepi.2014.03.011",
+   "editors": [],
+   "journal": "PEPI",
+   "page": "36",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Zonal flow scaling in rapidly-rotating compressible convection",
+   "type": "journal-article",
+   "volume": "232",
+   "year": 2014
+  },
   "10.1016/j.pepi.2014.08.004": {
    "authors": [
     [
@@ -102772,6 +103054,56 @@
    "volume": "",
    "year": 2014
   },
+  "10.1017/jfm.2024.132": {
+   "authors": [
+    [
+     "Zhang",
+     "A."
+    ],
+    [
+     "Marcus",
+     "P. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/jfm.2024.132",
+   "editors": [],
+   "journal": "JFM",
+   "page": "A61",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "Stable three-dimensional vortex families consistent with Jovian observations including the Great Red Spot",
+   "type": "journal-article",
+   "volume": "984",
+   "year": 2024
+  },
+  "10.1017/jfm.2024.78": {
+   "authors": [
+    [
+     "Nicoski",
+     "J. A."
+    ],
+    [
+     "O'Connor",
+     "A. R."
+    ],
+    [
+     "Calkins",
+     "M. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/jfm.2024.78",
+   "editors": [],
+   "journal": "JFM",
+   "page": "A22",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "Asymptotic scaling relations for rotating spherical convection with strong zonal flows",
+   "type": "journal-article",
+   "volume": "981",
+   "year": 2024
+  },
   "10.1017/pasa.2016.31": {
    "authors": [
     [
@@ -102910,6 +103242,29 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "4",
    "year": 2019
+  },
+  "10.1017/s0022112002008789": {
+   "authors": [
+    [
+     "BOUCHET",
+     "F."
+    ],
+    [
+     "SOMMERIA",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/s0022112002008789",
+   "editors": [],
+   "journal": "JFM",
+   "page": "165",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "Emergence of intense jets and Jupiter's Great Red Spot as maximum-entropy structures",
+   "type": "journal-article",
+   "volume": "464",
+   "year": 2002
   },
   "10.1017/s0029665120001822": {
    "authors": [
@@ -126473,6 +126828,37 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "14",
    "year": 2018
+  },
+  "10.1038/s41567-020-0833-9": {
+   "authors": [
+    [
+     "Lemasquerier",
+     "D."
+    ],
+    [
+     "Facchini",
+     "G."
+    ],
+    [
+     "Favier",
+     "B."
+    ],
+    [
+     "Le Bars",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41567-020-0833-9",
+   "editors": [],
+   "journal": "Nat. Phys.",
+   "page": "695",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Remote determination of the shape of Jupiter’s vortices from laboratory experiments",
+   "type": "journal-article",
+   "volume": "16",
+   "year": 2020
   },
   "10.1038/s41586-018-0408-4": {
    "authors": [
@@ -166047,6 +166433,77 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "STELLAR ENCOUNTER RATE IN GALACTIC GLOBULAR CLUSTERS",
+   "type": "journal-article",
+   "volume": "766",
+   "year": 2013
+  },
+  "10.1088/0004-637x/766/2/76": {
+   "authors": [
+    [
+     "Filacchione",
+     "G."
+    ],
+    [
+     "Capaccioni",
+     "F."
+    ],
+    [
+     "Clark",
+     "R. N."
+    ],
+    [
+     "Nicholson",
+     "P. D."
+    ],
+    [
+     "Cruikshank",
+     "D. P."
+    ],
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Lunine",
+     "J. I."
+    ],
+    [
+     "Brown",
+     "R. H."
+    ],
+    [
+     "Cerroni",
+     "P."
+    ],
+    [
+     "Tosi",
+     "F."
+    ],
+    [
+     "Ciarniello",
+     "M."
+    ],
+    [
+     "Buratti",
+     "B. J."
+    ],
+    [
+     "Hedman",
+     "M. M."
+    ],
+    [
+     "Flamini",
+     "E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/766/2/76",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "76",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "THE RADIAL DISTRIBUTION OF WATER ICE AND CHROMOPHORES ACROSS SATURN'S SYSTEM",
    "type": "journal-article",
    "volume": "766",
    "year": 2013
@@ -235092,6 +235549,29 @@
    "volume": "50",
    "year": 2011
   },
+  "10.1175/jas4009.1": {
+   "authors": [
+    [
+     "Kaspi",
+     "Y."
+    ],
+    [
+     "Flierl",
+     "G. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1175/jas4009.1",
+   "editors": [],
+   "journal": "JAtS",
+   "page": "3177",
+   "publisher": "American Meteorological Society",
+   "src": "crossref",
+   "title": "Formation of Jets by Baroclinic Instability on Gas Planet Atmospheres",
+   "type": "journal-article",
+   "volume": "64",
+   "year": 2007
+  },
   "10.1177/0146645320911864": {
    "authors": [
     [
@@ -239636,6 +240116,41 @@
    "type": "journal-article",
    "volume": "1",
    "year": 2020
+  },
+  "10.3389/fspas.2021.689441": {
+   "authors": [
+    [
+     "Lehmer",
+     "O. R."
+    ],
+    [
+     "Catling",
+     "D. C."
+    ],
+    [
+     "Parenteau",
+     "M. N."
+    ],
+    [
+     "Kiang",
+     "N. Y."
+    ],
+    [
+     "Hoehler",
+     "T. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/fspas.2021.689441",
+   "editors": [],
+   "journal": "Front. Astron. Space Sci.",
+   "page": "689441",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "The Peak Absorbance Wavelength of Photosynthetic Pigments Around Other Stars From Spectral Optimization",
+   "type": "journal-article",
+   "volume": "8",
+   "year": 2021
   },
   "10.3390/app10207357": {
    "authors": [
@@ -278040,7 +278555,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5083,
+ "id_next": 5096,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -278209,6 +278724,7 @@
   "10.1007/978-3-319-19336-6_8": "R1352",
   "10.1007/978-3-319-30137-2_4": "R3623",
   "10.1007/978-3-319-30648-3_58-1": "R2445",
+  "10.1007/978-3-319-30648-3_69-1": "R5089",
   "10.1007/978-3-319-40030-3_41": "R3050",
   "10.1007/978-3-319-56570-5": "R0003",
   "10.1007/978-3-319-56570-5_1": "R1369",
@@ -278342,6 +278858,7 @@
   "10.1007/s11214-022-00875-6": "R4783",
   "10.1007/s11214-022-00876-5": "R2546",
   "10.1007/s11214-024-01098-7": "R4275",
+  "10.1007/s11214-024-01104-y": "R5090",
   "10.1007/s11214-025-01243-w": "R4155",
   "10.1007/s11214-025-01264-5": "R1718",
   "10.1007/s11433-019-1541-6": "R4616",
@@ -278738,9 +279255,11 @@
   "10.1016/j.icarus.2012.05.009": "R1301",
   "10.1016/j.icarus.2012.06.016": "R2879",
   "10.1016/j.icarus.2012.06.024": "R3773",
+  "10.1016/j.icarus.2012.06.040": "R5092",
   "10.1016/j.icarus.2012.07.032": "R1077",
   "10.1016/j.icarus.2012.09.016": "R1262",
   "10.1016/j.icarus.2012.09.036": "R4769",
+  "10.1016/j.icarus.2012.10.014": "R5093",
   "10.1016/j.icarus.2012.10.015": "R3377",
   "10.1016/j.icarus.2012.10.022": "R1806",
   "10.1016/j.icarus.2012.10.032": "R4303",
@@ -278759,6 +279278,7 @@
   "10.1016/j.icarus.2014.03.043": "R3275",
   "10.1016/j.icarus.2014.04.005": "R2746",
   "10.1016/j.icarus.2014.04.016": "R3659",
+  "10.1016/j.icarus.2014.04.019": "R5083",
   "10.1016/j.icarus.2014.08.031": "R1438",
   "10.1016/j.icarus.2014.08.036": "R3320",
   "10.1016/j.icarus.2014.08.037": "R4460",
@@ -278883,6 +279403,7 @@
   "10.1016/j.pepi.2010.09.005": "R2121",
   "10.1016/j.pepi.2011.03.012": "R0783",
   "10.1016/j.pepi.2013.07.010": "R1628",
+  "10.1016/j.pepi.2014.03.011": "R5082",
   "10.1016/j.pepi.2014.08.004": "R1160",
   "10.1016/j.pepi.2016.03.010": "R1999",
   "10.1016/j.pepi.2018.11.003": "R4339",
@@ -279005,9 +279526,12 @@
   "10.1017/cbo9781139164467": "R3556",
   "10.1017/cbo9781139174817": "R3220",
   "10.1017/cbo9781139235778": "R3622",
+  "10.1017/jfm.2024.132": "R5086",
+  "10.1017/jfm.2024.78": "R5084",
   "10.1017/pasa.2016.31": "R4747",
   "10.1017/pasa.2021.48": "R1110",
   "10.1017/rep.2019.16": "R4715",
+  "10.1017/s0022112002008789": "R5085",
   "10.1017/s0029665120001822": "R4018",
   "10.1017/s0074180900000887": "R1452",
   "10.1017/s0074180900005015": "R3886",
@@ -279673,6 +280197,7 @@
   "10.1038/s41561-017-0031-2": "R3393",
   "10.1038/s41561-019-0375-x": "R0521",
   "10.1038/s41567-017-0017-4": "R3082",
+  "10.1038/s41567-020-0833-9": "R5087",
   "10.1038/s41586-018-0408-4": "R2104",
   "10.1038/s41586-019-1034-5": "R2314",
   "10.1038/s41586-019-1114-6": "R3081",
@@ -279826,7 +280351,7 @@
   "10.1051/0004-6361/201423629": "R1751",
   "10.1051/0004-6361/201423635": "R3899",
   "10.1051/0004-6361/201423691": "R2415",
-  "10.1051/0004-6361/201424171": "R5081",
+  "10.1051/0004-6361/201424171": "R5094",
   "10.1051/0004-6361/201424184": "R3294",
   "10.1051/0004-6361/201424299": "R0470",
   "10.1051/0004-6361/201424412": "R0864",
@@ -280278,7 +280803,7 @@
   "10.1086/320403": "R1199",
   "10.1086/320685": "R1750",
   "10.1086/321359": "R1467",
-  "10.1086/321427": "R5082",
+  "10.1086/321427": "R5095",
   "10.1086/321540": "R0024",
   "10.1086/321541": "R0438",
   "10.1086/321556": "R1158",
@@ -280587,6 +281112,7 @@
   "10.1088/0004-637x/765/2/131": "R2446",
   "10.1088/0004-637x/766/2/106": "R3129",
   "10.1088/0004-637x/766/2/136": "R4980",
+  "10.1088/0004-637x/766/2/76": "R5091",
   "10.1088/0004-637x/766/2/81": "R1459",
   "10.1088/0004-637x/768/1/45": "R3266",
   "10.1088/0004-637x/769/1/6": "R2027",
@@ -282165,6 +282691,7 @@
   "10.1175/1520-0469(1980)037<0630:tsatrt>2.0.co;2": "R3013",
   "10.1175/1520-0469(1992)049<2256:asotge>2.0.co;2": "R3236",
   "10.1175/jamc-d-11-0143.1": "R4246",
+  "10.1175/jas4009.1": "R5081",
   "10.1177/0146645320911864": "R4979",
   "10.1177/1028315306286930": "R2052",
   "10.1186/1741-7007-8-30": "R0992",
@@ -282321,6 +282848,7 @@
   "10.3389/fmicb.2019.00780": "R3040",
   "10.3389/fmicb.2020.01284": "R4576",
   "10.3389/frvir.2020.587698": "R3419",
+  "10.3389/fspas.2021.689441": "R5088",
   "10.3390/app10207357": "R5067",
   "10.3390/biology10100970": "R3755",
   "10.3390/galaxies12040039": "R2525",

@@ -165,7 +165,7 @@ class AsteroidBelt:
             self.primordial_mass_earth, self.cleared_mass_earth, self.scattered_mass_earth = origin.primordial_mass_earth, origin.cleared_earth, origin.scattered_earth
             self.stirred, self.origin_history, self.origin_sentence = origin.stirred, [event.text for event in origin.history], origin.sentence
             self.scatter_fates = scatter_fates
-        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disc's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
+        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]

@@ -92,7 +92,12 @@ BRITISH = {
     "defence": "defense", "offence": "offense", "aluminium": "aluminum", "sulphur": "sulfur", "sulphate": "sulfate",
     "programme": "program", "whilst": "while", "amongst": "among", "judgement": "judgment", "ageing": "aging", "mould": "mold",
     "tyre": "tire", "modelling": "modeling", "travelling": "traveling", "labelled": "labeled", "signalling": "signaling",
-    "levelling": "leveling",
+    "levelling": "leveling", "labelling": "labeling", "travelled": "traveled", "levelled": "leveled", "signalled": "signaled",
+    "modelled": "modeled", "cancelled": "canceled", "fuelled": "fueled", "totalled": "totaled", "channelled": "channeled",
+    "catalogue": "catalog", "licence": "license", "practise": "practice", "towards": "toward", "learnt": "learned", "burnt": "burned",
+    "artefact": "artifact", "sceptic": "skeptic", "manoeuvre": "maneuver", "plough": "plow", "disc": "disk", "fulfil": "fulfill",
+    "skilful": "skillful", "sulphide": "sulfide", "sulphuric": "sulfuric", "cheque": "check", "haemoglobin": "hemoglobin",
+    "encyclopaedia": "encyclopedia", "anaemia": "anemia", "foetus": "fetus", "oestrogen": "estrogen",
 }
 """dict: British spellings and the American ones (the site is in American English, Boss 10:33 AM EDT 2026-10-31). A word also matches
 with a plural, `-ed`, `-ing`, `-er`, `-ful`, `-less` or `-ly` ending, and `metre` and `litre` with an SI prefix (`kilometre`)."""

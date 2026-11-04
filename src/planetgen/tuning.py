@@ -1211,16 +1211,16 @@ that never leaves a ring, 4 a ring at the bar's end [a model default, open]."""
 # outward (inside-out formation, GEN.1230, GEN.1242), the Kennicutt-Schmidt law above as the depletion. The Milky Way's own
 # history is only a test target.
 DISK_INFALL_SLOPE_GY_PER_KPC = 1.033
-"""float: How the thin disk's infall time scale grows with the radius, Gy per kpc: `tau(R) = 1.033 R - 1.267` Gy (Chiappini, Matteucci and Romano, [R5082], section 3, the linear fit
+"""float: How the thin disk's infall time scale grows with the radius, Gy per kpc: `tau(R) = 1.033 R - 1.267` Gy (Chiappini, Matteucci and Romano, [R5095], section 3, the linear fit
 to the Milky Way's abundance gradients, the time scale of 7 Gy at the Sun). Source tier T2 (a model fit to the Milky Way's gradients, not a measurement of other galaxies)."""
 DISK_INFALL_OFFSET_GY = 1.267
-"""float: The intercept of that line, Gy ([R5082], section 3)."""
+"""float: The intercept of that line, Gy ([R5095], section 3)."""
 DISK_INFALL_MIN_GY = 2.0
-"""float: The shortest infall time scale, Gy: the line is negative inside 1.2 kpc, and the model of [R5081] takes 2 Gy for the inner disk (section 2.4, the bulge and the disk at 2 kpc). Source tier T2."""
+"""float: The shortest infall time scale, Gy: the line is negative inside 1.2 kpc, and the model of [R5094] takes 2 Gy for the inner disk (section 2.4, the bulge and the disk at 2 kpc). Source tier T2."""
 DISK_INFALL_MAX_GY = 8.0
-"""float: The longest infall time scale, Gy: [R5081] reaches 8 Gy at 20 kpc (section 2.4) where the line of [R5082] would reach 13 Gy at 14 kpc, so the line is stopped at the later model's longest. Source tier T2, level L1 (the choice of the stop between two models)."""
+"""float: The longest infall time scale, Gy: [R5094] reaches 8 Gy at 20 kpc (section 2.4) where the line of [R5095] would reach 13 Gy at 14 kpc, so the line is stopped at the later model's longest. Source tier T2, level L1 (the choice of the stop between two models)."""
 DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC = 2.6
-"""float: The disk scale length the line is a fit to, kpc: the thin disk of the Milky Way ([R5082] takes 2.5 kpc, [R5081] 2.7). The line is applied to any galaxy in scale lengths, so a ring at x scale lengths has the time scale of the Milky Way's ring
+"""float: The disk scale length the line is a fit to, kpc: the thin disk of the Milky Way ([R5095] takes 2.5 kpc, [R5094] 2.7). The line is applied to any galaxy in scale lengths, so a ring at x scale lengths has the time scale of the Milky Way's ring
 at `x` times this: a stand-in for how the infall time scales with a galaxy's size (no source gives it; row GI1 of GEN.725, level L0)."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""

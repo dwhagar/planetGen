@@ -1,0 +1,29 @@
+{#- The page of one stand-in (web/references_pages.py, web/lib/references_site.py, DOC.90). -#}
+{% extends "base.html" %}
+{% block body_class %} references-mode{% endblock %}
+{% block content %}
+<aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>
+<section class="panel" id="stand-in" aria-labelledby="stand-in-heading">
+  <div class="panel-header"><h2 id="stand-in-heading">{{ page.title }}</h2></div>
+  <p class="lead">{{ page.head|safe }}</p>
+  <p>Section: <a href="{{ page.all }}#section-{{ page.section.slug }}">{{ page.section.number }} {{ page.section.title }}</a></p>
+  {%- for paragraph in page.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+</section>
+{%- if page.fields %}
+<section class="panel" id="how" aria-labelledby="how-heading">
+  <div class="panel-header"><h2 id="how-heading">How it was made and decided</h2></div>
+  <dl>
+    {%- for label, text in page.fields %}
+    <dt>{{ label }}</dt><dd>{{ text|safe }}</dd>
+    {%- endfor %}
+  </dl>
+</section>
+{%- endif %}
+<nav class="panel" id="stand-in-nav" aria-label="Other stand-ins">
+  <p>
+    {%- if page.before %}<a href="{{ page.before.url }}">Last: {{ page.before.id }}</a> · {% endif -%}
+    <a href="{{ page.all }}#section-{{ page.section.slug }}">All of {{ page.section.number }} {{ page.section.title }}</a>
+    {%- if page.after %} · <a href="{{ page.after.url }}">Next: {{ page.after.id }}</a>{% endif -%}
+  </p>
+</nav>
+{% endblock %}

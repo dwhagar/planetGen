@@ -50,6 +50,7 @@ from markupsafe import Markup
 from planetgen.web.lib import apiclient, autolink, help_registry
 from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
+from planetgen.web.lib import reference_urls
 from planetgen.web.lib.reference_urls import reference_path
 
 from . import csrf
@@ -280,7 +281,10 @@ def render_page(template, *, title, section=None, breadcrumbs=(), description=No
 
 def _with_help_links(html):
     """`html` with the help links of `web/lib/autolink.py` added to its main content: the first two mentions of each term the program's
-    parts registered (`help_registry.terms()`), counting links already there. A failure leaves the page as it was."""
+    parts registered (`help_registry.terms()`), counting links already there. A failure leaves the page as it was. The References pages are
+    left as they are (DOC.89): they speak out of universe, a paper's title is not a mention of a term, and the Papers page is two megabytes."""
+    if reference_urls.is_reference_path(request.path):
+        return html
     try:
         return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
     except Exception:    # a missing link must never take a page down

@@ -18,7 +18,7 @@ One disk, forty rings out to ten scale lengths, each following gas continuity fr
 |---|---|---|
 | Depletion | `A = 2.5e-4` solar masses/yr/kpc2 per (solar masses/pc2)^1.4, `n = 1.4` | [R2321], eq. 4 [R2321], already in `tuning` |
 | Return fraction `R` | 0.384 from the generator's own mass function (`IMF_BREAKS_SOL`, `IMF_SLOPES`, the Chabrier function of `stellar-mass-function.md`; 0.371 on the Kroupa function before GEN.927); the same code gives 0.272 for a Salpeter slope of 2.35 from 0.1 to 100 solar masses, Madau and Dickinson's 0.27 | [R2798], section 2.1: instantaneous recycling above 1 solar mass, white dwarf remnants by the [R0961] relation of `tuning.WD_IFMR_PIECES` (the old relation of `0.444 + 0.084 m` before GEN.930), 1.4 solar masses to 40, black holes keep all |
-| Infall | Exponential, `exp(-t / tau(R))` from the disk's start; `tau(R) = 1.033 R - 1.267` Gy (7 Gy at the Sun) between 2 and 8 Gy, `R` the Milky Way's radius of the ring's scale lengths (2.6 kpc each) | [R5082] section 3 (the line), [R5081] section 2.4 (2 Gy inside, 8 Gy at 20 kpc) |
+| Infall | Exponential, `exp(-t / tau(R))` from the disk's start; `tau(R) = 1.033 R - 1.267` Gy (7 Gy at the Sun) between 2 and 8 Gy, `R` the Milky Way's radius of the ring's scale lengths (2.6 kpc each) | [R5095] section 3 (the line), [R5094] section 2.4 (2 Gy inside, 8 Gy at 20 kpc) |
 
 **The inflow** is an exponential infall whose time scale grows outward, so the inner rings are fed early and the outer ones keep being fed (inside-out
 formation). Only its shape in time matters: each ring's amplitude is solved (by bisection, all rings at once) so the ring ends with its share of the
@@ -114,12 +114,12 @@ star is drawn from the history's own rate inside its window.
   What is not in the model and could close the rest: the single-star mass function may be steeper than the cluster one above 1
   solar mass ([R2498], astro-ph/0009005, on the bias of unresolved binaries), the Sun's place above the plane and
   between the arms, and gas moving between rings.
-- **Gas moves between rings and flows out** in a real galaxy ([R5081] has bar-driven radial flows and none outflows; [R5082] has neither); here each ring is a closed
+- **Gas moves between rings and flows out** in a real galaxy ([R5094] has bar-driven radial flows and none outflows; [R5095] has neither); here each ring is a closed
   box fed by its inflow.
 - **The radial pattern stays GEN.134's** (`galaxy.star_formation.recent_factor`, from the gas disk's scale length and the
   bar gap). The rings alone make the outer disk younger, the opposite of the observed fall; the factor still multiplies
   the young and intermediate shares and averages 1 over the disk, so the disk-wide shares are the history's.
-- **The infall time scale is a fit to one galaxy.** [R5082] fits it to the Milky Way's abundance gradients and [R5081] takes 2 to 8 Gy; neither gives it for another size or mass, so every galaxy takes
+- **The infall time scale is a fit to one galaxy.** [R5095] fits it to the Milky Way's abundance gradients and [R5094] takes 2 to 8 Gy; neither gives it for another size or mass, so every galaxy takes
   the Milky Way's in scale lengths (GEN.725 row GI1, level L0).
 
 ## Code
@@ -143,6 +143,6 @@ The inflow followed the stars a galaxy's halo holds. GEN.1154 made the median ha
 moved the growth of those stars later, so the Milky Way shape's disc formed 4.0 solar masses a year (3.7 before GEN.999's gas law, 2.0 before GEN.1154) against the 1.65
 measured, and 1.5 against the main sequence at that mass (Speagle's fit: 2.7 times above it). Weakening the law's coefficient made it worse (the stars are fixed, so more form
 late), a cold-accretion cut at the shock-heating mass needed an exponent no source gives, and the halo's own baryon accretion gave 6.3. The one-zone Milky Way models
-use an exponential infall: the line of [R5082] for its time scale, limited by [R5081]'s 2 and 8 Gy. It gives 2.8 solar masses a year for the Milky Way shape, a gas surface density
+use an exponential infall: the line of [R5095] for its time scale, limited by [R5094]'s 2 and 8 Gy. It gives 2.8 solar masses a year for the Milky Way shape, a gas surface density
 of 10.3 solar masses per pc2 at 8 kpc (measured 7 to 16) and a depletion time of 3.4 Gy at the Sun. Registry rows GI1 (the scale length mapping) and GI2 (the 2 and 8 Gy stops); the core gas
 inflow time went from 1.0 to 0.6 Gy (CG1) because the inner rings keep less gas.
