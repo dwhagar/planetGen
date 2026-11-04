@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, outside_hours, regional_temperature,
+from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, outside_hours, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -916,6 +916,9 @@ _BODY_RULES = [
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
     (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") in _CLASSES_WITH_VARIANTS,
      "only some life classes come in variants, a letter for the pigment or habitat; the others have one form and no letter"),
+    (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") is None or any(
+        identifier != str(row["life_class"]) and identifier.startswith(str(row["life_class"])) for identifier in life_classes.IDS),
+     "a life class with no pigment or metabolism variants (2, 6, 7, 8 and 9) has no letter"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
