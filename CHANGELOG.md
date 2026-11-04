@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3134] - 2026-11-04
+
+**Headline:** The one-line description of each planet class now comes from a table read when the page is built.
+
+### Changed
+- **Class descriptions are read at view time.** The phrase after "It is" on a planet or moon page and in the system map panel is read from a table of class descriptions, not from a copy stored with each body. Moons read "moon" where the class text says planet, on the map as well as on the page.
+
 ## [8.0.3133] - 2026-11-04
 
 **Headline:** What's nearby filters and orders what it lists by the same stored physical values as the search page: planets within 20 parsecs with 0.8 to 1.2 g, stars by age, moons by orbit.
