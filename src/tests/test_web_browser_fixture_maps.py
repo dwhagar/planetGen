@@ -243,8 +243,18 @@ def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
 def test_sector_map_click_on_empty_space_keeps_the_selection(page, map_site):
     _open_sector(page, map_site)
     _x, _y, name = _click_a_star(page)
+    _settle(page)    # a click on the nebula on the way (it is bright now, MAP.142) flies the camera to it
     box = page.locator(SECTOR_CANVAS).bounding_box()
-    page.mouse.click(box["x"] + 3, box["y"] + 3)
+    # Empty space: a point of the map where hovering names nothing (a neighboring sector's cell would be opened by the click).
+    spot = None
+    for fx, fy in ((0.5, 0.97), (0.03, 0.5), (0.97, 0.5), (0.03, 0.03), (0.97, 0.03), (0.03, 0.97), (0.97, 0.97), (0.5, 0.03)):
+        page.mouse.move(box["x"] + fx * box["width"], box["y"] + fy * box["height"])
+        page.wait_for_timeout(250)
+        if not page.evaluate("() => [...document.querySelectorAll('.map-tooltip')].some((e) => e.textContent.trim() && e.getClientRects().length)"):
+            spot = (box["x"] + fx * box["width"], box["y"] + fy * box["height"])
+            break
+    assert spot, "some part of the map is empty"
+    page.mouse.click(*spot)
     assert _info_title(page) == name
 
 
