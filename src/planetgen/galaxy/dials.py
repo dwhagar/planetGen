@@ -372,6 +372,16 @@ LEVERS = (
         source="the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 "
                "systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4", status="bracket"),
     Lever(
+        name="rogues", flag="--rogues", dial="census", label="Rogue planets", kind="enum", unit="", minimum=None, maximum=None, step=None,
+        choices=("none", "few", "normal", "many"),
+        law="how many free-floating planets a sector may hold once its top-up has made up the mass its own systems did not (physics/rogue_topup): "
+            "the systems' own ejections always land where they land, and the top-up only brings a sector to the level, never past it",
+        auto_text="normal, the low side of the observed range of free-floating planets per star",
+        help="How many rogue planets a sector may hold after its top-up: none, few, normal or many. The top-up adds rogues only where the "
+             "systems' own ejections left a sector short of its mass.",
+        source="Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to "
+               "10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)", status="placeholder", tweak="L3"),
+    Lever(
         name="arm_count", flag="--arm-count", dial="pattern", label="Spiral arms", kind="int", unit="",
         minimum=1, maximum=10, step=1,
         law="the number of spiral arms",
