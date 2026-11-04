@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1082 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1084 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 153 | 17 | 8 | 1 | 0 | 179 |
+| T1 | 153 | 17 | 10 | 1 | 0 | 181 |
 | T2 | 115 | 43 | 0 | 1 | 0 | 159 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 22 | 14 | 5 | 47 | 28 | 116 |
-| All | 610 | 235 | 52 | 146 | 39 | 1082 |
+| All | 610 | 235 | 54 | 146 | 39 | 1084 |
 
 ## How the labels were given
 
@@ -1474,6 +1474,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.171 Stand-ins of the gas of the Magellanic Clouds in the nebula field
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MG1 | P | T1 | L2 | tuning.SATELLITE_NEBULA_GAS_SCALE["Large Magellanic Cloud"] 0.52: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.40 of the count) | 0.4 to 0.7 (a factor of 1.5 either way on the count) | the Large Cloud as the reference satellites place it | a CO catalogue of the Large Cloud whose cloud count or mass is more than a factor of 1.5 from 338 clouds and 5e7 solar masses | a gas disc for the Cloud (its HI disc is already modelled in galaxy/satellite_history.py) that the cloud field follows | [R5096] (ApJS 178, 56, section 3.1 READ): 272 clouds, molecular gas about 5e7 solar masses with X_CO 7e20; [R3102] (abstract READ): 8,107 clouds and 1.2e9 solar masses of H2 for the Milky Way. 8107 * 5e7 / 1.2e9 = 338, against 272 catalogued above the survey limit. test_gen367_cloud_gas::test_the_large_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass | - | - |
+| MG2 | P | T1 | L2 | tuning.SATELLITE_NEBULA_GAS_SCALE["Small Magellanic Cloud"] 0.85: the same for the Small Cloud, about 216 class M clouds (0.80 of the count; its gas factor meets the cap at the centre) | 0.65 to 1.0 | the Small Cloud as the reference satellites place it | a CO catalogue of the Small Cloud whose cloud count is below 100 or its CO mass below a tenth of the Large Cloud's | a gas disc for the Cloud that the cloud field follows | [R5097] (ApJ 658, 1027, abstract READ): H2 3.2e7 solar masses from dust, X_CO 13e21 over the whole galaxy; the CO-bright mass is lower, so 216 clouds is a ceiling. 8107 * 3.2e7 / 1.2e9 = 216. test_gen367_cloud_gas::test_the_small_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass | - | - |
 
 ## 6.170 Stand-ins of the picture of a ring and of a glowing body
 

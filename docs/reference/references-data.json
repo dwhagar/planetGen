@@ -158141,6 +158141,45 @@
    "volume": "658",
    "year": 2007
   },
+  "10.1086/511150": {
+   "authors": [
+    [
+     "Leroy",
+     "A."
+    ],
+    [
+     "Bolatto",
+     "A."
+    ],
+    [
+     "Stanimirovic",
+     "S."
+    ],
+    [
+     "Mizuno",
+     "N."
+    ],
+    [
+     "Israel",
+     "F."
+    ],
+    [
+     "Bot",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/511150",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1027",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "TheSpitzerSurvey of the Small Magellanic Cloud: Far‐Infrared Emission and Cold Gas in the Small Magellanic Cloud",
+   "type": "journal-article",
+   "volume": "658",
+   "year": 2007
+  },
   "10.1086/511302": {
    "arxiv": "astro-ph/0605705",
    "authors": [
@@ -159906,6 +159945,65 @@
    "title": "The Fractal Distribution of HiiRegions in Disk Galaxies",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "178",
+   "year": 2008
+  },
+  "10.1086/589833": {
+   "authors": [
+    [
+     "Fukui",
+     "Y."
+    ],
+    [
+     "Kawamura",
+     "A."
+    ],
+    [
+     "Minamidani",
+     "T."
+    ],
+    [
+     "Mizuno",
+     "Y."
+    ],
+    [
+     "Kanai",
+     "Y."
+    ],
+    [
+     "Mizuno",
+     "N."
+    ],
+    [
+     "Onishi",
+     "T."
+    ],
+    [
+     "Yonekura",
+     "Y."
+    ],
+    [
+     "Mizuno",
+     "A."
+    ],
+    [
+     "Ogawa",
+     "H."
+    ],
+    [
+     "Rubio",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/589833",
+   "editors": [],
+   "journal": "ApJS",
+   "page": "56",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Second Survey of the Molecular Clouds in the Large Magellanic Cloud by NANTEN. I. Catalog of Molecular Clouds",
+   "type": "journal-article",
    "volume": "178",
    "year": 2008
   },
@@ -278555,7 +278653,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5096,
+ "id_next": 5098,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -280908,6 +281006,7 @@
   "10.1086/510999": "R4785",
   "10.1086/511025": "R3035",
   "10.1086/511129": "R3959",
+  "10.1086/511150": "R5097",
   "10.1086/511302": "R0331",
   "10.1086/511524": "R0908",
   "10.1086/511741": "R0115",
@@ -280946,6 +281045,7 @@
   "10.1086/589283": "R0213",
   "10.1086/589500": "R4801",
   "10.1086/589653": "R3894",
+  "10.1086/589833": "R5096",
   "10.1086/589960": "R4982",
   "10.1086/590142": "R0214",
   "10.1086/590227": "R0747",
