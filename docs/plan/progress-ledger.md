@@ -2408,3 +2408,11 @@ Baseline: PR #1817.
 | DOC.94 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.126 | 8.1 | Bugs and flaky tests |
 | MAP.367 | 8.1 | Nebula data foundations |
+| GEN.1000 | 8.1 | Stored surface composition |
+| GEN.1140 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1139 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1138 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1162 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1160 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1156 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.231 | 8.2 | Robust tile caching |

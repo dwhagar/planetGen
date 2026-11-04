@@ -392,7 +392,6 @@ Moved into 8.1 from 8.4 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) |  | Body composition research lane finding F11 (tables E1 to E4): belt and field composition drawn from the star, distance and belt mass; generator epoch bump. Core 4 proposed. |
-| GEN.1000 | Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass) | GEN.477 |  |
 | GEN.471 | Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K |  | Body composition research lane part F item F4 (later); generator epoch bump. Core 4 proposed. |
 
 ## Phase 9: Stored scatterers, the text and the proofs
@@ -550,10 +549,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against [R4254, R4255] (central 21, lower 1 sigma 8 over the probed range), the [R3191] Jupiter limit and [R0258]'s 2.5 terrestrial bodies per star | GEN.1111 |  |
 | GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch |  |  |
 | GEN.1144 | Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach |  |  |
-| GEN.1141 | Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete | GEN.1138 |  |
-| GEN.1140 | Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name | GEN.1138 |  |
-| GEN.1139 | Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes) | GEN.1138 |  |
-| GEN.1138 | Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history |  |  |
+| GEN.1141 | Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete |  |  |
 | GEN.1186 | Small evidence updates to registered stand-ins from the strength papers review |  |  |
 | GEN.1185 | Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned |  |  |
 | GEN.1179 | Optional: Hoek-Brown geological strength index as a body parameter for rock |  |  |
@@ -563,14 +559,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1171 | Ring lifetime by ring mass and planet instead of one fixed decay, because fallen-moon rings now persist on 13 percent of rocky planets |  |  |
 | GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law |  |  |
 | GEN.1167 | The stellar-to-halo relation [R3181] has 0.3 to 0.4 dex more stars than [R0319] in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation |  |  |
-| GEN.1162 | Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite |  |  |
-| GEN.1204 | Dark members of an orbit tree (brown dwarf, neutron star, black hole in dark_members) store density, binding energy and the shape values the stars, rogues and comets store | GEN.1162 |  |
-| GEN.1161 | Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand) | GEN.1160 |  |
-| GEN.1160 | Class D and C rules read the roundness ratio and the 0.1 Earth mass line, and the Asteroid object type (no class letter, moon-capable) for bodies under roundness ratio 1 | GEN.1159 |  |
+| GEN.1204 | Dark members of an orbit tree (brown dwarf, neutron star, black hole in dark_members) store density, binding energy and the shape values the stars, rogues and comets store |  |  |
+| GEN.1161 | Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand) |  |  |
 | GEN.1159 | Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version) |  |  |
 | GEN.1201 | A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today | GEN.1159 |  |
 | GEN.1157 | Earth-type moons around gas giants: how often a giant has a moon the size of a planet, and how big, from the physics of moon formation and capture |  |  |
-| GEN.1156 | Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change |  |  |
 | GEN.1153 | Day and night state for stars and rogue planets (follow-up to GEN.1097, which covers planets and moons): a star stores the constant "no night"; a rogue planet gets the same state, night hours and solar days as an in-system planet from its own spin, with no star the answer is no solar day |  | Aux 2 report 10-30 |
 | GEN.1152 | Mass literals that differ from constants.py (changing them changes output): moon_composition JUPITER_MASS_KG 1.89813e27, ring_origin star_mass_kg 1.989e30, giant_interior 317.8 and EARTH_MASS_JUPITER 317.83, stellar_abundances JUPITER_MASS_SOL, tuning 317.8; use the constants.py values with an epoch |  | Sources 1 report 10-30, train-bound |
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | GEN.1150 | Trojans T3, epoch lock, train 8 or 9 |
