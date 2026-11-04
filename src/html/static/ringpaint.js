@@ -6,7 +6,7 @@
 // haze for a dusty one, and a gap where each resonance falls. The strip is mapped onto the ring mesh by `ringGeometry` (radial UVs).
 //
 // What is stored is the ring (its edges, depth, ice share and the moons); what is drawn here is a picture of it: the ringlet pattern is seeded noise
-// with no measurement behind it (a stand-in, gap-filling-plan 6.166, rows RG7 and RG8).
+// with no measurement behind it (a stand-in, gap-filling-plan 6.170, rows RNG7 and RNG8).
 //
 // Same ring, same seed, same size: same pixels. Do not change the noise or the constants without a changelog note.
 
