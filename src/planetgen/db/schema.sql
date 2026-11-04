@@ -1526,7 +1526,7 @@
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
--- v201 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
+-- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3185,17 +3185,17 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
     chondrite_group             VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v190
-    origin_cause                VARCHAR(24) NULL,  -- v201 (GEN.1069): what formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), NULL for a belt made without an origin
-    co_causes                   TEXT NULL,  -- v201 (GEN.1069): the other formation causes that coincide with it, a JSON list of codes
-    formation_snow_line_au      DOUBLE NULL,  -- v201 (GEN.1069): the star's snow line when the system formed, AU
-    primordial_mass_earth       DOUBLE NULL,  -- v201 (GEN.1069): the mass the belt formed with, Earth masses
-    cleared_mass_earth          DOUBLE NULL,  -- v201 (GEN.1069): what the giants cleared from it, Earth masses
-    scattered_mass_earth        DOUBLE NULL,  -- v201 (GEN.1069): what an instability scattered from it, Earth masses
-    stirred                     TINYINT(1) NULL,  -- v201 (GEN.1069): whether a giant stirs the belt
-    origin_history              TEXT NULL,  -- v201 (GEN.1069): the sentences of what shaped the belt, a JSON list
-    origin_sentence             TEXT NULL,  -- v201 (GEN.1069): the sentence of where the belt came from, for its page
-    scatter_fates               TEXT NULL,  -- v201 (GEN.1069): for an outer disc, the share of its mass in each population after the scatter step, a JSON object
-    largest_body_km             DOUBLE NULL,  -- v201 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
+    origin_cause                VARCHAR(24) NULL,  -- v204 (GEN.1069): what formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), NULL for a belt made without an origin
+    co_causes                   TEXT NULL,  -- v204 (GEN.1069): the other formation causes that coincide with it, a JSON list of codes
+    formation_snow_line_au      DOUBLE NULL,  -- v204 (GEN.1069): the star's snow line when the system formed, AU
+    primordial_mass_earth       DOUBLE NULL,  -- v204 (GEN.1069): the mass the belt formed with, Earth masses
+    cleared_mass_earth          DOUBLE NULL,  -- v204 (GEN.1069): what the giants cleared from it, Earth masses
+    scattered_mass_earth        DOUBLE NULL,  -- v204 (GEN.1069): what an instability scattered from it, Earth masses
+    stirred                     TINYINT(1) NULL,  -- v204 (GEN.1069): whether a giant stirs the belt
+    origin_history              TEXT NULL,  -- v204 (GEN.1069): the sentences of what shaped the belt, a JSON list
+    origin_sentence             TEXT NULL,  -- v204 (GEN.1069): the sentence of where the belt came from, for its page
+    scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disc, the share of its mass in each population after the scatter step, a JSON object
+    largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),

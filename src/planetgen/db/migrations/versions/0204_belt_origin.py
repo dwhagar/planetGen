@@ -1,6 +1,6 @@
 """Where a belt came from and its largest body, on every asteroid belt (GEN.1069).
 
-Schema v201. `asteroid_belts` gain what a belt knows about its origin: `origin_cause` (what formed it), `co_causes` (JSON list), `formation_snow_line_au`, `primordial_mass_earth`,
+Schema v204. `asteroid_belts` gain what a belt knows about its origin: `origin_cause` (what formed it), `co_causes` (JSON list), `formation_snow_line_au`, `primordial_mass_earth`,
 `cleared_mass_earth`, `scattered_mass_earth`, `stirred`, `origin_history` (JSON list of sentences), `origin_sentence` and `scatter_fates` (JSON object), and `largest_body_km`, the largest body
 of the belt (Dc) settled with its mass (`physics/belt_ledger.py`, GEN.1000).
 
@@ -13,8 +13,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0201"
-down_revision = "0200"
+revision = "0204"
+down_revision = "0203"
 branch_labels = None
 depends_on = None
 
