@@ -190,10 +190,19 @@ def test_a_giant_far_from_light_is_already_warmed_by_its_own_heat_in_the_bound_c
 
 
 @pytest.mark.parametrize("mass_bin", ("terrestrial", "sub-neptune"))
-def test_a_bound_rocky_planet_far_from_light_is_warmed_by_its_own_heat_as_a_rogue_is(mass_bin):
-    """Far from a star the surface is the body's own heat over the ambient floor, in the bound chain as in the rogue's. Found (TEST.498, 2026-10-31): the bound
-    chain returned the 2.725 K floor for a 5 Earth-mass body at 1e5 AU and the rogue chain 270 K; GEN.1111 passes the body's heat (`internal_heat_flux_w_m2` and
-    the tide) into the equilibrium temperature and the air's balance. The two chains still draw the heat from different models (the rogue's is the older
-    `rogue_surface` law, the bound one the radiogenic and tidal box), so they are not compared number for number; the rogue chain goes with the flat rate."""
-    rogue, bound = _matched(mass_bin, 0)
-    assert bound.surface_temperature > 5.0 * 2.725 and rogue.surface_temperature_k > 5.0 * 2.725, (bound.surface_temperature, rogue.surface_temperature_k)
+def test_a_planet_with_no_star_is_warmed_by_its_own_heat_as_a_rogue_is(mass_bin):
+    """With no star the surface is the body's own heat over the ambient floor. Found (TEST.498, 2026-10-31): the planet chain returned the 2.725 K floor for
+    a 5 Earth-mass body at 1e5 AU and the rogue chain 270 K; GEN.1111 passes the heat of the body (`internal_heat_flux_w_m2` and the tide) into the
+    equilibrium temperature and the air's balance when the host is starless. The two chains still draw the heat from different models (the rogue's is the
+    older `rogue_surface` law, the planet's the radiogenic and tidal box), so they are not compared number for number; the rogue chain goes with the
+    flat rate."""
+    from planetgen.generation.phenomena import starless_host
+    from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
+    from tests.test_gen_builder_internals import make_system
+    rogue, _bound = _matched(mass_bin, 0)
+    with deterministic_entropy(498):
+        system = make_system()
+    with draw.bound(f"rogue-parity-starless-{mass_bin}"):
+        starless = starless_host.build_ejected_planet(system.system_config, system.star, 5.0, rogue.mass_kg, moon_count=0)
+    assert starless.surface_temperature > 5.0 * 2.725 and rogue.surface_temperature_k > 5.0 * 2.725, (starless.surface_temperature, rogue.surface_temperature_k)

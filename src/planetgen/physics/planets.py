@@ -523,7 +523,9 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     heat = interior_heat.update_heat(planet)
     giant = planet.body_type == "g"
     own_heat_w_m2 = (getattr(planet, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(planet, "tidal_flux_w_m2", None) or 0.0)
-    if not giant and own_heat_w_m2 > 0.0:   # GEN.1111: the body's own heat is a flux through its surface, which a body with no starlight (an ejected one) lives on; a giant's is added by its setting
+    if getattr(planet.star, "starless", False) and not giant and own_heat_w_m2 > 0.0:
+        # GEN.1111: a body with no star (an ejected one) lives on its own heat, which is a flux through its surface; under a star it is below a part in
+        # a thousand of the absorbed flux for an ordinary rocky planet and is left out, so a lit planet is as it was (a giant's is added by its setting)
         surface_temperature_no_atmosphere = climate_draws.equilibrium_temperature_k(albedo, solar_output_at_orbit, internal_flux_w_m2=own_heat_w_m2)
     surface_w = None if giant else hydrosphere.draw_surface_water(planet)
     planet._surface_w = surface_w                   # GEN.839: kept for `refresh_at_final_age`, not stored
