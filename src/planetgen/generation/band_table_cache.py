@@ -15,7 +15,7 @@ modification time: `battery_digest_cache.key`), of the Python and numpy versions
 download, a `git checkout` or a test that sets a constant never reads another's table. Numbers are written the way Python writes them (shortest
 text that reads back as the same float), so a table read back is the table that was made.
 
-In production (PERF.188, Boss's call 11:24 AM EST 2026-11-04) the folder is `DEFAULT_ROOT`, which `update.sh` creates at setup
+In production (PERF.188, Boss's call 11:24 AM EST on 2026-11-04) the folder is `DEFAULT_ROOT`, which `update.sh` creates at setup
 (`examples/apache/create-cache-dir.sh`, owned by the web user whose workers write it): the first sector fill of a galaxy went from 267 s and
 1,842 MB to 36 s and 534 MB with the same output. The tables of an older version of the code can never be read again, so a new code key removes every
 other folder of the root; a folder named by `ENV` (a test run) keeps its siblings for `STALE_DAYS`. A host without the folder builds the tables as before.

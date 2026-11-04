@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.566 |
+| TEST | TEST.567 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.103 |
@@ -2729,7 +2729,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.185 | A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion | none | done, PR #3040 |
 | PERF.186 | CRITICAL (bug): Cancel does not cancel, python workers keep saturating the host; add a working Stop everything that cancels all runs, kills all workers and blocks any new start until the owner says so (bug) | none | done, PR #3078 |
 | PERF.187 | The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug) | none | done, PR #3125 |
-| PERF.188 | The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python | none | open |
+| PERF.188 | The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python | none | done, PR #4811 |
 | PERF.189 | The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug) | none | done, PR #3125 |
 | PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates | none | done, PR #4028 |
 | PERF.191 | The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug) | none | done, PR #3120 |
@@ -3814,6 +3814,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.563 | test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass fails on main: the belt mass reads 1.86e19 kg where 0.0 is expected (bug) | none | done, PR #4796 |
 | TEST.564 | test_a_directed_moon_count_still_goes_through_the_gate fails on main: moon counts vary 1 and 2 with a minimum of 0 where at least 1 and 80 percent at 2 are expected (bug) | none | done, PR #4788 |
 | TEST.565 | test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug) | none | done, PR #4796 |
+| TEST.566 | test_deploy_scripts fails on main: scripts/settle_references.py names src/crossref, which is not in the repo (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
