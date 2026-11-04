@@ -14344,19 +14344,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **GEN.1243 The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug)**
-  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
-  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. The class
-  census white dwarf share is 8.2 percent against the observed range of
-  4.1 to 7.5 percent (the nearby-star census gives 5.6). Candidates: the
-  helium-core white dwarfs and the continuous cooling track of train 8
-  (GEN.996, GEN.1137, now retired), the star mass function epoch
-  (GEN.927), or the age-metallicity history. Do: print the white dwarf
-  share per population with each candidate switched off, find the cause,
-  and fix the law or register a stand-in in GEN.725. Lock work if stored
-  values change. Owner: Bug 1.
-  Prerequisites: none.
-  Prerequisites: none.
+- [ ] **GEN.1244 Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug)**
+  Found by Aux 5 with TEST.557 (as the lane reported 8:19 AM EST
+  2026-11-04): in 55 generated systems only one giant had moons, and all
+  six moons sat 46 to 130 giant radii out, outside the radiation belts
+  that reach about 20 radii. Regular moons form in the circumplanetary
+  disc inside the disc's snow line and centrifugal radius, so the zone
+  should come from the giant's mass, spin and the disc model, not a
+  fixed outer span; a count of 1 giant in 55 with moons is also low and
+  belongs with the same derivation (GEN.1157, GEN.962). The Solar System
+  giants are plausibility targets only (NO FIXED CONTENT). Do: find
+  where generate_moons places a giant's moons, derive the inner and
+  outer edge of the regular-moon zone from the disc physics (secondary
+  sources accepted), register any stand-in in GEN.725 with tier and
+  tweak level, and check the moon distance, the share of giants with
+  moons and the belt dose afterwards. Changes generated output: epoch
+  with --affects fill, rides a train. Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.1157, GEN.962, GEN.921, TEST.557,
+  GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19182,22 +19187,6 @@ clears each one.
   (many commits since 7eef24a), keep only those that still fail,
   root-cause each, and file or fix. Done: each failing test has a cause
   and an owner or a fix. Owner: full-suite thread, with Bug 1.
-  Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **TEST.557 test_a_generated_system_stores_the_belt_dose_in_its_surface_dose fails on main: the stored belt dose reads 0 (bug)**
-  Found by Aux 5 (as the lane reported, 7:56 AM EST on 2026-11-04) while
-  building GEN.1069: the belt dose test
-  (test_a_generated_system_stores_the_belt_dose_in_its_surface_dose)
-  fails on plain main with "assert 0 > 0", so a generated system stores
-  a belt dose of zero in its surface dose. Do: find out whether the
-  generator no longer writes the belt dose (a change in trains 6 to 8
-  such as GEN.1160 roundness or the belt rebuild of GEN.1069) or the
-  test fixture no longer draws a belt in a host with a magnetosphere;
-  fix the writer or the fixture with the reason stated. Done: the test
-  passes on main and a belt body's surface dose follows its belt dose.
-  Lock work only if stored values change. Related: GEN.983, GEN.1069.
-  Owner: Aux 5.
   Prerequisites: none.
   Prerequisites: none.
 
