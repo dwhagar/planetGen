@@ -218,7 +218,12 @@ connectivity to that specific schema rather than the default one.
   `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100; a star's also `temperature_k`, `luminosity_w` and `age_gy`, a planet's or moon's `distance_km` (its orbit size), `eccentricity` and `surface_temperature_k`, as stored, `null` where the row holds none, UX.187), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
   what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
   kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
-  (`objectlist.list_objects`).
+  (`objectlist.list_objects`). UX.228: a `star`, `planet` or `moon` list takes the numeric keys of `GET /api/search` (UX.226,
+  `db.search_values.KEYS`) as well: `sort=<key>` (`gravity`, `surface_temperature`, `orbit_distance`, `luminosity`, `moon_count`, ...; every
+  key the kind has except `mass`, which stays the index's own sort) lists the bodies that have a value, with `order` for the direction, and
+  `<kind>_min_<key>`, `<kind>_max_<key>` and `<kind>_<key>_unit` (`planet_min_gravity=0.8`) keep the bodies whose stored value lies in every
+  range, in a unit of the same kind. Each item then also carries `values`, `{key: {value, unit, symbol}}`, for the keys in use. A bound that
+  is not a number, an inverted range and a unit of another kind are a 400; a kind that takes no value ignores the parameters.
 - `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
   `rotation_period_hours` (GEN.846: its spin period; `null` on a row made before schema v185), `nuclear_arrival_age_gy` (GEN.1174: for a pre-main-sequence star, the age MIST's tracks put it on the main sequence; `null` otherwise), `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
   its sector builds: `name`, `nebula_class`, `nebula_type`, `class_name`, `radius_ly`, `age_myr`; `null` for a star that
