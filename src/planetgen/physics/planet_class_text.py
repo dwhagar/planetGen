@@ -11,6 +11,7 @@ a body keeps no copy of it (GEN.1212 removes the stored `description` column and
 Use:
 
     description("O")                # "an ocean world with most of its surface covered in liquid water"
+    description(None)               # the Asteroid type, which has no letter
     description("O", moon=True)     # the same with "planet" written as "moon"; a class text is written generically
 """
 
@@ -29,15 +30,19 @@ class PlanetClassTextError(ValueError):
 
 def _load():
     with open(DATA_FILE, encoding="utf-8") as handle:
-        descriptions = json.load(handle)["descriptions"]
+        document = json.load(handle)
+    descriptions = document["descriptions"]
     for letter, text in descriptions.items():
         if len(letter) != 1 or not letter.isupper() or not text.strip():
             raise PlanetClassTextError(f"planet_class_text.json: a class is one capital letter and has words, not {letter!r}: {text!r}")
-    return descriptions
+    if not document["asteroid"].strip():
+        raise PlanetClassTextError("planet_class_text.json: the asteroid type has no words")
+    return descriptions, document["asteroid"]
 
 
-DESCRIPTIONS = _load()
-"""dict: Class letter -> its description phrase (lower case, starting with its article)."""
+DESCRIPTIONS, ASTEROID_PHRASE = _load()
+"""dict: Class letter -> its description phrase (lower case, starting with its article). `ASTEROID_PHRASE` is the phrase of the Asteroid
+type, which has no letter (GEN.1160)."""
 
 
 def description(planet_class, moon=False):
@@ -47,6 +52,8 @@ def description(planet_class, moon=False):
     Raises:
         PlanetClassTextError: There is no such class.
     """
+    if planet_class is None:
+        return ASTEROID_PHRASE
     try:
         text = DESCRIPTIONS[planet_class]
     except KeyError:

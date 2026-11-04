@@ -30,3 +30,10 @@ def test_descriptions_follow_the_plain_words_guide():
     for letter, text in planet_class_text.DESCRIPTIONS.items():
         sentence = f"It is {text}."
         assert plainwords.check_sentence(sentence) == [], (letter, sentence)
+
+
+def test_the_asteroid_type_has_a_description_and_no_letter():
+    for moon in (False, True):
+        text = planet_class_text.description(None, moon=moon)
+        assert text.startswith("an asteroid")
+        assert plainwords.check_sentence(f"It is {text}.") == []

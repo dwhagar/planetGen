@@ -19,5 +19,6 @@
     "S": "a barren, rocky Super-Earth, its surface molten when it orbits close to its star",
     "T": "a gas dwarf with a thick atmosphere",
     "V": "a Super-Earth with high gravity"
-  }
+  },
+  "asteroid": "an asteroid, a body too small for its own weight to pull it round"
 }
