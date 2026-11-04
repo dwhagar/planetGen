@@ -33229,6 +33229,90 @@
       "title": "Stand-ins of the two cuts of the body type"
     },
     {
+      "key": "6.166",
+      "number": "6.166",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
+            ],
+            [
+              "The range it moves in",
+              "15 to 50"
+            ],
+            [
+              "Where it holds",
+              "giants with a circumplanetary disc; the value was adopted for Jupiter and Saturn"
+            ],
+            [
+              "What would show it wrong",
+              "a hydrodynamic or population study of moons forming a good way past 30 planet radii of a giant of another mass, or a mass dependence of the centrifugal radius"
+            ],
+            [
+              "What replaces it",
+              "a centrifugal radius from the planet's mass, spin and the inflow's angular momentum (the Hill-sphere inflow runs behind [R3922])"
+            ],
+            [
+              "Evidence",
+              "[R3922] Appendix A: \"we adopt r_c = 30 R_p\" from three-dimensional hydrodynamic runs of the flow within the Hill sphere; its Table 1 puts Callisto at 26.4, Titan at 20.3 and Ganymede at 15.0 planet radii"
+            ]
+          ],
+          "id": "MD1",
+          "key": "6.166:MD1",
+          "kind": "P",
+          "slug": "6-166-md1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
+            ],
+            [
+              "The range it moves in",
+              "none (the planet's spin is drawn)"
+            ],
+            [
+              "Where it holds",
+              "giants whose spin is drawn by planets.draw_birth_spin; 2.25 planet radii for the Jupiter of the source"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose innermost regular moon sits well inside the corotation radius of its birth spin, or a disc whose cavity is set by something other than the spin"
+            ],
+            [
+              "What replaces it",
+              "a magnetospheric truncation radius from the planet's field and the disc's accretion rate"
+            ],
+            [
+              "Evidence",
+              "[R3922] section 2.4 (the disc truncated \"at the corotation radius where the disk gas corotates with the planetary spin\"; set I takes about 2.25 planet radii for Jupiter)"
+            ]
+          ],
+          "id": "MD2",
+          "key": "6.166:MD2",
+          "kind": "P",
+          "slug": "6-166-md2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
+        }
+      ],
+      "slug": "6-166-stand-ins-of-the-zone-the-regular-moons-of-a-giant-form-in",
+      "title": "Stand-ins of the zone the regular moons of a giant form in"
+    },
+    {
       "key": "6.165",
       "number": "6.165",
       "rows": [
@@ -34167,7 +34251,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.105",
+          "unread": null,
           "what": "stepper.MAX_LEVEL 12: a star needs at most 4096 equal steps in one span; past it the star is stepped at that cap and flagged"
         }
       ],

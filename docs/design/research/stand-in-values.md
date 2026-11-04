@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1049 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1051 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 150 | 13 | 8 | 1 | 0 | 172 |
+| T1 | 151 | 13 | 8 | 1 | 0 | 173 |
 | T2 | 112 | 42 | 0 | 1 | 0 | 155 |
 | T3 | 84 | 38 | 7 | 9 | 0 | 138 |
 | T4 | 52 | 5 | 1 | 17 | 10 | 85 |
-| T5 | 47 | 19 | 2 | 1 | 0 | 69 |
+| T5 | 48 | 19 | 2 | 1 | 0 | 70 |
 | T6 | 96 | 82 | 20 | 51 | 0 | 249 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 22 | 14 | 5 | 46 | 21 | 108 |
-| All | 595 | 228 | 51 | 143 | 32 | 1049 |
+| All | 597 | 228 | 51 | 143 | 32 | 1051 |
 
 ## How the labels were given
 
@@ -1463,6 +1463,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
 
+## 6.166 Stand-ins of the zone the regular moons of a giant form in
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MD1 | P | T1 | L0 | moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it | 15 to 50 | giants with a circumplanetary disc; the value was adopted for Jupiter and Saturn | a hydrodynamic or population study of moons forming a good way past 30 planet radii of a giant of another mass, or a mass dependence of the centrifugal radius | a centrifugal radius from the planet's mass, spin and the inflow's angular momentum (the Hill-sphere inflow runs behind [R3922]) | [R3922] Appendix A: "we adopt r_c = 30 R_p" from three-dimensional hydrodynamic runs of the flow within the Hill sphere; its Table 1 puts Callisto at 26.4, Titan at 20.3 and Ganymede at 15.0 planet radii | - | - |
+| MD2 | P | T5 | L0 | moon_disc_zone.corotation_km: the inner edge is the corotation radius `(G M / omega^2)^(1/3)` of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body | none (the planet's spin is drawn) | giants whose spin is drawn by `planets.draw_birth_spin`; 2.25 planet radii for the Jupiter of the source | a giant whose innermost regular moon sits well inside the corotation radius of its birth spin, or a disc whose cavity is set by something other than the spin | a magnetospheric truncation radius from the planet's field and the disc's accretion rate | [R3922] section 2.4 (the disc truncated "at the corotation radius where the disk gas corotates with the planetary spin"; set I takes about 2.25 planet radii for Jupiter) | - | - |
+
 ## 6.165 Stand-ins of the habitable bodies per system
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1519,7 +1526,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | ST1 | P | T6 | L0 | stepper.STEP_ETA 0.05 and STEP_CAP_MYR 5: a step is a twentieth of the star's own crossing time (the smaller of r/v and sqrt(r/a) at its present point, the cheap stand-in for the pericentre crossing time), no more than 5 Myr | eta 0.02 to 0.1; cap 1 to 10 Myr | a star in the smooth potential with no close encounter | an orbit of high eccentricity whose pericentre passage is poorly resolved at the present-point timescale (the energy test fails past 1e-3 per Gyr) | the pericentre crossing time from the orbit's energy and angular momentum | GEN.340's own wording ("step eta 0.05 of the pericentre crossing time, capped at 5 Myr"); kick-drift-kick is second-order symplectic (Hairer, recalled) | GEN.105 | - |
-| ST2 | P | T4 | L0 | stepper.MAX_LEVEL 12: a star needs at most 4096 equal steps in one span; past it the star is stepped at that cap and flagged | 8 to 16 | any span the orbital update asks for | a span so long that the flagged cap leaves the orbit's energy off by over 1e-3 | no cap, once the update's span is bounded by the next-update rule (GEN.105) | GEN.340's own wording ("a step cap that sets a flag") | GEN.105 | - |
+| ST2 | P | T4 | L0 | stepper.MAX_LEVEL 12: a star needs at most 4096 equal steps in one span; past it the star is stepped at that cap and flagged | 8 to 16 | any span the orbital update asks for | a span so long that the flagged cap leaves the orbit's energy off by over 1e-3 | no cap, once the update's span is bounded by the next-update rule (GEN.105) | GEN.340's own wording ("a step cap that sets a flag") | - | - |
 
 ## 6.158 Stand-ins of the acceleration kernel
 

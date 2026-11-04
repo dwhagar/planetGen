@@ -22,7 +22,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disc_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -1029,6 +1029,8 @@ def generate_moons(planet, moon_count=None):
     # can't be imported here at module level without a circular import.
     from planetgen.generation.planet import Planet
 
+    disk_zone = (moon_disc_zone.zone_km(planet.mass, planet.radius, (getattr(planet, "_birth_spin", None) or (None,))[0], low_orbit, high_orbit)
+                 if disk_system is not None else None)
     rejected = 0
     while total_orbit_distance < high_orbit and total_orbit_distance < _au_to_km(planet.distance):
         if moon_count is not None and len(planet.moons) >= moon_count:
@@ -1055,10 +1057,19 @@ def generate_moons(planet, moon_count=None):
         # (`body_spin.evolve`) -- stops real tidal-locking
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
-        moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
-        moon_distance = _km_to_au(moon_distance_km)
-        # GEN.714: the origin comes first and the orbit follows from it
+        # GEN.714, GEN.1244: the origin comes first and the orbit follows from it; a moon of the disc forms inside the disc's zone (`moon_disc_zone`), the rest anywhere a moon can stay
         origin = moon_composition.draw_origin(parent_kind).row.name
+        span_low, span_high = total_orbit_distance, high_orbit
+        if origin == "disk" and disk_zone is not None:
+            span_low, span_high = max(total_orbit_distance, disk_zone[0]), min(high_orbit, disk_zone[1])
+            if span_low >= span_high:    # the disc has no room left past the last moon
+                draw.redrawn("moon.disk_full")
+                rejected += 1
+                if rejected >= MOON_REJECTION_LIMIT:
+                    break
+                continue
+        moon_distance_km = math.exp(draw.uniform(math.log(span_low), math.log(span_high)))
+        moon_distance = _km_to_au(moon_distance_km)
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           mass=moon_mass, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
