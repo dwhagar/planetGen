@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3209] - 2026-11-04
+
+**Headline:** update.sh waits up to 90 seconds for the site to answer after a reload and says why each ask failed.
+
+### Changed
+
+- **A longer wait (OPS.94).** After the Apache or gunicorn reload, the health check waited 20 seconds. On a real server the first workers were still compiling and importing after new code, each ask timed out at 5 seconds and read as "HTTP 000", and the update opened the site with a warning. `HEALTH_WAIT_SECONDS` now defaults to 90. The wait still ends at the first good answer, so a quick start costs nothing.
+- **Every retry line says what curl saw.** "no good answer yet (HTTP 000: the connection was refused: nothing listens on that address and port)", or a timeout, a failed name lookup, a TLS error, instead of a bare code. A line is printed for the first miss, then every 5 seconds or when the reason changes.
+
+generation-output: unchanged
+
 ## [8.0.3208] - 2026-11-04
 
 **Headline:** On the Galaxy Map the black holes are named only when their marks are turned on, as the marks themselves are; the purple dots always draw.
