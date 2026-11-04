@@ -14160,6 +14160,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level. TEST.533 widened the bound to a factor of three with the reason
   in the test; tighten it back when this lands. Interacts with GEN.999
   (adds 10 percent), so look at it after train 8. Lock work (epoch).
+  Core 3 (9:20 AM EST on 2026-11-04): as the lane reported 9:16 AM EST
+  on 2026-11-04: GEN.1242 (exponential inside-out infall, Chiappini line
+  time scale, stopped at 2 and 8 Gy) brings the reference galaxy to 2.8
+  solar masses a year and present over mean to 0.45; the 0.20 to 0.3 aim
+  is not reached. The disc beyond 10 kpc and inside 4 kpc still forms
+  more than observed. This item stays open for that residual after
+  GEN.1242 merges; GEN.1202 also stays open (8 kpc gas 10.3 against
+  13.7).
   Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
   Prerequisites: none.
 
@@ -14355,6 +14363,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   directive run fills a sector, not a system: epoch with --affects fill
   if the stored output moves, rides a train. Owner: Aux 3. Version 8.1.
   Prerequisites: none. Related: GEN.180, GEN.1130, TEST.555, GEN.725.
+
+- [ ] **GEN.1246 The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source**
+  Found by Core 3 with GEN.1242 (as the lane reported 9:16 AM EST on
+  2026-11-04). GEN.1242 replaces the growth-of-stars inflow with an
+  exponential inside-out infall whose time scale is the Milky Way's in
+  scale lengths (stand-in GI1, tier from the source, tweak level L0),
+  the same for a 1e10 and a 5e10 galaxy. Smaller galaxies form their
+  stars later and slower, so the time scale should depend on the stellar
+  mass. Do: read published star formation history or chemical evolution
+  models across disc mass (secondary sources accepted), derive the mass
+  dependence of the infall time scale, register the stand-in in GEN.725
+  with tier and tweak level, and check the young share by mass against
+  the census. Changes stored ages and populations: epoch with --affects
+  plan,scatter,fill,population, census re-baseline; lock work, rides a
+  train after GEN.1242. Owner: Core 3. Version 8.1.
+  Prerequisites: GEN.1242. Related: GEN.1242, GEN.1230, GEN.1202,
+  GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19144,6 +19169,19 @@ clears each one.
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
   Prerequisites: none.
+
+- [ ] **TEST.558 test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main in 6 cases: the component density differs from the stored one by about 0.6 percent (bug)**
+  Found by Core 3 while building GEN.1242 (as the lane reported 9:16 AM
+  EST on 2026-11-04, not from its change) and reproduced on main
+  d132b7661 by TODO: tests/test_density_components.py line 182, the
+  four_arms case first. The density written as components differs from
+  the one the spiral gave before by about 0.6 percent in every grid
+  cell, where the test expects equality to its tolerance. Do: find
+  whether a component weight, a constant moved by a recent epoch, or the
+  test's reference is stale (git bisect on the file), fix the cause, and
+  say in the change note which it was. No generated change if the
+  reference is stale. Owner: Core 4 (stand-by).
+  Prerequisites: none. Related: GEN.1242.
 
 ## USR: User accounts
 
