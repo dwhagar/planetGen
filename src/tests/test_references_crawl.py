@@ -9,11 +9,12 @@ Three things are held here.
   a typo in a kind or an id is an error, and no template or module writes a `/references` address by hand.
 * The word list (`plainwords.OUT_OF_UNIVERSE`, rule 16 of the style guide): what it flags and what it leaves alone, and the pages it is
   exempt on (`plainwords.exempt`).
-* The page crawl: every in-universe page this suite can render without a database (the Help pages, the class pages) and every sentence
-  the Document of ten seeded systems writes, every property label, read for the words. Text that has them today
-  is listed in `KNOWN` under the item that rewrites it (DOC.91 the properties page, DOC.92 the life help pages, DOC.93 the sheet source
-  lines); text that is not listed fails, and a listed entry that no longer happens fails too, so the owner deletes it and is done when
-  none carry its code. DOC.94 locks the crawl once DOC.93 lands.
+* The page crawl: every in-universe page this suite can render without a database (the Help pages, the class pages, the sign-in and
+  preferences pages), every sentence the Document of ten seeded systems writes and every property label, read for the words. Nothing is
+  excused: there is no list of exceptions, so text with a word fails the test the moment it is written (DOC.94 locked the crawl when the
+  last rewrite, DOC.93, landed).
+* The lock around it (DOC.94): the visible text of every in-universe template is read too, so a page that needs data to render is covered,
+  and every in-universe page route must be crawled or named with its reason, so a new page cannot skip the lock.
 
 Every link into `/references` found by the crawl must resolve, and every page under `/references` must carry the Out of universe banner
 (`id="out-of-universe-banner"`; the section is DOC.88, `tests/test_references_pages.py` holds its pages).
@@ -36,20 +37,11 @@ from tests.test_plain_words import SEEDS, _document_text
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT.parent / "docs" / "design" / "interface" / "text-style.md"
 
-OWNERS = ("DOC.91", "DOC.92", "DOC.93", "UX.252", "UX.253")
-"""tuple: The items that rewrite the text that has the words today: the properties page moves (DOC.91), the life help pages lose the
-speculative chemistry (DOC.92), the leftovers (DOC.93), and the planet, moon, belt, star and system text (UX.252,
-UX.253)."""
-
 BANNER = 'id="out-of-universe-banner"'
 """str: What a References page carries so a reader always knows they left the story (DOC.88 builds it)."""
 
-KNOWN = {}
-"""dict: `{(word, where): the item that rewrites it}` for the out-of-universe words on in-universe pages today. `where` is the page's
-endpoint, `"sheet label"` or `"document"`. The rewrite item removes its entries; nothing is added without an owner."""
-
 ADVICE = ("\nSay it in universe and, where a reader may want the why, link to the References entry with reference_link(kind, id) "
-          "(docs/design/interface/text-style.md, rule 16). Only text that already existed is listed in KNOWN, under the item that rewrites it.")
+          "(docs/design/interface/text-style.md, rule 16). There is no list of exceptions.")
 
 
 # --- The addresses and the link helper -------------------------------------------------------------------------------------------
@@ -259,21 +251,9 @@ def test_the_crawl_reads_a_real_corpus(crawl):
     assert sum(len(text.split()) for _path, _endpoint, text, _links in crawl) > 5000
 
 
-def test_no_page_outside_references_uses_the_out_of_universe_words_except_the_listed(crawl):
-    unlisted = [f"{word!r} on {where}: {examples[0]}" for (word, where), examples in sorted(_found(crawl).items()) if (word, where) not in KNOWN]
-    assert not unlisted, "out-of-universe words on an in-universe page:\n  " + "\n  ".join(unlisted) + ADVICE
-
-
-def test_a_listed_exception_that_no_longer_happens_is_deleted(crawl):
-    found = _found(crawl)
-    gone = [f"{word!r} on {where} ({owner})" for (word, where), owner in sorted(KNOWN.items()) if (word, where) not in found]
-    assert not gone, "these are fixed: delete them from KNOWN\n  " + "\n  ".join(gone)
-
-
-def test_every_listed_exception_names_its_owner_and_a_word():
-    for (word, where), owner in KNOWN.items():
-        assert owner in OWNERS, (word, where, owner)
-        assert word in plainwords.OUT_OF_UNIVERSE, word
+def test_no_page_outside_references_uses_the_out_of_universe_words(crawl):
+    found = [f"{word!r} on {where}: {examples[0]}" for (word, where), examples in sorted(_found(crawl).items())]
+    assert not found, "out-of-universe words on an in-universe page:\n  " + "\n  ".join(found) + ADVICE
 
 
 def test_new_text_with_a_word_that_is_not_listed_fails():
