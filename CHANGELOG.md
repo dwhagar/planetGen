@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3140] - 2026-11-04
+
+**Headline:** the galaxy outline tests follow the model's mean system mass instead of pinned counts that moved with the star mass function.
+
+### Changed
+- **Test only (TEST.561).** The default galaxy's count of qualifying cells (11,241,821,617 pinned, 11,235,526,381 now) and its edge shell (3,438 and 3,421 pinned, 3,437 and 3,418 now) moved because the mean system mass went from 0.5105 to 0.5111 solar masses when the companion mass ratios of GEN.951 merged with the rest of train 8 (the pins were set on that branch before the merge). The move is expected. The tests now check the count times the mean system mass (5.74e9, within 0.5 percent; it moved 0.06 percent over those changes), keep the edge shell to a window, and check the outermost shell and the one after it against the model, so the next change of the mass function does not need a new pin. No generated output changes.
+
 ## [8.0.3139] - 2026-11-04
 
 **Headline:** The composition text test draws on until it has seen both a rocky and a giant body.
