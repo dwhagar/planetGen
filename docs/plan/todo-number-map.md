@@ -2026,7 +2026,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1248 | The stored habitable-request answer (habitable_request_status) disagrees with the world count: answer from habitable_request.count and meets (bug) | none | done, PR #4842 |
 | GEN.1249 | A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree | none | open |
 | GEN.1250 | With HABITABLE_WORLD off, about 3 percent of sampled dwarf systems still hold a planet that meets the request's conditions (bug) | none | open |
-| GEN.1251 | Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid | none | open |
+| GEN.1251 | Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid | none | dropped (Aux 4, 2026-11-04: GEN.1052 already covers the non-water tide hook) |
 | GEN.1252 | Methane fluxes of fuel-limited life classes are multiplied by their share of net primary production: sum fuel-limited rows once per fuel (bug) | none | open |
 | GEN.1253 | toxin_factor has no SO2 or H2S term, so worlds with an acid-eater air read as clean for animals (bug) | none | open |
 | GEN.1254 | Every scatter star and scattered phenomenon gets an Object ID (uid) when the scatter is made: uid column on bright_stars and phenomenon_scatter, serial = rank in the sector | none | open |
