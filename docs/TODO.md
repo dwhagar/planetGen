@@ -14317,25 +14317,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **GEN.1237 An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug)**
-  Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
-  2026-11-01 on main b153f0209; 40 seeds per twin, G2V star), filed by
-  the TODO thread. The Earth twin's N2 is good (median 3.7e18 kg against
-  3.9e18 observed) but its climate is not: only 1 of 40 is temperate
-  (260 to 330 K); the median is 376 K at 3.7 bar, and the classes drawn
-  are H, M, N and O. The one temperate twin holds about 1e23 kg of ocean
-  (a rough estimate, ocean fraction times depth) against Earth's 1.4e21.
-  Do: separate the causes (water inventory and delivery, the greenhouse
-  at 3.7 bar of mostly N2 and CO2, the albedo, the class rules) with a
-  sweep of the same 40 seeds, print temperate count and ocean mass per
-  class, and fix the weakest law or register a stand-in in GEN.725 with
-  tier and tweak level. Earth is a plausibility target here, never fixed
-  content. Lock work if stored values change (epoch, census). Related:
-  GEN.819, GEN.909 (cold ecosphere), GEN.822, GEN.830, GEN.837 (class
-  N), GEN.1236. Owner: none yet.
-  Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **GEN.1238 A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug)**
   Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
   2026-11-01 on main b153f0209; 40 seeds), filed by the TODO thread. The

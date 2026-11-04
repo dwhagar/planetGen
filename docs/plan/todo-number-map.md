@@ -2009,7 +2009,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
 | GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
 | GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) | none | open |
-| GEN.1237 | An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug) | none | open |
+| GEN.1237 | An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug) | none | dropped (not a bug (Aux 3, 2026-11-04): the twin setup put the planet inside the inner edge of its star habitable zone; at Earth insolation 25 of 40 are temperate and the ocean mass follows the Bern water law of GEN.849) |
 | GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) | none | open |
 | GEN.1239 | The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
