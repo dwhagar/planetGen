@@ -2677,7 +2677,6 @@ rogue_planets = sa.Table(
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('body_type', sa.String(4), nullable=True),
     sa.Column('volume_km3', mysql.DOUBLE(), nullable=True),
-    sa.Column('description', sa.Text(), nullable=True),
     sa.Column('gravity_g', mysql.DOUBLE(), nullable=True),
     sa.Column('atmosphere', sa.Text(), nullable=True),
     sa.Column('atm_density', mysql.DOUBLE(), nullable=True),

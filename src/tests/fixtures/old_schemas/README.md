@@ -88,3 +88,7 @@ Commit each file came from:
 - v202: train 9 (GEN.1138 designations, before GEN.1209 life per class; train 9 schema at e3f3908e0)
 - v203: train 9 (GEN.1209 life per class, before GEN.1069 belt origin; train 9 schema at 23820b6a6)
 - v204: train 9 (belt origin, before GEN.1218b surface liquid mix; the schema of main after train 9, built by Tides 1, the Train Manager may replace it)
+- v205: train 10 (GEN.1218b surface liquid mix, before GEN.1219 body type and class digit; train 10 schema at 8c3ae2b76)
+- v206: train 10 (GEN.1219, GEN.1220, GEN.1226, before GEN.1111 rogue planet is a planet; train 10 schema at 99f54cce4)
+- v207: train 10 (GEN.1111 rogue planet is a planet, before GEN.1212 no description; train 10 schema at 43f3afe46)
+- v208: train 10 (GEN.1212 no description, before GEN.1070 belt members; train 10 schema at 5349a86ef)

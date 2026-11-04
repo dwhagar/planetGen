@@ -1,6 +1,6 @@
 """A rogue planet is a planet with no star (GEN.1111).
 
-Schema v205. `rogue_planets` gains every column a `planets` row has apart from the orbit round a host, so the one planet chain can write a rogue
+Schema v207. `rogue_planets` gains every column a `planets` row has apart from the orbit round a host, so the one planet chain can write a rogue
 (the same names and types; all NULL here, since the flat-rate rogue that wrote the rows before never had them and the regenerated galaxy replaces it),
 and six columns of its own: `donor_uid` and `event_index` (the system that ejected it and which of that system's ejections it is; the pair is unique,
 so saving a donor again replaces its rogues and never duplicates them), `ejection_delay_gy` (how long after the system formed it was ejected),
@@ -16,15 +16,14 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0205"
-down_revision = "0204"
+revision = "0207"
+down_revision = "0206"
 branch_labels = None
 depends_on = None
 
 COLUMNS = (
     ('body_type', "VARCHAR(4) CHECK (body_type IN ('t', 'g')) NULL"),
     ('volume_km3', 'DOUBLE NULL'),
-    ('description', 'TEXT NULL'),
     ('gravity_g', 'DOUBLE NULL'),
     ('atmosphere', 'TEXT NULL'),
     ('atm_density', 'DOUBLE NULL'),

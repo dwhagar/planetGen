@@ -1,8 +1,8 @@
 """The body type and the digit of the class code (GEN.1219, GEN.1220), and the envelope share of every body (GEN.1226).
 
-Schema v205. `planets` and `moons` gain `planet_type` (VARCHAR(12): terrestrial, transitional or gas, from the envelope share of the mass,
+Schema v206. `planets` and `moons` gain `planet_type` (VARCHAR(12): terrestrial, transitional or gas, from the envelope share of the mass,
 `physics/planet_type.py`) and `class_variant` (TINYINT, 0 to 9, the digit of the class code; 0 is not written, `physics/class_code.py`). Both are
-NULL here: a row made before v205 gets them when the galaxy is regenerated. `envelope_mass_fraction` was there already and now holds the true
+NULL here: a row made before v206 gets them when the galaxy is regenerated. `envelope_mass_fraction` was there already and now holds the true
 share of a hydrogen-rich air (`physics/envelope_share.py`) for every rocky body. A column already there is skipped, so a stopped run can be started again.
 """
 
@@ -11,8 +11,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0205"
-down_revision = "0204"
+revision = "0206"
+down_revision = "0205"
 branch_labels = None
 depends_on = None
 
