@@ -44,8 +44,6 @@ Denobulan. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://m
 
 Drayan. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Drayan](https://memory-alpha.fandom.com/wiki/Drayan)
 
-Erdmann, T. J., & Block, P. M. (2000). *Star Trek: Deep Space Nine companion*. Pocket Books.
-
 Ferengi. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Ferengi](https://memory-alpha.fandom.com/wiki/Ferengi)
 
 Goa'uld. (n.d.). In *Stargate Wiki*. Retrieved October 2, 2026, from [https://stargate.fandom.com/wiki/Goa%27uld](https://stargate.fandom.com/wiki/Goa%27uld)
@@ -60,12 +58,10 @@ Nox. (n.d.). In *Stargate Wiki*. Retrieved October 2, 2026, from [https://starga
 
 Ocampa. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Ocampa](https://memory-alpha.fandom.com/wiki/Ocampa)
 
-Okuda, M., Okuda, D., & Mirek, D. (1999). *The Star Trek encyclopedia: A reference guide to the future* (Rev. and expanded ed.). Pocket Books.
-
-Petkowski, J. J., Bains, W., & Seager, S. (2020). On the Potential of Silicon as a Building Block for Life. *Life*, *10*(6), 84. [R3502]
+[R3502]
 Cited by: 137
 
-Schmidt, M. (2010). Xenobiology: A new form of life as the ultimate biosafety tool. *BioEssays*, *32*(4), 322–331. [R3965]
+[R3965]
 Cited by: 312
 
 Sith abomination. (n.d.). In *Wookieepedia*. Retrieved October 2, 2026, from [https://starwars.fandom.com/wiki/Sith_abomination](https://starwars.fandom.com/wiki/Sith_abomination)
@@ -73,7 +69,5 @@ Sith abomination. (n.d.). In *Wookieepedia*. Retrieved October 2, 2026, from [ht
 Tholian. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Tholian](https://memory-alpha.fandom.com/wiki/Tholian)
 
 Vulcan. (n.d.). In *Memory Alpha*. Retrieved October 2, 2026, from [https://memory-alpha.fandom.com/wiki/Vulcan](https://memory-alpha.fandom.com/wiki/Vulcan)
-
-Wallace, D. (2012). *Book of Sith: Secrets from the dark side*. Chronicle Books.
 
 Wraith. (n.d.). In *Stargate Wiki*. Retrieved October 2, 2026, from [https://stargate.fandom.com/wiki/Wraith](https://stargate.fandom.com/wiki/Wraith)

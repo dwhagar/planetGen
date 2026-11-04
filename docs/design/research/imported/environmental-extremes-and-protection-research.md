@@ -444,19 +444,11 @@ Ultimately, these systems reflect the core physics of life support: as an operat
 
 ### References
 
-Chappell, S. P., Abercromby, A. F. J., & Gernhardt, M. L. (2017). *EVA operations injuries and compromised performance* (NASA-JSC-CN-39092). NASA Johnson Space Center.
-
-D'Onghia, E., et al. (2025). *CREWHat: Cosmic radiation protection with high-temperature superconducting magnet arrays* (NASA/NIAC Phase I Final Report). NASA.
-
 Diving Medical Advisory Committee. (2024). *Guidance on hyperbaric thermal hazards and saturation diving limits* (DMAC Guidance Note 29). DMAC / European Diving Technology Committee.
 
 DuPont Personal Protection. (2019). *DuPont SafeSpec chemical permeation guide: ASTM F739 normalized breakthrough times*. Syracuse University Environmental Health and Safety Services.
 
 European Space Agency. (2026). *Top five Venus mysteries EnVision will solve: Atmospheric oxidants and surface conditions*. ESA Science & Exploration.
-
-Hargens, A. R. (2014). *Modeling and design of a BioSuit donning system*. University of California, San Diego / NASA.
-
-Hargens, A. R. (2025). *Physiological effects of a mechanical counter pressure glove*. University of California, San Diego / NASA Johnson Space Center.
 
 Humans to Titan Organization. (2026). *Human exploration of Titan: Atmospheric thermal environments and life support requirements*. Humans to Titan.
 
@@ -468,13 +460,9 @@ International Conference on Environmental Systems. (2023). *Advanced LCVG tubing
 
 International Enviroguard. (2026). *Hazardous materials hazmat protection levels: OSHA Level A through Level D standards*. International Enviroguard Technical Bulletin.
 
-Kaczmarek, S. (2025). *Thermal management and sublimator heat rejection for lunar surface missions*. Lunar Exploration Science.
-
-Lam, C. W., Scully, R. R., & Romoser, A. A. (2016). *Martian dust toxicity: Should we believe the headlines?* (LPI Contribution No. 1966, Paper #6004). Lunar and Planetary Institute.
-
 Mission Orbit. (2025). *Extravehicular activity (EVA) spacesuit biomechanics, PLSS architecture, and spacewalk ergonomics*. Mission Orbit Aerospace Publications.
 
-Murray, D. H., Pilmanis, A. A., & Webb, J. T. (2013). *Pathophysiology, prevention, and treatment of ebullism*. U.S. Air Force Research Laboratory / ResearchGate.
+[R5002]
 
 National Aeronautics and Space Administration. (1993). *LCVG and development of new concepts for EMU heat sink* (NASA-CR-19930005417). NASA NTRS.
 
@@ -512,9 +500,7 @@ Occupational Safety and Health Administration. (2026b). *Respiratory protection:
 
 Occupational Safety and Health Administration. (2026c). *Fit testing and seal integrity protocols for tight-fitting respirators* (29 CFR 1910.134 Appendix A & B). U.S. Department of Labor.
 
-Rawal, S., Homer, P., & Wang, Y. (2021). Study on the design of space gloves and EVA suits with future challenges. *The Textile Research Journal*, 91(12), 1432–1448. [R4185]
-
-Scheuring, R. A., Mathers, C. H., Jones, J. A., & Wear, M. L. (2015). *Development of a comprehensive astronaut spacesuit injury database*. NASA Johnson Space Center.
+[R4185]
 
 Space Voyage Ventures. (2025). *Space gloves: Tactility, ergonomics, and environmental protection in harsh extravehicular environments*. Space Voyage Ventures Engineering Reports.
 

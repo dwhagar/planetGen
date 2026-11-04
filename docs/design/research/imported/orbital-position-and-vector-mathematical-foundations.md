@@ -603,72 +603,46 @@ Finally, for problems with closely spaced eigenvalues or singular values that ca
 
 ## References
 
-Argyros, I. K. (1998). A new Kantorovich-type theorem for Newton's method. _Zeszyty Naukowe Politechniki Rzeszowskiej. Matematyka_, 26(23), 151–159.
+[R0139]
 
-Bauer, F. L., & Fike, C. T. (1960). Norms and exclusion theorems. _Numerische Mathematik_, 2(1), 137–141.
+[R0287]
 
-Brent, R. P. (1973). _Algorithms for Minimization without Derivatives_. Prentice-Hall.
+[R0557]
 
-Broyden, C. G. (1970). The convergence of a class of double-rank minimization algorithms 1. General considerations. _IMA Journal of Applied Mathematics_, 6(1), 76–90.
+[R0959]
 
-Ciarlet, P. G., & Mardare, C. (2014). On the Newton-Kantorovich theorem. _Mathematical Modelling and Numerical Analysis_, 48(4), 1181–1193.
+[R1072]
 
-Cullum, J. K., & Willoughby, R. A. (1985). _Lanczos Algorithms for Large Symmetric Eigenvalue Computations: Vol. 1: Theory_. Birkhäuser.
+[R1356]
 
-Dekker, T. J. (1969). Finding a zero by means of successive linear interpolation. In B. Dejon & P. Henrici (Eds.), _Constructive Aspects of the Fundamental Theorem of Algebra_ (pp. 37–48). Wiley-Interscience.
+[R1390]
 
-Demmel, J., & Kahan, W. (1990). Accurate singular values of bidiagonal matrices. _SIAM Journal on Scientific and Statistical Computing_, 11(5), 873–912.
+[R1436]
 
-Fernando, K. V., & Parlett, B. N. (1994). Accurate singular values and differential qd algorithms. _Numerische Mathematik_, 67(2), 191–229.
+[R1609]
 
-Fletcher, R. (1970). A new approach to variable metric algorithms. _The Computer Journal_, 13(3), 317–322.
+[R1622]
 
-Francis, J. G. F. (1961). The QR transformation a unitary analogue to the LR transformation—Part 1. _The Computer Journal_, 4(3), 265–271.
+[R1935]
 
-Goldfarb, D. (1970). A family of variable-metric methods derived by variational means. _Mathematics of Computation_, 24(109), 23–26.
+[R1936]
 
-Golik, W. L. (2004). The QR algorithm. _Eigenvalues of Dense Matrices_, Lecture Notes, 1–18.
+[R2551]
 
-Golub, G. H., & Kahan, W. (1965). Calculating the singular values and pseudo-inverse of a matrix. _Journal of the Society for Industrial and Applied Mathematics, Series B: Numerical Analysis_, 2(2), 205–224.
+[R5011]
 
-Higham, D. J., Higham, N. J., & Pranesh, S. (2021). Random matrices generating large growth in LU factorization with pivoting. _SIAM Journal on Matrix Analysis and Applications_, 42(1), 185–201.
+[R5012]
 
-Higham, N. J. (2002). _Accuracy and Stability of Numerical Algorithms_ (2nd ed.). Society for Industrial and Applied Mathematics.
+[R3435]
 
-Kaniel, S. (1966). Estimates for some executions of approximation of eigenvalues of symmetric operators. _Mathematics of Computation_, 20(93), 92–101.
+[R3570]
 
-Kantorovich, L. V. (1948). On Functional Equations and Functional Analysis. _Doklady Akademii Nauk SSSR_, 59(2), 209–212.
+[R3595]
 
-Kantorovich, L. V., & Akilov, G. P. (1982). _Functional Analysis_ (2nd ed.). Pergamon Press.
+[R3859]
 
-Lanczos, C. (1950). An iteration method for the solution of the eigenvalue problem of linear differential and integral operators. _Journal of Research of the National Bureau of Standards_, 45(4), 255–282.
+[R4038]
 
-Magreñán, A. (2016). On the convergence of Newton's method. _CMMSE Conference Proceedings_, 114–118.
+[R4095]
 
-Nocedal, J., & Wright, S. J. (2006). _Numerical Optimization_ (2nd ed.). Springer.
-
-Ortega, J. M., & Rheinboldt, W. C. (1970). _Iterative Solution of Nonlinear Equations in Several Variables_. Academic Press.
-
-Paige, C. C. (1971). _The Computation of Eigenvalues and Eigenvectors of Very Large Sparse Matrices_ (Doctoral dissertation). University of London.
-
-Paige, C. C. (1976). Error analysis of the Lanczos algorithm for symmetric matrices. _IMA Journal of Applied Mathematics_, 18(3), 341–349.
-
-Paige, C. C. (1980). Accuracy and effectiveness of the Lanczos algorithm for the symmetric eigenproblem. _Linear Algebra and its Applications_, 34, 235–258.
-
-Parlett, B. N. (1998). _The Symmetric Eigenvalue Problem_. Society for Industrial and Applied Mathematics.
-
-Parlett, B. N., & Scott, D. S. (1979). The tracking of spurious eigenvalues in the Lanczos algorithm. _Mathematics of Computation_, 33(145), 217–238.
-
-Polyak, B. T. (2007). Newton's method and its use in optimization. _European Journal of Operational Research_, 181(3), 1086–1096.
-
-Powell, M. J. D. (1978). A fast algorithm for nonlinearly constrained optimization calculations. In G. A. Watson (Ed.), _Numerical Analysis_ (pp. 144–157). Springer.
-
-Saad, Y. (1980). On the rates of convergence of the Lanczos and the block-Lanczos methods. _SIAM Journal on Numerical Analysis_, 17(5), 687–706.
-
-Shanno, D. F. (1970). Conditioning of quasi-Newton methods for function minimization. _Mathematics of Computation_, 24(111), 647–656.
-
-Simon, H. D. (1984). The Lanczos algorithm with partial reorthogonalization. _Mathematics of Computation_, 42(165), 115–142.
-
-Wilkinson, J. H. (1961). Error analysis of direct methods of matrix inversion. _Journal of the ACM_, 8(3), 281–330.
-
-Wilkinson, J. H. (1965). _The Algebraic Eigenvalue Problem_. Oxford University Press.
+[R4701]

@@ -273,8 +273,6 @@ Epic Games. (n.d.). Utility expressions. Unreal Engine Documentation. https://de
 
 Friederichs, F., & Eisemann, E. (n.d.). Layered weighted blended order-independent transparency. TU Delft Graphics Publications. https://publications.graphics.tudelft.nl/rails/active_storage/blobs/redirect/.../layered_weighted_blended_order_independent_transparency.pdf
 
-Gavgani, A. M., et al. (2020). Cybersickness in HMD VR. Frontiers in Virtual Reality. https://www.frontiersin.org/journals/virtual-reality/articles/10.3389/frvir.2020.587698/full
-
 Greig, M. (n.d.). Easing and splines research. GitHub. https://github.com/marcgreig/Easing-and-Splines-Research
 
 Groth, et al. (2021). Mitigating cybersickness in 360° videos. IEEE VR. https://graphics.tu-bs.de/upload/publications/Groth2021IEEEVR_WISP.pdf
@@ -337,10 +335,6 @@ Void Room. (n.d.). Solving transparency with dithering. https://void-room.itch.i
 
 Wronski, B. (n.d.). Part three – dithering in quantization of 2D images. https://bartwronski.com/page/3/
 
-Wronski, B., et al. (2023). Contact hardening soft shadows. https://wojtsterna.com/wp-content/uploads/2023/02/contact_hardening_soft_shadows.pdf
-
 Xiangk_81891. (2023). Unity DOTS 2023: Fadeout objects near camera. Medium. https://medium.com/@xiangk_81891/unity-dots-2023-fadeout-objects-near-camera-27f5f7f68eb7
 
 YouTube. (n.d.). Retro style shader in Unreal Engine 4 using the dither temporal aa node [Video]. https://www.youtube.com/watch?v=hrDnawIss24
-
-Zhang, H. (1998). Occlusion culling algorithms. Game Developer. https://www.gamedeveloper.com/programming/occlusion-culling-algorithms

@@ -211,73 +211,61 @@ Planetary habitability is not a binary condition, but an overlapping continuum s
 References
 ----------
 
-* Armstrong, H. G. (1939). _Principles and practice of aviation medicine_. Williams & Wilkins.
-
-* Bennett, P. B., & Rostain, J. C. (2003). Inert gas narcosis. In A. O. Brubakk & T. S. Neuman (Eds.), _Bennett and Elliott's physiology and medicine of diving_ (5th ed., pp. 300–322). Saunders.
-
-* Catling, D. C., & Kasting, J. F. (2017). _Atmospheric evolution on inhabited and uninhabited worlds_. Cambridge University Press. [R0692]
+* [R0692]
 
 
-* Domagal-Goldman, S. D., Segura, A., Claire, M. W., Robinson, T. D., & Meadows, V. S. (2014). Abiotic ozone and oxygen in atmospheres similar to prebiotic Earth. _The Astrophysical Journal_, 792(2), 90. [R1137]
+* [R1137]
 
-* Frost, D. J., & McCammon, C. A. (2008). The redox state of Earth's mantle. _Annual Review of Earth and Planetary Sciences_, 36(1), 389–420. [R1465]
-
-
-* Gao, P., Kopparapu, R. K., Zhang, X., & Yung, Y. L. (2015). Stability of $\text{CO}_2$ atmospheres on terrestrial exoplanets orbiting M dwarfs: Implications for biosignatures. _The Astrophysical Journal_, 806(2), 249. [R4973]
+* [R1465]
 
 
-* Hardison, W. G., Wright, C. A., & Severinghaus, J. W. (1998). Carbon monoxide kinetics and toxicity in hypoxia. _Journal of Applied Physiology_, 84(5), 1530–1538.
-
-* Harman, C. E., Felton, R., Kopparapu, R. K., Domagal-Goldman, S. D., Segura, A., Tian, F., & Kasting, J. F. (2018). Abiotic $\text{O}_2$ levels on planets around M dwarfs: Implications for biosignatures. _The Astrophysical Journal_, 866(1), 56. [R1813]
-
-* Hirschmann, M. M. (2012). Magma ocean degassing and the origin of Earth's atmosphere. _Earth and Planetary Science Letters_, 341, 48–57. [R1953]
+* [R4973]
 
 
-* Johnson, B. R., & Goldblatt, C. (2015). The nitrogen budget of Earth. _Earth-Science Reviews_, 148, 150–173. [R2171]
+* [R1813]
+
+* [R1953]
 
 
-* Kasting, J. F., Whitmire, D. P., & Reynolds, R. T. (1993). Habitable zones around main sequence stars. _Icarus_, 101(1), 108–128. [R2281]
-
-* Krissansen-Totton, J., Olson, S., & Catling, D. C. (2018). Atmospheric disequilibrium as a biosignature. _Science Advances_, 4(1), eaao5747. [R2492]
-
-* Lambertsen, C. J. (1971). Therapeutic gases: Oxygen, carbon dioxide, and helium. In L. S. Goodman & A. Gilman (Eds.), _The pharmacological basis of therapeutics_ (4th ed., pp. 913–937). Macmillan.
-
-* Lammer, H., Lichtenegger, H. I., Kulikov, Y. N., Grießmeier, J. M., Terada, N., Erkaev, N. V., & Biernat, H. K. (2008). Coronal mass ejection (CME) activity of low mass M stars as an important factor for the habitability of terrestrial exoplanets. _Astrobiology_, 8(1), 39–56. [R3799]
-
-* Landis, G. A. (2001). Human survival on the surface of Mars. _Journal of the British Interplanetary Society_, 54(3), 120–126.
+* [R2171]
 
 
-* Luger, R., & Barnes, R. (2015). Extreme water loss and abiotic oxygen buildup on planets throughout the habitable zones of M dwarfs. _Astrobiology_, 15(2), 119–143. [R2769]
+* [R2281]
+
+* [R2492]
+
+* [R3799]
 
 
-* McKay, C. P. (2014). Requirements and limits for life in the context of exoplanets. _Proceedings of the National Academy of Sciences_, 111(35), 12628–12633. [R2997]
-
-* Meadows, V. S., Arney, G. N., Schwieterman, E. W., Lustig-Yaeger, J., Lincowski, A. P., Robinson, T. D., & Barnes, R. (2018). The habitability of Proxima Centauri b. I. Irradiation, atmospheric loss and water loss. _Astrobiology_, 18(2), 133–189. [R3014]
-
-* Mikhail, S., & Holloway, J. R. (2014). Nitrogen cycle in the deep Earth and atmospheric accumulation. _Geochimica et Cosmochimica Acta_, 139, 421–433. [R4878]
-
-* Ortenzi, G., Noack, L., Sohl, F., Guimond, C. M., Grenfell, J. L., Dorn, C., & Rauer, H. (2020). Structural and chemical controls on mantle degassing on terrestrial exoplanets. _Scientific Reports_, 10(1), 10907. [R3378]
-
-* Owen, J. E. (2019). Atmospheric escape and the evolution of terrestrial exoplanets. _Annual Review of Earth and Planetary Sciences_, 47(1), 67–90. [R3389]
-
-* Pierrehumbert, R., & Gaidos, E. (2011). Hydrogen greenhouse planets beyond the habitable zone. _The Astrophysical Journal Letters_, 734(1), L13. [R3518]
-
-* Piette, A. A., Madhusudhan, N., & Welbanks, L. (2020). Atmospheric retrieval of hydrogen-rich super-Earths. _Monthly Notices of the Royal Astronomical Society_, 496(4), 3870–3886. [R4032]
-
-* Ragsdale, S. W. (2004). Life with carbon monoxide. _Critical Reviews in Biochemistry and Molecular Biology_, 39(3), 165–195. [R3648]
-
-* Schwieterman, E. W., Meadows, V. S., Domagal-Goldman, S. D., Deming, D., Arney, G. N., Luger, R., & Misra, A. (2016). Identifying abiotic oxygen biosignature false positives. _The Astrophysical Journal Letters_, 819(1), L13. [R3985]
-
-* Schwieterman, E. W., Reinhard, C. T., Olson, S. L., Harman, C. E., & Lyons, T. W. (2019). A limited habitable zone for complex animal life. _The Astrophysical Journal_, 878(1), 19. [R3986]
+* [R2769]
 
 
-* Sleep, N. H., Meibom, A., Fridriksson, T., Coleman, R. G., & Bird, D. K. (2004). Serpentinization and hydrogen generation in oceanic lithosphere. _Proceedings of the National Academy of Sciences_, 101(36), 12818–12823. [R4119]
+* [R2997]
+
+* [R3014]
+
+* [R4878]
+
+* [R3378]
+
+* [R3389]
+
+* [R3518]
+
+* [R4032]
+
+* [R3648]
+
+* [R3985]
+
+* [R3986]
 
 
-* West, J. B. (2012). _Respiratory physiology: The essentials_ (9th ed.). Lippincott Williams & Wilkins.
+* [R4119]
 
-* Wordsworth, R. D. (2015). The climate of terrestrial exoplanets. _Journal of Geophysical Research: Planets_, 120(6), 1201–1219. [R4001]
 
-* Wordsworth, R. D., & Forget, F. (2014). Abiotic oxygen buildup on terrestrial exoplanets orbiting M dwarfs. _The Astrophysical Journal Letters_, 785(2), L20. [R4771]
+* [R4001]
 
-* Wordsworth, R. D., Kalugina, Y., Lokshtanov, S., Vigasin, A., Ehlmann, B., Head, J., & Forget, F. (2017). Transient $\text{H}_2\text{--}\text{CO}_2$ greenhouse warming on early Mars. _Geophysical Research Letters_, 44(2), 665–671. [R4770]
+* [R4771]
+
+* [R4770]
