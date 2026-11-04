@@ -45,7 +45,7 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "greenhouse_table.json")
 """str: The fitted table (`scripts/fit_greenhouse_table.py`)."""
 
 
-TABLED_GASES = ("H2O", "CO2", "CH4")
+TABLED_GASES = ("H2O", "CO2", "CH4", "NH3", "SO2", "H2S", "CO", "HCN")
 """tuple: The gases with a correlated-k table (`datasets/ir_ktables.py`)."""
 PAIRING_GASES = ("N2", "O2", "H2", "He")
 """tuple: The gases whose collision-induced pairs with each other and with the tabled gases the model reads (`datasets/hitran_cia.py`)."""

@@ -71,7 +71,7 @@ def test_the_features_follow_the_names_and_an_absent_gas_sits_at_the_floor():
 def test_gases_with_stand_in_bands_are_counted_by_the_strength_the_gas_table_flags_them_with():
     from planetgen.physics import gases
 
-    strong = next(f for f in ("NH3", "H2S", "SO2") if gases.gas(f).ir == "ir")
+    strong = next(f for f in ("C2H6", "O3", "N2O") if gases.gas(f).ir == "ir")
     named = dict(zip(gt.FEATURE_NAMES, gt.features({"N2": 0.9e5, strong: 0.1e5}, 9.81, 240.0)))
     assert named["ln_fraction_ir"] == pytest.approx(math.log(0.1 + gt.FRACTION_FLOOR))
     assert named["ln_fraction_weak"] == pytest.approx(math.log(gt.FRACTION_FLOOR))
