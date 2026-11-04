@@ -203,7 +203,7 @@ def _run_life(planet, letter=None):
         life.apply_life_data(clone)
     outcome = clone.life_class_id, clone.life_stage, tuple(getattr(clone, field, None) for field in evolution.SCHEDULE_FIELDS)
     age = getattr(clone.star, "age", None)
-    waiting = outcome[0] is None and ((age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY) or begun == [False])
+    waiting = outcome[0] is None and ((age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY) or (begun and not any(begun)))
     return outcome, waiting
 
 

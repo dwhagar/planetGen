@@ -96,8 +96,16 @@ def _apply(planet, keep_stored, key):
     cands = [headline, *_minor_candidates(planet, scores, chosen, keep_stored, key)]
     cands = _redate(planet, cands)
     if not _begun(planet, headline):
-        _lifeless(planet, scores, f"class {row.id} is supported but its first step comes after the star's age")
-        return
+        # The class with the most production has not got going by the star's age (GEN.1001), but another that the conditions support has (`_redate` kept
+        # only those): the first of them, by production, is the one that lives here and heads the list.
+        if len(cands) == 1:
+            _lifeless(planet, scores, f"class {row.id} is supported but its first step comes after the star's age")
+            return
+        cands = _redate(planet, cands[1:])
+        headline = cands[0]
+        row, chosen = headline.row, headline.score
+        _set_class(planet, row)
+        log.choice("Life class", row.id, "the first class that has begun by the star's age; the one with the most production has not")
     cands = _settle(planet, cands, key)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
     if not (final.get(row.id) and final[row.id].score > 0):
