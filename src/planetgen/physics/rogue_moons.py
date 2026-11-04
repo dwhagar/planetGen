@@ -97,6 +97,18 @@ def survival_probability(moon_axis_m, planet_mass_kg, scatterer_mass_kg, hill_ra
     return closest_approach_survival(needed / hill_radius_m)
 
 
+def moon_limit_km(hill_radius_km, stable_hill_fraction, r_min_km, planet_mass_kg, scatterer_mass_kg):
+    """
+    The widest orbit, km from the planet, a moon of a planet that is thrown out can have and still be there afterwards (GEN.1111, RP4): the lower of the
+    outer edge of a moon's stable zone round the planet before the ejection (`stable_hill_fraction` of the planet's Hill radius there, the moon window of
+    `clearance_ledger.moon_bounds_km`) and the widest orbit that follows the planet through the closest approach of the ejection (`survival_distance_m`).
+    It is the `high_km` the moon system of the rogue is built inside, in place of the Hill sphere of a host it no longer has.
+    """
+    if min(hill_radius_km, stable_hill_fraction) <= 0.0:
+        raise RogueMoonError("the Hill radius and the stable fraction must be positive")
+    return min(hill_radius_km * stable_hill_fraction, survival_distance_m(r_min_km * 1000.0, planet_mass_kg, scatterer_mass_kg) / 1000.0)
+
+
 @finite_domain()
 def circularisation_flux_w_m2(planet_mass_kg, planet_radius_m, moon_mass_kg, moon_axis_m, eccentricity=EJECTED_MOON_ECCENTRICITY, k2_over_q=None):
     """

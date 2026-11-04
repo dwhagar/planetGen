@@ -100,11 +100,6 @@ def profile(l_shell, inner_l, peak_l, outer_l, rise_exponent=OUTER_RISE_EXPONENT
     return (peak_l / l_shell) ** FALL_EXPONENT * (1.0 - (l_shell / outer_l) ** EDGE_EXPONENT) / (1.0 - (peak_l / outer_l) ** EDGE_EXPONENT)
 
 
-def equatorial_field_t(moment_a_m2, radius_m):
-    """The dipole's field at the equator of the surface, tesla."""
-    return VACUUM_PERMEABILITY * moment_a_m2 / (4.0 * math.pi * radius_m ** 3)
-
-
 def standoff_m(moment_a_m2, wind_pressure_pa):
     """The magnetopause standoff, m: Earth's 9.75 radii scaled by the cube root of the moment and the sixth root of the wind's pressure."""
     return (EARTH_STANDOFF_RP * EARTH_RADIUS_M * (moment_a_m2 / EARTH_MOMENT_A_M2) ** (1.0 / 3.0)
@@ -174,11 +169,6 @@ def belts_of_body(body, star_distance_au=None):
 def dose_gy_yr(belts, l_shell):
     """The dose rate at `l_shell`, Gy/yr behind `SHIELD_G_CM2` of aluminium: the sum of the belts' (0 for none)."""
     return sum(belt.dose_gy_yr(l_shell) for belt in belts)
-
-
-def dose_at_orbit_gy_yr(belts, orbit_radius_m, body_radius_m):
-    """The dose rate of a circular equatorial orbit of `orbit_radius_m` around a body of `body_radius_m`, Gy/yr behind the standard shield."""
-    return dose_gy_yr(belts, orbit_radius_m / body_radius_m)
 
 
 def air_cut(column_g_cm2):

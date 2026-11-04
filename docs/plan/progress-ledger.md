@@ -2304,3 +2304,21 @@ Baseline: PR #1817.
 | TEST.551 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.545 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.224 | 8.1 | Queue, caches and performance |
+| ADM.137 | 8.9 | Remote generation |
+| TEST.546 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.552 | 8.9 | Remote generation |
+| TEST.501 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.135 | 9.4 | Family outlines |
+| UX.243 | 8.2 | Search by physical values |
+| GEN.1200 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.999 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1137 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.996 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.257 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.821 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.824 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.520 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.230 | 8.2 | Robust tile caching |
+| GEN.819 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.553 | 8.2 | Robust tile caching |
+| DOC.101 | 8.2 | Robust tile caching |

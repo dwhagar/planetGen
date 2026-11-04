@@ -36,23 +36,9 @@ def test_the_opening_paragraph_thanks_the_researchers():
     assert "would not be possible without the dedicated work of the researchers" in text
 
 
-def _outcome(key):
-    status = CACHE.get("authoryear_status", {}).get(key, {})
-    if status.get("matched"):
-        return "tied"
-    if status.get("not_a_paper"):
-        return "not a paper"
-    if status.get("review"):
-        return "review"
-    return None
-
-
-def test_every_author_year_citation_has_an_outcome():
-    """A new author-and-year citation written anywhere in the repository must be tied to a paper, labelled as not a paper, or put on the review list
-    (run `build_references.py harvest`, then `settle_references.py triage local search`); it may not simply be unresolved."""
-    *_, ays, _ctx, _more = builder.harvest([])
-    open_keys = sorted("|".join(k) for k in ays if _outcome("|".join(k)) is None)
-    assert open_keys == [], "%d citations with no outcome, first: %s" % (len(open_keys), open_keys[:10])
+# TEST.553: the test that every author-year citation in the repository has an outcome (tied, not a paper, or for review) is retired. A
+# citation is no longer written by name anywhere outside the registry, and `test_citations_outside_the_registry.py` (DOC.99) fails on one that is,
+# whether the reference list knows the paper or not.
 
 
 def test_every_outcome_is_complete():
@@ -153,3 +139,17 @@ def test_the_id_helpers_of_the_site_agree_with_the_builder():
     assert builder.format_id(7) == "R0007" and builder.format_id(12345) == "R12345"
     with pytest.raises(ValueError):
         reference_urls.paper_anchor("10.1086/151682")
+
+
+def test_every_web_source_has_a_kind_a_page_and_the_date_it_was_opened():
+    """DOC.101: a standard, regulation, program documentation or web page is listed only after its page was opened, and says when."""
+    rows = CACHE.get("web_sources", [])
+    assert len(rows) >= 40
+    for row in rows:
+        assert row["kind"] in builder.WEB_KINDS and row["name"].strip() and row["provider"].strip(), row
+        assert row["url"].startswith("https://") or row["url"].startswith("http://"), row
+        assert len(row["checked"]) == 10 and row["checked"][4] == "-", row
+        assert CACHE["ids"]["web:" + row["url"].lower()].startswith("R"), row
+    assert len({row["url"].lower() for row in rows}) == len(rows)
+    text = (ROOT / "docs" / "REFERENCES.md").read_text(encoding="utf-8")
+    assert "### Standards, regulations, software documentation and web pages" in text

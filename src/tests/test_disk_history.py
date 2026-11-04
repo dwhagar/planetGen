@@ -164,8 +164,7 @@ def _depletion_time_gy(found):
 def test_a_milky_way_mass_disc_keeps_its_gas_for_the_measured_depletion_time_and_the_local_gas():
     """GEN.999: with the law steepening where the gas thins (GEN.450) the disc of 3e10 solar masses of stars depletes its gas in 2.5
     to 4.2 Gy (1.0 to 4.2 Gy is the measured range, Sources 2 on GEN.998; the plain Kennicutt law gave 1.8) and holds a local gas of the order of
-    the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium (McKee, Parravano and
-    Hollenbach 2015, Table 2: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
+    the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium ([R3002: Table 2]: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
     found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0, HALO)
     assert 2.5 <= _depletion_time_gy(found) <= 4.2
     solar = int(np.argmin(np.abs(found.radius_scale_lengths * 2600.0 - 8000.0)))
