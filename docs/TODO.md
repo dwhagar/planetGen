@@ -18486,26 +18486,6 @@ clears each one.
   (proposed).
   Prerequisites: none. Related: TEST.313, GEN.631.
 
-- [ ] **TEST.336 test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug)**
-  Reported by Core 5 at 6:51 AM EDT 2026-10-24 (as the lane's clock
-  reads) as failing on main too while merging GEN.309 (#2934): the
-  assertion shows 142 == 138. The TODO thread could not run it (the test
-  skips on this machine for lack of the database grants), so recheck on
-  current main first. Do: reproduce on current main; the count differs
-  by 4, so find which draw or migration step changed the number of
-  planets and moons the v135 fixture galaxy holds (a draw change from
-  GEN.631 or GEN.271, or the DB.98 fixture clean-up #2931, are the
-  likely sources) and fix the test or the migration. Done: the test
-  passes on main. Owner: Bug Hunt (proposed).
-  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
-  2026-10-24, as the lane reported): test_migration_habitable_worlds
-  fails with DataMissing on a fresh lane machine until the ozone_uv
-  dataset is fetched (python3 -m planetgen.cli.datasets fetch ozone_uv).
-  That may be the whole cause of this red on lane machines (the same
-  environment fault as TEST.319); recheck with the dataset fetched
-  before looking for a code cause.
-  Prerequisites: none. Related: DB.98, GEN.631, GEN.271.
-
 - [ ] **TEST.341 A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug)**
   Seen once by Habitability lane K (7:50 AM EDT 2026-10-24, as the lane
   reported) in the GEN.442 gate (#2956): a spatial-position test failed
@@ -18680,19 +18660,6 @@ clears each one.
   nothing in 8.1.
   Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
 
-- [ ] **TEST.387 test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug)**
-  Aux 3 (Lane D) saw test_every_column_is_written fail once in a batch
-  run (10:40 PM EDT 2026-10-24 as the lane reported): the four disk
-  columns were NULL in every row because the random draw produced no
-  star with a disk; it passes alone on main. The sheet fill audit
-  (reports/sheet-fill-summary-2026-10-25.md) shows only 1 of 522 stars
-  has a disk, so the test depends on luck. Make the test deterministic:
-  seed a fixture with a disk star, or exclude columns that are
-  conditionally written by a rule, and have the rule stated in one
-  place. Related fill items GEN.778 to GEN.791 (disk producer). Done:
-  the test passes on any seed, 20 runs in a row. Owner: Bug 1.
-  Prerequisites: none. Related: GEN.778.
-
 - [ ] **TEST.389 test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug)**
   Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported): in the
   gate of GEN.818 (nothing of that change is in generation)
@@ -18704,27 +18671,6 @@ clears each one.
   tables is the first suspect. Done: confirmed or cleared with the
   commit named; if real, fixed with a test. Owner: Bug 1.
   Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
-
-- [ ] **TEST.391 Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug)**
-  Reported by the Citations lane (1:30 AM EDT 2026-10-25, GEN.738 gate):
-  test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
-  fails on a clean origin/main, and
-  test_atmosphere_mixture_escape::test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen
-  fails with a top O2 of 0.498 against the 0.5 bound, also on main. Find
-  the cause of each (a real model change, a stale golden, or a bound
-  that needs its source), fix at the cause, never skip; the 0.5 bound
-  needs the source that sets it or a GEN.725 row. Done: both pass on a
-  clean main. Owner: Bug 1 (after TEST.384). Rules: no backward-compat
-  shims; tests are scripts/test.py changed --resume.
-  Finding (2026-10-09): Confirmed on clean origin/main by a second lane
-  (1:38 AM EDT 2026-10-25):
-  test_runaway_history.py::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
-  fails because lost_any is False for all 6 seeds, so no M3V Earth-zone
-  planet loses surface water.
-  Seen again (3:52 PM EDT 2026-10-30): Core 3 found test_runaway_history
-  surface water red on a clean origin/main again (relayed 3:52 PM EDT
-  2026-10-30 as the lane reported).
-  Prerequisites: none. Related: TEST.384, GEN.738.
 
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
   From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
@@ -19167,19 +19113,6 @@ clears each one.
   the test predates it, fix the cause, and say which in the change note.
   Owner: Aux 7.
   Prerequisites: none.
-
-- [ ] **TEST.564 test_a_directed_moon_count_still_goes_through_the_gate fails on main: moon counts vary 1 and 2 with a minimum of 0 where at least 1 and 80 percent at 2 are expected (bug)**
-  Found by the full-suite run (as the lane reported 9:36 AM EST on
-  2026-11-04) and reproduced alone on main 6d1d104.
-  tests/test_gen_hosting_wiring.py (GEN.1130 directed moon count). A
-  directed moon count of 2 should hold at least one moon in every draw
-  and 80 percent at two; draws read 1, 2, 1, 2 with a minimum of 0. Do:
-  find whether the moon count now passes through a rule that drops moons
-  (the stability test, GEN.1031, or moon survival) after the direction,
-  and whether the direction should hold against it or the test's
-  expectation is stale; fix and say which. If the generator changes, an
-  epoch rides a train. Owner: Aux 3, after GEN.1245.
-  Prerequisites: none. Related: GEN.1130.
 
 - [ ] **TEST.565 test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug)**
   Found by the full-suite run (as the lane reported 9:36 AM EST on
