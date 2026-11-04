@@ -27,6 +27,7 @@ from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.physics import orbits
 from planetgen.physics.orbits import calculate_hill_sphere, calculate_reflex_offset, minimum_update_interval_years
 from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
@@ -534,7 +535,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     climate_draws.record(planet, albedo, 0.0)       # the mixture subject reads the albedo
     setting = surface_air.setting_of(planet, albedo=albedo, starlight_w_m2=solar_output_at_orbit, star_distance_au=distance,
                                      heat=heat, surface_w=surface_w, water_lost=water_lost)
-    air = surface_air.solve(setting, surface_temperature_no_atmosphere)
+    start_k = surface_temperature_no_atmosphere
+    if _past_runaway_with_water(planet, solar_output_at_orbit, surface_w):
+        start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `_past_runaway_with_water`)
+    air = surface_air.solve(setting, start_k)
     if air is None or not air.partials_pa:
         planet.atm_density = planet.atm_molar_density = planet.scale_height = None
         atmosphere.store_air(planet, {}, None if giant else _mantle_redox(planet, air, distance, water_lost))
@@ -567,6 +571,21 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
+
+
+def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
+    """
+    Whether the body holds surface water under starlight past its runaway greenhouse limit (GEN.1238): an effective flux (in the Sun's at the
+    Earth, `starlight_w_m2` over `RUNAWAY_FLUX_REFERENCE_W_M2`) above `orbits.runaway_greenhouse_flux` of the star's temperature and the body's mass,
+    the limit the water-loss history already follows (`runaway_history`, GEN.639). Past it no ocean can stand, but the air's fixed point has two
+    answers there (a cool air with a few bar of vapour, whose greenhouse the table gives no limit to, and the steam air that holds the water),
+    and which one it finds depends on where it starts, so a body past the limit starts hot and finds the steam one; a body below it, or with no
+    water, starts from the airless temperature as before. No draw.
+    """
+    if not surface_w or planet.body_type == "g" or not getattr(planet.star, "temperature", None) or not planet.mass:
+        return False
+    effective = starlight_w_m2 / tuning.RUNAWAY_FLUX_REFERENCE_W_M2
+    return effective > orbits.runaway_greenhouse_flux(planet.star.temperature, units.converter("kg", "Mearth")(planet.mass))
 
 
 def refresh_at_final_age(body):
