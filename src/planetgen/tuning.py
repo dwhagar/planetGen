@@ -2337,7 +2337,7 @@ SYSTEM_FLAVOR = [ # System-only flavor text. Stored as the line itself (GEN.1212
     "a drifting cloud of mirror tiles that no one steers. It looks like a broken solar collection swarm.",
     "a network of navigation satellites across the system. They keep shifting their orbits, guided by a swarm intelligence with no single center.",
     "an unseen mass in an empty orbit. Navigation sensors register it, and it bends the space around it.",
-    "a round dead zone in deep space. Every scan, signal and burst of radiation that enters it drops to nothing.",
+    "a round dead zone in deep space. Every scan, signal, and burst of radiation that enters it drops to nothing.",
     "a jagged, glowing crack in space-time. It keeps venting energy into the void around it.",
     "a network of automated defense satellites spread across the system.",
     "an array of laser transceivers. They hold a steady, high-speed optical link with one another.",
