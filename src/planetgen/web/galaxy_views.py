@@ -261,7 +261,7 @@ def _generating_page(running):
     admin = current_admin()
     html, status = render_page(
         "galaxy_generating.html", title="Galaxy Map", section="galaxy", breadcrumbs=[crumb("Galaxy")],
-        description="The Galaxy Map is closed while the galaxy is generated.", status=503, status_info=running,
+        description="The Galaxy Map is closed while the galaxy is charted.", status=503, status_info=running,
         status_text=running["text"], admin=admin is not None and not admin.get("must_change_credentials"),
         refresh=GENERATING_REFRESH_SECONDS)
     response = make_response(html, status)

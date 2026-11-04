@@ -2010,25 +2010,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: none.
 
-- [ ] **MAP.367 Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown**
-  Boss, 1:03 PM EST on 2026-11-04: "lower the number of stars and other
-  objects viewed from what it is now. Let's cut it about half for the
-  max number of items on the screen unless you're in sector view, and in
-  sector view we'll display everything." Do: find every cap on what the
-  Galaxy Map and the star/object layers draw at once (the node budget
-  data.nodeBudget with its 1200 default, the marker budget, the star and
-  point caps, the per-layer limits for markers, regions and labels) and
-  set each to about half its present value everywhere except an opened
-  sector (SECTOR_MARKER_BUDGET and the sector-open path keep showing
-  every system that fits, merged only when marks touch). Keep the cut
-  consistent with the MAP.366 rule (no square chunks). Done: a test per
-  cap that the value is about half the old one and a browser test that
-  an opened sector still shows everything. Lock-free. Related: MAP.366, MAP.339.
-  Owner Core 2 (Boss's request relayed 1:03 PM EST on 2026-11-04; 8.1,
-  one lock-free item at a time, behind MAP.365 unless Core 2 says it
-  clashes). Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
   Boss, 1:03 PM EST on 2026-11-04 (live observation): "right now we're
   still not showing a region label as a POI that I can click on and zoom
@@ -13315,6 +13296,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
+  Boss decision on class T (answered "1.1") (2026-11-04 2:57 PM EST):
+  With the true air share Boss approved for GEN.1226, the generated
+  class T hydrogen-air dwarfs hold only 1e-8 to 5e-5 of their mass in
+  air (21 sampled), under the 5e-3 line for transitional, so they stay
+  terrestrial; their air is thin hydrogen at 0.01 to 27 bar, not an
+  envelope (Core 4's finding). Boss, 2:57 PM EST on 2026-11-04: keep the
+  honest share, and define the terrestrial-kind class T by its thin
+  hydrogen air instead of calling it a gas dwarf. The giant-kind T
+  bodies keep their stored envelope and are the real gas dwarfs.
   Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
@@ -14822,6 +14812,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are bit-identical (golden unchanged). Lock-free if no value changes.
   Related: PERF.188, TEST.290, TEST.417. Owner Star 2 (it built
   PERF.188; proposed by the TODO thread). Filed by the TODO thread.
+  Core 5 finding (2026-11-04 3:35 PM EST):
+  tests/test_emission_members.py (the pre-placed hot star test) also
+  times out past 900 s on main. Take it with this item; it is a
+  slow-test cost, not a spelling effect.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -16642,178 +16636,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
-  Two System Map browser tests that failed under load (seen by Foundations lane 2 and the rebuild thread) were fixed on 2026-10-14 (#1367).
-  Seen again on 2026-10-15 (Bugfixes lane 2, NAV.47 suite, load 8.9, call 40.6 s on
-  gw0): src/tests/test_web_browser_controls.py::test_every_plain_button_does_something[web.sector];
-  passed alone, main not checked.
-  Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
-  test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
-  playwright error), test_bookmarks_keep_a_course_pick_on_the_galaxy_map and
-  ::test_galaxy_map_hover_lights_every_choice_while_picking_a_course, all
-  passing on re-run. The three TEST.125 moon tests still fail alone and on main.
-  Reported by Foundations lane 2 (2026-10-10 20:50Z): in a full suite
-  under `python3 -m pytest -n 4 -q tests` (about 15,450 tests, 65-69
-  min, 4 cores, MariaDB and Redis local) these pass alone and fail
-  together, a pattern of SwiftShader WebGL tests timing out when four
-  workers run them at once. MAP.148 run:
-  tests/test_web_browser_maps.py::test_galaxy_map_free_camera_from_an_arc_down,
-  ::test_galaxy_map_buttons (a playwright error),
-  ::test_nav_ends_picked_from_bookmarks_on_every_page. MAP.149 run: the
-  same three, plus
-  tests/test_web_browser_fixture_maps.py::test_bookmarks_keep_a_course_pick_on_the_galaxy_map
-  and
-  ::test_galaxy_map_hover_lights_every_choice_while_picking_a_course,
-  and
-  tests/test_web_system_nav_row.py::test_the_navigate_menu_goes_where_the_wide_buttons_go[From
-  here-a.nav-wide >> nth=0] (Bugfixes lane 1 saw the nav-row test the
-  same way). A fixture-maps-only run under -n 4 (22 min) had 12 failures
-  that all passed serially:
-  test_bookmarks_keep_a_course_pick_on_the_galaxy_map,
-  test_galaxy_map_hover_lights_every_choice_while_picking_a_course,
-  test_galaxy_map_bookmark_star_saves_the_stage_and_the_menu_opens_it,
-  test_galaxy_map_does_not_prefetch_on_a_data_saving_connection,
-  test_galaxy_breadcrumb_always_matches_the_view_its_url_names,
-  test_galaxy_map_draws_point_phenomena_that_link_to_their_pages,
-  test_the_map_help_is_a_menu_item_that_opens_a_dialog,
-  test_galaxy_map_point_phenomena_hover_and_offer_nav_links,
-  test_galaxy_map_opens_zoomed_in_on_the_charted_space,
-  test_galaxy_map_pick_mode_clicks_down_through_every_stage,
-  test_the_slab_rail_shows_only_while_the_stage_has_slab_buttons and
-  test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge. Full
-  tracebacks were not kept. Done: the cause is found (a time budget the
-  tests do not scale with load, too many WebGL pages at once per worker,
-  or a real wait that is missing) and the tests are made reliable under
-  -n 4 (a shared limit on concurrent WebGL pages, waits on page state
-  not fixed times, or a serial marker for the heaviest), without
-  skipping or loosening any; a full -n 4 run shows none of them failing.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 runs the browser tests as
-  a separate phase on two workers; closed after 5 clean full runs, and
-  stage 4 gives any still timing out a state-based wait. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
-  tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
-  failed once in the NAV.9 run under load, passed alone.
-  Sighting (Bugfixes lane 2, 2026-10-14, full suite of 50 min 43 s with
-  UX.95): tests/test_web_browser_maps.py::test_galaxy_map_buttons (a
-  playwright error) and ::test_nav_ends_picked_from_bookmarks_on_every_page
-  failed once and pass alone, not checked on main. Same family; the
-  rebuild's captured traceback and serial re-run tell load from real.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
-  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
-  (`browser_waits`) already on main and no failure since; no run of the
-  test is recorded for this item. Needed next time: It closes unless a
-  traceback shows up; if it fails again, the captured traceback and the
-  load. Running log: the comments on issue #1694.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.138 folded in. Named sighting:
-  `test_open_map_menus_hold_no_overlap[web.galaxy-1280]` failed once in
-  a full -n 4 run (2026-10-10, load average up to 14) and
-  `[web.sector-600]` once under load (2026-10-15); same family and fix
-  (`tests/browser_waits.py`); close with this item and reopen only on a
-  captured traceback. Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as
-  the lane reported).
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.144 folded in. Named sighting:
-  `test_every_plain_button_does_something[web.sector]` failed once in a
-  full parallel run (2026-10-14, 15,573 passed and 9 failed); same
-  family and fix; close with this item and reopen only on a captured
-  traceback. Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane
-  reported).
-  Sighting (Core 2, 2026-10-17, 4:10 PM EDT as the lane reported, UX.118
-  gate, #2089):
-  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names`
-  (already on this item's list) failed in the loaded browser phase (box
-  load about 9) and passed on the gate's own re-run alone (load 7 to 8,
-  so not idle). Failure text not captured yet (.test-failures.jsonl in
-  Core 2's worktree). Fails on main: not checked. The MAP.227 breadcrumb
-  change is in main, so the next capture decides whether this is the
-  load timeout of this item or a real breadcrumb race.
-  Sighting (Core 2, 2026-10-17, 5:13 PM EDT as the lane reported, gate
-  for MAP.245):
-  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names`
-  failed in the browser phase at load about 9 with AssertionError
-  ('Escape', 'http://127.0.0.1:39173/galaxy?sector=3000000001&cam=...',
-  ['Galaxy', 'Block 0·0·0 (243)', 'Block 0·0·0 (81)', ...]) at line
-  2199, `assert live == _crumbs_on_a_fresh_load(page)`; the diff is at
-  index 6, 'Sector 1·0·2 (1)' against 'Sector 1·0·1 (1)', the live list
-  holding one extra item 'Sector 1·0·1'. Passes alone (93.56 s at load
-  9.4, and again at 5:15 PM EDT at load 4.5, 97 s). Fails on main: not
-  run on main. Frequency: 2 of Core 2's last 3 gates (also its UX.118
-  gate). Reproducer: run `scripts/test.py changed` while another lane's
-  gate shares the box.
-  Sighting (Bug Hunt, 2026-10-17, 7:01 PM EDT as the lane reported,
-  relayed by the coordinator, filed by the TODO thread): in the browser
-  phase of gate 586fdaa6 (about 60% at 7:01 PM EDT)
-  `test_open_map_menus_hold_no_overlap[web.sector-390]` failed and was
-  being rerun alone. Fails on main: not checked. Frequency: one more
-  loaded gate run for the menu-overlap family folded into this item.
-  Reproducer: run the browser phase while other lanes' gates run.
-  Sighting with captured failure text (Bug Hunt, 2026-10-17, 7:19 PM EDT
-  as the lane reported, filed by the TODO thread; gate 586fdaa6 = main
-  62bca47c merged with the Bug Hunt branch, browser phase, 2 workers,
-  finished 7:06 PM EDT; none of the three test files is touched by that
-  branch; each passes alone on the gate's own rerun; the earlier build
-  4632033c at 5:51 PM EDT did not show them): (1)
-  `test_open_map_menus_hold_no_overlap[web.sector-390]` at 6:53 PM EDT,
-  load 7.9: AssertionError "/sector/1000000000 at 390 px: ['Menu /
-  59x16']" (a menu overlaps a control at 390 px); alone it passes in 7.5
-  s. (2) `test_galaxy_breadcrumb_always_matches_the_view_its_url_names`
-  at 7:08 PM EDT, load 8.0: after Escape in a sector the live trail ends
-  'Sector 1·0·2 (1)' while a fresh load of the same URL shows 'Sector
-  1·0·1 (1)' plus one more item (the MAP.106 invariant, line 2199);
-  alone it passes in 59 s. This is the same diff at index 6 that Core 2
-  captured at 5:13 PM EDT, in two different gates, so it looks like a
-  real trail race in the MAP.227/MAP.228 camera-follows-trail change and
-  not a load timeout (inferred from the identical text, not yet shown by
-  a reproduction). Fails on main: not run on main. Frequency: now 3
-  loaded gate runs for the breadcrumb test (4:10 PM, 5:13 PM, 7:08 PM
-  EDT).
-  Sighting (Core 1, 2026-10-17, 7:40 PM EDT as the lane reported):
-  `test_galaxy_breadcrumb_always_matches_the_view_its_url_names` failed
-  in the full browser phase of GEN.532/533's gate 2 (build a725802e,
-  5:54 to 7:37 PM EDT) and passed alone on the retry (99.28 s on gw1,
-  load 9.9). Fails on main: not tried. Frequency: now 4 loaded gate runs
-  for this test (4:10 PM, 5:13 PM, 7:08 PM and about 7:30 PM EDT).
-  Sighting (Bug Hunt, 2026-10-17, 9:14 PM EDT as the lane reported):
-  `test_galaxy_breadcrumb_always_matches_the_view_its_url_names` failed
-  under load again in Bug Hunt's second gate on #2124 and passed alone
-  (71 s). Frequency: now 5 loaded gate runs for this test (4:10 PM, 5:13
-  PM, 7:08 PM, about 7:30 PM and about 9:10 PM EDT). Same
-  MAP.227/MAP.228 trail area; Core 2's reading is on this item.
-  Cause found and fix coded (Core 2, 2026-10-17, 9:15 PM EDT as the lane
-  reported; branch test231, commit 23373df3, shipped with the TEST.231
-  fix): the test read `page.url` before the app had written the camera
-  into the address, which it does 350 ms after the camera stops, so a
-  fresh load of the stale URL showed 'Sector 1·0·1' against the live
-  trail's 'Sector 1·0·2'; 3 of 3 runs at load 14 to 16 pass with the fix
-  and 1 of 4 failed without it. This corrects the earlier inference on
-  this item (a trail race in MAP.227 and MAP.228): it is a test timing,
-  not an app race. The fix resolves this item when merged; the sightings
-  under TEST.172 (a block number off by one) are not covered by it.
-  Partly fixed (Core 2, PR #2147 merged 2026-10-17, 10:23 PM EDT as the
-  lane reported, release 8.0.1760): the breadcrumb sighting on this item
-  is resolved by the TEST.231 change; the item's other sightings stay
-  open, as does TEST.172.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the item closes after
-  5 clean full runs, as for its sibling test-bug items; the status line
-  "It closes unless a traceback shows up" (2026-10-16, 11:43 PM EDT)
-  does not replace that rule.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
-
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -17077,27 +16899,6 @@ clears each one.
   dependents waiting their full timeout, and the fixture that failed
   first. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.111.
-
-- [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
-  Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
-  TODO thread.
-  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
-  failed once in the browser phase of a full `scripts/test.py changed`
-  run (load 8.7, 2 browser workers) and passed when rerun alone (call
-  122.9 s on gw1). Done: the cause is found (a wait that is too short
-  under load, or a real race in the system map drill), the test waits on
-  the condition it needs and not a fixed time, and it passes under the
-  same load with 2 browser workers, with no quarantine. Fails on main:
-  unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
-  full browser phase; try the file with two browser workers and a busy
-  machine.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. The test passed in repeated runs on an idle machine. Needed
-  next time: The failure text of a loaded run (the captured traceback
-  and the browser console) and the load at the time. Running log: the
-  comments on issue #1694.
-  Prerequisites: none.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -18249,21 +18050,20 @@ clears each one.
   the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.573 Two galaxy map browser tests red on main: the class buttons count (19 against 20) and a halo black hole not picked on the whole-galaxy view (bug)**
-  Found by Core 2 in its MAP.368 work, about 2:50 PM EST on 2026-11-04
-  (as the lane reported). (1)
-  test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time
-  finds 19 class buttons where it expects 20: likely the retirement of
-  Class Q (GEN.1135), so the test count or the button list is stale. (2)
-  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view finds
-  nothing under the pointer: first check whether it passes on main
-  before MAP.368 (#4857), because black holes now start off and the test
-  may need to turn the layer on first; if it failed before that, find
-  the cause. Do: run each alone on current main and on the commit before
-  #4857, fix the test or the cause, and keep the intent (class markers
-  one at a time; a halo black hole is pickable when the layer is on).
-  Done: both pass on main in 3 runs. Owner Core 2 (proposed by the TODO
-  thread). Filed by the TODO thread.
+- [ ] **TEST.575 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug)**
+  Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
+  reported). Not from the spelling sweep: they fail on the map pages on
+  pixel positions and waits. Possible causes seen since: the log ruler
+  over the halo point and continuous zoom no longer changing crumbs
+  (TEST.573 found the same in two tests), the MAP.367 and MAP.370
+  changes, and leftover planetgen_* databases slowing fixtures (see
+  lanes.md). Do: first drop leftover planetgen_* databases, then run
+  each file alone on current main, split real causes from load, fix the
+  tests at the cause (not by loosening waits that hide a bug), and file
+  any real map bug as its own item. Done: all four files pass on main in
+  3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
+  test that follows its map changes (proposed by the TODO thread). Filed
+  by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -19360,37 +19160,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. UX.252 and UX.253 wait for R1 and do their
-  own links in the same pass over the text they already rewrite; this
-  item covers only what they leave: color note, sector estimated text,
-  life class reaches, sheet source lines to links, class page basis.
-  Split by page kind if large. Related: UX.252, UX.253, DOC.83. Owner:
-  Core 5.
-  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
-  References crawl test (tests/test_references_crawl.py) lists today's
-  out-of-universe hits in its KNOWN table; this item's are the sheet
-  source line for the Urey ratio: model. Delete those entries in the
-  same PR that removes the words: an entry that no longer happens fails
-  the test.
-  Prerequisites: DOC.91.
-
-- [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free.  Related: DOC.83. Owner: Core 1.
-  Prerequisites: DOC.93.
-
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of
@@ -19777,7 +19546,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   still resolves to a registry entry. Lock-free, no generator output
   change. Owner: the Citations thread, with Core 5 for the user pages
   (DOC.93) and Sources 1 for the registry. Version 8.1. Prerequisites:
-  DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
+  DOC.100. Related: DOC.94, DOC.96.
   Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
   #4648 (Citations thread): every source has a fixed ID R0123 (anchor
   #paper-r0123 on /references/papers and in docs/REFERENCES.md;

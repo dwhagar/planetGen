@@ -90,9 +90,11 @@ def _context(browser, base_url, admin_token, needs_admin, width):
     return context
 
 
-SETTLED = """() => { const view = document.getElementById("sysview3d"); return !view || view.hidden || view.dataset.ready === "true"; }"""
+SETTLED = """() => { const view = document.getElementById("sysview3d"); return (!view || view.hidden || view.dataset.ready === "true") && !document.querySelector(":not(:defined)"); }"""
 """str: True once a system page's 3D view, when it is the one showing, has loaded its scene and filled its body list
-(which it rebuilds at that moment: a button of that list clicked before is "not stable")."""
+(which it rebuilds at that moment: a button of that list clicked before is "not stable"), and every custom element on the page is
+defined. Until then the children of a dialog are drawn in the page, so a "Close" button inside a shut `sl-dialog` counts as visible and is
+then hidden when the dialog's element is defined, which left the click waiting for a button that was gone (TEST.126)."""
 
 
 def _settle(page):

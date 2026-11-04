@@ -50,9 +50,13 @@ RTOL = 1.0e-5
 tens of seconds to minutes on such a planet where 1e-5 takes one (the end spin agrees to 1e-6 with Radau at 1e-7); the distances are good to a part in 1e5.  Source tier T6, tweak level L0."""
 MAX_EVENTS = 40
 """int: The most Roche falls and escapes handled in one run."""
-STRATEGIES = (("LSODA", RTOL, 40000), ("BDF", 1.0e-6, 400000))
+STRATEGIES = (("LSODA", RTOL, 40000), ("BDF", 1.0e-6, 20000), ("BDF", RTOL, 30000), ("BDF", 1.0e-4, 40000))
 """tuple: The integrators tried in turn, `(method, relative tolerance, most right-hand-side evaluations)`. A planet whose spin is held at a balance of the tides, or turns with
 a moon (corotation), is stiff: LSODA takes under a second for nearly every system and fails or crawls on about one in five hundred, which BDF finishes in a few seconds.
+A moon of a few percent of its planet's mass makes the problem so stiff that BDF at 1e-6 (and at 3e-6) never finishes, its steps held at the noise of the rheology (400000
+evaluations, 100 s, then the moons stayed as born); at the tolerance of the first (1e-5) it finishes in 5 s, for some planets only at 1e-4 (4 s), and for a few at none. So each
+BDF gets a few tens of thousands of evaluations (a quarter of a millisecond each) and the whole ladder at most 130000, about 30 s; a planet none of them finishes keeps its
+moons as born (`IntegrationFailed`), as it did after 100 s.
 Source tier T6, tweak level L0."""
 
 

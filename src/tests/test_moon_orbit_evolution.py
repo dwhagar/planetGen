@@ -156,3 +156,29 @@ def test_a_planet_held_near_a_balance_of_the_tides_integrates_in_seconds():
     assert time.time() - start < 30.0
     assert result.spin_rate == pytest.approx(8.2504e-6, rel=1.0e-3)
     assert all(f.fate == "fell" for f in result.moons) and result.ring_mass_kg == pytest.approx(sum(m.mass_kg for m in moons))
+
+
+def test_a_planet_with_a_heavy_moon_and_a_thermal_tide_integrates_in_seconds(monkeypatch):
+    """PERF.231: a Mars-sized rocky planet (G2V ecosphere census draw 75) with three moons, the heaviest 3 percent of its mass, a thermal tide and a hot
+    mantle is so stiff that BDF at 1e-6 never finished (400000 evaluations, 100 s, the moons then kept as born). The ladder finishes it at the plain tolerance
+    in under 150000 evaluations in all, and the moons are evolved, not left as born."""
+    planet = spin_torques.Planet(8.218213942166888e23, 3572616.25578194, 0.33)
+    star = spin_torques.Raiser(1.9252854991387497e30, 198337366712.9048, 1.2833455747510316e-07)
+    moons = [moon_orbits.Moon(2.6394291851495955e22, 21088873.84283677, 2201.319027795393),
+             moon_orbits.Moon(6.551535693837369e21, 72371204.62182109, 3250.297963334993),
+             moon_orbits.Moon(2.7110929634711483e20, 406124878.85004705, 2727.413099200001)]
+    dissipation = spin_torques.rheology_dissipation(planet, 1857.2646130236838, 4640184092444.605, 248249.06710768928, 2000.0, 2400.0)
+    thermal = spin_torques.ThermalTide(star, 10.210503056577082, 1.6359934577396988e-06)
+    count = [0]
+    real = moon_orbits.integrate.solve_ivp
+
+    def counting(fun, span, y0, **kwargs):
+        def counted(t, y):
+            count[0] += 1
+            return fun(t, y)
+        return real(counted, span, y0, **kwargs)
+
+    monkeypatch.setattr(moon_orbits.integrate, "solve_ivp", counting)
+    result = moon_orbits.evolve(planet, star, dissipation, moons, 0.00016114604540498032, 1.9005199135433293e17, thermal, 4302.587623976913, 1035439743.4442601)
+    assert count[0] < 150000
+    assert any(fate.distance_m != moon.distance_m for fate, moon in zip(result.moons, moons))

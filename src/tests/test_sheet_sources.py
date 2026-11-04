@@ -15,6 +15,7 @@ from planetgen.db import store
 
 from planetgen.describe import sheet
 from planetgen.describe.sheet_sources import SOURCES, source_of
+from planetgen.web.lib import property_help, reference_urls
 from tests.publicids import pid
 from tests.test_api import _save_wide_binary_with_moons, client  # noqa: F401
 from tests.test_property_sheet import _ids, _rows
@@ -74,7 +75,7 @@ def _set_stored(mysql_config, table, row_id, **columns):
 
 def test_each_physics_row_of_a_page_stands_once_with_its_source_beside_it(db_app, mysql_config):  # noqa: F811
     """UX.187's walk, on the fixture system: with the audited columns stored, the page of a star, a planet and a moon lists each
-    row with its one-line source once, in the value cell and nowhere else, and the cell still has its unit."""
+    row with its quiet link to the method page once (DOC.93; the one-line source is on that page), in the value cell and nowhere else, and the cell still has its unit."""
     system_id = _save_wide_binary_with_moons(mysql_config)
     physics = {
         "planet": dict(eccentricity=0.05, orbital_inclination_deg=1.2, urey_ratio=0.4, internal_heat_flux_w_m2=0.08,
@@ -94,7 +95,9 @@ def test_each_physics_row_of_a_page_stands_once_with_its_source_beside_it(db_app
             found = [cell for name, cell in cells if name == spec.label]
             assert found, f"{kind} {spec.label} is not on the page"
             if line:
-                marker = f'<small class="sheet-source">{escape(line)}</small>'
+                href = reference_urls.reference_path("method", property_help.method_ref(kind, spec.label))
+                marker = f'<small class="sheet-source"><a class="reference-link" href="{href}">Where this comes from</a></small>'
+                assert escape(line) not in page, f"{kind} {key}: the source line is on the References pages, not the body page"    # DOC.93
                 holders = [cell for cell in found if marker in cell]    # the At a glance panel may repeat a row; its copy has no source
                 assert len(holders) == 1 and page.count(marker) == 1, f"{kind} {key}"
                 found = holders

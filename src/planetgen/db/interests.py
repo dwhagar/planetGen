@@ -116,7 +116,7 @@ del _letter
 
 LIFE_CLASS_PREFIX = "lifeclass-"
 """str: A life class's reason is this and the class id ("lifeclass-1a", "lifeclass-6"): a system with a planet or moon on which that life class
-lives (`life_class` and `life_class_variant` on a body that has a `life_stage`, the class the `life` facet of the search reads, MAP.351, GEN.1001). Like the planet classes, the visitor
+lives (`life_class` and `life_class_variant` on a body that has a `life_stage`, the class the `life` facet of the search reads, MAP.351, GEN.1001, or a row of its `planet_life` / `moon_life` for another class that lives there, GEN.1209). Like the planet classes, the visitor
 chooses which of them the map shows, and they come after every reason above."""
 
 
@@ -127,9 +127,11 @@ def life_class_reason(class_id):
 
 for _definition in life_classes.CLASSES:
     REASONS[life_class_reason(_definition.id)] = {
-        "planets": "p.life_class = ? AND COALESCE(p.life_class_variant, '') = ? AND p.life_stage IS NOT NULL",
-        "moons": "m.life_class = ? AND COALESCE(m.life_class_variant, '') = ? AND m.life_stage IS NOT NULL", "score": None,
-        "params": (_definition.number, _definition.variant or ""),
+        "planets": "((p.life_class = ? AND COALESCE(p.life_class_variant, '') = ? AND p.life_stage IS NOT NULL) "
+                   "OR EXISTS (SELECT 1 FROM planet_life lc WHERE lc.planet_id = p.id AND lc.life_class = ? AND lc.life_stage IS NOT NULL))",
+        "moons": "((m.life_class = ? AND COALESCE(m.life_class_variant, '') = ? AND m.life_stage IS NOT NULL) "
+                 "OR EXISTS (SELECT 1 FROM moon_life lc WHERE lc.moon_id = m.id AND lc.life_class = ? AND lc.life_stage IS NOT NULL))", "score": None,
+        "params": (_definition.number, _definition.variant or "", _definition.id),
     }
 del _definition
 

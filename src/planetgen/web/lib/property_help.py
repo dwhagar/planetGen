@@ -7,6 +7,8 @@ the property sheet (`describe/sheet.py`) and its source table (`describe/sheet_s
 explains cannot disagree.
 """
 
+import functools
+
 from planetgen.db import column_units
 from planetgen.describe import sheet
 from planetgen.describe.sheet_sources import source_of
@@ -75,3 +77,22 @@ def by_area():
     for row in rows():
         found["stars" if row["applies"] == "Stars" else GROUP_AREA[row["group"]]].append(row)
     return found
+
+
+@functools.lru_cache(maxsize=1)
+def _refs():
+    """`{(kind name, label): "area/label"}` for every row of `by_area()`; the sheet does not change while the program runs."""
+    found = {}
+    for area, rows in by_area().items():
+        for row in rows:
+            for name in row["applies"].split(", "):
+                found.setdefault((name, row["label"]), f"{area}/{row['label']}")
+    return found
+
+
+def method_ref(kind, label):
+    """
+    The `reference_link("method", ...)` entry (`"area/Label"`) that explains the value `label` on the page of a `kind` ("planet", "moon" or
+    "star"), or `None` when no method row has it: the link a body page shows where it used to print the source line (DOC.93).
+    """
+    return _refs().get((dict(KINDS).get(kind), label))

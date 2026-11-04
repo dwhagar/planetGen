@@ -258,7 +258,7 @@ def test_the_galaxy_map_is_closed_while_a_galaxy_generation_runs_and_opens_when_
     resp = client.get("/galaxy")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 503
-    assert "The Galaxy Map is closed while the galaxy is generated" in html
+    assert "The Galaxy Map is closed while the galaxy is charted" in html
     assert "The galaxy is being changed by a background job" in html and "Scatter the massive stars" in html
     assert 'id="galaxymap3d-canvas"' not in html and "galaxymap3d.js" not in html
     assert '<meta http-equiv="refresh" content="30">' in html

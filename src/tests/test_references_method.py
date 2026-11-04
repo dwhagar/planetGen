@@ -97,3 +97,17 @@ def test_the_start_page_leads_to_every_new_page(client):  # noqa: F811
     for area in AREAS:
         assert f'href="/references/method/{area}"' in html
     assert 'href="/references/gaps"' in html and 'href="/references/scorecard"' in html
+
+
+def test_a_body_page_links_a_value_to_its_method_row_and_keeps_no_source_line():
+    """DOC.93: where a body's page printed the one-line source it shows the quiet link; the line itself is on the method page."""
+    assert property_help.method_ref("planet", "Eccentricity") == "orbits/Eccentricity"
+    assert property_help.method_ref("star", "Rotation period").startswith("stars/")
+    assert property_help.method_ref("planet", "No such value") is None
+    from planetgen.web.helpers import value_source
+    assert str(value_source("planet", "Eccentricity")) == (
+        '<a class="reference-link" href="/references/method/orbits#eccentricity">Where this comes from</a>')
+    assert str(value_source("planet", "No such value")) == ""
+    for kind, label in (("planet", "Eccentricity"), ("moon", "Eccentricity"), ("star", "Rotation period")):
+        path, _fragment = reference_urls.reference_path("method", property_help.method_ref(kind, label)).split("#")
+        assert any(row["label"] == label for row in property_help.by_area()[path.rsplit("/", 1)[1]])

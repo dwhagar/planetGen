@@ -13,7 +13,7 @@ The regular moons of a giant planet are made in its circumplanetary disc, from t
   of that paper. A planet that spins so slowly that this lies outside `r_c` has no cavity (the disc reaches in to the planet), and one that spins so fast that it lies inside the body's own reach has the usual clearance (`planets.moon_orbit_bounds_km`).
 
 `zone_km` gives the two edges of a giant, bounded by the orbits a moon can keep (`low_km`, `high_km`); an empty zone has `inner >= outer`. The disc's own diffusion reaches about 150 planet radii but carries no solids there, so it is not an edge for moons.
-Stand-ins are MD1 and MD2 of `docs/design/research/gap-filling-plan.md` section 6.166.
+Stand-ins are MD1 and MD2 of `docs/design/research/gap-filling-plan.md` section 6.167.
 """
 
 import math

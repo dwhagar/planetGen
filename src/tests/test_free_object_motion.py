@@ -107,10 +107,13 @@ def test_the_orbit_update_turns_the_vector_with_the_position(mysql_config):
     finally:
         conn.close()
     assert (after["center_x_pc"], after["center_y_pc"]) != pytest.approx((before["center_x_pc"], before["center_y_pc"]))
-    assert store._speed_kms(after) == pytest.approx(store._speed_kms(before))
+    # The stepper (GEN.340) carries the vector with the position through the galaxy's potential: the speed follows the energy along the path, so it stays
+    # within a few percent of the start over a fifth of an orbit (it was a rotation, exactly the same length, before), and the path is still the tangent's way round.
+    assert store._speed_kms(after) == pytest.approx(store._speed_kms(before), rel=0.1)
     vx, vy, _vz = _vector(after)
-    assert vx * after["center_x_pc"] + vy * after["center_y_pc"] == pytest.approx(0.0, abs=1e-3)  # still the tangent
-    assert after["center_x_pc"] * vy - after["center_y_pc"] * vx > 0
+    radial = (vx * after["center_x_pc"] + vy * after["center_y_pc"]) / (store._speed_kms(after) * math.hypot(after["center_x_pc"], after["center_y_pc"]))
+    assert abs(radial) < 0.5                                                      # mostly along the tangent
+    assert after["center_x_pc"] * vy - after["center_y_pc"] * vx > 0              # counterclockwise
 
 
 def test_a_system_and_its_stars_carry_the_speed_of_the_systems_vector(mysql_config):

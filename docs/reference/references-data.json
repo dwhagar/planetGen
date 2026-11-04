@@ -136672,6 +136672,33 @@
    "volume": "566",
    "year": 2014
   },
+  "10.1051/0004-6361/201424171": {
+   "authors": [
+    [
+     "Kubryk",
+     "M."
+    ],
+    [
+     "Prantzos",
+     "N."
+    ],
+    [
+     "Athanassoula",
+     "E."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201424171",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A126",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Evolution of the Milky Way with radial motions of stars and gas",
+   "type": "journal-article",
+   "volume": "580",
+   "year": 2015
+  },
   "10.1051/0004-6361/201424184": {
    "arxiv": "1406.5218",
    "authors": [
@@ -154565,6 +154592,33 @@
    "title": "Theoretical Black Hole Mass Distributions",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "554",
+   "year": 2001
+  },
+  "10.1086/321427": {
+   "authors": [
+    [
+     "Chiappini",
+     "C."
+    ],
+    [
+     "Matteucci",
+     "F."
+    ],
+    [
+     "Romano",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/321427",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1044",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Abundance Gradients and the Formation of the Milky Way",
+   "type": "journal-article",
    "volume": "554",
    "year": 2001
   },
@@ -278501,7 +278555,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5094,
+ "id_next": 5096,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -280297,6 +280351,7 @@
   "10.1051/0004-6361/201423629": "R1751",
   "10.1051/0004-6361/201423635": "R3899",
   "10.1051/0004-6361/201423691": "R2415",
+  "10.1051/0004-6361/201424171": "R5094",
   "10.1051/0004-6361/201424184": "R3294",
   "10.1051/0004-6361/201424299": "R0470",
   "10.1051/0004-6361/201424412": "R0864",
@@ -280748,6 +280803,7 @@
   "10.1086/320403": "R1199",
   "10.1086/320685": "R1750",
   "10.1086/321359": "R1467",
+  "10.1086/321427": "R5095",
   "10.1086/321540": "R0024",
   "10.1086/321541": "R0438",
   "10.1086/321556": "R1158",

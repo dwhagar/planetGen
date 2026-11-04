@@ -5,7 +5,7 @@
 {% block head %}<meta http-equiv="refresh" content="{{ refresh }}">{% endblock %}
 {% block content %}
 <section class="panel" id="galaxy-generating" aria-labelledby="galaxy-generating-heading">
-  <h2 id="galaxy-generating-heading">The Galaxy Map is closed while the galaxy is generated</h2>
+  <h2 id="galaxy-generating-heading">The Galaxy Map is closed while the galaxy is charted</h2>
   <p>{{ status_text }}</p>
   {%- if status_info.stage %}
   <p>Now: {{ status_info.stage }}{% if status_info.percent is not none %} ({{ status_info.percent | round | int }}% done){% endif %}.</p>

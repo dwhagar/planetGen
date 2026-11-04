@@ -35,7 +35,11 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import belt_ledger, constants, field_dispersal, rogue_collision
+from planetgen.physics import belt_ledger, constants, field_dispersal, rogue_collision, unit_registry
+
+_kg_to_mearth = unit_registry.converter("kg", "Mearth")
+_mearth_to_kg = unit_registry.converter("Mearth", "kg")
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 
 MIN_FIELD_MASS_EARTH = 1.0e-9
 """float: The least mass, Earth masses, a field can hold and be kept: the belts' line (`generation.belt_birth.MIN_PRESENT_MASS_EARTH`, GEN.1156), warm dust a survey could see. [Stand-in FM1, tier T9, tweak L3.]"""
@@ -75,12 +79,12 @@ class FieldMass:
     @property
     def mass_earth(self):
         """The field's mass, Earth masses."""
-        return self.mass_kg / constants.EARTH_MASS_TO_KG
+        return _kg_to_mearth(self.mass_kg)
 
 
 def is_field(mass_kg):
     """Whether this mass is a field: `MIN_FIELD_MASS_EARTH` or more."""
-    return mass_kg >= MIN_FIELD_MASS_EARTH * constants.EARTH_MASS_TO_KG
+    return mass_kg >= _mearth_to_kg(MIN_FIELD_MASS_EARTH)
 
 
 def _positive(**values):
@@ -105,7 +109,7 @@ def unbound_belt_field(primordial_earth, lower_au, upper_au, progenitor_solar, p
     _positive(primordial_earth=primordial_earth, lower_au=lower_au, progenitor_solar=progenitor_solar, remnant_kg=remnant_kg)
     if not upper_au > lower_au or progenitor_age_yr < 0.0:
         raise FieldMassError("the belt needs 0 < lower < upper and the age must not be negative")
-    progenitor_kg = progenitor_solar * constants.SOLAR_MASS_TO_KG
+    progenitor_kg = _msun_to_kg(progenitor_solar)
     belt_radius_m = 0.5 * (lower_au + upper_au) * constants.AU_M
     speed = field_dispersal.unbound_belt_speed_ms(progenitor_kg, remnant_kg, belt_radius_m)
     if speed <= 0.0:
@@ -144,8 +148,8 @@ def collision_field(mass1_kg, mass2_kg, radius1_m, radius2_m, speed_ms, stream, 
     rms = rogue_collision.unbound_rms_speed_ms(largest, total)
     regime = rogue_collision.regime(ratio, impact_parameter > rogue_collision.critical_impact_parameter(target_r, projectile_r))
     ledger = belt_ledger.draw_ledger(COLLISION_LAW, mass_kg, stream)
-    sentence = (f"Two rogue planets of {target / constants.EARTH_MASS_TO_KG:.3g} and {projectile / constants.EARTH_MASS_TO_KG:.3g} Earth masses met at {speed_ms / 1000.0:.3g} km/s ({regime.replace('_', ' ')}); "
-                f"{mass_kg / constants.EARTH_MASS_TO_KG:.3g} Earth masses of rubble flew free and a {largest * total / constants.EARTH_MASS_TO_KG:.3g} Earth-mass remnant stayed.")
+    sentence = (f"Two rogue planets of {_kg_to_mearth(target):.3g} and {_kg_to_mearth(projectile):.3g} Earth masses met at {speed_ms / 1000.0:.3g} km/s ({regime.replace('_', ' ')}); "
+                f"{_kg_to_mearth(mass_kg):.3g} Earth masses of rubble flew free and a {_kg_to_mearth(largest * total):.3g} Earth-mass remnant stayed.")
     return FieldMass("collision", mass_kg, ledger, rms, largest * total, sentence)
 
 
