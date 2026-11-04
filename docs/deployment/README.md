@@ -193,7 +193,7 @@ before it changes anything, so the only thing that runs is the update:
 
 1. **It lists the running and queued work** (a Generate job, a `planetgen` run from the command line, jobs on the
    shared queues, an orbital update, a Galaxy Map warm-up from an earlier update) and **stops, having changed and
-   cancelled nothing, unless you agree to cancel it** (DB.29). On a terminal it asks (y/N) and waits 30 seconds:
+   canceled nothing, unless you agree to cancel it** (DB.29). On a terminal it asks (y/N) and waits 30 seconds:
    silence is a no. A run started by systemd or cron, or with no terminal, asks nothing and takes that as no: it
    refuses with exit status 1 and names the work; add `--yes` to cancel it: `sudo ./update.sh --yes`. Each piece is stopped through its own
    cancel path and the update waits (up to 10 minutes) until none is left; one that does not stop is reported and the update stops before any change.

@@ -11,7 +11,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  CAP, POINT_ALPHA, SPLAT_STEPS, MIN_SPLAT_PX, MAX_SPLAT_PX, positionsOf, centreOf, wanted, volumeAlpha, createVolumeStore, MAX_LOADED,
+  CAP, POINT_ALPHA, SPLAT_STEPS, MIN_SPLAT_PX, MAX_SPLAT_PX, positionsOf, centerOf, wanted, volumeAlpha, createVolumeStore, MAX_LOADED,
 } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 
 const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
@@ -56,8 +56,8 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         focal: { value: 800 },
         alpha: { value: 0 },
         families: { value: familyUniform },
-        // MAP.222: a group window cuts the shape to its sphere: the centre in the mesh's frame, and the radius (0 for none).
-        clipCentre: { value: new THREE.Vector3() },
+        // MAP.222: a group window cuts the shape to its sphere: the center in the mesh's frame, and the radius (0 for none).
+        clipCenter: { value: new THREE.Vector3() },
         clipRadius: { value: 0 },
       },
       vertexShader: [
@@ -69,7 +69,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         "uniform float focal;",
         "uniform float alpha;",
         `uniform vec4 families[${MAX_FAMILIES}];`,
-        "uniform vec3 clipCentre;",
+        "uniform vec3 clipCenter;",
         "uniform float clipRadius;",
         "varying vec2 vCorner;",
         "varying vec3 vColor;",
@@ -77,7 +77,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
         "  vCorner = corner;",
         "  vec4 f = families[int(family + 0.5)];",
         `  vColor = f.rgb * (strength * ${POINT_ALPHA.toFixed(5)} * alpha * f.a);`,
-        "  if (clipRadius > 0.0) vColor *= 1.0 - smoothstep(0.9 * clipRadius, clipRadius, distance(position, clipCentre));",
+        "  if (clipRadius > 0.0) vColor *= 1.0 - smoothstep(0.9 * clipRadius, clipRadius, distance(position, clipCenter));",
         "  vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
         `  float px = clamp(splat * focal / max(clip.w, 1e-6), ${MIN_SPLAT_PX.toFixed(1)}, ${MAX_SPLAT_PX.toFixed(1)});`,
         "  clip.xy += corner * (0.5 * px) * 2.0 / viewport * clip.w;",
@@ -109,7 +109,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
 
   function meshOf(volume) {
     const n = volume.count;
-    const frame = centreOf(volume).map(Math.round);
+    const frame = centerOf(volume).map(Math.round);
     const positions = new Float32Array(12 * n);
     const corners = new Float32Array(8 * n);
     const strengths = new Float32Array(4 * n);
@@ -190,7 +190,7 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
     composite.material.uniforms.sum.value = target.texture;
   }
 
-  // MAP.222: the window's sphere, `{ centre: [x, y, z], radiusPc }` or null; the shape is faded out to it, in each mesh's own frame.
+  // MAP.222: the window's sphere, `{ center: [x, y, z], radiusPc }` or null; the shape is faded out to it, in each mesh's own frame.
   let clip = null;
   function applyClip(mesh) {
     const uniforms = mesh.material.uniforms;
@@ -198,11 +198,11 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
       uniforms.clipRadius.value = 0;
       return;
     }
-    uniforms.clipCentre.value.set(clip.centre[0] - mesh.position.x, clip.centre[1] - mesh.position.y, clip.centre[2] - mesh.position.z);
+    uniforms.clipCenter.value.set(clip.center[0] - mesh.position.x, clip.center[1] - mesh.position.y, clip.center[2] - mesh.position.z);
     uniforms.clipRadius.value = clip.radiusPc;
   }
   function setClip(sphere) {
-    clip = sphere ? { centre: sphere.centre.slice(), radiusPc: sphere.radiusPc } : null;
+    clip = sphere ? { center: sphere.center.slice(), radiusPc: sphere.radiusPc } : null;
     held.forEach((entry) => applyClip(entry.mesh));
   }
 

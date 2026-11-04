@@ -68,7 +68,7 @@ with the noise at its edge weight, so gas alone never fills the sky."""
 
 CLOUD_GAS_FLOOR = 0.8
 """float: The share of a cloud's kernel kept where the model gas is nil; the rest scales with the gas (0.2), so a cloud's
-centre is always dense enough (0.8) to hold a core through the first octaves."""
+center is always dense enough (0.8) to hold a core through the first octaves."""
 
 YOUNG_SCALE = 3.0
 """float: The young-star density, over its value on the solar circle, at which the smooth `"young"` density reaches half of

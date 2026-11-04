@@ -4,7 +4,7 @@
 The far wings of carbon dioxide (GEN.1019, docs/design/composition/line-opacity.md; replaces the flat wing of stand-in IR3)
 ===========================================================================================================================
 
-The ExoMolOP k-tables cut every line at 25 cm-1 from its centre, so a dense carbon dioxide air (Venus: 92 bar) is too clear between its
+The ExoMolOP k-tables cut every line at 25 cm-1 from its center, so a dense carbon dioxide air (Venus: 92 bar) is too clear between its
 bands. This module is the opacity of what the cutoff leaves out: for every band `j` of strength `S_j`, the Lorentz tail of its lines beyond
 the cutoff, times the sub-Lorentzian factor `chi` of [R3490] (JQSRT 42, 311), out to a reach.
 
@@ -79,7 +79,7 @@ def chi_parameters(pair):
 
 def chi(distance_cm1, temperature_k, pair):
     """
-    The sub-Lorentzian factor at `distance_cm1` from a line centre for `pair`, at `temperature_k` (held at the measured range, `b_i` at least 0
+    The sub-Lorentzian factor at `distance_cm1` from a line center for `pair`, at `temperature_k` (held at the measured range, `b_i` at least 0
     so the factor never exceeds 1). `distance_cm1` and `temperature_k` broadcast.
     """
     sigma, alpha, beta, epsilon = chi_parameters(pair)

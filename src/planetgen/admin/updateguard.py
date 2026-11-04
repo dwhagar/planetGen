@@ -63,7 +63,7 @@ LOCK_NAME = "update.lock"
 RUNNING_DIR = "running"
 
 STOP_SECONDS = 600
-"""int: How long the update waits for the work it cancelled to end."""
+"""int: How long the update waits for the work it canceled to end."""
 
 POLL_SECONDS = 2.0
 """float: How often it looks again while it waits."""
@@ -213,7 +213,7 @@ def running(kind, title, **extra):
 
 
 class MarkerSource:
-    """The registered command-line runs (`running`). Cancelled with SIGTERM."""
+    """The registered command-line runs (`running`). Canceled with SIGTERM."""
 
     name = "run"
 
@@ -248,7 +248,7 @@ class MarkerSource:
 
 
 class GenerateJobSource:
-    """The Generate page's job (`web/jobs.py`), running or just started. Cancelled by its own cancel file. Looks
+    """The Generate page's job (`web/jobs.py`), running or just started. Canceled by its own cancel file. Looks
     where the job directory is without creating it: an update on a new machine must not make it as root."""
 
     name = "generate-job"
@@ -278,7 +278,7 @@ class GenerateJobSource:
 
 class QueuedJobSource:
     """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, interactive and
-    generation). A run's own queue belongs to the run and is cancelled with it. Cancelled with
+    generation). A run's own queue belongs to the run and is canceled with it. Canceled with
     `workers.cancel_now`. A job whose worker is gone is cleared before the listing (`workers.reap_dead_jobs`), so
     it does not hold the update for ever."""
 
@@ -308,7 +308,7 @@ class QueuedJobSource:
                                ("running", queue.started_job_registry.get_job_ids())):
                 for job_id in ids:
                     if UNIT_JOB.match(job_id):
-                        continue        # a unit of a run: the run is listed (and cancelled) instead
+                        continue        # a unit of a run: the run is listed (and canceled) instead
                     job = redisqueue.fetch_job(job_id, connection, redisqueue.serializer_for(name))
                     started = job.started_at or job.enqueued_at if job is not None else None
                     found.append({"source": self.name, "kind": name, "id": job_id,
@@ -325,7 +325,7 @@ class QueuedJobSource:
 
 class RunRecordSource:
     """The runs whose record in Redis says they are live (`queue/runrecord.py`, PERF.96): a `planetgen` run from
-    the command line, one a Generate job started, a check or a warm-up. Cancelled through `runcontrol.cancel_run`
+    the command line, one a Generate job started, a check or a warm-up. Canceled through `runcontrol.cancel_run`
     (PERF.99), which takes the run's waiting units off the queue and stops the started ones."""
 
     name = "run-record"
@@ -458,7 +458,7 @@ def wait_until_idle(sources, timeout=STOP_SECONDS, poll=POLL_SECONDS, write=prin
                     sleep=time.sleep):
     """
     Cancels everything running and waits until nothing is, looking again every `poll` seconds (work that appeared
-    meanwhile is cancelled too: only the first look asked the operator).
+    meanwhile is canceled too: only the first look asked the operator).
 
     Returns:
         list: What is still there after `timeout` seconds (empty when all stopped).
@@ -499,7 +499,7 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
             `answer_within`: `PROMPT_SECONDS` of silence is a no).
 
     Returns:
-        bool: Whether the update may go on. `False` leaves everything as it was (nothing cancelled that was not
+        bool: Whether the update may go on. `False` leaves everything as it was (nothing canceled that was not
         agreed, the site open, no lock).
     """
     sources = sources if sources is not None else default_sources()
@@ -540,7 +540,7 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
         _remove_lock()
         write(f"error: could not close the site for the update ({exc}); nothing was changed.")
         return False
-    # Whatever appeared between the first look and the lock is cancelled only with the same word.
+    # Whatever appeared between the first look and the lock is canceled only with the same word.
     leftover = list_running(sources)
     if leftover and not agreed:
         _abort(already_closed)
@@ -550,7 +550,7 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
         write("Run it again when it has finished.")
         return False
     if leftover:
-        write("Cancelling the work above and waiting for it to stop...")
+        write("Canceling the work above and waiting for it to stop...")
         remaining = wait_until_idle(sources, timeout, poll, write)
         if remaining:
             _abort(already_closed)

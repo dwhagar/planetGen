@@ -91,7 +91,7 @@ def test_a_miyamoto_nagai_disk_has_the_density_the_poisson_equation_gives():
         assert laplacian / (4.0 * math.pi * G) == pytest.approx(exact, rel=2e-3)
 
 
-def test_the_pull_is_finite_and_zero_at_the_centre(galaxy):
+def test_the_pull_is_finite_and_zero_at_the_center(galaxy):
     assert P.acceleration(galaxy, 0.0, 0.0, 0.0) == (0.0, 0.0, 0.0)
     assert math.isfinite(P.potential(galaxy, 0.0, 0.0, 0.0))
     near = P.acceleration(galaxy, 1.0e-9, 0.0, 0.0)

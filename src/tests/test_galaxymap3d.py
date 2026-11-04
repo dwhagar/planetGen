@@ -114,7 +114,7 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="cell-grid"' in html
 
 
-def test_the_panel_carries_the_superbubbles_as_centre_and_radius():
+def test_the_panel_carries_the_superbubbles_as_center_and_radius():
     """GEN.254: `[x, y, z, radius]` each, galaxy-frame parsecs; none when the page gives none."""
     bubbles = [{"x": 100.5, "y": -20.0, "z": 3.0, "radius_pc": 250.0}, {"x": 1.0, "y": 2.0, "z": 3.0, "radius_pc": 60.0}]
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), superbubbles=bubbles)

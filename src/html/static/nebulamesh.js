@@ -73,7 +73,7 @@ export function flatFaces(shape) {
   return out;
 }
 
-// One nebula's mesh, centred on the origin and `radius` big; the caller
+// One nebula's mesh, centered on the origin and `radius` big; the caller
 // positions it. `look` is a [hex color, core opacity, edge opacity] triple.
 // `options`: `yScale` (see `scaledPositions`), `depthTest` (default false:
 // drawn over the scene, as the Galaxy Map's clouds are; the Sector Map

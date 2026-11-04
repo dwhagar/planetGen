@@ -2,14 +2,14 @@
 //
 // The painter for stars (MAP.276, R7 of the body-rendering plan, docs/design/interface/body-rendering.md): a pure
 // function from a look record (planetgen/web/maps/bodylook.py) and a size to equirectangular RGBA pixels, plus the
-// glow numbers a luminosity gives. The disc colour is the look's `color` (the blackbody colour of the star's
+// glow numbers a luminosity gives. The disk colour is the look's `color` (the blackbody colour of the star's
 // temperature, the one the sky colour assumes too); this file only adds the texture the class calls for:
 //
 //   * O, B, A: nearly featureless, tiny granulation contrast;
 //   * F, G: fine granulation, a few dark spots;
 //   * K, M: larger cooler cells, more and bigger spots (M most), and on a flare star an occasional bright patch;
 //   * giants and supergiants: a few huge convection cells, no spots;
-//   * white dwarfs: a smooth hot disc, no granulation.
+//   * white dwarfs: a smooth hot disk, no granulation.
 //
 // A star is self-luminous, so the texture never goes below 0.7 of the base colour. Same look, same size: same
 // pixels. Do not change the noise without a changelog note.

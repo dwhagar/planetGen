@@ -17,7 +17,7 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
    `STAR_FORMATION_LAW_EXPONENT`): the star formation per area goes as the gas per area to the 1.4, steepened where the
    gas thins by the factor `(gas / (gas + saturation)) ^ (m - n)` of GEN.450 (`tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2`,
    `STAR_FORMATION_LOW_DENSITY_EXPONENT`; GEN.999). Without it a thin outer ring spends its gas as fast as a dense one and a
-   Milky Way mass disc ended with a third of the gas it has.
+   Milky Way mass disk ended with a third of the gas it has.
 2. **The return** `R` is the share of a stellar generation's mass that goes back into the gas (`return_fraction`),
    worked out from the generator's own mass function with the remnant masses of [R2798].
 3. **The inflow** is an exponential infall whose time scale grows outward (inside-out formation): `tau(R) = 1.033 R - 1.267` Gy of the
@@ -224,8 +224,8 @@ def history(thin_stellar_mass_solar, disk_scale_length_pc, span_gy=None):
     rings = tuning.DISK_HISTORY_RINGS
     reach = tuning.DISK_HISTORY_MAX_RADIUS_SCALE_LENGTHS
     x = (np.arange(rings) + 0.5) * reach / rings
-    centre = thin_stellar_mass_solar / (2.0 * math.pi * disk_scale_length_pc ** 2)
-    stars = centre * np.exp(-x)
+    center = thin_stellar_mass_solar / (2.0 * math.pi * disk_scale_length_pc ** 2)
+    stars = center * np.exp(-x)
     inflow = inflow_shapes(x, span, tuning.DISK_HISTORY_TIME_STEPS)
     rate, gas = _solve_rings(stars, inflow, span)
     return DiskHistory(radius_scale_lengths=x, age_gy=np.linspace(span, 0.0, len(inflow)), rate=rate, gas_now=gas,
@@ -284,7 +284,7 @@ def _history_of(shape):
 def population_age_laws(shape):
     """
     How each disk population's ages are spread over its window, from the history of the galaxy of this shape (GEN.546):
-    `young`, `intermediate` and `old` to their `AgeLaw` (`old` is the thin disc's law mixed with the thick disc's, `thick_ages`, GEN.1025). A population the history does not cover (the bulge, the halo, a
+    `young`, `intermediate` and `old` to their `AgeLaw` (`old` is the thin disk's law mixed with the thick disk's, `thick_ages`, GEN.1025). A population the history does not cover (the bulge, the halo, a
     cluster) has no entry and draws uniformly.
 
     Args:
@@ -295,9 +295,9 @@ def population_age_laws(shape):
     """
     from planetgen.galaxy import thick_ages
     found = history_of(shape)
-    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISC_OLD_WINDOW_GY}
+    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISK_OLD_WINDOW_GY}
     laws = {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
-    laws["old"] = thick_ages.old_age_law(shape, laws["old"])    # GEN.1025: the thick disc's stars reach 13 Gy
+    laws["old"] = thick_ages.old_age_law(shape, laws["old"])    # GEN.1025: the thick disk's stars reach 13 Gy
     return laws
 
 
@@ -314,7 +314,7 @@ def population_shares(shape):
         dict: Population name -> share.
     """
     found = history_of(shape)
-    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISC_OLD_WINDOW_GY}    # GEN.1025: the thin disc's own window
+    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISK_OLD_WINDOW_GY}    # GEN.1025: the thin disk's own window
     shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_ARM_AMPLITUDE}
     total = sum(shares.values())
     return {name: value / total for name, value in shares.items()}

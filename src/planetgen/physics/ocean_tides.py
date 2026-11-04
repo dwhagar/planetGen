@@ -30,7 +30,7 @@ The depth of the basin, the dissipation of the tide and non-water liquids (GEN.1
 **The stored columns** (`FIELDS`, on `planets` and `moons`; `generate`, called where `daylight.generate` is, after the moons and the spin are final):
 
 * `tide_range_spring_m` and `tide_range_neap_m`, metres: the open-ocean equilibrium ranges above, for a body whose hydrosphere is `surface ocean` (a free
-  sea); `0` for an `ice-covered ocean` (no free surface, with the reason in `ocean_tide`); `None` for every other body (dry, vapour, ice, a brine seep, a
+  sea); `0` for an `ice-covered ocean` (no free surface, with the reason in `ocean_tide`); `None` for every other body (dry, vapor, ice, a brine seep, a
   hycean world, a gas giant, a body with no spin on record).
 * `ocean_liquid`: the liquid of that sea, `water` until the surface liquid inventory (GEN.1035) names others; `None` where the tide columns are.
 

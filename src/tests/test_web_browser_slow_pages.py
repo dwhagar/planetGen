@@ -3,7 +3,7 @@ The loading state of a slow page in a real browser (UX.118): the Phenomena list 
 
 The page is the real Flask view over the fake API of `test_web_browser_tables.py`; the fake API client raises
 `slowpages.Pending` while the test says the answer is still being built, and the job's status is whatever the test
-sets, so every state (queued, running, failed, cancelled, finished) is shown without a queue. The queue and the
+sets, so every state (queued, running, failed, canceled, finished) is shown without a queue. The queue and the
 job itself are in `test_slowpages.py` and `test_slow_route.py`; the polling logic in `tests/js/slowload.test.mjs`.
 """
 
@@ -28,7 +28,7 @@ JOB_A, JOB_B = "0123456789abcdef", "fedcba9876543210"
 
 def _job(state="running", done=300, total=1000, eta=5.0, error=None, job_id=JOB_A):
     return {"id": job_id, "state": state, "done": done, "total": total, "unit": "rows", "estimated": True,
-            "eta_seconds": eta, "seconds": 3.0, "error": error, "cancelling": False,
+            "eta_seconds": eta, "seconds": 3.0, "error": error, "canceling": False,
             "cache_key": "planetgen:page:x:y", "target": f"/phenomena?db={DB}"}
 
 
@@ -204,8 +204,8 @@ def test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one(page, slow_
     assert not error.is_visible()
 
 
-def test_a_job_an_administrator_cancelled_says_so(page, slow_site):
-    WORLD.job = _job("cancelled", done=0)
+def test_a_job_an_administrator_canceled_says_so(page, slow_site):
+    WORLD.job = _job("canceled", done=0)
     _open(page, slow_site)
     page.locator("[data-slow-error]").wait_for(state="visible")
     assert page.locator("[data-slow-error]").inner_text() == "An administrator stopped building this page."

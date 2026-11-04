@@ -526,8 +526,8 @@ def _query(page):
     win = _stage(page)["win"]
     if "sector=" in query or not win:
         return query
-    centre = win["centre"]
-    token = f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}" + (f"&g={win['g']}" if win["g"] != 9 else "")
+    center = win["center"]
+    token = f"win={center['m']}.{center['shell']}.{center['band']}.{center['wedge']}" + (f"&g={win['g']}" if win["g"] != 9 else "")
     return token + ("&" + query if query else "")
 
 
@@ -819,7 +819,7 @@ def _descend(page):
     window (the sector blocks that a click took down are gone from the Galaxy Map, MAP.297). Returns the window's
     size, or None when the last window is open already."""
     win = _stage(page)["win"]
-    size = win["centre"]["m"] if win else None
+    size = win["center"]["m"] if win else None
     sizes = [cell[0] for cell in PRIME_WINDOWS]
     if size == sizes[-1]:
         return None
@@ -853,7 +853,7 @@ def test_galaxy_map_hover_names_an_object_and_leaving_hides_it(page, map_site):
 
 def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
     """MAP.151: a window stage (?win=) shows `g` cells around a cell; a click
-    opens the window one size down, centred on the cell clicked, and Up comes
+    opens the window one size down, centered on the cell clicked, and Up comes
     back out, the breadcrumb following. (The click on a block is gone, MAP.297: the wheel and the crumbs go down.)"""
     _open_window(page, map_site, 243, 0, 0, 0)
     assert _stage_query(page) == "win=243.0.0.0"
@@ -961,7 +961,7 @@ def test_a_superbubble_has_a_crisp_rim_brighter_than_its_fill_and_a_fill_fainter
     assert abs(rim - background) > abs(fill - background) + 6, (rim, fill, background)
 
 
-def test_layers_far_from_the_centre_are_built_relative_to_origins_of_their_own(page, far_site):
+def test_layers_far_from_the_center_are_built_relative_to_origins_of_their_own(page, far_site):
     """MAP.240: a superbubble 250 kpc out, a polity's dots and capital there, and the sectors a job made 150 kpc out keep every buffer
     value within 10 kpc of the origin of the object that holds it (the object carries the origin as its position, in double
     precision), where a float32 of the absolute place is 0.016 pc off at 250 kpc."""
@@ -1044,7 +1044,7 @@ FAR_CODE = provisional_sector_designation(40, 0, 0)
 
 def _window_size(page):
     win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
-    return win["centre"]["m"] if win else None
+    return win["center"]["m"] if win else None
 
 
 @pytest.mark.names_hidden
@@ -1072,8 +1072,8 @@ def test_galaxy_map_infobox_names_the_region_and_flies_to_it(page, map_site):
     from planetgen.galaxy.spherical import sector_position_pc
     from tests.map_site_support import REGION_RADIUS_PC
     after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
-    centre = sector_position_pc(*SECTORS[0][1:4], 4.0)
-    assert max(abs(a - b) for a, b in zip(after["target"], centre)) < 0.05, (after["target"], centre)
+    center = sector_position_pc(*SECTORS[0][1:4], 4.0)
+    assert max(abs(a - b) for a, b in zip(after["target"], center)) < 0.05, (after["target"], center)
     size = page.evaluate("() => { const c = document.querySelector('#galaxymap3d-canvas'); return [c.clientWidth, c.clientHeight]; }")
     tan = math.tan(math.radians(page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFov()")) / 2)
     half = math.atan(min(tan, tan * size[0] / size[1]))
@@ -1205,7 +1205,7 @@ def _on_line_of_sight(camera, point, tolerance=1e-3):
     return math.sqrt(sum(c * c for c in cross)) <= tolerance * math.sqrt(sum(r * r for r in ray)) * math.sqrt(sum(t * t for t in toward))
 
 
-def test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it(page, map_site):
+def test_wheel_zoom_turns_about_the_center_and_a_shift_click_chooses_it(page, map_site):
     """MAP.199: the mouse turns the view about the cross in the middle of the
     map, and a wheel with the pointer on the cross zooms about it; a
     Shift-click makes the spot clicked the new center, keeping the angle and
@@ -1219,7 +1219,7 @@ def test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it(page, ma
     page.wait_for_timeout(200)
     box = canvas.bounding_box()
     cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
-    cross = page.locator("#galaxymap3d-centre")
+    cross = page.locator("#galaxymap3d-center")
     assert cross.is_visible()
     cross_box = cross.bounding_box()
     assert abs(cross_box["x"] + cross_box["width"] / 2 - cx) < 2 and abs(cross_box["y"] + cross_box["height"] / 2 - cy) < 2
@@ -1289,7 +1289,7 @@ def test_the_header_and_every_crumb_follow_the_cell_the_camera_is_in(page, map_s
     assert first.startswith("In Sector ") and crumbs[0] == "Galaxy" and crumbs[-1].startswith("Sector "), (first, crumbs)
 
     point = sector_position_pc(1, 0, 2, EDGE_PC)
-    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
+    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(...p)", list(point))
     page.wait_for_function("(was) => document.querySelector('#galaxymap3d-where').textContent !== was", arg=first)
     _settle(page)
     moved = where.inner_text()
@@ -1333,8 +1333,8 @@ def test_on_map_zoom_slider_and_direction_star(page, map_site):
         moved = _camera(page)
         assert moved["target"] != before["target"], f"the {name} arrow moves the center"
         assert abs(moved["tilt"] - before["tilt"]) < 1e-6
-    assert page.locator(".starmap-centre-readout").is_visible()
-    assert "is-moving" in page.locator("#galaxymap3d-centre").get_attribute("class")
+    assert page.locator(".starmap-center-readout").is_visible()
+    assert "is-moving" in page.locator("#galaxymap3d-center").get_attribute("class")
     page.locator(GALAXY_CANVAS).focus()
     before = _camera(page)
     page.keyboard.press("Alt+ArrowLeft")
@@ -1631,7 +1631,7 @@ def _volume_open(page, map_site):
 
 
 def _circularity(points, cell):
-    """4 pi A / P^2 of the grid cells `points` (x, y in parsecs) fall in: 1 for a disc, well under for a ragged outline."""
+    """4 pi A / P^2 of the grid cells `points` (x, y in parsecs) fall in: 1 for a disk, well under for a ragged outline."""
     import numpy as np
 
     cells = {(int(math.floor(x / cell)), int(math.floor(y / cell))) for x, y in points}
@@ -1693,7 +1693,7 @@ def _open_nebula_window(page, map_site):
 
 def test_choosing_a_nebula_opens_its_window_and_the_way_back_returns(page, map_site):
     """MAP.222: choosing the fixture nebula by its name flies to a window on it alone: the bar names it with a button back, the camera
-    frames its bounding sphere (centred on it, whatever sectors it crosses), only the stars inside are drawn, and the other layers (the
+    frames its bounding sphere (centered on it, whatever sectors it crosses), only the stars inside are drawn, and the other layers (the
     glow, the regions) give way; the button returns the camera to where it was and brings everything back."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     before = _camera(page)
@@ -1707,7 +1707,7 @@ def test_choosing_a_nebula_opens_its_window_and_the_way_back_returns(page, map_s
     assert page.locator("#galaxymap3d-window").is_visible()
     assert "Fixture Cloud" in page.locator("#galaxymap3d-window").inner_text()
     camera = _camera(page)
-    assert math.dist(camera["target"], win["centre"]) < 0.05 * win["radiusPc"] + 1.0, (camera["target"], win["centre"])
+    assert math.dist(camera["target"], win["center"]) < 0.05 * win["radiusPc"] + 1.0, (camera["target"], win["center"])
     assert opened["drawn"] < opened["total"], "stars outside the window are not drawn"
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').dataset.groupWindow") == win["key"]
     page.click('#galaxymap3d-window [data-action="close-window"]')
@@ -1740,9 +1740,9 @@ def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
     from planetgen.galaxy import nebula_blocks, nebula_volume
     from tests import nebula_density_stand_in as stand_in
 
-    centre = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
-    pair = [{"x": centre[0], "y": centre[1], "z": centre[2], "radius_pc": 30.0, "family": "emission"},
-            {"x": centre[0] + 18.0, "y": centre[1] + 6.0, "z": centre[2], "radius_pc": 26.0, "family": "reflection"}]
+    center = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
+    pair = [{"x": center[0], "y": center[1], "z": center[2], "radius_pc": 30.0, "family": "emission"},
+            {"x": center[0] + 18.0, "y": center[1] + 6.0, "z": center[2], "radius_pc": 26.0, "family": "reflection"}]
     packed = nebula_volume.pack(nebula_volume.sample_group(pair, None, stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL,
                                                            nebula_blocks.FAMILIES, level=2))
     empty = nebula_volume.pack(nebula_volume.sample_group([], None, None, 0.0, 0, nebula_blocks.FAMILIES))
@@ -2245,7 +2245,7 @@ def test_dense_fixture_region_is_there_and_can_be_zoomed_into(page, dense_site):
     _settle(page)
     end = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
     assert end["dist"] < start["dist"] / 3, (start["dist"], end["dist"])
-    # MAP.300: the wheel goes on in on a star of the cluster (the one under the middle of the screen), so the cluster's centre may be
+    # MAP.300: the wheel goes on in on a star of the cluster (the one under the middle of the screen), so the cluster's center may be
     # off the screen by then; what is under the middle is a star of the cluster.
     box = page.locator(GALAXY_CANVAS).bounding_box()
     middle = page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)",
@@ -3322,8 +3322,8 @@ def test_the_menu_lists_the_charted_regions_by_share_or_name_and_a_click_flies_t
     _settle(page)
     from tests.map_site_support import REGION_RADIUS_PC
     after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
-    centre = next(spot for spot in [{"x": 2.8284271247461903, "y": 2.82842712474619, "z": 0.0}])
-    assert max(abs(after["target"][i] - centre["xyz"[i]]) for i in range(3)) < 0.05, after["target"]
+    center = next(spot for spot in [{"x": 2.8284271247461903, "y": 2.82842712474619, "z": 0.0}])
+    assert max(abs(after["target"][i] - center["xyz"[i]]) for i in range(3)) < 0.05, after["target"]
     assert after["dist"] < 6 * REGION_RADIUS_PC, after["dist"]
 
 
@@ -3825,7 +3825,7 @@ SECTOR_FRAME_LINES = "() => document.querySelector('#galaxymap3d-canvas').__mapS
 
 def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_each_wall_that_flies_to_the_neighbour(page, map_site):
     """MAP.327: with a sector opened in place the space outside it is dimmed (no glow), a wireframe round its cell stays
-    where the cell is, and each wall facing another sector has one labelled icon at its centre whose click arrives there."""
+    where the cell is, and each wall facing another sector has one labelled icon at its center whose click arrives there."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site, wall_icons=True)
     assert page.evaluate(SECTOR_VIEW)["outsideDim"] == 1 and page.evaluate(SECTOR_FRAME)["framed"] is False
@@ -3838,7 +3838,7 @@ def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_e
     state = page.evaluate(SECTOR_FRAME)
     names = [icon["name"] for icon in state["icons"]]
     assert names and len(set(names)) == len(names) and all(name.startswith("Sector ") for name in names), names
-    # Each shown icon stands at the centre of its wall, the icon's own button what the page shows there.
+    # Each shown icon stands at the center of its wall, the icon's own button what the page shows there.
     shown = [icon for icon in state["icons"] if icon["shown"]]
     assert shown
     for icon in shown:
@@ -3888,19 +3888,19 @@ def _sector_in_address(page):
     return parse_qs(urlparse(page.url).query).get("sector", [None])[0]
 
 
-CENTRE_NOW = """() => { const c = document.querySelector("#galaxymap3d-canvas").galaxyStage().win.centre;
+CENTER_NOW = """() => { const c = document.querySelector("#galaxymap3d-canvas").galaxyStage().win.center;
     return [c.m, c.shell, c.band, c.wedge].join("."); }"""
 
 
-def _sector_centre(page):
+def _sector_center(page):
     """The sector the view is on, `m.shell.band.wedge` (m is 1), as the window it sits in names it."""
-    return page.evaluate(CENTRE_NOW)
+    return page.evaluate(CENTER_NOW)
 
 
 def _wait_off(page, was):
-    page.wait_for_function(f"([was]) => ({CENTRE_NOW})() !== was", arg=[was], timeout=20000)
+    page.wait_for_function(f"([was]) => ({CENTER_NOW})() !== was", arg=[was], timeout=20000)
     _settle(page)
-    return _sector_centre(page)
+    return _sector_center(page)
 
 
 def test_the_step_buttons_and_keys_go_from_an_opened_sector_to_the_sector_beside_it_and_back(page, map_site):
@@ -3911,7 +3911,7 @@ def test_the_step_buttons_and_keys_go_from_an_opened_sector_to_the_sector_beside
     _open_galaxy(page, map_site, OPEN_PRIME)
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     _settle(page)
-    start = _sector_centre(page)
+    start = _sector_center(page)
     assert start.startswith("1."), start
     assert _sector_in_address(page) == PRIME_CODE
 
@@ -4448,14 +4448,14 @@ def _nearest_that_way(here, others, direction, cone_deg=60.0):
 
 def _system_places():
     """Every fixture system's place in the galaxy's frame, pc, by name: a sector's scene lies in the sector's own frame, turned about the
-    z axis to the sector's azimuth (the Fixture Prime wedge 1 at 45 degrees), its stored x and y in mpc from the sector's centre."""
+    z axis to the sector's azimuth (the Fixture Prime wedge 1 at 45 degrees), its stored x and y in mpc from the sector's center."""
     places = {}
     for sector_id, systems in ((SECTOR_ID, SYSTEMS), (BESIDE_ID, BESIDE_SYSTEMS)):
-        centre = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == sector_id))
-        azimuth = math.atan2(centre[1], centre[0])
+        center = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == sector_id))
+        azimuth = math.atan2(center[1], center[0])
         for _i, name, x, y, z, _s in systems:
-            places[name] = (centre[0] + (x * math.cos(azimuth) - y * math.sin(azimuth)) / 1000.0,
-                            centre[1] + (x * math.sin(azimuth) + y * math.cos(azimuth)) / 1000.0, centre[2] + z / 1000.0)
+            places[name] = (center[0] + (x * math.cos(azimuth) - y * math.sin(azimuth)) / 1000.0,
+                            center[1] + (x * math.sin(azimuth) + y * math.cos(azimuth)) / 1000.0, center[2] + z / 1000.0)
     return places
 
 
@@ -4871,8 +4871,8 @@ def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_sit
     asked = {key for _at, keys in requests for key in keys}
     here, in_one, out_one = cut_at(camera), cut_at(camera, 1.0 / 3.0), cut_at(camera, 3.0)
     # The page also loads the opening view (the whole galaxy from its farthest camera) before it settles on the sector.
-    centre = (0.0, 0.0, 0.0)
-    opening = cut_at(camera_position_pc(view_radius_bounds(EDGE_PC, galaxy_shape())[1], centre), look=centre)
+    center = (0.0, 0.0, 0.0)
+    opening = cut_at(camera_position_pc(view_radius_bounds(EDGE_PC, galaxy_shape())[1], center), look=center)
     way_out = out_one - here - in_one - opening
     assert way_out, "the way out needs nodes of its own for this test to mean anything"
     assert not asked & way_out, f"no zoom-out prefetch: {sorted(asked & way_out)}"
@@ -4973,10 +4973,10 @@ def test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_s
     preset (never `flying`), its turn is never reset, and the distance falls at every tick (no stop at a stage's end)."""
     _open_galaxy(page, map_site)
     box = page.locator(GALAXY_CANVAS).bounding_box()
-    centre = (box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
-    page.mouse.move(*centre)
+    center = (box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.move(*center)
     page.mouse.down()
-    page.mouse.move(centre[0], centre[1] + 60, steps=6)
+    page.mouse.move(center[0], center[1] + 60, steps=6)
     page.mouse.up()
     start = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
     assert start["tilt"] > 5, "the reader's own turn is not the preset's"
@@ -4999,10 +4999,10 @@ def test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_s
     assert seen[-1]["dist"] < start["dist"] / 50, (start["dist"], seen[-1]["dist"])
 
 
-def test_the_wheel_keeps_the_view_over_the_disc_on_the_way_down_to_a_sector(page, map_site):
+def test_the_wheel_keeps_the_view_over_the_disk_on_the_way_down_to_a_sector(page, map_site):
     """MAP.292: the blocks are not drawn (MAP.265), so the point the wheel zooms toward is not the top face of the
-    invisible column of them (kiloparsecs above the disc, where no star is): scrolling in with the pointer anywhere
-    over the galaxy carries the view down to a sector with its centre still in the plane the stars lie in."""
+    invisible column of them (kiloparsecs above the disk, where no star is): scrolling in with the pointer anywhere
+    over the galaxy carries the view down to a sector with its center still in the plane the stars lie in."""
     for fraction in (0.5, 0.2, 0.8):
         _open_galaxy(page, map_site)
         page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
@@ -5034,7 +5034,7 @@ def _hover_spot(page, point):
         free = "([x, y]) => document.elementFromPoint(x, y) === document.querySelector('#galaxymap3d-canvas')"
         if not page.evaluate(free, list(spot)):
             # TEST.573: the point lies under one of the map's own controls (the log ruler, MAP.336, down the right side): the camera
-            # centres on it, keeping its distance, which leaves the whole-galaxy view as it is.
+            # centers on it, keeping its distance, which leaves the whole-galaxy view as it is.
             page.evaluate("([c, d]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, dist: d})",
                           [list(point), _camera(page)["dist"]])
             _camera(page)
@@ -5428,7 +5428,7 @@ def test_galaxy_map_info_card_sizes_to_its_content_and_keeps_its_buttons_and_reg
 # --- MAP.333: zoom Z0: moves are held by the global limits, not the stage's range -------------------------------------
 
 CAMERA_NOW = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
-STAGE_M = "() => { const s = document.querySelector('#galaxymap3d-canvas').galaxyZoomLevel(); return s.win ? s.win.centre.m : null; }"
+STAGE_M = "() => { const s = document.querySelector('#galaxymap3d-canvas').galaxyZoomLevel(); return s.win ? s.win.center.m : null; }"
 """str: The block size of the zoom level the camera is at (MAP.337: the camera's distance alone, not a stage the map has switched to)."""
 
 
@@ -5452,8 +5452,8 @@ def test_a_fly_to_lands_where_it_was_asked_with_no_snap_back_to_the_stage_range(
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const l = document.querySelector('#galaxymap3d-canvas').__mapRegionList; return l && l.order().length === 2; }", timeout=20000)
     fly = "([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})"
-    for centre, radius in (([2.83, 2.83, 0.0], 12.0), ([2.83, 2.83, 0.0], 3.0)):
-        page.evaluate(fly, [centre, radius])
+    for center, radius in (([2.83, 2.83, 0.0], 12.0), ([2.83, 2.83, 0.0], 3.0)):
+        page.evaluate(fly, [center, radius])
         page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
         _settle(page)
         landed = page.evaluate(CAMERA_NOW)["dist"]
@@ -5482,7 +5482,7 @@ def test_the_zoom_slider_is_one_log_scale_and_takes_the_view_through_every_level
     is, and a drag carries the view across every level (the windows of 81 to 1, the sector, the system) as the wheel does."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
-    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(...c)", [list(STAR_FIELD_CENTER_PC)])
     _settle(page)
     seen = {}
     for share in (0.05, 0.15, 0.2, 0.25):
@@ -5519,7 +5519,7 @@ def test_the_zoom_range_is_one_absolute_range_in_every_stage_and_the_nearest_thi
     page.set_viewport_size(VIEWPORT)
     limits_js = "() => document.querySelector('#galaxymap3d-canvas').galaxyZoomLimits()"
     _open_galaxy(page, map_site)
-    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(...c)", [list(STAR_FIELD_CENTER_PC)])
     _settle(page)
     seen = {}
     for share in (0.15, 0.2, 0.25):
@@ -5578,7 +5578,7 @@ def test_the_wheel_does_not_stop_at_the_end_of_a_window_whose_sector_was_picked(
     at the end of the range goes to the parent window (it used to let go of a picked sector first and stop there)."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
-    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(...c)", [list(STAR_FIELD_CENTER_PC)])
     _settle(page)
     _slider_to(page, 0.25)
     assert page.evaluate(STAGE_M) == 1

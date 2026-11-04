@@ -505,7 +505,7 @@ _BODY_NOT_SHOWN = {
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
     **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
                "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
-               "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
+               "ground_oxidized_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
                "ground_sulfur_fraction", "ground_intermediate_fraction"),
               "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
               "not list it as a row yet"),
@@ -1005,7 +1005,7 @@ CHEMISTRY_ROWS = {
     "chemistry_dredge_up_helium": ("Helium added by the first dredge-up", "mass fraction"),
 }
 """dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
-disc population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added. They are worked out from the stored
+disk population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added. They are worked out from the stored
 class, mass, [Fe/H], and age when the sheet is made and are not columns."""
 
 CHEMISTRY_KEYS = tuple(CHEMISTRY_ROWS)
@@ -1015,7 +1015,7 @@ _BRANCH_WORDS = {stellar_abundances.BRANCH_THIN: "Thin disk", stellar_abundances
 
 
 def _star_distance_ly(conn, system_id):
-    """The distance from the galactic centre, light-years, the star's abundance draws are keyed on (its sector's, as the generator was given it),
+    """The distance from the galactic center, light-years, the star's abundance draws are keyed on (its sector's, as the generator was given it),
     or the galaxy's default for a star in no placed sector."""
     found = None if system_id is None else conn.execute(
         "SELECT sectors.galactic_radius_pc FROM star_systems JOIN sectors ON sectors.id = star_systems.sector_id WHERE star_systems.id = ?",
@@ -1025,9 +1025,9 @@ def _star_distance_ly(conn, system_id):
 
 def _chemistry_rows(conn, row):
     """
-    The chemistry rows of a star (UX.254): its disc population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
+    The chemistry rows of a star (UX.254): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
     first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H], and age, with the draws keyed as the
-    generator keys its planets' host ratios (mass and the sector's distance from the centre, not the age), so nothing is stored. A star with no [Fe/H],
+    generator keys its planets' host ratios (mass and the sector's distance from the center, not the age), so nothing is stored. A star with no [Fe/H],
     one the composition does not cover or one whose downloaded data are missing has none.
     """
     if row["metallicity_fe_h"] is None or row["mass_kg"] is None or row["age_gy"] is None:
@@ -1079,8 +1079,8 @@ BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and n
 
 BAND_LABELS = {"north_polar": "North polar", "north_middle": "North middle", "north_tropic": "North tropics", "equator": "Equator",
                "south_tropic": "South tropics", "south_middle": "South middle", "south_polar": "South polar",
-               "day_centre": "Day center", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
-               "night_edge": "Night edge", "night_middle": "Night side", "night_centre": "Night center"}
+               "day_center": "Day center", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
+               "night_edge": "Night edge", "night_middle": "Night side", "night_center": "Night center"}
 """dict: What the table of the bands calls each band or ring (`latitude_bands.NAMES`, `RING_NAMES`)."""
 
 
@@ -1102,8 +1102,8 @@ def _band_cell(field, value):
 def bands_table(row):
     """
     The seven bands of a body side by side (GEN.1108): `{"locked", "bands": [{"key", "label"}], "rows": [{"key", "label", "cells"}]}`, one row for each of
-    `BAND_ROW_LABELS` that any band holds, one cell (an inline list, empty where the band has none) for each band from the north pole to the south pole (the day centre
-    to the night centre for a world that turns once an orbit). `None` for a body that stores no bands.
+    `BAND_ROW_LABELS` that any band holds, one cell (an inline list, empty where the band has none) for each band from the north pole to the south pole (the day center
+    to the night center for a world that turns once an orbit). `None` for a body that stores no bands.
     """
     if row is None or row.get(regional_temperature.column(1, "mean_k")) is None:
         return None

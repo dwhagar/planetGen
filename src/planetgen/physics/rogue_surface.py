@@ -150,7 +150,7 @@ def giant_temperature_at_k(t_eff_k, gravity_m_s2, pressure_pa):
 
 
 def frozen_nitrogen_pressure_pa(temperature_k):
-    """Nitrogen frost's vapour pressure from the one saturation function (`physics/saturation.py`): ~1-6 Pa at 37-40 K, Pluto's
+    """Nitrogen frost's vapor pressure from the one saturation function (`physics/saturation.py`): ~1-6 Pa at 37-40 K, Pluto's
     air; nothing at 20 K. Above nitrogen's critical temperature there is no saturation and the critical pressure is the most the air
     can hold as a frozen-atmosphere regime."""
     pressure = saturation.pressure_pa("N2", temperature_k)

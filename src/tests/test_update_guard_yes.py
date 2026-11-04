@@ -22,7 +22,7 @@ from tests.test_update_guard import FakeWork, REPO, begin, lines, say  # noqa: F
 def sure_nothing_changed(fake=None):
     assert not maintenance.is_on() and updateguard.read_lock() is None
     if fake is not None:
-        assert fake.cancelled == []
+        assert fake.canceled == []
 
 
 # --- the five paths ---------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ def test_with_no_jobs_nobody_is_asked_and_the_update_goes_on(say):
 def test_with_jobs_the_flag_cancels_them_and_asks_nothing(say, lines):
     fake = FakeWork("Generate sectors", "Warm-up")
     assert begin(sources=[fake], yes=True, interactive=True, answer=lambda text: pytest.fail(text), write=say)
-    assert sorted(fake.cancelled) == ["job-0", "job-1"]
+    assert sorted(fake.canceled) == ["job-0", "job-1"]
 
 
 def test_with_jobs_a_typed_yes_cancels_them_and_a_typed_no_changes_nothing(say):
@@ -46,7 +46,7 @@ def test_with_jobs_a_typed_yes_cancels_them_and_a_typed_no_changes_nothing(say):
     assert not begin(sources=[fake], interactive=True, answer=lambda text: "\n", write=say)
     sure_nothing_changed(fake)
     assert begin(sources=[fake], interactive=True, answer=lambda text: "y\n", write=say)
-    assert fake.cancelled == ["job-0"]
+    assert fake.canceled == ["job-0"]
 
 
 def test_with_jobs_thirty_seconds_of_silence_is_a_no(say, lines):
@@ -70,7 +70,7 @@ def test_with_jobs_a_run_from_systemd_or_cron_asks_nothing_and_is_a_no_unless_th
     assert f"started by {starter}" in text and "add --yes" in text
     sure_nothing_changed(fake)
     assert begin(sources=[fake], unattended=starter, yes=True, write=say)
-    assert fake.cancelled == ["job-0"]
+    assert fake.canceled == ["job-0"]
 
 
 # --- who started the run ----------------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ def test_a_live_run_is_listed_once_without_its_units_and_a_finished_one_is_not(c
     assert any(isinstance(source, updateguard.RunRecordSource) for source in updateguard.default_sources())
 
 
-def test_a_live_run_stops_the_update_without_the_word_and_is_cancelled_with_it(conn, redis_server, say, lines):
+def test_a_live_run_stops_the_update_without_the_word_and_is_canceled_with_it(conn, redis_server, say, lines):
     run_id = _live_run(conn)
     sources = [updateguard.RunRecordSource(redis_server), updateguard.QueuedJobSource(redis_server)]
     assert not begin(sources=sources, write=say)
@@ -152,7 +152,7 @@ def test_a_live_run_stops_the_update_without_the_word_and_is_cancelled_with_it(c
     sure_nothing_changed()
     assert begin(sources=sources, yes=True, write=say, timeout=30, poll=0.1)
     run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "cancelled" and run["error"] == "canceled by update"
+    assert run["state"] == "canceled" and run["error"] == "canceled by update"
     assert runrecord.active_run(conn) is None
     assert redisqueue.queue(redisqueue.BULK_QUEUE, conn).count == 0
 

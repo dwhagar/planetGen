@@ -14,27 +14,27 @@ from planetgen.physics import rogue_drift
 SCALE_LENGTH, SCALE_HEIGHT = 2600.0, 300.0
 
 
-def disc(x, y, z):
-    """An exponential disc with a sech^2 height: no azimuth dependence."""
+def disk(x, y, z):
+    """An exponential disk with a sech^2 height: no azimuth dependence."""
     r = np.hypot(x, y)
     return np.exp(-r / SCALE_LENGTH) / np.cosh(z / (2.0 * SCALE_HEIGHT)) ** 2
 
 
 def spiral(x, y, z, arms=2, pitch=math.radians(15.0), amplitude=0.4):
-    """The disc with logarithmic spiral arms: a cosine in the arm angle."""
+    """The disk with logarithmic spiral arms: a cosine in the arm angle."""
     r = np.maximum(np.hypot(x, y), 1.0)
     phase = arms * (np.arctan2(y, x) - np.log(r / 8000.0) / math.tan(pitch))
-    return disc(x, y, z) * (1.0 + amplitude * np.cos(phase))
+    return disk(x, y, z) * (1.0 + amplitude * np.cos(phase))
 
 
 def test_the_ring_average_removes_arms_and_bars_exactly():
     for arms in (1, 2, 3, 4, 7):
         mean = rd.ring_average(lambda x, y, z: spiral(x, y, z, arms=arms), 8000.0, 0.0)
-        assert mean == pytest.approx(float(disc(np.array([8000.0]), np.array([0.0]), np.array([0.0]))[0]), rel=1e-9)
+        assert mean == pytest.approx(float(disk(np.array([8000.0]), np.array([0.0]), np.array([0.0]))[0]), rel=1e-9)
 
 
-def test_the_ring_average_of_a_disc_is_its_value():
-    assert rd.ring_average(disc, 5000.0, 120.0) == pytest.approx(math.exp(-5000.0 / SCALE_LENGTH) / math.cosh(120.0 / 600.0) ** 2, rel=1e-12)
+def test_the_ring_average_of_a_disk_is_its_value():
+    assert rd.ring_average(disk, 5000.0, 120.0) == pytest.approx(math.exp(-5000.0 / SCALE_LENGTH) / math.cosh(120.0 / 600.0) ** 2, rel=1e-12)
 
 
 def test_smoothing_leaves_a_smooth_density_nearly_unchanged_and_a_linear_one_exactly():
@@ -42,8 +42,8 @@ def test_smoothing_leaves_a_smooth_density_nearly_unchanged_and_a_linear_one_exa
     assert uniform == pytest.approx(2.5)
     linear = rd.old_density(lambda x, y, z: 1.0 + 1e-3 * np.hypot(x, y) + 2e-3 * z, 8000.0, 15.0)
     assert linear == pytest.approx(1.0 + 1e-3 * 8000.0 + 2e-3 * 15.0, rel=1e-12)
-    smooth = rd.old_density(disc, 8000.0, 0.0)
-    assert smooth == pytest.approx(float(disc(np.array([8000.0]), np.array([0.0]), np.array([0.0]))[0]), rel=0.01)
+    smooth = rd.old_density(disk, 8000.0, 0.0)
+    assert smooth == pytest.approx(float(disk(np.array([8000.0]), np.array([0.0]), np.array([0.0]))[0]), rel=0.01)
 
 
 def test_the_smoothing_agrees_with_a_brute_force_average_over_the_gaussians():
@@ -52,8 +52,8 @@ def test_the_smoothing_agrees_with_a_brute_force_average_over_the_gaussians():
     for _ in range(count):
         r = abs(5000.0 + rd.RADIAL_SMOOTH_PC * rng.gauss(0.0, 1.0))
         z = 100.0 + rd.VERTICAL_SMOOTH_PC * rng.gauss(0.0, 1.0)
-        total += float(disc(np.array([r]), np.array([0.0]), np.array([z]))[0])
-    assert rd.old_density(disc, 5000.0, 100.0) == pytest.approx(total / count, rel=0.01)
+        total += float(disk(np.array([r]), np.array([0.0]), np.array([z]))[0])
+    assert rd.old_density(disk, 5000.0, 100.0) == pytest.approx(total / count, rel=0.01)
 
 
 def test_an_old_rogue_does_not_see_the_arm_the_sector_is_in():
@@ -84,8 +84,8 @@ def test_the_sectors_and_the_map_read_the_same_function():
 
 
 def test_a_sector_on_the_axis_is_reflected_not_negative():
-    assert rd.old_density(disc, 0.0, 0.0) > 0.0
-    assert rd.old_density(disc, 0.0, 0.0) <= 1.0
+    assert rd.old_density(disk, 0.0, 0.0) > 0.0
+    assert rd.old_density(disk, 0.0, 0.0) <= 1.0
 
 
 def test_no_smoothing_is_the_ring_average():
@@ -94,9 +94,9 @@ def test_no_smoothing_is_the_ring_average():
 
 def test_bad_input_is_refused():
     with pytest.raises(ValueError):
-        rd.old_density(disc, -1.0, 0.0)
+        rd.old_density(disk, -1.0, 0.0)
     with pytest.raises(ValueError):
-        rd.old_density(disc, 100.0, 0.0, -1.0, 0.0)
+        rd.old_density(disk, 100.0, 0.0, -1.0, 0.0)
     with pytest.raises(ValueError):
         rd.young_share(0.0)
 

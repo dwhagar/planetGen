@@ -1,7 +1,7 @@
 # tests/test_resident_mass.py
 
 """
-GEN.1124: the resident-mass subtraction (`planetgen.galaxy.resident_mass`): the budget never negative, the residents untouched, an empty sector unchanged, only residents whose centre
+GEN.1124: the resident-mass subtraction (`planetgen.galaxy.resident_mass`): the budget never negative, the residents untouched, an empty sector unchanged, only residents whose center
 lies in the sector counted, and the shortfall of stage 3.
 """
 
@@ -37,10 +37,10 @@ def test_the_budget_is_never_negative_and_the_excess_is_reported():
     assert rm.remaining_budget(0.0, [rm.Resident("rogue", EARTH)]).remaining_kg == 0.0
 
 
-def test_an_extended_object_whose_centre_is_elsewhere_is_not_counted():
-    reaching_in = rm.Resident("extended", 1e4 * SUN, centre_inside=False, systems=50.0)
-    centred = rm.Resident("extended", 10.0 * SUN)
-    budget = rm.remaining_budget(100.0 * SUN, [reaching_in, centred], total_systems=60.0)
+def test_an_extended_object_whose_center_is_elsewhere_is_not_counted():
+    reaching_in = rm.Resident("extended", 1e4 * SUN, center_inside=False, systems=50.0)
+    centered = rm.Resident("extended", 10.0 * SUN)
+    budget = rm.remaining_budget(100.0 * SUN, [reaching_in, centered], total_systems=60.0)
     assert budget.held_kg == 10.0 * SUN and budget.counted == 1 and budget.ignored == 1 and budget.remaining_systems == 60.0
 
 

@@ -82,7 +82,7 @@ def test_a_rebuild_stores_one_row_for_every_region_that_holds_a_sector(galaxy):
             assert row["capacity"] == sum(1 for _ in drill.block_addresses(cell))
             assert row["clump_count"] == extent.clumps
             assert row["extent_radius_pc"] == pytest.approx(extent.radius_pc)
-            assert row["extent_centre_pc"] == pytest.approx(tuple(extent.centre_pc))
+            assert row["extent_center_pc"] == pytest.approx(tuple(extent.center_pc))
             assert row["extent_radius_pc"] >= named_regions.framing_radius_pc(cell, edge) - 1e-9
     finally:
         conn.close()
@@ -112,7 +112,7 @@ def test_one_sector_makes_a_region_at_a_small_share(galaxy):
         edge = query.galaxy_edge_pc(conn)
         found = region_stats.region_of(conn, spherical.sector_position_pc(*lone, edge), edge)
         assert found["block"] == cell
-        assert np.allclose(found["extent_centre_pc"], spherical.sector_position_pc(*lone, edge))
+        assert np.allclose(found["extent_center_pc"], spherical.sector_position_pc(*lone, edge))
         assert region_stats.region_of(conn, (123456.0, 0.0, 0.0), edge) is None
     finally:
         conn.close()

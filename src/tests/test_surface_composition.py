@@ -111,11 +111,11 @@ def test_water_ice_vacuum_and_air_limits():
 
 def test_modifiers_follow_the_air_and_the_water():
     dry = sc.draw_surface(earth(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False))
-    assert not {"felsic", "clay", "oxidised", "evaporite", "sulfur"} & set(dry.mix)
+    assert not {"felsic", "clay", "oxidized", "evaporite", "sulfur"} & set(dry.mix)
     for seed in range(30):
         draw.set_run_seed(seed)
         wet = sc.draw_surface(earth(mobile_lid=True))
-        assert {"felsic", "clay", "oxidised", "evaporite"} <= set(wet.mix)
+        assert {"felsic", "clay", "oxidized", "evaporite"} <= set(wet.mix)
 
 
 def test_tidal_sulfur():

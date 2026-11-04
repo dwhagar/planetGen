@@ -2917,7 +2917,7 @@ def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au
         role (str): `'primary'`, `'secondary'`, `'member'` (a star beyond the pair of a system of more than two, GEN.630)
             or `'single'`.
         parent_node_id (int, optional): The `orbit_nodes.node_no` the star is a child of; `None` for a single star.
-        offset_au (tuple, optional): The star's `(x, y, z)` offset from its system's centre of mass, AU (GEN.311).
+        offset_au (tuple, optional): The star's `(x, y, z)` offset from its system's center of mass, AU (GEN.311).
         slot (int, optional): Which child of its parent node the star is, 0 or 1; `None` for a single star (GEN.630).
         flags (int, optional): The star's member flag bits (`generation.multistar.MEMBER_FLAGS`); a runaway star's primary
             carries the bit of its origin (GEN.329); 0 for none.
@@ -3346,7 +3346,7 @@ BELT_FIELDS = (
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
     object_rows.attr("density"), object_rows.attr("mass_kg"), object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda belt, context: belt.get_composition_summary()),
-    # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries no vector
+    # GEN.337: a belt is a ring about its star, so its point is the star's (the system center) and it carries no vector
     # of its own.
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                           "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
@@ -3684,7 +3684,7 @@ def _placement_values(placement):
 
 def _default_place_pc():
     """tuple: Where an object with no place in the galaxy is taken to be for its movement vector: the radius that
-    holds half of the galaxy's disc stars on the +x axis (`galaxy.scales`), the place
+    holds half of the galaxy's disk stars on the +x axis (`galaxy.scales`), the place
     `galactic_orbit.generate_galactic_orbit_fields` works its speed out for."""
     return (scales.default_galactocentric_pc(), 0.0, 0.0)
 
@@ -6479,7 +6479,7 @@ def insert_nebula_field(conn, rows, batch_size=5000):
 
 
 def link_nebula_field_stored(conn):
-    """Marks the `nebula_field` rows whose cloud is already a `nebulae` row (found by its centre, as
+    """Marks the `nebula_field` rows whose cloud is already a `nebulae` row (found by its center, as
     `_insert_field_nebulae` finds one) as stored, with that nebula's object ID: after a plan redraws the table
     over a galaxy that already holds some of its clouds. Returns the rows linked."""
     cursor = conn.execute(
@@ -7561,7 +7561,7 @@ def _insert_field_nebulae(conn, sector, sector_id):
 
 def _mark_nebula_field_stored(conn, nebula_id, center):
     """Sets `stored` and the object ID on the `nebula_field` row of the field cloud just stored as nebula `nebula_id`
-    (DB.24), found by its cell and exact centre; nothing if the table has no such row (a class P or Q cloud, or a
+    (DB.24), found by its cell and exact center; nothing if the table has no such row (a class P or Q cloud, or a
     galaxy planned before v83)."""
     x, y, z = center
     i, j, k = nebulaField.cell_index(center)

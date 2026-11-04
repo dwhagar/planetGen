@@ -184,7 +184,7 @@ def test_a_lone_rogue_has_an_empty_set_and_a_hierarchy_counts_once():
     assert influence.influence_set((8128.0, 50.0, 0.0), 10.0, EDGE_PC, tables.get).member_count == 0
     empty = influence.influence_set((8128.0, 50.0, 0.0), 10.0, EDGE_PC, tables.get)
     assert empty.keys == () and empty.total_mass_kg == 0.0 and not empty.truncated
-    binary = np.array([[8128.0, 3.0, 0.0]])        # a pair given as one point mass at its barycentre
+    binary = np.array([[8128.0, 3.0, 0.0]])        # a pair given as one point mass at its barycenter
     tables = _tables(binary, np.array([2.0e30]), ("pair",))
     found = influence.influence_set((8128.0, 0.0, 0.0), 10.0, EDGE_PC, tables.get)
     assert found.keys == ("pair",) and found.masses_kg[0] == 2.0e30

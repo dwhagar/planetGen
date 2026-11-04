@@ -217,7 +217,7 @@
 --
 -- v10: galactic orbit. `stars` gains `galactic_orbital_speed_kms` and
 --   `galactic_orbital_period_gy` -- a star system's circular orbital speed
---   and period around the galactic center, derived from its (or the fallback's, the radius that holds half of the galaxy's disc stars) distance
+--   and period around the galactic center, derived from its (or the fallback's, the radius that holds half of the galaxy's disk stars) distance
 --   from it via a simple rotation-curve model (see
 --   `physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS`'s comment and
 --   `galactic_orbit.calculate_galactic_orbit`) -- the same "fixed at generation
@@ -1077,7 +1077,7 @@
 --   the floor. NULL on a scatter drawn before v73, which had no mass pass.
 --
 -- v74: hydrosphere and ocean chemistry (GEN.88). `planets` and `moons`:
---   `water_mass_fraction`, `hydrosphere` ('dry', 'vapour', 'ice',
+--   `water_mass_fraction`, `hydrosphere` ('dry', 'vapor', 'ice',
 --   'ice-covered ocean', 'surface ocean', 'hycean'), `ocean_fraction` and
 --   `land_fraction` (shares of the surface; water counts liquid or
 --   frozen), `ocean_depth_km` (mean liquid depth where there is water),
@@ -1102,7 +1102,7 @@
 --   layer) and `ozone_loss_flag` (ozone present but a galactic event rate
 --   over 1 per 100 Myr, or a stellar-particle dose of 100 mSv/yr at the
 --   ozone layer). `stars` gains `lethal_event_rate_per_gyr` (supernovae
---   within 8 pc per Gyr, from the distance to the galactic centre). NULL
+--   within 8 pc per Gyr, from the distance to the galactic center). NULL
 --   on a row generated before v75. Draws: the crust abundance
 --   (`planetgen/physics/radiation.py`); design
 --   docs/design/habitability/activity-magnetism-radiation-hydrosphere.md section 4.
@@ -1156,7 +1156,7 @@
 --   thin disk's level, the middle of the arm crest and the inter-arm trough:
 --   the arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest is
 --   `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`)
---   and `core_amplitude` (the galactic core's centre density, a Gaussian on top
+--   and `core_amplitude` (the galactic core's center density, a Gaussian on top
 --   of the bulge; 0 is none; replaced by `nuclear_amplitude` in v99). Defaults 1 and 0 are the model before v81.
 --
 -- v82: indexes and a summary table for the pages that timed out on a big galaxy
@@ -1247,7 +1247,7 @@
 --   ladder is rebuilt on shells in v92). Every address means something else, so the migration CONVERTS:
 --   every system, phenomenon and facility keeps its place, velocity and epoch and is
 --   linked to the new sector that holds it, the sector rows are rebuilt on shells
---   (a cell that holds an object, or whose centre lay in a generated sector), object
+--   (a cell that holds an object, or whose center lay in a generated sector), object
 --   IDs are renumbered for the new birth sector (body numbers kept), the scatter and
 --   bright stars take the address of their cell, `sector_stats` is rebuilt for the
 --   generated sectors, and the outline is built again from the stored shape.
@@ -1291,9 +1291,9 @@
 --   (default 100 solar luminosities): a cell that expects more systems than the ceiling is filled only with the stars
 --   at or above the cap; the rest is computed from the address and never stored.
 -- v99 (GEN.280): `galaxy_shape.core_amplitude` (ADM.49's Gaussian core) becomes `nuclear_amplitude`, how much of the
---   observed nuclear star cluster and nuclear stellar disc the centre holds (1 the observed pair scaled to the bulge,
+--   observed nuclear star cluster and nuclear stellar disk the center holds (1 the observed pair scaled to the bulge,
 --   0 none); `bright_stars.population` (now VARCHAR(16)) also takes `nuclear_cluster` and
---   `nuclear_disc`.
+--   `nuclear_disk`.
 -- v101 (DB.54): `galaxy_shape.core_min_luminosity_sol` and `core_mass_limit_sol` (NULL until set: the core follows the
 --   baseline scatter limits times 1.1) and `halo_min_luminosity_sol` (default 500, at least 50), the scatter limits by
 --   place that the tiers of GEN.333 read.
@@ -1411,7 +1411,7 @@
 --   movement vector of GEN.294 at an epoch, the course (JSON) and the seed and version key it was made under. Nothing writes or reads it yet.
 --
 -- v130 (DB.85): `galaxy_containers`, each globular cluster and each superbubble stored as a container: its object ID (`uid`), kind, name, the cluster component or the bubble's field address that
---   made it, its centre and extent in the galaxy frame, and the sector its centre is born in. The plan writes them from the galaxy seed; `db/containers.py` asks which hold a point and what one holds.
+--   made it, its center and extent in the galaxy frame, and the sector its center is born in. The plan writes them from the galaxy seed; `db/containers.py` asks which hold a point and what one holds.
 --
 -- v131 (OPS.58): `galaxy_shape` also keeps the generator epoch, the fingerprint format and the generator battery digest (with its cases) of the code that planned the galaxy, and `generation_runs`
 --   the epoch each run generated under, so a galaxy says which epoch each pass of it was made at. `planetgen.galaxy.version_check` compares them with the running code.
@@ -1538,7 +1538,7 @@
 -- v196 (GEN.1108): `planets` and `moons` keep the climate of the body in seven bands of latitude (`physics/latitude_bands.py`, `physics/regional_temperature.py`), `band1` (the north pole) to `band7`
 --   (the south pole), each with `bandN_mean_k` (the annual-mean temperature), `bandN_swing_k` (the day and night swing, peak to peak, kelvin of difference), `bandN_day_hours` and `bandN_night_hours`
 --   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest polar day and night of the year at the poleward edge) and `bandN_state`
---   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day centre to the night centre, with no hours, and the state is
+--   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day center to the night center, with no hours, and the state is
 --   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
 --   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
@@ -1899,7 +1899,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
 -- sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS
 -- NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`): their count and
 -- summed luminosity (Lsun), luminosity times position (`*_lpx`, `*_lpy`, `*_lpz`, Lsun times parsecs, so
--- the centre of light is each over the luminosity) and, for stars, luminosity times temperature
+-- the center of light is each over the luminosity) and, for stars, luminosity times temperature
 -- (`star_lt`). Built objects are in `galaxy_block_stats`, so no light is counted twice. Written by
 -- `db/block_lights.py` when sectors are saved or deleted and when a scatter is drawn or cleared, and by
 -- `planetgen fill-block-totals`; no foreign key, as the blocks are not rows of their own.
@@ -2317,7 +2317,7 @@ CREATE TABLE IF NOT EXISTS planets (
     life_age_complex_cells_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches complex cells, Gy
     life_age_multicellularity_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches multicellularity, Gy
     life_age_technological_civilization_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches technological civilization, Gy
-    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
+    flavor_key                VARCHAR(32),      -- v110: which flavor line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
@@ -2363,7 +2363,7 @@ CREATE TABLE IF NOT EXISTS planets (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,
@@ -2420,7 +2420,7 @@ CREATE TABLE IF NOT EXISTS planets (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day center to the night center)
     band1_swing_k               DOUBLE,
     band1_day_hours             DOUBLE,
     band1_night_hours           DOUBLE,
@@ -2535,7 +2535,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
     ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
     ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
-    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_oxidized_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidized
     ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
@@ -2567,7 +2567,7 @@ CREATE TABLE IF NOT EXISTS planets (
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
     ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
     ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
-    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's center
     ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
@@ -2757,7 +2757,7 @@ CREATE TABLE IF NOT EXISTS moons (
     life_age_complex_cells_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches complex cells, Gy
     life_age_multicellularity_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches multicellularity, Gy
     life_age_technological_civilization_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches technological civilization, Gy
-    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
+    flavor_key                VARCHAR(32),      -- v110: which flavor line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
@@ -2799,7 +2799,7 @@ CREATE TABLE IF NOT EXISTS moons (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,
@@ -2856,7 +2856,7 @@ CREATE TABLE IF NOT EXISTS moons (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day center to the night center)
     band1_swing_k               DOUBLE,
     band1_day_hours             DOUBLE,
     band1_night_hours           DOUBLE,
@@ -2966,7 +2966,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
     ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
     ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
-    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_oxidized_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidized
     ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
@@ -2998,7 +2998,7 @@ CREATE TABLE IF NOT EXISTS moons (
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
     ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
     ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
-    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's center
     ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
@@ -3170,9 +3170,9 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     composition_summary  TEXT NOT NULL,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
-    position_x_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system centre, km
-    position_y_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system centre, km
-    position_z_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system centre, km
+    position_x_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system center, km
+    position_y_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system center, km
+    position_z_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system center, km
     velocity_x_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_y_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
@@ -3185,7 +3185,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
     chondrite_group             VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v190
-    origin_cause                VARCHAR(24) NULL,  -- v204 (GEN.1069): what formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), NULL for a belt made without an origin
+    origin_cause                VARCHAR(24) NULL,  -- v204 (GEN.1069): what formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), NULL for a belt made without an origin
     co_causes                   TEXT NULL,  -- v204 (GEN.1069): the other formation causes that coincide with it, a JSON list of codes
     formation_snow_line_au      DOUBLE NULL,  -- v204 (GEN.1069): the star's snow line when the system formed, AU
     primordial_mass_earth       DOUBLE NULL,  -- v204 (GEN.1069): the mass the belt formed with, Earth masses
@@ -3194,7 +3194,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     stirred                     TINYINT(1) NULL,  -- v204 (GEN.1069): whether a giant stirs the belt
     origin_history              TEXT NULL,  -- v204 (GEN.1069): the sentences of what shaped the belt, a JSON list
     origin_sentence             TEXT NULL,  -- v204 (GEN.1069): the sentence of where the belt came from, for its page
-    scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disc, the share of its mass in each population after the scatter step, a JSON object
+    scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disk, the share of its mass in each population after the scatter step, a JSON object
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
@@ -4311,7 +4311,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
-    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc', 'satellite_young', 'satellite_intermediate', 'open_cluster_00', 'open_cluster_01', 'open_cluster_02', 'open_cluster_03', 'open_cluster_04', 'open_cluster_05', 'open_cluster_06', 'open_cluster_07', 'open_cluster_08', 'open_cluster_09', 'open_cluster_10', 'open_cluster_11')),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disk', 'satellite_young', 'satellite_intermediate', 'open_cluster_00', 'open_cluster_01', 'open_cluster_02', 'open_cluster_03', 'open_cluster_04', 'open_cluster_05', 'open_cluster_06', 'open_cluster_07', 'open_cluster_08', 'open_cluster_09', 'open_cluster_10', 'open_cluster_11')),
     KEY idx_bright_stars_cluster (cluster_id),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL,
@@ -4535,7 +4535,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Companions of a scatter point (v93, docs/design/systems/multi-star-systems.md section 5): the point is the system's
--- barycentre, `member_count` and `system_mass_solar` say it has members, and these two tables hold them, one column
+-- barycenter, `member_count` and `system_mass_solar` say it has members, and these two tables hold them, one column
 -- per value. `source` 1 is `bright_stars`, 2 `phenomenon_scatter`; no foreign key (the parent is polymorphic), so
 -- the build deletes a built row's members and nodes in its own transaction.
 CREATE TABLE IF NOT EXISTS scatter_members (
@@ -4600,7 +4600,7 @@ CREATE TABLE IF NOT EXISTS scatter_nodes (
 -- `group`) of the masses below it; `parent_node_no` is the node it orbits in (NULL for the root), `slot` its place among
 -- its parent's children. A star names its node in `stars.parent_node_id` (the `node_no` here), and a circumbinary planet
 -- in `planets.host_node_id`. No foreign key joins them: a node is deleted with its system. `disk_*` is a disk of gas and
--- dust about the node's centre (no bodies in it).
+-- dust about the node's center (no bodies in it).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS orbit_nodes (
     star_system_id       BIGINT UNSIGNED NOT NULL,
@@ -4754,7 +4754,7 @@ CREATE TABLE IF NOT EXISTS nebula_field (
 -- ---------------------------------------------------------------------
 -- nebula_block_stats (v116, MAP.172): what the nebulae add up to in one block of the Galaxy Map's block
 -- ladder, `(m, shell_index, band_index, wedge_index)` as `galaxy_block_stats` names a block, for the five
--- levels above a sector. A nebula counts in the block that holds its centre (`nebula_count`, `volume_pc3`,
+-- levels above a sector. A nebula counts in the block that holds its center (`nebula_count`, `volume_pc3`,
 -- the volume-weighted `centroid_*_pc`, `bound_radius_pc` around it, and the volume of each family in
 -- `volume_<family>_pc3`; the class with the most volume is `dominant_class`); the part of its sphere that
 -- lies in a block is what `cover_volume_pc3` adds up, so a block a cloud only reaches has a row with a count
@@ -4786,7 +4786,7 @@ CREATE TABLE IF NOT EXISTS nebula_block_stats (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- nebula_block_classes (v116, MAP.172): the volume of each nebula class in a block of `nebula_block_stats`
--- (nebulae by the block of their centre), so a stored nebula can be added to a block and the dominant class
+-- (nebulae by the block of their center), so a stored nebula can be added to a block and the dominant class
 -- found again without reading the nebulae.
 CREATE TABLE IF NOT EXISTS nebula_block_classes (
     m                         SMALLINT UNSIGNED NOT NULL,
@@ -5262,7 +5262,7 @@ CREATE TABLE IF NOT EXISTS population_state (
 
 -- galaxy_components (v97, GEN.159): the discrete stellar components of a galaxy beyond the disk, one row each, of every
 -- kind in one table: the globular clusters, and later the satellites and streams (GEN.237). A component is a density
--- (a profile of its mass about a centre), not a list of stars; its stars come from the profile when a sector is
+-- (a profile of its mass about a center), not a list of stars; its stars come from the profile when a sector is
 -- generated. `profile` 'king' carries the King (1966) concentration `king_w0` (3 to 12) and the `tidal_radius_pc` (`Component` checks that, not the table);
 -- `planetgen/physics/king.py` turns a row into a density. `source` is 'catalogue' for a real object and 'generated' for
 -- one drawn from the galaxy seed (`planetgen/generation/clusters.py`); `planetgen plan` draws the clusters (GEN.160).
@@ -5275,7 +5275,7 @@ CREATE TABLE IF NOT EXISTS galaxy_components (
     source               VARCHAR(12) NOT NULL,
     -- A cluster inside a satellite, or a satellite of a larger galaxy; NULL for a component of the galaxy itself.
     parent_component_id  BIGINT UNSIGNED,
-    -- The component's centre in the galaxy frame (parsecs) and its velocity there, at `epoch_unix`.
+    -- The component's center in the galaxy frame (parsecs) and its velocity there, at `epoch_unix`.
     center_x_pc          DOUBLE NOT NULL,
     center_y_pc          DOUBLE NOT NULL,
     center_z_pc          DOUBLE NOT NULL,

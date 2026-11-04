@@ -37,7 +37,7 @@ test("a packed volume decodes to its columns and its positions", () => {
   assert.deepEqual(Array.from(volume.strength), [200, 17]);
   assert.deepEqual(Array.from(volume.family), [4, 1]);
   assert.deepEqual(Array.from(V.positionsOf(volume, [1, 1, 1])), [1.5, -6, 6.5, -13.5, 14, -1]);
-  assert.deepEqual(V.centreOf(volume).map((v) => Math.round(v * 100) / 100), [-5, 5, 3.75]);
+  assert.deepEqual(V.centerOf(volume).map((v) => Math.round(v * 100) / 100), [-5, 5, 3.75]);
 });
 
 test("bytes that are not a volume are refused", () => {
@@ -90,7 +90,7 @@ test("a splat is as many pixels as its steps are, between its limits", () => {
 
 test("a node is asked for only once a nebula in it is wide enough, the biggest first", () => {
   const near = V.sourceOf({ key: "27.3.0.5", block: {}, node: { clouds: [{ x: 0, y: 0, z: 0, radius_pc: 30 }] } });
-  const far = V.sourceOf({ key: "27.4.0.1", block: {}, node: { nebula_regions: [{ centre: [5000, 0, 0], radius_pc: 30 }] } });
+  const far = V.sourceOf({ key: "27.4.0.1", block: {}, node: { nebula_regions: [{ center: [5000, 0, 0], radius_pc: 30 }] } });
   const empty = V.sourceOf({ key: "27.5.0.2", block: {}, node: { clouds: [] } });
   assert.equal(empty, null);
   assert.equal(V.sourceOf(null), null);

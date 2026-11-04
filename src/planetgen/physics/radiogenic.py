@@ -26,14 +26,14 @@ The draws (`draw_content`), in a fixed order so none moves another:
    with no stored [Fe/H]) draws the offset from a normal of 0.22 dex truncated at 0.5 dex (R15, the 1 to 99 percent range of the
    Hypatia catalogue in [R3293]; a stand-in for the unknown host). Uranium is then worked out from the
    thorium by the r-process (GEN.759, `rprocess_enrichment`): the star's Th/U at its birth is the production ratio of the r-process
-   (one draw from 1.667 to 2.0, [R1447]) times the factor `F` the decay of the galaxy's earlier ejecta gives (the disc's star formation
+   (one draw from 1.667 to 2.0, [R1447]) times the factor `F` the decay of the galaxy's earlier ejecta gives (the disk's star formation
    history, GEN.469, and the host's age; a body with no host takes the typical star of the galaxy), and the ratio today is that
    decayed to the Solar System's age. The old uranium scatter of 0.05 dex is gone.
 2. **Potassium** is not fitted to the star (it is volatile; Th and U are refractory lithophiles, condensation temperatures in part E
    2.8b): `d_K`, log-uniform 0.03 to 1 of the CI K/U of 67407, times the body's uranium (R15; a placeholder tied to the large K
    differences of Solar System bodies, [R3293], until the K depletion survey of the research list is read).
 3. **Aluminium-26** is the star's birth ratio (GEN.476, `birth_radioisotopes`): the steady-state mean of its galaxy's gas (the yield of
-   massive stars from the gamma-ray mass, over the disc's gas depletion time and the star's aluminium) as a sum of discrete decayed
+   massive stars from the gamma-ray mass, over the disk's gas depletion time and the star's aluminium) as a sum of discrete decayed
    additions, so most stars are born with far less than the mean and a few with a great deal. The Solar System's 5.23e-5 (Lugaro et al.
    2018 Table 2) is a test point.
 
@@ -263,7 +263,7 @@ def host_offset_dex(fe_h, age_gy, key):
 
     Args:
         fe_h (float): The star's [Fe/H].
-        age_gy (float): Its age, Gy (the branch of the thin and thick disc depends on it).
+        age_gy (float): Its age, Gy (the branch of the thin and thick disk depends on it).
         key (str): `stellar_composition.abundance_key(...)`: the same star always has the same offset.
     """
     draws = sc.key_draws(key)
@@ -285,7 +285,7 @@ def _solar_th_over_mg():
 
 
 def _star_key(star):
-    """The key a star's streams are named by (its mass and distance from the centre; `stellar_composition.abundance_key`), or `None` when it has no [Fe/H] or no age."""
+    """The key a star's streams are named by (its mass and distance from the center; `stellar_composition.abundance_key`), or `None` when it has no [Fe/H] or no age."""
     fe_h = getattr(star, "metallicity_fe_h", None)
     age = getattr(star, "age", None)
     if fe_h is None or age is None:
@@ -297,7 +297,7 @@ def _star_key(star):
 
 def star_offset_dex(star):
     """`host_offset_dex` for a star object (`generation.star.Star`, a binary's proxy), or `None` when it has no [Fe/H] or no age to
-    read it from. The key is the star's (`stellar_composition.abundance_key`: its mass and distance from the centre), so every planet
+    read it from. The key is the star's (`stellar_composition.abundance_key`: its mass and distance from the center), so every planet
     of a star gets the same offset."""
     key = _star_key(star)
     return None if key is None else host_offset_dex(float(star.metallicity_fe_h), float(star.age), key)
@@ -332,7 +332,7 @@ def default_th_u_factor():
 
 
 def star_th_u_factor(body):
-    """`F` for the host of `body`: its age in the disc of its galaxy (`system_config.GALAXY_SHAPE`, set by the sector that made it; the default
+    """`F` for the host of `body`: its age in the disk of its galaxy (`system_config.GALAXY_SHAPE`, set by the sector that made it; the default
     galaxy's when there is none), or `None` when the host has no age (the typical star of the default galaxy)."""
     from planetgen.galaxy import shape_draw
     age = getattr(getattr(body, "star", None), "age", None)
@@ -344,7 +344,7 @@ def star_th_u_factor(body):
 
 @functools.lru_cache(maxsize=64)
 def _depletion_time_yr(shape):
-    """The gas depletion time of the thin disc of a galaxy, years: its gas over its star formation, the rings weighted by their areas as `rprocess_enrichment` weights them
+    """The gas depletion time of the thin disk of a galaxy, years: its gas over its star formation, the rings weighted by their areas as `rprocess_enrichment` weights them
     (the present value stands for every star's birth: the gas at an earlier time is not kept)."""
     from planetgen.galaxy import disk_history
     history = disk_history.history_of(shape)

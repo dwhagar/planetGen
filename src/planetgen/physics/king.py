@@ -6,10 +6,10 @@
 A King model is self-similar: for one central potential `W0` the density, the cumulative mass and the tidal radius
 are one curve in units of the King radius `r0`, so ten tables (`W0` = 3 to 12, `tuning.KING_W0_RANGE`), each solved
 once and resampled to `tuning.KING_TABLE_POINTS` log-spaced radii, serve every cluster: a cluster of mass `M` and
-half-mass radius `r_h` scales its table by `r0 = r_h / (r_h in units of r0)`. A star's distance from the centre is
+half-mass radius `r_h` scales its table by `r0 = r_h / (r_h in units of r0)`. A star's distance from the center is
 then one lookup of a random mass fraction (`radius_pc`, an inverse transform on a monotone array).
 
-The solver integrates `W'' + 2 W'/x = -9 rho(W) / rho(W0)` outward from the centre (`W` falls from `W0` to 0 at the
+The solver integrates `W'' + 2 W'/x = -9 rho(W) / rho(W0)` outward from the center (`W` falls from `W0` to 0 at the
 tidal radius `x_t`), with `rho(W) = exp(W) erf(sqrt W) - sqrt(4 W / pi) (1 + 2 W / 3)`. It reproduces the textbook
 concentrations `c = log10(x_t)` of 0.67, 1.03, 1.53, 2.12 and 2.74 for `W0` = 3, 5, 7, 9 and 12.
 """
@@ -24,7 +24,7 @@ from scipy.integrate import solve_ivp
 from planetgen import tuning
 
 _X_FIRST = 1e-3
-"""float: The first radius of a table, in King radii; the centre (mass 0) is added before it."""
+"""float: The first radius of a table, in King radii; the center (mass 0) is added before it."""
 
 
 def king_density(w):
@@ -92,7 +92,7 @@ def king_table(w0):
 
     edge.terminal = True
     edge.direction = -1
-    # Near the centre W = W0 - 1.5 x^2.
+    # Near the center W = W0 - 1.5 x^2.
     solution = solve_ivp(rates, [first, 1e5], [w0 - 1.5 * first ** 2, -3.0 * first, 0.0], events=edge,
                          dense_output=True, rtol=1e-10, atol=1e-12)
     tidal = float(solution.t_events[0][0])
@@ -119,24 +119,24 @@ def tidal_radius_pc(w0, half_mass_radius_pc):
 
 
 def radius_pc(w0, half_mass_radius_pc, fraction):
-    """The distance from the centre (pc) inside which `fraction` of a cluster's mass lies, by inverse transform:
+    """The distance from the center (pc) inside which `fraction` of a cluster's mass lies, by inverse transform:
     a random fraction gives a star's radius."""
     return scale_radius_pc(w0, half_mass_radius_pc) * king_table(w0).radius_x(fraction)
 
 
 def mass_within_pc(w0, half_mass_radius_pc, r_pc):
-    """The share of a cluster's mass within `r_pc` of its centre."""
+    """The share of a cluster's mass within `r_pc` of its center."""
     return king_table(w0).mass_within_x(r_pc / scale_radius_pc(w0, half_mass_radius_pc))
 
 
 def central_density_per_pc3(w0, mass, half_mass_radius_pc):
-    """The density at the centre, in the units of `mass` per cubic parsec."""
+    """The density at the center, in the units of `mass` per cubic parsec."""
     r0 = scale_radius_pc(w0, half_mass_radius_pc)
     return mass / (4.0 * math.pi * r0 ** 3 * king_table(w0).mass_over_central)
 
 
 def density_per_pc3(w0, mass, half_mass_radius_pc, r_pc):
-    """The density at `r_pc` from the centre, in the units of `mass` per cubic parsec (0 beyond the tidal radius)."""
+    """The density at `r_pc` from the center, in the units of `mass` per cubic parsec (0 beyond the tidal radius)."""
     table = king_table(w0)
     r0 = scale_radius_pc(w0, half_mass_radius_pc)
     return central_density_per_pc3(w0, mass, half_mass_radius_pc) * table.density_at_x(r_pc / r0)
@@ -149,8 +149,8 @@ def expected_systems(mass_solar, mean_system_mass_solar):
 
 
 def jacobi_radius_pc(mass_solar, galactocentric_pc, galaxy_mass_solar):
-    """The largest radius a cluster of `mass_solar` can keep at `galactocentric_pc` from the galactic centre (use the
-    pericentre of an eccentric orbit): `R (M / (2 M_gal(<R)))^(1/3)`, where `galaxy_mass_solar` is the galaxy's own mass
+    """The largest radius a cluster of `mass_solar` can keep at `galactocentric_pc` from the galactic center (use the
+    pericenter of an eccentric orbit): `R (M / (2 M_gal(<R)))^(1/3)`, where `galaxy_mass_solar` is the galaxy's own mass
     inside `R` (`galaxy.enclosed_mass.enclosed_mass_solar`, GEN.339: it was an isothermal halo of the Milky Way's 220 km/s)."""
     return galactocentric_pc * (mass_solar / (2.0 * galaxy_mass_solar)) ** (1.0 / 3.0)
 

@@ -32,7 +32,7 @@ from planetgen.physics.protection_limits import limit
 
 ARMSTRONG_KPA = limit("armstrong_kpa")
 """float: Water boils at body temperature below this, and
-the saturated water vapour in the lungs takes this much of any breath."""
+the saturated water vapor in the lungs takes this much of any breath."""
 
 INSPIRED_O2_MIN_KPA = limit("inspired_o2_min_kpa")
 """float: Least inspired O2 for consciousness (SaO2 above 75%)."""
@@ -495,10 +495,10 @@ FOOD_SCORE = {"none": 0.2, "microbial": 0.5, "macroscopic": 0.85, "biosphere": 1
 (chemosynthetic mats), Green (bryophytes, invertebrates; whose chemistry may not suit a
 person) and Blue (forest canopies, complex food webs). planetGen's numbers, one per tier."""
 
-WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "aquifer": 0.6, "hydrated": 0.25, "vapour": 0.2, None: 0.0}
+WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "aquifer": 0.6, "hydrated": 0.25, "vapor": 0.2, None: 0.0}
 """dict: The water rung by the most accessible water (`World.water_source`): Table 2's Green
 (rivers, lakes and rain), Yellow (glacial ice, subglacial liquid, an aquifer within reach of a drill),
-Red (perchlorate brine, hydrated minerals, vapour). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
+Red (perchlorate brine, hydrated minerals, vapor). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
 
 YELLOW_FLOOR = 0.4
 """float: The lowest score of Yellow: where a domain that cannot make the overall Red is held in the mean."""

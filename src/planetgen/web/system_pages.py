@@ -25,7 +25,7 @@ from planetgen.describe.html import blocks_html
 from planetgen.describe.model import sections, split_by_body
 from planetgen.describe.stored_phenomena import stored_phenomenon_document
 from planetgen.physics.quantity import Quantity
-from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
+from planetgen.physics.lensing import einstein_radius_against_galactic_center_m
 from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.fmt import (
@@ -756,7 +756,7 @@ def _with_galactic_speed(detail):
 def _with_derived_fields(phenomenon_type, detail):
     """`detail` plus the values worked out from it rather than stored: the
     Einstein radius (GEN.154) of a black hole, neutron star or rogue planet
-    that has a galactic position, left out for a lens beyond the galaxy's reference radius from the centre
+    that has a galactic position, left out for a lens beyond the galaxy's reference radius from the center
     (`physics/lensing.py`, GEN.404)."""
     if phenomenon_type in ("black_hole", "neutron_star"):
         mass_kg = Quantity("mass", detail.get("mass_solar") or 0, "Msun").kg
@@ -768,7 +768,7 @@ def _with_derived_fields(phenomenon_type, detail):
     observer_pc = detail.get("reference_radius_pc")
     if radius_pc is None or observer_pc is None:
         return detail
-    einstein_m = einstein_radius_against_galactic_centre_m(mass_kg, radius_pc, observer_pc)
+    einstein_m = einstein_radius_against_galactic_center_m(mass_kg, radius_pc, observer_pc)
     if einstein_m is None:
         return detail
     return {**detail, "einstein_radius_m": einstein_m}

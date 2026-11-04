@@ -195,8 +195,8 @@ class Planet(PlanetaryObject):
         life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
                                   world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
                                   `life.apply_life_data` with the pace, `None` without one).
-        flavor_key (str or None): The flavour line `life.decide_flavor_text` drew, as `category:index` into the
-                                  `tuning` flavour lists (`flavor_text` reads it).
+        flavor_key (str or None): The flavor line `life.decide_flavor_text` drew, as `category:index` into the
+                                  `tuning` flavor lists (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
@@ -325,7 +325,7 @@ class Planet(PlanetaryObject):
                                                the star (`generate_moons`
                                                passes the parent planet's own
                                                `mass` here).
-            formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disc planet
+            formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disk planet
                                          formed in the volatile-poor debris of a disrupted star, so inside any snow line); it sets
                                          whether the planet is ice-rich or dry (`bulk_draw.origin_of`). Defaults to the distance.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
@@ -532,7 +532,7 @@ class Planet(PlanetaryObject):
 
     @property
     def flavor_text(self):
-        """The flavour line `flavor_key` names (`life.flavor_line`), or `None`."""
+        """The flavor line `flavor_key` names (`life.flavor_line`), or `None`."""
         from planetgen.generation import life
         return life.flavor_line(self.flavor_key)
 

@@ -27,7 +27,7 @@ def _population(share, age=(0.0, 1.0), fe_h=((1.0, -0.1, 0.2),), dispersion=20.0
 
 
 def _profile(unresolved=None, seconds=3.0, superbubble=None, charted_sector_id=None):
-    names = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster", "nuclear_disc")
+    names = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster", "nuclear_disk")
     shares = {"young": 0.2, "intermediate": 0.3, "old": 0.45, "halo": 0.05}
     populations = {name: _population(shares.get(name, 0.0)) for name in names}
     return {

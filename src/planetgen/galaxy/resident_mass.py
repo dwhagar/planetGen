@@ -5,12 +5,12 @@ What a sector already holds, and what is left of its mass budget (GEN.1124; docs
 ============================================================================================================================================
 
 Before anything is drawn for a sector, whatever the sector already holds when it is generated comes off the mass it is calculated to have: rogues that arrived from other sectors, bright
-stars placed beforehand, scattered phenomena, the parents of belts and extended objects whose centre lies in it. What is left is the budget the phases of the sector build (the mass-backfill
+stars placed beforehand, scattered phenomena, the parents of belts and extended objects whose center lies in it. What is left is the budget the phases of the sector build (the mass-backfill
 rings, the system draw, phenomena, remnants, belts) draw against. The residents themselves are never moved or changed: this module reads them and returns a new, separate `Budget`.
 
 `remaining_budget(total_kg, residents)` is the pure function:
 
-* A resident counts only when its centre is in the sector (`Resident.centre_inside`); a large object that reaches in from a neighbour is that neighbour's, and is listed as `ignored`.
+* A resident counts only when its center is in the sector (`Resident.center_inside`); a large object that reaches in from a neighbour is that neighbour's, and is listed as `ignored`.
 * The remaining budget is the total less the counted residents, **never negative**; mass the residents hold beyond the total is reported as `over_kg` and the budget is zero (nothing more is drawn).
 * A sector without residents returns the total unchanged.
 * Each resident may also stand for a number of systems (`Resident.systems`), taken off the expected number of systems the same way (`remaining_systems`).
@@ -40,12 +40,12 @@ class Resident:
     Attributes:
         kind (str): One of `KINDS`.
         mass_kg (float): Its mass, kg, not negative.
-        centre_inside (bool): Whether its centre lies in the sector. An extended object reaching in from a neighbour has `False` and is not counted.
+        center_inside (bool): Whether its center lies in the sector. An extended object reaching in from a neighbour has `False` and is not counted.
         systems (float): How many of the sector's expected systems it stands for, not negative.
     """
     kind: str
     mass_kg: float
-    centre_inside: bool = True
+    center_inside: bool = True
     systems: float = 0.0
 
     def __post_init__(self):
@@ -71,7 +71,7 @@ class Budget:
         remaining_systems (float): The expected systems less those the residents stand for, never negative.
         held_by_kind (dict): The counted mass for each kind that has any.
         counted (int): The residents counted.
-        ignored (int): The residents left out because their centre lies elsewhere.
+        ignored (int): The residents left out because their center lies elsewhere.
     """
     total_kg: float
     held_kg: float
@@ -109,7 +109,7 @@ def remaining_budget(total_kg, residents=(), total_systems=0.0):
     for resident in residents:
         if not isinstance(resident, Resident):
             raise ResidentMassError(f"a resident is a Resident, not {resident!r}")
-        if not resident.centre_inside:
+        if not resident.center_inside:
             ignored += 1
             continue
         counted += 1

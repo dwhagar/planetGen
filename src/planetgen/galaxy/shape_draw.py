@@ -21,7 +21,7 @@ draws about the median laws, each through the one random wrapper (`planetgen.uti
 5. **Bulge and bar scale.** The model has one boxy component, the bulge with its bar. Its major axis is set by the
    bar's length in disk scale lengths, drawn about the stage's mean and deviation ([R1289], astro-ph/0508590,
    Table 5: S0-Sab 1.29 +/- 0.54, Sc-Sd 0.57 +/- 0.44) inside 0.2 to 3 (Erwin's smallest, and [R1486]: no bar reaches 3 scale lengths). The profile `exp(-r_s^2 / 2)` is down to 1.1 percent of its
-   centre at three scale radii, taken as the bar's end. The bar's own mass ([R1485]: 0.09 of the total in barred
+   center at three scale radii, taken as the bar's end. The bar's own mass ([R1485]: 0.09 of the total in barred
    galaxies) is not added to `B/T`. Whether a bar is present, the bulge's axis ratios and the bar's angle are
    drawn with the thick disk and the halo (`structure_draw`, GEN.532 and GEN.533) and not stored: DB.66 stores them
    later.
@@ -163,8 +163,8 @@ def pitch_median_deg(stellar_mass_solar):
 
 
 def drawn_disk_scale_length_pc(galaxy_seed, stellar_mass_solar, compactness=None):
-    """The thin disc's scale length, parsecs, the seed draws for a galaxy of this stellar mass: the half-light radius of the
-    size-mass relation with its scatter, over the exponential disc's half-light-to-scale ratio. A `compactness` (the
+    """The thin disk's scale length, parsecs, the seed draws for a galaxy of this stellar mass: the half-light radius of the
+    size-mass relation with its scatter, over the exponential disk's half-light-to-scale ratio. A `compactness` (the
     Scale dial's pin, in standard deviations) replaces the draw of the scatter."""
     scatter = (_stream(galaxy_seed, "size").gauss(0.0, size_sigma_ln(stellar_mass_solar)) if compactness is None
                else size_sigma_ln(stellar_mass_solar) * compactness)
@@ -172,13 +172,13 @@ def drawn_disk_scale_length_pc(galaxy_seed, stellar_mass_solar, compactness=None
 
 
 def _length_of_scatter(stellar_mass_solar, scatter):
-    """The thin disc's scale length, parsecs, at `scatter` (a draw of ln R50) from the size-mass relation's median."""
+    """The thin disk's scale length, parsecs, at `scatter` (a draw of ln R50) from the size-mass relation's median."""
     return (math.exp(math.log(size_median_kpc(stellar_mass_solar)) + scatter)
             / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0)
 
 
 def _drawn_flatness(stream):
-    """The thin disc's flatness (scale length over scale height) from the next draw of `stream`: Kregel's median with
+    """The thin disk's flatness (scale length over scale height) from the next draw of `stream`: Kregel's median with
     its scatter."""
     return 10.0 ** (math.log10(KREGEL_Q) + stream.gauss(0.0, KREGEL_SCATTER_DEX))
 
@@ -187,7 +187,7 @@ def _auto_size(galaxy_seed, stellar_mass_solar, bar_ratio, crest_of):
     """
     `(disk scale length pc, flatness)` of an all-Auto galaxy: the size and flatness draws of the seed, redrawn from the
     same two streams (the next draw of each) until the shape raises none of the grid's warnings (`dials.shape_warnings`:
-    the thin disc's crest under 20 times the one-star density, a scale height under 8 pc, a bulge under 4 pc) and the
+    the thin disk's crest under 20 times the one-star density, a scale height under 8 pc, a bulge under 4 pc) and the
     flatness is inside the Structure dial's range, so a default galaxy is one the 4 pc plan represents well (GEN.625).
     The first draw is the one a pinned neighbour would see, so a seed whose first draw is fine keeps it; at most
     `AUTO_SIZE_ATTEMPTS` draws are made, the best crest kept.
@@ -216,7 +216,7 @@ def _auto_size(galaxy_seed, stellar_mass_solar, bar_ratio, crest_of):
 
 
 def _auto_crest(chain, structure, bulge_to_total, bar_ratio, arm_level, arms, pitch_deg, length, q):
-    """The plan's crest (`galaxy.plan_figures.crest`) of the galaxy of this chain and structure at disc scale length
+    """The plan's crest (`galaxy.plan_figures.crest`) of the galaxy of this chain and structure at disk scale length
     `length` and flatness `q`, every dial at its Auto value and the plan's default sector edge: the figure
     `_auto_size` tests against the grid's warning."""
     from planetgen.galaxy import plan_figures, skeleton
@@ -499,12 +499,12 @@ def resolve_scale(galaxy_seed, mass=None, compactness=None, length_pc=None, dens
     return made(stellar_mass, length_at(stellar_mass), "mass")
 
 
-DISC_HALF_LIGHT_OVER_R200 = 0.015
+DISK_HALF_LIGHT_OVER_R200 = 0.015
 """float: The median ratio of a galaxy's half-light radius to its halo's virial radius ([R2271, R2479],
 about 0.015; recalled, not read in the repository, so a placeholder), which the size-halo warning compares a plan with."""
 
-DISC_HALF_LIGHT_OVER_R200_DEX = 1.0
-"""float: How far from `DISC_HALF_LIGHT_OVER_R200`, in dex, the plan's ratio may lie before it is warned about; the
+DISK_HALF_LIGHT_OVER_R200_DEX = 1.0
+"""float: How far from `DISK_HALF_LIGHT_OVER_R200`, in dex, the plan's ratio may lie before it is warned about; the
 relation's scatter is 0.2 to 0.3 dex (recalled), so this is three or four of it (a placeholder)."""
 
 
@@ -512,8 +512,8 @@ def halo_report(drawn):
     """
     What a plan says about its halo (the Halo dial, GEN.606): `(line, warning)`. The line gives the halo mass over the
     stellar mass, the virial radius and the concentration, or says there is no halo; the warning is a sentence when the
-    disc's half-light radius is more than `DISC_HALF_LIGHT_OVER_R200_DEX` from the usual share of the virial radius (a
-    pinned size or halo can make a disc the halo could not have held), else `None`.
+    disk's half-light radius is more than `DISK_HALF_LIGHT_OVER_R200_DEX` from the usual share of the virial radius (a
+    pinned size or halo can make a disk the halo could not have held), else `None`.
     """
     chain = drawn.chain
     if chain.halo_mass_solar is None:
@@ -521,11 +521,11 @@ def halo_report(drawn):
     line = (f"Halo: {chain.halo_mass_solar:.3g} solar masses ({chain.halo_mass_solar / chain.stellar_mass_solar:.0f} times "
             f"the stars), virial radius {chain.virial_radius_kpc:.0f} kpc, concentration {chain.concentration:.1f}")
     ratio = drawn.disk_scale_length_pc * EXPONENTIAL_HALF_LIGHT_OVER_SCALE / 1000.0 / chain.virial_radius_kpc
-    offset = math.log10(ratio / DISC_HALF_LIGHT_OVER_R200)
-    if abs(offset) <= DISC_HALF_LIGHT_OVER_R200_DEX:
+    offset = math.log10(ratio / DISK_HALF_LIGHT_OVER_R200)
+    if abs(offset) <= DISK_HALF_LIGHT_OVER_R200_DEX:
         return line, None
     return line, (f"the disk's half-light radius is {ratio:.4f} of the halo's virial radius, {abs(offset):.1f} dex "
-                  f"{'above' if offset > 0 else 'below'} the usual {DISC_HALF_LIGHT_OVER_R200} "
+                  f"{'above' if offset > 0 else 'below'} the usual {DISK_HALF_LIGHT_OVER_R200} "
                   f"(a pinned size or halo makes a disk this halo would not hold; placeholder limit)")
 
 
@@ -537,7 +537,7 @@ def halo_mass_of(stellar_mass_solar, halo_ratio):
 
 def edge_limit_pc(edge, disk_scale_length_pc):
     """The distance, parsecs, the Edge dial stops the outline at, or `None` for Auto (the outline's own edge): a length in
-    parsecs as it is, one in scale lengths (`12L`) times the thin disc's.
+    parsecs as it is, one in scale lengths (`12L`) times the thin disk's.
 
     Raises:
         ValueError: For a relative length of a unit other than `L`.

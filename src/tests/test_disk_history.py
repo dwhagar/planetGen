@@ -30,7 +30,7 @@ MILKY_WAY_MASS = 5.0e10
 disk); its halo is the median one for it, as the mass chain draws."""
 SHAPE = _shape(stellar_mass=MILKY_WAY_MASS)
 FLAT = {name: (high - low) / (tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0])
-        for name, (low, high) in ((n, tuning.THIN_DISC_OLD_WINDOW_GY if n == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[n])
+        for name, (low, high) in ((n, tuning.THIN_DISK_OLD_WINDOW_GY if n == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[n])
                                   for n in tuning.STELLAR_POPULATION_ARM_AMPLITUDE)}
 
 
@@ -101,10 +101,10 @@ def test_a_shape_without_masses_takes_the_median_galaxy_of_its_disk():
 
 
 def test_lighter_galaxies_have_more_recent_stars():
-    """Downsizing: a thinner disc spends its gas more slowly (the law goes as the gas to the 1.4), so a spiral of 1e10 solar masses forms its stars later
+    """Downsizing: a thinner disk spends its gas more slowly (the law goes as the gas to the 1.4), so a spiral of 1e10 solar masses forms its stars later
     than one of 5e10. The shares fall with mass from 1e10 to 5e10 (the chain's range is 3e9 to 2e11). Since GEN.1230 this is the law's effect alone (the
     infall time scale is the Milky Way's in scale lengths for every galaxy, row GI1 of the registry), 1.4 times between 1e10 and 5e10; the halo-growth inflow
-    that gave 3 times kept the Milky Way's own disc forming 2.7 times the stars per year it does."""
+    that gave 3 times kept the Milky Way's own disk forming 2.7 times the stars per year it does."""
     young = [disk_history.population_shares(_shape(stellar_mass=mass))["young"] for mass in (1.0e10, 3.0e10, 5.0e10)]
     assert young == sorted(young, reverse=True)
     assert young[0] > 1.3 * young[-1]
@@ -133,7 +133,7 @@ def test_the_present_rate_over_the_mean_is_within_a_factor_of_two_and_a_half_of_
     """TEST.533, tightened by GEN.1230. The bound was a factor of three while the inflow followed the stars a halo builds, which for the
     lighter median halo of GEN.1154 (1.57e12 solar masses for 5e10 of stars) rose to the present: the ratio was 0.55 against the observed
     0.20. The infall time scale of the Milky Way's chemical evolution model ([R5095], limited by [R5094]) gives 0.45, 2.3 times the observed
-    figure, which also counts the thick disc's stars over a ten-Gy life, so it is low for the thin disc alone."""
+    figure, which also counts the thick disk's stars over a ten-Gy life, so it is low for the thin disk alone."""
     found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0)
     observed = _observed_present_over_mean()
     assert 0.5 * observed <= found.present_over_mean() <= 2.5 * observed
@@ -146,8 +146,8 @@ def _depletion_time_gy(found):
     return float((found.gas_now * area).sum() / ((found.rate[:, -1] * area).sum() * 1.0e-9) / 1.0e9)
 
 
-def test_a_milky_way_mass_disc_keeps_its_gas_for_the_measured_depletion_time_and_the_local_gas():
-    """GEN.999: with the law steepening where the gas thins (GEN.450) the disc of 3e10 solar masses of stars depletes its gas in 2.5
+def test_a_milky_way_mass_disk_keeps_its_gas_for_the_measured_depletion_time_and_the_local_gas():
+    """GEN.999: with the law steepening where the gas thins (GEN.450) the disk of 3e10 solar masses of stars depletes its gas in 2.5
     to 4.2 Gy (1.0 to 4.2 Gy is the measured range, Sources 2 on GEN.998; the plain Kennicutt law gave 1.8) and holds a local gas of the order of
     the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium ([R3002: Table 2]: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
     found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0)

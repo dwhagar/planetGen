@@ -27,7 +27,7 @@ OBSERVED_MASS_KG = {"Jupiter": 3.9e18, "Saturn": 1.0e19, "Uranus": 7.5e18, "Nept
 def _giant(name, encounters=ip.REFERENCE_ENCOUNTERS):
     distance, mass, gas = GIANTS[name]
     hill = irregular_zone.hill_radius_au(distance, mass, SUN)
-    pool = ip.make_pool(hill, encounters, ip.REFERENCE_DISC_MASS_EARTH, gas, 3.0 if gas else 0.0)
+    pool = ip.make_pool(hill, encounters, ip.REFERENCE_DISK_MASS_EARTH, gas, 3.0 if gas else 0.0)
     return pool, ip.intrinsic_probability(mass, ip.zone_radius_au(hill, distance))
 
 

@@ -491,7 +491,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     Makes the air of the planet or moon and the surface temperature it gives (GEN.411, GEN.422; `surface_air`).
 
     The Bond albedo is drawn from the range of the body's regime (`climate_draws.albedo_range`); the heat the interior has carried out (`interior_heat.update_heat`) says how much
-    of the body's volatiles has reached the surface (`surface_pressure`); the water it holds is the reservoir its air's water vapour
+    of the body's volatiles has reached the surface (`surface_pressure`); the water it holds is the reservoir its air's water vapor
     stands in contact with; and the mixture, the pressure with the freeze-out, the density, the scale height, the greenhouse and the
     temperature are solved together (`surface_air.solve`). A body that holds no air, and a body whose air is lost, have the temperature the
     starlight alone gives.
@@ -522,7 +522,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_temperature_no_atmosphere = climate_draws.equilibrium_temperature_k(albedo, solar_output_at_orbit)
 
     # GEN.699: the heat the interior has carried out (no draws), which the degassing of the air follows; GEN.88: the surface water, drawn
-    # before the air because the ocean is the reservoir the air's water vapour and its carbonate cycle stand in contact with.
+    # before the air because the ocean is the reservoir the air's water vapor and its carbonate cycle stand in contact with.
     magnetism.update_exposure(planet, distance)     # GEN.86: the star's XUV and flares at this distance (no draws); the water loss reads it
     heat = interior_heat.update_heat(planet)
     giant = planet.body_type == "g"
@@ -588,7 +588,7 @@ def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
     Whether the body holds surface water under starlight past its runaway greenhouse limit (GEN.1238): an effective flux (in the Sun's at the
     Earth, `starlight_w_m2` over `RUNAWAY_FLUX_REFERENCE_W_M2`) above `orbits.runaway_greenhouse_flux` of the star's temperature and the body's mass,
     the limit the water-loss history already follows (`runaway_history`, GEN.639). Past it no ocean can stand, but the air's fixed point has two
-    answers there (a cool air with a few bar of vapour, whose greenhouse the table gives no limit to, and the steam air that holds the water),
+    answers there (a cool air with a few bar of vapor, whose greenhouse the table gives no limit to, and the steam air that holds the water),
     and which one it finds depends on where it starts, so a body past the limit starts hot and finds the steam one; a body below it, or with no
     water, starts from the airless temperature as before. No draw.
     """
@@ -978,7 +978,7 @@ def moon_orbit_bounds_km(planet):
 
 
 def moon_stable_limit_km(planet, moon_eccentricity=0.0):
-    """The farthest semi-major axis, km from `planet`'s centre, a moon of this eccentricity keeps ([R1138]: the
+    """The farthest semi-major axis, km from `planet`'s center, a moon of this eccentricity keeps ([R1138]: the
     fit is for the semi-major axis, and the moon's own eccentricity lowers it)."""
     return clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0,
                                            moon_eccentricity or 0.0)[1]

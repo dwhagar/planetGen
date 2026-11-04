@@ -249,14 +249,14 @@ def kill_processes(protected=None, term_seconds=None):
 def _cancel_runs(connection, who):
     from planetgen.queue import runcontrol, runrecord
 
-    cancelled = 0
+    canceled = 0
     for run_id in runrecord.recent_runs(connection, limit=100_000):
         try:
             if runcontrol.cancel_run(connection, run_id, who=who) is not None:
-                cancelled += 1
+                canceled += 1
         except Exception:       # noqa: BLE001 -- the next run, and the kill that follows, still go ahead
             pass
-    return cancelled
+    return canceled
 
 
 def _empty_queues(connection):
@@ -341,7 +341,7 @@ def stop_all(who=None, connection=None, kill=True, hold=True):
             out while it runs, and the site works again after it, but nothing the update left running survives it.
 
     Returns:
-        dict: `{"already": the hold was on, "runs": cancelled, "queued": jobs removed from the queues, "job": a page
+        dict: `{"already": the hold was on, "runs": canceled, "queued": jobs removed from the queues, "job": a page
             job was stopped, "killed": processes ended, "survivors": pids this user could not signal}`.
     """
     from planetgen.queue import pause, redisqueue

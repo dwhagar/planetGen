@@ -132,17 +132,17 @@ export function makeQueue() {
   };
 }
 
-// How much detail a body of this on-screen diameter gets. "point": a coloured dot, no texture. "disc": a flat tinted
+// How much detail a body of this on-screen diameter gets. "point": a coloured dot, no texture. "disk": a flat tinted
 // sphere. "low": the 128 x 64 texture. "high": the 256 x 128 texture. "shader": reserved for the close-up tier
 // (R16, 9.1); nothing paints it yet, so it asks for the high texture.
-export var TIER_DISC_PX = 3;
+export var TIER_DISK_PX = 3;
 export var TIER_LOW_PX = 24;
 export var TIER_HIGH_PX = 120;
 export var TIER_SHADER_PX = 500;
 
 export function tierForDiameter(px) {
-  if (!(px >= TIER_DISC_PX)) return "point";
-  if (px < TIER_LOW_PX) return "disc";
+  if (!(px >= TIER_DISK_PX)) return "point";
+  if (px < TIER_LOW_PX) return "disk";
   if (px < TIER_HIGH_PX) return "low";
   return "high";
 }

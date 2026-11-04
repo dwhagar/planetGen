@@ -13,9 +13,9 @@ A secondary (a giant, a brown dwarf, a large moon) of mass `m2` orbits a host of
   sum of the giant and the trojan stays under that share of the star (a Class M world always does beside a giant).
 * The motion: a tadpole librates about the point; its slow period is `2 pi / s` with `s^2 = (n^2 / 2) (1 - sqrt(1 - 27 mu (1 - mu)))` (`libration_period`;
   Jupiter's 12.5 orbits, about 150 years). Past a libration amplitude of `TADPOLE_LIMIT_DEG` the orbit is a horseshoe (`motion`).
-* The swarm: the scatter keeps a share of an outer disc's swept mass as `trojans` (`physics/scatter.py`); `swarm_split` puts it into the leading (L4) and
+* The swarm: the scatter keeps a share of an outer disk's swept mass as `trojans` (`physics/scatter.py`); `swarm_split` puts it into the leading (L4) and
   trailing (L5) regions.
-* The label the map shows at the centre of a point (`point_label`): the secondary's name and the point, such as `Jupiter-L4`, with the pair (host, secondary) in the text.
+* The label the map shows at the center of a point (`point_label`): the secondary's name and the point, such as `Jupiter-L4`, with the pair (host, secondary) in the text.
 
 Every number is in `physics/data/trojans.json` with its source tier and tweak level. Nothing here sets a rate; it says what is allowed.
 
@@ -137,7 +137,7 @@ def swarm_split(trojan_mass, leading):
 
 
 def point_label(secondary_name, point):
-    """The map label at the centre of a point: `"Jupiter-L4"` (the secondary's name, then the point)."""
+    """The map label at the center of a point: `"Jupiter-L4"` (the secondary's name, then the point)."""
     longitude_offset_deg(point)
     return f"{secondary_name}-{point}"
 

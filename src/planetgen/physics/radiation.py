@@ -47,8 +47,8 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    UV index, the habitability score and the colour of the sky and ground are worked out from it. A loss event that removes air (stripping,
    impact, escape) is not applied to the stored ozone column here: the final-age refresh (GEN.839) works the dose and the ozone again from the air that is left.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
-   supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
-   `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts
+   supernova within 8 pc, 1.5 per Gyr at 8 kpc from the center, times
+   `exp((8 kpc - R) / 1.45 kpc)` (250x at the center), plus gamma-ray bursts
    (2 per Gyr at the Sun, falling outward) and nuclear-activity episodes (10
    per Gyr inside 2.9 kpc), GEN.189.
 8. **Trapped particles (`dose_belt_msv_yr`, GEN.983).** A moon in the belts of its parent's field takes their dose at its orbit, from the half of the sky

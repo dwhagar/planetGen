@@ -55,7 +55,7 @@ test("the queue paints the most urgent job, once per call, and does not double a
 test("tiers follow the projected diameter", () => {
   assert.equal(T.tierForDiameter(1), "point");
   assert.equal(T.tierForDiameter(NaN), "point");
-  assert.equal(T.tierForDiameter(10), "disc");
+  assert.equal(T.tierForDiameter(10), "disk");
   assert.equal(T.tierForDiameter(60), "low");
   assert.equal(T.tierForDiameter(300), "high");
 });

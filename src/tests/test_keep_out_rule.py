@@ -37,7 +37,7 @@ def test_two_singles_are_held_by_the_roche_lobe_and_other_pairs_by_the_extent_ru
     outer = single_side(0.8, 0.005)
     assert pair_floor_au(node, outer) == pytest.approx(multistar.EXTENT_AXIS_FACTOR * (0.3 + 0.005))
     assert pair_clears(1.0, 0.0, node, outer)
-    assert not pair_clears(1.0, 0.5, node, outer)           # the pericentre is 0.5 AU, under 2 x 0.305
+    assert not pair_clears(1.0, 0.5, node, outer)           # the pericenter is 0.5 AU, under 2 x 0.305
 
 
 def test_the_extent_of_a_node_is_the_barycentric_one_the_verifier_uses():

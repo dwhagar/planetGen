@@ -60,7 +60,7 @@ class RegionCase:
 
     Attributes:
         name (str): The region class (`"thin-disk-arm"`, `"halo"`); also the root of its seeds.
-        center_pc (tuple): The sector's centre in the galaxy frame, parsecs.
+        center_pc (tuple): The sector's center in the galaxy frame, parsecs.
         shape (GalaxyShape): The galaxy shape its profile is read from.
         edge_pc (float): The sector edge, parsecs.
         expected_at_density_1 (float): The systems a sector of this edge holds at relative density 1

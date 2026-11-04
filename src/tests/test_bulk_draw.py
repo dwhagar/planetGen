@@ -135,7 +135,7 @@ def test_an_icy_small_body_is_a_porous_heap_of_ice_and_rock():
 
 
 def test_a_compact_remnant_makes_carbon_rock():
-    assert bulk_draw.host_ratios(_star(metallicity_fe_h=None)) is bulk_draw.REMNANT_DISC_RATIOS
+    assert bulk_draw.host_ratios(_star(metallicity_fe_h=None)) is bulk_draw.REMNANT_DISK_RATIOS
     body = _body(6371.0, star=_star(metallicity_fe_h=None))
     draw.set_run_seed(6)
     bulk_draw.draw_terrestrial(body, True, False)

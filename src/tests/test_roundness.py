@@ -333,7 +333,7 @@ def test_the_rubble_numbers_are_the_researchs():
     assert 1.0e6 <= rule["hot_strength_pa"] <= 4.0e6
 
 
-def test_the_failure_stress_is_mohr_coulomb_with_cohesion_and_the_centre_pressure():
+def test_the_failure_stress_is_mohr_coulomb_with_cohesion_and_the_center_pressure():
     phi, cohesion = math.radians(35.0), rn.TABLE.rubble["cohesion_pa"]
     radius, density = 50.0e3, 2000.0
     pressure = (2.0 * math.pi / 3.0) * G * density ** 2 * radius ** 2

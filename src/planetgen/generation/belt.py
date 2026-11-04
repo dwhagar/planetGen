@@ -67,8 +67,8 @@ def _star_al26_ratio(system_config, star):
 def present_state(star, distance, lower_limit, upper_limit, primordial_earth=None):
     """
     `(largest body km, mass kg, density word)` of a belt between `lower_limit` and `upper_limit` AU around `star` at its age: the largest body drawn from the size law (`belt_ledger.ICY_LAW` for a
-    belt out past the snow line, `ROCKY_LAW` inside it) from a stream of the belt's own and settled with the mass the disc's solids leave after `star.age` of collisions (`belt_ledger.belt_state`,
-    GEN.1000), from `primordial_earth` Earth masses when the giants have already acted on it (`belt_origin`, GEN.1068) or from the whole disc otherwise. `belt_birth` reads it to keep only the belts
+    belt out past the snow line, `ROCKY_LAW` inside it) from a stream of the belt's own and settled with the mass the disk's solids leave after `star.age` of collisions (`belt_ledger.belt_state`,
+    GEN.1000), from `primordial_earth` Earth masses when the giants have already acted on it (`belt_origin`, GEN.1068) or from the whole disk otherwise. `belt_birth` reads it to keep only the belts
     that are left to count.
     """
     return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth)
@@ -105,7 +105,7 @@ class AsteroidBelt:
         upper_limit (float): The outer boundary of the asteroid belt in AU.
         body_type (str): Always 'a' for an asteroid belt.
         density (str): The density of the asteroid belt ('dense', 'sparse', 'typical'): its mass per area against the median belt of its age (GEN.477).
-        mass_kg (float): What its disc's solids leave after the star's age of collisions (`belt_ledger.belt_state`, [R4785]).
+        mass_kg (float): What its disk's solids leave after the star's age of collisions (`belt_ledger.belt_state`, [R4785]).
         chondrite_group (str): The nearest meteorite group of the mean composition (`small_body_composition.chondrite_group`, GEN.475): `CI`, `CM`, `H`, `L` ..., or `none` far from every group.
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,
@@ -136,9 +136,9 @@ class AsteroidBelt:
     origin_sentence = None
     scatter_fates = None
     largest_body_km = None
-    """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), the causes that
+    """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
-    the sentences of what shaped it, its sentence for the page and, for an outer disc, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for. `largest_body_km` is the largest body of the belt (Dc) as settled with its mass (GEN.1000, GEN.1069); None for a belt stored before GEN.1069."""
+    the sentences of what shaped it, its sentence for the page and, for an outer disk, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for. `largest_body_km` is the largest body of the belt (Dc) as settled with its mass (GEN.1000, GEN.1069); None for a belt stored before GEN.1069."""
 
     def __init__(self, system_config: SystemConfig, star, distance, lower_limit, upper_limit, origin=None, scatter_fates=None): # Added system_config
         """
@@ -151,7 +151,7 @@ class AsteroidBelt:
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
             origin (belt_origin.BeltOrigin, optional): Where the belt came from; its mass after the giants is the mass the belt begins to grind from (GEN.1068).
-            scatter_fates (dict, optional): The shares of an outer disc in each population after the scatter step (`scatter.scatter_shares`).
+            scatter_fates (dict, optional): The shares of an outer disk in each population after the scatter step (`scatter.scatter_shares`).
         """
         self.system_config = system_config # Store system_config
         self.distance = distance
@@ -173,7 +173,7 @@ class AsteroidBelt:
     def shorten_to(self, upper_limit):
         """
         Cuts the belt back to end at `upper_limit` AU (the orbits the star holds, once its age is final): the mass it formed with, what the giants cleared and what was scattered shrink with
-        the disc's solids between the limits, and the mass left after the star's age is worked out again. Returns False, and changes nothing, for a belt that was not made in this run or
+        the disk's solids between the limits, and the mass left after the star's age is worked out again. Returns False, and changes nothing, for a belt that was not made in this run or
         whose stretch would be narrower than `belt_origin.MIN_BELT_RATIO`.
         """
         star = _STARS.get(self)

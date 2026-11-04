@@ -129,8 +129,8 @@ def test_the_object_id_is_never_read(shape, clouds, monkeypatch):
 def test_a_clouds_core_is_dense_and_the_edge_is_not_a_hard_step(shape, clouds):
     for cloud in clouds[:6]:
         values = nd.density_at(SEED, shape, _slice(cloud), "gas", 4)
-        centre = values[GRID // 2 - 3:GRID // 2 + 3, GRID // 2 - 3:GRID // 2 + 3]
-        assert centre.mean() > 0.6                                                  # a dense core
+        center = values[GRID // 2 - 3:GRID // 2 + 3, GRID // 2 - 3:GRID // 2 + 3]
+        assert center.mean() > 0.6                                                  # a dense core
         edge = np.abs(np.diff(values, axis=0))
         assert edge.max() < 0.5 and 0.05 < values.mean() < 0.95                     # soft falloff, not a mask
 
@@ -183,8 +183,8 @@ def test_a_superbubble_clears_the_gas_inside_it(shape):
     bubbles = superbubble_field.all_bubbles(SEED, shape, 9000.0, 200.0)
     assert bubbles
     bubble = max(bubbles, key=lambda b: b.radius_pc)
-    centre = np.array(bubble.center_pc)
-    inside = centre + np.array([[0.0, 0.0, 0.0], [bubble.radius_pc * 0.3, 0.0, 0.0], [0.0, bubble.radius_pc * 0.5, 0.0]])
+    center = np.array(bubble.center_pc)
+    inside = center + np.array([[0.0, 0.0, 0.0], [bubble.radius_pc * 0.3, 0.0, 0.0], [0.0, bubble.radius_pc * 0.5, 0.0]])
     assert (nd.density_at(SEED, shape, inside, "gas", 0) == 0.0).all()
 
 

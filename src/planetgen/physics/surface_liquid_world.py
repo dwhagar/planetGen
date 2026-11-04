@@ -8,12 +8,12 @@ Sets `COLUMN_FIELDS` on a planet or moon from its surface temperature, pressure,
 `surface_composition.generate_surface`, after the hydrosphere and the ground). It draws nothing. A body has at most one surface liquid:
 
 1. **Water.** A world whose hydrosphere is a liquid surface (`surface ocean`, `brine seep`, `hycean`) has `water`, covering `ocean_fraction`
-   to the depth the hydrosphere stored. Every other state of water (dry, vapour, ice, ice-covered ocean) leaves the surface to the rules below: a
+   to the depth the hydrosphere stored. Every other state of water (dry, vapor, ice, ice-covered ocean) leaves the surface to the rules below: a
    frozen or buried water ocean is not a surface liquid.
 2. **Lava.** A surface hot enough to be molten (at least the liquidus of the ground's rock: ultramafic ground melts to komatiite, felsic ground to
    rhyolite, the rest to basalt, and a surface above the peridotite liquidus a peridotitic magma ocean) is covered by it all over: the temperature is the
-   body's mean, so a mean above the liquidus is a molten surface (`physics.mixture_lava` is the vapour over it). The depth of a magma ocean is not
-   known (no rule yet). A lava surface holds in its own vapour, so its boiling window is checked at least at one bar.
+   body's mean, so a mean above the liquidus is a molten surface (`physics.mixture_lava` is the vapor over it). The depth of a magma ocean is not
+   known (no rule yet). A lava surface holds in its own vapor, so its boiling window is checked at least at one bar.
 3. **Seas of the volatile ices and the air.** Otherwise `surface_liquids.dominant` picks the liquid that is stable at the surface temperature and pressure
    and that the world supplies: a volatile of the air at its saturation pressure condenses, and the ices the body holds (`ice_<species>_mass_fraction`)
    supply their liquid. A methane sea of a cold world with nitrogen air is Titan's. The share of the ice that lies on the surface as a liquid is
@@ -62,7 +62,7 @@ MAGMA_OCEAN = "peridotite_magma"
 LAVA_IDS = (*(liquid for _ground, liquid in LAVA_OF_GROUND), LAVA_DEFAULT, MAGMA_OCEAN)
 """tuple: Every liquid id that is a lava; the depth of one is not known."""
 LAVA_MIN_PRESSURE_PA = 1.0e5
-"""float: A lava surface holds in its own vapour, so its window is checked at least at this pressure."""
+"""float: A lava surface holds in its own vapor, so its window is checked at least at this pressure."""
 
 
 def _liquid_water(body):

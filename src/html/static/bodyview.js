@@ -3,10 +3,10 @@
 // The rendered example on an object page (planetgen/web/lib/bodyview.py): the look record in a canvas's `data-look`
 // painted by the system map's own painters (`solidpaint.js`, `starpaint.js`) and shaded as a lit sphere, with the
 // atmosphere's limb glow or a star's corona drawn around it. The body turns slowly on its axis (MAP.328, spin.js). A world is
-// seen from the side of its orbit (UX.244): the star to the left and a little in front, so the day and night line is a curve with more than half the disc lit, the axial tilt
+// seen from the side of its orbit (UX.244): the star to the left and a little in front, so the day and night line is a curve with more than half the disk lit, the axial tilt
 // leaning the poles and the line's ends, and the surface turning past it at the display speed; a tidally locked world holds
 // still with its day side toward the star. Plain
-// 2D canvas, so it needs no WebGL. A giant, which the painters do not cover yet, is its tinted disc. With no script the
+// 2D canvas, so it needs no WebGL. A giant, which the painters do not cover yet, is its tinted disk. With no script the
 // figure stays hidden and the property table says everything the picture does.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -20,7 +20,7 @@ const { lumpMesh, rasterise } = await import(`./lumpyview.js${VERSION_QUERY}`);
 
 const TEXTURE = [512, 256];
 // UX.250: a world is lit from the left and a little from the front: the star is PHASE_DEG round from the line of sight toward the left, so the lit part is
-// more than half the disc ((1 + cos phase) / 2, 79 percent) and the day and night line is a curve bowing into the night side, not a straight line down the middle.
+// more than half the disk ((1 + cos phase) / 2, 79 percent) and the day and night line is a curve bowing into the night side, not a straight line down the middle.
 const PHASE_DEG = 55;
 const LIGHT = [-Math.sin((PHASE_DEG * Math.PI) / 180), 0, Math.cos((PHASE_DEG * Math.PI) / 180)];
 
@@ -36,18 +36,18 @@ function texture(look) {
   return null;
 }
 
-function drawHalo(context, centreX, centreY, radius, outer, color, strength) {
-  const gradient = context.createRadialGradient(centreX, centreY, radius * 0.96, centreX, centreY, outer);
+function drawHalo(context, centerX, centerY, radius, outer, color, strength) {
+  const gradient = context.createRadialGradient(centerX, centerY, radius * 0.96, centerX, centerY, outer);
   gradient.addColorStop(0, rgba(color, strength));
   gradient.addColorStop(1, rgba(color, 0));
   context.fillStyle = gradient;
   context.beginPath();
-  context.arc(centreX, centreY, outer, 0, Math.PI * 2);
+  context.arc(centerX, centerY, outer, 0, Math.PI * 2);
   context.fill();
 }
 
 // UX.250: how lit a point is from the cosine of the light on it: 0 at the day and night line and full from TERMINATOR_WIDTH of a cosine past it, so the
-// line is a clear curve and most of the lit side is bright, not a slope that fades across half the disc.
+// line is a clear curve and most of the lit side is bright, not a slope that fades across half the disk.
 const TERMINATOR_WIDTH = 0.4;
 // MAP.277: how far the glow of an air reaches past the limb, in radii, when the look record does not say (the composition of the air is not stored).
 const DEFAULT_GLOW_WIDTH = 0.08;
@@ -59,12 +59,12 @@ function lit(cosine, twilight) {
 }
 
 // UX.250: a tidally locked world keeps the left of its picture for the arrow to the star (and the word under it) and the foot for the label, so neither
-// is drawn over the disc: the disc is fitted into what is left.
+// is drawn over the disk: the disk is fitted into what is left.
 const LOCK_MARGIN_PX = 52;
 const LOCK_FOOT_PX = 28;
 
 // UX.245: a tidally locked world says so on the picture itself: an arrow on the left, the side the star (or, for a moon, its planet)
-// is on, and "Tidally locked" under the disc.
+// is on, and "Tidally locked" under the disk.
 function drawLockLabel(context, size, look, arrowY) {
   const what = look.kind === "moon" ? "planet" : "star";
   context.save();
@@ -99,7 +99,7 @@ function drawLockLabel(context, size, look, arrowY) {
   context.restore();
 }
 
-// Everything about a picture that does not change as the body turns, worked out once: for each pixel of the disc where
+// Everything about a picture that does not change as the body turns, worked out once: for each pixel of the disk where
 // it is in the canvas, its longitude in the body's own frame, the texture row it samples, its shade (a world is lit from
 // the left whatever it does, so the terminator stays put while the surface turns) and how much of the soft edge it
 // takes. A frame is then one pass of lookups.
@@ -109,23 +109,23 @@ function prepare(canvas, look) {
   const halfWidth = star ? glowFor(look.lumSolar).scale : 1.04 + (look.glow ? look.glowWidth || DEFAULT_GLOW_WIDTH : 0);
   const pixels = texture(look);
   const locked = Spin.isLocked(look) && !star;
-  // The square the disc and its halo fill: the whole canvas, or for a locked world what the arrow and the label leave.
+  // The square the disk and its halo fill: the whole canvas, or for a locked world what the arrow and the label leave.
   const margin = locked ? Math.round(LOCK_MARGIN_PX * size / 320) : 0;
   const foot = locked ? Math.round(LOCK_FOOT_PX * size / 320) : 0;
   const box = Math.min(size - margin, size - foot);
-  const centreX = size - box / 2;
-  const centreY = (size - foot) / 2;
+  const centerX = size - box / 2;
+  const centerY = (size - foot) / 2;
   const radius = box / 2 / halfWidth;
-  canvas.dataset.disc = JSON.stringify({ x: centreX, y: centreY, radius: radius });
+  canvas.dataset.disk = JSON.stringify({ x: centerX, y: centerY, radius: radius });
   const base = parseHex(look.color);
   const twilight = look.twilight || 0;
   const light = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
-  const lumpy = isLumpy(look);       // MAP.363: a body its weight has not made round is the lump the System Map draws, not a disc
+  const lumpy = isLumpy(look);       // MAP.363: a body its weight has not made round is the lump the System Map draws, not a disk
   const places = [];
   for (let y = 0; y < size && !lumpy; y++) {
     for (let x = 0; x < size; x++) {
-      const nx = (x + 0.5 - centreX) / radius;
-      const ny = (y + 0.5 - centreY) / radius;
+      const nx = (x + 0.5 - centerX) / radius;
+      const ny = (y + 0.5 - centerY) / radius;
       const r2 = nx * nx + ny * ny;
       if (r2 >= 1) continue;
       const nz = Math.sqrt(1 - r2);
@@ -149,7 +149,7 @@ function prepare(canvas, look) {
   const halo = document.createElement("canvas");
   halo.width = halo.height = size;
   const rim = star ? look.color : look.glow;
-  if (rim) drawHalo(halo.getContext("2d"), centreX, centreY, radius, box / 2, rim, star ? glowFor(look.lumSolar).strength * 0.8 : look.glowStrength);
+  if (rim) drawHalo(halo.getContext("2d"), centerX, centerY, radius, box / 2, rim, star ? glowFor(look.lumSolar).strength * 0.8 : look.glowStrength);
   // The sphere is drawn on a scratch canvas so its soft edge blends with what is behind it.
   const scratch = document.createElement("canvas");
   scratch.width = scratch.height = size;
@@ -189,12 +189,12 @@ function prepare(canvas, look) {
     return function lumpFrame(angle) {
       view.angle = angle;
       data.fill(0);
-      rasterise(mesh, view, size, centreX, centreY, scale, covered, depth, paint);
+      rasterise(mesh, view, size, centerX, centerY, scale, covered, depth, paint);
       scratchContext.putImageData(image, 0, 0);
       context.clearRect(0, 0, size, size);
       context.drawImage(halo, 0, 0);
       context.drawImage(scratch, 0, 0);
-      if (locked) drawLockLabel(context, size, look, centreY);
+      if (locked) drawLockLabel(context, size, look, centerY);
     };
   }
 
@@ -226,7 +226,7 @@ function prepare(canvas, look) {
     context.clearRect(0, 0, size, size);
     context.drawImage(halo, 0, 0);
     context.drawImage(scratch, 0, 0);
-    if (locked) drawLockLabel(context, size, look, centreY);
+    if (locked) drawLockLabel(context, size, look, centerY);
   };
 }
 

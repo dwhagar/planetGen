@@ -1150,8 +1150,8 @@ def region_of(conn, position_pc):
 
 def superbubble_of(conn, detail):
     """
-    The superbubble a placed sector's centre lies in (`sector_detail`'s `superbubble`), or `None`:
-    `{"radius_pc", "ambient_density_cm3", "temperature_k", "centre_distance_pc"}`.
+    The superbubble a placed sector's center lies in (`sector_detail`'s `superbubble`), or `None`:
+    `{"radius_pc", "ambient_density_cm3", "temperature_k", "center_distance_pc"}`.
     """
     skeleton = get_galaxy_shape(conn)
     if skeleton is None or skeleton.galaxy_seed is None or not detail.get("placed"):
@@ -1162,7 +1162,7 @@ def superbubble_of(conn, detail):
         return None
     return {"radius_pc": round(bubble.radius_pc, 1), "ambient_density_cm3": float("%.3g" % bubble.ambient_density_cm3),
             "temperature_k": bubble.temperature_k,
-            "centre_distance_pc": round(detmath.dist(bubble.center_pc, center), 1)}
+            "center_distance_pc": round(detmath.dist(bubble.center_pc, center), 1)}
 
 
 def scatter_tier_of(conn, detail):
@@ -1327,7 +1327,7 @@ def galaxy_nodes_route():
 def galaxy_nebula_volume_route():
     """
     The points that draw the nebulae of one Galaxy Map node (MAP.365): `?key=<m.shell.band.wedge>`. Answers `{"key", "format",
-    "level", "count", "data"}`: `data` is the base64 of the packed volume (`galaxy.nebula_volume.pack`: the nebulae whose centre lies
+    "level", "count", "data"}`: `data` is the base64 of the packed volume (`galaxy.nebula_volume.pack`: the nebulae whose center lies
     in the block, sampled on an absolute lattice from the model's gas and star-forming density). Nothing is stored; a block with no
     nebula answers `count` 0. A malformed key is a 400.
     """
@@ -1404,7 +1404,7 @@ def galaxy_nebula_cover_route():
 def galaxy_charted_regions_route():
     """
     `{"regions": [...], "edge_pc"}` -- every charted region (a 9-block holding a generated sector, `region_stats`), by share
-    charted, each with its node key, the centre and radius of its extent in parsecs, its sector count and capacity, its
+    charted, each with its node key, the center and radius of its extent in parsecs, its sector count and capacity, its
     `share` (0 to 1) and, with a naming key in force, its `name` and `parent`, and its `population` once head counts are stored
     (absent before, MAP.318) -- see `db.region_stats.charted_regions`.
     Read by the Galaxy Map (MAP.316) for the regions it draws at galactic scale and its charted-regions list.
@@ -1715,7 +1715,7 @@ def containers_list():
 def containers_at():
     """
     `GET /api/containers/at?x=&y=&z=[&kind=]` -- the containers holding a galaxy-frame point (parsecs), deepest first,
-    each with `depth` (distance from its centre over its extent) and `distance_pc`. 400 for a missing coordinate or
+    each with `depth` (distance from its center over its extent) and `distance_pc`. 400 for a missing coordinate or
     another kind.
     """
     try:
@@ -1888,7 +1888,7 @@ def nebula_surroundings_route(nebula_id):
     """
     The brightest stars round one nebula (MAP.105): `{"radius_pc",
     "half_width_pc", "stars": [{"x", "y", "z" (parsecs from the nebula's
-    centre), "luminosity_sol", "temperature_k"}]}`, the most luminous first.
+    center), "luminosity_sol", "temperature_k"}]}`, the most luminous first.
     A 404 for an unknown nebula.
     """
     try:
@@ -2304,8 +2304,8 @@ def table_estimates_route():
 @bp.route("/page-jobs/<job_id>")
 def page_job_status_route(job_id):
     """`GET /api/page-jobs/<id>` -- where the job building a slow page's answer stands (PERF.105): `state`
-    (`queued`, `running`, `succeeded`, `failed` or `cancelled`), `done` of `total` rows (an estimate: `estimated`
-    is true), `unit`, `eta_seconds`, `seconds`, `error`, `cancelling`, `cache_key` and `target`. Public, like the
+    (`queued`, `running`, `succeeded`, `failed` or `canceled`), `done` of `total` rows (an estimate: `estimated`
+    is true), `unit`, `eta_seconds`, `seconds`, `error`, `canceling`, `cache_key` and `target`. Public, like the
     pages it serves; it names only page jobs, never the admin's other jobs. 404 for an unknown or expired id
     (a job is kept an hour); 503 without Redis."""
     try:

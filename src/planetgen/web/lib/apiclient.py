@@ -729,7 +729,7 @@ def get_galaxy_nebula_cover(db, at=None, g=None):
 
 def get_galaxy_nebula_volume(db, key):
     """Returns `GET /api/galaxy/nebula-volume`'s payload (`key`/`format`/`level`/`count`/`data`, the base64 of the packed points that
-    draw the nebulae centred in the node `key`, MAP.365 -- see `db.nebula_volumes.group_volume`)."""
+    draw the nebulae centered in the node `key`, MAP.365 -- see `db.nebula_volumes.group_volume`)."""
     _require_db(db)
     return _request("/galaxy/nebula-volume", {"db": db, "key": key})
 

@@ -106,7 +106,7 @@ def test_a_methane_sea_is_a_solvent_but_a_dry_world_is_not():
     titan = _earth(hydrosphere="ice", surface_temperature_k=94.0, atmospheric_pressure_pa=146700.0,
                    p_ch4_kpa=20.0, p_n2_kpa=125.0)
     from planetgen.physics import atmosphere
-    saturated = atmosphere.vapour_pressure_kpa("ch4", 94.0)
+    saturated = atmosphere.vapor_pressure_kpa("ch4", 94.0)
     titan["gas_partials_pa"]["CH4"] = saturated * 1000.0
     assert hw.solvent(titan) == "hydrocarbon"
     assert hw.world_from(titan).phosphate_umol_l == hw.NON_AQUEOUS_PHOSPHATE_UMOL_L
@@ -134,7 +134,7 @@ def test_a_chloride_brine_is_chaotropic_and_a_neutral_ocean_is_not():
     assert hw.world_from(_earth()).chaotropicity_kj_kg == 0.0
 
 
-def test_humidity_is_the_vapour_against_saturation():
+def test_humidity_is_the_vapor_against_saturation():
     assert hw.relative_humidity(_earth()) == pytest.approx(1.2 / hw.saturation_kpa(14.85), rel=0.01)
     assert hw.saturation_kpa(0.0) == pytest.approx(0.611, rel=0.01)
     assert 0.05 <= hw.relative_humidity(_earth(p_h2o_kpa=0.0)) <= 0.99

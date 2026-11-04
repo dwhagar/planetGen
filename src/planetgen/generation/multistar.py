@@ -104,8 +104,8 @@ INTERACTED_PERIOD_DAYS = (0.3, 1.0e4)
 EXTENT_AXIS_FACTOR = 2.5
 """float: A pair's axis is at least this many times its members' summed radii."""
 
-PERICENTRE_EXTENT_FACTOR = 2.0
-"""float: The pericentre must clear this many times the members' extent."""
+PERICENTER_EXTENT_FACTOR = 2.0
+"""float: The pericenter must clear this many times the members' extent."""
 
 MAX_FILL_FACTOR = 1.2
 """float: How far past its Roche lobe a star may reach at the pair's closest approach (1 is semi-detached,
@@ -120,7 +120,7 @@ Eggleton and Kiseleva criterion is reliable to about 20 percent, and the nested-
 @dataclass(frozen=True)
 class Side:
     """One side of a pair for the keep-out rule: its `mass` (solar), its `extent` (AU: a single member's radius, a node's greatest
-    distance from its own barycentre to the surface of a star below it, `node_extent_au`) and its `radius`, the radius of a single
+    distance from its own barycenter to the surface of a star below it, `node_extent_au`) and its `radius`, the radius of a single
     member (None for a node)."""
     mass: float
     extent: float
@@ -132,11 +132,11 @@ def single_side(mass, radius_au):
 
 
 def node_extent_au(axis_au, eccentricity, low, high):
-    """The extent of the node of the pair `low`, `high` (`Side`s): the farthest a star below it reaches from the node's barycentre,
-    both sides at the apocentre. The one definition the build, the tree and the verifier (`physics/clearance.py`) share."""
-    apocentre = axis_au * (1.0 + eccentricity)
+    """The extent of the node of the pair `low`, `high` (`Side`s): the farthest a star below it reaches from the node's barycenter,
+    both sides at the apocenter. The one definition the build, the tree and the verifier (`physics/clearance.py`) share."""
+    apocenter = axis_au * (1.0 + eccentricity)
     total = low.mass + high.mass
-    return max(apocentre * high.mass / total + low.extent, apocentre * low.mass / total + high.extent)
+    return max(apocenter * high.mass / total + low.extent, apocenter * low.mass / total + high.extent)
 
 
 def pair_floor_au(low, high):
@@ -148,21 +148,21 @@ def pair_floor_au(low, high):
                roche.separation_for_filling(high.radius, MAX_FILL_FACTOR, high.mass, low.mass))
 
 
-def pair_pericentre_floor_au(low, high):
-    """The closest the pair's pericentre may be: the Roche-lobe limit for two single members, else `PERICENTRE_EXTENT_FACTOR` times the
+def pair_pericenter_floor_au(low, high):
+    """The closest the pair's pericenter may be: the Roche-lobe limit for two single members, else `PERICENTER_EXTENT_FACTOR` times the
     extents (what `pair_clears` asks)."""
     if low.radius is None or high.radius is None:
-        return PERICENTRE_EXTENT_FACTOR * (low.extent + high.extent)
+        return PERICENTER_EXTENT_FACTOR * (low.extent + high.extent)
     return pair_floor_au(low, high)
 
 
 def pair_clears(axis_au, eccentricity, low, high):
     """Whether the pair's closest approach keeps its sides inside their limits: neither single member past `MAX_FILL_FACTOR` of its
-    Roche lobe, else the pericentre at least `PERICENTRE_EXTENT_FACTOR` times the sides' extents. The one rule for the tree, the
+    Roche lobe, else the pericenter at least `PERICENTER_EXTENT_FACTOR` times the sides' extents. The one rule for the tree, the
     build (`built_tree_clears`) and, re-derived, the verifier."""
     peri = axis_au * (1.0 - eccentricity)
     if low.radius is None or high.radius is None:
-        return peri >= PERICENTRE_EXTENT_FACTOR * (low.extent + high.extent)
+        return peri >= PERICENTER_EXTENT_FACTOR * (low.extent + high.extent)
     return (roche.filling_factor(low.radius, peri, low.mass, high.mass) <= MAX_FILL_FACTOR
             and roche.filling_factor(high.radius, peri, high.mass, low.mass) <= MAX_FILL_FACTOR)
 
@@ -255,9 +255,9 @@ RUNAWAY_ORIGIN_FLAGS = {"supernova": MEMBER_RUNAWAY_SUPERNOVA, "dynamical": MEMB
 NODE_INTERACTED = 1
 NODE_KL_ACTIVE = 2
 NODE_WIND_FED = 4
-NODE_DISC_FED = 8
+NODE_DISK_FED = 8
 """int: The node bits of an `accreting` pair of a neutron star or a black hole (GEN.272): the gas is a hot star's wind
-(`NODE_WIND_FED`) or a Be star's decretion disc (`NODE_DISC_FED`); neither is a donor that fills its lobe. They are what
+(`NODE_WIND_FED`) or a Be star's decretion disk (`NODE_DISK_FED`); neither is a donor that fills its lobe. They are what
 `MemberTree.x_ray_luminosities` reads."""
 
 MEMBER_STATE_BY_PLACED = {
@@ -318,7 +318,7 @@ class Member:
     `MEMBER_FLAGS`; `effective_age_yr` is a merger product's rejuvenated age (None: the system's age). `state` is the
     Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` or `protostar` for a young one, the spectral type of a brown
     dwarf (`M8`, `L5`, `T2`, `Y0`; `physics/brown_dwarf.py`, GEN.252), and None for a remnant; it is stored in
-    `scatter_members.state`, a VARCHAR(16). A member of a `group` node carries its `offset_au` from the group's centre, its
+    `scatter_members.state`, a VARCHAR(16). A member of a `group` node carries its `offset_au` from the group's center, its
     `velocity_kms` and the group's `decay_age_yr` (GEN.327); every other member has none of the three. `radius_max_au` and
     `mass_max_solar` are the largest radius and mass the member has had (GEN.1009, `member_record`); a tree draws them for
     every member."""
@@ -414,7 +414,7 @@ class MemberTree:
         """
         `{node_no: watts}` for every `accreting` pair of a neutron star or a black hole and a single member (GEN.272; derived,
         never stored): `eta Mdot c^2` at most the accretor's Eddington limit (`physics.accretion.x_ray_luminosity_w`). The
-        gas is a wind (`NODE_WIND_FED`), a Be star's disc (`NODE_DISC_FED`) or a donor that fills its lobe. A white dwarf's
+        gas is a wind (`NODE_WIND_FED`), a Be star's disk (`NODE_DISK_FED`) or a donor that fills its lobe. A white dwarf's
         accretion is not X-ray and is not listed.
         """
         found = {}
@@ -424,17 +424,17 @@ class MemberTree:
             if accretor is None:
                 continue
             donor = pair[0] if accretor is pair[1] else pair[1]
-            mode = "wind" if node.flags & NODE_WIND_FED else "disc" if node.flags & NODE_DISC_FED else "overflow"
+            mode = "wind" if node.flags & NODE_WIND_FED else "disk" if node.flags & NODE_DISK_FED else "overflow"
             found[node.node_no] = accretion.x_ray_luminosity_w(
                 mode, accretor.kind, accretor.mass_solar, accretor.radius_au, donor.kind, donor.mass_solar,
                 donor.radius_au, node.separation_au, node.eccentricity)
         return found
 
     def be_xray_nodes(self):
-        """The node numbers of the Be/X-ray binaries (GEN.272; derived): an `accreting` pair fed by a disc, whose donor is
+        """The node numbers of the Be/X-ray binaries (GEN.272; derived): an `accreting` pair fed by a disk, whose donor is
         flagged `be`."""
         return tuple(node.node_no for node in self.nodes
-                     if node.interaction == "accreting" and node.flags & NODE_DISC_FED)
+                     if node.interaction == "accreting" and node.flags & NODE_DISK_FED)
 
     def spider_nodes(self):
         """`{node_no: 'black-widow' or 'redback'}` for the pairs of an ablating pulsar and its companion (GEN.272; derived):
@@ -485,7 +485,7 @@ class _Leaf:
     log-uniform over it (GEN.271: the close double white dwarf, the post-common-envelope pair, the cataclysmic
     variable, whose axis is the one that fills the donor's lobe), in place of the period law."""
     accretes: str | None = None
-    """str or None: `wind`, `disc` or `overflow` on the neutron star or black hole of a pair that accretes (GEN.272): the
+    """str or None: `wind`, `disk` or `overflow` on the neutron star or black hole of a pair that accretes (GEN.272): the
     pair is `accreting` whatever its geometry says, and a pair of a neutron star or black hole with no such leaf never is."""
     radius_max_au: float | None = None
     mass_max_solar: float | None = None
@@ -1033,19 +1033,19 @@ class _Builder:
         low, high = self.min_side(sub[0]), self.min_side(sub[1])
         return Side(low.mass + high.mass, node_extent_au(pair_floor_au(low, high), 0.0, low, high))
 
-    def _apocentre_limit_au(self, budget, low, high):
-        """The largest apocentre the pair may have so its extent stays inside `budget` (AU), `inf` without one."""
+    def _apocenter_limit_au(self, budget, low, high):
+        """The largest apocenter the pair may have so its extent stays inside `budget` (AU), `inf` without one."""
         if not math.isfinite(budget):
             return math.inf
         total = low.mass + high.mass
         return min((budget - low.extent) * total / high.mass, (budget - high.extent) * total / low.mass)
 
-    def _eccentricity_limit(self, axis, peri_floor, apocentre_limit, stable_at):
-        """The largest eccentricity at `axis` that keeps the pair's pericentre clear, its extent inside its budget and the triple above it
+    def _eccentricity_limit(self, axis, peri_floor, apocenter_limit, stable_at):
+        """The largest eccentricity at `axis` that keeps the pair's pericenter clear, its extent inside its budget and the triple above it
         stable (`stable_at(e)`, monotone in e: bisected), negative when even a circular orbit does not fit."""
         limit = 1.0 - peri_floor / axis
-        if math.isfinite(apocentre_limit):
-            limit = min(limit, apocentre_limit / axis - 1.0)
+        if math.isfinite(apocenter_limit):
+            limit = min(limit, apocenter_limit / axis - 1.0)
         if limit < 0.0:
             return limit
         if stable_at is None or stable_at(limit):
@@ -1066,7 +1066,7 @@ class _Builder:
 
         The period and eccentricity are drawn once, from their laws cut to the range the pair's room allows (GEN.1011): the axis
         between the keep-out floor and the least of the stability limit, the cap and the extent budget; the eccentricity
-        up to what the pericentre floor, the budget and the stability of the triple above allow. A draw can then only fail
+        up to what the pericenter floor, the budget and the stability of the triple above allow. A draw can then only fail
         the screens that depend on the draw itself, or find no room (`pair.no_allowed_period`; `draw.redrawn` counts which).
         """
         left, right = sub
@@ -1080,9 +1080,9 @@ class _Builder:
         extent = self.extent(left) + self.extent(right)
         sides = self.side(left), self.side(right)
         a_lo = pair_floor_au(*sides)
-        peri_floor = pair_pericentre_floor_au(*sides)
-        apocentre_limit = self._apocentre_limit_au(budget, *sides)
-        cap = min(self.wide_cap(sub), self.max_axis_au, apocentre_limit)
+        peri_floor = pair_pericenter_floor_au(*sides)
+        apocenter_limit = self._apocenter_limit_au(budget, *sides)
+        cap = min(self.wide_cap(sub), self.max_axis_au, apocenter_limit)
         heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
         fixed = self.fixed.get(id(sub))
@@ -1128,7 +1128,7 @@ class _Builder:
                     draw.redrawn("pair.axis_out_of_range")
                     continue
             if fixed is None:
-                limit = self._eccentricity_limit(axis, peri_floor, apocentre_limit, stable_at)
+                limit = self._eccentricity_limit(axis, peri_floor, apocenter_limit, stable_at)
                 if limit < 0.0:
                     draw.redrawn("pair.no_allowed_period")
                     continue
@@ -1157,7 +1157,7 @@ class _Builder:
             pair = self.pair_leaves(left, right)
             accretes = None if pair is None else next((leaf.accretes for leaf in pair if leaf.accretes), None)
             if accretes is not None:
-                interaction = "accreting"  # the wind of a supergiant or the disc of a Be star feeds it without a full lobe
+                interaction = "accreting"  # the wind of a supergiant or the disk of a Be star feeds it without a full lobe
             elif interaction == "accreting" and any(leaf.compact for leaf in pair):
                 draw.redrawn("pair.interaction_gate")
                 continue  # a neutron star or a black hole accretes only in the X-ray binary draws, which fix the rate
@@ -1169,7 +1169,7 @@ class _Builder:
                 draw.redrawn("pair.interaction_gate")
                 continue
             flags = NODE_INTERACTED if law != "star" or interaction in ("accreting", "post-common-envelope") else 0
-            flags |= {"wind": NODE_WIND_FED, "disc": NODE_DISC_FED}.get(accretes, 0)
+            flags |= {"wind": NODE_WIND_FED, "disk": NODE_DISK_FED}.get(accretes, 0)
             if parent is not None:
                 if not stable_at(e):
                     draw.redrawn("pair.unstable_triple")   # likewise cannot happen from a cut draw
@@ -1205,7 +1205,7 @@ class _Builder:
                   "interaction": interaction}
         self.nodes.append(record)
         self.by_sub[id(sub)] = record
-        peri, apocentre = axis * (1.0 - e), axis * (1.0 + e)
+        peri, apocenter = axis * (1.0 - e), axis * (1.0 + e)
         for child_slot, (child, sibling) in enumerate(((left, right), (right, left))):
             if isinstance(child, int):
                 continue
@@ -1213,9 +1213,9 @@ class _Builder:
             # accounted for (the sibling's extent as drawn, or its least when it is not drawn yet).
             sibling_extent = self.side(sibling, self.by_sub).extent if isinstance(sibling, int) or id(sibling) in self.by_sub \
                 else self.min_side(sibling).extent
-            room = peri / PERICENTRE_EXTENT_FACTOR - sibling_extent
+            room = peri / PERICENTER_EXTENT_FACTOR - sibling_extent
             if math.isfinite(budget):
-                room = min(room, budget - apocentre * self.mass(sibling) / total)
+                room = min(room, budget - apocenter * self.mass(sibling) / total)
             self.place(child, (axis, e, inclination, node, self.mass(sibling)), child_slot, node_no, room)
         return node_no
 
@@ -1335,7 +1335,7 @@ STAR_TYPE_DRAWS = 10
 """int: The uniforms a placed star's tree draws first, in a fixed order, for the close-binary types (GEN.270), the giants'
 white dwarf companions (GEN.271) and the high-mass X-ray binaries (GEN.272): the merger product, the Be star, its stripped
 companion, the mass gainer, the exotic star, the merger's rejuvenation, the barium or symbiotic star, whether the compact
-companion of a massive star accretes, whether it is fed by a Be star's disc, and whether it launches jets."""
+companion of a massive star accretes, whether it is fed by a Be star's disk, and whether it launches jets."""
 
 
 def _young(age_yr):
@@ -1499,7 +1499,7 @@ def draw_accreting_compact(case, unit, mode_unit=0.0, age_yr=0.0):
     How a neutron star or a black hole accretes (GEN.272), for a registry `case`; `None` for none. One or two uniforms.
 
     * `high-mass-xray-binary` (a living massive star's compact companion): it accretes at the `accreting_fraction` knob (40%,
-      `unit`); 60% of those (`be_xray_share`, `mode_unit`) are fed by a Be star's disc (`disc`, the Be/X-ray binary, of the
+      `unit`); 60% of those (`be_xray_share`, `mode_unit`) are fed by a Be star's disk (`disk`, the Be/X-ray binary, of the
       young population only: a halo or old star is never one), the rest by a supergiant's wind (`wind`).
     * `low-mass-xray-binary` (the low-mass star of a neutron star or a black hole): `overflow` for the knob's 1% (`unit`), of
       the intermediate and old populations only.
@@ -1510,7 +1510,7 @@ def draw_accreting_compact(case, unit, mode_unit=0.0, age_yr=0.0):
         if unit >= knobs[case]:
             return None
         be_share = system_types.SYSTEM_TYPE_RATES[case].by_class["be_xray_share"]
-        return "disc" if mode_unit < be_share and _young(age_yr) else "wind"
+        return "disk" if mode_unit < be_share and _young(age_yr) else "wind"
     if case == "low-mass-xray-binary":
         return "overflow" if unit < knobs[case] and not _young(age_yr) else None
     if case == "microquasar":
@@ -1545,12 +1545,12 @@ def _xray_span(donor, compact, period_days):
 
 def _feed_compact(donor, compact, mode, jet_unit):
     """Makes the pair of `donor` and `compact` an X-ray binary fed in `mode` (GEN.272): the pair carries the mode, its axis
-    is log-uniform over the period range of the mode, a Be donor of a `disc` pair is flagged `be`, and the compact object
+    is log-uniform over the period range of the mode, a Be donor of a `disk` pair is flagged `be`, and the compact object
     launches jets (`microquasar`) at `tuning.MICROQUASAR_SHARE_OF_XRAY_BINARIES`."""
-    days = tuning.BE_XRAY_PERIOD_DAYS if mode == "disc" else tuning.SUPERGIANT_XRAY_PERIOD_DAYS
+    days = tuning.BE_XRAY_PERIOD_DAYS if mode == "disk" else tuning.SUPERGIANT_XRAY_PERIOD_DAYS
     compact.orbit_au = _xray_span(donor, compact, days)
     compact.accretes = mode
-    if mode == "disc":
+    if mode == "disk":
         donor.flags |= MEMBER_BE
     if draw_accreting_compact("microquasar", jet_unit) is not None:
         compact.flags |= MEMBER_MICROQUASAR
@@ -1975,8 +1975,8 @@ def _group_member(number, leaf, rng, parent_node_no, slot, flags, **extra):
 def _group_tree(leaves, age_yr, decay_age_yr, rng):
     """
     The tree of a young group that has not decayed (GEN.327): one `group` node and its members, each at an offset from the
-    group's centre (AU) with a velocity (km/s) from the dispersion `tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS`, the centre
-    of mass at rest at the origin so the stored point is the barycentre. The node's period is the crossing time (the
+    group's center (AU) with a velocity (km/s) from the dispersion `tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS`, the center
+    of mass at rest at the origin so the stored point is the barycenter. The node's period is the crossing time (the
     members fly straight; the node has no orbit), its separation the group's radius.
     """
     low, high = tuning.YOUNG_GROUP_RADIUS_AU_RANGE
@@ -1988,8 +1988,8 @@ def _group_tree(leaves, age_yr, decay_age_yr, rng):
     velocities = [tuple(rng.gauss(0.0, sigma) for _ in range(3)) for _ in leaves]
 
     def at_rest(vectors):
-        centre = [sum(m * v[axis] for m, v in zip(masses, vectors)) / total for axis in range(3)]
-        return [tuple(v[axis] - centre[axis] for axis in range(3)) for v in vectors]
+        center = [sum(m * v[axis] for m, v in zip(masses, vectors)) / total for axis in range(3)]
+        return [tuple(v[axis] - center[axis] for axis in range(3)) for v in vectors]
 
     offsets, velocities = at_rest(offsets), at_rest(velocities)
     crossing_yr = radius_au * constants.AU_TO_KM / sigma / constants.SECONDS_PER_YEAR
