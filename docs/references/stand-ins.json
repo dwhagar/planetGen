@@ -34167,7 +34167,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.105",
+          "unread": null,
           "what": "stepper.MAX_LEVEL 12: a star needs at most 4096 equal steps in one span; past it the star is stepped at that cap and flagged"
         }
       ],

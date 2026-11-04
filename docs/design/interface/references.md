@@ -1,6 +1,6 @@
 # Help > References: the out-of-universe section (DOC.87 to DOC.94)
 
-Status: R1 (DOC.87), R2 (DOC.88), R4 (DOC.90) and R5 (DOC.91) built; R3 and R5 to R8 planned. Boss asked for this on 2026-10-31 (2:49 PM EDT) and approved the design.
+Status: R1 (DOC.87), R2 (DOC.88), R4 (DOC.90), R5 (DOC.91) and R7 (DOC.93) built; R3 and R5 to R8 planned. Boss asked for this on 2026-10-31 (2:49 PM EDT) and approved the design.
 
 ## The idea
 
@@ -44,8 +44,7 @@ registry) and how it was decided, what was fitted to a result, and how scientifi
   [plain-words guide](text-style.md)). A survey-style word ("estimated distance", "unsurveyed") stays.
 * Every number on a References page is built from a registry, never typed.
 * The API field `speculative`, the developer docs, the Debug view and the changelog keep their words.
-* DOC.93 strips the leftovers (color note, sector text, life class "reaches", sheet source lines to links); DOC.94 locks the crawl once
-  DOC.93 lands.
+* DOC.93 (built) stripped the leftovers: the body color note (`maps/bodylook.py`) says what the color comes from in the story's words, the sector, nearby, galaxy and contents pages say "charted", and the sheet source line under a value became `value_source(kind, label)` (`web/helpers.py`), a quiet link to the value's row on its method page (`property_help.method_ref`). The line itself (`describe/sheet_sources.py`) is read only by the method pages and the API. DOC.94 locks the crawl.
 
 ## Citations (DOC.97 to DOC.100)
 
