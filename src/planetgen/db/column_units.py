@@ -860,6 +860,10 @@ TABLES = {
         "flag": ("exited",),
         "yr": ("duration_years",),
     },
+    "chart_ledger": {
+        "index": ("shell_index", "band_index", "wedge_index", "generator_epoch"),
+        "id": ("run_id",),
+    },
     "sector_stats": {
         "index": ("shell_index", "band_index", "wedge_index"),
         "Lsun": ("bright_level_sol", "level_before_fill_sol", "mean_luminosity_sol", "total_luminosity_sol"),
