@@ -2,6 +2,342 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3170] - 2026-11-04
+
+**Headline:** The Galaxy Map draws about half as many stars, marks, regions, and names at once; an opened sector shows everything.
+
+### Changed
+- **MAP.367.** At Boss's request the caps on what the Galaxy Map draws at once are about halved: the stars held on the screen (20,000 to 10,000, and 8,000 to 4,000 on a phone), the marks (240 to 120), the nebula regions (600 to 300) and the named stars and objects offered for names (400 to 200). A sector opened in place keeps the old star numbers and its own mark budget (1,500), so it still shows every system that fits. Names are held by the screen's area, as before. The node budget stays at 1200: it was tried at 600 and the blocks then hand over in bursts (the square chunks of MAP.366), and the nodes are a data cap rather than what is drawn.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.367.
+
+## [8.0.3169] - 2026-11-04
+
+**Headline:** A new test lock keeps every page of the site in the story's words: no page outside References can use a process word, and every link into References has to work.
+
+### Changed
+- The page crawl has no list of exceptions any more. It also reads the sign-in, preferences, polities, species and Help index pages, and the visible text of every template outside the admin and References pages, so a page that needs data to show is checked too.
+- A new page of the site must be crawled or named in the crawl's register with the reason it cannot be shown without data.
+
+## [8.0.3168] - 2026-11-04
+
+**Headline:** The "every plain button does something" browser test waits for the page's custom elements, so it no longer clicks a button that vanishes as its dialog is defined.
+
+### Changed
+
+- `test_every_plain_button_does_something` took the page's buttons as soon as the page loaded. Until the page's custom elements are defined, the children of a shut `sl-dialog` are drawn in the page, so a dialog's "Close" button counted as visible and then disappeared when the dialog was defined, leaving the click waiting out its 120 second timeout (seen on the sector page, 2 of 6 runs alone; TEST.126). The test's settle step now also waits until no custom element is left undefined. Three runs alone pass.
+
+## [8.0.3167] - 2026-11-04
+
+**Headline:** The last pages that spoke out of the story now speak in it, and a body page's source lines became quiet links.
+
+### Changed
+- The body color note in the info panel says what the color comes from in the story's words (its temperature, ground types, sea and air) and what the picture leaves out.
+- Sector, nearby, galaxy and contents pages say "charted" where they said "generated", and the sector scatter note says "grade" where it said "tier".
+- Under each value on a star, planet or moon page, the one-line source is now a "Where this comes from" link to the value's row on its References method page.
+
+## [8.0.3166] - 2026-11-04
+
+**Headline:** The best-fit class table now follows the Class D and Class C rules of the roundness change: a small airless world is D, and an airless body of 0.1 Earth masses or more is C.
+
+### Changed
+- **The best-fit class table matches the class tree (TEST.574).** The table the best-fit scorer reads still described Class D as a small icy body with at least 1 percent water, and Class C and S as dry, from before Class D and C read the roundness ratio and the 0.1 Earth mass line. A small airless world scored C. The table now gives Class D under 0.1 Earth masses, Class C from 0.1 to 1.5, Class S from 1.5, none of them by water. Nothing stored changes; the class tree still decides.
+- **A class composition text has its row in the materials table.** The text for Class D ("rock, ice, and frozen hydrocarbons") is mapped to its three materials in `materials.json`.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.574.
+
+## [8.0.3165] - 2026-11-04
+
+**Headline:** Black holes are always drawn as purple dots among the stars; only their marks are off by default.
+
+### Changed
+- **MAP.370.** The purple dots of the black holes draw with the rest of the stars, at the magnitudes their mass gives them, whatever the Menu says (MAP.368 had hidden them with the marks). The Menu's layer is now "Black hole marks" and controls only the marks over the black holes, which start off. Also: the two Galaxy Map tests that were red on main (TEST.573) are fixed: the halo pick tests step off the log ruler that sat over the point and read the zoom level instead of crumbs the continuous zoom no longer changes, and the class button test counts the planet classes there are.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.370, TEST.573.
+
+## [8.0.3164] - 2026-11-04
+
+**Headline:** The System Map drill test no longer fails when the planet's info card sits over the moon it clicks next.
+
+### Changed
+
+- `test_system_map_selection_drill_and_measure` expanded the planet's info card to read it, then clicked the first moon. The expanded card is as tall as the window, and the system is a random one, so when the moon lay under the card the click landed on the card and the test waited out its 120 second timeout (TEST.194, seen as a load flake; it failed 1 of 3 runs alone). The test now presses Expand again to shrink the card before it clicks the moon. Four runs alone pass.
+
+## [8.0.3163] - 2026-11-04
+
+**Headline:** The guards that were red on main are green: reproducible maths in five places, the unit registry for mass conversions, a sector that no longer carries a memory address, and the sector page's map text.
+
+### Changed
+- `detmath.hypot`, `dist` and `matmul` replace `math.hypot`, `math.dist` and `@` in `generation/rogue_landing.py`, `physics/ring_darkening.py`, `physics/system_bodies.py` and `galaxy/acceleration.py`, so the last bit does not depend on the machine. The pinned galaxy is unchanged by them (checked on the commit before DOC.86).
+- 17 hand-written mass conversions (`api/routes.py`, `galaxy/potential.py`, `physics/belt_ledger.py`, `field_mass.py`, `giant_heat.py`, `giant_interior.py`, `hydrosphere.py`, `life_readings.py`, `surface_air.py`) go through `unit_registry.converter`, bit for bit; the stale `open_clusters.py` entry is off the kept list.
+- A system keeps its stars' architectures in a list and not in a dictionary keyed by `id(star)` (`StarSystem.architectures`, GEN.1111): the address in the key made a sector differ between runs, so `test_a_sector_does_not_depend_on_hash_seed_or_locale` failed.
+- `util/secret_key.py` may import `secrets` (the form-signing key never feeds a draw); the sector page test follows DOC.86's serial comma.
+
+### Fixed
+- Still open: `test_the_pinned_galaxy_is_the_pinned_one` stays red on main until train 10 rewrites the golden: DOC.86 (#4786) changed generated sentences, which are stored in the sectors.
+
+generation-output: unchanged
+TODO items resolved: TEST.569 (all but the pinned galaxy, which waits for train 10's golden)
+
+## [8.0.3162] - 2026-11-04
+
+**Headline:** Black holes are off by default on the Galaxy Map, and drawn as purple dots when turned on.
+
+### Changed
+- **MAP.368.** The Black holes layer in the Menu now starts off: a new viewer sees no black-hole marks and no purple dots for them, and the Key has no line for them. Turning the layer on draws the marks and the purple dots (black holes stay #a43cff; neutron stars and quasars keep the colors MAP.164 and MAP.80 chose, deep blue and pink, and are not affected). The choice rides in the address (`show=marker-black-hole`) and a reload keeps it, so a viewer who already set it keeps their choice.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.368.
+
+## [8.0.3161] - 2026-11-04
+
+**Headline:** Choosing a nebula on the Galaxy Map flies into a window that shows that nebula alone, with a way back.
+
+### Changed
+- **MAP.222.** A double click on a nebula, Enter with its card up, a click on its name, or the card's "Open nebula window" button flies the camera to frame the nebula and the nebulae that overlap it, and draws only what lies inside: the stars, names and markers in its sphere and the nebulae's shape cut to it, whatever sectors it crosses. A bar over the map names the window and has "Back to the Galaxy Map" (Escape does the same), which returns the camera to where it was. The window is a generic group window (`groupwindow.js`) so a globular cluster can plug in later (MAP.223).
+
+generation-output: unchanged
+
+TODO items resolved: MAP.222.
+
+## [8.0.3160] - 2026-11-04
+
+**Headline:** The top-bar menu test follows the Help menu's new first item, so it opens the Habitability page it means to.
+
+### Changed
+
+- `test_the_top_bar_menus` expected the Help menu to hold Classes, Habitability, Properties, Life and References, and clicked its second item. Since the help registry (the "All help" index first) the second item is Classes, so the click went to the wrong page and the test waited out its 120 second timeout (TEST.324). The test now expects "All help" first and clicks the item named Habitability. The file passes, 11 of 11, in about two minutes.
+
+## [8.0.3159] - 2026-11-04
+
+**Headline:** The Galaxy Map's default view shades only with nebulae: no density, age or luminosity fill.
+
+### Changed
+- **MAP.191.** The default Galaxy Map shows stars and markers for known space with no block fill; the nebulae (drawn from the galaxy's density, MAP.365) are the only shading and tint the stars and regions behind them (MAP.215). This closes the item: the blocks were already hidden unless asked for (MAP.214), and the Color by menu's first choice now reads "No fill (stars, markers and nebulae)" instead of naming the age, density and luminosity colors it does not draw.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.191.
+
+## [8.0.3158] - 2026-11-04
+
+**Headline:** Stars, glows and charted regions seen through a nebula on the Galaxy Map take its hue.
+
+### Changed
+- **MAP.215.** The nebulae's raw sum (the volume layer's target, before the cap) is read by the star shader, the unresolved star glow and the charted-region layer: what is behind a nebula leans toward the sum's hue (`nebulavolume.tinted`, the same formula in the shaders as `nebulaTinted`), more the denser the core and levelling off at 0.6 so the tint stays subtle, and loses a fifth of its light at full tint so a dense cloud dims what is behind it. Nothing is tinted while no nebula is drawn, in the Sector Map, or with the nebula layers off. The density views are unchanged.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.215.
+
+## [8.0.3157] - 2026-11-04
+
+**Headline:** Nebulae on the Galaxy Map fade out at the edge by family: a reflection nebula over the longest way, a supernova shell crisp.
+
+### Changed
+- **MAP.142 (the Galaxy Map's part).** The strength of a nebula's points now follows `smoothstep(FORM_LEVEL - w / 2, FORM_LEVEL + w / 2, density)` with a width `w` for each family (`galaxy/nebula_volume.EDGE_WIDTH`: reflection 0.60, diffuse 0.50, emission 0.40, dark 0.30, planetary 0.15, supernova remnant 0.10 of the density's span, from the "Appearance by class" table), so a nebula has no hard outline and its extent is the half-strength contour, the density the model calls inside a nebula, whatever its width. A planetary nebula and a remnant keep their shell profile, so the families differ by more than color: shells are rings, solid nebulae fade over their own width. The widths are display settings, not measurements. The Sector Map's and the nebula page's meshes keep their edges for now.
+
+generation-output: unchanged
+
+TODO items resolved: none (MAP.142 stays open for the Sector Map and the nebula view).
+
+## [8.0.3156] - 2026-11-04
+
+**Headline:** Nebulae on the Galaxy Map are irregular, wispy shapes taken from the galaxy's gas and star-forming density, not circles.
+
+### Changed
+- **MAP.365.** A nebula is no longer a round sprite or a random blob per object. For each node the map draws, a new read-only endpoint (`GET /galaxy/nebula-volume?key=<node key>`, `/api/galaxy/nebula-volume`) samples the model's density (`galaxy.nebula_density`) at points on one absolute lattice (`galaxy/nebula_volume.py`): every lattice point in the node that a nebula reaching the node holds, with a strength from the density and the family of the nebula it is nearest to in its own radii. A nebula that crosses a node or sector border is drawn half by each node, with no seam, and the lattice gets finer (and the density adds noise octaves, so more filaments) as the nodes get finer. A dense core fades unevenly into a soft edge; a planetary nebula or a supernova remnant is a shell. Nothing is stored, so there is no migration and no epoch: the same galaxy draws the same shapes.
+- The map draws the points as soft splats (`static/nebulavolume.js` chooses and decodes, `static/nebulavolumelayer.js` draws). Where nebulae overlap on the screen their colors add up in a half-resolution target, and a full-screen pass bends the sum under a cap that keeps its hue, so a crowd of nebulae never washes to white. The group circles of MAP.176 and the per-nebula circle and GEN.75 mesh give way where a node's volume shows; the circles stay far out and while a volume loads, and a browser that cannot render to a float target keeps them. The family switches of the Menu switch the volumes too.
+- The tests hold a nebula's outline away from a circle (the circularity of its projected points, with the model's own clouds and a stand-in), two blocks that share a nebula drawing each place once, the same points whichever object it is, the node reader against a stored nebula, the capped sum against the shader's own output at every pixel of a browser frame, and the volume's packed bytes.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.365.
+
+## [8.0.3155] - 2026-11-04
+
+**Headline:** A system that was asked for a habitable world now answers `aim` when it holds a body that meets the request's conditions and `unmet` when it does not, where the answer used to disagree with the world count.
+
+### Changed
+- **Habitable request answer (GEN.1248).** `StarSystem.habitable_request` was worked out from the PHI-6 index of each body (`habitability.habitable_request_result`) while the request steers by conditions (`habitable_request.count`: temperate, air, a surface ocean) since GEN.1130, so a probe of 14 A0V systems found 4 with a world that said `unmet` and 1 with none that said `fallback`. It is now `aim` when `count` finds a body (a moon of a giant counts) and `unmet` otherwise. The `fallback` answer is gone: the request has settled for nothing since GEN.1130. The code that gave it (`habitable_request_result`, `FALLBACK_TIERS`, `FALLBACK_SUITABILITY_TIERS` in `physics/habitability.py`) is deleted, with no shim, and the design text and the tests that quoted it are changed (a new test builds 12 requested systems and checks the answer against `count`).
+- **Not stored.** The answer is an attribute of the finished system, worked out again when a system is read back from the database; no column, golden file or draw reads it, so no migration, epoch or census change is needed.
+generation-output: unchanged
+
+## [8.0.3154] - 2026-11-04
+
+**Headline:** The References section now explains how each area is worked out, what we lack, and how well known each part is.
+
+### Changed
+- New References pages: a method page for each of the 11 areas, a page that says what we have and lack, and a scorecard counted from the stand-in registry.
+- The Properties help page moved into the method pages, with the same unit, who-has-it and source lines for each value. Its address, /help/properties, is gone with no redirect, and the body pages link to the method pages instead.
+- The References start page now links to every References page.
+
+## [8.0.3153] - 2026-11-04
+
+**Headline:** The speculative chemistry notes moved out of the life pages into a References page.
+
+### Changed
+- The life help pages and the Life and air chart no longer explain how sure each class is. A "Where this comes from" link on each leads to a new References page, Speculative chemistry, with one section per life class.
+- The class "Oxygenic light-eaters: blue and UV tuned" is now "blue and UV adapted".
+
+## [8.0.3152] - 2026-11-04
+
+**Headline:** The two system tests that force a habitable world now check what the request promises since GEN.1130, so the A0V test no longer fails on about half its trials.
+
+### Changed
+- **Test fix, no code change (TEST.307).** `test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V]` and the habitable case of `test_each_tristate_flag_forced` required a habitable world "or `unmet_requirements` says so". Since GEN.1130 a request for a habitable world raises the odds and never forces one, and it is no longer a requirement, so `unmet_requirements` never names it: a white A0V star (a life of about a billion years) came out without one in about half the trials and the test failed (it read as "1 run in 5 to 8" because of the number of trials per run). The belt is still required and still checked. The habitable request must now be answered (`habitable_request` is `aim`, `fallback` or `unmet`) and the 15 trials must give a world at least once.
+- **Found, not fixed here:** the system's `habitable_request` answer still reads the old PHI-6 index (`StarSystem.habitable_request_status`) while the request now steers by conditions (`habitable_request.count`, `meets`), so they disagree: in a probe of 14 A0V systems, 4 had a world by the conditions and said `unmet`, and 1 had none and said `fallback`. Changing the answer changes a stored column, so it is filed as lock work.
+generation-output: unchanged
+
+## [8.0.3151] - 2026-11-04
+
+**Headline:** The Galaxy Map has the density its nebulae will be drawn from, shaped by the galaxy's own gas and star-forming density: bulbous outlines with soft, wispy edges, a dense core, and more filaments the closer you zoom.
+
+### Added
+- `galaxy.nebula_density.density_at(galaxy_seed, shape, points_pc, field, detail)` (MAP.365, the shape side): a value in 0..1 at any point in the galaxy, for `"gas"` (dark and molecular clouds) or `"young"` (emission and reflection nebulae). It is a pure function of the position, the seed and the stored shape, so every node and sector reads the same value at the same point and the shapes meet without a seam; the object ID is never read. A point is inside a nebula at `FORM_LEVEL` (0.35) or more.
+- `"gas"` is anchored on the seeded cloud field, leans with the model gas (the arms and the thin layer), and a superbubble clears it. `"young"` follows the young-star density. A coarse warp makes the outline bulbous at the coarsest level; each further octave of gradient noise (`wavelength_pc(detail)`, 64 pc halving up to `MAX_DETAIL` 8) adds filaments at the edge and leaves a dense core, and changes a value by at most `octave_bound`, so the coarse blobs stay where they were as the map zooms in.
+- Wiring register line for the module until the node response and the drawing (MAP.365 parts b to e, Core 2) read it.
+
+generation-output: unchanged
+TODO items resolved: MAP.365 (part a, the shape field; the node response, drawing, tint and blend are Core 2's)
+
+## [8.0.3150] - 2026-11-04
+
+**Headline:** Help > References now has a page for every stand-in, a filterable list of them all, and a page of the values that were fitted to a result.
+
+### Changed
+- **Stand-in pages (DOC.90).** `/references/stand-ins` lists every row of the stand-in registry (GEN.725) by section, with filters for the source tier, the tweak level, the section and words in the row. Each row has its own page at `/references/stand-ins/<section>-<id>` (`5.1:GR1` is `/references/stand-ins/5-1-gr1`) that says what it is, how it was made and decided, its tier and tweak level in words, what would show it wrong, what replaces it, the item that will wire it and what a hand-tuned row needs (`burn-down-register.md`). Every citation on these pages is a link to the Papers or Data page.
+- **Fitted to a result (DOC.90).** `/references/fitted` lists the rows at tweak levels L2, L3 and L4 and the published statistics (tuning targets) the L2 rows were tuned to.
+- **The address of a stand-in is its section and its id.** The plan reuses an id in several sections, so `reference_link("stand-in", "5.1:GR1")` takes the registry key and an id alone is an error.
+- **Four registry rows were missing (fixed).** The plan numbers two tables 6.127 and two tables 6.134; the list read the first of each twice and never read the second. The giant structure rows (GS2 to GS8) and the high-gravity class line row GV1 are now in the list, and the row count is 1,049.
+
+## [8.0.3149] - 2026-11-04
+
+**Headline:** The Papers page tests no longer write a source by name, and the Papers data catches up with the new sources; nothing a visitor sees changes beyond the new sources appearing.
+
+### Changed
+- **Papers tests.** Two tests read their example source from the reference list instead of writing its title and DOI.
+- **Papers data.** The Papers page data is rebuilt for the sources added since it was last built.
+
+## [8.0.3148] - 2026-11-04
+
+**Headline:** The sources behind the body-rendering research (giant bands and storms, plant pigment color, ring color) are in the citation list.
+
+### Changed
+- **GEN.670 (part).** Fifteen papers read for the research on how bands, storms, vegetation tint and ring color should follow physics are added to the citation registry (the report is `reports/gen670-body-rendering-research-2026-11-04.md`). Nothing changes a generated world; the painter items cite them by ID. No generator output changes.
+
+generation-output: unchanged
+
+TODO items advanced: GEN.670.
+
+## [8.0.3147] - 2026-11-04
+
+**Headline:** Help > References now has a Papers page and a Data page: every source the project cites, with a link to read it, and where each one is used.
+
+### Added
+- **Papers page.** Every paper, book, and data set of the reference list, each with its ID and a link to its DOI page, else its arXiv page, else a search. Browse by A to Z, by area, by field, by year, or by type, read the totals (oldest, newest, most cited by us, counts by area, field, decade, and type), or search the title, authors, DOI, or ID. Each entry says which code files, data files, stand-in rows, and design notes use it.
+- **Data page.** The data sets downloaded at setup, the archives and catalogs, the standards and web pages, and the terms of use that DATA-LICENSE.md records.
+
+### Changed
+- **References pages.** The start page links to the two new pages, and no References page adds help links to its text.
+
+## [8.0.3146] - 2026-11-04
+
+**Headline:** The nav chart and System Map box-fit script loads its sibling the way every other page script does, so the page-shell test passes again.
+
+### Changed
+- **TEST.568.** `static/boxfit.js` imported `mapfit.js` with a static `import`, which `test_page_shell` refuses because a static import drops the page's version query and could load a stale sibling. It now reads the version query from its own URL and imports `mapfit.js` dynamically with it, as the other page scripts do. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.568.
+
+## [8.0.3145] - 2026-11-04
+
+**Headline:** The Galaxy Map shows a progress bar for each level of map data while it loads, so a slow connection shows how far along it is.
+
+### Changed
+- **MAP.364.** While the nodes a view asks for come in from the server, each level of the block ladder with nodes still to come shows a bar in the top left of the map: nodes received over nodes requested for that level (`static/levelprogress.js`), filled as the response is read (`tilepack.readNodeBody` reports each node as its bytes arrive). A load that ends within 400 ms, which is every level served from this browser's store or the server's cache, shows no bar, and the bars go when every level is in. A failed load, or a node that comes back incomplete, replaces its level's bar with a line in plain words that says it could not load and when it will try again. Each bar is a `role="progressbar"` named for its level and takes the map viewport's colors in both themes. The tests hold the bars against a throttled connection, a revisit that finds its nodes stored, and a refused request. The map has twelve block levels, not the six steps (Z0 to Z5) of the zoom plan, so the bars are by block level.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.364.
+
+## [8.0.3144] - 2026-11-04
+
+**Headline:** Two tests that checked old numbers now check what they mean; nothing a visitor sees changes.
+
+### Changed
+- **Missing-data notice test.** The notice a run prints when it disregards missing data is one line, then one line for each missing dataset; the test now counts that instead of a fixed 11.
+- **Helium test.** The strongly stripped planets of the helium test end more than a tenth richer in helium than their star, instead of above a fixed 0.3, which the slower star activity decay (GEN.493) no longer reaches.
+
+## [8.0.3143] - 2026-11-04
+
+**Headline:** The check that deploy scripts only name files that exist no longer mistakes a record key for a folder.
+
+### Changed
+- **Deploy script path check (TEST.566).** `test_scripts_only_name_repo_paths_that_exist` read `e.setdefault("src", "crossref")` in `scripts/settle_references.py` as the path `src/crossref`. It now reads a path only when it is built by a `join(...)`, as the check was meant to. Test only; no change to any script or output.
+
+## [8.0.3142] - 2026-11-04
+
+**Headline:** The rest of the site and the command-line help now use American spelling too ("color", "center", "neighbors", "canceled", "disk").
+
+### Changed
+- **American spelling everywhere a visitor reads.** Command-line help, progress labels, error and status messages, the admin settings, the Generate page, the sector page, the galaxy settings help, and the text of the star, system, sector, nebula, and phenomenon pages no longer use British spellings. About 150 sentences changed.
+- **A check keeps it that way.** A new test reads every sentence the program shows and every template and page for British spelling, and the checker's word list is longer ("canceled", "catalog", "disk", "toward", "modeled", "labeling", and more).
+- Stored values and names that carry a British spelling ("cancelled" as a job state, "vapour" as a hydrosphere value, "centre" as a key in the API) are not changed here, because renaming them changes stored data or the API.
+
+## [8.0.3141] - 2026-11-04
+
+**Headline:** a galaxy's first sector fill now keeps the bright-star tables in a folder, so it takes about 36 seconds and 0.5 GB instead of 267 seconds and 1.8 GB.
+
+### Changed
+- **The bright-star sampling tables are kept on disk in production (PERF.188, PERF.218).** A first sector fill built hundreds of tables, 717,000 distinct track evaluations, in every process that filled a sector. They are now kept as small files in `/var/cache/planetgen/band-tables` and read back by the next process that asks for the same table. The file name holds a key of every file of the `planetgen` package, of the downloaded datasets, of the Python and numpy versions and of every constant of `tuning`, so a changed generator file or a new download never reads an old table; a new key removes the folders of older versions of the code. A table read back is the table that was made (numbers are written as Python writes them), so the output and the golden digest are the same. A host without the folder builds the tables as before; `PLANETGEN_BAND_TABLE_CACHE` names another folder, or none when empty.
+- **Setup makes the folder.** `examples/apache/create-cache-dir.sh`, which `install.sh` and `update.sh` run, creates it owned by the web user whose workers write it (mode 750).
+
+## [8.0.3140] - 2026-11-04
+
+**Headline:** the galaxy outline tests follow the model's mean system mass instead of pinned counts that moved with the star mass function.
+
+### Changed
+- **Test only (TEST.561).** The default galaxy's count of qualifying cells (11,241,821,617 pinned, 11,235,526,381 now) and its edge shell (3,438 and 3,421 pinned, 3,437 and 3,418 now) moved because the mean system mass went from 0.5105 to 0.5111 solar masses when the companion mass ratios of GEN.951 merged with the rest of train 8 (the pins were set on that branch before the merge). The move is expected. The tests now check the count times the mean system mass (5.74e9, within 0.5 percent; it moved 0.06 percent over those changes), keep the edge shell to a window, and check the outermost shell and the one after it against the model, so the next change of the mass function does not need a new pin. No generated output changes.
+
+## [8.0.3139] - 2026-11-04
+
+**Headline:** The composition text test draws on until it has seen both a rocky and a giant body.
+
+### Changed
+
+- `test_every_generated_body_states_what_its_fractions_say` drew six systems and asserted it had seen a rocky and a giant body; under the current planet law those six hold no giant. It now draws at least six systems and keeps going (at most 60) until both kinds have been seen. The per-body check is unchanged. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3138] - 2026-11-04
+
+**Headline:** The habitability end-to-end browser tests build their small galaxy in seconds again, so their eight tests run.
+
+### Changed
+
+- The fixture of `test_habitability_end_to_end_browser` (`tests/habitability_site.py`) used to search up to 400 seeds, twenty seconds each, for a system that happens to hold a Blue or Green world, and found none in sixty, so its setup ran into the 900 second limit (TEST.414). It now generates two fixed-seed systems in about six seconds and stores the scores the pages read on their bodies, the way `scored_site` does. The file runs in about a minute.
+- The sector colouring test reads the one coarse block the map draws for the two charted sectors (it once drew each sector's own block) and checks it is filled and carries the stored count.
+
+## [8.0.3137] - 2026-11-04
+
+**Headline:** A browser test now runs the question the value filters were built for, planets of 0.8 to 1.2 g with a surface dose under 2 mSv a year, and finds the same planets on the Search page and in `GET /api/search`.
+
+### Added
+- `tests/test_web_search_values_browser.py` sets nine planets of a sample galaxy to known gravities and doses (on both edges of the gravity range, just outside it, over the dose limit, and with a value missing), asks the question by its own numbers, and checks that the page, its chips and the API's rows, `values` and `active_ranges` (with `g0` and `mSv/yr`) give exactly the three planets that fit.
+
+generation-output: unchanged
+TODO items resolved: UX.225 (the filters, sorts and units of `/api/search` shipped with UX.226 and are in `docs/reference/api.md`; this adds the one-query browser test)
+
 ## [8.0.3136] - 2026-11-04
 
 **Headline:** The Systems list filters by what a system holds: systems with a planet at 0.8 to 1.2 g, a star of a given age, or a moon in a given orbit.

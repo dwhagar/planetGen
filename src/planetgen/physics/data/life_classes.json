@@ -105,7 +105,7 @@
    "id": "1b",
    "number": 1,
    "variant": "b",
-   "name": "Oxygenic light-eaters: blue and UV tuned (Blue-Optimized Porphyrins)",
+   "name": "Oxygenic light-eaters: blue and UV adapted (Blue-Optimized Porphyrins)",
    "drinks": "water",
    "eats": "light 300 to 500 nm, carbon dioxide, and water",
    "breathes": "oxygen once it exists",
@@ -681,7 +681,7 @@
    "eats": "hydrogen sulfide, ferrous iron, ammonium, or methane",
    "breathes": "chlorate and perchlorate",
    "gives_off": "sulfate, Fe(III), nitrogen, carbon dioxide, chloride",
-   "reaches": "Microbial; animals are speculative (T8)",
+   "reaches": "Microbial; animals are doubtful",
    "tier": "T8",
    "solvent": {
     "medium": "water",

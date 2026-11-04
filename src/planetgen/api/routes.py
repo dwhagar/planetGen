@@ -27,6 +27,7 @@ separate, write-capable database account -- see `docs/reference/api.md`'s
 "Write endpoints" section and `planetgen/admin/auth.py`.
 """
 
+import base64
 import math
 
 import pymysql
@@ -98,9 +99,10 @@ from planetgen.db.query import (
 from planetgen.db import near as near_search
 from planetgen.db import region_stats
 from planetgen.names import naming_key
-from planetgen.db import cloudcontents, containers as containersDb, nodes, objectlist
+from planetgen.db import cloudcontents, containers as containersDb, nebula_volumes, nodes, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
+from planetgen.db import edits as dbEdits
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
 from planetgen import tuning
 from planetgen.admin import maintenance
@@ -123,6 +125,7 @@ from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
 
 from . import ids
+from . import lookup as lookup_module
 from .authz import audit, require_admin
 from .common import ApiError, request_json, require_json_body
 from .version import API_VERSION
@@ -540,6 +543,7 @@ def sector_detail(sector_id):
                                  if detail.get("placed") else None)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
+    detail["former_designations"] = ids.former_designations(conn, ids.SECTOR, sector_id)
     return jsonify(detail)
 
 
@@ -641,6 +645,7 @@ def system_detail(system_id):
         detail["region"] = region_of(conn, resolve_object(conn, "system", system_id)["positions"]["galaxy_pc"])
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
+    detail["former_designations"] = ids.former_designations(conn, "system", system_id)
     return jsonify(detail)
 
 
@@ -709,7 +714,7 @@ def _life_air(table, body_id):
         body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
         if body is not None:
             ages = dict(zip(evolution.MILESTONE_KEYS, (getattr(body, field, None) for field in evolution.SCHEDULE_FIELDS)))
-            history = life_air.air_history(body, life_classes.BY_ID[class_id], ages)
+            history = life_air.air_history(body, [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))], ages)
     return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
 
 
@@ -719,8 +724,9 @@ def planet_life_air(planet_id):
     `GET /api/planets/<id>/life-air` -- the Life and air chart's data (UX.237, `physics.life_air.air_history`): the planet's air through the
     age of its star as far as the life class that lives on it changed it, worked out from the stored air on request and stored nowhere. `{"id",
     "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class, a giant, or an air the life did not change.
-    Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the producers began and the oxygen rose,
-    Gyr, the latter `null` for a class that makes none), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
+    Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the first producers began and the oxygen rose,
+    Gyr, the latter `null` when no class makes any), `classes` (`{"life_class", "variant", "share", "producers_gyr"}` for each class whose life
+    the air sums, with its share of the food production), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
     value holding until the next age), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
     ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`).
     """
@@ -735,7 +741,7 @@ def moon_life_air(moon_id):
 
 def _life_readings(table, body_id):
     """Shared body of `planet_life_readings` and `moon_life_readings`."""
-    from planetgen.physics import constants, life_classes, life_readings
+    from planetgen.physics import life_classes, life_readings, unit_registry
 
     conn = get_db()
     rows = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (body_id,)).fetchall()
@@ -747,7 +753,7 @@ def _life_readings(table, body_id):
     star_row = None if values.get("star_id") is None else conn.execute(
         "SELECT mass_kg, age_gy, metallicity_fe_h FROM stars WHERE id = ?", (values["star_id"],)).fetchone()
     if star_row is not None:
-        star = life_readings.star_of({"mass_sol": star_row["mass_kg"] / constants.SOLAR_MASS_TO_KG, "age_gyr": star_row["age_gy"],
+        star = life_readings.star_of({"mass_sol": unit_registry.converter("kg", "Msun")(star_row["mass_kg"]), "age_gyr": star_row["age_gy"],
                                       "fe_h": star_row["metallicity_fe_h"] or 0.0})
     found = [{"kind": reading.kind, "label": reading.label, "score": reading.score, "abundance": reading.abundance,
               "trend": reading.trend, "security": reading.security, "years_left_gyr": reading.years_left_gyr,
@@ -1317,6 +1323,24 @@ def galaxy_nodes_route():
         raise ApiError(str(exc))
 
 
+@bp.route("/galaxy/nebula-volume")
+def galaxy_nebula_volume_route():
+    """
+    The points that draw the nebulae of one Galaxy Map node (MAP.365): `?key=<m.shell.band.wedge>`. Answers `{"key", "format",
+    "level", "count", "data"}`: `data` is the base64 of the packed volume (`galaxy.nebula_volume.pack`: the nebulae whose centre lies
+    in the block, sampled on an absolute lattice from the model's gas and star-forming density). Nothing is stored; a block with no
+    nebula answers `count` 0. A malformed key is a 400.
+    """
+    key = request.args.get("key") or ""
+    try:
+        packed = nebula_volumes.group_volume(get_db(), key)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    count = int.from_bytes(packed[6:10], "little")
+    return jsonify({"key": key, "format": "NVOL1", "level": packed[5], "count": count,
+                    "data": base64.b64encode(packed).decode("ascii")})
+
+
 @bp.route("/galaxy/locate")
 def galaxy_locate_route():
     """
@@ -1654,6 +1678,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         detail = query_phenomenon_detail(get_db(), phenomenon_type, phenomenon_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
+    detail["former_designations"] = ids.former_designations(get_db(), phenomenon_type, phenomenon_id)
     return jsonify(detail)
 
 
@@ -1747,6 +1772,21 @@ def uncharted_phenomenon(scatter_id):
         return jsonify({"error": str(exc)}), 404
 
 
+@bp.route("/lookup")
+def lookup_route():
+    """
+    `GET /api/lookup?text=<Object ID or name>` (GEN.1140) -- what an Object ID or a name is now, including one the object used to have. 200 with
+    `status` `current` (it has it now) or `redirect` (it had it once; the body is the object that has it now, `retired` is what was asked
+    for) and `kind`, `ref`, `id`, `name`, `former_designations` and, for a name that other objects once had too, `also`; 410 `gone` for a
+    designation of a deleted object; 404 `unknown` for one nobody had; 400 for no text.
+    """
+    try:
+        status, body = lookup_module.lookup(get_db(), request.args.get("text"))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(body), status
+
+
 @bp.route("/objects/<ref>")
 def object_ref_route(ref):
     """
@@ -1761,6 +1801,7 @@ def object_ref_route(ref):
         kind, object_id = object_ref.parse(resolved)
         found = resolve_object(get_db(), kind, object_id)
         found["region"] = region_of(get_db(), found["positions"]["galaxy_pc"])
+        found["former_designations"] = ids.former_designations(get_db(), kind, object_id)
         return jsonify(found)
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
@@ -2043,12 +2084,18 @@ def delete_sector(sector_id):
     """`DELETE /api/sectors/<id>` -- no request body. Its systems are
     detached, not deleted (`star_systems.sector_id` is `ON DELETE SET
     NULL`, per `schema.sql`), matching how a system can already exist
-    with no sector at all."""
+    with no sector at all. 409 while a rogue planet, interstellar comet, supernova remnant or facility is filed in it (GEN.1127:
+    those keys no longer cascade, since a filed object may have drifted in from another sector); delete or move them first, or use
+    `DELETE .../contents`, which takes only what was born there."""
     conn = _write_conn()
     try:
         with conn:
             address = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
                                    (sector_id,)).fetchone()
+            filed = dbEdits.restricting_rows(conn, sector_id) if address is not None else {}
+            if filed:
+                found = ", ".join(f"{count} in {table}" for table, count in filed.items())
+                raise ApiError(f"the sector still holds objects ({found}); move or delete them first", status_code=409)
             deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
             if deleted:
                 store.note_sector_deleted(conn)

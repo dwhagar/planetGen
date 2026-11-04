@@ -346,13 +346,13 @@ def locate(dataset):
         if not os.path.exists(path):
             lacking.append((piece, f"{piece.name} has not been downloaded"))
         elif not _is_good(path, piece):
-            log.debug("dataset %s: %s does not match the catalogue (size or sha256)", dataset.key, piece.name)
-            lacking.append((piece, f"{piece.name} does not match the catalogue's size or sha256"))
+            log.debug("dataset %s: %s does not match the catalog (size or sha256)", dataset.key, piece.name)
+            lacking.append((piece, f"{piece.name} does not match the catalog's size or sha256"))
     if lacking:
         return Located(dataset, None, lacking[0][1], tuple(lacking))
     if dataset.derived and not _derived_ok(dataset):
         # the derived files are made again from the archive, so the archive is what a setup run downloads
-        reason = "its derived files have not been made from the current catalogue"
+        reason = "its derived files have not been made from the current catalog"
         archive = [piece for piece in dataset.pieces if piece.transient] or list(dataset.pieces)
         return Located(dataset, None, reason, tuple((piece, reason) for piece in archive))
     return Located(dataset, where)
@@ -479,7 +479,7 @@ def _download(piece, path, opener, progress=None):
                 raise _WrongBytes(f"{piece.url}: expected {piece.size} bytes, got {'more' if count > piece.size else count}")
             found = _sha256_of_open(out)
         if found != piece.sha256:
-            raise _WrongBytes(f"{piece.url}: sha256 is {found}, the catalogue says {piece.sha256}; not kept")
+            raise _WrongBytes(f"{piece.url}: sha256 is {found}, the catalog says {piece.sha256}; not kept")
         os.chmod(temporary, 0o644)
         os.replace(temporary, path)
     except OSError as exc:
@@ -517,7 +517,7 @@ def _derive(dataset):
     where = folder(dataset)
     made = dataset.derive(where)
     if set(made) != set(dataset.derived):
-        raise ValueError(f"derive made {sorted(made)}, the catalogue says {sorted(dataset.derived)}")
+        raise ValueError(f"derive made {sorted(made)}, the catalog says {sorted(dataset.derived)}")
     files = {}
     for name in dataset.derived:
         _write_atomically(os.path.join(where, name), made[name])

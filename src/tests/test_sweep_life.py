@@ -232,7 +232,7 @@ def test_a_generator_that_skips_life_for_one_letter_is_reported(monkeypatch, sup
 def test_a_supported_world_whose_life_has_not_begun_yet_is_not_reported(monkeypatch, supported_planet):
     from planetgen.generation import life
 
-    monkeypatch.setattr(life, "_life_has_begun", lambda planet: False)     # GEN.1001: the first step comes after the star's age
+    monkeypatch.setattr(life, "_begun", lambda planet, cand: False)     # GEN.1001: the first step comes after the star's age
     assert not any("drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
     total, supported, drawn, waiting = rules.draw_rates([("planet", supported_planet)])[supported_planet.planet_class]
     assert (supported, drawn, waiting) == (1, 0, 1)

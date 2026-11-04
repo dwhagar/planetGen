@@ -118,7 +118,7 @@ class AsteroidBelt:
 
     SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg", "chondrite_group", "origin", "co_causes",
                            "formation_snow_line_au", "primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth", "stirred", "origin_history",
-                           "origin_sentence", "scatter_fates"]
+                           "origin_sentence", "scatter_fates", "largest_body_km"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
     back-reference), `composition` (handled separately in `to_dict`/
@@ -135,9 +135,10 @@ class AsteroidBelt:
     origin_history = ()
     origin_sentence = None
     scatter_fates = None
+    largest_body_km = None
     """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
-    the sentences of what shaped it, its sentence for the page and, for an outer disc, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for."""
+    the sentences of what shaped it, its sentence for the page and, for an outer disc, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for. `largest_body_km` is the largest body of the belt (Dc) as settled with its mass (GEN.1000, GEN.1069); None for a belt stored before GEN.1069."""
 
     def __init__(self, system_config: SystemConfig, star, distance, lower_limit, upper_limit, origin=None, scatter_fates=None): # Added system_config
         """
@@ -157,14 +158,14 @@ class AsteroidBelt:
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
         self.body_type = 'a'
-        largest_km, self.mass_kg, self.density = present_state(star, distance, lower_limit, upper_limit, None if origin is None else origin.mass_earth)
+        self.largest_body_km, self.mass_kg, self.density = present_state(star, distance, lower_limit, upper_limit, None if origin is None else origin.mass_earth)
         _STARS[self] = star       # what `shorten_to` needs; not stored, a belt read back from a store is not shortened
         if origin is not None:
             self.origin, self.co_causes, self.formation_snow_line_au = origin.origin, list(origin.co_causes), origin.formation_snow_line_au
             self.primordial_mass_earth, self.cleared_mass_earth, self.scattered_mass_earth = origin.primordial_mass_earth, origin.cleared_earth, origin.scattered_earth
             self.stirred, self.origin_history, self.origin_sentence = origin.stirred, [event.text for event in origin.history], origin.sentence
             self.scatter_fates = scatter_fates
-        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disc's solids after {star.age:.4g} Gy, its largest body {largest_km:.4g} km (stand-in)")
+        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
@@ -188,7 +189,7 @@ class AsteroidBelt:
         self.scattered_mass_earth *= share
         self.upper_limit = upper_limit
         left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
-        _, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, upper_limit, left_earth)
+        self.largest_body_km, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, upper_limit, left_earth)
         return True
 
     def to_dict(self):

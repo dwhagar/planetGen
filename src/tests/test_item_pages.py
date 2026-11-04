@@ -563,7 +563,7 @@ def test_a_planet_whose_life_changed_its_air_has_a_collapsed_life_and_air_chart_
     assert re.search(r'<details[^>]*id="life-and-air"(?![^>]*\bopen\b)', page), "the chart starts collapsed"
     block = page.split('id="life-and-air"')[1].split("</details>")[0]
     assert "Life and air through the ages" in page and '<svg class="life-air-chart"' in block and block.count("<polyline") == 3
-    assert '<li value="1">' in block and "Speculative chemistry" in block and 'class="life-air-table"' in block and "29 kPa" in block
+    assert '<li value="1">' in block and "/references/speculative#class-" in block and 'class="life-air-table"' in block and "29 kPa" in block
     assert page.index('id="life-paragraph-heading"') < page.index('id="life-and-air"') < page.index('id="item-properties"')
 
 

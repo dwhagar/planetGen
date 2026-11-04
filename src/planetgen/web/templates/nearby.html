@@ -104,7 +104,7 @@
   </p>
   {%- endif %}
   {%- if not_generated_total %}
-  <p class="hint">{{ num(not_generated_total) }} {{ "object" if not_generated_total == 1 else "objects" }} in range {{ "is" if not_generated_total == 1 else "are" }} not generated yet ({% for entry in not_generated %}{{ entry.label }}: {{ num(entry.count) }}{{ ", " if not loop.last }}{% endfor %}), so {{ "it is" if not_generated_total == 1 else "they are" }} not listed.</p>
+  <p class="hint">{{ num(not_generated_total) }} {{ "object" if not_generated_total == 1 else "objects" }} in range {{ "is" if not_generated_total == 1 else "are" }} not charted yet ({% for entry in not_generated %}{{ entry.label }}: {{ num(entry.count) }}{{ ", " if not loop.last }}{% endfor %}), so {{ "it is" if not_generated_total == 1 else "they are" }} not listed.</p>
   {%- endif %}
   {%- if value_chips %}
   <div class="active-filters" aria-label="Active filters" role="group">

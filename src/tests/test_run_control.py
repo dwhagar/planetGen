@@ -66,7 +66,7 @@ def test_cancelling_a_run_cancels_its_waiting_units_and_frees_the_machine_in_und
     assert stopped == {"cancelled": 70, "stopped": 0}
     assert took < 1.0, f"cancelling a 75 unit run took {took:.2f} s"
     run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "cancelled" and run["error"] == "cancelled by boss"
+    assert run["state"] == "cancelled" and run["error"] == "canceled by boss"
     assert _waiting(conn) == 0
     assert runrecord.active_run(conn) is None, "the machine is free"
     kinds = [fields["kind"] for _id, fields in runrecord.read_events(conn, run_id)]
@@ -108,7 +108,7 @@ def test_a_run_that_is_over_or_unknown_is_not_cancelled_again(conn, jobs_dir):
     assert runcontrol.cancel_run(conn, run_id) is not None
     assert runcontrol.cancel_run(conn, run_id) is None
     assert runcontrol.cancel_run(conn, "20260101-000000-deadbeef") is None
-    assert runrecord.read_run(conn, run_id)["error"] == "cancelled"        # no one named
+    assert runrecord.read_run(conn, run_id)["error"] == "canceled"        # no one named
 
 
 def test_a_run_that_shows_life_is_not_cleared_and_a_stale_one_is(conn, jobs_dir):

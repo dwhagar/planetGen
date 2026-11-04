@@ -34,7 +34,7 @@ STATE_LABELS = {
     "cancelling": "Cancelling",
     "done": "Done",
     "failed": "Failed",
-    "cancelled": "Cancelled",
+    "cancelled": "Canceled",
 }
 
 STAGE_STATE_LABELS = {"waiting": "Waiting", "running": "Running", "done": "Done"}
@@ -502,7 +502,7 @@ def admin_queue_action():
             message = "The queue is paused." if ok else "The queue was already paused."
         elif action == "queue-stop-all":
             done = apiclient.admin_work_stop_all(cookie_header)
-            message = (f"Everything is stopped: {done['runs']} run(s) cancelled"
+            message = (f"Everything is stopped: {done['runs']} run(s) canceled"
                        f"{' and the Generate job' if done['job'] else ''}, {done['queued']} queued job(s) removed, "
                        f"{done['killed']} process(es) ended. Nothing starts until you press Resume.")
             if done["survivors"]:
@@ -552,7 +552,7 @@ def admin_queue_action():
             else:
                 ok = apiclient.admin_work_control(cookie_header, run_id, action)
                 if ok:
-                    message = f"{'Cancelled' if action == 'cancel' else 'Cleared'} “{run['title']}”."
+                    message = f"{'Canceled' if action == 'cancel' else 'Cleared'} “{run['title']}”."
                     if action == "cancel":     # back to the page the run's page was opened from, as the Generate job page does
                         target = safe_next(request.form.get("next"), default=target)
                 elif action == "clear":

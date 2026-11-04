@@ -212,7 +212,7 @@ def _family_digits(family, key, edge_pc):
         digits = _hex(key, _key_text(family) + (f":{salt}" if salt else ""), FAMILY_DIGITS)
         if digits not in taken:
             return digits
-    raise RuntimeError(f"no family digits free of the neighbours of {_key_text(family)} in {MAX_SALT} salts")
+    raise RuntimeError(f"no family digits free of the neighbors of {_key_text(family)} in {MAX_SALT} salts")
 
 
 def _word(digits, key):

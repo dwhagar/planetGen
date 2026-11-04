@@ -520,7 +520,7 @@ def run(job_dir):
                     break
         if current["cancelled"]:
             state["status"] = "cancelled"
-            state["error"] = "Cancelled by an admin."
+            state["error"] = "Canceled by an admin."
         elif state["status"] == "running":
             state["status"] = "succeeded"
     except Exception as exc:  # noqa: BLE001 -- recorded for the page, never lost

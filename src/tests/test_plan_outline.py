@@ -30,7 +30,7 @@ def test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline():
     # steepens where the gas thins) and to 3.10 (GEN.1195, the central ring's cluster maximum mass). The line must carry the crest the
     # outline holds; the window keeps a change that is not one of those from passing.
     assert 3.0 < made.crest < 3.5
-    assert made.line().startswith(f"Outline: the disc's crest is {made.crest:.3g} times the one-star density, about ")
+    assert made.line().startswith(f"Outline: the disk's crest is {made.crest:.3g} times the one-star density, about ")
     assert f"{made.shells:,} shells out to " in made.line() and f"{made.sectors:,} candidate sectors" in made.line()
     assert made.shells == len(plan_outline.build(plan_outline._parser().parse_args(
         ["--mass", "1e8", "--disk-scale-length", "2000pc", "--flatness", "20", "--bulge-share", "0.001"]),

@@ -422,7 +422,7 @@ def _infrared(formula, item):
         for band in item["bands"]:
             centre, span = band["wavenumber_cm1"], band["range_cm1"]
             if (centre is None) == (span is None):
-                raise DataError(f"gases.json: {formula} has a band with a centre and a range, or with neither")
+                raise DataError(f"gases.json: {formula} has a band with a center and a range, or with neither")
             if (centre is not None and not centre > 0) or (span is not None and not 0 <= span[0] < span[1]):
                 raise DataError(f"gases.json: {formula} has a band at no positive wavenumber")
             bands.append(Band(band["label"], centre, None if span is None else (float(span[0]), float(span[1])),

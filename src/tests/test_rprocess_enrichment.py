@@ -8,8 +8,8 @@ from planetgen.galaxy import disk_history
 from planetgen.physics import rprocess_enrichment as rp
 
 
-def _history(stellar_mass, halo_mass):
-    return disk_history.history(0.8 * stellar_mass, 2600.0, halo_mass)
+def _history(stellar_mass):
+    return disk_history.history(0.8 * stellar_mass, 2600.0)
 
 
 def test_the_decay_constants_and_the_constant_input_factor_are_the_rows_former_numbers():
@@ -29,26 +29,26 @@ def test_a_constant_star_formation_and_prompt_sources_reproduce_the_constant_inp
 
 
 def test_an_older_star_has_less_earlier_gas_and_a_younger_star_more_thorium():
-    history = _history(6.1e10, 3.1e12)
+    history = _history(6.1e10)
     factors = [rp.th_u_factor_of_history(history, age) for age in (9.0, 7.0, 4.5, 2.0, 0.0)]
     assert factors == sorted(factors), "younger stars formed from gas whose earlier ejecta had longer to decay"
     assert 1.0 <= factors[0] and factors[-1] < 2.9, "below the ratio of a single burst at the start of the disc, exp(0.1058 x 10) = 2.88"
 
 
 def test_a_galaxy_that_formed_its_stars_early_gives_the_gas_of_a_late_star_more_thorium():
-    early = rp.th_u_factor_of_history(_history(6.1e10, 3.1e12), 1.0)       # heavy: early history
-    late = rp.th_u_factor_of_history(_history(1.0e10, 3.2e11), 1.0)        # light: rising history
+    early = rp.th_u_factor_of_history(_history(6.1e10), 1.0)       # heavy: early history
+    late = rp.th_u_factor_of_history(_history(1.0e10), 1.0)        # light: rising history
     assert early > late
 
 
 def test_the_solar_system_datum_is_a_test_point_the_disc_alone_stays_under():
     # CI chondrites need an effective constant input of 6.5 Gyr; the thin disc alone (no halo or thick disc gas) gives less (a lower bound)
-    found = rp.effective_duration_gy(rp.th_u_factor_of_history(_history(6.1e10, 3.1e12), 4.57))
+    found = rp.effective_duration_gy(rp.th_u_factor_of_history(_history(6.1e10), 4.57))
     assert 3.5 < found < 6.5
 
 
 def test_the_merger_delay_floor_moves_the_factor_little_and_prompt_sources_least():
-    history = _history(6.1e10, 3.1e12)
+    history = _history(6.1e10)
     prompt = rp.th_u_factor_of_history(history, 4.5, tau_min_gy=0.005)
     slow = rp.th_u_factor_of_history(history, 4.5, tau_min_gy=0.3)
     assert abs(prompt - slow) / prompt < 0.05

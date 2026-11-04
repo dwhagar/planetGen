@@ -3,6 +3,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
 {% from "partials/day_counter.html" import day_counter_panel %}
 {#- The Admin menu of this one body (Regenerate, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
@@ -30,6 +31,7 @@
     {%- if system_name %}<span class="badge">{{ system_name }} system</span>
     {%- elif owner_name %}<span class="badge">Orbits the free planet {{ owner_name }}</span>{% endif %}
   </p>
+  {{ formerly(former) }}
   {%- if chips %}
   <p class="item-chips">{{ chips }}</p>
   {%- endif %}
@@ -44,7 +46,7 @@
     <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
       <tbody>
         {%- for row in rows %}
-        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}{% if row.source %}<small class="sheet-source">{{ row.source }}</small>{% endif %}</td></tr>
+        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}{% if row.source %}<small class="sheet-source">{{ value_source(kind, row.label) }}</small>{% endif %}</td></tr>
         {%- endfor %}
       </tbody>
     </table></div>
@@ -234,7 +236,7 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in planet.sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
-  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
+  <p class="sheet-help">{{ reference_link("method", "stars" if kind == "star" else "bodies", "Where these values come from") }}</p>
 </section>
 {%- else %}
 {%- if glance or symbols or location.chain or location.inside %}
@@ -263,7 +265,7 @@
   {%- for group in sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
   {%- if kind in ("star", "planet", "moon") %}
-  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
+  <p class="sheet-help">{{ reference_link("method", "stars" if kind == "star" else "bodies", "Where these values come from") }}</p>
   {%- endif %}
 </section>
 {%- endif %}
