@@ -31491,7 +31491,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.BIN_EDGES_KM (1, 10, 100, 1000) and BIN_LOW_KM 0.001: the size table of the rest of the belt splits at the decades below the smallest stored body, the lowest bin running down to a metre"
         },
         {
@@ -31529,7 +31529,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.DENSITY_DIAMETERS_KM (1, 10, 100): the density factor counts objects per square AU above these diameters"
         },
         {
@@ -31567,7 +31567,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L1",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.L2_FLOOR_KG 1e15: bins whose bodies are over this mass are labelled drawn on demand from the belt's seed, the rest a total only"
         },
         {
@@ -31605,7 +31605,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.SHARE_SAMPLES 24 and MIN_SHARE 0.005: the typical composition of a belt is the taxon kernel averaged at 24 distances taken at equal steps of the belt's mass, taxa under half a percent left out of the list"
         }
       ],
@@ -32147,7 +32147,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1159",
+          "unread": "GEN.1201",
           "what": "roundness.SPHERICITY_FACTOR 1.1: the longest axis of a body counted round is at most this times its mean radius"
         },
         {
@@ -32185,7 +32185,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1159",
+          "unread": "GEN.1201",
           "what": "roundness.ICE_STRENGTH_PA 1 MPa and roundness.ROCK_STRENGTH_PA 16.5 MPa (from roundness_strengths.json): the default strength of ice (the creep strength of pure ice near 158 K) and the strength that rounds rock at 300 km and 2500 kg/m3"
         },
         {
@@ -32265,7 +32265,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1159",
+          "unread": "GEN.1201",
           "what": "roundness.METAL_STRENGTH_PA 100 MPa"
         },
         {
@@ -34643,126 +34643,210 @@
       "title": "Stand-ins of the habitable bodies per system"
     },
     {
-      "key": "6.167",
-      "number": "6.167",
+      "key": "6.172",
+      "number": "6.172",
       "rows": [
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "ice_giant_heat.STRATIFIED_SHARE 0.5: the chance an ice giant keeps a stable compositional gradient; one of the two measured ice giants has one, so the rule of succession gives (1 + 1) / (2 + 2)"
+              "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
             ],
             [
               "The range it moves in",
-              "0.2 to 0.8"
+              "15 to 50"
             ],
             [
               "Where it holds",
-              "ice giants of 5 to 20 Earth masses"
+              "giants with a circumplanetary disc; the value was adopted for Jupiter and Saturn"
             ],
             [
               "What would show it wrong",
-              "a census of exoplanet ice-giant luminosities (or a model of which interiors the formation and the impacts leave) that gives a share outside 0.2 to 0.8"
+              "a hydrodynamic or population study of moons forming a good way past 30 planet radii of a giant of another mass, or a mass dependence of the centrifugal radius"
             ],
             [
               "What replaces it",
-              "a formation and impact model of the layered interior: the share from the impact history (giant_tilt: a head-on mixing impact against an oblique one, [R5100])"
+              "a centrifugal radius from the planet's mass, spin and the inflow's angular momentum (the Hill-sphere inflow runs behind [R3922])"
             ],
             [
               "Evidence",
-              "2 measured cases ([R5097: Table 2]); the cause read in [R5099, R5101, R5102]"
+              "[R3922] Appendix A: \"we adopt r_c = 30 R_p\" from three-dimensional hydrodynamic runs of the flow within the Hill sphere; its Table 1 puts Callisto at 26.4, Titan at 20.3 and Ganymede at 15.0 planet radii"
             ]
           ],
-          "id": "IGH1",
-          "key": "6.167:IGH1",
+          "id": "MD1",
+          "key": "6.172:MD1",
           "kind": "P",
-          "slug": "6-167-igh1",
-          "tier": "T4",
-          "tier_code": "T4",
+          "slug": "6-172-md1",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "ice_giant_heat.STRATIFIED_SHARE 0.5: the chance an ice giant keeps a stable compositional gradient; one of the two measured ice giants has one, so the rule of succession gives (1 + 1) / (2 + 2)"
+          "what": "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "ice_giant_heat.SUPPRESSION_RANGE (0.03, 0.30): the share of the law's flux a layered ice giant radiates, log-uniform; Uranus's 0.042 (+0.047, -0.042) W/m2 is 0.13 of the 0.32 the law gives at its mass, and 0 to 0.28 inside its error"
+              "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
             ],
             [
               "The range it moves in",
-              "0.01 to 0.5"
+              "none (the planet's spin is drawn)"
             ],
             [
               "Where it holds",
-              "layered ice giants of 5 to 20 Earth masses"
+              "giants whose spin is drawn by planets.draw_birth_spin; 2.25 planet radii for the Jupiter of the source"
             ],
             [
               "What would show it wrong",
-              "a measured layered ice giant radiating under 0.01 or over 0.5 of the law"
+              "a giant whose innermost regular moon sits well inside the corotation radius of its birth spin, or a disc whose cavity is set by something other than the spin"
             ],
             [
               "What replaces it",
-              "thermal evolution models of layered ice giants by mass and age [R5099, R5102] that give the share of the law as a function of the gradient"
+              "a magnetospheric truncation radius from the planet's field and the disc's accretion rate"
             ],
             [
               "Evidence",
-              "READ ([R5097: Table 2], Voyager values of [R5098]); the range is widened to the error bar's top, L1"
+              "[R3922] section 2.4 (the disc truncated \"at the corotation radius where the disk gas corotates with the planetary spin\"; set I takes about 2.25 planet radii for Jupiter)"
             ]
           ],
-          "id": "IGH2",
-          "key": "6.167:IGH2",
-          "kind": "B",
-          "slug": "6-167-igh2",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L1",
-          "unread": null,
-          "what": "ice_giant_heat.SUPPRESSION_RANGE (0.03, 0.30): the share of the law's flux a layered ice giant radiates, log-uniform; Uranus's 0.042 (+0.047, -0.042) W/m2 is 0.13 of the 0.32 the law gives at its mass, and 0 to 0.28 inside its error"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "the layered share is one number for the life of the giant (mass-only, no age law): a gradient that stays stable for billions of years leaves the outer cooling at a fixed fraction of the adiabatic rate [R5099]"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "giants of a few to 15 Gyr"
-            ],
-            [
-              "What would show it wrong",
-              "a model that gives the share falling or rising with age by more than a factor of 2 over 1 to 10 Gyr"
-            ],
-            [
-              "What replaces it",
-              "the thermal evolution tracks of layered giants"
-            ],
-            [
-              "Evidence",
-              "[R5099, R5102] read as abstracts; the age law is argued, not derived"
-            ]
-          ],
-          "id": "IGH3",
-          "key": "6.167:IGH3",
+          "id": "MD2",
+          "key": "6.172:MD2",
           "kind": "P",
-          "slug": "6-167-igh3",
-          "tier": "T6",
-          "tier_code": "T6",
+          "slug": "6-172-md2",
+          "tier": "T5",
+          "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "the layered share is one number for the life of the giant (mass-only, no age law): a gradient that stays stable for billions of years leaves the outer cooling at a fixed fraction of the adiabatic rate [R5099]"
+          "what": "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
         }
       ],
-      "slug": "6-167-stand-ins-of-the-zone-the-regular-moons-of-a-giant-form-in",
+      "slug": "6-172-stand-ins-of-the-zone-the-regular-moons-of-a-giant-form-in",
       "title": "Stand-ins of the zone the regular moons of a giant form in"
+    },
+    {
+      "key": "6.171",
+      "number": "6.171",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_roster.CDF_POINTS 48 and CDF_STEPS 8: the log-spaced points across the belt at which the cumulative solids are tabulated, and the steps between points"
+            ],
+            [
+              "The range it moves in",
+              "none (numerical; the inverse is the same to a few parts in a thousand at twice the points)"
+            ],
+            [
+              "Where it holds",
+              "any belt"
+            ],
+            [
+              "What would show it wrong",
+              "a member distance that moves by more than 0.5 percent of the belt width when the points are doubled"
+            ],
+            [
+              "What replaces it",
+              "an exact cumulative from the surface density in closed form"
+            ],
+            [
+              "Evidence",
+              "numerical choice; not read"
+            ]
+          ],
+          "id": "MR1",
+          "key": "6.171:MR1",
+          "kind": "D",
+          "slug": "6-171-mr1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_roster.CDF_POINTS 48 and CDF_STEPS 8: the log-spaced points across the belt at which the cumulative solids are tabulated, and the steps between points"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_roster.E_OVER_I 1: the ratio of the rms eccentricity to the rms inclination in radians"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "a belt of planetesimals stirred by one giant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured belt whose ratio lies outside 0.5 to 2"
+            ],
+            [
+              "What replaces it",
+              "the belt's own stirring history, when the scatter step stores one"
+            ],
+            [
+              "Evidence",
+              "[R4785] section 2.2"
+            ]
+          ],
+          "id": "MR2",
+          "key": "6.171:MR2",
+          "kind": "P",
+          "slug": "6-171-mr2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_roster.E_OVER_I 1: the ratio of the rms eccentricity to the rms inclination in radians"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7 and 40 to 90"
+            ],
+            [
+              "Where it holds",
+              "any belt"
+            ],
+            [
+              "What would show it wrong",
+              "a published member of a main belt whose eccentricity exceeds 0.5 and which is held in the belt by a resonance"
+            ],
+            [
+              "What replaces it",
+              "a cut taken from the belt's own width and the giants' crossing orbits"
+            ],
+            [
+              "Evidence",
+              "cut so that a body does not cross the belt's whole width; not read"
+            ]
+          ],
+          "id": "MR3",
+          "key": "6.171:MR3",
+          "kind": "D",
+          "slug": "6-171-mr3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+        }
+      ],
+      "slug": "6-171-stand-ins-of-where-a-stored-belt-member-lies",
+      "title": "Stand-ins of where a stored belt member lies"
     },
     {
       "key": "6.166",
@@ -37789,7 +37873,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": null,
+          "unread": "GEN.1120",
           "what": "topup_field.LARGEST_BODY_MASS_KG 1e17, BULK_DENSITY_KG_M3 1500: the largest body of a light field (a rubble pile about 50 km across, a hundredth of the ledger cut of 1e19) and its bulk density (a porous pile, half of the silicate pieces of IF17)"
         },
         {
@@ -37831,7 +37915,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": null,
+          "unread": "GEN.1120",
           "what": "topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it)"
         },
         {
@@ -37873,7 +37957,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": null,
+          "unread": "GEN.1120",
           "what": "topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up"
         }
       ],
@@ -37957,7 +38041,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1))"
         },
         {
@@ -37995,7 +38079,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones"
         },
         {
@@ -38033,7 +38117,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed"
         },
         {
@@ -38071,7 +38155,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2)"
         },
         {
@@ -38109,7 +38193,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2"
         },
         {
@@ -38147,7 +38231,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for"
         }
       ],

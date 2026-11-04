@@ -165,6 +165,20 @@ export function sourceOf(entry) {
   return reaches.length ? { key: entry.key, block: entry.block, reaches } : null;
 }
 
+// MAP.142: a source for one nebula drawn alone (the Sector Map's): `GET /galaxy/nebula/<id>/volume` holds the whole of it, so it is its own key
+// (`nebula:<id>`), has no node block to take a share from and shows at `weight` (0 to 1: the sector's fade, 0 for a hidden kind) of its strength.
+export function singleSource(id, sphere, weight) {
+  return {
+    key: "nebula:" + id, single: true, block: null, weight: Math.min(1, Math.max(0, weight === undefined ? 1 : weight)),
+    reaches: [{ x: sphere.x, y: sphere.y, z: sphere.z, radiusPc: sphere.radiusPc }],
+  };
+}
+
+// The id of a single source's key (`nebula:<id>`), or null for a node key.
+export function singleIdOf(key) {
+  return typeof key === "string" && key.indexOf("nebula:") === 0 ? key.slice("nebula:".length) : null;
+}
+
 // The pixel radius of the biggest nebula of `source` as the camera at `camera` ([x, y, z] parsecs) with focal length `focalPx` sees it.
 export function biggestPx(source, camera, focalPx) {
   let best = 0;

@@ -609,7 +609,7 @@ still answers as before."""
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
-    "asteroid_belt_composition",
+    "asteroid_belt_composition", "belt_members",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -3415,6 +3415,16 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
             VALUES (?, ?, ?, ?)
             """,
             (belt_id, position, component, concentration),
+        )
+
+    for member in belt.members:
+        conn.execute(
+            "INSERT INTO belt_members (belt_id, member_rank, mass_kg, radius_km, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg,"
+            " mean_anomaly_deg, taxon, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status, soter_mu, scatter_tag)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (belt_id, member["rank"], member["mass_kg"], member["radius_km"], member["distance_au"] * _AU_KM, member["eccentricity"], member["inclination_deg"],
+             member["node_deg"], member["periapsis_deg"], member["anomaly_deg"], member["taxon"], member["density_g_cm3"], member["rock_fraction"],
+             member["metal_fraction"], member["water_fraction"], member["ice_fraction"], member["status"], member["soter_mu"], member["scatter_tag"]),
         )
 
     return belt_id
@@ -9545,12 +9555,17 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
     return data
 
 
-def _belt_row_to_dict(row, composition_pairs):
+def _belt_row_to_dict(row, composition_pairs, member_rows=()):
     """Maps an `asteroid_belts` row (plus its `asteroid_belt_composition`
-    child rows) to `AsteroidBelt.from_dict`'s expected dict shape."""
+    child rows and its `belt_members` rows) to `AsteroidBelt.from_dict`'s expected dict shape."""
     data = object_rows.load_dict(BELT_FIELDS, row)
     data["body_type"] = "a"
     data["composition"] = [[pair["component"], pair["concentration"]] for pair in composition_pairs]
+    data["members"] = [{"rank": m["member_rank"], "mass_kg": m["mass_kg"], "radius_km": m["radius_km"], "distance_au": m["distance_km"] / _AU_KM,
+                        "eccentricity": m["eccentricity"], "inclination_deg": m["inclination_deg"], "node_deg": m["ascending_node_deg"],
+                        "periapsis_deg": m["arg_periapsis_deg"], "anomaly_deg": m["mean_anomaly_deg"], "taxon": m["taxon"], "density_g_cm3": m["density_g_cm3"],
+                        "rock_fraction": m["rock_fraction"], "metal_fraction": m["metal_fraction"], "water_fraction": m["water_fraction"],
+                        "ice_fraction": m["ice_fraction"], "status": m["status"], "soter_mu": m["soter_mu"], "scatter_tag": m["scatter_tag"]} for m in member_rows]
     return data
 
 
@@ -9750,7 +9765,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                     "WHERE belt_id = ? ORDER BY position",
                     (r["id"],),
                 ).fetchall()
-                belt = AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows), system_config)
+                member_rows = conn.execute("SELECT * FROM belt_members WHERE belt_id = ? ORDER BY member_rank", (r["id"],)).fetchall()
+                belt = AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows, member_rows), system_config)
                 belt.db_id = r["id"]
                 objects.append(belt)
             else:

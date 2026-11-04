@@ -112,6 +112,29 @@ identity. `CODEC_VERSION` is stored beside the key and the Stats page
 warns when the code's differs; bump it whenever the codec's golden words
 change. Stars, sectors, planets, moons and belts do not use the key.
 
+### Local names from the Object ID (GEN.1255, `CODEC_VERSION` 2)
+
+Boss chose (5:14 PM EST on 2026-11-04, research in `reports/id-names-without-region-prefix-2026-11-04.md`) that an ID-derived name is
+the local part of the Object ID only, with the sector shown beside it, and that the 96-bit ID stays the identity. The position-ID name above
+spells a whole 19-digit ID as four words, so objects born near each other share their leading words; the Object ID's place is 56 of its
+96 bits and cannot be spelled word by word on a boundary. `naming_key.local_name(uid, key)` spells only the serial and body number
+(28 + 12 bits, 10 hex digits) as two words, in its own codec domain `<key>:local` (not a member of `KINDS`; no object of that kind exists),
+so the sector's words never appear: `Zaidonr Jaisonn`.
+
+Spelled directly, serials 0, 1, 2 share their first word. The 26 count bits of the serial (the two kind bits stay as they are) are first
+scrambled by `y = (a * x + b) mod 2**26`, a bijection for odd `a`, with `a` and `b` drawn from SHA-256 of the key and the sector, so every
+sector has its own scramble. `a` is the first candidate that keeps the first 4,096 serials of the sector at least 256 apart after the
+scramble (`SPREAD_SERIALS`, `SPREAD_GAP`): a first word holds all but the lowest eight bits of the scrambled count, so those serials
+have first words of their own. Inside a sector a local name is exact (the spelling is a bijection of the 40 bits) and reverses with
+`naming_key.uid_of_local_name(name, sector, key)`; on its own it can be shared with an object of another sector (about 1 in 27 at
+10 million objects), so a name that stands alone is shown with its sector, `local_name_with_sector`: `Zaidonr Jaisonn, sector
+0000B0001803E8`. A key change renames every local name without rewriting a row. The bodies of one system share the first word and
+differ in the second.
+
+What this item does not do: it adds the functions, the version and the tests. Using the local name for rogue planets and the other
+phenomena, giving scatter rows an Object ID, and showing the name and sector on pages, the API and search are GEN.1256, GEN.1257, UX.259
+and API.38.
+
 ### Names shown for IDs (GEN.71)
 
 The `name` column of a codec-named object keeps its 19-digit hex ID (the

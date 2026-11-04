@@ -895,6 +895,16 @@ with `clamp()`.
   API.38. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
 
+- [ ] **UX.260 Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere**
+  Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
+  lane (galaxy projection survey, report section 8, method 'all-sky').
+  Do: a page that draws the sky as seen from a chosen star on a
+  projection of the sphere; it shares its data with the System View sky
+  (VIEW.19 to VIEW.40) and the 9.1 sky chart (VIEW.15). Done: decided
+  when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
+  the TODO thread.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2046,6 +2056,155 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
+- [ ] **MAP.371 Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead)**
+  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): option 1.1, a switchable 'Plane view with stems' in the
+  Galaxy Map 3D camera, 'but instead of height let's list its spherical
+  coordinates for its context and an ordered triple'. Size M in three
+  small parts, all map code, lock-free, no migration. Do: a tilt preset
+  in the Galaxy Map 3D camera that reuses the top-down and isometric
+  views of MAP.97; a grid drawn on a plane through the focus (the camera
+  target), parallel to the galaxy midplane, centred on the selection
+  with ring labels; a one-click choice of the midplane z = 0 instead.
+  The grid shows only at region and sector scale (tens to a few hundred
+  pc): at the galaxy scale the disc is too thin for it to mean anything.
+  Done: browser test that the preset tilts, the grid follows the focus
+  and the toggle between the two planes works. Goal #3241. Filed by the
+  TODO thread.
+  Boss decision on the shape: a 60 degree arc wedge (5:48 PM EST on
+  2026-11-04) (2026-11-04 5:50 PM EST): Boss answered the wedge mock-ups
+  (reports/galaxy-projection-survey-2026-11-04/, section 10,
+  galaxy-mock-a to d): the existing 3D perspective mode that shows
+  everything (nebulae, black holes and the rest) stays untouched; the
+  plane view with stems is drawn for a 60 degree arc wedge of the
+  galaxy, a pie slice from the galactic center, laid flat-tilted inside
+  the 3D map, with the edge-on side strip as an option (MAP.375).
+  Everything outside the wedge is drawn as today. This replaces the
+  'region and sector scale only' limit for the wedge itself: the wedge
+  works at galaxy scale (heights are drawn about 12 times taller than
+  true in mock A because the disc is about 3 percent as thick as it is
+  wide, so the height-stretch control of MAP.373 is needed; stems still
+  show only at a scale where they are larger than 2 px). Open sub-part,
+  not a requirement (the TODO thread lists it; Boss has not ruled): a
+  draggable angle and width for the wedge. The other option from the
+  survey, a wedge pointing out from a chosen star (redshift-survey
+  style), is not chosen. Done adds: a browser test that the wedge is 60
+  degrees, that the rest of the 3D view is unchanged, and that the plane
+  and kpc rings follow the wedge.
+  Prerequisites: none.
+
+- [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
+  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): option 1.1, a switchable 'Plane view with stems' in the
+  Galaxy Map 3D camera, 'but instead of height let's list its spherical
+  coordinates for its context and an ordered triple'. Size M in three
+  small parts, all map code, lock-free, no migration. Do: one line
+  segment per drawn object from the object to its shadow on the grid
+  plane, only for the labelled objects (the label budget of MAP.317),
+  the selection, the pointer neighbourhood and the brightest N inside a
+  radius of the focus, never for all stars; thin, low contrast,
+  strongest for the selection; fade by distance and skip a stem shorter
+  than 2 px; the line layer uses the relative-to-eye encoding of the
+  star points (the MAP.240 class); shown only at region and sector
+  scale. Done: browser test and a measured frame cost at the budget.
+  Goal #3241. Filed by the TODO thread. Related: MAP.317, MAP.240.
+  Stems live inside the wedge (Boss, 5:48 PM EST on 2026-11-04)
+  (2026-11-04 5:50 PM EST): With the 60 degree arc wedge chosen (note on
+  MAP.371), the stem layer draws only inside the wedge; the budget rules
+  are unchanged (labelled, selected, near-focus objects, never all
+  stars). With a star selected, the grid rings are drawn around it (1, 2
+  and 3 kpc in mock C).
+  Prerequisites: MAP.371.
+
+- [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
+  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): option 1.1, a switchable 'Plane view with stems' in the
+  Galaxy Map 3D camera, 'but instead of height let's list its spherical
+  coordinates for its context and an ordered triple'. Size M in three
+  small parts, all map code, lock-free, no migration. Do: a Menu toggle
+  for the plane view and its stems; a height-stretch control (draw
+  heights 2 to 10 times larger, stated on the grid so it stays honest);
+  and on a stemmed or selected object a label (and the infobox line)
+  listing its spherical coordinates in the galaxy frame as an ordered
+  triple (radius, longitude, latitude) instead of a height number, with
+  units. Done: browser test of the toggle, the stretch and the triple;
+  the triple matches the stored position within rounding. Goal #3241.
+  Filed by the TODO thread.
+  Boss refinement (5:40 PM EST on 2026-11-04) (2026-11-04 5:40 PM EST):
+  The coordinates in the label follow the current context. In a sector
+  view the ordered triple (radius, longitude, latitude) is measured from
+  the sector center; in the galaxy view from the galactic center. When a
+  star is selected, the labels instead list the course and distance of
+  each star relative to the selected star (bearing and distance from it,
+  with units). Done adds: a browser test of each of the three contexts
+  (sector, galaxy, a star selected).
+  Prerequisites: MAP.372.
+
+- [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
+  Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
+  lane (galaxy projection survey, report section 8). Do: a chart of
+  stars by luminosity against temperature; selecting a point selects the
+  star on the map and the reverse. Done: decided when it is scheduled.
+  Not scheduled, no owner. The linked side strip for height (survey
+  question 2) is held until Boss answers. Goal #3241. Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **MAP.375 A linked side strip for height on the Galaxy Map: an optional panel with height on one axis and distance across, linked to the map so a pick in one rings the star in the other**
+  Boss, 5:40 PM EST on 2026-11-04, answered question 2.1 of the galaxy
+  projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): yes, as an optional panel, built together with the minimap
+  work (MAP.75, the second locked engine view). Do: an edge-on side
+  strip showing the same stars with height on one axis and distance
+  across; picking a star in the strip rings it on the map and the
+  reverse; it reads exact height and disc thickness; on phones it is a
+  drawer. Share the second-view engine and selection link with MAP.75;
+  if MAP.75 is built first, reuse it. Done: browser test of the link in
+  both directions and the phone drawer. Lock-free, no migration. Goal
+  #3241. Filed by the TODO thread.
+  Boss decision (5:48 PM EST on 2026-11-04) (2026-11-04 5:50 PM EST):
+  The side strip is an option on top of the 60 degree arc wedge
+  (MAP.371): mock D (galaxy-mock-d-arc-plus-strip.png) shows the arc
+  plus the edge-on strip, heights about 2.2 times true in the strip
+  against about 12 times in the plane view. It shows the same stars as
+  the wedge.
+  Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
+
+- [ ] **MAP.376 Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug)**
+  Found by Core 5 in its TEST.575 share, 5:40 PM EST on 2026-11-04 (as
+  the lane reported).
+  test_map_region_labels_browser::test_a_click_on_the_family_flies_to_its_block
+  fails deterministically (assert 9 == 81): clicking the family label
+  'Fixture Reach' (family:81.0.0.0, no extent, so regionOpener.block)
+  ends with the camera at 71.6 pc in a 9-block window instead of an
+  81-block one. Since MAP.336 and MAP.337 every Go to is a camera flight
+  and the window follows the camera, so openBlock lands at the default
+  window distance. MAP.319 (flyToFit) says a flight to a region places
+  the camera so the target fills the window, so this is a map bug, not a
+  test to change. Do: make the flight to a family or region block frame
+  the whole block (camera distance from the block's extent, or from its
+  size when it has no stored extent), for every level of the ladder (3,
+  9, 27, 81, 243). Done: the existing test green unchanged, plus a case
+  for each level. Owner Core 2 (MAP.336, MAP.337 and MAP.319 owner).
+  Goal #3241. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.377 Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug)**
+  Boss, 5:49 PM EST on 2026-11-04, saw that MAP.370 left the black hole
+  name labels visible. MAP.370 made the black hole dots always draw with
+  the stars and turned only the POI marks off by default; the labels
+  were missed. Do: the black hole labels follow the same default as the
+  POI marks (hidden until the POI toggle is on); the dots stay drawn at
+  their mass magnitudes. Done: a browser test that a default galaxy view
+  draws the black hole dots and no black hole label, and that the POI
+  toggle shows both marks and labels. Proposed owner: Core 2 (map).
+  Filed by the TODO thread. Related: MAP.370.
+  Prerequisites: none. Related: MAP.370.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2489,6 +2648,189 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
+
+- [ ] **NAV.65 Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  1 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: add route.graph
+  to nav_between and /api/nav: the edges among the route's stops and
+  each stop's neighbours up to a cap (marked on-route or not),
+  neighbours chosen by the relative neighbourhood graph rule of Boss's
+  answer 3.2 from the cell-key index. The graph is already built for the
+  search, so returning its edges costs no new search. Measure the cost
+  on a real galaxy (the research had no database). Done: tests of the
+  edges, the cap and the on-route flag; the measured cost in the note.
+  Proposed owner: Aux 7 (python) after GEN.1255. Goal #1679. Filed by
+  the TODO thread.
+  Prerequisites: none.
+
+- [ ] **NAV.66 Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  2 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: a pure layout
+  module for the ribbon (layout L1 of the report): the route as a line,
+  long hops compressed in log spacing with their length written on them,
+  stubs for branches, a wrapping rule for narrow panels, deterministic
+  output. Done: unit tests with fixed inputs. Proposed owner: Aux 7. The
+  plain ribbon needs no branches; branches need part 1. Goal #1679.
+  Filed by the TODO thread.
+  Prerequisites: NAV.65.
+
+- [ ] **NAV.67 Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  3 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: draw the ribbon
+  from part 2 as SVG on the NAV page below the existing map: a glyph per
+  stop kind (system, stone kinds, phenomenon), hop length and course
+  labels, unknown-space hops red and glowing (the same work as NAV.36,
+  do them together), readable at 320 px, both themes, reduced motion
+  respected, text alternatives (the route stays a list). Done: a browser
+  test. Proposed owner: Core 2 (map and SVG). Folds in NAV.36. Related:
+  NAV.36. Goal #1679. Filed by the TODO thread.
+  Prerequisites: NAV.66.
+
+- [ ] **NAV.68 Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more'**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  4 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: faint stubs
+  around each stop from part 1's neighbours, capped per stop (the
+  label-budget idea) with 'and N more' where a dense stop has more; the
+  route's own hops always drawn. Done: a browser test in a dense and a
+  sparse case. Proposed owner: Core 2. Goal #1679. Filed by the TODO
+  thread.
+  Prerequisites: NAV.65, NAV.67.
+
+- [ ] **NAV.69 Schematic route map part 5: linked selection between the course diagram and the Galaxy Map**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  5 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: clicking a stop
+  in the diagram centres the Galaxy Map's course on it; clicking a
+  marker on the map highlights it in the diagram. Share one route record
+  between the diagram and the map route layers (MAP.309, MAP.310) so the
+  two views never disagree. Done: a browser test in both directions.
+  Proposed owner: Core 2. Related: MAP.309, MAP.310. Goal #1679. Filed
+  by the TODO thread.
+  Prerequisites: NAV.67.
+
+- [ ] **NAV.70 Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  6 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: only if Boss
+  finds the ribbon too plain once he has seen it: a layout that keeps
+  distances close to true for the neighbourhood. Done: decided when he
+  has seen parts 1 to 5. Not started until then. Goal #1679. Filed by
+  the TODO thread.
+  Prerequisites: NAV.68.
+
+- [ ] **NAV.71 Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3)**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  7 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: after the
+  trade-route tree exists, draw many routes as lines through hubs in a
+  metro-map look at 45 degrees. Blocked: a stored link table is part of
+  POP.33's design (trade_routes, trade_route_hops), so none is proposed
+  here. Done: decided when it is scheduled. Goal #1679. Filed by the
+  TODO thread.
+  Prerequisites: POP.33, POP.34, DB.105.
+
+- [ ] **NAV.72 Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  8 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: a hop whose
+  straight line crosses a gravity-well keep-out sphere is drawn bent
+  around it or flagged in the diagram. Blocked on NAV.6. Done: a browser
+  test. Related: NAV.58 (editing a course by dragging waypoints wants an
+  editing surface; the diagram is a better one than the 3D map, a later
+  part). Goal #1679. Filed by the TODO thread.
+  Prerequisites: NAV.6.
 
 ## GEN: Generation and physics
 
@@ -13914,21 +14256,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **GEN.1251 Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid**
-  Built by Aux 4, branch claude/project-thread-nfytfi-tide-liquid head
-  7a0d5e515, change note changes/tide-liquid-hook.minor.md. Bodies whose
-  stored surface liquid is a non-water, non-lava sea (methane, ethane,
-  ammonia-water and the like) now store ocean_liquid and the spring and
-  neap ranges, with the liquid's density at the surface temperature;
-  water worlds are unchanged; lava and too-heavy liquids (mercury) stay
-  empty, heavy liquids are left to GEN.1052. No migration (columns exist
-  from 0191). Generation output changes the tide columns of Titan-like
-  bodies only (stage fill, the tide step ocean_tides.compute), so it
-  needs an epoch. Done: merged in a train with a census line counting
-  the bodies that gain tides. Lock work, train 11. Related: GEN.1052,
-  GEN.1218. Owner Aux 4. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **GEN.1252 Methane fluxes of fuel-limited life classes are multiplied by their share of net primary production: sum fuel-limited rows once per fuel (bug)**
   Found by Aux 4 in its GEN.1213 air-side review, 4:50 PM EST on
   2026-11-04 (as the lane reported). In life_air.py the methane flux of
@@ -14685,6 +15012,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.158, MAP.260. Owner Core 2 (map tiles) with Aux 3 for the timings
   (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
+
+- [ ] **PERF.234 The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug)**
+  Boss, 5:49 PM EST on 2026-11-04, ran planetgen warm --progress on a
+  real galaxy (8.0.3197): the opening phase took 50 s, then step 5 of 11
+  (galaxy-nodes, chunk 301 of 458 at 4.0 s a chunk, about 7 minutes left
+  for that step) showed 2:11:45 left overall. Cause
+  (src/planetgen/cli/warm_progress.py): the overall bar counts steps as
+  equal (completed = step index + share of the step done) and the time
+  left is the bar's recent speed carried over the steps still to run, so
+  a slow step makes every later step look as slow. Do: weight each step
+  by its expected cost (units times a per-family seconds figure measured
+  on a real galaxy, the same measurement PERF.233 takes), show the
+  step's own time left beside an overall time that is marked as a rough
+  guess until the later steps have run once, and never show a figure
+  from fewer than a few chunks. Done: a test with steps of very
+  different cost that the overall figure is within a set margin of the
+  real total. Proposed owner: Aux 3 (PERF.233 holds the measurement).
+  Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.233.
+
+- [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
+  Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
+  warm --progress. What the code does (src/planetgen/cli/warm.py,
+  queue/wrapper.py, queue/redisqueue.py): the command is a client that
+  follows a run whose units are done by queue workers started in their
+  own session (start_new_session=True), and the next stage is queued by
+  the unit that ends the previous one, so the work most likely keeps
+  going after the hangup; the client itself only handles SIGTERM, so a
+  hangup ends the progress view, and the phase notes the client writes
+  (warmphases) stop. Do: (1) a planetgen warm --follow that attaches to
+  the running warm-up from the run record (wrapper.py already says a
+  second process can follow a run from the record alone) and draws the
+  same bars; (2) handle SIGHUP in the warm command so a hangup leaves
+  the run going and says so, or document the detached way (nohup or
+  tmux) in the operations guide; (3) verify on a real run that killing
+  the client leaves the run finishing, and the admin page's phase list
+  still moves. Done: a test of the follow from a second process and of
+  the hangup. Proposed owner: Aux 3 (PERF.233). Filed by the TODO
+  thread.
+  Prerequisites: none. Related: PERF.233, PERF.234.
 
 ## DB: Database and schema
 
@@ -17879,18 +18246,6 @@ clears each one.
   by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.577 test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug)**
-  Found by Aux 3 while measuring PERF.232, 5:19 PM EST on 2026-11-04 (as
-  the lane reported); red on plain main, not from PERF.232 (output
-  identical to main on the pinned golden). Do: run the test on main,
-  find which side moved after train 9 (the bright-star scatter changes
-  of GEN.1242 and GEN.1230 are the likely cause: the luminosity pass and
-  the band weights no longer count the same tier), and fix the side that
-  is wrong against the physics, not the test number. Done:
-  test_gen_scatter_tiers green on main with a note of what moved. Owner
-  Core 3 (scatter) after GEN.1246. Filed by the TODO thread.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19443,6 +19798,427 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   sentence with a British word the sixteen-seed plain-words check finds
   goes in the same sweep.
   Prerequisites: none.
+
+- [ ] **VIEW.19 System sky S1: measure the backfill cost of a 6.5 and a 7.5 magnitude sky on a real galaxy, and settle the luminosity-versus-mass ledger question**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S1 of S1 to S22 in section 7. Do: run backfill_cells and
+  backfill_mass_cells on a real galaxy for a 6.5 and a 7.5 sky; report
+  per-star and per-cell cost, stars per sky, and which of the two
+  ledgers (luminosity or mass) the tier floor should use; write it in
+  reports/. This replaces every [E] estimate in the plan. Done: the
+  report with measured numbers. Read-only script. Proposed owner: the
+  scatter and fill lane (Core 3 or Star 2). Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.20 System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S2 of S1 to S22 in section 7. Do: the lighter 8.2
+  version of the photometry of VIEW.11 and the dust of VIEW.8, on numpy
+  arrays: apparent_magnitude, the galactic extinction law along a line
+  of sight from the galaxy's density (sourced in the references
+  registry), and a colour rule for stars under 3,500 K (VIEW.9 left that
+  open). Reddening, desaturation of faint stars and nebula extinction
+  stay with VIEW.11 and VIEW.8 in 9.1. Done: array functions with tests
+  against hand-worked cases and published columns. No prerequisite
+  (VIEW.9 merged). Proposed owner: the photometry lane that built
+  VIEW.9. Related: VIEW.8, VIEW.9, VIEW.11. Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.21 System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S3 of S1 to S22 in section 7. Do: wire
+  physics/light_travel.py (built, no production caller) into production
+  on arrays: advance each star to the sky's time, solve the retarded
+  position in two or three passes, apply the age-at-retarded-time rule
+  with a phase-boundary flag (a star too young to have been seen yet, or
+  one that died within the light time), and the remnant visibility rule
+  (an explosion not yet visible). Done: tests for a star at rest 1 ly
+  away, a receding one, a hypervelocity one, an analytic case and the
+  curvature bound; light_travel.py leaves the wiring-guard list. No
+  prerequisite. Lock-free, no migration. Boss decided at 5:29 PM EST on
+  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
+  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  item can reuse it); the limiting magnitude is a setting with default
+  7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.22 System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S4 of S1 to S22 in section 7. Do: a query that returns,
+  as arrays, every star and phenomenon inside a sphere above a
+  luminosity floor from the charted stars, bright_stars,
+  phenomenon_scatter and cluster members, plus the cell levels it
+  reached. Done: tests against a small galaxy, and a measured query
+  time. No prerequisite. Lock-free, no migration. Boss decided at 5:29
+  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.23 System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S5 of S1 to S22 in section 7. Do: galaxy/sky.py joining
+  S2, S3 and S4: sky_from(observer, limit) returns each visible star's
+  direction, apparent magnitude, colour and light-time position from the
+  STORED stars only (charted stars, bright_stars, phenomena, cluster
+  members); the observer's own system is excluded; it reports which
+  tiers it reached and uses the unbuilt-velocity stand-in (registered in
+  GEN.725 with tier and tweak level) for stars with no stored velocity.
+  The limit is a parameter (default 7.5). Overlaps VIEW.12 (9.1), which
+  later adds built tiers; build it so VIEW.12 extends it. Done: tests;
+  the calibration against HYG is S12. Related: VIEW.12. Lock-free, no
+  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
+  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
+  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  limiting magnitude is a setting with default 7.5, lower on phones;
+  missing stars are built when a system is charted, no visit job. Goal
+  #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.20, VIEW.21, VIEW.22.
+
+- [ ] **VIEW.24 System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S6 of S1 to S22 in section 7. Do: the table of how deep
+  the sky must be built at each distance (mass or luminosity floor, per
+  the ledger S1 chose) for a limiting magnitude of 7.5 from the
+  visibility physics and the dust of S2; stand-ins registered in
+  GEN.725. Overlaps the first half of VIEW.7 (9.1). Done: table with
+  tests and registry rows. Related: VIEW.7. Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: VIEW.19, VIEW.20.
+
+- [ ] **VIEW.25 System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S7 of S1 to S22 in section 7. Do: when a system is
+  charted, build the bright_stars rows and cell levels its sky needs
+  (the tier table of S6, a limiting magnitude of 7.5) with the existing
+  backfill_cells and backfill_mass_cells, and record the cell levels.
+  This is a LOCK item: more bright_stars rows and cell levels, so the
+  fill golden and the census change and charting gets slower; the census
+  line reports the added rows and seconds per sector. Boss chose this
+  over a visit job (3.3). Done: tests; the golden regenerated with
+  --affects fill; a census line. Rides a train. Proposed owner: the
+  scatter and fill lane (Core 3). No migration. Boss decided at 5:29 PM
+  EST on 2026-11-04 (1.2, 2.1, 3.3) as in the parent plan. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: VIEW.19, VIEW.24.
+
+- [ ] **VIEW.26 System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI)**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S7b of S1 to S22 in section 7. Do: a command in the
+  Generate console and the CLI that builds the S7 sky tiers for sectors
+  that were charted before S7 landed, by sector or region, with a
+  progress line. Uses the S7 function and changes no generated value
+  beyond what S7 does for a newly charted sector. Done: tests.
+  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
+  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.25.
+
+- [ ] **VIEW.27 System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S9 of S1 to S22 in section 7. Do: the glow of the stars
+  too faint to resolve, ray-marched over the density with the dust law
+  of S2 (galactic dust only; nebula dust stays with VIEW.13) and with
+  the resolved stars subtracted, cached per 50 pc cell, as a small glow
+  image per system. Overlaps VIEW.13 (9.1). Faint stars past the limit
+  are this glow with shader grain, not invented individual stars. Done:
+  tests of the cache key and of the subtraction. Related: VIEW.13.
+  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
+  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.20.
+
+- [ ] **VIEW.28 System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S10 of S1 to S22 in section 7. Do: for each nebula and
+  supernova remnant in view, its angular size, surface brightness and
+  extinction, from S3's retarded geometry. Done: tests. Lock-free, no
+  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
+  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
+  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  limiting magnitude is a setting with default 7.5, lower on phones;
+  missing stars are built when a system is charted, no visit job. Goal
+  #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.21.
+
+- [ ] **VIEW.29 System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S11 of S1 to S22 in section 7. Do: observer-relative
+  positions and velocities in double precision, packed to about 30 bytes
+  a star, with the writer in Python, the reader in JS and one test that
+  holds the two to each other (as tilepack does). Done: the shared test.
+  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
+  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.23.
+
+- [ ] **VIEW.30 System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S12 of S1 to S22 in section 7. Do: a developer-machine
+  test (skipped when the dataset is absent) that a sky generated for the
+  Sun's position gives about 9,000 stars at a limiting magnitude of 6.5,
+  within a stated band. Raw datasets never enter the repo; the dataset
+  is fetched at setup. Done: the test and the band. Lock-free, no
+  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
+  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
+  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  limiting magnitude is a setting with default 7.5, lower on phones;
+  missing stars are built when a system is charted, no visit job. Goal
+  #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.23, VIEW.25.
+
+- [ ] **VIEW.31 System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit=**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S13 of S1 to S22 in section 7. Do: the endpoint builds
+  the packed list, caches it (the PERF.129 cache, clearable on its admin
+  page; key is system, version key, limit), and reports the tier state
+  and the counts. Done: API tests; wire-format doc; API version bump if
+  the rule needs it. Lock-free, no migration. Boss decided at 5:29 PM
+  EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.27, VIEW.29.
+
+- [ ] **VIEW.32 System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S14 of S1 to S22 in section 7. Do: the browser
+  arithmetic for the sky: magnitude to opacity and size, colour, and the
+  matching GLSL, reusing starmagnitude.js and starlight.js. Done: a node
+  test. No prerequisite. Proposed owner: Core 2 (map lane). Lock-free,
+  no migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1,
+  3.3): a lighter 8.2 backdrop (stored stars and glow only; VIEW.7,
+  VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
+  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  it); the limiting magnitude is a setting with default 7.5, lower on
+  phones; missing stars are built when a system is charted, no visit
+  job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **VIEW.33 System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S15 of S1 to S22 in section 7. Do: draw the packed list
+  as one points object centred on the camera; the vertex shader moves
+  every star to its light-time position each frame from the orbit clock;
+  fade at the cut; a cap on phones. Done: a browser fixture test.
+  Proposed owner: Core 2. Lock-free, no migration. Boss decided at 5:29
+  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.29, VIEW.32.
+
+- [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S16 of S1 to S22 in section 7. Do: the glow band as a
+  sphere shader sampling the S9 glow image with dither and grain. Done:
+  a screenshot test. Proposed owner: Core 2. Lock-free, no migration.
+  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
+  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
+  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
+  where noted, build it so the 9.1 item can reuse it); the limiting
+  magnitude is a setting with default 7.5, lower on phones; missing
+  stars are built when a system is charted, no visit job. Goal #4907.
+  Filed by the TODO thread.
+  Prerequisites: VIEW.31, VIEW.32.
+
+- [ ] **VIEW.35 System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S17 of S1 to S22 in section 7. Do: the System View
+  background becomes this sky; a preference switches it; while the tiers
+  are still filling the page shows a 'filling in' note and polls; no
+  WebGL falls back to the old backdrop. Done: browser fixture test.
+  Proposed owner: Core 2. Lock-free, no migration. Boss decided at 5:29
+  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
+  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
+  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
+  the 9.1 item can reuse it); the limiting magnitude is a setting with
+  default 7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.31, VIEW.33, VIEW.34.
+
+- [ ] **VIEW.36 System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S18 of S1 to S22 in section 7. Do: draw S10's data as
+  sprites and the other luminous phenomena as points. Done: browser
+  test. Proposed owner: Core 2. Lock-free, no migration. Boss decided at
+  5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop
+  (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and
+  VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where noted,
+  build it so the 9.1 item can reuse it); the limiting magnitude is a
+  setting with default 7.5, lower on phones; missing stars are built
+  when a system is charted, no visit job. Goal #4907. Filed by the TODO
+  thread.
+  Prerequisites: VIEW.28, VIEW.33.
+
+- [ ] **VIEW.37 System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S19 of S1 to S22 in section 7. Do: pick a star in the
+  sky; the hover text says how long ago the light left it; charted stars
+  link to their page; scatter stars link through their Object ID (needs
+  GEN.1254 and GEN.1255, goal #4899). Done: browser test. Prerequisites
+  outside this chain: GEN.1254, GEN.1255. Lock-free, no migration. Boss
+  decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2
+  backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12
+  and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where
+  noted, build it so the 9.1 item can reuse it); the limiting magnitude
+  is a setting with default 7.5, lower on phones; missing stars are
+  built when a system is charted, no visit job. Goal #4907. Filed by the
+  TODO thread.
+  Prerequisites: VIEW.35.
+
+- [ ] **VIEW.38 System sky S20: design note, help text, citations and GEN.725 rows for the system sky**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S20 of S1 to S22 in section 7. Do:
+  docs/design/orbits/sky-system-view.md with the numbers of the plan,
+  the help page text, the sources in the references registry (citations
+  only there, [R0123] style) and the GEN.725 stand-in rows. Done: the
+  note, the help page and the rows. Lock-free, no migration. Boss
+  decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2
+  backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12
+  and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where
+  noted, build it so the 9.1 item can reuse it); the limiting magnitude
+  is a setting with default 7.5, lower on phones; missing stars are
+  built when a system is charted, no visit job. Goal #4907. Filed by the
+  TODO thread.
+  Prerequisites: VIEW.35.
+
+- [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S21 of S1 to S22 in section 7. Do: two lines of GLSL for
+  the aberration of the observer's own motion, off by default. Done: a
+  shader test. Lock-free, no migration. Boss decided at 5:29 PM EST on
+  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
+  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  item can reuse it); the limiting magnitude is a setting with default
+  7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.33.
+
+- [ ] **VIEW.40 System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom**
+  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
+  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
+  starfield is the sky that system sees, each star at its true direction
+  and distance and placed where it was when its light left it). 8.2
+  stream; label S22 of S1 to S22 in section 7. Do: after the zoom
+  redesign (MAP.334 to MAP.338, all done), cross-fade the Galaxy Map's
+  star points into this sky as the camera enters a system. Done: browser
+  test. Lock-free, no migration. Boss decided at 5:29 PM EST on
+  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
+  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  item can reuse it); the limiting magnitude is a setting with default
+  7.5, lower on phones; missing stars are built when a system is
+  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Prerequisites: VIEW.35.
 
 ## POP: Population and politics
 

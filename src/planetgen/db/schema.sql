@@ -1530,6 +1530,7 @@
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
 -- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
+-- v205 (GEN.1070): the table `belt_members` keeps the stored bodies of a belt (the ledger's cut), one row each, with mass, radius, orbit, taxon, density, composition shares, status word and Soter's mu; `member_rank` 1 is the heaviest and names the body (`<belt ID>.<rank in hex>`). A belt saved before v205 has none until the galaxy is regenerated.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3240,6 +3241,38 @@ CREATE TABLE IF NOT EXISTS asteroid_belt_composition (
     CONSTRAINT fk_asteroid_belt_composition_belt
         FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
     KEY idx_asteroid_belt_composition_belt_id (belt_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- belt_members -- v205 (GEN.1070): the individual bodies a belt stores (the belt ledger's cut rule: every body above 1e19 kg, and more of the next
+-- heaviest until 90 percent of the belt's mass is held, at most 300), heaviest first. One row per stored body: `member_rank` 1 is the heaviest and
+-- stays its number, so `<belt object ID>.<member_rank in hex>` names the body (`galaxy/object_uid.designation`). Bodies below the cut are never stored.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS belt_members (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    belt_id           BIGINT UNSIGNED NOT NULL,
+    member_rank       INT NOT NULL,  -- 1 is the heaviest body of the belt
+    mass_kg           DOUBLE NOT NULL,
+    radius_km         DOUBLE NOT NULL,
+    distance_km       DOUBLE NOT NULL,  -- the semi-major axis
+    eccentricity      DOUBLE NOT NULL,
+    inclination_deg   DOUBLE NOT NULL,
+    ascending_node_deg DOUBLE NOT NULL,
+    arg_periapsis_deg DOUBLE NOT NULL,
+    mean_anomaly_deg  DOUBLE NOT NULL,
+    taxon             VARCHAR(4) NOT NULL,  -- the class letter (`physics/belt_member.py`)
+    density_g_cm3     DOUBLE NOT NULL,
+    rock_fraction     DOUBLE NOT NULL,  -- the shares of the body's mass
+    metal_fraction    DOUBLE NOT NULL,
+    water_fraction    DOUBLE NOT NULL,
+    ice_fraction      DOUBLE NOT NULL,
+    status            VARCHAR(16) NOT NULL,  -- planet, dwarf planet, minor body or moon (`physics/body_status.py`)
+    soter_mu          DOUBLE NULL,  -- Soter's mu, NULL where the zone holds nothing else
+    scatter_tag       VARCHAR(24) NULL,  -- the population the scatter step put it in (GEN.1092), NULL until that step is wired
+
+    CONSTRAINT fk_belt_members_belt
+        FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_belt_members_belt_rank (belt_id, member_rank)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
