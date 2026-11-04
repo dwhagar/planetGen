@@ -2010,25 +2010,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: none.
 
-- [ ] **MAP.367 Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown**
-  Boss, 1:03 PM EST on 2026-11-04: "lower the number of stars and other
-  objects viewed from what it is now. Let's cut it about half for the
-  max number of items on the screen unless you're in sector view, and in
-  sector view we'll display everything." Do: find every cap on what the
-  Galaxy Map and the star/object layers draw at once (the node budget
-  data.nodeBudget with its 1200 default, the marker budget, the star and
-  point caps, the per-layer limits for markers, regions and labels) and
-  set each to about half its present value everywhere except an opened
-  sector (SECTOR_MARKER_BUDGET and the sector-open path keep showing
-  every system that fits, merged only when marks touch). Keep the cut
-  consistent with the MAP.366 rule (no square chunks). Done: a test per
-  cap that the value is about half the old one and a browser test that
-  an opened sector still shows everything. Lock-free. Related: MAP.366, MAP.339.
-  Owner Core 2 (Boss's request relayed 1:03 PM EST on 2026-11-04; 8.1,
-  one lock-free item at a time, behind MAP.365 unless Core 2 says it
-  clashes). Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
   Boss, 1:03 PM EST on 2026-11-04 (live observation): "right now we're
   still not showing a region label as a POI that I can click on and zoom
