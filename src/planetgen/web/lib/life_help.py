@@ -14,7 +14,7 @@ the address of a page.
 """
 
 from planetgen import tuning
-from planetgen.physics import life_air, life_class_text, life_classes, life_readings
+from planetgen.physics import life_class_text, life_classes, life_readings
 from planetgen.physics.life_readings import ABUNDANCE_BANDS
 from planetgen.web.lib import help_registry
 from planetgen.web.lib.help_registry import Child, Term
@@ -30,20 +30,6 @@ TOPICS = (
     ("classes", "Life classes", "The nine life classes: what each drinks, eats, breathes and gives off, and where it can live."),
 )
 """tuple: `(slug, title, summary)` of each life help page, in the order the pages list each other."""
-
-TIER_NAMES = {
-    "T1": "Verified", "T2": "Confident unverified", "T3": "Marginal unverified", "T4": "Unverified",
-    "T5": "Confident educated guess based on physics", "T6": "Marginal educated guess based on physics",
-    "T7": "Educated guess based on inferred physics", "T8": "Educated guess based on reputable fringe or new physics",
-    "T9": "Educated guess based on needed output",
-}
-"""dict: What each source tier of `docs/design/research/stand-in-values.md` is called."""
-
-LEVEL_NAMES = {
-    "L0": "As the source gives it", "L1": "Nudged inside the source's uncertainty", "L2": "Tuned to a published statistic",
-    "L3": "Hand-tuned against many generated worlds", "L4": "Fitted to the outcome with no independent source",
-}
-"""dict: What each adjustment level is called."""
 
 SOLVENT_WORDS = {
     "water": "water", "hydrocarbon": "liquid methane and ethane", "co2": "liquid or supercritical carbon dioxide",
@@ -318,18 +304,11 @@ def _energy_words(row):
     return "Chemical energy: a fuel and an oxidant meeting"
 
 
-def _speculative(number):
-    """`(tier, level)` of the class's air chemistry and whether it is speculative (level L3 or L4)."""
-    entry = life_air.CLASSES[str(number)]
-    return entry["tier"], entry["tweak"], entry["tweak"] in ("L3", "L4")
-
-
 def _class(number, href):
     rows = family(number)
     if not rows:
         return None
     name = family_name(number)
-    tier, level, speculative = _speculative(number)
     count = {1: "one form", 2: "two variants", 3: "three variants"}.get(len(rows), f"{len(rows)} variants")
     title = f"Class {rows[0].id}" if len(rows) == 1 else f"The Class {number} family"
     intro = [f"{title} is one way of making a living. It has {count}, each described below with what it drinks, eats, breathes and gives off."]
@@ -341,18 +320,13 @@ def _class(number, href):
                  ("Liquid it needs", SOLVENT_WORDS.get(row.solvent["medium"], row.solvent["medium"])), ("Energy", _energy_words(row))]
         facts = [fact for fact in facts if fact]
         facts += [("Needs", needs(row) or ["Nothing beyond its liquid and its energy"]),
-                  ("How far it can go", row.reaches),
-                  ("Confidence it can exist", f"{row.tier}: {TIER_NAMES[row.tier]}")]
-        sections.append(_section(f"class-{row.id}", f"Class {row.id}" + (f": {_variant_name(row)}" if len(rows) > 1 else ""), facts=facts))
+                  ("How far it can go", row.reaches)]
+        section = _section(f"class-{row.id}", f"Class {row.id}" + (f": {_variant_name(row)}" if len(rows) > 1 else ""), facts=facts)
+        section["reference"] = ("speculative", row.id)
+        sections.append(section)
     sections.append(_section("stages", "What the stages look like", table=_table(
         ["Step", "Name", "What it means"],
         [[str(rung), *_class_stage(number, rung)] for rung in life_class_text.RUNGS])))
-    note = (f"Speculative chemistry: how this class changes the air is an educated guess. Its source tier is {tier} and its adjustment level is {level}."
-            if speculative else f"How this class changes the air has source tier {tier} and adjustment level {level}.")
-    sections.append(_section("sources", "How sure we are", [
-        note, f"Tier {tier} means: {TIER_NAMES[tier].lower()}. Level {level} means: {LEVEL_NAMES[level].lower()}.",
-        "The tiers run from T1, read in a source, to T9, chosen to give the outcome wanted. The levels run from L0, as the source gives it, to L4, fitted with no independent source.",
-    ]))
     return f"{family_label(number)}: {name}", f"What the {name.lower()} drink, eat, breathe and give off, and where they can live.", intro, sections
 
 
@@ -374,14 +348,10 @@ def _classes(href):
     ]
     sections = [
         _section("classes", "The nine life classes", table=_table(["Class", "Name", "Drinks", "Eats", "How far it can go"], rows)),
-        _section("sources", "Speculative chemistry", [
-            "Every class has a source tier, from T1 (read in a source) to T9 (chosen to give the outcome wanted). Each number that changes the air also has an adjustment level, from L0 to L4.",
-            "A class whose air chemistry is at level L3 or L4 is marked speculative on the planet page, with its tier and level.",
-        ], table=_table(["Class", "Air chemistry tier", "Adjustment level", "Speculative"],
-                        [[family_label(number), f"{_speculative(number)[0]}: {TIER_NAMES[_speculative(number)[0]]}",
-                          f"{_speculative(number)[1]}: {LEVEL_NAMES[_speculative(number)[1]]}", "Yes" if _speculative(number)[2] else "No"]
-                         for number in sorted({row.number for row in life_classes.CLASSES})])),
     ]
+    source = _section("reference", "Where this comes from", ["How sure each class is, and which air numbers are only estimated, is in the References section."])
+    source["reference"] = ("speculative", None)
+    sections.append(source)
     return "Life classes", "The nine life classes and what sets them apart.", intro, sections
 
 

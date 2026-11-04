@@ -438,8 +438,31 @@ def build_fitted():
     return {"targets": targets}
 
 
+def build_speculative():
+    """
+    The data of `/references/speculative` (DOC.92, References R6): for each life class, how sure its air chemistry is (the ledger's tier and
+    tweak level of `physics/life_air.py`), whether that is speculative (tweak level L3 or L4), and how sure it is that the class can exist
+    at all (the tier of its rule row in `physics/life_classes.py`). This text used to sit on the life help pages and under the air chart.
+    """
+    sys.path.insert(0, os.path.join(ROOT, "src"))
+    from planetgen.physics import life_air, life_classes
+
+    classes = []
+    for row in life_classes.CLASSES:
+        air = life_air.CLASSES[str(row.number)]
+        classes.append({
+            "id": row.id, "number": row.number, "name": row.name, "air_name": air["name"], "reaches": row.reaches,
+            "exists_tier": row.tier, "air_tier": air["tier"], "air_tweak": air["tweak"], "air_basis": air["basis"],
+            "speculative": air["tweak"] in SPECULATIVE_TWEAKS,
+        })
+    return {"classes": classes, "tiers": [list(row) for row in stand_ins.TIERS], "tweaks": [list(row) for row in stand_ins.TWEAKS]}
+
+
+SPECULATIVE_TWEAKS = ("L3", "L4")
+"""tuple: The tweak levels at which a class's air chemistry counts as speculative: hand-tuned against many worlds, or fitted with no source."""
+
 BUILDERS = {"overview.json": build_overview, "citations.json": build_citations, "papers.json": build_papers, "data.json": build_data,
-            "stand-ins.json": build_stand_ins, "fitted.json": build_fitted}
+            "stand-ins.json": build_stand_ins, "fitted.json": build_fitted, "speculative.json": build_speculative}
 """dict: `{file under docs/references/: function that returns its data}`."""
 
 

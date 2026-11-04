@@ -45,19 +45,6 @@ BANNER = 'id="out-of-universe-banner"'
 """str: What a References page carries so a reader always knows they left the story (DOC.88 builds it)."""
 
 KNOWN = {
-    ("educated guess", "web.life_help_class"): "DOC.92",
-    ("educated guess", "web.life_help_topic"): "DOC.92",
-    ("fitted", "web.life_help_class"): "DOC.92",
-    ("fitted", "web.life_help_topic"): "DOC.92",
-    ("generated", "web.life_help_class"): "DOC.92",
-    ("generated", "web.life_help_topic"): "DOC.92",
-    ("speculative", "web.life_help_class"): "DOC.92",
-    ("speculative", "web.life_help_topic"): "DOC.92",
-    ("tier", "web.life_help_class"): "DOC.92",
-    ("tier", "web.life_help_topic"): "DOC.92",
-    ("tiers", "web.life_help_class"): "DOC.92",
-    ("tuned", "web.life_help_class"): "DOC.92",
-    ("tuned", "web.life_help_topic"): "DOC.92",
     ("generator", "web.property_help_page"): "DOC.91",
     ("model", "web.property_help_page"): "DOC.91",
     ("model", "sheet source line"): "DOC.93",

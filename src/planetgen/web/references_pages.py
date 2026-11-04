@@ -15,6 +15,7 @@ fitted to a result and how sure each part is. Every other page keeps a quiet "Wh
   the anchor `#paper-r0123`;
 - `/references/data` (DOC.89): the data sets fetched at setup, the archives and catalogs, the standards and web pages, and the terms of use that
   `DATA-LICENSE.md` records.
+- `/references/speculative` (DOC.92): how sure the air chemistry of each life class is, with one section for each class.
 
 The pages are static: no database, no script. Their numbers are read from `docs/references/*.json`, built at setup from the registries by
 `scripts/build_reference_pages.py`. Every page opens with the Out of universe banner (`id="out-of-universe-banner"`) and the site header
@@ -65,6 +66,21 @@ def references_papers_page():
         description="Every paper, book, and data set the project cites, with its links and where it is used.",
         page=page,
         search_action=reference_path("papers"),
+        banner=references_site.BANNER,
+        banner_text=references_site.BANNER_TEXT,
+    )
+
+
+@bp.route("/references/speculative")
+def references_speculative_page():
+    """DOC.92: how sure the air chemistry of each life class is, and which classes are speculative."""
+    return render_page(
+        "references.html",
+        title="Speculative chemistry",
+        section="references",
+        breadcrumbs=[crumb("References", "references_page"), crumb("Speculative chemistry")],
+        description="How sure the air chemistry of each life class is, and which classes are speculative.",
+        page=references_site.speculative(references_site.load("speculative.json")),
         banner=references_site.BANNER,
         banner_text=references_site.BANNER_TEXT,
     )
