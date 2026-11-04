@@ -901,7 +901,12 @@ _COMET_RULES = [
      "a comet on a parabolic path comes by once, so it has no period, period class, or place on an orbit to give"),
 ]
 
-APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES}
+_BELT_RULES = [
+    (("history_text",), lambda klass, row: row is None or row.get("history_text") is not None,
+     "only a belt the star's evolution acted on (the giant branch engulfed part of it, or the mass loss threw some of it inward) has a history to tell; a belt it left alone has none"),
+]
+
+APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "belt": _BELT_RULES}
 """dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
 function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
 apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the
