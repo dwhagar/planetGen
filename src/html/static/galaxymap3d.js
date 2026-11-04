@@ -4506,6 +4506,7 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
     canvasEl.__mapSectorNames = stageView.sectorLabels;    // ... and the sector names with the total mass each is ranked by (MAP.322)
+    canvasEl.__mapObjectNames = objectNames;    // ... and the other named objects the labels may offer (MAP.377)
     canvasEl.__mapBodyNames = bodyNames;    // ... and the slice each body's name is offered in (MAP.321)
   }
   // MAP.314: the names of the charted regions the nodes of the view offer, by the size of the nodes (regionlabels.js): none
@@ -4869,7 +4870,9 @@ function initGalaxyMap3d(canvasEl, data) {
   function objectNames() {
     if (hiddenCell) return [];
     pickableStars();
-    return pickableCache.objects.slice(0, NAMED_LIMIT).map(function (point) {
+    // MAP.377: a black hole is named only while its marks are on (the dots are always drawn, the names follow the marks).
+    var holesNamed = stageView.layers.isOn("marker-black-hole");
+    return pickableCache.objects.filter(function (point) { return holesNamed || point.type !== "black_hole"; }).slice(0, NAMED_LIMIT).map(function (point) {
       return { id: "object:" + point.type + ":" + point.id, text: point.name, x: point.x, y: point.y, z: point.z,
         luminositySol: point.map_luminosity_sol || point.luminosity_sol || 0, ref: { kind: "object", point: point },
         slice: { domain: "uninhabited", category: point.type === "rogue_planet" ? "rogue planet" : "non-luminous star-like object", mass: point.mass_solar || 0 } };
