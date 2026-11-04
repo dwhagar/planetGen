@@ -43,9 +43,10 @@ SIGMAS = 4.0
 RUNGS = ("origin", "producers", "complex", "multicellular", "animals", "sentient")
 """tuple: The highest rung a life world reached, lowest first."""
 
-MEASURES = ("stops_before_animals", "reaches_animals", "reaches_sentient", "sentient_of_animal_worlds")
+MEASURES = ("stops_before_animals", "reaches_animals", "reaches_sentient", "sentient_of_animal_worlds", "two_or_more_classes")
 """tuple: What the bands bind: the share of life worlds that stop at origin, producers or complex cells, that reach animals (sentient
-worlds included), that reach a sentient civilization, and the share of the worlds that have animals that are also sentient."""
+worlds included), that reach a sentient civilization, the share of the worlds that have animals that are also sentient, and (GEN.1209) the
+share of life worlds on which two or more life classes live."""
 
 OXYGENIC_MEASURES = ("reaches_animals", "reaches_sentient", "sentient_of_animal_worlds")
 """tuple: The measures taken per oxygenic life world (GEN.907: Core 1's timing figures describe worlds with oxygenic life). The others are
@@ -78,12 +79,14 @@ def draw_life(indices, star_type=None):
     """`{"systems", "worlds", "life", "rungs": {rung: n}, "classes": {class: n}, "oxygenic": {rung: n}, "abandoned", "errors",
     "error_count"}` for the systems of `indices` (seeded by their index; made around `star_type` when given, with seeds of their own)."""
     from planetgen.generation import evolution
+    from planetgen.physics import life_classes
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
 
     rungs, classes, oxygenic, by_class, errors = Counter(), Counter(), Counter(), Counter(), []
-    worlds = life = abandoned = error_count = 0
+    living, minor_sentient = Counter(), 0
+    worlds = life = multi = abandoned = error_count = 0
 
     def _alarm(*_):
         raise _Abandoned()
@@ -110,6 +113,11 @@ def draw_life(indices, star_type=None):
                             if evolution.releases_oxygen(body.life_class_id):
                                 oxygenic[rung(body)] += 1
                             classes[str(class_of(body))] += 1
+                            lives = getattr(body, life_classes.LIVING_FIELD, None) or []
+                            multi += len(lives) >= 2
+                            for entry in lives:
+                                living[str(entry["life_class"])] += 1
+                            minor_sentient += any(entry["stage"] == "technological_civilization" for entry in lives[1:])
                             by_class[f"{class_of(body)}:{rung(body)}"] += 1
             except _Abandoned:
                 abandoned += 1
@@ -122,7 +130,8 @@ def draw_life(indices, star_type=None):
     finally:
         signal.signal(signal.SIGALRM, previous)
     return {"systems": len(list(indices)), "worlds": worlds, "life": life, "rungs": dict(rungs), "classes": dict(classes),
-            "oxygenic": dict(oxygenic), "by_class": dict(by_class), "abandoned": abandoned, "errors": sorted(set(errors)), "error_count": error_count}
+            "oxygenic": dict(oxygenic), "by_class": dict(by_class), "multi": multi, "living": dict(living),
+            "minor_sentient": minor_sentient, "abandoned": abandoned, "errors": sorted(set(errors)), "error_count": error_count}
 
 
 def _job(job):
@@ -138,14 +147,15 @@ def run(systems=SYSTEMS, workers=None, host_systems=HOST_SYSTEMS):
     with multiprocessing.get_context("fork").Pool(workers) as pool:
         parts = pool.map(_job, jobs, chunksize=1)
     merged = {"systems": 0, "worlds": 0, "life": 0, "rungs": Counter(), "classes": Counter(), "oxygenic": Counter(),
-              "by_class": Counter(), "host_systems": 0, "host_oxygenic": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
+              "by_class": Counter(), "multi": 0, "living": Counter(), "minor_sentient": 0, "host_systems": 0, "host_oxygenic": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
     for (_, host), part in zip(jobs, parts):
         for key in ("abandoned", "error_count"):
             merged[key] += part[key]
         merged["errors"] += part["errors"]
         if host is None:
-            for key in ("systems", "worlds", "life"):
+            for key in ("systems", "worlds", "life", "multi", "minor_sentient"):
                 merged[key] += part[key]
+            merged["living"].update(part["living"])
             merged["rungs"].update(part["rungs"])
             merged["classes"].update(part["classes"])
             merged["oxygenic"].update(part["oxygenic"])
@@ -153,7 +163,7 @@ def run(systems=SYSTEMS, workers=None, host_systems=HOST_SYSTEMS):
         else:
             merged["host_systems"] += part["systems"]
             merged["host_oxygenic"].update(part["oxygenic"])
-    for key in ("rungs", "classes", "oxygenic", "by_class", "host_oxygenic"):
+    for key in ("rungs", "classes", "oxygenic", "by_class", "living", "host_oxygenic"):
         merged[key] = dict(merged[key])
     merged["errors"] = sorted(set(merged["errors"]))
     return merged
@@ -172,9 +182,10 @@ def summarize(result):
         "reaches_animals": animal_worlds / oxygenic_worlds if oxygenic_worlds else 0.0,
         "reaches_sentient": oxygenic.get("sentient", 0) / oxygenic_worlds if oxygenic_worlds else 0.0,
         "sentient_of_animal_worlds": oxygenic.get("sentient", 0) / animal_worlds if animal_worlds else 0.0,
+        "two_or_more_classes": result.get("multi", 0) / life if life else 0.0,
     }
     counts = {"stops_before_animals": life, "reaches_animals": oxygenic_worlds, "reaches_sentient": oxygenic_worlds,
-              "sentient_of_animal_worlds": animal_worlds}
+              "sentient_of_animal_worlds": animal_worlds, "two_or_more_classes": life}
     return values, counts
 
 
@@ -247,6 +258,11 @@ def format_report(result, findings, header=""):
               + (", highest rung: " + ", ".join(f"{name} {host.get(name, 0)}" for name in RUNGS) if host else "")]
     lines += ["", "Stored life class of the life worlds (an outcome to measure, not checked): "
               + ", ".join(f"{name} {count}" for name, count in sorted(result["classes"].items(), key=lambda item: -item[1]))]
+    living = result.get("living", {})
+    if living and result["life"]:
+        lines += ["", "Share of the life worlds each class lives on (GEN.1209, the dominant class or one beside it; an outcome to measure): "
+                  + ", ".join(f"{name} {count / result['life']:.3f}" for name, count in sorted(living.items(), key=lambda item: -item[1]))]
+        lines += ["", f"Life worlds where a class beside the dominant one reached a civilization: {result.get('minor_sentient', 0)} of {result['life']}"]
     by_class = result.get("by_class", {})
     if by_class:
         lines += ["", "Highest rung by stored life class (worlds):", ""]

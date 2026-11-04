@@ -1730,28 +1730,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
 
-- [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
-  Bands, storms, a chemistry tint, thermal glow, and rings with
-  resonance gaps. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  5), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), after GEN.670 (GEN.419 is done); nobody has started it.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 10) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Owner Core 2; GEN.670 done (2026-11-04 12:40 PM EST): GEN.670 is done:
-  the research report is
-  /mnt/project-files/reports/gen670-body-rendering-research-2026-11-04.md
-  (band count, storm size, ring reddening and albedo laws with proposed
-  GEN.725 rows B1-B4, S1-S4, RC1-RC3; numbers marked [S] are to be
-  confirmed before use). Both prerequisites are now met, so Core 2 takes
-  this item after its current lock step, one lock-free item at a time.
-  Owner: Core 2.
-  Prerequisites: GEN.419.
-
 - [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -1774,7 +1752,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 1) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: MAP.275.
+  Prerequisites: none.
 
 - [ ] **MAP.282 Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry**
   Stand-in until sourced by GEN.670. Design draft
@@ -5012,21 +4990,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   longer waits on this study.
   Prerequisites: none. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Done: the field kernel of
-  `src/planetgen/physics/sector_path.py` subtracts a local origin (the
-  path's own start or the cell centre) from every position before the
-  loop, so the sums run on small numbers; a test shows the result agrees
-  with a high-precision reference within the float64 spacing at a sector
-  262 kpc from the origin. Owner: Core 1, with GEN.294.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.372, GEN.294.
 
 - [ ] **GEN.376 Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py`**
   From the GEN.372 precision audit (Core 1,
@@ -13926,6 +13889,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **GEN.1251 Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid**
+  Built by Aux 4, branch claude/project-thread-nfytfi-tide-liquid head
+  7a0d5e515, change note changes/tide-liquid-hook.minor.md. Bodies whose
+  stored surface liquid is a non-water, non-lava sea (methane, ethane,
+  ammonia-water and the like) now store ocean_liquid and the spring and
+  neap ranges, with the liquid's density at the surface temperature;
+  water worlds are unchanged; lava and too-heavy liquids (mercury) stay
+  empty, heavy liquids are left to GEN.1052. No migration (columns exist
+  from 0191). Generation output changes the tide columns of Titan-like
+  bodies only (stage fill, the tide step ocean_tides.compute), so it
+  needs an epoch. Done: merged in a train with a census line counting
+  the bodies that gain tides. Lock work, train 11. Related: GEN.1052,
+  GEN.1218. Owner Aux 4. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1252 Methane fluxes of fuel-limited life classes are multiplied by their share of net primary production: sum fuel-limited rows once per fuel (bug)**
+  Found by Aux 4 in its GEN.1213 air-side review, 4:50 PM EST on
+  2026-11-04 (as the lane reported). In life_air.py the methane flux of
+  every life class is multiplied by that class's share of net primary
+  production. That is right for the oxygenic class (methane from burial
+  of its production), but wrong for classes 2, 3, 6 and 8, which are
+  limited by their own fuel (a donor or a hydrogen supply), not by food:
+  with a 10 percent share beside an oxygenic class their methane comes
+  out about ten times too small. Do: apply the share only on the burial
+  row, and sum fuel-limited rows once per fuel. Only multi-class output
+  changes, so it is lock work with an epoch under its own item. Done: a
+  test with one oxygenic and one fuel-limited class that conserves the
+  fuel and does not scale it by the other class's share. Related:
+  GEN.1209, GEN.1213. Owner Aux 4 (it found it) after the tide hook.
+  Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1253 toxin_factor has no SO2 or H2S term, so worlds with an acid-eater air read as clean for animals (bug)**
+  Found by Aux 4 in its GEN.1213 air-side review, 4:50 PM EST on
+  2026-11-04 (as the lane reported). The toxin test reads CO and CO2
+  only. A world whose air holds SO2 or H2S (the acid-eater classes)
+  therefore reads as clean for animals. Do: add the sourced toxicity
+  terms for SO2 and H2S (and name the other common poisons if the
+  research finds them) to toxin_factor, with sources in the registry and
+  stand-ins in GEN.725 where a number is not sourced. Generation output
+  changes the habitability and life reading of such worlds, so it is
+  lock work with an epoch under its own item. Done: a world with SO2 in
+  the air no longer reads as clean for animals, with a census line.
+  Related: GEN.1213, GEN.1210. Owner Aux 4 or Aux 2 (proposed by the
+  TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14485,6 +14495,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests/test_emission_members.py (the pre-placed hot star test) also
   times out past 900 s on main. Take it with this item; it is a
   slow-test cost, not a spelling effect.
+  Prerequisites: none.
+
+- [ ] **PERF.233 One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update**
+  Boss, 4:57 PM EST on 2026-11-04: "I want the entire map tile cache
+  built with one command and then I'm going to put that command in the
+  maintenance script so that nightly, after the orbital update, all of
+  the caches are rebuilt from scratch. But I want it to build
+  everything. I want it to cache the entire galactic map as map tiles
+  built." What exists: `planetgen warm` (planetgen/cli/warm.py,
+  web/warmup.py) builds the opening views, the Galaxy Map's nodes to the
+  built levels and the deep nodes along the zoom run, then the lists and
+  object pages, but it stops at each phase's cache budget (cache.max_mb)
+  and warms only what a visit would reach; web/lib/tilecache.py stores
+  packed PGT1 tiles per generation, prunes least recently written files
+  above tile_cache.max_mb, and deletes only changed tiles when data
+  changes (PERF.129, PERF.134 admin page); the monthly orbit update is
+  examples/maintenance/planetgen-orbits@.service and .timer. Do: (1)
+  MEASURE FIRST and report before building: the number of tiles per zoom
+  level for the whole galaxy, bytes per tile stored, the seconds per
+  tile and the total disk and hours for a full build on a 4-core
+  machine, so the cost is known. (2) A single command, e.g. `planetgen
+  warm tiles --all` (or `planetgen tiles build --all`), that builds
+  EVERY tile of EVERY zoom level of the whole galaxy, with no cache
+  budget cap and no pruning while it runs, from scratch: it builds into
+  a new generation beside the live one and swaps it in when complete, so
+  visitors never meet an empty cache and a killed run leaves the old
+  cache serving; progress lines per level, resumable by level, parallel
+  workers set by a setting, exits non-zero on failure. (3) Lift
+  tile_cache.max_mb pruning for a full cache or make the full build
+  declare the size it needs and warn when the disk lacks it. (4) Add the
+  command to the maintenance example: a timer unit that runs after the
+  orbit update (After= and OnSuccess= ordering, or one script that runs
+  orbits and then the build), documented in examples/maintenance and
+  INSTALL.md; the other caches (lists, objects, search) are rebuilt
+  after it by the existing planetgen warm. Done: one command builds the
+  whole galaxy's tiles; a test on a small galaxy proves every level and
+  tile exists afterwards and the swap leaves the old generation serving
+  during the build; the measured size and time are in the report; the
+  maintenance example runs it nightly after the orbit update. Lock-free
+  (no generator output change). Related: PERF.129, PERF.134, PERF.141,
+  MAP.158, MAP.260. Owner Core 2 (map tiles) with Aux 3 for the timings
+  (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -17715,6 +17767,20 @@ clears each one.
   3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
   test that follows its map changes (proposed by the TODO thread). Filed
   by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.576 test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug)**
+  Found by Core 5, about 4:45 PM EST on 2026-11-04 (as the lane
+  reported), red on clean main, not from DOC.103. The plain-words test
+  builds a corpus of the site's text and requires at least 1500 words;
+  it finds 1306, so either the corpus lost text (DOC.93 or DOC.94 moved
+  source lines and templates out of the pages it reads) or the floor is
+  stale. Do: find which text left the corpus, and either restore it to
+  the scan or lower the floor to what the in-universe pages hold with
+  the reason written beside it; do not weaken what the test checks.
+  Done: test_plain_words passes on main in 3 runs. Lock-free (test
+  only). Owner Core 1, who built the DOC.94 crawl (proposed by the TODO
+  thread). Filed by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts
