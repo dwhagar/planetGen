@@ -2107,6 +2107,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   units. Done: browser test of the toggle, the stretch and the triple;
   the triple matches the stored position within rounding. Goal #3241.
   Filed by the TODO thread.
+  Boss refinement (5:40 PM EST on 2026-11-04) (2026-11-04 5:40 PM EST):
+  The coordinates in the label follow the current context. In a sector
+  view the ordered triple (radius, longitude, latitude) is measured from
+  the sector center; in the galaxy view from the galactic center. When a
+  star is selected, the labels instead list the course and distance of
+  each star relative to the selected star (bearing and distance from it,
+  with units). Done adds: a browser test of each of the three contexts
+  (sector, galaxy, a star selected).
   Prerequisites: MAP.372.
 
 - [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
@@ -2118,6 +2126,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   question 2) is held until Boss answers. Goal #3241. Filed by the TODO
   thread.
   Prerequisites: none.
+
+- [ ] **MAP.375 A linked side strip for height on the Galaxy Map: an optional panel with height on one axis and distance across, linked to the map so a pick in one rings the star in the other**
+  Boss, 5:40 PM EST on 2026-11-04, answered question 2.1 of the galaxy
+  projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): yes, as an optional panel, built together with the minimap
+  work (MAP.75, the second locked engine view). Do: an edge-on side
+  strip showing the same stars with height on one axis and distance
+  across; picking a star in the strip rings it on the map and the
+  reverse; it reads exact height and disc thickness; on phones it is a
+  drawer. Share the second-view engine and selection link with MAP.75;
+  if MAP.75 is built first, reuse it. Done: browser test of the link in
+  both directions and the phone drawer. Lock-free, no migration. Goal
+  #3241. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
 
 ## NAV: Navigation and courses
 
