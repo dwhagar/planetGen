@@ -246,7 +246,7 @@ def star_fe_h(params):
 
 def spot_fe_h(population, spots, rng, fe_h_peaks=None):
     """The birth [Fe/H] source of the stars placed at `spots` (each ends in its point, whole milliparsecs), for
-    `sample_bright_stars`' `fe_h_source`: a draw from the population at the spot's distance from the galactic centre
+    `sample_bright_stars`' `fe_h_source`: a draw from the population at the spot's distance from the galactic center
     (GEN.651), or, for a population in the gate, from its component's own distribution `fe_h_peaks`
     (`component_field.fe_h_peaks_of`, GEN.662)."""
     if population in POPULATIONS_IN_THE_GATE:
@@ -264,8 +264,8 @@ def spot_fe_h(population, spots, rng, fe_h_peaks=None):
 
 
 def center_fe_h(population, center_pc, rng):
-    """The birth [Fe/H] source of stars drawn before they are placed in the cell centred at `center_pc` (a backfill),
-    for `fe_h_source`: a draw from `population` at the centre's distance from the galactic centre (GEN.651)."""
+    """The birth [Fe/H] source of stars drawn before they are placed in the cell centered at `center_pc` (a backfill),
+    for `fe_h_source`: a draw from `population` at the center's distance from the galactic center (GEN.651)."""
     distance_ly = pc_to_ly(math.sqrt(sum(value ** 2 for value in center_pc)))
     return lambda index: birth_fe_h(rng, population, None, distance_ly)
 
@@ -457,11 +457,11 @@ def shell_weight(shape, shell_index, high_band, edge_pc, expected_at_density_1, 
 
 def _capacity(shape, address, fractions, expected_at_density_1, edge_pc):
     """How many objects the sector at `address` may take (`object_first.sector_capacity`), from the density at its
-    centre and the `fractions` of its band's tier."""
+    center and the `fractions` of its band's tier."""
     shell_index, band_index, wedge = address
-    centre = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
+    center = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
     expected = (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc)
-                * sum(centre[population] * fractions[population] for population in SCATTERED_POPULATIONS))
+                * sum(center[population] * fractions[population] for population in SCATTERED_POPULATIONS))
     return object_first.sector_capacity(expected)
 
 
@@ -595,7 +595,7 @@ def _expected_in_groups(shape, groups, expected_at_density_1, fractions):
     About how many stars `groups` hold: the mean density of each group, worked out on `ESTIMATE_COLATITUDE_STEPS` by
     `ESTIMATE_RADIUS_STEPS` places of equal volume (each averaged over `ESTIMATE_AZIMUTH_BINS` longitudes), with the
     fractions of the tier each place is in, times the group's volume. The density at a group's middle alone, as it was,
-    came out a third of a thin disc's stars, and the two longitudes the bounds are probed at gave twice or none of an
+    came out a third of a thin disk's stars, and the two longitudes the bounds are probed at gave twice or none of an
     arm's (GEN.398).
     """
     by_tier = fractions if isinstance(fractions, (list, tuple)) else [fractions]
@@ -1015,7 +1015,7 @@ def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, 
     `expected_at_density_1` times the highest density any cell of the band can have, each part with the largest share
     any population of it holds in the luminosity band.
 
-    Every cell centre of a band sits at the same cylindrical radius and height (`band_center_pc`), so the density
+    Every cell center of a band sits at the same cylindrical radius and height (`band_center_pc`), so the density
     there bounds every cell: the disk and bulge at each term's maximum over the angle
     (`galaxy.skeleton._bound_raw_density_at`, nuclear terms included) with the largest share of any population but
     the halo, plus the halo, which depends on the radius and height alone, with the halo's own share. The clusters
@@ -1039,7 +1039,7 @@ def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, 
 def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
     """
     The stars a cell expects in a luminosity band, summed over the populations: what `backfill_cells` draws its Poisson
-    count with, `expected_at_density_1 * volume * density * share` at the cell's centre.
+    count with, `expected_at_density_1 * volume * density * share` at the cell's center.
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
@@ -1181,7 +1181,7 @@ def _band_shares(memo, memo_key, bands, share_of):
 
 
 def _cell_densities(memo, shape, address, edge_pc):
-    """`(densities, volume)` of a cell: the population densities at its centre (`_densities`) and its volume in edge
+    """`(densities, volume)` of a cell: the population densities at its center (`_densities`) and its volume in edge
     cubes. They do not depend on the band, so a cell asked about in every luminosity band works them out once, and a
     cell no band has a candidate in never does."""
     key = ("cell", address)

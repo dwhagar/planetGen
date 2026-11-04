@@ -169,7 +169,7 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     assert planet.system_config.system_flavor_count == 1
 
 
-def test_the_flavour_line_is_stored_as_a_key_and_read_back_from_it(host_star, monkeypatch):
+def test_the_flavor_line_is_stored_as_a_key_and_read_back_from_it(host_star, monkeypatch):
     """DB.51: the line is kept as `category:index` into the `tuning` list it was drawn from."""
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
     planet = make_planet(host_star, "e")

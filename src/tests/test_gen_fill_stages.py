@@ -256,7 +256,7 @@ def test_the_system_is_the_same_from_the_same_seed_and_in_any_order(certain):
                                               for planet in entry.star_system.planets]
                 for entry in sector.entries}
 
-    # Only a disc origin (a quarter of the pulsars that roll planets, GEN.317) leaves a system: take two seeds that do.
+    # Only a disk origin (a quarter of the pulsars that roll planets, GEN.317) leaves a system: take two seeds that do.
     first, second = [seed for seed in range(1, 60) if planets([seed])][:2]
     forward, backward = planets([first, second]), planets([second, first])
     assert forward == backward and len(forward) == 2

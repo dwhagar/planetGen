@@ -325,7 +325,7 @@ test("a crowd takes the strongest state of its marks: a pulled one gives it its 
 });
 
 // MAP.339: the near-field rule for black holes.
-const view = (extra) => Object.assign({ centre: [0, 0, 0], distance: 10, width: 1200, height: 600, densityPx: 120 }, extra);
+const view = (extra) => Object.assign({ center: [0, 0, 0], distance: 10, width: 1200, height: 600, densityPx: 120 }, extra);
 const massive = (id, mass, x, extra) => ({ type: "black_hole", id, name: "BH " + id, mass_solar: mass, x, y: 0, z: 0, ...extra });
 
 test("a black hole within 3 view distances is a candidate; one beyond needs its mass to pass the rising floor", () => {
@@ -348,11 +348,11 @@ test("the reach and the floor scale with the view distance, so the rule is the s
   assert.equal(M.nearFieldRule(view({ distance: 10 })).accepts(massive(2, 20, 90)), M.nearFieldRule(view({ distance: 1000 })).accepts(massive(2, 20, 9000)));
 });
 
-test("black holes rank by mass over distance squared from the view centre", () => {
+test("black holes rank by mass over distance squared from the view center", () => {
   const rule = M.nearFieldRule(view());
   assert.ok(rule.rank(massive(1, 6, 2)) > rule.rank(massive(2, 6, 4)), "nearer wins at the same mass");
   assert.ok(rule.rank(massive(3, 18, 4)) > rule.rank(massive(4, 6, 4)), "heavier wins at the same distance");
-  assert.ok(Number.isFinite(rule.rank(massive(5, 6, 0))), "one at the very centre has a rank");
+  assert.ok(Number.isFinite(rule.rank(massive(5, 6, 0))), "one at the very center has a rank");
 });
 
 test("the cap is one mark per density square of the screen, at least one, and the default square is 120 px", () => {

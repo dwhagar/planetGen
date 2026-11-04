@@ -1,8 +1,8 @@
 # tests/test_interrupted_galaxy_run.py
 
 """
-TEST.21, cancelling a run: SIGTERM, Ctrl+C and `SystemExit` during a
-parallel run end it as cancelled and leave no half-written sector.
+TEST.21, canceling a run: SIGTERM, Ctrl+C and `SystemExit` during a
+parallel run end it as canceled and leave no half-written sector.
 """
 
 import os
@@ -91,4 +91,4 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
     sectors, short, orphans = _sector_counts(control_config)
     assert sectors >= 1 and short == [] and orphans == 0
     # The run's record on Redis (PERF.98): the run is another process, so it is under the real key prefix.
-    assert _run_states(redis_server, control_config.database, prefix="planetgen") == ["cancelled"]
+    assert _run_states(redis_server, control_config.database, prefix="planetgen") == ["canceled"]

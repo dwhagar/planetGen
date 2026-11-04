@@ -816,7 +816,7 @@ def _star_light(luminosity_w, radius_km, temperature_k):
 
 # The phenomena that give off light, each a fixed point of light (their
 # rows carry no luminosity): a quasar outshines everything on the map, an
-# accreting black hole is a hot orange point (its disc, not the hole,
+# accreting black hole is a hot orange point (its disk, not the hole,
 # shines, so its core is not whitened), a neutron star a small blue-white
 # one. A quiescent black hole and an interstellar comet give off no light
 # of their own and keep their spheres; a rogue planet is a faint point of

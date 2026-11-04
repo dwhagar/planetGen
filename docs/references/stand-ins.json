@@ -28331,8 +28331,8 @@
           "what": "scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared"
         }
       ],
-      "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disc",
-      "title": "Stand-ins of the scatter step of an outer disc"
+      "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disk",
+      "title": "Stand-ins of the scatter step of an outer disk"
     },
     {
       "key": "6.103",
@@ -36619,8 +36619,8 @@
           "what": "tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO 1.8: the scale length of a satellite's gas disc over its stars'"
         }
       ],
-      "slug": "6-140-stand-ins-of-the-gas-disc-of-a-satellite-galaxy",
-      "title": "Stand-ins of the gas disc of a satellite galaxy"
+      "slug": "6-140-stand-ins-of-the-gas-disk-of-a-satellite-galaxy",
+      "title": "Stand-ins of the gas disk of a satellite galaxy"
     },
     {
       "key": "6.141",
@@ -37873,7 +37873,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.LARGEST_BODY_MASS_KG 1e17, BULK_DENSITY_KG_M3 1500: the largest body of a light field (a rubble pile about 50 km across, a hundredth of the ledger cut of 1e19) and its bulk density (a porous pile, half of the silicate pieces of IF17)"
         },
         {
@@ -37915,7 +37915,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it)"
         },
         {
@@ -37957,7 +37957,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up"
         }
       ],
@@ -38953,8 +38953,8 @@
           "what": "thick_ages.mixed_old_law: the thick disc's star formation is flat over its window"
         }
       ],
-      "slug": "6-146-stand-ins-of-the-thick-disc-s-ages",
-      "title": "Stand-ins of the thick disc's ages"
+      "slug": "6-146-stand-ins-of-the-thick-disk-s-ages",
+      "title": "Stand-ins of the thick disk's ages"
     },
     {
       "key": "6.147",
@@ -40559,7 +40559,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
         },
         {
@@ -40597,7 +40597,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
         },
         {
@@ -41133,7 +41133,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "body_status.ZONE_HILL_RADII 2 sqrt 3: the half-width of the zone of a body, in its Hill radii, within which Soter's mu counts the other bodies (Margot's C, so the two discriminants use one zone)"
         },
         {
@@ -41171,7 +41171,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "body_status.LAMBDA_K: the k of Stern and Levison's Lambda = k m^2 / P, fixed so that Lambda is 1 at Margot's clearing mass at 1 au round the Sun (6.7e5 per Earth mass squared per year); their own k was not read"
         }
       ],

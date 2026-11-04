@@ -157,7 +157,7 @@ NULL_IN_THIS_GALAXY = {
     **{("asteroid_belts", column): "a ring about its star: no motion or clock of its own (GEN.337)"
        for column in ("epoch_unix", "next_update_due")},
     **{("quasars", column): CHANCE for column in ("epoch_unix", "next_update_due")},
-    # GEN.1069: the sentences of what shaped a belt (none for a belt only the giants' gaps made) and the scatter shares of an outer disc (only an outer disc has them);
+    # GEN.1069: the sentences of what shaped a belt (none for a belt only the giants' gaps made) and the scatter shares of an outer disk (only an outer disk has them);
     # test_belt_origin_stored.py writes and reads both back. GEN.1070: the scatter tag of a member waits for the scatter step (GEN.1092).
     **{("asteroid_belts", column): CHANCE for column in ("origin_history", "scatter_fates")},
     ("belt_members", "scatter_tag"): "NULL until the scatter step tags the members (GEN.1092)",

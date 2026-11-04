@@ -21,7 +21,7 @@ drawn, weighted by it); the schedule of the five hard steps is drawn at the pace
 needs (`physics.life_timeline`); a class that splits water builds the oxygen its photosynthesis has made by the star's age
 (`physics.biogenic_oxygen`); and the complexity of the class on the final air (`physics.life_complexity`) caps the milestones and gives
 the animal grade. All the draws of a body are made from a stream of its own, seeded by one draw of the run's (GEN.872), so a change in
-the life model no longer re-rolls the names and flavour text of every later body.
+the life model no longer re-rolls the names and flavor text of every later body.
 """
 
 import copy
@@ -430,13 +430,13 @@ def _flavor_lists():
 
 
 def flavor_key(category, text):
-    """The `category:index` key of the flavour line `text` in a `tuning` flavour list (`habitable`, `planet` or
+    """The `category:index` key of the flavor line `text` in a `tuning` flavor list (`habitable`, `planet` or
     `orbital`)."""
     return f"{category}:{_flavor_lists()[category].index(text)}"
 
 
 def flavor_line(key):
-    """The flavour line a `flavor_key` names, or `None` for no key."""
+    """The flavor line a `flavor_key` names, or `None` for no key."""
     if key is None:
         return None
     category, index = key.split(":")

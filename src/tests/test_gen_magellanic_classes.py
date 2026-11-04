@@ -192,7 +192,7 @@ def test_the_progenitor_factor_is_one_at_the_solar_circle_s_mix_and_zero_without
     assert profile.supernova_progenitor_factor(2.0 * reference, SHAPE) > 1.0
 
 
-def test_a_disc_cell_keeps_its_gas_factor_for_the_supernova_remnants():
+def test_a_disk_cell_keeps_its_gas_factor_for_the_supernova_remnants():
     here = profile.profile_at(SUN, WITH_SATELLITES, EDGE, E1)
     assert here.kind_factors["supernova-remnant"] == pytest.approx(
         min(1.0, nebula_field.gas_factor(SUN, WITH_SATELLITES)) * (1.0 - here.populations["cluster"].share), rel=1e-6)

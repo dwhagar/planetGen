@@ -169,10 +169,10 @@ def test_the_reach_is_nameable_and_the_next_shells_past_it_are_refused_in_time()
 
 
 @pytest.mark.parametrize("address", _cells_of_the_widest_shell())
-def test_a_cell_of_the_widest_shell_holds_its_own_centre_and_names_itself_by_its_designation(address):
-    centre = spherical.sector_position_pc(*address, EDGE_PC)
-    assert spherical.sector_address_at(centre, EDGE_PC) == address
-    assert spherical.sector_cell_test(address, EDGE_PC)(centre)
+def test_a_cell_of_the_widest_shell_holds_its_own_center_and_names_itself_by_its_designation(address):
+    center = spherical.sector_position_pc(*address, EDGE_PC)
+    assert spherical.sector_address_at(center, EDGE_PC) == address
+    assert spherical.sector_cell_test(address, EDGE_PC)(center)
     assert spherical.parse_sector_designation(spherical.provisional_sector_designation(*address)) == address
     for serial_kind in object_uid.SERIAL_KINDS:
         value = object_uid.pack(*address, serial_kind, 12345, body=7)
@@ -184,12 +184,12 @@ def test_a_cell_of_the_widest_shell_holds_its_own_centre_and_names_itself_by_its
 
 @pytest.mark.parametrize("address", _cells_of_the_widest_shell())
 def test_the_neighbours_of_a_cell_of_the_widest_shell_are_symmetric_and_share_no_point(address):
-    centre = spherical.sector_position_pc(*address, EDGE_PC)
+    center = spherical.sector_position_pc(*address, EDGE_PC)
     neighbours = spherical.neighbor_addresses(*address)
     assert address not in neighbours and len(set(neighbours)) == len(neighbours) >= 4
     for other in neighbours:
         assert address in spherical.neighbor_addresses(*other), (address, other)
-        assert not spherical.sector_cell_test(other, EDGE_PC)(centre)
+        assert not spherical.sector_cell_test(other, EDGE_PC)(center)
 
 
 def test_random_points_of_the_widest_shell_each_land_in_exactly_one_cell():

@@ -324,7 +324,7 @@ def test_a_barren_airless_dry_world_says_so_in_sentences_and_leaves_the_sections
     # a trace of air, of water or of life, and a value that is not stored, never count as none
     assert registry.missing("moon", {**barren, "atmospheric_pressure_pa": 5.0}) == ["life", "water"]
     assert registry.missing("moon", {**barren, "water_mass_fraction": 1e-3}) == ["life", "atmosphere"]
-    assert registry.missing("moon", {**barren, "hydrosphere": "vapour"}) == ["life", "atmosphere"]
+    assert registry.missing("moon", {**barren, "hydrosphere": "vapor"}) == ["life", "atmosphere"]
     assert registry.missing("moon", {**barren, "life_fauna": 1}) == ["atmosphere", "water"]
     assert registry.missing("planet", {**barren, "life_fauna": None, "atmospheric_pressure_pa": None,
                                         "hydrosphere": None}) == []
@@ -437,7 +437,7 @@ def _rich_document():
     planet["blocks"] += [
         model.ratings({"name": "PHI-6", "score": 0.8, "tier": "Green"}, [], []),
         model.facts("Radiation", [model.fact("dose", "Total dose", "1 mSv")]),
-        model.prose("life", "Life based on carbon lives on this world."), model.prose("flavour", "Sensors show a green haze.")]
+        model.prose("life", "Life based on carbon lives on this world."), model.prose("flavor", "Sensors show a green haze.")]
     return document
 
 

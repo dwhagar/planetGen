@@ -20,7 +20,7 @@ A profile holds:
 * `density` and `expected_systems`: today's `relative_density` and the expected systems per cell, `E x density`,
   which is the mean of the sector's Poisson draw;
 * `mix`: the density by population (`young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `satellite`,
-  `nuclear_cluster`, `nuclear_disc`), summing to `density`;
+  `nuclear_cluster`, `nuclear_disk`), summing to `density`;
 * `populations`: for each, its age window, [Fe/H] distribution, velocity dispersion and what its net motion follows;
 * `gas`: the cold-gas fraction against the solar circle and the ambient medium with its density, and the superbubble
   (GEN.254) the place lies in, if any;
@@ -51,7 +51,7 @@ from planetgen.physics import constants, metallicity
 from planetgen.physics.units import pc_to_ly
 
 POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
-               "nuclear_disc", "satellite_young", "satellite_intermediate", *tuning.OPEN_CLUSTER_POPULATIONS)
+               "nuclear_disk", "satellite_young", "satellite_intermediate", *tuning.OPEN_CLUSTER_POPULATIONS)
 """tuple: The populations of a profile's mix, in the order `galaxy.density.population_densities` has them."""
 
 _DISK = ("young", "intermediate", "old", *tuning.OPEN_CLUSTER_POPULATIONS)
@@ -77,7 +77,7 @@ class PopulationProfile:
         fe_h (tuple): `((weight, mean, sigma), ...)`, the [Fe/H] distribution of its stars at this place, dex
             (one peak; two for a disk or halo place that two components reach, one per component for a cluster or
             satellite place).
-        dispersion_kms (float): Velocity dispersion, km/s: the three-axis total for every population (the disc, bulge and
+        dispersion_kms (float): Velocity dispersion, km/s: the three-axis total for every population (the disk, bulge and
             halo from the galaxy's own structure; the others the one-axis values of `tuning` times
             `constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS`). `place_terms.from_profile` reads the one-axis value back.
         rotation (str): What its net motion follows: `disk`, `bar`, `orbit` or `none`.
@@ -103,7 +103,7 @@ class GasProfile:
         ambient_density_cm3 (float): Its density, H atoms per cm3.
         mass_solar (float): The ambient gas in the cell, solar masses.
         superbubble (Superbubble or None): The cavity the place lies in (GEN.254; `superbubble_field`): there the
-            disk's gas is its thin, ionised gas, `cold_fraction` is 0 and no molecular cloud is kept. `None` outside
+            disk's gas is its thin, ionized gas, `cold_fraction` is 0 and no molecular cloud is kept. `None` outside
             one, or when no seed was given.
     """
     cold_fraction: float
@@ -115,7 +115,7 @@ class GasProfile:
 
 @dataclass(frozen=True)
 class DarkMatter:
-    """The dark-matter halo at a cell: `density_solar_pc3` at its centre and `mass_solar` in the cell. Gravity only."""
+    """The dark-matter halo at a cell: `density_solar_pc3` at its center and `mass_solar` in the cell. Gravity only."""
     density_solar_pc3: float
     mass_solar: float
 
@@ -127,7 +127,7 @@ class SectorProfile:
 
     Attributes:
         address (tuple or None): `(shell, band, wedge)`; `None` for a point.
-        position_pc (tuple): The centre, galaxy-frame parsecs.
+        position_pc (tuple): The center, galaxy-frame parsecs.
         edge_pc (float): The sector edge the profile was made at.
         volume_pc3 (float): The cell's volume.
         shape (GalaxyShape): The galaxy's shape (the fill's molecular cloud field reads its gas from it).
@@ -167,7 +167,7 @@ class SectorProfile:
 
     @property
     def center_pc(self):
-        """The centre, as the fill reads it."""
+        """The center, as the fill reads it."""
         return self.position_pc
 
 
@@ -176,7 +176,7 @@ def _region(mix):
     terms = {"disk": sum(mix[name] for name in _DISK), "bulge": mix["bulge"], "halo": mix["halo"],
              "cluster": mix["cluster"],
              "satellite": mix["satellite"] + mix["satellite_young"] + mix["satellite_intermediate"],
-             "nuclear": mix["nuclear_cluster"] + mix["nuclear_disc"]}
+             "nuclear": mix["nuclear_cluster"] + mix["nuclear_disk"]}
     best = max(terms.values())
     if best <= 0.0:
         return "halo"
@@ -188,13 +188,13 @@ def _region(mix):
 
 def _dispersion_kms(name, shape):
     """
-    The velocity dispersion of population `name` for this galaxy, km/s (three-axis total): the thin-disc populations',
+    The velocity dispersion of population `name` for this galaxy, km/s (three-axis total): the thin-disk populations',
     the bulge's and the halo's follow from the galaxy's own structure (`galaxy.structure`, GEN.532); the others are
     the one-axis `tuning.STELLAR_POPULATION_DISPERSION_KMS` times `constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS` (GEN.284).
     """
     structure = shape.structure
     if name in ("young", "intermediate", "old") or name in tuning.OPEN_CLUSTER_POPULATIONS:
-        return galaxyStructure.disc_dispersion_kms(structure, name)       # a young cluster's bin is heated as its age
+        return galaxyStructure.disk_dispersion_kms(structure, name)       # a young cluster's bin is heated as its age
     if name == "bulge":
         return galaxyStructure.bulge_dispersion_kms(structure, galaxyDensity.bulge_to_total(shape))
     if name == "halo":
@@ -203,7 +203,7 @@ def _dispersion_kms(name, shape):
 
 
 def _fe_h(name, distance_ly, shape=None, position_pc=None):
-    """`((weight, mean, sigma), ...)` of a population's [Fe/H] `distance_ly` from the centre. A cluster or satellite
+    """`((weight, mean, sigma), ...)` of a population's [Fe/H] `distance_ly` from the center. A cluster or satellite
     place takes the [Fe/H] of the components that reach it (`ComponentField.fe_h_peaks`) and, where it has none, the
     generic peaks of `tuning`."""
     if name in componentField.POPULATIONS_IN_THE_GATE:
@@ -380,7 +380,7 @@ def _scale(shape):
 
 def dark_matter_density(radius_pc, shape):
     """
-    The NFW halo's density, solar masses per pc3, at `radius_pc` from the centre: `M_h / (4 pi r_h^3) / (u (1 + u)^2)`,
+    The NFW halo's density, solar masses per pc3, at `radius_pc` from the center: `M_h / (4 pi r_h^3) / (u (1 + u)^2)`,
     `u = r / r_h`, with the Milky Way's `M_h` and `r_h` (`tuning`) scaled by the galaxy's disk scale length.
     """
     scale = _scale(shape)

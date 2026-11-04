@@ -1,6 +1,6 @@
 # tests/test_saturation_single_source.py
 
-"""One vapour-pressure function (GEN.632): no module outside `physics/saturation.py` holds a vapour-pressure constant, and the two
+"""One vapor-pressure function (GEN.632): no module outside `physics/saturation.py` holds a vapor-pressure constant, and the two
 callers that did (the nitrogen frost of an old rogue-planet surface and the hydrosphere's boiling point) read the saturation curves."""
 
 import pathlib
@@ -14,7 +14,7 @@ OLD_NAMES = ("nitrogen_vapor_pressure_pa", "NITROGEN_TRIPLE_POINT_K", "NITROGEN_
              "WATER_VAPORIZATION_J_MOL", "WATER_BOILING_K", "WATER_CRITICAL_K")
 
 
-def test_the_old_vapour_pressure_names_are_gone_from_the_source():
+def test_the_old_vapor_pressure_names_are_gone_from_the_source():
     for path in SOURCE.rglob("*.py"):
         text = path.read_text(encoding="utf-8")
         for name in OLD_NAMES:

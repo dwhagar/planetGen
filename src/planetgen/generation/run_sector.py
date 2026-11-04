@@ -393,7 +393,7 @@ def add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_
 
 def mark_group_star(entry, member, group_member):
     """Records on `entry` the group its star is in: the group's name (the seed of the member that rolled it), its decay age and
-    the star's offset from the group's centre, AU."""
+    the star's offset from the group's center, AU."""
     entry.group_seed = member.seed
     entry.group_decay_age_yr = group_member.decay_age_yr
     entry.group_offset_au = group_member.offset_au
@@ -817,7 +817,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             from the galactic center, in light-years, threaded down into
             every generated system's Hill-sphere calculation (see
             `Star.calculate_system_perimeter`'s docstring). `None` (the
-            default) falls back to the radius that holds half of the galaxy's disc stars
+            default) falls back to the radius that holds half of the galaxy's disk stars
             (`galaxy.scales.default_galactocentric_ly`) -- the `sector` subcommand (no galaxy context) always
             calls this with the default, so it keeps producing "unplaced"
             sectors.

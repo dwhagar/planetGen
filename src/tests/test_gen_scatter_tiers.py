@@ -36,11 +36,11 @@ def _shape(nuclear_amplitude=1.0):
     )
 
 
-# A seed whose drawn structure keeps the toy galaxy's three shells in the tiers they are named for (core, mixed, disc).
+# A seed whose drawn structure keeps the toy galaxy's three shells in the tiers they are named for (core, mixed, disk).
 SEED = bytes([39]) * 16
 SHAPE = _shape()._replace(structure=structure_draw.draw_structure(SEED))   # a stored shape's seed draws its structure
-CORE_SHELL, MIXED_SHELL, DISC_SHELL = 1, 650, 40
-"""A shell in the nuclear cluster, one the halo reaches near its poles and the disc crosses, and one in the disc."""
+CORE_SHELL, MIXED_SHELL, DISK_SHELL = 1, 650, 40
+"""A shell in the nuclear cluster, one the halo reaches near its poles and the disk crosses, and one in the disk."""
 
 
 def _skeleton(shape=SHAPE, core_floor=None, core_mass=None, halo_floor=tuning.HALO_MIN_LUMINOSITY_SOL):
@@ -54,10 +54,10 @@ def _high(shell):
 
 def test_a_band_takes_the_tier_of_the_term_that_dominates_it():
     assert set(scatter_limits.tier_indices(SHAPE, CORE_SHELL, _high(CORE_SHELL), EDGE_PC).tolist()) == {CORE}
-    assert set(scatter_limits.tier_indices(SHAPE, DISC_SHELL, _high(DISC_SHELL), EDGE_PC).tolist()) == {BASELINE}
+    assert set(scatter_limits.tier_indices(SHAPE, DISK_SHELL, _high(DISK_SHELL), EDGE_PC).tolist()) == {BASELINE}
     mixed = scatter_limits.tier_indices(SHAPE, MIXED_SHELL, _high(MIXED_SHELL), EDGE_PC)
     assert set(mixed.tolist()) == {BASELINE, HALO}
-    # The halo takes the bands far from the plane, the baseline the ones the disc still reaches.
+    # The halo takes the bands far from the plane, the baseline the ones the disk still reaches.
     high = _high(MIXED_SHELL)
     assert mixed[0] == mixed[-1] == HALO and mixed[high] == BASELINE
 
@@ -80,7 +80,7 @@ def test_the_tier_is_a_pure_function_of_the_address_whichever_way_it_is_asked():
 
 def test_the_weights_choose_the_same_tier_as_the_scatter_does():
     """`sampled_band_expectations` reads the tier from the densities it samples; it must agree with `tier_indices`."""
-    for shell in (CORE_SHELL, DISC_SHELL, MIXED_SHELL):
+    for shell in (CORE_SHELL, DISK_SHELL, MIXED_SHELL):
         high = _high(shell)
         whole = scatter_limits.tier_indices(SHAPE, shell, high, EDGE_PC)
         for band in range(-high, high + 1, max(1, high // 7)):
@@ -117,7 +117,7 @@ def test_a_band_reads_its_own_tiers_limits_from_the_address():
     limits = ScatterLimits.of(_skeleton(), FLOOR, MASS)
     assert limits.level_at(CORE_SHELL, 0) == pytest.approx(FLOOR * 1.1)
     assert limits.mass_limit_at(CORE_SHELL, 0) == pytest.approx(MASS * 1.1)
-    assert limits.level_at(DISC_SHELL, 0) == FLOOR
+    assert limits.level_at(DISK_SHELL, 0) == FLOOR
     high = _high(MIXED_SHELL)
     assert limits.level_at(MIXED_SHELL, 0) == FLOOR
     assert limits.level_at(MIXED_SHELL, -high) == tuning.HALO_MIN_LUMINOSITY_SOL
@@ -176,15 +176,15 @@ def test_the_mass_pass_draws_each_band_from_its_tiers_mass_limit():
     core = _drawn(CORE_SHELL, tiered)
     assert core[CORE]
     assert min(row[COLUMN["initial_mass_sol"]] for row in core[CORE]) >= MASS * tuning.CORE_TIER_FACTOR
-    disc = _drawn(DISC_SHELL, tiered)
-    assert disc[BASELINE]
-    assert min(row[COLUMN["initial_mass_sol"]] for row in disc[BASELINE]) >= MASS
+    disk = _drawn(DISK_SHELL, tiered)
+    assert disk[BASELINE]
+    assert min(row[COLUMN["initial_mass_sol"]] for row in disk[BASELINE]) >= MASS
 
 
 def test_with_the_same_limits_in_every_tier_the_pass_is_the_untiered_one():
     same = scatter_limits.TierLimit(FLOOR, MASS)
     limits = ScatterLimits(SHAPE, EDGE_PC, (same, same, same))
-    for shell in (CORE_SHELL, MIXED_SHELL, DISC_SHELL):
+    for shell in (CORE_SHELL, MIXED_SHELL, DISK_SHELL):
         high = _high(shell)
         untiered = list(brightStars.scatter_shell(SHAPE, shell, high, EDGE_PC, E_VALUE, FLOOR, "tiers",
                                                   mass_range=(None, MASS)))
@@ -233,11 +233,11 @@ def test_the_marks_the_fills_and_the_clears_read_each_bands_tier(mysql_config):
         conn.commit()
         limits = store.scatter_limits_of(conn, skeleton)
         assert store.bright_star_fill_level(conn, CORE_SHELL, 0, 0) == pytest.approx(FLOOR * tuning.CORE_TIER_FACTOR)
-        assert store.bright_star_fill_level(conn, DISC_SHELL, 0, 0) == FLOOR
+        assert store.bright_star_fill_level(conn, DISK_SHELL, 0, 0) == FLOOR
         high = _high(MIXED_SHELL)
         assert store.bright_star_fill_level(conn, MIXED_SHELL, -high, 0) == tuning.HALO_MIN_LUMINOSITY_SOL
         assert store.bright_star_fill_mass_limit(conn, CORE_SHELL, 0, 0) == pytest.approx(MASS * 1.1)
-        assert limits.level_at(DISC_SHELL, 0) == FLOOR
+        assert limits.level_at(DISK_SHELL, 0) == FLOOR
     finally:
         conn.close()
 
@@ -252,7 +252,7 @@ def test_the_marks_skip_a_sector_by_its_own_tiers_limits(mysql_config):
         limits = ScatterLimits.of(store.get_galaxy_shape(conn), FLOOR, MASS)
         mass_pass = scatter_limits.mass_pass(limits, 100.0)
         written = 0
-        for shell in (CORE_SHELL, DISC_SHELL):
+        for shell in (CORE_SHELL, DISK_SHELL):
             for row in brightStars.scatter_shell(SHAPE, shell, _high(shell), EDGE_PC, E_VALUE, 100.0, "marks",
                                                  tiered=mass_pass):
                 store.insert_bright_stars(conn, [row])
@@ -282,25 +282,25 @@ def test_clearing_one_pass_tells_apart_the_stars_between_the_tiers_mass_limits(m
         skeleton = store.get_galaxy_shape(conn)
         limits = ScatterLimits.of(skeleton, FLOOR, MASS)
         window = (MASS + MASS * tuning.CORE_TIER_FACTOR) / 2.0    # between the baseline's limit and the core's
-        template = list(brightStars.scatter_shell(SHAPE, DISC_SHELL, _high(DISC_SHELL), EDGE_PC, E_VALUE, 100.0, "clear",
+        template = list(brightStars.scatter_shell(SHAPE, DISK_SHELL, _high(DISK_SHELL), EDGE_PC, E_VALUE, 100.0, "clear",
                                                   tiered=scatter_limits.mass_pass(limits, 100.0)))[0]
         core_row = list(template)
         core_row[:3] = (CORE_SHELL, 0, 0)
-        disc_row = list(template)
-        disc_row[:3] = (DISC_SHELL, 0, 0)
-        for row in (core_row, disc_row):
+        disk_row = list(template)
+        disk_row[:3] = (DISK_SHELL, 0, 0)
+        for row in (core_row, disk_row):
             row[COLUMN["initial_mass_sol"]] = window
-        store.insert_bright_stars(conn, [tuple(core_row), tuple(disc_row)])
+        store.insert_bright_stars(conn, [tuple(core_row), tuple(disk_row)])
         conn.commit()
-        # In the disc a star of that mass is the mass pass's; in the core it is the luminosity pass's.
+        # In the disk a star of that mass is the mass pass's; in the core it is the luminosity pass's.
         store.clear_bright_star_pass(conn, "mass", limits)
         left = [(row["shell_index"]) for row in conn.execute("SELECT shell_index FROM bright_stars").fetchall()]
         assert left == [CORE_SHELL]
-        store.insert_bright_stars(conn, [tuple(disc_row)])
+        store.insert_bright_stars(conn, [tuple(disk_row)])
         conn.commit()
         store.clear_bright_star_pass(conn, "luminosity", limits)
         left = [(row["shell_index"]) for row in conn.execute("SELECT shell_index FROM bright_stars").fetchall()]
-        assert left == [DISC_SHELL]
+        assert left == [DISK_SHELL]
     finally:
         conn.close()
 
@@ -318,8 +318,8 @@ def test_the_api_names_a_sectors_tier_and_its_limits(mysql_config):
         conn.commit()
         assert routes.scatter_tier_of(conn, detail) == {
             "tier": "core", "min_luminosity_sol": pytest.approx(9900.0), "mass_limit_sol": pytest.approx(15.4)}
-        disc = routes.scatter_tier_of(conn, {**detail, "shell_index": DISC_SHELL})
-        assert disc == {"tier": "baseline", "min_luminosity_sol": FLOOR, "mass_limit_sol": MASS}
+        disk = routes.scatter_tier_of(conn, {**detail, "shell_index": DISK_SHELL})
+        assert disk == {"tier": "baseline", "min_luminosity_sol": FLOOR, "mass_limit_sol": MASS}
         assert routes.scatter_tier_of(conn, {**detail, "placed": False}) is None
     finally:
         conn.close()
@@ -366,7 +366,7 @@ def test_the_tiers_of_some_bands_are_those_the_whole_shell_gives_them():
 
 def test_the_cell_tiers_of_a_set_of_marked_cells_are_the_tiers_of_the_whole_shells():
     limits = ScatterLimits.of(_skeleton(), FLOOR, MASS)
-    cells = [(shell, band, wedge) for shell in (CORE_SHELL, DISC_SHELL, MIXED_SHELL)
+    cells = [(shell, band, wedge) for shell in (CORE_SHELL, DISK_SHELL, MIXED_SHELL)
              for band in (-_high(shell), 0, _high(shell) // 2) for wedge in (0, 1)]
     found = store._cell_tiers(limits, cells)
     assert set(found) == set(cells)
@@ -375,7 +375,7 @@ def test_the_cell_tiers_of_a_set_of_marked_cells_are_the_tiers_of_the_whole_shel
 
 
 def test_the_tiers_of_places_in_several_shells_are_each_places_own_tier():
-    places = [(shell, band) for shell in (CORE_SHELL, DISC_SHELL, MIXED_SHELL, 2500)
+    places = [(shell, band) for shell in (CORE_SHELL, DISK_SHELL, MIXED_SHELL, 2500)
               for band in (-_high(shell), -1, 0, _high(shell) // 3, _high(shell))]
     got = scatter_limits.tiers_of_places(SHAPE, places, EDGE_PC)
     assert got.tolist() == [scatter_limits.tier_index(SHAPE, shell, band, EDGE_PC) for shell, band in places]

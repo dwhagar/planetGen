@@ -254,8 +254,8 @@ reads."""
 MODEL_TERM_FIELDS = (
     "thick_disk_amplitude", "thick_disk_scale_length_pc", "thick_disk_scale_height_pc",
     "bulge_scale_y_pc", "bulge_scale_z_pc", "bar_cos", "bar_sin",
-    "nuclear_cluster_mass", "nuclear_cluster_scale_pc", "nuclear_cluster_softening_pc", "nuclear_disc_mass",
-    "nuclear_disc_length_pc", "nuclear_disc_height_pc", "nuclear_disc_density",
+    "nuclear_cluster_mass", "nuclear_cluster_scale_pc", "nuclear_cluster_softening_pc", "nuclear_disk_mass",
+    "nuclear_disk_length_pc", "nuclear_disk_height_pc", "nuclear_disk_density",
     "halo_amplitude", "halo_core_pc", "halo_break_pc", "halo_axis_ratio", "halo_inner_slope", "halo_outer_slope",
 )
 """The `galaxy.density.model_terms` and `halo_terms` it reads too (the thick
@@ -573,7 +573,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             the panel shows none.
         pinned (dict or None): A sector page's map (MAP.68): the one
             sector it is locked to, `{"shell", "band", "wedge", "center_pc"}`
-            (`center_pc`: its centre in the galaxy frame). The panel then
+            (`center_pc`: its center in the galaxy frame). The panel then
             opens that sector in place, with no steps, breadcrumb, address
             or history of its own (the page has its own title, bookmark
             and banners), and a click on another sector opens that
@@ -584,7 +584,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         superbubbles (list or None): The galaxy's superbubbles (GEN.254; `apiclient.get_superbubbles`): `x`, `y`,
             `z` and `radius_pc` each, drawn as faint thin shells under everything else. `None` draws none.
         made (dict or None): The sectors a generate job made (ADM.31):
-            `total`, `points` (their centres, parsecs) and `sectors`
+            `total`, `points` (their centers, parsecs) and `sectors`
             (`[shell, band, wedge]`), up to a cap. The map rings them and
             opens on the smallest stage holding them. `None` shows none.
 
@@ -790,7 +790,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
      one; Escape or Backspace goes one step back out
      and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view about the center marked in the middle of the map, and the wheel zooms toward what is under the pointer; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected. Alt, Shift and the arrow keys, or the Menu's step buttons, move the map to the neighbouring region at the same level (north, south, west, east), and [ and ] go in toward the core and out from it."></canvas>
-<div class="starmap-centre" id="galaxymap3d-centre" aria-hidden="true" title="The center the view turns and zooms about"></div>
+<div class="starmap-center" id="galaxymap3d-center" aria-hidden="true" title="The center the view turns and zooms about"></div>
 {where_block}{legend_block}
 <div class="map-corner-stack" id="galaxymap3d-corner-stack">
 <div class="map-layer-legend" id="galaxymap3d-layer-legend" hidden></div>

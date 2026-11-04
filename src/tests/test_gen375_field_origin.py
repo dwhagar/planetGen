@@ -1,7 +1,7 @@
 # tests/test_gen375_field_origin.py
 
 """
-GEN.375: the field kernel measures from a local origin, so a sector 262 kpc from the galaxy's centre gets the same path and the same
+GEN.375: the field kernel measures from a local origin, so a sector 262 kpc from the galaxy's center gets the same path and the same
 pull as one beside it.
 
 A float64 near the 262 kpc reach is 1,049 km apart (`docs/design/architecture/numeric-precision-audit.md` section 3.4). The pull of

@@ -82,7 +82,7 @@ def test_a_planet_a_crowded_giant_throws_out_is_an_ejection_record_with_its_enco
     assert loss.theta == pytest.approx(scatter.safronov_number(300.0, JUPITER_R, 1.59, 1.0))
     assert loss.ejected > 0.7 and loss.ejected + loss.collided + loss.bound == pytest.approx(1.0)
     assert loss.hill_radius_au == pytest.approx(scatter.hill_radius_au(80.0, 1.59, 1.0))
-    assert loss.time_yr == scatter.DISC_LIFETIME_YR and loss.ice_rich is False
+    assert loss.time_yr == scatter.DISK_LIFETIME_YR and loss.ice_rich is False
 
 
 def test_a_planet_a_hot_jupiter_sweeps_up_collides_instead_of_leaving_because_the_giant_is_close_to_the_star():

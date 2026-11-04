@@ -23,7 +23,7 @@ KINDS = {
     # --- the pair placement of a star tree (multistar._Builder.place): one count per try that is thrown away ---------------------------
     "pair.axis_out_of_range": Kind("star-tree", False, "an orbit axis outside the stable window of its parent or the place's widest axis"),
     "pair.no_allowed_period": Kind("star-tree", False, "no period the law allows for this pair between the Roche floor and the ceiling (the legal reason)"),
-    "pair.overlap": Kind("star-tree", True, "a pair whose closest approach does not clear what it holds (the Roche limit or the inner apocentres)"),
+    "pair.overlap": Kind("star-tree", True, "a pair whose closest approach does not clear what it holds (the Roche limit or the inner apocenters)"),
     "pair.interaction_gate": Kind("star-tree", False, "an interaction the pair's members or the age do not allow (a compact accretor, a contact binary of the wrong age)"),
     "pair.unstable_triple": Kind("star-tree", False, "a triple that fails the hierarchical stability screen"),
     "pair.kozai": Kind("star-tree", False, "a triple the Kozai-Lidov screen calls unsafe"),

@@ -123,7 +123,7 @@ def test_mars_would_hold_far_more_n2_than_it_has_so_the_thin_air_is_the_escape_o
     assert mars / MARS["mass_kg"] > _balance(EARTH, 0.1, EARTH_CAPS)["air_kg"]["N2"] / EARTH["mass_kg"]
 
 
-def test_the_impactor_vapour_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets():
+def test_the_impactor_vapor_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets():
     for planet in (EARTH, VENUS, MARS):
         zeta = _balance(planet, 0.1, fraction=1e-4)["escape_share"]
         assert 0.05 < zeta < 0.25

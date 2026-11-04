@@ -158,7 +158,7 @@ def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, w
     Raises:
         redisqueue.Unavailable: No Redis server answers.
         runrecord.Busy: Another run is running and this one may not wait.
-        units.RunStopped: A unit failed or the run was cancelled.
+        units.RunStopped: A unit failed or the run was canceled.
     """
     followers = dedupe(followers)
     mysql_config = store.mysql_config_from_args(args)

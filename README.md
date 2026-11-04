@@ -197,7 +197,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Source: [R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com.
 - Download: 3 files, 1257.8 MB. Kept after setup: `ir_ktables.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_ktables`.
-- Replaces: the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band centre of the gas table.
+- Replaces: the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band center of the gas table.
 - With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_h2o.fits.gz`

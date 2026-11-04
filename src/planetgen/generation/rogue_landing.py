@@ -6,7 +6,7 @@ time since the ejection give the rogue's position and velocity and so the sector
 
 The velocity of the body relative to its donor is the planet's orbital velocity at the ejection plus the scattering kick (`ejection_events`). The donor
 goes round the galaxy on a circular orbit (`galactic_orbit`), so the rogue's motion from it is the epicyclic drift of `rogue_drift`: the offset along the
-orbit is an angle round the galactic centre (`ring_drift`), which is how a rogue that has gone far lands on the other side of the galaxy's rotation
+orbit is an angle round the galactic center (`ring_drift`), which is how a rogue that has gone far lands on the other side of the galaxy's rotation
 rather than on a straight line. The axes are the galaxy frame's own (`galaxy/frame.py`): outward from the axis, along the rotation (counterclockwise from
 galactic north) and up. The epicyclic constants are those of `rogue_drift.SOLAR_NEIGHBOURHOOD` (a stand-in for every donor's radius, registered with
 its rows in `docs/design/research/gap-filling-plan.md`).
@@ -78,7 +78,7 @@ def placement_of(landing_):
 def apply_motion(planet, landing_):
     """
     Gives a rogue planet the motion the store keeps: its galaxy-frame velocity (`ejecta_velocity_kms`, which `store._free_vector` stores) and the
-    galactic orbit fields of a free object (`galactic_orbit.generate_galactic_orbit_fields` at its distance from the centre, the phase its own
+    galactic orbit fields of a free object (`galactic_orbit.generate_galactic_orbit_fields` at its distance from the center, the phase its own
     azimuth, so no draw is made).
     """
     x, y, _z = landing_.position_pc

@@ -9,7 +9,7 @@ One function of position returns the potential and the pull of a galaxy, and one
 - **Hernquist spheres**, `Phi = -G M / (r + a)`: the bulge (the bar's three axes are not kept: a sphere of the bar's long
   axis), the stellar halo, the nuclear star cluster;
 - **Miyamoto-Nagai disks** [R3103], `Phi = -G M / sqrt(R^2 + (a + sqrt(z^2 + b^2))^2)`: the thin and thick disks and the nuclear
-  disc, with `a` the disk's scale length and `b` its scale height;
+  disk, with `a` the disk's scale length and `b` its scale height;
 - **an NFW halo** [R3248] of the dark matter, `Phi = -G M_s ln(1 + r / r_s) / r`, of the mass chain's halo less the galaxy's
   stars, its virial radius and its concentration (`enclosed_mass.dark_halo`).
 
@@ -49,7 +49,7 @@ BLACK_HOLE_SOFTENING_PC = 1.0
 
 HERNQUIST_COMPONENTS = {"bulge": "scale_x_pc", "halo": "break_pc", "nuclear_cluster": "scale_pc"}
 """dict: The components of the density model a Hernquist sphere stands for, and the parameter of each that is its scale radius (stand-ins GP2 and GP3)."""
-DISK_COMPONENTS = ("thin_disk", "thick_disk", "nuclear_disc")
+DISK_COMPONENTS = ("thin_disk", "thick_disk", "nuclear_disk")
 """tuple: The components a Miyamoto-Nagai disk stands for, with `a` the component's `scale_length_pc` and `b` its `scale_height_pc` (stand-in GP1)."""
 
 Hernquist = collections.namedtuple("Hernquist", ("name", "mass_solar", "scale_pc"))
@@ -102,7 +102,7 @@ def _nfw_mass_function(u):
 
 
 def potential(pot, x, y, z):
-    """The potential at `(x, y, z)` (parsecs, the galaxy's axes with the centre at the origin), in (km/s)^2, zero at infinity. A float for float input."""
+    """The potential at `(x, y, z)` (parsecs, the galaxy's axes with the center at the origin), in (km/s)^2, zero at infinity. A float for float input."""
     x, y, z = _arrays(x, y, z)
     r = np.sqrt(x * x + y * y + z * z)
     big_g = G_PC_KMS2_PER_MSUN
@@ -118,7 +118,7 @@ def potential(pot, x, y, z):
         scale = pot.nfw_scale_pc
         u = r / scale
         small = u < 1.0e-8
-        # ln(1 + u) / u -> 1 at the centre, so the potential there is -G M_s / r_s.
+        # ln(1 + u) / u -> 1 at the center, so the potential there is -G M_s / r_s.
         ratio = np.where(small, 1.0, np.log1p(np.where(small, 1.0, u)) / np.where(small, 1.0, u))
         total -= big_g * pot.nfw_characteristic_solar / scale * ratio
     return float(total) if total.ndim == 0 else total

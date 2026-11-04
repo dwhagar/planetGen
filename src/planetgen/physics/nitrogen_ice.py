@@ -8,7 +8,7 @@ The comet table has no N2, so no body held nitrogen ice and no Triton-like nitro
 
 1. **Where it forms.** N2 condenses at the temperature where its saturation pressure equals its partial pressure in the disk gas: the nitrogen over the hydrogen
    (`DISK_N2_PER_H2`, all of the Sun's nitrogen as N2: log eps 7.83 against 12 for hydrogen [R0169]) times the disk's total pressure (`DISK_PRESSURE_PA`, 1e-4 bar, the
-   pressure of the condensation table `condensate_shares`). The vapour pressure is beta-N2 [R1445] (`saturation`). That is 28.7 K; a body whose ice formed in a zone warmer
+   pressure of the condensation table `condensate_shares`). The vapor pressure is beta-N2 [R1445] (`saturation`). That is 28.7 K; a body whose ice formed in a zone warmer
    than that (the blackbody disk temperature at its formation distance, as the water line is found in `bulk_draw`) gets no N2 ice, and its nitrogen is the ammonia
    of its ice, as before.
 2. **How much.** The solar ceiling is 0.107 of the water's mass as N2 (all nitrogen as N2, all oxygen in water; `SOLAR_N2_PER_WATER`). What cold bodies keep is 1e-4 to 1.4e-3

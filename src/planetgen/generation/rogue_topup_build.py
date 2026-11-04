@@ -70,7 +70,7 @@ def place(rogue, address, edge_pc, circular_speed_km_s):
 
 
 def circular_speed_at(address, edge_pc):
-    """The circular speed of the Galaxy at the centre of a sector, km/s (what a top-up object's velocity is measured against)."""
+    """The circular speed of the Galaxy at the center of a sector, km/s (what a top-up object's velocity is measured against)."""
     center = spherical.sector_position_pc(*address, edge_pc)
     return galactic_orbit.calculate_galactic_orbit(pc_to_ly(math.sqrt(sum(c * c for c in center))))[0]
 

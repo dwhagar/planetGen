@@ -800,9 +800,9 @@ def test_galaxy_sector_count_in_box_counts_every_addressed_sector(mysql_config):
     try:
         everything = query.galaxy_sector_count_in_box(conn, (-100.0, -100.0, -100.0), (100.0, 100.0, 100.0))
         none = query.galaxy_sector_count_in_box(conn, (500.0, 500.0, 500.0), (600.0, 600.0, 600.0))
-        centre = sector_position_pc(7, -1, 30, 4.0)
-        inclusive = query.galaxy_sector_count_in_box(conn, centre, tuple(c + 1.0 for c in centre))
-        exclusive = query.galaxy_sector_count_in_box(conn, tuple(c - 1.0 for c in centre), centre)
+        center = sector_position_pc(7, -1, 30, 4.0)
+        inclusive = query.galaxy_sector_count_in_box(conn, center, tuple(c + 1.0 for c in center))
+        exclusive = query.galaxy_sector_count_in_box(conn, tuple(c - 1.0 for c in center), center)
     finally:
         conn.close()
     assert everything == len(addresses) and none == 0
@@ -2310,7 +2310,7 @@ def test_nebula_volume_endpoint_serves_packed_points(client, mysql_config):
 
 def test_nebula_surroundings_endpoint_lists_the_bright_stars_round_it(client, mysql_config):
     """MAP.105: `/api/nebulae/<id>/surroundings` lists the brightest stars
-    near the nebula, positions relative to its centre; a nebula never
+    near the nebula, positions relative to its center; a nebula never
     placed has none; an unknown one is a 404."""
     from planetgen.generation.phenomena.nebula import Nebula
 
@@ -2430,7 +2430,7 @@ def test_only_an_admin_generates_an_uncharted_star(client, mysql_config):
 
 def test_galaxy_superbubbles_list_the_cavities_and_a_sector_inside_one_names_it(client, mysql_config):
     """GEN.254: `GET /api/galaxy/superbubbles` is empty before a plan, then lists the seeded cavities; a sector whose
-    centre is inside one carries it as `superbubble`, one outside carries `null`."""
+    center is inside one carries it as `superbubble`, one outside carries `null`."""
     from planetgen import tuning
     from planetgen.galaxy import superbubble_field
     from planetgen.galaxy.density import build_galaxy_shape

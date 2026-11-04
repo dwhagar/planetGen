@@ -88,7 +88,7 @@ def test_the_extra_pull_is_added_to_the_same_kick():
     assert (still == 0.0).all()
 
 
-def test_a_star_at_rest_at_the_centre_and_a_zero_span_are_safe():
+def test_a_star_at_rest_at_the_center_and_a_zero_span_are_safe():
     pot = _galaxy()
     x, v, capped = S.advance(np.zeros((1, 3)), np.zeros((1, 3)), 10.0, pot)
     assert np.isfinite(x).all() and np.isfinite(v).all() and not capped.any()

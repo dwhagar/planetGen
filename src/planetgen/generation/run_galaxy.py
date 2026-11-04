@@ -699,16 +699,16 @@ SAVED_NO_SECTOR = "no sector was saved since the run started"
 """str: The reason a stage that works on the run's sectors gives for having nothing to do."""
 
 LINK_UNIT_SECTORS = 500
-"""int: Sectors in a unit of the `link-neighbours` stage (PERF.113). A sector links in about 70 ms at the default galaxy size,
+"""int: Sectors in a unit of the `link-neighbors` stage (PERF.113). A sector links in about 70 ms at the default galaxy size,
 so a unit is about 35 s and a long link is many short units (PERF.155)."""
 
 LINK_UNITS_MAX = 1000
-"""int: Most units the `link-neighbours` stage is cut into; a larger stage has bigger units."""
+"""int: Most units the `link-neighbors` stage is cut into; a larger stage has bigger units."""
 
 
-def expand_link_neighbours(params):
+def expand_link_neighbors(params):
     """
-    The `link-neighbours` command's stage (PERF.107, PERF.113): the sectors saved since `params["since"]` (or named in
+    The `link-neighbors` command's stage (PERF.107, PERF.113): the sectors saved since `params["since"]` (or named in
     `params["sector_ids"]`) are found once, here, put in neighbourhood order (`store.link_order`) and cut into static
     chunks of `LINK_UNIT_SECTORS` (at most `LINK_UNITS_MAX` chunks), the same at any worker count. Each unit links its
     chunk and leaves the run's other sectors alone, as the batches of one call do: a sector's lists are computed whole from
@@ -727,9 +727,9 @@ def expand_link_neighbours(params):
                               {"sectors": len(ordered), **({} if ordered else {"skip": SAVED_NO_SECTOR})})
 
 
-def link_neighbours_unit(params, report):
+def link_neighbors_unit(params, report):
     """
-    The `link-neighbours` command's unit (PERF.45, PERF.107, PERF.113): links a chunk of the sectors a `galaxy` run created
+    The `link-neighbors` command's unit (PERF.45, PERF.107, PERF.113): links a chunk of the sectors a `galaxy` run created
     to their neighbours (`store.link_sector_neighbors`): containment, nearest systems and quadrants, and the new systems
     merged into the lists of the sectors around. Done once for the whole run, in place of one locked step per saved sector,
     so the workers no longer queue for it; the stored result is the same. The run's other sectors (found again from
@@ -747,8 +747,8 @@ def link_neighbours_unit(params, report):
 
 class LinkFollower(followed.Follower):
     """
-    The link stage of a run on the new queue (PERF.113): the wrapper selects the `link-neighbours` command from this run's
-    steps, finds the sectors to link once and cuts them into units (`expand_link_neighbours`), this process follows the
+    The link stage of a run on the new queue (PERF.113): the wrapper selects the `link-neighbors` command from this run's
+    steps, finds the sectors to link once and cuts them into units (`expand_link_neighbors`), this process follows the
     units with a bar of the sectors they link, and the unit that completes the stage stores the stage's row.
 
     Attributes:
@@ -1152,7 +1152,7 @@ def _sectors_made_since(args):
 def run_link(args):
     """
     `planetgen link --since TIME` (PERF.123): links the sectors saved since `TIME` to their neighbours (the
-    `link-neighbours` command, one unit): containment, nearest systems and quadrants, and the new systems merged into the
+    `link-neighbors` command, one unit): containment, nearest systems and quadrants, and the new systems merged into the
     lists of the sectors around them. Nothing else; a failure ends the run.
     """
     _resolve_since(args)
@@ -1705,9 +1705,9 @@ def _is_far(center, edge_pc, bounds):
 
 def _report_far_neighborhood(args, center, radius_pc, edge_pc, bounds, skeleton):
     """
-    A neighbourhood request centred outside the outline says, before anything is
+    A neighbourhood request centered outside the outline says, before anything is
     enumerated, how many sectors it holds and how many systems they expect at
-    the centre's profile (a cubic kiloparsec of empty halo is 1.6e7 cells), and
+    the center's profile (a cubic kiloparsec of empty halo is 1.6e7 cells), and
     warns (`--strict` stops) over `LARGE_RUN_WARNING_THRESHOLD`.
     """
     address = sector_address_at(center, edge_pc)
@@ -1728,15 +1728,15 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=No
                              limit=None):
     """
     Every address within `radius_pc` of `center` that the neighbourhood
-    takes (`_neighborhood_filter`: inside the galaxy's outline for a centre
+    takes (`_neighborhood_filter`: inside the galaxy's outline for a center
     inside it, anywhere in the reach for one outside), the set of those
     already occupied, and how many addresses in the sphere were left out --
     the sphere is trimmed to the galaxy before anything is generated.
-    A centre outside the outline reports the size of the request first
+    A center outside the outline reports the size of the request first
     (`_report_far_neighborhood`, once per run) when `args` and `skeleton` are given.
 
     The candidates come in the order the fill generates them (GEN.101,
-    `fill_order.fill_order`): the centre's sector first, then outward in blocks of
+    `fill_order.fill_order`): the center's sector first, then outward in blocks of
     four sectors a side along a Hilbert curve; a caller that only wants the set
     passes `ordered=False` and gets the enumeration's order. With `args` given, the
     steps that are not between neighbours are counted in a line of the log, once
@@ -1799,7 +1799,7 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
     """
     The not-yet-generated sectors among `candidates`
     (`_neighborhood_candidates`), as `_submit_batch` items, in
-    the order `candidates` came (the fill order of GEN.101: the centre first, then
+    the order `candidates` came (the fill order of GEN.101: the center first, then
     outward); `suffix` may hold `{distance}` (pc).
 
     Returns:
@@ -2212,7 +2212,7 @@ def generate_block(block_key, config=None, estimate_only=False):
 
 
 def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
-    """Whether the centre and the six points `radius_pc` out along the axes
+    """Whether the center and the six points `radius_pc` out along the axes
     all lie inside the outline: a cheap test that the neighborhood is not
     cut by the galaxy's edge (GEN.97)."""
     x, y, z = position_pc
@@ -2243,9 +2243,9 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
     radius from every start in `taken`, and it passes the
     `--neighborhood-gamma` draw (accepted with probability
     `min(1, density) ** gamma`; gamma 0, the default, accepts every one).
-    With `--avoid-filled-space` (GEN.186) a centre whose neighborhood
+    With `--avoid-filled-space` (GEN.186) a center whose neighborhood
     touches an already generated sector is retried too; `drawn`, when
-    given, is a dict that gets `centres` (examined) and `filled` (dropped
+    given, is a dict that gets `centers` (examined) and `filled` (dropped
     for touching filled space) counted up. With `run_seed` the start is drawn from the stream of that seed and
     `index` (the same seed and index give the same start at any worker count, PERF.123); without it, from the
     run's own stream.
@@ -2277,7 +2277,7 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
             continue
         if args.avoid_filled_space:
             if drawn is not None:
-                drawn["centres"] = drawn.get("centres", 0) + 1
+                drawn["centers"] = drawn.get("centers", 0) + 1
             if _touches_filled_space(args, position_pc, radius_pc, edge_pc, batch_density):
                 if drawn is not None:
                     drawn["filled"] = drawn.get("filled", 0) + 1
@@ -2356,9 +2356,9 @@ def _plan_random_start(args, edge_pc, progress):
     finally:
         conn.close()
     if args.avoid_filled_space:
-        log.normal(f"Keeping away from filled space: {drawn.get('filled', 0):,} of {drawn.get('centres', 0):,} "
+        log.normal(f"Keeping away from filled space: {drawn.get('filled', 0):,} of {drawn.get('centers', 0):,} "
                    f"candidate centers touched sectors that are already generated and were dropped, "
-                   f"{drawn.get('centres', 0) - drawn.get('filled', 0):,} qualified.")
+                   f"{drawn.get('centers', 0) - drawn.get('filled', 0):,} qualified.")
     if not starts:
         density_note = (
             f", meeting --min-start-density {args.min_start_density} (try lowering it or --max-shell "

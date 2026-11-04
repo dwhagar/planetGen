@@ -2158,7 +2158,7 @@ def main():
     except SystemExit as exc:
         # SIGTERM inside a work queue (Cancel) exits with 128 + signal.
         if isinstance(exc.code, int) and exc.code >= 128:
-            status, failure = "interrupted", "cancelled"
+            status, failure = "interrupted", "canceled"
         elif exc.code in (None, 0):
             status = "ok"
         else:
@@ -2185,7 +2185,7 @@ def main():
 def _exit_on_sigterm():
     """
     Makes a SIGTERM (Cancel on the Generate page, `kill`) end the run as `SystemExit(128 + 15)`, so the run's own
-    cleanup runs (its run record ends as cancelled at once, not after the stale time) as Ctrl+C does.
+    cleanup runs (its run record ends as canceled at once, not after the stale time) as Ctrl+C does.
 
     Returns:
         The handler it replaced, to put back when the run ends, or `None` when it is not the main thread.

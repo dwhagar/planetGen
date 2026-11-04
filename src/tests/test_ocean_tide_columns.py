@@ -68,7 +68,7 @@ def test_a_retrograde_orbit_cannot_lock_the_body_it_goes_round_the_other_way_fro
 def test_an_ice_covered_ocean_is_zero_and_a_body_without_a_free_sea_is_empty():
     ice = ocean_tides.compute(_body(hydrosphere="ice-covered ocean", moons=[_moon()]))
     assert ice == {"tide_range_spring_m": 0.0, "tide_range_neap_m": 0.0, "ocean_liquid": "water"}
-    for state in ("dry", "vapour", "ice", "brine seep", "hycean", None):
+    for state in ("dry", "vapor", "ice", "brine seep", "hycean", None):
         assert ocean_tides.compute(_body(hydrosphere=state, moons=[_moon()])) == dict.fromkeys(ocean_tides.FIELDS)
     assert ocean_tides.compute(_body(rotation_period_hours=None)) == dict.fromkeys(ocean_tides.FIELDS)
     assert ocean_tides.compute(_body(spin_axis_x=None)) == dict.fromkeys(ocean_tides.FIELDS)

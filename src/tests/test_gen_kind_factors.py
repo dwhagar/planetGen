@@ -392,7 +392,7 @@ def test_a_place_without_young_stars_has_only_type_ia_remnants(position):
     assert here.type_ia_share > 0.99
 
 
-def test_the_galactic_centre_with_a_sliver_of_young_stars_is_nearly_all_type_ia():
+def test_the_galactic_center_with_a_sliver_of_young_stars_is_nearly_all_type_ia():
     assert _at((0.0, 0.0, 0.0)).type_ia_share > 0.8
 
 

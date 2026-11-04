@@ -1179,10 +1179,10 @@ def test_sector_header_chips_are_facts_only(client, fake):
 
 
 def test_a_sector_inside_a_superbubble_says_so_under_its_map(client, fake):
-    """GEN.254: the cavity's size, the distance from its centre, its gas, and that no molecular cloud survives."""
+    """GEN.254: the cavity's size, the distance from its center, its gas, and that no molecular cloud survives."""
     assert 'id="superbubble"' not in client.get("/sector/5").get_data(as_text=True)
     fake.sectors[5]["superbubble"] = {"radius_pc": 180.5, "ambient_density_cm3": 0.005, "temperature_k": 1.0e6,
-                                      "centre_distance_pc": 42.0}
+                                      "center_distance_pc": 42.0}
     html = client.get("/sector/5").get_data(as_text=True)
     text = re.search(r'<p class="hint sector-details" id="superbubble">(.*?)</p>', html, re.S).group(1)
     assert "361 pc across" in text and "42 pc from its center" in text

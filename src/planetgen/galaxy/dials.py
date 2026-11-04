@@ -230,11 +230,11 @@ corresponds to is `galaxy.mass_chain.HALO_MIN_STELLAR_MASS_SOLAR`, about 4.6e6 s
 the bound is read from papers that agree to within half a dex and is not itself printed in one."""
 
 FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR = 3.0e8
-"""float: The stellar mass, solar masses, under which a galaxy is one disc plus a bulge (Boss, 7:58 PM EDT 10-21): no
-thick disc, no bar, no stellar halo and no nuclear star cluster or disc. The laws that draw them were fitted to
+"""float: The stellar mass, solar masses, under which a galaxy is one disk plus a bulge (Boss, 7:58 PM EDT 10-21): no
+thick disk, no bar, no stellar halo and no nuclear star cluster or disk. The laws that draw them were fitted to
 galaxies of this mass and up: [R4824]'s sample starts at a circular speed of about 50 km/s, which
 the baryonic Tully-Fisher law of `structure_draw` puts at 2.9e8 (density-limits report 10-21, section 2.3), and below
-it the thick disc outweighs the thin one (906 times at 281 solar masses) and the nuclear disc, 61 times the cluster,
+it the thick disk outweighs the thin one (906 times at 281 solar masses) and the nuclear disk, 61 times the cluster,
 holds 80 percent of the stars in a space smaller than a cell. Status: derived."""
 
 HALO_MIN_STATUS = "bracket"

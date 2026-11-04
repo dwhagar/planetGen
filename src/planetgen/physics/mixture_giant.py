@@ -75,7 +75,7 @@ METALS = ("C", "N", "O", "Ne", "Na", "Mg", "Si", "S", "Ar", "K", "Ca", "Fe", "P"
 """tuple: The elements the budget carries beyond hydrogen and helium (every one the thermodynamic table has a gas of)."""
 
 ALKALI_ONSET_K = {"Na": 962.0, "K": 775.0}
-"""dict: Where the sodium and potassium gas appear (the centres of rows `m7` and `m8`), for a body whose recipe has no such row."""
+"""dict: Where the sodium and potassium gas appear (the centers of rows `m7` and `m8`), for a body whose recipe has no such row."""
 
 MIN_PARTIAL_BAR = 1e-40
 """float: A species with a partial pressure below this is not tested against its saturation curve."""
@@ -365,7 +365,7 @@ def _flag(recipe, row, default):
 
 def _alkali_in_gas(subject, row, temperature_k, onset_k):
     """Whether the alkali metal is in the gas of the layer: the seeded draw of the recipe row `m7` (Na) or `m8` (K) where the row
-    applies to the subject, else the temperature test at the row's centre."""
+    applies to the subject, else the temperature test at the row's center."""
     entry = RECIPES.entry(row)
     if entry.supports(subject):
         try:

@@ -19,7 +19,7 @@ BLOCK = 2880
 PRESSURES_BAR = np.logspace(-2.0, 2.0, 5)
 TEMPERATURES_K = np.array([100.0, 300.0, 1000.0, 2500.0])
 """ndarray: The fixture's axes; 2500 K is above `ir_ktables.T_MAX_K`, so the reducer drops it."""
-LINE_CENTRE_CM1 = {"H2O": 1600.0, "CO2": 667.0, "CH4": 1306.0}
+LINE_CENTER_CM1 = {"H2O": 1600.0, "CO2": 667.0, "CH4": 1306.0}
 LINE_WIDTH_CM1 = {"H2O": 300.0, "CO2": 60.0, "CH4": 100.0}
 LINE_STRENGTH = {"H2O": 3.0e-19, "CO2": 1.0e-18, "CH4": 5.0e-19}
 """dicts: Where each fixture gas absorbs, how wide the band is, and its peak k (cm2 per molecule at one bar, 300 K, the strongest g point)."""
@@ -54,7 +54,7 @@ def wavelengths_cm():
 def line_k(gas, pressure_bar, temperature_k, g_nodes, wavelength_cm):
     """The fixture's k (cm2 per molecule) for axes broadcast to (pressure, temperature, g, wavelength)."""
     nu = (1.0 / wavelength_cm)[None, None, None, :]
-    shape = np.exp(-(((nu - LINE_CENTRE_CM1[gas]) / LINE_WIDTH_CM1[gas]) ** 2))
+    shape = np.exp(-(((nu - LINE_CENTER_CM1[gas]) / LINE_WIDTH_CM1[gas]) ** 2))
     strength = LINE_STRENGTH[gas] * (pressure_bar[:, None, None, None] ** 0.5) * (300.0 / temperature_k[None, :, None, None]) ** 0.5
     return FLOOR + strength * shape * 10.0 ** (-6.0 * (1.0 - g_nodes[None, None, :, None]))
 

@@ -146,7 +146,7 @@ def _wait_finished(job_id, root, timeout=30):
         if job and job["finished"]:
             try:
                 with open(os.path.join(root, job_id, "state.json"), "r", encoding="utf-8") as f:
-                    final = json.load(f).get("status") in ("succeeded", "failed", "cancelled")
+                    final = json.load(f).get("status") in ("succeeded", "failed", "canceled")
             except (OSError, ValueError):
                 final = False
             holder = jobs._read_lock(redisqueue.connect())
@@ -1111,10 +1111,10 @@ def test_cancel_stops_the_running_step(site, client, jobs_root, redis_server):
     resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "csrf_token": _token(client)})
     assert resp.status_code == 303
     job = _wait_finished(job_id, jobs_root)
-    assert job["status"] == "cancelled"
+    assert job["status"] == "canceled"
     assert "should not run" not in jobs.log_tail(job_id)
     html = client.get(f"/admin/generate/jobs/{job_id}").get_data(as_text=True)
-    assert "cancelled" in html and "Cancel job" not in html
+    assert "canceled" in html and "Cancel job" not in html
 
 
 @pytest.mark.real_queue
@@ -1136,7 +1136,7 @@ def test_cancel_stops_the_steps_own_children(jobs_root, tmp_path, redis_server):
         assert time.time() < deadline
         time.sleep(0.05)
     assert jobs.cancel_job(job_id)
-    assert _wait_finished(job_id, jobs_root)["status"] == "cancelled"
+    assert _wait_finished(job_id, jobs_root)["status"] == "canceled"
     time.sleep(4)
     assert not marker.exists()
 
@@ -1150,7 +1150,7 @@ def test_cancel_is_a_file_the_runner_reads(jobs_root):
     assert jobRunner.CANCEL_NAME == jobs.CANCEL_NAME
     assert jobRunner.run(path) == 1
     job = jobs.get_job(job_id)
-    assert job["status"] == "cancelled"
+    assert job["status"] == "canceled"
     assert "ran" not in (jobs.log_tail(job_id) or "")
     assert jobs.active_job() is None
 
@@ -1165,7 +1165,7 @@ def test_cancel_of_a_finished_job_does_nothing(jobs_root, redis_server):
 
 @pytest.mark.real_queue
 def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_root, redis_server):
-    """PERF.99: the runs the job's step started are cancelled by the cancel itself, through the stop command, not left to
+    """PERF.99: the runs the job's step started are canceled by the cancel itself, through the stop command, not left to
     the step noticing; the machine is free before the step is gone."""
     from planetgen.queue import runrecord
     from planetgen.queue.runrecord import Stage
@@ -1182,9 +1182,9 @@ def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_
     resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "csrf_token": _token(client)})
     assert resp.status_code == 303
     run = runrecord.read_run(connection, run_id)
-    assert run["state"] == "cancelled" and run["error"] == "canceled by boss"
+    assert run["state"] == "canceled" and run["error"] == "canceled by boss"
     assert runrecord.read_run(connection, other)["state"] in runrecord.LIVE_STATES
-    assert _wait_finished(job_id, jobs_root)["status"] == "cancelled"
+    assert _wait_finished(job_id, jobs_root)["status"] == "canceled"
 
 
 def test_cancel_on_a_job_page_returns_to_the_page_it_was_opened_from(site, client, jobs_root, redis_server):

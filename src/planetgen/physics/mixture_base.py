@@ -54,7 +54,7 @@ class MixtureDraw:
         unlisted (dict): Species the equilibrium holds that the gas table does not (their mole fractions before the remainder was
             renormalised): atoms and radicals of a hot gas.
         moles (float or None): The moles of gas the element budget makes, per 100 g of mantle (the scale of `inventory`: the elements it
-            holds as atoms per 100 g); `None` for a family whose pressure is not a supply (a giant's reference level, the vapour over a
+            holds as atoms per 100 g); `None` for a family whose pressure is not a supply (a giant's reference level, the vapor over a
             melt or an ice). After the loss of the light gases (`mixture_escape`) it is what stays.
     """
 

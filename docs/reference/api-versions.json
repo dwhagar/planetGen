@@ -151,11 +151,14 @@
       "first_release": null,
       "pending": true,
       "items": [
-        "GEN.1212"
+        "GEN.1212",
+        "DOC.103"
       ],
-      "summary": "A planet or moon no longer carries a description text of its class.",
+      "summary": "A planet or moon no longer carries a description text of its class; the stored values and API keys spelled the British way are spelled the American way.",
       "changes": [
-        "GET /api/systems/<id>: planets and moons have no description; the words of a class are on the system's description document (GET /api/systems/<id>/description) and the object sheet"
+        "GET /api/systems/<id>: planets and moons have no description; the words of a class are on the system's description document (GET /api/systems/<id>/description) and the object sheet",
+        "GET /api/sectors/<id>, GET /api/containers/at, GET /api/containers/<id>, GET /api/galaxy/charted-regions, the extent of a region node and the galaxy block statistics: the keys centre, centre_pc and centre_distance_pc are center, center_pc and center_distance_pc",
+        "A body's hydrosphere value vapour is vapor; the population value nuclear_disc is nuclear_disk; the run and job states cancelling and cancelled are canceling and canceled, and the answer of a cancel is {ok, canceled, stopped}"
       ]
     }
   ]

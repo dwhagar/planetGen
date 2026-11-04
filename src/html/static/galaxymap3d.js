@@ -25,7 +25,7 @@
 // The galaxy's sector grid is drawn as blocks of whole sectors, one
 // drill-down stage at a time (./galaxystageview.js, rules in
 // ./galaxystages.js): the whole galaxy's blocks, then for each block
-// clicked the window of blocks one size down centred on it, ... down to a
+// clicked the window of blocks one size down centered on it, ... down to a
 // window of sectors (MAP.150, MAP.151). Every view can be
 // turned and zoomed within limits; the whole galaxy has no grid lines
 // drawn on it, so its stars and spiral show through. Density is computed right here from the galaxy's own
@@ -231,7 +231,7 @@ var restingHint = (infoPanel() && infoPanel().element && infoPanel().element.tex
 var REGION_BLOCK_MAX = 9;
 
 // MAP.315: the charted region a point lies in, set once the map has its nodes: regionLookup(x, y, z) resolves to
-// {name, parent, block, extent, parentBlock} (the 9-block with its extent {centre, radius} in pc, and its 81-block family,
+// {name, parent, block, extent, parentBlock} (the 9-block with its extent {center, radius} in pc, and its 81-block family,
 // with their names) or null, and regionOpener.region(region) frames the region's extent (a block's window when the node
 // has none) and regionOpener.block(block) flies the camera to a block.
 var regionLookup = null;
@@ -537,7 +537,7 @@ function showRegionInfo(blob) {
 // Flies to a charted region of the regions layer: its window, the camera framing its extent (MAP.319).
 function openRegionBlob(blob) {
   if (!regionOpener) return;
-  regionOpener.region({ block: blob.block, name: blob.name, extent: { centre: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
+  regionOpener.region({ block: blob.block, name: blob.name, extent: { center: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
 }
 
 function cloudFacts(cloud) {
@@ -933,9 +933,9 @@ function initGalaxyMap3d(canvasEl, data) {
     scene.children.forEach(function (child) {
       if (child !== group && child.visible && !child.isLight) { child.visible = false; hidden.push(child); }
     });
-    // The offset of the system from the eye, worked out as (centre - target) - back so no step of a double at the galaxy's size is in it.
-    group.position.set((frame.centre[0] - target.x - eyeBack.x) * scale, (frame.centre[1] - target.y - eyeBack.y) * scale,
-      (frame.centre[2] - target.z - eyeBack.z) * scale);
+    // The offset of the system from the eye, worked out as (center - target) - back so no step of a double at the galaxy's size is in it.
+    group.position.set((frame.center[0] - target.x - eyeBack.x) * scale, (frame.center[1] - target.y - eyeBack.y) * scale,
+      (frame.center[2] - target.z - eyeBack.z) * scale);
     group.scale.multiplyScalar(scale);
     camera.position.copy(DEEP_CLEAR);
     camera.near = Math.min(BASE_NEAR, dist * 1e-3) * scale;
@@ -1001,7 +1001,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // The middle of a cell given as bounds (radius, colatitude, longitude), in the galaxy's frame.
-  function cellCentre(b) {
+  function cellCenter(b) {
     var r = (b.r0 + b.r1) / 2;
     var c = (b.c0 + b.c1) / 2;
     var t = (b.t0 + b.t1) / 2;
@@ -1024,7 +1024,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell && !groupWindow);
     if (nebulaVolumes) {
       nebulaVolumes.setVisible(!hiddenCell);
-      nebulaVolumes.setClip(groupWindow ? { centre: groupWindow.centre, radiusPc: groupWindow.radiusPc } : null);
+      nebulaVolumes.setClip(groupWindow ? { center: groupWindow.center, radiusPc: groupWindow.radiusPc } : null);
     }
     if (markerLayer) markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: the marks dim as the stars do
     if (sectorFrame) sectorFrame.set(hiddenCell);
@@ -1058,7 +1058,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (!made) return false;
     if (!groupWindow) {
       var scale = stageView.scaleInfo();
-      windowReturn = stageView.centre() && scale ? { center: stageView.centre(), dist: scale.dist } : null;
+      windowReturn = stageView.center() && scale ? { center: stageView.center(), dist: scale.dist } : null;
     }
     groupWindow = made;
     refreshWindowView();
@@ -2213,11 +2213,11 @@ function initGalaxyMap3d(canvasEl, data) {
   // The sphere that holds every region of a group: its middle is the members' mean, its radius reaches the farthest member's far side.
   function regionGroupExtent(group) {
     var n = group.members.length;
-    var centre = [0, 0, 0];
-    group.members.forEach(function (blob) { centre[0] += blob.x / n; centre[1] += blob.y / n; centre[2] += blob.z / n; });
+    var center = [0, 0, 0];
+    group.members.forEach(function (blob) { center[0] += blob.x / n; center[1] += blob.y / n; center[2] += blob.z / n; });
     var radius = 0;
-    group.members.forEach(function (blob) { radius = Math.max(radius, Math.hypot(blob.x - centre[0], blob.y - centre[1], blob.z - centre[2]) + blob.radiusPc); });
-    return { centre: centre, radius: radius };
+    group.members.forEach(function (blob) { radius = Math.max(radius, Math.hypot(blob.x - center[0], blob.y - center[1], blob.z - center[2]) + blob.radiusPc); });
+    return { center: center, radius: radius };
   }
   function openRegionGroup(group) {
     if (group.members.length === 1) {
@@ -3531,7 +3531,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Superbubbles (GEN.254) --------------------------------------------------------
   //
   // The cavities the supernovae of OB associations blow in the gas (the Local Bubble
-  // is one), from the galaxy's seed: the page embeds each one's centre and radius in
+  // is one), from the galaxy's seed: the page embeds each one's center and radius in
   // galaxy-frame parsecs. Each is drawn as its sphere (MAP.236, superbubble.js): a faint fill and a
   // crisp rim where the sphere meets the line of sight, under everything else and never picked. No
   // molecular cloud lies inside one.
@@ -3540,7 +3540,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var bubbleMaterial = null;
   var bubbleMeshes = [];
   if (bubbles.length) {
-    // MAP.240: one object for each bubble, at its centre, so no vertex is more than the radius from its origin.
+    // MAP.240: one object for each bubble, at its center, so no vertex is more than the radius from its origin.
     bubbleMaterial = new THREE.ShaderMaterial({
       uniforms: {
         color: { value: new THREE.Vector3().fromArray(superbubble.colorComponents(bubbleLook.color)) },
@@ -3577,7 +3577,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Sectors a generate job made (ADM.31) ---------------------------------------
   //
   // With ?made=<since>,<until> (the job page's "Show on Galaxy Map") the page
-  // embeds the centres and addresses of the sectors that run made, up to a
+  // embeds the centers and addresses of the sectors that run made, up to a
   // cap. They are ringed in one points object, over everything else and never
   // picked, and the map opens on the smallest stage holding them (the same
   // fit a NAV course gets), unless the URL names a stage itself.
@@ -4123,7 +4123,7 @@ function initGalaxyMap3d(canvasEl, data) {
       // The sector across a wall is the one the shared step helper finds (galaxyprisms.neighbourBlock, as the arrow keys use).
       neighbour: function (wall) {
         if (!hiddenCell) return null;
-        var middle = cellCentre(hiddenCell);
+        var middle = cellCenter(hiddenCell);
         var here = sectorAddressAt(middle[0], middle[1], middle[2], edgePc);
         var found = neighbourBlock({ m: 1, shell: here.shell, band: here.band, wedge: here.wedge }, wall.dir, edgePc);
         return found && stageOfSector(found.shell, found.band, found.wedge) ? { shell: found.shell, band: found.band, wedge: found.wedge } : null;
@@ -4338,7 +4338,7 @@ function initGalaxyMap3d(canvasEl, data) {
   regionOpener = {
     region: function (region) {
       if (region.extent) {
-        stageView.goTo({ region: { block: region.block, center: region.extent.centre, radius: region.extent.radius }, label: region.name || null });
+        stageView.goTo({ region: { block: region.block, center: region.extent.center, radius: region.extent.radius }, label: region.name || null });
       } else {
         stageView.goTo({ block: region.block });
       }
@@ -4584,7 +4584,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var chosen = selectMarkers({
       budget: sectorOpen ? SECTOR_MARKER_BUDGET : undefined,
       near: nearFieldRule({
-        centre: [target.x, target.y, target.z], distance: camera.position.distanceTo(target),
+        center: [target.x, target.y, target.z], distance: camera.position.distanceTo(target),
         width: canvasEl.clientWidth || 1, height: canvasEl.clientHeight || 1, densityPx: blackHoleDensityPx(densityStorage),
       }),
       kinds: markerKinds.kinds(),
@@ -4637,16 +4637,16 @@ function initGalaxyMap3d(canvasEl, data) {
   var lastBodyEntries = null;
   function bodyHandoffSource() {
     var source = stageView.systemMarkerSource();
-    if (!source || !source.centre) {
+    if (!source || !source.center) {
       bodyHandoff.update(0, 0, false);
       return null;
     }
-    var distance = Math.hypot(camera.position.x - source.centre[0], camera.position.y - source.centre[1], camera.position.z - source.centre[2]);
+    var distance = Math.hypot(camera.position.x - source.center[0], camera.position.y - source.center[1], camera.position.z - source.center[2]);
     return bodyHandoff.update(distance, source.radiusPc, true) ? source : null;
   }
   canvasEl.__bodyMarkersOn = function () { return bodyHandoff.isOn(); };
   // MAP.200: the on-map zoom slider and direction star.
-  if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-centre"));
+  if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-center"));
 
   // --- Pointer and keys ------------------------------------------------------
   //
@@ -5153,7 +5153,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (panel) {
       panel.hint(navPick.active()
         ? navPick.bannerParts("object")[0] + ": zoom out or in to find it, then click it."
-        : "NAV pick cancelled.", false);
+        : "NAV pick canceled.", false);
     }
   }
 
@@ -5286,8 +5286,8 @@ function initGalaxyMap3d(canvasEl, data) {
         lastBodyEntries = handoffSource.entries;    // a new scale rebuilds the bodies, a new system brings its own
         if (bodiesOn) markersDirty = true;
       }
-      if (handoffSource && handoffSource.centre) {
-        var handoffDistance = Math.hypot(camera.position.x - handoffSource.centre[0], camera.position.y - handoffSource.centre[1], camera.position.z - handoffSource.centre[2]);
+      if (handoffSource && handoffSource.center) {
+        var handoffDistance = Math.hypot(camera.position.x - handoffSource.center[0], camera.position.y - handoffSource.center[1], camera.position.z - handoffSource.center[2]);
         if (bodyHandoff.update(handoffDistance, handoffSource.radiusPc, true) !== bodiesOn) markersDirty = true;
       } else if (bodiesOn) {
         bodyHandoff.update(0, 0, false);

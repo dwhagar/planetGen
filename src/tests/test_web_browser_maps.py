@@ -286,8 +286,8 @@ def _query(page):
     parts = [part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam=")]
     win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
     if win and not any(part.startswith("sector=") for part in parts):
-        centre = win["centre"]
-        parts.insert(0, f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}")
+        center = win["center"]
+        parts.insert(0, f"win={center['m']}.{center['shell']}.{center['band']}.{center['wedge']}")
     return "&".join(parts)
 
 
@@ -341,7 +341,7 @@ def _descend(page):
     size."""
     before = _state(page)
     win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
-    size = WINDOW_SIZES[1] if not win else WINDOW_SIZES[WINDOW_SIZES.index(win["centre"]["m"]) + 1]
+    size = WINDOW_SIZES[1] if not win else WINDOW_SIZES[WINDOW_SIZES.index(win["center"]["m"]) + 1]
     cell = {"m": size, "shell": 0, "band": 0, "wedge": 0}
     page.evaluate("(cell) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell)", cell)
     _wait_settled(page, before)
@@ -363,7 +363,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
         if crumbs[-1].startswith("Sector "):
             reached_sector = True
             break
-        # MAP.150: each click opens a window centred on the cell clicked, one size down.
+        # MAP.150: each click opens a window centered on the cell clicked, one size down.
         assert crumbs[-1].startswith("Block "), crumbs
         assert re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.-?\d+\.\d+", query), query
         assert query != steps[-1][0], "the URL names the new stage"
@@ -418,7 +418,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
     before = _state(page)
     page.click('#galaxymap3d-controls [data-action="up"]')
     _wait_settled(page, before)
-    # The trail follows the camera (MAP.227): the window above is centred where the camera lands, so its steps need
+    # The trail follows the camera (MAP.227): the window above is centered where the camera lands, so its steps need
     # not be the ones the window below was inside, but there is one fewer.
     assert len(_crumbs(page)) == len(crumbs) - 1 and _crumbs(page)[0] == crumbs[0], "Up drops the last breadcrumb"
 
@@ -440,7 +440,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
     _wait_settled(page)
     # The crumb is the 243-block above where the walk ended, which the clicks may have carried past the first
-    # block's edge: the 3-ary ladder takes more steps than the old one did, each centred on the cell clicked.
+    # block's edge: the 3-ary ladder takes more steps than the old one did, each centered on the cell clicked.
     crumbs = _crumbs(page)
     assert len(crumbs) == 2 and crumbs[0] == "Galaxy" and crumbs[1].endswith("(243)"), crumbs
     before = _state(page)
@@ -825,7 +825,7 @@ def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_u
 
 
 def test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others(page, base_url, site_app):
-    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its centre and the
+    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its center and the
     third star about the whole, each on its own scale, so the three stars sit apart (none at the middle, on top of another)."""
     import json
     import math
@@ -1202,13 +1202,13 @@ def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(pa
 @pytest.mark.viewport(1280, 900)
 def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base_url):
     """MAP.121: the Menu's step buttons and the keys move the window to the cell beside it at the same level, in one
-    camera move (the address carries it, the trail follows the new centre), and back the other way, without going
+    camera move (the address carries it, the trail follows the new center), and back the other way, without going
     up a level."""
     _open_galaxy(page, base_url)
     size = _descend(page)
     stage = lambda: page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]  # noqa: E731
-    centre = lambda: {k: stage()["centre"][k] for k in ("m", "shell", "band", "wedge")}  # noqa: E731
-    start = centre()
+    center = lambda: {k: stage()["center"][k] for k in ("m", "shell", "band", "wedge")}  # noqa: E731
+    start = center()
     assert start["m"] == size
 
     def enabled():
@@ -1227,7 +1227,7 @@ def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base
     page.click("#galaxymap3d-menu > summary")
     page.click('#galaxymap3d-controls [data-step="out"]')
     _wait_settled(page, before)
-    moved = centre()
+    moved = center()
     assert moved["m"] == size and moved["shell"] == start["shell"] + 1, (start, moved)
     assert _query(page) != before[0] and "cam=" in page.url
     assert abs(len(_crumbs(page)) - crumbs) <= 1, "the trail is the position's, not a level deeper"
@@ -1237,29 +1237,29 @@ def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base
     page.locator("#galaxymap3d-canvas").focus()
     page.keyboard.press("[")
     _wait_settled(page, before)
-    assert centre() == start
+    assert center() == start
 
     # A step the geometry does not allow does nothing: nothing is nearer the core than the core.
     before = _state(page)
     page.keyboard.press("[")
     page.wait_for_timeout(300)
-    assert _state(page) == before and centre() == start
+    assert _state(page) == before and center() == start
 
     # Sideways: from the shell outside the core, round the ring: a step east then west lands on the same cell.
     page.keyboard.press("]")
     _wait_settled(page)
-    ring = centre()
+    ring = center()
     sideways = enabled()
     if sideways["east"]:
         before = _state(page)
         page.keyboard.press("Alt+Shift+ArrowRight")
         _wait_settled(page, before)
-        east = centre()
+        east = center()
         assert east["m"] == size and east["shell"] == ring["shell"] and east != ring, (ring, east)
         before = _state(page)
         page.keyboard.press("Alt+Shift+ArrowLeft")
         _wait_settled(page, before)
-        assert centre() == ring
+        assert center() == ring
     else:
         assert ways["out"]
 

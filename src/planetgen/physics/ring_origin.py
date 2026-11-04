@@ -116,7 +116,7 @@ class CometPassage:
 
 @dataclass(frozen=True)
 class FeederMoon:
-    """A small moon near the planet: its radius, km, and its distance from the planet's centre, km."""
+    """A small moon near the planet: its radius, km, and its distance from the planet's center, km."""
     radius_km: float
     distance_km: float
 
