@@ -1,0 +1,258 @@
+{
+  "classes": [
+    {
+      "air_basis": "The byproducts report's table (an anoxic air with oxygenic photosynthesis holds methane until the reductants are spent) and life-classes.md section 4, row 1",
+      "air_name": "Oxygenic light-eaters",
+      "air_tier": "T5",
+      "air_tweak": "L1",
+      "exists_tier": "T1",
+      "id": "1a",
+      "name": "Oxygenic light-eaters: visible pigment (Chlorophyll a)",
+      "number": 1,
+      "reaches": "Animals",
+      "speculative": false
+    },
+    {
+      "air_basis": "The byproducts report's table (an anoxic air with oxygenic photosynthesis holds methane until the reductants are spent) and life-classes.md section 4, row 1",
+      "air_name": "Oxygenic light-eaters",
+      "air_tier": "T5",
+      "air_tweak": "L1",
+      "exists_tier": "T6",
+      "id": "1b",
+      "name": "Oxygenic light-eaters: blue and UV adapted (Blue-Optimized Porphyrins)",
+      "number": 1,
+      "reaches": "Animals",
+      "speculative": false
+    },
+    {
+      "air_basis": "The byproducts report's table (an anoxic air with oxygenic photosynthesis holds methane until the reductants are spent) and life-classes.md section 4, row 1",
+      "air_name": "Oxygenic light-eaters",
+      "air_tier": "T5",
+      "air_tweak": "L1",
+      "exists_tier": "T5",
+      "id": "1c",
+      "name": "Oxygenic light-eaters: far-red (chlorophyll d and f)",
+      "number": 1,
+      "reaches": "Animals",
+      "speculative": false
+    },
+    {
+      "air_basis": "The byproducts report section 4 ([R2336]; [R3394, R3395]; [R0693])",
+      "air_name": "Anoxygenic light-eaters",
+      "air_tier": "T3",
+      "air_tweak": "L2",
+      "exists_tier": "T1",
+      "id": "2",
+      "name": "Anoxygenic light-eaters (Bacteriochlorophylls)",
+      "number": 2,
+      "reaches": "Microbial mats; animals only if another oxidant source exists",
+      "speculative": false
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 3; the stoichiometry of hydrogenotrophic methanogenesis",
+      "air_name": "Hydrogen eaters",
+      "air_tier": "T5",
+      "air_tweak": "L3",
+      "exists_tier": "T2",
+      "id": "3a",
+      "name": "Hydrogen eaters: geochemical hydrogen (serpentinisation, vents)",
+      "number": 3,
+      "reaches": "Microbial",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 3; the stoichiometry of hydrogenotrophic methanogenesis",
+      "air_name": "Hydrogen eaters",
+      "air_tier": "T5",
+      "air_tweak": "L3",
+      "exists_tier": "T2",
+      "id": "3b",
+      "name": "Hydrogen eaters: radiolytic hydrogen and sulfate (deep crust, aquifers)",
+      "number": 3,
+      "reaches": "Microbial",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 4; the H2S cap is a design floor (h2s_max_share)",
+      "air_name": "Chemolithotrophs",
+      "air_tier": "T8",
+      "air_tweak": "L4",
+      "exists_tier": "T2",
+      "id": "4a",
+      "name": "Sulfur, iron, and nitrogen eaters: oxygen as the oxidant",
+      "number": 4,
+      "reaches": "Animals (chemosymbiotic tubeworm, clam and mussel communities)",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 4; the H2S cap is a design floor (h2s_max_share)",
+      "air_name": "Chemolithotrophs",
+      "air_tier": "T8",
+      "air_tweak": "L4",
+      "exists_tier": "T2",
+      "id": "4b",
+      "name": "Sulfur, iron, and nitrogen eaters: nitrate and nitrogen oxides as the oxidant",
+      "number": 4,
+      "reaches": "Animals (small)",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 4; the H2S cap is a design floor (h2s_max_share)",
+      "air_name": "Chemolithotrophs",
+      "air_tier": "T8",
+      "air_tweak": "L4",
+      "exists_tier": "T8",
+      "id": "4c",
+      "name": "Sulfur, iron, and nitrogen eaters: chlorate and perchlorate as the oxidant",
+      "number": 4,
+      "reaches": "Microbial; animals are doubtful",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry; the climates report's own bookkeeping, no source gives rates",
+      "air_name": "Acid eaters",
+      "air_tier": "T8",
+      "air_tweak": "L4",
+      "exists_tier": "T6",
+      "id": "5a",
+      "name": "Acid-world life: cloud-deck plankton",
+      "number": 5,
+      "reaches": "Mats and aerial plankton; at most simple colonial forms",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry; the climates report's own bookkeeping, no source gives rates",
+      "air_name": "Acid eaters",
+      "air_tier": "T8",
+      "air_tweak": "L4",
+      "exists_tier": "T6",
+      "id": "5b",
+      "name": "Acid-world life: pool and crust mats",
+      "number": 5,
+      "reaches": "Mats",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 6 (a methane source; the water separates from the fluid)",
+      "air_name": "Dense-carbon-dioxide hydrogen eaters",
+      "air_tier": "T7",
+      "air_tweak": "L4",
+      "exists_tier": "T7",
+      "id": "6",
+      "name": "Dense-CO2 life",
+      "number": 6,
+      "reaches": "Microbial, at most mats",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 7: the Titan anomalies are a lead, not a detection",
+      "air_name": "Cold methane hydrogenators",
+      "air_tier": "T8",
+      "air_tweak": "L4",
+      "exists_tier": "T8",
+      "id": "7",
+      "name": "Cold hydrocarbon-sea life",
+      "number": 7,
+      "reaches": "Microbial mats",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, row 8",
+      "air_name": "Ammonia-water hydrogen eaters",
+      "air_tier": "T7",
+      "air_tweak": "L4",
+      "exists_tier": "T8",
+      "id": "8",
+      "name": "Ammonia-water life",
+      "number": 8,
+      "reaches": "Microbial",
+      "speculative": true
+    },
+    {
+      "air_basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry",
+      "air_name": "Silicon acid eaters",
+      "air_tier": "T8",
+      "air_tweak": "L4",
+      "exists_tier": "T9",
+      "id": "9",
+      "name": "Silicon-bearing life in acid",
+      "number": 9,
+      "reaches": "Microbial",
+      "speculative": true
+    }
+  ],
+  "tiers": [
+    [
+      "T1",
+      "Verified",
+      "read in the source and the value is the source's"
+    ],
+    [
+      "T2",
+      "Confident unverified",
+      "from a source we trust but have not opened or cannot check"
+    ],
+    [
+      "T3",
+      "Marginal unverified",
+      "from a source we doubt, or a bracket from sources that disagree"
+    ],
+    [
+      "T4",
+      "Unverified",
+      "no source at all for the value, only a reason for its range"
+    ],
+    [
+      "T5",
+      "Confident educated guess based on physics",
+      "a law of physics fixes the form and the size to within a factor of a few"
+    ],
+    [
+      "T6",
+      "Marginal educated guess based on physics",
+      "physics fixes the form, but the size is argued, not derived"
+    ],
+    [
+      "T7",
+      "Educated guess based on inferred physics",
+      "the physics is itself inferred from other bodies or other regimes"
+    ],
+    [
+      "T8",
+      "Educated guess based on reputable fringe or new physics",
+      "a published but not yet accepted mechanism"
+    ],
+    [
+      "T9",
+      "Educated guess based on needed output (full tweak)",
+      "chosen so that the generated sky matches what has to come out"
+    ]
+  ],
+  "tweaks": [
+    [
+      "L0",
+      "As envisioned",
+      "the value is used as its source gives it"
+    ],
+    [
+      "L1",
+      "Nudged inside the source's uncertainty",
+      "moved within the error bar the source prints"
+    ],
+    [
+      "L2",
+      "Tuned to a published statistic",
+      "moved until a published count or distribution is reproduced (a tuning target)"
+    ],
+    [
+      "L3",
+      "Hand-tuned against a sweep",
+      "chosen by running the generator over many draws and looking at the outcome"
+    ],
+    [
+      "L4",
+      "Fitted to the outcome with no independent source",
+      "the number is whatever makes the output right"
+    ]
+  ]
+}

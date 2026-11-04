@@ -715,3 +715,61 @@ def fitted(data, targets, overview):
                     for target in (targets["targets"] if targets else [])],
         "total": sum(len(level["rows"]) for level in levels),
     }
+
+
+def _tier_name(data, code):
+    return next(name for tier, name, _meaning in data["tiers"] if tier == code)
+
+
+def _level_name(data, code):
+    return next(name for level, name, _meaning in data["tweaks"] if level == code)
+
+
+def speculative(data, folder=None):
+    """
+    `/references/speculative` (DOC.92, References R6) as `{"title", "intro", "sections"}`, in the shape of `overview`: how sure the air
+    chemistry of each life class is, which classes are speculative, and how sure it is that each class can exist. `data` is `speculative.json`,
+    or `None` before the build has run. A basis that cites a source (`[R2336]`) is shown with the citation as a link (`cite`).
+    """
+    page = {
+        "title": "Speculative chemistry",
+        "intro": [
+            "This page says how sure the air chemistry of each life class is. The planet pages show the result: which gases a class "
+            "adds to the air and takes out of it. Here is how well each part is known.",
+            "A class is speculative when its air numbers are hand-tuned against many worlds (level L3) or fitted with no independent source (level L4).",
+        ],
+        "sections": [],
+    }
+    if data is None:
+        page["sections"].append({
+            "id": "not-built", "heading": "The pages are not built", "table": None,
+            "paragraphs": ["The numbers on this page are built at setup by scripts/build_reference_pages.py. Run it, or run update.sh, and reload."]})
+        return page
+    classes = data["classes"]
+    page["sections"].append({
+        "id": "classes", "heading": "All the life classes", "paragraphs": [
+            "Each class has two tiers. The first says how sure we are that the class can exist at all. The second, with its level, says how sure we are "
+            "of how the class changes the air."],
+        "table": {"head": ["Class", "Can exist", "Air chemistry tier", "Adjustment level", "Speculative"], "rows": [
+            [f"Class {row['id']}", f"{row['exists_tier']}: {_tier_name(data, row['exists_tier'])}",
+             f"{row['air_tier']}: {_tier_name(data, row['air_tier'])}", f"{row['air_tweak']}: {_level_name(data, row['air_tweak'])}",
+             "Yes" if row["speculative"] else "No"] for row in classes]}})
+    page["sections"].append({
+        "id": "several", "heading": "Several classes at once", "paragraphs": [
+            "A world can hold more than one class of life. Its air is then the sum of what each class adds and takes out. "
+            "The combined air is only as sure as its least sure class."],
+        "table": None})
+    seen = set()
+    for row in classes:
+        paragraphs = [
+            f"Air chemistry: tier {row['air_tier']} ({_tier_name(data, row['air_tier']).lower()}), level {row['air_tweak']} "
+            f"({_level_name(data, row['air_tweak']).lower()}). " + ("This class is speculative." if row["speculative"] else "This class is not speculative."),
+            f"Can exist: tier {row['exists_tier']} ({_tier_name(data, row['exists_tier']).lower()}). How far it can go: {row['reaches'].lower()}.",
+        ]
+        if row["number"] not in seen:
+            seen.add(row["number"])
+            paragraphs.append(f"The air numbers of the whole Class {row['number']} family ({row['air_name'].lower()}) rest on: {row['air_basis']}.")
+        page["sections"].append({"id": f"class-{row['id'].lower()}", "heading": f"Class {row['id']}: {row['name']}", "paragraphs": paragraphs, "table": None})
+    for section in page["sections"]:
+        section["paragraphs"] = [cite(text, folder) if "[R" in text else text for text in section["paragraphs"]]
+    return page
