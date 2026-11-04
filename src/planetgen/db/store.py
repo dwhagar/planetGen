@@ -3853,6 +3853,7 @@ def uncharted_sector_id(conn, address, edge_pc, run_id=None):
         " generator_epoch, run_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (provisional_sector_designation(*address), edge_pc * 1000.0, x, y, z, math.sqrt(x * x + y * y + z * z), *address,
          generatorEpoch.generator_epoch(), sector_run_id(conn, run_id)))
+    set_sector_uid(conn, cur.lastrowid)       # a sector has a public ID from the start (API.23), so its page and its rogues' links resolve
     return cur.lastrowid
 
 
