@@ -17891,17 +17891,6 @@ clears each one.
   Core 3 (scatter) after GEN.1246. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.578 test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug)**
-  Found by Aux 3 while measuring PERF.232, 5:19 PM EST on 2026-11-04 (as
-  the lane reported); red on plain main. The star page text uses the
-  American 'toward' (the DOC.102 sweep) and the test still looks for
-  'towards'. Do: change the test to the page's wording (the rule is
-  American spelling), and check the same test file and its neighbors for
-  other old spellings; DOC.103's american_spelling_sweep check should
-  find none left. Done: the test green. Owner Core 5 (DOC.102 and
-  DOC.103 owner). Filed by the TODO thread.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
