@@ -101,9 +101,22 @@ def test_sector_min_habitable_above_a_drawn_count_warns_and_raises_the_count(mys
 
 
 def test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill(mysql_config, capsys, monkeypatch):
-    """GEN.180: six habitable worlds in a sector drawn with three systems (about 1 in 10,000 naturally) is followed by the
-    fill after the one allowed draw: the sector gets six systems, each asking for a habitable world (the odds raised and
-    nothing forced, GEN.1130), and the console says so."""
+    """GEN.180: six habitable worlds in a sector drawn with three systems is followed by the fill after the one allowed
+    draw: the sector gets six systems, each asking for a habitable world (the odds raised and nothing forced, GEN.1130),
+    and the console says so. A habitable world is a body of a life class now (epoch 121) and a system holds one about
+    7 times in 10, so six in three systems turns up on a large share of first draws, where this test was written for
+    about 1 in 10,000, and the fill's own systems miss the six now and then. The count is therefore fixed: the drawn
+    sector of three counts no habitable world, the filled one counts one per system (TEST.555 part 3). What the test
+    checks is the run's course after a missed draw, not the odds of the draw."""
+    from planetgen.generation import directives
+    real_measure = directives.measure
+
+    def measure(sector):
+        counts = real_measure(sector)
+        counts[directives.HABITABLE] = 0 if counts[directives.SYSTEMS] <= 3 else counts[directives.SYSTEMS]
+        return counts
+
+    monkeypatch.setattr(directives, "measure", measure)
     monkeypatch.setenv("PLANETGEN_WORKERS", "1")
     run_cli("sector", ["--num-systems", "3", "--directive", "habitable>=6", "--directive-attempts", "1"]
             + mysql_argv(mysql_config))

@@ -2,6 +2,73 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3123] - 2026-11-04
+
+**Headline:** The forced-fill test for a sector directive no longer fails on the draws that happen to hold six habitable worlds in three systems.
+
+### Changed
+- **Test fix, no code change (TEST.555 part 3).** `test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill` asked for `habitable>=6` in a sector of three systems, which it took to happen about 1 time in 10,000. A habitable world is a body of a life class since epoch 121 and a system holds one about 7 times in 10, so the first draw met the directive on a large share of runs (one of four in a sample) and the test, which expects the fill after a missed draw, failed with "directives met on the first draw". The test now fixes the count the directive measures: the drawn sector of three counts no habitable world, the filled sector counts one per system, so the run always takes the path the test is about. `HABITABLE_COUNT_PMF` in `generation/directives.py`, which sizes the fill and the "impossible" check, was measured before epoch 121 and is stale; it is filed for a remeasure, not changed here.
+generation-output: unchanged
+
+## [8.0.3122] - 2026-11-04
+
+**Headline:** Two tests of the neutron star to black hole ratio now check it against the remnant model instead of a fixed 1.5.
+
+### Changed
+- **The scatter's neutron star to black hole ratio is checked against the model (TEST.548).** When the old population's metallicity followed its 3 to 13 Gy window the shells' metallicity rose, which raises the share of massive stars that make black holes: the model's ratio went from 1.6 to 1.49 neutron stars to a black hole in the test scatter, and the scatter follows it (1.48). Two tests asserted more than 1.5. They now assert more neutron stars than black holes and a ratio within 3 percent of the model's, so a change of the model moves them and a defect in the scatter does not hide.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.548.
+
+## [8.0.3121] - 2026-11-04
+
+**Headline:** The admin shell (the rail, the search box and the density switch) stays in view under the site header while a long admin page scrolls.
+
+### Changed
+- On a window at least 700 px wide and 600 px tall, the admin shell is held just under the site header, so the rail, the search and the density switch are no longer scrolled away on a long admin page. A phone or a short window keeps it in the page flow, where it would otherwise take too much of the window. `adminshell.js` measures the header and hands its height to the CSS as `--site-header-h`, so the hold follows the header when it wraps or the window is resized.
+
+generation-output: unchanged
+TODO items resolved: UX.142 (slice 2 of 2; slice 1, the nav chart and the System Map diagram, is in the earlier change note for the same item)
+
+## [8.0.3120] - 2026-11-04
+
+**Headline:** Adding sectors no longer makes the Galaxy Map throw away every node it has cached; it now fetches only the sectors that changed.
+
+### Changed
+- **Fix (TEST.555 part 2).** `db.query.galaxy_shape_inputs` read the whole `galaxy_shape` row, including `density_ratio_avg` and `density_ratio_samples`, the decaying average that every sector fill moves (PERF.11). Those two columns feed `tile_base`, so each new sector changed it, and `/api/galaxy/changes` then answered "everything" with an empty history instead of the changed sectors. A browser that had loaded the map reloaded the whole galaxy after any CLI `sectors` run. Only the fill estimate in `db.stats` reads the two columns, and no node, tile or density cloud depends on them, so they are left out of the shape inputs. `test_galaxy_map_and_nodes_show_sectors_the_cli_placed` passes again.
+generation-output: unchanged
+
+## [8.0.3119] - 2026-11-04
+
+**Headline:** The star census now draws the ages of the old stars the way the galaxy does, so its white dwarf share reads 7.95 percent instead of 8.4 and the rest of the excess is named.
+
+### Changed
+- **The star census draws ages from the galaxy's age laws (GEN.1243).** Since the old population reached 13 Gy (GEN.1025) the census drew its ages flat over 3 to 13 Gy, where every sector's stars follow the thin disc's star formation history and the thick disc's window. That put 8.4 percent of its stars in white dwarfs against the 4.5 to 7.0 percent seen near the Sun. With the galaxy's own laws it is 7.95 percent (7.75 for a thin disc alone, the thick disc adding 0.2): the same low recent star formation that keeps A stars at 0.1 percent (GEN.898), so the white dwarf range now carries that known tag. No star the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1243 (cause found; the residual is GEN.898's).
+
+## [8.0.3118] - 2026-11-04
+
+**Headline:** The belt dose test no longer waits for a generated moon to fall inside a giant's radiation belts, which the generated moons rarely do now.
+
+### Changed
+- **The belt dose test (TEST.557).** The test looked through 55 generated systems for a moon taking a dose from the radiation belts of its giant parent and found none: the generated moons of a giant now sit 46 giant radii out or more, past the belts, so the belt dose is zero for all of them. The dose code is not broken (the pure tests of the belts still pass). The test now puts the innermost moon of the first giant with moons at 9.4 giant radii and checks the stored belt dose and surface dose follow.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.557.
+
+## [8.0.3117] - 2026-11-04
+
+**Headline:** The search page writes every gas formula with its subscripts, in the gas rows, the sort menu and the filter chips.
+
+### Changed
+- **Formulas on /search (TEST.555 part 1).** The physical-values form of the search page (UX.227) showed `Partial pressure of O2` and `CO2` as plain text, so `test_no_page_shows_a_formula_that_is_not_written_out` failed on the page. A gas row's label and a filter chip now go through the `chem` filter (`O<sub>2</sub>`), and the text of the sort menu's and the "another gas" menu's `<option>`s, which cannot hold tags, carries Unicode subscripts (`O₂`, `C₆H₆`) through the new `chem_text` and `formula_text` filters; the values the form sends stay `O2` and `C6H6`. A test checks the rows, the menus and the chips. No stored value changes.
+generation-output: unchanged
+
 ## [8.0.3116] - 2026-11-04
 
 **Headline:** A planet with no star can now be built through the one planet chain: it keeps the air its own gravity and heat allow, and it is warmed by its own heat instead of sitting at the 2.725 K floor.

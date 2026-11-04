@@ -545,33 +545,6 @@ with `clamp()`.
   drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
 
-- [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
-  Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
-  for 8.2): "we need to scale and size the viewing windows for the
-  browser window size, so that the user doesn't have to scroll to see
-  the controls". Do: size the Galaxy Map, the Sector Map and scene, the
-  System Map and scene and the navigation chart to the space the window
-  leaves after the header and the controls (dynamic viewport height,
-  flex or grid rows, resize and orientation changes handled), put the
-  controls in the same view (a side panel on wide windows, a bottom
-  sheet or toolbar on narrow ones) and let a long panel scroll inside
-  itself, never the whole page. The admin pages follow the same rule:
-  the admin shell (ADM.92) keeps its content region inside the window
-  and long tables scroll in their own region. Done: a browser test at
-  1280x720, 1366x768, 1440x900, 1920x1080, a 768x1024 tablet and a
-  390x844 phone (both orientations) shows, on each viewer page, that the
-  viewer and all its controls are visible with no vertical page scroll
-  (document height equals the window height) and none of the controls is
-  clipped; resizing the window re-fits without a reload; works in both
-  themes. Phase: 8.2 phase 2. Owner: none yet (filed from Boss's 8.2
-  design notes, 6:10 and 6:12 PM EDT 2026-10-21; the map lane owns the
-  viewers, so Core 2 is the natural pick once its queue allows, the
-  coordinator decides).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: MAP.139, UX.115, ADM.92, MAP.65.
-
 - [ ] **UX.143 A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID**
   Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
   "there should be a 'view' button to view a dedicated page for every
@@ -869,6 +842,9 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Owner (8:40 AM EST on 2026-11-04): OWNER Core 1 (assigned by TODO as the
+  lane reported 8:36 AM EST on 2026-11-04 after UX.142 completed): a
+  lock-free item on a separate branch; a stored value stays as it is.
   Prerequisites: UX.226. Related: UX.225.
 
 - [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
@@ -14326,22 +14302,59 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the law or the test range with the reason stated; register any
   stand-in in GEN.725. Lock work if stored values change. Related:
   GEN.1202. Owner: Core 3 (galaxy history).
+  Diagnosis (Core 3, as the lane reported) (7:38 AM EST on 2026-11-04):
+  Not GEN.999 or the clusters. Bisect on main: 1.97 solar masses a year
+  before train 6, 3.72 at the train 6 merge (#4385), GEN.999 then adds
+  0.3. In train 6 only GEN.1154 reaches the disc history: the reference
+  galaxy halo fell from 2.0e12 to 1.37e12 solar masses and
+  disk_history.inflow_shape rises later for a lighter halo, so GEN.1242
+  and GEN.1230 are one defect. By halo mass: 1.0e12 gives 5.97, 1.6e12
+  3.3, 2.0e12 2.6, 3.1e12 1.95. The model is wrong, not the test (the
+  main sequence at 5.2e10 solar masses of stars is about 1.5 a year; the
+  reference reads 2.7 times that); the test stays at 1 to 3. Candidate
+  fixes, all lock work: (a) inflow from the star formation real halos
+  have, (b) a cold accretion cut once the halo passes the shock heating
+  mass near 1e12, tried first, (c) a thin disc truncated near 14 kpc.
+  Rejected: a weaker law coefficient (worse) and a baryon accretion
+  shape (6.3).
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **GEN.1243 The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug)**
-  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
-  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. The class
-  census white dwarf share is 8.2 percent against the observed range of
-  4.1 to 7.5 percent (the nearby-star census gives 5.6). Candidates: the
-  helium-core white dwarfs and the continuous cooling track of train 8
-  (GEN.996, GEN.1137, now retired), the star mass function epoch
-  (GEN.927), or the age-metallicity history. Do: print the white dwarf
-  share per population with each candidate switched off, find the cause,
-  and fix the law or register a stand-in in GEN.725. Lock work if stored
-  values change. Owner: Bug 1.
-  Prerequisites: none.
-  Prerequisites: none.
+- [ ] **GEN.1244 Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug)**
+  Found by Aux 5 with TEST.557 (as the lane reported 8:19 AM EST
+  2026-11-04): in 55 generated systems only one giant had moons, and all
+  six moons sat 46 to 130 giant radii out, outside the radiation belts
+  that reach about 20 radii. Regular moons form in the circumplanetary
+  disc inside the disc's snow line and centrifugal radius, so the zone
+  should come from the giant's mass, spin and the disc model, not a
+  fixed outer span; a count of 1 giant in 55 with moons is also low and
+  belongs with the same derivation (GEN.1157, GEN.962). The Solar System
+  giants are plausibility targets only (NO FIXED CONTENT). Do: find
+  where generate_moons places a giant's moons, derive the inner and
+  outer edge of the regular-moon zone from the disc physics (secondary
+  sources accepted), register any stand-in in GEN.725 with tier and
+  tweak level, and check the moon distance, the share of giants with
+  moons and the belt dose afterwards. Changes generated output: epoch
+  with --affects fill, rides a train. Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.1157, GEN.962, GEN.921, TEST.557,
+  GEN.725.
+
+- [ ] **GEN.1245 Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale**
+  Found by Aux 3 with TEST.555 part 3 (as the lane reported 8:58 AM EST
+  on 2026-11-04). generation/directives.py sizes the forced fill of a
+  sector directive such as habitable>=6 and its impossible check from
+  HABITABLE_COUNT_PMF, the spread of habitable bodies per system. A
+  habitable body is a body of a life class since epoch 121 and about 7
+  systems in 10 hold one, a spread the table does not hold. Do: measure
+  the habitable count per system on the current generator (about 3 s a
+  system, so a few thousand systems as a background job), replace the
+  table with the measured spread and register it in GEN.725 with tier
+  and tweak level, read the table from the measurement script rather
+  than a typed number, and check that the forced fill and the impossible
+  check agree with a sector drawn on the new epoch. Changes how a
+  directive run fills a sector, not a system: epoch with --affects fill
+  if the stored output moves, rides a train. Owner: Aux 3. Version 8.1.
+  Prerequisites: none. Related: GEN.180, GEN.1130, TEST.555, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19122,22 +19135,6 @@ clears each one.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
-- [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
-  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
-  run on main 7eef24a) re-ran these alone, so they are real:
-  tests/test_phenomenon_scatter.py::test_each_kind_follows_its_rate_per_star
-  (line 95) and
-  ::test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_model_counts
-  (line 536) both fail on assert 29689 > 1.5 * 20059. A remnant count
-  ratio moved, probably from the star mass function epoch (Bug 1);
-  TEST.541 covers different tests, not these. Do: find which epoch moved
-  the remnant count, then either fix a generator defect (rides an epoch)
-  or, if the model counts are what changed, update the expected counts
-  from the sourced model with the reason stated; never loosen the 1.5
-  factor to pass. Done: both tests pass on main. Owner: Bug 1, queued
-  behind the train 8 stored-tree fix (GEN.951).
-  Prerequisites: none.
-
 - [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
   Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
   five prevalence census tests red on main on purpose: their baselines
@@ -19146,28 +19143,6 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
-  Prerequisites: none.
-
-- [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
-  Found by the full-suite thread (first pass on main 7eef24a, to 53
-  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
-  Failures re-run alone and real on 7eef24a, none diagnosed: (1)
-  tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
-  (the /search page shows H2, N2, O2, H2O, CO2, CH4 formulas unwritten);
-  (2)
-  tests/test_web_fresh_after_cli.py::test_galaxy_map_and_nodes_show_sectors_the_cli_placed
-  and ::test_sector_page_and_nodes_show_a_phenomenon_the_cli_added
-  (CLI-placed sectors missing from the map and nodes); (3)
-  tests/test_bughunt_cli_edges.py::test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill;
-  (4) the 900 s timeouts in test_prevalence.py (asteroid_belt-30,
-  large_star-100, large_star--100, planets--40, comets-0.3 plus or minus
-  100, no binaries at minus 100 and more at plus 50), already tracked by
-  PERF.229 for the fuzz case. Do: re-run each on current main first
-  (many commits since 7eef24a), keep only those that still fail,
-  root-cause each, and file or fix. Done: each failing test has a cause
-  and an owner or a fix. Owner: full-suite thread, with Bug 1.
-  Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts
