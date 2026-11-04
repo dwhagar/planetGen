@@ -18225,18 +18225,6 @@ clears each one.
   by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.577 test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug)**
-  Found by Aux 3 while measuring PERF.232, 5:19 PM EST on 2026-11-04 (as
-  the lane reported); red on plain main, not from PERF.232 (output
-  identical to main on the pinned golden). Do: run the test on main,
-  find which side moved after train 9 (the bright-star scatter changes
-  of GEN.1242 and GEN.1230 are the likely cause: the luminosity pass and
-  the band weights no longer count the same tier), and fix the side that
-  is wrong against the physics, not the test number. Done:
-  test_gen_scatter_tiers green on main with a note of what moved. Owner
-  Core 3 (scatter) after GEN.1246. Filed by the TODO thread.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
