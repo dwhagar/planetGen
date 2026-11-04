@@ -1031,7 +1031,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
   shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
   MAP.222 (nebula zoom window). Owner: Core 2.
-  Prerequisites: MAP.365.
 
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
@@ -1487,7 +1486,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
   shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
   MAP.222 (nebula zoom window). Owner: Core 2.
-  Prerequisites: MAP.142. Related: MAP.191, MAP.365.
+  Prerequisites: MAP.142. Related: MAP.191.
 
 - [ ] **MAP.216 Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2052,44 +2051,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The trojan icon had no owner. Owner now: Core 2 (after GEN.1150)
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
-
-- [ ] **MAP.365 Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively**
-  Boss, 12:30 PM EST on 2026-11-04: the dark nebulae now fill the screen
-  when they load as circles (the MAP.176 sprite per group); they must be
-  bulbous, irregular shapes, not all circles, that keep their shape. On
-  the Galaxy Map they affect the tinting and colour of each region they
-  occupy; overlapping nebulae at that view just happen and their colours
-  are merged additively; irregular, like a real nebula, crossing sectors
-  (not all do). Boss's answers to five questions (12:37 PM EST on
-  2026-11-04): (1) shapes come from the real gas and star-forming
-  density of the galaxy model, never a random blob per object ID; (2)
-  wispy edges, a dense core fading unevenly, no hard outline; (3) a
-  subtle tint, denser cores tint more; (4) coarse blobs when far out,
-  more filaments as you zoom in; (5) overlaps add their colours, capped
-  so the sum never washes to white. Do: (a) shape field: each nebula
-  group's outline is the contour of the model density (the gas and
-  star-forming density the nebula was placed from, GEN.75 shapes and the
-  nebula_field/nebula_regions the nodes already carry) at the node's
-  resolution, so the same galaxy always draws the same shape and
-  neighbouring nodes meet without seams across sector borders; (b) draw:
-  coarse level-of-detail blobs for far zoom, adding filament detail as
-  the zoom rises, with a soft uneven falloff from a dense core; (c)
-  tint: each covered map region is tinted by the family colour of the
-  nebulae over it, strength scaled by local density, and the stars seen
-  through are tinted too (this is MAP.215); (d) overlap: additive colour
-  blending with a cap (a soft clamp) so overlap never turns white, on
-  both themes; (e) browser tests: a seeded galaxy where a nebula is not
-  a circle (the outline's circularity is under a stated bound), crosses
-  a sector border without a seam, and two overlapping nebulae draw a
-  colour that is the capped sum; a test that the shape does not depend
-  on the object ID's random draw. Physics drives: no stored per-nebula
-  blob parameters beyond what the model already stores; if a new stored
-  column is needed it is registered in the wiring register. Owner Core 2
-  (Boss's request relayed 12:37 PM EST on 2026-11-04). Lock-free if the
-  shapes are computed at view time from stored densities; if they need a
-  stored outline per node, say so and it rides a train. Filed by the
-  TODO thread.
-  Prerequisites: none.
 
 - [ ] **MAP.366 Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug)**
   Boss, 1:03 PM EST on 2026-11-04 (live observation): "how we cut stars
@@ -18560,6 +18521,24 @@ clears each one.
   run the file 3 times. Done: the file passes on main. Lock-free (text
   only) unless the body value is the wrong one. Owner Aux 2 (life;
   proposed by the TODO thread, it says if it clashes). Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **TEST.571 test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug)**
+  Found by Bug 1 in its PERF.229 work, 1:50 PM EST on 2026-11-04 (as the
+  lane reported). The hypothesis test
+  test_random_valid_configs_generate_sane_systems runs past 2900 s on
+  plain main: the heavy star draws (giant classes on late subclasses,
+  supergiant cells) cost minutes per system through per-body air and
+  climate work (gas_equilibrium solve, reconcile_moved_planet). Do: cap
+  the number of hypothesis examples, or bound the heavy star draws in
+  the test (as PERF.229 did for the star-type fuzz test, by spectral
+  letter and subclasses 0/5/9), so the test finishes in under 10 minutes
+  on a 4-core machine; keep the sanity checks. Done: the test passes on
+  main in the time. A separate performance item may be filed for the
+  intrinsic per-body air and climate cost if it matters beyond this
+  test. Lock-free (test only). Related: TEST.417, PERF.229. Owner Aux 3
+  after PERF.232 (proposed by the TODO thread). Filed by the TODO
   thread.
   Prerequisites: none.
 

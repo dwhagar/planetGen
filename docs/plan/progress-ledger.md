@@ -2385,3 +2385,4 @@ Baseline: PR #1817.
 | DOC.91 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.295 | 8.1 | Bugs and flaky tests |
 | GEN.1248 | 8.2 | Robust tile caching |
+| MAP.365 | 8.1 | Nebula data foundations |
