@@ -3384,7 +3384,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | done, PR #1121 |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | done, PR #1077 |
 | TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) | none | done, PR #1313 |
-| TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) | none | open |
+| TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) | none | done, PR #4875 |
 | TEST.127 | test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug) | none | done, PR #4834 |
 | TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) | none | done, PR #4834 |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | done, PR #1313 |
