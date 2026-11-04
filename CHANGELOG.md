@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3104] - 2026-11-04
+
+**Headline:** Standards, regulations, program documentation and web pages are now listed in the reference list like papers, and the last bare author-and-year citations are gone.
+
+### Changed
+- **Web sources in the reference list (DOC.101).** The reference list has a new kind of source, listed on `docs/REFERENCES.md` with its name, who made it, what kind it is, its identifier, and the date its page was last opened; `python scripts/build_references.py add-web` adds one and opens the page first. 43 web sources and 4 articles of the imported research notes became source IDs (regulations such as 29 CFR 1910.134, NFPA and NIOSH publications, NASA reports, program documentation, rendering articles); 84 lines for fan wikis, fiction, forum threads, videos, vendor pages and pages nobody can open were removed (the log is in the reports).
+- **The lock catches unknown citations too (DOC.99).** A name and year that the reference list has no outcome for now fails `test_citations_outside_the_registry.py`, and 20 such citations that had slipped in were added to the list and written as IDs (TEST.553: the older test that every author-year citation has an outcome is retired).
+
 ## [8.0.3103] - 2026-11-01
 
 **Headline:** The tables that sample stars build about 15 percent faster, with every number unchanged.
