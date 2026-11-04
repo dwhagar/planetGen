@@ -14831,6 +14831,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are bit-identical (golden unchanged). Lock-free if no value changes.
   Related: PERF.188, TEST.290, TEST.417. Owner Star 2 (it built
   PERF.188; proposed by the TODO thread). Filed by the TODO thread.
+  Core 5 finding (2026-11-04 3:35 PM EST):
+  tests/test_emission_members.py (the pre-placed hot star test) also
+  times out past 900 s on main. Take it with this item; it is a
+  slow-test cost, not a spelling effect.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -18256,6 +18260,38 @@ clears each one.
   on main in 3 runs. Owner Aux 7 after TEST.571 (proposed by the TODO
   thread; Bug 1 or Star 2 if the star column proves theirs). Filed by
   the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.574 Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug)**
+  Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
+  reported), while running every test file that names an old spelling.
+  (1) tests/test_class_fit.py and tests/test_class_fit_cli.py: a Class D
+  case now scores C, since GEN.1160 made Class D and C read the
+  roundness ratio. Decide whether the case or the scorer is stale and
+  fix it at the cause. (2)
+  tests/test_materials_table.py::test_every_class_composition_text_is_mapped_to_rows:
+  the text "rock, ice, and frozen hydrocarbons" in tuning.py has no
+  entry in materials.json legacy_names.class_compositions; GEN.1160
+  added the text, so add the row (and keep one text, one row). Done:
+  both test files pass on main in 3 runs. Lock-free (test and data).
+  Owner Aux 5, GEN.1160's owner, before GEN.1070 part 1 starts (proposed
+  by the TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.575 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug)**
+  Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
+  reported). Not from the spelling sweep: they fail on the map pages on
+  pixel positions and waits. Possible causes seen since: the log ruler
+  over the halo point and continuous zoom no longer changing crumbs
+  (TEST.573 found the same in two tests), the MAP.367 and MAP.370
+  changes, and leftover planetgen_* databases slowing fixtures (see
+  lanes.md). Do: first drop leftover planetgen_* databases, then run
+  each file alone on current main, split real causes from load, fix the
+  tests at the cause (not by loosening waits that hide a bug), and file
+  any real map bug as its own item. Done: all four files pass on main in
+  3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
+  test that follows its map changes (proposed by the TODO thread). Filed
+  by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts
