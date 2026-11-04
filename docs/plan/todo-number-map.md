@@ -3839,7 +3839,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.573 | Two galaxy map browser tests red on main: the class buttons count (19 against 20) and a halo black hole not picked on the whole-galaxy view (bug) | none | done, PR #4865 |
 | TEST.574 | Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug) | none | done, PR #4869 |
 | TEST.575 | 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug) | none | open |
-| TEST.576 | test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug) | none | open |
+| TEST.576 | test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug) | none | done, PR #4897 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
