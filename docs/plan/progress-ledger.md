@@ -2397,3 +2397,5 @@ Baseline: PR #1817.
 | TEST.198 | 8.1 | Bugs and flaky tests |
 | TEST.324 | 8.1 | Bugs and flaky tests |
 | TEST.570 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.222 | 8.1 | Nebula data foundations |
+| MAP.191 | 8.1 | Nebula data foundations |

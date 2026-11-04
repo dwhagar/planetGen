@@ -1331,35 +1331,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here with the region landing (the largest region is regions[0] of the
   endpoint; a user's home overrides it later, USR.11). Owner: Core 2.
 
-- [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
-  GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
-  (Boss, 2026-10-14 00:17Z): "Default view should in the galaxy map
-  should be no density shading, only shading should be that of nebulae
-  that should change the colors of the stars shining through the nebulae
-  and the boundaries should be fussy and translucent... going to the
-  infinite zoom model we don't need to see the densities and anything
-  but the stars and markers for where on the map known space is." Done:
-  the default Galaxy Map shows stars and markers for known space with no
-  density, age or luminosity fill; the "Color by" density and age views
-  stay as options; nebulae tint the colour of the stars seen through
-  them and have soft translucent boundaries (MAP.142). Owner:
-  Foundations lane 2, after the nebula map work (MAP.176; MAP.155 merged in #1253).
-  Prerequisites: none. Related: MAP.131, MAP.142, MAP.176,
-  MAP.146.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: MAP.214, MAP.215. Its Done has two halves of
-  different versions.
-  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
-  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
-  irregular, bulbous, wispy shapes from the galaxy model, tinting the
-  regions they cover, overlapping additively with a cap, crossing
-  sectors (full text and his five answers in MAP.365). This item moves
-  from version 8.8 into 8.1 and is built by Core 2 after or with
-  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
-  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
-  MAP.222 (nebula zoom window). Owner: Core 2.
-
 - [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
   GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
   (Boss, 2026-10-13 16:41Z): "I would like to be able to see the
@@ -1403,7 +1374,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   view of that object alone, showing its own arrangement (cloud shape,
   cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
   after the nebula map work (MAP.176 to MAP.180).
-  Prerequisites: MAP.222, MAP.223. Related: MAP.176, MAP.178, MAP.180,
+  Prerequisites: MAP.223. Related: MAP.176, MAP.178, MAP.180,
   GEN.209.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -1514,28 +1485,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finds a user's ship and a scattered station.
   Prerequisites: USR.29, POP.11. Related: MAP.132.
 
-- [ ] **MAP.222 Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone**
-  Split from MAP.194 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Choosing a nebula (a region of
-  MAP.176, a cloud of MAP.178) flies into a view that shows that nebula
-  only: its shape and member clouds or hosted stars, centred and framed
-  on its bounds, whatever sectors it crosses, with a way back to the
-  Galaxy Map. Build the view as a generic 'group window' (a bounding
-  volume, a member list, a draw function per kind) so a second kind can
-  plug in. Done: the window for nebulae, entered from the map and from
-  the keyboard, and a browser test that opens it on a nebula spanning
-  two sectors.
-  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
-  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
-  irregular, bulbous, wispy shapes from the galaxy model, tinting the
-  regions they cover, overlapping additively with a cap, crossing
-  sectors (full text and his five answers in MAP.365). This item moves
-  from version 8.8 into 8.1 and is built by Core 2 after or with
-  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
-  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
-  MAP.222 (nebula zoom window). Owner: Core 2.
-  Prerequisites: MAP.176. Related: MAP.194.
-
 - [ ] **MAP.223 Globular cluster zoom window: choosing a cluster flies into a view of its own stars**
   Split from MAP.194 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Plug the cluster kind into the
@@ -1544,7 +1493,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   yet filled. Done: choosing a cluster on the Galaxy Map opens its
   window, and a browser test checks the window on a seeded cluster that
   crosses two sectors.
-  Prerequisites: MAP.222, MAP.224. Related: MAP.194.
+  Prerequisites: MAP.224. Related: MAP.194.
 
 - [ ] **MAP.224 Cluster pages and the Galaxy Map use the parent link**
   Split from GEN.209 (2026-10-16, Boss 1:07 PM EDT: look at each item

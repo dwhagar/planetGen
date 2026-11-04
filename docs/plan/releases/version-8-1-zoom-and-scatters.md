@@ -84,8 +84,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | MAP.368 | Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on |  |  |
 | MAP.367 | Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown |  |  |
 | MAP.366 | Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug) |  |  |
-| MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone |  | Split from MAP.194. |
-| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them |  |  |
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 
 ### Composition research and design
