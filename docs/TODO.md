@@ -18818,6 +18818,23 @@ clears each one.
   TODO thread; it says if it clashes). Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **TEST.567 Two tests red on main: test_helium_fractionation (0.29985 over 0.3) and test_disregard_missing_data (12 lines against 11) (bug)**
+  Found by Core 5 after DOC.102 (relayed 11:57 AM EST on 2026-11-04 as
+  the lane reported); the TODO thread saw test_disregard_missing_data
+  fail 3 tests on main (the option, the bulk command and the status
+  command). Tests: the helium-fractionation figure test (a mass fraction
+  0.29985 against a bound of 0.3) and
+  tests/test_disregard_missing_data.py. Do: for each, find whether the
+  test or the code moved (the output of a merged epoch or a changed help
+  line), fix the one that is wrong with a sourced reason, and run each
+  test 3 times. Done: both pass on main. A moved physics figure follows
+  the physics rule (secondary sources accepted, stand-ins registered in
+  GEN.725); a changed line count means update the expected count.
+  Lock-free unless the helium fix changes a stored value, in which case
+  it rides a train under its own item. Owner Core 5 (offered; proposed
+  by the TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20480,21 +20497,23 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   year, journal, DOI or arXiv number outside the registry, REFERENCES.md
   and the References pages.
 
-- [ ] **DOC.102 American spelling sweep of every text that is not a planet, moon or belt description: templates, help pages, static pages, star, system, sector, nebula and phenomenon text, error messages, the API and CLI help, so "colour" and the other British spellings go to zero**
-  Boss, 10:33 AM EDT on 2026-10-31: American spelling, so "color" not
-  "colour", consistent everywhere (UX.252 records it for planet, moon
-  and belt text). Core 5 asked for the rest to be filed (as the lane
-  reported 9:50 AM EST on 2026-11-04). Do: run the British-spelling
-  checker of planetgen/util/plainwords.py (colour, grey, centre, metre,
-  litre, kilometre, analyse, neighbour and the like, with its short
-  allow-list for proper names and quotes) over every text outside
-  UX.252's reach, fix every hit, extend the word list where the sweep
-  finds more, and hold the checker to the whole site so a new British
-  spelling fails a test; the 333 uses of "colour" on the site go to zero
-  apart from quotes and names. Text only: a stored text that carries a
-  British spelling is not edited here, it is listed for the item that
-  owns its generator. Lock-free. Owner: Core 5 (after UX.252).
-  Prerequisites: none. Related: UX.252, DOC.86.
+- [ ] **DOC.103 American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours**
+  Boss rule: American spelling (restated in the DOC.102 sweep). Core 5's
+  DOC.102 (#4812, 11:57 AM EST on 2026-11-04) fixed about 150 visible
+  strings and left the following, because they are stored values, API
+  keys or identifiers: job and run state "cancelled", hydrosphere value
+  "vapour", "centre" keys in API JSON (nodes, region stats, nebula),
+  prose role "flavour", band "ionising", ground type "oxidised", kind
+  ids using "disc", command name link-neighbours. Do: rename each to its
+  American form (canceled, vapor, center, flavor, ionizing, oxidized,
+  disk, link-neighbors), no alias and no shim (testing mode); stored
+  values need a migration and an epoch, API keys an API version, and the
+  test_american_spelling word list covers the new forms. Where a word is
+  a term with an established spelling (a name, a formal term), keep it
+  and say so in a note. Lock work (migration, schema, API version):
+  rides a train. Prerequisites: none. Owner Core 5 after GEN.1127
+  (proposed by the TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
 
 ## POP: Population and politics
 
