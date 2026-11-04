@@ -1730,28 +1730,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
 
-- [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
-  Bands, storms, a chemistry tint, thermal glow, and rings with
-  resonance gaps. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  5), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), after GEN.670 (GEN.419 is done); nobody has started it.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 10) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Owner Core 2; GEN.670 done (2026-11-04 12:40 PM EST): GEN.670 is done:
-  the research report is
-  /mnt/project-files/reports/gen670-body-rendering-research-2026-11-04.md
-  (band count, storm size, ring reddening and albedo laws with proposed
-  GEN.725 rows B1-B4, S1-S4, RC1-RC3; numbers marked [S] are to be
-  confirmed before use). Both prerequisites are now met, so Core 2 takes
-  this item after its current lock step, one lock-free item at a time.
-  Owner: Core 2.
-  Prerequisites: GEN.419.
-
 - [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -1774,7 +1752,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 1) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: MAP.275.
+  Prerequisites: none.
 
 - [ ] **MAP.282 Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry**
   Stand-in until sourced by GEN.670. Design draft
@@ -5012,21 +4990,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   longer waits on this study.
   Prerequisites: none. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Done: the field kernel of
-  `src/planetgen/physics/sector_path.py` subtracts a local origin (the
-  path's own start or the cell centre) from every position before the
-  loop, so the sums run on small numbers; a test shows the result agrees
-  with a high-precision reference within the float64 spacing at a sector
-  262 kpc from the origin. Owner: Core 1, with GEN.294.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.372, GEN.294.
 
 - [ ] **GEN.376 Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py`**
   From the GEN.372 precision audit (Core 1,
