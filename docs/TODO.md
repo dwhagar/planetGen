@@ -19939,45 +19939,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Reuse the REFERENCES data. Related:
-  DOC.57. Owner: Sources 1.
-  Boss approved the design with an addendum, 2:54 PM EDT (2026-10-31
-  2:59 PM EDT): R3 grows to: papers with DOI links, browse by research
-  area and by field, search and computed totals. Every paper row links
-  to its DOI page, else arXiv, else ADS, else a search link from title
-  and first author, and a test fails if a row has none. Two browse axes,
-  both computed: where we use it (the area of the code or data that
-  cites it; a paper used in two areas appears in both) and the field of
-  the paper (from the journal), plus year, decade and type. Totals per
-  area, field and decade, oldest and newest, most cited by us, with DOI,
-  with arXiv, books, datasets. /references/papers has A to Z, area,
-  field and year views and a text search over title, author and DOI, and
-  each entry shows which values, stand-ins and pages use it. The
-  citations not yet matched to a paper get their own page with a search
-  link each. Details: section 8 of
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md.
-  DOC.95 merged as #4603 (2026-10-31 4:19 PM EDT): DOC.95 merged as
-  #4603: 3,190 citations tied to a paper, 227 labelled not a paper,
-  1,354 for review (list and what was tried on the REFERENCES pages; 10
-  identifiers unresolved in
-  /mnt/project-files/reports/doc95-unresolved-citations-2026-10-31.md).
-  A test fails if a citation has none of the three outcomes.
-  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
-  EDT): Help > References is live at /references. To add a page: add a
-  file to BUILDERS in scripts/build_reference_pages.py and a route in
-  web/references_pages.py, and check every sentence with
-  plainwords.check_sentence(s, references=True). Editing
-  gap-filling-plan.md stand-in rows now also needs python
-  scripts/build_reference_pages.py.
-  Prerequisites: DOC.88.
-
 - [ ] **DOC.90 References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets)**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
@@ -20076,7 +20037,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   source line for the Urey ratio: model. Delete those entries in the
   same PR that removes the words: an entry that no longer happens fails
   the test.
-  Prerequisites: DOC.89, DOC.90, DOC.91.
+  Prerequisites: DOC.90, DOC.91.
 
 - [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
