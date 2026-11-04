@@ -45,6 +45,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | OPS.64 | The version code carries the database schema, generator epoch and API versions as well |  |  |
+| TEST.557 | test_a_generated_system_stores_the_belt_dose_in_its_surface_dose fails on main: the stored belt dose reads 0 (bug) |  |  |
 | GEN.1243 | The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug) |  |  |
 | GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) |  |  |
 | PERF.231 | The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug) |  |  |

@@ -19185,6 +19185,22 @@ clears each one.
   Prerequisites: none.
   Prerequisites: none.
 
+- [ ] **TEST.557 test_a_generated_system_stores_the_belt_dose_in_its_surface_dose fails on main: the stored belt dose reads 0 (bug)**
+  Found by Aux 5 (as the lane reported, 7:56 AM EST on 2026-11-04) while
+  building GEN.1069: the belt dose test
+  (test_a_generated_system_stores_the_belt_dose_in_its_surface_dose)
+  fails on plain main with "assert 0 > 0", so a generated system stores
+  a belt dose of zero in its surface dose. Do: find out whether the
+  generator no longer writes the belt dose (a change in trains 6 to 8
+  such as GEN.1160 roundness or the belt rebuild of GEN.1069) or the
+  test fixture no longer draws a belt in a host with a magnetosphere;
+  fix the writer or the fixture with the reason stated. Done: the test
+  passes on main and a belt body's surface dose follows its belt dose.
+  Lock work only if stored values change. Related: GEN.983, GEN.1069.
+  Owner: Aux 5.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
