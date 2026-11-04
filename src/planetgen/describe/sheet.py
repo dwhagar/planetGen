@@ -877,8 +877,9 @@ _BODY_RULES = [
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH, and water activity exist only where there is a liquid ocean"),
-    (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean"),
-     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapor world store none"),
+    (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean")
+     or (row.get("surface_liquid") not in (None, "water") and row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS and bool(row.get("surface_liquid_fraction"))),
+     "an ocean tide is worked out for a sea with a free surface (water, or another liquid such as methane or ammonia-water) or one frozen over (zero); a brine seep, a deep hycean sea, a lava sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
     (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") in _CLASSES_WITH_VARIANTS,

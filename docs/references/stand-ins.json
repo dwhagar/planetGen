@@ -23363,7 +23363,7 @@
           "fields": [
             [
               "What it is",
-              "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused"
+              "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused (GEN.1052: heavy_liquid_tide shows the thin-sea factor is exact for a floor that does not move at any depth, so the refusal guards a layer that is no sea, not a deep one)"
             ],
             [
               "The range it moves in",
@@ -23394,7 +23394,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused"
+          "what": "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused (GEN.1052: heavy_liquid_tide shows the thin-sea factor is exact for a floor that does not move at any depth, so the refusal guards a layer that is no sea, not a deep one)"
         },
         {
           "burn_down": null,
