@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from planetgen.physics import bulk_composition as bc, constants, giant_draw, giant_radius, orbit_elements
+from planetgen.physics import bulk_composition as bc, constants, giant_draw, giant_radius, ice_giant_heat, orbit_elements
 from planetgen.util import draw
 
 JUPITER_MASS_KG = constants.JUPITER_MASS_TO_KG
@@ -118,7 +118,9 @@ SOLAR_SYSTEM_GIANTS = (("Jupiter", 317.8, 69911.0, 5.2, 166.0, 0.08), ("Uranus",
 
 @pytest.mark.parametrize("name, mass_earth, radius_km, distance_au, measured_k, tolerance", SOLAR_SYSTEM_GIANTS)
 def test_the_one_bar_temperature_of_the_solar_system_giants_is_near_the_measured_one(name, mass_earth, radius_km, distance_au,
-                                                                                    measured_k, tolerance):
+                                                                                    measured_k, tolerance, monkeypatch):
+    # The cooling law is what is checked here: an ice giant that keeps a composition gradient radiates a share of it (GEN.1033, `test_ice_giant_heat.py`).
+    monkeypatch.setattr(ice_giant_heat, "STRATIFIED_SHARE", 0.0)
     body = _giant(mass_earth * constants.EARTH_MASS_TO_KG, distance=distance_au, radius=radius_km)
     flux = body.star.luminosity / (4 * 3.141592653589793 * (distance_au * constants.AU_TO_KM) ** 2) / 1e6
     one_bar = giant_draw.ONE_BAR_OVER_EFFECTIVE * giant_draw.effective_temperature_k(flux, giant_draw.own_flux_w_m2(body))
