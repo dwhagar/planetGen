@@ -63,7 +63,7 @@ def test_insert_row_writes_one_plain_insert_and_returns_the_id():
 
 def test_a_belt_is_written_in_kilometres_with_a_stated_zero_point_and_its_own_mass():
     belt = types.SimpleNamespace(distance=2.0, lower_limit=1.5, upper_limit=3.0, density=0.4, mass_kg=1.5e21,
-                                 chondrite_group="CM", get_composition_summary=lambda: "rock")
+                                 chondrite_group="CM", stirred=None, co_causes=None, origin_history=None, scatter_fates=None, get_composition_summary=lambda: "rock")
     connection = _Connection()
     context = {"star_system_id": 5, "star_id": 2, "orbital_index": 1}
     object_rows.insert_row(connection, "asteroid_belts", store.BELT_FIELDS, belt, context)

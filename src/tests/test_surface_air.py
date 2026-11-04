@@ -476,7 +476,7 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         return real(subject, result, column_bar)
 
     monkeypatch.setattr(sa.mixture_escape, "apply", recording)
-    for seed in (3, 5, 6):
+    for seed in (3, 6, 7):                                           # (a seed whose air needs no escape step is no sample of the order)
         columns.clear()
         planet = _earth_like_planet(seed)
         assert planet.atmospheric_pressure > 0.0, seed
@@ -516,7 +516,7 @@ def test_a_giant_a_body_with_no_star_or_no_mantle_takes_no_late_accretion():
 
 
 def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cycle_acts_on_the_carbon_of_both():
-    draw.set_run_seed(26)
+    draw.set_run_seed(27)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)

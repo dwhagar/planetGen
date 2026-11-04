@@ -125,7 +125,7 @@ def _apply(planet, keep_stored, key):
                f"oxidant yield {complexity.oxidant_yield:.2f} of 1, temperature rate factor {complexity.rate_factor:.2f}, "
                f"animal grade {complexity.grade} of 3, highest stage {complexity.top_stage}")
     setattr(planet, life_classes.LIVING_FIELD, _living_entries(planet, cands, final, key))
-    trace_air.apply(planet)             # GEN.524: the trace gases of table m read the life stage just stored
+    _trace_gases(planet)                # GEN.524: the trace gases of table m read the life stage just stored
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
     kinds = habitability_world.living_kinds(habitability_world.values_from_body(planet))
     for entry in getattr(planet, life_classes.LIVING_FIELD) or ():
@@ -291,7 +291,7 @@ def _lifeless(planet, scores, why):
     _set_schedule(planet, None, None)
     _set_evolutionary_state(planet, None)
     planet.life_animal_grade = planet.life_complexity = None
-    trace_air.apply(planet)             # GEN.524: a lifeless world loses the trace gases a drawn life had given it
+    _trace_gases(planet)                # GEN.524: a lifeless world loses the trace gases a drawn life had given it
     habitability_world.rescore(planet)
     log.debug(f"Life class: none, {why}")
 
@@ -382,6 +382,16 @@ def _build_oxygen(planet, living):
         return False
     log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis from the first producers; the oxygen rose at {rise:.2f} Gyr")
     return True
+
+
+def _trace_gases(planet):
+    """Gives the air its trace gases (`trace_air.apply`, GEN.524) and, when they changed it, makes the doses and the ultraviolet index of the air again: they
+    read the air, and the trace gases shift it by parts in a thousand. The same stream as `_rebuild` takes, so the draws do not move."""
+    before = atmosphere.gas_partials_pa(planet)
+    trace_air.apply(planet)
+    if planet.body_type != "g" and getattr(planet, "uv_surface_index", None) is not None and atmosphere.gas_partials_pa(planet) != before:
+        with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
+            radiation.generate_dose(planet)
 
 
 def _rebuild(planet):

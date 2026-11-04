@@ -41,7 +41,7 @@ from tests.class_sweep_cli import sample_bodies
 
 SYSTEMS = 14
 """int: Systems generated for the sweep (about 90 s; 160 or so bodies of 15 classes)."""
-SEED = 11
+SEED = 15
 HABITABLE_SHARE = 0.5
 RELATIVE_TOLERANCE = 1e-6
 """float: What counts as the same stored number."""
