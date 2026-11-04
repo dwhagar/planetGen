@@ -241,7 +241,8 @@ def model_terms(shape):
             integral, in the model's unnormalized units), `nuclear_cluster_mass`, `nuclear_cluster_scale_pc`
             (the Hernquist scale radius), `nuclear_cluster_softening_pc` (the radius inside which the
             cusp is held flat, `tuning.NUCLEAR_RESOLUTION_PC`), `nuclear_disc_mass`, `nuclear_disc_length_pc`,
-            `nuclear_disc_height_pc` and `nuclear_disc_density` (the disc's centre).
+            `nuclear_disc_height_pc` and `nuclear_disc_density` (the disc's centre; GEN.614: all of the disc's mass and density are zero
+            when its length is under `tuning.NUCLEAR_RESOLUTION_PC`, a bulge radius under about 35 pc).
     """
     if shape.spheroid_amplitude:
         raise ValueError("this galaxy stores a Sersic spheroid, which the density model has no component for yet")
@@ -266,6 +267,14 @@ def model_terms(shape):
     disc_mass = max(shape.nuclear_amplitude, 0.0) * structure.nuclear_disc_mass_solar * per_solar
     disc_length = tuning.NUCLEAR_DISC_LENGTH_RATIO * shape.bulge_scale_radius_pc
     disc_height = tuning.NUCLEAR_DISC_HEIGHT_RATIO * shape.bulge_scale_radius_pc
+    if disc_length < tuning.NUCLEAR_RESOLUTION_PC:
+        # GEN.614: a disc shorter than the grid's core ball is a point the grid cannot hold (the density-limits report,
+        # section 2.3: five times too many systems in one cell), so it is switched off rather than softened. Owner's
+        # choice: the cluster keeps its softening because it is one Hernquist profile whose cusp can be held flat to the
+        # ball's mean, while a disc has two lengths and no single flat core that holds its mass; the disc's mass is not
+        # moved anywhere (the bulge and the cluster already hold the centre), and the cut sits at a bulge radius of
+        # 2 pc / 0.057 = 35 pc, far under the 1.58 kpc of the Milky Way.
+        disc_mass = 0.0
     return {
         "thick_disk_amplitude": thick_amplitude,
         "thick_disk_scale_length_pc": thick_length,
@@ -285,7 +294,7 @@ def model_terms(shape):
         "nuclear_disc_mass": disc_mass,
         "nuclear_disc_length_pc": disc_length,
         "nuclear_disc_height_pc": disc_height,
-        "nuclear_disc_density": disc_mass / (8.0 * math.pi * disc_length ** 2 * disc_height),
+        "nuclear_disc_density": disc_mass / (8.0 * math.pi * disc_length ** 2 * disc_height) if disc_mass else 0.0,
     }
 
 
