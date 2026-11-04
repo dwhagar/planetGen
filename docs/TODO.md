@@ -895,6 +895,16 @@ with `clamp()`.
   API.38. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
 
+- [ ] **UX.260 Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere**
+  Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
+  lane (galaxy projection survey, report section 8, method 'all-sky').
+  Do: a page that draws the sky as seen from a chosen star on a
+  projection of the sphere; it shares its data with the System View sky
+  (VIEW.19 to VIEW.40) and the 9.1 sky chart (VIEW.15). Done: decided
+  when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
+  the TODO thread.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2043,6 +2053,69 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: MAP.357, MAP.336, MAP.176. Owner Core 2 (Boss's request
   relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at a time,
   behind MAP.365 unless Core 2 says it clashes). Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **MAP.371 Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead)**
+  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): option 1.1, a switchable 'Plane view with stems' in the
+  Galaxy Map 3D camera, 'but instead of height let's list its spherical
+  coordinates for its context and an ordered triple'. Size M in three
+  small parts, all map code, lock-free, no migration. Do: a tilt preset
+  in the Galaxy Map 3D camera that reuses the top-down and isometric
+  views of MAP.97; a grid drawn on a plane through the focus (the camera
+  target), parallel to the galaxy midplane, centred on the selection
+  with ring labels; a one-click choice of the midplane z = 0 instead.
+  The grid shows only at region and sector scale (tens to a few hundred
+  pc): at the galaxy scale the disc is too thin for it to mean anything.
+  Done: browser test that the preset tilts, the grid follows the focus
+  and the toggle between the two planes works. Goal #3241. Filed by the
+  TODO thread.
+  Prerequisites: none.
+
+- [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
+  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): option 1.1, a switchable 'Plane view with stems' in the
+  Galaxy Map 3D camera, 'but instead of height let's list its spherical
+  coordinates for its context and an ordered triple'. Size M in three
+  small parts, all map code, lock-free, no migration. Do: one line
+  segment per drawn object from the object to its shadow on the grid
+  plane, only for the labelled objects (the label budget of MAP.317),
+  the selection, the pointer neighbourhood and the brightest N inside a
+  radius of the focus, never for all stars; thin, low contrast,
+  strongest for the selection; fade by distance and skip a stem shorter
+  than 2 px; the line layer uses the relative-to-eye encoding of the
+  star points (the MAP.240 class); shown only at region and sector
+  scale. Done: browser test and a measured frame cost at the budget.
+  Goal #3241. Filed by the TODO thread. Related: MAP.317, MAP.240.
+  Prerequisites: MAP.371.
+
+- [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
+  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
+  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
+  section 8): option 1.1, a switchable 'Plane view with stems' in the
+  Galaxy Map 3D camera, 'but instead of height let's list its spherical
+  coordinates for its context and an ordered triple'. Size M in three
+  small parts, all map code, lock-free, no migration. Do: a Menu toggle
+  for the plane view and its stems; a height-stretch control (draw
+  heights 2 to 10 times larger, stated on the grid so it stays honest);
+  and on a stemmed or selected object a label (and the infobox line)
+  listing its spherical coordinates in the galaxy frame as an ordered
+  triple (radius, longitude, latitude) instead of a height number, with
+  units. Done: browser test of the toggle, the stretch and the triple;
+  the triple matches the stored position within rounding. Goal #3241.
+  Filed by the TODO thread.
+  Prerequisites: MAP.372.
+
+- [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
+  Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
+  lane (galaxy projection survey, report section 8). Do: a chart of
+  stars by luminosity against temperature; selecting a point selects the
+  star on the map and the reverse. Done: decided when it is scheduled.
+  Not scheduled, no owner. The linked side strip for height (survey
+  question 2) is held until Boss answers. Goal #3241. Filed by the TODO
   thread.
   Prerequisites: none.
 
