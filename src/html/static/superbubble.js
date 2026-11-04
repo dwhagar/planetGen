@@ -8,17 +8,12 @@
 //
 // Pure data and shader text, free of three.js, so a test can hold the numbers; galaxymap3d.js builds the material.
 
-// The look in each theme: the colour (CSS hex), the fill's alpha and the rim's alpha. The rim is always the brighter of the two, and
-// the fill is always under the 0.14 the three circles had.
-export const DARK_LOOK = { color: "#6fb3d8", fillAlpha: 0.06, rimAlpha: 0.7 };
-export const LIGHT_LOOK = { color: "#1f6a99", fillAlpha: 0.07, rimAlpha: 0.75 };
+// The look: the colour (CSS hex), the fill's alpha and the rim's alpha. The rim is always the brighter of the two, and the fill is always
+// under the 0.14 the three circles had.
+export const LOOK = { color: "#6fb3d8", fillAlpha: 0.06, rimAlpha: 0.7 };
 
 // How wide the rim is, in the shader's own measure (about two pixels on a bubble that fills the map).
 export const RIM_PX = 4.0;
-
-export function bubbleLook(light) {
-  return light ? LIGHT_LOOK : DARK_LOOK;
-}
 
 // The colour as [r, g, b] in 0..1, as written to the screen (the shader writes it as it is).
 export function colorComponents(hex) {
