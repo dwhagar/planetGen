@@ -10496,36 +10496,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train.
   Prerequisites: GEN.805. Related: GEN.800, GEN.748.
 
-- [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
-  GEN.739 (#3246) added physics/impact_history.py and
-  surface_pressure.impact_inventory (H, C and N atoms per 100 g of
-  mantle from late accretion, impact delivery and impact erosion,
-  [R0518, R3872]) with registry rows AM36 to
-  AM44; nothing in the generator calls it. Once the air fixed point
-  (GEN.411, GEN.422) lands, make the supply law read impact_inventory
-  for rocky planets and moons and take the generator epoch with
-  --affects fill. Done: Earth, Venus and Mars samples land inside the
-  brackets of the design note (Earth N2 near 3.9e18 kg, kept water near
-  the 1.4e21 kg ocean, Mars thin by escape). Owner: the Citations lane.
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); tests are `scripts/test.py changed --resume`.
-  Prerequisites: GEN.422. Related: GEN.739, GEN.411, GEN.422,
-  GEN.726.
-  Research (2026-10-09, Citations lane report): Also does the part of
-  GEN.813 that waits on 4c (Citations lane, 11:09 PM EDT 2026-10-24):
-  run the Earth, Venus and Mars twins through the air fixed point and
-  check the totals the recalibrated brackets (#3254) give.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  [R4529] as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-
 - [ ] **GEN.820 Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample**
   GEN.512 merged as #3250 (generator epoch 101, --affects fill):
   bulk-iron-branch table in bulk_draw.py, tuning sample
@@ -14330,6 +14300,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so the three agree; if a guard, remove it. Physics drives, no game
   cap. Lock work if stored values change (epoch, census). Related:
   GEN.822, GEN.830, GEN.837 (class N), TEST.212. Owner: none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1237 An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug)**
+  Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
+  2026-11-01 on main b153f0209; 40 seeds per twin, G2V star), filed by
+  the TODO thread. The Earth twin's N2 is good (median 3.7e18 kg against
+  3.9e18 observed) but its climate is not: only 1 of 40 is temperate
+  (260 to 330 K); the median is 376 K at 3.7 bar, and the classes drawn
+  are H, M, N and O. The one temperate twin holds about 1e23 kg of ocean
+  (a rough estimate, ocean fraction times depth) against Earth's 1.4e21.
+  Do: separate the causes (water inventory and delivery, the greenhouse
+  at 3.7 bar of mostly N2 and CO2, the albedo, the class rules) with a
+  sweep of the same 40 seeds, print temperate count and ocean mass per
+  class, and fix the weakest law or register a stand-in in GEN.725 with
+  tier and tweak level. Earth is a plausibility target here, never fixed
+  content. Lock work if stored values change (epoch, census). Related:
+  GEN.819, GEN.909 (cold ecosphere), GEN.822, GEN.830, GEN.837 (class
+  N), GEN.1236. Owner: none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1238 A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug)**
+  Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
+  2026-11-01 on main b153f0209; 40 seeds), filed by the TODO thread. The
+  Venus twin's N2 is fine (2.9e18 kg against 1.1e19, inside a factor of
+  five), but its median surface is about 3,100 bar and 1,279 K against
+  Venus's 92 bar and 737 K, with CO2 near 4.8e19 kg against about 4.8e20
+  for Venus (so the pressure is not CO2; look for the other gases, water
+  vapour and sulfur, and for a runaway greenhouse that the air fixed
+  point does not bound). Do: print the composition of each of the 40
+  draws, find what carries the 3,100 bar, check the greenhouse and the
+  escape against the published Venus state, and fix the law or register
+  a stand-in in GEN.725. Venus is a plausibility target here, never
+  fixed content. Lock work if stored values change. Related: GEN.819,
+  GEN.1236, GEN.909. Owner: none yet.
   Prerequisites: none.
   Prerequisites: none.
 
