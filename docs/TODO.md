@@ -11305,21 +11305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator at 3:21 PM EDT; owner is now Core 3.
   Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
 
-- [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
-  Sources 2 finding (as the lane reported 11:53 PM EDT 2026-10-29): the
-  belt mass of GEN.477 needs the belt's largest body, which nothing in
-  the generator provides. The size law is researched (GEN.566, done) but
-  not built. GEN.477 wiring goes ahead with a registered stand-in
-  largest-body size (T9, L3, GEN.725). Do: build the size-frequency law
-  of GEN.566 as a pure module with tests, draw each belt's largest body
-  from it (own random stream, via draw.py), feed GEN.477 and the belt
-  detail, and retire the stand-in registry row. Changes generated output
-  (belt mass): epoch, --affects fill, rides the train after GEN.477
-  wiring. Owner: Aux 5. Version 8.1.
-  Owner changed (2026-10-31 3:40 PM EDT): Sources 2 was retired by the
-  coordinator at 3:21 PM EDT; owner is now Aux 5.
-  Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
-
 - [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
   Boss (2026-10-30, 10:51 AM EDT): merge the quick fix for the missing
   third star (GEN.1004, PR #4026, train 4) but build the deeper, more
@@ -12539,64 +12524,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
 
-- [ ] **GEN.1138 Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history**
-  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
-  questions: the small table of retired designations only (not a row per
-  object), retired IDs reserved forever and retired names not reserved
-  (the collision bump may hand a stored object's name to another), a
-  read of a retired ID redirects, a write against it answers 409, a
-  deleted object answers 410. Design:
-  docs/design/architecture/designation-history.md (GEN.1121 part a,
-  merged as #4234), section 4 to 5. Do: Alembic migration for the
-  designations table with the keys of section 4 (unique on the retired
-  uid, lookup and page-line indexes), designations.py with retire and
-  renumber, the store rename writers (rename_star_system, rename_star,
-  rename_body) and the _rank_chain collision bump (reason collision
-  bump) write the history in the same transaction as object_index;
-  invariants of section 3 as tests. Done: tests for rename, ID change, a
-  new ID equal to any current or retired ID refused, history rows in
-  order. Lock work (migration, epoch only if names move). Where we think
-  it belongs (best guess, can move): Core 1, train 9 (the last window).
-  Prerequisites: none. Related: GEN.1121, GEN.1127.
-  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
-
-- [ ] **GEN.1139 Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes)**
-  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
-  questions: the small table of retired designations only (not a row per
-  object), retired IDs reserved forever and retired names not reserved
-  (the collision bump may hand a stored object's name to another), a
-  read of a retired ID redirects, a write against it answers 409, a
-  deleted object answers 410. Design:
-  docs/design/architecture/designation-history.md (GEN.1121 part a,
-  merged as #4234), section 5. Do: api/ids.row_id falls back to
-  designations when the printed ID is not current; page routes answer
-  301 to the current URL; GET API calls answer 301 with the new Location
-  and X-Designation-Formerly; PATCH and DELETE against a retired ID
-  answer 409; a deleted object answers 410. Done: tests for each status
-  and for an old link resolving to the object that held the ID.
-  Lock-free after part b. Where we think it belongs (best guess, can
-  move): Core 1, train 9.
-  Prerequisites: GEN.1138. Related: GEN.1121.
-  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
-
-- [ ] **GEN.1140 Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name**
-  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
-  questions: the small table of retired designations only (not a row per
-  object), retired IDs reserved forever and retired names not reserved
-  (the collision bump may hand a stored object's name to another), a
-  read of a retired ID redirects, a write against it answers 409, a
-  deleted object answers 410. Design:
-  docs/design/architecture/designation-history.md (GEN.1121 part a,
-  merged as #4234), section 5. Do: the object page lists previous
-  designations newest first with the reason and the epoch date; the JSON
-  of an object gains former_designations, a list of designation, kind,
-  reason and retired_epoch (additive, API version bump); search finds an
-  object by a past name or ID. Done: page and API tests, search test.
-  Lock work (API field). Where we think it belongs (best guess, can
-  move): Core 1, train 9.
-  Prerequisites: GEN.1138. Related: GEN.1121, UX.226.
-  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
-
 - [ ] **GEN.1141 Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete**
   Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
   questions: the small table of retired designations only (not a row per
@@ -12613,7 +12540,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   members follow a parent ID change and that a deleted object answers
   410. Lock-free after part b unless the migration is shared. Where we
   think it belongs (best guess, can move): Core 1, train 9.
-  Prerequisites: GEN.1138. Related: GEN.1121, GEN.1070.
+  Prerequisites: none. Related: GEN.1121, GEN.1070.
   Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
 
 - [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
@@ -12721,39 +12648,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rides a train after GEN.1097.
   Prerequisites: none.
 
-- [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
-  From Aux 5 (GEN.1148,
-  reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
-  fell from 53 to 3 percent (11.8 percent in the fixed-type census) at
-  train 4 (GEN.728/729/730, epoch 126) because orbital slots fell from
-  10.4 to 4.2 per system and only 18 percent of slots now hold a body
-  under 1 Earth mass (eligible slots 8.5 to 0.62). That matches the 4 to
-  14 percent the GEN.728 note and
-  tests/data/prevalence_systems_expectations.json expect, but it sits at
-  the low end on the default mix. Boss approved raising the share
-  (9:13 PM EDT 2026-10-30), physics-driven. Aux 5 picks the way from
-  these, all train-bound because they change output: (1) raise
-  ASTEROID_BELT_PROBABILITY (0.1) to a stated target, a stand-in at tier
-  L3 in GEN.725; (2) make the belt its own component of the disc
-  architecture, reserved when the disc leaves leftover mass, instead of
-  a slot swap (larger, physics-driven; recommended). Owner Aux 5,
-  train-bound (changes output: epoch, golden, generation-output:
-  changed). Any stand-in goes in GEN.725 with tier and tweak level.
-  Prerequisites: none. Related: GEN.728, GEN.729, GEN.730, GEN.1061,
-  GEN.725.
-  Aux 5 finding (2026-10-30 9:21 PM EDT): the physics route is GEN.1068
-  (belt birth from the architecture, belt_origin.py written). Measured
-  on main (400 default-mix systems), 99.5 percent of systems have
-  leftover solids that could form a belt (tail 80, snow-line bump 42,
-  outer disc 16, gap 12.5 percent), so the share is set by the line
-  where a leftover counts as a belt; after Wyatt grinding the share with
-  a belt of at least 0.01 Earth masses is 9, 37 and 87 percent for a
-  largest body of 100, 500 and 1000 km. Raising
-  ASTEROID_BELT_PROBABILITY to about 0.25 gives about 8 percent but is a
-  game rate. Aux 5 asks Boss where the line sits. GEN.1156 is built as
-  part of GEN.1068 (same lane, same train 7 lock window), not
-  separately.
-
 - [ ] **GEN.1157 Earth-type moons around gas giants: how often a giant has a moon the size of a planet, and how big, from the physics of moon formation and capture**
   Boss, relayed by Aux 5 (10:26 PM EDT 2026-10-30): file separately the
   case of planets as moons, Earth-type moons around gas giants. Decide
@@ -12782,30 +12676,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   columns filled for every body kind, fill audit green.
   Prerequisites: GEN.1158. Related: GEN.1068, GEN.1158.
 
-- [ ] **GEN.1160 Class D and C rules read the roundness ratio and the 0.1 Earth mass line, and the Asteroid object type (no class letter, moon-capable) for bodies under roundness ratio 1**
-  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
-  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
-  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
-  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
-  above; build the engine; store ice fraction, bulk density, roundness
-  ratio, yield strength (from composition) and gravitational binding
-  energy for every planet, moon, asteroid and belt or field member.
-  Owner Aux 5. Class D is airless, round (ratio 1) and below 0.1 Earth
-  masses; Class C is airless at or above it; the water rule is dropped;
-  moons use the same classes. Bodies under ratio 1 are the new object
-  type Asteroid, which is not a planet class and can be a moon. Lock
-  work, same window as GEN.1068, folds into it. Done: classes derived
-  from the ratio, the Asteroid type in the data and pages, tests, census
-  re-tag.
-  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
-  EDT): Class D and C rules here are the first-match rules; under
-  best-fit (GEN.1205 to GEN.1207) D and C each get a positive condition
-  set (airless, round, below 0.1 Earth masses versus at or above) with a
-  shoulder on the 0.1 line, and the Asteroid type stays outside the
-  class letters. Build the rules so GEN.1205 can read the same edges: no
-  second copy of the 0.1 line.
-  Prerequisites: GEN.1159. Related: GEN.1068, GEN.725.
-
 - [ ] **GEN.1161 Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand)**
   Research: reports/round-shape-minimum-mass-2026-10-31.md (in
   /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
@@ -12826,24 +12696,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays open for the member ledger
   (planetgen.galaxy.object_uid.is_on_demand is named by the wiring
   register) until that wiring is built. Aux 5 is the owner.
-  Prerequisites: GEN.1160. Related: GEN.1068, GEN.1160.
-
-- [ ] **GEN.1162 Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30)**
-  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
-  /mnt/project-files/reports/). Boss (8:44 PM EDT 2026-10-30, relayed by
-  Aux 5): every mass object that can have them gets bulk density, ice
-  fraction where it applies, roundness ratio, yield strength and binding
-  energy, stars and compact objects included, each with the right
-  formula; a black hole's binding energy is stored as -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30), not infinite. Owner
-  Aux 5. Columns registered in db/column_units.py, migration, schema
-  fixture, API version, sheet rules; the pure binding-energy formulas
-  for every structure live in the roundness engine GEN.1158 (uniform
-  sphere, two-shell, polytrope for stars, brown dwarfs and giants,
-  degenerate white dwarf, neutron star from [R2573]
-  eq. 33). GEN.1159 stays planets, moons, asteroids, comets, rogue
-  bodies and belt or field members. Lock work, rides the GEN.1159
-  window.
-  Prerequisites: GEN.1158. Related: GEN.1158, GEN.1159, GEN.1068.
+  Prerequisites: none. Related: GEN.1068, GEN.1160.
 
 - [ ] **GEN.1167 The stellar-to-halo relation [R3181] has 0.3 to 0.4 dex more stars than [R0319] in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
   Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
@@ -13192,7 +13045,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   versions use (no fixed values), then store the same bulk values
   through the same code. Output change (stored values), rides a train.
   Owner: unowned until GEN.1162 merges (Aux 5 proposed).
-  Prerequisites: GEN.1162.
+  Prerequisites: none.
 
 - [ ] **GEN.1207 Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match**
   Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
@@ -14798,21 +14651,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
-  Prerequisites: none.
-
-- [ ] **PERF.231 The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug)**
-  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
-  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. In two
-  separate runs the class census timed out in 8 cells: F5V, G2V, K0III,
-  K5V and M2V in the ecosphere, hot and cold (K5V ecosphere 4 draws);
-  zero before epoch 130. Do: bisect the draw time (an air solve that no
-  longer converges quickly, the hot start of GEN.1238 is not on main yet
-  so look at the train 8 changes: GEN.1160 roundness, giants, belts,
-  GEN.1174), print the time per stage for one slow seed per cell, and
-  fix the slow stage. Done: the census cells finish under the limit and
-  a test pins the slow seed. Lock-free if output is unchanged. Owner:
-  Bug 1.
-  Prerequisites: none.
   Prerequisites: none.
 
 - [ ] **PERF.232 test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug)**
