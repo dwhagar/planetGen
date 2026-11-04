@@ -15069,6 +15069,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1 (PERF.229 owner). Filed by the TODO thread.
   Prerequisites: none. Related: PERF.229, TEST.430.
 
+- [ ] **PERF.237 The warm-up's galaxy-nodes chunks took 37 s each right after an update although the nodes were already stored, against 4 s a chunk before it: find what a chunk does when nothing is built (bug)**
+  Boss, 6:03 PM EST on 2026-11-04, ran ./update.sh to 8.0.3206 on his
+  server. All 9 stages passed, but after the Apache reload
+  https://starmap.moltenaether.com/api/health gave HTTP 000 (no answer
+  at all) for 20 s and update.sh opened the site with the warning; then
+  stage 2 of 2 started and its galaxy-nodes chunks read 0 built, already
+  stored, yet took 37 to 38 s each, against 4.0 s a chunk in his earlier
+  run. Possible causes to measure, none confirmed: the workers compile
+  numba code again after new source files; the site's workers and the
+  warm-up share the machine right after the reload; the stored-node
+  check reads every node from the disk cache cold after the Apache
+  reload and the update's file change; a lock or a Redis wait. Do: time
+  one chunk of already-stored nodes on a real galaxy twice (just after a
+  reload, and ten minutes later), split into the stored check, the read
+  and the unit overhead; fix the largest share, or say why the time is
+  the machine's. Done: the figure in the note, and a chunk of stored
+  nodes costing a small multiple of 4 s after an update. Proposed owner:
+  Aux 3 (PERF.233 and PERF.234 are the same measurement). Filed by the
+  TODO thread.
+  Prerequisites: none. Related: PERF.233, PERF.234, PERF.235.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18946,6 +18967,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
+
+- [ ] **OPS.94 update.sh's health check gave up after 20 s with HTTP 000 right after a reload on a real server: widen the window, say what curl saw, and ask again once workers are up (bug)**
+  Boss, 6:03 PM EST on 2026-11-04, ran ./update.sh to 8.0.3206 on his
+  server. All 9 stages passed, but after the Apache reload
+  https://starmap.moltenaether.com/api/health gave HTTP 000 (no answer
+  at all) for 20 s and update.sh opened the site with the warning; then
+  stage 2 of 2 started and its galaxy-nodes chunks read 0 built, already
+  stored, yet took 37 to 38 s each, against 4.0 s a chunk in his earlier
+  run. The probe (scripts/deploy-common.sh wait_for_health) waits
+  HEALTH_SETTLE_SECONDS 10 then asks for up to HEALTH_WAIT_SECONDS 20
+  with curl --max-time 5, so a worker still starting (numba compile and
+  imports after new code) times out at 5 s and reads as 000. Do: (1)
+  default HEALTH_WAIT_SECONDS to 90 and keep the early exit on a good
+  answer; (2) always print curl's reason with the code
+  (curl_failure_words already exists) on every retry line, not only in
+  the final warning, so a timeout, a refused connection, a failed name
+  lookup and a TLS error read differently; (3) when the failure is the
+  same 000 and the address is the public name, also try the loopback
+  port once and say whether the server answers itself, to tell a slow
+  start from a server that cannot reach its own public address. Done: a
+  shell test of the retry and the messages with a fake curl. Proposed
+  owner: Aux 7. Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.86, PERF.234.
 
 ## DOC: Documentation
 
