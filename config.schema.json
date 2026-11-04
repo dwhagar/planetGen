@@ -155,7 +155,7 @@
         },
         "manifest_enabled": {
           "default": false,
-          "description": "Serve /site.webmanifest, which names the site, its icon and its theme colour for browsers that can install it.",
+          "description": "Serve /site.webmanifest, which names the site, its icon and its theme color for browsers that can install it.",
           "title": "Manifest Enabled",
           "type": "boolean",
           "x-advanced": false,
@@ -450,7 +450,7 @@
         },
         "enabled": {
           "default": true,
-          "description": "Add Open Graph and Twitter tags to the public pages, so a link shows a title, a description and a picture when shared.",
+          "description": "Add Open Graph and Twitter tags to the public pages, so a link shows a title, a description, and a picture when shared.",
           "title": "Enabled",
           "type": "boolean",
           "x-advanced": false,
@@ -464,7 +464,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "Show a title, description and picture when a link to the site is shared."
+          "x-summary": "Show a title, description, and picture when a link to the site is shared."
         },
         "generated_cards": {
           "default": false,
@@ -711,7 +711,7 @@
         },
         "warm_max_objects": {
           "default": 5000,
-          "description": "Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy centre first); the rest are built on their first visit, and the warm-up says how many it left out.",
+          "description": "Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy center first); the rest are built on their first visit, and the warm-up says how many it left out.",
           "minimum": 0,
           "title": "Warm Max Objects",
           "type": "integer",
@@ -1204,7 +1204,7 @@
         },
         "galaxy_tiles": {
           "default": "600 per minute",
-          "description": "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
+          "description": "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near, and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
           "title": "Galaxy Tiles",
           "type": "string",
           "x-advanced": false,
@@ -1344,7 +1344,7 @@
         },
         "detail_pages": {
           "default": "noindex",
-          "description": "Whether the generated system, sector and phenomenon pages may be indexed when indexing is top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by default; a small galaxy can switch this to index.",
+          "description": "Whether the generated system, sector, and phenomenon pages may be indexed when indexing is top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by default; a small galaxy can switch this to index.",
           "enum": [
             "noindex",
             "index"
@@ -1365,7 +1365,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "Whether the generated system, sector and phenomenon pages may be indexed."
+          "x-summary": "Whether the generated system, sector, and phenomenon pages may be indexed."
         },
         "humans_txt": {
           "default": "",
@@ -1388,7 +1388,7 @@
         },
         "indexing": {
           "default": "top_pages",
-          "description": "Whether search engines may index the site: off (robots.txt disallows everything and every page says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the system, sector and phenomenon pages).",
+          "description": "Whether search engines may index the site: off (robots.txt disallows everything and every page says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the system, sector, and phenomenon pages).",
           "enum": [
             "off",
             "top_pages",
@@ -1637,7 +1637,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The language code of the pages, such as en or en-GB."
+          "x-summary": "The language code of the pages, such as en, or en-GB."
         },
         "tagline": {
           "default": "",
@@ -1745,7 +1745,7 @@
         },
         "warm_zoom_floor": {
           "default": 9,
-          "description": "Finest block level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; the run covers blocks of that size and bigger; 243 or more builds no run).",
+          "description": "Finest block level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's center, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; the run covers blocks of that size and bigger; 243 or more builds no run).",
           "maximum": 177147,
           "minimum": 1,
           "title": "Warm Zoom Floor",
@@ -1799,17 +1799,17 @@
           "x-control": "color",
           "x-editable": true,
           "x-group": "look",
-          "x-label": "Browser colour, dark theme",
+          "x-label": "Browser color, dark theme",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The toolbar colour phones show with the dark theme."
+          "x-summary": "The toolbar color phones show with the dark theme."
         },
         "theme_color_light": {
           "default": "#f6f7fb",
-          "description": "The browser's toolbar colour on phones for the light theme, as #rrggbb.",
+          "description": "The browser's toolbar color on phones for the light theme, as #rrggbb.",
           "title": "Theme Color Light",
           "type": "string",
           "x-advanced": false,
@@ -1817,13 +1817,13 @@
           "x-control": "color",
           "x-editable": true,
           "x-group": "look",
-          "x-label": "Browser colour, light theme",
+          "x-label": "Browser color, light theme",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The toolbar colour phones show with the light theme."
+          "x-summary": "The toolbar color phones show with the light theme."
         },
         "title_template": {
           "default": "{title} - {site_name}",
@@ -1911,7 +1911,7 @@
       "x-restart": false,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "The public address of the site, used for canonical links, previews and the sitemap."
+      "x-summary": "The public address of the site, used for canonical links, previews, and the sitemap."
     },
     "cache": {
       "$ref": "#/$defs/Cache",
@@ -1943,7 +1943,7 @@
     },
     "control_database": {
       "default": "planetgen_control",
-      "description": "The MySQL schema holding admin identities, sessions, API keys and the audit log. Never listed or selectable as a galaxy.",
+      "description": "The MySQL schema holding admin identities, sessions, API keys, and the audit log. Never listed or selectable as a galaxy.",
       "title": "Control Database",
       "type": "string",
       "x-advanced": false,
@@ -1958,11 +1958,11 @@
       "x-restart": true,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "The database that holds admin accounts, sessions, API keys and the audit log."
+      "x-summary": "The database that holds admin accounts, sessions, API keys, and the audit log."
     },
     "debug": {
       "default": false,
-      "description": "Debug mode: every decision the generator makes, every random roll, every SQL statement, queue event and request, written to the console of each planetgen command (stdout) and to log_file. The output is large.",
+      "description": "Debug mode: every decision the generator makes, every random roll, every SQL statement, queue event, and request, written to the console of each planetgen command (stdout) and to log_file. The output is large.",
       "title": "Debug",
       "type": "boolean",
       "x-advanced": false,
@@ -2297,7 +2297,7 @@
     },
     "site_name": {
       "default": "planetGen",
-      "description": "Display name for this deployment, shown in the header, the home page heading, every page title and the footer.",
+      "description": "Display name for this deployment, shown in the header, the home page heading, every page title, and the footer.",
       "minLength": 1,
       "title": "Site Name",
       "type": "string",
@@ -2312,7 +2312,7 @@
       "x-restart": false,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "The name shown in the header, the home page, page titles and the footer."
+      "x-summary": "The name shown in the header, the home page, page titles, and the footer."
     },
     "tile_cache": {
       "$ref": "#/$defs/TileCache",

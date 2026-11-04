@@ -5,13 +5,15 @@
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import albedo_color, climate_draws
+from planetgen.physics import albedo_color, climate_branches, climate_draws
+
+ICE_COVERED = (climate_branches.ICE_COVERED_ALBEDO,) * 2
 
 
 def test_the_sun_is_the_reference():
     for regime in ("frozen", "wet"):
         assert albedo_color.spectral_factor(regime, 5770.0) == pytest.approx(1.0)
-    assert albedo_color.shifted_range(tuning.ALBEDO_FROZEN_RANGE, "frozen", 5770.0) == pytest.approx(tuning.ALBEDO_FROZEN_RANGE)
+    assert albedo_color.shifted_range(ICE_COVERED, "frozen", 5770.0) == pytest.approx(ICE_COVERED)
 
 
 def test_the_factors_are_kept_at_the_four_stars():
@@ -50,8 +52,9 @@ def test_the_generator_range_follows_the_star():
     assert climate_draws.albedo_range("t", 1e-3, sun, 5770.0) == pytest.approx(tuning.ALBEDO_WET_RANGE)
     m_low, m_high = climate_draws.albedo_range("t", 1e-3, sun, 3400.0)
     assert m_low < tuning.ALBEDO_WET_RANGE[0] and m_high < tuning.ALBEDO_WET_RANGE[1]
-    f_low, f_high = climate_draws.albedo_range("t", 1e-3, 0.3 * sun, 3400.0)
-    assert f_high < tuning.ALBEDO_FROZEN_RANGE[1] and f_low < tuning.ALBEDO_FROZEN_RANGE[0]
+    cold_low, cold_high = climate_draws.albedo_range("t", 1e-3, 0.3 * sun, 3400.0)
+    assert (cold_low, cold_high) == pytest.approx((m_low, m_high))      # GEN.972: the cold is not a range of its own, the ice law is
+    assert albedo_color.shifted_range(ICE_COVERED, "frozen", 3400.0)[0] < ICE_COVERED[0]
 
 
 def test_a_cold_star_keeps_the_ranges_below_one():

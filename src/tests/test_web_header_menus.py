@@ -134,12 +134,12 @@ def test_the_top_bar_menus(browser, base_url, size, scheme):
             problems.append(f"the Help button {help_box} is not left of the search button {search_box}")
         box = _open(page, help_button, items.first)
         labels = [item.inner_text().strip() for item in items.all()]
-        if labels != ["Classes", "Habitability", "Properties", "Life", "References"]:
+        if labels != ["All help", "Classes", "Habitability", "Properties", "Life", "References"]:   # the index first (the help registry, #4599)
             problems.append(f"the Help menu holds {labels}")
         panel = page.locator("header sl-dropdown.site-help-menu .dropdown__panel").bounding_box()
         if _inside(panel, width, height) or not _attached(panel, box):
             problems.append(f"the Help panel {panel} is not at its button {box} inside the window")
-        items.nth(1).click()
+        items.filter(has_text="Habitability").click()
         page.wait_for_url("**/help/habitability")
         _load(page, base_url + "/")
 

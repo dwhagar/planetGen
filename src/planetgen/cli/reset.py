@@ -291,7 +291,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
         return False
 
     if not assume_yes and not _confirm(config.database, config.host, total_rows):
-        log.normal("Cancelled -- no changes made.")
+        log.normal("Canceled -- no changes made.")
         return False
 
     step = commands.Step("reset", "reset-galaxy", "Reset the galaxy", {"database": wrapper.database_args(config)})

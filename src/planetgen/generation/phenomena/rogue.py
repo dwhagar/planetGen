@@ -22,7 +22,7 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import brown_dwarf as brownDwarf, constants, rings, rogue_habitability, small_body_composition, spin
+from planetgen.physics import body_strength, brown_dwarf as brownDwarf, constants, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -91,6 +91,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
     FIELD_UNITS = {
         "name": "text", "planet_type": "text", "planet_class": "text", "mass_bin": "text", "mass_kg": "kg",
         "radius_km": "km", "composition": "text", "has_internal_heat": "flag", "has_moons": "flag",
+        "density_g_cm3": "g_cm3", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
         **rings.UNITS,
         **ROGUE_SURFACE_UNITS, **rogue_habitability.ROGUE_UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
@@ -134,6 +135,8 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
         self.has_moons = hosts.holds_something("planet-satellites", "rogue-planet")
         self._apply_surface_conditions(rogue_surface_conditions(self.mass_kg, self.radius_km, age_gy=brown_dwarf_age_gy))
         self.planet_class = None    # a failed star has no planet class
+        for name, value in body_strength.rogue_values(self, 0.0).items():
+            setattr(self, name, value)
 
         rings.clear(self)  # GEN.1057: a ring is what a planet's history made, and a brown dwarf has none
         self.set_galactic_motion()
@@ -223,6 +226,7 @@ class InterstellarComet(SmallBody):
 
     FIELD_UNITS = {
         "name": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
+        "density_g_cm3": "g_cm3", "ice_mass_fraction": "frac", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
         **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
@@ -259,6 +263,7 @@ class InterstellarComet(SmallBody):
         self.makeup = small_body_composition.draw_comet(interstellar=True)
         self.composition = small_body_composition.component_names(self.makeup)
         self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
+        body_strength.generate_comet(self)    # GEN.1162: its density, ice share, roundness ratio, strength and binding energy
 
         self.set_galactic_motion()
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.

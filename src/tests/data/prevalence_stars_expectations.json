@@ -12,7 +12,7 @@
   }
  },
  "anomalies": {
-   "GEN.898": "A stars are 0.15% of stars against 0.6% (Mamajek) to 1.1% (RECONS): the A/F edge moved to 7200 K (F0V) and the share rose from 0.11%, the rest is the recent star formation. At the reference solar position (the inter-arm minimum) the mix is 87% old, 12% intermediate, 0.1% young, which is the disk history of the Milky Way-like galaxy: its present rate over its mean is 0.27 to 0.38 against the observed 0.20, and its B share 0.02 to 0.05% against 0.04%, so more recent stars would break both; a constant history gives A 0.3%, and the observed figure is 4 stars of 378 (a 95% interval of 0.3% to 2.7%)",
+   "GEN.898": "A stars are 0.15% of stars against 0.6% (Mamajek) to 1.1% (RECONS): the A/F edge moved to 7200 K (F0V) and the share rose from 0.11%, the rest is the recent star formation. At the reference solar position (the inter-arm minimum) the mix is 87% old, 12% intermediate, 0.1% young, which is the disk history of the Milky Way-like galaxy: its present rate over its mean is 0.27 to 0.38 against the observed 0.20, and its B share 0.02 to 0.05% against 0.04%, so more recent stars would break both; a constant history gives A 0.3%, and the observed figure is 4 stars of 378 (a 95% interval of 0.3% to 2.7%) The same old mix is why white dwarfs are 7.9% of stars against 4.5 to 7.0% (GEN.1243): drawn with the galaxy's own age laws (as every sector's stars are, GEN.546) they are 7.75% of a thin disc alone and 7.95% with the thick disc's 17.5% of the old systems (8.4% when the census drew the old population's ages flat over 3 to 13 Gy, which it did until GEN.1243); the flat draw was the census's, the rest is the star formation history.",
    "GEN.943": "G stars are 2.9% of stars against 5.0% (RECONS) and 4.1% (Mamajek): the letter edges moved to the midpoints of the Pecaut and Mamajek dwarf sequence (G from 5,325 to 5,990 K, was 5,200 to 6,000; train 3, epoch 125), so fewer stars fall in G; Star 1 decides whether the edge or the star mix is the fault",
    "TEST.473": "The A0V companion rate is 0.7456 against the norm edge 0.7367 (0.70 plus the draws' tolerance): arrived with train 3 (epoch 125), one cell 1.2 points over its edge; Star 2 and Star 1 look at the companion draw"
  },
@@ -34,7 +34,7 @@
   "O": {"norm_min": 0.0, "norm_max": 0.0001, "kind": "observed",
         "source": "Mamajek 5e-7 (5 stars within 300 pc); RECONS none"},
   "wd": {"norm_min": 0.045, "norm_max": 0.070, "kind": "observed",
-         "source": "RECONS 21 of 378 = 0.056; Mamajek 0.059"},
+         "source": "RECONS 21 of 378 = 0.056; Mamajek 0.059", "anomaly": "GEN.898"},
   "evolved": {"norm_min": 0.0, "norm_max": 0.010, "kind": "observed",
               "source": "RECONS none of 378 (an upper bound of 3 in 378 at 95%)"}
  },

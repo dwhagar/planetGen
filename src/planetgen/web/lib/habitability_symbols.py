@@ -23,7 +23,7 @@ OVERALL = "overall"
 """str: The name of the overall symbol, beside the six domains of `DOMAINS`."""
 
 SYMBOL_NAMES = (*DOMAINS, OVERALL)
-"""tuple: The seven symbols: pressure, temperature, air, water, radiation, suitability and overall."""
+"""tuple: The seven symbols: pressure, temperature, air, water, radiation, suitability, and overall."""
 
 LABELS = {
     "pressure": "Pressure",
@@ -107,7 +107,7 @@ EQUIPMENT_ANCHORS = (
     ("equipment-self-contained-air", ("self-contained",)),
     ("equipment-mixed-gas", ("mixed-gas", "isolated air")),
     ("equipment-pressure-suit", ("pressure suit",)),
-    ("equipment-armoured-suit", ("armoured",)),
+    ("equipment-armored-suit", ("armored",)),
     ("equipment-vehicle", ("vehicle",)),
     ("equipment-sealed-suit", ("sealed suit", "chemical-barrier", "heat-shielded")),
     ("equipment-thermal-suit", ("insulated", "liquid-cooled", "diving", "full-cover")),

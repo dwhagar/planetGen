@@ -102,16 +102,16 @@
     },
     {
       "letter": "D",
-      "name": "Small icy body",
+      "name": "Small airless world",
       "kind": "t",
       "air": false,
       "when": [
         {
-          "quantity": "water_mass_fraction",
-          "min": 0.01
+          "quantity": "mass_earth",
+          "lt": 0.1
         }
       ],
-      "note": "no air, at least 1 percent water"
+      "note": "no air, under 0.1 Earth masses (round: a body under a roundness ratio of 1 is an Asteroid and has no class letter)"
     },
     {
       "letter": "S",
@@ -122,13 +122,9 @@
         {
           "quantity": "mass_earth",
           "min": 1.5
-        },
-        {
-          "quantity": "water_mass_fraction",
-          "lt": 0.01
         }
       ],
-      "note": "no air, 1.5 Earth masses or more, dry"
+      "note": "no air, 1.5 Earth masses or more"
     },
     {
       "letter": "C",
@@ -138,14 +134,14 @@
       "when": [
         {
           "quantity": "mass_earth",
-          "lt": 1.5
+          "min": 0.1
         },
         {
-          "quantity": "water_mass_fraction",
-          "lt": 0.01
+          "quantity": "mass_earth",
+          "lt": 1.5
         }
       ],
-      "note": "no air, under 1.5 Earth masses, dry"
+      "note": "no air, 0.1 to under 1.5 Earth masses"
     },
     {
       "letter": "A",
@@ -431,7 +427,7 @@
           "lt": 0.03
         }
       ],
-      "note": "no free oxygen, methane and hydrogen 5 percent or more but not a hydrogen envelope, a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "no free oxygen, methane, and hydrogen 5 percent or more but not a hydrogen envelope, a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "G",

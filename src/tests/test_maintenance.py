@@ -188,7 +188,8 @@ def test_the_web_user_turns_it_on_and_off_in_the_folder_create_cache_dir_makes(i
     assert os.stat(state).st_uid == 0, "the migration, run as root, made the folder"
     env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
     env.update(PLANETGEN_STATE_DIR=state, PLANETGEN_TILE_CACHE_DIR=os.path.join(install_root, "tiles"),
-               PLANETGEN_JOBS_DIR=os.path.join(install_root, "jobs"))
+               PLANETGEN_JOBS_DIR=os.path.join(install_root, "jobs"),
+               PLANETGEN_BAND_TABLE_CACHE=os.path.join(install_root, "band-tables"))
     subprocess.run([os.path.join(APACHE_DIR, "create-cache-dir.sh")], env=env, check=True, capture_output=True)
     with _as_web_user():
         assert maintenance.write_problem() is None

@@ -37,6 +37,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen.physics import atmosphere, elements, unit_registry as units
+from planetgen.util.wordlist import join_words
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 
@@ -252,7 +253,7 @@ def condition_words(condition):
         parts.append(f"{label} is {condition['equals']}")
     if "not_equals" in condition:
         parts.append(f"{label} is not {condition['not_equals']}")
-    return " and ".join(parts)
+    return join_words(parts)
 
 
 def rule_words(cls):

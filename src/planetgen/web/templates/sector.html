@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/datatable.html" import datatable with context %}
 {% from "partials/profile.html" import profile_panel with context %}
 {%- set groups = [] %}
@@ -12,13 +13,13 @@
 {%- set actions = [] %}
 {%- if show_generate %}
 {%- set _ = actions.append({'key': 'neighborhood', 'label': 'Generate neighborhood', 'title': 'Generate neighborhood',
-    'note': 'Fills in every not-yet-generated sector within 12 pc (about 39 ly) of this one (already-generated sectors are skipped), and gives the 100 ly around every new sector its bright stars. It runs as a job on the Generate page, so it keeps going if you close this page. The size and time are shown first, to confirm.',
+    'note': 'Fills in every uncharted sector within 12 pc (about 39 ly) of this one (sectors already charted are skipped), and gives the 100 ly around every new sector its bright stars. It runs as a job on the Generate page, so it keeps going if you close this page. The size and time are shown first, to confirm.',
     'hidden': {'action': 'generate_neighborhood'}, 'button': 'Generate more sectors around this one'}) %}
 {%- endif %}
 {%- if can_edit %}
 {%- set _ = add_edit_actions(actions, 'this sector',
      'Deletes the sector with its systems and phenomena, then generates its place in the galaxy again (a new name and contents). Only for a sector placed in the galaxy.',
-     'Deletes the sector with its systems, phenomena and facilities. Its place in the galaxy is left empty, so it can be generated again.',
+     'Deletes the sector with its systems, phenomena, and facilities. Its place in the galaxy is left empty, so it can be charted again.',
      facilities=False) %}
 {%- endif %}
 {%- if actions %}{%- set _ = groups.append({'id': 'sector', 'target': 'sector:' ~ sector_id, 'actions': actions}) %}{%- endif %}
@@ -46,6 +47,7 @@
 {%- if quadrant %}
 <p class="location">In <a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a> of the galaxy</p>
 {%- endif %}
+{{ formerly(former) }}
 {{ action_bar(bookmark, none, none, galaxy_url, admin_button, nearby_url) }}
 </div>
 {% endblock %}
@@ -65,7 +67,7 @@
 <p class="hint" role="status">{{ message }}</p>
 {%- endfor %}
 {#- ADM.34: every admin action of this page (generate the
-    neighborhood, regenerate and delete the sector) sits behind the one Admin
+    neighborhood, regenerate, and delete the sector) sits behind the one Admin
     menu (partials/admin_menu.html, static/dialogmenus.js) and opens in a
     dialog. The neighborhood's size-and-time check comes back as a dialog
     opened on load. #}
@@ -74,7 +76,7 @@
 {%- endif %}
 {%- if can_generate and not sector.placed %}
 <p class="hint">This sector has never been placed in a galaxy. Generating a
-neighborhood around it requires a galaxy-placed sector (one generated with
+neighborhood around it requires a galaxy-placed sector (one made with
 <code>planetgen galaxy</code>, not <code>planetgen sector</code>).</p>
 {%- endif %}
 {{ admin_dialogs(groups, here) }}
@@ -120,10 +122,10 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 <p class="hint sector-details" id="unresolved"><strong>Unresolved:</strong> this cell expects about {{ num(sector.unresolved.expected_systems) }} systems, more than the {{ num(sector.unresolved.ceiling_systems) }} a cell resolves, so only the stars at or above {{ num(sector.unresolved.luminosity_cap_sol) }} solar luminosities were made. The rest, about {{ num(sector.unresolved.unresolved_systems) }} systems and {{ num(sector.unresolved.unresolved_mass_solar) }} solar masses, is worked out from the address and not stored.</p>
 {%- endif %}
 {%- if sector.scatter_tier %}
-<p class="hint sector-details" id="scatter-tier"><strong>Scatter tier:</strong> this band is in the {{ sector.scatter_tier.tier }} tier, so the galaxy scatter placed every star of {{ num(sector.scatter_tier.min_luminosity_sol) }} solar luminosities or more{% if sector.scatter_tier.mass_limit_sol is not none %} and every star born at {{ num(sector.scatter_tier.mass_limit_sol) }} solar masses or more{% endif %} here.</p>
+<p class="hint sector-details" id="scatter-tier"><strong>Scatter grade:</strong> this band is in the {{ sector.scatter_tier.tier }} grade, so the galaxy scatter placed every star of {{ num(sector.scatter_tier.min_luminosity_sol) }} solar luminosities or more{% if sector.scatter_tier.mass_limit_sol is not none %} and every star born at {{ num(sector.scatter_tier.mass_limit_sol) }} solar masses or more{% endif %} here.</p>
 {%- endif %}
 {%- if sector.superbubble %}
-<p class="hint sector-details" id="superbubble"><strong>Superbubble:</strong> inside a cavity {{ "%g"|format(sector.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(sector.superbubble.centre_distance_pc) }} pc from its centre. The gas here is ionised, about {{ "%g"|format(sector.superbubble.temperature_k) }} K and {{ "%g"|format(sector.superbubble.ambient_density_cm3) }} atoms per cm³, and no molecular cloud survives in it.</p>
+<p class="hint sector-details" id="superbubble"><strong>Superbubble:</strong> inside a cavity {{ "%g"|format(sector.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(sector.superbubble.centre_distance_pc) }} pc from its center. The gas here is ionized, about {{ "%g"|format(sector.superbubble.temperature_k) }} K and {{ "%g"|format(sector.superbubble.ambient_density_cm3) }} atoms per cm³, and no molecular cloud survives in it.</p>
 {%- endif %}
 {%- if profile %}
 {{ profile_panel(profile) }}

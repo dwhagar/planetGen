@@ -26,13 +26,13 @@ PoiIcon = namedtuple("PoiIcon", "id label shape meaning scored")
 depend on colour), what it `meaning` marks, and whether the habitability score colours it (`scored`)."""
 
 ICONS = (
-    PoiIcon("habitable-world", "Habitable world", "a disc with a hill cut out",
-            "A planet or moon whose overall habitability (PHI-6) is Blue or Green, coloured by that score.", True),
-    PoiIcon("uninhabitable-world", "Uninhabitable world", "a disc pitted with craters",
+    PoiIcon("habitable-world", "Habitable world", "a disk with a hill cut out",
+            "A planet or moon whose overall habitability (PHI-6) is Blue or Green, colored by that score.", True),
+    PoiIcon("uninhabitable-world", "Uninhabitable world", "a disk pitted with craters",
             "A planet or moon that is not habitable, in brown, never red.", False),
-    PoiIcon("inhabited-world", "Inhabited world", "a disc inside a ring",
-            "A world with people on it, coloured by its habitability score.", True),
-    PoiIcon("gas-giant", "Gas giant", "a disc crossed by three bands",
+    PoiIcon("inhabited-world", "Inhabited world", "a disk inside a ring",
+            "A world with people on it, colored by its habitability score.", True),
+    PoiIcon("gas-giant", "Gas giant", "a disk crossed by three bands",
             "A gas giant.", False),
     PoiIcon("asteroid-field", "Asteroid field", "four scattered rocks",
             "An asteroid belt or field (a belt includes the fields).", False),

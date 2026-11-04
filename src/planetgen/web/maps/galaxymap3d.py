@@ -305,7 +305,7 @@ def _json_script(data):
 
 GALAXY_MAP_HELP = """<h3>Moving</h3>
   <ul>
-    <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom. Turning and zooming go about the cross in the middle of the map; Shift-click (or right-click) a spot to make it the new center, or use the direction star on the map (its middle button puts the center back at the middle of the region you are viewing) and the zoom slider beside it.</li>
+    <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll, or pinch to zoom. Turning and zooming go about the cross in the middle of the map; Shift-click (or right-click) a spot to make it the new center, or use the direction star on the map (its middle button puts the center back at the middle of the region you are viewing) and the zoom slider beside it.</li>
     <li>Click a star or any other object for its details, shown over the map; double-click it to fly there. A
     click on empty space puts the details away, and scrolling toward a spot zooms in on it, down to single
     sectors.</li>
@@ -315,7 +315,7 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
     <li>Enter flies to the selected object. The keys 1 to 9 open a bookmark while the map has focus.</li>
     <li>To move to the region beside the one you are in, at the same level and without zooming out, use the step
     buttons in Menu (North, South, West, East, Toward core, Away from core) or the keys: Alt, Shift and an arrow
-    for north, south, west and east, and [ and ] for toward and away from the core.</li>
+    for north, south, west, and east, and [ and ] for toward and away from the core.</li>
     <li>Click a block to zoom in on it; Up zooms out again. A card shows the few facts you navigate by; More under
     them has the rest.</li>
   </ul>
@@ -341,10 +341,10 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
     blew in the gas.</li>
     <li><strong>Soft clouds</strong>: nebulae, in the color of their family, and supernova remnants; a ring means
     several nebulae grouped while they are close together (zoom in to separate them).</li>
-    <li><strong>Marks and symbols</strong>: black holes and the worlds, life and civilizations the Menu's Show on the map
+    <li><strong>Marks and symbols</strong>: black holes and the worlds, life, and civilizations the Menu's Show on the map
     lists, each with its own symbol or color in the Key.</li>
-    <li><strong>In an opened sector</strong>: points of light are stars, black holes, neutron stars, quasars and rogue
-    planets, small spheres are interstellar comets, soft clouds are nebulae, remnants and asteroid fields, and outlines
+    <li><strong>In an opened sector</strong>: points of light are stars, black holes, neutron stars, quasars, and rogue
+    planets, small spheres are interstellar comets, soft clouds are nebulae, remnants, and asteroid fields, and outlines
     are the sectors beside it.</li>
     <li><strong>Course</strong>: a line through every stop of a course shown from the Nav page, and a dashed line for the
     direct line from its start to its end.</li>
@@ -353,11 +353,11 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
   <ul>
     <li>&#9734; on the breadcrumb bookmarks the view or the selected sector; Bookmarks opens one.</li>
   </ul>"""
-"""The Galaxy Map's help dialog (UX.50): the gestures, keys and legend that used to sit under the map."""
+"""The Galaxy Map's help dialog (UX.50): the gestures, keys, and legend that used to sit under the map."""
 
 SECTOR_MAP_HELP = """<h3>Moving</h3>
   <ul>
-    <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom, and Re-center (in
+    <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll, or pinch to zoom, and Re-center (in
     Menu) to come back.</li>
     <li>Click a neighboring sector to open that sector's page.</li>
   </ul>
@@ -432,7 +432,7 @@ HISTORY_BUTTONS = """  <button type="button" class="starmap-btn" data-action="ba
   <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"
           title="Back to the whole galaxy (Home)">Whole galaxy</button>
 """
-"""Back, the steps menu (with Jump to newest), Forward, Up and Whole galaxy."""
+"""Back, the steps menu (with Jump to newest), Forward, Up, and Whole galaxy."""
 
 def _course_readout_html(course):
     """
@@ -469,7 +469,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
-                              system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None):
+                              system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
+                              nebula_volume_path="/galaxy/nebula-volume"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -541,6 +542,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             nebula/{id}/shape`, `{id}` where the nebula's id goes), which the
             map draws a nebula from once it is big enough on screen
             (`static/nebulamesh.js`, MAP.103).
+        nebula_volume_path (str): The endpoint of a node's nebula points (`/galaxy/nebula-volume?key=<node key>`, MAP.365), which the
+            map draws the nebulae of a node from (`static/nebulavolume.js`, `static/nebulavolumelayer.js`) once one is wide enough.
         uncharted_scene_url (str, optional): The scene endpoint of a sector
             nothing was generated in (`/galaxy/uncharted/{shell}/{band}/{wedge}/scene`),
             which the map opens in place with an "Uncharted" mark when it
@@ -598,6 +601,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,
+        "nebulaVolumePath": nebula_volume_path,
         "regionsPath": regions_path,
         "systemNearestPath": system_nearest_path,
         "course": course,
@@ -710,7 +714,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         color_block = (
             '    <label class="galaxy-color-by">Color by <select id="galaxymap3d-color-by" data-color-by\n'
             '            title="What the blocks and sectors are colored by">\n'
-            '      <option value="default">Age, density and luminosity</option>\n'
+            '      <option value="default">No fill (stars, markers and nebulae)</option>\n'
             '      <option value="density">Density</option>\n'
             '      <option value="age">Mean age</option>\n'
             '      <option value="luminosity">Luminosity</option>\n'
@@ -721,7 +725,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'
             '<span class="galaxy-legend-title"></span>'
             '<span class="galaxy-legend-bar"></span>'
-            '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n')
+            '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n'
+            '<div class="galaxy-window-bar" id="galaxymap3d-window" role="status" hidden>'
+            '<span class="galaxy-window-title"></span> <span class="galaxy-window-summary"></span> '
+            '<button type="button" class="starmap-btn" data-action="close-window">Back to the Galaxy Map</button></div>\n')
     regions_block = ""
     if regions_path:
         regions_block = REGIONS_LIST
@@ -736,7 +743,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 
     title = "Sector Map" if pinned else "Galaxy Map"
     info_hint = (
-        "Click a star, cloud or body for details." if pinned
+        "Click a star, cloud, or body for details." if pinned
         else "Click a star or an object for its details, double-click to fly to it."
     )
     help_html = SECTOR_MAP_HELP if pinned else GALAXY_MAP_HELP

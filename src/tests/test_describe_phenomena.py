@@ -63,7 +63,7 @@ def test_every_phenomenon_renders_in_every_format(cls):
 def test_a_phenomenon_names_the_things_its_old_paragraph_named():
     nebula = _make(Nebula, 1)
     text = _text(describe.describe_phenomenon(nebula)["sections"][0])
-    assert f"{nebula.nebula_type} nebula" in text and nebula.formation_cause in text and "galactic centre" in text
+    assert f"{nebula.nebula_type} nebula" in text and nebula.formation_cause in text and "galactic center" in text
 
     quasar = _make(Quasar, 1)
     text = _text(describe.describe_phenomenon(quasar)["sections"][0])

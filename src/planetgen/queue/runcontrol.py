@@ -87,7 +87,7 @@ def cancel_run(conn, run_id, who=None, now=None):
         return None
     runrecord.request_cancel(conn, run_id, now)
     stopped = stop_units(conn, run)
-    runrecord.finish_run(conn, run_id, "cancelled", error=f"cancelled by {who}" if who else "cancelled", now=now)
+    runrecord.finish_run(conn, run_id, "cancelled", error=f"canceled by {who}" if who else "canceled", now=now)
     write_log(conn, run_id)
     return stopped
 

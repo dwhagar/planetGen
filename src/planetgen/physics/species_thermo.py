@@ -42,7 +42,7 @@ from planetgen.physics.elements import DataError
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "nasa_glenn_species.json")
 """str: The data file."""
 
-FORMULA_OF_NAME = {"C2H2,acetylene": "C2H2", "COS": "OCS", "AL": "Al", "ALO": "AlO", "AL2O": "Al2O", "ALO2": "AlO2", "AL2O2": "Al2O2"}
+FORMULA_OF_NAME = {"C2H2,acetylene": "C2H2", "COS": "OCS", "AL": "Al", "ALO": "AlO", "AL2O": "Al2O", "ALO2": "AlO2", "AL2O2": "Al2O2", "CL": "Cl", "CL2": "Cl2", "HCL": "HCl"}
 """dict: The names in the NASA database that the gas table (`physics/gases.py`) writes differently."""
 
 MOLAR_MASS_TOLERANCE_G_MOL = 0.01

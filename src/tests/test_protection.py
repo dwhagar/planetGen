@@ -87,7 +87,7 @@ def test_where_the_notes_and_the_built_table_differ_the_more_permissive_value_is
 @pytest.mark.parametrize("pressure,gear", [
     (101.0, None), (30.0, "a breathing mask"), (10.0, "a counterpressure or pressurised suit"),
     (3.0, "a full gas-pressurised suit"), (2_000.0, "a hyperbaric pressure suit"),
-    (50_000.0, "a rigid armoured pressure suit")])
+    (50_000.0, "a rigid armored pressure suit")])
 def test_the_pressure_gear_follows_the_ladder(pressure, gear):
     assert protection.pressure_need(_world(pressure_kpa=pressure))[1] == gear
 

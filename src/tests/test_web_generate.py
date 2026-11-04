@@ -1182,7 +1182,7 @@ def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_
     resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "csrf_token": _token(client)})
     assert resp.status_code == 303
     run = runrecord.read_run(connection, run_id)
-    assert run["state"] == "cancelled" and run["error"] == "cancelled by boss"
+    assert run["state"] == "cancelled" and run["error"] == "canceled by boss"
     assert runrecord.read_run(connection, other)["state"] in runrecord.LIVE_STATES
     assert _wait_finished(job_id, jobs_root)["status"] == "cancelled"
 

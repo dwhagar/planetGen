@@ -56,6 +56,10 @@ DEGAS_EFFICIENCY_H = (0.05, 0.5, "log")
 """tuple: The same for hydrogen, drawn: water is highly soluble and the magma ocean retains much of it ([R4413]; Bower et al.
 2022; [R2923]: up to 90 percent of the water in the mantle). Stand-in, tier 6 (a marginal educated guess)."""
 
+DEGAS_EFFICIENCY_HALOGEN = (0.05, 0.5, "log")
+"""tuple: The same for chlorine and fluorine, drawn for each: both dissolve in a silicate melt far better than carbon dioxide does and leave it
+with the water (GEN.524 part 2). Stand-in, tier 6 (a marginal educated guess, the bracket of hydrogen's)."""
+
 # --- the carbonate-silicate cycle -------------------------------------------------------------------------------------------
 
 WEATHERING_ALPHA = (0.1, 0.5, "uniform")
@@ -96,7 +100,9 @@ def degassed_share(released_j, mantle_kg):
 
 def draw_efficiencies(constants):
     """`{element: eps}` with the hydrogen share drawn (and recorded in `constants`)."""
-    return {**DEGAS_EFFICIENCY, "H": bracket(constants, "degas_efficiency_h", DEGAS_EFFICIENCY_H)}
+    return {**DEGAS_EFFICIENCY, "H": bracket(constants, "degas_efficiency_h", DEGAS_EFFICIENCY_H),
+            "Cl": bracket(constants, "degas_efficiency_cl", DEGAS_EFFICIENCY_HALOGEN),
+            "F": bracket(constants, "degas_efficiency_f", DEGAS_EFFICIENCY_HALOGEN)}
 
 
 def impact_inventory(balance, mantle_kg):

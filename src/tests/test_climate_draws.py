@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import climate_draws, constants, orbit_elements, surface_air
+from planetgen.physics import albedo_color, climate_branches, climate_draws, constants, giant_draw, greenhouse, orbit_elements, surface_air
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -85,7 +85,9 @@ def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone)
             assert planet.greenhouse_factor == 0.0
         if planet.body_type == "t":
             low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux, getattr(planet.star, "temperature", None))
-            assert low <= planet.bond_albedo <= high
+            # GEN.972: the draw is the ice-free albedo; the ice raises it, to the covered value at most
+            covered = albedo_color.shifted_range((climate_branches.ICE_COVERED_ALBEDO,) * 2, "frozen", getattr(planet.star, "temperature", None))[0]
+            assert low <= planet.bond_albedo <= max(high, covered)
 
 
 def test_a_giant_stores_the_pair_that_gives_its_temperature_with_its_own_heat_in_the_greenhouse(host_star):
@@ -99,6 +101,26 @@ def test_a_giant_stores_the_pair_that_gives_its_temperature_with_its_own_heat_in
         assert low <= planet.bond_albedo <= high
         assert planet.surface_temperature == pytest.approx(
             climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, _flux(planet, host_star)), rel=TOLERANCE)
+
+
+def test_a_body_held_at_the_surface_temperature_cap_stores_the_greenhouse_that_gives_the_cap(host_star, monkeypatch):
+    """GEN.1236: the fixed point holds a runaway greenhouse at `MAX_SURFACE_TEMPERATURE_K`, and the stored G follows the stored temperature (it kept the
+    uncapped warming's, 107 and 79 on two class N planets, which with the albedo gave 2370 K and 2600 K)."""
+    import dataclasses
+
+    from planetgen.physics import surface_air
+
+    real = surface_air.atmosphere_state.greenhouse_warming
+    monkeypatch.setattr(surface_air.atmosphere_state, "greenhouse_warming",
+                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0, factor=300.0))
+    with draw.bound(3):
+        planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, 0.5 * sum(host_star.habitable_zone),
+                        mass=constants.EARTH_MASS_TO_KG, moon_count=0)
+    assert planet.atmospheric_pressure > 0.0
+    assert planet.surface_temperature == pytest.approx(surface_air.MAX_SURFACE_TEMPERATURE_K)
+    assert planet.greenhouse_factor != 300.0
+    assert climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, _flux(planet, host_star)) == pytest.approx(
+        surface_air.MAX_SURFACE_TEMPERATURE_K, rel=TOLERANCE)
 
 
 def _old_convention_row(albedo, factor, flux, gravity_g, molar_kg_mol=0.029):
@@ -168,7 +190,7 @@ def test_the_albedo_range_follows_the_water_and_the_cold():
     assert climate_draws.albedo_range("t", 1e-6, sun) == climate_draws.DEFAULT_ALBEDO_RANGE
     assert climate_draws.albedo_range("t", 1e-3, 0.0) == climate_draws.DEFAULT_ALBEDO_RANGE
     assert climate_draws.albedo_range("t", 1e-3, sun) == tuning.ALBEDO_WET_RANGE
-    assert climate_draws.albedo_range("t", 1e-3, 0.3 * 1361.0) == tuning.ALBEDO_FROZEN_RANGE
+    assert climate_draws.albedo_range("t", 1e-3, 0.3 * 1361.0) == tuning.ALBEDO_WET_RANGE      # GEN.972: the ice is the temperature's, not the draw's
 
 
 def test_a_giant_backfill_takes_the_open_bracket():

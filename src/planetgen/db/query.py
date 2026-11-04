@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, body_class_scores, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
 from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
@@ -561,8 +561,28 @@ def _start_condition(sort, descending, start):
     return (f"(ss.sector_id IS NULL OR ss.sector_id IN (SELECT id FROM sectors WHERE name {operator} ?))", [value])
 
 
+def _value_exists_conditions(values):
+    """`(conditions, params)` that keep the systems holding a star, planet or moon whose stored values lie in the ranges of `values`
+    (`{entity: {key: (least, most, unit)}}`, UX.228): one `EXISTS` per kind, so a system counts once however many bodies pass."""
+    conditions, params = [], []
+    for entity in search_values.ENTITIES:
+        by_key = (values or {}).get(entity)
+        if not by_key:
+            continue
+        inner, inner_params = [], []
+        search_values.clauses(entity, "t", by_key, inner, inner_params)
+        conditions.append(f"EXISTS (SELECT 1 FROM {search_values.TABLE_OF[entity]} t WHERE t.star_system_id = ss.id AND {' AND '.join(inner)})")
+        params.extend(inner_params)
+    return conditions, params
+
+
+def _values_key(values):
+    """`values` as a plain list for a count-cache key."""
+    return [[entity, [[key, *bounds] for key, bounds in sorted(by_key.items())]] for entity, by_key in sorted((values or {}).items())]
+
+
 def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None, start=None,
-                           sort="name", descending=False, stars=None):
+                           sort="name", descending=False, stars=None, values=None):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
@@ -599,6 +619,9 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
     star_conditions, star_params = _star_count_conditions(stars)
     conditions.extend(star_conditions)
     params.extend(star_params)
+    value_conditions, value_params = _value_exists_conditions(values)
+    conditions.extend(value_conditions)
+    params.extend(value_params)
     begun = _start_condition(sort, descending, start)
     if begun:
         conditions.append(begun[0])
@@ -609,7 +632,7 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
 
 
 def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
-                 descending=False, binary=None, octants=(), in_sector=None, after=None, start=None, stars=None):
+                 descending=False, binary=None, octants=(), in_sector=None, after=None, start=None, stars=None, values=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -636,6 +659,8 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         in_sector (bool, optional): Keep only systems in a sector (True) or
             standalone ones (False).
         stars (tuple, optional): Keep only systems with that many stars, `(least, most)` of `parse_star_count` (UX.239).
+        values (dict, optional): `{entity: {key: (least, most, unit)}}` (`search_values.ranges_from_args`, UX.228): keep only the systems that hold a
+            star, planet or moon whose stored values lie in every range on its kind.
         after (int, optional): A system's row ID: with `sort="name"`, `"sector"` or `"octant"` the page starts
             after that system (a keyset page, PERF.75, PERF.206: the rows before it are not read and `offset` is
             ignored). Other sorts, a system that is gone and a list filtered by star type or sector use `offset`.
@@ -660,7 +685,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
               and sort in _GROUP_WALK_SORTS)
     join_sql, where_sql, params = _systems_filter_clause(
         star_type_prefix, sector_id, binary, octants, in_sector,
-        start=None if walked and sort == "sector" else start, sort=sort, descending=descending, stars=stars)
+        start=None if walked and sort == "sector" else start, sort=sort, descending=descending, stars=stars, values=values)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
     if after is not None and limit is not None and sort == "name":
@@ -971,7 +996,7 @@ def _start_key(sort, descending, start):
 
 
 def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None, start=None,
-                  sort="name", descending=False, stars=None):
+                  sort="name", descending=False, stars=None, values=None):
     """
     Returns the total number of systems matching the same filters
     `list_systems` accepts, ignoring any pagination -- the denominator
@@ -985,12 +1010,13 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
         start, sort, descending: The jump-by-value box's start (PERF.75), as in `list_systems`: only the systems from
             it on are counted.
         stars (tuple, optional): The stars filter of `list_systems`.
+        values (dict, optional): The physical-value ranges of `list_systems` (UX.228).
 
     Returns:
         int: Total matching system count.
     """
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector,
-                                                         start, sort, descending, stars)
+                                                         start, sort, descending, stars, values)
     # A system matches a star type once however many of its stars do; with no star join every row is its own.
     counted = "COUNT(DISTINCT ss.id)" if join_sql else "COUNT(*)"
 
@@ -1004,15 +1030,15 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
                                  f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
     return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector,
-                           _start_key(sort, descending, start), None if stars is None else list(stars)], exact, estimate)
+                           _start_key(sort, descending, start), None if stars is None else list(stars), _values_key(values)], exact, estimate)
 
 
-def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None, stars=None):
+def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None, stars=None, values=None):
     """
     The option counts for the Systems tables' filter menus: where a system is
     (`placement`: `"sector"` or `"standalone"`), whether it is `binary`
     (`"yes"`/`"no"`) and its sector `octant`. Each menu's counts apply every
-    filter except its own, so the menus narrow one another. `stars` (UX.239) is a filter of its own with no menu here.
+    filter except its own, so the menus narrow one another. `stars` (UX.239) and `values` (the physical-value ranges, UX.228) are filters of their own with no menu here.
 
     Returns:
         dict: `{"placement"|"binary"|"octant": [{"value", "count"}]}`,
@@ -1020,7 +1046,7 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
     """
     def exact(c):
         def counts(select, **filters):
-            base = {"binary": binary, "octants": octants, "in_sector": in_sector, "stars": stars, **filters}
+            base = {"binary": binary, "octants": octants, "in_sector": in_sector, "stars": stars, "values": values, **filters}
             _join, where, params = _systems_filter_clause(None, sector_id, **base)
             return {row["value"]: row["n"] for row in c.execute(
                 f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
@@ -1035,7 +1061,7 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
             "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
         }
 
-    return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector, None if stars is None else list(stars)], exact,
+    return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector, None if stars is None else list(stars), _values_key(values)], exact,
                     lambda c: {"placement": [], "binary": [], "octant": []})
 
 
@@ -4008,6 +4034,8 @@ def system_detail(conn, system_id):
     ).fetchall(), True)
     planet_scores = body_class_scores(conn, [planet["id"] for planet in planet_rows], False)
     moon_scores = body_class_scores(conn, [moon["id"] for moon in moon_rows], True)
+    planet_living = body_living(conn, [planet["id"] for planet in planet_rows], False)
+    moon_living = body_living(conn, [moon["id"] for moon in moon_rows], True)
     moons_by_planet = {}
     for moon in moon_rows:
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
@@ -4017,8 +4045,9 @@ def system_detail(conn, system_id):
         if planet["star_id"] not in hosts:
             hosts[planet["star_id"]] = compact_host_of_star(conn, planet["star_id"])
         host = hosts[planet["star_id"]]
-        planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host, planet_scores.get(planet["id"]))
-        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host, moon_scores.get(m["id"]))
+        planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host, planet_scores.get(planet["id"]),
+                                       planet_living.get(planet["id"]))
+        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host, moon_scores.get(m["id"]), moon_living.get(m["id"]))
                                 for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
 
@@ -4083,7 +4112,23 @@ def system_detail(conn, system_id):
     }
 
 
-def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None):
+def _life_classes_of(body, living):
+    """The `life_classes` list of a planet or moon row (GEN.1209): one `{life_class_id, share, life_stage, animal_grade, kinds}` for each class that lives on it,
+    the dominant one first, from its `planet_life` / `moon_life` `living` rows (`store.body_living`). A body stored before they existed has its one class from its own
+    columns, with the whole share; one with no living class has an empty list."""
+    class_id = life_classes.living_class_id(body.get("life_class"), body.get("life_class_variant"), body.get("life_stage"))
+    if class_id is None:
+        return []
+    if not living:
+        return [{"life_class_id": class_id, "share": 1.0, "life_stage": body["life_stage"], "animal_grade": body.get("life_animal_grade"),
+                 "kinds": {"microbial": body.get("life_microbial"), "flora": body.get("life_flora"), "fauna": body.get("life_fauna"),
+                           "sentient": body.get("life_sentient")}}]
+    ordered = sorted(living, key=lambda entry: entry["life_class"] != class_id)
+    return [{"life_class_id": entry["life_class"], "share": entry["share"], "life_stage": entry["stage"], "animal_grade": entry["animal_grade"],
+             "kinds": dict(zip(("microbial", "flora", "fauna", "sentient"), entry["kinds"]))} for entry in ordered if entry["stage"] is not None]
+
+
+def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None, living=None):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
@@ -4096,10 +4141,12 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None):
     it: `colonized` is that table's ids from `colonized_body_ids`, schema
     v42), `life_class_id` (the class that lives on it as one id such as `"1a"`, or `None`; none for a class the body suits but has no life stage yet, GEN.1001) and `life_class_scores`
     (`{class id: score 1 to 9}` for every class it supports, from `class_scores`, the body's
-    `planet_life_class_scores` or `moon_life_class_scores` rows; empty when it supports none, API.37).
+    `planet_life_class_scores` or `moon_life_class_scores` rows; empty when it supports none, API.37) and `life_classes` (the list of the classes that live on it with their
+    shares, stages, animal grades and kind scores, the dominant one first, from `living`, its `planet_life` or `moon_life` rows, GEN.1209).
     """
     body["life_class_id"] = life_classes.living_class_id(body.get("life_class"), body.get("life_class_variant"), body.get("life_stage"))
     body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
+    body["life_classes"] = _life_classes_of(body, living)
     body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
     body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
@@ -6280,6 +6327,13 @@ def _timestamp_literal(digits):
     return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
 
 
+# The `galaxy_shape` columns every sector fill moves (the decaying average of fill against expected systems, PERF.11).
+# Only the fill estimate in `db.stats` reads them: no node, tile or density cloud depends on them, and counting them as
+# shape made every new sector change `tile_base`, so the Galaxy Map's node cache answered "everything" (a full reload)
+# instead of the sectors that changed (TEST.555).
+_SHAPE_LEARNED_COLUMNS = frozenset({"density_ratio_avg", "density_ratio_samples"})
+
+
 def galaxy_shape_inputs(conn):
     """
     What the stored galaxy shape is made from, as plain values: the `galaxy_shape` row, the levers it was told
@@ -6297,7 +6351,8 @@ def galaxy_shape_inputs(conn):
         components = dict(conn.execute(
             "SELECT COUNT(*) AS n, MIN(id) AS first_id, MAX(id) AS last_id, SUM(mass_solar) AS mass, SUM(age_gy) AS age, "
             "SUM(metallicity_fe_h) AS fe_h FROM galaxy_components").fetchone())
-    return {"row": {key: (value.hex() if isinstance(value, (bytes, bytearray)) else value) for key, value in dict(row).items()},
+    return {"row": {key: (value.hex() if isinstance(value, (bytes, bytearray)) else value) for key, value in dict(row).items()
+                    if key not in _SHAPE_LEARNED_COLUMNS},
             "pins": {pin["name"]: pin["value"] for pin in conn.execute("SELECT name, value FROM galaxy_shape_pins").fetchall()},
             "components": components}
 
@@ -6658,6 +6713,39 @@ def _search_match(conn, column, term):
     return _name_match(conn, column, term)
 
 
+def _search_name(conn, column, id_column, table, term):
+    """
+    The name test of a result panel with the past names in it (GEN.1140): `_search_match` on the current name, or a row of `designations` that
+    kept a name of this object containing the words typed. The table of retired designations is small and holds names only for objects that
+    were renamed, so the substring test on it costs nothing next to the name index.
+    """
+    match, params = _search_match(conn, column, term)
+    past = (f"{id_column} IN (SELECT object_row_id FROM designations WHERE designation_kind = 'name' AND object_kind = ? "
+            f"AND gone_epoch IS NULL AND designation_name LIKE ? ESCAPE '\\\\')")
+    return f"({match} OR {past})", [*params, table, _search_like_pattern(term.strip())]
+
+
+def _with_formerly(conn, rows, table, term):
+    """
+    Adds `formerly` (the past names, newest first, that contain the words typed) to each result row that has such a name: the reason the row
+    was found when its current name does not say so. Rows with no matching past name are left as they are. `rows` are dicts with an `id`.
+    """
+    if not term or not rows:
+        return rows
+    ids = [row["id"] for row in rows]
+    found = conn.execute(
+        f"SELECT object_row_id, designation_name FROM designations WHERE designation_kind = 'name' AND object_kind = ? AND gone_epoch IS NULL "
+        f"AND designation_name LIKE ? ESCAPE '\\\\' AND object_row_id IN ({','.join('?' * len(ids))}) ORDER BY retired_epoch DESC, id DESC",
+        (table, _search_like_pattern(term.strip()), *ids)).fetchall()
+    names = {}
+    for entry in found:
+        names.setdefault(entry["object_row_id"], []).append(entry["designation_name"])
+    for row in rows:
+        if row["id"] in names:
+            row["formerly"] = names[row["id"]]
+    return rows
+
+
 def _search_like_pattern(term):
     """Escapes `%`/`_`/`\\` in a user-supplied substring so it's safe to
     use as a SQL LIKE pattern (paired with `ESCAPE '\\\\'` in the query)."""
@@ -6772,25 +6860,36 @@ def _life_class_label(class_id):
 
 
 def _life_class_facet(conn, table):
-    """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each is the class of."""
+    """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each lives on: any class of a body counts, not only the dominant
+    one (GEN.1209). A body stored before the `planet_life` / `moon_life` rows existed counts its one class from its own columns."""
+    child, key = ("moon_life", "moon_id") if table == "moons" else ("planet_life", "planet_id")
     rows = conn.execute(
-        f"SELECT CONCAT(life_class, COALESCE(life_class_variant, '')) AS v, COUNT(*) AS c FROM {table} WHERE life_class IS NOT NULL AND life_stage IS NOT NULL GROUP BY v ORDER BY v"
+        f"SELECT v, COUNT(*) AS c FROM ("
+        f"SELECT CONCAT(b.life_class, COALESCE(b.life_class_variant, '')) AS v FROM {table} b WHERE b.life_class IS NOT NULL AND b.life_stage IS NOT NULL "
+        f"AND NOT EXISTS (SELECT 1 FROM {child} x WHERE x.{key} = b.id) "
+        f"UNION ALL SELECT x.life_class AS v FROM {child} x WHERE x.life_stage IS NOT NULL) t GROUP BY v ORDER BY v"
     ).fetchall()
     return [{"value": row["v"], "label": _life_class_label(row["v"]), "count": row["c"], "tooltip": None} for row in rows]
 
 
 def _life_class_clause(alias, class_ids, clauses, params):
-    """Adds the filter on the life classes `class_ids` (ids such as `"1a"`, `"6"`) of the table `alias`."""
+    """Adds the filter on the life classes `class_ids` (ids such as `"1a"`, `"6"`) of the table `alias`: a body matches when any class that lives on it is one of them
+    (GEN.1209), the dominant one in its own columns or another in its `planet_life` / `moon_life` rows."""
     if not class_ids:
         return
     known = [class_id for class_id in class_ids if class_id in life_classes.BY_ID]   # a stray value matches nothing
     if not known:
         clauses.append("1 = 0")
         return
+    child, key = ("moon_life", "moon_id") if alias.startswith("m") else ("planet_life", "planet_id")
     pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in known)
-    clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)}) AND {alias}.life_stage IS NOT NULL")
+    ids = sorted(known)
+    clauses.append(
+        f"((({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)}) AND {alias}.life_stage IS NOT NULL) "
+        f"OR EXISTS (SELECT 1 FROM {child} lc WHERE lc.{key} = {alias}.id AND lc.life_stage IS NOT NULL AND lc.life_class IN ({','.join('?' for _ in ids)})))")
     for number, variant in pairs:
         params.extend((number, variant))
+    params.extend(ids)
 
 
 def _search_facet_life(conn):
@@ -7048,17 +7147,17 @@ def _with_refs(conn, rows, kind):
 
 
 def _search_result_sectors(conn, term, limit, offset):
-    match, params = _search_match(conn, "name", term)
+    match, params = _search_name(conn, "name", "id", "sectors", term)
     rows, page = _search_page(
         conn, "SELECT id, name, edge_mpc", f"FROM sectors WHERE {match}", "name, id", params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [dict(r) for r in rows], "sector"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [dict(r) for r in rows], "sectors", term), "sector"), **page}
 
 
 def _search_result_systems(conn, term, limit, offset, stars=None):
     clauses, params = [], []
     if term:
-        match, params = _search_match(conn, "ss.name", term)
+        match, params = _search_name(conn, "ss.name", "ss.id", "star_systems", term)
         clauses.append(match)
     star_clauses, star_params = _star_count_conditions(stars)
     clauses.extend(star_clauses)
@@ -7073,13 +7172,13 @@ def _search_result_systems(conn, term, limit, offset, stars=None):
     rows = _with_star_types(conn, rows)
     counts = _system_counts(conn, [r["id"] for r in rows])
     return {
-        "rows": _with_refs(conn, [
+        "rows": _with_refs(conn, _with_formerly(conn, [
             {
                 "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
                 "star_summary": _star_summary(r), **counts[r["id"]],
             }
             for r in rows
-        ], "system"),
+        ], "star_systems", term), "system"),
         **page,
     }
 
@@ -7095,7 +7194,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     _append_size_clause(clauses, params, "s.radius_km", size_range)
     search_values.clauses("star", "s", ranges, clauses, params)
     if term:
-        match, match_params = _search_match(conn, "s.name", term)
+        match, match_params = _search_name(conn, "s.name", "s.id", "stars", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7108,7 +7207,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         search_values.order_by("star", "s", sort, "ss.name, s.name, s.id"),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, _with_values("star", rows, keys), "star"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, _with_values("star", rows, keys), "stars", term), "star"), **page}
 
 
 def _tier_columns():
@@ -7166,7 +7265,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     _append_size_clause(clauses, params, "p.radius_km", size_range)
     search_values.clauses("planet", "p", ranges, clauses, params)
     if term:
-        match, match_params = _search_match(conn, "p.name", term)
+        match, match_params = _search_name(conn, "p.name", "p.id", "planets", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7181,7 +7280,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
         search_values.order_by("planet", "p", sort, _score_order("p", sort, "ss.name, ss.id, p.orbital_index, p.id")),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [_with_equipment(r) for r in _with_values("planet", rows, keys)], "planet"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [_with_equipment(r) for r in _with_values("planet", rows, keys)], "planets", term), "planet"), **page}
 
 
 def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
@@ -7199,7 +7298,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     _append_size_clause(clauses, params, "m.radius_km", size_range)
     search_values.clauses("moon", "m", ranges, clauses, params)
     if term:
-        match, match_params = _search_match(conn, "m.name", term)
+        match, match_params = _search_name(conn, "m.name", "m.id", "moons", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7221,7 +7320,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         search_values.order_by("moon", "m", sort, _score_order("m", sort, "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id")),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [_with_equipment(r) for r in _with_values("moon", rows, keys)], "moon"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [_with_equipment(r) for r in _with_values("moon", rows, keys)], "moons", term), "moon"), **page}
 
 
 def _search_result_belts(conn, density_tags, limit, offset):

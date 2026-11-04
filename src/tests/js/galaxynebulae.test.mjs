@@ -78,7 +78,7 @@ test("the budget keeps the strongest regions, fades the last tenth and never cha
   assert.deepEqual(cut.slice(10), new Array(10).fill(0));
 });
 
-test("3,000 candidates: exactly the strongest 600 are drawn, the same ones every time, and quickly", () => {
+test("3,000 candidates: exactly the strongest REGION_BUDGET (300) are drawn, the same ones every time, and quickly", () => {
   let seed = 12345;
   const random = () => {
     seed = (seed * 1103515245 + 12345) % 2147483648;

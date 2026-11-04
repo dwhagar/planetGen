@@ -1,6 +1,6 @@
 """The chart ledger, and a sector row that cannot vanish under its residents (GEN.1127).
 
-Schema v200. A new table, `chart_ledger`: one row for each sector cell that has been charted, with the run and the generator epoch that
+Schema v201. A new table, `chart_ledger`: one row for each sector cell that has been charted, with the run and the generator epoch that
 charted it, when, and when the rogue top-up of its region run filled it (`topped_up_at`, NULL until it does). It replaces
 `sector_stats.filled_at`, which this revision drops after copying every filled cell into the ledger (the run and the epoch come from the
 cell's `sectors` row, the time from `filled_at`), so the charted state of a cell is a row of the ledger and there is no second record
@@ -19,8 +19,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0200"
-down_revision = "0199"
+revision = "0201"
+down_revision = "0200"
 branch_labels = None
 depends_on = None
 

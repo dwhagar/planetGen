@@ -97,7 +97,7 @@ RELATIONS = (
     Relation("primordial helium", "[R3544] VI eq. 72a, [R3544]", VERIFIED),
     Relation("helium-to-metal ratio dY/dZ", "derived from the proto-solar and primordial values; observed "
              "2.1 +- 0.9", VERIFIED),
-    Relation("thin-disc age gate", "[R1863]: the thick disc formed from about 13 to about 8 Gy ago", PARTLY_VERIFIED,
+    Relation("thin-disk age gate", "[R1863]: the thick disk formed from about 13 to about 8 Gy ago", PARTLY_VERIFIED,
              "the age scale is uncertain by 1 to 1.5 Gy; range 6.5 to 9.5 Gy"),
     Relation("high-alpha probability logistic in [Fe/H]", "[R0349]", PARTLY_VERIFIED,
              "the paper is not among the repository's papers; the fit is part A 2.6's"),
@@ -207,7 +207,7 @@ BRANCH_TABLE = pt.REGISTRY.register(pt.Table(
             "[R0349] (logistic in [Fe/H]); [R1863] (age gate)",
             state=pt.PARTLY_VERIFIED, limit="the Bensby fit is part A 2.6's; the age gate is uncertain by 1 to 1.5 Gy",
             conditions=(pt.Condition("age_gy", minimum=tuning.STELLAR_THICK_START_GY),),
-            notes="alpha-rich: thick disc and halo stars"),
+            notes="alpha-rich: thick disk and halo stars"),
      pt.Row("thin sequence", (pt.ANY_CLASS,), _thin_weight,
             "[R0349] (logistic in [Fe/H]); [R1863] (age gate)",
             state=pt.PARTLY_VERIFIED, limit="the Bensby fit is part A 2.6's; the age gate is uncertain by 1 to 1.5 Gy",

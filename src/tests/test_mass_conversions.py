@@ -16,7 +16,6 @@ SKIPPED = {pathlib.PurePath("physics/constants.py"), pathlib.PurePath("physics/u
 
 REMAINING = {
     "generation/multistar.py": 1,
-    "generation/open_clusters.py": 1,
     "generation/place_terms.py": 1,
     "physics/accretion.py": 5,
     "physics/body_status.py": 1,
