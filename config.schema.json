@@ -155,7 +155,7 @@
         },
         "manifest_enabled": {
           "default": false,
-          "description": "Serve /site.webmanifest, which names the site, its icon and its theme colour for browsers that can install it.",
+          "description": "Serve /site.webmanifest, which names the site, its icon and its theme color for browsers that can install it.",
           "title": "Manifest Enabled",
           "type": "boolean",
           "x-advanced": false,
@@ -711,7 +711,7 @@
         },
         "warm_max_objects": {
           "default": 5000,
-          "description": "Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy centre first); the rest are built on their first visit, and the warm-up says how many it left out.",
+          "description": "Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy center first); the rest are built on their first visit, and the warm-up says how many it left out.",
           "minimum": 0,
           "title": "Warm Max Objects",
           "type": "integer",
@@ -1745,7 +1745,7 @@
         },
         "warm_zoom_floor": {
           "default": 9,
-          "description": "Finest block level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; the run covers blocks of that size and bigger; 243 or more builds no run).",
+          "description": "Finest block level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's center, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; the run covers blocks of that size and bigger; 243 or more builds no run).",
           "maximum": 177147,
           "minimum": 1,
           "title": "Warm Zoom Floor",
@@ -1799,17 +1799,17 @@
           "x-control": "color",
           "x-editable": true,
           "x-group": "look",
-          "x-label": "Browser colour, dark theme",
+          "x-label": "Browser color, dark theme",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The toolbar colour phones show with the dark theme."
+          "x-summary": "The toolbar color phones show with the dark theme."
         },
         "theme_color_light": {
           "default": "#f6f7fb",
-          "description": "The browser's toolbar colour on phones for the light theme, as #rrggbb.",
+          "description": "The browser's toolbar color on phones for the light theme, as #rrggbb.",
           "title": "Theme Color Light",
           "type": "string",
           "x-advanced": false,
@@ -1817,13 +1817,13 @@
           "x-control": "color",
           "x-editable": true,
           "x-group": "look",
-          "x-label": "Browser colour, light theme",
+          "x-label": "Browser color, light theme",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The toolbar colour phones show with the light theme."
+          "x-summary": "The toolbar color phones show with the light theme."
         },
         "title_template": {
           "default": "{title} - {site_name}",

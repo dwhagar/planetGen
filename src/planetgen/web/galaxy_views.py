@@ -586,7 +586,7 @@ def galaxy_system_nearest(system_id):
     except apiclient.NotFoundError as exc:
         return _json_error(str(exc) or "Not found.", 404)
     except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a system's nearest neighbours: {exc}")
+        log.exception(f"API error while fetching a system's nearest neighbors: {exc}")
         return _json_error("The nearest systems could not be loaded. Please try again shortly.", 502)
     nearest = [
         {"id": near["id"], "name": near["name"], "distance_ly": near["distance_ly"], "url": page_url("system", system_id=near["id"])}

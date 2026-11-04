@@ -207,7 +207,7 @@ def test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_t
     refused, told = run(*with_fallback), run(*with_fallback, "--disregard-missing-data")
     assert refused.returncode == 1 and "generation will not start" in refused.stdout
     assert told.returncode == 0, told.stdout + told.stderr
-    assert "the run takes a labelled fallback" in told.stdout and "generation will not start" not in told.stdout
+    assert "the run takes a labeled fallback" in told.stdout and "generation will not start" not in told.stdout
     assert "https://mist.science" in told.stdout, "the missing files are still listed with their URLs"
     # the Mamajek sequence has no fallback (GEN.943): told to disregard, the command still exits 1 and says generation will not start
     bare = run("mamajek_dwarf_sequence", "--disregard-missing-data")

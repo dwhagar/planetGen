@@ -517,7 +517,7 @@ and limits are the repository's. The second is the collisional tail of [R0269] (
 ICY_TABLE = pt.REGISTRY.register(pt.Table(
     "icy-body-rock-fraction", 1, [
         pt.Row("icy-intact", ICY_KINDS, pt.OPEN, "open", state=pt.OPEN_STATE,
-               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the centre is [R0390] (Icarus 326, 10: a "
+               notes="rock mass fraction N(0.70, 0.08) on [0.45, 0.95]: the center is [R0390] (Icarus 326, 10: a "
                      "constant 70 percent matches 14 of 17 Kuiper belt objects within 2 sigma), the width and limits are the "
                      "repository's; the weight against the second row is open"),
         pt.Row("icy-stripped", (DWARF_PLANET,), pt.OPEN, "open", state=pt.OPEN_STATE,

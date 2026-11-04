@@ -170,8 +170,8 @@ _TEMPERATURE_RANK = {"none": 0, "garment": 1, "suit": 2}
 
 _BAND_PLACES = ("at the north pole", "in the northern middle latitudes", "in the northern tropics", "at the equator",
                 "in the southern tropics", "in the southern middle latitudes", "at the south pole")
-_RING_PLACES = ("at the centre of the day side", "on the day side", "at the edge of the day side", "at the terminator",
-                "at the edge of the night side", "on the night side", "at the centre of the night side")
+_RING_PLACES = ("at the center of the day side", "on the day side", "at the edge of the day side", "at the terminator",
+                "at the edge of the night side", "on the night side", "at the center of the night side")
 
 
 def _band_means(regions):

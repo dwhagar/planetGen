@@ -979,7 +979,7 @@ PECULIAR_FIELD_KEY = "chemically_peculiar_polar_field"
 """str: The key of an Ap star's derived row for its polar magnetic field (GEN.1027); an Am star has none."""
 
 CHEMISTRY_ROWS = {
-    "chemistry_branch": ("Disc population", "words"),
+    "chemistry_branch": ("Disk population", "words"),
     "chemistry_alpha_fe": ("Alpha enhancement [alpha/Fe]", "dex"),
     "chemistry_metal_fraction": ("Metal mass fraction", "mass fraction"),
     "chemistry_dredge_up_helium": ("Helium added by the first dredge-up", "mass fraction"),
@@ -991,7 +991,7 @@ class, mass, [Fe/H], and age when the sheet is made and are not columns."""
 CHEMISTRY_KEYS = tuple(CHEMISTRY_ROWS)
 """tuple: The keys of `CHEMISTRY_ROWS`."""
 
-_BRANCH_WORDS = {stellar_abundances.BRANCH_THIN: "Thin disc", stellar_abundances.BRANCH_HIGH_ALPHA: "Thick disc or halo (alpha-rich)"}
+_BRANCH_WORDS = {stellar_abundances.BRANCH_THIN: "Thin disk", stellar_abundances.BRANCH_HIGH_ALPHA: "Thick disk or halo (alpha-rich)"}
 
 
 def _star_distance_ly(conn, system_id):
@@ -1059,8 +1059,8 @@ BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and n
 
 BAND_LABELS = {"north_polar": "North polar", "north_middle": "North middle", "north_tropic": "North tropics", "equator": "Equator",
                "south_tropic": "South tropics", "south_middle": "South middle", "south_polar": "South polar",
-               "day_centre": "Day centre", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
-               "night_edge": "Night edge", "night_middle": "Night side", "night_centre": "Night centre"}
+               "day_centre": "Day center", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
+               "night_edge": "Night edge", "night_middle": "Night side", "night_centre": "Night center"}
 """dict: What the table of the bands calls each band or ring (`latitude_bands.NAMES`, `RING_NAMES`)."""
 
 

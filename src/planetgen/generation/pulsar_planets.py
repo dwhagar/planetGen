@@ -129,6 +129,6 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
         planets.append(Planet(system_config, star, habitable_zone, distance, radius=radius_km,
                               mass=_mearth_to_kg(mass_earth), moon_count=0,
                               formation_distance_au=0.0))
-    log.choice("Pulsar planets", f"{len(planets)} disc planets",
-               f"origin disc, {count} drawn, masses {low:.3g} to {high:.3g} Earth masses")
+    log.choice("Pulsar planets", f"{len(planets)} disk planets",
+               f"origin disk, {count} drawn, masses {low:.3g} to {high:.3g} Earth masses")
     return planets
