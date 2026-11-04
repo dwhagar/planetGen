@@ -182,6 +182,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.106:IF20 | GEN.1104 | `field_rates.TRUNCATION_FRACTION`, read when the cluster swarm hook lands |
 | row | 6.106:IF21 | GEN.1104 | `field_rates.CLUSTER_BELT_SHARE`, read when the cluster swarm hook lands |
 | module | planetgen.physics.rogue_topup | GEN.1120 | the stage 3 top-up of the region run: how many rogues, their masses, places, velocities and apparent origins, and the remainder for the asteroid fields |
+| module | planetgen.generation.rogue_topup_build | GEN.1120 | builds the planned top-up rogues through the planet chain (stage 3); the region run's stage 3 driver calls it |
 | row | 6.86:TU1 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
 | row | 6.86:TU2 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
 | row | 6.86:TU3 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |

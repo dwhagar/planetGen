@@ -3899,6 +3899,43 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
     return written
 
 
+def delete_topup_rogues(conn, sector_id):
+    """Deletes the rogue planets a sector's top-up made (GEN.1120): the ones filed in it with no donor, so the top-up of a regenerated sector is written afresh."""
+    return conn.execute("DELETE FROM rogue_planets WHERE sector_id = ? AND donor_uid IS NULL", (sector_id,)).rowcount
+
+
+def count_rogues_in_sector(conn, sector_id):
+    """How many rogue planets a sector holds, those that arrived from donors and any top-up (the top-up counts them against the Rogues level, GEN.1120)."""
+    return conn.execute("SELECT COUNT(*) AS n FROM rogue_planets WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+
+
+def save_topup_rogues(conn, sector_id, made):
+    """
+    Saves the rogue planets of a sector's top-up (GEN.1120, stage 3): the sector's earlier top-up is deleted first, so a sector keeps one, and each rogue
+    is written in the sector with no donor (`donor_uid` NULL marks an apparent origin) and the sentence that says where it seems to have come from. Their
+    object IDs are born in this sector.
+
+    Args:
+        conn (Connection): Not mid-`batched`.
+        sector_id (int): The sector the top-up fills.
+        made (iterable): `rogue_topup_build.ToppedRogue`s.
+
+    Returns:
+        int: How many rogue planets were written.
+    """
+    delete_topup_rogues(conn, sector_id)
+    row_ids = []
+    for item in made:
+        origin = item.rogue.apparent_origin
+        row_ids.append(insert_rogue_body(
+            conn, item.planet, sector_id=sector_id, placement=rogue_landing.placement_of(item.landing), donor_uid=None, event_index=None,
+            ejection_delay_gy=max(origin.age_gy - origin.since_ejection_gy, 0.0), since_ejection_gy=origin.since_ejection_gy,
+            ejection_speed_kms=origin.speed_km_s, rogue_note=item.note))
+    if row_ids:
+        _assign_rogue_uids(conn, row_ids, sector_id)
+    return len(row_ids)
+
+
 def _assign_rogue_uids(conn, row_ids, birth_sector_id):
     """Run-time IDs for new rogue planets (and their moons) born in the donor's sector, wherever they are filed."""
     uids = _runtime_uids(conn, _sector_birth_address(conn, birth_sector_id), len(row_ids))
