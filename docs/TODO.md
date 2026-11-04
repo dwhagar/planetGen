@@ -2605,6 +2605,189 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
+- [ ] **NAV.65 Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  1 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: add route.graph
+  to nav_between and /api/nav: the edges among the route's stops and
+  each stop's neighbours up to a cap (marked on-route or not),
+  neighbours chosen by the relative neighbourhood graph rule of Boss's
+  answer 3.2 from the cell-key index. The graph is already built for the
+  search, so returning its edges costs no new search. Measure the cost
+  on a real galaxy (the research had no database). Done: tests of the
+  edges, the cap and the on-route flag; the measured cost in the note.
+  Proposed owner: Aux 7 (python) after GEN.1255. Goal #1679. Filed by
+  the TODO thread.
+  Prerequisites: none.
+
+- [ ] **NAV.66 Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  2 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: a pure layout
+  module for the ribbon (layout L1 of the report): the route as a line,
+  long hops compressed in log spacing with their length written on them,
+  stubs for branches, a wrapping rule for narrow panels, deterministic
+  output. Done: unit tests with fixed inputs. Proposed owner: Aux 7. The
+  plain ribbon needs no branches; branches need part 1. Goal #1679.
+  Filed by the TODO thread.
+  Prerequisites: NAV.65.
+
+- [ ] **NAV.67 Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  3 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: draw the ribbon
+  from part 2 as SVG on the NAV page below the existing map: a glyph per
+  stop kind (system, stone kinds, phenomenon), hop length and course
+  labels, unknown-space hops red and glowing (the same work as NAV.36,
+  do them together), readable at 320 px, both themes, reduced motion
+  respected, text alternatives (the route stays a list). Done: a browser
+  test. Proposed owner: Core 2 (map and SVG). Folds in NAV.36. Related:
+  NAV.36. Goal #1679. Filed by the TODO thread.
+  Prerequisites: NAV.66.
+
+- [ ] **NAV.68 Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more'**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  4 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: faint stubs
+  around each stop from part 1's neighbours, capped per stop (the
+  label-budget idea) with 'and N more' where a dense stop has more; the
+  route's own hops always drawn. Done: a browser test in a dense and a
+  sparse case. Proposed owner: Core 2. Goal #1679. Filed by the TODO
+  thread.
+  Prerequisites: NAV.65, NAV.67.
+
+- [ ] **NAV.69 Schematic route map part 5: linked selection between the course diagram and the Galaxy Map**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  5 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: clicking a stop
+  in the diagram centres the Galaxy Map's course on it; clicking a
+  marker on the map highlights it in the diagram. Share one route record
+  between the diagram and the map route layers (MAP.309, MAP.310) so the
+  two views never disagree. Done: a browser test in both directions.
+  Proposed owner: Core 2. Related: MAP.309, MAP.310. Goal #1679. Filed
+  by the TODO thread.
+  Prerequisites: NAV.67.
+
+- [ ] **NAV.70 Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  6 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: only if Boss
+  finds the ribbon too plain once he has seen it: a layout that keeps
+  distances close to true for the neighbourhood. Done: decided when he
+  has seen parts 1 to 5. Not started until then. Goal #1679. Filed by
+  the TODO thread.
+  Prerequisites: NAV.68.
+
+- [ ] **NAV.71 Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3)**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  7 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: after the
+  trade-route tree exists, draw many routes as lines through hubs in a
+  metro-map look at 45 degrees. Blocked: a stored link table is part of
+  POP.33's design (trade_routes, trade_route_hops), so none is proposed
+  here. Done: decided when it is scheduled. Goal #1679. Filed by the
+  TODO thread.
+  Prerequisites: POP.33, POP.34, DB.105.
+
+- [ ] **NAV.72 Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged**
+  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
+  questions
+  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
+  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
+  NAV page first (parts 1 to 3), then the neighbours and the
+  click-through to the Galaxy Map; it sits on the NAV page below the
+  existing map, linked to the Galaxy Map; neighbourhood links use the
+  relative neighbourhood graph (no tuning number, about 1.5 links a
+  system) plus always the route's own hops; the layout is a ribbon. Part
+  8 of 8 in section 8. Lock-free (display, API or query work; no epoch,
+  no golden). The page text must say a link is a neighbour relation, not
+  a travel lane, until lanes exist. No stored neighbour link graph
+  exists, only the 3 nearest per object, so neighbours of a stop come
+  from the cell-key index (objects_within, nearest). Do: a hop whose
+  straight line crosses a gravity-well keep-out sphere is drawn bent
+  around it or flagged in the diagram. Blocked on NAV.6. Done: a browser
+  test. Related: NAV.58 (editing a course by dragging waypoints wants an
+  editing surface; the diagram is a better one than the 3D map, a later
+  part). Goal #1679. Filed by the TODO thread.
+  Prerequisites: NAV.6.
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**

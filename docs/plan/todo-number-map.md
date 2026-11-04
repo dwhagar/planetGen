@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.261 |
 | MAP | MAP.377 |
-| NAV | NAV.65 |
+| NAV | NAV.73 |
 | GEN | GEN.1258 |
 | PERF | PERF.234 |
 | DB | DB.110 |
@@ -2473,6 +2473,14 @@ Parents marked "new parent" had no old number of their own.
 | NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | open |
 | NAV.63 | Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route | none | open |
 | NAV.64 | Find the nearest resource location from a position or along a course, by resource kind and minimum score | none | open |
+| NAV.65 | Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap | none | open |
+| NAV.66 | Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels | none | open |
+| NAV.67 | Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops | none | open |
+| NAV.68 | Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more' | none | open |
+| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | none | open |
+| NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | none | open |
+| NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
+| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |

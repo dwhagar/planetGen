@@ -51,6 +51,12 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.22 | Courses inside a sector and a system |  |  |
 | NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
 | NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | NAV.68 |  |
+| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | NAV.67 |  |
+| NAV.68 | Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more' | NAV.65, NAV.67 |  |
+| NAV.67 | Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops | NAV.66 |  |
+| NAV.66 | Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels | NAV.65 |  |
+| NAV.65 | Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap |  |  |
 
 ### Steering clear of gravity wells
 
@@ -65,6 +71,7 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
 | NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26, NAV.54 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
 | NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
+| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | NAV.6 |  |
 
 ## Phase 3: Waypoints and the headline
 
@@ -93,6 +100,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | POP.32 | Trade partners: which spaceports trade with which, by the gravity model on population and distance, with a cap per port and hubs | POP.21, POP.30, DB.105 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | POP.33 | Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list | POP.32 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | POP.34 | The global trade route list: a page and an API every account can read, with filters by polity, route length, hop count and spaceport | POP.33 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
+| NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | POP.33, POP.34, DB.105 |  |
 | MAP.309 | Star map filter for trade routes: draw the routes as paths on the Galaxy Map, filtered by polity, length or hop count | POP.34, NAV.5 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | MAP.310 | Routes away from a selected object: select a system, spaceport or world on the star map and show only the routes leaving it | MAP.309 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | NAV.63 | Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route | POP.33, MAP.309 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
