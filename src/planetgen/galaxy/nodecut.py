@@ -39,7 +39,7 @@ CONE_HALF_ANGLE_DEG = 50.0
 """float: Half the angle of the cone round the look direction that the cut keeps nodes in (the view cone)."""
 
 MAX_NODES = 1200
-"""int: Most nodes a cut holds: the cut opens blocks, biggest on screen first, until opening one more would pass it."""
+"""int: Most nodes a cut holds: the cut opens blocks, biggest on screen first, until opening one more would pass it. MAP.367 left it alone on purpose: halving it (tried) makes the blocks hand over in bigger steps (tests/js/starfade.test.mjs saw a 100% burst of stars in one 9% zoom step, MAP.152) and so the square chunks of MAP.366; the cap on what is drawn is cut through the stars, marks, regions and names instead."""
 
 DEFAULT_FOCAL_PX = 800.0 / (2.0 * math.tan(math.radians(25.0)))
 """float: The focal length in pixels of an 800 px high view with a 50 degree field, which the server assumes when it

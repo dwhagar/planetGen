@@ -5647,6 +5647,23 @@ def _picks_by_hover(page, entry):
     return None
 
 
+def test_the_caps_on_what_the_galaxy_map_draws_are_half_and_an_opened_sector_keeps_the_old_numbers(page, map_site):
+    """MAP.367: on the whole map the stars held on the screen are about half the old 20,000 (8,000 on a phone) and the marks half the old
+    240; in a sector opened in place the old star numbers hold and the marks have the 1,500 budget that shows every system that fits."""
+    caps = "() => document.querySelector('#galaxymap3d-canvas').__mapCaps()"
+    _open_galaxy(page, map_site)
+    far = page.evaluate(caps)
+    assert not far["sectorOpen"]
+    old_stars = 8000 if far["phone"] else 20000
+    assert 0.45 * old_stars <= far["stars"] <= 0.55 * old_stars, far
+    assert 0.45 * 240 <= far["markers"] <= 0.55 * 240, far
+    page.add_init_script(NO_WALL_ICONS)
+    _open(page, f"{map_site}/galaxy?sector={PRIME_CODE}&open=1", GALAXY_CANVAS)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapCaps().sectorOpen", timeout=30000)
+    near = page.evaluate(caps)
+    assert near["stars"] == old_stars and near["markers"] == 1500, near
+
+
 def test_the_opened_sector_draws_and_picks_one_of_every_kind_it_holds(page, map_site):
     """MAP.302: at sector zoom (the sector opened in place) every kind of thing the fixture sector holds is in the scene, drawn on the
     map, named when the pointer is over it and picked by a click: stars (a binary and a brown dwarf among them), a nebula, a supernova
