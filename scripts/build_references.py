@@ -50,7 +50,7 @@ DOI = re.compile(r"\b(10\.\d{4,9}/(?:[^\s\"'`<>,;|\\\[\]{}()]|\([^\s()]*\))+)")
 BIBCODE = re.compile(r"\b((?:19|20)\d\d[A-Za-z][A-Za-z&.]{3}[.\d]{4}[A-Za-z.]\d{4}[A-Z])\b")
 NAME = r"(?:[A-Z][a-z]?['’]?[A-Z]?[A-Za-zÀ-ſ-]{2,}|van [A-Z][a-z]+|de [A-Z][a-z]+)"
 AUTHYEAR = re.compile(r"\b(" + NAME + r")(?:,? (?:and|&) (" + NAME + r")| et al\.?)?,? \(?((?:19|20)\d\d)([a-z])?\b")
-NOT_NAMES = set("""Boss Research Status Quality Split Epoch Version Phase Part Table Figure Section Release Stage Item Items Round
+NOT_NAMES = set("""Boss Citations Myr None Research Status Quality Split Epoch Version Phase Part Table Figure Section Release Stage Item Items Round
 Train Lane Report Reports Plan Study Census Sweep Draft Check Audit Test Tests Rule Rules Step Day Week Month January February March April
 May June July August September October November December Mon Tue Wed Thu Fri Sat Sun Gen Core Aux Bug Star Tides Air Sources Planets Map
 Db Sec Todo Main Merge Notes Note Data Phase Year Years Since Before After During Until From Between Around Roughly About Over Under Near
@@ -572,6 +572,8 @@ def assign_ids(c):
         sources.append(("archive:" + a["url"], ["archive:" + a["url"].lower()]))
     for d in c.get("setup_datasets", []):
         sources.append(("setup:" + d["url"], ["setup:" + d["url"].lower()]))
+    for w in c.get("web_sources", []):
+        sources.append(("web:" + w["url"], ["web:" + w["url"].lower()]))
     # list order, so a first build numbers the sources in the order the page prints them
     ents = c["entries"]
     order = sorted((s for s in sources if s[0] in ents), key=lambda s: (auth_key(ents[s[0]]), int(ents[s[0]].get("year") or 0), (ents[s[0]].get("title") or "").lower(), s[0]))
@@ -759,6 +761,26 @@ CONVENTIONS = (
 )
 
 
+WEB_KINDS = ("standard", "software documentation", "web page", "regulation", "government report")
+"""tuple: What a web source can be (the `kind` of a `web_sources` row of the cache)."""
+
+
+def web_sources_for_render(c):
+    """`[(name, who, kind, identifier, year, url, checked, id)]` of the standards, regulations, documentation and web pages in the list, by name."""
+    ids = c["ids"]
+    return [(w["name"], w["provider"], w["kind"], w.get("identifier", ""), w.get("year", ""), w["url"], w.get("checked", ""), ids["web:" + w["url"].lower()])
+            for w in sorted(c.get("web_sources", []), key=lambda w: (w["name"].lower(), w["url"]))]
+
+
+def web_line(row):
+    """The words that follow the name of a web source: who, the kind and identifier, the year and the date it was last opened."""
+    name, who, kind, ident, year, url, checked, sid = row
+    bits = [who, kind + (" " + ident if ident else "")]
+    if year:
+        bits.append(str(year))
+    return "%s. Last opened %s." % (", ".join(b for b in bits if b), checked or "not recorded")
+
+
 def datasets_for_render(c):
     ids = c["ids"]
     rows = []
@@ -797,6 +819,7 @@ def render_all(c):
     names = {"0": "No author listed (publisher or organisation)"}
     stats = {"papers": len(papers), "datasets": len(datas), "archives": len(datasets_for_render(c)), "tied": len(groups["tied"]), "not": len(groups["not"]), "review": len(groups["review"]),
              "bad_ids": len(c.get("unresolved_ids", {}))}
+    web = web_sources_for_render(c)
     # ---- markdown
     md = ["# References", "", INTRO, "", "## How to read this list", "", CONVENTIONS, "",
           "This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin "
@@ -822,6 +845,14 @@ def render_all(c):
         md += ["### Published datasets (with a DOI)", ""]
         for k, e in dkeyed:
             md.append(md_entry(entry_parts(e, dsuffix.get(k, ""), ids[k.lower()])))
+        md.append("")
+    web = web_sources_for_render(c)
+    if web:
+        md += ["### Standards, regulations, software documentation and web pages", "",
+               "Sources that are not papers or data: a standard or regulation a number rests on, the documentation of a program or a format the project uses, and "
+               "web pages that explain a technique. Each was opened on the date shown; one that cannot be opened is not listed.", ""]
+        for row in web:
+            md.append("- %s%s. %s <%s>" % (paper_anchor_md(row[7]), md_escape(row[0]), md_escape(web_line(row)), row[5]))
         md.append("")
     md += ["## Author-year citations: where each one stands", "",
            "The design notes, reports and code cite many sources only as 'Author year'. Each of those citations is in exactly one of three "
@@ -871,6 +902,13 @@ def render_all(c):
         out += ["<h3>Published datasets (with a DOI)</h3>", "<ul>"]
         for k, e in dkeyed:
             out.append(html_entry(entry_parts(e, dsuffix.get(k, ""), ids[k.lower()])))
+        out.append("</ul>")
+    if web:
+        out += ["<h3>Standards, regulations, software documentation and web pages</h3>",
+                "<p>Sources that are not papers or data: a standard or regulation a number rests on, the documentation of a program or a format the project uses, "
+                "and web pages that explain a technique. Each was opened on the date shown; one that cannot be opened is not listed.</p>", "<ul>"]
+        for row in web:
+            out.append('<li id="paper-%s"><b class="rid">%s</b> %s. %s <a href="%s">%s</a></li>' % (row[7].lower(), row[7], h(row[0]), h(web_line(row)), h(row[5]), h(row[5])))
         out.append("</ul>")
     out += ['<h2 id="authoryear">Author-year citations: where each one stands</h2>',
             "<p>The design notes, reports and code cite many sources only as &lsquo;Author year&rsquo;. Each of those citations is in exactly one of three groups. "
@@ -1059,6 +1097,49 @@ def cmd_add(args):
         sys.exit(1)
 
 
+def page_text(url, tries=2):
+    """`(status, text)` of a page, `(None, "")` when it cannot be reached. A 403, 418 or 429 is a site that turns programs away, not a missing page."""
+    for _ in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; planetGen-references)"})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                return r.status, r.read(400000).decode("utf-8", "ignore")
+        except urllib.error.HTTPError as e:
+            if e.code in (403, 418, 429):
+                return e.code, ""
+            if e.code in (404, 410):
+                return e.code, ""
+        except Exception:
+            time.sleep(2)
+    return None, ""
+
+
+def cmd_add_web(args):
+    """
+    Adds a standard, regulation, program documentation or web page to the list (`web_sources`) and prints its citation ID. The page is opened first: a
+    page that cannot be reached, or that does not say `--must-contain` (case ignored), is refused, because a source nobody can open is not listed.
+    """
+    c = load_cache()
+    status, text = page_text(args.url)
+    bot_block = status in (403, 418, 429)
+    if status is None or (status is not None and status >= 400 and not bot_block):
+        sys.exit("cannot open %s (status %s): not listed" % (args.url, status))
+    if args.must_contain and not bot_block and args.must_contain.lower() not in text.lower():
+        sys.exit("%s does not say %r: not listed" % (args.url, args.must_contain))
+    if args.kind not in WEB_KINDS:
+        sys.exit("kind must be one of: " + ", ".join(WEB_KINDS))
+    rows = c.setdefault("web_sources", [])
+    row = next((w for w in rows if w["url"].lower() == args.url.lower()), None)
+    if row is None:
+        row = {"url": args.url}
+        rows.append(row)
+    row.update({"name": args.name, "provider": args.provider, "kind": args.kind, "identifier": args.identifier or "", "year": args.year or "",
+                "checked": time.strftime("%Y-%m-%d")})
+    assign_ids(c)
+    save_cache(c)
+    print("%s  [%s]  %s" % (args.url, c["ids"]["web:" + args.url.lower()], args.name))
+
+
 def cmd_match(args):
     """Tie author-year mentions to resolved entries by first author, year and (for pairs) second author. The decisions made later by
     scripts/settle_references.py (searches, labels, review notes) are kept; mentions the last harvest no longer finds are dropped."""
@@ -1100,6 +1181,14 @@ if __name__ == "__main__":
         p.add_argument("--extra", nargs="*", default=[])
     sub.add_parser("match")
     sub.add_parser("add").add_argument("ids", nargs="+")
+    p = sub.add_parser("add-web")
+    p.add_argument("url")
+    p.add_argument("--name", required=True)
+    p.add_argument("--provider", required=True)
+    p.add_argument("--kind", required=True)
+    p.add_argument("--identifier")
+    p.add_argument("--year")
+    p.add_argument("--must-contain")
     sub.add_parser("render").add_argument("--check", action="store_true")
     sub.add_parser("resolve").add_argument("--offline", action="store_true")
     a = ap.parse_args()
@@ -1111,5 +1200,7 @@ if __name__ == "__main__":
         cmd_match(a)
     elif a.cmd == "add":
         cmd_add(a)
+    elif a.cmd == "add-web":
+        cmd_add_web(a)
     elif a.cmd == "render":
         cmd_render(a)
