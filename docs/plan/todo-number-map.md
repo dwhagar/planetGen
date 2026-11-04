@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.572 |
+| TEST | TEST.573 |
 | USR | USR.32 |
 | OPS | OPS.94 |
 | DOC | DOC.104 |
@@ -3828,6 +3828,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.569 | Red on main: the reproducibility guard (five call sites), the mass-conversion guard (two tests), the pinned galaxy and the sector panel test (bug) | none | open |
 | TEST.570 | test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug) | none | done, PR #4852 |
 | TEST.571 | test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug) | none | open |
+| TEST.572 | Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

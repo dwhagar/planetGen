@@ -18286,6 +18286,21 @@ clears each one.
   thread.
   Prerequisites: none.
 
+- [ ] **TEST.572 Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug)**
+  Found by Tides 1, about 2:30 PM EST on 2026-11-04 (as the lane
+  reported), red with and without its GEN.1218b change. (1) A
+  test_sheet_fill check on life_class_variant fails for 1 of 30 bodies.
+  (2) nuclear_arrival_age_gy comes out NULL in every star row, so the
+  column is not being filled (or the test reads the wrong place). Do:
+  run each alone on current main, find the cause (a train 8 change that
+  stopped writing the column, or a stale test), and fix it at the
+  source. If the column is meant to be filled and is not, that is a
+  generation bug: fix the writer and add a guard. Done: both checks pass
+  on main in 3 runs. Owner Aux 7 after TEST.571 (proposed by the TODO
+  thread; Bug 1 or Star 2 if the star column proves theirs). Filed by
+  the TODO thread.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
