@@ -13914,21 +13914,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **GEN.1251 Tides on seas of methane, ethane and other non-water liquids: fill ocean_liquid and the spring and neap ranges from the stored surface liquid**
-  Built by Aux 4, branch claude/project-thread-nfytfi-tide-liquid head
-  7a0d5e515, change note changes/tide-liquid-hook.minor.md. Bodies whose
-  stored surface liquid is a non-water, non-lava sea (methane, ethane,
-  ammonia-water and the like) now store ocean_liquid and the spring and
-  neap ranges, with the liquid's density at the surface temperature;
-  water worlds are unchanged; lava and too-heavy liquids (mercury) stay
-  empty, heavy liquids are left to GEN.1052. No migration (columns exist
-  from 0191). Generation output changes the tide columns of Titan-like
-  bodies only (stage fill, the tide step ocean_tides.compute), so it
-  needs an epoch. Done: merged in a train with a census line counting
-  the bodies that gain tides. Lock work, train 11. Related: GEN.1052,
-  GEN.1218. Owner Aux 4. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **GEN.1252 Methane fluxes of fuel-limited life classes are multiplied by their share of net primary production: sum fuel-limited rows once per fuel (bug)**
   Found by Aux 4 in its GEN.1213 air-side review, 4:50 PM EST on
   2026-11-04 (as the lane reported). In life_air.py the methane flux of
