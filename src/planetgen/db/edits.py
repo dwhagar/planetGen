@@ -442,7 +442,7 @@ def empty_sector(conn, sector_id):
 
 
 RESTRICTING_TABLES = ("rogue_planets", "interstellar_comets", "supernova_remnants", "facilities")
-"""tuple: The tables whose `sector_id` key is `ON DELETE RESTRICT` (v200): a sector row cannot be deleted while one of their rows is filed in it."""
+"""tuple: The tables whose `sector_id` key is `ON DELETE RESTRICT` (v201): a sector row cannot be deleted while one of their rows is filed in it."""
 
 
 def restricting_rows(conn, sector_id):
