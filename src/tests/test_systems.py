@@ -463,7 +463,9 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
         system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
         if system.belt_count == 0:
             failures_belt += 1
-        if habitable_request.count(system.all_planets) == 0 and "a habitable world" not in system.unmet_requirements:
+        # Since GEN.1130 a request only raises the odds, so a system with no such world says "unmet" instead of listing it among the
+        # unmet requirements; what the request owes is an answer.
+        if habitable_request.count(system.all_planets) == 0 and system.habitable_request not in ("aim", "fallback", "unmet"):
             failures_hab += 1
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
