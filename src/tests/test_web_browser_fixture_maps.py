@@ -5485,3 +5485,89 @@ def test_the_opened_sector_draws_and_picks_one_of_every_kind_it_holds(page, map_
         assert title == entry["name"], f"a click on the {kind} {entry['name']!r} picked {title!r}"
         page.mouse.click(box["x"] + 3, box["y"] + 3)  # empty space between picks (it keeps the selection; the next pick replaces it)
     assert not missed, f"no hover named a {missed} where it is drawn"
+
+
+BAR_WATCH = """() => {
+    window.__bars = { seen: [], stalled: [] };
+    const read = () => {
+        document.querySelectorAll('.map-level-progress [role="progressbar"]').forEach((bar) => {
+            window.__bars.seen.push([bar.getAttribute("aria-label"), Number(bar.getAttribute("aria-valuenow")), Number(bar.getAttribute("aria-valuemax"))]);
+        });
+        document.querySelectorAll('.map-level-progress [role="status"]').forEach((line) => window.__bars.stalled.push(line.textContent));
+    };
+    new MutationObserver(read).observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
+    read();
+}"""
+
+
+def _zoom_in_for_nodes(page, ticks=8):
+    box = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }")
+    page.mouse.move(*box)
+    for _ in range(ticks):
+        page.mouse.wheel(0, -300)
+        page.wait_for_timeout(60)
+
+
+def test_galaxy_map_shows_a_progress_bar_for_each_level_of_nodes_on_a_slow_network_and_it_is_gone_at_the_end(page, map_site):
+    """MAP.364: the nodes a zoom asks for arrive over a slow connection; each level with nodes still to come shows a progressbar named
+    for it that counts nodes received over nodes requested, rising as the response is read, and the bars are gone once every level is in."""
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
+    page.evaluate(BAR_WATCH)
+    asked = _node_requests(page)
+    cdp = page.context.new_cdp_session(page)
+    cdp.send("Network.enable")
+    cdp.send("Network.emulateNetworkConditions", {"offline": False, "latency": 600, "downloadThroughput": 25 * 1024, "uploadThroughput": 1024 * 1024})
+    _zoom_in_for_nodes(page, 40)
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
+        if page.evaluate("() => window.__bars.seen.length") and not page.evaluate("() => !!document.querySelector('.map-level-progress')") and asked:
+            break
+        page.wait_for_timeout(250)
+    cdp.send("Network.emulateNetworkConditions", {"offline": False, "latency": 0, "downloadThroughput": -1, "uploadThroughput": -1})
+    seen = page.evaluate("() => window.__bars.seen")
+    assert asked, "zooming in asked for nodes"
+    assert seen, "a slow load showed a bar"
+    for label, now, total in seen:
+        assert label.startswith("Loading ") and 0 <= now <= total and total >= 1, (label, now, total)
+    # A request that ends hands over to the next, whose bar starts again from none; inside one request a bar only rises.
+    rises = 0
+    last = {}
+    for label, now, total in seen:
+        before = last.get(label)
+        if before is not None and now > before:
+            rises += 1
+        last[label] = now
+    assert rises, "a bar rose as the nodes were read"
+    assert not page.evaluate("() => !!document.querySelector('.map-level-progress')"), "the bars are gone at the end"
+
+
+def test_galaxy_map_shows_no_bar_for_nodes_it_kept_from_an_earlier_visit(page, map_site):
+    """MAP.364: a level served from this browser's store shows no flash of a bar."""
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
+    page.wait_for_timeout(2500)
+    page.add_init_script("""(() => {
+        window.__flash = 0;
+        new MutationObserver((records) => records.forEach((r) => r.addedNodes.forEach((n) => {
+            if (n.nodeType === 1 && (n.matches('.map-level-progress') || n.querySelector('.map-level-progress'))) window.__flash += 1;
+        }))).observe(document, { subtree: true, childList: true });
+    })()""")
+    page.reload(wait_until="load")
+    page.wait_for_selector(GALAXY_CANVAS, state="attached")
+    _settle(page)
+    page.wait_for_timeout(2500)
+    assert page.evaluate("() => window.__flash") == 0
+
+
+def test_galaxy_map_says_in_plain_words_that_a_level_stalled_when_its_nodes_do_not_come(page, map_site):
+    """MAP.364: a failed request leaves no bar stuck part way: each level still to come says it could not load and that it will try again,
+    and the line is gone once the nodes do arrive."""
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
+    page.evaluate(BAR_WATCH)
+    page.route("**/galaxy/nodes*", lambda route: route.abort())
+    _zoom_in_for_nodes(page)
+    page.wait_for_function("() => !!document.querySelector('.map-level-progress [role=status]')", timeout=20000)
+    text = page.evaluate("() => document.querySelector('.map-level-progress [role=status]').textContent")
+    assert text.startswith("Could not load all of the ") and "Trying again in " in text, text
+    assert not page.evaluate("() => !!document.querySelector('.map-level-progress [role=progressbar]')"), "no bar is left stuck"
+    page.unroute("**/galaxy/nodes*")
+    page.wait_for_function("() => !document.querySelector('.map-level-progress')", timeout=40000)

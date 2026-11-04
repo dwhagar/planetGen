@@ -6355,6 +6355,61 @@ a.help-mark {
   margin: 0;
 }
 
+/* MAP.364: the bars for the levels of nodes still loading, over the top left of a map. The map viewports carry the dark tokens, so
+   both themes read. */
+.map-level-progress {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: min(20rem, calc(100% - 1rem));
+  pointer-events: none;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.map-level-row {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg-subtle) 85%, transparent);
+  border: 1px solid var(--border);
+}
+
+.map-level-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.map-level-track {
+  display: block;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.map-level-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+.map-level-stalled {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-level-fill {
+    transition: none;
+  }
+}
+
 /* MAP.357: every charted region as a point of interest on the Galaxy Map, each with its link; regions too close to tell apart are one point
    with a count. The layer takes no pointer; only the points do. */
 .map-region-pois {
