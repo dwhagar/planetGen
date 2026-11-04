@@ -3699,7 +3699,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.432 | Star census: star type mix, white dwarfs, subgiants, giants, pre-main-sequence stars, brown dwarfs and multiplicity by type against RECONS and Kroupa (prevalence suite part C) | none | done, PR #3588 |
 | TEST.433 | Phenomena census: black holes, neutron stars, magnetars, pulsars, Wolf-Rayet stars, planetary nebulae, supernova remnants, nebula classes, asteroid fields, clusters, rogue planets and interstellar comets against researched densities (prevalence suite part D) | none | done, PR #3621 |
 | TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) | none | done, PR #3681 |
-| TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | none | open |
+| TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | none | done, PR #4895 |
 | TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | none | open |
 | TEST.437 | test_climate_draws test_every_class_stores_the_draws_its_temperature_is_made_of fails for 20 classes: the stored surface temperature differs from the draws' formula by 0.03 K (365.639 vs 365.607) (bug) | none | done, PR #3558 |
 | TEST.438 | test_planet_classes test_only_the_known_writers_assign_a_class fails: db/interests.py is a new writer of planet_class and is not in CLASS_WRITERS (bug) | none | done, PR #3562 |

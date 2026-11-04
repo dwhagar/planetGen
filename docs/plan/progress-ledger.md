@@ -2424,3 +2424,4 @@ Baseline: PR #1817.
 | GEN.1242 | 8.2 | Robust tile caching |
 | GEN.375 | 8.3 | Positions as one object |
 | MAP.275 | 8.4 | Asteroid fields |
+| TEST.435 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
