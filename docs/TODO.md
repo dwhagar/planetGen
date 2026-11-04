@@ -18783,19 +18783,6 @@ clears each one.
   a defect, fix it and note whether stored output changes. Owner: Aux 7.
   Prerequisites: none.
 
-- [ ] **TEST.568 test_page_shell::test_js_modules_import_siblings_with_their_own_version fails on main: boxfit.js has a static import (bug)**
-  Found by Core 2 and confirmed on main by the TODO thread, 12:15 PM EST
-  on 2026-11-04. boxfit.js (UX.142 slice 1, #4759) starts with `import {
-  watchWindowBox } from ...`, and the test requires a module to import
-  its siblings with their own version query (a dynamic import with the
-  version string), so a changed sibling is never read from the browser
-  cache. Do: change the import in html/static/boxfit.js to the dynamic
-  form the other modules use (see the import lines in galaxymap3d.js),
-  run the test and the box-fit browser test. Done: the test passes on
-  main. Lock-free (browser module only). Owner Core 2 (proposed by the
-  TODO thread; it found the failure). Filed by the TODO thread.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
