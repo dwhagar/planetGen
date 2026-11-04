@@ -1548,7 +1548,8 @@ NUCLEAR_DISC_HEIGHT_RATIO = 35.0 / 1580.0
 NUCLEAR_RESOLUTION_PC = 2.0
 """float: The radius of the grid's core ball (shell 0, half the 4 pc shell depth). The cluster's cusp is held below
 the radius at which its density equals the ball's mean, so the ball's cell holds exactly the cluster's mass inside
-2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`)."""
+2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`). The nuclear disc is switched off
+when its length (`NUCLEAR_DISC_LENGTH_RATIO` times the bulge radius) is under it (GEN.614)."""
 
 # The galactic centre's gas and young stars (GEN.282, `galaxy.core_gas`, docs/design/galaxy/realistic-galactic-core.md 3.4).
 # A bar carries the gas of its gap inward (`BAR_GAP_RADIUS_RATIO`) and piles it into a ring at the centre, the central
