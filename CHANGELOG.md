@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3183] - 2026-11-04
+
+**Headline:** Hydrogen chloride and hydrogen fluoride in an air now come from the rock's chlorine and fluorine, not from a coin flip.
+
+### Changed
+- **HCl and HF from a halogen budget (GEN.524 part 2).** Rows m5 and m6 drew HCl and HF present or absent at brackets of up to 1 percent and 0.1 percent; they are retired. The outgassing inventory (`mixture_rocky`) now holds the chlorine and fluorine of the rock (the bulk silicate Earth to the CI chondrites, scaled by the host's [Fe/H] with [Cl/Fe] = -0.10 and [F/Fe] = 0), the interior degasses them as it does water (`surface_pressure.DEGAS_EFFICIENCY_HALOGEN`), a halogen leaves only as HCl or HF so the atoms are capped at a bracket's share of the hydrogen free to pair with them (the rest stays in the crust as chlorides and fluorides), a liquid ocean takes all of both, and HCl and HF now have vapour-pressure curves (`saturation`: HCl by Clausius-Clapeyron from the gas table's triple point, HF by Edmister's correlation) so a cold body condenses them. The thermodynamics file gains F, F2, Cl, Cl2 and HCl from the NASA Glenn data. Every new bracket is a registered stand-in (rows AM89 to AM94).
+- Generator epoch bump (numbered at merge): the air of every rocky body that outgasses gains halogen gases and every draw after the inventory moves.
+generation-output: changed
+
 ## [8.0.3182] - 2026-11-04
 
 **Headline:** A body held at the 2000 K surface cap now stores the greenhouse factor that gives that temperature, so the stored temperature, greenhouse and starlight agree.
