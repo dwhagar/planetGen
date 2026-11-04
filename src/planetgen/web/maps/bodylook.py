@@ -61,6 +61,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
                 orbit's normal)
     tiltDeg     axial tilt, 0 to 180 degrees (past 90 the body turns backwards)
+    ring        the body's stored ring system (MAP.275, `ringlook.ring_look`): {kind, origin, in, out (radii), tau, ice, alpha, rgb, gaps}; left out when none
     locked      true when the body is tidally locked (its rotation period is its orbital period, UX.244); the views then keep
                 its day side toward what it orbits, and the object page says it is locked
 
@@ -75,6 +76,7 @@ from types import SimpleNamespace
 
 from planetgen.physics import (
     atmosphere, atmosphere_colour, gases, giant_colour, photometry, regional_temperature, stellar_library, surface_composition)
+from planetgen.web.maps.ringlook import ring_look
 from planetgen.web.maps.starmap import star_color
 from planetgen.physics import unit_registry as units
 
@@ -342,6 +344,7 @@ def planet_look(planet, kind="planet"):
     if gas:
         _put(look, "gas", giant_gas_fractions(planet))
     _put_spin(look, planet)
+    _put(look, "ring", ring_look(planet))     # MAP.275: the rings the body stores, with the gaps its moons dig
     if has_atmosphere:
         look["atm"] = True
         glow = air_glow(planet)

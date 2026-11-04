@@ -1107,6 +1107,34 @@ def test_the_system_map_spheres_turn_at_the_rate_their_stored_period_gives_on_on
         assert shorter["rate"] >= longer["rate"] - 1e-12, (shorter, longer)
 
 
+def test_a_ring_on_the_system_map_is_the_planets_own_stored_ring(page, base_url, site_app):
+    """MAP.275: a planet that stores a ring is drawn with that ring (its edges in the planet's radii and the gaps its moons dig), and a planet that
+    stores none is drawn with none."""
+    client = site_app.test_client()
+    found = None
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if len(scene["stars"]) == 1 and any(p["look"].get("ring") for p in scene["planets"]):
+            found = system["id"], scene
+            break
+    if found is None:
+        pytest.skip("no generated single-star system has a planet with a stored ring")
+    system_id, scene = found
+    _open(page, f"{base_url}/system/{system_id}", "#sysmap-root")
+    _show_diagram(page)
+    drawn = {s["name"]: s for s in page.evaluate("() => document.querySelector('#sysmap-spheres-canvas').__spins()")}
+    for planet in scene["planets"]:
+        ring = planet["look"].get("ring")
+        if planet["name"] not in drawn:
+            continue
+        got = drawn[planet["name"]]["ring"]
+        if ring is None:
+            assert got is None, planet["name"]
+        else:
+            assert got and got["in"] == ring["in"] and got["out"] == ring["out"] and got["gaps"] == len(ring["gaps"]), (planet["name"], got, ring)
+            assert 1.0 < ring["in"] < ring["out"], ring
+
+
 def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url, site_app):
     """MAP.328: the Menu's Spin switch holds every body still (and a reload keeps it so); turning it on again sets them
     turning."""
