@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1044 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1045 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 112 | 42 | 0 | 1 | 0 | 155 |
 | T3 | 83 | 38 | 7 | 9 | 0 | 137 |
 | T4 | 51 | 5 | 1 | 17 | 10 | 84 |
-| T5 | 44 | 18 | 3 | 1 | 0 | 66 |
+| T5 | 45 | 18 | 3 | 1 | 0 | 67 |
 | T6 | 96 | 82 | 20 | 51 | 0 | 249 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 23 | 14 | 5 | 46 | 21 | 109 |
-| All | 590 | 227 | 52 | 143 | 32 | 1044 |
+| All | 591 | 227 | 52 | 143 | 32 | 1045 |
 
 ## How the labels were given
 
@@ -488,6 +488,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CC9 | P | T4 | L0 | tuning.GIVEN_MASS_KG_BOUNDS (1e12, 2.47e28) and GIVEN_RADIUS_KM_BOUNDS (0.5, 200000) (the mass and radius a caller may give; outside them the request is an error) | none | given inputs only | test_gen_moon_helpers::test_a_radius_or_mass_that_cannot_be_a_planet_raises | none | design (the lightest body the bulk draw builds to 13 Jupiter masses and the largest inflated giant) | - | - |
 | CC10 | P | T9 | L3 | tuning.REQUEST_ODDS 10, REQUEST_PLANET_DRAW_BUDGET 60 and REQUEST_MAX_TIMELINE_TRIES 200 (what a request for a habitable world or intelligent life multiplies the odds of the outcome by, GEN.1130; the draw limit of a timeline) | odds 3 to 30; tries 50 to 1000 | the request only | test_request_odds; test_habitable_request::test_a_request_raises_the_odds_of_a_habitable_planet_in_the_ecosphere_and_moves_nothing; test_life_timeline::test_a_request_raises_the_odds_of_a_timeline_that_finishes_and_forces_none | the user's own choice of strength; the budget is a time limit | design (needed output: a strength that moves a rare outcome without forcing it; nobody knows the right one) | - | no data |
 | CC11 | D | T1 | L0 | tuning.REQUEST_TEMPERATURE_K (273.15, 323.15) and REQUEST_HYDROSPHERES ("surface ocean",) (the conditions a request for a habitable world asks of a finished body, GEN.916) | the range edges are the liquid-water range at the surface | every request for a habitable world | a request met by a body outside 273 to 323 K or without a surface ocean | none needed | the liquid range of water at the surface (verified physics) | - | - |
+| CC12 | P | T5 | L0 | tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is `orbits.runaway_greenhouse_flux`, the one the water-loss history follows) | start 1200 to 2000 (it only picks the branch) | rocky bodies with surface water and an effective flux past the limit | test_surface_air_runaway_start::test_a_wet_body_past_the_runaway_limit_holds_its_water_as_steam; a Venus twin at 1.9 S that keeps a cool ocean | a greenhouse table that bounds the outgoing flux of a saturated air (so the fixed point has one answer) | educated guess from physics: the radiative-convective model of a saturated steam air cannot pass about 280 W/m2, so no ocean stands past the limit; the table has no such bound (GEN.1238) | - | - |
 | CC12 | P | T6 | L1 | tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air) | pressure 5 to 20 kPa | every request for a habitable world | a request met by a body with under 10 kPa of air | the PHI-6 domains of habitable requests | design (the pressure floor is the generator's own) | - | - |
 | CC13 | P | T2 | L0 | climate_draws.GIANT_BOND_ALBEDO_RANGE (0.29, 0.503) (a generated giant draws its Bond albedo uniformly from the lowest to the highest of the four measured in the Solar System: Neptune 0.29 [R3466], Uranus 0.30 [R3466], Saturn 0.342 and Jupiter 0.503 Li et al. 2018; GEN.1030) | each edge 0.03 | giants | test_climate_draws::the albedo range follows the water and the cold; test_giant_one_bar_temperature | an albedo from the cloud and haze of the giant's own air (GEN.414, GEN.462) | RECALLED (Li 2018 read for 0.503 in `giant_draw.BOND_ALBEDO`; the other three from memory of the papers) | - | - |
 | CC14 | P | T7 | L1 | rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone | the exponent 1.4 to 1.9 | giants | test_giant_one_bar_temperature::the cooling law gives a Uranus-mass giant far more heat than Uranus has | the cooling tracks of the radius tables with the heavy-element interior of each giant (GEN.1033) | RECALLED ([R3466]: Neptune 0.43 W/m2, Uranus 0.042; Jupiter 5.4) | - | - |

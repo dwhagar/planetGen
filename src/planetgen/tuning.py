@@ -1025,6 +1025,14 @@ Mdot = eps pi R^3 F_xuv / (G M) ([R2769, R4637] take 0.1, other estimates run fr
 0.3). 0.01, a tenth of the usual value, so that only the worst red dwarf zones lose their oceans (Boss, 7:09 PM EDT
 2026-10-23; DESIGN stand-in, GEN.639)."""
 
+RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
+"""float: The Sun's flux at the Earth, W/m2: the unit `orbits.runaway_greenhouse_flux` is in (the planet's starlight over this is its effective flux)."""
+
+RUNAWAY_START_TEMPERATURE_K = 1500.0
+"""float: The temperature the air's fixed point starts from for a body with surface water under starlight past its runaway greenhouse limit (GEN.1238), so it
+finds the steam air and not the cool one the table's greenhouse leaves standing (the molten surface radiates through its windows near 1500 to 1800 K,
+`surface_air.MAX_SURFACE_TEMPERATURE_K`). A start, not a result: the fixed point moves off it. DESIGN stand-in, tier educated guess from physics, tweak L0."""
+
 MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
 surface reservoir, because escape reaches only the air and the oceans, not the mantle (GEN.639; DESIGN stand-in)."""
