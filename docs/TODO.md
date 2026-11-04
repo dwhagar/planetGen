@@ -17713,15 +17713,6 @@ clears each one.
   both tests pass. Owner: Condition-based classes lane.
   Prerequisites: GEN.679.
 
-- [ ] **TEST.324 test_web_header_menus top-bar [1280x720-light] times out under load (bug)**
-  Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported):
-  test_web_header_menus top-bar [1280x720-light] timed out once in a
-  loaded gate and passes alone on its branch and on main. Do: wait on
-  the menu state, not on fixed time. Done: passes under load 9 in
-  repeated gates. Note: UX.180 changes the header menus (the Help menu),
-  so the fix should land with or after it. Owner: Bug Hunt.
-  Prerequisites: none. Related: UX.180, TEST.317.
-
 - [ ] **TEST.344 Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory**
   Efficiency scan suggestion 4, applied by Boss ("ALL", 2:21 PM EDT
   2026-10-24). About 36 of 81 open test items fail only under gate load
@@ -18275,23 +18266,6 @@ clears each one.
   detmath may differ in the last bit), in which case it rides a train
   with an epoch under its own item. Owner Core 1 (free; found them).
   Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.570 test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug)**
-  Found by Core 5 and confirmed on main by the TODO thread
-  (test_no_generated_page_contradicts_itself_about_its_life fails), 1:15
-  PM EST on 2026-11-04. tests/test_life_text_consistency.py has 49
-  failures of the form "the text says [], the body has
-  ['hyper-accelerated']": a generated page's life text omits the pace
-  (hyper-accelerated) that the body carries. Not from DOC.92. Do: find
-  the change that made the text drop the pace term (the life text
-  builder against the pace/timeline rules of GEN.750, or a recently
-  merged life or class change), fix the text builder or the test's
-  expectation at the cause (the page must say what the body has), and
-  run the file 3 times. Done: the file passes on main. Lock-free (text
-  only) unless the body value is the wrong one. Owner Aux 2 (life;
-  proposed by the TODO thread, it says if it clashes). Filed by the TODO
-  thread.
   Prerequisites: none.
 
 - [ ] **TEST.571 test_random_valid_configs_generate_sane_systems times out at 2900 s on main (bug)**
