@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3201] - 2026-11-04
+
+**Headline:** The life census now also counts how many worlds have two or more living classes and how common each class is.
+
+### Changed
+- **TEST.435: the life census covers the list of living classes (GEN.1209).** `tests/audit/prevalence_life.py` takes the share of life worlds on which two or more life classes live (band 0.6 to 1.0, registry row LC1, T9, L3), reports the share of life worlds each class lives on and the worlds where a class beside the dominant one reached a civilization. Re-taken at epoch 131 on 400 default systems and 150 around each of G2V and K5V: 0.857 of 727 life worlds have two or more classes (the hydrogen eaters 3a and the 4b class are on 83 and 77 percent of them), 0.725 stop before animals, 5 of 46 oxygenic life worlds reach animals, none reaches a civilization; no band for the earlier measures changed. Tests and documents only; no generated output changes.
+
 ## [8.0.3200] - 2026-11-04
 
 **Headline:** Paths and pulls in a sector far from the galaxy's centre are as exact as in one beside it.
