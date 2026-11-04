@@ -2334,3 +2334,5 @@ Baseline: PR #1817.
 | TEST.548 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.142 | 8.2 | Viewers and object pages |
 | TEST.555 | 8.2 | Robust tile caching |
+| TEST.560 | 8.2 | Robust tile caching |
+| TEST.559 | 8.2 | Robust tile caching |
