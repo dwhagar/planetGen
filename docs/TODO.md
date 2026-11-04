@@ -18805,19 +18805,6 @@ clears each one.
   a defect, fix it and note whether stored output changes. Owner: Aux 7.
   Prerequisites: none.
 
-- [ ] **TEST.566 test_deploy_scripts fails on main: scripts/settle_references.py names src/crossref, which is not in the repo (bug)**
-  Found by Star 2 in its PERF.188 run and confirmed on main by the TODO
-  thread, 11:55 AM EST on 2026-11-04:
-  test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist
-  fails with `scripts/settle_references.py: src/crossref`. The script
-  (DOC.95 and DOC.96 sweep) names a path that is not committed. Do:
-  either commit the missing module, point the script at the file it
-  means, or drop the line if the script no longer needs it; then run the
-  test and the sweep script's own check. Done: the test passes on main.
-  Lock-free (scripts only). Owner the Citations thread (proposed by the
-  TODO thread; it says if it clashes). Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.567 Two tests red on main: test_helium_fractionation (0.29985 over 0.3) and test_disregard_missing_data (12 lines against 11) (bug)**
   Found by Core 5 after DOC.102 (relayed 11:57 AM EST on 2026-11-04 as
   the lane reported); the TODO thread saw test_disregard_missing_data

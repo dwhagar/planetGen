@@ -2361,3 +2361,4 @@ Baseline: PR #1817.
 | TEST.561 | 8.2 | Robust tile caching |
 | PERF.188 | 8.1 | The headline closes |
 | DOC.102 | 8.2 | Robust tile caching |
+| TEST.566 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
