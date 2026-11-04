@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3182] - 2026-11-04
+
+**Headline:** A body held at the 2000 K surface cap now stores the greenhouse factor that gives that temperature, so the stored temperature, greenhouse and starlight agree.
+
+### Fixed
+- **GEN.1236: two class N planets sat at exactly 2000 K but kept the greenhouse factor of the uncapped warming (107 and 79), which with the albedo gave about 2370 K and 2600 K.** The cap in `surface_air` (`MAX_SURFACE_TEMPERATURE_K`) is a guard, not a physical limit: it stops a runaway greenhouse where the gas equilibrium no longer converges, and its radiative rationale is a recalled stand-in (AM, tier T5, tweak level 1), so it stays. What was wrong is that the air's warming was kept uncapped. A body the cap holds now stores G taken from the stored temperature and the starlight alone (as a giant already does, GEN.1030), so `T_e (1 + G)^(1/4)` reproduces the stored temperature. The radiation sweep rule now requires this for a surface at the cap, and a new test forces a runaway on a rocky planet and checks the pair.
+- Generator epoch bump (numbered at merge): the stored greenhouse factor of every body the cap holds changes (bodies not at the cap are untouched); nothing else about them moves.
+generation-output: changed
+
 ## [8.0.3181] - 2026-11-04
 
 **Headline:** The galaxy's thin disc now forms its stars from the Milky Way's inside-out infall, so the reference galaxy forms 2.8 solar masses a year, not 4.0.
