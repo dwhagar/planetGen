@@ -1899,7 +1899,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     if planets or belts or stars:
         info_panel = (
             '<aside class="starmap-info" id="sysmap-info" data-overlay="sysmap-viewport sysview3d-viewport">'
-            '<p class="hint">Click a star, planet, moon, asteroid belt or facility for details.</p></aside>'
+            '<p class="hint">Click a star, planet, moon, asteroid belt, or facility for details.</p></aside>'
         )
     else:
         info_panel = (
@@ -1995,7 +1995,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         )
         view3d_help = (
             '<sl-dialog id="sysview3d-help" class="map-help-dialog" label="3D system view help"><ul>'
-            "<li>Drag to turn, shift-drag or right-drag to pan, the wheel or a pinch to zoom.</li>"
+            "<li>Drag to turn, shift-drag, or right-drag to pan, the wheel or a pinch to zoom.</li>"
             "<li>W, A, S, D and the arrow keys fly; C or Center puts the center the view turns about on the selected body; Home or Reset view goes back.</li>"
             "<li>Click a body for details; double-click flies to it. Follow rides along with it.</li>"
             "<li>Pause, Slower and Faster move time; Now returns to the present.</li>"

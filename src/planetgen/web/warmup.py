@@ -44,7 +44,7 @@ PHASES = (
      ("cluster-field", "object-index", "galaxy-map", "lists")),
     ("built-levels", "the Galaxy Map's sector-block nodes down to the built level", ("galaxy-nodes",)),
     ("deep-nodes", "the deep nodes along the zoom run in to the centre", ("galaxy-deep-nodes",)),
-    ("objects", "the sector, system and phenomenon pages", ("sectors", "systems", "phenomena")),
+    ("objects", "the sector, system, and phenomenon pages", ("sectors", "systems", "phenomena")),
     ("search", "the search page and its answers", ("search",)),
 )
 """tuple: The warm-up's phases in the order they run (PERF.141): `(name, what it warms, the families in it)`. A phase

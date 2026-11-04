@@ -811,9 +811,9 @@ _BODY_RULES = [
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),
     (_SURFACE, lambda klass, row: klass not in GIANT_CLASSES,
-     "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
+     "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life, or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
-     "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
+     "a dead world, a small icy body, and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height, or haze"),
     (("energy_flux_w_m2", "flux_variation"), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant is not scored for habitability, so it keeps no starlight or seasonal swing of its own (`insolation` and `habitability_world` leave them none); "
      "its moons, which are scored in its light, store the flux they receive and the swing"),
@@ -828,9 +828,9 @@ _BODY_RULES = [
     (("induced_moment_a_m2",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no induced moment: the model answers for a metal core and an ocean, not for a metallic envelope"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
-     "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
+     "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight, or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
-     "a shelter column is given only for a body whose radiation calls for a shelter, required or recommended"),
+     "a shelter column is given only for a body whose radiation calls for a shelter, required, or recommended"),
     (("outside_hours",), lambda klass, row: row is None or row.get("outside_hours") is not None,
      "the hours a person can work outside in a year are limited by dose only where the dose is a limit; a suit that allows a full working year outside has none"),
     (("ice_shell_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
@@ -840,7 +840,7 @@ _BODY_RULES = [
     (("ring_age_yr",), lambda klass, row: row is None or row.get("ring_age_yr") is not None,
      "a ring has an age only when a moon that fell or a comet that passed made it; the narrow ring of a small body's spin-orbit resonance has none"),
     (_SURFACE_LIQUID_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _SURFACE_LIQUID_COLUMNS),
-     "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen or airless body has none"),
+     "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen, or airless body has none"),
     (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
@@ -856,9 +856,9 @@ _BODY_RULES = [
     (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
-     "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
+     "an ocean's depth, chemistry, pH, and water activity exist only where there is a liquid ocean"),
     (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean"),
-     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice or vapour world store none"),
+     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapour world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
@@ -897,7 +897,7 @@ _STAR_RULES = [
 
 _COMET_RULES = [
     (("mean_anomaly_deg", "orbital_period_years", "period_class"), lambda klass, row: row is None or row.get("orbit_type") == "elliptical",
-     "a comet on a parabolic path comes by once, so it has no period, period class or place on an orbit to give"),
+     "a comet on a parabolic path comes by once, so it has no period, period class, or place on an orbit to give"),
 ]
 
 APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES}
@@ -965,15 +965,15 @@ _kg_to_msun = unit_registry.converter("kg", "Msun")
 
 VARIABILITY_KEY = "variability"
 """str: The key of the star's derived row for the kind of variable it is (GEN.944, `physics.variability`); it is worked out from the stored
-state, class, temperature and mass when the sheet is made and is not a column."""
+state, class, temperature, and mass when the sheet is made and is not a column."""
 
 CARBON_KEY = "carbon_star_kind"
 """str: The key of the star's derived row for a carbon star or an S star (GEN.1026, `physics.agb_carbon`); it is worked out from the stored state,
-lifespan (which gives the initial mass), mass, [Fe/H] and age when the sheet is made and is not a column."""
+lifespan (which gives the initial mass), mass, [Fe/H], and age when the sheet is made and is not a column."""
 
 PECULIAR_KEY = "chemically_peculiar_kind"
 """str: The key of the star's derived row for an Ap or Am star (GEN.1027, `physics.chemically_peculiar`); it is worked out from the stored class, mass,
-radius, temperature and age when the sheet is made and is not a column."""
+radius, temperature, and age when the sheet is made and is not a column."""
 
 PECULIAR_FIELD_KEY = "chemically_peculiar_polar_field"
 """str: The key of an Ap star's derived row for its polar magnetic field (GEN.1027); an Am star has none."""
@@ -986,7 +986,7 @@ CHEMISTRY_ROWS = {
 }
 """dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
 disc population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added. They are worked out from the stored
-class, mass, [Fe/H] and age when the sheet is made and are not columns."""
+class, mass, [Fe/H], and age when the sheet is made and are not columns."""
 
 CHEMISTRY_KEYS = tuple(CHEMISTRY_ROWS)
 """tuple: The keys of `CHEMISTRY_ROWS`."""
@@ -1006,7 +1006,7 @@ def _star_distance_ly(conn, system_id):
 def _chemistry_rows(conn, row):
     """
     The chemistry rows of a star (UX.254): its disc population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
-    first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H] and age, with the draws keyed as the
+    first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H], and age, with the draws keyed as the
     generator keys its planets' host ratios (mass and the sector's distance from the centre, not the age), so nothing is stored. A star with no [Fe/H],
     one the composition does not cover or one whose downloaded data are missing has none.
     """

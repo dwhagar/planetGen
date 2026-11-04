@@ -227,7 +227,7 @@ def _planet():
         "summary": "One letter for what a planet or moon is like, worked out from its finished conditions.",
         "notes": [
             "A class is never drawn first: once a planet or moon is complete, its class is the first class in the check "
-            "order whose rule its mass, gravity, temperature, air, water and starlight satisfy. All the rules must hold.",
+            "order whose rule its mass, gravity, temperature, air, water, and starlight satisfy. All the rules must hold.",
             "Habitable is not a class. It is the overall habitability colour (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
@@ -553,5 +553,5 @@ def help_children():
 
 
 help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
-help_registry.register_topic("classes", "Classes", "objects", "Every class of star, planet, nebula and other object the survey assigns.",
+help_registry.register_topic("classes", "Classes", "objects", "Every class of star, planet, nebula, and other object the survey assigns.",
                              order=10, children=help_children)

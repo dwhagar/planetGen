@@ -149,7 +149,7 @@ def test_the_property_sheet_labels_are_in_sentence_case():
 def test_every_listed_exception_names_its_owner_and_a_rule():
     for (rule, start), owner in KNOWN.items():
         assert owner in OWNERS, (rule, start, owner)
-        assert rule in {"length", "ideas", "banned", "class-name", "label-case", "spelling"}, rule
+        assert rule in {"length", "ideas", "banned", "class-name", "label-case", "spelling", "oxford-comma"}, rule
 
 
 def test_new_text_that_breaks_a_rule_and_is_not_listed_fails():
@@ -180,6 +180,20 @@ def test_new_text_that_breaks_a_rule_and_is_not_listed_fails():
     ("Luminosity class 0 stars are hypergiants.", None),
     ("It is a hot world; the sea is dry.", None),
     ("The planet is about 5 pc away.", None),
+    ("It is red, green and blue.", "oxford-comma"),
+    ("It is red, green, and blue.", None),
+    ("The surface is rock, ice or dust.", "oxford-comma"),
+    ("It holds iron, nickel and cobalt in the core.", "oxford-comma"),
+    ("It is red and blue.", None),
+    ("The star is red, which is big and cold.", None),
+    ("In the north, rock and ice cover the ground.", None),
+    ("The air is thin, the ground is cold and the sky is dark.", None),
+    ("Water covers the ground, the sea and the sky.", "oxford-comma"),
+    ("It has a deep envelope of hydrogen and helium, and a small core.", None),
+    ("It orbits at 1,000 and 2,000 AU.", None),
+    ("Alpha, beta, and gamma.", None),
+    ("The rings are the chronic, and acute edges.", None),
+    ('The words "red, green and blue" are quoted.', None),
 ])
 def test_the_checker_flags_each_rule(sentence, rule):
     found = {name for name, _detail in plainwords.check_sentence(sentence)}
@@ -222,3 +236,28 @@ def test_the_stored_system_flavour_lines_are_in_plain_words():
     for line in lines:
         for sentence in plainwords.sentences("Sensors show " + line):
             assert not plainwords.check_sentence(sentence), (sentence, plainwords.check_sentence(sentence))
+def test_a_list_built_by_the_code_has_the_comma_before_its_last_word():
+    from planetgen.util.wordlist import join_words
+    assert join_words([]) == ""
+    assert join_words(["red"]) == "red"
+    assert join_words(["red", "blue"]) == "red and blue"
+    assert join_words(["red", "green", "blue"]) == "red, green, and blue"
+    assert join_words(["red", "green", "blue"], "or") == "red, green, or blue"
+    for items in (["a", "b"], ["a", "b", "c"], ["a", "b", "c", "d"]):
+        assert not plainwords.oxford_commas(join_words(items) + ".")
+
+
+TEMPLATES = Path(__file__).resolve().parents[1] / "planetgen" / "web" / "templates"
+
+
+def test_the_page_templates_have_the_comma_in_every_list():
+    """The words the templates write straight onto a page (rule 15): the text between tags, with the template tags taken out."""
+    found = []
+    for path in sorted(TEMPLATES.rglob("*.html")):
+        text = re.sub(r"\{#.*?#\}", " ", path.read_text(), flags=re.S)
+        text = re.sub(r"\{\{.*?\}\}|\{%.*?%\}", " X ", text, flags=re.S)
+        text = re.sub(r"<(script|style)\b.*?</\1>", " ", text, flags=re.S)
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = re.sub(r"\s+", " ", text)
+        found += [f"{path.name}: {detail}" for _rule, detail in plainwords.oxford_commas(text)]
+    assert not found, "template lists without the comma before the last and/or:\n  " + "\n  ".join(found)

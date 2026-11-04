@@ -30,7 +30,7 @@ EQUIPMENT_ITEMS = (
     ("Dust filter or seals", "Fine regolith dust wrecks open seals (a rocky body with almost no air), or the dust in the "
                             f"air passes {limit('dust_recommended_mg_m3'):g} mg/m3 (recommended) or "
                             f"{limit('dust_required_mg_m3'):g} mg/m3 (required)."),
-    ("Gas filter, full-face or powered", "A gas such as carbon monoxide, hydrogen sulfide or sulfur dioxide is above "
+    ("Gas filter, full-face, or powered", "A gas such as carbon monoxide, hydrogen sulfide, or sulfur dioxide is above "
                                          "its long-term limit and has to be filtered out."),
     ("CO2 scrubber", "Carbon dioxide is above its long-term limit but short of what is acutely dangerous."),
     ("Gas-mix mask", "Oxygen is low or high, or the pressure is dense: an open mask fixes the mix."),
@@ -56,7 +56,7 @@ EQUIPMENT_ROW_IDS = {
     "Vehicle only": "equipment-vehicle",
     "Powered frame": "equipment-powered-frame",
     "Dust filter or seals": "equipment-dust",
-    "Gas filter, full-face or powered": "equipment-gas-filter",
+    "Gas filter, full-face, or powered": "equipment-gas-filter",
     "CO2 scrubber": "equipment-co2-scrubber",
     "Gas-mix mask": "equipment-gas-mix-mask",
     "Self-contained air": "equipment-self-contained-air",
@@ -148,8 +148,8 @@ def domains(bands=habitability.HUMAN):
         ]),
         ("Suitability", [
             ("Water within reach (the lowest of the three rungs scores)", "fresh liquid water",
-             "rivers, lakes and rain", "ice or an ocean under ice"),
-            ("Food", "forests and animals", "algae, mosses and the first land plants",
+             "rivers, lakes, and rain", "ice or an ocean under ice"),
+            ("Food", "forests and animals", "algae, mosses, and the first land plants",
              "microbial mats and plankton only"),
             ("Shelter", "the surface dose is Blue", "the surface dose is Green",
              "the surface dose is Yellow (caves or burial)"),
@@ -158,16 +158,16 @@ def domains(bands=habitability.HUMAN):
 
 
 _BLUE, _GREEN, _YELLOW = habitability._EDGE_SCORES[3], habitability._EDGE_SCORES[2], habitability._EDGE_SCORES[1]
-"""float: The domain score at the edge of Blue, Green and Yellow (`habitability._EDGE_SCORES`)."""
+"""float: The domain score at the edge of Blue, Green, and Yellow (`habitability._EDGE_SCORES`)."""
 
 SCORE_RULE = (
     f"Each variable scores {_BLUE:g} in Blue and falls to {_GREEN:g} at the edge of Green, {_YELLOW:g} at the edge of Yellow and 0 "
     f"at the outer edge of Red. A domain takes the score of its worst variable: Blue at {_BLUE:g}, Green from {_GREEN:g}, "
     f"Yellow from {_YELLOW:g}, Red below. The PHI-6 score on a "
     "planet's tooltip is the geometric mean of the six domains, held under the colour gates: Radiation and "
-    "Temperature cap it at their own colour, Pressure in Yellow or Red caps it there (unless a full suit is "
-    "needed anyway), Air, Water or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "
-    "Suitability, the long-term domain, is the lowest of water, food and shelter, and is never better than "
+    "Temperature cap it at their own colour, Pressure in Yellow, or Red caps it there (unless a full suit is "
+    "needed anyway), Air, Water, or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "
+    "Suitability, the long-term domain, is the lowest of water, food, and shelter, and is never better than "
     "the colour the other five allow."
 )
 
@@ -282,7 +282,7 @@ MAP_ROWS = (
                                  "marker. Hovering names the system and how many habitable worlds it has; a click "
                                  "opens its summary."),
     ("Marker: Life", "The Menu's Points of interest group also has three markers for worlds with life: Life (any of the four "
-                     "life scores is 1 or more), Sentient life and Civilizations. They are off until you turn them on "
+                     "life scores is 1 or more), Sentient life, and Civilizations. They are off until you turn them on "
                      "(show=marker-life, marker-sentient, marker-civilization in the address); a system with several is "
                      "marked once, by the strongest."),
     ("Marker: World classes", "The Menu's World classes group has a marker for each planet class, all off until you turn "
@@ -333,11 +333,11 @@ def radiation_text():
         "field. The ground gives the gamma rays and the radon of the potassium, thorium and uranium in its rock: the same "
         "stored content that heats the interior, so a world rich in them is hotter inside and carries a larger ground dose. "
         "The ultraviolet is the DNA-damaging dose at the ground as a multiple of Earth's: the star's own light through the "
-        "world's air, its ozone (made from its oxygen), haze, dust and cloud, and the unfiltered light for a world with no air. "
+        "world's air, its ozone (made from its oxygen), haze, dust, and cloud, and the unfiltered light for a world with no air. "
         f"The dose is Blue under {limit('dose_blue_sv_yr') * 1000:g} mSv a year, Green to {limit('dose_green_sv_yr') * 1000:g}, "
         f"Yellow to {limit('dose_yellow_sv_yr') * 1000:g} mSv, and the ultraviolet is Blue under {limit('uv_cover_index'):g} times "
         f"Earth's, Green to {limit('uv_suit_index'):g} times and Yellow to {limit('uv_lethal_index'):g} times. A planet's page lists "
-        "each term with the air, the field, the ozone and the rock that set it, and says which of the two sets the rating."
+        "each term with the air, the field, the ozone, and the rock that set it, and says which of the two sets the rating."
     )
 
 
@@ -366,7 +366,7 @@ def zone_text():
         f"The fits cover stars from {low:,.0f} to "
         f"{high:,.0f} K; a star outside that range (a brown dwarf, a white dwarf, a remnant) takes the nearest end's "
         "edges. The zone is a guide to where to look and is not the rating: a planet is rated by the six domains "
-        "above, from its own air, water, temperature and radiation, wherever it orbits."
+        "above, from its own air, water, temperature, and radiation, wherever it orbits."
     )
 
 

@@ -231,7 +231,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             self.radius_km = planetPhysics.sample_giant_radius_km(self.mass_kg)
             if self.mass_kg < _mearth_to_kg(tuning.GIANT_RUNAWAY_MIN_MASS_EARTH):
                 # GEN.1133: the core that did not run away (the bound chain's ice giant, `planet_mass.gas_outcome`)
-                self.composition = ("water, ammonia and methane ices and rock under a hydrogen and helium envelope, an ice giant "
+                self.composition = ("water, ammonia, and methane ices and rock under a hydrogen and helium envelope, an ice giant "
                                     "similar in bulk composition to Uranus or Neptune")
             else:
                 self.composition = "hydrogen and helium, similar in bulk composition to Jupiter or Saturn"

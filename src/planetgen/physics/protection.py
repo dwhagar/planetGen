@@ -25,6 +25,7 @@ from planetgen.physics.habitability import (
     ARMSTRONG_KPA, MASK_MIN_KPA, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
 from planetgen.physics.protection_limits import limit
 from planetgen.util.format import three_figures_or_tiny
+from planetgen.util.wordlist import join_words
 
 
 def _gas(symbol):
@@ -102,7 +103,7 @@ def air_need(world):
         need = ("suit", "an environment suit with its own air", f"{_kpa(o2)} of oxygen reaches the lungs, more than months of breathing allow")
     too_much = [(gas, kpa) for gas, kpa, band in gas_inputs(world) if habitability.band_score(kpa, band, log=True) < 1.0]
     if too_much:
-        names = " and ".join(_gas(gas) for gas, _kpa_value in too_much)
+        names = join_words(_gas(gas) for gas, _kpa_value in too_much)
         worst_score = min(habitability.band_score(kpa, band, log=True) for _g, kpa, band in gas_inputs(world))
         if worst_score < 0.4:
             return "suit", "an environment suit with its own air", f"{names} is far past what a filter can take out"

@@ -118,7 +118,7 @@ goes, step by step (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
 PLACE_TABS = (
     ("random", "A random populated spot", "Picks a spot at random where stars are dense enough and generates around it."),
     ("sector", "A named sector", "Find a filled sector by name, pick it from the list, or type its ID."),
-    ("address", "A sector address", "Shell, band and wedge, as the Galaxy Map shows them. "
+    ("address", "A sector address", "Shell, band, and wedge, as the Galaxy Map shows them. "
                                     "The sector there is generated first if it isn't yet."),
     ("position", "A position (pc)", "Galaxy-frame x, y and z in parsecs (the center is 0, 0, 0; "
                                     "z is height above the plane). The sector holding that point is the center."),
@@ -162,7 +162,7 @@ PHENOMENA_LABEL = "Scatter the phenomena"
 
 BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
 """str: The galaxy-wide scatter threshold field (GEN.30), on New galaxy,
-Plan and Rebuild the bright stars."""
+Plan, and Rebuild the bright stars."""
 
 """str: The step that pre-places every bright star
 (`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""

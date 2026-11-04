@@ -67,7 +67,7 @@ STEP_GYR = 0.1
 DYING_GYR = 0.1
 PRECARIOUS_GYR = 0.5
 MARGINAL_GYR = 2.0
-"""float: Time left, Gyr, within which the security is Dying out (one step), Precarious and Marginal."""
+"""float: Time left, Gyr, within which the security is Dying out (one step), Precarious, and Marginal."""
 
 MARGINAL_SCORE = 2
 """int: A living class that scores this or less on its world's conditions today is Marginal at best."""

@@ -54,7 +54,7 @@ def _page(name):
 
 
 PAPER_ID = re.compile(r"R\d{4,}")
-"""re.Pattern: A citation ID (DOC.100): `R` and at least four digits, given once to every paper, book, dataset and archive of the reference
+"""re.Pattern: A citation ID (DOC.100): `R` and at least four digits, given once to every paper, book, dataset, and archive of the reference
 list (`docs/reference/references-data.json`) and never reused. The one key a text, a page and a link use for a source."""
 
 

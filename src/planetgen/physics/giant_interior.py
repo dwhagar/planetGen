@@ -7,12 +7,12 @@ The interior layers of a giant planet, an ice giant or a brown dwarf (GEN.642, d
 What a giant is made of, layer by layer from the top: a molecular hydrogen and helium envelope, a metallic hydrogen
 envelope under it, a helium-rich zone where helium has rained out, a dilute ("fuzzy") core where the heavy elements are
 mixed with metallic hydrogen, and a compact core of rock and iron; an ice giant has a molecular envelope over a mantle of
-water, ammonia and methane over a rock and iron core. Each layer carries its pressures, its mass, the mass of each
+water, ammonia, and methane over a rock and iron core. Each layer carries its pressures, its mass, the mass of each
 material in it (rows of the shared materials table, GEN.427) and its state.
 
 This module places and fills the layers from the quantities the radius and heavy-element laws (GEN.460) and the bulk
 draw (GEN.428) already give: the mass, the radius, the heavy-element mass M_Z, the envelope metallicity, the natal helium
-share, the one-bar temperature and the split of the heavy elements into iron, rock and ices. It draws only what those do
+share, the one-bar temperature and the split of the heavy elements into iron, rock, and ices. It draws only what those do
 not decide, with `util.draw`: the molecular-to-metallic pressure, whether a compact core exists and its mass, and the mass
 of the dilute core. It changes no mass, radius or fraction the caller fixed: the layer masses add up to the body's mass
 and the layers hold exactly M_Z of heavy elements and the natal helium (tested to 1e-9).
@@ -57,6 +57,7 @@ from planetgen.datasets import fetch, hhe_eos
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import constants, giant_structure, unit_registry as units
 from planetgen.util import draw
+from planetgen.util.wordlist import join_words
 
 _mearth_to_kg = units.converter("Mearth", "kg")
 
@@ -510,7 +511,7 @@ class GiantSubject:
         if not (0.0 <= self.heavy_mass_earth < self.mass_earth):
             raise InteriorError("the heavy-element mass must be under the body's mass")
         if not (0.0 <= self.envelope_z < 1.0 and 0.0 < self.helium_share < 1.0 and 0.0 <= self.iron_share_of_refractory <= 1.0):
-            raise InteriorError("an envelope metallicity, helium share or iron share is outside its range")
+            raise InteriorError("an envelope metallicity, helium share, or iron share is outside its range")
         if any(v < 0 for v in self.ice_shares.values()) or sum(self.ice_shares.values()) >= 1.0 + 1e-12:
             raise InteriorError("the ice shares of the heavy elements must be positive and add up to at most 1")
 
@@ -1065,7 +1066,7 @@ LAYER_NAMES = {
     "helium_shell": "helium-rich shell",
     "dilute_core": "dilute core",
     "compact_core": "compact core of rock and iron",
-    "ice_mantle": "mantle of water, ammonia and methane",
+    "ice_mantle": "mantle of water, ammonia, and methane",
     "rock_core": "core of rock and iron",
 }
 """dict: What each layer kind is called in prose."""
@@ -1118,14 +1119,14 @@ def describe_interior(body, min_share=0.02):
 
 INTERIOR_KIND_WORDING = {
     "gas_giant": "Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core",
-    "ice_giant": "Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia and methane",
+    "ice_giant": "Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia, and methane",
     "brown_dwarf": "Soundings read a brown dwarf: a body too massive to stay a planet, hydrogen all the way down to a small core",
 }
 """dict: The opening clause for each kind of interior (`INTERIOR_KINDS`); a test pins that every kind has one."""
 
 INTERIOR_FEATURE_WORDING = {
     "metallic_envelope": "hydrogen squeezed to a liquid metal below {pressure}, where the planet's magnetic field is made",
-    "dilute_core": "a dilute core, rock and ice mixed into the hydrogen instead of sitting in a ball at the centre",
+    "dilute_core": "a dilute core of rock and ice mixed into the hydrogen instead of sitting in a ball at the centre",
     "helium_shell": "a shell of helium the rain left behind",
     "helium_rain": "an envelope short of helium, which has sunk into the deep",
     "ice_mantle": "a conducting mantle of ionic water where the planet's magnetic field is made",
@@ -1161,5 +1162,5 @@ def summarize_interior(body):
     clauses = [INTERIOR_FEATURE_WORDING[key].format(pressure=_pressure_text(pressure)) for key in features]
     if not clauses:
         return INTERIOR_KIND_WORDING[kind] + "."
-    joined = clauses[0] if len(clauses) == 1 else ", ".join(clauses[:-1]) + " and " + clauses[-1]
+    joined = join_words(clauses)
     return f"{INTERIOR_KIND_WORDING[kind]}, with {joined}."

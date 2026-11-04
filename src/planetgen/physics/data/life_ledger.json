@@ -128,7 +128,7 @@
    "status": "built",
    "methane": null,
    "draws_down": ["H2S"],
-   "note": "Acid eaters take reduced sulfur (hydrogen sulfide) and put sulfur dioxide into the air, so the air shifts from H2S to SO2 in the same moles. The elemental sulfur, carbon dioxide and water they also give off are not air changes the ledger tracks. The sulfur dioxide share is the acid medium's own supply (GEN.888).",
+   "note": "Acid eaters take reduced sulfur (hydrogen sulfide) and put sulfur dioxide into the air, so the air shifts from H2S to SO2 in the same moles. The elemental sulfur, carbon dioxide, and water they also give off are not air changes the ledger tracks. The sulfur dioxide share is the acid medium's own supply (GEN.888).",
    "tier": "T8",
    "tweak": "L4",
    "basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry; the climates report's own bookkeeping, no source gives rates",

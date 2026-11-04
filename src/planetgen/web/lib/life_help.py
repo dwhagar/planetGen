@@ -18,9 +18,10 @@ from planetgen.physics import life_air, life_class_text, life_classes, life_read
 from planetgen.physics.life_readings import ABUNDANCE_BANDS
 from planetgen.web.lib import help_registry
 from planetgen.web.lib.help_registry import Child, Term
+from planetgen.util.wordlist import join_words
 
 TOPICS = (
-    ("kinds", "Kinds of life", "Microbes, flora, fauna and sentient life: what each word means and what its score is judged from."),
+    ("kinds", "Kinds of life", "Microbes, flora, fauna, and sentient life: what each word means and what its score is judged from."),
     ("abundance", "How much", "Absent, rare, occasional, frequent, abundant, dominant: how much of a kind of life a world holds."),
     ("trend", "Trend", "Growing, stable or declining: which way a kind of life is going."),
     ("security", "Security", "Secure, marginal, precarious or dying out: how long the conditions that keep the life alive will last."),
@@ -91,13 +92,13 @@ def _kinds(href):
         "The page then gives three words for each kind: how much of it there is, which way it is going and how secure it is.",
     ]
     rows = [
-        ["Microbes", "Single cells, mats and everything smaller than a plant or an animal.", "Any stage of life, from the first cells."],
+        ["Microbes", "Single cells, mats, and everything smaller than a plant or an animal.", "Any stage of life, from the first cells."],
         ["Flora", "Plant-like life: producers that make their own food, from algae and mats to land plants.",
          f"A class that eats light and has reached its producers. Mats and algae never score above {tuning.LIFE_SCORE_SIMPLE_FLORA_MAX}; "
          "a higher score needs life made of many cells."],
         ["Fauna", "Animals, of any size, from sponge-like feeders to large active hunters.",
          "Life made of many cells and an animal grade. Fauna never scores above the producers it feeds on."],
-        ["Sentient life", "Species that build tools, settlements and a civilization.",
+        ["Sentient life", "Species that build tools, settlements, and a civilization.",
          f"The stage of a technological civilization. The score grows over {full_years:,} million years from that stage until it matches fauna."],
     ]
     sections = [
@@ -108,10 +109,10 @@ def _kinds(href):
             "The life class that lives on the world sets how well the conditions suit. The stage the life has reached sets which kinds can score at all.",
         ]),
         _section("next", "The words beside the number", [
-            "How much, trend and security each have a page of their own. Suitability is a different score: it rates the life classes, not the kinds of life.",
+            "How much, trend, and security each have a page of their own. Suitability is a different score: it rates the life classes, not the kinds of life.",
         ]),
     ]
-    return "Kinds of life", "What microbes, flora, fauna and sentient life mean on a planet page.", intro, sections
+    return "Kinds of life", "What microbes, flora, fauna, and sentient life mean on a planet page.", intro, sections
 
 
 def _abundance(href):
@@ -185,7 +186,7 @@ def _security(href):
             "A page shows the time left in the Life section when it is known and shorter than the span searched.",
         ]),
     ]
-    return "Security", "What secure, marginal, precarious and dying out mean.", intro, sections
+    return "Security", "What secure, marginal, precarious, and dying out mean.", intro, sections
 
 
 def _suitability(href):
@@ -264,7 +265,7 @@ def _variant_name(row):
 def _gate_words(gate):
     quantity = gate["quantity"]
     if quantity == "hydrosphere":
-        return "The surface has " + " or ".join(HYDROSPHERE_WORDS.get(v, v) for v in gate["in"])
+        return "The surface has " + join_words((HYDROSPHERE_WORDS.get(v, v) for v in gate["in"]), "or")
     if quantity == "pressure_pa" and gate.get("min", 0.0) > 0.0:
         return f"Air pressure of at least {_pressure(gate['min'])}"
     if quantity == "co2_partial_pa":
@@ -280,7 +281,7 @@ def _gate_words(gate):
     if quantity == "share_co2":
         return f"Carbon dioxide at least {gate['min']:.0%} of the air"
     if quantity == "co2_phase":
-        return "The carbon dioxide is " + " or ".join(gate["in"])
+        return "The carbon dioxide is " + join_words(gate["in"], "or")
     if quantity == "ammonia_water_mass_fraction":
         return f"Ammonia at least {gate['min']:.0%} of the water's mass"
     if quantity == "silicon_rich_crust":
@@ -424,6 +425,6 @@ def link_terms():
 
 
 help_registry.register_category("worlds", "Worlds and life", "How a visitor's gear is judged on a world and how life on it is described.", order=20)
-help_registry.register_topic("life_help_page", "Life", "worlds", "The kinds of life, the scales a planet page uses, the stages and the life classes.",
+help_registry.register_topic("life_help_page", "Life", "worlds", "The kinds of life, the scales a planet page uses, the stages, and the life classes.",
                              order=40, children=help_children)
 help_registry.register_terms("life", link_terms)

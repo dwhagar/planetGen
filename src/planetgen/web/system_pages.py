@@ -314,7 +314,7 @@ def system(system_id):
         title=detail["name"],
         section=section,
         breadcrumbs=breadcrumbs,
-        description=f"The {detail['name']} star system: its stars, planets, moons, belts and comets.",
+        description=f"The {detail['name']} star system: its stars, planets, moons, belts, and comets.",
         system=detail,
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
@@ -438,7 +438,7 @@ PHENOMENA_TABLE = tables.register(Table(
 
 @bp.route("/phenomena")
 @slow_route("Phenomena", section="phenomena", breadcrumbs=lambda: [crumb("Phenomena")],
-            description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.")
+            description="Every nebula, black hole, neutron star, and other exotic phenomenon in this charted galaxy.")
 def phenomena():
     """Every exotic phenomenon, placed on the galaxy map or not, as a data
     table (UX.41): sort by any column, filter by type and descriptor, and
@@ -449,7 +449,7 @@ def phenomena():
         title="Phenomena",
         section="phenomena",
         breadcrumbs=[crumb("Phenomena")],
-        description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.",
+        description="Every nebula, black hole, neutron star, and other exotic phenomenon in this charted galaxy.",
         table=table,
         total=table["total"],
     )
