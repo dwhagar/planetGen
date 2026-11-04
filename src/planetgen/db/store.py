@@ -3834,7 +3834,11 @@ def delete_rogues_of_donor(conn, donor_uid):
     Returns:
         int: How many rogue planets were deleted.
     """
-    return conn.execute("DELETE FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).rowcount
+    sectors = [row["sector_id"] for row in conn.execute("SELECT DISTINCT sector_id FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).fetchall()]
+    deleted = conn.execute("DELETE FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).rowcount
+    for sector_id in sectors:       # a rogue is filed in the sector it landed in, whose storage checksum covers it (DB.45)
+        touch_sector(conn, sector_id)
+    return deleted
 
 
 def uncharted_sector_id(conn, address, edge_pc, run_id=None):
