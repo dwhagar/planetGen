@@ -212,6 +212,7 @@ CLASS_COMPOSITIONS = {
     "iron, potassium, silicon, and sulfur": ["iron", "potassium", "silicon", "sulfur"],
     "anthracite, basalt, and hydrocarbons": ["anthracite", "basalt", "hydrocarbons"],
     "frozen hydrocarbons and ice": ["frozen hydrocarbons", "ice"],
+    "rock, ice, and frozen hydrocarbons": ["rock", "ice", "frozen hydrocarbons"],
     "silicon, iron, and magnesium": ["silicon", "iron", "magnesium"],
     "rock, ice, methane, and ammonia": ["rock", "ice", "methane", "ammonia"],
     "hydrogen and helium": ["hydrogen", "helium"],
