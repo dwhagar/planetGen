@@ -15032,6 +15032,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Filed by the TODO thread.
   Prerequisites: none. Related: PERF.233.
 
+- [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
+  Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
+  warm --progress. What the code does (src/planetgen/cli/warm.py,
+  queue/wrapper.py, queue/redisqueue.py): the command is a client that
+  follows a run whose units are done by queue workers started in their
+  own session (start_new_session=True), and the next stage is queued by
+  the unit that ends the previous one, so the work most likely keeps
+  going after the hangup; the client itself only handles SIGTERM, so a
+  hangup ends the progress view, and the phase notes the client writes
+  (warmphases) stop. Do: (1) a planetgen warm --follow that attaches to
+  the running warm-up from the run record (wrapper.py already says a
+  second process can follow a run from the record alone) and draws the
+  same bars; (2) handle SIGHUP in the warm command so a hangup leaves
+  the run going and says so, or document the detached way (nohup or
+  tmux) in the operations guide; (3) verify on a real run that killing
+  the client leaves the run finishing, and the admin page's phase list
+  still moves. Done: a test of the follow from a second process and of
+  the hangup. Proposed owner: Aux 3 (PERF.233). Filed by the TODO
+  thread.
+  Prerequisites: none. Related: PERF.233, PERF.234.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
