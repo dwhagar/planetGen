@@ -14347,23 +14347,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1157, GEN.962, GEN.921, TEST.557,
   GEN.725.
 
-- [ ] **GEN.1245 Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale**
-  Found by Aux 3 with TEST.555 part 3 (as the lane reported 8:58 AM EST
-  on 2026-11-04). generation/directives.py sizes the forced fill of a
-  sector directive such as habitable>=6 and its impossible check from
-  HABITABLE_COUNT_PMF, the spread of habitable bodies per system. A
-  habitable body is a body of a life class since epoch 121 and about 7
-  systems in 10 hold one, a spread the table does not hold. Do: measure
-  the habitable count per system on the current generator (about 3 s a
-  system, so a few thousand systems as a background job), replace the
-  table with the measured spread and register it in GEN.725 with tier
-  and tweak level, read the table from the measurement script rather
-  than a typed number, and check that the forced fill and the impossible
-  check agree with a sector drawn on the new epoch. Changes how a
-  directive run fills a sector, not a system: epoch with --affects fill
-  if the stored output moves, rides a train. Owner: Aux 3. Version 8.1.
-  Prerequisites: none. Related: GEN.180, GEN.1130, TEST.555, GEN.725.
-
 - [ ] **GEN.1246 The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source**
   Found by Core 3 with GEN.1242 (as the lane reported 9:16 AM EST on
   2026-11-04). GEN.1242 replaces the growth-of-stars inflow with an
