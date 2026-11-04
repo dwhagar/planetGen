@@ -75,6 +75,15 @@ def solar_populations():
     return density.population_densities(solar_position_pc(), satellites.SHAPE)
 
 
+def solar_age_laws():
+    """`{population: AgeLaw}` of the default galaxy (`galaxy.disk_history.population_age_laws`): how the generator spreads the ages of a disk
+    population (the thin disc's history, the thick disc's flat window for the old ones), as every draw of a sector does (GEN.546, GEN.1025)."""
+    from planetgen.galaxy import disk_history
+    from tests import test_satellites as satellites
+
+    return disk_history.population_age_laws(satellites.SHAPE)
+
+
 def _kind(mass, age, state):
     from planetgen.physics.stellar_evolution import star_params
 
@@ -94,11 +103,12 @@ def draw_mix(count):
 
     draw.set_run_seed(census.seed_for("star-mix"))
     populations = solar_populations()
+    age_laws = solar_age_laws()      # the old population is 3 to 13 Gy since GEN.1025: drawn flat it has twice the thin disc's old stars, and 8.2 percent white dwarfs
     counts, errors = Counter(), []
     for _ in range(count):
         try:
             population = star_population.pick_population(populations, rng=draw)
-            counts[_kind(*sample_living_star(population=population))] += 1
+            counts[_kind(*sample_living_star(population=population, age_law=age_laws.get(population)))] += 1
         except Exception as error:  # a crash is a finding, not the end of the census
             frame = traceback.extract_tb(error.__traceback__)[-1]
             errors.append(f"{type(error).__name__}: {error} ({pathlib.Path(frame.filename).name}:{frame.lineno})")
