@@ -14326,6 +14326,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the law or the test range with the reason stated; register any
   stand-in in GEN.725. Lock work if stored values change. Related:
   GEN.1202. Owner: Core 3 (galaxy history).
+  Diagnosis (Core 3, as the lane reported) (7:38 AM EST on 2026-11-04):
+  Not GEN.999 or the clusters. Bisect on main: 1.97 solar masses a year
+  before train 6, 3.72 at the train 6 merge (#4385), GEN.999 then adds
+  0.3. In train 6 only GEN.1154 reaches the disc history: the reference
+  galaxy halo fell from 2.0e12 to 1.37e12 solar masses and
+  disk_history.inflow_shape rises later for a lighter halo, so GEN.1242
+  and GEN.1230 are one defect. By halo mass: 1.0e12 gives 5.97, 1.6e12
+  3.3, 2.0e12 2.6, 3.1e12 1.95. The model is wrong, not the test (the
+  main sequence at 5.2e10 solar masses of stars is about 1.5 a year; the
+  reference reads 2.7 times that); the test stays at 1 to 3. Candidate
+  fixes, all lock work: (a) inflow from the star formation real halos
+  have, (b) a cold accretion cut once the halo passes the shock heating
+  mass near 1e12, tried first, (c) a thin disc truncated near 14 kpc.
+  Rejected: a weaker law coefficient (worse) and a baryon accretion
+  shape (6.3).
   Prerequisites: none.
   Prerequisites: none.
 
