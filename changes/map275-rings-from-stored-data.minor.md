@@ -1,6 +1,0 @@
-**Headline:** A planet's rings on the System Map are drawn from what it stores: their edges, depth, ice share, a colour from the ice, and a gap where each moon's resonance falls.
-
-### Changed
-- **MAP.275, part 1 (rings).** The ring on a gas giant used to be one fixed gradient the same size on every giant. It is now the planet's own stored ring (`ring_kind`, `ring_inner_km`, `ring_outer_km`, `ring_optical_depth`, `ring_ice_fraction`): the inner and outer edges in the planet's radii, an opacity from the optical depth, and a colour and brightness from the ice share (an icy ring is bright and cream-yellow with a reddish slope toward the blue, a dusty one dark red-brown and faint). Each moon digs a gap where its 2:1, 3:2, 3:1 or 4:3 resonance falls inside the ring, wider for a heavier moon. A broad ring has seeded ringlets, a narrow one a few thin ringlets, a dusty one a soft haze. A giant that stores no ring draws none, and a moon or a solid planet that stores a ring now draws it. The look record gains a `ring` entry (`web/maps/ringlook.py`); the numbers are stand-ins GEN.725 lists as rows RG1 to RG8 (section 6.166). Bands, storms and the thermal glow of hot giants are the next parts of MAP.275.
-
-generation-output: unchanged
