@@ -4,7 +4,7 @@
 The density a nebula is drawn from on the Galaxy Map (MAP.365)
 ==============================================================
 
-Boss (12:37 PM EST 2026-11-04): a nebula's shape comes from the real gas and star-forming density of the galaxy
+Boss (12:37 PM EST on 2026-11-04): a nebula's shape comes from the real gas and star-forming density of the galaxy
 model, never a random blob per object ID; wispy edges and a dense core that fades unevenly; coarse blobs far out and
 more filaments as you zoom in. `density_at` is that density: a pure function of an absolute position, the galaxy seed
 and the stored shape, in 0..1. Two callers who ask for the same point agree, so the nodes and the sectors of the map

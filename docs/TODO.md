@@ -14306,6 +14306,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt owner, GEN.1068 and GEN.1156). Version 8.1.
   Prerequisites: none. Related: GEN.1068, GEN.1156, GEN.477.
 
+- [ ] **GEN.1248 The stored habitable-request answer (habitable_request_status) disagrees with the world count: answer from habitable_request.count and meets (bug)**
+  Found by Aux 3 while fixing TEST.307, 1:10 PM EST on 2026-11-04 (as
+  the lane reported). StarSystem.habitable_request_status still reads
+  the old PHI-6 index while the request now steers by conditions
+  (GEN.1130, odds-only), so the stored answer disagrees with what was
+  drawn: in a probe of 14 A0V systems 4 had a world and said unmet, 1
+  had none and said fallback. Do: compute the status from
+  habitable_request.count and meets (a world the conditions rate
+  habitable, found or not); delete the PHI-6 index read (no shim);
+  update the sheet and any text that quotes the status; add a test over
+  several seeds that the answer matches the world count. Done: no system
+  says unmet with a habitable world present or fallback with none. This
+  changes a stored column (migration, epoch, golden, census re-tag), so
+  it rides a train. Related: GEN.1130, TEST.307. Owner Aux 3 (proposed
+  by the TODO thread). Filed by the TODO thread.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14858,6 +14875,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a test pins the slow seed. Lock-free if output is unchanged. Owner:
   Bug 1.
   Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **PERF.232 test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug)**
+  Found by Aux 3's sweep of TEST.290 part b, 1:10 PM EST on 2026-11-04
+  (as the lane reported). The stack dump of the slow step is
+  backfill_cells, bright_band_fraction,
+  star_population._bright_fraction, evolved_tracks._corners: every
+  process evaluates the evolved tracks cold for each cell. The test
+  passed or failed only by the run being killed at 15 to 20 minutes.
+  Suspects named by the lane: #4688, GEN.1024, GEN.744. Do: profile one
+  backfill of a small galaxy; cache the evolved-track corner evaluation
+  across cells and processes (the star tables of PERF.188 already live
+  on disk; reuse that mechanism and its key), or hoist the per-cell work
+  out of the loop; measure before and after on the same machine. Done:
+  the test finishes in under 3 minutes on a 4-core machine and the draws
+  are bit-identical (golden unchanged). Lock-free if no value changes.
+  Related: PERF.188, TEST.290, TEST.417. Owner Star 2 (it built
+  PERF.188; proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -16678,102 +16713,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug)**
-  Reported by Bugfixes lane 1 (2026-10-09 23:32Z):
-  `test_ensure_sector_generated_creates_then_reuses_the_same_sector`
-  failed once in a busy parallel full-suite run and passed alone, with
-  no change to the code it covers. Done: the cause is found (a shared
-  sector address or timing under load is the first thing to check) and
-  the test is made robust without skipping or loosening it, or the
-  product bug it hides is fixed. Related: TEST.71, TEST.73, OPS.19.
-  Note (2026-10-09): Bugfixes lane 1 (PR #955, 2026-10-10): no repro in
-  15 loaded runs; the test's asserts now print the results, so the next
-  failure names the cause. Stays open until it recurs and is fixed, or
-  Boss closes it.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Recurrence (Quality, 2026-10-15, 4:56 PM EDT run): the test hung, not
-  just failed, and looks like GEN.232's uncapped path integration of a
-  fast star. Core fixes GEN.232; Quality re-checks this test after it
-  and closes this item on 5 clean full runs as decided.
-  Quality confirms (2026-10-15, combined run, MySQL 8.0.46): the test
-  runs past 900 s and fails alone on main, in db/sector_paths.py settle
-  and physics/sector_path.py integrate_path, _simplify and hermite; it
-  points at GEN.232.
-  Intermittent (Quality, 2026-10-15): it passed in the 6:13 PM EDT run
-  on the same code that timed out alone at 4:20 PM EDT, so it is not
-  deterministic; GEN.232 merged in #1660, so Quality re-checks it in the
-  next full run.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
-  GEN.232 cured the 900 s path this item was filed for. Needed next
-  time: 5 clean full runs are still needed before it can close; the
-  failing run's captured traceback, the number of tests running at the
-  time (the load), and the elapsed time if it fails again. Running log:
-  the comments on issue #1694.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.167 folded in. Named sighting:
-  `test_random_start_mode_respects_min_start_density` hit its 900 s
-  timeout in a `scripts/test.py changed` run (Interface, 2026-10-15,
-  5:43 PM EDT) and passes alone (Bug Hunt: 15 of 15 clean solo runs);
-  the same slow fast-body path as this item (GEN.232). Close both on the
-  same clean full runs; if it times out again with no path integration
-  in the traceback, split it back out. Agreed by Bug Hunt (2026-10-17,
-  12:33 AM EDT as the lane reported).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Research (2026-10-09, Update): Update 3:49 AM EDT 2026-10-24 (as lane
-  4 reported on #2899): it did not reproduce in 12 repeats under load,
-  so it stays open with that note; the connection pool race fixed in
-  TEST.218 may have been the cause, so recheck after the next full gate.
-  Prerequisites: none.
-
-- [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 03:57Z): the K2V check in
-  test_bughunt_end_to_end failed once on MySQL 8.4 and once on MariaDB
-  in run 37882710453 (the stored star was M2V or M6V instead of K2V); it
-  did not reproduce on current main in 83 local runs. Done: the cause is
-  found (a seed or ordering dependence in the test, or a real bug in
-  star-type selection) and the test is made robust without loosening it,
-  or the product bug is fixed. Decided (Boss, 2026-10-10 18:44Z,
-  defaults approved; default: leave
-  open until it recurs, then investigate with the failing run's data).
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
-  open for the first recurrence (with the captured seed): the test pins
-  the star type, so a different stored type may be a real pin bug in the
-  product, not test luck. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. 86,000 systems with the primary forced to K2V were
-  generated and the primary was K2V every time. Needed next time: The
-  failing assertion text and the seed of the failing run. Running log:
-  the comments on issue #1694.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: TEST.111, TEST.71.
-
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
   Two System Map browser tests that failed under load (seen by Foundations lane 2 and the rebuild thread) were fixed on 2026-10-14 (#1367).
   Seen again on 2026-10-15 (Bugfixes lane 2, NAV.47 suite, load 8.9, call 40.6 s on
@@ -16946,70 +16885,6 @@ clears each one.
   earlier owner line).
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
-- [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
-  Reported by Foundations lane 2 (2026-10-10 20:50Z):
-  tests/test_api.py::test_nebula_shape_endpoint_serves_a_mesh failed in
-  a full `-n 4` run (the MAP.148 run, 19:27Z) with an assertion starting
-  'assert 1' (the rest was cut from the log) and passed on a serial
-  rerun; main was not checked. Bugfixes lane 1 has not seen it. Done:
-  the next failure's full traceback is captured (or a loaded run
-  reproduces it), the cause is found (a shared nebula or sector fixture,
-  an id or ordering dependence, or a real mesh bug) and the test is made
-  reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: TEST.111, TEST.116.
-
-- [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 20:50Z): intermittent failures
-  of test_spatial_position_db and test_web_db_fields (both under tests/)
-  when the suite runs in parallel (`-n 4`) on one MySQL; both pass alone
-  and none fail on a quiet main. The assertion messages were not saved.
-  Done: the next failure's traceback is captured, the cause is found (a
-  shared database name or schema, a leftover row, or timing under load;
-  compare TEST.111 and TEST.123) and the tests are made reliable without
-  skipping or loosening them. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Sighting (Foundations lane 1, 2026-10-14, full suite of 39 min 51 s
-  with PERF.89): tests/test_work_queue_admin.py::
-  test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
-  passes alone: the same parallel-run family on the shared database.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Sighting (Core 1's gate for #1952, 2026-10-16, about 11:59 PM EDT as
-  the lane reported; scripts/test.py changed, 83 min 56 s, 18,528
-  passed, 1 failed): the same
-  test_a_paused_queue_node_stands_by_until_resumed[2] failed once under
-  the gate and passed alone 3 of 3 (8 s each); no traceback was saved.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: TEST.111, TEST.123.
-
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -17060,78 +16935,6 @@ clears each one.
   closes if Boss agrees to delete the file (Boss reviews
   reports/regression-test-review-2026-10-23.md before any delete).
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
-
-- [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
-  Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
-  min):
-  tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
-  failed once in a full run and passed alone; the traceback was not
-  kept. Seen again (Foundations lane 1, 2026-10-14 14:04Z full run, 27
-  min): the failure showed a facility host id 003 where 009 was
-  expected, and the test passed twice alone; unrelated to that lane's
-  change. Done: the next failure's traceback is captured, the cause is
-  found (a shared table between workers, a timeout, or a real defect in
-  the ID lookup) and the test is made reliable without loosening it.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: TEST.128, TEST.137, TEST.126.
-
-- [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
-  Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
-  min):
-  tests/test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True]
-  failed once in a full run and passed alone; the failure message was
-  not kept. Done: the next failure's message is captured, the cause is
-  found (an interrupt landing before a worker starts, a shared Redis
-  queue between workers, or a real half-written sector) and the test is
-  made reliable without loosening it. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. 24 runs of the test under load all passed. Needed next
-  time: The failing parametrisation, the text of the failure and the
-  load at the time. Running log: the comments on issue #1694.
-  Sighting (Blocker 1, 2026-10-17, 10:52 PM EDT as the lane reported;
-  its second PERF.118 changed gate, 84 minutes, 4 failures, tree with
-  GEN.238 #2132): `[15-True]` failed with `assert jobs and
-  all(job["state"] == "cancelled")`, got [queue failed, galaxy failed];
-  1 of 1 gate runs, passes alone 2 of 2. Fails on main: not checked.
-  Reproducer given: SIGTERM to the process group while the 4-core gate
-  runs, full gate under load.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Research (2026-10-09, 10-24 lane 4): Lane 4 merged #2987 (10:41 AM EDT
-  2026-10-24 as the lane reported): the work-queue interrupt tests now
-  wait 480 s for the run to start (they gave up at 120 s when a gate
-  loaded the machine). Closes after its clean runs.
-  Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
   Step 9 (design note section 9, tests 1 to 9). Companion states within
@@ -17837,46 +17640,6 @@ clears each one.
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
 
-- [ ] **TEST.254 test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug)**
-  Found by Core 5 (reported 3:14 PM EDT 2026-10-18 on the lane's clock;
-  its PERF.106 slice 5 gate ended about 2:55 PM EDT), filed by the TODO
-  thread.
-  `src/tests/test_galaxy_core_ball.py::test_core_ball_batch_fill_makes_planets`
-  failed with `assert 4 == 3` at the systems count (line 40). The test
-  runs `plan` with no `--seed`, so every test database draws a random
-  galaxy seed; for some seeds the backfill after `galaxy --shell 0
-  --band 0 --num-systems 3` builds a fourth system next to the three
-  asked for (inferred, not traced). Fails on main: yes, main 89c5115
-  with none of Core 5's changes in the tree. Frequency: 1 of 14 looped
-  runs on an idle machine, and once in the gate. Reproducer: with the
-  services up, `cd src && for i in $(seq 30); do python -m pytest
-  tests/test_galaxy_core_ball.py -q -k batch_fill_makes_planets; done`,
-  printing the galaxy seed on a failure. Do: find which seeds give the
-  fourth system and whether the extra system is the generator's own
-  backfill (then the count the command promises is wrong and that is the
-  bug) or a stray bright star or nuclear system the test should not
-  count; fix the cause, or pin `--seed` in the plan call if the extra
-  system is correct for those seeds; no quarantine. Done: the cause is
-  on this item and the test passes 30 of 30 fresh draws. Owner: Bug Hunt
-  (proposed).
-  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): not reproduced: 109 of 109 draws on current
-  main, including the 40-process reproducer; the assertion now prints
-  the extra system rows and the seed. Kept open as not reproduced (dated
-  comment and the "could not reproduce" label on #1694).
-  Second sighting (Core 5, 9:08 AM EDT 2026-10-21 as the lane reported):
-  `assert planets >= systems` failed "2 >= 3" once in its gate 3 (galaxy
-  shell 0, 3 systems, PLANETS forced); looped 30 times on main 8ad9099
-  and 30 on its branch on an idle machine, 60 of 60 passed, plus 6 of 6
-  earlier. With Bug Hunt's 109 of 109 that is 175 of 175 not reproduced;
-  the likely cause stays an unseeded draw of a system with no planets,
-  and the assertion should compare against a seeded draw.
-  Bug Hunt's #2332 (2:51 PM EDT 2026-10-21 as the lane reported,
-  releases 8.0.1858 to 8.0.1861) adds a diagnostic only: the test now
-  names the extra system when it fails. Not reproduced in 109 draws, so
-  the item stays open.
-  Prerequisites: none. Related: TEST.253.
-
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
   must be a full bug hunt audit, and it MUST be done before every single
@@ -18003,33 +17766,6 @@ clears each one.
   pass.
   Prerequisites: none. Related: TEST.284, TEST.281.
 
-- [ ] **TEST.289 Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug)**
-  Found by Bugfix 2 (relayed 3:08 AM EDT 2026-10-23 as the lane
-  reported) in its gate for GEN.628; the diff does not touch them. Kind:
-  flaky test. Tests:
-  src/tests/test_api_job_runs.py::test_a_neighborhood_job_runs_its_sectors_through_the_wrapper
-  and
-  src/tests/test_api_jobs.py::test_a_quick_edit_answers_in_the_same_response.
-  Failure text: not given by the lane (it failed once under the gate
-  load with the gate's 4 workers and passed alone and in the rerun).
-  Fails on main: unknown. Frequency: 1 in 2 gates on that lane.
-  Reproducer: none yet. Do: run both at -n 4 beside a loaded machine 50
-  times, capture the first failure text, find what they wait on (a job
-  that finishes inside a fixed wait, or a Redis or queue key shared
-  between workers), and make the test wait for that state or scope the
-  key. Done: both pass 50 times in a row at -n 4. Owner: Bug Hunt
-  (proposed by the TODO thread).
-  Progress (Bug Hunt, #2630 merged 5:49 AM EDT 2026-10-23 as the lane
-  reported): neither test reproduced in 72 runs beside CPU load.
-  test_a_quick_edit_answers_in_the_same_response waits a fixed 8 s for a
-  worker (SHORT_WAIT_SECONDS) and the route answers 202 after that, so a
-  busy gate can give 202 where 201 is expected; the test now gives the
-  route a long wait, and that half is counted as fixed. The neighborhood
-  test now prints its answer, sector count and runs on failure. The item
-  stays open until the next sighting shows the failure text or two clean
-  gates pass.
-  Prerequisites: none. Related: TEST.284, TEST.288, TEST.280.
-
 - [ ] **TEST.290 test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug)**
   Found by the Performance lane (relayed 4:15 AM EDT 2026-10-23 as the
   lane reported) in its gate for PERF.164; neither test is touched by
@@ -18054,6 +17790,13 @@ clears each one.
   reported, with #2659): 20 of 20 runs of both tests passed beside CPU
   load at -n 2. The item stays open for a sighting that comes with the
   failure text.
+  Aux 3 sweep (2026-11-04 1:15 PM EST): Part a (test_work_units) passed
+  3 of 3 on current main; part b
+  (test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector)
+  is no longer a flake but takes over 10 minutes in its sectors step,
+  now PERF.232. Retire this item when that merges. Caution from the
+  lane: each pytest start flushes the shared Redis database, so two
+  pytest runs at once on one machine make queue tests fail.
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
 - [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
@@ -18199,17 +17942,6 @@ clears each one.
   remaining parts.
   Prerequisites: MAP.220. Related: UX.100, MAP.143, MAP.220.
 
-- [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
-  Found by Habitability lane F (relayed 2026-10-23, 9:20 PM EDT): this
-  test fails about 1 run in 5 to 8 when run alone, unrelated to
-  radiation or ozone. Done: the cause is found by reproducing it with
-  the seed printed (the forced belt and the forced habitable world
-  competing for the same slot or a draw that sometimes cannot place
-  both), fixed in the generator or the test's expectation with the
-  reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
-  (proposed).
-  Prerequisites: none. Related: GEN.413.
-
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
   Step C5 of the condition-based classes build (design draft
   design-drafts/condition-based-classes-2026-10-23.md section 7, from
@@ -18233,16 +17965,6 @@ clears each one.
   in repeated gates and its run time drops well below 112 s. Owner: Core
   2 (the test belongs to the sector reach work), or Bug Hunt if Core 2
   is busy.
-  Prerequisites: none. Related: TEST.313.
-
-- [ ] **TEST.320 test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug)**
-  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
-  the lane reported): it failed once in a full gate and passes alone; it
-  depends on how many bodies the generated system happens to have. Do:
-  make the expected statement count independent of the generated body
-  count (derive it from the rows written), without loosening the check
-  that rows are batched. Done: the test passes in repeated full gates.
-  Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.313.
 
 - [ ] **TEST.321 test_web_browser_tables: the jump box test flakes under load (bug)**
@@ -18276,17 +17998,6 @@ clears each one.
   passes, close this. Done: 50 clean trials on main. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.313, GEN.631.
-
-- [ ] **TEST.341 A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug)**
-  Seen once by Habitability lane K (7:50 AM EDT 2026-10-24, as the lane
-  reported) in the GEN.442 gate (#2956): a spatial-position test failed
-  with "no system matching" and passed on rerun. The test name was not
-  given. Recheck on current main: find the test, run it 50 times, and
-  find whether the fixture draws a system that sometimes has no match
-  (an unseeded draw) or whether a generation change made it rare. Done:
-  the test is repeatable or the product cause is fixed. Related:
-  TEST.334, TEST.339. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.334, TEST.339.
 
 - [ ] **TEST.344 Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory**
   Efficiency scan suggestion 4, applied by Boss ("ALL", 2:21 PM EDT
@@ -18812,6 +18523,35 @@ clears each one.
   companion law), fix the cause, and say which in the change note. If
   the generator changed on purpose, update the test with the reason; if
   a defect, fix it and note whether stored output changes. Owner: Aux 7.
+  Prerequisites: none.
+
+- [ ] **TEST.569 Red on main: the reproducibility guard (five call sites), the mass-conversion guard (two tests), the pinned galaxy and the sector panel test (bug)**
+  Found by Core 1 while gating GEN.614 and confirmed on main by the TODO
+  thread, 1:05 PM EST on 2026-11-04. (1)
+  tests/test_reproducible_draws.py: util/secret_key.py:19 imports
+  secrets; galaxy/acceleration.py:53 uses @ (BLAS; use
+  planetgen.util.detmath.matmul); generation/rogue_landing.py:49
+  math.hypot and :66 math.dist; physics/ring_darkening.py:218
+  math.hypot; physics/system_bodies.py:202 math.dist (use
+  planetgen.util.detmath.hypot and dist). These can differ between
+  machines, so a galaxy would not reproduce: real defects, not test
+  noise (secret_key is by design if it never feeds a draw; then add it
+  to the guard's allow list with the reason). (2)
+  tests/test_mass_conversions.py:
+  test_no_new_hand_written_mass_conversion and
+  test_the_list_of_kept_sites_has_no_stale_entry: new hand-written mass
+  conversions to route through the unit registry (GEN.568) or add to the
+  kept list with a reason, and stale entries to delete. (3)
+  test_the_pinned_galaxy_is_the_pinned_one: find whether a merged epoch
+  moved the pinned galaxy (then re-pin with a reason) or a draw changed
+  (then fix). (4) the galaxymap3d test
+  test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own:
+  find the cause. Do: fix each at its cause (no skipping, no
+  quarantine), run each test 3 times. Done: all pass on main. Lock-free
+  unless fixing (1) changes generated output (hypot and dist from
+  detmath may differ in the last bit), in which case it rides a train
+  with an epoch under its own item. Owner Core 1 (free; found them).
+  Filed by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts
