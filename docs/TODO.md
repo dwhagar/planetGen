@@ -15053,6 +15053,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none. Related: PERF.233, PERF.234.
 
+- [ ] **PERF.236 The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug)**
+  Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
+  GEN.951 prevalence check: the three failing cases (habitable_world
+  +50, habitable_world -50, asteroid_belt +30) are not GEN.951's; they
+  fail on current main too (post train 8, before train 9). Those cases
+  are slow draws that hit time limits, the same family as the 900 s
+  timeouts PERF.229 listed. Do: find where a forced habitable_world draw
+  spends its time (the forcing repeats the draw until the condition
+  holds, or re-runs a stage), measure it, and either make the forced
+  draw cost a small multiple of the baseline or cut the case's sample
+  size with a stated margin; same for asteroid_belt +30. Done: each
+  prevalence case finishes inside the gate's time limit on a lane
+  machine, with the sample size and margin in the test. Proposed owner:
+  Bug 1 (PERF.229 owner). Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.229, TEST.430.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18245,6 +18261,24 @@ clears each one.
   test that follows its map changes (proposed by the TODO thread). Filed
   by the TODO thread.
   Prerequisites: none.
+
+- [ ] **TEST.579 Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug)**
+  Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
+  GEN.951 prevalence check: the three failing cases (habitable_world
+  +50, habitable_world -50, asteroid_belt +30) are not GEN.951's; they
+  fail on current main too (post train 8, before train 9). The baseline
+  belt share on main is 0.662 (600 systems) against
+  tuning.PREVALENCE_BASE_SHARES asteroid_belt 0.039; habitable_world
+  0.592 matches its 0.598. Do: first decide whether 0.662 is a real
+  generation change (belts now far commoner than the registered rate: if
+  so file it as a generation bug with the epoch that moved it) or a
+  stale constant; then remeasure all base shares on the post-train-10
+  main, register the new values with their tier and tweak level in
+  GEN.725, and re-run test_measured_base_shares_still_hold and the belt
+  prevalence cases. lanes.md already lists that test as red until the
+  epoch re-tag. Proposed owner: Bug 1 (offered to take it). Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.430, GEN.725, PERF.229.
 
 ## USR: User accounts
 
