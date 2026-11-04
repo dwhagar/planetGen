@@ -13,7 +13,7 @@ import pytest
 pytest.importorskip("playwright.sync_api")
 from playwright import sync_api  # noqa: E402
 
-from planetgen.db import query  # noqa: E402
+from planetgen.db import query, store  # noqa: E402
 from tests.scored_site import scored_galaxy  # noqa: E402,F401 -- fixture
 
 pytestmark = pytest.mark.browser
@@ -146,3 +146,62 @@ def test_an_order_by_a_value_sorts_the_planets_by_it(scored_galaxy, page):
     shown = [planets[rows.nth(i).locator("td").first.inner_text().strip()] for i in range(rows.count())]
     assert shown == sorted(shown, reverse=True) and len(shown) > 3      # the first rows in view are the largest
     assert page.locator('select[name="planet_value_sort"]').input_value() == "-gravity"
+
+
+# UX.225: the one question the item asks, with its own numbers, on a galaxy whose planets are set to known values.
+CASES = (            # (gravity in g0, dose in mSv/yr, in the answer)
+    (0.8, 1.99, True), (0.95, 0.0, True), (1.2, 1.0, True),             # inside, and on the two edges of the gravity range
+    (0.79, 0.5, False), (1.21, 0.5, False),                              # the dose is fine, the gravity is just outside
+    (1.0, 2.01, False), (1.0, 40.0, False),                              # the gravity is fine, the dose is too high
+    (1.0, None, False), (None, 0.5, False),                              # a stored value missing is out of the range
+)
+
+
+def _set_known_values(config):
+    """Gives the first planets the values of `CASES`; returns the planets' old values (to put back) and the names that must answer."""
+    conn = store.get_connection(config)
+    try:
+        ids = [row["id"] for row in conn.execute("SELECT id FROM planets ORDER BY id").fetchall()]
+        assert len(ids) >= len(CASES) + 1
+        old = {row["id"]: (row["gravity_g"], row["surface_dose_msv_yr"]) for row in conn.execute(
+            "SELECT id, gravity_g, surface_dose_msv_yr FROM planets").fetchall()}
+        for planet_id in ids:                     # every other planet is out of the range, so that only the cases decide
+            conn.execute("UPDATE planets SET gravity_g = ?, surface_dose_msv_yr = ? WHERE id = ?", (3.0, 9.0, planet_id))
+        for planet_id, (gravity, dose, _in) in zip(ids, CASES):
+            conn.execute("UPDATE planets SET gravity_g = ?, surface_dose_msv_yr = ? WHERE id = ?", (gravity, dose, planet_id))
+        conn.commit()
+        names = {row["id"]: row["name"] for row in conn.execute("SELECT id, name FROM planets").fetchall()}
+        return old, {names[planet_id] for planet_id, case in zip(ids, CASES) if case[2]}
+    finally:
+        conn.close()
+
+
+def _put_back(config, old):
+    conn = store.get_connection(config)
+    try:
+        for planet_id, (gravity, dose) in old.items():
+            conn.execute("UPDATE planets SET gravity_g = ?, surface_dose_msv_yr = ? WHERE id = ?", (gravity, dose, planet_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_planets_of_0_8_to_1_2_g_with_a_dose_under_2_mSv_a_year_are_the_same_on_the_page_and_in_the_api(scored_galaxy, page):
+    old, want = _set_known_values(scored_galaxy.config)
+    try:
+        assert len(want) == 3
+        query_string = "planet_min_gravity=0.8&planet_max_gravity=1.2&planet_max_surface_dose=2"
+        assert page.goto(f"{scored_galaxy.base_url}/search?{query_string}", wait_until="load").status == 200
+        assert _listed(page) == want
+        chips = page.locator(".active-filters .filter-chip").all_inner_texts()
+        assert any(text.startswith("Planet surface gravity: 0.8–1.2 g₀") for text in chips), chips
+        assert any(text.startswith("Planet surface radiation dose: ≤ 2 mSv/yr") for text in chips), chips
+        answer = page.evaluate("async (q) => (await fetch('/api/search?' + q)).json()", query_string)      # the page's own origin, as a script would ask
+        assert {row["name"] for row in answer["results"]["planets"]["rows"]} == want
+        assert [(r["key"], r["least"], r["most"], r["unit"]) for r in answer["active_ranges"]] == [
+            ("gravity", 0.8, 1.2, "g0"), ("surface_dose", None, 2.0, "mSv/yr")]
+        shown = {row["name"]: row["values"] for row in answer["results"]["planets"]["rows"]}
+        assert all(0.8 <= v["gravity"]["value"] <= 1.2 and v["surface_dose"]["value"] < 2 for v in shown.values())
+        assert {v["surface_dose"]["unit"] for v in shown.values()} == {"mSv/yr"}
+    finally:
+        _put_back(scored_galaxy.config, old)
