@@ -545,33 +545,6 @@ with `clamp()`.
   drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
 
-- [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
-  Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
-  for 8.2): "we need to scale and size the viewing windows for the
-  browser window size, so that the user doesn't have to scroll to see
-  the controls". Do: size the Galaxy Map, the Sector Map and scene, the
-  System Map and scene and the navigation chart to the space the window
-  leaves after the header and the controls (dynamic viewport height,
-  flex or grid rows, resize and orientation changes handled), put the
-  controls in the same view (a side panel on wide windows, a bottom
-  sheet or toolbar on narrow ones) and let a long panel scroll inside
-  itself, never the whole page. The admin pages follow the same rule:
-  the admin shell (ADM.92) keeps its content region inside the window
-  and long tables scroll in their own region. Done: a browser test at
-  1280x720, 1366x768, 1440x900, 1920x1080, a 768x1024 tablet and a
-  390x844 phone (both orientations) shows, on each viewer page, that the
-  viewer and all its controls are visible with no vertical page scroll
-  (document height equals the window height) and none of the controls is
-  clipped; resizing the window re-fits without a reload; works in both
-  themes. Phase: 8.2 phase 2. Owner: none yet (filed from Boss's 8.2
-  design notes, 6:10 and 6:12 PM EDT 2026-10-21; the map lane owns the
-  viewers, so Core 2 is the natural pick once its queue allows, the
-  coordinator decides).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: MAP.139, UX.115, ADM.92, MAP.65.
-
 - [ ] **UX.143 A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID**
   Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
   "there should be a 'view' button to view a dedicated page for every
@@ -869,6 +842,9 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Owner (8:40 AM EST on 2026-11-04): OWNER Core 1 (assigned by TODO as the
+  lane reported 8:36 AM EST on 2026-11-04 after UX.142 completed): a
+  lock-free item on a separate branch; a stored value stays as it is.
   Prerequisites: UX.226. Related: UX.225.
 
 - [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
