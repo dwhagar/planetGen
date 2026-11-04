@@ -7,8 +7,11 @@ what the first does. Systems have their own richer list at `/systems`, phenomena
 named here beside the rest.
 """
 
-from flask import abort, request
+import copy
 
+from flask import abort, redirect, request
+
+from planetgen.db import objectlist, search_values
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, read_from_start
 from planetgen.web.lib.fmt import distance_km_html, measured_html
@@ -16,6 +19,7 @@ from planetgen.web.lib.habitability_cells import COLUMN as HABITABILITY_COLUMN, 
 
 from . import bp, tables
 from .helpers import crumb, db_name, page_url, render_page
+from .searchpage import SearchState, tidy_value_args, value_form
 
 KIND_LABELS = {
     "star": ("star", "stars", "Stars"),
@@ -32,7 +36,7 @@ KIND_LABELS = {
     "interstellar_comet": ("interstellar comet", "interstellar comets", "Interstellar comets"),
     "quasar": ("quasar", "quasars", "Quasars"),
 }
-"""dict: Each kind with a list page, to its singular, plural and heading (facilities have no page of their own)."""
+"""dict: Each kind with a list page, to its singular, plural, and heading (facilities have no page of their own)."""
 
 COLUMNS = [Column("name", "Name"), Column("class", "Class"), Column("mass", "Mass"), Column("radius", "Radius"),
            Column("sector", "Sector", sortable=False)]
@@ -41,15 +45,18 @@ HABITABILITY_KINDS = ("planet", "moon")
 """tuple: The kinds whose list has a Habitability column of the PHI-6 symbols (UX.100), before the Sector column."""
 
 PHYSICS_COLUMNS = {
-    "star": (Column("temperature", "Temperature", sortable=False), Column("luminosity", "Luminosity", sortable=False),
-             Column("age", "Age", sortable=False)),
-    "planet": (Column("orbit", "Orbit", sortable=False), Column("eccentricity", "Eccentricity", sortable=False),
-               Column("surface_temperature", "Surface temperature", sortable=False)),
-    "moon": (Column("orbit", "Orbit", sortable=False), Column("eccentricity", "Eccentricity", sortable=False),
-             Column("surface_temperature", "Surface temperature", sortable=False)),
+    "star": (Column("temperature", "Temperature"), Column("luminosity", "Luminosity"), Column("age", "Age")),
+    "planet": (Column("orbit_distance", "Orbit"), Column("eccentricity", "Eccentricity", sortable=False),
+               Column("surface_temperature", "Surface temperature")),
+    "moon": (Column("orbit_distance", "Orbit"), Column("eccentricity", "Eccentricity", sortable=False),
+             Column("surface_temperature", "Surface temperature")),
 }
 """dict: The stored physics values a kind's list shows after the radius (UX.187), in the order of `db.objectlist.PHYSICS_COLUMNS`.
-The object index holds no column to order them by, so none sorts."""
+A column named for a key of `db.search_values` sorts by that value (UX.228); the eccentricity has no key, so it does not sort."""
+
+VALUES_COLUMN = Column("values", "Values", sortable=False)
+"""Column: The cell that carries the physical values a range or an order asked for and no column of the list shows (UX.228); it is on
+the list only while one is in use."""
 
 _SORT_KEYS = {"name": "name", "class": "class", "mass": "mass", "radius": "radius"}
 
@@ -101,16 +108,66 @@ def _row(item, kind):
     return cells + [sector]
 
 
+def _value_state():
+    """The request's physical-value ranges and order, read as the search page reads them (UX.227): a bound that is not a number, an inverted range
+    and a unit that does not measure the value are ignored."""
+    return SearchState.from_args(request.args)
+
+
+def _ranges(kind):
+    """`{key: (least, most, unit or None)}` of the physical-value ranges on this kind's list, or `None` for a kind that takes none."""
+    if kind not in objectlist.VALUE_KINDS:
+        return None
+    return _value_state().value_ranges().get(kind) or None
+
+
+def _order(kind, state):
+    """`(sort, descending)` for the API: a column's own order, or the value order of `<kind>_value_sort` while the Name column is at its default (UX.228)."""
+    ordered = _value_state().value_sorts().get(kind)
+    if ordered and state.sort == "name" and not state.descending:
+        return ordered.lstrip("-"), ordered.startswith("-")
+    own = set(objectlist.value_sort_keys(kind))
+    return _SORT_KEYS.get(state.sort) or (state.sort if state.sort in own else None), state.descending
+
+
+def _extra_keys(kind, state):
+    """The `(key, unit)` pairs the Values column carries: the values a range or an order is on that no column of the list shows already."""
+    ranges = _ranges(kind)
+    sort = _order(kind, state)[0]
+    if kind not in objectlist.VALUE_KINDS or not (ranges or sort in objectlist.value_sort_keys(kind)):
+        return []
+    resolved = {key: (least, most, unit or search_values.KEYS[key].default_unit(kind)) for key, (least, most, unit) in (ranges or {}).items()}
+    shown = {"mass", *(column.key for column in PHYSICS_COLUMNS.get(kind, ()))}
+    return [(key, unit) for key, unit in search_values.used(kind, resolved, sort) if key not in shown]
+
+
+def _values_cell(item, keys):
+    """The Values cell: each value the list was asked about, with its label and unit, or a muted dash for a body without any."""
+    parts = []
+    for key, _unit in keys:
+        found = (item.get("values") or {}).get(key)
+        if found and found["value"] is not None:
+            tail = f" {found['symbol']}" if found["symbol"] else ""
+            parts.append(f"{search_values.KEYS[key].label.split(' (')[0]} {found['value']:.4g}{tail}")
+    return {"text": "; ".join(parts)} if parts else {"text": "\u2013", "muted": True}
+
+
 def _loader(kind):
     def load(state, limit, offset, want_facets, after=None):
+        sort, descending = _order(kind, state)
+        ranges = _ranges(kind)
+        extra = _extra_keys(kind, state)
         envelope, note = read_from_start(
             lambda start: apiclient.get_object_list(
-                db_name(), kind, limit=limit, sort=_SORT_KEYS.get(state.sort), descending=state.descending,
-                after=after, start=start or None),
+                db_name(), kind, limit=limit, sort=sort, descending=descending,
+                after=after, start=start or None, ranges=ranges),
             state.start)
         items = envelope["items"]
-        return Result([_row(item, kind) for item in items], envelope["total"], None, envelope.get("total_capped", False),
-                      envelope["next"], note)
+        rows = [_row(item, kind) for item in items]
+        if extra:
+            for row, item in zip(rows, items):
+                row.insert(len(row) - 1, _values_cell(item, extra))
+        return Result(rows, envelope["total"], None, envelope.get("total_capped", False), envelope["next"], note)
     return load
 
 
@@ -137,16 +194,84 @@ def lists():
                        description="Every list of objects in this charted galaxy.", entries=entries)
 
 
+VALUE_PARAMS = {kind: tuple(name for key in search_values.KEYS if kind in search_values.KEYS[key].entities
+                            for name in (f"{kind}_min_{key}", f"{kind}_max_{key}", f"{kind}_{key}_unit"))
+                for kind in objectlist.VALUE_KINDS}
+"""dict: Kind -> every range parameter of its list (UX.228), kept in the address while the table is paged and sorted."""
+
+
+def _kept_params(kind):
+    """The physical-value parameters present in the address, to carry through the table's links and its JSON address (UX.228)."""
+    if kind not in objectlist.VALUE_KINDS:
+        return ()
+    wanted = {*VALUE_PARAMS[kind], f"{kind}_value_sort", f"{kind}_other_gas", f"{kind}_other_gas_min", f"{kind}_other_gas_max",
+              f"{kind}_other_gas_unit"}
+    return tuple(name for name in request.args if name in wanted)
+
+
+def _chips(kind, ranges):
+    """The "remove this filter" chips of the ranges and the order in use: `[{label, url}]` (UX.228)."""
+    chips = []
+
+    def without(*names, gas=False):
+        """The address without `names`; a gas range may have come from the form's "another gas" row, so removing one drops that row too."""
+        pairs = [(key, value) for key, value in request.args.items(multi=True) if key not in names
+                 and not (gas and (key.endswith("_other_gas") or "_other_gas_" in key))]
+        return page_url("object_list", kind=kind, **dict(pairs))
+
+    for key, (least, most, unit) in (ranges or {}).items():
+        symbol = search_values.symbol(unit or search_values.KEYS[key].default_unit(kind))
+        tail = f" {symbol}" if symbol else ""
+        if least is not None and most is not None:
+            text = f"{least:.6g}\u2013{most:.6g}{tail}"
+        elif least is not None:
+            text = f"\u2265 {least:.6g}{tail}"
+        else:
+            text = f"\u2264 {most:.6g}{tail}"
+        label = search_values.KEYS[key].label.split(" (")[0]
+        chips.append({"label": f"{label[:1].lower()}{label[1:]}: {text}",
+                      "url": without(f"{kind}_min_{key}", f"{kind}_max_{key}", f"{kind}_{key}_unit",
+                                     gas=key.startswith(search_values.GAS_PREFIX))})
+    ordered = _value_state().value_sorts().get(kind)
+    if ordered:
+        label = search_values.KEYS[ordered.lstrip("-")].label.split(" (")[0].lower()
+        chips.append({"label": f"ordered by {label}, {'high to low' if ordered.startswith('-') else 'low to high'}",
+                      "url": without(f"{kind}_value_sort")})
+    return chips
+
+
+def _canonical_url(kind):
+    """The short form of this request's address (a submitted form sends every box, filled or not, and every row's unit), or `None` when it already is
+    that (`searchpage.tidy_value_args`, UX.228)."""
+    if kind not in objectlist.VALUE_KINDS:
+        return None
+    pairs, changed = tidy_value_args(request.args, (kind,))
+    return page_url("object_list", kind=kind, **dict(pairs)) if changed else None
+
+
 @bp.route("/lists/<kind>")
 def object_list(kind):
-    """One kind of object as a data table: sort by name, class, mass or radius and scroll through the pages."""
+    """One kind of object as a data table: sort by name, class, mass or radius (a star, planet or moon list also by its physical values and filtered by ranges on them, UX.228) and scroll through the pages."""
     table = LIST_TABLES.get(kind)
     if table is None:
         abort(404)
+    canonical = _canonical_url(kind)
+    if canonical:
+        return redirect(canonical)
     heading = KIND_LABELS[kind][2]
-    rendered = tables.render(table, request.path, anchor="object-list")
+    state = tables.parse_state(table, request.args)
+    if _extra_keys(kind, state):
+        table = copy.copy(table)
+        table.columns = [*table.columns[:-1], VALUES_COLUMN, table.columns[-1]]
+    rendered = tables.render(table, request.path, anchor="object-list", keep=_kept_params(kind), **{
+        name: request.args[name] for name in _kept_params(kind)})
+    groups = [group for group in value_form(_value_state()) if group["entity"] == kind]
     return render_page("object_list.html", title=heading, section="lists",
                        breadcrumbs=[crumb("Lists", "lists"), crumb(heading)],
                        description=f"Every {KIND_LABELS[kind][0]} in this charted galaxy.", table=rendered,
                        total=rendered["total"], noun=KIND_LABELS[kind],
+                       value_group=groups[0] if groups else None, value_chips=_chips(kind, _ranges(kind)),
+                       clear_url=page_url("object_list", kind=kind),
+                       value_hidden=[(name, request.args[name]) for name in (f"{table.prefix}sort", f"{table.prefix}order")
+                                     if request.args.get(name)],
                        filter_url=page_url("search", type=kind, **{f"{kind}s_sort": "phi4", f"{kind}s_order": "desc"}) if kind in HABITABILITY_KINDS else None)

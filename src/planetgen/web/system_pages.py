@@ -314,7 +314,7 @@ def system(system_id):
         title=detail["name"],
         section=section,
         breadcrumbs=breadcrumbs,
-        description=f"The {detail['name']} star system: its stars, planets, moons, belts and comets.",
+        description=f"The {detail['name']} star system: its stars, planets, moons, belts, and comets.",
         system=detail,
         former=formerly.view(detail.get("former_designations")),
         badges=_badges(detail),
@@ -439,7 +439,7 @@ PHENOMENA_TABLE = tables.register(Table(
 
 @bp.route("/phenomena")
 @slow_route("Phenomena", section="phenomena", breadcrumbs=lambda: [crumb("Phenomena")],
-            description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.")
+            description="Every nebula, black hole, neutron star, and other exotic phenomenon in this charted galaxy.")
 def phenomena():
     """Every exotic phenomenon, placed on the galaxy map or not, as a data
     table (UX.41): sort by any column, filter by type and descriptor, and
@@ -450,7 +450,7 @@ def phenomena():
         title="Phenomena",
         section="phenomena",
         breadcrumbs=[crumb("Phenomena")],
-        description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.",
+        description="Every nebula, black hole, neutron star, and other exotic phenomenon in this charted galaxy.",
         table=table,
         total=table["total"],
     )
@@ -665,7 +665,7 @@ FIELD_SPECS = {
         ("spin_period_ms", "Spin Period", _quantity("ms")),
         ("magnetic_field_gauss", "Magnetic Field", _quantity("G")),
         ("pulsar_type", "Pulsar Type", _title_case),
-        ("surface_temperature_k", "Surface Temperature", _kelvin),
+        ("surface_temperature_k", "Surface temperature", _kelvin),
         ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         _EINSTEIN_RADIUS,
@@ -698,8 +698,8 @@ FIELD_SPECS = {
         ("internal_heat_flux_w_m2", "Internal Heat Flow", _quantity("W_m2")),
         ("effective_temperature_k", "Effective Temperature", _kelvin),
         ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),
-        ("surface_temperature_k", "Surface Temperature", _quantity("K")),
-        ("surface_pressure_pa", "Surface Pressure", _pressure_text),
+        ("surface_temperature_k", "Surface temperature", _quantity("K")),
+        ("surface_pressure_pa", "Surface pressure", _pressure_text),
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
         ("hp_ice_km", "High-Pressure Ice Below", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
@@ -709,7 +709,7 @@ FIELD_SPECS = {
         _SPEED, _PERIOD,
     ],
     "interstellar_comet": [
-        ("nucleus_diameter_km", "Nucleus Diameter", _km),
+        ("nucleus_diameter_km", "Nucleus diameter", _km),
         ("velocity_kms", "Velocity", speed_kms_html),
         ("is_active", "Active", _bool_text),
         ("composition", "Composition", _comet_composition_text),

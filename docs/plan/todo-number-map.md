@@ -16,16 +16,16 @@ release is stamped.
 | UX | UX.259 |
 | MAP | MAP.364 |
 | NAV | NAV.65 |
-| GEN | GEN.1247 |
+| GEN | GEN.1248 |
 | PERF | PERF.232 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.562 |
+| TEST | TEST.566 |
 | USR | USR.32 |
 | OPS | OPS.94 |
-| DOC | DOC.102 |
+| DOC | DOC.103 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
 
@@ -757,7 +757,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.83 | Plain-words style guide for every sentence the site writes about a planet or a star, with a test that enforces it | none | done, PR #4478 |
 | DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) | none | done, PR #4506 |
 | DOC.85 | Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes | none | done, PR #4499 |
-| DOC.86 | Oxford comma everywhere: check lists of three or more for the serial comma, and fix every template, help page and generated sentence | none | open |
+| DOC.86 | Oxford comma everywhere: check lists of three or more for the serial comma, and fix every template, help page and generated sentence | none | done, PR #4787 |
 | DOC.87 | References R1: link helper (reference_link(kind, id)), the anchor and URL scheme, the banned-words rule for out-of-universe words, and the crawl test | none | done, PR #4602 |
 | DOC.88 | References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh) | none | done, PR #4624 |
 | DOC.89 | References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used | none | open |
@@ -773,6 +773,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | none | open |
 | DOC.100 | A stable citation ID for every paper in the registry, shown in the registry, docs/REFERENCES.md and the Papers page | none | done, PR #4648 |
 | DOC.101 | Imported research notes: about 140 web-page, standards and fan-wiki lines in 8 notes have no home in the reference registry | none | done, PR #4744 |
+| DOC.102 | American spelling sweep of every text that is not a planet, moon or belt description: templates, help pages, static pages, star, system, sector, nebula and phenomenon text, error messages, the API and CLI help, so "colour" and the other British spellings go to zero | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -2017,8 +2018,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) | none | open |
 | GEN.1243 | The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug) | none | done, PR #4767 |
 | GEN.1244 | Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug) | none | open |
-| GEN.1245 | Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale | none | open |
+| GEN.1245 | Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale | none | done, PR #4790 |
 | GEN.1246 | The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source | none | open |
+| GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3134,7 +3136,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.249 | The "On this page" menu should sit in one row across the top when every link fits without scrolling, and be the grouped list otherwise (follow-up to UX.247) (bug) | none | done, PR #4274 |
 | UX.250 | Planet render: the terminator between night and day should be more of a crescent, showing more of the day side, and the "to star" arrow overlaps the render (bug) | none | done, PR #4462 |
 | UX.251 | Planet and moon pages: a Life summary paragraph in At a glance, from the life readings | none | done, PR #4488 |
-| UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | open |
+| UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | done, PR #4799 |
 | UX.253 | Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages | none | done, PR #4496 |
 | UX.254 | Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup | none | done, PR #4540 |
 | UX.255 | Remove the light-theme branches in the map scripts that black map backgrounds left unused | none | done, PR #4751 |
@@ -3565,7 +3567,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.316 | test_no_page_shows_a_formula_that_is_not_written_out fails on main: /classes/habitability shows a bare "CO2" (bug) | none | done, PR #2850 |
 | TEST.317 | test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug) | none | open |
 | TEST.318 | test_web_generate_size::test_the_line_is_the_estimate_only_output_for_the_same_values fails on untouched main: refused True vs False (bug) | none | done, PR #3271 |
-| TEST.319 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug) | none | open |
+| TEST.319 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug) | none | done, PR #4784 |
 | TEST.320 | test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug) | none | open |
 | TEST.321 | test_web_browser_tables: the jump box test flakes under load (bug) | none | open |
 | TEST.322 | test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug) | none | done, PR #2881 |
@@ -3577,12 +3579,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.328 | Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists | none | done, PR #3693 |
 | TEST.329 | test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug) | none | done, PR #3011 |
 | TEST.330 | test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug) | none | done, PR #2850 |
-| TEST.331 | test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug) | none | open |
-| TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) | none | open |
+| TEST.331 | test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug) | none | done, PR #4797 |
+| TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) | none | done, PR #4784 |
 | TEST.333 | test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug) | none | open |
 | TEST.334 | Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug) | none | dropped (Debug mode thread, 2:21 PM EDT 2026-10-24 as the lane reported: not red on main; its lane machine ran without PLANETGEN_TEST_REDIS_URL so real workers ran) |
 | TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) | none | dropped (not reproduced on main by Bug 1, 8 of 8 pass, 7:14 PM EDT 2026-10-24 as the lane reported) |
-| TEST.336 | test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug) | none | open |
+| TEST.336 | test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug) | none | done, PR #4788 |
 | TEST.337 | test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further fails on unmodified main: minimum luminosity 5.4e28 against the required 1.9e29 (bug) | none | dropped (not reproduced on main by Bug Hunt, 10:41 AM EDT 2026-10-24 as the lane reported) |
 | TEST.338 | test_bright_star_scatter::test_plan_scatter_stores_stars_and_fill_builds_their_systems fails on main: the built primary differs from the stored row in 2 of 7 systems (bug) | none | done, PR #2986 |
 | TEST.339 | test_systems::test_asteroid_belt_forcing_is_reliable fails about 1 run in 4: 2 of 60 trials without a belt, not seeded (bug) | none | dropped (not reproduced on main by Bug Hunt, 10:41 AM EDT 2026-10-24 as the lane reported) |
@@ -3633,11 +3635,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | closed, does not reproduce on main (Bug 1, 1:37 AM EDT 2026-10-25) |
 | TEST.385 | Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug) | none | done, PR #3273 |
 | TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | none | open |
-| TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) | none | open |
+| TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) | none | done, PR #4788 |
 | TEST.388 | test_reproducible_draws fails on math.hypot in physics/impact_history.py:140 and physics/iron_branch_tuning.py:79 (bug) | none | done, PR #3665 |
 | TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) | none | open |
 | TEST.390 | More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug) | none | done, PR #3293 |
-| TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) | none | open |
+| TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) | none | done, PR #4788 |
 | TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) | none | done, PR #3528 |
 | TEST.393 | Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug) | none | done, PR #3308 |
 | TEST.394 | Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug) | none | done, PR #3385 |
@@ -3654,11 +3656,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) | none | done, PR #3689 |
 | TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) | none | done, PR #3689 |
 | TEST.407 | golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug) | none | done, PR #3371 |
-| TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | open |
-| TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | open |
+| TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | done, PR #4797 |
+| TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | done, PR #4797 |
 | TEST.410 | test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug) | none | done, PR #3405 |
 | TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) | none | open |
-| TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | open |
+| TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | done, PR #4797 |
 | TEST.413 | test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug) | none | done, PR #3499 |
 | TEST.414 | test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug) | none | open |
 | TEST.415 | test_cache_warmup::test_a_big_unit_stops_part_way fails on unmodified main (bug) | none | done, PR #3418 |
@@ -3724,7 +3726,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts | none | done, PR #4199 |
 | TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) | none | done, PR #4071 |
 | TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) | none | done, PR #4056 |
-| TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | open |
+| TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | done, PR #4797 |
 | TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) | none | done, already green on main (fixed by the class epochs) |
 | TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) | none | done, PR #4096 |
 | TEST.482 | test_stages::test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own is red on main: fill-map-luminosity lists the block-lights stage (bug) | none | done, PR #4093 |
@@ -3803,10 +3805,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.555 | Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug) | none | done, PR #4774 |
 | TEST.556 | test_db_column_round_trip fails on main: stars.nuclear_arrival_age_gy is NULL in every row of the test fixture (bug) | none | done, PR #4756 |
 | TEST.557 | test_a_generated_system_stores_the_belt_dose_in_its_surface_dose fails on main: the stored belt dose reads 0 (bug) | none | done, PR #4767 |
-| TEST.558 | test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main in 6 cases: the component density differs from the stored one by about 0.6 percent (bug) | none | open |
-| TEST.559 | test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon fails on main: physics.tidal_heating has no molten_power_w (the tides chain removed it) (bug) | none | open |
-| TEST.560 | test_the_code_reads_no_variable_the_model_does_not_name fails on main: PLANETGEN_BAND_TABLE_CACHE and PLANETGEN_BATTERY_DIGEST_CACHE are read in code and not named in the settings model (bug) | none | open |
+| TEST.558 | test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main in 6 cases: the component density differs from the stored one by about 0.6 percent (bug) | none | done, PR #4782 |
+| TEST.559 | test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon fails on main: physics.tidal_heating has no molten_power_w (the tides chain removed it) (bug) | none | done, PR #4779 |
+| TEST.560 | test_the_code_reads_no_variable_the_model_does_not_name fails on main: PLANETGEN_BAND_TABLE_CACHE and PLANETGEN_BATTERY_DIGEST_CACHE are read in code and not named in the settings model (bug) | none | done, PR #4779 |
 | TEST.561 | Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug) | none | open |
+| TEST.562 | test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug) | none | open |
+| TEST.563 | test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass fails on main: the belt mass reads 1.86e19 kg where 0.0 is expected (bug) | none | done, PR #4796 |
+| TEST.564 | test_a_directed_moon_count_still_goes_through_the_gate fails on main: moon counts vary 1 and 2 with a minimum of 0 where at least 1 and 80 percent at 2 are expected (bug) | none | done, PR #4788 |
+| TEST.565 | test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug) | none | done, PR #4796 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

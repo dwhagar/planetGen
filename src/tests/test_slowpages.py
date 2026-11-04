@@ -315,10 +315,17 @@ def test_without_a_queue_the_answer_is_built_in_the_request_and_the_page_is_told
     assert _slow_jobs(db) == []                                             # nothing left half queued
 
 
-def test_an_update_in_progress_builds_in_the_request_too(slow, monkeypatch):
-    from planetgen.admin import updateguard
+def test_an_update_in_progress_refuses_the_page_instead_of_building_it_in_the_request(slow, monkeypatch):
+    """The queue cannot take a job while the site is updated, and the page used to be built in the request. A page that needs a
+    cache the update is rebuilding is refused now (`admin.cachebuild`, 503 and "try again in a minute"): built in the daemon it
+    would run past the request limit and take the other requests with it. Nothing is left half queued."""
+    from planetgen.admin import cachebuild, updateguard
     monkeypatch.setattr(updateguard, "is_updating", lambda: True)
     monkeypatch.setattr(updateguard, "inside_update", lambda: False)
     app = _site(slow.config)
-    assert _list(app, slow.config.database)["total"] >= 1
-    assert "work queue is not available" in slowpages.take_notice()
+    slowpages.take_notice()
+    with pytest.raises(cachebuild.CacheRebuilding) as refused:
+        _list(app, slow.config.database)
+    assert "rebuilding its caches" in str(refused.value)
+    assert "work queue is not available" in (slowpages.take_notice() or "")
+    assert _slow_jobs(slow.config.database) == []

@@ -79,12 +79,12 @@
     <summary><h3>{{ group.label }}</h3></summary>
     {{ rows_table(group.rows) }}
     {%- if group.key == 'habitability' %}
-    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
+    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colors and symbols mean</a></p>
     {%- endif %}
   </details>
 {%- endmacro %}
 {%- if previous or following %}
-<nav class="item-neighbours" aria-label="Neighbouring {{ kind_label|lower }}s">
+<nav class="item-neighbours" aria-label="Neighboring {{ kind_label|lower }}s">
   {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
   {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
 </nav>
@@ -181,7 +181,7 @@
   <div class="panel-header"><h2 id="habitability-heading">Habitability (PHI-6)</h2></div>
   {{ planet.phi6_blocks }}
   {%- if planet.phi6 %}{{ rows_table(planet.phi6.rows) }}{% endif %}
-  <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colors and symbols mean</a></p>
 </section>
 {%- endif %}
 {%- if planet.atmosphere or planet.gases %}

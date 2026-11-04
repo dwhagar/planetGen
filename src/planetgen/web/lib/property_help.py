@@ -1,7 +1,7 @@
 # planetgen/web/lib/property_help.py
 
 """
-The text of the properties page (`/help/properties`, UX.187): for each physics value of a star, planet or moon page, what it is
+The text of the properties page (`/help/properties`, UX.187): for each physics value of a star, planet, or moon page, what it is
 called, the unit it is shown in, which bodies have it, and the one-line source the page shows under it. The rows are read from
 the property sheet (`describe/sheet.py`) and its source table (`describe/sheet_sources.py`), so this page and the pages it
 explains cannot disagree.
@@ -74,4 +74,4 @@ def page():
 
 help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
 help_registry.register_topic("property_help_page", "Properties", "objects",
-                             "Where the orbit, heat, spin, field, ring and life values on a star, planet or moon page come from.", order=30)
+                             "Where the orbit, heat, spin, field, ring, and life values on a star, planet, or moon page come from.", order=30)

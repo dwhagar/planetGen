@@ -68,7 +68,7 @@
 {%- endif %}
 {% include "partials/location.html" %}
 {%- if previous or following %}
-<nav class="item-neighbours" aria-label="Neighbouring {{ type_label|lower }}s">
+<nav class="item-neighbours" aria-label="Neighboring {{ type_label|lower }}s">
   {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
   {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
 </nav>

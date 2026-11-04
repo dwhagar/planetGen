@@ -18,11 +18,13 @@ and sector always give the same sector.
 import hashlib
 import json
 import math
+import os
 import re
 from collections import Counter
 
 from planetgen import tuning
 from planetgen.galaxy import seed as galaxySeed
+from planetgen.physics import elements
 from planetgen.util import draw
 
 DEFAULT_ATTEMPTS = tuning.DIRECTIVE_ATTEMPTS
@@ -150,10 +152,26 @@ def _score(missed):
     return sum(want - got for want, got in missed.values())
 
 
-HABITABLE_COUNT_PMF = (0.7551, 0.1896, 0.0380, 0.0120, 0.0040, 0.0010)
-"""tuple[float]: The share of star systems holding 0, 1, 2, 3, 4 and 5 habitable worlds, from 6,000 systems of
-`StarSystem(SystemConfig())` (sampling-backfill-and-resume.md section 8.1), normalised. Tier: verified by simulation of this
-generator, which is the thing the directive redraws, so a change to the habitable draw must remeasure it."""
+COUNT_FILE = os.path.join(elements.DATA_DIRECTORY, "habitable_count.json")
+"""str: The measured habitable bodies per system (`scripts/measure_habitable_count.py`, GEN.1245)."""
+
+
+def _load_count_pmf(path=COUNT_FILE):
+    """The share of star systems holding 0, 1, 2, ... habitable bodies, read from the measurement file."""
+    with open(path, encoding="utf-8") as handle:
+        data = json.load(handle)
+    counts, total = data["counts"], data["systems"]
+    if not counts or sum(counts) != total or total <= 0:
+        raise elements.DataError(f"{os.path.basename(path)} does not hold a histogram of its {total} systems")
+    return tuple(found / total for found in counts)
+
+
+HABITABLE_COUNT_PMF = _load_count_pmf()
+"""tuple[float]: The share of star systems holding 0, 1, 2, ... habitable bodies (a body of a life class, `tuning.HABITABLE_PLANET_CLASSES`),
+read from `physics/data/habitable_count.json`, which `scripts/measure_habitable_count.py` writes from `StarSystem(SystemConfig())` on the
+current generator (GEN.1245; registered as HCT1 in the stand-in registry). A change to which bodies are of a life class, or to how
+many a system makes, moves it: re-run the script. The list ends at the largest count the sample met, so a count beyond it is
+taken as impossible (`impossible` only judges a request the forced fill cannot reach either)."""
 
 
 def _poisson_tail(mean, need):

@@ -1,7 +1,7 @@
 {
  "version": 1,
  "title": "The life class rules",
- "description": "Windows, solvents and energy sources of the nine life classes (docs/design/habitability/life-classes.md section 3). Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. A quantity the body does not store makes a rule that reads it fail (the class scores 0 and the sweep names the quantity); a supply that is not stored yet is a stated placeholder (GEN.887).",
+ "description": "Windows, solvents, and energy sources of the nine life classes (docs/design/habitability/life-classes.md section 3). Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. A quantity the body does not store makes a rule that reads it fail (the class scores 0 and the sweep names the quantity); a supply that is not stored yet is a stated placeholder (GEN.887).",
  "reference_star_k": 5772.0,
  "reference_band_nm": [
   400.0,
@@ -15,7 +15,7 @@
    "variant": "a",
    "name": "Oxygenic light-eaters: visible pigment (Chlorophyll a)",
    "drinks": "water",
-   "eats": "light 400 to 700 nm, carbon dioxide and water, plus nitrogen, phosphorus and iron",
+   "eats": "light 400 to 700 nm, carbon dioxide, and water, plus nitrogen, phosphorus, and iron",
    "breathes": "oxygen once it exists (aerobes); before that nothing",
    "gives_off": "oxygen (net, after the sinks fill) and buried organic carbon; methane only through a small food web",
    "reaches": "Animals",
@@ -107,7 +107,7 @@
    "variant": "b",
    "name": "Oxygenic light-eaters: blue and UV tuned (Blue-Optimized Porphyrins)",
    "drinks": "water",
-   "eats": "light 300 to 500 nm, carbon dioxide and water",
+   "eats": "light 300 to 500 nm, carbon dioxide, and water",
    "breathes": "oxygen once it exists",
    "gives_off": "oxygen and buried organic carbon",
    "reaches": "Animals",
@@ -204,7 +204,7 @@
    "variant": "c",
    "name": "Oxygenic light-eaters: far-red (chlorophyll d and f)",
    "drinks": "water",
-   "eats": "light 700 to 800 nm and beyond, carbon dioxide and water",
+   "eats": "light 700 to 800 nm and beyond, carbon dioxide, and water",
    "breathes": "oxygen once it exists",
    "gives_off": "oxygen and buried organic carbon",
    "reaches": "Animals",
@@ -534,9 +534,9 @@
    "id": "4a",
    "number": 4,
    "variant": "a",
-   "name": "Sulfur, iron and nitrogen eaters: oxygen as the oxidant",
+   "name": "Sulfur, iron, and nitrogen eaters: oxygen as the oxidant",
    "drinks": "water",
-   "eats": "hydrogen sulfide, ferrous iron, ammonium or methane",
+   "eats": "hydrogen sulfide, ferrous iron, ammonium, or methane",
    "breathes": "oxygen",
    "gives_off": "sulfate, Fe(III), nitrogen, carbon dioxide",
    "reaches": "Animals (chemosymbiotic tubeworm, clam and mussel communities)",
@@ -600,9 +600,9 @@
    "id": "4b",
    "number": 4,
    "variant": "b",
-   "name": "Sulfur, iron and nitrogen eaters: nitrate and nitrogen oxides as the oxidant",
+   "name": "Sulfur, iron, and nitrogen eaters: nitrate and nitrogen oxides as the oxidant",
    "drinks": "water",
-   "eats": "hydrogen sulfide, ferrous iron, ammonium or methane",
+   "eats": "hydrogen sulfide, ferrous iron, ammonium, or methane",
    "breathes": "nitrate and nitrogen oxides",
    "gives_off": "sulfate, Fe(III), nitrogen, carbon dioxide",
    "reaches": "Animals (small)",
@@ -676,9 +676,9 @@
    "id": "4c",
    "number": 4,
    "variant": "c",
-   "name": "Sulfur, iron and nitrogen eaters: chlorate and perchlorate as the oxidant",
+   "name": "Sulfur, iron, and nitrogen eaters: chlorate and perchlorate as the oxidant",
    "drinks": "water",
-   "eats": "hydrogen sulfide, ferrous iron, ammonium or methane",
+   "eats": "hydrogen sulfide, ferrous iron, ammonium, or methane",
    "breathes": "chlorate and perchlorate",
    "gives_off": "sulfate, Fe(III), nitrogen, carbon dioxide, chloride",
    "reaches": "Microbial; animals are speculative (T8)",
@@ -754,7 +754,7 @@
    "variant": "a",
    "name": "Acid-world life: cloud-deck plankton",
    "drinks": "concentrated sulfuric acid (81 to 100 percent)",
-   "eats": "reduced sulfur, organic carbon, blue and UV light",
+   "eats": "reduced sulfur, organic carbon, blue, and UV light",
    "breathes": "the acid itself (reduced to SO2 and sulfur); traces of oxygen",
    "gives_off": "SO2, sulfur, carbon dioxide, water",
    "reaches": "Mats and aerial plankton; at most simple colonial forms",
@@ -778,7 +778,7 @@
      "min": 1.0,
      "tier": "T6",
      "tweak": "L4",
-     "basis": "A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser and water of the air and the temperature profile"
+     "basis": "A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser, and water of the air and the temperature profile"
     }
    ],
    "windows": [],
@@ -928,7 +928,7 @@
      "sigma_high": 40.0,
      "tier": "T8",
      "tweak": "L3",
-     "basis": "Liquid below 304 K, supercritical above that and about 73 bar (life-classes.md 3.1)"
+     "basis": "Liquid below 304 K, supercritical above that, and about 73 bar (life-classes.md 3.1)"
     }
    ],
    "life": {
@@ -1164,6 +1164,6 @@
   "hydrogen_inventory_floor": 1.0,
   "tier": "T9",
   "tweak": "L4",
-  "basis": "The index's chemistry term needs carbon, nitrogen and hydrogen in Earth units, and hydrogen comes from the water; a class that does not drink water gets its hydrogen from the supply term (GEN.887), so its inventory is held at this floor, and phosphate is the index's NON_AQUEOUS_PHOSPHATE_UMOL_L"
+  "basis": "The index's chemistry term needs carbon, nitrogen, and hydrogen in Earth units, and hydrogen comes from the water; a class that does not drink water gets its hydrogen from the supply term (GEN.887), so its inventory is held at this floor, and phosphate is the index's NON_AQUEOUS_PHOSPHATE_UMOL_L"
  }
 }

@@ -19,7 +19,7 @@
 {%- if can_edit %}
 {%- set _ = add_edit_actions(actions, 'this sector',
      'Deletes the sector with its systems and phenomena, then generates its place in the galaxy again (a new name and contents). Only for a sector placed in the galaxy.',
-     'Deletes the sector with its systems, phenomena and facilities. Its place in the galaxy is left empty, so it can be generated again.',
+     'Deletes the sector with its systems, phenomena, and facilities. Its place in the galaxy is left empty, so it can be generated again.',
      facilities=False) %}
 {%- endif %}
 {%- if actions %}{%- set _ = groups.append({'id': 'sector', 'target': 'sector:' ~ sector_id, 'actions': actions}) %}{%- endif %}
@@ -67,7 +67,7 @@
 <p class="hint" role="status">{{ message }}</p>
 {%- endfor %}
 {#- ADM.34: every admin action of this page (generate the
-    neighborhood, regenerate and delete the sector) sits behind the one Admin
+    neighborhood, regenerate, and delete the sector) sits behind the one Admin
     menu (partials/admin_menu.html, static/dialogmenus.js) and opens in a
     dialog. The neighborhood's size-and-time check comes back as a dialog
     opened on load. #}

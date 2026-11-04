@@ -711,7 +711,7 @@ def test_free_text_affiliation_wins_and_an_untyped_save_sends_no_fields(app, cli
     ({"type_id": "4", "field_staff": "many"}, "Staff must be a whole number."),
     ({"type_id": "4", "field_output": "lots"}, "Output must be a number."),
     ({"type_id": "4", "field_armed": "maybe"}, "Armed must be yes or no."),
-    ({"rating_crime": "amber"}, "A rating is Green, Yellow or Red."),
+    ({"rating_crime": "amber"}, "A rating is Green, Yellow, or Red."),
 ])
 def test_a_bad_type_field_or_rating_is_reported_before_the_api_is_asked(app, client, fake, form, message):
     fake.types = _types()

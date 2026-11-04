@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1058 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1059 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 149 | 14 | 8 | 1 | 0 | 172 |
+| T1 | 150 | 14 | 8 | 1 | 0 | 173 |
 | T2 | 114 | 42 | 0 | 1 | 0 | 157 |
 | T3 | 84 | 40 | 7 | 9 | 0 | 140 |
 | T4 | 51 | 5 | 1 | 18 | 10 | 85 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 23 | 14 | 5 | 46 | 21 | 109 |
-| All | 600 | 230 | 52 | 144 | 32 | 1058 |
+| All | 601 | 230 | 52 | 144 | 32 | 1059 |
 
 ## How the labels were given
 
@@ -1470,7 +1470,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
 
-## 6.165 Stand-ins of the interior viscosity ranges
+## 6.165 Stand-ins of the habitable bodies per system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HCT1 | D | T1 | L0 | directives.HABITABLE_COUNT_PMF: the share of systems holding each count of habitable bodies, counted from 4,000 default systems of the generator itself | none (a count; re-run the script when the class rules or the planet draw change) | systems of the default configuration; a sector's systems differ by position and star mix (the sector check reads high by about 1.5 sigma) | the script re-run on a new epoch that moves the none-share by more than 3 percent | none: it is the generator's own output, re-measured, not a stand-in for a measurement of the sky | MEASURED (`scripts/measure_habitable_count.py`, seeds 5,000,000 upward, epoch 130) | - | - |
+
+## 6.166 Stand-ins of the interior viscosity ranges
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|

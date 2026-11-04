@@ -444,7 +444,7 @@ def colour_account(look):
         else:
             parts.append("no limb glow: the colour of its air could not be worked out")
     if look.get("quality") == "estimate":
-        missing = "surface composition, clouds and haze" if body == "solid" else "chemistry bands and haze"
+        missing = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
         head = "Partial estimate: "
         tail = f". Not used yet: {missing} (not stored)"
     elif look.get("quality") == "composition":
