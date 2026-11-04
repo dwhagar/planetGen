@@ -30,8 +30,10 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { poiIcon, tokenOf, TIER_NAMES } = await import(`./poiicons.js${VERSION_QUERY}`);
 
 // The most markers drawn at once (MAP.116's rule for the stars: a crowded view must stay readable). Each kind gets
-// an even share of it; a kind that has less hands the rest on.
-export const MARKER_BUDGET = 240;
+// an even share of it; a kind that has less hands the rest on. MAP.367: half of what it was (240); a sector opened in place raises it
+// (galaxymap3d.js's SECTOR_MARKER_BUDGET) and shows every system that fits.
+export const MARKER_BUDGET = 120;
+export const SECTOR_MARKER_BUDGET = 1500;    // an opened sector shows every system that fits, merged only when marks touch
 
 // A marker of a kind with its own size (`extentPc`) is hidden while it would be under this many pixels across.
 export const MIN_EXTENT_PX = 2;

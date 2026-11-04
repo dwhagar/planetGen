@@ -11,7 +11,8 @@
 // three.js here: tests/js/galaxynebulae.test.mjs holds it to this description.
 
 // The most regions drawn at once; the weakest of more are not drawn, and the last tenth of the budget fades out so none pops.
-export const REGION_BUDGET = 600;
+// MAP.367: half of what it was (600).
+export const REGION_BUDGET = 300;
 export const BUDGET_FADE_SHARE = 0.1;
 // The families a region is made of, in the order the server gives their shares (planetgen.galaxy.nebula_blocks.FAMILIES).
 export const FAMILIES = ["diffuse", "emission", "reflection", "planetary", "dark", "supernova-remnant"];

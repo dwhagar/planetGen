@@ -66,8 +66,9 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
+const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { applyPrefs: applyPoiPrefs, savePrefs: savePoiPrefs } = await import(`./poiprefs.js${VERSION_QUERY}`);
 const { bodyMarkers, createHandoff } = await import(`./bodymarkers.js${VERSION_QUERY}`);
@@ -104,7 +105,7 @@ const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSIO
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
 const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
 const {
-  STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
+  STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, TARGET_STARS_OPENED, TARGET_STARS_OPENED_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
@@ -2558,7 +2559,13 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var MAG_RECOMPUTE_MS = 150;
   var MAG_TAU_S = 0.3;
-  var magTarget = window.matchMedia("(max-width: 700px), (pointer: coarse)").matches ? TARGET_STARS_PHONE : TARGET_STARS;
+  var phoneView = window.matchMedia("(max-width: 700px), (pointer: coarse)").matches;
+  // MAP.367: half the stars on the screen except in a sector opened in place, where the old number holds (everything is shown).
+  function starTarget() {
+    if (hiddenCell) return phoneView ? TARGET_STARS_OPENED_PHONE : TARGET_STARS_OPENED;
+    return phoneView ? TARGET_STARS_PHONE : TARGET_STARS;
+  }
+  var magTarget = starTarget();
   var magGoal = 1000;
   var magSignature = "";
   var magComputedAt = 0;
@@ -2573,7 +2580,8 @@ function initGalaxyMap3d(canvasEl, data) {
     magLastFrame = now;
     var n = starList.length;
     var e = camera.matrixWorldInverse.elements;
-    var signature = [starSetVersion, n, e[0], e[1], e[2], e[4], e[5], e[6], e[8], e[9], e[10], e[12], e[13], e[14], canvasEl.clientHeight].join(",");
+    magTarget = starTarget();
+    var signature = [starSetVersion, magTarget, n, e[0], e[1], e[2], e[4], e[5], e[6], e[8], e[9], e[10], e[12], e[13], e[14], canvasEl.clientHeight].join(",");
     if (n && signature !== magSignature && now - magComputedAt >= MAG_RECOMPUTE_MS) {
       magSignature = signature;
       magComputedAt = now;
@@ -4192,6 +4200,10 @@ function initGalaxyMap3d(canvasEl, data) {
     canvasEl.__mapNebulae = nebulaLayer;    // the browser tests read what is drawn
     canvasEl.__mapNebulaVolumes = nebulaVolumes;
     canvasEl.__mapNebulaTint = nebulaTintUniforms;
+    canvasEl.__mapCaps = function () {    // the browser tests read the caps in force (MAP.367)
+      var open = !!(canvasEl.galaxyOpenSector && canvasEl.galaxyOpenSector());
+      return { sectorOpen: open, stars: starTarget(), markers: open ? SECTOR_MARKER_BUDGET : MARKER_BUDGET, phone: phoneView };
+    };
     canvasEl.__mapHoleDots = function () {    // the browser tests count the black holes drawn as purple dots, and the colour they take
       var clipped = starPoints.geometry.getAttribute("starClipped");
       var drawn = 0;
@@ -4543,7 +4555,6 @@ function initGalaxyMap3d(canvasEl, data) {
     regionFrame.set(key ? drillBlockBounds(regionByKey.get(key).block, edgePc) : null);
     stageView.layers.refresh();    // the legend names the outline while it is drawn (MAP.331)
   }
-  var SECTOR_MARKER_BUDGET = 1500;
   var SECTOR_MERGE_PX = 12;
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();
@@ -4841,7 +4852,6 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // MAP.298: what the label engine may name besides the open sector's systems: the named stars the map draws and the
   // named objects of the other kinds, the brightest few hundred of each (the engine keeps the ones with room).
-  var NAMED_LIMIT = 400;
   function starNames() {
     var found = [];
     if (hiddenCell) return found;

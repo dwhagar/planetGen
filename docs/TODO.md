@@ -17091,27 +17091,6 @@ clears each one.
   first. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.111.
 
-- [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
-  Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
-  TODO thread.
-  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
-  failed once in the browser phase of a full `scripts/test.py changed`
-  run (load 8.7, 2 browser workers) and passed when rerun alone (call
-  122.9 s on gw1). Done: the cause is found (a wait that is too short
-  under load, or a real race in the system map drill), the test waits on
-  the condition it needs and not a fixed time, and it passes under the
-  same load with 2 browser workers, with no quarantine. Fails on main:
-  unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
-  full browser phase; try the file with two browser workers and a busy
-  machine.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. The test passed in repeated runs on an idle machine. Needed
-  next time: The failure text of a loaded run (the captured traceback
-  and the browser console) and the load at the time. Running log: the
-  comments on issue #1694.
-  Prerequisites: none.
-
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -19372,37 +19351,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. UX.252 and UX.253 wait for R1 and do their
-  own links in the same pass over the text they already rewrite; this
-  item covers only what they leave: color note, sector estimated text,
-  life class reaches, sheet source lines to links, class page basis.
-  Split by page kind if large. Related: UX.252, UX.253, DOC.83. Owner:
-  Core 5.
-  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
-  References crawl test (tests/test_references_crawl.py) lists today's
-  out-of-universe hits in its KNOWN table; this item's are the sheet
-  source line for the Urey ratio: model. Delete those entries in the
-  same PR that removes the words: an entry that no longer happens fails
-  the test.
-  Prerequisites: DOC.91.
-
-- [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free.  Related: DOC.83. Owner: Core 1.
-  Prerequisites: DOC.93.
-
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of
@@ -19789,7 +19737,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   still resolves to a registry entry. Lock-free, no generator output
   change. Owner: the Citations thread, with Core 5 for the user pages
   (DOC.93) and Sources 1 for the registry. Version 8.1. Prerequisites:
-  DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
+  DOC.100. Related: DOC.94, DOC.96.
   Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
   #4648 (Citations thread): every source has a fixed ID R0123 (anchor
   #paper-r0123 on /references/papers and in docs/REFERENCES.md;
