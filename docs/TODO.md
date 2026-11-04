@@ -1003,23 +1003,6 @@ with `clamp()`.
   template global; use it for links into References.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
-- [ ] **UX.255 Remove the light-theme branches in the map scripts that black map backgrounds left unused**
-  Follow-up to #4633 (maps are drawn on black in either theme; Boss,
-  2026-10-31, as the coordinator relayed, low priority). That change
-  made `mapcore.isLightBackground()` always false and left the
-  light-background branches in the map scripts dead. Do: delete
-  `isLightBackground` and every caller (for example `galaxymap3d.js`
-  `nebulaLooks(isLightBackground())` and its `FILLED_TINT` light shade),
-  the light looks in `nebulalook.js`, the glow layer's `light` option,
-  and `sectorscene.js`'s `lightBackground` uniform, with the shader and
-  test code that only they used, and keep the dark paths exactly as they
-  are. Done: no reference to a light map background is left in
-  `src/html/static`, a search shows it, and the map browser tests pass
-  unchanged. Display only: no schema, API, generator output or epoch
-  change, so lock-free. Owner: none for now (pool; any web lane that is
-  waiting). Version 8.1.
-  Prerequisites: none. Related: MAP.210.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -11924,30 +11907,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
-- [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 5: a generated
-  index over planets, moons, asteroid_belts, comets, rings and the
-  individual belt members, recommended as a view first (no new storage),
-  with the mass-conservation sum and the barycentre test (the star's
-  wobble from the belts). Output: a design note under
-  docs/design/systems/ and the pure barycentre function. Done: note
-  merged, function tested. Lock-free. Where we think it belongs (best
-  guess, can move): Planets 1 (owns the clearance ledger GEN.1014 the
-  belt gap map plugs into), after the GEN.1014 wiring; separate branch.
-  Prerequisites: GEN.1014. Related: GEN.1006.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -14303,25 +14262,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Prerequisites: none.
 
-- [ ] **GEN.1237 An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug)**
-  Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
-  2026-11-01 on main b153f0209; 40 seeds per twin, G2V star), filed by
-  the TODO thread. The Earth twin's N2 is good (median 3.7e18 kg against
-  3.9e18 observed) but its climate is not: only 1 of 40 is temperate
-  (260 to 330 K); the median is 376 K at 3.7 bar, and the classes drawn
-  are H, M, N and O. The one temperate twin holds about 1e23 kg of ocean
-  (a rough estimate, ocean fraction times depth) against Earth's 1.4e21.
-  Do: separate the causes (water inventory and delivery, the greenhouse
-  at 3.7 bar of mostly N2 and CO2, the albedo, the class rules) with a
-  sweep of the same 40 seeds, print temperate count and ocean mass per
-  class, and fix the weakest law or register a stand-in in GEN.725 with
-  tier and tweak level. Earth is a plausibility target here, never fixed
-  content. Lock work if stored values change (epoch, census). Related:
-  GEN.819, GEN.909 (cold ecosphere), GEN.822, GEN.830, GEN.837 (class
-  N), GEN.1236. Owner: none yet.
-  Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **GEN.1238 A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug)**
   Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
   2026-11-01 on main b153f0209; 40 seeds), filed by the TODO thread. The
@@ -14336,6 +14276,70 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a stand-in in GEN.725. Venus is a plausibility target here, never
   fixed content. Lock work if stored values change. Related: GEN.819,
   GEN.1236, GEN.909. Owner: none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1240 The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug)**
+  Found by Aux 7's GEN.1238 work (as the lane reported, 6:50 AM EST on
+  2026-11-04), filed by the TODO thread. Once a wet body past the
+  runaway limit starts the air fixed point hot (GEN.1238), the
+  water-rich third of such bodies end as steam worlds of 1e4 to 2e5 bar,
+  but the greenhouse table is held at 1000 bar, so those airs read 700
+  to 1300 K, which is too cool for that column. Do: extend the
+  greenhouse opacity table beyond 1000 bar from the source
+  (collision-induced and pressure-broadened water and CO2 opacity at
+  high pressure; find the source first) or register a stand-in in
+  GEN.725 with tier and tweak level; check Venus (92 bar, 737 K) stays
+  put. Lock work (stored temperature changes). Related: GEN.1238,
+  GEN.974 (cloud albedo). Owner: Aux 7.
+  Prerequisites: GEN.1238.
+  Prerequisites: none.
+
+- [ ] **GEN.1241 Wire the system body view: the ledger and barycentre function read the typed tables for the system page**
+  From Planets 1's GEN.1066 (merged as #4754, 7:11 AM EST on
+  2026-11-04), filed by the TODO thread. The pure ledger and barycentre
+  module (physics/system_bodies.py, design note
+  docs/design/systems/system-bodies-ledger.md) is on main and tested,
+  but nothing calls it: the view over the typed tables (stars, planets,
+  moons, belts, comets) that gives a system its body ledger and
+  barycentre is a view with no new storage, and it needs the belt member
+  rows of GEN.1069. Do: add the view (read-side only) and wire it to the
+  system page and the API, listing every body with its mass and its
+  barycentre offset, and remove the wiring-register line for the module.
+  Done: a system page shows its barycentre and the belt wobble, with
+  units, from the stored rows; a test pins it. Lock-free if no stored
+  value changes. Owner: Planets 1.
+  Prerequisites: GEN.1069.
+  Prerequisites: none.
+
+- [ ] **GEN.1242 The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread.
+  tests/test_prevalence_phenomena_census.py: the reference galaxy's star
+  formation rate reads 4.0 solar masses a year against a hard assert of
+  1 to 3; the Milky Way is about 1.7. It is a hard assert, not a
+  taggable range, so the census stays red until someone looks. Likely
+  moved by trains 6 to 8 (halo mass function GEN.1154, alpha tracks
+  GEN.1024, the disc gas law GEN.999, clusters). Do: find which change
+  moved it, check the reference galaxy against the source-derived range
+  (the Milky Way is a plausibility target, never fixed content), and fix
+  the law or the test range with the reason stated; register any
+  stand-in in GEN.725. Lock work if stored values change. Related:
+  GEN.1202. Owner: Core 3 (galaxy history).
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **GEN.1243 The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. The class
+  census white dwarf share is 8.2 percent against the observed range of
+  4.1 to 7.5 percent (the nearby-star census gives 5.6). Candidates: the
+  helium-core white dwarfs and the continuous cooling track of train 8
+  (GEN.996, GEN.1137, now retired), the star mass function epoch
+  (GEN.927), or the age-metallicity history. Do: print the white dwarf
+  share per population with each candidate switched off, find the cause,
+  and fix the law or register a stand-in in GEN.725. Lock work if stored
+  values change. Owner: Bug 1.
   Prerequisites: none.
   Prerequisites: none.
 
@@ -14912,6 +14916,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
+  Prerequisites: none.
+
+- [ ] **PERF.231 The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug)**
+  Found by the Train Manager's census re-tag on main b494b0b73 (epoch
+  130), 7:30 AM EST on 2026-11-04, filed by the TODO thread. In two
+  separate runs the class census timed out in 8 cells: F5V, G2V, K0III,
+  K5V and M2V in the ecosphere, hot and cold (K5V ecosphere 4 draws);
+  zero before epoch 130. Do: bisect the draw time (an air solve that no
+  longer converges quickly, the hot start of GEN.1238 is not on main yet
+  so look at the train 8 changes: GEN.1160 roundness, giants, belts,
+  GEN.1174), print the time per stage for one slow seed per cell, and
+  fix the slow stage. Done: the census cells finish under the limit and
+  a test pins the slow seed. Lock-free if output is unchanged. Owner:
+  Bug 1.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19127,6 +19146,28 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
+- [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
+  Found by the full-suite thread (first pass on main 7eef24a, to 53
+  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
+  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
+  Failures re-run alone and real on 7eef24a, none diagnosed: (1)
+  tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
+  (the /search page shows H2, N2, O2, H2O, CO2, CH4 formulas unwritten);
+  (2)
+  tests/test_web_fresh_after_cli.py::test_galaxy_map_and_nodes_show_sectors_the_cli_placed
+  and ::test_sector_page_and_nodes_show_a_phenomenon_the_cli_added
+  (CLI-placed sectors missing from the map and nodes); (3)
+  tests/test_bughunt_cli_edges.py::test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill;
+  (4) the 900 s timeouts in test_prevalence.py (asteroid_belt-30,
+  large_star-100, large_star--100, planets--40, comets-0.3 plus or minus
+  100, no binaries at minus 100 and more at plus 50), already tracked by
+  PERF.229 for the fuzz case. Do: re-run each on current main first
+  (many commits since 7eef24a), keep only those that still fail,
+  root-cause each, and file or fix. Done: each failing test has a cause
+  and an owner or a fix. Owner: full-suite thread, with Bug 1.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts
