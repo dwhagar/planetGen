@@ -1,0 +1,44 @@
+{#- The stand-in registry (web/references_pages.py, web/lib/references_site.py, DOC.90): every stand-in, with filters. -#}
+{% extends "base.html" %}
+{% from "partials/ui_fields.html" import ui_input, ui_select with context %}
+{% block body_class %} references-mode{% endblock %}
+{% block content %}
+<aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>
+<section class="panel" id="stand-ins" aria-labelledby="stand-ins-heading">
+  <div class="panel-header"><h2 id="stand-ins-heading">{{ page.title }}</h2></div>
+  {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+  <form method="get" action="{{ request.path }}#results" class="search-form" aria-label="Filter the stand-ins">
+    {{ ui_input("text", "Words in the stand-in", page.filters.text, maxlength=100) }}
+    {{ ui_select("tier", "Source tier", page.tier_options, page.filters.tier) }}
+    {{ ui_select("tweak", "Tweak level", page.tweak_options, page.filters.tweak) }}
+    {{ ui_select("section", "Section", page.section_options, page.filters.section) }}
+    <div class="search-actions"><button type="submit" class="btn">Show</button></div>
+  </form>
+</section>
+<section class="panel" id="results" aria-labelledby="results-heading">
+  <div class="panel-header"><h2 id="results-heading">{{ "{:,}".format(page.found) }} of {{ "{:,}".format(page.total) }} stand-ins</h2></div>
+  {%- if not page.sections %}<p>No stand-in matches these filters.</p>{% endif %}
+  {%- for part in page.sections %}
+  <h3 id="section-{{ part.slug }}">{{ part.number }} {{ part.title }}</h3>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Stand-in</th><th scope="col">What it is</th><th scope="col">Tier</th><th scope="col">Tweak</th></tr></thead>
+    <tbody>
+      {%- for row in part.rows %}
+      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id }}</a></th><td>{{ row.what }}</td><td>{{ row.tier }}</td><td>{{ row.tweak }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endfor %}
+</section>
+<section class="panel" id="legends" aria-labelledby="legends-heading">
+  <div class="panel-header"><h2 id="legends-heading">The tiers and tweak levels</h2></div>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Tier</th><th scope="col">Name</th><th scope="col">Meaning</th></tr></thead>
+    <tbody>{%- for code, name, meaning in page.tiers %}<tr><th scope="row">{{ code }}</th><td>{{ name }}</td><td>{{ meaning }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Level</th><th scope="col">Name</th><th scope="col">Meaning</th></tr></thead>
+    <tbody>{%- for code, name, meaning in page.tweaks %}<tr><th scope="row">{{ code }}</th><td>{{ name }}</td><td>{{ meaning }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

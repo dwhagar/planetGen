@@ -21,24 +21,35 @@ Output, in `docs/references/`:
 * `overview.json`: the counts the start page shows (papers, links, datasets, archives, stand-ins by tier and by tweak), the legends of the
   tiers and tweak levels, and the headline verdict, computed from the counts.
 
-Later items add their files here (the papers, data, stand-in, method and speculative pages: DOC.89 to DOC.92); each build function is added
+* `stand-ins.json` (DOC.90): every row of the stand-in registry, section by section, with the legend text of each field, the item that will
+  wire it (`wiring-register.md`) and what a hand-tuned row needs (`burn-down-register.md`). One page of `/references/stand-ins/<slug>`
+  is built from each row.
+* `fitted.json` (DOC.90): the tuning targets (`src/planetgen/physics/data/tuning_targets.json`) that the rows tuned to a published
+  statistic point at, for `/references/fitted`.
+
+Later items add their files here (the papers, data, method and speculative pages: DOC.89, DOC.91 and DOC.92); each build function is added
 to `BUILDERS`, and `--check` covers it at once.
 """
 
 import argparse
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(ROOT, "src"))
 
 import build_references as refs  # noqa: E402
 import build_stand_in_values as stand_ins  # noqa: E402
 
 DATA = os.path.join(ROOT, "docs", "reference", "references-data.json")
 PLAN = os.path.join(ROOT, "docs", "design", "research", "gap-filling-plan.md")
+WIRING = os.path.join(ROOT, "docs", "design", "research", "wiring-register.md")
+BURN_DOWN = os.path.join(ROOT, "docs", "design", "research", "burn-down-register.md")
+TARGETS = os.path.join(ROOT, "src", "planetgen", "physics", "data", "tuning_targets.json")
 OUT = os.path.join(ROOT, "docs", "references")
 
 READ_FROM_A_SOURCE = ("T1", "T2")
@@ -164,7 +175,108 @@ def build_citations():
     return {"aliases": dict(sorted(cache.get("id_aliases", {}).items())), "sources": sources}
 
 
-BUILDERS = {"overview.json": build_overview, "citations.json": build_citations}
+KINDS = {"D": "derived from a source", "B": "bracket between sources", "T": "theory", "P": "placeholder"}
+"""dict: The kind letters of a registry row (`gap-filling-plan.md`, section 5): a value derived from a source, a bracket between sources, a
+theory fill, or a placeholder with no source."""
+
+FIELD_LABELS = {
+    "Fill (ranked)": "How it is filled", "Draw": "How it is drawn", "Wrong if": "It is wrong if", "Result lands as": "The result lands as",
+    "constant": "What it is", "knobs": "The range it moves in", "validity": "Where it holds", "falsifier": "What would show it wrong",
+    "replaced_by": "What replaces it", "evidence": "Evidence", "stand-in": "What it is", "sources": "Sources", "Range": "The range",
+    "Label": "How it is labeled", "Source": "Source",
+}
+"""dict: The words a field of a registry table goes by on a stand-in's page."""
+
+HEADLINE = ("constant", "Fill (ranked)", "stand-in", "Lever")
+"""tuple: The columns that say what a row is, the first one a table has; the index shows its first words."""
+
+SKIP_FIELDS = ("Id", "fill_id", "Lever", "Kind", "kind", "Tier", "tier", "Tweak", "tweak")
+"""tuple: The columns a stand-in's page shows in its head and not in its body."""
+
+
+def clean(text):
+    """A registry cell as the page shows it: no markdown ticks, one line."""
+    return " ".join(text.replace("`", "").split())
+
+
+def build_stand_ins():
+    """
+    The stand-in pages (DOC.90): `{"sections": [{"key", "number", "title", "slug", "rows": [row]}], "kinds"}`; a row is `{"key", "slug", "id", "kind", "tier",
+    "tier_code", "tweak", "what", "fields": [[label, text]], "unread", "burn_down"}`. The key is the registry's own (`6.7:AM1`, the section and the id)
+    and the slug is the page's address (`6-7-am1`). Every text is passed through the citation links of the References pages, so an unknown ID
+    or an author and year written out stops the build and names the row.
+    """
+    from planetgen.web.lib import citations, reference_urls
+    cites = build_citations()
+    with open(PLAN, encoding="utf-8") as handle:
+        plan = handle.read()
+    tables = stand_ins.registry_tables(plan)
+    found = stand_ins.problems(tables)
+    if found:
+        raise ValueError("the stand-in registry is not complete: " + "; ".join(found[:3]))
+    with open(WIRING, encoding="utf-8") as handle:
+        unread = stand_ins.unread_rows(handle.read())
+    with open(BURN_DOWN, encoding="utf-8") as handle:
+        burn = stand_ins.burn_down_rows(handle.read())
+    sections, slugs = [], {}
+    for key, number, title, _columns in stand_ins.sections():
+        header, rows = tables[key]
+        lowered = [name.lower() for name in header]
+        out = []
+        for row in rows:
+            cells = dict(zip(header, row))
+            row_key = f"{number}:{row[0].strip('`')}"
+            slug = reference_urls.anchor(row_key)
+            if slug in slugs:
+                raise ValueError(f"{row_key} and {slugs[slug]} are the same page address {slug}")
+            slugs[slug] = row_key
+            tier_cell = clean(cells[header[lowered.index("tier")]])
+            head = next((clean(cells[name]) for name in HEADLINE if name in cells and cells[name]), clean(row[0]))
+            if "Fill (ranked)" in cells and head == clean(cells["Fill (ranked)"]):
+                head = clean(stand_ins._first_option(cells["Fill (ranked)"]))
+            by_label = "Kind" not in cells and "kind" not in cells
+            kind = clean(cells.get("Kind") or cells.get("kind") or cells.get("Label") or "")
+            kind = {name.split()[0]: letter for letter, name in KINDS.items()}.get(kind, kind)
+            fields = [[FIELD_LABELS.get(name, name), clean(cells[name])] for name in header
+                      if name not in SKIP_FIELDS and not (by_label and name == "Label") and cells[name].strip() not in ("", "-")]
+            if head == clean(row[0]) and fields:
+                head = f"{head}: {fields[0][1]}"
+            for text in [head] + [text for _label, text in fields]:
+                try:
+                    citations.link(text, cites, strict=False)
+                except citations.CitationError as error:
+                    raise ValueError(f"stand-in {row_key}: {error}") from error
+            disposition = burn.get(row_key)
+            out.append({
+                "key": row_key, "slug": slug, "id": clean(row[0]),
+                "kind": kind,
+                "tier": tier_cell, "tier_code": stand_ins.TIER_CODE.match(tier_cell).group(0),
+                "tweak": clean(cells[header[lowered.index("tweak")]]), "what": head, "fields": fields,
+                "unread": unread.get(row_key), "burn_down": list(disposition) if disposition else None,
+            })
+        sections.append({"key": key, "number": number, "title": re.sub(r"^\d+\.\d+a? ", "", title), "slug": reference_urls.anchor(title), "rows": out})
+    return {"kinds": KINDS, "sections": sections}
+
+
+def build_fitted():
+    """The tuning targets for `/references/fitted` (DOC.90), as `{"targets": [target]}`; each target keeps what the table states about it."""
+    from planetgen.web.lib import citations
+    cites = build_citations()
+    with open(TARGETS, encoding="utf-8") as handle:
+        table = json.load(handle)
+    targets = []
+    for target in table["targets"]:
+        entry = {name: target.get(name) for name in ("id", "row", "statistic", "kind", "value", "sigma", "n", "label", "source", "falsifier", "role")}
+        for name in ("statistic", "source", "falsifier"):
+            try:
+                citations.link(entry[name] or "", cites, strict=False)
+            except citations.CitationError as error:
+                raise ValueError(f"tuning target {entry['id']}: {error}") from error
+        targets.append(entry)
+    return {"targets": targets}
+
+
+BUILDERS = {"overview.json": build_overview, "citations.json": build_citations, "stand-ins.json": build_stand_ins, "fitted.json": build_fitted}
 """dict: `{file under docs/references/: function that returns its data}`."""
 
 

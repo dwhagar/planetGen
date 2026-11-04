@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1045 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1049 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 150 | 13 | 8 | 1 | 0 | 172 |
 | T2 | 112 | 42 | 0 | 1 | 0 | 155 |
-| T3 | 83 | 38 | 7 | 9 | 0 | 137 |
-| T4 | 51 | 5 | 1 | 17 | 10 | 84 |
-| T5 | 44 | 18 | 3 | 1 | 0 | 66 |
+| T3 | 84 | 38 | 7 | 9 | 0 | 138 |
+| T4 | 52 | 5 | 1 | 17 | 10 | 85 |
+| T5 | 47 | 19 | 2 | 1 | 0 | 69 |
 | T6 | 96 | 82 | 20 | 51 | 0 | 249 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 23 | 14 | 5 | 46 | 21 | 109 |
-| All | 591 | 227 | 52 | 143 | 32 | 1045 |
+| T9 | 22 | 14 | 5 | 46 | 21 | 108 |
+| All | 595 | 228 | 51 | 143 | 32 | 1049 |
 
 ## How the labels were given
 
@@ -146,7 +146,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | `--nuclear-amplitude` | 0 to 10 | placeholder | T4 | L0 | hand option of the first plan, no source | - | - |
 | `--edge` | 4 to 262140 pc, or 3 to 20 L | derived | T2 | L0 | relative: Boss, 10-21 (7:01 PM EDT), 3 to 20 scale lengths; absolute: one 4 pc shell up to the grid's reach of 65,535 shells, 262 kpc (spherical.MAX_ADDRESSABLE_SHELL) | - | - |
 | `--halo-ratio` | 10 to 3000 | derived | T2 | L0 | the relation's own range: a halo holds 26 times its stars at the peak of star formation efficiency ([R3181], read in the repository) and 2200 times at the halo threshold of 1e10 solar masses; the ends are those, rounded | - | - |
-| `--stellar-halo-share` | 0.001 to 0.3 | bracket | T3 | L0 | the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (the disc-dominated galaxies of [R0329]), read in structure_draw | - | - |
+| `--stellar-halo-share` | 0.001 to 0.3 | bracket | T3 | L0 | the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (the disk-dominated galaxies of [R0329]), read in structure_draw | - | - |
 | `--richness` | 1 to 3 systems per solar mass | bracket | T3 | L0 | the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4 | - | - |
 | `--arm-count` | 1 to 10 | placeholder | T4 | L0 | [R1836] counts 1 to 5 or more arms; the ceiling of 10 is a placeholder | - | - |
 | `--pitch-angle-deg` | -90 to 90 degrees, at least 1 away from 0 | placeholder | T4 | L0 | [R1836] draws 10 to 40; the full quarter turn is a placeholder; under 1 degree from 0 is refused because a flat pitch divides by zero (density-limits report, 10-21) | - | - |
@@ -1412,8 +1412,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| HY1 | T | T2 | L1 | hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; [R1717] give 2 to 8 oceans for 0.5 to 5 Earth masses) | the ends 1 to 4 and 4 to 16 oceans | rocky bodies with a mantle | a mantle storage law from the mantle's melt and its pressure | the GEN.1146 report (the paper read to Section 3); the power-law join between the ends is the lane's | - | - |
-| HY2 | P | T5 | L2 | hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999 | shares 0.5 to 0.7; heights and spreads half to double | rocky bodies with a surface | a hypsometry measured on Earth and the Moon, Venus and Mars, with the continental share tied to the tectonic regime and age [R5075] | Earth's 0.71 ocean cover; [R0914] (two levels, relief as 1 / g) and Guimond et al. (continental crust about 40 percent) as the form | - | - |
+| GS2 | T | T5 | L0 | giant_structure.StructureSubject.resolved | the layers of the subject | any gas giant, ice giant or brown dwarf | a structure with the dilute core and the gradient the layers of `giant_interior.py` carry | the heavy elements sit in a core and a mixed envelope of the envelope metallicity Z of GEN.460, with a core of what is left (no dilute core, no gradient, no helium rain inside the structure); giant-interiors.md section 2 [R1895, R2852] say a real giant is more mixed, which moves the central pressure more than the boundary pressures | - | - |
+| GS3 | T | T5 | L1 | hhe_eos.IVL_SLOPE_RANGE | -1.2 to 3.0, fixed | helium shares near 0.275 (0.2 to 0.35) | the tables of [R0708] at other Y, or a helium-rain structure | hydrogen and helium mix by the ideal volume law, the specific volume of the Y = 0.275 mixture of the table moved by the volume difference of the two pure tables over the mixture's (`ivl_slope`), the way [R0709] mix them; the table's own interaction term is kept at 0.275 and the slope is held to the range a physical fluid can have; the helium share is the natal one for the whole body (rain is not in the structure) | - | - |
+| GS4 | T | T5 | L0 | giant_structure.HEAVY_NODES_PA | 1e5 to 1e17 Pa, 220 nodes | the core, the mantle and the heavy elements mixed into the envelope | equations of state of ammonia and methane and of mixtures at the temperature of the adiabat | the density of the heavy elements is a volume sum (the ideal volume law) of the repository's iron (Vinet), silicate and water curves, each at its own fixed temperature, tabulated on 220 nodes in ln P from 1 bar to 1e17 Pa; ammonia and methane ice take the water curve | - | - |
+| GS5 | T | T5 | L0 | hhe_eos.DIATOMIC_ADIABATIC_GRADIENT | 2/7, fixed | the one-bar temperature of an ice giant or a cold gas giant (under 100 K) | a hydrogen-helium table to 30 K, or a molecular-hydrogen equation of state with the ortho-para states | the tables start at 100 K, so an adiabat colder than that is carried up the molecular gas's own adiabat, d ln T / d ln P of a diatomic ideal gas (2/7), to where it reaches 100 K and the entropy there is read; the one-bar temperature the model reports is the inverse of that, good to a few percent | - | - |
+| GS6 | D | T3 | L0 | giant_structure.RADIUS_TOLERANCE | 2e-4 of the radius, fixed | a body whose adiabat stays out of the solid and low-density regions (all giants) | the tables' own newer release | the values of the tables in the solid phase, beyond the first-order quantum correction of the ions and at very low density are unphysical (the archive's README); they are read as they stand and the volume slope is bounded (GS3), and the adiabat is a line of the table's entropy because the table's adiabatic gradient carries numerical noise; the fit stops where the radius is met to 2e-4 | - | - |
+| GS7 | T | T6 | L0 | giant_structure.CENTRE_MASS_FRACTION, CENTRE_RADIUS_FRACTION | 2e-3 and 0.02, fixed | the centre of every giant | an integration to the centre with the core's own equation of state | the integration stops where 0.2 percent of the mass is left inside (or at 2 percent of the radius) and closes the rest as a sphere of the density there; the central pressure is the sphere's, which is within the step of the model's accuracy for the boundary pressures and good to some tens of percent for the centre of a body with a dense core | - | - |
+| GS8 | P | T4 | L0 | giant_interior.ICE_GIANT_ROCK_FRACTION_RANGE | 0.05 to 0.67, uniform | ice giants | a sourced lower bound from the non-adiabatic interior models | the lower end of the rock and iron share of an ice giant's heavy elements, 0.05, has no source left (the paper it came from is not in the reference list); the upper end 0.67 is [R4880] (rock to water at most 2) | - | - |
 
 ## 6.135 Stand-ins of a giant's internal heat
 
@@ -1589,8 +1594,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| EJ1 | P | T9 | L0 | scatter.EJECTION_THETA_EXPONENT 2 and LOSS_BOUND_WEIGHT 1: ejection goes to collision as Theta^2, and a scattered body that is neither hit nor thrown out has the weight of a collision | exponent 1 to 3; bound weight 0.3 to 3 | bodies scattered by one perturber whose Safronov number runs from 0.05 (an Earth) to 20 (a hot super-Jupiter) | an N-body run of embryos scattered by a giant whose ejected share differs from Theta^2/(Theta^2+2) by more than a factor of 2 at Theta 0.3 to 3 | the ejected share of a scattering run (the [R0258] setup, [R0258]) | educated guess from physics ([R3867]: a hit grows with the focusing 1 + Theta, a throw-out needs the escape speed) | - | - |
-| EJ2 | D | T6 | L0 | scatter.DISC_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build | 1e6 to 1e7 | losses the build makes while giants move and crowd | a lost planet whose recorded time is not in the disc era | the delay distribution of the architecture's own instabilities (rogue_age RG1, RG2) | [R1750] (recalled, ApJ 553 L153: half of the discs lost by 3 Myr) | - | - |
+| GV1 | P | T2 | L1 | planet_classes.json class V: gravity_g min 2.0 (a body with air at 2 g or more is class V; below it the other rows decide) | 1.5 to 2.0 g (Boss left the choice; 1.5 g is about 1.3 Earth radii) | terrestrial bodies with air | a measured occurrence of rocky planets above 1.5 Earth radii with thin N2 and O2 air at a temperate surface, or a habitability model that scores 1.5 to 2 g as unsafe | the high-gravity rows of the habitability index (GEN.646 family) once they read the finished body | [R0572] limit of 1.5 Earth radii for Earth-sized planets (read, per the class M report); the 2 g value is chosen from it by the rocky mass-radius law, not measured | - | - |
 
 ## 6.128 Stand-ins of the class lines of the train 6 epoch
 

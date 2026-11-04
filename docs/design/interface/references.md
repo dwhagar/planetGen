@@ -1,6 +1,6 @@
 # Help > References: the out-of-universe section (DOC.87 to DOC.94)
 
-Status: R1 (DOC.87) and R2 (DOC.88) built; R3 to R8 planned. Boss asked for this on 2026-10-31 (2:49 PM EDT) and approved the design.
+Status: R1 (DOC.87), R2 (DOC.88) and R4 (DOC.90) built; R3 and R5 to R8 planned. Boss asked for this on 2026-10-31 (2:49 PM EDT) and approved the design.
 
 ## The idea
 
@@ -25,6 +25,8 @@ registry) and how it was decided, what was fitted to a result, and how scientifi
   (`docs/reference/references-data.json`) and the stand-in registry (`gap-filling-plan.md`, read by `build_stand_in_values.py`'s parser).
   `--check` fails when the committed file differs, and `tests/test_references_pages.py` holds that; `update.sh` runs the build in step 3 and
   a failure only warns. Later items add their files to `BUILDERS` in the script and their pages to `web/references_pages.py`.
+
+* **The stand-in pages (DOC.90).** `scripts/build_reference_pages.py` writes `docs/references/stand-ins.json` (every row of the GEN.725 registry, section by section, with the field labels as a page prints them, the item from `wiring-register.md` that will wire it and the line of `burn-down-register.md`) and `fitted.json` (the tuning targets of `src/planetgen/physics/data/tuning_targets.json`). `/references/stand-ins` filters the rows by `tier`, `tweak`, `section` and `text` (a plain GET form). `/references/stand-ins/<slug>` is one page per row; the slug is the anchor of the registry key, the section number and the id (`6.7:AM64` is `6-7-am64`), because the plan reuses an id in several sections, and the build fails when two rows would share a slug. `reference_urls.reference_path("stand-in", "6.7:AM64")` is the one way to write the address; an id alone is an error. `/references/fitted` lists the rows at L2 to L4 and the targets. A citation in a row is a link (`references_site.cite`, not strict, because a row also says "decided by Boss on 2026-10-21"); the build refuses an ID the reference list does not hold and names the row. Sections that share a number (6.127 and 6.134 each head two tables) are read under their own titles (`build_stand_in_values.section_key`).
 
 ## The page tree
 

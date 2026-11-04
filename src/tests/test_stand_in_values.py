@@ -20,7 +20,7 @@ TABLES = builder.registry_tables(TEXT)
 
 
 def test_every_registry_table_is_found_and_has_rows():
-    assert set(TABLES) == {number for number, _, _ in builder.SECTIONS}
+    assert set(TABLES) == {key for key, *_rest in builder.sections()}
     assert all(rows for _, rows in TABLES.values())
 
 
@@ -31,18 +31,18 @@ def test_every_registry_row_has_a_source_tier_and_a_tweak_level():
 @pytest.mark.parametrize("cell,ok", [("T1", True), ("T7 (core), T2 (peak)", True), ("T9", True), ("T0", False), ("T10", False),
                                      ("", False), ("verified", False)])
 def test_a_tier_cell_must_open_with_a_tier_from_one_to_nine(cell, ok):
-    tables = {number: (["Id", "Tier", "Tweak"], [["X", cell, "L0"]]) for number, _, _ in builder.SECTIONS}
+    tables = {key: (["Id", "Tier", "Tweak"], [["X", cell, "L0"]]) for key, *_rest in builder.sections()}
     assert (builder.problems(tables) == []) is ok
 
 
 @pytest.mark.parametrize("cell,ok", [("L0", True), ("L4", True), ("L5", False), ("", False), ("L1, L2", False)])
 def test_a_tweak_cell_is_one_level_from_zero_to_four(cell, ok):
-    tables = {number: (["Id", "Tier", "Tweak"], [["X", "T1", cell]]) for number, _, _ in builder.SECTIONS}
+    tables = {key: (["Id", "Tier", "Tweak"], [["X", "T1", cell]]) for key, *_rest in builder.sections()}
     assert (builder.problems(tables) == []) is ok
 
 
 def test_a_row_without_the_columns_is_named():
-    tables = {number: (["Id", "Kind"], [["X", "D"]]) for number, _, _ in builder.SECTIONS}
+    tables = {key: (["Id", "Kind"], [["X", "D"]]) for key, *_rest in builder.sections()}
     assert all("no Tier and Tweak columns" in message for message in builder.problems(tables))
 
 
