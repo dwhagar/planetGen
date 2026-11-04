@@ -2058,105 +2058,87 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 
 # --- Planet Classification Data ---
 
-# The words that describe each class, and its kind ('t' for terrestrial, 'g' for gas giant). A class is derived from a finished body's
+# The composition text of each class, and its kind ('t' for terrestrial, 'g' for gas giant). The words that describe a class are
+# in `physics/data/planet_class_text.json` (GEN.1212). A class is derived from a finished body's
 # conditions (`physics/planet_classes.py`, `physics/data/planet_classes.json`); nothing here says what a body of the class
 # looks like for generation: no radius, zone, density, albedo or probability.
 PLANET_CLASSES = {
     'A': {
-        "description": 'a small, barren, and volcanic world, occasionally scarred by intense, toxic eruptions',
         "composition": 'igneous silica and basalt',
         "type": 't',
     },
     'B': {
-        "description": 'a small, molten world, occasionally the stripped core of a former gas giant',
         "composition": 'iron, potassium, silicon, and sulfur',
         "type": 't',
     },
     'C': {
-        "description": 'a dead world',
         "composition": 'anthracite, basalt, and hydrocarbons',
         "type": 't',
     },
     # GEN.1160: Class D is a rule over the finished body's conditions (`physics/data/planet_classes.json`): no air, round (a roundness ratio of 1 or more) and under 0.1 Earth masses.
     # Rock or ice, a dwarf planet or a moon; a body under a roundness ratio of 1 is an Asteroid and has no letter. At 0.1 Earth masses and over, an airless body is Class C.
     'D': {
-        "description": 'a small airless world',
         "composition": 'rock, ice, and frozen hydrocarbons',
         "type": 't',
     },
     'E': {
-        "description": 'a deep-frozen world',
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     'F': {
-        "description": 'a volcanic world with shallow seas',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'G': {
-        "description": 'a rocky, barren world',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'H': {
-        "description": 'a desert world with little liquid water',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'I': {
-        "description": 'an ice giant with a tilted magnetic field',
         "composition": 'rock, ice, methane, and ammonia',
         "type": 'g',
     },
     'J': {
-        "description": 'a gas giant with a turbulent atmosphere and rings',
         "composition": 'hydrogen and helium',
         "type": 'g',
     },
     'K': {
-        "description": 'an adaptable world',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'L': {
-        "description": 'a marginally habitable world',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'M': {
-        "description": 'a temperate terrestrial world',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'N': {
-        "description": 'a hot world',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'O': {
-        "description": 'an ocean world with most of its surface covered in liquid water',
         "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
     'P': {
-        "description": 'a cold, glaciated world',
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     'S': {
-        "description": 'a barren, rocky Super-Earth, its surface molten when it orbits close to its star',
         "composition": 'silicate rock over a large iron core',
         "type": 't',
     },
     'T': {
-        "description": 'a gas dwarf with a thick atmosphere',
         "composition": 'hydrogen, helium, and hydrocarbons',
         "type": 'g',
         "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
     'V': {
-        "description": 'a Super-Earth with high gravity',
         "composition": 'iron, iridium, tungsten, and nickel',
         "type": 't',
     },

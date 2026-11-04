@@ -23,8 +23,8 @@ from planetgen.db import store
 PROSE_TEXT_COLUMNS = {
     # Galaxy schema: generated prose and the summaries shown on pages.
     ("facilities", "description"), ("facilities", "ratings_note"), ("facility_types", "description"),
-    ("facility_type_fields", "choices"), ("planets", "description"), ("planets", "atmosphere"),
-    ("planets", "composition"), ("moons", "description"), ("moons", "atmosphere"),
+    ("facility_type_fields", "choices"), ("planets", "atmosphere"),
+    ("planets", "composition"), ("moons", "atmosphere"),
     ("moons", "composition"),
     ("star_systems", "location"), ("star_systems", "system_flavor_text"),
     ("asteroid_belts", "composition_summary"), ("asteroid_fields", "composition_summary"),

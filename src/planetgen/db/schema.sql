@@ -2283,7 +2283,6 @@ CREATE TABLE IF NOT EXISTS planets (
     volume_km3                DOUBLE NOT NULL,   -- derived, stored not recomputed
     period_years              DOUBLE NOT NULL,   -- derived, stored not recomputed
     zone                      VARCHAR(4) CHECK (zone IN ('h', 'e', 'c')),
-    description               TEXT,
     gravity_g                 DOUBLE,
     surface_temperature_k     DOUBLE,
     density_g_cm3             DOUBLE,
@@ -2695,7 +2694,6 @@ CREATE TABLE IF NOT EXISTS moons (
     volume_km3                DOUBLE NOT NULL,
     period_years              DOUBLE NOT NULL,
     zone                      VARCHAR(4) CHECK (zone IN ('h', 'e', 'c')),
-    description               TEXT,
     gravity_g                 DOUBLE,
     surface_temperature_k     DOUBLE,
     density_g_cm3             DOUBLE,
