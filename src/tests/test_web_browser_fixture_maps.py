@@ -29,7 +29,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
-    map_site,
+    map_site, nebula_volume_payload,
 )
 
 PRIME_CODE = provisional_sector_designation(1, 0, 1)
@@ -1616,6 +1616,90 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     parsecs away), in a close view of the block as well as a far one."""
     _open_window(page, map_site, 3, 250, 0, 0, g=3)
     page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
+
+
+VOLUMES = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes"
+
+
+def _volume_open(page, map_site):
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.drawn() > 0; }}", timeout=30000)
+
+
+def _circularity(points, cell):
+    """4 pi A / P^2 of the grid cells `points` (x, y in parsecs) fall in: 1 for a disc, well under for a ragged outline."""
+    import numpy as np
+
+    cells = {(int(math.floor(x / cell)), int(math.floor(y / cell))) for x, y in points}
+    area = len(cells)
+    perimeter = sum(1 for (i, j) in cells for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)) if (i + di, j + dj) not in cells)
+    return 4 * math.pi * area / perimeter ** 2 if perimeter else 1.0
+
+
+def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_site):
+    """MAP.365: the fixture nebula (a 30 pc cloud) is drawn from the points the node's volume holds, taken from the density, so its
+    outline is irregular (the circularity of the projected points is under a stated bound), its circle sprite and per-ID mesh give way
+    (the mesh is not asked for once the volume shows), and the points lie on the absolute lattice inside the cloud's radius."""
+    shape_requests = []
+    page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
+    _volume_open(page, map_site)
+    volumes = page.evaluate(f"() => ({VOLUMES})().volumes()")
+    assert volumes, "a volume is held"
+    spots = []
+    for volume in volumes:
+        step = volume["spacingPc"]
+        for ix, iy, iz in zip(volume["ix"], volume["iy"], volume["iz"]):
+            spots.append((ix * step, iy * step, iz * step))
+        assert volume["level"] >= 0 and all(0 < s <= 255 for s in volume["strength"])
+    cloud = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
+    near = [p for p in spots if math.dist(p, cloud) <= 30.0 + 1e-6]
+    assert len(near) > 80, len(near)
+    assert _circularity([(p[0], p[1]) for p in near], volumes[0]["spacingPc"]) < 0.55
+    assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().map((x) => v.coverage(x.key))); }}") > 0.5
+
+
+def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
+    """MAP.365: where nebulae overlap their colors add and the sum is bent under the cap (never white): the pass that does it, drawn
+    alone, matches `cappedSum` of the raw sums at every pixel, the raw sum passes the cap somewhere (so the cap is working) and
+    nothing drawn passes it."""
+    import numpy as np
+
+    from planetgen.galaxy import nebula_blocks, nebula_volume
+    from tests import nebula_density_stand_in as stand_in
+
+    centre = (STAR_FIELD_CENTER_PC[0] - 45.0, STAR_FIELD_CENTER_PC[1], STAR_FIELD_CENTER_PC[2])
+    pair = [{"x": centre[0], "y": centre[1], "z": centre[2], "radius_pc": 30.0, "family": "emission"},
+            {"x": centre[0] + 18.0, "y": centre[1] + 6.0, "z": centre[2], "radius_pc": 26.0, "family": "reflection"}]
+    packed = nebula_volume.pack(nebula_volume.sample_group(pair, None, stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL,
+                                                           nebula_blocks.FAMILIES, level=2))
+    empty = nebula_volume.pack(nebula_volume.sample_group([], None, None, 0.0, 0, nebula_blocks.FAMILIES))
+    given = []
+
+    def answer(route):
+        # The pair stands in for what the fixture's own nebulae make, in the nodes that would hold them.
+        key = parse_qs(urlparse(route.request.url).query)["key"][0]
+        holds = nebula_volume_payload(key)["count"] > 0
+        given.append(key)
+        route.fulfill(status=200, content_type="application/octet-stream", body=packed if holds else empty)
+
+    page.route("**/galaxy/nebula-volume*", answer)
+    _volume_open(page, map_site)
+    shot = page.evaluate(f"() => {{ const s = ({VOLUMES})().snapshot(); "
+                         "return s && {width: s.width, height: s.height, sums: Array.from(s.sums), capped: Array.from(s.capped)}; }")
+    assert shot, "something is drawn"
+    sums = np.array(shot["sums"], dtype=float).reshape(-1, 3)
+    capped = np.array(shot["capped"], dtype=float).reshape(-1, 4)[:, :3] / 255.0
+    cap = page.evaluate(f"() => ({VOLUMES})().capLimit")
+    lit = sums.max(axis=1) > 0
+    assert lit.sum() > 200, "the nebulae cover pixels"
+    assert sums.max() > cap, "the raw sum passes the cap somewhere, so the cap is working"
+    assert capped.max() <= cap + 2.0 / 255.0, (capped.max(), cap)
+    m = sums.max(axis=1, keepdims=True)
+    expect = np.where(m > 0, sums * (cap * (1 - np.exp(-m / cap)) / np.maximum(m, 1e-9)), 0.0)
+    assert np.abs(expect[lit] - capped[lit]).max() < 3.0 / 255.0, np.abs(expect[lit] - capped[lit]).max()
+    # Two colors over one pixel give a third: some pixel has both a strong red and a strong blue channel.
+    both = (capped[:, 0] > 0.12) & (capped[:, 2] > 0.12)
+    assert both.sum() > 20, "overlapping emission and reflection nebulae add their colors"
 
 
 LABELS = "() => (document.querySelector('#galaxymap3d-canvas').__mapLabels.shown())"
