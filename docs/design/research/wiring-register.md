@@ -155,12 +155,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.102:RSM3 | GEN.1111 | `rogue_density.YOUNG_AGE_MYR`, read when the wiring step lands |
 | row | 6.102:RSM4 | GEN.1111 | `rogue_density.RING_STEPS`, read when the wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
-| row | 6.95:BR6 | GEN.1092 | `dwarf_population.SOTER_MU_PLANET`, read when the wiring step lands |
-| row | 6.95:BR7 | GEN.1092 | `dwarf_population.MARGOT_COEFFICIENT_EARTH, MARGOT_C`, read when the wiring step lands |
-| row | 6.95:BR22 | GEN.1092 | `body_status.ZONE_HILL_RADII`, read when the wiring step lands (the zone of Soter's mu and Margot's discriminant) |
-| row | 6.95:BR23 | GEN.1092 | `body_status.LAMBDA_K`, read when the wiring step lands (Stern and Levison's Lambda) |
 | function | planetgen.physics.belt_ledger.draw_ledger | GEN.1105 | read by `field_mass` for the stored bodies of a collision field; the field member rows wire it, and the belt member rows (GEN.1069) read the ledger `solve_belt` settles |
-| module | planetgen.physics.field_dispersal | GEN.1103 | the radius, age, retirement, freeze-out, shear and bodies of an interstellar asteroid field (lock-free, GEN.1100); the AsteroidField columns (GEN.1103) read the radius and the retirement, the bring-to-epoch step (GEN.1107) retires fields |
 | function | planetgen.physics.belt_ledger.draw_ledger | GEN.1105 | read by `field_mass` for the stored bodies of a collision field; the field member rows wire it, and the belt member rows (GEN.1070) read the ledger `solve_belt` settles |
 | module | planetgen.physics.field_mass | GEN.1103 | the mass of an interstellar field by its origin (a supernova-unbound belt by the belts' own collisional step, two colliding rogue planets by their unbound share) and its stored bodies by the belt ledger (lock-free pure part of GEN.1161); the field columns (GEN.1103) store the mass, the supernova host rule (GEN.1104) calls `unbound_belt_field` and the member rows and designations (GEN.1105) call `stored_bodies` |
 | row | 6.161:FM1 | GEN.1103 | `field_mass.MIN_FIELD_MASS_EARTH`, read when the field columns land |
@@ -181,10 +176,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP5 | GEN.1069 | `resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT`, read when the wiring step lands |
 | row | 6.116:RGP6 | GEN.1069 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1069 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
-| module | planetgen.physics.topup_field | GEN.1120 | the light top-up asteroid fields of the remainder the Rogues level leaves unmatched (lock-free, GEN.1126); the region run's stage 3 calls `plan` with `rogue_topup.TopUp.remainder_kg`, and the field items (GEN.1103 to GEN.1107) store and retire what it returns |
-| row | 6.108:TF2 | GEN.1120 | `topup_field.LARGEST_BODY_MASS_KG, BULK_DENSITY_KG_M3`, read when the region run wires stage 3 |
-| row | 6.108:TF3 | GEN.1120 | `topup_field.SPEED_KM_S_RANGE, MIN_RADIUS_LY`, read when the region run wires stage 3 |
-| row | 6.108:TF4 | GEN.1120 | `topup_field.MIN_FIELD_MASS_KG, MAX_FIELD_MASS_KG, MAX_FIELDS`, read when the region run wires stage 3 |
 | module | planetgen.physics.resonance_gaps | GEN.1092 | the resonance zones, chaotic zones, survivors, Yarkovsky cut and stirring of a belt from its giants (lock-free, GEN.1062); the belt generator reads the map and the clearance ledger (GEN.1014) can reuse the zones |
 | row | 6.116:RGP2 | GEN.1092 | `resonance_gaps.ORDER_WIDTH_EXPONENT`, read when the wiring step lands |
 | row | 6.116:RGP3 | GEN.1092 | `resonance_gaps.RESONANCE_CLEARING_MYR`, read when the wiring step lands |
@@ -341,5 +332,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.field_dispersal.member_position_m | GEN.1105 | a field member's place from its parent's; read when the field members land |
 | function | planetgen.physics.field_dispersal.shear_displacement_m | GEN.1105 | the shear of a field's members; read when the field members land |
 | function | planetgen.physics.field_dispersal.unbound_belt_speed_ms | GEN.1105 | the speed a belt's unbound members spread at; read when the field members land |
+| function | planetgen.physics.impact_history.erosion_efficiency | by design | the readable one-diameter form of the sum `erosion_per_impactor_mass` takes inline (PERF.229 moved the arithmetic into the loop, the same numbers); `test_impact_history` checks it against the loop |
 | module | planetgen.physics.system_bodies | GEN.1241 | the system body ledger (rows, tree checks, mass sums, the barycentre that includes the belts, the belt wobble); lock-free pure part of GEN.1066, the view over the typed tables reads it when the wiring lands |
 | module | planetgen.physics.heavy_liquid_tide | by design | the exact fluid Love numbers of a core under a deep global liquid layer (GEN.1052); the tests hold the thin-sea loading factor of `ocean_tides` to its rigid-floor limit at any depth and the fluid limits to 3/2 and 5/2, and it is the path for a body with a molten core under a global liquid, which no generated body has |
