@@ -1532,6 +1532,11 @@ a:focus-visible .galaxymap-star-core {
   overflow: hidden;
 }
 
+/* UX.142: boxfit.js caps the width (so the height) of a box of fixed shape to the browser window; the box then sits in the middle of its column. */
+[data-fit-aspect] {
+  margin-inline: auto;
+}
+
 .navmap-labels {
   position: absolute;
   inset: 0;

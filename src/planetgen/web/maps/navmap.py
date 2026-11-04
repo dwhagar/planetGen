@@ -380,7 +380,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
 <div class="panel-header">
   <h2 class="sr-only">NAV Map</h2>
 </div>
-<div class="navmap-viewport">
+<div class="navmap-viewport" data-fit-aspect="5/3">
 {svg}<div class="navmap-labels">{''.join(labels_html)}</div>
 </div>
 <div class="starmap-controls">
