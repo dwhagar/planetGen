@@ -55,9 +55,11 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
-from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, runaway_history, saturation, water_layer
+from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, runaway_history, saturation, unit_registry, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
+
+_kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
@@ -234,7 +236,7 @@ def frozen_cover(body, gravity_m_s2):
 def mantle_max_water_fraction(mass_kg):
     """The most water, as a mass fraction of the body, a mantle stores (GEN.1147): `MANTLE_CAP_OCEANS` joined as a power law of the mass, the ends held outside."""
     (low_mass, low_oceans), (high_mass, high_oceans) = MANTLE_CAP_OCEANS
-    earths = mass_kg / constants.EARTH_MASS_TO_KG
+    earths = _kg_to_mearth(mass_kg)
     exponent = math.log(high_oceans / low_oceans) / math.log(high_mass / low_mass)
     oceans = low_oceans * (min(max(earths, low_mass), high_mass) / low_mass) ** exponent
     return oceans * EARTH_OCEAN_FRACTION

@@ -36,9 +36,9 @@ import math
 import numpy as np
 
 from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry
 
-G_PC_KMS2_PER_MSUN = constants.G * constants.SOLAR_MASS_TO_KG / (constants.PARSEC_M * 1.0e6)
+G_PC_KMS2_PER_MSUN = constants.G * unit_registry.converter("Msun", "kg")(1.0) / (constants.PARSEC_M * 1.0e6)
 """float: The gravitational constant in pc (km/s)^2 per solar mass (4.3009e-3)."""
 ACCELERATION_TO_SI = 1.0e6 / constants.PARSEC_M
 """float: One (km/s)^2 per pc in m/s^2."""
