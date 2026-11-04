@@ -184,8 +184,6 @@ References
 
 * [R0915]
 
-* Current Trends in Biological Science. (2025). Microbial biofilms and perchlorate reduction for Martian regolith detoxification and agriculture. _Current Trends in Biological Science_, 1(1), 1–9.
-
 * [R0989]
 
 * [R1019]
@@ -203,8 +201,6 @@ References
 * [R2880]
 
 * [R3236]
-
-* NASA. (2024). Detoxifying Mars: Assessing perchlorate and chlorate health hazards. _NASA Technical Reports Server_.
 
 * [R3986]
 

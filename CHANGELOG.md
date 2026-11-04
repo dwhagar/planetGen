@@ -2,6 +2,22 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3103] - 2026-11-01
+
+**Headline:** The tables that sample stars build about 15 percent faster, with every number unchanged.
+
+### Changed
+- **Faster isochrone edge rows (PERF.230).** `isochrones.edge_point`, which every `zams_state` and `end_state` call reads (a bright-star table asks for it about 75,000 times per population), took 5.7 microseconds a call; it now takes 2.0. The two isochrones that bracket a birth [Fe/H], their edge tables and the weight between them are kept for each [Fe/H] asked (4096 values, then the memory starts over), and the interpolation in mass and [Fe/H] is written out for the four components with the same arithmetic. A table build of two populations (four tables) went from 14.2 s to 12.0 s here. The rows, the tables and every generated number are identical (a digest of the four tables and of 150,000 edge rows and end states, before and after). The share of a build that `edge_point` takes is about a quarter, not the 60 percent first measured; the rest is `post_main_sequence.bright_pieces` and the evolved-track reads, which are a separate item.
+generation-output: unchanged
+
+## [8.0.3102] - 2026-11-01
+
+**Headline:** A radiation sweep checks every class of planet and moon: light through the air, greenhouse against temperature, dose terms and ultraviolet.
+
+### Changed
+
+- New `src/tests/test_radiation_sweep.py` (TEST.212 part 1): generates systems with both planets and moons of every class and checks the band transmissions (0 to 1, and thicker air passes no more light), that the stored surface temperature is the one the stored albedo, greenhouse factor and starlight give (or the 2000 K cap), that the greenhouse rises with the infrared-active column, that the yearly dose is the sum of its terms and follows the column, the field and the flares, and that the ultraviolet index is the Setlow dose of the spectrum below the air. A second set of tests breaks each rule in turn and checks that it is named. The earth, moon and mars dose values and the descriptions that quote these numbers wait for GEN.444's later slices and GEN.446.
+
 ## [8.0.3101] - 2026-11-01
 
 **Headline:** A generated system now keeps the plan its planets were built from, so the bodies it threw out can be read from it: the first step of making rogue planets come from real ejections.

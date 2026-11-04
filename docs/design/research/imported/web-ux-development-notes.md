@@ -95,12 +95,12 @@ The custom task queue in `workQueue.py` and `planetgen.cli.job` uses SQLite lock
 
 ## References
 
-Celery Project. (2024). *Celery: Distributed task queue*. https://docs.celeryq.dev/
+[R5030]
 
-Open Geospatial Consortium. (2023). *3D Tiles specification (Version 1.1)*. https://www.ogc.org/standard/3dtiles/
+[R5031]
 
-Shoelace. (2024). *Web components for building modern web applications*. https://shoelace.style/
+[R5033]
 
-TanStack. (2024). *TanStack table: Headless UI for building powerful tables & datagrids*. https://tanstack.com/table/
+[R5034]
 
-Xterm.js. (2024). *Xterm.js: A terminal for the web*. https://xtermjs.org/
+[R5035]

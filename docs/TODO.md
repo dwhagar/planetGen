@@ -14314,6 +14314,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changes stored ring columns, so it rides a train. Owner: Tides 1.
   Prerequisites: none. Related: GEN.1171, GEN.725.
 
+- [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
+  Found by Core 3's TEST.212 part 1 radiation sweep (as the lane
+  reported, 1:05 AM EDT 2026-11-01), filed by the TODO thread. Two class
+  N planets (7.6 and 3.3 Earth masses, 0.08 AU) have a stored surface
+  temperature of exactly 2000 K, the cap in surface_air, but keep the
+  greenhouse factor computed before the cap (107 and 79). Albedo plus
+  that greenhouse would give about 2370 K and 2600 K, so the stored
+  temperature, the greenhouse factor and the starlight no longer agree.
+  The new sweep test allows this only as "the cap holds, never hotter".
+  Do: find where the 2000 K cap is applied, say whether it is a physical
+  limit (a surface that hot is molten or vaporised and the air then
+  radiates differently) or a numeric guard; if physical, recompute the
+  greenhouse factor from the capped state (or store the cap as a flag)
+  so the three agree; if a guard, remove it. Physics drives, no game
+  cap. Lock work if stored values change (epoch, census). Related:
+  GEN.822, GEN.830, GEN.837 (class N), TEST.212. Owner: none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14887,20 +14906,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
   The alone re-run at the end of the run will say which are slow
   generation and which are load.
-  Prerequisites: none.
-
-- [ ] **PERF.230 Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical**
-  From Star 2's PERF.224 work (as the lane reported, 12:14 AM EDT
-  2026-11-01). The bright-table build is dominated by the isochrone
-  interpolation (edge_point and end_state, about 60 percent of a build);
-  the caches are already 524,288 entries and building by bin gave no
-  change (47 s for 6 populations either way). Do: make edge_point and
-  end_state cheaper (vectorise or precompute per track) with output
-  byte-identical, checked by the golden and the star table tests.
-  Expected gain uncertain, perhaps 1.3 times, and since PERF.226 part 3
-  only star-stage workers build these tables. Done: build time measured
-  before and after, output identical. Lock-free. Low priority; Owner:
-  none yet.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19116,6 +19121,20 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
+- [ ] **TEST.553 test_every_author_year_citation_has_an_outcome in test_references.py is red on main (19 keys, bug) (bug)**
+  Found by Core 3 and Citations (as the lanes reported, 1:05 AM EDT
+  2026-11-01):
+  src/tests/test_references.py::test_every_author_year_citation_has_an_outcome
+  fails on main itself with 19 keys, not from any branch. The citation
+  sweep moved author-year text into [R....] IDs, so the test's key list
+  is likely stale: decide whether the test still has a job (the lock
+  test test_citations_outside_the_registry.py now covers the same
+  ground) and either update it to the registry or delete it with its
+  helpers (no shim). Done: the file passes on main or the test is gone
+  with a note saying what covers it. Lock-free. Owner: Citations.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts
