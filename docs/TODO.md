@@ -18425,25 +18425,6 @@ clears each one.
   is busy.
   Prerequisites: none. Related: TEST.313.
 
-- [ ] **TEST.319 test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug)**
-  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
-  the lane reported) during the gate of #2742: the catalogue test fails
-  when the ozone_uv data file is not downloaded on the machine (the
-  dataset arrived with GEN.443). Do: either make the test skip a dataset
-  whose download is optional and not yet run, or make the gate fetch it,
-  following how the other real-dataset tests decide; the rule is the
-  existing one for datasets fetched at setup. Done: the test passes on a
-  machine without the file and still fails when a required file is
-  missing. Owner: Bug Hunt or lane E (GEN.443).
-  Research (2026-10-09, Update): Update 1:17 AM EDT 2026-10-24: Core 5
-  reports the same failure on its lane machine (the ozone_uv file is not
-  downloaded there; the OPS.62 environment setup family). The fix is in
-  the test, not on each machine.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Core 5) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: GEN.443.
-
 - [ ] **TEST.320 test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug)**
   Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
   the lane reported): it failed once in a full gate and passes alone; it
@@ -18489,26 +18470,6 @@ clears each one.
   test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts
   finds 0 help links where 7 are expected.
   Prerequisites: none. Related: UX.163.
-
-- [ ] **TEST.332 test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug)**
-  Reported by the unit registry lane at 6:10 AM EDT 2026-10-24 (as the
-  lane reported) as failing on main while merging #2924: the comet is
-  missing from the set of row kinds the test checks (it asserts {planet,
-  moon, belt, comet}). The TODO thread could not confirm the cause: on
-  its machine the test fails for another reason (NLTK data download
-  refused by the proxy), so recheck on current main first. Do: reproduce
-  on current main, find why a system built by the test holds no comet (a
-  draw change from the star tree, GEN.631, or the belt fix, TEST.313,
-  are the likely sources) and make the test force a comet the way
-  test_systems forces a belt. Done: the test passes. Owner: Bug Hunt
-  (proposed).
-  Research (2026-10-09): Aux 11 (as the lane reported, 2026-10-28) saw
-  test_object_rows round-trip red again on clean main while merging
-  #3573; still open, Bug 1.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 11) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: GEN.631, TEST.313.
 
 - [ ] **TEST.333 test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug)**
   Reported by Habitability lane B at 6:12 AM EDT 2026-10-24 (as the lane
