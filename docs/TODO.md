@@ -19184,6 +19184,53 @@ clears each one.
   change unless a defect is found. Owner: Star 2.
   Prerequisites: none. Related: GEN.927, GEN.1025.
 
+- [ ] **TEST.562 test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug)**
+  Found by the full-suite run (as the lane reported 9:36 AM EST on
+  2026-11-04) and reproduced alone on main 6d1d104.
+  tests/test_gen_fill_groups.py. A member of a decayed group is built
+  from the hierarchy and should come out with both stars; one star comes
+  out. Do: find whether the generator or the test is stale (bisect the
+  file, check the recent hierarchy and multiplicity epochs, GEN.951
+  companion law), fix the cause, and say which in the change note. If
+  the generator changed on purpose, update the test with the reason; if
+  a defect, fix it and note whether stored output changes. Owner: Aux 7.
+  Prerequisites: none.
+
+- [ ] **TEST.563 test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass fails on main: the belt mass reads 1.86e19 kg where 0.0 is expected (bug)**
+  Found by the full-suite run (as the lane reported 9:36 AM EST on
+  2026-11-04) and reproduced alone on main 6d1d104.
+  tests/test_gen337_point_fill.py (64 s alone). A belt stated with zero
+  mass should store zero mass; it stores 1.86e19 kg, so a rule fills in
+  a belt mass the directive said not to. Do: find whether a recent
+  belt-mass rule (the belt ledger, GEN.1156) overrides a stated zero or
+  the test predates it, fix the cause, and say which in the change note.
+  Owner: Aux 7.
+  Prerequisites: none.
+
+- [ ] **TEST.564 test_a_directed_moon_count_still_goes_through_the_gate fails on main: moon counts vary 1 and 2 with a minimum of 0 where at least 1 and 80 percent at 2 are expected (bug)**
+  Found by the full-suite run (as the lane reported 9:36 AM EST on
+  2026-11-04) and reproduced alone on main 6d1d104.
+  tests/test_gen_hosting_wiring.py (GEN.1130 directed moon count). A
+  directed moon count of 2 should hold at least one moon in every draw
+  and 80 percent at two; draws read 1, 2, 1, 2 with a minimum of 0. Do:
+  find whether the moon count now passes through a rule that drops moons
+  (the stability test, GEN.1031, or moon survival) after the direction,
+  and whether the direction should hold against it or the test's
+  expectation is stale; fix and say which. If the generator changes, an
+  epoch rides a train. Owner: Aux 3, after GEN.1245.
+  Prerequisites: none. Related: GEN.1130.
+
+- [ ] **TEST.565 test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug)**
+  Found by the full-suite run (as the lane reported 9:36 AM EST on
+  2026-11-04) and reproduced alone on main 6d1d104.
+  tests/test_slowpages.py. While an update is in progress a slow page
+  should build in the request; it raises CacheRebuilding instead. Needs
+  the MySQL test setup. Do: find whether the cache rule (PERF.209,
+  PERF.218 or the slow-pages work) changed the update-in-progress path
+  on purpose or broke it, fix the cause, and say which. Owner: Aux 3,
+  after GEN.1245.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
