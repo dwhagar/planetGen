@@ -20,10 +20,13 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
    Milky Way mass disc ended with a third of the gas it has.
 2. **The return** `R` is the share of a stellar generation's mass that goes back into the gas (`return_fraction`),
    worked out from the generator's own mass function with the remnant masses of [R2798].
-3. **The inflow** follows the stars the galaxy's halo builds. The halo grows at the mean rate of Fakhouri, Ma and
-   [R0508], and the stars it holds at each age are those of the stellar-to-halo mass relation of [R3181], which moves with redshift (`inflow_shape`): the gas comes in at the rate the stars are built.
-   Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's
-   density gives it.
+3. **The inflow** is an exponential infall whose time scale grows outward (inside-out formation): `tau(R) = 1.033 R - 1.267` Gy of the
+   Milky Way's chemical evolution model ([R5082], section 3), stopped at 2 Gy inside and 8 Gy outside, the shortest and longest of
+   the later model of [R5081] (`infall_time_gy`, `tuning.DISK_INFALL_*`). The ring at `x` scale lengths has the time scale of the
+   Milky Way's ring at `x` of its own 2.6 kpc: no source gives how the infall scales with a galaxy's size (GEN.725 row GI1).
+   Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's density
+   gives it. (Until GEN.1230 the inflow followed the stars the galaxy's halo builds, which for the lighter halos of GEN.1154 kept
+   the disk forming 2.7 times the stars per year the main sequence gives.)
 4. **The stars.** The disk's stellar mass (its share of the galaxy's, which the mass chain drew from the seed) spread as
    `exp(-R / L)` sets each ring's stellar surface density, which fixes how fast its gas is used (`rate / gas` is
    `A * gas^(n-1)`): a dense ring follows the inflow closely, a thin one lags it.
@@ -45,8 +48,6 @@ from planetgen.galaxy import mass_chain
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.physics import imf, mass_boundaries, remnant_mass
 
-_GYR_PER_HUBBLE_TIME = 977.792
-"""float: `1 / H0` in Gy for `H0 = 1` km/s/Mpc over 100 (so `977.792 / (100 h)` Gy)."""
 _BISECTION_STEPS = 40
 _DOUBLINGS = 80
 
@@ -107,84 +108,26 @@ class DiskHistory:
         return np.sum(self.radius_scale_lengths[:, None] * self.rate, axis=0)
 
 
-def universe_age_gy():
-    """The age of a flat Universe of the mass chain's cosmology, Gy."""
-    h, omega_m = mass_chain.HUBBLE_H, mass_chain.OMEGA_MATTER
-    omega_l = 1.0 - omega_m
-    return (2.0 / (3.0 * math.sqrt(omega_l)) * _GYR_PER_HUBBLE_TIME / (100.0 * h)
-            * math.asinh(math.sqrt(omega_l / omega_m)))
-
-
-def redshift_at_age(age_gy):
-    """The redshift at which the Universe was `age_gy` old (array or float; `age_gy` > 0)."""
-    h, omega_m = mass_chain.HUBBLE_H, mass_chain.OMEGA_MATTER
-    omega_l = 1.0 - omega_m
-    hubble_per_gy = 100.0 * h / _GYR_PER_HUBBLE_TIME
-    arg = 1.5 * hubble_per_gy * math.sqrt(omega_l) * np.asarray(age_gy, dtype=float)
-    return (math.sqrt(omega_l / omega_m) / np.sinh(arg)) ** (2.0 / 3.0) - 1.0
-
-
-def _expansion_rate(redshift):
-    """`E(z) = H(z) / H0` of a flat Universe."""
-    omega_m = mass_chain.OMEGA_MATTER
-    return np.sqrt(omega_m * (1.0 + redshift) ** 3 + (1.0 - omega_m))
-
-
-def stellar_to_halo_ratio_at(halo_mass_solar, redshift):
+def infall_time_gy(radius_scale_lengths):
     """
-    The median `M* / Mh` of a halo of `halo_mass_solar` at `redshift` ([R3181], eqs. 2 and 11 to
-    14): the present relation of `galaxy.mass_chain`, its four parameters moved by `tuning.STELLAR_TO_HALO_EVOLUTION`
-    times `z / (z + 1)`.
+    The infall time scale (Gy) of the rings at `radius_scale_lengths` (array or float): the line of [R5082] in the radius the Milky Way's
+    ring of that many scale lengths has, between `tuning.DISK_INFALL_MIN_GY` and `tuning.DISK_INFALL_MAX_GY`.
     """
-    shift = redshift / (redshift + 1.0)
-    evolution = tuning.STELLAR_TO_HALO_EVOLUTION
-    m1 = 10.0 ** (mass_chain.LOG_M1 + evolution["log_m1"] * shift)
-    norm = mass_chain.N_NORM + evolution["norm"] * shift
-    beta = mass_chain.BETA + evolution["beta"] * shift
-    gamma = mass_chain.GAMMA + evolution["gamma"] * shift
-    r = halo_mass_solar / m1
-    return 2.0 * norm / (r ** -beta + r ** gamma)
+    radius_kpc = np.asarray(radius_scale_lengths, dtype=float) * tuning.DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC
+    line = tuning.DISK_INFALL_SLOPE_GY_PER_KPC * radius_kpc - tuning.DISK_INFALL_OFFSET_GY
+    return np.clip(line, tuning.DISK_INFALL_MIN_GY, tuning.DISK_INFALL_MAX_GY)
 
 
-def halo_track(halo_mass_solar, span_gy, steps):
+def inflow_shapes(radius_scale_lengths, span_gy, steps):
     """
-    The halo's mass back in time, over `span_gy` Gy on `steps` equal steps (oldest first, `steps + 1` values) and the
-    redshift of each: the mean growth rate `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)` of Fakhouri, Ma and
-    [R0508] (eq. 2) integrated back from today's mass.
+    The gas inflow of each ring over `span_gy` Gy on `steps` equal steps (oldest first), relative to its start: `exp(-t / tau)` with
+    `infall_time_gy` of the ring.
 
     Returns:
-        tuple: `(mass, redshift)` arrays.
+        numpy.ndarray: `steps + 1` rows by one column per ring.
     """
-    now = universe_age_gy()
-    ages = np.linspace(now - span_gy, now, steps + 1)           # cosmic age at each step, oldest first
-    z = redshift_at_age(ages)
-    growth = (1.0 + tuning.HALO_GROWTH_REDSHIFT_SLOPE * z) * _expansion_rate(z)
-    step_gy = span_gy / steps
-    mass = np.empty(steps + 1)
-    mass[-1] = halo_mass_solar
-    for i in range(steps, 0, -1):
-        rate_gy = (tuning.HALO_GROWTH_RATE_AT_1E12_MSUN_YR * 1.0e9
-                   * (mass[i] / 1.0e12) ** tuning.HALO_GROWTH_MASS_EXPONENT * growth[i])
-        mass[i - 1] = max(mass[i] - rate_gy * step_gy, 1.0e-3 * mass[i])
-    return mass, z
-
-
-def inflow_shape(halo_mass_solar, span_gy, steps):
-    """
-    The gas inflow of a halo's disk over `span_gy` Gy on `steps` equal steps (oldest first), relative to its mean: the
-    growth of the stellar mass the halo holds (`halo_track` through `stellar_to_halo_ratio_at`), never below zero. A
-    galaxy with no halo (`halo_mass_solar` is `None`, see `mass_chain.has_halo`) runs none of that: its inflow is
-    constant (a placeholder: no source gives the gas supply of a galaxy with no halo).
-
-    Returns:
-        numpy.ndarray: `steps + 1` values averaging 1.
-    """
-    if halo_mass_solar is None:
-        return np.ones(steps + 1)
-    mass, z = halo_track(halo_mass_solar, span_gy, steps)
-    stars = mass * stellar_to_halo_ratio_at(mass, z)
-    growth = np.maximum(np.gradient(stars, span_gy / steps), 0.0)
-    return growth / np.mean(growth)
+    since_start = np.linspace(0.0, span_gy, steps + 1)
+    return np.exp(-since_start[:, None] / infall_time_gy(radius_scale_lengths)[None, :])
 
 
 def mass_return_fraction(breaks, slopes):
@@ -214,18 +157,18 @@ def return_fraction():
 def _solve_rings(stars_now, inflow, span_gy):
     """
     The rings' histories: for each stellar surface density in `stars_now` (solar masses per pc2), the inflow amplitude
-    (the shape `inflow` times it) for which gas continuity ends with that many stars. Vectorised over rings; the
+    (the ring's column of `inflow`, rings by steps, times it) for which gas continuity ends with that many stars. Vectorised over rings; the
     amplitude is bracketed by doubling from the least that could do it and bisected.
 
     Returns:
         tuple: `(rate, gas_now)`, rings by steps and rings.
     """
-    steps = len(inflow) - 1
+    steps = inflow.shape[0] - 1
     step_gy = span_gy / steps
     keep = 1.0 - return_fraction()
     coefficient = tuning.STAR_FORMATION_LAW_COEFFICIENT * 1.0e3         # per Gy per pc2, gas in solar masses per pc2
     exponent = tuning.STAR_FORMATION_LAW_EXPONENT
-    supply = np.trapezoid(inflow, dx=step_gy)
+    supply = np.trapezoid(inflow, dx=step_gy, axis=0)
     saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2
     steepening = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - exponent
 
@@ -265,15 +208,13 @@ def _solve_rings(stars_now, inflow, span_gy):
 
 
 @functools.lru_cache(maxsize=64)
-def history(thin_stellar_mass_solar, disk_scale_length_pc, halo_mass_solar, span_gy=None):
+def history(thin_stellar_mass_solar, disk_scale_length_pc, span_gy=None):
     """
     The thin disk's rings run from `span_gy` ago (`tuning.STAR_FORMATION_AGE_RANGE_GY`'s top by default) to now.
 
     Args:
         thin_stellar_mass_solar (float): The stars of the thin disk (what the density model integrates to).
         disk_scale_length_pc (float): The stellar disk's exponential scale length.
-        halo_mass_solar (float or None): The dark halo's mass, which sets how its growth was spread over the disk's life;
-            `None` for a galaxy with no halo, whose inflow is constant.
         span_gy (float, optional): How long the disk has been forming stars.
 
     Returns:
@@ -285,7 +226,7 @@ def history(thin_stellar_mass_solar, disk_scale_length_pc, halo_mass_solar, span
     x = (np.arange(rings) + 0.5) * reach / rings
     centre = thin_stellar_mass_solar / (2.0 * math.pi * disk_scale_length_pc ** 2)
     stars = centre * np.exp(-x)
-    inflow = inflow_shape(halo_mass_solar, span, tuning.DISK_HISTORY_TIME_STEPS)
+    inflow = inflow_shapes(x, span, tuning.DISK_HISTORY_TIME_STEPS)
     rate, gas = _solve_rings(stars, inflow, span)
     return DiskHistory(radius_scale_lengths=x, age_gy=np.linspace(span, 0.0, len(inflow)), rate=rate, gas_now=gas,
                        stars_now=stars)
@@ -321,7 +262,7 @@ def stellar_and_halo_masses(shape):
 
 def history_of(shape):
     """
-    The thin disk's `DiskHistory` for the galaxy of this shape: its `masses` (stellar and halo, from the mass chain) when
+    The thin disk's `DiskHistory` for the galaxy of this shape: its `masses` (stellar mass from the mass chain, the halo is not read) when
     it has them, else the median galaxy of its disk scale length; the disk scale length sets the rings, and its bulge and
     thick disk set how much of the stars are the thin disk's. It does not read the density's normalization, so a shape
     and the same shape before `k_norm` was solved share one history (GEN.545 asks for it while `k_norm` is being solved).
@@ -333,10 +274,10 @@ def history_of(shape):
 def _history_of(shape):
     from planetgen.galaxy import density
     length = shape.disk_scale_length_pc
-    stellar_mass, halo_mass = stellar_and_halo_masses(shape)
+    stellar_mass, _halo_mass = stellar_and_halo_masses(shape)
     masses = density.integrated_masses(shape)
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
-    return history(stellar_mass * thin_share, length, halo_mass)
+    return history(stellar_mass * thin_share, length)
 
 
 @functools.lru_cache(maxsize=64)

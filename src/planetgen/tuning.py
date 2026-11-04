@@ -1203,21 +1203,21 @@ The bar's gas is swept in over its length and what lies beyond is untouched, so 
 that never leaves a ring, 4 a ring at the bar's end [a model default, open]."""
 
 # The thin disk's star formation history over time (GEN.469, `galaxy.disk_history`,
-# docs/design/galaxy/disk-star-formation-history.md): gas continuity per ring, the inflow from the halo's growth, the
-# Kennicutt-Schmidt law above as the depletion. The Milky Way's own history is only a test target.
-# The cosmology is the mass chain's (`galaxy.mass_chain.HUBBLE_H`, `OMEGA_MATTER`: Planck-like, 13.8 Gy old).
-HALO_GROWTH_MASS_EXPONENT = 1.1
-"""float: How the mean growth rate of a halo's mass goes with its mass, `M^1.1` (Fakhouri, Ma and [R0508, R1313], eq. 2, read: fitted to the Millennium simulations)."""
-HALO_GROWTH_REDSHIFT_SLOPE = 1.11
-"""float: The `1 + 1.11 z` in the same fit's mean growth rate, `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)`."""
-STELLAR_TO_HALO_EVOLUTION = {"log_m1": 1.195, "norm": -0.0247, "beta": -0.826, "gamma": 0.329}
-"""dict: How the stellar-to-halo mass relation moves with redshift: each of its four parameters is its present value
-(`galaxy.mass_chain.LOG_M1`, `N_NORM`, `BETA`, `GAMMA`) plus this times `z / (z + 1)` ([R3181], eqs. 11 to 14 and Table 1, read: the multi-epoch abundance-matching fit with errors
-in the observed masses). It gives the stars a halo of a given mass and age holds, so the disk's gas inflow
-follows the stellar mass the halo's growth builds."""
-HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
-"""float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
-halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
+# docs/design/galaxy/disk-star-formation-history.md): gas continuity per ring, an exponential infall whose time scale grows
+# outward (inside-out formation, GEN.1230, GEN.1242), the Kennicutt-Schmidt law above as the depletion. The Milky Way's own
+# history is only a test target.
+DISK_INFALL_SLOPE_GY_PER_KPC = 1.033
+"""float: How the thin disk's infall time scale grows with the radius, Gy per kpc: `tau(R) = 1.033 R - 1.267` Gy (Chiappini, Matteucci and Romano, [R5082], section 3, the linear fit
+to the Milky Way's abundance gradients, the time scale of 7 Gy at the Sun). Source tier T2 (a model fit to the Milky Way's gradients, not a measurement of other galaxies)."""
+DISK_INFALL_OFFSET_GY = 1.267
+"""float: The intercept of that line, Gy ([R5082], section 3)."""
+DISK_INFALL_MIN_GY = 2.0
+"""float: The shortest infall time scale, Gy: the line is negative inside 1.2 kpc, and the model of [R5081] takes 2 Gy for the inner disk (section 2.4, the bulge and the disk at 2 kpc). Source tier T2."""
+DISK_INFALL_MAX_GY = 8.0
+"""float: The longest infall time scale, Gy: [R5081] reaches 8 Gy at 20 kpc (section 2.4) where the line of [R5082] would reach 13 Gy at 14 kpc, so the line is stopped at the later model's longest. Source tier T2, level L1 (the choice of the stop between two models)."""
+DISK_INFALL_REFERENCE_SCALE_LENGTH_KPC = 2.6
+"""float: The disk scale length the line is a fit to, kpc: the thin disk of the Milky Way ([R5082] takes 2.5 kpc, [R5081] 2.7). The line is applied to any galaxy in scale lengths, so a ring at x scale lengths has the time scale of the Milky Way's ring
+at `x` times this: a stand-in for how the infall time scales with a galaxy's size (no source gives it; row GI1 of GEN.725, level L0)."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""
 BLACK_HOLE_RETURN_MASS_SOL = 40.0
@@ -1557,8 +1557,10 @@ the radius at which its density equals the ball's mean, so the ball's cell holds
 # the inflow to the ring is 0.8 solar masses a year for the Milky Way (30% efficiency of the
 # dust lanes' flow) against a star formation rate of 0.07 (Table 1: source counts 0.07, integrated light 0.07 to 0.09, more
 # or less constant over the last 5 Myr to 100 Myr), by continuity `inflow = star formation + outflow + growth` (their eq. 1).
-CORE_GAS_INFLOW_TIME_GY = 1.0
-"""float: The time the bar takes to carry the gas of its gap to the centre, Gy."""
+CORE_GAS_INFLOW_TIME_GY = 0.6
+"""float: The time the bar takes to carry the gas of its gap to the centre, Gy. The simulations the gap is read from remove the gas "on 1 Gyr timescales"; the exponential infall of
+GEN.1230 leaves the inner rings about 40 percent less gas than the halo-growth inflow did, so 0.6 Gy (inside a factor of two of that "1 Gyr") gives the measured 0.8 solar masses a year
+for the Milky Way shape (it was 1.0 Gy for 0.8). A stand-in tuned to a published statistic (tier T2, level L2, row CG1 of the registry, GEN.725)."""
 CORE_STAR_FORMATION_PER_INFLOW = 0.07 / 0.8
 """float: The ring's star formation rate over the gas inflow to it (the Milky Way's measured 0.07 over 0.8 solar masses a
 year; one galaxy measured, so a stand-in for the ratio in others) [R, stand-in for other galaxies]."""
@@ -2586,12 +2588,12 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.16%: since GEN.469 the disk's populations have their shares from its gas history (a galaxy of
+# every component, 0.18%, it was 0.16% before GEN.1230 gave the disc an exponential infall: since GEN.469 the disk's populations have their shares from its gas history (a galaxy of
 # 5e10 solar masses; a lighter one forms its stars later and holds more young ones) and since GEN.544 the exponential
 # height (it was 0.19% over the isothermal one); test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0016
+MAGNETAR_YOUNG_STAR_SHARE = 0.0018
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 
