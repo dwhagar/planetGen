@@ -1593,14 +1593,18 @@ def _click_galaxy_stars(page, count=5):
     return headings
 
 
-def test_sector_map_draws_its_nebula_from_the_shape_mesh(page, map_site):
-    """MAP.103: the Sector Map's nebula (the fixture's "Fixture Veil") is
-    drawn from its shape mesh once that arrives, in place of the sphere."""
-    shape_requests = []
-    page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
+def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
+    """MAP.142: the Sector Map's nebula (the fixture's "Fixture Veil") is drawn from its own cloud of points (`/galaxy/nebula/<id>/volume`) by the
+    volume layer, with no shape mesh asked for; the sphere stays only so the nebula can still be picked."""
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
     _open_sector(page, map_site)
-    page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
-    assert any("/galaxy/nebula/31/shape?lod=low" in url for url in shape_requests), shape_requests
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.volumes().some((volume) => volume.key === 'nebula:31'); }}", timeout=30000)
+    volumes = page.evaluate(f"() => ({VOLUMES})().volumes().filter((volume) => volume.key === 'nebula:31')")
+    assert volumes and len(volumes[0]["ix"]) > 0
+    assert any("/galaxy/nebula/31/volume" in url for url in requests), requests
+    assert not any("/galaxy/nebula/31/shape" in url for url in requests), requests
+    assert page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").count() == 0
 
 
 def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):

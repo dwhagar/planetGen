@@ -234,3 +234,34 @@ test("the remnant in the scene is painted from its age, a plain shell when it ha
   assert.ok(young.maxAlpha.value > old.maxAlpha.value);
   assert.equal(shellOf(undefined).innerRatio.value, 0.82);
 });
+
+test("with volumeSingles a nebula is drawn by the host from its own points: the sphere is only picked, and the sources follow the fade and the hidden kind (MAP.142)", () => {
+  const data = structuredClone(F.sectorMap.data);
+  data.nebulaShapePath = "/galaxy/nebula/{id}/shape";
+  const sector = SS.buildSectorScene(data, { origin: [10, 20, 30], unit: 1, flipY: false, pixelRatio: 1, volumeSingles: true });
+  const nebulae = data.clouds.filter((c) => c.kind === "nebula" && c.nebulaId != null);
+  assert.ok(nebulae.length, "the fixture sector holds a nebula");
+  const sources = sector.nebulaSources();
+  assert.equal(sources.length, nebulae.length);
+  const first = sources[0];
+  assert.equal(first.key, "nebula:" + nebulae[0].nebulaId);
+  assert.equal(first.single, true);
+  assert.equal(first.weight, 1);
+  const cloud = sector.entryByKey.get(nebulae[0].key);
+  assert.deepEqual([first.reaches[0].x, first.reaches[0].y, first.reaches[0].z], [cloud.x, cloud.y, cloud.z], "in the scene's own frame (origin + local)");
+  assert.equal(first.reaches[0].radiusPc, cloud.r);
+  const volumes = sector.layers.find((l) => l.name === "sector-volumes").meshes();
+  const sphere = volumes.find((m) => m.material.visible === false);
+  assert.ok(sphere, "the sphere stays to be picked, not drawn");
+  sector.setFade(0.4);
+  assert.ok(Math.abs(sector.nebulaSources()[0].weight - 0.4) < 1e-9, "a sector fading in draws its nebulae at that share");
+  sector.setFade(1);
+  sector.setKindHidden("nebula", true);
+  assert.equal(sector.nebulaSources()[0].weight, 0, "a hidden kind draws nothing");
+  assert.equal(sector.nebulaMeshCount(), 0, "no shape mesh is asked for");
+});
+
+test("without volumeSingles a scene lists no nebula sources", () => {
+  const { sector } = build();
+  assert.deepEqual(sector.nebulaSources(), []);
+});

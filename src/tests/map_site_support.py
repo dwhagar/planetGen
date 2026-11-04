@@ -276,8 +276,15 @@ def single_nebula_volume_payload(nebula_id):
 
     cloud = next((n for n in NEBULAE if int(n["id"]) == int(nebula_id)), None)
     if cloud is None:
-        raise apiclient.NotFoundError(f"No such nebula: {nebula_id}")
-    family = cloud.get("family") or ("dark" if cloud.get("descriptor") == "dark" else "diffuse")
+        # A nebula of the fixture sector (`PHENOMENA`): at its offset from the sector's centre.
+        row = next((p for p in PHENOMENA if p["type"] == "nebula" and int(p["id"]) == int(nebula_id)), None)
+        if row is None:
+            raise apiclient.NotFoundError(f"No such nebula: {nebula_id}")
+        centre = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == SECTOR_ID))
+        cloud = {"x": centre[0] + row["offset_x_ly"] / 3.26156, "y": centre[1] + row["offset_y_ly"] / 3.26156,
+                 "z": centre[2] + row["offset_z_ly"] / 3.26156, "radius_pc": row["radius_ly"] / 3.26156, "descriptor": row["descriptor"]}
+    descriptor = cloud.get("descriptor")
+    family = cloud.get("family") or (descriptor if descriptor in nebula_blocks.FAMILIES else "diffuse")
     volume = nebula_volume.sample_group(
         [{"x": cloud["x"], "y": cloud["y"], "z": cloud["z"], "radius_pc": cloud["radius_pc"], "family": family}], None,
         stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL, nebula_blocks.FAMILIES)
