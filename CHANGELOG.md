@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3129] - 2026-11-04
+
+**Headline:** Every list on the site now puts a comma before its last "and" or "or" ("red, green, and blue").
+
+### Changed
+- **The serial comma, everywhere.** Lists of three or more in the pages, help text, class descriptions, life classes, the settings and admin help, and the sentences the site writes about a system now read "a, b, and c". Pairs are unchanged ("red and blue").
+- **A check keeps it that way.** The plain-words checker flags a list with no comma before its last "and" or "or", and a test reads every page template for it.
+
 ## [8.0.3128] - 2026-11-04
 
 **Headline:** The directed-moon-count test counts a moon that fell into its planet as born, so it no longer fails when the planet's spin history takes the moons it was given.
