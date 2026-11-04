@@ -22,7 +22,7 @@ release is stamped.
 | API | API.39 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.580 |
+| TEST | TEST.581 |
 | USR | USR.32 |
 | OPS | OPS.95 |
 | DOC | DOC.104 |
@@ -3893,6 +3893,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.577 | test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug) | none | dropped (did not reproduce: 26 of 26 pass on main, Core 3) |
 | TEST.578 | test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug) | none | done, PR #4866 |
 | TEST.579 | Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug) | none | open |
+| TEST.580 | Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
