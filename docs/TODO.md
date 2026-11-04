@@ -18967,29 +18967,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.94 update.sh's health check gave up after 20 s with HTTP 000 right after a reload on a real server: widen the window, say what curl saw, and ask again once workers are up (bug)**
-  Boss, 6:03 PM EST on 2026-11-04, ran ./update.sh to 8.0.3206 on his
-  server. All 9 stages passed, but after the Apache reload
-  https://starmap.moltenaether.com/api/health gave HTTP 000 (no answer
-  at all) for 20 s and update.sh opened the site with the warning; then
-  stage 2 of 2 started and its galaxy-nodes chunks read 0 built, already
-  stored, yet took 37 to 38 s each, against 4.0 s a chunk in his earlier
-  run. The probe (scripts/deploy-common.sh wait_for_health) waits
-  HEALTH_SETTLE_SECONDS 10 then asks for up to HEALTH_WAIT_SECONDS 20
-  with curl --max-time 5, so a worker still starting (numba compile and
-  imports after new code) times out at 5 s and reads as 000. Do: (1)
-  default HEALTH_WAIT_SECONDS to 90 and keep the early exit on a good
-  answer; (2) always print curl's reason with the code
-  (curl_failure_words already exists) on every retry line, not only in
-  the final warning, so a timeout, a refused connection, a failed name
-  lookup and a TLS error read differently; (3) when the failure is the
-  same 000 and the address is the public name, also try the loopback
-  port once and say whether the server answers itself, to tell a slow
-  start from a server that cannot reach its own public address. Done: a
-  shell test of the retry and the messages with a fake curl. Proposed
-  owner: Aux 7. Filed by the TODO thread.
-  Prerequisites: none. Related: OPS.86, PERF.234.
-
 ## DOC: Documentation
 
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
