@@ -2893,6 +2893,7 @@ STAR_FIELDS = (
                          lambda star, context: star_parent(context["parent_node_id"], context["star_system_id"])),
     object_rows.computed(("offset_x_au", "offset_y_au", "offset_z_au"), lambda star, context: tuple(context["offset_au"])),
     object_rows.computed("flags", lambda star, context: context["flags"]),
+    object_rows.computed(body_strength.STELLAR_FIELDS, lambda star, context: body_strength.star_values(star)),    # GEN.1162
 )
 """tuple: The `Field`s of a `stars` row (`object_rows`)."""
 
@@ -3417,6 +3418,8 @@ BLACK_HOLE_FIELDS = (
     object_rows.attr("spin"), _flag("has_accretion_disk"),
     object_rows.attr("temperature_k", "temperature"), object_rows.attr("luminosity_w", "luminosity"),
     object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
+    object_rows.computed(body_strength.STELLAR_FIELDS, lambda hole, context: body_strength.remnant_values(
+        "black-hole", hole.mass_solar, hole.event_horizon_radius_km)),    # GEN.1162
 )
 """tuple: The `Field`s of a `black_holes` row."""
 
@@ -3427,6 +3430,8 @@ NEUTRON_STAR_FIELDS = (
     object_rows.attr("magnetic_field_gauss"), object_rows.attr("pulsar_type"),
     object_rows.attr("surface_temperature_k"), object_rows.attr("luminosity_w", "luminosity"),
     object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
+    object_rows.computed(body_strength.STELLAR_FIELDS, lambda star, context: body_strength.remnant_values(
+        "neutron-star", star.mass_solar, star.radius)),    # GEN.1162
 )
 """tuple: The `Field`s of a `neutron_stars` row."""
 
@@ -3727,6 +3732,7 @@ ROGUE_PLANET_FIELDS = (
     object_rows.each(rings.BODY_FIELDS),  # GEN.836
     _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+    object_rows.each(body_strength.ROGUE_FIELDS),    # GEN.1162
 )
 """tuple: The `Field`s of a `rogue_planets` row."""
 
@@ -3790,6 +3796,7 @@ INTERSTELLAR_COMET_FIELDS = (
     _FREE_VECTOR_FIELD,
     object_rows.attr("mass_kg"),
     _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD, object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+    object_rows.each(body_strength.COMET_FIELDS),    # GEN.1162
 )
 """tuple: The `Field`s of an `interstellar_comets` row."""
 

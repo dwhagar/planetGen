@@ -1525,6 +1525,7 @@
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
+-- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v196, which gets them when the galaxy is regenerated.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -2234,6 +2235,8 @@ CREATE TABLE IF NOT EXISTS stars (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J (-1 for a black hole: infinite)
 
     UNIQUE KEY uq_stars_uid (uid),
     KEY idx_stars_parent (parent_type, parent_id),
@@ -3327,6 +3330,8 @@ CREATE TABLE IF NOT EXISTS black_holes (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J (-1 for a black hole: infinite)
 
     UNIQUE KEY uq_black_holes_uid (uid),
     KEY idx_black_holes_parent (parent_type, parent_id),
@@ -3417,6 +3422,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J (-1 for a black hole: infinite)
 
     UNIQUE KEY uq_neutron_stars_uid (uid),
     KEY idx_neutron_stars_parent (parent_type, parent_id),
@@ -3843,6 +3850,10 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     eq_supply_rec               TINYINT NULL,  -- v153
     eq_shelter                  TINYINT NULL,  -- v153
     eq_shelter_rec              TINYINT NULL,  -- v153
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the mean density, g/cm3
+    roundness_ratio             DOUBLE,  -- v200 (GEN.1162): the mean radius over the round radius, 1 or more is round, NULL for a giant or a brown dwarf
+    yield_strength_pa           DOUBLE,  -- v200 (GEN.1162): the strength of the rock and ice, Pa, NULL for a giant or a brown dwarf
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J
     shelter_column_g_cm2        DOUBLE NULL,  -- v153
     energy_flux_w_m2            DOUBLE NULL,  -- v153
 
@@ -3936,6 +3947,11 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    density_g_cm3               DOUBLE,  -- v200 (GEN.1162): the bulk density of the nucleus, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v200 (GEN.1162): the share of the nucleus mass that is ice of any kind
+    roundness_ratio             DOUBLE,  -- v200 (GEN.1162): the mean radius over the round radius, 1 or more is round
+    yield_strength_pa           DOUBLE,  -- v200 (GEN.1162): the strength of the material mix of the nucleus, Pa
+    binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling the nucleus releases, J
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
     KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
