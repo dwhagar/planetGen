@@ -3,6 +3,7 @@
 import math
 import json
 
+import pytest
 from planetgen.web.maps import bodylook as bl
 
 from tests.air_support import fold_air
@@ -379,3 +380,14 @@ def test_the_air_veils_the_ground_by_its_optical_depth_and_stored_haze_and_cloud
     airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0))
     assert not {"veil", "haze", "cloudCover"} & set(airless)
     assert "veil" not in bl.planet_look(_planet(body_type="g"))
+def test_a_body_hotter_than_the_draper_point_glows_in_the_colour_of_its_heat_and_a_cooler_one_does_not():
+    """MAP.275: `thermal` is {hex, strength}, 0 at 800 K rising to 1 at 2400 K, the blackbody colour of the temperature."""
+    assert bl.thermal_glow(700.0) is None and bl.thermal_glow(800.0) is None and bl.thermal_glow(None) is None
+    warm, hot, white = bl.thermal_glow(1200.0), bl.thermal_glow(2000.0), bl.thermal_glow(5000.0)
+    assert 0.0 < warm["strength"] < hot["strength"] < white["strength"] == 1.0
+    assert hot["hex"].startswith("#") and len(hot["hex"]) == 7
+    red = lambda h: int(h[1:3], 16) / max(1, int(h[5:7], 16))
+    assert red(warm["hex"]) > red(white["hex"]), (warm, white)
+    giant = {"id": 4, "body_type": "g", "planet_class": "G", "surface_temperature_k": 1500.0, "radius_km": 80000.0}
+    assert bl.planet_look(giant)["thermal"]["strength"] == pytest.approx(0.438, abs=0.001)
+    assert "thermal" not in bl.planet_look(dict(giant, surface_temperature_k=300.0))

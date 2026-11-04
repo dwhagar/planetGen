@@ -61,6 +61,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
                 orbit's normal)
     tiltDeg     axial tilt, 0 to 180 degrees (past 90 the body turns backwards)
+    thermal     {hex, strength} the body's own glow when it is hotter than about 800 K (MAP.275); left out when it is not
     ring        the body's stored ring system (MAP.275, `ringlook.ring_look`): {kind, origin, in, out (radii), tau, ice, alpha, rgb, gaps}; left out when none
     locked      true when the body is tidally locked (its rotation period is its orbital period, UX.244); the views then keep
                 its day side toward what it orbits, and the object page says it is locked
@@ -357,6 +358,7 @@ def planet_look(planet, kind="planet"):
     pressure_pa = planet.get("atmospheric_pressure_pa")
     _put(look, "pkpa", _rounded(_pa_to_kpa(pressure_pa) if pressure_pa is not None else None, 3))
     _put(look, "tempK", _rounded(temp_k, 1))
+    _put(look, "thermal", thermal_glow(temp_k))      # MAP.275: a body hot enough to shine gives itself light
     _put(look, "radiusKm", _rounded(planet.get("radius_km"), 1))
     if not gas:
         _put(look, "roundness", _rounded(planet.get("roundness_ratio"), 4))
@@ -507,6 +509,22 @@ def blackbody_hex(temperature_k):
         return photometry.star_colour(float(temperature_k)).hex
     except ValueError:
         return None
+
+
+THERMAL_ONSET_K = 800.0
+"""float: The temperature at which a body begins to shine by its own heat, the Draper point (about 525 C); a stand-in, recalled (RNG9)."""
+THERMAL_FULL_K = 2400.0
+"""float: The temperature at which the glow is drawn at full strength: the hottest giants and molten worlds (a stand-in, RNG10)."""
+
+
+def thermal_glow(temperature_k):
+    """The `thermal` entry of a look record (MAP.275): `{hex, strength}`, the blackbody colour of the body's temperature and a strength rising linearly from
+    0 at `THERMAL_ONSET_K` to 1 at `THERMAL_FULL_K`; `None` for a body cooler than the onset or with no temperature."""
+    if temperature_k is None or not math.isfinite(temperature_k) or temperature_k <= THERMAL_ONSET_K:
+        return None
+    strength = min(1.0, (temperature_k - THERMAL_ONSET_K) / (THERMAL_FULL_K - THERMAL_ONSET_K))
+    colour = blackbody_hex(temperature_k)
+    return None if colour is None else {"hex": colour, "strength": round(strength, 3)}
 
 
 def rogue_planet_look(rogue):
