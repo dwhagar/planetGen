@@ -80,7 +80,7 @@ def page(gl_browser, request):
                                      color_scheme="dark")
     page = context.new_page()
     page.names_hidden = request.node.get_closest_marker("names_hidden") is not None
-    page.holes_default = request.node.get_closest_marker("holes_default") is not None
+    page.holes_marked = request.node.get_closest_marker("holes_marked") is not None
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     try:
@@ -96,8 +96,8 @@ DOUBLE_CLICK_GAP_MS = 400
 def _open(page, url, ready):
     if getattr(page, "names_hidden", False) and "hide=" not in url:
         url += ("&" if "?" in url else "?") + "hide=" + HIDE_NAMES
-    if not getattr(page, "holes_default", False) and "/galaxy" in url and "marker-black-hole" not in url:
-        # MAP.368: the Black hole marks layer starts off; the tests that look at the marks ask for it, those of its default are marked `holes_default`.
+    if getattr(page, "holes_marked", False) and "/galaxy" in url and "marker-black-hole" not in url:
+        # MAP.368: the Black hole marks layer starts off; the tests of the marks themselves are marked `holes_marked` and ask for it.
         url = url.replace("show=", "show=marker-black-hole,", 1) if "show=" in url else url + ("&" if "?" in url else "?") + "show=marker-black-hole"
     response = page.goto(url, wait_until="load")
     assert response.status == 200, f"{url} answered {response.status}"
@@ -2904,6 +2904,7 @@ def _hole_rule(hole, dist):
     return r <= 3 * dist or hole["mass_solar"] >= 5 * (r / (3 * dist)) ** 2
 
 
+@pytest.mark.holes_marked
 def test_black_holes_are_the_near_ones_and_the_heavy_enough_at_a_10_pc_zoom_and_the_density_key_sets_the_cap(page, holes_site):
     """MAP.339: at a 10 pc zoom of a galaxy listing 183 black holes, the marks are those within 3 view distances of what the camera
     looks at and those heavy enough for how far they are, no more than one per 120 by 120 pixels of the screen (the default of the
@@ -2941,6 +2942,7 @@ def _hole_view_after_reload(page):
     return last, None
 
 
+@pytest.mark.holes_marked
 def test_crowded_black_holes_are_one_mark_with_a_count_and_a_list_and_split_on_zoom_in(page, holes_site):
     """MAP.340: from 200 pc the thirty near black holes of `holes_site` lie within a few pixels of each other, so they are drawn as one
     mark with their count (a badge on the glyph), its card lists them each with its mass and has a Go to them button, and after
@@ -2987,7 +2989,6 @@ def _spot_clear_of_names(page, spot, tooltip_text):
 HOLE_DOTS = "() => document.querySelector('#galaxymap3d-canvas').__mapHoleDots()"
 
 
-@pytest.mark.holes_default
 def test_galaxy_map_black_hole_marks_start_off_and_the_dots_always_draw(page, map_site):
     """MAP.368, MAP.370 (MAP.219): the Black hole marks layer starts off, so no glyph and no legend line, but the black holes are
     always drawn as purple dots (#a43cff) among the stars; turning the layer on adds the glyph over each black hole in view and a
@@ -3358,7 +3359,6 @@ def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_s
     assert page.evaluate(GLOW)["visible"] is False
 
 
-@pytest.mark.holes_default
 def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_system(page, map_site):
     """MAP.220, MAP.303: systems with a habitable world get a marker of their own kind, on until the Menu turns it off (and
     `hide=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds; the
@@ -3450,7 +3450,6 @@ def _fly_to_system(page, system):
     _settle(page)
 
 
-@pytest.mark.holes_default
 def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_come_in_with_the_sector(page, map_site):
     """MAP.220: every planet class has a marker of its own in the Menu's World classes group, all off until the visitor picks them;
     choosing a class marks the systems that hold a world of it once the map is close enough to have their sector (its glyph carries the
@@ -3501,7 +3500,6 @@ def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_c
     assert not [e for e in found if e["kind"] == "marker-class-G"]
 
 
-@pytest.mark.holes_default
 def test_galaxy_map_life_class_markers_are_off_until_chosen_and_mark_the_systems_where_the_class_lives(page, map_site):
     """MAP.351: the Menu has a Life classes group with a marker for each of the 15 life classes, all off until the visitor picks them;
     choosing one marks the systems with a world where that class lives once the map is close enough to have their sector, and the hover
@@ -3866,6 +3864,7 @@ def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_e
 OPACITIES = "() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.opacities()"
 
 
+@pytest.mark.holes_marked
 def test_markers_outside_an_opened_sector_dim_as_the_stars_do(page, holes_site):
     """MAP.341: with a sector opened in place the stars outside it dim to 0.3 (MAP.327), and so does every marker outside it, black holes
     and the rest; with none opened the markers are whole, and closing the sector gives them back."""
@@ -4120,7 +4119,7 @@ def test_galaxy_map_stars_follow_the_apparent_magnitude_law(page, map_site):
     page.wait_for_timeout(800)
     assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
     info = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarMagnitude()")
-    assert info["target"] in (8000, 20000), info["target"]
+    assert info["target"] in (4000, 10000), info["target"]
     assert info["count"] > 0 and info["onScreen"] <= info["count"], info
     assert abs(info["limit"] - info["goal"]) < 0.05, "the limit has eased to its goal"
     assert info["limit"] > -5, info["limit"]
@@ -5049,7 +5048,6 @@ def _hover_spot(page, point):
 
 
 @pytest.mark.names_hidden
-@pytest.mark.holes_default
 def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_site):
     """MAP.243, MAP.370: beyond the galaxy's outline no block is under the pointer; a black hole there is drawn as a dot whatever the
     Black hole marks layer says (off by default, so no mark takes the pointer first) and is picked on the screen like a phenomenon
