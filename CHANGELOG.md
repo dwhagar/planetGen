@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3206] - 2026-11-04
+
+**Headline:** There is now a short two-word local name for any Object ID, spelling only its serial and body number, with the sector shown beside it.
+
+### Changed
+
+- **Local names (GEN.1255).** `names/naming_key.py` gains `local_name`, `local_name_with_sector` and `uid_of_local_name`: the serial and body number of an Object ID, 10 hex digits, spelled alone as two words in their own codec domain, so the sector's words never appear (`Zaidonr Jaisonn, sector 0000B0001803E8`). The 26 count bits of the serial are first scrambled by a keyed bijection (odd multiplier and offset drawn from the naming key and the sector), so serials 0, 1, 2 no longer share a first word: the first 4,096 serials of every sector have first words of their own. The name is exact inside a sector and reverses from the name, the sector and the key. `CODEC_VERSION` goes to 2. Nothing uses the local name yet: rogue planets and the other phenomena, scatter rows, the pages, the API and search follow in GEN.1256, GEN.1257, UX.259 and API.38. No stored data or generated output changes.
+
+generation-output: unchanged
+
+## [8.0.3205] - 2026-11-04
+
+**Headline:** The first fill of a galaxy works out its bright-star band shares about fifteen times faster, with every star drawn as before.
+
+### Changed
+- **PERF.232: the band shares of a first sector fill were most of its time, and most of that was work that could only come to 0.** A sector fill asks, for every luminosity band from 100 Lsun up and every population, what share of the population's living stars the band holds (`star_population._bright_fraction`), which weighs about 8,000 masses of the IMF grid per threshold. For an old population nearly all of those stars are dead, or not yet off the main sequence, in the ages the population spans, and each was still worked out in full (the evolved-track corners, the thermal-pulse windows, the main-sequence crossing) to find it weighed nothing. Three changes, none of which moves a number:
+  - A star whose bright windows all lie outside its population's age window now measures exactly 0 without them being worked out (`star_population._outside_window`: the windows lie between the main-sequence lifetime and the end of the last phase, and `AgeLaw.weight` is exactly 0 outside the window). A population's living count and the list of masses that can count at any threshold are worked out once for all thresholds (`_fraction_terms`) instead of once per threshold.
+  - `post_main_sequence.Timeline.bright_pieces`, which finds the stretches of a track that clear a luminosity, runs its arithmetic in one numba pass over the samples (`physics/bright_piece_kernel.py`) instead of two dozen small array operations; a track with a sample that is not a number takes the array path as before.
+  - An isochrone remembers the span and the lifetime of each mass it is asked about (`datasets/isochrones._Isochrone._memo`), and builds the sorted table its lifetime reads once, not on every call: a main-sequence crossing asks the same mass at a dozen ages.
+  Measured on one 4-core machine, each from a cold folder: `test_a_new_seed_replaces_the_old_only_before_any_sector` took 1,478 s on `main` and about 430 s now, and the band shares inside it, sampled while it ran, took about 890 s before and about 60 s after. Every share of 98 asked (seven thresholds, every population, three mass ranges) is the same float as on `main`, and `tests/test_bright_measure_exactness.py` holds the three changes to the way they were worked out before, to the last bit. What is left of that test (the plan, the sampling tables, the sector's own systems) is not the shares. `generation-output: unchanged`
+
+## [8.0.3204] - 2026-11-04
+
+**Headline:** A single nebula's cloud of points can now be fetched on its own, ready for the Sector Map and the nebula page to draw the same irregular shape the Galaxy Map shows.
+
+### Changed
+
+- New `GET /api/nebulae/<id>/volume` (and the web `GET /galaxy/nebula/<id>/volume`) sample one nebula's cloud from the model's gas density with the same sampler as the Galaxy Map's node volumes. Nothing is stored and no map draws it yet (MAP.142 part 1).
+
+generation-output: unchanged
+
 ## [8.0.3203] - 2026-11-04
 
 **Headline:** The property sheet knows that only some life classes have a variant letter, so a body whose class has none is no longer flagged as an empty column.
