@@ -50,6 +50,7 @@ from markupsafe import Markup
 from planetgen.web.lib import apiclient, autolink, help_registry
 from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
+from planetgen.web.lib import reference_urls
 from planetgen.web.lib.reference_urls import reference_path
 
 from . import csrf
@@ -111,6 +112,14 @@ def reference_link(kind, entry=None, label="Where this comes from"):
     The link adds no sentence to the page: the label is a small phrase or an icon (`label` may be changed for a short form).
     """
     return Markup('<a class="reference-link" href="{}">{}</a>').format(reference_path(kind, entry), label)
+
+
+def value_source(kind, label):
+    """The quiet link under a value of a body's page (DOC.93): `reference_link` to the method row of `label` for a `kind` ("planet", "moon" or
+    "star"), or an empty string when the References has no row for it. Where the page printed the one-line source, it now links to it."""
+    from planetgen.web.lib import property_help
+    ref = property_help.method_ref(kind, label)
+    return reference_link("method", ref) if ref else Markup("")
 
 
 def trusted_html(html):
@@ -218,7 +227,7 @@ def help_menu():
 
 
 HELP_SECTIONS = ("classes", "help", "references")
-"""tuple: The `section` names that mark the Help menu current: the class pages, the help pages and the References pages."""
+"""tuple: The `section` names that mark the Help menu current: the class pages, the help pages, and the References pages."""
 
 POPULATION_SECTIONS = {"species"}
 """set: Sections shown only once population data exists
@@ -280,7 +289,10 @@ def render_page(template, *, title, section=None, breadcrumbs=(), description=No
 
 def _with_help_links(html):
     """`html` with the help links of `web/lib/autolink.py` added to its main content: the first two mentions of each term the program's
-    parts registered (`help_registry.terms()`), counting links already there. A failure leaves the page as it was."""
+    parts registered (`help_registry.terms()`), counting links already there. A failure leaves the page as it was. The References pages are
+    left as they are (DOC.89): they speak out of universe, a paper's title is not a mention of a term, and the Papers page is two megabytes."""
+    if reference_urls.is_reference_path(request.path):
+        return html
     try:
         return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
     except Exception:    # a missing link must never take a page down

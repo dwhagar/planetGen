@@ -748,7 +748,7 @@ def cancel_runs(job_id, who=None):
         return sum(runcontrol.cancel_run(connection, run_id, who=who) is not None
                    for run_id in runrecord.job_runs(connection, job_id))
     except Exception as exc:  # noqa: BLE001 -- the runner's own stop still follows
-        log.debug("Cancel of job %s: its runs were not cancelled (%s)", job_id, exc)
+        log.debug("Cancel of job %s: its runs were not canceled (%s)", job_id, exc)
         return 0
 
 
@@ -785,7 +785,7 @@ def _end_orphan(root, path, job_id, who):
             break
     did = bool(cancel_runs(job_id, who)) or did
     if state.get("status") in (None, "running"):
-        state.update(status="cancelled", finished_at=time.time(), error=f"Cancelled by {who or 'an admin'} after its runner "
+        state.update(status="cancelled", finished_at=time.time(), error=f"Canceled by {who or 'an admin'} after its runner "
                                                                          "had stopped.")
         state.pop("step_pid", None)
         try:

@@ -1543,6 +1543,11 @@ a:focus-visible .galaxymap-star-core {
   overflow: hidden;
 }
 
+/* UX.142: boxfit.js caps the width (so the height) of a box of fixed shape to the browser window; the box then sits in the middle of its column. */
+[data-fit-aspect] {
+  margin-inline: auto;
+}
+
 .navmap-labels {
   position: absolute;
   inset: 0;
@@ -3643,6 +3648,19 @@ body.app {
   flex: 1 1 auto;
 }
 
+/* UX.142: on a window with room for it, the shell stays under the held site header while a long admin page scrolls, so
+   the rail, the search and the density switch are always in view. A phone or a short window keeps it in the flow
+   (it would take too much of the window). adminshell.js sets --site-header-h. */
+@media (min-width: 700px) and (min-height: 600px) {
+  .app .admin-shell {
+    position: sticky;
+    top: var(--site-header-h, 0);
+    z-index: 15;
+    background: var(--bg);
+    padding-top: 0.4rem;
+  }
+}
+
 .app .admin-rail ul {
   list-style: none;
   margin: 0;
@@ -5126,6 +5144,29 @@ body.app {
   text-align: right;
 }
 
+/* MAP.222: the bar over a group window (a nebula alone) with its way back. */
+.galaxy-window-bar {
+  position: absolute;
+  left: 50%;
+  top: 0.75rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.galaxy-window-bar[hidden] {
+  display: none;
+}
+.galaxy-window-title {
+  font-weight: 700;
+}
+
 /* NAV.20: the Galaxy Map's course legend and readout. */
 .course-readout {
   display: flex;
@@ -5917,6 +5958,67 @@ p.hint a {
   border-bottom-color: var(--references-border);
 }
 
+/* DOC.89: the Papers and Data pages. */
+.reference-views ul,
+.reference-letters ul {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.reference-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.reference-search input[type="search"] {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.reference-entries {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.reference-entry {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+  scroll-margin-top: 4rem;
+}
+
+.reference-entry:target {
+  background: var(--references-bg);
+}
+
+.reference-entry p {
+  margin: 0.15rem 0;
+}
+
+.reference-id {
+  color: var(--text-muted);
+  font-size: 0.85em;
+}
+
+.reference-meta {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+.reference-place-label {
+  font-weight: 600;
+}
+
 .life-facts,
 .life-help-facts {
   margin: 0.5rem 0;
@@ -6274,6 +6376,61 @@ a.help-mark {
 
 .map-hover-preview dd {
   margin: 0;
+}
+
+/* MAP.364: the bars for the levels of nodes still loading, over the top left of a map. The map viewports carry the dark tokens, so
+   both themes read. */
+.map-level-progress {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: min(20rem, calc(100% - 1rem));
+  pointer-events: none;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.map-level-row {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg-subtle) 85%, transparent);
+  border: 1px solid var(--border);
+}
+
+.map-level-label {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.map-level-track {
+  display: block;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.map-level-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.15s linear;
+}
+
+.map-level-stalled {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-level-fill {
+    transition: none;
+  }
 }
 
 /* MAP.357: every charted region as a point of interest on the Galaxy Map, each with its link; regions too close to tell apart are one point

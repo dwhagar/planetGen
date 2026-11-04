@@ -121,6 +121,8 @@ SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity, _l, _p in SIZE_ENT
 
 VALUE_ENTITIES = (("planet", "Planet"), ("moon", "Moon"), ("star", "Star"))
 """tuple: The kinds of object that take ranges on physical values (UX.227), `(entity, label)`, in the order the form shows them."""
+ENTITY_NAMES = tuple(entity for entity, _label in VALUE_ENTITIES)
+"""tuple: The names of the kinds that take ranges on physical values (`planet`, `moon`, `star`)."""
 VALUE_KEYS = {entity: tuple(key for key, value in search_values.KEYS.items() if entity in value.entities) for entity, _label in VALUE_ENTITIES}
 """dict: Entity -> the keys of `planetgen.db.search_values` it has."""
 DEFAULT_GASES = ("N2", "O2", "CO2", "H2O", "CH4", "Ar", "H2", "He", "NH3", "SO2")
@@ -386,6 +388,56 @@ def needs_canonical_redirect(args):
     return tidy != sent
 
 
+def tidy_value_args(args, entities):
+    """
+    The query of a page that takes the physical-value fields of `entities` (UX.228), cleaned the way the search page's address is: `(pairs, changed)`.
+
+    A submitted form sends every box, filled or not, and every row's unit, and the "another gas" row under its own names. `pairs` is the
+    `[(name, value)]` of `args` without the empty ones and with the value fields of `entities` as the search state reads them (an empty box
+    gone, a unit that says nothing gone, the "another gas" row turned into the key of that gas); every other parameter is kept as it was, repeats
+    included. `changed` is whether that differs from `args`, so the page can redirect to the short address.
+    """
+    state = SearchState.from_args(args)
+    mine = [name for name in (*VALUE_FIELDS, *VALUE_SORT_FIELDS) if name.split("_", 1)[0] in entities and state.texts.get(name)]
+    dropped = {key for key in args if f"_{OTHER_GAS}" in key or key in VALUE_FIELDS or key in VALUE_SORT_FIELDS}
+    pairs = [(key, value) for key, value in args.items(multi=True) if key not in dropped and value.strip()]
+    pairs += [(name, state.texts[name]) for name in mine]
+    return pairs, sorted(pairs) != sorted(args.items(multi=True))
+
+
+def value_chips(ranges, query_pairs, base_url, with_entity=True, anchor=""):
+    """
+    The "remove this range" chips of a page that takes the physical-value fields (UX.228): `[{label, url}]`, one per key with a range.
+
+    Args:
+        ranges (dict): `SearchState.value_ranges()`, `{entity: {key: (least, most, unit or None)}}`.
+        query_pairs (list): The page's address as `[(name, value)]`; the chip's link is that without the range's three fields (and, for a
+            gas, without the form's "another gas" row, which may be where the range came from).
+        base_url (str): The page's path.
+        with_entity (bool): Write the kind before the label ("Planet surface gravity"), for a page that lists several kinds.
+        anchor (str): A `#id` the link lands on.
+    """
+    chips = []
+    entity_labels = dict(VALUE_ENTITIES)
+    for entity, by_key in ranges.items():
+        for key, (least, most, unit) in by_key.items():
+            symbol = _unit_symbol(unit or search_values.KEYS[key].default_unit(entity))
+            tail = f" {symbol}" if symbol else ""
+            if least is not None and most is not None:
+                text = f"{_plain(least)}\u2013{_plain(most)}{tail}"
+            elif least is not None:
+                text = f"\u2265 {_plain(least)}{tail}"
+            else:
+                text = f"\u2264 {_plain(most)}{tail}"
+            names = value_field_names(entity, key)
+            gas = key.startswith(search_values.GAS_PREFIX)
+            pairs = [(name, value) for name, value in query_pairs if name not in names and not (gas and f"_{OTHER_GAS}" in name)]
+            label = _key_label(entity, key)
+            chips.append({"label": f"{entity_labels[entity]} {label}: {text}" if with_entity else f"{label}: {text}",
+                          "url": (f"{base_url}?{urlencode(pairs)}" if pairs else base_url) + anchor})
+    return chips
+
+
 # ---------------------------------------------------------------------
 # Template data
 # ---------------------------------------------------------------------
@@ -556,6 +608,14 @@ def _link(text, href):
     return {"text": text, "href": href} if href else {"text": text or "—"}
 
 
+def _name_link(row):
+    """The Name cell of a result row (GEN.1140): the link, and a note "formerly X" when the word searched is a name the object used to have."""
+    cell = _link(row["name"], row["url"])
+    if row.get("formerly"):
+        cell["note"] = "(formerly " + ", ".join(row["formerly"]) + ")"
+    return cell
+
+
 def _sector_link(row):
     return _link("View", row["sector_url"]) if row["sector_url"] else {"text": "Standalone"}
 
@@ -616,17 +676,17 @@ def _values_cell(row):
 def _cells(panel, row):
     """One search result row as the data table's cells (the columns of `_PANEL_COLUMNS`)."""
     if panel == "sectors":
-        return [_link(row["name"], row["url"]), {"text": f"{format_number(row['edge_mpc'], ',.2f')} mpc"},
+        return [_name_link(row), {"text": f"{format_number(row['edge_mpc'], ',.2f')} mpc"},
                 _show_on_map(row)]
     if panel == "systems":
-        return [_link(row["name"], row["url"]), _sector_link(row), {"text": str(row["star_count"])},
+        return [_name_link(row), _sector_link(row), {"text": str(row["star_count"])},
                 {"text": str(row["object_count"])}, {"text": "Yes" if row["has_habitable_world"] else "No"},
                 {"text": row["star_summary"]}, _show_on_map(row)]
     if panel == "stars":
-        return [_link(row["name"], row["url"]), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row), _values_cell(row),
+        return [_name_link(row), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row), _values_cell(row),
                 _link(row["system_name"], row["system_url"]), _sector_link(row)]
     if panel in ("planets", "moons"):
-        cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
+        cells = [_name_link(row), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_class_id"] or "—"},
                  equipment_cell(row),
                  habitability_cell(row, row["url"]), *_score_cells(row), _values_cell(row)]
@@ -660,6 +720,36 @@ def api_sorts(args, state=None):
     for entity, sort in (state or SearchState.from_args(args)).value_sorts().items():
         sorts.setdefault(entity, sort)
     return sorts
+
+
+def lookup_notice(text):
+    """
+    The note above the results when the search box holds an Object ID, or a name an object used to have (GEN.1140): where it is now, or that its
+    object was deleted. `None` for anything else, a name an object has now (the results below show it) and a lookup that fails (the search
+    must not depend on it).
+
+    Returns:
+        dict or None: `{"text", "url", "link"}`; `url` is `None` for a deleted object.
+    """
+    from planetgen.web import item_pages
+    text = (text or "").strip()
+    if not text:
+        return None
+    try:
+        found = apiclient.get_lookup(db_name(), text)
+    except apiclient.ApiError:
+        return None
+    if not found:
+        return None
+    if found["status"] == "gone":
+        return {"text": f"{text} belonged to an object that has been deleted.", "url": None, "link": None}
+    is_id = found.get("id") is not None and found["id"].upper() == text.upper()
+    if found["status"] == "current" and not is_id:
+        return None
+    url = item_pages.item_url(found["ref"])
+    if found["status"] == "redirect":
+        return {"text": f"{text} is now", "url": url, "link": found["name"] if not is_id else f"{found['name']} ({found['id']})"}
+    return {"text": f"{text} is", "url": url, "link": found["name"]}
 
 
 def fetch(state):
@@ -774,6 +864,6 @@ def api_offsets(state):
 
 
 __all__ = [
-    "PAGE_SIZE", "NAME_FIELDS", "SIZE_ENTITIES", "SearchState", "needs_canonical_redirect",
+    "PAGE_SIZE", "NAME_FIELDS", "SIZE_ENTITIES", "SearchState", "needs_canonical_redirect", "tidy_value_args", "value_chips",
     "tag_groups", "active_filters", "result_panels", "api_offsets", "value_form", "VALUE_FIELDS",
 ]

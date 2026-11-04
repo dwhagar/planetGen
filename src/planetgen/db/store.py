@@ -62,6 +62,7 @@ import unicodedata
 from types import SimpleNamespace
 from collections import namedtuple
 
+import numpy as np
 import pymysql
 import pymysql.cursors
 import sqlalchemy.event
@@ -69,7 +70,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, chart_ledger, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -110,7 +111,8 @@ from planetgen.generation.star import Star, compressed_heliosphere_radius
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
-from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
+from planetgen.galaxy import potential as galacticPotential, stepper as galacticStepper
+from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit, circular_orbit
 from planetgen.galaxy.straight_line import straight_line_position_pc
 from planetgen.galaxy.system_position import galactic_velocity_ms, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
@@ -606,7 +608,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
-    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores",
+    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
     "asteroid_belt_composition",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
@@ -1948,29 +1950,32 @@ def insert_system_config(conn, config: SystemConfig) -> int:
 # docstring for the full sector > system hierarchy.
 # ---------------------------------------------------------------------------
 
-def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix):
+def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix, reason="rename"):
     """
     Renames every star, planet and moon in one system whose name carries
     `old_prefix` (`names.bodies.rename_prefix`), so derived names such as
     `Voranthis II` follow their system or star. Names set by hand that
-    don't carry the prefix are left alone.
+    don't carry the prefix are left alone. Each old name is kept
+    (`designation_rows.set_name`) for `reason`; `None` for bodies whose
+    old name was a placeholder (a system built again).
     """
     for table in ("stars", "planets", "moons"):
         rows = conn.execute(f"SELECT id, name FROM {table} WHERE star_system_id = ?", (star_system_id,)).fetchall()
         for row in rows:
             renamed = rename_prefix(row["name"], old_prefix, new_prefix)
             if renamed is not None and renamed != row["name"]:
-                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, row["id"]))
-    _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix)
+                designation_rows.set_name(conn, table, row["id"], renamed, reason, old_name=row["name"])
+    _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix, reason)
 
 
-def _rename_comets(conn, where, params, old_host, new_host):
+def _rename_comets(conn, where, params, old_host, new_host, reason="rename"):
     """Moves the comets matching `where` whose designation
-    (`cometData.comet_designation`) names `old_host` over to `new_host`."""
+    (`cometData.comet_designation`) names `old_host` over to `new_host`,
+    keeping each old designation for `reason` (`None`: a placeholder)."""
     for row in conn.execute(f"SELECT id, name FROM comets WHERE {where}", params).fetchall():
         renamed = rename_comet_designation(row["name"], old_host, new_host)
         if renamed is not None and renamed != row["name"]:
-            conn.execute("UPDATE comets SET name = ? WHERE id = ?", (renamed, row["id"]))
+            designation_rows.set_name(conn, "comets", row["id"], renamed, reason, old_name=row["name"])
 
 
 SYSTEM_NAME_MAX_LENGTH = 200
@@ -1990,12 +1995,14 @@ def check_system_name_length(name):
                          f"(this one has {len(name)})")
 
 
-def rename_star_system(conn, star_system_id, new_name):
+def rename_star_system(conn, star_system_id, new_name, reason="rename"):
     """
     Renames one system and every star, planet and moon still named after
     it (`_rename_bodies_with_prefix`). The one place a system's name
     changes after it's saved: the name-uniqueness decorations below, and
-    `PATCH /api/systems/<id>`.
+    `PATCH /api/systems/<id>`. Every old name is kept (GEN.1138) for
+    `reason`: `rename` for a person's change, `collision bump` for the
+    decorations.
 
     Returns:
         bool: `False` if no such system exists.
@@ -2004,18 +2011,16 @@ def rename_star_system(conn, star_system_id, new_name):
                        (star_system_id,)).fetchone()
     if row is None:
         return False
-    conn.execute(
-        "UPDATE star_systems SET name = ?, modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?",
-        (new_name, star_system_id),
-    )
+    designation_rows.set_name(conn, "star_systems", star_system_id, new_name, reason, old_name=row["name"],
+                              extra_set="modified_at = CURRENT_TIMESTAMP(3)")
     storage_checksum.mark_system(conn, star_system_id)
     if row["binary_configuration"] == "wide":
         # A wide pair's stars and its primary's planets carry only the
         # system name's first word (GEN.62).
         _rename_bodies_with_prefix(conn, star_system_id, wide_pair_first_word(row["name"]),
-                                   wide_pair_first_word(new_name))
+                                   wide_pair_first_word(new_name), reason)
     else:
-        _rename_bodies_with_prefix(conn, star_system_id, row["name"], new_name)
+        _rename_bodies_with_prefix(conn, star_system_id, row["name"], new_name, reason)
     return True
 
 
@@ -2034,7 +2039,7 @@ def rename_star(conn, star_id, new_name):
         return False
     if row["role"] == "single":
         return rename_star_system(conn, row["star_system_id"], new_name)
-    conn.execute("UPDATE stars SET name = ? WHERE id = ?", (new_name, star_id))
+    designation_rows.set_name(conn, "stars", star_id, new_name, "rename", old_name=row["name"])
     storage_checksum.mark_system(conn, row["star_system_id"])
     # Since GEN.62 a wide pair's planets carry one word of their star's
     # name: the primary's the shared first word, the secondary's its own
@@ -2052,7 +2057,7 @@ def rename_star(conn, star_id, new_name):
             renamed = next((r for r in (rename_prefix(body["name"], old, new) for old, new in prefixes)
                             if r is not None), None)
             if renamed is not None:
-                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, body["id"]))
+                designation_rows.set_name(conn, table, body["id"], renamed, "rename", old_name=body["name"])
     _rename_comets(conn, "star_system_id = ? AND star_id = ?", (row["star_system_id"], star_id),
                    row["name"], new_name)
     touch_star_system(conn, row["star_system_id"])
@@ -2072,7 +2077,7 @@ def rename_body(conn, table, body_id, new_name):
     row = conn.execute(f"SELECT star_system_id FROM {table} WHERE id = ?", (body_id,)).fetchone()
     if row is None:
         return False
-    conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, body_id))
+    designation_rows.set_name(conn, table, body_id, new_name, "rename")
     touch_star_system(conn, row["star_system_id"])
     return True
 
@@ -2223,7 +2228,9 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             # (`WHERE name = ?` still finds it: the collation ignores case
             # and accents).
             old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
-            conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
+            for holder in conn.execute("SELECT id, name FROM sectors WHERE name = ? AND id <> ?", (old_name, sector_id)).fetchall():
+                designation_rows.set_name(conn, "sectors", holder["id"], renamed_to, "collision bump", old_name=holder["name"],
+                                          extra_set="parity_dirty = 1")
 
         return new_name, base
 
@@ -2261,16 +2268,16 @@ def _rename_registry_holder(conn, row, new_name):
     """Renames a `system_name_registry` row's first holder: a star system
     (`rename_star_system`) or a phenomenon (`rename_phenomenon`)."""
     if row["first_star_system_id"] is not None:
-        rename_star_system(conn, row["first_star_system_id"], new_name)
+        rename_star_system(conn, row["first_star_system_id"], new_name, "collision bump")
     elif row["first_object_table"] in NAMED_PHENOMENON_TABLES:
-        rename_phenomenon(conn, row["first_object_table"], row["first_object_id"], new_name)
+        rename_phenomenon(conn, row["first_object_table"], row["first_object_id"], new_name, "collision bump")
 
 
-def rename_phenomenon(conn, table, object_id, new_name):
+def rename_phenomenon(conn, table, object_id, new_name, reason="rename"):
     """
     Renames one uniquely named phenomenon (`NAMED_PHENOMENON_TABLES`). A
     supernova remnant's collapsed core, named `"<remnant> Core"`, follows
-    it.
+    it. Each old name is kept (GEN.1138) for `reason`.
 
     Returns:
         bool: `False` if no such row exists.
@@ -2280,7 +2287,7 @@ def rename_phenomenon(conn, table, object_id, new_name):
     row = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
         return False
-    conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, object_id))
+    designation_rows.set_name(conn, table, object_id, new_name, reason, old_name=row["name"])
     if table == "supernova_remnants":
         core = conn.execute(
             "SELECT compact_remnant_black_hole_id, compact_remnant_neutron_star_id "
@@ -2289,10 +2296,10 @@ def rename_phenomenon(conn, table, object_id, new_name):
         for core_table, core_id in (("black_holes", core["compact_remnant_black_hole_id"]),
                                     ("neutron_stars", core["compact_remnant_neutron_star_id"])):
             if core_id is not None:
-                conn.execute(
-                    f"UPDATE {core_table} SET name = ? WHERE id = ? AND name = ?",
-                    (f"{new_name} Core", core_id, f"{row['name']} Core"),
-                )
+                core_row = conn.execute(f"SELECT name FROM {core_table} WHERE id = ? AND name = ?",
+                                        (core_id, f"{row['name']} Core")).fetchone()
+                if core_row is not None:
+                    designation_rows.set_name(conn, core_table, core_id, f"{new_name} Core", reason, old_name=core_row["name"])
     return True
 
 
@@ -2610,9 +2617,9 @@ def _rename_unconfirmed_holders(conn, ordered, held):
         if target is None:
             continue
         if system_id is not None:
-            rename_star_system(conn, system_id, target)
+            rename_star_system(conn, system_id, target, "collision bump")
         else:
-            rename_phenomenon(conn, table, object_id, target)
+            rename_phenomenon(conn, table, object_id, target, "collision bump")
         healed[key] = target
     return healed
 
@@ -2798,7 +2805,7 @@ def _rank_chain(conn, table, base, count, address, taken):
         given = names[len(lower):len(lower) + count]
         for row, name in zip(lower + higher, names[:len(lower)] + names[len(lower) + count:]):
             if row["name"].upper() != name:
-                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (name, row["id"]))
+                designation_rows.set_name(conn, table, row["id"], name, "collision bump", old_name=row["name"])
     taken.update(given)
     return given
 
@@ -2895,6 +2902,7 @@ STAR_FIELDS = (
                          lambda star, context: star_parent(context["parent_node_id"], context["star_system_id"])),
     object_rows.computed(("offset_x_au", "offset_y_au", "offset_z_au"), lambda star, context: tuple(context["offset_au"])),
     object_rows.computed("flags", lambda star, context: context["flags"]),
+    object_rows.computed(body_strength.STELLAR_FIELDS, lambda star, context: body_strength.star_values(star)),    # GEN.1162
 )
 """tuple: The `Field`s of a `stars` row (`object_rows`)."""
 
@@ -3049,6 +3057,13 @@ def body_child_rows(conn, body, body_id, owner=None):
         if score > 0:
             conn.execute(f"INSERT INTO {prefix}_life_class_scores ({id_column}, life_class, score) VALUES (?, ?, ?)",
                          (body_id, class_id, score))
+    for entry in getattr(body, life_classes.LIVING_FIELD, None) or ():
+        ages = list(entry.get("ages") or [])
+        ages += [None] * (len(tuning.LIFE_SCHEDULE_FIELDS) - len(ages))
+        kinds = list(entry.get("kinds") or [None] * 4)
+        conn.execute(f"INSERT INTO {prefix}_life ({id_column}, {', '.join(LIVING_COLUMNS)}) VALUES (?, {', '.join('?' * len(LIVING_COLUMNS))})",
+                     (body_id, entry["life_class"], entry["share"], entry.get("stage"), entry.get("milestone_age_gyr"), entry.get("system_age_gyr"),
+                      entry.get("animal_grade"), entry.get("complexity"), *ages, *kinds))
 
 
 def body_gases(conn, body_ids, is_moon, owner=None):
@@ -3081,6 +3096,43 @@ def body_class_scores(conn, body_ids, is_moon, owner=None):
                 f"SELECT {id_column}, life_class, score FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
             found.setdefault(row[id_column], {})[row["life_class"]] = row["score"]
     return found
+
+
+LIVING_COLUMNS = ("life_class", "share", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr", "life_animal_grade", "life_complexity",
+                  *tuning.LIFE_SCHEDULE_FIELDS, "life_microbial", "life_flora", "life_fauna", "life_sentient")
+"""tuple: The columns of `planet_life` and `moon_life` after the body's id, in the order `body_child_rows` writes them (GEN.1209)."""
+
+
+def living_entry(row):
+    """The `life_living` entry (`physics.life_classes.LIVING_FIELD`) of a `planet_life` or `moon_life` row."""
+    return {"life_class": row["life_class"], "share": row["share"], "stage": row["life_stage"], "milestone_age_gyr": row["life_milestone_age_gyr"],
+            "system_age_gyr": row["life_system_age_gyr"], "animal_grade": row["life_animal_grade"], "complexity": row["life_complexity"],
+            "ages": [row[field] for field in tuning.LIFE_SCHEDULE_FIELDS],
+            "kinds": [row["life_microbial"], row["life_flora"], row["life_fauna"], row["life_sentient"]]}
+
+
+def body_living(conn, body_ids, is_moon):
+    """`{body id: [life_living entries, the dominant class first]}` of the planets or moons `body_ids`: the life classes their rows keep in `planet_life`
+    or `moon_life` (a body with none has no key). The dominant class is the one with the largest share; the rest follow by share."""
+    table, id_column = ("moon_life", "moon_id") if is_moon else ("planet_life", "planet_id")
+    found = {}
+    ids = list(body_ids)
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(
+                f"SELECT {id_column}, {', '.join(LIVING_COLUMNS)} FROM {table} WHERE {id_column} IN ({marks}) ORDER BY {id_column}, share DESC, life_class",
+                tuple(chunk)).fetchall():
+            found.setdefault(row[id_column], []).append(living_entry(row))
+    return found
+
+
+def dominant_first(entries, number, variant):
+    """The `life_living` entries `entries` (or `None`) with the dominant class, from the body's `life_class` number and `life_class_variant` letter, first."""
+    if not entries:
+        return None
+    dominant = life_classes.class_id(number, variant)
+    return sorted(entries, key=lambda entry: entry["life_class"] != dominant)
 
 
 def with_life_inputs(conn, rows, is_moon):
@@ -3289,6 +3341,16 @@ def load_moons_of_rogue_planet(conn, rogue_planet_id, system_config=None):
     return moons
 
 
+def _json_or_none(value):
+    """`value` as JSON text, or None for an empty one (a belt made without an origin keeps no such column)."""
+    return json.dumps(value, sort_keys=True) if value else None
+
+
+def _json_loads(text, default):
+    """The value a JSON column holds, or `default` for NULL."""
+    return default if text is None else json.loads(text)
+
+
 BELT_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("star_id"), object_rows.context("orbital_index"),
     object_rows.computed(("parent_type", "parent_id"),
@@ -3302,6 +3364,17 @@ BELT_FIELDS = (
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                           "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
     object_rows.computed(body_strength.POPULATION_FIELDS, lambda belt, context: body_strength.population_values(belt)),
+    # GEN.1069: where the belt came from and what happened to it; None for a belt made without an origin
+    object_rows.optional("origin_cause", "origin"), object_rows.optional("formation_snow_line_au"),
+    object_rows.optional("primordial_mass_earth"), object_rows.optional("cleared_mass_earth"), object_rows.optional("scattered_mass_earth"),
+    object_rows.optional("origin_sentence"), object_rows.optional("largest_body_km"),
+    object_rows.computed("stirred", lambda belt, context: None if belt.stirred is None else int(bool(belt.stirred)),
+                         lambda row: {"stirred": None if row["stirred"] is None else bool(row["stirred"])}),
+    object_rows.computed("co_causes", lambda belt, context: _json_or_none(belt.co_causes), lambda row: {"co_causes": _json_loads(row["co_causes"], [])}),
+    object_rows.computed("origin_history", lambda belt, context: _json_or_none(belt.origin_history),
+                         lambda row: {"origin_history": _json_loads(row["origin_history"], [])}),
+    object_rows.computed("scatter_fates", lambda belt, context: _json_or_none(belt.scatter_fates),
+                         lambda row: {"scatter_fates": _json_loads(row["scatter_fates"], None)}),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 
@@ -3430,6 +3503,8 @@ BLACK_HOLE_FIELDS = (
     object_rows.attr("spin"), _flag("has_accretion_disk"),
     object_rows.attr("temperature_k", "temperature"), object_rows.attr("luminosity_w", "luminosity"),
     object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
+    object_rows.computed(body_strength.STELLAR_FIELDS, lambda hole, context: body_strength.remnant_values(
+        "black-hole", hole.mass_solar, hole.event_horizon_radius_km)),    # GEN.1162
 )
 """tuple: The `Field`s of a `black_holes` row."""
 
@@ -3440,6 +3515,8 @@ NEUTRON_STAR_FIELDS = (
     object_rows.attr("magnetic_field_gauss"), object_rows.attr("pulsar_type"),
     object_rows.attr("surface_temperature_k"), object_rows.attr("luminosity_w", "luminosity"),
     object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
+    object_rows.computed(body_strength.STELLAR_FIELDS, lambda star, context: body_strength.remnant_values(
+        "neutron-star", star.mass_solar, star.radius)),    # GEN.1162
 )
 """tuple: The `Field`s of a `neutron_stars` row."""
 
@@ -3740,6 +3817,7 @@ ROGUE_PLANET_FIELDS = (
     object_rows.each(rings.BODY_FIELDS),  # GEN.836
     _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+    object_rows.each(body_strength.ROGUE_FIELDS),    # GEN.1162
 )
 """tuple: The `Field`s of a `rogue_planets` row."""
 
@@ -4018,6 +4096,7 @@ INTERSTELLAR_COMET_FIELDS = (
     _FREE_VECTOR_FIELD,
     object_rows.attr("mass_kg"),
     _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD, object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
+    object_rows.each(body_strength.COMET_FIELDS),    # GEN.1162
 )
 """tuple: The `Field`s of an `interstellar_comets` row."""
 
@@ -5505,7 +5584,7 @@ def link_sector_neighbors(config, sector_ids, on_progress=None, skip=None):
             refresh_containment(conn, batch)
             report(base, 1, "nearest systems", len(batch))
             refresh_nearest_systems(conn, batch)
-            report(base, 2, "neighbours' lists", len(batch))
+            report(base, 2, "neighbors' lists", len(batch))
             _merge_into_neighbors(conn, batch, skip=skip)
         return work
 
@@ -5699,7 +5778,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         point = local_to_galaxy_pc(center, tuple(ly_to_pc(c) for c in offset_ly))
         placement_values = (*point, math.sqrt(sum(c * c for c in point)))
         # GEN.125: on the galaxy's rotation curve at its place.
-        speed_kms, _period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
+        speed_kms, _period_gy = circular_orbit(_galactic_potential(conn), pc_to_ly(detmath.hypot(point[0], point[1])))
         velocity_kms = tuple(v / 1000.0 for v in galactic_velocity_ms(point, speed_kms))
     elif offset_ly is not None:
         raise FacilityError("only a stand-alone facility has a position in space")
@@ -5803,6 +5882,30 @@ def _galactic_turn(elapsed_years, period_gy):
     return 2 * math.pi * math.fmod(elapsed_years, period_years) / period_years
 
 
+def _galactic_potential(conn):
+    """The `galaxy.potential.Potential` of the stored galaxy (its shape and seed), the one the stepper moves every orbiting object in: the fallback seed's
+    galaxy when none is stored."""
+    info = get_galaxy_shape(conn)
+    if info is None:
+        return galacticPotential.current()
+    return galacticPotential.for_galaxy(info.shape, info.galaxy_seed)
+
+
+def _step_galactic(pot, moves):
+    """
+    `(results, capped)` for `moves`, a list of `(point_pc, velocity_kms, elapsed_years)`: each `(point, velocity)` after the stepper has carried the object
+    through its elapsed time in the galaxy's potential `pot` (GEN.340, replacing the turn about the pole), in the order given, and how many objects needed more
+    steps than `stepper.MAX_LEVEL` allows (their answer is the best the cap allows). One call moves them all, each by its own elapsed time.
+    """
+    if not moves:
+        return [], 0
+    points = np.array([m[0] for m in moves], dtype=float)
+    velocities = np.array([m[1] for m in moves], dtype=float)
+    spans = np.array([m[2] for m in moves], dtype=float) / 1.0e6
+    new_points, new_velocities, capped = galacticStepper.advance(points, velocities, spans, pot)
+    return [(tuple(p), tuple(v)) for p, v in zip(new_points.tolist(), new_velocities.tolist())], int(capped.sum())
+
+
 class _SectorIndex:
     """Every placed grid sector by address, for refiling moved objects."""
 
@@ -5832,12 +5935,11 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     """
     Moves every due star system, standalone phenomenon, stand-alone
     facility and unbuilt scatter point (`advance_scatter_points`) along its galactic orbit, from its epoch to `clock.end_unix`:
-    a system by its close pair's or primary star's period (its stars'
-    `galactic_orbital_phase_deg` and a close pair's
-    `binary_galactic_orbital_phase_deg` advance with it, each by its own
-    period), a phenomenon by its own (its `galactic_orbital_phase_deg`
-    with it), a facility by the rotation curve at its radius
-    (`galactic_orbit.calculate_galactic_orbit`). Sectors are fixed cells,
+    the position and velocity it stores are carried through the elapsed time by the star stepper (`galaxy.stepper`, GEN.340: kick-drift-kick in the stored
+    galaxy's potential, `galaxy.potential`), one call for all the objects of a table, each by its own elapsed time, so an orbit is no longer held to a circle
+    in the plane. A hypervelocity star or an ejected remnant flies a straight line, and a facility in the plane (no vertical offset) is turned about the pole
+    by its period. The phase fields (a star's `galactic_orbital_phase_deg`, a close pair's `binary_galactic_orbital_phase_deg`, a phenomenon's) still advance by
+    the period of the circular orbit they were born with. Sectors are fixed cells,
     so an object that drifts into another generated sector is refiled
     there (`sector_id`, its sector-relative position, and later its
     octant, location text, containment and nearest systems -- see
@@ -5865,7 +5967,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     Returns:
         dict: `moved` (objects whose galaxy position moved) and `refiled`
             counts, `sectors` -- the ids of every sector something moved
-            in or out of -- and `counts`, `{name: rows_moved}`:
+            in or out of -- `step_capped` (objects that needed more steps than the stepper allows), and `counts`, `{name: rows_moved}`:
             `"star_systems"`, `"binary_galactic_orbits"`, each orbiting
             phenomenon table and `"space_facilities"`.
     """
@@ -5892,6 +5994,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     ).fetchall()
     scheduled, clocks, phases, updates, refile_updates = [], [], [], [], []
     close_pairs = 0
+    pot = _galactic_potential(conn)
+    stepping, finished, capped_total = [], [], 0      # (row, center, point, velocity, elapsed) to step; (row, center, point, velocity) already moved
     for row in systems:
         ballistic = row["runaway_class"] == "hypervelocity" and row["runaway_speed_kms"]
         epoch, interval, due = _due_interval_s(
@@ -5903,21 +6007,22 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         clocks.append((elapsed_years, clock.end_unix, clock.end_unix + interval, row["id"]))
         phases.append((elapsed_years, row["id"]))
         close_pairs += row["binary_configuration"] == "close"
-        angle = _galactic_turn(elapsed_years, row["period_gy"])
-        if ballistic:
-            angle = None  # not on an orbit: a straight line (GEN.137)
-        if angle == 0.0 or row["position_x_mpc"] is None or row["sector_id"] not in index.info:
+        if (row["position_x_mpc"] is None or row["sector_id"] not in index.info
+                or (not ballistic and (elapsed_years <= 0 or _speed_kms(row) is None))):
             continue
         _name, center = index.info[row["sector_id"]]
         offset = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+        velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
         if ballistic:
-            point = straight_line_position_pc(
-                local_to_galaxy_pc(center, offset), (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]),
-                clock.end_unix - epoch)
-            velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+            point = straight_line_position_pc(local_to_galaxy_pc(center, offset), velocity, clock.end_unix - epoch)
+            finished.append((row, point, velocity))      # not on an orbit: a straight line (GEN.137)
         else:
-            point = _rotate_about_axis(local_to_galaxy_pc(center, offset), angle)
-            velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
+            stepping.append((row, local_to_galaxy_pc(center, offset), velocity, elapsed_years))
+    stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed in stepping])
+    capped_total += capped
+    for (row, _point, _velocity, _elapsed), (point, velocity) in zip(stepping, stepped):
+        finished.append((row, point, velocity))
+    for row, point, velocity in finished:
         sector_id = index.sector_at(point, row["sector_id"])
         local_mpc = tuple(c * 1000.0 for c in galaxy_to_local_pc(index.info[sector_id][1], point))
         quadrant, _magnitudes = classify_octant(local_mpc)
@@ -5965,6 +6070,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         # An anchored black hole or neutron star moves with its system's star row.
         anchored = " AND star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""
         scheduled, clocks, updates, refile_updates = [], [], [], []
+        stepping, finished = [], []
         for row in conn.execute(
             f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy,"
             f" velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM {table}"
@@ -5981,16 +6087,18 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             # a straight line, like a hypervelocity star's (GEN.137). The galaxy's own black hole has no velocity.
             ballistic = (table in ("black_holes", "neutron_stars") and not row["galactic_orbital_period_gy"]
                          and bool(_speed_kms(row)))
-            angle = None if ballistic else _galactic_turn(elapsed_years, row["galactic_orbital_period_gy"])
-            if angle == 0.0 or row["center_x_pc"] is None or (elapsed_years <= 0 and ballistic):
+            if row["center_x_pc"] is None or elapsed_years <= 0 or (not ballistic and _speed_kms(row) is None):
                 continue
             velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+            point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
             if ballistic:
-                point = straight_line_position_pc((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), velocity,
-                                                  clock.end_unix - epoch)
+                finished.append((row, straight_line_position_pc(point, velocity, clock.end_unix - epoch), velocity))
             else:
-                point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
-                velocity = _rotate_about_axis(velocity, angle)
+                stepping.append((row, point, velocity, elapsed_years))
+        stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed in stepping])
+        capped_total += capped
+        finished.extend((row, point, velocity) for (row, _p, _v, _e), (point, velocity) in zip(stepping, stepped))
+        for row, point, velocity in finished:
             radius = math.sqrt(sum(c * c for c in point))
             moved += 1
             sector_id = index.sector_at(point, row["sector_id"]) if row["sector_id"] is not None else None
@@ -6025,24 +6133,37 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         _report(on_progress, table, done, steps)
 
     scheduled, updates, refile_updates = [], [], []
+    stepping, finished = [], []
     for row in conn.execute(
         "SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,"
         " velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM facilities"
         " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
         " AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id", (clock.end_unix,)
     ).fetchall():
-        speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(row["center_x_pc"], row["center_y_pc"])))
+        speed_kms, period_gy = circular_orbit(pot, pc_to_ly(detmath.hypot(row["center_x_pc"], row["center_y_pc"])))
         epoch, interval, due = _due_interval_s(row, clock, speed_kms, "galactic")
         if due > clock.end_unix or (budget is not None and not budget.take("space_facilities")):
             scheduled.append((epoch, due, row["id"]))
             continue
-        angle = _galactic_turn((clock.end_unix - epoch) / seconds_per_year, period_gy)
+        elapsed_years = (clock.end_unix - epoch) / seconds_per_year
         next_due = clock.end_unix + interval
-        if angle == 0.0:
+        point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+        if elapsed_years <= 0 or None in velocity:
             scheduled.append((clock.end_unix, next_due, row["id"]))
-            continue
-        point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
-        velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
+        elif row["center_z_pc"] == 0.0:
+            # A station in the plane stays on its circle (GEN.340: the closed-form turn is kept for a facility with no vertical offset).
+            angle = _galactic_turn(elapsed_years, period_gy)
+            if angle == 0.0:
+                scheduled.append((clock.end_unix, next_due, row["id"]))
+            else:
+                finished.append((row, _rotate_about_axis(point, angle), _rotate_about_axis(velocity, angle), next_due))
+        else:
+            stepping.append((row, point, velocity, elapsed_years, next_due))
+    stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed, _due in stepping])
+    capped_total += capped
+    finished.extend((row, point, velocity, next_due) for (row, _p, _v, _e, next_due), (point, velocity) in zip(stepping, stepped))
+    for row, point, velocity, next_due in finished:
         moved += 1
         sector_id = index.sector_at(point, row["sector_id"])
         if sector_id != row["sector_id"]:
@@ -6067,7 +6188,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     _report(on_progress, "facilities", steps - len(SCATTER_MOTION_TABLES), steps)
 
     points = advance_scatter_points(conn, clock, on_progress, steps=(steps - len(SCATTER_MOTION_TABLES), steps),
-                                    budget=budget)
+                                    budget=budget, pot=pot)
     counts.update(points["counts"])
     moved += points["moved"]
     refiled += points["refiled"]
@@ -6075,7 +6196,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     touched.discard(None)
     for sector_id in touched:
         touch_sector(conn, sector_id)
-    return {"moved": moved, "refiled": refiled, "sectors": touched, "counts": counts}
+    return {"moved": moved, "refiled": refiled, "sectors": touched, "counts": counts,
+            "step_capped": capped_total + points["step_capped"]}
 
 
 SCATTER_MOTION_TABLES = ("bright_stars", "phenomenon_scatter")
@@ -6093,7 +6215,7 @@ _SCATTER_COLUMNS = {
 }
 
 
-def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=None):
+def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=None, pot=None):
     """
     Moves every due scatter point (`SCATTER_MOTION_TABLES`) along its galactic
     orbit from its epoch to `clock.end_unix`, the way `advance_galactic_positions`
@@ -6117,13 +6239,15 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             counts, so the caller's bar continues.
         budget (RowBudget, optional): The run's row ceiling (PERF.103); a
             table over its limit moves its oldest-due points.
+        pot (Potential, optional): The galaxy's potential (`_galactic_potential`), when the caller has it; read from the database otherwise.
 
     Returns:
-        dict: `moved` and `refiled` counts, and `counts`, `{table: rows_moved}`.
+        dict: `moved` and `refiled` counts, `counts`, `{table: rows_moved}`, and `step_capped`, how many points needed more steps than the stepper allows.
     """
     shape = get_galaxy_shape(conn)
     edge_pc = shape.edge_pc if shape is not None else 0.0
-    moved = refiled = 0
+    moved = refiled = capped_total = 0
+    pot = _galactic_potential(conn) if pot is None else pot
     counts = {}
     seconds_per_year = _yr_to_s(1.0)
     done, total = steps
@@ -6135,9 +6259,10 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             f" FROM {table} WHERE {_SCATTER_ROWS[table]}"
             f" AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id",
             (clock.end_unix,)).fetchall()
+        stepping, finished = [], []
         for row in rows:
             point = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
-            speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
+            speed_kms, period_gy = circular_orbit(pot, pc_to_ly(detmath.hypot(point[0], point[1])))
             stored = None not in (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
             velocity = ((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) if stored
                         else tuple(c / 1000.0 for c in galactic_velocity_ms(point, speed_kms)))
@@ -6150,12 +6275,15 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             next_due = clock.end_unix + interval
             elapsed_years = (clock.end_unix - epoch) / seconds_per_year
             if ballistic:
-                new_point = straight_line_position_pc(point, velocity, clock.end_unix - epoch)
-                new_velocity = velocity
+                finished.append((row, straight_line_position_pc(point, velocity, clock.end_unix - epoch), velocity, next_due))
+            elif elapsed_years > 0:
+                stepping.append((row, point, velocity, elapsed_years, next_due))
             else:
-                angle = _galactic_turn(elapsed_years, period_gy)
-                new_point = _rotate_about_axis(point, angle)
-                new_velocity = _rotate_about_axis(velocity, angle)
+                finished.append((row, point, velocity, next_due))
+        stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed, _due in stepping])
+        capped_total += capped
+        finished.extend((row, point, velocity, next_due) for (row, _p, _v, _e, next_due), (point, velocity) in zip(stepping, stepped))
+        for row, new_point, new_velocity, next_due in finished:
             address = (row["shell_index"], row["band_index"], row["wedge_index"])
             if edge_pc > 0:
                 found = sector_address_at(new_point, edge_pc)
@@ -6175,7 +6303,7 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
         counts[table] = len(updates)
         done += 1
         _report(on_progress, table, done, total)
-    return {"moved": moved, "refiled": refiled, "counts": counts}
+    return {"moved": moved, "refiled": refiled, "counts": counts, "step_capped": capped_total}
 
 
 def _refile_nearest_rows(conn, table, moves):
@@ -7948,7 +8076,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
             mpc_to_pc(kept[f"position_{axis}_mpc"]) for axis in "xyz"))
         conn.execute("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                      " modified_at = modified_at WHERE id = ?", (*velocity, star_system_id))
-    _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"])
+    _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"], reason=None)  # new rows: the placeholder was never a name
     _carry_uids(conn, star_system_id, kept_uids)  # a body keeps the ID of the one that held its place (DB.75)
     assign_uids(conn, system_ids=[star_system_id])  # the others take the system's next body numbers
     return True
@@ -9380,6 +9508,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
     data.update({
         atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon, owner).get(row["id"], {}),
         life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon, owner).get(row["id"]),
+        life_classes.LIVING_FIELD: None if owner == "rogue_planet" else dominant_first(body_living(conn, [row["id"]], is_moon).get(row["id"]), row["life_class"], row["life_class_variant"]),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,

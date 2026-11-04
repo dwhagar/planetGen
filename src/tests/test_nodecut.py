@@ -117,3 +117,9 @@ def test_the_projected_size_falls_with_distance():
     far = nodecut.projected_size(block, (100000.0, 0.0, 0.0), EDGE, FOCAL)
     assert near > far > 0
     assert math.isfinite(far)
+
+
+def test_the_node_budget_stays_1200_because_halving_it_makes_the_blocks_hand_over_in_bursts():
+    """MAP.367: the node budget is a data cap, not a count of things drawn. It was tried at 600: the star field of tests/js/starfade.test.mjs
+    then had one 9% zoom step raise the stars on screen by 100% (the limit there is 80%), the square chunks of MAP.366. So it stays."""
+    assert nodecut.MAX_NODES == 1200

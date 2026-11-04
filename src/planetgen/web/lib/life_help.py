@@ -14,13 +14,14 @@ the address of a page.
 """
 
 from planetgen import tuning
-from planetgen.physics import life_air, life_class_text, life_classes, life_readings
+from planetgen.physics import life_class_text, life_classes, life_readings
 from planetgen.physics.life_readings import ABUNDANCE_BANDS
 from planetgen.web.lib import help_registry
 from planetgen.web.lib.help_registry import Child, Term
+from planetgen.util.wordlist import join_words
 
 TOPICS = (
-    ("kinds", "Kinds of life", "Microbes, flora, fauna and sentient life: what each word means and what its score is judged from."),
+    ("kinds", "Kinds of life", "Microbes, flora, fauna, and sentient life: what each word means and what its score is judged from."),
     ("abundance", "How much", "Absent, rare, occasional, frequent, abundant, dominant: how much of a kind of life a world holds."),
     ("trend", "Trend", "Growing, stable or declining: which way a kind of life is going."),
     ("security", "Security", "Secure, marginal, precarious or dying out: how long the conditions that keep the life alive will last."),
@@ -29,20 +30,6 @@ TOPICS = (
     ("classes", "Life classes", "The nine life classes: what each drinks, eats, breathes and gives off, and where it can live."),
 )
 """tuple: `(slug, title, summary)` of each life help page, in the order the pages list each other."""
-
-TIER_NAMES = {
-    "T1": "Verified", "T2": "Confident unverified", "T3": "Marginal unverified", "T4": "Unverified",
-    "T5": "Confident educated guess based on physics", "T6": "Marginal educated guess based on physics",
-    "T7": "Educated guess based on inferred physics", "T8": "Educated guess based on reputable fringe or new physics",
-    "T9": "Educated guess based on needed output",
-}
-"""dict: What each source tier of `docs/design/research/stand-in-values.md` is called."""
-
-LEVEL_NAMES = {
-    "L0": "As the source gives it", "L1": "Nudged inside the source's uncertainty", "L2": "Tuned to a published statistic",
-    "L3": "Hand-tuned against many generated worlds", "L4": "Fitted to the outcome with no independent source",
-}
-"""dict: What each adjustment level is called."""
 
 SOLVENT_WORDS = {
     "water": "water", "hydrocarbon": "liquid methane and ethane", "co2": "liquid or supercritical carbon dioxide",
@@ -91,13 +78,13 @@ def _kinds(href):
         "The page then gives three words for each kind: how much of it there is, which way it is going and how secure it is.",
     ]
     rows = [
-        ["Microbes", "Single cells, mats and everything smaller than a plant or an animal.", "Any stage of life, from the first cells."],
+        ["Microbes", "Single cells, mats, and everything smaller than a plant or an animal.", "Any stage of life, from the first cells."],
         ["Flora", "Plant-like life: producers that make their own food, from algae and mats to land plants.",
          f"A class that eats light and has reached its producers. Mats and algae never score above {tuning.LIFE_SCORE_SIMPLE_FLORA_MAX}; "
          "a higher score needs life made of many cells."],
         ["Fauna", "Animals, of any size, from sponge-like feeders to large active hunters.",
          "Life made of many cells and an animal grade. Fauna never scores above the producers it feeds on."],
-        ["Sentient life", "Species that build tools, settlements and a civilization.",
+        ["Sentient life", "Species that build tools, settlements, and a civilization.",
          f"The stage of a technological civilization. The score grows over {full_years:,} million years from that stage until it matches fauna."],
     ]
     sections = [
@@ -108,10 +95,10 @@ def _kinds(href):
             "The life class that lives on the world sets how well the conditions suit. The stage the life has reached sets which kinds can score at all.",
         ]),
         _section("next", "The words beside the number", [
-            "How much, trend and security each have a page of their own. Suitability is a different score: it rates the life classes, not the kinds of life.",
+            "How much, trend, and security each have a page of their own. Suitability is a different score: it rates the life classes, not the kinds of life.",
         ]),
     ]
-    return "Kinds of life", "What microbes, flora, fauna and sentient life mean on a planet page.", intro, sections
+    return "Kinds of life", "What microbes, flora, fauna, and sentient life mean on a planet page.", intro, sections
 
 
 def _abundance(href):
@@ -185,7 +172,7 @@ def _security(href):
             "A page shows the time left in the Life section when it is known and shorter than the span searched.",
         ]),
     ]
-    return "Security", "What secure, marginal, precarious and dying out mean.", intro, sections
+    return "Security", "What secure, marginal, precarious, and dying out mean.", intro, sections
 
 
 def _suitability(href):
@@ -264,7 +251,7 @@ def _variant_name(row):
 def _gate_words(gate):
     quantity = gate["quantity"]
     if quantity == "hydrosphere":
-        return "The surface has " + " or ".join(HYDROSPHERE_WORDS.get(v, v) for v in gate["in"])
+        return "The surface has " + join_words((HYDROSPHERE_WORDS.get(v, v) for v in gate["in"]), "or")
     if quantity == "pressure_pa" and gate.get("min", 0.0) > 0.0:
         return f"Air pressure of at least {_pressure(gate['min'])}"
     if quantity == "co2_partial_pa":
@@ -280,7 +267,7 @@ def _gate_words(gate):
     if quantity == "share_co2":
         return f"Carbon dioxide at least {gate['min']:.0%} of the air"
     if quantity == "co2_phase":
-        return "The carbon dioxide is " + " or ".join(gate["in"])
+        return "The carbon dioxide is " + join_words(gate["in"], "or")
     if quantity == "ammonia_water_mass_fraction":
         return f"Ammonia at least {gate['min']:.0%} of the water's mass"
     if quantity == "silicon_rich_crust":
@@ -317,18 +304,11 @@ def _energy_words(row):
     return "Chemical energy: a fuel and an oxidant meeting"
 
 
-def _speculative(number):
-    """`(tier, level)` of the class's air chemistry and whether it is speculative (level L3 or L4)."""
-    entry = life_air.CLASSES[str(number)]
-    return entry["tier"], entry["tweak"], entry["tweak"] in ("L3", "L4")
-
-
 def _class(number, href):
     rows = family(number)
     if not rows:
         return None
     name = family_name(number)
-    tier, level, speculative = _speculative(number)
     count = {1: "one form", 2: "two variants", 3: "three variants"}.get(len(rows), f"{len(rows)} variants")
     title = f"Class {rows[0].id}" if len(rows) == 1 else f"The Class {number} family"
     intro = [f"{title} is one way of making a living. It has {count}, each described below with what it drinks, eats, breathes and gives off."]
@@ -340,18 +320,13 @@ def _class(number, href):
                  ("Liquid it needs", SOLVENT_WORDS.get(row.solvent["medium"], row.solvent["medium"])), ("Energy", _energy_words(row))]
         facts = [fact for fact in facts if fact]
         facts += [("Needs", needs(row) or ["Nothing beyond its liquid and its energy"]),
-                  ("How far it can go", row.reaches),
-                  ("Confidence it can exist", f"{row.tier}: {TIER_NAMES[row.tier]}")]
-        sections.append(_section(f"class-{row.id}", f"Class {row.id}" + (f": {_variant_name(row)}" if len(rows) > 1 else ""), facts=facts))
+                  ("How far it can go", row.reaches)]
+        section = _section(f"class-{row.id}", f"Class {row.id}" + (f": {_variant_name(row)}" if len(rows) > 1 else ""), facts=facts)
+        section["reference"] = ("speculative", row.id)
+        sections.append(section)
     sections.append(_section("stages", "What the stages look like", table=_table(
         ["Step", "Name", "What it means"],
         [[str(rung), *_class_stage(number, rung)] for rung in life_class_text.RUNGS])))
-    note = (f"Speculative chemistry: how this class changes the air is an educated guess. Its source tier is {tier} and its adjustment level is {level}."
-            if speculative else f"How this class changes the air has source tier {tier} and adjustment level {level}.")
-    sections.append(_section("sources", "How sure we are", [
-        note, f"Tier {tier} means: {TIER_NAMES[tier].lower()}. Level {level} means: {LEVEL_NAMES[level].lower()}.",
-        "The tiers run from T1, read in a source, to T9, chosen to give the outcome wanted. The levels run from L0, as the source gives it, to L4, fitted with no independent source.",
-    ]))
     return f"{family_label(number)}: {name}", f"What the {name.lower()} drink, eat, breathe and give off, and where they can live.", intro, sections
 
 
@@ -373,14 +348,10 @@ def _classes(href):
     ]
     sections = [
         _section("classes", "The nine life classes", table=_table(["Class", "Name", "Drinks", "Eats", "How far it can go"], rows)),
-        _section("sources", "Speculative chemistry", [
-            "Every class has a source tier, from T1 (read in a source) to T9 (chosen to give the outcome wanted). Each number that changes the air also has an adjustment level, from L0 to L4.",
-            "A class whose air chemistry is at level L3 or L4 is marked speculative on the planet page, with its tier and level.",
-        ], table=_table(["Class", "Air chemistry tier", "Adjustment level", "Speculative"],
-                        [[family_label(number), f"{_speculative(number)[0]}: {TIER_NAMES[_speculative(number)[0]]}",
-                          f"{_speculative(number)[1]}: {LEVEL_NAMES[_speculative(number)[1]]}", "Yes" if _speculative(number)[2] else "No"]
-                         for number in sorted({row.number for row in life_classes.CLASSES})])),
     ]
+    source = _section("reference", "Where this comes from", ["How sure each class is, and which air numbers are only estimated, is in the References section."])
+    source["reference"] = ("speculative", None)
+    sections.append(source)
     return "Life classes", "The nine life classes and what sets them apart.", intro, sections
 
 
@@ -424,6 +395,6 @@ def link_terms():
 
 
 help_registry.register_category("worlds", "Worlds and life", "How a visitor's gear is judged on a world and how life on it is described.", order=20)
-help_registry.register_topic("life_help_page", "Life", "worlds", "The kinds of life, the scales a planet page uses, the stages and the life classes.",
+help_registry.register_topic("life_help_page", "Life", "worlds", "The kinds of life, the scales a planet page uses, the stages, and the life classes.",
                              order=40, children=help_children)
 help_registry.register_terms("life", link_terms)

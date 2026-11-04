@@ -217,7 +217,7 @@ def test_phenomenon_and_system_detail_carry_stored_nearest_systems(mysql_config)
 
 
 def test_compact_objects_show_the_einstein_radius_against_the_galactic_centre():
-    label = "Einstein Radius (seen from the reference radius, against the galactic centre)"
+    label = "Einstein Radius (seen from the reference radius, against the galactic center)"
     sol_pc = 8200.0  # the observer's radius the page is given
     near = sol_pc - 1000.0  # 1 kpc from the observer on the line to the centre
     hole = _fields("black_hole", {"mass_solar": 10.0, "has_accretion_disk": True, "galactic_radius_pc": near,

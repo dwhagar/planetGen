@@ -236,7 +236,7 @@ def test_a_panels_table_route_pages_one_panel_alone(client, fake):
 def test_no_results_message(client, fake):
     fake.results = {p: None for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     html = client.get("/search?type=planet").get_data(as_text=True)
-    assert "No sectors, systems, stars, planets or moons match." in html
+    assert "No sectors, systems, stars, planets, or moons match." in html
 
 
 def test_the_header_search_icon_links_to_search(client, fake):
@@ -347,7 +347,7 @@ def test_groups_with_no_matches_are_left_out(client, fake):
     fake.results = {p: dict(empty) for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     html = client.get("/search?q=zzz").get_data(as_text=True)
     assert 'id="search-sectors"' not in html and 'id="search-stars"' not in html
-    assert "No sectors, systems, stars, planets or moons match." in html
+    assert "No sectors, systems, stars, planets, or moons match." in html
 
 
 def test_a_star_result_links_to_its_own_page(client, fake):
@@ -442,11 +442,22 @@ def test_the_form_has_a_row_with_two_boxes_and_a_unit_menu_for_each_value(client
     assert '<select name="planet_surface_pressure_unit"' in html and 'value="bar" selected' in html
     # gases: the short list has rows, any other gas has the "another gas" row, and a gas in use gets its own row
     assert 'name="planet_min_gas_O2"' in html and 'name="planet_min_gas_C6H6"' not in html and 'name="planet_other_gas"' in html
-    assert '<option value="C6H6">C6H6</option>' in html
+    assert '<option value="C6H6">C₆H₆</option>' in html
     html = client.get("/search?planet_min_gas_C6H6=0.001").get_data(as_text=True)
-    assert 'name="planet_min_gas_C6H6"' in html and '<option value="C6H6">C6H6</option>' not in html.split('name="planet_other_gas"')[1].split("</select>")[0]
+    assert 'name="planet_min_gas_C6H6"' in html and '<option value="C6H6">C₆H₆</option>' not in html.split('name="planet_other_gas"')[1].split("</select>")[0]
     # a number of moons has no unit to choose and no menu
     assert 'name="planet_moon_count_unit"' not in html and 'name="planet_min_moon_count"' in html
+
+
+def test_a_gas_is_written_out_as_a_formula_in_the_rows_the_menus_and_the_chips(client, fake):
+    """UX.149: no formula stands unwritten on the page: a gas row's label and a chip carry `<sub>`, and the text of an `<option>`, which holds no tags,
+    carries Unicode subscripts; the values the form sends stay `O2` and `C6H6`."""
+    html = client.get("/search?planet_min_gas_O2=0.1&planet_value_sort=-gas_O2").get_data(as_text=True)
+    assert "<span>Partial pressure of O<sub>2</sub></span>" in html and "Partial pressure of O2" not in html
+    sort_menu = re.search(r'<select name="planet_value_sort">(.*?)</select>', html, re.S).group(1)
+    assert 'value="-gas_O2" selected>' in sort_menu and "O₂" in sort_menu and "O2<" not in sort_menu
+    assert re.search(r'<span class="filter-chip">[^<]*O<sub>2</sub>', html)
+    assert '<option value="C6H6">C₆H₆</option>' in html
 
 
 def test_a_bad_value_range_is_ignored_like_a_bad_size(client, fake):

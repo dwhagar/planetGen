@@ -1185,7 +1185,7 @@ def test_a_sector_inside_a_superbubble_says_so_under_its_map(client, fake):
                                       "centre_distance_pc": 42.0}
     html = client.get("/sector/5").get_data(as_text=True)
     text = re.search(r'<p class="hint sector-details" id="superbubble">(.*?)</p>', html, re.S).group(1)
-    assert "361 pc across" in text and "42 pc from its centre" in text
+    assert "361 pc across" in text and "42 pc from its center" in text
     assert "1e+06 K" in text and "0.005 atoms per cm" in text and "no molecular cloud survives" in text
 
 

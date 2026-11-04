@@ -16,8 +16,9 @@ The address of an entry is `/references/<page>` and, for one entry on a page, `#
 * `data`: `/references/data`; the id of a dataset, catalog or archive is its citation ID too, and gives `#paper-<id>`;
 * `method`: `/references/method/<area>`; the id is the area (`atmospheres`) or the area and a value (`atmospheres/surface_pressure`),
   which gives `#<anchor of the value>`;
-* `stand-in`: `/references/stand-ins` for the whole registry and `/references/stand-ins/<anchor of the id>` for one (`GR1` is
-  `/references/stand-ins/gr1`);
+* `stand-in`: `/references/stand-ins` for the whole registry and `/references/stand-ins/<anchor of the key>` for one. The key is the
+  registry's own, the section number and the id (`5.1:GR1` is `/references/stand-ins/5-1-gr1`); an id alone is not enough, because the
+  plan reuses an id in several sections;
 * `fitted`: `/references/fitted`, with `#<anchor>` for one value;
 * `speculative`: `/references/speculative`, with `#class-<id>` for one life class (`3a` gives `#class-3a`);
 * `gaps`: `/references/gaps`, with `#<area>` for one area;
@@ -54,7 +55,7 @@ def _page(name):
 
 
 PAPER_ID = re.compile(r"R\d{4,}")
-"""re.Pattern: A citation ID (DOC.100): `R` and at least four digits, given once to every paper, book, dataset and archive of the reference
+"""re.Pattern: A citation ID (DOC.100): `R` and at least four digits, given once to every paper, book, dataset, and archive of the reference
 list (`docs/reference/references-data.json`) and never reused. The one key a text, a page and a link use for a source."""
 
 
@@ -87,8 +88,16 @@ def _method(entry):
     return f"{ROOT}/method/{area}", f"#{anchor(value)}" if value else ""
 
 
+STAND_IN_KEY = re.compile(r"\d+\.\d+a?:\S.*")
+"""re.Pattern: The key of a stand-in (DOC.90): the section number of the registry, a colon and the row id (`6.7:AM1`)."""
+
+
 def _stand_in(entry):
-    return (f"{ROOT}/stand-ins/{anchor(entry)}", "") if entry is not None else (f"{ROOT}/stand-ins", "")
+    if entry is None:
+        return f"{ROOT}/stand-ins", ""
+    if not STAND_IN_KEY.fullmatch(str(entry)):
+        raise ValueError(f"{entry!r} is not the key of a stand-in: write the section and the id, for example 6.7:AM1")
+    return f"{ROOT}/stand-ins/{anchor(entry)}", ""
 
 
 def _speculative(entry):

@@ -209,16 +209,14 @@ def test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_s
     assert low <= per_sector <= high, (low, per_sector, high)
     assert "color=habitable" in page.url
 
-    # The habitable sector is filled in the ramp's colours and the one without worlds is left unfilled. This is read from what the stage
-    # drew: the fill is faint and low in the map under the legend lines, so a patch of the screenshot gave the same few levels for
-    # both, and for either one as often as not (TEST.448).
+    # The block that holds both charted sectors is filled in the ramp's colours and carries the stored count. This is read from what the
+    # stage drew: the fill is faint and low in the map under the legend lines, so a patch of the screenshot gave the same few levels for
+    # both, and for either one as often as not (TEST.448). The window draws the one coarse block (since the zoom redesign; it once drew
+    # each sector's own block here), so the sector without worlds is not a block of its own to look for: its two sectors are one block with
+    # the worlds of one of them.
     looks = page.evaluate("document.querySelector('#galaxymap3d-canvas').galaxyBlockLooks()")
-    assert len(looks) == 2, looks
-    with_worlds = [look for look in looks if look["habitable"]]
-    without = [look for look in looks if not look["habitable"]]
-    assert len(with_worlds) == 1 and len(without) == 1, looks
-    assert with_worlds[0]["habitable"] == habitable_galaxy.habitable_worlds and not with_worlds[0]["noFill"], with_worlds
-    assert without[0]["noFill"], without
+    assert len(looks) == 1 and looks[0]["filled"] == 2, looks
+    assert looks[0]["habitable"] == habitable_galaxy.habitable_worlds and not looks[0]["noFill"], looks
     assert (before != after).any(), "choosing the colour changed nothing on the map"
 
 

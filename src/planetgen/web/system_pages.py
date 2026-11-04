@@ -34,7 +34,7 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, read_from_start
 from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
-from planetgen.web import system_orbits_view
+from planetgen.web import formerly, system_orbits_view
 from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
@@ -314,8 +314,9 @@ def system(system_id):
         title=detail["name"],
         section=section,
         breadcrumbs=breadcrumbs,
-        description=f"The {detail['name']} star system: its stars, planets, moons, belts and comets.",
+        description=f"The {detail['name']} star system: its stars, planets, moons, belts, and comets.",
         system=detail,
+        former=formerly.view(detail.get("former_designations")),
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
         location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"), inside),
@@ -438,7 +439,7 @@ PHENOMENA_TABLE = tables.register(Table(
 
 @bp.route("/phenomena")
 @slow_route("Phenomena", section="phenomena", breadcrumbs=lambda: [crumb("Phenomena")],
-            description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.")
+            description="Every nebula, black hole, neutron star, and other exotic phenomenon in this charted galaxy.")
 def phenomena():
     """Every exotic phenomenon, placed on the galaxy map or not, as a data
     table (UX.41): sort by any column, filter by type and descriptor, and
@@ -449,7 +450,7 @@ def phenomena():
         title="Phenomena",
         section="phenomena",
         breadcrumbs=[crumb("Phenomena")],
-        description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.",
+        description="Every nebula, black hole, neutron star, and other exotic phenomenon in this charted galaxy.",
         table=table,
         total=table["total"],
     )
@@ -623,7 +624,7 @@ def _comet_composition_text(components):
 _SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", speed_kms_html)
 _PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", _quantity("Gyr"))
 
-_EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from the reference radius, against the galactic centre)",
+_EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from the reference radius, against the galactic center)",
                     _quantity("m"))
 """The derived row of a compact object's page (GEN.154): see `_derived_fields`."""
 
@@ -664,7 +665,7 @@ FIELD_SPECS = {
         ("spin_period_ms", "Spin Period", _quantity("ms")),
         ("magnetic_field_gauss", "Magnetic Field", _quantity("G")),
         ("pulsar_type", "Pulsar Type", _title_case),
-        ("surface_temperature_k", "Surface Temperature", _kelvin),
+        ("surface_temperature_k", "Surface temperature", _kelvin),
         ("luminosity_w", "Luminosity", _power),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
         _EINSTEIN_RADIUS,
@@ -700,8 +701,8 @@ FIELD_SPECS = {
         ("internal_heat_flux_w_m2", "Internal Heat Flow", _quantity("W_m2")),
         ("effective_temperature_k", "Effective Temperature", _kelvin),
         ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),
-        ("surface_temperature_k", "Surface Temperature", _quantity("K")),
-        ("surface_pressure_pa", "Surface Pressure", _pressure_text),
+        ("surface_temperature_k", "Surface temperature", _quantity("K")),
+        ("surface_pressure_pa", "Surface pressure", _pressure_text),
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
         ("hp_ice_km", "High-Pressure Ice Below", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
@@ -711,7 +712,7 @@ FIELD_SPECS = {
         _SPEED, _PERIOD,
     ],
     "interstellar_comet": [
-        ("nucleus_diameter_km", "Nucleus Diameter", _km),
+        ("nucleus_diameter_km", "Nucleus diameter", _km),
         ("velocity_kms", "Velocity", speed_kms_html),
         ("is_active", "Active", _bool_text),
         ("composition", "Composition", _comet_composition_text),
@@ -896,6 +897,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         breadcrumbs=[crumb("Phenomena", "phenomena"), crumb(detail["name"])],
         description=f"{detail['name']}, a {type_label.lower()} in this charted galaxy.",
         type_label=type_label,
+        former=formerly.view(detail.get("former_designations")),
         distance=distance,
         sector=sector,
         octant=detail.get("quadrant"),

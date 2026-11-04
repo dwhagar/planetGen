@@ -50,11 +50,11 @@ def test_the_table_gives_each_span_of_ages_with_its_pressures_and_none_for_a_gas
                                      ["1.00 to 4.00", "21 kPa", "0.04 kPa", "none"]]
 
 
-def test_a_tuned_class_is_marked_speculative_and_a_small_pressure_is_given_in_pascals():
+def test_a_less_sure_class_links_to_its_references_section_and_a_small_pressure_is_given_in_pascals():
     history = {**HISTORY, "speculative": {"tier": "T7", "tweak": "L4"}}
     history["gases"] = [{"formula": "CH4", "name": "Methane", "steps": [[0.0, 0.0], [0.5, 0.0035]]}]
     view = life_air_chart.chart(history, "6")
-    assert "Speculative chemistry" in view["note"] and "T7" in view["note"] and "L4" in view["note"]
+    assert "less sure" in view["note"] and 'href="/references/speculative#class-6"' in view["note"] and "T7" not in view["note"] and "L4" not in view["note"]
     assert view["table"]["rows"][-1][1] == "3.5 Pa"
 
 

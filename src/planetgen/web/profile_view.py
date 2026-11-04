@@ -34,7 +34,7 @@ REGION_LABELS = {
 POPULATION_LABELS = {
     "young": "Young disk", "intermediate": "Intermediate disk", "old": "Old disk", "bulge": "Bulge", "halo": "Halo",
     "cluster": "Cluster", "satellite": "Old satellite stars", "nuclear_cluster": "Nuclear cluster",
-    "nuclear_disc": "Nuclear disc", "satellite_young": "Young satellite stars",
+    "nuclear_disc": "Nuclear disk", "satellite_young": "Young satellite stars",
     "satellite_intermediate": "Intermediate satellite stars",
 }
 POPULATION_LABELS.update({
@@ -44,7 +44,7 @@ POPULATION_LABELS.update({
     for name in tuning.OPEN_CLUSTER_POPULATIONS})
 ROTATION_LABELS = {"disk": "Follows the disk", "bar": "Follows the bar", "orbit": "Orbits the galaxy", "none": "No net motion"}
 AMBIENT_LABELS = {
-    "disk": "Disk gas", "superbubble": "Superbubble cavity (hot, ionised gas)", "hot-halo": "Hot halo gas",
+    "disk": "Disk gas", "superbubble": "Superbubble cavity (hot, ionized gas)", "hot-halo": "Hot halo gas",
     "intergalactic": "Intergalactic medium",
 }
 

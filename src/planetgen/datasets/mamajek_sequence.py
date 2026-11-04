@@ -29,7 +29,7 @@ FILE = "EEM_dwarf_UBVIJHK_colors_Teff.txt"
 
 DATASET = fetch.Dataset(
     key="mamajek_dwarf_sequence",
-    title="Mamajek mean dwarf stellar colour and effective temperature sequence (2022.04.16)",
+    title="Mamajek mean dwarf stellar color and effective temperature sequence (2022.04.16)",
     source="[R3469], version 2022.04.16 of E. Mamajek's table",
     pieces=(fetch.Piece(FILE, "https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt",
                         "1de2edeec17bb3346e0e4e70b999de5ee29947df38474e64cddb7cfacc164b7f", 55680),),

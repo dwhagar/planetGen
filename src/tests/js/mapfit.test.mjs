@@ -49,3 +49,25 @@ test("the page is scrolled so the map has the buffer above it, and left alone wh
   assert.equal(F.alignScroll(NaN, 0, 700), null);
   assert.equal(F.alignScroll(319, 0, 700, { covered: 56, buffer: 20 }), 319 - 56 - 20, "under a header held at the top of the window");
 });
+
+test("a box of fixed shape is as wide as keeps it inside what the window leaves (UX.142)", () => {
+  assert.equal(F.fitWidth(1000, 1), 950, "a square diagram in a 1000 px window");
+  assert.equal(F.fitWidth(1000, 5 / 3), Math.round(950 * 5 / 3), "the nav chart, 5:3");
+  assert.equal(F.fitWidth(1056, 1, { covered: 56 }), 950, "under a header held at the top of the window");
+  assert.equal(F.fitWidth(300, 1), F.MIN_HEIGHT_PX, "a short window keeps the least height");
+  assert.equal(F.fitWidth(NaN, 2), 2 * F.MIN_HEIGHT_PX);
+  assert.equal(F.fitWidth(1000, 0), Infinity, "no shape, no cap");
+  assert.equal(F.fitWidth(1000, NaN), Infinity);
+});
+
+test("watching a box sets its maximum width and follows the window (UX.142)", () => {
+  const view = { style: { maxWidth: "" } };
+  const watcher = F.watchWindowBox(view, 5 / 3);
+  const first = parseInt(view.style.maxWidth, 10);
+  assert.ok(first > 0, "a width is set at once");
+  assert.equal(first, F.fitWidth(window.innerHeight, 5 / 3, { covered: 0 }));
+  window.innerHeight = 500;
+  watcher.refit();
+  assert.equal(parseInt(view.style.maxWidth, 10), F.fitWidth(500, 5 / 3, { covered: 0 }));
+  watcher.stop();
+});

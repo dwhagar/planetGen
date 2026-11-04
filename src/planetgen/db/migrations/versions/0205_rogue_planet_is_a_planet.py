@@ -1,6 +1,6 @@
 """A rogue planet is a planet with no star (GEN.1111).
 
-Schema v201. `rogue_planets` gains every column a `planets` row has apart from the orbit round a host, so the one planet chain can write a rogue
+Schema v205. `rogue_planets` gains every column a `planets` row has apart from the orbit round a host, so the one planet chain can write a rogue
 (the same names and types; all NULL here, since the flat-rate rogue that wrote the rows before never had them and the regenerated galaxy replaces it),
 and six columns of its own: `donor_uid` and `event_index` (the system that ejected it and which of that system's ejections it is; the pair is unique,
 so saving a donor again replaces its rogues and never duplicates them), `ejection_delay_gy` (how long after the system formed it was ejected),
@@ -16,8 +16,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0201"
-down_revision = "0200"
+revision = "0205"
+down_revision = "0204"
 branch_labels = None
 depends_on = None
 
@@ -26,7 +26,6 @@ COLUMNS = (
     ('volume_km3', 'DOUBLE NULL'),
     ('description', 'TEXT NULL'),
     ('gravity_g', 'DOUBLE NULL'),
-    ('density_g_cm3', 'DOUBLE NULL'),
     ('atmosphere', 'TEXT NULL'),
     ('atm_density', 'DOUBLE NULL'),
     ('atm_molar_density', 'DOUBLE NULL'),
@@ -125,9 +124,6 @@ COLUMNS = (
     ('day_night_state', 'VARCHAR(24) NULL'),
     ('night_hours', 'DOUBLE NULL'),
     ('days_per_year', 'DOUBLE NULL'),
-    ('roundness_ratio', 'DOUBLE NULL'),
-    ('yield_strength_pa', 'DOUBLE NULL'),
-    ('binding_energy_j', 'DOUBLE NULL'),
     ('flux_variation', 'DOUBLE NULL'),
     ('ozone_column_du', 'DOUBLE NULL'),
     ('tau_haze', 'DOUBLE NULL'),

@@ -1342,6 +1342,7 @@ anything.
 | `uv_c_share` | DOUBLE | nullable | Added in v145 (GEN.443). The share of the star's blackbody UV-C (100 to 280 nm) it gives off, log-uniform 0.1 to 1 (the Sun's measured 0.256 is one value of it), drawn once from the star's own stream (`physics/activity.py`); the radiation model's UV-B and UV-A shares follow from it (`physics/stellar_spectrum.py`). NULL for a remnant and for a row saved before v145, which the model reads as the blackbody (1). |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic centre; a binary's secondary shares its primary's. NULL on a row generated before v95. |
 | `nuclear_arrival_age_gy` | DOUBLE | nullable | Added in v198 (GEN.1174). For a pre-main-sequence star, the age in Gyr at which MIST's tracks put it on the main sequence (`physics/pre_main_sequence.py`, `nuclear_arrival_yr`). The star counts as pre-main-sequence only until its radius has settled (BHAC15), an earlier age, so both times are kept: that one in `bright_stars.phase_end_age_gy`, this one here. NULL for every other star and for a row made before v195; nothing is backfilled. |
+| `density_g_cm3`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The mean density in g/cm3 and the binding energy in J of the star, white dwarf or remnant standing in for one (`physics/body_strength.py`: the n = 3 polytrope for a star, n = 3/2 for a brown dwarf or white dwarf, [R2573] for a neutron star, -1 for a black hole). NULL for a row made before v196. |
 
 ### `planets`
 
@@ -1467,6 +1468,21 @@ Added in v155 (DB.71, GEN.424). The air of a planet or moon: one row per gas abo
 | `gas` | VARCHAR(16) | NOT NULL | The formula in the gas table (`physics/data/gases.json`): `O2`, `CO2`, `N2`, `He`, `Na`, `NH3`. UNIQUE with the owner. |
 | `partial_pa` | DOUBLE | NOT NULL, CHECK above 0 | The partial pressure, Pa. |
 
+### `planet_life` / `moon_life`
+
+Added in v203 (GEN.1209). The life classes that live on a planet or moon: one row for each (the dominant class too), written with the body and removed with it. The body's own `life_class`, `life_stage`, `life_animal_grade` and the schedule columns describe the dominant class, and its four kind scores (`life_microbial`, `life_flora`, `life_fauna`, `life_sentient`) are the highest of each over these rows. A body stored before v197 has no rows.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `life_class` | VARCHAR(2) | NOT NULL | The class id (`1a`, `3`). UNIQUE with the owner; indexed with `life_stage`. |
+| `share` | DOUBLE | NOT NULL, CHECK 0 < share <= 1 | The class's share of the body's food production (its net primary production over the sum); the shares of a body add up to 1. |
+| `life_stage`, `life_milestone_age_gyr`, `life_system_age_gyr` | VARCHAR(32), DOUBLE, DOUBLE | nullable | The latest stage the class's own schedule reached by the star's age, the age it was reached and the star's age (as on `planets`). |
+| `life_animal_grade`, `life_complexity` | TINYINT UNSIGNED, DOUBLE | nullable | The grade of the class's animals, 0 to 3, and its complexity index. |
+| `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr` | DOUBLE | nullable | The five ages of the class's schedule, Gyr; `NULL` for a step never reached. |
+| `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | The four kind scores, 0 to 9, that this class gives. |
+
 ### `asteroid_belts`
 
 One row per asteroid belt. Belts have no properties-dict data table
@@ -1484,6 +1500,10 @@ columns capture the facts the prose always states instead.
 | `density_g_cm3`, `ice_mass_fraction` | DOUBLE | nullable | Added in v199 (GEN.1159). The mean bulk density of the members in g/cm3 and the mean share of their mass that is ice of any kind, from the drawn makeup (`physics/small_body_composition.py`). NULL for a row made before v195. The roundness ratio, strength and binding energy belong to a member, not to the population. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary built the same way as the prose sentence (`asteroidData.py:119-137`), e.g. `"high concentrations of iron, moderate concentrations of nickel, and trace amounts of platinum"` — searchable without a join, alongside the structured breakdown below. |
+| `origin_cause`, `co_causes` | VARCHAR(24), TEXT | nullable | Added in v204 (GEN.1069). What formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet` or `collisional-debris`, `physics/belt_origin.py`) and the other formation causes that coincide with it, a JSON list. NULL for a belt made without an origin. |
+| `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` | DOUBLE | nullable | Added in v204 (GEN.1069). The star's snow line when the system formed (AU), the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses). |
+| `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` | TINYINT(1), TEXT | nullable | Added in v204 (GEN.1069). Whether a giant stirs the belt; the sentences of what shaped it (a JSON list); the sentence of where it came from; for an outer disc the share of its mass in each population after the scatter step (a JSON object, `physics/scatter.py`). |
+| `largest_body_km` | DOUBLE | nullable | Added in v204 (GEN.1069). The largest body of the belt (Dc), km, settled with its mass (`physics/belt_ledger.py`, GEN.1000). |
 
 ### `asteroid_belt_composition`
 
@@ -1575,6 +1595,7 @@ standalone (no owning `StarSystem` at all).
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
 | `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
+| `density_g_cm3`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The mean density in g/cm3 (inside the event horizon for a black hole) and the binding energy in J. A black hole stores -1 for an infinite binding energy, since nothing can be pulled away from it. NULL for a row made before v196. |
 
 **`neutron_stars`**
 
@@ -1651,7 +1672,7 @@ white dwarf).
 ### `rogue_planets`
 
 Added in v16. Always standalone — a rogue planet is by definition unbound
-from any star. Since v201 (GEN.1111) it also carries every `planets` column apart from the orbit, its `donor_uid` and `event_index`, and the ejection (see the v201 entry).
+from any star. Since v205 (GEN.1111) it also carries every `planets` column apart from the orbit, its `donor_uid` and `event_index`, and the ejection (see the v201 entry).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -1684,6 +1705,7 @@ from any star. Since v201 (GEN.1111) it also carries every `planets` column apar
 | `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A planet's day for its type. The spin vector is the axis times 2 pi over this period. |
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbits/orbital-updates.md section 6. NULL on a row generated before v68. |
 | `log_lx_lbol`, `l_xuv_w`, `xuv_saturated`, `flare_n33_per_yr`, `flare_alpha`, `xuv_fluence_j` | DOUBLE (`xuv_saturated` BOOLEAN) | nullable | Added in v72 (GEN.86). Stellar activity: log10 of the coronal X-ray share of the luminosity (saturated at 7.4e-4 for G, K and M stars, decaying after a mass-dependent saturation age; NULL for a white dwarf or compact remnant), the X-ray plus EUV luminosity in W (a hot photosphere's output above 13.6 eV included; a neutron star's thermal or spin-down X-rays; a black hole's disk), whether the corona is still saturated, flares above 1e33 erg a year and their energy slope, and the XUV given off over the star's age, J. See `planetgen/physics/activity.py` and docs/design/habitability/activity-magnetism-radiation-hydrosphere.md section 2. NULL on a row generated before v72. |
+| `density_g_cm3`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The mean density in g/cm3, the roundness ratio and strength of a terrestrial rogue planet's rock and ice, and its binding energy in J. A giant or a brown dwarf keeps only the density and the binding energy. NULL for a row made before v196. |
 
 ### `quasars`
 
@@ -1729,6 +1751,7 @@ unbound from any star.
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 | `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A log-normal small-body period, never under the 2.2-hour spin barrier. The spin vector is the axis times 2 pi over this period. |
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole (YORP: near 10 or 170 degrees); see `planetgen/physics/spin.py` and docs/design/orbits/orbital-updates.md section 6. NULL on a row generated before v68. |
+| `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v200 (GEN.1162). The same five values a `comets` row keeps (v195). NULL for a row made before v196. |
 
 ### `interstellar_comet_composition`
 
@@ -1912,7 +1935,7 @@ row per sector address a backfill reached or a fill generated. See
 
 ### `chart_ledger`
 
-Added in v200 (GEN.1127). One row for each sector cell that has been charted, keyed by the cell's address (`shell_index`, `band_index`, `wedge_index`, not `sectors.id`, so a row survives a sector row that is replaced). A cell is a whole sector, so it is charted or it is not; the uncharted remainder is every cell with no row. It replaces `sector_stats.filled_at` (dropped in v200), so there is one record of the charted state. Written by the save of a sector, cleared when a sector is deleted (`db/chart_ledger.py`).
+Added in v201 (GEN.1127). One row for each sector cell that has been charted, keyed by the cell's address (`shell_index`, `band_index`, `wedge_index`, not `sectors.id`, so a row survives a sector row that is replaced). A cell is a whole sector, so it is charted or it is not; the uncharted remainder is every cell with no row. It replaces `sector_stats.filled_at` (dropped in v200), so there is one record of the charted state. Written by the save of a sector, cleared when a sector is deleted (`db/chart_ledger.py`).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2234,13 +2257,13 @@ Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` tak
 
 Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch. Since GEN.1001 a body counts only when it also has a `life_stage` (a world that suits a class but whose life has not started gives none); a database migrated before that keeps the rows of such bodies until its systems are saved again.
 
-### v201 (GEN.1111): a rogue planet is a planet with no star
+### v205 (GEN.1111): a rogue planet is a planet with no star
 
-Migration 0201 gives `rogue_planets` every column `planets` has apart from the orbit round a host (the same names and types, all NULL on a row the flat-rate rogue wrote), so the one planet chain writes both. It adds six columns of its own: `donor_uid` (BINARY(12), the uid of the system that threw the body out) and `event_index` (INT, which of that system's ejections it is; the two are unique together, `uq_rogue_planets_donor_event`, so saving a donor again replaces its rogues and never doubles them), `ejection_delay_gy` (how long after the system formed it was thrown out), `since_ejection_gy` (how long ago), `ejection_speed_kms` (the kick) and `rogue_note` (TEXT, the sentence that says where it came from). It also creates four child tables, `rogue_planet_reflection_spectrum`, `rogue_planet_interior_layers`, `rogue_planet_gases` and `rogue_planet_life_class_scores`, which hold what the `planet_*` tables hold for a planet, and makes `planet_type`, `composition`, `has_internal_heat` and `has_moons` NULLable (a physics rogue leaves them NULL; the revision that removes the flat-rate rogue drops them). A column or table already there is skipped, so a stopped run can be started again. A rogue's moons are `moons` rows with `rogue_planet_id` set. A rogue's `uid` is born in its donor's sector, not the sector that files it, so deleting the donor's sector takes its rogues wherever they have landed. Downgrade is not supported.
+Migration 0205 gives `rogue_planets` every column `planets` has apart from the orbit round a host (the same names and types, all NULL on a row the flat-rate rogue wrote), so the one planet chain writes both. It adds six columns of its own: `donor_uid` (BINARY(12), the uid of the system that threw the body out) and `event_index` (INT, which of that system's ejections it is; the two are unique together, `uq_rogue_planets_donor_event`, so saving a donor again replaces its rogues and never doubles them), `ejection_delay_gy` (how long after the system formed it was thrown out), `since_ejection_gy` (how long ago), `ejection_speed_kms` (the kick) and `rogue_note` (TEXT, the sentence that says where it came from). It also creates four child tables, `rogue_planet_reflection_spectrum`, `rogue_planet_interior_layers`, `rogue_planet_gases` and `rogue_planet_life_class_scores`, which hold what the `planet_*` tables hold for a planet, and makes `planet_type`, `composition`, `has_internal_heat` and `has_moons` NULLable (a physics rogue leaves them NULL; the revision that removes the flat-rate rogue drops them). A column or table already there is skipped, so a stopped run can be started again. A rogue's moons are `moons` rows with `rogue_planet_id` set. A rogue's `uid` is born in its donor's sector, not the sector that files it, so deleting the donor's sector takes its rogues wherever they have landed. Downgrade is not supported.
 
-### v200 (GEN.1127): the chart ledger, and a sector row that cannot vanish under its residents
+### v201 (GEN.1127): the chart ledger, and a sector row that cannot vanish under its residents
 
-Migration 0200 creates `chart_ledger` and copies every filled cell into it from `sector_stats.filled_at` (the run and the epoch from the cell's `sectors` row, the time from `filled_at`), then drops `sector_stats.filled_at`. It also changes `ON DELETE CASCADE` to `ON DELETE RESTRICT` on the `sector_id` keys of `rogue_planets`, `interstellar_comets`, `supernova_remnants` and `facilities`: `sector_id` is the sector that holds an object now (the nightly orbital update refiles it), not the one it was born in, so a cascade deleted every resident that had drifted in. The keys are changed in place with `foreign_key_checks` off, since the rows already satisfy the rule. A key that already has the rule, or a table that does not exist yet, is skipped, so a stopped run can be started again. Deleting or regenerating a sector now removes only what was born there (`db/edits.delete_sector_birth_contents`, read from the first 56 bits of the `uid`); a sector that still holds objects born elsewhere is not deleted (409), and a regenerated one keeps its row.
+Migration 0201 creates `chart_ledger` and copies every filled cell into it from `sector_stats.filled_at` (the run and the epoch from the cell's `sectors` row, the time from `filled_at`), then drops `sector_stats.filled_at`. It also changes `ON DELETE CASCADE` to `ON DELETE RESTRICT` on the `sector_id` keys of `rogue_planets`, `interstellar_comets`, `supernova_remnants` and `facilities`: `sector_id` is the sector that holds an object now (the nightly orbital update refiles it), not the one it was born in, so a cascade deleted every resident that had drifted in. The keys are changed in place with `foreign_key_checks` off, since the rows already satisfy the rule. A key that already has the rule, or a table that does not exist yet, is skipped, so a stopped run can be started again. Deleting or regenerating a sector now removes only what was born there (`db/edits.delete_sector_birth_contents`, read from the first 56 bits of the `uid`); a sector that still holds objects born elsewhere is not deleted (409), and a regenerated one keeps its row.
 
 ### v192 (GEN.1057): the age of a ring
 
@@ -2249,9 +2272,17 @@ Migration 0192 adds `ring_age_yr` (DOUBLE, NULL) to `planets`, `moons` and `rogu
 ### v191 (GEN.1034): the open-ocean tide of a world with a sea
 
 Migration 0191 adds three nullable columns at the end of `planets` and `moons`, derived by `physics/ocean_tides.py` from the stored mass, radius, spin axis and rotation period, orbits, moons and hydrosphere: `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres: the equilibrium high-to-low range with every tide-raiser in line, and with the largest against the rest; `0` for an ice-covered ocean, NULL for a body without a free sea, that is any other hydrosphere, a gas giant, or a body with no spin on record) and `ocean_liquid` (VARCHAR(40): the liquid of that sea, `water` until the surface liquid inventory of GEN.1035 names others). They are the value a deep ocean would have if it followed the tidal potential freely; the range on a coast depends on the shape and depth of the basin and on its resonance and can exceed it many times. A row made before v187 keeps NULL; nothing is backfilled; a stopped run can be started again (a column already there is skipped).
+### v203 (GEN.1209): several life classes on one body
+
+Migration 0203 creates `planet_life` and `moon_life` (a table already there is kept). A body stored before has no rows: its one class is the dominant one in its own columns, and nothing is backfilled; the rows come when the galaxy is regenerated (the epoch of GEN.1209).
+
 ### v199 (GEN.1159): the roundness ratio, the strength and the binding energy
 
 Migration 0195 adds `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` (DOUBLE, nullable) to `planets`, `moons` and `comets`, `density_g_cm3` and `ice_mass_fraction` to `comets`, `asteroid_belts` and `asteroid_fields`, skipping a column already there. All are NULL after the migration: they are worked out by `physics/body_strength.py` when a body is generated, so a row made before v195 gets them when the galaxy is regenerated. Nothing is backfilled.
+
+Migration 0200 adds `density_g_cm3` and `binding_energy_j` (DOUBLE, nullable) to `stars`, `black_holes` and `neutron_stars`; those with `roundness_ratio` and `yield_strength_pa` to `rogue_planets`; and `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` to `interstellar_comets`, skipping a column already there. All are NULL after the migration; a row made before v196 gets them when the galaxy is regenerated.
+
+Migration 0204 adds `origin_cause`, `co_causes`, `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth`, `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` and `largest_body_km` (nullable) to `asteroid_belts`, the origin a belt carries and the largest body settled with its mass (GEN.1069). A belt made before v201 gets them when the galaxy is regenerated.
 
 ### v189 (GEN.1009): the largest radius and mass of a member
 
@@ -2268,6 +2299,10 @@ Migration 0196 adds 49 columns to `planets` and `moons` (`band1_mean_k`, `band1_
 ### v194 (GEN.1013): the members of a tree that are not stars
 
 Migration 0194 creates `dark_members`, keyed by `star_system_id` and `member_no`: one row for each brown dwarf, neutron star, black hole or stripped helium star that hangs in a built system's orbit tree without being one of its stars. Columns: `parent_node_no` and `slot` (the numbering of `orbit_nodes`), `kind` (a CHECK on the four kinds), `mass_solar` (DOUBLE, not null) and `radius_au` (DOUBLE, nullable). A node's `mass_solar` in `orbit_nodes` is the sum of what hangs below it, these included. A row goes with its system (foreign key, ON DELETE CASCADE). A system with a dark member and no other star is a single star: its `stars` row has role `single`, `parent_node_id` the node it hangs in and its `slot`. No row is made for a system already stored; a system gets its rows when it is generated again. A table already there is kept, so a stopped run can be started again.
+
+### v202 (GEN.1138): the designations an object stopped having
+
+Migration 0202 creates `designations`, one row for each ID or name an object used to have (docs/design/architecture/designation-history.md). Columns: `designation_kind` (`uid` or `name`, a CHECK), `designation_uid` (BINARY(12), set for an ID) and `designation_name` (VARCHAR(255), set for a name; a CHECK keeps exactly the one that matches the kind), `object_kind` (the table that held the object) and `object_row_id` (its row number, which never changes), `valid_from_epoch` (NULL for the birth designation), `retired_epoch`, `reason` (a CHECK on `collision bump`, `rename`, `regeneration`, `parent change`, `admin renumber`), `gone_epoch` (NULL while the object exists) and `retired_at`. `uq_designations_uid` is unique, so a retired ID can never be given to an object again; `idx_designations_name` and `idx_designations_object` serve the lookup of a past name and the "Formerly" lines. Nothing is backfilled: a designation that changed before the table has no row. A table already there is kept, so a stopped run can be started again.
 
 ### v188 (GEN.1035): the liquid at the surface
 

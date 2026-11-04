@@ -82,3 +82,27 @@ def test_the_density_choice_is_remembered(browser, server, config):
     finally:
         context.close()
     assert not problems, "\n".join(problems)
+
+
+@pytest.mark.parametrize("scheme", SCHEMES)
+def test_the_shell_stays_in_view_under_the_header_while_a_long_admin_page_scrolls(browser, server, config, scheme):
+    """UX.142: the rail, the search and the density switch are not scrolled away; a phone keeps them in the flow."""
+    context, page, problems, base_url = _page(browser, server, "desktop", scheme)
+    try:
+        page.set_viewport_size({"width": 1280, "height": 400 + 200})
+        page.goto(base_url + "/admin/settings", wait_until="load")
+        page.wait_for_selector(".admin-shell")
+        assert page.evaluate("document.documentElement.scrollHeight") > page.evaluate("innerHeight") + 200, "needs a long page"
+        page.evaluate("window.scrollTo(0, document.documentElement.scrollHeight)")
+        page.wait_for_timeout(200)
+        box = page.evaluate("""() => { const s = document.querySelector('.admin-shell').getBoundingClientRect();
+          const h = document.querySelector('.site-header').getBoundingClientRect();
+          return {shellTop: s.top, shellBottom: s.bottom, headerBottom: h.bottom, win: innerHeight}; }""")
+        assert box["shellTop"] == pytest.approx(box["headerBottom"], abs=2), box
+        assert 0 < box["shellBottom"] < box["win"], box
+        page.set_viewport_size({"width": 390, "height": 844})
+        page.wait_for_timeout(200)
+        assert page.evaluate("getComputedStyle(document.querySelector('.admin-shell')).position") == "static"
+    finally:
+        context.close()
+    assert not problems, "\n".join(problems)

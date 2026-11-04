@@ -103,3 +103,16 @@ if [[ -z "${1:-}" ]]; then
     chmod 770 "$STATE_DIR"
     echo "State (maintenance switch, backups): $STATE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
 fi
+
+# The kept bright-star sampling tables (planetgen.generation.band_table_cache, PERF.188): the first sector fill of a galaxy builds hundreds of them
+# (267 s and 1.8 GB) and reads them back from here in 36 s and 0.5 GB. The workers (Apache's user) write the folder; the program keeps one code
+# version's tables in it and removes the rest. PLANETGEN_BAND_TABLE_CACHE, if this shell has it, names another folder, or none when empty.
+if [[ -z "${1:-}" ]]; then
+    BAND_TABLE_DIR="${PLANETGEN_BAND_TABLE_CACHE-/var/cache/planetgen/band-tables}"
+    if [[ -n "$BAND_TABLE_DIR" ]]; then
+        mkdir -p "$BAND_TABLE_DIR"
+        chown "$APACHE_USER:$APACHE_GROUP" "$BAND_TABLE_DIR"
+        chmod 750 "$BAND_TABLE_DIR"
+        echo "Kept star tables: $BAND_TABLE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+    fi
+fi

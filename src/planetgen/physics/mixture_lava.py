@@ -154,7 +154,7 @@ def vapour_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percen
         require(subject, ("ts_k",))
         temperature = subject["ts_k"]
     if temperature < MELT_MIN_K:
-        raise MixtureError(f"a surface at {temperature:g} K is not molten (the vapour over a melt is taken from {MELT_MIN_K:g} K)")
+        raise MixtureError(f"a surface at {temperature:g} K is not molten (the vapor over a melt is taken from {MELT_MIN_K:g} K)")
     redox = recipe.values.get("a4", recipe.values.get("a1"))
     if redox is None:
         raise MixtureError("no redox row applies to the melt")

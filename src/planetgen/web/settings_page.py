@@ -45,7 +45,7 @@ CLEAR_FIELD = "clear."
 """str: Prefix of a secret's "clear it" check box."""
 
 RATE_FIELD = "rate."
-"""str: Prefix of a rate control's fields: `rate.<option>.count`, `.per` and `.off` (a limit of "N per period")."""
+"""str: Prefix of a rate control's fields: `rate.<option>.count`, `.per`, and `.off` (a limit of "N per period")."""
 
 RATE_PERIODS = ("second", "minute", "hour", "day")
 
@@ -252,7 +252,7 @@ def _form_page(view, submitted=None, errors=None, message=None, error=None, stat
     response = _render(
         "admin_settings.html", flashed=True, title="Settings", section="admin_settings",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Settings")],
-        description="Every option of config.json, with its help, default and current value.",
+        description="Every option of config.json, with its help, default, and current value.",
         view=view, errors=[(path, titles.get(path, path), text) for path, text in errors.items() if path],
         whole_file_error=whole_file, message=message, error=error, can_save=not view["problem"],
         file_error=view["file_error"] if view["file_error"] != view["problem"] else "",
@@ -317,7 +317,7 @@ def admin_settings():
                        breadcrumbs=[crumb("Admin", "admin"), crumb("Settings")], view=None, errors=[],
                        whole_file_error="", message=None, error=_api_message(exc), can_save=False, file_error="",
                        show_fixed=False, q="", shown_count=0, duration_text=duration_text,
-                       description="Every option of config.json, with its help, default and current value.")
+                       description="Every option of config.json, with its help, default, and current value.")
     if request.method == "GET":
         flashed = _take_flash()
         return _form_page(view, error=flashed.get("error"), message=flashed.get("message"))

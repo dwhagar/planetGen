@@ -12,6 +12,7 @@ from planetgen.util import draw
 from planetgen import tuning
 from planetgen.generation.system import StarSystem
 from planetgen.generation import run_system
+from planetgen.generation import habitable_request as hr
 from tests.bughunt_support import run_cli
 
 
@@ -71,7 +72,7 @@ def test_a_star_with_a_habitable_request_is_saved_whether_or_not_it_has_one(tmp_
         run_cli("system", ["--star-type", "M2V", "+habitable_world", "--strict", "--output", str(out)])
         assert out.exists() and len(kept) == 1
         assert kept[-1].unmet_requirements == []
-        assert kept[-1].habitable_request in ("aim", "fallback", "unmet")
+        assert kept[-1].habitable_request == ("aim" if hr.count(kept[-1].all_planets) > 0 else "unmet")
 
 
 @pytest.mark.parametrize("spec", [

@@ -88,11 +88,15 @@ def test_each_kind_follows_its_rate_per_star():
     # Neutron stars outnumber black holes. The bound neutron stars are fixed by the census (0.004 per star), so the share of
     # the massive stars that fail is what is left of them: half the cap of `black_hole_formation.share_cap` for the
     # middle draw, 17.5% of the 0.71% of stars that are massive (the Chabrier function's), and the metallicity of the shell
-    # then scales it. That gives about 1.6 neutron stars to a black hole in this scatter; a Poisson count sits well inside
+    # then scales it. That gives about 1.5 neutron stars to a black hole in this scatter (1.6 until the old population's
+    # metallicity followed its 3 to 13 Gy window, which raised the shells' metallicity and so the black holes' share; TEST.548):
+    # the ratio is the model's, `shell_expected_by_class`, not a number of its own; a Poisson count sits well inside
     # 5 sigma of its mean over a scatter this size.
-    rows = [row for shell_index, _high in EXTENTS for row in _shell(shell_index, seed=3)]
+    rows, by_class, model = _class_counts_and_expectations(1.0)
     counts = {kind: sum(1 for row in rows if row[3] == kind) for kind in scatter.SCATTERED_KINDS}
-    assert counts["neutron-star"] > 1.5 * counts["black-hole"] > 0
+    neutron, hole = ("neutron-star", None), ("black-hole", "stellar")
+    assert by_class[neutron] > by_class[hole] > 0
+    assert by_class[neutron] / by_class[hole] == pytest.approx(model[neutron] / model[hole], rel=0.03)
     expected = sum(scatter.shell_expected(SHAPE, shell_index, high, EDGE_PC, E_VALUE, 1.0)
                    for shell_index, high in EXTENTS)
     assert sum(counts.values()) == pytest.approx(expected, rel=0.15)
@@ -532,8 +536,10 @@ def test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_mode
     for key in (("black-hole", "stellar"), ("neutron-star", None)):
         assert counts[key] == pytest.approx(expected[key], rel=0.05), key
     # Neutron stars are what the black holes leave (GEN.554): per star the model has them in the ratio of the leavings, the
-    # bound neutron stars fixed by the census and the failed share the rest of the massive stars (about 1.6 to 1 here)
-    assert counts[("neutron-star", None)] > 1.5 * counts[("black-hole", "stellar")]
+    # bound neutron stars fixed by the census and the failed share the rest of the massive stars (about 1.5 to 1 here, the model's)
+    ratio = counts[("neutron-star", None)] / counts[("black-hole", "stellar")]
+    assert ratio > 1.0
+    assert ratio == pytest.approx(expected[("neutron-star", None)] / expected[("black-hole", "stellar")], rel=0.03)
 
 
 def test_gen677_the_stage_line_says_what_the_cut_leaves_to_the_sectors():

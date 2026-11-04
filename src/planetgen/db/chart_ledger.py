@@ -1,7 +1,7 @@
 # planetgen/db/chart_ledger.py
 
 """
-The chart ledger (v200, GEN.1127, docs/design/systems/region-object-store.md sections 5, 6 and 10)
+The chart ledger (v201, GEN.1127, docs/design/systems/region-object-store.md sections 5, 6 and 10)
 =================================================================================================
 
 Which sector cells have been charted. A cell is a whole sector, the galaxy's unit of randomness, so it is charted or it is not: there is no

@@ -2,7 +2,7 @@
 
 """
 The shared fixture of the habitability system's end-to-end browser tests (TEST.300): a throwaway database with
-a sector that holds a seeded system with Blue or Green worlds, a second sector whose system has none, the
+a sector that holds a seeded system whose stored scores give it Blue, Green and Yellow worlds, a second sector whose system has none, the
 Galaxy Map's stats and block totals recorded for both, and a local server over that database. Each lane
 tests its own piece against fixture data; the tests that use this check the pieces together on stored scores.
 
@@ -71,15 +71,33 @@ def _config_for(site_config):
     return SiteConfig
 
 
-def _system(seed, want_habitable):
+HABITABLE_SEED = 6
+"""int: The seed of the habitable sector's system: a G2V star with ten planets and five moons, generated in about five seconds."""
+BARREN_SEED = 1
+"""int: The seed of the other sector's system: three planets and three moons."""
+BLUE, GREEN, YELLOW, RED = 1.2, 0.9, 0.5, 0.1
+"""float: The overall PHI-6 score (`phi4`) stored for a body of each colour (`habitability.tier`)."""
+
+
+def _system(seed):
+    """A G2V system with planets, from a fixed seed so the fixture is repeatable and fast (TEST.414: a search of the seeds for a
+    system that happens to hold a Blue or Green world took twenty seconds a seed and found none in sixty)."""
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     cfg.PLANETS = True
-    cfg.MAX_PLANETS = True
     cfg.BINARY_SYSTEM = False
-    cfg.HABITABLE_WORLD = want_habitable
     with draw.bound(seed):
         return StarSystem(system_config=cfg), cfg
+
+
+def _give_scores(conn, system_id, colours):
+    """Stores an overall score on every planet and moon of the system: the colours in `colours` on its first bodies (planets
+    first), Red on the rest. The fixture seeds the stored scores the pages read, as `scored_site` does."""
+    bodies = [(table, row["id"]) for table in ("planets", "moons")
+              for row in conn.execute(f"SELECT id FROM {table} WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+    assert len(bodies) >= len(colours), (len(bodies), len(colours))
+    for index, (table, body_id) in enumerate(bodies):
+        conn.execute(f"UPDATE {table} SET phi4 = ? WHERE id = ?", (colours[index] if index < len(colours) else RED, body_id))
 
 
 def _tiers(conn, system_id):
@@ -92,20 +110,16 @@ def _tiers(conn, system_id):
 
 
 def _add_sector(conn, name, address, center_pc, want_habitable):
-    """A sector at `address` with one system that has Blue or Green worlds (`want_habitable`) or none, its stats recorded;
-    returns (sector id, system id, system name, the Blue or Green bodies)."""
+    """A sector at `address` with one system that has a Blue, a Green and a Yellow world (`want_habitable`) or only Red ones, its
+    stats recorded; returns (sector id, system id, system name, the Blue or Green bodies)."""
     conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index) VALUES (?, ?, ?, ?, ?)",
                  (name, EDGE_MPC, *address))
     sector_id = conn.execute("SELECT id FROM sectors WHERE name = ?", (name,)).fetchone()["id"]
-    for seed in range(400):
-        system, cfg = _system(seed, want_habitable)
-        system_id = store.insert_star_system(conn, system, cfg, sector_id=sector_id)
-        good = [row for row in _tiers(conn, system_id) if row[3] in habitability.POTENTIALLY_HABITABLE_TIERS]
-        if bool(good) == want_habitable and _tiers(conn, system_id):
-            break
-        conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
-    else:
-        pytest.fail(f"no system {'with' if want_habitable else 'without'} a Blue or Green world in 400 seeds")
+    system, cfg = _system(HABITABLE_SEED if want_habitable else BARREN_SEED)
+    system_id = store.insert_star_system(conn, system, cfg, sector_id=sector_id)
+    _give_scores(conn, system_id, (BLUE, GREEN, YELLOW) if want_habitable else ())
+    good = [row for row in _tiers(conn, system_id) if row[3] in habitability.POTENTIALLY_HABITABLE_TIERS]
+    assert bool(good) == want_habitable, (name, good)
     conn.execute("UPDATE star_systems SET galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ? WHERE id = ?",
                  (*(c + o for c, o in zip(center_pc, SYSTEM_OFFSET_PC)), system_id))
     store.assign_uids(conn, system_ids=[system_id])

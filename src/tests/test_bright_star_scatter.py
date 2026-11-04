@@ -183,7 +183,7 @@ def _seed_galaxy(mysql_config, e_value=E_VALUE):
 def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE)
     summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
-    assert summary["total"] > 20
+    assert summary["total"] > 3          # (the disc infall of GEN.1242 forms fewer massive stars now than the old constant rate: 7 here, over 20 before)
 
     conn = store.get_connection(mysql_config)
     try:

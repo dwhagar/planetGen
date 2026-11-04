@@ -18,6 +18,7 @@ import math
 from planetgen.galaxy import frame, galactic_orbit, spherical
 from planetgen.physics import rogue_drift, rogue_kick
 from planetgen.physics.units import pc_to_ly
+from planetgen.util import detmath
 
 Landing = collections.namedtuple("Landing", ("position_pc", "velocity_km_s", "address", "separation_pc"))
 """Where a rogue is: its galaxy-frame position (pc) and velocity (km/s), the `(shell, band, wedge)` of the sector that holds it, and how far it is from its donor (pc)."""
@@ -47,7 +48,7 @@ def landing(donor_position_pc, event, edge_pc, circular_speed_km_s, galaxy=rogue
         Landing: The position, velocity, sector address and distance from the donor.
     """
     x, y, z = donor_position_pc
-    radius = math.hypot(x, y)
+    radius = detmath.hypot(x, y)
     kick = tuple(k + o for k, o in zip(event.kick_km_s, event.orbital_velocity_km_s))
     time_myr = event.since_ejection_gy * 1000.0
     if radius < 1e-9:      # on the galaxy's axis the epicyclic frame has no direction: the offset is taken in the galaxy axes
@@ -64,7 +65,7 @@ def landing(donor_position_pc, event, edge_pc, circular_speed_km_s, galaxy=rogue
     relative = rogue_kick.rogue_velocity((0.0, 0.0, 0.0), kick, time_myr, galaxy)   # outward, along the rotation, up, against the circular speed
     local = (relative[0], relative[1] + circular_speed_km_s, relative[2])
     velocity = _along(local, axes)
-    separation = math.dist(position, donor_position_pc)
+    separation = detmath.dist(position, donor_position_pc)
     return Landing(position, velocity, spherical.sector_address_at(position, edge_pc), separation)
 
 

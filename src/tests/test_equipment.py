@@ -40,7 +40,7 @@ NAMED = {
              "B4p F100 S2 H3 [R2]",
              "Required: hardened pressure suit + dust-tight seals. Recommended: hardened habitat."),
     "Venus": (dict(pressure=9200.0, temperature=462.0, gases={"CO2": 0.965}, dose=0.0001, parts=(0.0001, 0.0, 0.0)),
-              "B5h S4", "Required: armoured suit."),
+              "B5h S4", "Required: armored suit."),
     "Titan": (dict(pressure=146.7, temperature=-179.0, gases={"CH4": 0.0}), "B3c S2",
               "Required: heated sealed suit + self-contained air."),
     "10 bar air": (dict(pressure=1000.0, gases={"O2": 0.5}), "B2d S3", "Required: heated diving suit + mixed-gas rig."),
