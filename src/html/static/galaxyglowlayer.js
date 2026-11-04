@@ -21,8 +21,7 @@ function temperatureColor(temperatureK) {
   return [r, g, b].map((v) => Math.min(255, Math.max(0, v)) / 255);
 }
 
-// A glow layer in `scene` for `camera` on `canvasEl`. `options`: `light` (true on a light background, where the glow is
-// drawn dark-on-light by normal blending instead of added), `renderOrder` (default 4: under the stars' 5), `look`
+// A glow layer in `scene` for `camera` on `canvasEl`. `options`: `renderOrder` (default 4: under the stars' 5), `look`
 // (`(blob, camera, focalPx) -> {alpha, radiusPx}`, default `glowLook`: the charted regions, MAP.316, are drawn by the same layer
 // with their own), `cut` (`(alphas) -> alphas`, changed in place: the strengths of every blob, which a budget may hold down, MAP.176;
 // default none) and a blob's own `color` ([r, g, b], 0 to 1) in place of the color of its temperature and its `ring` (true: a thin
@@ -67,7 +66,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
       // A blob with a ring (a group of nebulae, MAP.176) also has a thin line near its rim, so it reads as a group.
       "  float line = vRing * smoothstep(0.78, 0.88, r) * (1.0 - smoothstep(0.88, 0.98, r)) * 0.9;",
       "  float a = max(soft, line) * vAlpha;",
-      o.light ? "  gl_FragColor = vec4(vColor, a);" : "  gl_FragColor = vec4(vColor * a, a);",
+      "  gl_FragColor = vec4(vColor * a, a);",
       "}",
     ].join("\n"),
     transparent: true,
@@ -75,19 +74,14 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     depthTest: false,
   });
   // Where glows overlap the brighter one shows and they are not added (a crowd of overlapping blobs added up to white
-  // and hid the stars, MAP.324): a maximum blend of the premultiplied colors on a dark background, normal blending
-  // dark-on-light on a light one.
-  if (o.light) {
-    material.blending = THREE.NormalBlending;
-  } else {
-    material.blending = THREE.CustomBlending;
-    material.blendEquation = THREE.MaxEquation;
-    material.blendSrc = THREE.OneFactor;
-    material.blendDst = THREE.OneFactor;
-    material.blendEquationAlpha = THREE.MaxEquation;
-    material.blendSrcAlpha = THREE.OneFactor;
-    material.blendDstAlpha = THREE.OneFactor;
-  }
+  // and hid the stars, MAP.324): a maximum blend of the premultiplied colors on the black map.
+  material.blending = THREE.CustomBlending;
+  material.blendEquation = THREE.MaxEquation;
+  material.blendSrc = THREE.OneFactor;
+  material.blendDst = THREE.OneFactor;
+  material.blendEquationAlpha = THREE.MaxEquation;
+  material.blendSrcAlpha = THREE.OneFactor;
+  material.blendDstAlpha = THREE.OneFactor;
   const mesh = new THREE.Mesh(new THREE.BufferGeometry(), material);
   mesh.renderOrder = o.renderOrder === undefined ? 4 : o.renderOrder;
   mesh.frustumCulled = false;

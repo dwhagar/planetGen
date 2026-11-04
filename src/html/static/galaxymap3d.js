@@ -75,7 +75,7 @@ const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VER
 const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { starLight } = await import(`./starlight.js${VERSION_QUERY}`);
-const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
+const { NEBULA_LOOKS } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const { drawnSignature, nodeRevision } = await import(`./nodeview.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
@@ -104,7 +104,7 @@ const {
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
-  entriesNearScreenPoint, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, mapVar,
+  entriesNearScreenPoint, fitRendererToCanvas, formatAddress, makeRingTexture, mapVar,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
@@ -453,13 +453,11 @@ function showHint(text, keep) {
 
 // --- Clouds: nebulae and supernova remnants --------------------------------
 
-// A nebula's color by its type, per theme (static/nebulalook.js, MAP.175): the
+// A nebula's color by its type (static/nebulalook.js, MAP.175): the
 // same hues the Sector Map uses (planetgen/web/maps/starmap.py's
 // _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core and edge opacity),
-// each reaching 3:1 against the map's background on its theme. A dark
-// nebula is a dust-coloured silhouette on the dark theme and a near-black
-// one on the light.
-var NEBULA_LOOKS = nebulaLooks(isLightBackground());
+// each reaching 3:1 against the map's black background. A dark
+// nebula is a dust-coloured silhouette.
 var DEFAULT_NEBULA_LOOK = NEBULA_LOOKS.default;
 
 function capitalize(text) {
@@ -1048,10 +1046,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // `faceAlpha` 0 (a sector page's map, MAP.61) draws only the outlines:
   // sector space is not tinted at all.
   // Filled blocks' edges are a saturated amber (MAP.37: "a much higher
-  // contrast"), a deeper shade on the light theme's pale background.
+  // contrast").
   // Their faces take the color of what their sectors hold
   // (galaxyblocks.statsColor, MAP.128), so no amber over them.
-  var FILLED_TINT = new THREE.Color(isLightBackground() ? "#d06a00" : "#ffb02e");
+  var FILLED_TINT = new THREE.Color("#ffb02e");
   var FILLED_FACE_MIX = 0;
   // How far an unfilled block's edges brighten toward white: the ring,
   // wedge and layer boundaries of the grid, kept faint like the wedge
@@ -2003,14 +2001,14 @@ function initGalaxyMap3d(canvasEl, data) {
   starPoints.frustumCulled = false;
   scene.add(starPoints);
   // MAP.266: the unresolved glow, under the stars (the Sector Map has none: its sector is all resolved).
-  var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground() });
+  var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl);
   // MAP.316: the charted regions, soft spheres at their extents coloured by share charted, drawn by a layer of their own
   // (under the glow's) that fades each as its stars resolve; the list in the Menu and the names come from the same blobs.
-  var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground(), look: regionLook, renderOrder: 3 });
+  var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, { look: regionLook, renderOrder: 3 });
   // MAP.176: the groups of nebulae each drawn node lists (`nebula_regions`), soft sprites in the dominant family's colour with a thin
   // ring, a layer of their own under the charted regions' that holds itself to REGION_BUDGET and fades each as its node hands it down.
   var nebulaLayer = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, {
-    light: isLightBackground(), look: nebulaRegionLook, cut: cutNebulaRegions, renderOrder: 3,
+    look: nebulaRegionLook, cut: cutNebulaRegions, renderOrder: 3,
   });
   var nebulaEntries = [];
   var nebulaVersion = 0;
@@ -2019,7 +2017,7 @@ function initGalaxyMap3d(canvasEl, data) {
   NEBULA_FAMILIES.forEach(function (family) { nebulaFamilyOn[family] = true; });
   function setNebulaRegions() {
     if (!nebulaLayer) return;
-    nebulaLayer.setBlobs(nebulaRegionBlobs(nebulaEntries, NEBULA_LOOKS, isLightBackground(), function (family) {
+    nebulaLayer.setBlobs(nebulaRegionBlobs(nebulaEntries, NEBULA_LOOKS, function (family) {
       return nebulaFamilyOn[family] !== false;
     }), [0, 0, 0]);
     nebulaVersion += 1;
@@ -3376,7 +3374,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // crisp rim where the sphere meets the line of sight, under everything else and never picked. No
   // molecular cloud lies inside one.
   var bubbles = data.superbubbles || [];
-  var bubbleLook = superbubble.bubbleLook(isLightBackground());
+  var bubbleLook = superbubble.LOOK;
   var bubbleMaterial = null;
   var bubbleMeshes = [];
   if (bubbles.length) {
@@ -3854,7 +3852,6 @@ function initGalaxyMap3d(canvasEl, data) {
           return response.json();
         });
     } : null,
-    lightBackground: isLightBackground(),
     pixelRatio: function () { return renderer.getPixelRatio(); },
     showInfo: showInfo,
     hideCell: hideCell,
@@ -3916,7 +3913,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
-    markerLayer = createMarkerLayer(scene, camera, canvasEl, isLightBackground() ? "#ffffff" : "#0b0d14", {
+    markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
     });
     markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: a sector may be open before the layer exists
@@ -4011,10 +4008,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // legend line each and one line that says what a ring is.
   if (nebulaLayer) {
     var NEBULA_GROUP = "Nebulae";
-    var nebulaLooksNow = NEBULA_LOOKS;
-    var nebulaLightNow = isLightBackground();
     var nebulaSwatch = function (family) {
-      var colour = nebulaFamilyColour(family, nebulaLooksNow, nebulaLightNow);
+      var colour = nebulaFamilyColour(family, NEBULA_LOOKS);
       return "rgb(" + colour.map(function (v) { return Math.round(255 * v); }).join(", ") + ")";
     };
     stageView.layers.bulkGroup(NEBULA_GROUP);
@@ -4319,7 +4314,7 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.readLayersFromLocation();
     stageView.layers.refresh();
     galaxyLabels = createGalaxyLabels({
-      THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
+      THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers,
       // MAP.299: the clear margin between two names, a preference read at each placement.
       padding: function () {
         try { return labelBufferPx(window.localStorage); } catch (error) { return labelBufferPx(null); }
