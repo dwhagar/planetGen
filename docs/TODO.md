@@ -17724,20 +17724,6 @@ clears each one.
   by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.576 test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug)**
-  Found by Core 5, about 4:45 PM EST on 2026-11-04 (as the lane
-  reported), red on clean main, not from DOC.103. The plain-words test
-  builds a corpus of the site's text and requires at least 1500 words;
-  it finds 1306, so either the corpus lost text (DOC.93 or DOC.94 moved
-  source lines and templates out of the pages it reads) or the floor is
-  stale. Do: find which text left the corpus, and either restore it to
-  the scan or lower the floor to what the in-universe pages hold with
-  the reason written beside it; do not weaken what the test checks.
-  Done: test_plain_words passes on main in 3 runs. Lock-free (test
-  only). Owner Core 1, who built the DOC.94 crawl (proposed by the TODO
-  thread). Filed by the TODO thread.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19278,6 +19264,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and say so in a note. Lock work (migration, schema, API version):
   rides a train. Prerequisites: none. Owner Core 5 after GEN.1127
   (proposed by the TODO thread). Filed by the TODO thread.
+  Core 1 finding in TEST.576 (#4896) (2026-11-04 5:12 PM EST): The
+  outer-disk belt origin sentence in
+  src/planetgen/physics/data/belt_origins.json (key outer-disc, 'The
+  cold leftover of the disc past ...') says disc and is stored in
+  asteroid_belts.origin_sentence, so it is a stored value like the kind
+  ids above. Include it: write disk in the JSON and in the stored column
+  (the DOC.103 migration), and remove the KNOWN entry ('spelling', 'The
+  cold leftover of') from src/tests/test_plain_words.py in the same PR,
+  because that entry then has nothing to match. Any other stored
+  sentence with a British word the sixteen-seed plain-words check finds
+  goes in the same sweep.
   Prerequisites: none.
 
 ## POP: Population and politics
