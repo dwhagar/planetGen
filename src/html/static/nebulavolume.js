@@ -111,6 +111,38 @@ export function cappedSum(terms, cap) {
   return sum.map((v) => v * scale);
 }
 
+// MAP.215: a star, a glow or a region seen through a nebula takes its hue. `nebulaSum` is the nebulae's raw sum at the pixel (the
+// layer's target before the cap): the hue is the sum's direction (its brightest channel scaled to 1) and the strength grows with its size
+// and levels off at TINT_MAX (a subtle tint, denser cores tint more); a little light is lost as well (TINT_DIM), so a dense cloud
+// dims what is behind it. `tintOf` is the formula; NEBULA_TINT_GLSL the same in the shaders (`nebulaTinted`).
+export const TINT_MAX = 0.6;
+export const TINT_SCALE = 0.25;
+export const TINT_DIM = 0.2;
+export function tintOf(sum) {
+  const m = Math.max(sum[0], sum[1], sum[2]);
+  if (!(m > 0)) return { strength: 0, hue: [1, 1, 1] };
+  return { strength: TINT_MAX * (1 - Math.exp(-m / TINT_SCALE)), hue: sum.map((v) => v / m) };
+}
+// The color `colour` ([r, g, b]) takes behind a pixel whose nebulae add up to `sum`.
+export function tinted(colour, sum) {
+  const { strength, hue } = tintOf(sum);
+  return colour.map((c, i) => (c * (1 - strength) + c * hue[i] * strength) * (1 - TINT_DIM * strength));
+}
+export const NEBULA_TINT_GLSL = [
+  "uniform sampler2D nebulaSum;",
+  "uniform vec2 drawSize;",
+  "uniform float nebulaTint;",
+  "vec3 nebulaTinted(vec3 c) {",
+  "  if (nebulaTint <= 0.0) return c;",
+  "  vec3 s = texture2D(nebulaSum, gl_FragCoord.xy / drawSize).rgb;",
+  "  float m = max(s.r, max(s.g, s.b));",
+  "  if (m <= 0.0) return c;",
+  `  float t = ${TINT_MAX.toFixed(3)} * (1.0 - exp(-m / ${TINT_SCALE.toFixed(3)})) * nebulaTint;`,
+  "  vec3 hue = s / m;",
+  `  return mix(c, c * hue, t) * (1.0 - ${TINT_DIM.toFixed(3)} * t);`,
+  "}",
+].join("\n");
+
 // How strongly a node's volume shows: from the largest nebula in it on the screen, `radiusPx`, and the share the cut gives the node.
 export function volumeAlpha(radiusPx, share) {
   return ease((radiusPx - MIN_RADIUS_PX) / (FULL_RADIUS_PX - MIN_RADIUS_PX)) * Math.min(1, Math.max(0, share));

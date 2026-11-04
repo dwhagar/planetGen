@@ -98,7 +98,7 @@ const {
   FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
-const { sourceOf: nebulaVolumeSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { sourceOf: nebulaVolumeSource, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
 const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
@@ -949,7 +949,14 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   function renderFrame() {
-    if (nebulaVolumes) nebulaVolumes.prepare();   // MAP.365: the nebulae's capped sum, before the map is drawn
+    if (nebulaVolumes) {
+      nebulaVolumes.prepare();   // MAP.365: the nebulae's capped sum, before the map is drawn
+      // MAP.215: and what the stars and glows read of it, to take the hue of a nebula in front of them.
+      var sumTexture = nebulaVolumes.texture();
+      nebulaTintUniforms.nebulaSum.value = sumTexture || blankSum;
+      nebulaTintUniforms.nebulaTint.value = sumTexture && nebulaVolumes.isVisible() ? 1 : 0;
+      renderer.getDrawingBufferSize(nebulaTintUniforms.drawSize.value);
+    }
     var frame = stageView.systemFrame();
     var deep = !!frame && frame.group.visible && eyeBack.length() > 0 && eyeBack.length() < DEEP_FRAME_PC;
     deepFrame.active = deep;
@@ -1887,8 +1894,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // star once its sector is filled (`charted`); black holes, neutron
   // stars and quasars are landmarks and stay lit.
 
+  // MAP.215: what the nebulae over a pixel add up to, which the stars and the glows read to take their hue (nebulavolume.js `tinted`); the
+  // texture is the volume layer's target (a black one while there is none).
+  var blankSum = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1);
+  blankSum.needsUpdate = true;
+  var nebulaTintUniforms = { nebulaSum: { value: blankSum }, drawSize: { value: new THREE.Vector2(1, 1) }, nebulaTint: { value: 0 } };
   var starMaterial = new THREE.ShaderMaterial({
     uniforms: {
+      nebulaSum: nebulaTintUniforms.nebulaSum, drawSize: nebulaTintUniforms.drawSize, nebulaTint: nebulaTintUniforms.nebulaTint,
       pixelRatio: { value: renderer.getPixelRatio() }, now: { value: 0 },
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
       chartedOnly: { value: 0 }, unchartedFarKeep: { value: UNCHARTED_FAR_KEEP }, focusPc: { value: 0 },
@@ -1998,13 +2011,14 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vShown;",
       "varying float vBright;",
       "varying float vWhiten;",
+      NEBULA_TINT_GLSL,
       "void main() {",
       "  #include <logdepthbuf_fragment>",
       "  float r = length(gl_PointCoord * 2.0 - 1.0);",
       "  if (r > 1.0) discard;",
       "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
       "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
-      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * vWhiten * vBright), clamp(core * vBright + halo, 0.0, 1.0) * vShown);",
+      "  gl_FragColor = vec4(nebulaTinted(mix(vColor, vec3(1.0), core * vWhiten * vBright)), clamp(core * vBright + halo, 0.0, 1.0) * vShown);",
       "}",
     ].join("\n"),
     transparent: true,
@@ -2018,10 +2032,12 @@ function initGalaxyMap3d(canvasEl, data) {
   starPoints.frustumCulled = false;
   scene.add(starPoints);
   // MAP.266: the unresolved glow, under the stars (the Sector Map has none: its sector is all resolved).
-  var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl);
+  var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, { tint: { uniforms: nebulaTintUniforms, glsl: NEBULA_TINT_GLSL } });
   // MAP.316: the charted regions, soft spheres at their extents coloured by share charted, drawn by a layer of their own
   // (under the glow's) that fades each as its stars resolve; the list in the Menu and the names come from the same blobs.
-  var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, { look: regionLook, renderOrder: 3 });
+  var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, {
+    look: regionLook, renderOrder: 3, tint: { uniforms: nebulaTintUniforms, glsl: NEBULA_TINT_GLSL },
+  });
   // MAP.176: the groups of nebulae each drawn node lists (`nebula_regions`), soft sprites in the dominant family's colour with a thin
   // ring, a layer of their own under the charted regions' that holds itself to REGION_BUDGET and fades each as its node hands it down.
   var nebulaVolumes = data.pinned || !data.nebulaVolumePath ? null : createNebulaVolumeLayer(scene, camera, canvasEl, renderer, {
@@ -4106,6 +4122,7 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     canvasEl.__mapNebulae = nebulaLayer;    // the browser tests read what is drawn
     canvasEl.__mapNebulaVolumes = nebulaVolumes;
+    canvasEl.__mapNebulaTint = nebulaTintUniforms;
   }
   // MAP.328: the stars and bodies of a system opened in the sector turn slowly; this switch (a standing preference, as the System
   // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
