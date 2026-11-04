@@ -2962,7 +2962,7 @@ BODY_FIELDS = (
     object_rows.attr("planet_class"), object_rows.scaled("distance_km", "distance", _AU_KM),
     object_rows.attr("radius_km", "radius"), object_rows.attr("mass_kg", "mass"),
     object_rows.attr("volume_km3", "volume"), object_rows.attr("period_years", "period"), object_rows.attr("zone"),
-    object_rows.attr("description"), object_rows.attr("gravity_g", "gravity"),
+    object_rows.attr("gravity_g", "gravity"),
     object_rows.attr("surface_temperature_k", "surface_temperature"),
     object_rows.attr("density_g_cm3", "density"), object_rows.attr("atmosphere"),
     object_rows.attr("atm_density"), object_rows.attr("atm_molar_density"),

@@ -74,7 +74,6 @@ class _Cand:
 
 
 def _apply(planet, keep_stored, key):
-    _set_description(planet)
     scores = life_classes.score_classes(planet)
     chosen, kept = _choose(planet, scores, keep_stored)
     if chosen is None:
@@ -325,12 +324,6 @@ def _set_best(planet, scores):
     setattr(planet, life_classes.SCORES_FIELD, {class_id: result.score for class_id, result in scores.items() if result.score > 0} or None)
     planet.life_class_best = top.id if top else None
     planet.life_class_best_score = (top.score if top else 0) if scores else None
-
-
-def _set_description(planet):
-    """The class's own description. It claims no life and no planet, so a moon reads it as it stands; what the index
-    allows is said by the life sentences."""
-    planet.description = planet_classes.ASTEROID.sentence if planet.planet_class is None else tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
 def _draw_waits(planet, row, stream=None):

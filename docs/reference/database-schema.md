@@ -1364,7 +1364,6 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `volume_km3` | DOUBLE | NOT NULL | Derived, stored not recomputed. |
 | `period_years` | DOUBLE | NOT NULL | Derived, stored not recomputed. |
 | `zone` | TEXT | nullable, CHECK IN ('h','e','c') | Hot / ecosphere / cold. |
-| `description` | TEXT | nullable | |
 | `gravity_g` | DOUBLE | nullable | Surface gravity, g's. |
 | `surface_temperature_k` | DOUBLE | nullable | |
 | `density_g_cm3` | DOUBLE | nullable | |
@@ -2274,6 +2273,10 @@ Migration 0192 adds `ring_age_yr` (DOUBLE, NULL) to `planets`, `moons` and `rogu
 ### v191 (GEN.1034): the open-ocean tide of a world with a sea
 
 Migration 0191 adds three nullable columns at the end of `planets` and `moons`, derived by `physics/ocean_tides.py` from the stored mass, radius, spin axis and rotation period, orbits, moons and hydrosphere: `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres: the equilibrium high-to-low range with every tide-raiser in line, and with the largest against the rest; `0` for an ice-covered ocean, NULL for a body without a free sea, that is any other hydrosphere, a gas giant, or a body with no spin on record) and `ocean_liquid` (VARCHAR(40): the liquid of that sea, `water` until the surface liquid inventory of GEN.1035 names others). They are the value a deep ocean would have if it followed the tidal potential freely; the range on a coast depends on the shape and depth of the basin and on its resonance and can exceed it many times. A row made before v187 keeps NULL; nothing is backfilled; a stopped run can be started again (a column already there is skipped).
+### v205 (GEN.1212): a body keeps no description text
+
+Migration 0205 drops `description` from `planets` and `moons`. It held the sentence of the body's class, copied from `tuning.PLANET_CLASSES`; the words are now read at view time from `physics/data/planet_class_text.json` (`physics/planet_class_text.py`, `description(letter, moon=False)`; `description(None)` for the Asteroid type), so a change to the wording reaches every stored body without a regeneration. A column already gone is skipped.
+
 ### v203 (GEN.1209): several life classes on one body
 
 Migration 0203 creates `planet_life` and `moon_life` (a table already there is kept). A body stored before has no rows: its one class is the dominant one in its own columns, and nothing is backfilled; the rows come when the galaxy is regenerated (the epoch of GEN.1209).

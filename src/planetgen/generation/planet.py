@@ -75,7 +75,6 @@ class Planet(PlanetaryObject):
         is_moon (bool): True if the object is a moon, False otherwise.
         moons (list): A list of `Planet` objects representing the moons of this planet.
         zone (str): The orbital zone of the planet ('h' for hot, 'e' for ecosphere, 'c' for cold).
-        description (str): A text description of the planet's class.
         atm_molar_density (float): The molar density of the atmosphere.
         gravity (float): The surface gravity of the planet in g's.
         atm_density (float): The density of the atmosphere.
@@ -201,7 +200,7 @@ class Planet(PlanetaryObject):
     """
 
     SERIALIZABLE_FIELDS = [
-        "is_moon", "zone", "description", "atm_molar_density", "gravity",
+        "is_moon", "zone", "atm_molar_density", "gravity",
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
@@ -355,7 +354,6 @@ class Planet(PlanetaryObject):
         # GEN.458: whether it formed beyond its star's snow line; `StarSystem` sets it once the orbits are final
         # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
         self.born_beyond_snow_line = None
-        self.description = None
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None

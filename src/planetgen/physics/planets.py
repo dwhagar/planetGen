@@ -20,7 +20,6 @@ and moon in a system after all of them have been generated.
 """
 
 import math
-import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disc_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
@@ -124,9 +123,10 @@ def _giant_mass_for_radius_kg(radius_km, star_mass_kg):
 
 def apply_class(planet):
     """
-    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`), with the description
-    text of that class (the composition text is written from the stored fractions, GEN.430). Called when the body is built (so a
-    request can test it) and again once the system is final (the seasonal swing of its starlight, `flux_variation`, is known only then).
+    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`; the composition text is
+    written from the stored fractions, GEN.430). Called when the body is built (so a request can test it) and again once the system is
+    final (the seasonal swing of its starlight, `flux_variation`, is known only then). The words that describe a class are read at view
+    time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
     """
     planet.planet_class = None
     planet.class_variant = None
@@ -134,17 +134,9 @@ def apply_class(planet):
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     planet.planet_class = planet_classes.classify(planet)
     if planet.planet_class is None:
-        # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
-        planet.description = planet_classes.ASTEROID.sentence
-        return
+        return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
     body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
     planet.class_variant = class_code.DIGITS[0]     # GEN.1220: the digit of the class code; the best-fit classifier (GEN.1207) gives 1 to 4
-    data = tuning.PLANET_CLASSES[planet.planet_class]
-    planet.description = data["description"]
-    if planet.is_moon:
-        # Class descriptions are authored generically (e.g. "shields the inner planets"); a moon knows it's a moon.
-        planet.description = re.sub(r'\bplanets\b', 'moons', planet.description)
-        planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
 
 
 @finite_domain()
@@ -263,7 +255,6 @@ def generate_planet_properties(planet, zone_override=None):
     planet.atm_molar_density = None
     planet.scale_height = None
     planet.planet_class = None
-    planet.description = None
 
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     # GEN.459: the potassium, thorium, uranium and aluminium-26 the interior heat and the ground's dose both read (a stored draw of the
