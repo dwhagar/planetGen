@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3205] - 2026-11-04
+
+**Headline:** The first fill of a galaxy works out its bright-star band shares about fifteen times faster, with every star drawn as before.
+
+### Changed
+- **PERF.232: the band shares of a first sector fill were most of its time, and most of that was work that could only come to 0.** A sector fill asks, for every luminosity band from 100 Lsun up and every population, what share of the population's living stars the band holds (`star_population._bright_fraction`), which weighs about 8,000 masses of the IMF grid per threshold. For an old population nearly all of those stars are dead, or not yet off the main sequence, in the ages the population spans, and each was still worked out in full (the evolved-track corners, the thermal-pulse windows, the main-sequence crossing) to find it weighed nothing. Three changes, none of which moves a number:
+  - A star whose bright windows all lie outside its population's age window now measures exactly 0 without them being worked out (`star_population._outside_window`: the windows lie between the main-sequence lifetime and the end of the last phase, and `AgeLaw.weight` is exactly 0 outside the window). A population's living count and the list of masses that can count at any threshold are worked out once for all thresholds (`_fraction_terms`) instead of once per threshold.
+  - `post_main_sequence.Timeline.bright_pieces`, which finds the stretches of a track that clear a luminosity, runs its arithmetic in one numba pass over the samples (`physics/bright_piece_kernel.py`) instead of two dozen small array operations; a track with a sample that is not a number takes the array path as before.
+  - An isochrone remembers the span and the lifetime of each mass it is asked about (`datasets/isochrones._Isochrone._memo`), and builds the sorted table its lifetime reads once, not on every call: a main-sequence crossing asks the same mass at a dozen ages.
+  Measured on one 4-core machine, each from a cold folder: `test_a_new_seed_replaces_the_old_only_before_any_sector` took 1,478 s on `main` and about 430 s now, and the band shares inside it, sampled while it ran, took about 890 s before and about 60 s after. Every share of 98 asked (seven thresholds, every population, three mass ranges) is the same float as on `main`, and `tests/test_bright_measure_exactness.py` holds the three changes to the way they were worked out before, to the last bit. What is left of that test (the plan, the sampling tables, the sector's own systems) is not the shares. `generation-output: unchanged`
+
 ## [8.0.3204] - 2026-11-04
 
 **Headline:** A single nebula's cloud of points can now be fetched on its own, ready for the Sector Map and the nebula page to draw the same irregular shape the Galaxy Map shows.
