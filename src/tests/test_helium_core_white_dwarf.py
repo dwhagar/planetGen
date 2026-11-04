@@ -1,7 +1,7 @@
 # tests/test_helium_core_white_dwarf.py
 
-"""GEN.996: the helium-core white dwarf of a giant that fills its lobe on the red giant branch (Rappaport et al. 1995's
-core mass and radius relation; the helium flash at a core of about 0.45 solar masses, Tauris and van den Heuvel 2006)."""
+"""GEN.996: the helium-core white dwarf of a giant that fills its lobe on the red giant branch ([R5071]'s
+core mass and radius relation; the helium flash at a core of about 0.45 solar masses, Tauris and van [R5079])."""
 
 import dataclasses
 import math
@@ -67,8 +67,8 @@ def test_the_lobe_is_eggletons():
 def test_the_generators_own_period_law_gives_about_the_20_pc_share_of_helium_core_white_dwarfs():
     """No rate is set for the channel: the share of a solar-type star's companions that sit where the lobe is reached with a
     core of 0.18 to 0.45 solar masses, times its chance of a companion, is the share of its white dwarfs that are helium-core.
-    The 20 pc sample has 7.4 percent under 0.45 solar masses (Giammichele et al. 2012), a tenth of the solar neighbourhood's
-    white dwarfs are low-mass (Liebert et al. 2005)."""
+    The 20 pc sample has 7.4 percent under 0.45 solar masses [R1547], a tenth of the solar neighbourhood's
+    white dwarfs are low-mass [R5072]."""
     mu, sigma = multistar.PERIOD_LAWS_LOG10_DAYS["solar"]
     for progenitor in (1.0, 1.2, 1.5):
         companion = 0.55 * progenitor

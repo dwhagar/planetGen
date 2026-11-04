@@ -227,28 +227,6 @@ def synodic_period_s(parent_rotation_hours, orbital_period_years):
     return 1.0 / rate if rate > 1e-12 else None
 
 
-def induced_moment(parent_moment_a_m2, orbit_radius_m, synodic_s, moon_radius_m, shell_conductance_s, shell_radius_m):
-    """
-    The induced dipole moment of a moon's ocean, A m2 (rule 6), and the
-    response `|A|` it gave, as `(moment, response)`.
-
-    Args:
-        parent_moment_a_m2: The parent's dipole moment (times its dipole share).
-        orbit_radius_m: The moon's distance from the parent.
-        synodic_s: The excitation period (`synodic_period_s`), `None` for none.
-        moon_radius_m: The moon's radius.
-        shell_conductance_s: The ocean's conductance `sigma h`, siemens.
-        shell_radius_m: The ocean shell's radius (the moon's less its ice).
-    """
-    if not parent_moment_a_m2 or not synodic_s or shell_conductance_s <= 0.0 or orbit_radius_m <= 0.0:
-        return 0.0, 0.0
-    excitation_t = EXCITATION_SHARE * VACUUM_PERMEABILITY * parent_moment_a_m2 / (4.0 * math.pi * orbit_radius_m ** 3)
-    omega = 2.0 * math.pi / synodic_s
-    x = omega * VACUUM_PERMEABILITY * shell_conductance_s * shell_radius_m / 2.0
-    response = x / math.sqrt(1.0 + x * x)
-    return 2.0 * math.pi * moon_radius_m ** 3 * response * excitation_t / VACUUM_PERMEABILITY, response
-
-
 def sphere_response(omega, conductivity_s_m, radius_m):
     """
     `|F|`, the size of the answer of a homogeneous conducting sphere to a uniform field that oscillates at `omega` rad/s (0 to 1, rule 7): the induced
