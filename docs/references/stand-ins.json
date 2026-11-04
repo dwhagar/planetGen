@@ -12573,44 +12573,6 @@
           "fields": [
             [
               "What it is",
-              "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
-            ],
-            [
-              "The range it moves in",
-              "the exponent 1.4 to 1.9"
-            ],
-            [
-              "Where it holds",
-              "giants"
-            ],
-            [
-              "What would show it wrong",
-              "test_giant_one_bar_temperature::the cooling law gives a Uranus-mass giant far more heat than Uranus has"
-            ],
-            [
-              "What replaces it",
-              "the cooling tracks of the radius tables with the heavy-element interior of each giant (GEN.1033)"
-            ],
-            [
-              "Evidence",
-              "RECALLED ([R3466]: Neptune 0.43 W/m2, Uranus 0.042; Jupiter 5.4)"
-            ]
-          ],
-          "id": "CC14",
-          "key": "6.22:CC14",
-          "kind": "P",
-          "slug": "6-22-cc14",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L1",
-          "unread": null,
-          "what": "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "climate_branches.ICE_FREE_ALBEDO 0.30 and ICE_COVERED_ALBEDO 0.62 (the Bond albedo of a world with no ice, which is Earth's, and of one wholly under ice and snow, sea ice and snow 0.5 to 0.8; GEN.1046)"
             ],
             [

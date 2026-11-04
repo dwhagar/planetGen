@@ -84287,6 +84287,41 @@
    "volume": "77",
    "year": 1989
   },
+  "10.1016/0019-1035(90)90155-3": {
+   "authors": [
+    [
+     "Pearl",
+     "J."
+    ],
+    [
+     "Conrath",
+     "B."
+    ],
+    [
+     "Hanel",
+     "R."
+    ],
+    [
+     "Pirraglia",
+     "J."
+    ],
+    [
+     "Coustenis",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0019-1035(90)90155-3",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "12",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The albedo, effective temperature, and energy balance of Uranus, as determined from Voyager IRIS data",
+   "type": "journal-article",
+   "volume": "84",
+   "year": 1990
+  },
   "10.1016/0019-1035(91)90039-v": {
    "authors": [
     [
@@ -86290,6 +86325,29 @@
    "type": "book-chapter",
    "volume": "",
    "year": 2025
+  },
+  "10.1016/b978-0-444-53802-4.00176-7": {
+   "authors": [
+    [
+     "Guillot",
+     "T."
+    ],
+    [
+     "Gautier",
+     "D."
+    ]
+   ],
+   "book": "Treatise on Geophysics",
+   "doi": "10.1016/b978-0-444-53802-4.00176-7",
+   "editors": [],
+   "journal": "Treatise on Geophysics",
+   "page": "529",
+   "publisher": "Elsevier",
+   "src": "crossref",
+   "title": "Giant Planets",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2015
   },
   "10.1016/b978-1-4832-0088-0.50009-8": {
    "authors": [
@@ -141623,6 +141681,33 @@
    "volume": "634",
    "year": 2020
   },
+  "10.1051/0004-6361/201936378": {
+   "authors": [
+    [
+     "Scheibe",
+     "L."
+    ],
+    [
+     "Nettelmann",
+     "N."
+    ],
+    [
+     "Redmer",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201936378",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A70",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Thermal evolution of Uranus and Neptune",
+   "type": "journal-article",
+   "volume": "632",
+   "year": 2019
+  },
   "10.1051/0004-6361/201936482": {
    "arxiv": "1911.04745",
    "authors": [
@@ -141709,6 +141794,29 @@
    "type": "journal-article",
    "via": "chosen by hand from the citing sentences; author and year checked against the record",
    "volume": "640",
+   "year": 2020
+  },
+  "10.1051/0004-6361/201936588": {
+   "authors": [
+    [
+     "Vazan",
+     "A."
+    ],
+    [
+     "Helled",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201936588",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A50",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Explaining the low luminosity of Uranus: a self-consistent thermal and structural evolution",
+   "type": "journal-article",
+   "volume": "633",
    "year": 2020
   },
   "10.1051/0004-6361/201936713": {
@@ -142661,6 +142769,33 @@
    "title": "The chemical make-up of the Sun: A 2020 vision",
    "type": "journal-article",
    "volume": "653",
+   "year": 2021
+  },
+  "10.1051/0004-6361/202140663": {
+   "authors": [
+    [
+     "Scheibe",
+     "L."
+    ],
+    [
+     "Nettelmann",
+     "N."
+    ],
+    [
+     "Redmer",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202140663",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A200",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Thermal evolution of Uranus and Neptune",
+   "type": "journal-article",
+   "volume": "650",
    "year": 2021
   },
   "10.1051/0004-6361/202140789": {
@@ -199780,6 +199915,37 @@
    "title": "Variability in extragalactic class I methanol masers: new maser components towards NGC 4945 and NGC 253",
    "type": "journal-article",
    "volume": "491",
+   "year": 2019
+  },
+  "10.1093/mnras/stz3271": {
+   "authors": [
+    [
+     "Reinhardt",
+     "C."
+    ],
+    [
+     "Chau",
+     "A."
+    ],
+    [
+     "Stadel",
+     "J."
+    ],
+    [
+     "Helled",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stz3271",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "5336",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Bifurcation in the history of Uranus and Neptune: the role of giant impacts",
+   "type": "journal-article",
+   "volume": "492",
    "year": 2019
   },
   "10.1093/mnras/stz3408": {
@@ -278555,7 +278721,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5096,
+ "id_next": 5102,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -278940,6 +279106,7 @@
   "10.1016/0019-1035(89)90025-0": "R1172",
   "10.1016/0019-1035(89)90083-3": "R0797",
   "10.1016/0019-1035(89)90089-4": "R4344",
+  "10.1016/0019-1035(90)90155-3": "R5097",
   "10.1016/0019-1035(91)90039-v": "R1771",
   "10.1016/0019-1035(91)90045-u": "R1140",
   "10.1016/0019-1035(91)90090-g": "R2248",
@@ -279022,6 +279189,7 @@
   "10.1016/b978-0-12-434750-2.50049-6": "R2540",
   "10.1016/b978-0-12-816490-7.00006-0": "R4839",
   "10.1016/b978-0-323-99762-1.00138-8": "R4156",
+  "10.1016/b978-0-444-53802-4.00176-7": "R5096",
   "10.1016/b978-1-4832-0088-0.50009-8": "R3996",
   "10.1016/j.ascom.2013.11.001": "R3221",
   "10.1016/j.ascom.2015.05.006": "R0226",
@@ -280425,9 +280593,11 @@
   "10.1051/0004-6361/201935812": "R1234",
   "10.1051/0004-6361/201935999": "R3446",
   "10.1051/0004-6361/201936329": "R1578",
+  "10.1051/0004-6361/201936378": "R5100",
   "10.1051/0004-6361/201936482": "R3384",
   "10.1051/0004-6361/201936557": "R3348",
   "10.1051/0004-6361/201936576": "R3935",
+  "10.1051/0004-6361/201936588": "R5098",
   "10.1051/0004-6361/201936713": "R3647",
   "10.1051/0004-6361/201936775": "R0373",
   "10.1051/0004-6361/201936804": "R3806",
@@ -280451,6 +280621,7 @@
   "10.1051/0004-6361/202040175": "R0860",
   "10.1051/0004-6361/202140390": "R0602",
   "10.1051/0004-6361/202140445": "R0168",
+  "10.1051/0004-6361/202140663": "R5101",
   "10.1051/0004-6361/202140789": "R0884",
   "10.1051/0004-6361/202140793": "R0405",
   "10.1051/0004-6361/202141506": "R4866",
@@ -281894,6 +282065,7 @@
   "10.1093/mnras/stz2937": "R2151",
   "10.1093/mnras/stz3081": "R2444",
   "10.1093/mnras/stz3098": "R2971",
+  "10.1093/mnras/stz3271": "R5099",
   "10.1093/mnras/stz3408": "R2428",
   "10.1093/mnras/stz3592": "R0831",
   "10.1093/mnras/stz3603": "R0457",

@@ -25465,6 +25465,36 @@
       "kind": "paper",
       "label": "Chiappini et al. 2001",
       "title": "Abundance Gradients and the Formation of the Milky Way"
+    },
+    "R5096": {
+      "kind": "paper",
+      "label": "Guillot and Gautier 2015",
+      "title": "Giant Planets"
+    },
+    "R5097": {
+      "kind": "paper",
+      "label": "Pearl et al. 1990",
+      "title": "The albedo, effective temperature, and energy balance of Uranus, as determined from Voyager IRIS data"
+    },
+    "R5098": {
+      "kind": "paper",
+      "label": "Vazan and Helled 2020",
+      "title": "Explaining the low luminosity of Uranus: a self-consistent thermal and structural evolution"
+    },
+    "R5099": {
+      "kind": "paper",
+      "label": "Reinhardt et al. 2019",
+      "title": "Bifurcation in the history of Uranus and Neptune: the role of giant impacts"
+    },
+    "R5100": {
+      "kind": "paper",
+      "label": "Scheibe et al. 2019",
+      "title": "Thermal evolution of Uranus and Neptune"
+    },
+    "R5101": {
+      "kind": "paper",
+      "label": "Scheibe et al. 2021",
+      "title": "Thermal evolution of Uranus and Neptune"
     }
   }
 }
