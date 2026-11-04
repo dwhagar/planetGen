@@ -14339,6 +14339,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1157, GEN.962, GEN.921, TEST.557,
   GEN.725.
 
+- [ ] **GEN.1245 Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale**
+  Found by Aux 3 with TEST.555 part 3 (as the lane reported 8:58 AM EST
+  on 2026-11-04). generation/directives.py sizes the forced fill of a
+  sector directive such as habitable>=6 and its impossible check from
+  HABITABLE_COUNT_PMF, the spread of habitable bodies per system. A
+  habitable body is a body of a life class since epoch 121 and about 7
+  systems in 10 hold one, a spread the table does not hold. Do: measure
+  the habitable count per system on the current generator (about 3 s a
+  system, so a few thousand systems as a background job), replace the
+  table with the measured spread and register it in GEN.725 with tier
+  and tweak level, read the table from the measurement script rather
+  than a typed number, and check that the forced fill and the impossible
+  check agree with a sector drawn on the new epoch. Changes how a
+  directive run fills a sector, not a system: epoch with --affects fill
+  if the stored output moves, rides a train. Owner: Aux 3. Version 8.1.
+  Prerequisites: none. Related: GEN.180, GEN.1130, TEST.555, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19126,28 +19143,6 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
-  Prerequisites: none.
-
-- [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
-  Found by the full-suite thread (first pass on main 7eef24a, to 53
-  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
-  full run started 7:04 AM EST on 2026-11-04), filed by the TODO thread.
-  Failures re-run alone and real on 7eef24a, none diagnosed: (1)
-  tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
-  (the /search page shows H2, N2, O2, H2O, CO2, CH4 formulas unwritten);
-  (2)
-  tests/test_web_fresh_after_cli.py::test_galaxy_map_and_nodes_show_sectors_the_cli_placed
-  and ::test_sector_page_and_nodes_show_a_phenomenon_the_cli_added
-  (CLI-placed sectors missing from the map and nodes); (3)
-  tests/test_bughunt_cli_edges.py::test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill;
-  (4) the 900 s timeouts in test_prevalence.py (asteroid_belt-30,
-  large_star-100, large_star--100, planets--40, comets-0.3 plus or minus
-  100, no binaries at minus 100 and more at plus 50), already tracked by
-  PERF.229 for the fuzz case. Do: re-run each on current main first
-  (many commits since 7eef24a), keep only those that still fail,
-  root-cause each, and file or fix. Done: each failing test has a cause
-  and an owner or a fix. Owner: full-suite thread, with Bug 1.
-  Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts
