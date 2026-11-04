@@ -267,34 +267,34 @@ def test_the_note_says_where_the_land_colour_came_from_and_what_was_left_out():
     whole = bl.planet_look(dict(_planet(), **_ground(basaltic=1.0)))
     assert "stored ground types" in bl.look_note(whole)
     partial = bl.planet_look(dict(_planet(), **_ground(basaltic=0.6, metal=0.4)))
-    assert "40 percent of the land has no measured colour" in bl.look_note(partial)
+    assert "40 percent of the land has no measured color" in bl.look_note(partial)
 
 
 def test_the_colour_account_names_the_inputs_the_picture_used_and_calls_the_estimate_partial():
-    """UX.158: the info panel line says which stored values gave the colour and that it is partial while the composition is not used."""
+    """UX.158: the info panel line says which stored values gave the color and that it is partial while the composition is not used."""
     earth = bl.look_note(bl.planet_look(_planet()))
-    assert earth.startswith("Partial estimate: Ground colour from its mean surface temperature (288 K) alone; "
-                            "sea colour from its ocean class (neutral); limb glow") or "no limb glow" in earth
-    assert "sea colour from its ocean class (neutral)" in earth
-    assert "Not used yet: surface composition, clouds and haze (not stored)" in earth
+    assert earth.startswith("Partial estimate: Ground color from its mean surface temperature (288 K) alone; "
+                            "sea color from its ocean class (neutral); limb glow") or "no limb glow" in earth
+    assert "sea color from its ocean class (neutral)" in earth
+    assert "Not used yet: surface composition, clouds, and haze (not stored)" in earth
     bare = bl.colour_account(bl.planet_look(_planet(surface_temperature_k=None, ocean_class=None, atmosphere="None")))
-    assert "Ground colour is a default: no temperature is stored" in bare
-    assert "sea colour is a default: no ocean class is stored" in bare and "limb" not in bare
+    assert "Ground color is a default: no temperature is stored" in bare
+    assert "sea color is a default: no ocean class is stored" in bare and "limb" not in bare
     giant = bl.colour_account(bl.planet_look(_planet(body_type="g", surface_temperature_k=165.0)))
-    assert giant.startswith("Partial estimate: Cloud-top colour from its mean cloud-top temperature (165 K) alone")
-    assert "chemistry bands and haze" in giant and "sea colour" not in giant
+    assert giant.startswith("Partial estimate: Cloud-top color from its mean cloud-top temperature (165 K) alone")
+    assert "chemistry bands and haze" in giant and "sea color" not in giant
     rogue = bl.colour_account(bl.planet_look(_planet(), "rogue_planet"))
     assert "limb" not in rogue
 
 
 def test_the_colour_account_of_a_star_is_full_with_a_temperature_and_partial_without():
     star = {"id": 3, "star_type": "G2V", "temperature_k": 5772.0, "luminosity_w": 3.828e26, "radius_km": 695_700.0}
-    assert bl.colour_account(bl.star_look(star)) == "Full: colour of a model atmosphere at its effective temperature (5,772 K) and gravity"
-    assert bl.colour_account(bl.star_look(dict(star, temperature_k=None))).startswith("Partial: colour from its spectral class alone")
+    assert bl.colour_account(bl.star_look(star)) == "Full: color of a model atmosphere at its effective temperature (5,772 K) and gravity"
+    assert bl.colour_account(bl.star_look(dict(star, temperature_k=None))).startswith("Partial: color from its spectral class alone")
     assert bl.colour_account({"body": "nebula"}) is None
     # MAP.274: a solid world coloured from its stored ground types no longer lacks the surface composition, but the cloud and haze are still not stored
     composed = bl.colour_account(dict(bl.planet_look(_planet()), quality="composition"))
-    assert composed.startswith("Partial estimate: Ground colour from the stored ground types (lab reflectance)")
+    assert composed.startswith("Partial estimate: Ground color from the stored ground types (lab reflectance)")
     assert "Not used yet: clouds and haze (not stored)" in composed and "surface composition" not in composed
 
 
