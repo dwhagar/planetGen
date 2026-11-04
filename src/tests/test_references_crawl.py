@@ -10,7 +10,7 @@ Three things are held here.
 * The word list (`plainwords.OUT_OF_UNIVERSE`, rule 16 of the style guide): what it flags and what it leaves alone, and the pages it is
   exempt on (`plainwords.exempt`).
 * The page crawl: every in-universe page this suite can render without a database (the Help pages, the class pages) and every sentence
-  the Document of ten seeded systems writes, every property label and every sheet source line, read for the words. Text that has them today
+  the Document of ten seeded systems writes, every property label, read for the words. Text that has them today
   is listed in `KNOWN` under the item that rewrites it (DOC.91 the properties page, DOC.92 the life help pages, DOC.93 the sheet source
   lines); text that is not listed fails, and a listed entry that no longer happens fails too, so the owner deletes it and is done when
   none carry its code. DOC.94 locks the crawl once DOC.93 lands.
@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-from planetgen.describe import sheet, sheet_sources
+from planetgen.describe import sheet
 from planetgen.util import plainwords
 from planetgen.web import helpers
 from planetgen.web.lib import classref, life_help, reference_urls
@@ -38,17 +38,15 @@ GUIDE = ROOT.parent / "docs" / "design" / "interface" / "text-style.md"
 
 OWNERS = ("DOC.91", "DOC.92", "DOC.93", "UX.252", "UX.253")
 """tuple: The items that rewrite the text that has the words today: the properties page moves (DOC.91), the life help pages lose the
-speculative chemistry (DOC.92), the leftovers (DOC.93: the sheet source lines), and the planet, moon, belt, star and system text (UX.252,
+speculative chemistry (DOC.92), the leftovers (DOC.93), and the planet, moon, belt, star and system text (UX.252,
 UX.253)."""
 
 BANNER = 'id="out-of-universe-banner"'
 """str: What a References page carries so a reader always knows they left the story (DOC.88 builds it)."""
 
-KNOWN = {
-    ("model", "sheet source line"): "DOC.93",
-}
+KNOWN = {}
 """dict: `{(word, where): the item that rewrites it}` for the out-of-universe words on in-universe pages today. `where` is the page's
-endpoint, `"sheet source line"` or `"document"`. The rewrite item removes its entries; nothing is added without an owner."""
+endpoint, `"sheet label"` or `"document"`. The rewrite item removes its entries; nothing is added without an owner."""
 
 ADVICE = ("\nSay it in universe and, where a reader may want the why, link to the References entry with reference_link(kind, id) "
           "(docs/design/interface/text-style.md, rule 16). Only text that already existed is listed in KNOWN, under the item that rewrites it.")
@@ -252,10 +250,6 @@ def _found(crawl):
     for label in sorted(labels):
         for _rule, detail in plainwords.out_of_universe(label):
             found.setdefault((detail.split("'")[1], "sheet label"), []).append(label)
-    for kind, lines in sheet_sources.SOURCES.items():
-        for key, line in lines.items():
-            for _rule, detail in plainwords.out_of_universe(line):
-                found.setdefault((detail.split("'")[1], "sheet source line"), []).append(f"{kind}.{key}")
     return found
 
 

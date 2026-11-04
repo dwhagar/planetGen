@@ -19,7 +19,7 @@
 </div>
 {% endblock %}
 {% block content %}
-<p class="hint">Nothing has been generated at shell {{ address[0] }}, band {{ address[1] }}, wedge {{ address[2] }}. The profile below is worked out from the galaxy's shape and does not store anything; asking for the sector makes it by the same rules.
+<p class="hint">Nothing has been charted at shell {{ address[0] }}, band {{ address[1] }}, wedge {{ address[2] }}. The profile below is worked out from the galaxy's shape and does not store anything; asking for the sector makes it by the same rules.
 {%- if can_generate %} Generate it from the <a href="{{ url_for('web.generate') }}">Generate page</a> with the Address mode.{% endif %}</p>
 {%- if profile %}
 {{ profile_panel(profile) }}

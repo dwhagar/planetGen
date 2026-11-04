@@ -406,54 +406,52 @@ def look_json(look):
 
 def colour_account(look):
     """
-    The info panel's account of how the colour was worked out (UX.158): which stored inputs it used and whether it is a partial estimate
-    or the full account. A pure function of the look record, which carries exactly the inputs the painters had, so it cannot say more than
-    the picture used. `None` for a record that is not a body.
+    The info panel's account of how the colour was worked out (UX.158, DOC.93): which stored inputs it used, in the words of the story (a world's
+    colour comes from its temperature, its ground, its sea and its air). A pure function of the look record, which carries exactly the inputs the
+    painters had, so it cannot say more than the picture used. `None` for a record that is not a body. How sure each part is lives on the
+    References pages (`/references/method/appearance`), which the panel does not repeat.
 
-    A star is full when its colour is a model atmosphere's at its temperature, partial when only its spectral class gave it. A solid world
-    or a giant is a partial estimate for as long as the record says `quality` "estimate" (the colour from temperature and body family, not
-    from the surface composition, cloud and haze) or "composition" (a solid world whose land colour is the lab reflectance of its stored ground
-    types, MAP.274; the cloud and haze are still not stored).
+    A star's colour comes from its temperature and gravity, or from its spectral class alone when no temperature is stored. A solid world or a
+    giant says what its colour comes from and what the picture leaves out: the clouds and haze, and the surface composition while the colour is
+    only the temperature band's (`quality` "estimate"); the clouds and haze while it is the stored ground types' (`quality` "composition").
     """
     body = look.get("body")
     temperature = look.get("tempK")
     if body == "star":
         if temperature is None:
-            return "Partial: color from its spectral class alone; no temperature is stored for a model atmosphere"
-        return f"Full: color of a model atmosphere at its effective temperature ({temperature:,.0f} K) and gravity"
+            return "Color from its spectral class"
+        return f"Color from its temperature ({temperature:,.0f} K) and gravity"
     if body not in ("solid", "gas"):
         return None
     kind = look.get("kind")
     layer = "Cloud-top" if body == "gas" else "Ground"
     if temperature is not None:
-        parts = [f"{layer} color from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K) alone"]
+        parts = [f"{layer} color from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K)"]
     else:
-        parts = [f"{layer} color is a default: no temperature is stored"]
+        parts = [f"{layer} color is a typical one: its temperature is not known"]
     if body == "solid" and look.get("quality") == "composition":
         known = look.get("landKnown")
-        parts[0] = "Ground color from the stored ground types (lab reflectance)" + (
-            "" if (known or 1.0) >= 0.995 else "; %d percent of the land has no measured color and is left out" % round(100.0 * (1.0 - known)))
+        parts[0] = "Ground color from its ground types" + (
+            "" if (known or 1.0) >= 0.995 else "; %d percent of the land has no known color and is left out" % round(100.0 * (1.0 - known)))
     if body == "solid" and look.get("ocean"):
         if look.get("oceanClass"):
             parts.append(f"sea color from its ocean class ({look['oceanClass']})")
         else:
-            parts.append("sea color is a default: no ocean class is stored")
+            parts.append("sea color is a typical one: its ocean class is not known")
     if look.get("atm") and kind != "rogue_planet":
         if look.get("glow"):
             parts.append("limb glow from the composition of its air under its star")
         else:
-            parts.append("no limb glow: the color of its air could not be worked out")
+            parts.append("no limb glow: the color of its air is not known")
     if look.get("quality") == "estimate":
-        missing = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
-        head = "Partial estimate: "
-        tail = f". Not used yet: {missing} (not stored)"
+        left_out = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
+        tail = f". Left out: {left_out}"
     elif look.get("quality") == "composition":
         # MAP.274: the land colour is the stored ground types' lab reflectance; the clouds and haze are still not stored
-        head = "Partial estimate: "
-        tail = ". Not used yet: clouds and haze (not stored)"
+        tail = ". Left out: clouds and haze"
     else:
-        head, tail = "Full: ", ""
-    return head + "; ".join(parts) + tail
+        tail = ""
+    return "; ".join(parts) + tail
 
 
 def look_note(look):
@@ -465,9 +463,9 @@ def look_note(look):
     if look.get("locked") and look.get("body") != "star":
         notes.append("Tidally locked: its day side stays toward " + ("its planet" if look.get("kind") == "moon" else "its star"))
     elif look.get("spinH") and look.get("body") == "solid":
-        notes.append("Seen from the side of its orbit, with the day and night line down the middle, turning much faster than its real rotation")
+        notes.append("Seen from the side of its orbit, with the day and night line down the middle, shown turning much faster than it really turns")
     elif look.get("spinH"):
-        notes.append("Turning much faster than its real rotation")
+        notes.append("Shown turning much faster than it really turns")
     return "; ".join(notes) or None
 
 
