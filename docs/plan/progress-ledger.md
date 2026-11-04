@@ -2356,3 +2356,6 @@ Baseline: PR #1817.
 | UX.228 | 8.2 | Search by physical values |
 | TEST.414 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.225 | 8.2 | Search by physical values |
+| TEST.284 | 8.1 | Bugs and flaky tests |
+| TEST.298 | 8.1 | Bugs and flaky tests |
+| TEST.561 | 8.2 | Robust tile caching |
