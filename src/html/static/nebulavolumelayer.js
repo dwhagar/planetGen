@@ -308,6 +308,8 @@ export function createNebulaVolumeLayer(scene, camera, canvasEl, renderer, optio
     })),
     pointCount: () => Array.from(held.values()).reduce((sum, entry) => sum + entry.volume.count, 0),
     isVisible: () => composite.visible,
+    // The raw sum of the nebulae (a texture, or null before anything was drawn), which stars and glows read to take a nebula's hue (MAP.215).
+    texture: () => (target ? target.texture : null),
     capLimit: CAP,
     maxLoaded: MAX_LOADED,
   };

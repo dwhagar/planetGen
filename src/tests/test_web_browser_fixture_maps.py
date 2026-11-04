@@ -1702,6 +1702,19 @@ def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
     assert both.sum() > 20, "overlapping emission and reflection nebulae add their colors"
 
 
+def test_stars_and_glows_read_the_nebulae_sum_only_while_nebulae_are_drawn(page, map_site):
+    """MAP.215: the star and glow shaders take the hue of the nebulae in front of them from the volume layer's raw sum; the switch is on
+    while a nebula volume is drawn, and off in a view with none (the shared uniforms hold a black texture then)."""
+    tint = "() => { const t = document.querySelector('#galaxymap3d-canvas').__mapNebulaTint; return t && {tint: t.nebulaTint.value, w: t.drawSize.value.x, textured: !!t.nebulaSum.value}; }"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => {{ const v = ({VOLUMES})(); return v && v.drawn() > 0; }}", timeout=30000)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value === 1", timeout=15000)
+    state = page.evaluate(tint)
+    assert state["textured"] and state["w"] > 100, state
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes.setVisible(false)")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value === 0", timeout=15000)
+
+
 LABELS = "() => (document.querySelector('#galaxymap3d-canvas').__mapLabels.shown())"
 
 
