@@ -162,7 +162,7 @@ def test_class_pages_show_the_constants(client):
     facts = dict(classref.class_entry("asteroid-field", basaltic["sparse"])["facts"])
     assert facts["Density"] == "Sparse, typical"
     html = _html(client, "/classes/asteroid-field")
-    assert "10^d to 10^(d+1) AU" in html
+    assert "Size digit 1 means a radius of" in html and "Size digit 4 means a radius of" in html
 
     low, high = tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
     assert classref.number_range(low, high, "solar masses") in _html(client, "/classes/black-hole/intermediate")
