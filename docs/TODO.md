@@ -2062,25 +2062,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.370 Black hole dots must always draw with the stars; only the black hole POI marks are off by default (bug)**
-  Boss, 2:53 PM EST on 2026-11-04: "I specifically said I wanted it to
-  still show the dots with the rest of the stars at the magnitudes
-  related to their mass that we discussed. I just wanted the POI for the
-  black holes turned off by default." MAP.368 (#4857) made the Black
-  holes layer start off and hide both the marks and the purple dots. Do:
-  split the two. The black hole dots are drawn like every other star
-  (purple #a43cff, magnitude tied to mass as already decided, no
-  dependence on the layer or its menu choice), at every view that shows
-  stars. The POI marks (the clickable black hole markers) are the only
-  thing the Black holes layer controls, and they start off; a viewer who
-  already chose keeps the choice. Update the menu wording and the tests
-  (including TEST.573's halo black hole pick test, which depends on
-  this). Done: a fresh viewer sees black hole dots among the stars and
-  no black hole markers; turning the layer on adds the markers; browser
-  test covers both. Front of Core 2's queue, ahead of MAP.367. Related:
-  MAP.368, MAP.164. Filed by the TODO thread.
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -18275,23 +18256,6 @@ clears each one.
   on main in 3 runs. Owner Aux 7 after TEST.571 (proposed by the TODO
   thread; Bug 1 or Star 2 if the star column proves theirs). Filed by
   the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.573 Two galaxy map browser tests red on main: the class buttons count (19 against 20) and a halo black hole not picked on the whole-galaxy view (bug)**
-  Found by Core 2 in its MAP.368 work, about 2:50 PM EST on 2026-11-04
-  (as the lane reported). (1)
-  test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time
-  finds 19 class buttons where it expects 20: likely the retirement of
-  Class Q (GEN.1135), so the test count or the button list is stale. (2)
-  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view finds
-  nothing under the pointer: first check whether it passes on main
-  before MAP.368 (#4857), because black holes now start off and the test
-  may need to turn the layer on first; if it failed before that, find
-  the cause. Do: run each alone on current main and on the commit before
-  #4857, fix the test or the cause, and keep the intent (class markers
-  one at a time; a halo black hole is pickable when the layer is on).
-  Done: both pass on main in 3 runs. Owner Core 2 (proposed by the TODO
-  thread). Filed by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts
