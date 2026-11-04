@@ -11253,6 +11253,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.972 and GEN.1194.
   Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
   coordinator at 3:21 PM EDT; owner is now Aux 2.
+  Boss (11:25 AM EST on 2026-11-04): decided (Boss, 11:24 AM EST on
+  2026-11-04, option 1): the water-loss efficiency stays 0.01 (his
+  choice of 10-23) until this item lands, then it is re-tested against
+  the usual 0.1 with the cloud albedo in place. No change before that.
   Prerequisites: GEN.972. Related: GEN.752, GEN.684.
 
 - [ ] **GEN.982 Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry**
@@ -14610,6 +14614,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (turn on the kept-table folder in production). A bit-identical cache
   of the low-mass edge pieces (about 10 percent) is available as a small
   lock-free step.
+  Boss (11:25 AM EST on 2026-11-04): decided (Boss, 11:24 AM EST on
+  2026-11-04, option 1): keep the built star tables in a disk folder in
+  production (first fill from 267 s to 36 s, same output), not a
+  vectorised rebuild with a new epoch. Owner Star 2 builds it; no epoch.
   Prerequisites: none. Related: TEST.344, GEN.394.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
