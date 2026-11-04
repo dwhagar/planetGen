@@ -917,68 +917,6 @@ with `clamp()`.
   Prerequisites: GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **UX.252 Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages**
-  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
-  build and ship all the life recommendations, a full readability
-  rewrite of ALL planet and star text, a life summary paragraph in At a
-  glance, a Life section in the details with the nitty-gritty, and a
-  full help page suite on all life types and the categories we use.
-  Brief:
-  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
-  coexistence write-up:
-  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
-  claude/project-thread-5xwcu1, wording and layout of the first Life
-  paragraph) merges first and these build on it. Filed by the TODO
-  thread. Do: rewrite every sentence the site writes about planets,
-  moons and belts to the style guide: the summary paragraph, the
-  descriptions, the notes and warnings, the table labels, the class
-  pages and the Life text, in plain words with short sentences and one
-  idea each, no repeated facts and the same class names and units
-  everywhere. Find every source of text by scanning the generator's text
-  builders, the templates and the generated class pages, and list what
-  was rewritten in the changes note. Presentation and wording only; no
-  computed value changes. If any of the text is stored at generation (a
-  text column) the change needs an epoch with a migration, so check
-  first and prefer building the text at render time; if a stored text
-  must change, say so and make it a separate lock item. Splits by page
-  kind if large: planets, moons, belts and fields. Where we think it
-  belongs (best guess, can move): Core 5, after PR 4471 merges.
-  Boss, 10:09 AM EDT 2026-10-31 (2026-10-31 10:17 AM EDT): once the life
-  class help pages and definitions exist (DOC.84), link the terms in the
-  planet text to them (class names, abundance, trend and security words,
-  suitability, life stages) and remove the inline explanations the help
-  pages now cover, so the planet text is decluttered. The order is: the
-  style guide (DOC.83), the life readings (GEN.1210) and the help suite
-  (DOC.84) first, then this rewrite does the linking and the
-  decluttering in the same pass as the readability rewrite, so each
-  sentence is rewritten once.
-  Stored text found (10:24 AM EDT 2026-10-31) (2026-10-31 10:24 AM EDT):
-  planets.description is a stored copy of the class description
-  (generation/life.py line 156), so editing the class descriptions alone
-  changes stored output. In the lock-free rewrite read the class
-  description at view time and leave the column alone; GEN.1212 decides
-  removing the stored copy (lock). Everything built at view time
-  (describe/build.py, describe/sheet.py, classref.py, the templates) is
-  yours to rewrite now.
-  Spelling rule (2026-10-31 10:34 AM EDT): Boss decided (10:33 AM EDT
-  2026-10-31): American spelling, option 1, so "color" not "colour"; he
-  does not mind which as long as it is consistent everywhere. The style
-  guide (docs/design/interface/text-style.md) records American spelling
-  and the checker (planetgen/util/plainwords.py) flags British spellings
-  (colour, grey, centre, metre, litre, kilometre, analyse, neighbour and
-  the like, with a short allow-list for proper names and quotes); each
-  rewrite changes its own text to American spelling, and the number of
-  "colour" uses (333 on the site) goes to zero. The word list and the
-  checker change are made by Core 5 with the next guide edit.
-  Boss rule, 2:50 PM EDT (2026-10-31 2:55 PM EDT): Oxford comma: apply
-  the serial comma in the rewrite (rule 15 of the plain-words guide;
-  DOC.86 adds the check). Links to References pages wait for DOC.87 (R1)
-  and are done in this same pass.
-  reference_link available (DOC.87 merged as #4602) (2026-10-31 4:16 PM
-  EDT): reference_link(kind, id, label) is in web/helpers.py and a
-  template global; use it for links into References.
-  Prerequisites: none. Related: UX.237, GEN.1208.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
