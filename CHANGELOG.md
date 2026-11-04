@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3111] - 2026-11-04
+
+**Headline:** The map scripts no longer carry the light-theme code that black map backgrounds left unused. Nothing changes on screen.
+
+### Changed
+- **UX.255.** Every map is drawn on black, so the branches that chose colors for a pale background are gone. `mapcore.js` loses `isLightBackground`; `nebulalook.js` keeps one set of nebula looks (`NEBULA_LOOKS`); `superbubble.js` keeps one bubble look (`LOOK`); the galaxy glow layer, galaxy labels, sector point shader, region blobs, sector and stage views no longer take a light-background option, and the `.map-labels[data-light]` rules are removed from `style.css`. The JS tests for these now check the black-background look only. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.255.
+
 ## [8.0.3110] - 2026-11-04
 
 **Headline:** A rogue planet can now be built from an ejection event through the planet code, with the moons the ejection left it, and the sector it lands in can be found from its donor's place.
