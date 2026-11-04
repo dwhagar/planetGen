@@ -131006,6 +131006,29 @@
    "volume": "311",
    "year": 2000
   },
+  "10.1046/j.1365-8711.2000.03133.x": {
+   "authors": [
+    [
+     "Boissier",
+     "S."
+    ],
+    [
+     "Prantzos",
+     "N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1046/j.1365-8711.2000.03133.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "398",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Chemo-spectrophotometric evolution of spiral galaxies -- II. Main properties of present-day disc galaxies",
+   "type": "journal-article",
+   "volume": "312",
+   "year": 2000
+  },
   "10.1046/j.1365-8711.2000.03138.x": {
    "authors": [
     [
@@ -131233,6 +131256,37 @@
    "type": "journal-article",
    "via": "title identified from the citing sentences, matched at Crossref",
    "volume": "322",
+   "year": 2001
+  },
+  "10.1046/j.1365-8711.2001.04049.x": {
+   "authors": [
+    [
+     "Boissier",
+     "S."
+    ],
+    [
+     "Boselli",
+     "A."
+    ],
+    [
+     "Prantzos",
+     "N."
+    ],
+    [
+     "Gavazzi",
+     "G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1046/j.1365-8711.2001.04049.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "733",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Chemo-spectrophotometric evolution of spiral galaxies--IV. Star formation efficiency and effective ages of spirals",
+   "type": "journal-article",
+   "volume": "321",
    "year": 2001
   },
   "10.1046/j.1365-8711.2001.04068.x": {
@@ -278040,7 +278094,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5083,
+ "id_next": 5085,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -279729,6 +279783,7 @@
   "10.1046/j.1365-8711.1999.02692.x": "R4060",
   "10.1046/j.1365-8711.1999.02784.x": "R4088",
   "10.1046/j.1365-8711.2000.03053.x": "R3352",
+  "10.1046/j.1365-8711.2000.03133.x": "R5083",
   "10.1046/j.1365-8711.2000.03138.x": "R0327",
   "10.1046/j.1365-8711.2000.03374.x": "R4639",
   "10.1046/j.1365-8711.2000.03426.x": "R2055",
@@ -279738,6 +279793,7 @@
   "10.1046/j.1365-8711.2001.03974.x": "R2868",
   "10.1046/j.1365-8711.2001.03976.x": "R3582",
   "10.1046/j.1365-8711.2001.04022.x": "R2498",
+  "10.1046/j.1365-8711.2001.04049.x": "R5084",
   "10.1046/j.1365-8711.2001.04068.x": "R0583",
   "10.1046/j.1365-8711.2001.04285.x": "R1310",
   "10.1046/j.1365-8711.2001.04361.x": "R1309",
