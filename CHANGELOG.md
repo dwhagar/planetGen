@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3131] - 2026-11-04
+
+**Headline:** Planet, moon and belt pages now use American spelling and sentence-case labels throughout.
+
+### Changed
+- **American spelling on planet-facing text.** Color, gray, center, neighbor, vapor, sulfur, armored, aluminum, summarize and similar words replace the British forms in labels, legends, help text and descriptions of planets, moons and belts, including the habitability colors page and the property sheet.
+- **Label case.** Property sheet and table labels for planets, moons and belts are in sentence case.
+
 ## [8.0.3130] - 2026-11-04
 
 **Headline:** The table behind a habitable-worlds directive (`habitable>=N`) is now measured on the current generator, where it was a typed table from before the life classes.
