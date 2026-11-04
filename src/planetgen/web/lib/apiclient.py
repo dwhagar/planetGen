@@ -691,6 +691,13 @@ def get_galaxy_nebula_cover(db, at=None, g=None):
     return _request("/galaxy/nebula-cover", {"db": db, "at": at, "g": g})
 
 
+def get_galaxy_nebula_volume(db, key):
+    """Returns `GET /api/galaxy/nebula-volume`'s payload (`key`/`format`/`level`/`count`/`data`, the base64 of the packed points that
+    draw the nebulae centred in the node `key`, MAP.365 -- see `db.nebula_volumes.group_volume`)."""
+    _require_db(db)
+    return _request("/galaxy/nebula-volume", {"db": db, "key": key})
+
+
 def get_galaxy_charted_regions(db):
     """Returns `GET /api/galaxy/charted-regions`' payload (`regions`, each charted region with its node key, extent, share
     charted and name, by share charted; `edge_pc` -- see `db.region_stats.charted_regions`)."""

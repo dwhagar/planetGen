@@ -27,6 +27,7 @@ separate, write-capable database account -- see `docs/reference/api.md`'s
 "Write endpoints" section and `planetgen/admin/auth.py`.
 """
 
+import base64
 import math
 
 import pymysql
@@ -98,7 +99,7 @@ from planetgen.db.query import (
 from planetgen.db import near as near_search
 from planetgen.db import region_stats
 from planetgen.names import naming_key
-from planetgen.db import cloudcontents, containers as containersDb, nodes, objectlist
+from planetgen.db import cloudcontents, containers as containersDb, nebula_volumes, nodes, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
@@ -1315,6 +1316,24 @@ def galaxy_nodes_route():
         return jsonify(nodes.galaxy_nodes(get_db(), node_keys))
     except ValueError as exc:
         raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/nebula-volume")
+def galaxy_nebula_volume_route():
+    """
+    The points that draw the nebulae of one Galaxy Map node (MAP.365): `?key=<m.shell.band.wedge>`. Answers `{"key", "format",
+    "level", "count", "data"}`: `data` is the base64 of the packed volume (`galaxy.nebula_volume.pack`: the nebulae whose centre lies
+    in the block, sampled on an absolute lattice from the model's gas and star-forming density). Nothing is stored; a block with no
+    nebula answers `count` 0. A malformed key is a 400.
+    """
+    key = request.args.get("key") or ""
+    try:
+        packed = nebula_volumes.group_volume(get_db(), key)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    count = int.from_bytes(packed[6:10], "little")
+    return jsonify({"key": key, "format": "NVOL1", "level": packed[5], "count": count,
+                    "data": base64.b64encode(packed).decode("ascii")})
 
 
 @bp.route("/galaxy/locate")

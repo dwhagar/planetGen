@@ -469,7 +469,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
-                              system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None):
+                              system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
+                              nebula_volume_path="/galaxy/nebula-volume"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -541,6 +542,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             nebula/{id}/shape`, `{id}` where the nebula's id goes), which the
             map draws a nebula from once it is big enough on screen
             (`static/nebulamesh.js`, MAP.103).
+        nebula_volume_path (str): The endpoint of a node's nebula points (`/galaxy/nebula-volume?key=<node key>`, MAP.365), which the
+            map draws the nebulae of a node from (`static/nebulavolume.js`, `static/nebulavolumelayer.js`) once one is wide enough.
         uncharted_scene_url (str, optional): The scene endpoint of a sector
             nothing was generated in (`/galaxy/uncharted/{shell}/{band}/{wedge}/scene`),
             which the map opens in place with an "Uncharted" mark when it
@@ -598,6 +601,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,
+        "nebulaVolumePath": nebula_volume_path,
         "regionsPath": regions_path,
         "systemNearestPath": system_nearest_path,
         "course": course,
