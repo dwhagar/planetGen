@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.259 |
 | MAP | MAP.364 |
 | NAV | NAV.65 |
-| GEN | GEN.1241 |
+| GEN | GEN.1242 |
 | PERF | PERF.231 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1838,7 +1838,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1063 | physics/body_status.py: roundness mass by composition, Soter mu, Stern-Levison Lambda, Margot Pi, and the status words (planet, dwarf planet, minor body, moon), both words and numbers stored | none | done, PR #4193 |
 | GEN.1064 | physics/belt_history.py: early-depletion survival, instability sweep, and the star events (engulf partly, mass-loss destabilise share, companion truncation, white dwarf pollution link) | none | done, PR #4224 |
 | GEN.1065 | Belt member designation: a pure function designation(belt_id, rank) printing the belt ID plus the rank in hex (no name, no salad name, no codec name), and its round trip through parse_id | none | done, PR #4161 |
-| GEN.1066 | Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table | none | open |
+| GEN.1066 | Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table | none | done, PR #4754 |
 | GEN.1067 | Per-member composition from the finished taxon kernel at the body's own a, differentiated bodies only if the 26Al ratio says so, density from the compaction taper | none | done, PR #4220 |
 | GEN.1068 | Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py) | none | open |
 | GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | none | open |
@@ -2013,6 +2013,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) | none | open |
 | GEN.1239 | The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug) | none | dropped (already settled (Aux 3, 2026-11-04): the red test read main before #4701; GEN.1005 replaced the Earth-tuned bracket with a source-derived one and the test holds the middle to the source range; all 8 tests pass on main) |
 | GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) | none | open |
+| GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

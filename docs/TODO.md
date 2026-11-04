@@ -11907,30 +11907,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
-- [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 5: a generated
-  index over planets, moons, asteroid_belts, comets, rings and the
-  individual belt members, recommended as a view first (no new storage),
-  with the mass-conservation sum and the barycentre test (the star's
-  wobble from the belts). Output: a design note under
-  docs/design/systems/ and the pure barycentre function. Done: note
-  merged, function tested. Lock-free. Where we think it belongs (best
-  guess, can move): Planets 1 (owns the clearance ledger GEN.1014 the
-  belt gap map plugs into), after the GEN.1014 wiring; separate branch.
-  Prerequisites: GEN.1014. Related: GEN.1006.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -14317,6 +14293,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   put. Lock work (stored temperature changes). Related: GEN.1238,
   GEN.974 (cloud albedo). Owner: Aux 7.
   Prerequisites: GEN.1238.
+  Prerequisites: none.
+
+- [ ] **GEN.1241 Wire the system body view: the ledger and barycentre function read the typed tables for the system page**
+  From Planets 1's GEN.1066 (merged as #4754, 7:11 AM EST on
+  2026-11-04), filed by the TODO thread. The pure ledger and barycentre
+  module (physics/system_bodies.py, design note
+  docs/design/systems/system-bodies-ledger.md) is on main and tested,
+  but nothing calls it: the view over the typed tables (stars, planets,
+  moons, belts, comets) that gives a system its body ledger and
+  barycentre is a view with no new storage, and it needs the belt member
+  rows of GEN.1069. Do: add the view (read-side only) and wire it to the
+  system page and the API, listing every body with its mass and its
+  barycentre offset, and remove the wiring-register line for the module.
+  Done: a system page shows its barycentre and the belt wobble, with
+  units, from the stored rows; a test pins it. Lock-free if no stored
+  value changes. Owner: Planets 1.
+  Prerequisites: GEN.1069.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
