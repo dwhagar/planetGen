@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3143] - 2026-11-04
+
+**Headline:** The check that deploy scripts only name files that exist no longer mistakes a record key for a folder.
+
+### Changed
+- **Deploy script path check (TEST.566).** `test_scripts_only_name_repo_paths_that_exist` read `e.setdefault("src", "crossref")` in `scripts/settle_references.py` as the path `src/crossref`. It now reads a path only when it is built by a `join(...)`, as the check was meant to. Test only; no change to any script or output.
+
 ## [8.0.3142] - 2026-11-04
 
 **Headline:** The rest of the site and the command-line help now use American spelling too ("color", "center", "neighbors", "canceled", "disk").
