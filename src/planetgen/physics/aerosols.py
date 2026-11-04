@@ -91,8 +91,8 @@ HAZE_MONOMER_RADIUS_UM = (0.03, 0.1)
 et al. 2016 haze model, which takes 0.05 for the monomers of an Archean haze), and the lab tholin monomers are 0.03 to 0.1. [Stand-in, tier confident
 unverified, tweak L1: the span is the sourced values' spread.]"""
 HAZE_FRACTAL_DIMENSION = 2.0
-"""float: The fractal dimension of a haze aggregate: grown by cluster-cluster coagulation they have 1.8 to 2.2 (Titan's haze aggregates, about 2: Cabane et
-al. 1993; [R4392, R4394]; both second hand). [Stand-in, tier confident unverified, tweak L1.]"""
+"""float: The fractal dimension of a haze aggregate: grown by cluster-cluster coagulation they have 1.8 to 2.2 (Titan's haze aggregates, about 2: [R4392, R4394],
+both second hand). [Stand-in, tier confident unverified, tweak L1.]"""
 HAZE_GRAIN_MAX_M = 1.0e-3
 """float: The largest aggregate `haze_grain` looks for, m (a numerical bound: a grain this size falls out of any air in a day)."""
 HAZE_DENSITY_KG_M3 = 1000.0
