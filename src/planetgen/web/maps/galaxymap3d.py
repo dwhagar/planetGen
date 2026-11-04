@@ -714,7 +714,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         color_block = (
             '    <label class="galaxy-color-by">Color by <select id="galaxymap3d-color-by" data-color-by\n'
             '            title="What the blocks and sectors are colored by">\n'
-            '      <option value="default">Age, density, and luminosity</option>\n'
+            '      <option value="default">No fill (stars, markers and nebulae)</option>\n'
             '      <option value="density">Density</option>\n'
             '      <option value="age">Mean age</option>\n'
             '      <option value="luminosity">Luminosity</option>\n'

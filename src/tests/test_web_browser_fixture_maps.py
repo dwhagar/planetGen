@@ -1658,6 +1658,16 @@ def test_galaxy_map_draws_a_nebula_from_the_density_not_as_a_circle(page, map_si
     assert page.evaluate(f"() => {{ const v = ({VOLUMES})(); return Math.max(...v.volumes().map((x) => v.coverage(x.key))); }}") > 0.5
 
 
+def test_galaxy_map_default_view_shades_only_with_nebulae(page, map_site):
+    """MAP.191: the default Galaxy Map draws no block fill (no density, age or luminosity shading) and the Color by choice is its
+    default; the only shading is the nebulae's, which are drawn, and the stars behind them read their sum (MAP.215)."""
+    _volume_open(page, map_site)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-color-by').value") == "default"
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blocksDrawn") == 0
+    assert page.evaluate(f"() => ({VOLUMES})().volumes().length") > 0
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapNebulaTint.nebulaTint.value") == 1
+
+
 def test_galaxy_map_adds_overlapping_nebulae_under_a_cap(page, map_site):
     """MAP.365: where nebulae overlap their colors add and the sum is bent under the cap (never white): the pass that does it, drawn
     alone, matches `cappedSum` of the raw sums at every pixel, the raw sum passes the cap somewhere (so the cap is working) and
