@@ -2072,6 +2072,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: browser test that the preset tilts, the grid follows the focus
   and the toggle between the two planes works. Goal #3241. Filed by the
   TODO thread.
+  Boss decision on the shape: a 60 degree arc wedge (5:48 PM EST on
+  2026-11-04) (2026-11-04 5:50 PM EST): Boss answered the wedge mock-ups
+  (reports/galaxy-projection-survey-2026-11-04/, section 10,
+  galaxy-mock-a to d): the existing 3D perspective mode that shows
+  everything (nebulae, black holes and the rest) stays untouched; the
+  plane view with stems is drawn for a 60 degree arc wedge of the
+  galaxy, a pie slice from the galactic center, laid flat-tilted inside
+  the 3D map, with the edge-on side strip as an option (MAP.375).
+  Everything outside the wedge is drawn as today. This replaces the
+  'region and sector scale only' limit for the wedge itself: the wedge
+  works at galaxy scale (heights are drawn about 12 times taller than
+  true in mock A because the disc is about 3 percent as thick as it is
+  wide, so the height-stretch control of MAP.373 is needed; stems still
+  show only at a scale where they are larger than 2 px). Open sub-part,
+  not a requirement (the TODO thread lists it; Boss has not ruled): a
+  draggable angle and width for the wedge. The other option from the
+  survey, a wedge pointing out from a chosen star (redshift-survey
+  style), is not chosen. Done adds: a browser test that the wedge is 60
+  degrees, that the rest of the 3D view is unchanged, and that the plane
+  and kpc rings follow the wedge.
   Prerequisites: none.
 
 - [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
@@ -2090,6 +2110,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star points (the MAP.240 class); shown only at region and sector
   scale. Done: browser test and a measured frame cost at the budget.
   Goal #3241. Filed by the TODO thread. Related: MAP.317, MAP.240.
+  Stems live inside the wedge (Boss, 5:48 PM EST on 2026-11-04)
+  (2026-11-04 5:50 PM EST): With the 60 degree arc wedge chosen (note on
+  MAP.371), the stem layer draws only inside the wedge; the budget rules
+  are unchanged (labelled, selected, near-focus objects, never all
+  stars). With a star selected, the grid rings are drawn around it (1, 2
+  and 3 kpc in mock C).
   Prerequisites: MAP.371.
 
 - [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
@@ -2140,6 +2166,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   if MAP.75 is built first, reuse it. Done: browser test of the link in
   both directions and the phone drawer. Lock-free, no migration. Goal
   #3241. Filed by the TODO thread.
+  Boss decision (5:48 PM EST on 2026-11-04) (2026-11-04 5:50 PM EST):
+  The side strip is an option on top of the 60 degree arc wedge
+  (MAP.371): mock D (galaxy-mock-d-arc-plus-strip.png) shows the arc
+  plus the edge-on strip, heights about 2.2 times true in the strip
+  against about 12 times in the plane view. It shows the same stars as
+  the wedge.
   Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
 
 - [ ] **MAP.376 Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug)**
@@ -2160,6 +2192,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for each level. Owner Core 2 (MAP.336, MAP.337 and MAP.319 owner).
   Goal #3241. Filed by the TODO thread.
   Prerequisites: none.
+
+- [ ] **MAP.377 Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug)**
+  Boss, 5:49 PM EST on 2026-11-04, saw that MAP.370 left the black hole
+  name labels visible. MAP.370 made the black hole dots always draw with
+  the stars and turned only the POI marks off by default; the labels
+  were missed. Do: the black hole labels follow the same default as the
+  POI marks (hidden until the POI toggle is on); the dots stay drawn at
+  their mass magnitudes. Done: a browser test that a default galaxy view
+  draws the black hole dots and no black hole label, and that the POI
+  toggle shows both marks and labels. Proposed owner: Core 2 (map).
+  Filed by the TODO thread. Related: MAP.370.
+  Prerequisites: none. Related: MAP.370.
 
 ## NAV: Navigation and courses
 
@@ -14968,6 +15012,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.158, MAP.260. Owner Core 2 (map tiles) with Aux 3 for the timings
   (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
+
+- [ ] **PERF.234 The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug)**
+  Boss, 5:49 PM EST on 2026-11-04, ran planetgen warm --progress on a
+  real galaxy (8.0.3197): the opening phase took 50 s, then step 5 of 11
+  (galaxy-nodes, chunk 301 of 458 at 4.0 s a chunk, about 7 minutes left
+  for that step) showed 2:11:45 left overall. Cause
+  (src/planetgen/cli/warm_progress.py): the overall bar counts steps as
+  equal (completed = step index + share of the step done) and the time
+  left is the bar's recent speed carried over the steps still to run, so
+  a slow step makes every later step look as slow. Do: weight each step
+  by its expected cost (units times a per-family seconds figure measured
+  on a real galaxy, the same measurement PERF.233 takes), show the
+  step's own time left beside an overall time that is marked as a rough
+  guess until the later steps have run once, and never show a figure
+  from fewer than a few chunks. Done: a test with steps of very
+  different cost that the overall figure is within a set margin of the
+  real total. Proposed owner: Aux 3 (PERF.233 holds the measurement).
+  Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.233.
 
 ## DB: Database and schema
 
