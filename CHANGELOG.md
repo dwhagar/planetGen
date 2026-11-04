@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3153] - 2026-11-04
+
+**Headline:** The speculative chemistry notes moved out of the life pages into a References page.
+
+### Changed
+- The life help pages and the Life and air chart no longer explain how sure each class is. A "Where this comes from" link on each leads to a new References page, Speculative chemistry, with one section per life class.
+- The class "Oxygenic light-eaters: blue and UV tuned" is now "blue and UV adapted".
+
 ## [8.0.3152] - 2026-11-04
 
 **Headline:** The two system tests that force a habitable world now check what the request promises since GEN.1130, so the A0V test no longer fails on about half its trials.
