@@ -13,7 +13,7 @@ loads fails). The exceptions below each say why.
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import rings
+from planetgen.physics import rings, surface_liquid_world
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
@@ -94,6 +94,8 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")},
     # GEN.1215: only a body whose air makes liquid sulfuric acid stores its strength and place, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")},
+    # GEN.1218b: the makeup, salt and second liquid exist only for the liquids that have them, and whether this small galaxy has one is chance.
+    **{(table, column): CHANCE for table in ("planets", "moons") for column in (*surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS)},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
     **{("moons", column): "a moon has no circumplanetary disk of its own (DB.70)" for column in (
         "moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")},

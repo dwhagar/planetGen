@@ -234,6 +234,9 @@ _BODY_GROUPS = (
            ("surface_liquid_depth_km", "Depth of that liquid"),
            ("surface_liquid_acid_wt", "Sulfuric acid strength (liquid acid)"), ("surface_liquid_acid_layer", "Where the liquid acid is", TEXT),
            ("surface_liquid_ammonia_wt", "Ammonia in the ocean (share of the liquid)"),
+           ("surface_liquid_methane_mol", "Methane in the sea (mole fraction)"), ("surface_liquid_ethane_mol", "Ethane in the sea (mole fraction)"),
+           ("surface_liquid_nitrogen_mol", "Nitrogen in the sea (mole fraction)"), ("surface_liquid_salt_wt", "Salt of the water sea (as sodium chloride, share of the liquid)"),
+           ("surface_liquid_2", "Second surface liquid", TEXT), ("surface_liquid_2_fraction", "Surface under the second liquid"),
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
@@ -783,7 +786,7 @@ _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "me
 _MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
@@ -865,6 +868,13 @@ _BODY_RULES = [
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
      "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
+    (surface_liquid_world.MIX_FIELDS, lambda klass, row: row is None or row.get("surface_liquid") in surface_liquid_world.HYDROCARBON_SEAS,
+     "only a methane, ethane or nitrogen sea has a makeup of the three: any other liquid, or none, stores none"),
+    ((surface_liquid_world.SALT_FIELD,), lambda klass, row: row is None or (row.get("surface_liquid") == surface_liquid_world.WATER_ID
+                                         and (row.get("water_activity") or 0.0) >= surface_liquid_world.NACL_SATURATION_ACTIVITY),
+     "only a water sea at or above the activity of saturated sodium chloride (0.753) has a salt expressed as sodium chloride: a brine of other salts, a sea of another liquid, a lava surface, a frozen or dry body has none"),
+    (surface_liquid_world.SECOND_FIELDS, lambda klass, row: row is None or row.get("surface_liquid_2") is not None,
+     "a body holds a second surface liquid only when two are stable and supplied, and the main one leaves room for it"),
     (("surface_liquid_depth_km",), lambda klass, row: row is None or row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS,
      "the depth of a lava sea is not known: the rules that give a molten surface say nothing of how deep it goes"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),

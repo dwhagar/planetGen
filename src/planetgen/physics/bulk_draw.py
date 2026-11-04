@@ -40,7 +40,7 @@ from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, delivered_water, elements,
-                               hydrosphere, ice_species, moon_composition, stellar_abundances, stellar_composition)
+                               hydrosphere, ice_species, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -348,13 +348,18 @@ def _icy_water_range(body):
     is water at the disk temperature of its formation distance (`condensate_shares.water_share_of_solids`; the temperature falls as the
     square root of the distance, from the water condensation temperature at the star's own snow line).
     """
+    water_line = condensate_shares.ICE_CONDENSATION_K["H2O"]
+    temperature = min(_formation_temperature_k(body), math.nextafter(water_line, 0.0))
+    top = condensate_shares.water_share_of_solids(temperature)
+    return min(tuning.ICY_WATER_MASS_FRACTION_FLOOR, top), top
+
+
+def _formation_temperature_k(body):
+    """The disk temperature at the body's formation distance: the water condensation temperature at the star's snow line, falling as the square root of the distance."""
     distance = getattr(body, "formation_distance_au", None)
     if distance is None:
         distance = body.distance
-    water_line = condensate_shares.ICE_CONDENSATION_K["H2O"]
-    temperature = min(water_line * math.sqrt(body.star.snow_line_au / distance), math.nextafter(water_line, 0.0))
-    top = condensate_shares.water_share_of_solids(temperature)
-    return min(tuning.ICY_WATER_MASS_FRACTION_FLOOR, top), top
+    return condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(body.star.snow_line_au / distance)
 
 
 def _water_and_ice(body):
@@ -370,11 +375,22 @@ def _water_and_ice(body):
     ice, shares = 0.0, None
     if origin_of(body) == ICY:
         volatiles = comet_population.draw_volatiles(RANGES["other_ice_comet_class"])
-        ice = water * sum(volatiles.percent.values()) / 100.0
-        shares = ice_species.shares_of_percent(volatiles.percent)
+        percent = _with_nitrogen_ice(body, volatiles.percent)
+        ice = water * sum(percent.values()) / 100.0
+        shares = ice_species.shares_of_percent(percent)
         scale = min(1.0, 0.95 / (water + ice))
         water, ice = water * scale, ice * scale
     return water, ice, shares
+
+
+def _with_nitrogen_ice(body, percent):
+    """
+    The comet volatiles with nitrogen ice added where the ice formed colder than N2 condenses (`nitrogen_ice`, GEN.1218a): the solar ceiling times a trapping efficiency drawn
+    log-uniform. A warmer zone draws nothing and its volatiles are returned as they are.
+    """
+    if not nitrogen_ice.zone_is_cold(_formation_temperature_k(body)):
+        return percent
+    return {**percent, "N2": nitrogen_ice.percent_of_water(log_uniform(*nitrogen_ice.TRAPPING_EFFICIENCY_RANGE))}
 
 
 def _porosity(body):
