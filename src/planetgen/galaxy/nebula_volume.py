@@ -48,8 +48,8 @@ MAX_POINTS = 60000
 MIN_STRENGTH = 2
 """int: A point weaker than this (of 255) is left out."""
 
-DETAIL_WAVELENGTH_PC = 100.0
-"""float: The wavelength of noise octave 0 in `nebula_density` (`W0`); octave n resolves features of about W0 / 2**(n - 1)."""
+DETAIL_WAVELENGTH_PC = 64.0
+"""float: The wavelength of noise octave 0 in `nebula_density` (`nebula_density.W0_PC`); octave n resolves features of about W0 / 2**(n - 1)."""
 
 SOFT_BELOW = 0.12
 SOFT_ABOVE = 0.30

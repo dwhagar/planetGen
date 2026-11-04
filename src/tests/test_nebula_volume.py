@@ -145,3 +145,31 @@ def test_inside_block_follows_the_ladders_cut_to_within_a_sector():
     # The cut is the block's analytic bounds; an object is in the block of its sector, a few parsecs of difference at the border.
     assert sum(a != b for a, b in zip(mask.tolist(), expected)) <= 0.03 * len(points)
     assert 0 < mask.sum() < len(points)
+
+
+def test_a_cloud_drawn_from_the_models_own_density_is_not_a_ball():
+    """MAP.365 with `galaxy.nebula_density` itself: placed dark clouds of 20 pc or more, sampled at their level, keep points, and the
+    outline of each (circularity 4 pi A / P^2 of the projected points) is well under a disc's (about 0.78 on a grid)."""
+    from planetgen.galaxy import density, nebula_density
+
+    shape = density.build_galaxy_shape(
+        disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0, bulge_amplitude=3.11,
+        arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4, nuclear_amplitude=1.0)
+    seed = bytes(range(16))
+    clouds = []
+    for i in range(100, 130):
+        for j in range(-5, 6):
+            for k in range(-1, 2):
+                clouds += [tuple(row) for row in nebula_density._cell_spheres(seed, shape, (i, j, k)) if row[3] >= 20.0]
+    assert len(clouds) >= 8
+    values = []
+    for x, y, z, r in clouds[:8]:
+        volume = rules.sample_group(
+            [_nebula(float(x), float(y), float(z), float(r))], None,
+            lambda p, f, d: nebula_density.density_at(seed, shape, p, f, d), nebula_density.FORM_LEVEL, nebula_density.MAX_DETAIL, FAMILIES)
+        assert len(volume.ix) > 100
+        spots = _positions(volume)
+        cells = {(int(math.floor(a / volume.spacing_pc)), int(math.floor(b / volume.spacing_pc))) for a, b in spots[:, :2]}
+        perimeter = sum(1 for i, j in cells for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)) if (i + di, j + dj) not in cells)
+        values.append(4 * math.pi * len(cells) / perimeter ** 2)
+    assert max(values) < 0.74 and sum(values) / len(values) < 0.68, values
