@@ -134,7 +134,7 @@ def test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_gr
         assert len(sector.systems) == 1
         entry = sector.systems[0]
         assert not hasattr(entry, "group_seed")
-        assert len(entry.star_system.stars) >= 2
+        assert len(entry.star_system.stars) == tree.member_count >= 2     # TEST.562: every star the group left, not the member alone
 
 
 def test_a_member_in_no_group_is_built_as_before():
