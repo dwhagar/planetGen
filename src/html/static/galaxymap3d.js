@@ -2225,7 +2225,24 @@ function initGalaxyMap3d(canvasEl, data) {
       return;
     }
     if (!regionOpener) return;
-    regionOpener.region({ block: group.head.block, name: group.head.name, extent: regionGroupExtent(group) });
+    regionOpener.region({ block: regionGroupBlock(group), name: group.head.name, extent: regionGroupExtent(group) });
+  }
+  // MAP.376: the smallest block of the ladder (from the head's 9-block up) that holds every member's middle, so the flight lands in a
+  // window that shows the whole group rather than the head's 9-block window alone.
+  function regionGroupBlock(group) {
+    var head = group.head.block;
+    var levels = [9, 27, 81, 243].filter(function (m) { return m >= head.m; });
+    for (var i = 0; i < levels.length; i++) {
+      var first = null;
+      var same = group.members.every(function (blob) {
+        var cell = cellAt(levels[i], blob.x, blob.y, blob.z, edgePc);
+        var key = cell.m + "." + cell.shell + "." + cell.band + "." + cell.wedge;
+        if (first === null) first = { key: key, cell: cell };
+        return first.key === key;
+      });
+      if (same) return first.cell;
+    }
+    return head;
   }
   function refreshRegionPois() {
     if (!viewport || data.pinned) return;
