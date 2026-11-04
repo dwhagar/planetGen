@@ -673,11 +673,34 @@ finish_update_guard() {
 # of each list), is just what the Apache reload and the /api/health check need and runs BEFORE the reload, so the reload
 # cannot interrupt it; it starts no other phase. Stage 2, the full warm-up (the opening phase is already stored), runs
 # AFTER the reload and the health check, and update.sh stays up showing its bar until it ends. Args: the stage's
-# name, then what `planetgen warm` is asked to build (nothing: every phase). At most 30 minutes; the output also goes to
-# $WARM_MAP_LOG. A stage that fails only warns: the first visit builds what it did not.
+# name, then what `planetgen warm` is asked to build (nothing: every phase). Each stage has a time limit,
+# WARM_STAGE_SECONDS (default 4 hours, OPS.95: a first warm-up after a new epoch takes far longer than the 30 minutes it
+# once had; 0 means none), told in the stage's first line; the output also goes to $WARM_MAP_LOG. A stage that fails or
+# runs out of time only warns, and says that what it stored is kept and how to continue: the first visit builds what it
+# did not.
+WARM_STAGE_DEFAULT_SECONDS=14400
+
+# A number of seconds in words: 14400 is "4 hours", 5400 is "90 minutes", 45 is "45 seconds".
+duration_words() {
+    local seconds="$1" count
+    if (( seconds >= 3600 && seconds % 3600 == 0 )); then
+        count=$(( seconds / 3600 ))
+        echo "$count hour$(( count == 1 ? 0 : 1 ))" | sed 's/hour0/hour/; s/hour1/hours/'
+    elif (( seconds >= 60 && seconds % 60 == 0 )); then
+        count=$(( seconds / 60 ))
+        echo "$count minute$(( count == 1 ? 0 : 1 ))" | sed 's/minute0/minute/; s/minute1/minutes/'
+    else
+        echo "$seconds second$(( seconds == 1 ? 0 : 1 ))" | sed 's/second0/second/; s/second1/seconds/'
+    fi
+}
+
 run_warm_stage() {
-    local name="$1" user="" runner=() limit=() status=0
+    local name="$1" user="" runner=() limit=() status=0 seconds="${WARM_STAGE_SECONDS:-$WARM_STAGE_DEFAULT_SECONDS}" limit_words
     shift
+    if ! [[ "$seconds" =~ ^[0-9]+$ ]]; then
+        echo "warning: WARM_STAGE_SECONDS=$seconds is not a number of seconds; using $WARM_STAGE_DEFAULT_SECONDS." >&2
+        seconds=$WARM_STAGE_DEFAULT_SECONDS
+    fi
     WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
         # shellcheck source=../examples/apache/apache-identity.sh
@@ -689,15 +712,20 @@ run_warm_stage() {
     elif [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && is_macos; then
         runner=(sudo -u "$user" --)
     fi
-    if command -v timeout >/dev/null 2>&1; then
-        limit=(timeout 1800)
+    if (( seconds > 0 )) && command -v timeout >/dev/null 2>&1; then
+        limit=(timeout "$seconds" env "PLANETGEN_WARM_TIME_LIMIT_SECONDS=$seconds")
+        limit_words="time limit $(duration_words "$seconds"), WARM_STAGE_SECONDS sets it"
+    else
+        limit_words="no time limit"
     fi
-    echo "Building the site's caches, $name (log: $WARM_MAP_LOG):"
+    echo "Building the site's caches, $name ($limit_words; log: $WARM_MAP_LOG):"
     (cd / && ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm "$@" --progress \
         </dev/null 2>&1) | tee "$WARM_MAP_LOG"
     status=${PIPESTATUS[0]}
     if (( status != 0 )); then
-        echo "warning: the cache warm-up ($name) did not finish (see $WARM_MAP_LOG); the first visit builds what it did not." >&2
+        local why="failed with status $status (see $WARM_MAP_LOG)"
+        (( status == 124 )) && why="ran out of its time limit of $(duration_words "$seconds") (WARM_STAGE_SECONDS; 0 means none)"
+        echo "warning: the cache warm-up ($name) did not finish: it $why. What it stored is kept: 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues where it stopped, and the first visit builds what it did not." >&2
     fi
     return 0
 }
