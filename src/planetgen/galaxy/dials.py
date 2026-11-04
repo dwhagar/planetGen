@@ -499,11 +499,19 @@ def resolved(args, name):
 def describe_pins(pins):
     """The sentence the galaxy page shows for the levers a plan was told (DB.81), `pins` being `{lever name: value}` as
     `shape_draw.pins_of` stores it: what was pinned, in the table's order and units, and that the rest was drawn."""
-    shown = [f"{row.label} {pins[row.name]:.4g}{' ' + row.unit if row.unit else ''}"
+    shown = [f"{row.label} {row.choices[int(pins[row.name])]}" if row.kind == "enum"
+             else f"{row.label} {pins[row.name]:.4g}{' ' + row.unit if row.unit else ''}"
              for row in LEVERS if row.name in (pins or {})]
     if not shown:
         return "Shape drawn from the seed"
     return f"Shape pinned: {', '.join(shown)}; the rest drawn from the seed"
+
+
+def choice_pinned(pins, name):
+    """The choice of an enum lever a plan was told (`shape_draw.pins_of` keeps it as its place in the row's `choices`), or `None` when it was left on Auto."""
+    if name not in (pins or {}):
+        return None
+    return lever(name).choices[int(pins[name])]
 
 
 def docs_table():
@@ -575,3 +583,4 @@ def _main(argv=None):
 
 if __name__ == "__main__":
     raise SystemExit(_main())
+

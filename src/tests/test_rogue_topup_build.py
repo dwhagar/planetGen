@@ -90,3 +90,45 @@ def test_a_saved_top_up_has_no_donor_and_is_replaced_not_doubled(mysql_config, h
         assert all(r["donor_uid"] is None and r["uid"] is not None and "apparent" in r["rogue_note"] for r in rows)
     finally:
         conn.close()
+
+
+@pytest.mark.fresh_database
+def test_the_stage_tops_a_charted_sector_up_once(mysql_config, redis_server):
+    from types import SimpleNamespace
+
+    from planetgen.db import chart_ledger, store
+    from planetgen.galaxy.sector import SpaceSector
+    from planetgen.generation import topup_stage
+
+    config = SystemConfig()
+    config.STAR_TYPE = "G2V"
+    with draw.bound("stage-system"):
+        system = StarSystem(config)
+    sector = SpaceSector("Stage Sector", edge_ly=13.0)
+    sector.add_system(system, position=(0.0, 0.0, 0.0))
+    x, y, z = spherical.sector_position_pc(*DB_ADDRESS, 4.0)
+    position = {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
+                "shell_index": DB_ADDRESS[0], "band_index": DB_ADDRESS[1], "wedge_index": DB_ADDRESS[2]}
+    store.save_sector(sector, config=mysql_config, galaxy_position=position)
+    # a profile that expects far more mass than the sector holds: the shortfall is large, so the level is what stops the top-up
+    profile = SimpleNamespace(expected_systems=50.0, mix={"old": 1.0}, shape=_shape(), position_pc=(x, y, z))
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            chart_ledger.record(conn, DB_ADDRESS, None, 1)
+        with conn:
+            result = topup_stage.topup_sector(conn, DB_ADDRESS, profile, "few", SystemConfig(), 4.0)
+        stars = conn.execute("SELECT COUNT(*) AS n FROM stars").fetchone()["n"]
+        assert result.skipped is None and result.written == int(2.5 * stars) and result.stopped_by_level      # the Few level, 2.5 a star
+        assert chart_ledger.row(conn, DB_ADDRESS)["topped_up_at"] is not None
+        with conn:
+            again = topup_stage.topup_sector(conn, DB_ADDRESS, profile, "few", SystemConfig(), 4.0)
+        assert again.skipped == "already topped up" and again.written == 0
+        assert store.count_rogues_in_sector(conn, store.kept_sector_id_at(conn, *DB_ADDRESS)) == result.written
+    finally:
+        conn.close()
+
+
+def _shape():
+    from planetgen.galaxy import shape_draw
+    return shape_draw.default_shape(b"topup-stage-seed")
