@@ -3387,11 +3387,11 @@
             ],
             [
               "The range it moves in",
-              "N2O 1e-8 to 1e-6, PH3 1e-10 to 2e-8, HCl 1e-6 to 1e-2, HF 1e-7 to 1e-3, NO2 1e-11 to 1e-8, CH3Cl 1e-11 to 1e-9, all log"
+              "N2O 1e-8 to 1e-6, PH3 1e-10 to 2e-8, NO2 1e-11 to 1e-8, CH3Cl 1e-11 to 1e-9, all log"
             ],
             [
               "Where it holds",
-              "rows m3 to m6 and m11 when drawn present"
+              "rows m3, m4 and m11 when drawn present into a finished air (physics.trace_air, GEN.524 part 1); rows m5 and m6 are retired, HCl and HF come from the halogen budget (AM89 to AM94, GEN.524 part 2)"
             ],
             [
               "What would show it wrong",
@@ -3409,7 +3409,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
-          "unread": "GEN.524",
+          "unread": null,
           "what": "mixture_trace.ABUNDANCES"
         },
         {
@@ -5905,6 +5905,234 @@
           "tweak": "L1",
           "unread": null,
           "what": "mixture_evolved.AMMONIA_TO_N2"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "2ND-HAND (the bulk silicate Earth, Cl 0.004 and F 0.002 weight percent, [R3945: Table 2], read; the CI chondrites, Cl about 0.07 and F about 0.006, [R2726], recalled; source tier 3, tweak level 0)"
+            ],
+            [
+              "What it is",
+              "mixture_rocky.INVENTORY"
+            ],
+            [
+              "The range it moves in",
+              "chlorine_wt_percent 0.004 to 0.07, fluorine_wt_percent 0.002 to 0.006, both log (GEN.524 part 2)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies, before the host's scaling"
+            ],
+            [
+              "What would show it wrong",
+              "test_halogen_budget::test_the_inventory_holds_chlorine_and_fluorine_inside_their_brackets_and_follows_the_hosts_iron"
+            ],
+            [
+              "What replaces it",
+              "a Cl and F depletion curve against formation temperature ([R0818] full text, [R2726])"
+            ]
+          ],
+          "id": "AM89",
+          "key": "6.7:AM89",
+          "kind": "B",
+          "slug": "6-7-am89",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_rocky.INVENTORY"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "READ (abstract: [35Cl/Fe] = -0.10 plus or minus 0.15 over -0.72 < [Fe/H] < 0.20, 15 giants and one M dwarf, [R2787]; source tier 2, tweak level 0)"
+            ],
+            [
+              "What it is",
+              "mixture_rocky.STELLAR_CL_OVER_FE_DEX"
+            ],
+            [
+              "The range it moves in",
+              "-0.10 dex, fixed"
+            ],
+            [
+              "Where it holds",
+              "hosts of -0.7 to 0.2 in [Fe/H]"
+            ],
+            [
+              "What would show it wrong",
+              "test_halogen_budget::test_the_inventory_holds_chlorine_and_fluorine_inside_their_brackets_and_follows_the_hosts_iron"
+            ],
+            [
+              "What replaces it",
+              "a chemical-evolution relation for Cl in dwarfs"
+            ]
+          ],
+          "id": "AM90",
+          "key": "6.7:AM90",
+          "kind": "D",
+          "slug": "6-7-am90",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_rocky.STELLAR_CL_OVER_FE_DEX"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; the 49 K giants of [R2190], abstract read, show no neutrino-process excess, so fluorine follows iron)"
+            ],
+            [
+              "What it is",
+              "mixture_rocky.STELLAR_F_OVER_FE_DEX"
+            ],
+            [
+              "The range it moves in",
+              "0.0 dex, fixed"
+            ],
+            [
+              "Where it holds",
+              "hosts like the K giants"
+            ],
+            [
+              "What would show it wrong",
+              "test_halogen_budget::test_the_inventory_holds_chlorine_and_fluorine_inside_their_brackets_and_follows_the_hosts_iron"
+            ],
+            [
+              "What replaces it",
+              "a fluorine abundance of main-sequence stars"
+            ]
+          ],
+          "id": "AM91",
+          "key": "6.7:AM91",
+          "kind": "P",
+          "slug": "6-7-am91",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_rocky.STELLAR_F_OVER_FE_DEX"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; arc volcanic gas holds about 0.001 to 0.05 HCl per H2O, recalled, and the Venus air about 0.017, a test point only)"
+            ],
+            [
+              "What it is",
+              "mixture_rocky.INVENTORY"
+            ],
+            [
+              "The range it moves in",
+              "halogen_per_hydrogen_max 1e-3 to 1e-1, log (the most Cl and F atoms the air holds per hydrogen atom)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with hydrogen in the air"
+            ],
+            [
+              "What would show it wrong",
+              "test_halogen_budget::test_the_halogens_are_cut_to_the_hydrogen_they_can_pair_with_in_proportion"
+            ],
+            [
+              "What replaces it",
+              "a crust halogen reservoir with chlorides and fluorides (NaCl, KCl and a salt sink)"
+            ]
+          ],
+          "id": "AM92",
+          "key": "6.7:AM92",
+          "kind": "B",
+          "slug": "6-7-am92",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_rocky.INVENTORY"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; chlorine and fluorine dissolve in a silicate melt far better than carbon dioxide and leave it with the water, the bracket of hydrogen's)"
+            ],
+            [
+              "What it is",
+              "surface_pressure.DEGAS_EFFICIENCY_HALOGEN"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.5, log, drawn for each of Cl and F"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "test_halogen_budget::test_the_degassing_efficiencies_carry_chlorine_and_fluorine_inside_the_bracket"
+            ],
+            [
+              "What replaces it",
+              "halogen solubility in basalt (a melt model)"
+            ]
+          ],
+          "id": "AM93",
+          "key": "6.7:AM93",
+          "kind": "B",
+          "slug": "6-7-am93",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_pressure.DEGAS_EFFICIENCY_HALOGEN"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "2ND-HAND (the Edmister correlation, ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T), recalled; the HCl curve is Clausius-Clapeyron from the gas table's triple point with its sublimation heat 19.65 kJ/mol; source tier 2, tweak level 0)"
+            ],
+            [
+              "What it is",
+              "saturation.EDMISTER_COEFFICIENT"
+            ],
+            [
+              "The range it moves in",
+              "5.373, fixed (hydrogen fluoride; the gas table has no HF triple point)"
+            ],
+            [
+              "Where it holds",
+              "HF from 68 K to its critical point, HCl up to its triple point (above it the solid's curve is carried on)"
+            ],
+            [
+              "What would show it wrong",
+              "test_saturation::test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_trace_gas_in_the_cold"
+            ],
+            [
+              "What replaces it",
+              "measured vapour-pressure curves of HF and HCl (NIST fits)"
+            ]
+          ],
+          "id": "AM94",
+          "key": "6.7:AM94",
+          "kind": "D",
+          "slug": "6-7-am94",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "saturation.EDMISTER_COEFFICIENT"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -11919,7 +12147,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_FROZEN_RANGE (0.45, 0.70), ALBEDO_FROZEN_BELOW_K 230, ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (a body's Bond albedo by its regime, before its air and ground are known)"
+              "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
             ],
             [
               "The range it moves in",
@@ -11950,7 +12178,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_FROZEN_RANGE (0.45, 0.70), ALBEDO_FROZEN_BELOW_K 230, ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (a body's Bond albedo by its regime, before its air and ground are known)"
+          "what": "tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16)"
         },
         {
           "burn_down": null,
@@ -12231,6 +12459,44 @@
           "fields": [
             [
               "What it is",
+              "tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is orbits.runaway_greenhouse_flux, the one the water-loss history follows)"
+            ],
+            [
+              "The range it moves in",
+              "start 1200 to 2000 (it only picks the branch)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with surface water and an effective flux past the limit"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_air_runaway_start::test_a_wet_body_past_the_runaway_limit_holds_its_water_as_steam; a Venus twin at 1.9 S that keeps a cool ocean"
+            ],
+            [
+              "What replaces it",
+              "a greenhouse table that bounds the outgoing flux of a saturated air (so the fixed point has one answer)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the radiative-convective model of a saturated steam air cannot pass about 280 W/m2, so no ocean stands past the limit; the table has no such bound (GEN.1238)"
+            ]
+          ],
+          "id": "CC17",
+          "key": "6.22:CC17",
+          "kind": "P",
+          "slug": "6-22-cc17",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.RUNAWAY_START_TEMPERATURE_K 1500 and RUNAWAY_FLUX_REFERENCE_W_M2 1361 (the temperature the air fixed point of a body with surface water under starlight past its runaway greenhouse limit starts from, so it finds the steam air; the limit is orbits.runaway_greenhouse_flux, the one the water-loss history follows)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air)"
             ],
             [
@@ -12375,7 +12641,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.972",
+          "unread": null,
           "what": "climate_branches.ICE_FREE_ALBEDO 0.30 and ICE_COVERED_ALBEDO 0.62 (the Bond albedo of a world with no ice, which is Earth's, and of one wholly under ice and snow, sea ice and snow 0.5 to 0.8; GEN.1046)"
         },
         {
@@ -12413,7 +12679,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
-          "unread": "GEN.972",
+          "unread": null,
           "what": "climate_branches.ICE_FREE_ABOVE_K 305, ICE_COVERED_BELOW_K 240 and ICE_FRACTION_EXPONENT 3 (the mean surface temperatures between which the ice grows from none to the equator, and the power of the way down the ramp that the cover grows as; the width stands for the spread between equator and poles)"
         }
       ],
@@ -15147,6 +15413,196 @@
           "tweak": "L0",
           "unread": null,
           "what": "stellar_library.FUV_IN_UV_C 0.89 (the chromospheric far ultraviolet is spread evenly in wavelength over 91.2 to 170 nm, and the share above 100 nm is UV-C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photolysis.blended_spectral_ratio (the rate per unit 91.2 to 200 nm flux of a star is its chromospheric power share times the Sun's ratio 1 plus the photospheric share times the blackbody template ratio of its temperature; GEN.982)"
+            ],
+            [
+              "The range it moves in",
+              "the weighting 0 to 1"
+            ],
+            [
+              "Where it holds",
+              "every star the haze methane supply is asked of"
+            ],
+            [
+              "What would show it wrong",
+              "a measured rate of methane around a cool active star more than a factor of 3 off the blend"
+            ],
+            [
+              "What replaces it",
+              "a band-by-band integral of the cross section over the star's spectrum (MUSCLES HLSP)"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_a_cool_active_star_is_not_given_the_blackbody_templates_small_methane_rate"
+            ]
+          ],
+          "id": "SL5",
+          "key": "6.33:SL5",
+          "kind": "P",
+          "slug": "6-33-sl5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photolysis.blended_spectral_ratio (the rate per unit 91.2 to 200 nm flux of a star is its chromospheric power share times the Sun's ratio 1 plus the photospheric share times the blackbody template ratio of its temperature; GEN.982)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "aerosols.HAZE_MONOMER_RADIUS_UM (0.03, 0.1): the radius of the monomers of a haze aggregate (Titan's about 0.05 from Huygens [R4392, R4394], second hand through the [R0156] haze model; lab tholin 0.03 to 0.1)"
+            ],
+            [
+              "The range it moves in",
+              "the span itself"
+            ],
+            [
+              "Where it holds",
+              "hazes of methane airs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured monomer radius outside it"
+            ],
+            [
+              "What replaces it",
+              "a haze microphysics model [R2584]"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_titans_own_mass_flux_gives_a_haze_of_titans_order_with_aggregates_of_some_microns"
+            ]
+          ],
+          "id": "HZ1",
+          "key": "6.33:HZ1",
+          "kind": "P",
+          "slug": "6-33-hz1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "aerosols.HAZE_MONOMER_RADIUS_UM (0.03, 0.1): the radius of the monomers of a haze aggregate (Titan's about 0.05 from Huygens [R4392, R4394], second hand through the [R0156] haze model; lab tholin 0.03 to 0.1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "aerosols.HAZE_FRACTAL_DIMENSION 2.0 (aggregates grown by cluster-cluster coagulation, 1.8 to 2.2; Titan's about 2: [R4392, R4394], second hand)"
+            ],
+            [
+              "The range it moves in",
+              "1.8 to 2.2"
+            ],
+            [
+              "Where it holds",
+              "hazes of methane airs"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dimension under 1.7 or over 2.3"
+            ],
+            [
+              "What replaces it",
+              "the aggregate model of a haze microphysics code"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_the_grain_is_where_it_falls_out_as_fast_as_it_coagulates"
+            ]
+          ],
+          "id": "HZ2",
+          "key": "6.33:HZ2",
+          "kind": "P",
+          "slug": "6-33-hz2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "aerosols.HAZE_FRACTAL_DIMENSION 2.0 (aggregates grown by cluster-cluster coagulation, 1.8 to 2.2; Titan's about 2: [R4392, R4394], second hand)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "aerosols.haze_grain (the aggregate grows until it falls out as fast as it coagulates: the Smoluchowski half-time 3 eta / (4 k T n) of the column's number equals the Stokes fall time; one layer, monodisperse, Brownian, continuum kernel, no electric charge)"
+            ],
+            [
+              "The range it moves in",
+              "the closure within a factor of 3 in radius"
+            ],
+            [
+              "Where it holds",
+              "hazes of methane airs"
+            ],
+            [
+              "What would show it wrong",
+              "Titan's measured depth 9.6 from its production 1e-14 to 3.5e-14 g per cm2 per s more than a factor of 3 off"
+            ],
+            [
+              "What replaces it",
+              "a bin-resolved coagulation and settling model"
+            ],
+            [
+              "Evidence",
+              "test_aerosols::test_titans_own_mass_flux_gives_a_haze_of_titans_order_with_aggregates_of_some_microns"
+            ]
+          ],
+          "id": "HZ3",
+          "key": "6.33:HZ3",
+          "kind": "P",
+          "slug": "6-33-hz3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "aerosols.haze_grain (the aggregate grows until it falls out as fast as it coagulates: the Smoluchowski half-time 3 eta / (4 k T n) of the column's number equals the Stokes fall time; one layer, monodisperse, Brownian, continuum kernel, no electric charge)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "photolysis.shielded_column_mol_m2 (light is absorbed in one layer, the column of optical depth 1 at the species' mean UV cross section of Hu, [R2026] table 6, so a thick air is photolysed only in that column; GEN.982)"
+            ],
+            [
+              "The range it moves in",
+              "the column within a factor of 2 (Hu's critical pressure 126 Pa at 1 ppm methane against 1 / sigma giving 260 Pa)"
+            ],
+            [
+              "Where it holds",
+              "H2O, NH3, CH4, CO2, H2S in a thick air"
+            ],
+            [
+              "What would show it wrong",
+              "a modelled methane photolysis rate of Titan's air more than a factor of 3 off the 3e9 to 1e10 molecules per cm2 per s that the column gives"
+            ],
+            [
+              "What replaces it",
+              "a photochemical column model with the species' cross sections by wavelength"
+            ],
+            [
+              "Evidence",
+              "test_photolysis::test_the_methane_the_sun_can_break_over_the_earths_area_is_within_the_range_of_the_anoxic_methane_fluxes"
+            ]
+          ],
+          "id": "SL6",
+          "key": "6.33:SL6",
+          "kind": "P",
+          "slug": "6-33-sl6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "photolysis.shielded_column_mol_m2 (light is absorbed in one layer, the column of optical depth 1 at the species' mean UV cross section of Hu, [R2026] table 6, so a thick air is photolysed only in that column; GEN.982)"
         },
         {
           "burn_down": null,
@@ -33275,6 +33731,94 @@
       "title": "Stand-ins of the habitable bodies per system"
     },
     {
+      "key": "6.166",
+      "number": "6.166",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measured viscosity of any rocky planet's mantle other than the Earth's is in hand; the prefactor is retuned to hold the reference viscosity, not fitted to a planet"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S 9.3e7 to 1.9e11 Pa s: the bounds of [R1716] times exp(-75 kJ/mol / (R 1600 K)) = 3.56e-3, so the middle of the viscosity at 1,600 K holds"
+            ],
+            [
+              "The range it moves in",
+              "factor of 10 either side"
+            ],
+            [
+              "Where it holds",
+              "a mantle at 1,000 to 2,500 K"
+            ],
+            [
+              "What would show it wrong",
+              "a viscosity of a mantle at 1,600 K, in a measured or modelled rocky planet, outside 3e16 to 1e24 Pa s"
+            ],
+            [
+              "What replaces it",
+              "the prefactor from a creep law of the mantle's composition (the pre-exponential factor of the diffusion creep laws, grain size and water)"
+            ],
+            [
+              "Evidence",
+              "the retune keeps the viscosity at 1,600 K that the paper's two ranges gave; the lab prefactors are in the same range once grain size and water are chosen"
+            ]
+          ],
+          "id": "IHA1",
+          "key": "6.166:IHA1",
+          "kind": "P",
+          "slug": "6-166-iha1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S 9.3e7 to 1.9e11 Pa s: the bounds of [R1716] times exp(-75 kJ/mol / (R 1600 K)) = 3.56e-3, so the middle of the viscosity at 1,600 K holds"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.INTERIOR_ACTIVATION_RANGE_KJ_MOL 260 to 390: the diffusion-creep activation energies, dry and wet"
+            ],
+            [
+              "The range it moves in",
+              "261 to 387"
+            ],
+            [
+              "Where it holds",
+              "a rocky mantle"
+            ],
+            [
+              "What would show it wrong",
+              "a measured diffusion creep activation energy of mantle rock outside 260 to 390"
+            ],
+            [
+              "What replaces it",
+              "an activation energy chosen by the mantle's water and iron content"
+            ],
+            [
+              "Evidence",
+              "[R2451: Table 3] (read): 261 to 375 kJ/mol dry and 335 to 387 wet"
+            ]
+          ],
+          "id": "IHA2",
+          "key": "6.166:IHA2",
+          "kind": "P",
+          "slug": "6-166-iha2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.INTERIOR_ACTIVATION_RANGE_KJ_MOL 260 to 390: the diffusion-creep activation energies, dry and wet"
+        }
+      ],
+      "slug": "6-166-stand-ins-of-the-interior-viscosity-ranges",
+      "title": "Stand-ins of the interior viscosity ranges"
+    },
+    {
       "key": "6.164",
       "number": "6.164",
       "rows": [
@@ -34129,7 +34673,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.105",
+          "unread": null,
           "what": "stepper.STEP_ETA 0.05 and STEP_CAP_MYR 5: a step is a twentieth of the star's own crossing time (the smaller of r/v and sqrt(r/a) at its present point, the cheap stand-in for the pericentre crossing time), no more than 5 Myr"
         },
         {
@@ -34167,7 +34711,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.105",
+          "unread": null,
           "what": "stepper.MAX_LEVEL 12: a star needs at most 4096 equal steps in one span; past it the star is stepped at that cap and flagged"
         }
       ],
@@ -36791,7 +37335,7 @@
             ],
             [
               "The range it moves in",
-              "the star formation law's index and a low-density threshold (the GEN.450 steepening is in the history since GEN.999: 3.7 Gy for the full Milky Way shape, 2.9 Gy for a thin disc of 3e10); 1.0 to 4.2 Gy for a Milky Way mass disc"
+              "the star formation law's index and a low-density threshold (the GEN.450 steepening is in the history since GEN.999 and the exponential infall of GEN.1230: 3.4 Gy for a thin disc of 3e10); 1.0 to 4.2 Gy for a Milky Way mass disc"
             ],
             [
               "Where it holds",
