@@ -1020,6 +1020,20 @@ with `clamp()`.
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
 
+- [ ] **UX.258 The describer writes the hours outside in a day with a raw format (build.py line 516), failing the wording-agrees-with-the-index test (bug)**
+  Found by the full-suite thread (first pass on main 7eef24a, to 53
+  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
+  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  src/planetgen/describe/build.py line 516 writes f"{day:.1f} hours" for
+  the outside-hours-day fact, so
+  tests/test_wording_agrees_with_the_index.py::test_no_quantity_in_the_describer_is_written_with_a_raw_format
+  fails. Do: write the quantity through the unit registry formatter like
+  the other describer facts (units beside every number), keep the
+  wording, update any text test. Done: the wording test passes and the
+  page shows the same figure with its unit. Lock-free. Owner: none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14339,6 +14353,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Prerequisites: none.
 
+- [ ] **GEN.1239 The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug)**
+  Found by the full-suite thread (first pass on main 7eef24a, to 53
+  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
+  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  tests/test_volatile_inventory_totals.py::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it
+  reads 153.1 against 98.8 plus or minus 19.8 (Core 4 also reported it
+  red on main, 2026-11-01). Do: find what lifted the dry-class carbon
+  bracket (a stand-in or a recent change to the outgassing inventory),
+  correct the bracket or the test with the reason stated, and register
+  any stand-in in GEN.725 with tier and tweak level. Lock work if stored
+  values change. Related: GEN.524. Owner: none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19127,6 +19155,41 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
+  Prerequisites: none.
+
+- [ ] **TEST.554 test_web_old_urls_errors has no test value for the new route /help/life/<topic>, so the HEAD and OPTIONS route tests fail (bug)**
+  Found by the full-suite thread (first pass on main 7eef24a, to 53
+  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
+  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  tests/test_web_old_urls_errors.py: test_head_matches_get_with_no_body
+  and test_options_answers_allow_with_no_body fail (anonymous and admin)
+  with "no test value for /help/life/<topic>" (route in
+  web/class_pages.py line 155). Do: add the route and a real topic to
+  the test's value table. Done: the four tests pass. Lock-free. Owner:
+  none yet.
+  Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **TEST.555 Triage four undiagnosed full-suite failures: /search formulas not written out, CLI-placed sectors missing from the map, a sector run's forced fill, and the prevalence timeouts (bug)**
+  Found by the full-suite thread (first pass on main 7eef24a, to 53
+  percent; the machine restarted 1:40 AM EDT 2026-11-01 and the fresh
+  full run started 7:04 AM EST 2026-11-04), filed by the TODO thread.
+  Failures re-run alone and real on 7eef24a, none diagnosed: (1)
+  tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
+  (the /search page shows H2, N2, O2, H2O, CO2, CH4 formulas unwritten);
+  (2)
+  tests/test_web_fresh_after_cli.py::test_galaxy_map_and_nodes_show_sectors_the_cli_placed
+  and ::test_sector_page_and_nodes_show_a_phenomenon_the_cli_added
+  (CLI-placed sectors missing from the map and nodes); (3)
+  tests/test_bughunt_cli_edges.py::test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill;
+  (4) the 900 s timeouts in test_prevalence.py (asteroid_belt-30,
+  large_star-100, large_star--100, planets--40, comets-0.3 plus or minus
+  100, no binaries at minus 100 and more at plus 50), already tracked by
+  PERF.229 for the fuzz case. Do: re-run each on current main first
+  (many commits since 7eef24a), keep only those that still fail,
+  root-cause each, and file or fix. Done: each failing test has a cause
+  and an owner or a fix. Owner: full-suite thread, with Bug 1.
+  Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts
