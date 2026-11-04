@@ -18651,6 +18651,23 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **TEST.570 test_life_text_consistency fails 49 times on main: the pace/timeline text says one thing and the body another (hyper-accelerated) (bug)**
+  Found by Core 5 and confirmed on main by the TODO thread
+  (test_no_generated_page_contradicts_itself_about_its_life fails), 1:15
+  PM EST on 2026-11-04. tests/test_life_text_consistency.py has 49
+  failures of the form "the text says [], the body has
+  ['hyper-accelerated']": a generated page's life text omits the pace
+  (hyper-accelerated) that the body carries. Not from DOC.92. Do: find
+  the change that made the text drop the pace term (the life text
+  builder against the pace/timeline rules of GEN.750, or a recently
+  merged life or class change), fix the text builder or the test's
+  expectation at the cause (the page must say what the body has), and
+  run the file 3 times. Done: the file passes on main. Lock-free (text
+  only) unless the body value is the wrong one. Owner Aux 2 (life;
+  proposed by the TODO thread, it says if it clashes). Filed by the TODO
+  thread.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19768,32 +19785,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   gap-filling-plan.md stand-in rows now also needs python
   scripts/build_reference_pages.py.
   Prerequisites: DOC.90.
-
-- [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Cut it from `life_help.py` and
-  `life_air_chart.py`. GEN.1209 itself does not cover the help rewrite;
-  this item does. The API field `speculative` stays. Related: GEN.1209,
-  GEN.1210, GEN.1213, UX.237, DOC.84. Owner: Core 5.
-  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
-  References crawl test (tests/test_references_crawl.py) lists today's
-  out-of-universe hits in its KNOWN table; this item's are the life
-  help: speculative, fitted, tier, tuned, generated, educated guess.
-  Delete those entries in the same PR that removes the words: an entry
-  that no longer happens fails the test.
-  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
-  EDT): Help > References is live at /references. To add a page: add a
-  file to BUILDERS in scripts/build_reference_pages.py and a route in
-  web/references_pages.py, and check every sentence with
-  plainwords.check_sentence(s, references=True). Editing
-  gap-filling-plan.md stand-in rows now also needs python
-  scripts/build_reference_pages.py.
-  Prerequisites: DOC.88.
 
 - [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
