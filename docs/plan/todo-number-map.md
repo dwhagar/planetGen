@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.264 |
+| UX | UX.265 |
 | MAP | MAP.388 |
 | NAV | NAV.77 |
 | GEN | GEN.1290 |
@@ -3254,6 +3254,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.261 | Explainer links read as talking down and repeat links the page already has: drop the repeats, reword the rest to "More information" | none | done, PR #4950 |
 | UX.262 | Planet and moon page Life section: the adaptation traits of the living class (the last piece of UX.237) | none | open |
 | UX.263 | The belt page reads the belt density module: wire planetgen.physics.belt_density into the belt page data builder, or delete it | none | done, PR #5187 |
+| UX.264 | The planet page no longer shows the atmosphere (sky) colour row: the chip and word such as 'pale blue' vanished from the page (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

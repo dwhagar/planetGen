@@ -811,6 +811,25 @@ with `clamp()`.
   Owner: Core 5. Filed by the TODO thread.
   Prerequisites: GEN.876. Related: UX.237, GEN.875, GEN.876.
 
+- [ ] **UX.264 The planet page no longer shows the atmosphere (sky) colour row: the chip and word such as 'pale blue' vanished from the page (bug)**
+  Boss live observation (about 5:43 PM EST on 2026-11-05): 'where did
+  the line item in the planet details go where it showed the sky color?'
+  Finding (as the researching thread reported): the Atmosphere color row
+  (a colour chip plus a word such as pale blue, added by GEN.420 in
+  release 8.0.2086) lived in the description's Planet facts table. The
+  planet page redesign (UX.215 to UX.222, release 8.0.2467) drops that
+  facts table (planet_layout.split_blocks) and builds the Atmosphere
+  section from sheet rows only, where atmosphere_colour is excluded
+  because the description builder shows it, so it vanished from the web
+  page by accident; the description JSON, text and Markdown outputs
+  still carry it. Do: show the row in the Atmosphere section of the
+  planet and moon page (src/planetgen/web/item_pages.py planet_sections)
+  with a test that the page shows the chip and the word. Done: the
+  planet and moon pages show the atmosphere colour again. Lock-free.
+  Version 8.1. Owner: the researching thread that found it. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: GEN.420, UX.215, UX.222.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
