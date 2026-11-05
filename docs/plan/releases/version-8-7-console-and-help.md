@@ -6,11 +6,11 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 8.7
 
-Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+Status: approved by Boss (5:44 PM EST on 2026-11-05, headline Full help for all pages); paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
 
 ## Goal
 
-Boss (5:40 PM EST on 2026-11-05): the headline is full help for all pages; the pilot's console look (UX.43) stays in the version as its second feature, pending Boss's pick among three mockups. Proposed by the TODO thread; Boss has set the headline but not yet approved the version.
+Boss (5:40 PM EST on 2026-11-05): the headline is full help for all pages; the pilot's console look (UX.43) stays in the version as its second feature, pending Boss's pick among three mockups. Approved by Boss (5:44 PM EST on 2026-11-05).
 
 ## Phase 1: Help and console look
 
@@ -48,3 +48,13 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | UX.223, NAV.64 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
+
+## Phase 2: The headline closes
+
+The headline item closes the version once the help pages, the coverage test and the console look are in.
+
+### The headline
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DOC.104 | Headline of 8.7: full help for all pages, with the pilot's console look | DOC.58, UX.43, DOC.81 |  |
