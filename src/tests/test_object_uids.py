@@ -28,6 +28,7 @@ def _sector(name, count, rogue):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.BINARY_SYSTEM = False
+        cfg.PLANETS = False    # a planet may be thrown out and filed as a rogue (GEN.1111), and these tests count the rogues
         system = StarSystem(system_config=cfg)
         system.name = f"Uidstar {name} {index}"
         sector.add_system(system, position=(float(index), 0.0, 0.0), system_config=cfg)
@@ -118,12 +119,13 @@ def test_the_assigning_pass_gives_run_time_births_and_never_reuses_a_number(mysq
         conn.execute("UPDATE stars SET uid = NULL WHERE id = ?", (stars[-1]["id"],))
         store.assign_uids(conn, sector_id=sector["id"])
         conn.commit()
-        [rogue] = conn.execute("SELECT uid FROM rogue_planets").fetchall()
+        rogues = conn.execute("SELECT uid FROM rogue_planets").fetchall()
         [star] = conn.execute("SELECT uid FROM stars WHERE id = ?", (stars[-1]["id"],)).fetchall()
     finally:
         conn.close()
-    value = _decoded(rogue)
-    assert (value.serial_kind, value.serial) == (ids.SERIAL_RUNTIME, 0) and value[:3] == (250, 0, 5)
+    values = [_decoded(rogue) for rogue in rogues]    # the wanderer and the rogues its systems threw out (GEN.1111), all born in the sector
+    assert rogues and all((value.serial_kind, value[:3]) == (ids.SERIAL_RUNTIME, (250, 0, 5)) for value in values)
+    assert sorted(value.serial for value in values) == list(range(len(values)))
     assert ids.body_of(ids.from_bytes(star["uid"])) > last + 1      # past the number the counter handed out
 
 
@@ -191,6 +193,7 @@ def _make_system(name):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     cfg.BINARY_SYSTEM = False
+    cfg.PLANETS = False
     system = StarSystem(system_config=cfg)
     system.name = name
     return system, cfg
@@ -202,6 +205,8 @@ def test_a_system_added_to_a_sector_is_a_run_time_birth_there(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         [sector] = conn.execute("SELECT id FROM sectors ORDER BY id LIMIT 1").fetchall()
+        born = sum(1 for rogue in conn.execute("SELECT uid FROM rogue_planets").fetchall()
+                   if _decoded(rogue).serial_kind == ids.SERIAL_RUNTIME)     # the run-time serials the rogues its systems threw out hold (GEN.1111)
         system, cfg = _make_system("Uidadded Late")
         with conn:
             system_id, _position = store.add_system_to_sector(conn, sector["id"], system, cfg)
@@ -210,7 +215,7 @@ def test_a_system_added_to_a_sector_is_a_run_time_birth_there(mysql_config):
     finally:
         conn.close()
     value = _decoded(row)
-    assert value[:3] == (250, 0, 5) and (value.serial_kind, value.serial, value.body) == (ids.SERIAL_RUNTIME, 0, 0)
+    assert value[:3] == (250, 0, 5) and (value.serial_kind, value.serial, value.body) == (ids.SERIAL_RUNTIME, born, 0)
     assert [ids.body_of(ids.from_bytes(star["uid"])) for star in stars] == [1]
 
 
