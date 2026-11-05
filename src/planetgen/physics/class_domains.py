@@ -14,7 +14,7 @@ Every class of `physics/data/planet_class_fit.json` is judged on the same physic
 | `thermal` | the mean surface temperature |
 | `air_amount` | the surface pressure (the airless gate at 10 Pa) |
 | `air_chemistry` | the shares of oxygen, carbon dioxide, hydrogen, sulfur dioxide and the reducing gases |
-| `water` | the ocean cover, the water mass fraction, the relative humidity and the groundwater |
+| `water` | the ocean cover, the water mass fraction, the relative humidity, the groundwater and the ammonia of the water |
 | `regional` | the hottest and the coldest latitude band (annual means of the seven bands) |
 | `day` | the hottest day (the hottest band's mean plus half its swing) |
 | `night` | the coldest night (the coldest band's mean less half its swing) |
@@ -52,7 +52,7 @@ QUANTITY_DOMAIN = {
     "mass_earth": "structure", "gravity_g": "gravity", "temperature_k": "thermal", "pressure_pa": "air_amount",
     "ocean_fraction": "water", "water_mass_fraction": "water", "relative_humidity": "water", "groundwater_present": "water",
     "hottest_region_k": "regional", "coldest_region_k": "regional", "day_temperature_k": "day", "night_temperature_k": "night",
-    "wet_bulb_c": "wet_bulb", "reducing_share": "air_chemistry",
+    "wet_bulb_c": "wet_bulb", "reducing_share": "air_chemistry", "ammonia_water_mass_fraction": "water",
 }
 """dict: The domain of each quantity of the fit table that is not a gas share (`share_<gas>` is air chemistry, `phase_<family>` is the phase gate)."""
 
@@ -93,7 +93,7 @@ def relative_humidity(values):
 
 def derived(values):
     """The quantities of the matrix that are not in `planet_classes.quantities`, from a body's stored `values`:
-    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0) and
+    `hottest_region_k`, `coldest_region_k`, `day_temperature_k`, `night_temperature_k`, `relative_humidity`, `wet_bulb_c`, `groundwater_present` (1.0 or 0.0), `ammonia_water_mass_fraction` (the ammonia over the water's mass, `None` when no ice share is stored) and
     `phase_<family>` (1.0 where the family's liquid is a liquid at the body's temperature and pressure, else 0.0)."""
     found = {}
     bands = _bands(values)
@@ -105,6 +105,8 @@ def derived(values):
     found["relative_humidity"] = humidity
     day = found["day_temperature_k"]
     found["wet_bulb_c"] = None if day is None or humidity is None else habitability.wet_bulb_c(day - 273.15, humidity)
+    from planetgen.physics import surface_liquid_world
+    found["ammonia_water_mass_fraction"] = surface_liquid_world.ammonia_water_mass_fraction(values)      # GEN.1258: the stored percent of the liquid, else the body's ice and water
     groundwater = values.get("groundwater")
     if groundwater is None and values.get("surface_temperature_k") is not None:
         from planetgen.physics import habitability_world

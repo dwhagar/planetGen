@@ -37387,6 +37387,82 @@
           "fields": [
             [
               "What it is",
+              "planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "icy bodies with an ice and a water share"
+            ],
+            [
+              "What would show it wrong",
+              "an ammonia share measured on an icy body that puts class 8's window elsewhere than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the spread of the ammonia share among icy bodies of the generator"
+            ],
+            [
+              "Evidence",
+              "the Class 8 gate (10 percent of the water mass, life-classes.md 3.1)"
+            ]
+          ],
+          "id": "DM8",
+          "key": "6.183:DM8",
+          "kind": "P",
+          "slug": "6-183-dm8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the range of X, the ammonia-water world: liquid cover 20 percent or more (the ocean lies under an ice lid, so no surface phase gate), ammonia at least 0.1 of the water's mass, 190 to 240 K, 0.05 to 2 g, no air (under 10 Pa)"
+            ],
+            [
+              "The range it moves in",
+              "each edge by its shoulder"
+            ],
+            [
+              "Where it holds",
+              "icy bodies with an ammonia-water ocean"
+            ],
+            [
+              "What would show it wrong",
+              "an ammonia-water body of an obvious class that fits another, or an X outside the box"
+            ],
+            [
+              "What replaces it",
+              "the ideal band once the sea fractions of the family are stored"
+            ],
+            [
+              "Evidence",
+              "the families design section 4 (ammonia-water 176 to 273 K, ideal 190 to 240 K); GEN.1258 found the ammonia share already stored (surface_liquid_ammonia_wt, ice_nh3_mass_fraction)"
+            ]
+          ],
+          "id": "DM9",
+          "key": "6.183:DM9",
+          "kind": "P",
+          "slug": "6-183-dm9",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "the range of X, the ammonia-water world: liquid cover 20 percent or more (the ocean lies under an ice lid, so no surface phase gate), ammonia at least 0.1 of the water's mass, 190 to 240 K, 0.05 to 2 g, no air (under 10 Pa)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure"
             ],
             [
