@@ -1594,6 +1594,24 @@
     },
     "SettingsFile": {
       "properties": {
+        "backup_parity": {
+          "default": true,
+          "description": "Put a copy of the sector repair file (the parity file) in every full backup archive, so a galaxy whose live repair file is lost can still be repaired from a backup. The copy is as big as the file (about 7 percent of the sectors' size); switch it off for a very large galaxy. The settings backup made before each save never holds it.",
+          "title": "Backup Parity",
+          "type": "boolean",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "housekeeping",
+          "x-label": "Back up the repair file",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "Include the sector repair file in full backup archives."
+        },
         "backups_kept": {
           "default": 20,
           "description": "How many backup archives are kept. One is made just before every settings save, restore or import replaces the file, and by Back up now; the oldest is deleted once there are more than this, but never the newest archive that holds every part.",
@@ -2306,6 +2324,7 @@
     "settings": {
       "$ref": "#/$defs/SettingsFile",
       "default": {
+        "backup_parity": true,
         "backups_kept": 20
       }
     },

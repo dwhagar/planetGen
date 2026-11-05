@@ -148,10 +148,15 @@ the state folder (`/var/lib/planetGen/state`, `PLANETGEN_STATE_DIR` moves it), m
 `manifest.json` (format 1, time, who, why, the version and, per part, its folder,
 sizes and SHA-256) and one folder per part: `settings/` (a copy of `config.json`,
 secrets included, which is why the archive is private and its download is for the
-Owner) now, and `control/` (the control database) and `parity/` (the DB repair
-parity data) when those parts arrive in 9.0. A save on the settings page takes an
-archive of the settings part alone; `python3 -m planetgen.cli.backup take` takes
-every part.
+Owner) and `parity/` (DB.40: a copy of the sector repair file, `sector-parity.pgpr`,
+taken with the file locked against every save and cut at its last whole record; the
+manifest keeps its size, the sectors it covers and the groups as the part's `info`;
+the option `settings.backup_parity`, on by default, switches it off for a very large
+galaxy), and `control/` (the control database) when that part arrives in 9.0. A save on
+the settings page takes an archive of the settings part alone; `python3 -m
+planetgen.cli.backup take` takes every part. A parity copy is refused, with the
+reason, when the live file is damaged behind its last record (`planetgen repair-db`
+makes it again from the database); putting a copy back is DB.41.
 
 Retention is the option `settings.backups_kept`: the newest archives are kept, the
 rest deleted, but never the newest archive that holds every part. A restore verifies
@@ -258,6 +263,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `log_dir` | Activity log folder | text | empty | after a restart | command line only | `PLANETGEN_LOG_DIR` | The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS. |
 | `log_rotation` | Log rotation | "auto", "system", or "app" | auto | after a restart | command line only | none | How the activity log is rotated: system (logrotate or newsyslog), app (the program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else app). |
 | `settings.backups_kept` | Settings backups kept | whole number (backups) | 20 | at once | any admin | none | How many backup archives are kept. One is made just before every settings save, restore or import replaces the file, and by Back up now; the oldest is deleted once there are more than this, but never the newest archive that holds every part. |
+| `settings.backup_parity` | Back up the repair file | true or false | true | at once | any admin | none | Put a copy of the sector repair file (the parity file) in every full backup archive, so a galaxy whose live repair file is lost can still be repaired from a backup. The copy is as big as the file (about 7 percent of the sectors' size); switch it off for a very large galaxy. The settings backup made before each save never holds it. |
 | `site.tagline` | Tagline | text | empty | at once | any admin | none | A short line shown under the home page's heading and used as the description of pages that give none of their own. |
 | `site.language` | Language | text | en | at once | any admin | none | The pages' language as a code (en, de, en-GB): the `lang` of every page and the Open Graph locale. |
 | `web.title_template` | Page title format | text | {title} - {site_name} | at once | any admin | none | How a page's title is written in the browser tab and in search results; {title} is the page's own title and {site_name} the site name. |

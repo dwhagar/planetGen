@@ -51,6 +51,7 @@ def env(tmp_path, monkeypatch):
         monkeypatch.delenv(variable, raising=False)
     settings.reset_cache()
     before = backup.registered()
+    core._PARTS.pop("parity", None)         # these tests count the parts of an archive; the parity part has its own (test_backup_parity_part.py)
     store = {"text": "first"}
     yield state, store
     core._PARTS.clear()
