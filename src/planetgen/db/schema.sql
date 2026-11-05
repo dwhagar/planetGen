@@ -3871,7 +3871,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
-    planet_type         VARCHAR(4) NULL CHECK (planet_type IN ('t', 'g')),   -- v207: NULL for a row of the physics rogue (its type is `body_type`)
+    planet_type         VARCHAR(12) NULL,   -- v207: NULL for a row of the physics rogue (its type is `body_type`)
     -- v47: its PLANET_CLASSES letter (GEN.8); NULL for a brown dwarf.
     planet_class        VARCHAR(4),
     -- v37: the mass bin it was drawn from (program_constants.
@@ -4144,6 +4144,13 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     surface_liquid_acid_wt      DOUBLE,  -- v207 (GEN.1111)
     surface_liquid_acid_layer   VARCHAR(8),  -- v207 (GEN.1111)
     surface_liquid_ammonia_wt   DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_methane_mol    DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_ethane_mol     DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_salt_wt        DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_2              VARCHAR(32),  -- v207 (GEN.1111)
+    surface_liquid_2_fraction     DOUBLE,  -- v207 (GEN.1111)
+    class_variant                 TINYINT,  -- v207 (GEN.1111)
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)

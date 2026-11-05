@@ -6,7 +6,7 @@ and six columns of its own: `donor_uid` and `event_index` (the system that eject
 so saving a donor again replaces its rogues and never duplicates them), `ejection_delay_gy` (how long after the system formed it was ejected),
 `since_ejection_gy` (how long ago), `ejection_speed_kms` (the kick) and `rogue_note` (the sentence that says where it came from).
 Four child tables, `rogue_planet_reflection_spectrum`, `rogue_planet_interior_layers`, `rogue_planet_gases` and `rogue_planet_life_class_scores`,
-hold what `planet_*` hold for a planet. The columns named for the flat-rate rogue (`planet_type`, `composition`, `has_internal_heat`, `has_moons`)
+hold what `planet_*` hold for a planet. `planet_type` becomes VARCHAR(12) with no CHECK (the body type of GEN.1219: `terrestrial`, `transitional`, ...), and `class_variant` and the six surface liquid columns of GEN.1218b are added with the rest. The other columns named for the flat-rate rogue ( `composition`, `has_internal_heat`, `has_moons`)
 become NULLable: a row of the physics rogue leaves them NULL (the revision that removes the flat-rate generator drops them). A column or table
 already there is skipped, so a stopped run can be started again.
 """
@@ -175,6 +175,13 @@ COLUMNS = (
     ('ground_intermediate_fraction', 'DOUBLE NULL'),
     ('surface_liquid', 'VARCHAR(32) NULL'),
     ('surface_liquid_fraction', 'DOUBLE NULL'),
+    ('surface_liquid_methane_mol', 'DOUBLE NULL'),
+    ('surface_liquid_ethane_mol', 'DOUBLE NULL'),
+    ('surface_liquid_nitrogen_mol', 'DOUBLE NULL'),
+    ('surface_liquid_salt_wt', 'DOUBLE NULL'),
+    ('surface_liquid_2', 'VARCHAR(32) NULL'),
+    ('surface_liquid_2_fraction', 'DOUBLE NULL'),
+    ('class_variant', 'TINYINT NULL'),
     ('surface_liquid_depth_km', 'DOUBLE NULL'),
     ('surface_liquid_acid_wt', 'DOUBLE NULL'),
     ('surface_liquid_acid_layer', 'VARCHAR(8) NULL'),
@@ -223,7 +230,7 @@ COLUMNS = (
 """tuple: The columns added to `rogue_planets`, each with its definition."""
 
 RELAXED = (
-    ("planet_type", "VARCHAR(4) NULL"),
+    ("planet_type", "VARCHAR(12) NULL"),
     ("composition", "TEXT NULL"),
     ("has_internal_heat", "TINYINT(1) NULL"),
     ("has_moons", "TINYINT(1) NULL"),
@@ -301,6 +308,12 @@ def upgrade():
                if not helpers.exists_column(connection, "rogue_planets", column)]
     if changes:
         connection.execute(sa.text(f"ALTER TABLE rogue_planets {', '.join(changes)}"))
+    for name in connection.execute(sa.text(
+            "SELECT c.CONSTRAINT_NAME FROM information_schema.CHECK_CONSTRAINTS c"
+            " JOIN information_schema.TABLE_CONSTRAINTS t ON t.CONSTRAINT_SCHEMA = c.CONSTRAINT_SCHEMA AND t.CONSTRAINT_NAME = c.CONSTRAINT_NAME"
+            " WHERE c.CONSTRAINT_SCHEMA = DATABASE() AND t.TABLE_NAME = 'rogue_planets' AND t.CONSTRAINT_TYPE = 'CHECK'"
+            " AND c.CHECK_CLAUSE LIKE '%planet_type%'")).scalars().all():
+        connection.execute(sa.text(f"ALTER TABLE rogue_planets DROP CHECK {name}"))    # 't'/'g' of the flat-rate rogue; the type is now a word of 12 letters at most
     for column, definition in RELAXED:
         if helpers.exists_column(connection, "rogue_planets", column):
             connection.execute(sa.text(f"ALTER TABLE rogue_planets MODIFY {column} {definition}"))
