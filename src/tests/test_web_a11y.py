@@ -652,7 +652,7 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
             """() => {
                 const a = document.activeElement, main = document.getElementById("main");
                 const r = a.getBoundingClientRect();
-                return {cls: a.className, href: a.getAttribute("href"),
+                return {cls: a.className, href: a.getAttribute("href"), top: r.top, scrollY: window.scrollY,     // (TEST.599: the failure says where the page was)
                         main: !!main && main.tagName === "MAIN",
                         visible: r.width > 0 && r.height > 0 && r.top >= 0 && r.left >= 0 &&
                                  r.right <= document.documentElement.clientWidth};

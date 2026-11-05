@@ -16,7 +16,6 @@ from planetgen import tuning
 from planetgen.physics import rings, surface_liquid_world
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
-from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 from tests.publicids import pid
 
 pytestmark = pytest.mark.db
