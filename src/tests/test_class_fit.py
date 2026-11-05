@@ -14,7 +14,7 @@ from tests.test_planet_classes import CASES, EARTH, airless, body
 
 def test_every_class_letter_has_its_own_complete_conditions():
     assert set(pc.LETTERS) <= set(cf.LETTERS)
-    assert set(cf.LETTERS) - set(pc.LETTERS) == set("RUYZ")      # the matrix classes the first-match tree has no row for (GEN.1221) until GEN.1207
+    assert set(cf.LETTERS) - set(pc.LETTERS) == set("RUXYZ")      # the matrix classes the first-match tree has no row for (GEN.1221) until GEN.1207
     by_kind = {(c.letter, c.kind) for c in cf.CLASSES}
     for cls in pc.CLASSES:
         assert (cls.letter, cls.kind) in by_kind, f"{cls.letter} ({cls.kind}) has no row in planet_class_fit.json"

@@ -75,6 +75,8 @@ def values_from_body(body):
         "groundwater": getattr(body, "groundwater", None),
         "aquifer_depth_km": getattr(body, "aquifer_depth_km", None),
         "aquifer_thickness_km": getattr(body, "aquifer_thickness_km", None),
+        "ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
+        "surface_liquid_ammonia_wt": getattr(body, "surface_liquid_ammonia_wt", None),
     }
     for number in range(1, BAND_COUNT + 1):         # the seven latitude bands (GEN.1108), which the regional, day and night temperatures of a class read (GEN.1221)
         for field in ("mean_k", "swing_k"):
