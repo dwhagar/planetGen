@@ -341,6 +341,10 @@ def planet_sections(name, row, sheet, species, piece, readings=()):
         return None if group is None else {**group, "rows": [r for r in group["rows"] if not drop(r["key"])]}
 
     atmosphere = without("atmosphere", lambda key: key.startswith("p_"))
+    colour = planet_layout.atmosphere_colour_fact(piece["blocks"] if piece else [])
+    if colour is not None:        # the sky colour (GEN.420) is a row of the description's facts table, which the page drops
+        colour_row = {"key": colour["key"], "label": colour["label"], "html": trusted_html(inline_html(colour["value"])), "stored": True, "source": None}
+        atmosphere = {**(atmosphere or {"key": "atmosphere", "label": "Atmosphere"}), "rows": [colour_row, *(atmosphere["rows"] if atmosphere else [])]}
     composition = without("composition", lambda key: key in planet_layout.MASS_SHARED_KEYS)
     phi6 = without("habitability", lambda key: False)
     return {

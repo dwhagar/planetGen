@@ -61,6 +61,16 @@ def test_the_descriptions_blocks_are_sorted_into_their_sections():
     assert [b["role"] for b in parts["life"]] == ["life"] and [b["role"] for b in parts["rest"]] == ["flavor"]
 
 
+def test_the_sky_colour_row_comes_out_of_the_bodys_facts_table():
+    row = model.fact("atmosphere_colour", "Atmosphere color", model.swatch("#99bfff", "pale blue"))
+    for caption in ("Planet", "Moon"):
+        found = planet_layout.atmosphere_colour_fact([model.prose("description", "It is temperate."), model.facts(caption, [model.fact("class", "Class", "M"), row])])
+        assert found["label"] == "Atmosphere color" and found["value"][0]["swatch"] == {"hex": "#99bfff", "word": "pale blue"}
+    assert planet_layout.atmosphere_colour_fact([model.facts("Planet", [model.fact("class", "Class", "M")])]) is None
+    assert planet_layout.atmosphere_colour_fact([model.facts("Radiation", [row])]) is None
+    assert planet_layout.atmosphere_colour_fact([]) is None
+
+
 def _row(key, label, raw, value=None):
     return {"key": key, "label": label, "value": value or [str(raw)], "text": str(raw), "raw": raw, "stored": True}
 
