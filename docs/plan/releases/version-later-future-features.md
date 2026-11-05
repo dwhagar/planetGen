@@ -44,7 +44,6 @@ The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.219 | The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target |  | PERF.137 audit follow-up |
 
 ### Upstream follow-ups
 

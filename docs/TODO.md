@@ -14648,16 +14648,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   anywhere and takes load off 8.2.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.219 The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target**
-  Left over from the PERF.137 audit
-  (reports/limit-offset-final-audit-perf137-2026-10-31.md): the name
-  sort is already keyset, the filter plus the sector or octant sort is
-  not. Also residual and smaller: planetgen planets and moons with a
-  class or radius filter and no cursor (CLI only), and a hand-typed deep
-  offset on the Phenomena list. Measure on a real MySQL at a full galaxy
-  before and after.
-  Prerequisites: none.
-
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
   Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
   generation run on hal that began about 2:34 PM EDT failed after 11104
