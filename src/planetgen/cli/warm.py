@@ -50,7 +50,7 @@ import sys
 import time
 
 from planetgen.admin import stop_reason, updateguard
-from planetgen.cli import warm_progress
+from planetgen.cli import warm_log, warm_progress
 from planetgen.queue import redisqueue, runrecord, units, warmphases, warmstart, wrapper
 from planetgen.util import log
 
@@ -104,7 +104,7 @@ def _site_database():
         return db_name()
 
 
-TIME_LIMIT_ENV = "PLANETGEN_WARM_TIME_LIMIT_SECONDS"
+TIME_LIMIT_ENV = warm_log.TIME_LIMIT_ENV
 """str: update.sh's time limit for the stage (`WARM_STAGE_SECONDS`), told to the run so it can say the limit ended it."""
 
 _started = time.monotonic()
@@ -192,12 +192,21 @@ def _say_stopped(reason, status):
 
 def _warm_once(args, reason=None):
     """
-    Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
-    command's line.
+    Runs one warm-up (`_warm_run`) and keeps its record in `warmup.log` (`warm_log.RunLog`, OPS.96): a line that says what started it,
+    every line it prints, and a line that says how it ended.
 
     Raises:
         Failed: A command failed, Redis did not answer or another warm-up runs.
         SystemExit: The arguments name no such family or phase.
+    """
+    with warm_log.RunLog(reason) as record:
+        _warm_run(args, reason, record)
+
+
+def _warm_run(args, reason, record):
+    """
+    Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
+    command's line (and `record.families` the number of families it warmed).
     """
     from planetgen.web import warmup
     try:
@@ -213,7 +222,7 @@ def _warm_once(args, reason=None):
             warmphases.begin(args.database, phases, reason)
             bars = warm_progress.WarmProgress(
                 [step.key for step in steps], log.normal, show=getattr(args, "progress", False),
-                rich_bars=warm_progress.stdout_is_terminal(), expected=warmup.EXPECTED_SECONDS)
+                rich_bars=warm_progress.stdout_is_terminal(), expected=warmup.EXPECTED_SECONDS, mirror=record.say)
 
             def report_ended():
                 for name in tally.ended:
@@ -246,6 +255,7 @@ def _warm_once(args, reason=None):
             warmphases.end(args.database, error=f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__)
             raise
     warmed = [step.key for step in steps if step.key in warmup.FAMILIES]
+    record.families = len(warmed)
     log.normal(f"Cache warm-up done: {len(warmed)} families.")
 
 
