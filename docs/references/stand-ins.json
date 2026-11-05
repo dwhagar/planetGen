@@ -33799,7 +33799,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": null,
+          "unread": "VIEW.25",
           "what": "sky_tiers.BLOCK_VISIT_SECONDS 4e-5: what the sphere draw spends on a row or a block, one worker, warm, in the far bands that hold most of the visits"
         },
         {
@@ -33837,7 +33837,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": null,
+          "unread": "VIEW.25",
           "what": "sky_tiers.NEAR_RING_MASSES_SOL (0.1, 0.3, 0.5, 0.7, 0.85): the mass edges under 1 solar mass the sky's rings add, so the stars born lighter than the Sun that show near the observer are drawn"
         },
         {
@@ -33875,7 +33875,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": null,
+          "unread": "VIEW.25",
           "what": "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
         },
         {
@@ -33913,7 +33913,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": null,
+          "unread": "VIEW.25",
           "what": "sky_tiers.LOCAL_MIX: the young, intermediate and old populations weigh alike in the share of a ring's stars that show, as near the Sun, where the halo and the bulge are a thousandth of the stars"
         }
       ],
