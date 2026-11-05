@@ -1,0 +1,4 @@
+**Headline:** The Galaxy Map has a Plane view: a tilted camera and a grid of distance rings across a 60 degree wedge of the galaxy.
+
+### Added
+- **Plane view (Menu).** One button tilts the camera to a preset and lays a grid on a plane through the middle of the view, parallel to the galaxy's midplane: rings at round distances (labelled in parsecs or kiloparsecs) inside a 60 degree wedge from the galactic center, with the wedge's two edges drawn. With a star or other object selected the rings are drawn around it. "Plane at galactic midplane" puts the grid at height 0 instead. The wedge stays where it is while the view stays inside it and turns to follow the view when it leaves. Turning it off brings the map's own tilt back. The existing 3D view and everything outside the wedge are drawn as before.

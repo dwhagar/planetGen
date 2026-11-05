@@ -120,6 +120,7 @@ const {
 } = await import(`./nebulamesh.js${VERSION_QUERY}`);
 const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
+const { createPlaneView } = await import(`./galaxyplane.js${VERSION_QUERY}`);
 const { createSideStrip } = await import(`./galaxystrip.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
@@ -177,6 +178,17 @@ export function mapControlHandlers(ctx) {
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
+    // MAP.371: the plane view (galaxyplane.js) and the choice of the plane the grid lies in.
+    "plane-view": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneView(on);
+    },
+    "plane-midplane": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneMidplane(on);
+    },
     "step": function (button) { ctx.stageView.stepToNeighbour(button.dataset.step); },
     "map-help": function (button) {
       var dialog = document.getElementById("galaxymap3d-help");
@@ -1246,10 +1258,12 @@ function initGalaxyMap3d(canvasEl, data) {
   var selectionRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5 });
   var hoverRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5, opacity: 0.45 });
 
+  var planeView = null;    // MAP.371: set once the map is built
   // MAP.375: the side strip rings what the map has selected (set once the strip is built).
   var sideStrip = null;
   function highlightPosition(x, y, z) {
     selectionRing.at(x, y, z, { px: HIGHLIGHT_PX * 2 });
+    if (planeView) planeView.select([x, y, z]);
     if (sideStrip) sideStrip.setSelected({ x: x, y: y, z: z });
   }
 
@@ -4000,7 +4014,7 @@ function initGalaxyMap3d(canvasEl, data) {
     labelHot: function (id) { if (galaxyLabels) galaxyLabels.setHot(id); },
     labelAct: function (label) { actOnLabel(label); },
     picker: picker,
-    clearSelection: function () { selectionRing.hide(); if (sideStrip) sideStrip.setSelected(null); },
+    clearSelection: function () { selectionRing.hide(); if (planeView) planeView.select(null); if (sideStrip) sideStrip.setSelected(null); },
     restingHint: restingHint,
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     // A sector page's map is locked to its sector (MAP.68): {shell, band,
@@ -5088,6 +5102,11 @@ function initGalaxyMap3d(canvasEl, data) {
   // docstring) -- the browser's own default context menu is left alone,
   // rather than preventDefault()-ing it for nothing.
 
+  planeView = createPlaneView({
+    THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accentColor: accentColor,
+    focus: function () { return [target.x, target.y, target.z]; },
+    span: function () { return 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2); },
+  });
   // MAP.375: the side strip for height (galaxystrip.js), an option in the Menu and a drawer on a phone. A star picked in
   // the strip is selected on the map as a click on it would select it; the map's selection rings in the strip.
   var stripHost = document.getElementById("galaxymap3d-strip");
@@ -5132,6 +5151,15 @@ function initGalaxyMap3d(canvasEl, data) {
       setTerritories: setTerritories,
       territoriesWanted: function () { return territoryWanted; },
       setChartedOnly: setChartedOnly,
+      // MAP.371: the plane view: the camera takes the tilt preset and the wedge gets its grid; the second button puts the grid in
+      // the galaxy's midplane instead of through the focus.
+      setPlaneView: function (on) {
+        planeView.set(on);
+        stageView.planeTilt(on);
+        var midplane = document.querySelector("[data-action='plane-midplane']");
+        if (midplane) midplane.disabled = !on;
+      },
+      setPlaneMidplane: function (on) { planeView.setMidplane(on); },
       setSideStrip: setSideStrip,
     }));
   }
@@ -5366,6 +5394,7 @@ function initGalaxyMap3d(canvasEl, data) {
       markerLayer.update();
     }
     if (sectorFrame) sectorFrame.update();
+    planeView.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
     renderFrame();
   })();
