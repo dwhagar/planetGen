@@ -47,7 +47,7 @@ PLAIN_UNITS = ("ratio", "count", "Sv/yr")
 SECTION_KINDS = ("system", "star", "black-hole", "neutron-star", "pair", "planet", "moon", "belt", "comet", "nebula",
                  "quasar", "rogue-planet", "interstellar-comet", "asteroid-field", "supernova-remnant")
 BLOCK_TYPES = ("facts", "ratings", "composition", "prose")
-PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life-class", "life", "timeline", "milestone", "flavour")
+PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life-class", "life", "timeline", "milestone", "flavor", "history")
 
 
 def qty(kind, value, unit=None, **extra):
@@ -183,7 +183,7 @@ SPLIT_KEYS = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "be
 def split_by_body(document):
     """
     A system's Document split into the pieces the web page shows under each row: `overview` (the blocks above the
-    list: a binary pair's own facts, the system overview, a close pair's age sentence and any system flavour text, in
+    list: a binary pair's own facts, the system overview, a close pair's age sentence and any system flavor text, in
     page order) and `stars`, `planets`, `moons`, `belts` and `comets`, each mapping the `id` in a section's `ref`
     (`"planet:12"` -> `"12"`) to that section's own blocks, without its heading or its child sections. A section
     with no `ref` (a body that was never stored) has no entry.

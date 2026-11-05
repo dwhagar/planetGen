@@ -123,7 +123,7 @@ def test_mars_would_hold_far_more_n2_than_it_has_so_the_thin_air_is_the_escape_o
     assert mars / MARS["mass_kg"] > _balance(EARTH, 0.1, EARTH_CAPS)["air_kg"]["N2"] / EARTH["mass_kg"]
 
 
-def test_the_impactor_vapour_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets():
+def test_the_impactor_vapor_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets():
     for planet in (EARTH, VENUS, MARS):
         zeta = _balance(planet, 0.1, fraction=1e-4)["escape_share"]
         assert 0.05 < zeta < 0.25
@@ -147,3 +147,17 @@ def test_the_veneer_scale_is_drawn_inside_its_bracket_and_recorded():
     scale = constants["veneer_volatile_scale"]
     assert ih.VENEER_VOLATILE_SCALE[0] <= scale <= ih.VENEER_VOLATILE_SCALE[1]
     assert volatiles["N2"] == pytest.approx(ih.VENEER_VOLATILES["N2"] * scale)
+
+
+def test_the_mass_weighted_erosion_is_the_sum_of_the_efficiencies_to_the_last_digit():
+    """PERF.229: `erosion_per_impactor_mass` takes what does not depend on the diameter out of its loop (a planet's air balance asks it 400 times for each body); it is
+    the same arithmetic, so it equals the plain sum of `erosion_efficiency` over the grid exactly."""
+    import math
+    import random
+    from planetgen.physics import impact_history as ih
+    rng = random.Random(5)
+    for _ in range(200):
+        args = (10 ** rng.uniform(-6, 2), 10 ** rng.uniform(2, 6), 10 ** rng.uniform(3, 5), 10 ** rng.uniform(2.5, 5))
+        plain = math.fsum(w * ih.erosion_efficiency(args[0], args[1], d, args[2], args[3]) for d, w in zip(ih._GRID, ih._WEIGHTS))
+        assert ih.erosion_per_impactor_mass(*args) == plain
+    assert ih.erosion_per_impactor_mass(0.0, 8000.0, 2e4, 1e4) == 0.0

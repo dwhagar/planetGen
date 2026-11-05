@@ -569,6 +569,44 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   route strip, on the NAV page's map and on the Galaxy Map course, with a legend
   entry; under `prefers-reduced-motion` red without the pulse; readable in both
   themes; the list also labels it "unknown space" in text.
+- **Course diagram (NAV.67, with NAV.36).** A panel below the NAV page's map
+  (`web/maps/navdiagram.py`) draws the ribbon of `navribbon.layout_ribbon` (NAV.66) as SVG:
+  the stops left to right, a glyph for each kind (a disc for a system, a hexagon for a
+  phenomenon, and a shape of its own for each kind of stop in unknown space, so the kinds read
+  by shape and not by colour), the hop's length on it and its course where the gap is wide
+  enough, the start ringed dashed and the destination ringed twice. A hop through unknown
+  space is red, dashed and glowing, with a legend entry and the words in the panel's text and
+  in the hop's title; the glow pulses only without `prefers-reduced-motion`. The spacing
+  follows the logarithm of a hop's length, so the panel says it is a schematic and not to
+  scale. Three drawings of one route are on the page (layout widths 260, 520 and 880 px) and a
+  media query shows the one that fits, so a phone wraps a long route into rows while the text
+  stays near its set size (12 px, drawn at 0.9 or more of it). Each stop is a link to its page
+  (a stop in unknown space has none) and has a text alternative; the route list stays the
+  plain-text form.
+  **Linked to the Galaxy Map (NAV.69).** The Galaxy Map's course readout carries the same diagram (stops with
+  no neighbour stubs removed, the link sentence added). A plain click on a stop of the diagram selects that
+  stop on the map's course (its ring is marked and the map flies to it) and marks it in all three drawings; a
+  click on a stop's ring on the map marks the same stop in the diagram; a second click on the selected stop,
+  or a click with Ctrl, Shift, Alt or Meta held, opens the stop's page. `static/coursediagram.js` holds the
+  diagram's side; the map's side is in `galaxymap3d.js`'s NAV course section.
+  **Neighbours (NAV.68).** The NAV page asks for the route's graph (`graph=1`, NAV.65) and draws it
+  faintly under the route: a short stub from a stop to each neighbour off the route (the graph caps them
+  per stop), "and N more" over a stop where the cap cut some, and a dotted arc between two stops of one
+  row that are neighbours but no hop (a link between stops on two rows is counted in a note under the
+  drawing and not drawn). A stub has no text of its own, only a title with its distance, since the
+  stubs lie too close for labels; the arc carries its length. The panel and its legend say a link is a
+  neighbour relation (which systems lie near each other, by the relative neighbourhood rule), not a
+  travel lane, and the route's own hops are drawn over the neighbours. A hop's course text is left out
+  where an "and N more" sits over it. Names and labels carry a halo of the panel's colour so a stub
+  never cuts through their letters.
+  The route list's unknown-space hops are red as well.
+  **On the maps (NAV.36).** The NAV page's own map draws each run of known hops as one solid path and each
+  unknown-space hop as its own path: red, dashed, with an SVG glow filter (`navmap-glow`) and a title in words,
+  pulsing only without `prefers-reduced-motion`; a legend line under the map and a bullet in the map help say
+  what it is. The Galaxy Map's course draws the same hop (`hopUnknown` on the point it arrives at, from
+  `nav_page.galaxy_course`) as a red dashed line, with the glow a row of soft red sprites laid along it,
+  as many as the hop is long on the screen (`static/coursehops.js`), pulsing the same way, and a Key line
+  ("Red dashed glowing line: a jump through unknown space") shown only for a course that has one.
 - **Saved courses (NAV.39, phase 2).** A saved course (NAV.17) keeps which hops
   were unknown-space jumps; opening it checks again, since sectors may have
   been filled, and says what changed.

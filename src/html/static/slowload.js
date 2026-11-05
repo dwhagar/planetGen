@@ -4,7 +4,7 @@
 // built by a queued job (PERF.105) with the page's frame and a progress bar; this polls the job
 // (`GET /api/page-jobs/<id>`), draws its estimated progress, and when the job has succeeded fetches the same address
 // again and swaps the finished content in without reloading the page. If that page is waiting for another job (a
-// search asks for several answers) it carries on with that one. A failed or cancelled job shows its reason and a
+// search asks for several answers) it carries on with that one. A failed or canceled job shows its reason and a
 // Try again (the fetch carries `X-Slow-Retry`, so a new job replaces the failed one). Stop waiting only stops this
 // page polling: the job is shared by every visitor who asked for the same thing, so it goes on, and Check again
 // picks it up. Without JavaScript the page refreshes itself (a `<noscript>` meta refresh).
@@ -31,7 +31,7 @@ const STATE_TEXT = {
   queued: "Waiting for a worker to start building this page.",
   running: "Building this page.",
   failed: "This page could not be built.",
-  cancelled: "An administrator stopped building this page.",
+  canceled: "An administrator stopped building this page.",
   succeeded: "Built. Showing it now.",
 };
 
@@ -77,11 +77,11 @@ function render(job) {
     else bar.value = percent;
   }
   setText("percent", percent === null ? "" : `${percent}%`);
-  const failed = job.state === "failed" || job.state === "cancelled";
+  const failed = job.state === "failed" || job.state === "canceled";
   setText("status", failed ? "" : statusText(job));
   const error = part("error");
   if (error) {
-    error.textContent = failed ? (job.state === "failed" ? job.error || STATE_TEXT.failed : STATE_TEXT.cancelled) : "";
+    error.textContent = failed ? (job.state === "failed" ? job.error || STATE_TEXT.failed : STATE_TEXT.canceled) : "";
     error.hidden = !failed;
   }
   show("stop", !failed && !stopped);
@@ -119,7 +119,7 @@ async function poll() {
       await bring(false);
       return;
     }
-    if (job.state === "failed" || job.state === "cancelled") {
+    if (job.state === "failed" || job.state === "canceled") {
       busy = false;
       return;
     }
@@ -222,6 +222,6 @@ if (panel) {
     setText("status", STATE_TEXT.queued);
     formatters.then(function () { bring(true); });
   });
-  const failedAtStart = panel.dataset.state === "failed" || panel.dataset.state === "cancelled";
+  const failedAtStart = panel.dataset.state === "failed" || panel.dataset.state === "canceled";
   if (!failedAtStart) formatters.then(schedule);
 }

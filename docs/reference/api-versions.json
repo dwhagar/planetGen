@@ -145,6 +145,21 @@
         "GET /api/systems/<id>: the regions of a planet or moon's equipment is {bands, mean_swing_k}: bands is the seven bands from the north pole to the south pole (the day centre to the night centre for a world that turns once an orbit), each {name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}; polar, north, equator, south, day_side, terminator, night_side and the swings by those names are gone",
         "GET /api/objects/<ref>/sheet: a planet or moon has bands, the table of its seven bands, and no temp_polar_k, temp_north_k, temp_equator_k, temp_south_k, temp_swing_k, temp_day_side_k, temp_terminator_k or temp_night_side_k rows"
       ]
+    },
+    {
+      "version": 13,
+      "first_release": null,
+      "pending": true,
+      "items": [
+        "GEN.1212",
+        "DOC.103"
+      ],
+      "summary": "A planet or moon no longer carries a description text of its class; the stored values and API keys spelled the British way are spelled the American way.",
+      "changes": [
+        "GET /api/systems/<id>: planets and moons have no description; the words of a class are on the system's description document (GET /api/systems/<id>/description) and the object sheet",
+        "GET /api/sectors/<id>, GET /api/containers/at, GET /api/containers/<id>, GET /api/galaxy/charted-regions, the extent of a region node and the galaxy block statistics: the keys centre, centre_pc and centre_distance_pc are center, center_pc and center_distance_pc",
+        "A body's hydrosphere value vapour is vapor; the population value nuclear_disc is nuclear_disk; the run and job states cancelling and cancelled are canceling and canceled, and the answer of a cancel is {ok, canceled, stopped}"
+      ]
     }
   ]
 }

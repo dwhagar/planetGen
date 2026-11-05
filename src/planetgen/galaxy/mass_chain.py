@@ -61,7 +61,7 @@ ALPHA_2 = -1.47
 
 AUTO_LOG_MASS_RANGE = (math.log10(3.0e9), math.log10(6.0e9))
 """tuple: The stellar masses a galaxy with no pinned mass is drawn from, log10 solar masses: the lower edge of the first
-family (3e9, Boss, 2026-10-16, 9:39 PM EDT) up to a factor of two above it, so the thin disc's scale length is about
+family (3e9, Boss, 2026-10-16, 9:39 PM EDT) up to a factor of two above it, so the thin disk's scale length is about
 1.3 to 1.5 kpc, roughly half that of a large spiral (Boss, 2026-10-21, 6:57 and 7:05 PM EDT: the sliders default to a
 smaller spiral, the user pushes up). A pinned mass is not limited to it (`dials` gates it)."""
 
@@ -212,8 +212,8 @@ def has_halo(stellar_mass_solar):
 
 
 def has_full_structure(stellar_mass_solar):
-    """Whether a galaxy of this stellar mass has a thick disc, a bar, a stellar halo and nuclear structures
-    (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`); under it the galaxy is one disc plus a bulge."""
+    """Whether a galaxy of this stellar mass has a thick disk, a bar, a stellar halo and nuclear structures
+    (`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`); under it the galaxy is one disk plus a bulge."""
     return stellar_mass_solar >= dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR
 
 

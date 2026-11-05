@@ -25,7 +25,7 @@ of the one shared materials table (GEN.427), a porosity, and from them `physics.
 
 What each draw returns is a `SmallBodyMakeup`: the mass fractions by component, their sums in four groups (metal, rock, water,
 other ice: the shape of lane I's `BulkFractions`), the porosity, the grain and bulk density. The draws read only `util.draw` in a
-fixed order, so a body is the same at any worker count; nothing here reads a Solar System body as a centre (the bodies of the
+fixed order, so a body is the same at any worker count; nothing here reads a Solar System body as a center (the bodies of the
 design note's section 8 are test targets).
 
 Use:
@@ -338,7 +338,7 @@ def chondrite_group(components):
 
 def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
     """
-    The makeup of a mixture of the taxa `names` around the centre `weights`: the Dirichlet shares, then a porosity for each taxon
+    The makeup of a mixture of the taxa `names` around the center `weights`: the Dirichlet shares, then a porosity for each taxon
     (`porosity` states one for all, drawing none); the rest as `draw_belt` says.
     """
     drawn = draw.dirichlet([concentration * w for w in weights])
@@ -475,7 +475,7 @@ def draw_comet(period_class=None, interstellar=False, ice_ratios=None):
         period_class (str or None): `jupiter_family`, `halley_type`, `long_period`; `None` (a parabolic or interstellar
             comet) takes `long_period`.
         interstellar (bool): True for an interstellar comet (the wider carbon-oxide ranges).
-        ice_ratios (tuple or None): `(CO2/H2O, CO/H2O)` of the disc zone the comet formed in (`comet_ice_budget.ice_ratios`): the median
+        ice_ratios (tuple or None): `(CO2/H2O, CO/H2O)` of the disk zone the comet formed in (`comet_ice_budget.ice_ratios`): the median
             carbon oxides come from the zone (`comet_population.draw_volatiles`); `None` keeps the population's.
 
     Returns:
@@ -507,11 +507,11 @@ def draw_comet(period_class=None, interstellar=False, ice_ratios=None):
 # Icy bodies and rings
 
 ROCK_FRACTION_LAWS = {
-    # row name: (centre, sd, low, high) of a truncated normal in the rock mass fraction
+    # row name: (center, sd, low, high) of a truncated normal in the rock mass fraction
     "icy-intact": (0.70, 0.08, 0.45, 0.95),
     "icy-stripped": (0.88, 0.05, 0.75, 0.98),
 }
-"""dict: The rock fraction of an icy body by row. The centre of the first is Bierson and Nimmo's 70 percent (verified); its width
+"""dict: The rock fraction of an icy body by row. The center of the first is Bierson and Nimmo's 70 percent (verified); its width
 and limits are the repository's. The second is the collisional tail of [R0269] (Haumea, Eris), whose weight is open."""
 
 ICY_TABLE = pt.REGISTRY.register(pt.Table(
@@ -527,9 +527,9 @@ ICY_TABLE = pt.REGISTRY.register(pt.Table(
 """Table: The icy-body rock fraction rows."""
 
 
-def _truncated_normal(centre, sd, low, high):
+def _truncated_normal(center, sd, low, high):
     """One truncated normal draw with one random number (inverse transform)."""
-    normal = statistics.NormalDist(centre, sd)
+    normal = statistics.NormalDist(center, sd)
     a, b = normal.cdf(low), normal.cdf(high)
     q = min(max(a + draw.random() * (b - a), 1e-16), 1.0 - 1e-16)
     return min(max(normal.inv_cdf(q), low), high)

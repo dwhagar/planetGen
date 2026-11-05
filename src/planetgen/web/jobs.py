@@ -34,7 +34,7 @@ job) is noticed and cleared by the next `start_job`, and that job shows
 as "interrupted". A job that finds another running does not fail: `submit`
 puts it in the one waiting list (`planetgen.queue.runline`, PERF.154), up to
 `queue.max_waiting` entries, and it starts by itself when the job before it
-succeeded or was cancelled (`promote_queued`).
+succeeded or was canceled (`promote_queued`).
 
 The database a job writes is the one this site shows (`helpers.db_name`),
 passed to the child through the same `PLANETGEN_MYSQL_*` environment
@@ -107,7 +107,7 @@ JOB_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{4}$")
 """re.Pattern: A job id: `YYYYMMDD-HHMMSS-xxxx`. Checked before any id
 from a URL becomes part of a path."""
 
-FINISHED = frozenset({"succeeded", "failed", "cancelled", "interrupted"})
+FINISHED = frozenset({"succeeded", "failed", "canceled", "interrupted"})
 
 
 class JobBusy(Exception):
@@ -247,7 +247,7 @@ def get_job(job_id, root=None):
     Returns:
         dict: `job.json`'s fields (`id`, `title`, `kind`, `steps` as
             labels, `created_at`, `admin`, `database`) plus `status`
-            (`starting`, `running`, `succeeded`, `failed`, `cancelled`,
+            (`starting`, `running`, `succeeded`, `failed`, `canceled`,
             `interrupted`), `step` (1-based, 0 before the first),
             `step_label`, `step_started_at`, `step_estimates` (seconds per step in earlier
             runs, `None` where unknown; PERF.55), `started_at`, `finished_at`, `elapsed_s`,
@@ -381,7 +381,7 @@ def remaining_steps(job_id, root=None):
     """
     What Retry on the admin queue page (ADM.10) runs again for a finished
     job that didn't succeed: its steps from the one that failed, was
-    cancelled or was cut off, onward (a step that already succeeded
+    canceled or was cut off, onward (a step that already succeeded
     isn't run twice).
 
     Returns:
@@ -739,7 +739,7 @@ def cancel_runs(job_id, who=None):
     for the step that follows them to notice. Best effort: with no Redis the step's own stop is all there is.
 
     Returns:
-        int: How many runs were cancelled.
+        int: How many runs were canceled.
     """
     try:
         from planetgen.queue import runcontrol, runrecord
@@ -756,7 +756,7 @@ def _end_orphan(root, path, job_id, who):
     """
     Cancel of a job whose runner is gone (killed by the out-of-memory killer, a restart or a crash; PERF.186): its step
     and the processes of that step's group were started apart from the runner and run on, so they are ended here
-    (SIGTERM, then SIGKILL), its live runs are cancelled, and the job is marked cancelled and its lock freed. Before
+    (SIGTERM, then SIGKILL), its live runs are canceled, and the job is marked canceled and its lock freed. Before
     this, Cancel on such a job did nothing, and the page showed it as interrupted while its processes kept the host busy.
 
     Returns:
@@ -785,7 +785,7 @@ def _end_orphan(root, path, job_id, who):
             break
     did = bool(cancel_runs(job_id, who)) or did
     if state.get("status") in (None, "running"):
-        state.update(status="cancelled", finished_at=time.time(), error=f"Canceled by {who or 'an admin'} after its runner "
+        state.update(status="canceled", finished_at=time.time(), error=f"Canceled by {who or 'an admin'} after its runner "
                                                                          "had stopped.")
         state.pop("step_pid", None)
         try:
@@ -803,7 +803,7 @@ def cancel_job(job_id, root=None, who=None):
     Asks a running job to stop: writes a `cancel` file into its directory, which the runner checks for while a step
     runs, and cancels the job's live runs through the stop command (`cancel_runs`). The runner then
     stops the step and everything the step started, and marks the job
-    cancelled. (A file rather than a signal, so the runner stops the step
+    canceled. (A file rather than a signal, so the runner stops the step
     and releases the lock itself.)
 
     Returns:
@@ -822,7 +822,7 @@ def cancel_job(job_id, root=None, who=None):
             f.write(str(time.time()))
     except OSError:
         return False
-    cancel_runs(job_id, who)        # after the file: the step that finds its run stopped is then a cancelled one, not a failed one
+    cancel_runs(job_id, who)        # after the file: the step that finds its run stopped is then a canceled one, not a failed one
     log.debug("Cancel requested for job %s (runner pid %s)", job_id, pid)
     return True
 
@@ -860,7 +860,7 @@ def _remove(path):
 def submit(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
     """
     Starts the job, or, when another job is running, puts it in the waiting list (PERF.154): it starts by itself when the
-    job before it succeeded or was cancelled and is held for an admin when that job failed.
+    job before it succeeded or was canceled and is held for an admin when that job failed.
 
     Returns:
         Submitted: The job started, or the place taken.
@@ -885,7 +885,7 @@ def submit(kind, title, steps, env=None, admin=None, database=None, root=None, d
 
 def queue_next(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
     """
-    Puts a job at the end of the waiting list: it starts by itself when the job before it succeeded or was cancelled, and
+    Puts a job at the end of the waiting list: it starts by itself when the job before it succeeded or was canceled, and
     is held for the admin to start or discard when that job failed.
 
     Returns:
@@ -980,7 +980,7 @@ def promote_queued(root=None, force=False):
         if not force and after is not None:
             if not after["finished"]:
                 return None
-            if after["status"] not in ("succeeded", "cancelled"):
+            if after["status"] not in ("succeeded", "canceled"):
                 if not entry["held"]:
                     runline.set_field(connection, entry["ticket"], "held",
                                       f"The job before it did not succeed ({after['status']}).")

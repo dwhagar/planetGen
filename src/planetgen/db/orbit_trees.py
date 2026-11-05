@@ -12,7 +12,7 @@ a pair they equal the node.
 `write_dark_members` and `read_dark_members` store and load the members of the tree that are not stars (GEN.1013).
 `binary_nodes` makes the node of a generated pair (with the `interaction` its Roche geometry gives), `write_nodes` and
 `read_nodes` store and load a tree of `OrbitNode`s, and `member_row_values` is what each `stars` row says about its place
-in the tree (`parent_node_id`, offset from the system's centre). `nodes_from_member_tree` takes the tree
+in the tree (`parent_node_id`, offset from the system's center). `nodes_from_member_tree` takes the tree
 `generation.multistar.draw_member_tree` drew.
 """
 

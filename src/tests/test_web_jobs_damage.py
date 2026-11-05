@@ -5,7 +5,7 @@ The Generate page's background jobs (`web/jobs.py`) when things go
 wrong around them: two admins starting a job at the same moment
 (TEST.40), damaged job files, a lock holding garbage, a job id drawn
 twice, an unwritable jobs directory, pruning while a job runs and
-cancelling ids that aren't running jobs (TEST.41), and a job outliving
+canceling ids that aren't running jobs (TEST.41), and a job outliving
 the web server process that started it (ADM.11).
 
 No database: the steps are tiny Python one-liners, like

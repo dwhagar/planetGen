@@ -53,7 +53,7 @@ class Member:
 class PairHistory:
     """The result of the rule: the pair's past orbit and whether it interacted in it."""
     past_axis_au: float
-    past_pericentre_au: float
+    past_pericenter_au: float
     fill_a: float
     fill_b: float
     swallowed: bool

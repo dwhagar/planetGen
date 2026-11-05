@@ -48,13 +48,10 @@ from planetgen.generation.plausibility import iqr_bounds
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, sedov_taylor_radius_ly
-from planetgen.util.random import power_law_share
 from planetgen.physics import unit_registry as units
 
-_kg_to_mearth = units.converter("kg", "Mearth")
 _kg_to_mjup = units.converter("kg", "Mjup")
 _kg_to_msun = units.converter("kg", "Msun")
-_mjup_to_kg = units.converter("Mjup", "kg")
 _msun_to_kg = units.converter("Msun", "kg")
 
 _ly_to_au = units.converter("ly", "au")
@@ -80,13 +77,6 @@ STATISTICAL_METRICS_BY_TYPE = {
 `plausibility.STATISTICAL_METRICS`'s role but per-type rather than one
 shared list, since these seven types share almost no metric names."""
 
-# Rogue planets have no single configured "chance" for planet_type the way
-# e.g. an accretion disk does -- it falls out of where
-# ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER sits within the
-# ROGUE_PLANET_MASS_BINS draw (a bin by its per-star rate, then a mass
-# inside it from ROGUE_PLANET_MASS_FUNCTION_SLOPE's power law). Computed here (not hand-picked) so it stays
-# correct if any of those constants ever changes.
-
 _AU_PER_LY = _ly_to_au(1.0)
 """float: Astronomical units per light-year, exact from `physics/constants.py` (GEN.572), for asteroid field size digits."""
 
@@ -108,25 +98,6 @@ def _check_contents(issues, record, class_data):
         lo, hi = class_data[range_key]
         if not (lo * (1 - 1e-9) <= record[key] <= hi * (1 + 1e-9)):
             issues.append(f"{key}={record[key]!r} outside {(lo, hi)}")
-
-def _rogue_gas_giant_fraction():
-    threshold_earth = (_kg_to_mearth(_mjup_to_kg(prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER)))
-    total = sum(rate for _lo, _hi, rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
-    fraction = 0.0
-    for low, high, rate in prog_c.ROGUE_PLANET_MASS_BINS.values():
-        if threshold_earth <= low:
-            share = 1.0
-        elif threshold_earth >= high:
-            share = 0.0
-        else:
-            slope = prog_c.ROGUE_PLANET_MASS_FUNCTION_SLOPE
-            share = power_law_share(threshold_earth, high, slope) / power_law_share(low, high, slope)
-        fraction += rate / total * share
-    return fraction
-
-
-_ROGUE_GAS_GIANT_FRACTION = _rogue_gas_giant_fraction()
-
 
 def _neutron_star_type_shares():
     """The expected `pulsar_type` shares of a neutron star with a uniform age
@@ -170,10 +141,7 @@ CATEGORY_EXPECTATIONS = {
         },
     },
     "rogue-planet": {
-        "planet_type": {
-            "g": _ROGUE_GAS_GIANT_FRACTION,
-            "t": 1 - _ROGUE_GAS_GIANT_FRACTION,
-        },
+        "planet_type": {"g": 1.0},    # a free-floating brown dwarf; the rogue planets come from their donor systems (GEN.1111)
     },
     "comet": {
         "is_active": {
@@ -473,20 +441,13 @@ def check_hard_invariants(record):
 
     elif phenomenon_type == "rogue-planet":
         mass_jupiter = _kg_to_mjup(record["mass_kg"])
-        mass_earth = _kg_to_mearth(record["mass_kg"])
-        lo = min(low for low, _high, _rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
-        hi = max(high for _low, high, _rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
-        if not (lo * (1 - 1e-9) <= mass_earth <= hi * (1 + 1e-9)):
-            issues.append(f"mass (in Earth masses)={mass_earth!r} outside the ROGUE_PLANET_MASS_BINS span ({lo}, {hi})")
-        if record["planet_type"] not in ('t', 'g'):
-            issues.append(f"planet_type={record['planet_type']!r} is not 't' or 'g'")
-        elif record["planet_type"] == 'g' and mass_jupiter < prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
-            issues.append("planet_type is 'g' but mass is below the gas-giant threshold")
-        elif record["planet_type"] == 't' and mass_jupiter >= prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
-            issues.append("planet_type is 't' but mass is at/above the gas-giant threshold")
-        shown = prog_c.PLANET_CLASSES.get(record["planet_class"])
-        if record["planet_class"] is not None and (shown is None or record["planet_type"] not in (shown["type"], shown.get("also_type"))):
-            issues.append(f"planet_class={record['planet_class']!r} is not a class of type {record['planet_type']!r}")
+        lo, hi = prog_c.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
+        if not (lo * (1 - 1e-9) <= mass_jupiter <= hi * (1 + 1e-9)):
+            issues.append(f"mass (in Jupiter masses)={mass_jupiter!r} outside the brown dwarf range ({lo}, {hi})")
+        if record["planet_type"] != 'g':
+            issues.append(f"planet_type={record['planet_type']!r} is not 'g'")
+        if record["planet_class"] is not None:
+            issues.append(f"planet_class={record['planet_class']!r} on a brown dwarf")
         if not (math.isfinite(record["radius_km"]) and record["radius_km"] > 0):
             issues.append(f"radius_km={record['radius_km']!r} is not a finite, positive value")
 

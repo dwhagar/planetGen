@@ -158,9 +158,9 @@ def wilson(successes, n, z=1.96):
     if n <= 0:
         return 0.0, 1.0
     p = successes / n
-    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
+    center = (p + z * z / (2 * n)) / (1 + z * z / n)
     half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
-    return max(0.0, centre - half), min(1.0, centre + half)
+    return max(0.0, center - half), min(1.0, center + half)
 
 
 def rate_lower_bound(events, n, squares=None):

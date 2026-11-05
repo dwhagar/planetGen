@@ -13,7 +13,7 @@ loads fails). The exceptions below each say why.
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import rings
+from planetgen.physics import rings, surface_liquid_world
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
@@ -42,6 +42,19 @@ CONTAINMENT = ("inside_nebula_id", "inside_remnant_id")
 SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "quadrant")
 
 NULL_IN_THIS_GALAXY = {
+    # GEN.1111: the rogue planets of this small galaxy are dark, lifeless and without a surface liquid, so these are never set on them, and two
+    # child tables hold nothing.
+    **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
+        ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
+        ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value")),
+        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flavor_key", "flux_variation", "ice_shell_thickness_km",
+                           "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
+                           "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
+                           "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
+                           "life_stage", "life_system_age_gyr", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
+                           "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt",
+                           "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
+                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
     # writes and reads it back).
     ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",
@@ -94,6 +107,8 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")},
     # GEN.1215: only a body whose air makes liquid sulfuric acid stores its strength and place, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")},
+    # GEN.1218b: the makeup, salt and second liquid exist only for the liquids that have them, and whether this small galaxy has one is chance.
+    **{(table, column): CHANCE for table in ("planets", "moons") for column in (*surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS)},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
     **{("moons", column): "a moon has no circumplanetary disk of its own (DB.70)" for column in (
         "moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")},
@@ -155,6 +170,10 @@ NULL_IN_THIS_GALAXY = {
     **{("asteroid_belts", column): "a ring about its star: no motion or clock of its own (GEN.337)"
        for column in ("epoch_unix", "next_update_due")},
     **{("quasars", column): CHANCE for column in ("epoch_unix", "next_update_due")},
+    # GEN.1069: the sentences of what shaped a belt (none for a belt only the giants' gaps made) and the scatter shares of an outer disk (only an outer disk has them);
+    # test_belt_origin_stored.py writes and reads both back. GEN.1070: the scatter tag of a member waits for the scatter step (GEN.1092).
+    **{("asteroid_belts", column): CHANCE for column in ("origin_history", "scatter_fates")},
+    ("belt_members", "scatter_tag"): "NULL until the scatter step tags the members (GEN.1092)",
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
@@ -175,6 +194,14 @@ with why: each is set only by something this small galaxy doesn't
 contain (the cases are exercised in their own tests)."""
 
 NEVER_READ = {
+    # GEN.1111: the child rows of a rogue planet are written with the planet; its page and API do not load them yet.
+    **{(table, column): "a rogue planet's children are not loaded yet (GEN.1111 follow-up)" for table, columns in (
+        ("rogue_planet_gases", ("gas", "id", "partial_pa", "rogue_planet_id")),
+        ("rogue_planet_interior_layers", ("bottom_pressure_gpa", "bottom_radius_fraction", "ch4_ice", "helium", "hydrogen", "ice_x", "id", "iron",
+                                          "kind", "layer_index", "mass_earth", "nh3_ice", "rock", "rogue_planet_id", "state", "top_pressure_gpa",
+                                          "top_radius_fraction", "water_liquid")),
+        ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
+        ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value"))) for column in columns},
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
@@ -183,10 +210,10 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs")},
+        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"),
+        ("asteroid_field_composition", "field_id"), ("belt_members", "belt_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),

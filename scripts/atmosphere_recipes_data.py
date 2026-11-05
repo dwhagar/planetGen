@@ -78,7 +78,7 @@ WATER_LIMIT = ("a MODEL label: the shares are the Bern population synthesis agai
                "cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because "
                "published water-rich shares run from at most 3 percent [R3801] to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)")
 WATER_CORRECTION = ("Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 "
-                    "(centre 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent "
+                    "(center 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent "
                     "water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).")
 
 
@@ -156,7 +156,7 @@ MACHINE = {
                source="22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 of the reported medians "
                       "([R1152, R1153]; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 "
                       "well-constrained stars and lies inside the 0 to 0.38 the detection model accepts (GEN.513)",
-               correction="Corrected 2026-10-18 (tunable-gaps 3.2): the centre -1.0 came from the first six stars; the "
+               correction="Corrected 2026-10-18 (tunable-gaps 3.2): the center -1.0 came from the first six stars; the "
                           "22-value mean is -1.25 +/- 0.10 and the bracket [-1.37, -0.6] of six stars is dropped."),
     "a5": dict(kind="option", group="a", classes=ROCKY, weight="phi((0 - redox_diw)/0.5)"),
     "a6": dict(kind="option", group="a", classes=ROCKY, weight="1 - w('a5') - w('a7')"),
@@ -242,7 +242,7 @@ MACHINE = {
                source="147 warm giants: Zp/Z* = 2.6/M + 3.3 (M in Jupiter masses; a +/- 0.3, b +/- 0.5), 0.03 to 12 Jupiter masses "
                       "([R0710]; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to "
                       "0.27 ([R4352], N=47; READ, COMPUTED)",
-               correction="Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 [R4352] is 1.6 times the 147-giant fit at one "
+               correction="Retuned 2026-10-23 (GEN.516): the center 9.7 M^-0.45 [R4352] is 1.6 times the 147-giant fit at one "
                           "Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample "
                           "wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex."),
     "f6": dict(kind="bins", classes=GIANT, of="f5", bins=["10**-0.5", 1, "10**0.5", 10, "10**1.5", 100]),
@@ -257,7 +257,7 @@ MACHINE = {
                       "reproduces the 12 of 69 planets below 0.35 (GEN.516; the single planet WASP-77Ab 0.59 +/- 0.08, Line 2021, "
                       "READ, gave 0.15)",
                correction="Corrected 2026-10-18 (tunable-gaps 3.4): the tail share LU[0.0013, 0.34] is outside the data "
-                          "(planet tail 0.043 to 0.087) and the core centre is 0.57. Part 05's recipe 0.55*10^N(0, 0.15) "
+                          "(planet tail 0.043 to 0.087) and the core center is 0.57. Part 05's recipe 0.55*10^N(0, 0.15) "
                           "truncated to [0.2, 1.5] put 13.9 percent of giants above C/O 0.8, where about 2 to 5 percent "
                           "was intended: the core stops at 0.8 and the tail is explicit."),
     "f8": dict(kind="binary", classes=GIANT + BD,
@@ -389,21 +389,21 @@ MACHINE = {
     "n9": dict(kind="binary", classes=AIR, when=AIR_WHEN, weight="1 if sulfur_flux_earth >= (1 if h2_air else 100) else 0"),
 
     # ---- o. ground radioisotopes ----
-    "o1": dict(kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=True)], bins=[0.7, 1.4],
+    "o1": dict(kind="param", classes=ROCKY, when=[c("thin_disk_fgk", equals=True)], bins=[0.7, 1.4],
                dist={"kind": "normal", "log10": True, "mu": 0.08, "sigma": 0.058}),
-    "o2": dict(state="partly verified", limit="thick-disc [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)], tunable=True,
+    "o2": dict(state="partly verified", limit="thick-disk [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disk_fgk", equals=False)], tunable=True,
                dist={"kind": "normal", "log10": True, "mu": 0.061, "sigma": 0.19, "range": [-0.56, 0.60]},
-               source="Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 "
+               source="Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disk stars mean -0.063, sd 0.193 (N=32); thin disk -0.044, sd 0.153 "
                       "(N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, [R0479]) "
                       "as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
                correction="Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; "
-                          "the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest "
+                          "the 32 thick-disk stars give a center of 86 percent of the solar ratio and a spread of 0.19 dex, the widest "
                           "of the intrinsic 0.056 [R0479] and the catalogue's 0.15 to 0.19."),
     "o3": dict(state="stand-in", replacement="GEN.514", kind="param", classes=ROCKY, dist={"kind": "loguniform", "lo": 8.9e3, "hi": 1.4e4}),
-    "o4": dict(state="partly verified", limit="the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disc's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disc began is left out, so F is a lower bound for old stars (GEN.663)", kind="param", classes=ROCKY,
+    "o4": dict(state="partly verified", limit="the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disk's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disk began is left out, so F is a lower bound for old stars (GEN.663)", kind="param", classes=ROCKY,
                dist={"kind": "uniform", "lo": "0.97483*1.667*th_u_f*exp(0.105802*age_gy)", "hi": "0.97483*2.0*th_u_f*exp(0.105802*age_gy)"},
                source="Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 ([R1447: Table 1], READ), "
-                      "F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation "
+                      "F = th_u_f, the thorium-232 over uranium-238 left of the disk's r-process input at the star's birth: the disk's star formation "
                       "(galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr "
                       "(physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
                correction="Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's "

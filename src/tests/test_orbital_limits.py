@@ -274,10 +274,10 @@ def test_a_close_pass_is_a_collision_a_disruption_a_capture_or_a_flyby():
         classify_encounter(-1.0, 1.0, 1.0, 1.0)
 
 
-# --- The galactic centre -------------------------------------------------------------------
+# --- The galactic center -------------------------------------------------------------------
 
-def test_the_galactic_centre_gives_no_infinite_turn():
-    """Every pull is finite at the centre (the black hole is softened to 1 pc and the bulge's cusp pulls with a finite force), so the speed tends to 0
+def test_the_galactic_center_gives_no_infinite_turn():
+    """Every pull is finite at the center (the black hole is softened to 1 pc and the bulge's cusp pulls with a finite force), so the speed tends to 0
     and the period to a finite, positive number at any radius a system can have (it shortens as the square root of the radius under the cusp)."""
     previous = None
     for distance_ly in (1e-6, 1e-3, 1.0):
@@ -287,4 +287,4 @@ def test_the_galactic_centre_gives_no_infinite_turn():
         assert previous is None or period_gy > previous
         previous = period_gy
     assert calculate_galactic_orbit(0.0) == (0.0, 0.0)
-    assert store._galactic_turn(1e6, 0.0) == 0.0  # the exact centre doesn't turn
+    assert store._galactic_turn(1e6, 0.0) == 0.0  # the exact center doesn't turn

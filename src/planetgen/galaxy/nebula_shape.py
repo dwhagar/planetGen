@@ -8,7 +8,7 @@ Boss (2026-10-03): a nebula on the map should be "a kind of bulbous region
 with an irregular shape", not a sphere or an ellipse. The shape is made the
 way he suggested:
 
-1. **Metaballs.** Four to eight centres inside an anisotropic ellipsoid
+1. **Metaballs.** Four to eight centers inside an anisotropic ellipsoid
    (stretched along three axes, then turned), each a polynomial blob
    (`(1 - d^2/r^2)^2` inside its radius `r`, nothing outside) whose
    contributions add up to a scalar field `F`.
@@ -20,8 +20,8 @@ way he suggested:
 
 Everything here is in units of the nebula's own radius: the shape is
 scaled so the farthest point of its surface is at distance 1.0 from the
-nebula's centre, so `radius_ly` is a bounding sphere and a cheap first
-test. Multiply by the radius (and add the centre) to place it.
+nebula's center, so `radius_ly` is a bounding sphere and a cheap first
+test. Multiply by the radius (and add the center) to place it.
 
 A shape is plain data (`NebulaShape.to_dict`, JSON-able), drawn from a
 seeded `draw.Stream` (`draw_shape`), so the same seed always gives the
@@ -44,12 +44,12 @@ MESH_LODS = {"low": 10, "full": 28}
 """dict: Marching-cubes grid cells per axis for each mesh level of detail."""
 
 _MESH_REACH = 1.0 - 1e-9
-"""float: The farthest a mesh vertex lies from the centre, nebula radii (a hair under 1, so that rounding keeps a
+"""float: The farthest a mesh vertex lies from the center, nebula radii (a hair under 1, so that rounding keeps a
 vertex that was pulled back to the sphere inside it)."""
 
 _GRID_HALF_WIDTH = 1.8
 """float: The sampling grid reaches this far (natural units) either way
-from the centre -- far enough for the largest drawn shape and its warp."""
+from the center -- far enough for the largest drawn shape and its warp."""
 
 from planetgen.util import detmath, draw
 
@@ -117,7 +117,7 @@ class NebulaShape:
     One nebula's shape. Build one with `draw_shape` or `from_dict`.
 
     Attributes:
-        centres (list): Metaball centres, `[x, y, z]` in natural units.
+        centers (list): Metaball centers, `[x, y, z]` in natural units.
         radii (list): Each ball's radius, natural units.
         axes (list): The ellipsoid's stretch along its three axes (the
             field is read at `point / axes` before the balls).
@@ -128,12 +128,12 @@ class NebulaShape:
         noise_seed (int): Seeds the noise's permutation table.
         iso (float): The field value at the surface.
         scale (float): Natural units per nebula radius: the surface's
-            farthest point sits at `scale` natural units from the centre.
+            farthest point sits at `scale` natural units from the center.
     """
 
-    def __init__(self, centres, radii, axes, angles, warp_amplitude, warp_frequency, warp_octaves,
+    def __init__(self, centers, radii, axes, angles, warp_amplitude, warp_frequency, warp_octaves,
                  noise_seed, iso, scale=None):
-        self.centres = [[float(v) for v in c] for c in centres]
+        self.centers = [[float(v) for v in c] for c in centers]
         self.radii = [float(r) for r in radii]
         self.axes = [float(a) for a in axes]
         self.angles = [float(a) for a in angles]
@@ -144,7 +144,7 @@ class NebulaShape:
         self.iso = float(iso)
         self._noise = GradientNoise(self.noise_seed)
         self._rot = _rotation(self.angles)
-        self._centres = np.array(self.centres)
+        self._centers = np.array(self.centers)
         self._radii = np.array(self.radii)
         self.scale = float(scale) if scale is not None else self._fit()
 
@@ -167,14 +167,14 @@ class NebulaShape:
         q = self._warped(np.asarray(natural, dtype=float))
         q = detmath.matmul(q, self._rot) / np.array(self.axes)
         total = np.zeros(q.shape[:-1])
-        for centre, radius in zip(self._centres, self._radii):
-            d2 = np.sum((q - centre) ** 2, axis=-1) / (radius * radius)
+        for center, radius in zip(self._centers, self._radii):
+            d2 = np.sum((q - center) ** 2, axis=-1) / (radius * radius)
             falloff = np.clip(1.0 - d2, 0.0, None)
             total += falloff * falloff
         return total
 
     def _fit(self):
-        """The distance from the centre of the surface's farthest point, natural units."""
+        """The distance from the center of the surface's farthest point, natural units."""
         axis = np.linspace(-_GRID_HALF_WIDTH, _GRID_HALF_WIDTH, _FIT_GRID)
         grid = np.stack(np.meshgrid(axis, axis, axis, indexing="ij"), axis=-1)
         inside = self.field(grid) >= self.iso
@@ -186,8 +186,8 @@ class NebulaShape:
 
     def interior_centroid(self):
         """
-        The centre of the space the nebula fills (GEN.176), in nebula-radius
-        units from its centre: the mean of the fit grid's points that are
+        The center of the space the nebula fills (GEN.176), in nebula-radius
+        units from its center: the mean of the fit grid's points that are
         inside. The mean is taken on the grid's integer indices, so only the
         inside test can differ between platforms, never the sum.
         """
@@ -203,7 +203,7 @@ class NebulaShape:
     # --- in nebula-radius units ---------------------------------------------
 
     def contains(self, point):
-        """Whether `point` (nebula-radius units from its centre) is inside the nebula."""
+        """Whether `point` (nebula-radius units from its center) is inside the nebula."""
         p = np.asarray(point, dtype=float)
         if float(np.linalg.norm(p)) > 1.0:
             return False
@@ -259,7 +259,7 @@ class NebulaShape:
         """A JSON-able dict that `from_dict` turns back into the same shape."""
         return {
             "version": SHAPE_VERSION,
-            "centres": self.centres, "radii": self.radii, "axes": self.axes, "angles": self.angles,
+            "centers": self.centers, "radii": self.radii, "axes": self.axes, "angles": self.angles,
             "warp_amplitude": self.warp_amplitude, "warp_frequency": self.warp_frequency,
             "warp_octaves": self.warp_octaves, "noise_seed": self.noise_seed,
             "iso": self.iso, "scale": self.scale,
@@ -269,32 +269,32 @@ class NebulaShape:
     def from_dict(cls, data):
         if data.get("version") != SHAPE_VERSION:
             raise ValueError(f"unknown nebula shape version {data.get('version')!r}")
-        return cls(data["centres"], data["radii"], data["axes"], data["angles"], data["warp_amplitude"],
+        return cls(data["centers"], data["radii"], data["axes"], data["angles"], data["warp_amplitude"],
                    data["warp_frequency"], data["warp_octaves"], data["noise_seed"], data["iso"],
                    scale=data["scale"])
 
 
 def draw_shape(rng):
     """
-    Draws a shape from `rng` (a `draw.Stream`): 4-8 metaball centres in
+    Draws a shape from `rng` (a `draw.Stream`): 4-8 metaball centers in
     an anisotropic ellipsoid, a warp of the Boss-suggested kind, and the
     isovalue, so equal seeds give equal shapes.
     """
     count = rng.randint(4, 8)
     axes = sorted((rng.uniform(0.7, 1.0), rng.uniform(0.85, 1.3), rng.uniform(1.0, 1.7)))
     rng.shuffle(axes)
-    centres = []
+    centers = []
     for _ in range(count):
         # Uniform in a ball of radius 0.55 (the ellipsoid stretches it).
         while True:
             c = [rng.uniform(-1, 1) for _ in range(3)]
             if sum(v * v for v in c) <= 1:
                 break
-        centres.append([v * 0.55 for v in c])
+        centers.append([v * 0.55 for v in c])
     radii = [rng.uniform(0.35, 0.65) for _ in range(count)]
     angles = [rng.uniform(0, math.tau) for _ in range(3)]
     return NebulaShape(
-        centres=centres, radii=radii, axes=axes, angles=angles,
+        centers=centers, radii=radii, axes=axes, angles=angles,
         warp_amplitude=rng.uniform(0.12, 0.3), warp_frequency=rng.uniform(1.0, 2.2),
         warp_octaves=rng.randint(2, 3), noise_seed=rng.getrandbits(32),
         iso=rng.uniform(0.25, 0.45),
@@ -330,7 +330,7 @@ def to_columns(shape):
     scalars = dict(zip(SCALAR_COLUMNS, (
         *shape.axes, *shape.angles, shape.warp_amplitude, shape.warp_frequency, shape.warp_octaves,
         shape.noise_seed, shape.iso, shape.scale)))
-    balls = [(n, c[0], c[1], c[2], r) for n, (c, r) in enumerate(zip(shape.centres, shape.radii))]
+    balls = [(n, c[0], c[1], c[2], r) for n, (c, r) in enumerate(zip(shape.centers, shape.radii))]
     return scalars, balls
 
 
@@ -339,7 +339,7 @@ def from_columns(scalars, balls):
     with the `SCALAR_COLUMNS` keys, `balls` the ball rows in index order."""
     ordered = sorted(balls, key=lambda b: b[0])
     return NebulaShape(
-        centres=[[b[1], b[2], b[3]] for b in ordered], radii=[b[4] for b in ordered],
+        centers=[[b[1], b[2], b[3]] for b in ordered], radii=[b[4] for b in ordered],
         axes=[scalars["shape_axis_x"], scalars["shape_axis_y"], scalars["shape_axis_z"]],
         angles=[scalars["shape_angle_x"], scalars["shape_angle_y"], scalars["shape_angle_z"]],
         warp_amplitude=scalars["shape_warp_amplitude"], warp_frequency=scalars["shape_warp_frequency"],

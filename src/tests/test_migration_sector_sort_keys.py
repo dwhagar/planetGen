@@ -12,7 +12,7 @@ from tests.db_schema_support import insert_filled_row, load_old_schema, migratio
 
 pytestmark = pytest.mark.fresh_database
 
-SECTORS = (       # name, centre (x, y) or None, systems
+SECTORS = (       # name, center (x, y) or None, systems
     ("North east", (10.0, 20.0), 2), ("North west", (-10.0, 20.0), 1), ("South west", (-10.0, -20.0), 0),
     ("South east", (10.0, -20.0), 3), ("Nowhere", None, 1),
 )
@@ -25,13 +25,13 @@ def test_the_previous_schemas_table_is_filled_again_with_a_row_for_every_sector(
     try:
         assert not conn.execute("SHOW COLUMNS FROM sector_system_counts LIKE 'quadrant'").fetchall()
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
-        for name, centre, count in SECTORS:
-            if centre is None:
+        for name, center, count in SECTORS:
+            if center is None:
                 sector_id = conn.execute("INSERT INTO sectors (name, edge_mpc) VALUES (?, 4000)", (name,)).lastrowid
             else:
                 sector_id = conn.execute(
                     "INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc) VALUES (?, 4000, ?, ?, 0, 22)",
-                    (name, centre[0], centre[1])).lastrowid
+                    (name, center[0], center[1])).lastrowid
             for index in range(count):
                 insert_filled_row(conn, "star_systems", name=f"{name} {index}", sector_id=sector_id)
             if count:       # the table of the schema before has a row only for a sector with systems
@@ -46,9 +46,9 @@ def test_the_previous_schemas_table_is_filled_again_with_a_row_for_every_sector(
             "SELECT sec.name, c.system_count, c.system_density, c.quadrant FROM sectors sec "
             "JOIN sector_system_counts c ON c.sector_id = sec.id").fetchall()}
         assert set(rows) == {name for name, _, _ in SECTORS}
-        for name, centre, count in SECTORS:
+        for name, center, count in SECTORS:
             assert rows[name]["system_count"] == count, name
-            assert (rows[name]["system_density"] is None) == (centre is None), name
+            assert (rows[name]["system_density"] is None) == (center is None), name
         assert rows["North east"]["system_density"] == pytest.approx(2 / 4000 ** 3)
         assert {name: rows[name]["quadrant"] for name in rows} == {
             "North east": "I", "North west": "II", "South west": "III", "South east": "IV", "Nowhere": None}

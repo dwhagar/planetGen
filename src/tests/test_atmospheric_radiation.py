@@ -32,7 +32,7 @@ def _sun(column, **kwargs):
 
 
 def _direct(spectrum):
-    c = spectrum.centres_nm
+    c = spectrum.centers_nm
     return {"uvi": ar.UVI_PER_W_M2 * float(np.sum(spectrum.direct_w_m2 * ar.erythemal_weight(c))),
             "dna": float(np.sum(spectrum.direct_w_m2 * ar.setlow_weight(c))),
             "uv_b": float(np.sum(spectrum.direct_w_m2[(c >= 280) & (c < 315)]))}
@@ -143,7 +143,7 @@ def test_the_bands_sum_to_the_whole_ground_flux_inside_the_grid():
     with fetch.disregard_missing_data():
         spectrum = _sun(_earth_air(), ozone_du=300.0)
     parts = sum(spectrum.band_ground_w_m2(band) for band in ("uv_c", "uv_b", "uv_a", "visible", "near_infrared"))
-    assert parts == pytest.approx(spectrum.ground_w_m2[spectrum.centres_nm >= 100.0].sum(), rel=1e-9)
+    assert parts == pytest.approx(spectrum.ground_w_m2[spectrum.centers_nm >= 100.0].sum(), rel=1e-9)
     assert spectrum.band_top_w_m2("visible") == pytest.approx(SUN_FLUX * ss.blackbody_fraction(400.0, 700.0, SUN_K), rel=1e-3)
 
 
@@ -151,7 +151,7 @@ def test_cloud_cuts_the_light_in_proportion_to_its_cover_and_depth():
     with fetch.disregard_missing_data():
         clear = _sun(_earth_air(), ozone_du=300.0)
         edges = clear.edges_nm
-        cloud = ar.grey_layer(20.0, ar.CLOUD_OMEGA, ar.CLOUD_ASYMMETRY, uvx.centres(edges))
+        cloud = ar.grey_layer(20.0, ar.CLOUD_OMEGA, ar.CLOUD_ASYMMETRY, uvx.centers(edges))
         overcast = _sun(_earth_air(), ozone_du=300.0, low_aerosol=cloud, cloud_cover=1.0)
         half = _sun(_earth_air(), ozone_du=300.0, low_aerosol=cloud, cloud_cover=0.5)
     assert overcast.uv_index() < 0.5 * clear.uv_index()
@@ -165,7 +165,7 @@ def test_bright_ground_raises_the_diffuse_light_and_a_dark_absorbing_haze_lowers
         dark = _sun(_earth_air(), ozone_du=300.0, ground_albedo=0.0)
         snow = _sun(_earth_air(), ozone_du=300.0, ground_albedo=0.8)
         edges = dark.edges_nm
-        haze = ar.grey_layer(0.5, 0.6, 0.6, uvx.centres(edges), exponent=1.5)
+        haze = ar.grey_layer(0.5, 0.6, 0.6, uvx.centers(edges), exponent=1.5)
         hazy = _sun(_earth_air(), ozone_du=300.0, ground_albedo=0.0, haze=haze)
     assert snow.band_ground_w_m2("uv_a") > dark.band_ground_w_m2("uv_a")
     assert hazy.band_ground_w_m2("visible") < dark.band_ground_w_m2("visible")

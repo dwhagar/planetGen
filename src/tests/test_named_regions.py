@@ -182,7 +182,7 @@ def test_a_lone_sector_gets_the_framing_sphere_about_itself():
     extent = named_regions.region_extent(cell, [address], EDGE)
     assert extent.radius_pc == named_regions.framing_radius_pc(cell, EDGE)
     assert (extent.clumps, extent.sectors, extent.sectors_in_sphere) == (1, 1, 1)
-    assert extent.centre_pc == pytest.approx(spherical.sector_position_pc(*address, EDGE), abs=1e-6)
+    assert extent.center_pc == pytest.approx(spherical.sector_position_pc(*address, EDGE), abs=1e-6)
 
 
 def test_a_whole_cell_is_one_clump_inside_its_own_sphere_and_a_sphere_never_shrinks_under_the_framing_radius():
@@ -192,7 +192,7 @@ def test_a_whole_cell_is_one_clump_inside_its_own_sphere_and_a_sphere_never_shri
         assert extent.clumps == 1 and extent.sectors == extent.sectors_in_sphere == len(addresses)
         assert extent.radius_pc >= named_regions.framing_radius_pc(cell, EDGE)
         anchor = named_regions.anchor_pc(cell, EDGE)
-        assert math.dist(extent.centre_pc, anchor) < 2 * EDGE * 9
+        assert math.dist(extent.center_pc, anchor) < 2 * EDGE * 9
 
 
 def test_the_sphere_holds_every_sector_of_the_clump_whole():
@@ -205,7 +205,7 @@ def test_the_sphere_holds_every_sector_of_the_clump_whole():
         group = named_regions.clumps_of(chosen)[0]
         for address in group:
             for corner in spherical.sector_cell_vertices_pc(*address, EDGE):
-                assert math.dist(extent.centre_pc, corner) <= extent.radius_pc * 1.0001
+                assert math.dist(extent.center_pc, corner) <= extent.radius_pc * 1.0001
 
 
 def test_two_far_apart_clumps_make_the_sphere_of_the_larger_one_and_both_are_counted():
@@ -222,7 +222,7 @@ def test_two_far_apart_clumps_make_the_sphere_of_the_larger_one_and_both_are_cou
     assert extent.sectors == len(near) + len(far)
     assert extent.sectors_in_sphere < extent.sectors
     assert set(groups[0]) == set(near)
-    assert math.dist(extent.centre_pc, anchor) < 5.0
+    assert math.dist(extent.center_pc, anchor) < 5.0
 
 
 def test_clumps_are_face_connected_largest_first_and_the_same_in_any_order():

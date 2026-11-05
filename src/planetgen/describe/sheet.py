@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, outside_hours, regional_temperature,
+from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, outside_hours, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -180,7 +180,8 @@ _STAR = (
 )
 
 _BODY_GROUPS = (
-    *_rows("identity", ("planet_class", "Class", TEXT), ("zone", "Zone", TEXT)),
+    *_rows("identity", ("planet_class", "Class", TEXT), ("class_variant", "Class variant (the digit of the class code; 0 is the ideal of the class)"),
+           ("planet_type", "Body type (terrestrial, transitional or gas, by the share of its mass that is a hydrogen-helium envelope)", TEXT), ("zone", "Zone", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("period_years", "Orbital period"),
            ("orbital_speed_kms", "Orbital speed"), ("eccentricity", "Eccentricity"), ("orbital_inclination_deg", "Inclination"),
            ("orbital_ascending_node_deg", "Longitude of the ascending node"), ("hill_radius_km", "Hill radius"),
@@ -234,6 +235,9 @@ _BODY_GROUPS = (
            ("surface_liquid_depth_km", "Depth of that liquid"),
            ("surface_liquid_acid_wt", "Sulfuric acid strength (liquid acid)"), ("surface_liquid_acid_layer", "Where the liquid acid is", TEXT),
            ("surface_liquid_ammonia_wt", "Ammonia in the ocean (share of the liquid)"),
+           ("surface_liquid_methane_mol", "Methane in the sea (mole fraction)"), ("surface_liquid_ethane_mol", "Ethane in the sea (mole fraction)"),
+           ("surface_liquid_nitrogen_mol", "Nitrogen in the sea (mole fraction)"), ("surface_liquid_salt_wt", "Salt of the water sea (as sodium chloride, share of the liquid)"),
+           ("surface_liquid_2", "Second surface liquid", TEXT), ("surface_liquid_2_fraction", "Surface under the second liquid"),
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
@@ -283,6 +287,7 @@ _BODY_GROUPS = (
 _PLANET = _MOON = _BODY_GROUPS
 
 _BELT = (
+    *_rows("identity", ("history_text", "What the star did to it", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_km", "Largest body", "radius"),
@@ -359,7 +364,7 @@ _SUPERNOVA_REMNANT = (
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
-_ROGUE_PLANET = (
+_ROGUE_OWN = (
     *_rows("identity", ("planet_type", "Type", TEXT), ("planet_class", "Class", TEXT),
            ("mass_bin", "Mass class", TEXT)),
     *_rows("physical", ("mass_kg", "Mass"), ("radius_km", "Radius", "radius"), ("age_gy", "Age"),
@@ -391,6 +396,24 @@ _ROGUE_PLANET = (
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
+
+_ROGUE_ORIGIN = (
+    *_rows("identity", ("rogue_note", "Where it came from", TEXT)),
+    *_rows("orbit", ("since_ejection_gy", "Time since the system threw it out"),
+           ("ejection_delay_gy", "Time from its birth to the throw"), ("ejection_speed_kms", "Speed it left at")),
+)
+
+
+def _rogue_rows():
+    """GEN.1111: a rogue planet is built by the planet chain, so its sheet is the body's rows that its table holds, with the rows of its own
+    (what a brown dwarf shows, and where it came from) first."""
+    columns = models.metadata.tables["rogue_planets"].columns
+    own = (*_ROGUE_ORIGIN, *_ROGUE_OWN)
+    taken = {spec.key for spec in own}
+    return (*own, *(spec for spec in _BODY_GROUPS if spec.key not in taken and spec.stored_column() in columns))
+
+
+_ROGUE_PLANET = _rogue_rows()
 
 _INTERSTELLAR_COMET = (
     *_rows("identity", ("is_active", "Active", FLAG)),
@@ -496,7 +519,6 @@ _BODY_NOT_SHOWN = {
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
     "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world",
-    "description": "the page's paragraph text",
     "atmosphere": "described in the paragraph text and the Atmosphere rows",
     "composition": "described in the paragraph text",
     "flavor_text_count": "how many flavor lines exist; bookkeeping",
@@ -506,7 +528,7 @@ _BODY_NOT_SHOWN = {
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
     **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
                "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
-               "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
+               "ground_oxidized_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
                "ground_sulfur_fraction", "ground_intermediate_fraction"),
               "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
               "not list it as a row yet"),
@@ -556,7 +578,7 @@ NOT_SHOWN = {
                    "velocity_z_kms"), _VECTORS),
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
-        "scatter_fates": "the share of an outer disc in each population after the scatter step, a mapping; the scatter rows come with the scatter step wiring",
+        "scatter_fates": "the share of an outer disk in each population after the scatter step, a mapping; the scatter rows come with the scatter step wiring",
     },
     "comet": {
         **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
@@ -578,10 +600,13 @@ NOT_SHOWN = {
     "supernova_remnant": _phenomenon_not_shown(
         "supernova_remnant", compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
         compact_remnant_neutron_star_id="the neutron star it left behind, a link in its contents"),
-    "rogue_planet": _phenomenon_not_shown(
-        "rogue_planet", **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec",
-                                  "eq_mobility", "eq_dust", "eq_gas_filter", "eq_co2_scrub", "eq_supply", "eq_supply_rec",
-                                  "eq_shelter", "eq_shelter_rec"), _EQUIPMENT)),
+    "rogue_planet": {
+        **{name: reason for name, reason in _BODY_NOT_SHOWN.items()
+           if name in models.metadata.tables["rogue_planets"].columns and name not in {spec.key for spec in _ROGUE_PLANET}},
+        **_phenomenon_not_shown("rogue_planet"),
+        "donor_uid": "the system that threw it out, a link in the Location chain and the Where it came from row",
+        "event_index": "which of the donor's ejections it is; bookkeeping",
+    },
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),
     "globular_cluster": _container_not_shown(),
@@ -783,7 +808,7 @@ _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "me
 _MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
@@ -825,8 +850,8 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (("planet_class",), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
-     "a body under a roundness ratio of 1 is an Asteroid and has no class letter"),
+    (("planet_class", "class_variant"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
+     "a body under a roundness ratio of 1 is an Asteroid and has no class letter or digit"),
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),
@@ -865,6 +890,13 @@ _BODY_RULES = [
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
      "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
+    (surface_liquid_world.MIX_FIELDS, lambda klass, row: row is None or row.get("surface_liquid") in surface_liquid_world.HYDROCARBON_SEAS,
+     "only a methane, ethane or nitrogen sea has a makeup of the three: any other liquid, or none, stores none"),
+    ((surface_liquid_world.SALT_FIELD,), lambda klass, row: row is None or (row.get("surface_liquid") == surface_liquid_world.WATER_ID
+                                         and (row.get("water_activity") or 0.0) >= surface_liquid_world.NACL_SATURATION_ACTIVITY),
+     "only a water sea at or above the activity of saturated sodium chloride (0.753) has a salt expressed as sodium chloride: a brine of other salts, a sea of another liquid, a lava surface, a frozen or dry body has none"),
+    (surface_liquid_world.SECOND_FIELDS, lambda klass, row: row is None or row.get("surface_liquid_2") is not None,
+     "a body holds a second surface liquid only when two are stable and supplied, and the main one leaves room for it"),
     (("surface_liquid_depth_km",), lambda klass, row: row is None or row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS,
      "the depth of a lava sea is not known: the rules that give a molten surface say nothing of how deep it goes"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
@@ -877,12 +909,16 @@ _BODY_RULES = [
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH, and water activity exist only where there is a liquid ocean"),
-    (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean"),
-     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapor world store none"),
+    (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean")
+     or (row.get("surface_liquid") not in (None, "water") and row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS and bool(row.get("surface_liquid_fraction"))),
+     "an ocean tide is worked out for a sea with a free surface (water, or another liquid such as methane or ammonia-water) or one frozen over (zero); a brine seep, a deep hycean sea, a lava sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
     (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") in _CLASSES_WITH_VARIANTS,
      "only some life classes come in variants, a letter for the pigment or habitat; the others have one form and no letter"),
+    (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") is None or any(
+        identifier != str(row["life_class"]) and identifier.startswith(str(row["life_class"])) for identifier in life_classes.IDS),
+     "a life class with no pigment or metabolism variants (2, 6, 7, 8 and 9) has no letter"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
@@ -922,12 +958,17 @@ _COMET_RULES = [
      "a comet on a parabolic path comes by once, so it has no period, period class, or place on an orbit to give"),
 ]
 
+_BELT_RULES = [
+    (("history_text",), lambda klass, row: row is None or row.get("history_text") is not None,
+     "only a belt the star's evolution acted on (the giant branch engulfed part of it, or the mass loss threw some of it inward) has a history to tell; a belt it left alone has none"),
+]
+
 _ROGUE_RULES = [
     (("roundness_ratio", "yield_strength_pa"), lambda klass, row: row is None or row.get("planet_type") != "g",
      "a giant or a brown dwarf is a fluid held up by its own pressure, so it has no strength to measure against its weight and no round radius"),
 ]
 
-APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES}
+APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES, "belt": _BELT_RULES}
 """dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
 function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
 apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the
@@ -1012,7 +1053,7 @@ CHEMISTRY_ROWS = {
     "chemistry_dredge_up_helium": ("Helium added by the first dredge-up", "mass fraction"),
 }
 """dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
-disc population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added. They are worked out from the stored
+disk population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added. They are worked out from the stored
 class, mass, [Fe/H], and age when the sheet is made and are not columns."""
 
 CHEMISTRY_KEYS = tuple(CHEMISTRY_ROWS)
@@ -1022,7 +1063,7 @@ _BRANCH_WORDS = {stellar_abundances.BRANCH_THIN: "Thin disk", stellar_abundances
 
 
 def _star_distance_ly(conn, system_id):
-    """The distance from the galactic centre, light-years, the star's abundance draws are keyed on (its sector's, as the generator was given it),
+    """The distance from the galactic center, light-years, the star's abundance draws are keyed on (its sector's, as the generator was given it),
     or the galaxy's default for a star in no placed sector."""
     found = None if system_id is None else conn.execute(
         "SELECT sectors.galactic_radius_pc FROM star_systems JOIN sectors ON sectors.id = star_systems.sector_id WHERE star_systems.id = ?",
@@ -1032,9 +1073,9 @@ def _star_distance_ly(conn, system_id):
 
 def _chemistry_rows(conn, row):
     """
-    The chemistry rows of a star (UX.254): its disc population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
+    The chemistry rows of a star (UX.254): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
     first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H], and age, with the draws keyed as the
-    generator keys its planets' host ratios (mass and the sector's distance from the centre, not the age), so nothing is stored. A star with no [Fe/H],
+    generator keys its planets' host ratios (mass and the sector's distance from the center, not the age), so nothing is stored. A star with no [Fe/H],
     one the composition does not cover or one whose downloaded data are missing has none.
     """
     if row["metallicity_fe_h"] is None or row["mass_kg"] is None or row["age_gy"] is None:
@@ -1086,8 +1127,8 @@ BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and n
 
 BAND_LABELS = {"north_polar": "North polar", "north_middle": "North middle", "north_tropic": "North tropics", "equator": "Equator",
                "south_tropic": "South tropics", "south_middle": "South middle", "south_polar": "South polar",
-               "day_centre": "Day center", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
-               "night_edge": "Night edge", "night_middle": "Night side", "night_centre": "Night center"}
+               "day_center": "Day center", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
+               "night_edge": "Night edge", "night_middle": "Night side", "night_center": "Night center"}
 """dict: What the table of the bands calls each band or ring (`latitude_bands.NAMES`, `RING_NAMES`)."""
 
 
@@ -1109,8 +1150,8 @@ def _band_cell(field, value):
 def bands_table(row):
     """
     The seven bands of a body side by side (GEN.1108): `{"locked", "bands": [{"key", "label"}], "rows": [{"key", "label", "cells"}]}`, one row for each of
-    `BAND_ROW_LABELS` that any band holds, one cell (an inline list, empty where the band has none) for each band from the north pole to the south pole (the day centre
-    to the night centre for a world that turns once an orbit). `None` for a body that stores no bands.
+    `BAND_ROW_LABELS` that any band holds, one cell (an inline list, empty where the band has none) for each band from the north pole to the south pole (the day center
+    to the night center for a world that turns once an orbit). `None` for a body that stores no bands.
     """
     if row is None or row.get(regional_temperature.column(1, "mean_k")) is None:
         return None

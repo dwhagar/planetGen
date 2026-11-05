@@ -40,7 +40,7 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    about 1.5 times either way, so the boundary between a round body and a potato is a band.
 
    **Rubble piles.** A pile of pieces (`structure="rubble"`) holds together by friction and a little cohesion, not by the strength of rock. Friction grows with the pressure, and the pressure at
-   the centre grows as the square of the radius, just as the stress that would level a bump does, so with a friction angle over about 5.5 degrees a cold pile never turns round at any size: its
+   the center grows as the square of the radius, just as the stress that would level a bump does, so with a friction angle over about 5.5 degrees a cold pile never turns round at any size: its
    roundness ratio stays near 0.28. It rounds only if it took its shape weak from heat (`heated`, the table's hot strength of 1 to 4 MPa) or, for an icy pile, at the creep strength of its ice at
    the `temperature_k` its shape was set at. Friction angle 35 degrees (30 to 40) and cohesion 44 to 210 Pa are from the studies of fast-spinning asteroids (1950 DA, Rozitis and others 2014;
    Hirabayashi and Scheeres). The failure stress is a Mohr-Coulomb fit (`RUBBLE_RULES`); a body's intact crystals (olivine, about 10 GPa) are never used for any of this.
@@ -269,8 +269,8 @@ POROSITY_RULES = {
 
 
 def _mohr_coulomb(table):
-    """The strength of a friction-limited pile of rubble as `(b, a)`: the differential stress it fails at, at the centre of a body, is `b + a G rho^2 R^2` Pa. Mohr-Coulomb with a confining
-    pressure of the centre's `(2 pi / 3) G rho^2 R^2`: `(2 c cos(phi) + 2 P sin(phi)) / (1 - sin(phi))` for cohesion `c` and friction angle `phi`. The cohesion is `b`, the part that does not
+    """The strength of a friction-limited pile of rubble as `(b, a)`: the differential stress it fails at, at the center of a body, is `b + a G rho^2 R^2` Pa. Mohr-Coulomb with a confining
+    pressure of the center's `(2 pi / 3) G rho^2 R^2`: `(2 c cos(phi) + 2 P sin(phi)) / (1 - sin(phi))` for cohesion `c` and friction angle `phi`. The cohesion is `b`, the part that does not
     grow with the body; the friction `a` grows as its square, as the bump's stress does."""
     rule = table.rubble
     phi = math.radians(_positive(rule["friction_angle_deg"], "friction_angle_deg"))
@@ -391,7 +391,7 @@ def _heated_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, h
 
 @finite_domain()
 def rubble_strength_pa(radius_m, density_kg_m3, ice_fraction=0.0, metal_fraction=0.0, porosity=0.0, temperature_k=None, heated=False, draw=None):
-    """The differential stress, Pa, that a pile of rubble of this size and density fails at: the friction-limited stress at its centre (`RUBBLE_RULES`), or the strength it has from the heat its
+    """The differential stress, Pa, that a pile of rubble of this size and density fails at: the friction-limited stress at its center (`RUBBLE_RULES`), or the strength it has from the heat its
     shape was set in (`heated`, `temperature_k` of an ice-bearing pile), whichever is smaller. Friction grows with the pressure, so as the body grows its strength grows as fast as the stress that
     would level a bump: a cold pile does not become round by being large."""
     if not (radius_m > 0.0 and density_kg_m3 > 0.0):

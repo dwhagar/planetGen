@@ -162,17 +162,17 @@ def test_reset_jobs_clears_the_queue_and_the_runs_and_keeps_the_rest(redis_serve
         stuck = FakeWork("Stuck run")
 
         assert reset_jobs.reset_jobs(redis_url=url, dry_run=True, sources=[stuck], write=lines.append)
-        assert stuck.cancelled == [] and connection.exists(waiting.key) == 1
+        assert stuck.canceled == [] and connection.exists(waiting.key) == 1
         assert any("Redis: " in line and "key(s)" in line for line in lines)
 
         questions = []
         assert not reset_jobs.reset_jobs(redis_url=url, sources=[stuck], write=lines.append,
                                          answer=lambda text: questions.append(text) or "n")
-        assert len(questions) == 1 and stuck.cancelled == [] and connection.exists(waiting.key) == 1
+        assert len(questions) == 1 and stuck.canceled == [] and connection.exists(waiting.key) == 1
 
         lines.clear()
         assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[stuck], write=lines.append)
-        assert stuck.cancelled == ["job-0"]
+        assert stuck.canceled == ["job-0"]
         assert list(connection.scan_iter(match="rq:*")) == []
         assert list(connection.scan_iter(match="planetgen:run:*")) == [] and runrecord.active_run(connection) is None
         assert runrecord.read_run(connection, stale_run) is None

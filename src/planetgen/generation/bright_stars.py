@@ -57,17 +57,19 @@ from planetgen.physics.stellar_evolution import birth_fe_h
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.galaxy import disk_history
+from planetgen.galaxy import disk_history, resident_mass
 from planetgen.galaxy import skeleton as galaxySkeleton
 from planetgen.galaxy.density import halo_density, population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
     band_center_pc,
     band_colatitude_bounds,
+    cell_in_sphere,
     cell_volume,
     galaxy_to_local_pc,
     sector_address_at,
     sector_position_pc,
     shell_bounds_pc,
+    sphere_rows,
     wedge_count,
     wedge_longitude_bounds,
 )
@@ -246,7 +248,7 @@ def star_fe_h(params):
 
 def spot_fe_h(population, spots, rng, fe_h_peaks=None):
     """The birth [Fe/H] source of the stars placed at `spots` (each ends in its point, whole milliparsecs), for
-    `sample_bright_stars`' `fe_h_source`: a draw from the population at the spot's distance from the galactic centre
+    `sample_bright_stars`' `fe_h_source`: a draw from the population at the spot's distance from the galactic center
     (GEN.651), or, for a population in the gate, from its component's own distribution `fe_h_peaks`
     (`component_field.fe_h_peaks_of`, GEN.662)."""
     if population in POPULATIONS_IN_THE_GATE:
@@ -264,8 +266,8 @@ def spot_fe_h(population, spots, rng, fe_h_peaks=None):
 
 
 def center_fe_h(population, center_pc, rng):
-    """The birth [Fe/H] source of stars drawn before they are placed in the cell centred at `center_pc` (a backfill),
-    for `fe_h_source`: a draw from `population` at the centre's distance from the galactic centre (GEN.651)."""
+    """The birth [Fe/H] source of stars drawn before they are placed in the cell centered at `center_pc` (a backfill),
+    for `fe_h_source`: a draw from `population` at the center's distance from the galactic center (GEN.651)."""
     distance_ly = pc_to_ly(math.sqrt(sum(value ** 2 for value in center_pc)))
     return lambda index: birth_fe_h(rng, population, None, distance_ly)
 
@@ -457,11 +459,11 @@ def shell_weight(shape, shell_index, high_band, edge_pc, expected_at_density_1, 
 
 def _capacity(shape, address, fractions, expected_at_density_1, edge_pc):
     """How many objects the sector at `address` may take (`object_first.sector_capacity`), from the density at its
-    centre and the `fractions` of its band's tier."""
+    center and the `fractions` of its band's tier."""
     shell_index, band_index, wedge = address
-    centre = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
+    center = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
     expected = (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc)
-                * sum(centre[population] * fractions[population] for population in SCATTERED_POPULATIONS))
+                * sum(center[population] * fractions[population] for population in SCATTERED_POPULATIONS))
     return object_first.sector_capacity(expected)
 
 
@@ -595,7 +597,7 @@ def _expected_in_groups(shape, groups, expected_at_density_1, fractions):
     About how many stars `groups` hold: the mean density of each group, worked out on `ESTIMATE_COLATITUDE_STEPS` by
     `ESTIMATE_RADIUS_STEPS` places of equal volume (each averaged over `ESTIMATE_AZIMUTH_BINS` longitudes), with the
     fractions of the tier each place is in, times the group's volume. The density at a group's middle alone, as it was,
-    came out a third of a thin disc's stars, and the two longitudes the bounds are probed at gave twice or none of an
+    came out a third of a thin disk's stars, and the two longitudes the bounds are probed at gave twice or none of an
     arm's (GEN.398).
     """
     by_tier = fractions if isinstance(fractions, (list, tuple)) else [fractions]
@@ -1009,13 +1011,33 @@ def candidate_stream(seed, shell_index, band_index, chunk, k, index):
     return draw.Stream(f"{block_key(seed, shell_index, band_index, chunk, k)}:{index}")
 
 
+def bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1):
+    """
+    The parts of a row's `block_bound` that do not depend on the luminosity band: `(volume_term, stellar, halo)`, the
+    cell's volume in edge cubes times `expected_at_density_1`, the disk and bulge's largest density
+    and the halo's density at the row's cell centers. `block_bound` of a band is `volume_term * (stellar * the largest
+    non-halo share + halo * the halo's share)`; a draw that asks every band of a row works the parts out once.
+    """
+    plane, z = band_center_pc(shell_index, band_index, edge_pc)
+    return (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc),
+            shape.k_norm * galaxySkeleton._bound_raw_density_at(shape, plane, z),
+            halo_density((plane, 0.0, z), shape))
+
+
+def bound_of(terms, shares):
+    """The `block_bound` of a luminosity band whose populations hold `shares`, from a row's `bound_terms`."""
+    volume_term, stellar, halo = terms
+    inner_share = max(share for population, share in shares.items() if population != "halo")
+    return volume_term * (stellar * inner_share + halo * shares["halo"])
+
+
 def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, shares):
     """
     The most stars one cell of a band can expect in a luminosity band (GEN.308): the cell's volume in edge cubes times
     `expected_at_density_1` times the highest density any cell of the band can have, each part with the largest share
     any population of it holds in the luminosity band.
 
-    Every cell centre of a band sits at the same cylindrical radius and height (`band_center_pc`), so the density
+    Every cell center of a band sits at the same cylindrical radius and height (`band_center_pc`), so the density
     there bounds every cell: the disk and bulge at each term's maximum over the angle
     (`galaxy.skeleton._bound_raw_density_at`, nuclear terms included) with the largest share of any population but
     the halo, plus the halo, which depends on the radius and height alone, with the halo's own share. The clusters
@@ -1029,17 +1051,13 @@ def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, 
         expected_at_density_1 (float): Systems per sector at density 1.
         shares (dict): Population to its share of the luminosity band (`bright_band_fraction`).
     """
-    plane, z = band_center_pc(shell_index, band_index, edge_pc)
-    inner_share = max(share for population, share in shares.items() if population != "halo")
-    stellar = shape.k_norm * galaxySkeleton._bound_raw_density_at(shape, plane, z) * inner_share
-    halo = halo_density((plane, 0.0, z), shape) * shares["halo"]
-    return expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc) * (stellar + halo)
+    return bound_of(bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1), shares)
 
 
 def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
     """
     The stars a cell expects in a luminosity band, summed over the populations: what `backfill_cells` draws its Poisson
-    count with, `expected_at_density_1 * volume * density * share` at the cell's centre.
+    count with, `expected_at_density_1 * volume * density * share` at the cell's center.
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
@@ -1181,7 +1199,7 @@ def _band_shares(memo, memo_key, bands, share_of):
 
 
 def _cell_densities(memo, shape, address, edge_pc):
-    """`(densities, volume)` of a cell: the population densities at its centre (`_densities`) and its volume in edge
+    """`(densities, volume)` of a cell: the population densities at its center (`_densities`) and its volume in edge
     cubes. They do not depend on the band, so a cell asked about in every luminosity band works them out once, and a
     cell no band has a candidate in never does."""
     key = ("cell", address)
@@ -1348,6 +1366,141 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
                             break
 
 
+SPHERE_BATCH_CELLS = 500
+"""int: The cells a sphere draw (`backfill_sphere`) gathers before it draws them, so the blocks it worked out for them are held
+for a few hundred cells and then let go."""
+
+SPHERE_BATCH_ROWS = 200
+"""int: The rows a sphere draw looks at before it lets go of the blocks it worked out, whether or not they held a cell."""
+
+
+def _row_chunks(count, first, length):
+    """The blocks (`BLOCK_WEDGES` wedges each) a row of `count` wedges has in its window of `length` wedges from `first` on (wrapping)."""
+    last_chunk = (count - 1) // BLOCK_WEDGES
+    if length >= count:
+        return range(last_chunk + 1)
+    end = first + length
+    if end <= count:
+        return range(first // BLOCK_WEDGES, (end - 1) // BLOCK_WEDGES + 1)
+    return sorted(set(range(first // BLOCK_WEDGES, last_chunk + 1)) | set(range((end - count - 1) // BLOCK_WEDGES + 1)))
+
+
+def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, seeded):
+    """
+    The cells of a sphere that a draw has anything to do in, a few hundred at a time with the memo that holds their blocks: the
+    walk of `sphere_rows`, and for each row and band of the draw either its block's candidates (a band on the candidate path,
+    GEN.309: only the cells that hold one are kept, however many cells the sphere holds) or every cell of the row's window (a
+    band on the cell path). Cells are kept when their center lies within `radius_pc`, as `enumerate_sectors_within_radius` has it.
+
+    Args:
+        paths (list): `(key, shares, tag)` of each band of the draw, as `candidate_path` takes them.
+        seeded (dict): The entries a batch's memo starts with (the bands' shares).
+
+    Yields:
+        tuple: `(addresses, memo)`.
+    """
+    work = dict(seeded)
+    addresses = []
+    rows = 0
+    if math.sqrt(sum(float(c) * float(c) for c in center_pc)) <= radius_pc + 1e-9:
+        addresses.append((0, 0, 0))                 # the core cell is no row
+    for shell_index, band_index, count, first, length in sphere_rows(center_pc, radius_pc, edge_pc):
+        rows += 1
+        terms = None
+        dense = False
+        chosen = set()
+        for key, shares, tag in paths:
+            bound_key = ("bound", shell_index, band_index, key, tag)
+            bound = work.get(bound_key)
+            if bound is None:
+                if terms is None:
+                    terms = bound_terms(shape, shell_index, band_index, edge_pc, expected_at_density_1)
+                bound = work[bound_key] = bound_of(terms, shares)
+            if bound >= CANDIDATE_PATH_BOUND:
+                dense = True
+                continue
+            for chunk in _row_chunks(count, first, length):
+                candidate_path(work, shape, (shell_index, band_index, chunk * BLOCK_WEDGES), edge_pc, expected_at_density_1,
+                               seed, key, shares, tag)
+                for wedge in work[("candidates", shell_index, band_index, chunk, key, tag)]:
+                    if (wedge - first) % count < length:
+                        chosen.add(wedge)
+        wedges = ((first + k) % count for k in range(length)) if dense else sorted(chosen)
+        for wedge in wedges:
+            if cell_in_sphere((shell_index, band_index, wedge), center_pc, radius_pc, edge_pc):
+                addresses.append((shell_index, band_index, wedge))
+        if len(addresses) >= SPHERE_BATCH_CELLS or rows >= SPHERE_BATCH_ROWS:
+            yield addresses, work
+            work, addresses, rows = dict(seeded), [], 0
+    if addresses:
+        yield addresses, work
+
+
+def backfill_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
+                    mass_range=None, memo=None):
+    """
+    The stars `backfill_cells` draws for every cell whose center lies within `radius_pc` of `center_pc`, drawn by blocks
+    (VIEW.41): the same stars, because it asks `backfill_cells` for the cells that hold any and nothing else. A band on
+    the candidate path (GEN.309) is looked up block by block (`BLOCK_WEDGES` cells to a block), so a sparse band costs one
+    count per block and one lookup per candidate instead of a visit to every cell: the sky backfill's far bright bands, 3
+    billion cells for a few hundred stars (reports/system-sky-backfill-cost-2026-11-05.md section 4.2), cost the blocks.
+    A band on the cell path (a dense row) still visits the cells of its row's window.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+        center_pc (tuple): The sphere's center, galactocentric parsecs.
+        radius_pc (float): Its radius, zero or more.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        min_luminosity_sol (float): The band's floor (Lsun).
+        max_luminosity_sol (float or None): Its ceiling, the level the cells were already filled to.
+        seed (int): The galaxy's bright-star seed.
+        mass_range (tuple, optional): As in `backfill_cells`.
+        memo (dict, optional): Only the bands' shares are kept in it, for a caller that draws many spheres.
+
+    Yields:
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order, cell by cell in no particular order.
+    """
+    bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
+    age_laws = age_laws_of(shape)
+    shared = {} if memo is None else memo
+    shares_key = ("shares", mass_range)
+    of_band = _band_shares(shared, shares_key, [(k, low, high) for k, low, high in bands],
+                           lambda low, high, population: bright_band_fraction(low, high, population, mass_range, age_laws))
+    paths = [(k, of_band[k], mass_range) for k, _, _ in bands]
+    for addresses, work in _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths,
+                                           {shares_key: shared[shares_key]}):
+        yield from backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol,
+                                  seed, mass_range=mass_range, memo=work)
+
+
+def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
+                         max_luminosity_sol, seed, edges, memo=None):
+    """
+    The stars `backfill_mass_cells` draws for every cell whose center lies within `radius_pc` of `center_pc`, drawn by blocks
+    as `backfill_sphere` does (VIEW.41): the same stars.
+
+    Args:
+        shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, memo: As in `backfill_sphere`.
+        target_mass_sol, held_mass_sol, max_luminosity_sol, edges: As in `backfill_mass_cells`.
+
+    Yields:
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
+    """
+    bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
+    age_laws = age_laws_of(shape)
+    shared = {} if memo is None else memo
+    shares_key = ("mass shares", max_luminosity_sol)
+    of_band = _band_shares(shared, shares_key, [((low, high), low, high) for low, high in bands],
+                           lambda low, high, population: mass_band_fraction(low, high, max_luminosity_sol, population,
+                                                                            age_laws))
+    paths = [(f"m{low:g}", of_band[(low, high)], (max_luminosity_sol, high)) for low, high in bands]
+    for addresses, work in _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths,
+                                           {shares_key: shared[shares_key]}):
+        yield from backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
+                                       max_luminosity_sol, seed, edges, memo=work)
+
+
 def star_params(row):
     """A `bright_stars` row back as the `stellarEvolution.star_params`
     dict `Star.from_params` takes. A white dwarf (a mass backfill places
@@ -1422,11 +1575,14 @@ class FillContext:
             (`db.scatter_systems.read_stored_trees`, GEN.315); a row not in it is a single star.
         orbit_epoch_unix (float or None): The orbit epoch a built system holds its phases at; a stored node is carried
             to it. `None` when no orbit update has run (a node keeps the time it was drawn at).
+        residents (tuple): The `resident_mass.Resident`s the sector already holds from elsewhere when it is filled (rogue planets and asteroid fields that
+            landed in it, GEN.1124): their mass comes off the sector's system draw (`resident_share`).
     """
 
     def __init__(self, profile, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
                  below_cut=None, star_mass_limit_sol=None, resolution=None, emission_hosts=(), member_trees=None,
-                 orbit_epoch_unix=None):
+                 orbit_epoch_unix=None, residents=()):
+        self.residents = tuple(residents)
         self.member_trees = dict(member_trees or {})
         self.orbit_epoch_unix = orbit_epoch_unix
         self.emission_hosts = tuple(emission_hosts)
@@ -1457,6 +1613,13 @@ class FillContext:
         """Whether the cell expects more systems than the cell star ceiling (GEN.281): it is built from its
         pre-placed stars alone, and draws no dimmer system of its own."""
         return self.resolution is not None and self.resolution.capped
+
+    def resident_share(self):
+        """The share of the sector's calculated mass that its residents hold (stage 0, GEN.1124), 0 with none: the part of the system draw the residents have
+        already made. A capped cell makes no system of its own, so it takes nothing off."""
+        if self.capped or not self.residents:
+            return 0.0
+        return resident_mass.resident_share(self.profile, self.residents)
 
     def bright_share(self):
         """The share of this position's stars at or above the threshold

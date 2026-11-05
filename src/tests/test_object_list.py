@@ -178,7 +178,7 @@ def test_the_api_pages_a_kind_and_refuses_what_it_cannot_serve(client, indexed):
     assert second["items"][0]["mass_kg"] <= first["items"][-1]["mass_kg"]
     assert {i["id"] for i in first["items"]}.isdisjoint(i["id"] for i in second["items"])
     for bad in ("/api/object-lists/galaxy", "/api/object-lists/star?sort=colour", "/api/object-lists/star?order=up",
-                "/api/object-lists/star?limit=x", "/api/object-lists/star?after=zz", "/api/object-lists/star?sector_id=a"):
+                "/api/object-lists/star?limit=x", "/api/object-lists/star?after=zz", "/api/object-lists/star?sector_id=zz"):
         assert client.get(bad).status_code == 400, bad
 
 

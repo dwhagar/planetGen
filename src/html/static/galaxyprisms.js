@@ -63,7 +63,7 @@ function vertical(z, h) {
   return Math.exp(-Math.min(Math.abs(z) / h, 700));
 }
 
-// The nuclear stellar disc's vertical profile: sech^2(z / 2h) (galaxyDensity._sech_vertical).
+// The nuclear stellar disk's vertical profile: sech^2(z / 2h) (galaxyDensity._sech_vertical).
 function sechVertical(z, h) {
   return sechSquared(z / (2 * h));
 }
@@ -78,13 +78,13 @@ function nuclearCluster(r, shape) {
   return shape.nuclear_cluster_mass * scale / (2 * Math.PI * radius * Math.pow(radius + scale, 3));
 }
 
-// The nuclear stellar disc (galaxyDensity._nuclear_disc): an exponential disc with a sech^2 height.
+// The nuclear stellar disk (galaxyDensity._nuclear_disk): an exponential disk with a sech^2 height.
 function nuclearDisc(rCyl, z, shape) {
-  if (!shape.nuclear_disc_mass) {
+  if (!shape.nuclear_disk_mass) {
     return 0;
   }
-  return shape.nuclear_disc_density * Math.exp(-rCyl / shape.nuclear_disc_length_pc)
-    * sechVertical(z, shape.nuclear_disc_height_pc);
+  return shape.nuclear_disk_density * Math.exp(-rCyl / shape.nuclear_disk_length_pc)
+    * sechVertical(z, shape.nuclear_disk_height_pc);
 }
 
 // Both nuclear terms at a cylindrical radius and height (galaxyDensity.nuclear_bound).
@@ -285,8 +285,8 @@ function checkBand(shell, band) {
 function wedgesAt(layout, i) {
   if (layout.table) return layout.table[i];
   i = Math.min(i, layout.bandCount - 1 - i);
-  var centre = (layoutEdge(layout, i) + layoutEdge(layout, i + 1)) / 2;
-  var arc = TWO_PI * layout.shell * Math.sin(centre) / BAND_ARC_EDGES;
+  var center = (layoutEdge(layout, i) + layoutEdge(layout, i + 1)) / 2;
+  var arc = TWO_PI * layout.shell * Math.sin(center) / BAND_ARC_EDGES;
   return CAP_RIM_WEDGES * nearestSmooth(arc / CAP_RIM_WEDGES);
 }
 
@@ -332,8 +332,8 @@ function checkWedge(shell, band, wedge) {
   return n;
 }
 
-// [cylindrical radius, z] of a band's centre line, parsecs: where every wedge of the band has its centre.
-export function bandCentrePc(shell, band, edgePc) {
+// [cylindrical radius, z] of a band's center line, parsecs: where every wedge of the band has its center.
+export function bandCenterPc(shell, band, edgePc) {
   checkBand(shell, band);
   if (shell === 0) return [0.0, 0.0];
   var r = shell * edgePc;
@@ -344,15 +344,15 @@ export function bandCentrePc(shell, band, edgePc) {
   return [r * Math.sin(colat), r * Math.cos(colat)];
 }
 
-// A sector's centre [x, y, z], parsecs: on its shell's centreline at the middle of its band's
+// A sector's center [x, y, z], parsecs: on its shell's centreline at the middle of its band's
 // colatitude and its wedge's longitude; a cap's is on the axis, the core's the origin.
 export function sectorPositionPc(shell, band, wedge, edgePc) {
   checkWedge(shell, band, wedge);
-  var centre = bandCentrePc(shell, band, edgePc);
-  if (centre[0] === 0.0) return [0.0, 0.0, centre[1]];
+  var center = bandCenterPc(shell, band, edgePc);
+  if (center[0] === 0.0) return [0.0, 0.0, center[1]];
   var lon = wedgeLongitudeBounds(shell, band, wedge);
   var mid = (lon[0] + lon[1]) / 2;
-  return [centre[0] * Math.cos(mid), centre[0] * Math.sin(mid), centre[1]];
+  return [center[0] * Math.cos(mid), center[0] * Math.sin(mid), center[1]];
 }
 
 // The shell whose [inner, outer) range holds a radius.
@@ -517,7 +517,7 @@ export function cellExists(shell, band, wedge) {
 // centreline radius is shell*m + (m - 1)/2 edges), `band` is a signed row of
 // blocks (0 the equatorial row) and `wedge` one of the row's equal longitude
 // steps. At m = 1 it is a sector as spherical.py names it. A sector joins the
-// level-3 block holding its centre. planetgen/galaxy/drill.py is the same
+// level-3 block holding its center. planetgen/galaxy/drill.py is the same
 // rules for the server, and tests/test_galaxyprisms.py checks the two agree.
 
 export var DRILL_LEVELS = [177147, 59049, 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1];
@@ -540,7 +540,7 @@ function oddRound(x) {
   return Math.max(1, 2 * Math.floor(x / 2) + 1);
 }
 
-// Centreline radius of block shell `shell` at size m, in edges.
+// Centerline radius of block shell `shell` at size m, in edges.
 export function blockRadius(m, shell) {
   return shell * m + (m - 1) / 2;
 }
@@ -612,7 +612,7 @@ function rowOf(m, shell, band) {
 }
 
 // Wedges in row `band` of block shell `shell` at size m: the root takes round(2 pi R sin(theta) / m), theta the
-// row's centre colatitude; the others the parent row's count times max(1, round(that over the parent's)).
+// row's center colatitude; the others the parent row's count times max(1, round(that over the parent's)).
 export function drillWedgeCount(m, shell, band) {
   if (m === 1) return wedgeCount(shell, band);
   checkLevel(m);
@@ -636,13 +636,13 @@ export function drillWedgeCount(m, shell, band) {
 }
 
 // The row (signed) of block shell `shell` at size m holding a colatitude; the poles go to the end rows.
-function centreRow(m, shell, colatitude) {
+function centerRow(m, shell, colatitude) {
   var count = drillBandCount(m, shell);
   var row = Math.min(count - 1, Math.max(0, Math.floor(colatitude * count / Math.PI)));
   return (count - 1) / 2 - row;
 }
 
-// The colatitude a sector's centre lies at: the middle of its band, the plane for band 0, the axis for a
+// The colatitude a sector's center lies at: the middle of its band, the plane for band 0, the axis for a
 // cap, and pi / 2 for the core.
 export function cellColatitude(shell, band) {
   if (shell === 0) return Math.PI / 2;
@@ -652,7 +652,7 @@ export function cellColatitude(shell, band) {
   return (bounds[0] + bounds[1]) / 2;
 }
 
-// The block wedge holding a sector wedge's centre longitude, in integers; a centre exactly on a meridian
+// The block wedge holding a sector wedge's center longitude, in integers; a center exactly on a meridian
 // goes to the higher wedge.
 function cellWedgeIn(cellWedges, cellWedge, blockWedges) {
   return Math.floor(((2 * cellWedge + 1) * blockWedges) / (2 * cellWedges));
@@ -663,7 +663,7 @@ export function drillParent(block) {
   var m = block.m;
   if (m === 1) {
     var parentShell = Math.floor(block.shell / DRILL_STEP);
-    var parentBand = centreRow(DRILL_STEP, parentShell, cellColatitude(block.shell, block.band));
+    var parentBand = centerRow(DRILL_STEP, parentShell, cellColatitude(block.shell, block.band));
     if (block.shell === 0 || isCap(block.shell, block.band)) {
       return { m: DRILL_STEP, shell: parentShell, band: parentBand, wedge: 0 };
     }
@@ -740,14 +740,14 @@ export function isBlock(block) {
   return block.wedge < drillWedgeCount(m, block.shell, block.band);
 }
 
-// The colatitude of a block row's centre (rows are equal steps from the north pole).
+// The colatitude of a block row's center (rows are equal steps from the north pole).
 function blockColatitude(m, shell, band) {
   var rows = drillBandCount(m, shell);
   return ((rows - 1) / 2 - band + 0.5) * Math.PI / rows;
 }
 
-// A cell's centre in parsecs, [x, y, z]: a sector's own, a block's at its block shell's centreline radius, its
-// row's centre colatitude and its wedge's centre longitude (window.cell_position_pc).
+// A cell's center in parsecs, [x, y, z]: a sector's own, a block's at its block shell's centreline radius, its
+// row's center colatitude and its wedge's center longitude (window.cell_position_pc).
 export function cellPositionPc(cell, edgePc) {
   if (cell.m === 1) return sectorPositionPc(cell.shell, cell.band, cell.wedge, edgePc);
   var radius = blockRadius(cell.m, cell.shell) * edgePc;
@@ -782,7 +782,7 @@ export function cellAt(m, x, y, z, edgePc) {
 export var NEIGHBOUR_DIRECTIONS = ["north", "south", "east", "west", "out", "in"];
 
 // The cell of `block`'s own size beside it in `direction`: the cell holding the point half a cell's extent past
-// the wall, straight out from the block's centre in that direction. Rows and shells differ in how many wedges they
+// the wall, straight out from the block's center in that direction. Rows and shells differ in how many wedges they
 // hold, so a step north then south need not land on the cell it left; it always lands on a cell that shares the
 // wall. Null where there is nothing there to step to: past a pole, below the core, the cell itself (a cap or a
 // whole ring has no east or west) or a cell the grid does not have.
@@ -807,8 +807,8 @@ export function neighbourBlock(block, direction, edgePc) {
 // --- The data window ---------------------------------------------------------
 //
 // planetgen/galaxy/window.py (MAP.151) for the page: `g` cells across around
-// a chosen cell of one level, a ball: every cell of the centre's level whose
-// centre lies within g * m / 2 edges of the centre cell's centre, found per
+// a chosen cell of one level, a ball: every cell of the center's level whose
+// center lies within g * m / 2 edges of the center cell's center, found per
 // shell in closed form (a ball meets a sphere in a cap, so the bands to look
 // at are those within the cap's angular radius, and in each the wedges within
 // a longitude half-width). tests/test_galaxyprisms.py checks the two agree.
@@ -820,19 +820,19 @@ var TOLERANCE_PC = 1e-9;
 var bandCache = new Map();
 var BAND_CACHE_MAX = 400;
 
-// The sector bands of a shell north to south with their centre colatitudes: {bands, centres}.
+// The sector bands of a shell north to south with their center colatitudes: {bands, centers}.
 function shellBands(shell) {
   var cached = bandCache.get(shell);
   if (cached) return cached;
   var range = bandRange(shell);
   var bands = [];
-  var centres = [];
+  var centers = [];
   for (var b = range[1]; b >= range[0]; b--) {
     bands.push(b);
-    centres.push(cellColatitude(shell, b));
+    centers.push(cellColatitude(shell, b));
   }
   if (bandCache.size >= BAND_CACHE_MAX) bandCache.clear();
-  cached = { bands: bands, centres: centres };
+  cached = { bands: bands, centers: centers };
   bandCache.set(shell, cached);
   return cached;
 }
@@ -858,33 +858,33 @@ function levelShells(m, lowPc, highPc, edgePc) {
   return out;
 }
 
-// [band, centre colatitude] of the rows (blocks) or bands (sectors) of one shell whose centre colatitude lies in
+// [band, center colatitude] of the rows (blocks) or bands (sectors) of one shell whose center colatitude lies in
 // [lowColat, highColat], north to south.
 function windowBands(m, shell, lowColat, highColat) {
   var bands;
-  var centres;
+  var centers;
   if (m === 1) {
     if (shell === 0) return [[0, Math.PI / 2]];
     var cached = shellBands(shell);
     bands = cached.bands;
-    centres = cached.centres;
+    centers = cached.centers;
   } else {
     var rows = drillBandCount(m, shell);
     bands = [];
-    centres = [];
+    centers = [];
     for (var b = (rows - 1) / 2; b >= -(rows - 1) / 2; b--) {
       bands.push(b);
-      centres.push(blockColatitude(m, shell, b));
+      centers.push(blockColatitude(m, shell, b));
     }
   }
-  var start = bisectLeft(centres, lowColat);
-  var stop = bisectRight(centres, highColat);
+  var start = bisectLeft(centers, lowColat);
+  var stop = bisectRight(centers, highColat);
   var out = [];
-  for (var i = start; i < stop; i++) out.push([bands[i], centres[i]]);
+  for (var i = start; i < stop; i++) out.push([bands[i], centers[i]]);
   return out;
 }
 
-// The wedges of a band of `count` whose centre longitude may lie within `halfWidth` of `lon0` (a superset).
+// The wedges of a band of `count` whose center longitude may lie within `halfWidth` of `lon0` (a superset).
 function wedgeCandidates(count, lon0, halfWidth) {
   var all = [];
   if (halfWidth >= Math.PI || count === 1) {
@@ -899,12 +899,12 @@ function wedgeCandidates(count, lon0, halfWidth) {
   return Array.from(seen).sort(function (p, q) { return p - q; });
 }
 
-// The cells of level m (a block size, or 1 for sectors) whose centre lies within `reachPc` of `centrePc`, ordered
+// The cells of level m (a block size, or 1 for sectors) whose center lies within `reachPc` of `centerPc`, ordered
 // by shell, then band north to south, then wedge.
-export function cellsInBall(m, centrePc, reachPc, edgePc) {
-  var x0 = centrePc[0];
-  var y0 = centrePc[1];
-  var z0 = centrePc[2];
+export function cellsInBall(m, centerPc, reachPc, edgePc) {
+  var x0 = centerPc[0];
+  var y0 = centerPc[1];
+  var z0 = centerPc[2];
   var rho0 = Math.sqrt(x0 * x0 + y0 * y0 + z0 * z0);
   var theta0 = rho0 ? Math.acos(Math.max(-1.0, Math.min(1.0, z0 / rho0))) : 0.0;
   var lon0 = Math.atan2(y0, x0);
@@ -921,7 +921,7 @@ export function cellsInBall(m, centrePc, reachPc, edgePc) {
       cosNeed = (radius * radius + rho0 * rho0 - reachPc * reachPc) / (2 * radius * rho0);
       psi = cosNeed <= -1 ? Math.PI : (cosNeed >= 1 ? 0.0 : Math.acos(cosNeed));
     }
-    // Block rows are wide: look one row's width beyond the cap for rows whose centre may still be inside.
+    // Block rows are wide: look one row's width beyond the cap for rows whose center may still be inside.
     var slack = m > 1 ? Math.PI / drillBandCount(m, shell) : Math.PI / Math.max(1, bandRange(shell)[1] * 2 + 1);
     windowBands(m, shell, theta0 - psi - slack, theta0 + psi + slack).forEach(function (row) {
       var band = row[0];
@@ -950,14 +950,14 @@ export function cellsInBall(m, centrePc, reachPc, edgePc) {
   return cells;
 }
 
-// The window's cells, [{m, shell, band, wedge}]: every cell of `centre`'s level whose centre lies within
-// g * m / 2 edges of centre's. `centre` itself is always among them.
-export function windowCells(centre, edgePc, g) {
+// The window's cells, [{m, shell, band, wedge}]: every cell of `center`'s level whose center lies within
+// g * m / 2 edges of center's. `center` itself is always among them.
+export function windowCells(center, edgePc, g) {
   g = g || DEFAULT_WINDOW;
-  var reach = g * centre.m * edgePc / 2.0;
-  var cells = cellsInBall(centre.m, cellPositionPc(centre, edgePc), reach, edgePc);
-  if (!cells.some(function (c) { return sameBlock(c, centre); })) {
-    cells.push({ m: centre.m, shell: centre.shell, band: centre.band, wedge: centre.wedge });
+  var reach = g * center.m * edgePc / 2.0;
+  var cells = cellsInBall(center.m, cellPositionPc(center, edgePc), reach, edgePc);
+  if (!cells.some(function (c) { return sameBlock(c, center); })) {
+    cells.push({ m: center.m, shell: center.shell, band: center.band, wedge: center.wedge });
     cells.sort(function (p, q) { return p.shell - q.shell || q.band - p.band || p.wedge - q.wedge; });
   }
   return cells;
@@ -970,13 +970,13 @@ export function windowCells(centre, edgePc, g) {
 // highest band it reaches. A shell's qualifying bands are one run around the plane, -high .. high (both caps when
 // high is the shell's top band). Sectors allowed in a shell are those wedges of those bands.
 
-// Whether sector band (shell, band) can hold a sector: the density bound at its centre line reaches the galaxy's
+// Whether sector band (shell, band) can hold a sector: the density bound at its center line reaches the galaxy's
 // sector threshold (shape.sector_min_density, the density a sector needs to expect one system), else the drawing
 // floor.
 export function bandAllowed(shell, band, edgePc, shape) {
-  var centre = bandCentrePc(shell, band, edgePc);
+  var center = bandCenterPc(shell, band, edgePc);
   var threshold = shape.sector_min_density > 0 ? shape.sector_min_density : PRISM_MIN_DENSITY;
-  return densityUpperBound(centre[0], Math.abs(centre[1]), shape) >= threshold;
+  return densityUpperBound(center[0], Math.abs(center[1]), shape) >= threshold;
 }
 
 // The highest |band| of shell `shell` with a cell that can qualify: the pole cap is checked first (if it qualifies
@@ -1019,7 +1019,7 @@ export function galaxyOutline(edgePc, shape, galaxyRadius) {
 
 // MAP.243: the outline of every cell the grid can name: each shell out to the designation's last, with all its bands.
 // The galaxy's own outline holds what its density allows; a window of the map and a sector's address hold anything
-// the grid names, so the halo and the satellite galaxies beyond the disc can be reached.
+// the grid names, so the halo and the satellite galaxies beyond the disk can be reached.
 export var REACH_OUTLINE = { high: null, outerShell: DESIGNATION_MAX_SHELL, shapeless: true, reach: true };
 
 // The highest band sector shell `shell` reaches under `outline`, or -1.
@@ -1035,19 +1035,19 @@ export function sectorInOutline(shell, band, wedge, outline) {
 }
 
 // The sectors of the sector shell `k` that join block row `row` of `rows` equal colatitude steps at block level 3's
-// own rows (`rows3` of them) -- the bands whose centre lies in level-3 rows [lo, hi) -- as [firstIndex, lastIndex+1) of the
+// own rows (`rows3` of them) -- the bands whose center lies in level-3 rows [lo, hi) -- as [firstIndex, lastIndex+1) of the
 // shell's north-to-south band list, held back to the bands the outline allows.
 function bandSlice(k, lo, hi, rows3, high) {
   var cached = shellBands(k);
-  var centres = cached.centres;
-  var start = lo === 0 ? 0 : bisectLeft(centres, lo * Math.PI / rows3);
-  var stop = hi === rows3 ? centres.length : bisectLeft(centres, hi * Math.PI / rows3);
+  var centers = cached.centers;
+  var start = lo === 0 ? 0 : bisectLeft(centers, lo * Math.PI / rows3);
+  var stop = hi === rows3 ? centers.length : bisectLeft(centers, hi * Math.PI / rows3);
   var top = bandRange(k)[1];
   // Bands top - high .. top + high are allowed (indices count down from the north cap).
   return [Math.max(start, top - high), Math.min(stop, top + high + 1)];
 }
 
-// The sectors of wedge range [first, last] of a band of `n`, whose centres lie in level-3 wedges [a, b) of a row of
+// The sectors of wedge range [first, last] of a band of `n`, whose centers lie in level-3 wedges [a, b) of a row of
 // `w3`: integer arithmetic, so wedge lines on sector walls never round the wrong way (drill._wedge_cells).
 function wedgeRun(n, a, b, w3) {
   var first = Math.max(0, Math.ceil((2 * a * n - w3) / (2 * w3)));
@@ -1057,7 +1057,7 @@ function wedgeRun(n, a, b, w3) {
 
 // (Stage levels only, 243 and below: the walk is by level-3 rows, which a block of the levels above would make
 // millions of.)
-// How many sectors block `block` (level 3 or more) can hold under `outline`: the sectors of its sector shells whose centre
+// How many sectors block `block` (level 3 or more) can hold under `outline`: the sectors of its sector shells whose center
 // joins it, held back to the bands the outline allows (drill.block_addresses). With `stopAtOne`, only whether there
 // is any: 1 or 0, quickly.
 function countSectors(block, outline, stopAtOne) {
@@ -1121,7 +1121,7 @@ export function drillBlockHolds(block, outline) {
 }
 
 // The sectors of level-3 block `block`, as {m: 1, shell, band, wedge}: in each of its three sector shells, the bands
-// whose centre lies in its row and, in each, the wedges whose centre lies in its wedge, in shell, then band north
+// whose center lies in its row and, in each, the wedges whose center lies in its wedge, in shell, then band north
 // to south, then wedge order (drill.drill_block_sectors). The outline is not consulted: these are every sector the
 // grid puts in the block.
 export function drillBlockSectors(block) {
@@ -1136,8 +1136,8 @@ export function drillBlockSectors(block) {
       continue;
     }
     var cached = shellBands(k);
-    var start = row === 0 ? 0 : bisectLeft(cached.centres, row * Math.PI / rows);
-    var stop = row === rows - 1 ? cached.centres.length : bisectLeft(cached.centres, (row + 1) * Math.PI / rows);
+    var start = row === 0 ? 0 : bisectLeft(cached.centers, row * Math.PI / rows);
+    var stop = row === rows - 1 ? cached.centers.length : bisectLeft(cached.centers, (row + 1) * Math.PI / rows);
     for (var i = start; i < stop; i++) {
       var band = cached.bands[i];
       if (isCap(k, band)) {
@@ -1235,7 +1235,7 @@ function spherePoint(r, c, t) {
 }
 
 export function buildPrismGeometry(cells, origin) {
-  // MAP.240: the vertices are written as offsets from `origin` (default the galaxy's centre), the differences worked out in
+  // MAP.240: the vertices are written as offsets from `origin` (default the galaxy's center), the differences worked out in
   // double before they are rounded to float32; the mesh carries the origin as its position.
   origin = origin || [0, 0, 0];
   var vertexCount = 0;
@@ -1325,7 +1325,7 @@ export function buildPrismGeometry(cells, origin) {
     var i;
     var t;
     var c;
-    // The two walls: outer, then inner (none at the very centre).
+    // The two walls: outer, then inner (none at the very center).
     [b.r1, b.r0].forEach(function (r, wall) {
       if (wall === 1 && !plan.inner) return;
       var sign = wall === 0 ? 1 : -1;
