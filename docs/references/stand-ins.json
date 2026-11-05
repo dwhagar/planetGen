@@ -33685,8 +33685,8 @@
       "title": "Stand-ins of the two cuts of the body type"
     },
     {
-      "key": "6.175",
-      "number": "6.175",
+      "key": "6.176",
+      "number": "6.176",
       "rows": [
         {
           "burn_down": null,
@@ -33717,9 +33717,9 @@
             ]
           ],
           "id": "SKT1",
-          "key": "6.175:SKT1",
+          "key": "6.176:SKT1",
           "kind": "P",
-          "slug": "6-175-skt1",
+          "slug": "6-176-skt1",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
@@ -33755,9 +33755,9 @@
             ]
           ],
           "id": "SKT2",
-          "key": "6.175:SKT2",
+          "key": "6.176:SKT2",
           "kind": "D",
-          "slug": "6-175-skt2",
+          "slug": "6-176-skt2",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
@@ -33765,8 +33765,92 @@
           "what": "sky_tiers.RING_TOP_SOL 50: the luminosity the rings stop at and the luminosity bands start at, tuning.WD_LUMINOSITY_RANGE_SOL[1], the brightest white dwarf, under which star_population.check_threshold refuses a luminosity floor"
         }
       ],
-      "slug": "6-175-stand-ins-of-the-sky-tier-table",
+      "slug": "6-176-stand-ins-of-the-sky-tier-table",
       "title": "Stand-ins of the sky tier table"
+    },
+    {
+      "key": "6.175",
+      "number": "6.175",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky.DISPERSION_KMS (35, 25, 20): the velocity dispersion in the radial, tangential and vertical directions (km/s) of a star with no stored velocity, which moves counterclockwise at the circular speed of the galaxy at its radius"
+            ],
+            [
+              "The range it moves in",
+              "25 to 45; 15 to 35; 12 to 30"
+            ],
+            [
+              "Where it holds",
+              "a thin-disc population in a galaxy of the Milky Way's mix; an old or halo star has a larger dispersion and a lagging mean speed (the asymmetric drift is left out)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured velocity ellipsoid of the solar neighbourhood outside these ranges, or the velocity law of GEN.339 giving a different spread for the same stars"
+            ],
+            [
+              "What replaces it",
+              "the velocity law of GEN.339 and the stepper of GEN.340, which store a velocity for every scatter star"
+            ],
+            [
+              "Evidence",
+              "recalled: the thin-disc ellipsoid near the Sun is about 35, 25 and 20 km/s in U, V and W; not read from a paper. The error it causes is small: 30 km/s for 300 years of light time moves a star 0.01 arcsecond at 10 pc and 20 arcseconds at 3 kpc"
+            ]
+          ],
+          "id": "SKC1",
+          "key": "6.175:SKC1",
+          "kind": "P",
+          "slug": "6-175-skc1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "VIEW.31",
+          "what": "sky.DISPERSION_KMS (35, 25, 20): the velocity dispersion in the radial, tangential and vertical directions (km/s) of a star with no stored velocity, which moves counterclockwise at the circular speed of the galaxy at its radius"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky.stars_from_sphere and sky_from_stars: a star with no stored epoch (epoch_unix NULL, an unbuilt bright star) is taken to hold its stored position at the sky's time"
+            ],
+            [
+              "The range it moves in",
+              "the position is at most one orbit epoch old (a few hundred years to a few thousand years at the update's step)"
+            ],
+            [
+              "Where it holds",
+              "an unbuilt bright star; a star that has an epoch is moved from it"
+            ],
+            [
+              "What would show it wrong",
+              "a bright star's stored position stamped with the orbit epoch it was drawn at (the scatter's own epoch), which differs from the sky's time by more than a quarter of a light time"
+            ],
+            [
+              "What replaces it",
+              "the epoch the scatter was drawn at (the database's orbit epoch, db.store), once every unbuilt bright star stores one"
+            ],
+            [
+              "Evidence",
+              "needed output: the sky has to put the star somewhere; a star moving at 30 km/s over 1,000 years is 0.03 pc, 0.6 arcminutes at 10 pc and 6 arcseconds at 1 kpc"
+            ]
+          ],
+          "id": "SKC2",
+          "key": "6.175:SKC2",
+          "kind": "P",
+          "slug": "6-175-skc2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky.stars_from_sphere and sky_from_stars: a star with no stored epoch (epoch_unix NULL, an unbuilt bright star) is taken to hold its stored position at the sky's time"
+        }
+      ],
+      "slug": "6-175-stand-ins-of-the-sky-catalogue-of-a-system",
+      "title": "Stand-ins of the sky catalogue of a system"
     },
     {
       "key": "6.174",
