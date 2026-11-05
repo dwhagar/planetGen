@@ -2456,29 +2456,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
-- [ ] **NAV.69 Schematic route map part 5: linked selection between the course diagram and the Galaxy Map**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  5 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: clicking a stop
-  in the diagram centres the Galaxy Map's course on it; clicking a
-  marker on the map highlights it in the diagram. Share one route record
-  between the diagram and the map route layers (MAP.309, MAP.310) so the
-  two views never disagree. Done: a browser test in both directions.
-  Proposed owner: Core 2. Related: MAP.309, MAP.310. Goal #1679. Filed
-  by the TODO thread.
-  Prerequisites: NAV.67.
-
 - [ ] **NAV.70 Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain**
   Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
   questions
