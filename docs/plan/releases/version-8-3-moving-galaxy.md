@@ -36,6 +36,12 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row |  | Split from the Galaxy Map key item. |
 
+### Console look: buttons, form fields and tables
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.132 | Console look for buttons, form fields and tables, by tokens only | UX.131 | Split from UX.43. |
+
 ### Galactic gravity
 
 | ID | Item | Needs | Note |

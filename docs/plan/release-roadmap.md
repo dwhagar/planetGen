@@ -61,7 +61,7 @@ Needs: The plan model, aspects and regions come first (phase 1); then the approv
 
 ## Release 8.7: Full help for all pages
 Status: approved by Boss (5:44 PM EST on 2026-11-05) Progress (12:34 PM EDT 2026-10-28): 0 of 18 items finished (0.0 percent), 18 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
-Headline: Full help for all pages: every page explains itself, with the pilot's console look as the second feature (Boss, 5:40 PM EST on 2026-11-05; the version is still proposed)
+Headline: Full help for all pages: every page explains itself, with the pilot's console look as the second feature (Boss, 5:40 PM EST on 2026-11-05); Glass cockpit is the default look, with Chart room and Phosphor selectable (Boss, 5:54 PM EST on 2026-11-05)
 Today: (new)
 Change: The help pages (DOC.6 to DOC.16) and the console design (UX.43) have no headline today.
 Needs: The help pages describe what 8.1 to 8.6 built, so this version goes after them; DOC.6 (the template and coverage test) first.

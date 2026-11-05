@@ -303,7 +303,10 @@ with `clamp()`.
   of the design brief Boss approves (child a), the tokens, type and base
   template in both themes (child b) and the look of the shared
   components (child c).
-  Prerequisites: UX.130, UX.131, UX.132.
+  Boss decision (5:54 PM EST on 2026-11-05): Glass cockpit is the
+  default look; the Chart room and Phosphor looks are selectable
+  (UX.265, UX.266, UX.267, TEST.623).
+  Prerequisites: UX.130, UX.131, UX.132, UX.266, UX.267, TEST.623, UX.268, UX.269, UX.270.
 
 - [ ] **UX.45 Bookmark management**
   Boss (2026-10-07 11:47Z): "Bookmark management system." Today
@@ -428,6 +431,14 @@ with `clamp()`.
   colour is paired with a symbol, word or shape, and the habitability
   tiers reusing the rating chip so the site has one status component.
   Done: the note, with a mock page in both themes, approved by Boss.
+  Boss decision (5:54 PM EST on 2026-11-05): the brief is approved as
+  the Glass cockpit look (cyan interactive, amber selection and caution,
+  dark space chrome, B612 Mono for numbers and designations); the Chart
+  room and Phosphor looks stay available to users as selectable looks,
+  each in light and dark.
+  Boss decision (5:55 PM EST on 2026-11-05): moved to 8.2 with the
+  preference plumbing (UX.265) and the tokens (UX.131) so the console
+  look begins early and 8.7 is not one lump.
   Prerequisites: none. Related: UX.43.
 
 - [ ] **UX.131 Console tokens, type and base template in both themes**
@@ -439,9 +450,16 @@ with `clamp()`.
   and the token files use the brief, a contrast test (the project
   checker) passes on both themes for every token pair, and nothing
   outside the shell changes shape yet.
-  Prerequisites: UX.130. Related: UX.43.
+  Boss decision (5:54 PM EST on 2026-11-05): build the tokens as a look
+  (cockpit, chart, phosphor) times a theme (system, light, dark), with
+  cockpit as the default look; this item builds the cockpit look and the
+  structure, and the other two looks are UX.266 and UX.267; the
+  preference plumbing is UX.265 (8.2).
+  Boss decision (5:55 PM EST on 2026-11-05): moved to 8.2 beside UX.265
+  (the look and theme preference), so every later look is a token layer.
+  Prerequisites: UX.130. Related: UX.43, UX.265.
 
-- [ ] **UX.132 Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome**
+- [ ] **UX.132 Console look for buttons, form fields and tables, by tokens only**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Restyle the shared components onto
   the tokens of child b: buttons and form fields, tables, panels and
@@ -451,6 +469,16 @@ with `clamp()`.
   browser layout and colour tests pass in both themes, reduced motion is
   honoured, and a before-and-after screenshot of the main pages is
   attached.
+  Boss decision (5:54 PM EST on 2026-11-05): restyle by tokens only, so
+  the Chart room (UX.266) and Phosphor (UX.267) looks are stylesheets
+  and need no component change; the browser colour tests run for all six
+  combinations (TEST.623).
+  Boss decision (5:55 PM EST on 2026-11-05): the console work is spread
+  across versions: this item is now buttons, form fields and tables only
+  (8.3); panels, dialogs and the status chip are UX.268 (8.4), the icon
+  sprite and the maps' chrome are UX.269 (8.5), the admin pages are
+  UX.270 (8.6); the Chart room and Phosphor layers (UX.266, UX.267) and
+  the six-combination tests (TEST.623) come last in 8.7.
   Prerequisites: UX.131. Related: UX.43.
 
 - [ ] **UX.134 Generate page: the galaxy type shows what the seed drew and can be pinned**
@@ -829,6 +857,98 @@ with `clamp()`.
   Version 8.1. Owner: the researching thread that found it. Filed by the
   TODO thread.
   Prerequisites: none. Related: GEN.420, UX.215, UX.222.
+
+- [ ] **UX.265 Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu**
+  Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
+  pilot's console default and wants the other two looks, Chart room and
+  Phosphor, available to users as selectable themes. Mockups with
+  measured token values:
+  /mnt/project-files/mockups/pilot-console-2026-11-05/. Do: extend the
+  existing light and dark switch into two settings. The look is an
+  attribute on the page root next to the theme attribute; the account
+  stores both (a migration only if the preferences table lacks the
+  columns), a visitor's choice is kept in the browser, and the
+  Preferences page and the gear menu offer both. Until the console
+  tokens land (UX.131) only the current look is offered, so nothing
+  changes on screen; the plumbing is built early so every later look is
+  a stylesheet and nothing else. Cockpit is the default look and system
+  the default theme. Done: the choice survives sign-out and a new device
+  for a signed-in user, a test covers each of the 3 x 2 values being
+  applied to the page root, and the help page lists them.
+  Prerequisites: USR.7. Related: UX.43, UX.131, USR.7.
+
+- [ ] **UX.266 Chart room look layer: the daylight-chart tokens of the mockup as a second look, in light and dark, with the shared components restyled by tokens only**
+  Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
+  pilot's console default and wants the other two looks, Chart room and
+  Phosphor, available to users as selectable themes. Mockups with
+  measured token values:
+  /mnt/project-files/mockups/pilot-console-2026-11-05/. Do: add the
+  Chart room look as a token layer on top of UX.131 and UX.132 (no
+  component rewrite), using the measured values in
+  look-2-chart-room.html, selectable through the look setting. Every
+  text pair keeps a contrast of at least 4.5 to 1 and every control
+  border at least 3 to 1 in light and dark, and every colour keeps its
+  symbol, word or shape. Approved to ship in 8.7, built last.
+  Boss decision (5:55 PM EST on 2026-11-05): approved to ship in 8.7,
+  built last.
+  Prerequisites: UX.131, UX.132, UX.265. Related: UX.43, UX.265, UX.268, UX.269, UX.270.
+
+- [ ] **UX.267 Phosphor look layer: the single-hue phosphor tokens of the mockup as a third look, in light and dark, with the shared components restyled by tokens only**
+  Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
+  pilot's console default and wants the other two looks, Chart room and
+  Phosphor, available to users as selectable themes. Mockups with
+  measured token values:
+  /mnt/project-files/mockups/pilot-console-2026-11-05/. Do: add the
+  Phosphor look as a token layer on top of UX.131 and UX.132, using the
+  measured values in look-3-phosphor.html, selectable through the look
+  setting; the light theme of this look is the paper-and-ink reading of
+  the same hue. Same contrast and non-colour-cue rules as the Chart room
+  layer. Approved to ship in 8.7, built last.
+  Boss decision (5:55 PM EST on 2026-11-05): approved to ship in 8.7,
+  built last.
+  Prerequisites: UX.131, UX.132, UX.265. Related: UX.43, UX.265, UX.268, UX.269, UX.270.
+
+- [ ] **UX.268 Console look on panels, dialogs and the one status chip (with its symbol or word), by tokens only**
+  Boss (5:55 PM EST on 2026-11-05) approved all three console looks in
+  8.7 with the Chart room and Phosphor built last, and asked for the
+  console work to be built out as a plan and spread back to 8.2 (Glass
+  cockpit is the default look; mockups and measured tokens:
+  /mnt/project-files/mockups/pilot-console-2026-11-05/). Do: restyle the
+  panels, dialogs and the one rating and status chip onto the console
+  tokens of UX.131, each with a visible non-colour cue, for the cockpit
+  look in light and dark; written so a later look is only a token layer.
+  Done: the shared panel, dialog and chip templates use the tokens only,
+  the browser colour tests pass in both themes, and a before-and-after
+  screenshot is attached. Split from UX.132 so the console work spreads
+  across versions.
+  Prerequisites: UX.132. Related: UX.43, UX.132.
+
+- [ ] **UX.269 Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only**
+  Boss (5:55 PM EST on 2026-11-05) approved all three console looks in
+  8.7 with the Chart room and Phosphor built last, and asked for the
+  console work to be built out as a plan and spread back to 8.2 (Glass
+  cockpit is the default look; mockups and measured tokens:
+  /mnt/project-files/mockups/pilot-console-2026-11-05/). Do: put the
+  icon sprite and the map controls' chrome (toolbars, layer panels, key
+  rows, hover cards) onto the console tokens for the cockpit look in
+  light and dark, each with a visible non-colour cue; the map's own star
+  and orbit colours do not change. Done: the browser layout and colour
+  tests pass in both themes for the three maps and a screenshot is
+  attached. Split from UX.132.
+  Prerequisites: UX.268. Related: UX.43, UX.132.
+
+- [ ] **UX.270 Console look on the admin shell and admin pages, by tokens only**
+  Boss (5:55 PM EST on 2026-11-05) approved all three console looks in
+  8.7 with the Chart room and Phosphor built last, and asked for the
+  console work to be built out as a plan and spread back to 8.2 (Glass
+  cockpit is the default look; mockups and measured tokens:
+  /mnt/project-files/mockups/pilot-console-2026-11-05/). Do: put the
+  admin shell and the admin pages built in this version onto the console
+  tokens for the cockpit look in light and dark, with the same
+  non-colour cue rule, so the editors land already in the console look.
+  Done: the admin pages use the tokens only and the browser colour tests
+  pass in both themes. Split from UX.132.
+  Prerequisites: UX.268. Related: UX.43, UX.132.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -18150,6 +18270,20 @@ clears each one.
   message, and the full run completes. Lock-free. Version 8.1. Owner:
   Train Manager. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.417.
+
+- [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**
+  Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
+  pilot's console default and wants the other two looks, Chart room and
+  Phosphor, available to users as selectable themes. Mockups with
+  measured token values:
+  /mnt/project-files/mockups/pilot-console-2026-11-05/. Do: extend the
+  token contrast checker and the browser colour and layout tests to run
+  every shared component and the main pages in all 3 x 2 combinations,
+  failing on any text pair under 4.5 to 1, any control border under 3 to
+  1, or any state shown by colour alone. Done: the test runs in the
+  changed-files gate whenever a token file changes.
+  Prerequisites: UX.132, UX.266, UX.267. Related: UX.43, UX.131, UX.132,, UX.268, UX.269, UX.270.
+  UX.266, UX.267.
 
 ## USR: User accounts
 
