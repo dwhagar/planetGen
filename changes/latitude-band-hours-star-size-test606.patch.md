@@ -1,0 +1,5 @@
+**Headline:** The hours of day and night in each latitude band of a world are now worked with the size of its star in the sky when the world is generated, as they already were when its scores are worked again.
+
+### Changed
+- **TEST.606 (a generator defect, not a stale test).** `habitability_world.values_from_body` did not carry `day_share_mean`, the stored share of the time the star is up from which the star's angular radius is worked out, so a world scored at generation had its seven latitude bands worked for a point star, while a re-score from the stored row (`store.refresh_habitability`) had the radius: the stored `bandN_day_hours` and `bandN_night_hours` differed by up to about one percent (18.487 against 18.297 at the pole band of a wide binary's planet). The values now carry `day_share_mean`, so generation and a re-score give the same hours. Generation: the hours of day and night in the latitude bands of every body, and the outside-hours figures worked from them, move by a fraction of a percent (`--affects fill`).
+generation-output: changed
