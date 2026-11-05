@@ -424,7 +424,7 @@ def relative_neighbours(origin, candidates):
     return found
 
 
-def route_graph(path, positions, nearby, cap, hop_distances=None):
+def route_graph(path, positions, nearby, cap):
     """
     NAV.65: the graph round a route, the edges a schematic route map draws: the route's own hops (always), the
     relative-neighbourhood links (`relative_neighbours`) between its stops, and each stop's links to the systems
@@ -437,8 +437,6 @@ def route_graph(path, positions, nearby, cap, hop_distances=None):
             frame, the systems round `point` (the stop's own system left out), and `reach` the distance within which
             that list is complete (`relative_neighbours` is exact for links no longer than this).
         cap (int): The most systems off the route listed for one stop; the rest are counted in `more`.
-        hop_distances (list, optional): The length of each hop of the route, when it is not the distance between the
-            stops' `positions` (the route search and the graph may read a system's position from different columns).
 
     Returns:
         dict: `nodes` (`[{"id", "position_ly"}]`, each system that is linked and not a stop of the route, in the
@@ -450,8 +448,7 @@ def route_graph(path, positions, nearby, cap, hop_distances=None):
     stops = {node: index for index, node in enumerate(path)}
     edges = {}
     for index, (a, b) in enumerate(zip(path, path[1:])):
-        length = hop_distances[index] if hop_distances is not None else _distance(positions[a], positions[b])
-        edges[("hop", index)] = {"from": a, "to": b, "distance_ly": length, "on_route": True}
+        edges[("hop", index)] = {"from": a, "to": b, "distance_ly": _distance(positions[a], positions[b]), "on_route": True}
     nodes = {}
     more = {}
     for index, stop in enumerate(path):

@@ -1355,14 +1355,15 @@ def _load_nav_endpoint(conn, system_id):
     )
 
     galaxy_position_ly = None
+    center_pc = None
     if row["center_x_pc"] is not None:
-        galaxy_position_ly = (
-            pc_to_ly(row["center_x_pc"]) + position_ly[0],
-            pc_to_ly(row["center_y_pc"]) + position_ly[1],
-            pc_to_ly(row["center_z_pc"]) + position_ly[2],
-        )
+        center_pc = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        # The offset is along the sector's own axes (`frame.sector_orientation`), so it is turned into the galaxy
+        # frame, as the stored `galaxy_x_pc` is (NAV.73).
+        galaxy_position_ly = tuple(pc_to_ly(c) for c in local_to_galaxy_pc(center_pc, tuple(ly_to_pc(c) for c in position_ly)))
 
-    return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly}
+    return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly,
+            "sector_center_pc": center_pc}
 
 
 def _phenomenon_nav_key(phenomenon_type, phenomenon_id):
@@ -1592,24 +1593,19 @@ def _bypass_route(conn, origin_position, destination_position, from_key, to_key,
     return {"found": found is not None, "distance_ly": found[1] if found is not None else None, "checked": True}
 
 
-def _route_graph(conn, path, positions, hops, in_galaxy):
+def _route_graph(conn, path, positions, in_galaxy):
     """
     NAV.65: the graph round a route (`nav_graph.route_graph`): the route's hops, the relative-neighbourhood links
     between its stops and each stop's links to the systems round it, at most `NAV_GRAPH_NEIGHBOURS` systems off the
     route for a stop. No new search: the systems round a stop are read from the cell-key index (`route_neighbours`),
     or, for a route searched inside one sector, from the sector's own systems.
 
-    The links are worked out in the positions the index holds (`star_systems.galaxy_*_pc`, the ones the Galaxy Map
-    and the nearby search use) for every system, the route's own stops included, so a link is measured between points of
-    one source. The route search adds a system's sector-local offset to its sector's centre without turning it into the
-    galaxy frame (`corridor._systems_of`), so a stop's `positions` entry can differ from its index position; the graph's
-    hops keep the route's own lengths so they match `hops`.
+    The route's positions and the index's are one (NAV.73), so a stop is measured from the same points as its neighbours.
 
     Args:
         path (list): The route's node ids.
         positions (dict): `{node: (x, y, z)}` light-years, as the route search had them: galaxy frame when `in_galaxy`,
             else sector-local.
-        hops (list): The route's hops (`distance_ly` read).
         in_galaxy (bool): Whether `positions` is the galaxy frame (the systems round a stop come from the index).
 
     Returns:
@@ -1617,8 +1613,6 @@ def _route_graph(conn, path, positions, hops, in_galaxy):
         a route in a sector with no galaxy placement).
     """
     stop_points = {node: positions[node] for node in path}
-    if in_galaxy:
-        stop_points.update(route_neighbours.system_points(conn, [node for node in path if not isinstance(node, str)]))
 
     def nearby(stop, point):
         exclude = None if isinstance(stop, str) else stop
@@ -1628,7 +1622,7 @@ def _route_graph(conn, path, positions, hops, in_galaxy):
         return ({key: positions[key] for _away, key in around[:NAV_GRAPH_CANDIDATES]},
                 around[NAV_GRAPH_CANDIDATES - 1][0] if len(around) >= NAV_GRAPH_CANDIDATES else math.inf)
 
-    return route_graph(path, stop_points, nearby, NAV_GRAPH_NEIGHBOURS, [hop["distance_ly"] for hop in hops])
+    return route_graph(path, stop_points, nearby, NAV_GRAPH_NEIGHBOURS)
 
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
@@ -1746,14 +1740,14 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         and destination["galaxy_position_ly"] is not None
     )
 
-    sector_offset = None
+    sector_center = None
     if sector_scope_ok:
         scope = "sector"
         origin_position, destination_position = origin["position_ly"], destination["position_ly"]
         if galaxy_scope_ok:
             # NAV.12: the route may leave the sector, so it is searched in the
-            # galaxy frame and shifted back into this sector's local frame.
-            sector_offset = tuple(g - l for g, l in zip(origin["galaxy_position_ly"], origin["position_ly"]))
+            # galaxy frame and turned back into this sector's local frame (NAV.73).
+            sector_center = origin["sector_center_pc"]
             positions = None
         else:
             positions = _sector_local_positions(conn, origin["sector_id"])
@@ -1782,7 +1776,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             galaxy_frame = None
         else:
             search_from, search_to = ((origin["galaxy_position_ly"], destination["galaxy_position_ly"])
-                                      if sector_offset is not None else (origin_position, destination_position))
+                                      if sector_center is not None else (origin_position, destination_position))
             positions, found = _galaxy_route(conn, search_from, search_to, from_key, to_key, adjacency_k)
             galaxy_frame = positions
             search_ends = (search_from, search_to)
@@ -1810,9 +1804,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                         hop["unknown_cells"] = hop_cells
                 if chart and any(cells):
                     bypass = _bypass_route(conn, *search_ends, from_key, to_key, adjacency_k)
-                if sector_offset is not None:
-                    route_positions = {node_id: tuple(c - o for c, o in zip(position, sector_offset))
-                                       for node_id, position in route_positions.items()}
+                if sector_center is not None:
+                    # Back into the sector's own axes, the inverse of how a system's offset became a galaxy position.
+                    route_positions = {node_id: tuple(pc_to_ly(c) for c in galaxy_to_local_pc(
+                        sector_center, tuple(ly_to_pc(v) for v in position))) for node_id, position in route_positions.items()}
             stays = max(len(hops) - 1 - len(stops_found), 0)  # not at a stop in unknown space (NAV.47)
             route = {
                 "path": path,
@@ -1833,7 +1828,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             if bypass is not None:
                 route["bypass"] = bypass
             if with_graph:
-                route["graph"] = _route_graph(conn, path, positions, hops, galaxy_frame is not None)
+                route["graph"] = _route_graph(conn, path, positions, galaxy_frame is not None)
 
     return {
         "scope": scope,
