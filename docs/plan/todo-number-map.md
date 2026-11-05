@@ -2457,9 +2457,9 @@ Parents marked "new parent" had no old number of their own.
 | NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | done, PR #5084 |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
 | NAV.20 | Draw the direct line and the route apart | none | done, PR #711 |
-| NAV.21 | Fit the view to the whole course | none | open |
+| NAV.21 | Fit the view to the whole course | none | done, PR #5091 |
 | NAV.22 | Courses inside a sector and a system | none | open |
-| NAV.23 | Open a saved course on the map | none | open |
+| NAV.23 | Open a saved course on the map | none | done, PR #5091 |
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
