@@ -2096,7 +2096,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     "shortest".
     Waits on NAV.62: the study of how the gravity of the stars a cell
     leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
-    Prerequisites: NAV.56, NAV.62, NAV.54.
+    Prerequisites: NAV.56, NAV.62.
 
   - [ ] **NAV.27 Moving bodies inside a system**
     Inside a system the planets move. Done: the in-system planner uses
@@ -2151,7 +2151,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
-    Prerequisites: NAV.25, NAV.26, NAV.54.
+    Prerequisites: NAV.25, NAV.26.
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
@@ -2173,46 +2173,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   panel; this item only adds the Waypoint button on that panel.
   Prerequisites: MAP.122.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
-- [ ] **NAV.54 One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants**
-  NAV.24 shipped with these gaps: (a) asteroid fields get a hard
-  keep-out of `radius_ly` in km, basis "radius" (NAV.51 asks for this;
-  `galaxy/keepout.py` and `db/query.py` `keep_out_radius` return none
-  today); (b) a supermassive hole or quasar keeps out a sphere of
-  influence `G M / sigma^2` (sigma = 100 km/s, 1.7 pc at 4e6 solar
-  masses), a quasar the larger of that and the 10 kW/m^2 radiation
-  radius, not the event horizon (0.08 AU, which a course would graze);
-  (c) a moon keeps out its Hill radius against the planet's mass; (d)
-  the pass-through note for nebulae and remnants ("No mass is stored for
-  it...") gives the wrong reason: the drawn shape fills 13% of its
-  bounding sphere and the gas is thin. A test for each. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults taken): nebulae and
-  remnants pass through with a
-  note (chord length, column density, extinction) and no hard keep-out,
-  with an optional soft cost later; a star inside its own system keeps
-  out its radiation radius `max(10 R_star, sqrt(L / (4 pi F_lim)))`,
-  F_lim = 50 kW/m^2 (0.17 AU for the Sun, 165 AU for an O3 star), hard
-  and exempt when an end lies inside it; belts inside a system pass
-  through with a note; the galactic centre keep-out of about 1.7 pc is
-  exempt for any course to a star inside it.
-  Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
-  item for smaller chunks and shared work, 1:33 PM EDT: shared
-  foundations). Owns the keep-out radii and sits first in the Steering
-  thread, with the knobs of NAV.55 before it: asteroid fields keep out
-  `radius_ly`, a supermassive hole or quasar its sphere of influence G M
-  / sigma^2, a moon its Hill radius, a star inside its own system its
-  radiation radius max(10 R_star, sqrt(L / (4 pi F_lim))), nebulae and
-  remnants pass through with a corrected note, and the galactic centre
-  is exempt; F_lim and the floors read from tuning. Done as stated
-  above, one test per kind; it no longer needs NAV.51.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): NAV.55 folded in. The knobs go in `tuning.py`: F_lim = 50
-  kW/m^2, the star floor of 10 R_star, the below-resolution fraction
-  (0.002 of the leg) and the polish tolerances; the planner (NAV.26)
-  reads the polish tolerances and the fraction, and the radii table here
-  reads F_lim and the star floor.
-  Prerequisites: none.
-  Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
   Count how many pairs of keep-out spheres overlap in a generated
@@ -18356,6 +18316,17 @@ clears each one.
   parity test needs both; that line changes what generation stores, so
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
+
+- [ ] **TEST.592 test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug)**
+  Core 2 (as the lane reported, 4:40 AM EST on 2026-11-05) found
+  tests/test_gen_hosting_wiring.py::test_a_directed_moon_count_still_goes_through_the_gate
+  passing and failing on plain main run to run, because its sun_like
+  star is built outside draw.bound and so differs every run. Do: build
+  the star inside draw.bound with a fixed seed (the draw.py wrapper is
+  the one random source), then run the test 20 times. Done: 20 passes in
+  a row on plain main. Lock-free, no output change. Version 8.1. Owner:
+  Aux 7. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.591.
 
 ## USR: User accounts
 

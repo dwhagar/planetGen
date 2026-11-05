@@ -56,14 +56,13 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants |  | Research: NAV.24 (built) follow-ups. |
-| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | NAV.54 | Boss 5:01 PM EDT: gravity of left-out mass. |
-| NAV.25 | Find the obstacles along a path | NAV.54 | Corridor query from NAV.10; sectors along the line from NAV.38. |
-| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | NAV.54 | Research: decides the overlap policy. |
-| NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56, NAV.62, NAV.54 |  |
+| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model |  | Boss 5:01 PM EDT: gravity of left-out mass. |
+| NAV.25 | Find the obstacles along a path |  | Corridor query from NAV.10; sectors along the line from NAV.38. |
+| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
+| NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56, NAV.62 |  |
 | NAV.27 | Moving bodies inside a system | NAV.26 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
-| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26, NAV.54 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
+| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
 | NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
 | NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | NAV.6 |  |
 

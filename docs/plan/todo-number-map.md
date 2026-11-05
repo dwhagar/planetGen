@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.592 |
+| TEST | TEST.593 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -2490,7 +2490,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.51 | Courses route around asteroid fields | none | open |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
-| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | open |
+| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | done, PR #5066 |
 | NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
@@ -3939,6 +3939,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.589 | test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug) | none | done, PR #5045 |
 | TEST.590 | test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star fails on plain main with min() of an empty list in _nearest (bug) | none | done, PR #5051 |
 | TEST.591 | test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug) | none | open |
+| TEST.592 | test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
