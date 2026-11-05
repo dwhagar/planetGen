@@ -1190,21 +1190,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
-- [ ] **MAP.179 Scattered nebulae as markers from level 8**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. planetary nebulae and remnants from the scatter shown
-  as the far-zoom markers of MAP.132 from level 8. Done: the markers,
-  with a browser test. Owner: Foundations lane 2.
-  Draws the far-zoom markers of the marker layer (first child of
-  MAP.132), so it needs it (2026-10-16 review); it keeps the
-  planetary-nebula and remnant kind.
-  Prerequisites: GEN.202. Related: MAP.132.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
   Boss (2026-10-10 22:01Z): review the cloud density against the real
   Milky Way and decide how to manage it so things stay visible. From the
@@ -18257,20 +18242,6 @@ clears each one.
   1).
   Prerequisites: none. Related: TEST.579, GEN.367.
 
-- [ ] **TEST.581 test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug)**
-  Aux 3, 7:29 PM EST on 2026-11-04 (as the lane reported), found this
-  red on plain main, not from its PR: the test names a database 'x' that
-  the test MySQL does not have, so the rebuild fails with 'Unknown
-  database' before the check the test is about. Do: find the commit that
-  turned it red, make the test create or mock the database it names (or
-  stop the rebuild earlier through the real seam), and keep what it
-  asserts (a rebuild that cannot reopen the site fails loudly, and does
-  not exit zero). Done: the test green alone and in the changed gate.
-  Proposed owner: Bug 1, with TEST.580. Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Tides 1 (moved from
-  Bug 1).
-  Prerequisites: none. Related: TEST.580.
-
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
   Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
   (reports/temperature-coverage-2026-11-04.md, section 9). Do: sweep the
@@ -18285,19 +18256,6 @@ clears each one.
   the registered thresholds, and the census green. Proposed owner: Bug 1
   (prevalence census owner), after GEN.1265. Filed by the TODO thread.
   Prerequisites: GEN.1265. Related: GEN.1265, TEST.430, GEN.725.
-
-- [ ] **TEST.583 Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug)**
-  Core 2 (as the lane reported, 8:39 PM EST on 2026-11-04), found while
-  merging PERF.233 (#4965): four tests in files it touched are red on
-  main already, not from that change. test_settings fails because
-  cli/warm.py reads PLANETGEN_WARM_TIME_LIMIT_SECONDS but the settings
-  model has no such setting (the warm-up limit moved to
-  WARM_STAGE_SECONDS with OPS.95); three tests in
-  test_readme_external_files fail on the readme's external-file list.
-  Find the commit for each, fix the code or the test and say which.
-  Done: the four pass on main. Lock-free. Version 8.1. Owner: Tides 1,
-  with TEST.580 and TEST.581. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.580, TEST.581, OPS.95.
 
 - [ ] **TEST.585 Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug)**
   Core 2 (as the lane reported, 9:43 PM EST on 2026-11-04) saw the
