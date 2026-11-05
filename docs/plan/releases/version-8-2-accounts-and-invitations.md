@@ -51,6 +51,14 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | OPS.64 | The version code carries the database schema, generator epoch and API versions as well |  |  |
+| OPS.96 | warmup.log in the log folder, written by planetgen warm itself, local time with zone |  |  |
+| OPS.97 | Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter | OPS.96 |  |
+| OPS.98 | A time on every line of every script and command | OPS.97 |  |
+| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh | OPS.96 |  |
+| OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
+| OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | OPS.96 |  |
+| OPS.102 | Debug log: an area column in, the dead logger-name column out |  |  |
+| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | OPS.98, OPS.99, OPS.100, OPS.101, OPS.102 |  |
 | PERF.236 | The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug) |  |  |
 | GEN.1275 | The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug) |  |  |
 | PERF.240 | A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug) | GEN.1275 |  |
