@@ -18335,6 +18335,18 @@ clears each one.
   whenever a ships module changes.
   Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
 
+- [ ] **TEST.626 tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries fails on plain main (4 of 4 runs) (bug)**
+  Found by Core 5 (6:16 PM EST on 2026-11-05) while building PERF.219:
+  the test that the sector and system pages use a fixed number of
+  queries fails on main without any change of theirs. Do: run it on
+  main, find which page now issues more queries than the fixed number (a
+  recent read added to the page), then either remove the extra query or,
+  if the new read is needed, make it part of the fixed count with a
+  stated reason; do not loosen the test to a larger limit without naming
+  what the extra queries are. Done: the test passes on main and a
+  comment in it names the query count and what each query is.
+  Prerequisites: none. Related: PERF.219.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

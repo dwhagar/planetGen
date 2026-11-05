@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.626 |
+| TEST | TEST.627 |
 | USR | USR.32 |
 | OPS | OPS.106 |
 | DOC | DOC.107 |
@@ -4043,6 +4043,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.623 | Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark) | none | open |
 | TEST.624 | Politics tests: determinism over 100 steps at different batchings, no flicker, a split, a locked case, and polity count and area in a sane range on a census galaxy | none | open |
 | TEST.625 | Ships and stations tests: position against the course planner, the arrival job, refused orbits, and determinism of generated traffic | none | open |
+| TEST.626 | tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries fails on plain main (4 of 4 runs) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
