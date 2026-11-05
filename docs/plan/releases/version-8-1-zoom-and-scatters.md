@@ -501,7 +501,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1071 | Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing | GEN.1068, GEN.1069 |  |
 | GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) | GEN.1071 |  |
 | GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | GEN.1069 |  |
-| UX.263 | The belt page reads the belt density module: wire planetgen.physics.belt_density into the belt page data builder, or delete it |  |  |
 | GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | GEN.477, GEN.1068 |  |
 | GEN.1068 | Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py) | GEN.1014 |  |
 | GEN.1231 | White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent | GEN.1068 |  |
@@ -624,7 +623,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) |  |  |
-| UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) |  |  |
 | TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) |  |  |
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule |  |  |
