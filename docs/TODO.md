@@ -20396,7 +20396,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and the equilibrium thickness h = sigma_g^2 / (pi G Sigma_total) with
   a floor of 40 pc; the extinction per parsec is column / (2 h) x
   sech^2(z / h), with the visible share f_vis = 0.5 and N_H per A_V of
-  2.21e21 (a supernova-remnant measurement, arXiv 0903.2057, read and verified; this item adds it to the reference list and writes its [R0123]). dust_av_per_pc gets a table
+  2.21e21 (a supernova-remnant measurement, read and verified; this item adds it to the reference list and writes its [R0123]). dust_av_per_pc gets a table
   form beside the fixed one; av_per_kpc_at_sun = 0 still means
   dust-free. Register DU1 to DU5 in GEN.725 with tier and tweak level as
   the report lists them (a new section number is taken at merge) and
