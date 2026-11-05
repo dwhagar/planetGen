@@ -10135,8 +10135,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dilute core), its internal heat reads the layer structure, and the
   description says what the interior is. Done: a Jupiter-like, a
   Saturn-like and a hot giant sample change their field and text with
-  their interior, and the six columns have readers. Version 8.4, phase
-  1. Owner: Aux 3 (bulk composition), after GEN.733. Rules: no
+  their interior, and the six columns have readers. Version 8.1.
+  Owner: Aux 3 (bulk composition), after GEN.733. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   draws through draw.py; a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -10162,7 +10162,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing reads. Escape and retention (GEN.738) read them instead of
   recomputing, and a planet inside a large magnetopause loses less.
   Done: two planets differing only in field strength retain different
-  atmospheres, test-pinned. Version 8.4, phase 1. Owner: Aux 2 or Aux 5.
+  atmospheres, test-pinned. Version 8.1. Owner: Aux 2 or Aux 5.
   Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
@@ -10211,7 +10211,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
   issue). mixture_subject.py recomputes its own XUV index. Read the
   stored one and delete the duplicate (no shim). Done: one XUV
-  implementation, with the tests green. Version 8.4, phase 1. Owner: Aux
+  implementation, with the tests green. Version 8.1. Owner: Aux
   8. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
@@ -10232,7 +10232,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the XUV saturation to the rotation period (the activity-rotation
   relation), and let the stored values feed GEN.804 and GEN.805. Done: a
   fast rotator has a higher flare rate than a slow one of the same mass,
-  and the six columns have readers. Version 8.4, phase 1. Owner: Core 4
+  and the six columns have readers. Version 8.1. Owner: Core 4
   (stars). Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -10255,7 +10255,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by nothing. Let it raise the UV dose reaching the surface, which
   limits the life stage and lightens the sky and ground look. Done: a
   world whose ozone is lost shows the higher UV dose and the lower life
-  score. Version 8.4, phase 1. Owner: Aux 2. Rules: no backward-compat
+  score. Version 8.1. Owner: Aux 2. Rules: no backward-compat
   shims; every number has a unit or scale (GEN.772); a changed generated
   value carries `tests.golden_update --reason ... --affects <stage>` and
   the next epoch; tests are `scripts/test.py changed --resume`.
@@ -10896,7 +10896,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flag (carbon-star abundances exist in the composition code). Do:
   later, with Bug 1's age work; cheap flags once the post-main-sequence
   tracks land. Not in the long-term epoch unless Bug 1 says it is cheap.
-  Owner: none yet (Bug 1 later). Version 8.4.
+  Owner: none yet (Bug 1 later). Version 8.1.
   Owner (full build) (2026-10-29 8:30 PM EDT): Star 2 (new lane,
   proposed by TODO). This replaces any earlier owner line (pool,
   unowned, retired lane or 'after 8.1'). If it is already started
@@ -10969,7 +10969,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no licence, "not yet fully verified"). Do: read the tables into the
   colour path for giants. Stand-in tier Verified (L0) once read. Owner:
   Air 1 (after GEN.850/851; the same atmosphere opacity data path).
-  Version 8.4.
+  Version 8.1.
   Data we hold (2026-10-29 8:55 PM EDT): AD1 methane and ammonia tables
   are held in /mnt/project-files/data/ad1-methane ([R2265]
   k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
@@ -14654,7 +14654,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   run through the wrapper, once per cell (no second queue entry while
   one is waiting), the page shows queued and then opens the sector when
   the run finishes; visitors who are not admins still queue nothing.
-  Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
+  Version 8.9. Owner: none yet (Core 5 is the natural owner); follows
   PERF.149.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
@@ -19952,7 +19952,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   planet (VIEW.2) and the picture of the view with constellations
   (VIEW.3), which carry the sky catalogue, the photometry library, the
   galactic band, the horizon and the constellations beneath them, on the
-  sky data and research of 8.9 and the atmosphere colour of 9.0.
+  sky data and research of 8.2 and the atmosphere colour of 9.0.
   Headline: 9.0 (the view from a planet: the sky from any planet or
   moon, with real constellations, rendered as a picture). A hand version
   bump needs Boss's word.
