@@ -14592,6 +14592,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
   owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
   PM EDT as the lane reported).
+  Sky cache (Planets 1, VIEW.31) (12:25 AM EST on 2026-11-05): The clear
+  action must also call web/lib/skycache.clear() beside the node clear
+  (VIEW.31 added the system sky disk cache; no admin tile-cache clear
+  exists yet).
 
 - [ ] **PERF.136 Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -18318,6 +18322,18 @@ clears each one.
   DOC.103 sweep re-run (Core 5), not a separate fix.
   Prerequisites: none. Related: TEST.586.
 
+- [ ] **TEST.588 Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug)**
+  Planets 1 (as the lane reported, 12:20 AM EST on 2026-11-05) found
+  five test_fuzz_web_routes failures on plain main, involving the nebula
+  volume routes and the /systems page numbers, with no change of its own
+  in play. Do: reproduce each, decide whether the route or the test is
+  wrong (a route that answers a hostile or out-of-range page number with
+  an error page is a route bug and is fixed in the route), and repair.
+  Done: the five pass on plain main under the narrow gate
+  (scripts/test.py changed). Lock-free. Version 8.1. Owner: Core 5,
+  after TEST.587. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.586, TEST.587.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19911,6 +19927,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   scatter and fill lane (Core 3). No migration. Boss decided at 5:29 PM
   EST on 2026-11-04 (1.2, 2.1, 3.3) as in the parent plan. Goal #4907.
   Filed by the TODO thread.
+  Spheres, not cells (Planets 1, VIEW.31) (12:25 AM EST on 2026-11-05):
+  Record the spheres it draws, not cells: cell levels of spheres over
+  200,000 sectors are left unlisted (SKV3). It also sharpens
+  report.filling in the sky route (meta.report: built_to_pc, wanted_pc,
+  filling, counts).
   Prerequisites: VIEW.19.
 
 - [ ] **VIEW.26 System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI)**
@@ -19950,37 +19971,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
-
-- [ ] **VIEW.31 System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit=**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S13 of S1 to S22 in section 7. Do: the endpoint builds
-  the packed list, caches it (the PERF.129 cache, clearable on its admin
-  page; key is system, version key, limit), and reports the tier state
-  and the counts. Done: API tests; wire-format doc; API version bump if
-  the rule needs it. Lock-free, no migration. Boss decided at 5:29 PM
-  EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
-  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
-  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
-  the 9.1 item can reuse it); the limiting magnitude is a setting with
-  default 7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Owner (11:45 PM EST on 2026-11-04): Planets 1 (it built the packed
-  list and the sky tiers: VIEW.28, VIEW.29, VIEW.41). The endpoint also
-  carries the nebula and remnant sprite list (VIEW.28 data) beside the
-  packed stars, with the sprite wire format written in the wire-format
-  doc here, so Core 2 builds VIEW.34 to VIEW.36 on it. Its prerequisite
-  VIEW.29 is retired.
-  Sprite record shape the client reads (11:50 PM EST on 2026-11-04): {
-  id, family, direction [x,y,z] unit vector (galactic axes, light-time
-  retarded), angularRadiusRad, inside, extinctionMag, surfaceBrightness
-  (null for none), visible, seen }, which is
-  nebula_sprites.sprite_data's output. If VIEW.31 packs them differently
-  the fix is a small adapter in the VIEW.35 wiring, not a change to
-  skysprites.js.
-  Prerequisites: VIEW.29.
 
 - [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20023,7 +20013,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.31, VIEW.34.
+  Prerequisites: VIEW.34.
 
 - [ ] **VIEW.36 System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research

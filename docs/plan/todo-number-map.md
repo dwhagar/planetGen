@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.588 |
+| TEST | TEST.589 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -3249,7 +3249,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.28 | System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction | none | done, PR #4962 |
 | VIEW.29 | System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both | none | done, PR #4979 |
 | VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | none | open |
-| VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= | none | open |
+| VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= | none | done, PR #5041 |
 | VIEW.32 | System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test | none | done, PR #4958 |
 | VIEW.33 | System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock | none | done, PR #5034 |
 | VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | none | open |
@@ -3934,6 +3934,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.585 | Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug) | none | open |
 | TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) | none | open |
 | TEST.587 | Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug) | none | open |
+| TEST.588 | Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
