@@ -581,21 +581,11 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
-                interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
-                planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
-                planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
-                magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
+                self._finish_planet(obj)
                 for moon in obj.moons:
-                    planetPhysics.apply_class(moon)
-                planetLife.apply_life_data(obj)
-                planetLife.decide_flavor_text(obj)
-                for moon in obj.moons:
-                    interior_heat.update_heat(moon)
-                    planetPhysics.refresh_at_final_age(moon)
-                    magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
-                    radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
-                    planetLife.apply_life_data(moon)
-                    planetLife.decide_flavor_text(moon)
+                    self._finish_moon(moon, obj)
+            if self.system_config.HABITABLE_WORLD is False:
+                self._bar_habitable_worlds()
             for obj in self.all_planets:  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
                 if obj.body_type == 'a':
                     continue
@@ -2118,6 +2108,57 @@ class StarSystem:
         if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
             return None
         return "aim" if habitable_request.count(self.all_planets if planets is None else planets) > 0 else "unmet"
+
+    def _finish_planet(self, obj):
+        """The end of a planet's making, after the system is whole (the life data pass): the thermal history, the final-age refresh, the class,
+        the star's induced field, the moons' classes and the planet's own life (a moon's end follows, `_finish_moon`)."""
+        interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
+        planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
+        planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
+        magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
+        for moon in obj.moons:
+            planetPhysics.apply_class(moon)
+        planetLife.apply_life_data(obj)
+        planetLife.decide_flavor_text(obj)
+
+    def _finish_moon(self, moon, obj):
+        """The end of a moon's making (the life data pass), after its parent's (`_finish_planet`)."""
+        interior_heat.update_heat(moon)
+        planetPhysics.refresh_at_final_age(moon)
+        magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
+        radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
+        planetLife.apply_life_data(moon)
+        planetLife.decide_flavor_text(moon)
+
+    def _bar_habitable_worlds(self):
+        """
+        Keeps a system that bars habitable worlds (`HABITABLE_WORLD` False) free of them in its finished bodies (GEN.1250). The first draw of a planet
+        (`Planet.__init__`) is judged before the star's final age, the star's light from every star, and the oxygen a life has built into the air
+        are in, and each can bring a body to the request's conditions (`habitable_request.meets`); so the finished bodies are judged here, and a body
+        that meets them has its air, water, surface, class and spin drawn again (`planets.remake_end_stages`, another draw of the stream of its
+        own) and its end made again, up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times. A body that still meets them after that keeps its last draw:
+        the honest limit, counted in `StarSystem.barred_world_limit`.
+        """
+        self.barred_world_limit = 0
+        for obj in self.all_planets:
+            if obj.body_type == 'a':
+                continue
+            for body in (obj, *list(obj.moons)):
+                if not habitable_request.meets(body):
+                    continue
+                for attempt in range(1, tuning.BARRED_CLASS_MAX_ATTEMPTS + 1):
+                    draw.redrawn("planet.barred_world_final")
+                    planetPhysics.remake_end_stages(body, obj, attempt)
+                    if body.is_moon:
+                        self._finish_moon(body, obj)
+                    else:
+                        self._finish_planet(obj)
+                        for moon in obj.moons:
+                            self._finish_moon(moon, obj)
+                    if not habitable_request.meets(body):
+                        break
+                else:
+                    self.barred_world_limit += 1
 
     def _settle_to_final_age(self):
         """

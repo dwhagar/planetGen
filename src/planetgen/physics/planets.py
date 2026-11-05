@@ -323,6 +323,27 @@ def age_moved(body):
     return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
 
 
+def remake_end_stages(body, planet, attempt=0):
+    """
+    Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`, and the bar on
+    habitable worlds, GEN.1250). `planet` is the body itself for a planet and the parent for a moon. `attempt` 0 is the draw `refinish_rocky` always
+    made; a later attempt is another draw of the same step, for a body that came out with the conditions a system that bars habitable worlds
+    keeps off (`StarSystem._bar_habitable_worlds`).
+    """
+    stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
+                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}"
+                         + (f":bar{attempt}" if attempt else ""))
+    with draw.bound(stream):
+        if body.is_moon:
+            calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
+            apply_class(body)
+            generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
+        else:
+            calculate_atmospheric_conditions(body)
+            apply_class(body)
+            generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+
+
 def refinish_rocky(planet):
     """
     Makes a rocky planet's end stages again at the star's final age, and its moons' (GEN.992, found by GEN.986): the air, the water and the
@@ -349,17 +370,7 @@ def refinish_rocky(planet):
     for body in bodies():
         if not age_moved(body):
             continue
-        stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
-                             f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
-        with draw.bound(stream):
-            if body.is_moon:
-                calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
-                apply_class(body)
-                generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
-            else:
-                calculate_atmospheric_conditions(body)
-                apply_class(body)
-                generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+        remake_end_stages(body, planet)
         body._age_drawn = body.star.age
         made += 1
     if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
