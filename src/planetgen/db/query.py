@@ -3541,10 +3541,13 @@ def nebula_surroundings(conn, nebula_id):
         nebula_id (int): `nebulae.id`.
 
     Returns:
-        dict: `radius_pc`, `half_width_pc` (of the box) and `stars`: the
-            most luminous first, each `x`/`y`/`z` (parsecs from the
-            nebula's centre), `luminosity_sol` and `temperature_k`. No
-            stars for a nebula never placed in the galaxy.
+        dict: `radius_pc`, `half_width_pc` (of the box), `center_pc` (the
+            nebula's centre in the galaxy frame, `[x, y, z]` parsecs, `None`
+            for a nebula never placed in the galaxy: MAP.142's view draws
+            the nebula's own points round it) and `stars`: the most luminous
+            first, each `x`/`y`/`z` (parsecs from the nebula's centre),
+            `luminosity_sol` and `temperature_k`. No stars for a nebula
+            never placed in the galaxy.
 
     Raises:
         ValueError: If no such nebula exists.
@@ -3555,10 +3558,11 @@ def nebula_surroundings(conn, nebula_id):
         raise ValueError(f"no such nebula: {nebula_id!r}")
     radius_pc = ly_to_pc(row["radius_ly"])
     half = max(NEBULA_SURROUNDINGS_MIN_PC, NEBULA_SURROUNDINGS_REACH * radius_pc)
-    result = {"radius_pc": radius_pc, "half_width_pc": half, "stars": []}
+    result = {"radius_pc": radius_pc, "half_width_pc": half, "center_pc": None, "stars": []}
     if row["center_x_pc"] is None:
         return result
     center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+    result["center_pc"] = [float(c) for c in center]
     skeleton = get_galaxy_shape(conn, light=True)
     edge_pc = skeleton.edge_pc if skeleton is not None else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     stars = galaxy_bright_stars_in_box(
