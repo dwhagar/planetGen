@@ -17879,20 +17879,6 @@ clears each one.
   TODO thread.
   Prerequisites: none. Related: TEST.598.
 
-- [ ] **TEST.604 A trace gas with no thermo data (CH3Cl) crashes instead of being handled, red on clean main (bug)**
-  The Train Manager (as the lane reported, about 3:00 PM EST on
-  2026-11-05, train 11 gate) found a crash when a CH3Cl trace gas has no
-  thermo data; it fails on clean main too, so it is not a train 11
-  regression. Do: reproduce on current main, find the call that needs
-  thermo data for the gas, and fix it at the cause: either the gas gets
-  its thermo entry from a source in the registry (stand-in registered in
-  GEN.725 with tier and tweak level) or the code treats a gas without
-  thermo data by a stated rule (never a silent skip). Add a test that
-  fails without the fix. Done: the crashing test passes on current main.
-  Lock-free if output is unchanged; a generator epoch (lock item) if
-  values change. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.725.
-
 - [ ] **TEST.605 test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug)**
   The Train Manager (as the lane reported, 20:13 UTC clock, train 11
   gate) found this red on clean main 0d10348c5, so it is not a train 11
@@ -17987,22 +17973,6 @@ clears each one.
   fix at the cause with a test that fails without the fix, never skip or
   loosen a test. Lock-free if output is unchanged; tell the TODO thread
   if values change. Version 8.1. Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.611 tests/test_radiative_convective.py::test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends gives 38.69 against 31.63 +- 0.03 (bug)**
-  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
-  gate) found this red on clean main 0d10348c5, so it is not a train 11
-  regression; the list is reports/train11-main-reds-2026-11-05.md. A gas
-  without a fit should take the table heat capacities held at the ends;
-  the value differs by 22 percent. Find whether the table, the lookup or
-  the expected number moved, and say from the physics which is right
-  (secondary sources accepted; a stand-in is registered in GEN.725).
-  Done: the test passes on current main with the physics stated in the
-  change note. Owner: Core 5. Do: reproduce on current main first (it
-  may be fixed by a merge since), fix at the cause with a test that
-  fails without the fix, never skip or loosen a test. Lock-free if
-  output is unchanged; tell the TODO thread if values change. Version
-  8.1. Filed by the TODO thread.
   Prerequisites: none.
 
 ## USR: User accounts
