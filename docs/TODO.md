@@ -18363,18 +18363,6 @@ clears each one.
   after TEST.587. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.586, TEST.587.
 
-- [ ] **TEST.590 test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star fails on plain main with min() of an empty list in _nearest (bug)**
-  Core 2 (as the lane reported, 1:15 AM EST on 2026-11-05) found
-  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star
-  failing on a clean main: min() of an empty list in _nearest. Do:
-  reproduce, decide whether the generator (a fill after a failed shell
-  reaches _nearest with no candidates) or the test setup is wrong; a
-  generator crash is fixed in the generator and keeps its output
-  otherwise. Done: the test passes on plain main under the narrow gate.
-  Lock-free unless the fix changes output. Version 8.1. Owner: Bug 1.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.586, TEST.587, TEST.588, GEN.359.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
