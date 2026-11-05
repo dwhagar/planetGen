@@ -1092,7 +1092,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function openNebulaWindow(cloud) {
     if (data.pinned || !cloud) return false;
     var candidates = [];
-    cloudSprites.forEach(function (sprite) { candidates.push(sprite.userData.cloud); });
+    cloudSprites.forEach(function (sprite) { if (!sprite.userData.cloud.field) candidates.push(sprite.userData.cloud); });
     var made = GROUP_WINDOW.createWindow("nebula", cloud, candidates);
     if (!made) return false;
     if (!groupWindow) {
@@ -1816,7 +1816,8 @@ function initGalaxyMap3d(canvasEl, data) {
   function requestNebulaMesh(sprite) {
     var cloud = sprite.userData.cloud;
     var key = cloudKey(cloud);
-    if (!loadNebulaShape || cloud.type !== "nebula" || meshRequested.has(key)) {
+    // A field cloud (MAP.178) is a sprite from the seed alone: it has no stored shape to fetch.
+    if (!loadNebulaShape || cloud.type !== "nebula" || cloud.field || meshRequested.has(key)) {
       return;
     }
     meshRequested.add(key);
@@ -1927,6 +1928,10 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     // How many nebulae are drawn from their shape now (read by the browser tests).
     canvasEl.dataset.nebulaMeshes = String(drawn);
+    // How many field clouds (MAP.178) are drawn as sprites now (read by the browser tests).
+    var fieldDrawn = 0;
+    cloudSprites.forEach(function (sprite) { if (sprite.userData.cloud.field && sprite.visible && sprite.material.opacity > 0) fieldDrawn++; });
+    canvasEl.dataset.fieldClouds = String(fieldDrawn);
   }
 
   // The smallest visible cloud under a screen point that is still small
@@ -1940,7 +1945,8 @@ function initGalaxyMap3d(canvasEl, data) {
     var bestDistance = 0;
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
-      if (!sprite.visible || !visibleEnough(sprite.userData.share) || (best && best.radius_pc <= cloud.radius_pc)) {
+      // A field cloud has no page to open; picking it is MAP.180's.
+      if (cloud.field || !sprite.visible || !visibleEnough(sprite.userData.share) || (best && best.radius_pc <= cloud.radius_pc)) {
         return;
       }
       var distance = camera.position.distanceTo(sprite.position);
@@ -4664,8 +4670,8 @@ function initGalaxyMap3d(canvasEl, data) {
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
       var distance = camera.position.distanceTo(sprite.position);
-      if (!drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z) || distance < 1.2 * cloud.radius_pc) {
-        return;
+      if (cloud.field || !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z) || distance < 1.2 * cloud.radius_pc) {
+        return;    // a field cloud has no name and no page to label (MAP.178)
       }
       found.push({
         id: "cloud:" + cloudKey(cloud), text: cloud.name || cloudTypeLabel(cloud),
