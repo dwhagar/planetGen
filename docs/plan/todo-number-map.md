@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.37 |
 | TEST | TEST.623 |
 | USR | USR.32 |
-| OPS | OPS.104 |
+| OPS | OPS.106 |
 | DOC | DOC.104 |
 | VIEW | VIEW.43 |
 | POP | POP.46 |
@@ -605,8 +605,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.37 | Lock marks table (migration only) | none | done, PR #2524 |
 | DB.38 | Region density overrides table (migration only) | none | done, PR #2525 |
 | DB.39 | Edit request support tables (migration only): request comments and notification records | none | done, PR #2527 |
-| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | none | open |
-| DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | open |
+| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | none | done, PR #5190 |
+| DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | none | done, PR #5190 |
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | done, PR #2423 |
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
@@ -2629,6 +2629,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | none | open |
 | OPS.102 | Debug log: an area column in, the dead logger-name column out | none | open |
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |
+| OPS.104 | One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone | none | open |
+| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |

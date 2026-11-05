@@ -162,7 +162,7 @@ item has no row there.
 | Version | Plan | Headline |
 |---|---|---|
 | 8.1 | [version-8-1-zoom-and-scatters.md](plan/releases/version-8-1-zoom-and-scatters.md) | Infinite zoom and the new generate scatters |
-| 8.2 | [version-8-2-accounts-and-invitations.md](plan/releases/version-8-2-accounts-and-invitations.md) | User accounts with email invitations |
+| 8.2 | [version-8-2-accounts-and-invitations.md](plan/releases/version-8-2-accounts-and-invitations.md) | User accounts, bookmarks and API keys, with the foundations for later versions |
 | 8.3 | [version-8-3-moving-galaxy.md](plan/releases/version-8-3-moving-galaxy.md) | The moving galaxy |
 | 8.4 | [version-8-4-new-worlds.md](plan/releases/version-8-4-new-worlds.md) | New worlds and the first settlements |
 | 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/releases/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
@@ -205,7 +205,7 @@ body, star and atmosphere is its joint headline, with the radiation derived
 from it, and the building blocks go down to 8.1; everything planned for 9.0 before
 split between 8.9, the backups chain and the sky data, and 9.1, the view
 from a planet, 11:26 PM EDT); multiple galaxies is a possible future
-feature. Boss (5:31 PM EST on 2026-11-05) folded 9.1 into 9.0: the view from a planet
+feature. Boss (5:36 PM EST on 2026-11-05): the main features of 8.2 are user accounts, bookmarks and API keys, and the rest of 8.2 is the foundations for later versions (the tile caching, the gravity grid, settlements). Boss (5:31 PM EST on 2026-11-05) folded 9.1 into 9.0: the view from a planet
 (VIEW.18), the gravity map (MAP.167) and the dynamic population and trade
 are now phases 2 to 4 of 9.0, and 9.2 onward keep their numbers. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
 items: 8.4 is now New worlds and the first settlements, and the gravity map
@@ -14734,50 +14734,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.179.
   Design: [docs/design/operations/db-check-and-parity-repair.md](design/operations/db-check-and-parity-repair.md)
 
-- [ ] **DB.40 Parity data backup part: the parity file of the DB repair copied into the backup archive**
-  Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
-  control DB and backups of the parity data for DB repair." and "All
-  those should be bz2 tarballed together." Boss (2:00 PM EDT): "we also
-  have to build a way to use that data so build that out and let's make
-  this targetted for v9.0 so incorporate the chain for these (restore /
-  repair using backups) with that due date. Settings page is v8.1".
-  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
-  settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
-  All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
-  retention is `settings.backups_kept` (default 20, 1 to 200). DB.9
-  keeps parity for every sector in an append-only parity file outside
-  the database (path in `config.json`). A damaged database is only
-  repairable with a parity file that matches it, so the file is a backup
-  part, written to `parity/`: the copy is taken under the parity
-  writer's lock and cuts at the last complete record (the file is an
-  append-only log of self-describing records with a header scan, so no
-  index is stored); it can be switched off for a very large galaxy with
-  the option `settings.backup_parity` (default on), and the manifest
-  records its size and the sector count it covers. Done: the part
-  registered with ADM.87, the lock-held copy under a concurrent save,
-  and the size and coverage in the manifest (the restore is DB.41).
-  Prerequisites: none. Related: ADM.85, DB.8, DB.17.
-
-- [ ] **DB.41 Parity data restore: put a backed-up parity file back and check it against the database**
-  Boss (2:00 PM EDT): "we also have to build a way to use that data so
-  build that out and let's make this targetted for v9.0 so incorporate
-  the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 8.9 (the backups and repair
-  chain, umbrella ADM.91); the settings page and the settings backups
-  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
-  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
-  (default 20, 1 to 200). Using the parity part of an archive: restore
-  writes the file back (to a temporary name first, then renamed), then
-  runs the DB.8 check so every record that no longer matches the
-  database is recomputed by the stale-record rule of DB.9 instead of
-  being read as damage, and reports how many sectors are unprotected
-  until their next save. `planetgen.cli.backup restore --part parity
-  ARCHIVE` and the backup list use it. Done: a restore on a fixture
-  galaxy followed by a passing check, a record from before an edit
-  treated as stale and not as damage, and a refused restore while a save
-  is writing parity.
-  Prerequisites: DB.40. Related: DB.9, ADM.85, ADM.91.
-
 - [ ] **DB.42 Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged**
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
@@ -14800,7 +14756,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   repaired from the archive, a group that lost too many members listed
   and handed to DB.17, and a stale archive recompute that does not
   damage a healthy sector.
-  Prerequisites: DB.41, DB.17. Related: DB.9, DB.17, ADM.91.
+  Prerequisites: DB.17. Related: DB.9, DB.17, ADM.91.
 
 - [ ] **DB.57 The update records what it moved: a replace-each-run table of previous and new positions**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -16288,7 +16244,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   a confirmation that names what will change. Done: the page and a
   browser test that runs a check on a damaged fixture galaxy, repairs it
   from an archive and shows a passing check.
-  Prerequisites: DB.42, ADM.89, DB.41. Related: ADM.85, DB.8, ADM.91.
+  Prerequisites: DB.42, ADM.89. Related: ADM.85, DB.8, ADM.91.
 
 - [ ] **ADM.91 Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page)**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -16306,7 +16262,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   control database and parity parts, their restores, the repair from an
   archive, the repair page, the end-to-end test and the guide are in
   8.9 (moved from 9.0, Boss, 2026-10-16, 11:26 PM EDT).
-  Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
+  Prerequisites: ADM.88, ADM.89, DB.42, ADM.90, TEST.180,
   DOC.56, OPS.55. Related: ADM.43, ADM.87, DB.9.
 
 - [ ] **ADM.94 Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them**
@@ -18667,7 +18623,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   off, a failure that leaves archives alone, pruning by kind, and a
   second run started during the first exiting at once; the daily run
   lists the step in its log.
-  Prerequisites: ADM.88, DB.40. Related: OPS.16, ADM.87,
+  Prerequisites: ADM.88. Related: OPS.16, ADM.87,
   ADM.91.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
@@ -18720,7 +18676,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/design/operations/cache-warm-up.md, docs/reference/config.md and
   tests. Done: a warm-up by update.sh, by hand and in the background
   each leave a bracketed run in warmup.log.
-  Prerequisites: none.
+  Prerequisites: OPS.104.
 
 - [ ] **OPS.97 Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter**
   Boss decided (11-05) that every log uses the system (local) time with
@@ -18740,7 +18696,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/design/operations/logging-standard.md, docs/reference/logging.md
   and tests. No shim for the old form. Done: no log form writes UTC and
   the standard says local time.
-  Prerequisites: OPS.96.
+  Prerequisites: OPS.96, OPS.104.
 
 - [ ] **OPS.98 A time on every line of every script and command**
   Boss decided (11-05) that every log uses the system (local) time with
@@ -18851,7 +18807,50 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   stagemark.py, warmup.py, warm_progress.py, the generate stages and
   tests. Done: the test passes and every script and command uses the
   table.
-  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102.
+  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105.
+
+- [ ] **OPS.104 One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone**
+  Boss decided (11-05) that there is one logging codebase for the Python
+  code and the shell scripts. Full text in
+  reports/logging-review-2026-11-05.md, last section "Boss addition
+  (11-05): one logging codebase". Lock-free: it touches no generated
+  content, golden, migration or epoch. Version 8.2. Owner: none yet.
+  Filed by the TODO thread. What exists: two Python stacks (util/log.py
+  with its own two formatters, util/logrecord.py with three, get_logger
+  used in one place), and scripts/logrecord.sh as a separate shell copy.
+  Do: planetgen.util.log stays the one import and becomes the only place
+  a line is made and written: logrecord's record (time local with zone,
+  severity, component, fields) is the one data form, and the console
+  plain line, the debug line, the file line, the JSON line, the display
+  line and the relay are writings of that record from one formatter set.
+  One call surface: log.get(component) returns the logger; log.normal,
+  debug, warning and error stay as thin calls on it; stage marks, the
+  area tag and fields go through the same record. scripts/logrecord.sh
+  stays the only shell helper, made a mirror of the module by a
+  generated vocabulary (severities, components, stage words) and the
+  existing test that runs both on the same records. TEST.183 grows to
+  fail on any formatter class or handler outside the module. Must merge
+  before every item that changes a log format (OPS.96, OPS.97, OPS.98,
+  OPS.101, OPS.103). Done: one formatter set, one call surface, the test
+  fails on a second one.
+  Prerequisites: none. Related: OPS.97, OPS.105, TEST.183.
+
+- [ ] **OPS.105 One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls**
+  Boss decided (11-05) that there is one logging codebase for the Python
+  code and the shell scripts. Full text in
+  reports/logging-review-2026-11-05.md, last section "Boss addition
+  (11-05): one logging codebase". Lock-free: it touches no generated
+  content, golden, migration or epoch. Version 8.2. Owner: none yet.
+  Filed by the TODO thread. Do: admin/activity_log.py keeps its own
+  handler and line today, queue/runrecord.py builds records a third way
+  (runrecord.log_text), 11 modules call logging.getLogger directly and
+  146 print() calls write log lines outside the layer. Move all of them
+  onto util/log.py; answers a command prints on purpose (listings and
+  the like) stay and are named in an allowed list that TEST.183 reads.
+  The activity log and its fail2ban filter move together (this is where
+  OPS.97 lands for it). Done: no handler, formatter or log-line print
+  outside the module, and TEST.183 proves it.
+  Prerequisites: OPS.104, OPS.97. Related: OPS.97, TEST.183.
 
 ## DOC: Documentation
 
