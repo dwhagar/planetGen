@@ -37,7 +37,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom |  |  |
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off |  |  |
 | VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky |  |  |
-| VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars |  |  |
 | VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | VIEW.25 |  |
 | VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) | VIEW.25 |  |
 | VIEW.25 | System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill | VIEW.19 |  |

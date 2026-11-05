@@ -18370,6 +18370,13 @@ clears each one.
   code that disagrees). Done: both pass on plain main under the narrow
   gate. Lock-free unless the second fix changes stored output. Version
   8.1. Owner: Core 5, after TEST.588. Filed by the TODO thread.
+  Part merged (Core 5, #5060) (3:28 AM EST on 2026-11-05): Merged: the
+  rescore fix (store.with_life_inputs now carries the life_living
+  classes) and the number-guard wording. Stays open until GEN.1265
+  (#5053, which carries the identical day_share_mean line in
+  habitability_world.values_from_body) lands in train 12, because the
+  parity test needs both; that line changes what generation stores, so
+  it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
 ## USR: User accounts
@@ -20022,25 +20029,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
-
-- [ ] **VIEW.37 System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S19 of S1 to S22 in section 7. Do: pick a star in the
-  sky; the hover text says how long ago the light left it; charted stars
-  link to their page; scatter stars link through their Object ID (needs
-  GEN.1254 and GEN.1255, goal #4899). Done: browser test. Prerequisites
-  outside this chain: GEN.1254, GEN.1255. Lock-free, no migration. Boss
-  decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2
-  backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12
-  and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where
-  noted, build it so the 9.1 item can reuse it); the limiting magnitude
-  is a setting with default 7.5, lower on phones; missing stars are
-  built when a system is charted, no visit job. Goal #4907. Filed by the
-  TODO thread.
-  Prerequisites: VIEW.35.
 
 - [ ] **VIEW.38 System sky S20: design note, help text, citations and GEN.725 rows for the system sky**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
