@@ -41,7 +41,6 @@ Use:
 
 import functools
 import math
-import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -227,11 +226,6 @@ def equilibrium_hydrogen_cp_over_r(temperature_k):
     return 2.5 + spread / temperature[..., 0] ** 2
 
 
-def _atoms(formula):
-    """The number of atoms in a molecule written without brackets (`"HC3N"` is 5)."""
-    return sum(int(count or 1) for _symbol, count in re.findall(r"([A-Z][a-z]?)(\d*)", formula))
-
-
 @functools.cache
 def _cp_over_r(formula):
     """
@@ -255,11 +249,7 @@ def _cp_over_r(formula):
             cold = _CP_GRID < EQUILIBRIUM_HYDROGEN_BELOW_K
             values[cold] = equilibrium_hydrogen_cp_over_r(_CP_GRID[cold]) + (thermo.cp_over_r(max(low, EQUILIBRIUM_HYDROGEN_BELOW_K)) - join)
         return values
-    known = sorted((float(t), v / R) for t, v in gases.gas(formula).cp_j_mol_k.items() if v is not None)
-    if known:
-        return np.interp(_CP_GRID, [t for t, _ in known], [v for _, v in known])
-    atoms = _atoms(formula)
-    return np.full_like(_CP_GRID, {1: 2.5, 2: 3.5}.get(atoms, 4.0 + 0.5 * (3 * atoms - 6)))
+    return mixture.cp_over_r_without_fit(formula, _CP_GRID)
 
 
 # ---- the column ----
