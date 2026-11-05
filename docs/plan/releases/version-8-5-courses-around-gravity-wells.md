@@ -61,6 +61,12 @@ Showing courses on the maps and bending them around keep-out spheres.
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | MAP.168 |  |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | MAP.168 |  |
 
+### Console look: icons and the maps' chrome
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | UX.268 |  |
+
 ## Phase 3: Waypoints and the headline
 
 Waypoints, editing a course and the umbrella.

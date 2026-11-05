@@ -22,9 +22,9 @@ may want (a count, an elapsed time). It is written as:
   divider (`=== Stage 4 of 12: label ===`). `plain_line` is the command line's untimed text.
 
 `parse_file_line` and `parse_json_line` read a line back to the record it came from, so what a file holds and what the
-screen shows are the same records. Python's `logging` stays the entry point: `get_logger(component)` is a standard
-logger that takes fields as keyword arguments, and `FileFormatter`, `JsonFormatter` and `DisplayFormatter` write what
-it logs. Standard library only.
+screen shows are the same records. This module is the record and its lines, and nothing that writes: `planetgen.util.log` is the one
+place a record is made from a `logging` call and written (`log.get(component)` is a standard logger that takes fields as keyword
+arguments, and `log.LineFormatter` writes what it logs in every form). Standard library only.
 """
 
 import datetime
@@ -43,7 +43,7 @@ SYSLOG_CODES = {"debug": 7, "info": 6, "notice": 5, "warning": 4, "error": 3, "c
 """dict: The RFC 5424 severity number of each severity (a lower number is more severe)."""
 
 NOTICE = 25
-"""int: The `logging` level of `notice`, between `info` (20) and `warning` (30), named in `logging` by `get_logger`."""
+"""int: The `logging` level of `notice`, between `info` (20) and `warning` (30), named in `logging` by `planetgen.util.log`."""
 
 LOGGING_LEVELS = {"debug": logging.DEBUG, "info": logging.INFO, "notice": NOTICE, "warning": logging.WARNING,
                   "error": logging.ERROR, "critical": logging.CRITICAL}
@@ -61,6 +61,12 @@ STAGE_SKIPPED = "stage.skipped"
 draws each as a divider."""
 
 STAGE_EVENTS = (STAGE_START, STAGE_FINISH, STAGE_FAILED, STAGE_SKIPPED)
+
+STDERR_SEVERITIES = ("warning", "error", "critical")
+"""tuple: The severities a command writes to standard error (the rest go to standard output)."""
+
+DIVIDER = "==="
+"""str: What a stage divider is drawn with (`=== Stage 4 of 12: label ===`)."""
 
 _NUMBER_LIKE = re.compile(r"^-?(?:\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)$")
 _BARE_VALUE = re.compile(r'^[^\s"\\=\x00-\x1f\x7f\u0085\u2028\u2029]+$')
@@ -339,7 +345,7 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     if component:
         parts.append(f"{record.component}:")
     divider = record.event in STAGE_EVENTS
-    parts.append(f"=== {record.message} ===" if divider else record.message)
+    parts.append(f"{DIVIDER} {record.message} {DIVIDER}" if divider else record.message)
     if fields and not divider and record.fields:
         parts.append("(" + " ".join(f"{name}={_value_text(value)}" for name, value in record.fields.items()) + ")")
     return " ".join(parts)
@@ -350,101 +356,22 @@ def plain_line(record):
     `notice`, and the message after `warning: `, `error: ` or `critical: ` for the rest (unless the message already
     begins with that word, as `Error: ...` does)."""
     if record.event in STAGE_EVENTS:
-        return f"=== {record.message} ==="
+        return f"{DIVIDER} {record.message} {DIVIDER}"
     if SYSLOG_CODES[record.severity] >= SYSLOG_CODES["notice"] or record.message.lower().startswith(record.severity):
         return record.message
     return f"{record.severity}: {record.message}"
 
 
-def record_of(log_record):
-    """The `Record` of a standard `logging.LogRecord`: its level as a severity, the logger's name (less a leading
-    `planetgen.`; for the program's own logger the module that logged) as the component, the fields `get_logger` attached, and its time."""
-    level = log_record.levelno
-    severity = "debug"
-    for name in SEVERITIES:
-        if level >= LOGGING_LEVELS[name]:
-            severity = name
-    component = log_record.name.removeprefix("planetgen.").lower() or "planetgen"
-    if component == "planetgen" and getattr(log_record, "module", None):
-        component = log_record.module.lower()          # the program's own logger: the module that logged is the component
-    component = re.sub(r"[^a-z0-9_.-]", "_", component)[:24]
-    if not COMPONENT_PATTERN.match(component):
-        component = "planetgen"
-    return Record.at(log_record.created, severity, component, log_record.getMessage(),
-                     **getattr(log_record, "fields", {}))
+SHELL_BEGIN = "# BEGIN generated vocabulary (scripts/build_log_vocabulary.py from planetgen/util/logrecord.py; do not edit)"
+SHELL_END = "# END generated vocabulary"
 
 
-class FileFormatter(logging.Formatter):
-    """Writes what a logger logs as file lines (`file_line`)."""
-
-    def format(self, log_record):
-        return file_line(record_of(log_record))
-
-
-class JsonFormatter(logging.Formatter):
-    """Writes what a logger logs as JSON lines (`json_line`)."""
-
-    def format(self, log_record):
-        return json_line(record_of(log_record))
-
-
-class DisplayFormatter(logging.Formatter):
-    """Writes what a logger logs as display lines (`display_line`, or `plain_line` with `plain=True`)."""
-
-    def __init__(self, tz=None, plain=False, **parts):
-        super().__init__()
-        self.tz, self.plain, self.parts = tz, plain, parts
-
-    def format(self, log_record):
-        record = record_of(log_record)
-        return plain_line(record) if self.plain else display_line(record, self.tz, **self.parts)
-
-
-class Logger:
+def shell_vocabulary():
     """
-    A standard logger for one component that takes fields as keyword arguments: `log.info("Placed sectors", count=12,
-    seconds=1.5)`. Its stage methods log the start, finish and failure of a stage in the one wording.
+    The vocabulary `scripts/logrecord.sh` is generated with (OPS.104): the severities, the ones that go to standard error, the word of a
+    stage and the divider, as shell variable assignments between `SHELL_BEGIN` and `SHELL_END`, so the shell's side cannot name a word the
+    module does not (`tests/test_log_shell.py` also runs both against the same records).
     """
-
-    def __init__(self, component):
-        self.component = component
-        self.logger = logging.getLogger(f"planetgen.{component}")
-
-    def log(self, severity, message, /, **fields):
-        if self.logger.isEnabledFor(LOGGING_LEVELS[severity]):
-            Record.now(severity, self.component, str(message), **fields)       # a bad field is the caller's bug, now
-            self.logger.log(LOGGING_LEVELS[severity], message, extra={"fields": fields})
-
-    def debug(self, message, /, **fields):
-        self.log("debug", message, **fields)
-
-    def info(self, message, /, **fields):
-        self.log("info", message, **fields)
-
-    def notice(self, message, /, **fields):
-        self.log("notice", message, **fields)
-
-    def warning(self, message, /, **fields):
-        self.log("warning", message, **fields)
-
-    def error(self, message, /, **fields):
-        self.log("error", message, **fields)
-
-    def critical(self, message, /, **fields):
-        self.log("critical", message, **fields)
-
-    def stage(self, event, first, total, label=None, seconds=0.0, reason=None, count=1):
-        """Logs the start, finish or failure of a stage (`stage_record`)."""
-        record = stage_record(event, self.component, first, total, label, seconds, reason, count)
-        self.log(record.severity, record.message, **record.fields)
-
-
-def get_logger(component):
-    """The `Logger` of `component`.
-
-    Raises:
-        ValueError: A component name that is not allowed.
-    """
-    if not COMPONENT_PATTERN.match(component):
-        raise ValueError(f"component {component!r} is not a short lower-case name (a-z, 0-9, _ . -)")
-    return Logger(component)
+    stage = stagemark.run(1).split(" ")[0]
+    return "\n".join((SHELL_BEGIN, f'LOG_SEVERITIES="{" ".join(SEVERITIES)}"', f'LOG_STDERR_SEVERITIES="{" ".join(STDERR_SEVERITIES)}"',
+                      f'LOG_STAGE_WORD="{stage}"', f'LOG_DIVIDER="{DIVIDER}"', SHELL_END))

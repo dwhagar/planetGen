@@ -1,4 +1,4 @@
-# Version 8.8: The deep sky
+# Version 8.8: Deep sky objects
 
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
@@ -6,11 +6,11 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 8.8
 
-Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+Status: approved by Boss (5:44 PM EST on 2026-11-05, headline Deep sky objects, every rare-star item stays here); paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
 
 ## Goal
 
-Nebulae, clusters, satellites and the rarest stars drawn on the map and reachable by flight. Proposed by the TODO thread; not yet approved by Boss.
+Nebulae, clusters, satellites and the rarest stars drawn on the map and reachable by flight. Approved by Boss (5:44 PM EST on 2026-11-05): the headline is Deep sky objects, and none of the rare-star items is left for later.
 
 ## Phase 1: Nebulae, clusters and rare stars
 
@@ -62,3 +62,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | MAP.224 | Split from MAP.194. |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.223 |  |
+| MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | GEN.359, MAP.224, MAP.381, GEN.209, MAP.207, MAP.232, GEN.367, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246, GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.223, MAP.194 |  |
