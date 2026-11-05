@@ -1,5 +1,5 @@
 {
- "api_version": 12,
+ "api_version": 13,
  "routes": [
   "/api/admin/backups GET",
   "/api/admin/backups POST",
@@ -105,6 +105,7 @@
   "/api/near GET",
   "/api/nebulae/<uid:nebula_id>/shape GET",
   "/api/nebulae/<uid:nebula_id>/surroundings GET",
+  "/api/nebulae/<uid:nebula_id>/volume GET",
   "/api/object-lists/<kind> GET",
   "/api/objects/<ref> GET",
   "/api/objects/<ref>/children GET",
@@ -151,6 +152,8 @@
   "/api/systems/<uid:system_id>/habitable-species GET",
   "/api/systems/<uid:system_id>/owner GET",
   "/api/systems/<uid:system_id>/scene GET",
+  "/api/systems/<uid:system_id>/sky GET",
+  "/api/systems/<uid:system_id>/sky/band GET",
   "/api/systems/<uid:system_id>/star POST",
   "/api/systems/<uid:system_id>/text GET",
   "/api/table-estimates GET",

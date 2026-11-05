@@ -251,12 +251,13 @@ def test_prune_deletes_the_least_recently_visited_files_down_to_budget(tmp_path)
 
 
 def test_prune_never_deletes_a_node_built_ahead(tmp_path):
-    """PERF.133: the oldest nodes here were built ahead; only the ones a visit asked for go, and when only
-    built-ahead tiles are left over the budget nothing more goes."""
+    """PERF.133, PERF.233: the oldest nodes here were built ahead; only the ones a visit asked for go, and they are the
+    only ones counted against the budget (7,000 bytes of 10,000 here), so when only built-ahead tiles are left nothing
+    more goes."""
     root, stamp_dir = _stored_nodes(tmp_path, ahead={0, 1, 2})
     tilecache.prune(str(root), max_bytes=5000)
     remaining = sorted(p.name for p in stamp_dir.iterdir())
-    assert remaining == [f"n1_{i}_1_2.bin" for i in (0, 1, 2, 9)]
+    assert remaining == [f"n1_{i}_1_2.bin" for i in (0, 1, 2, 6, 7, 8, 9)]
     tilecache.prune(str(root), max_bytes=1000)
     assert sorted(p.name for p in stamp_dir.iterdir()) == [f"n1_{i}_1_2.bin" for i in (0, 1, 2)]
     assert tilecache.cache_is_full(str(root), max_bytes=1000), "over the budget with only built-ahead nodes left"
@@ -298,7 +299,7 @@ def test_a_full_cache_drops_visited_nodes_and_keeps_those_built_ahead(api, monke
     directory = os.path.join(tilecache._db_dir(root, "mydb"), generation)
     for i in range(3, 8):
         os.utime(os.path.join(directory, f"n1_{i + 4}_1_2.bin"), (1000 + i, 1000 + i))
-    tilecache.prune(root, max_bytes=int(one * 6.5))                # room for six whole nodes at most
+    tilecache.prune(root, max_bytes=int(one * 3.5))                # room for three whole visited nodes at most (PERF.233: those built ahead are not counted)
     left = sorted((name for name in os.listdir(directory) if name.startswith("n1_")), key=lambda name: int(name.split("_")[1]))
     assert left[:3] == ["n1_4_1_2.bin", "n1_5_1_2.bin", "n1_6_1_2.bin"], "built ahead, kept"
     assert "n1_7_1_2.bin" not in left and "n1_11_1_2.bin" in left, "the least recently visited went, the latest stayed"

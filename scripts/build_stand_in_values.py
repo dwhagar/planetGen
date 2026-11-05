@@ -215,7 +215,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.79", "6.79 Stand-ins of the Hycean box",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.83", "6.83 Stand-ins of the scatter step of an outer disc",
+    ("6.83", "6.83 Stand-ins of the scatter step of an outer disk",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.103", "6.103 Stand-ins of the interstellar asteroid fields",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
@@ -259,9 +259,33 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.156", "6.156 Stand-ins of the two cuts of the body type",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.177", "6.177 Stand-ins of the composition of a supernova remnant",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.176", "6.176 Stand-ins of the sky tier table",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.179", "6.179 Stand-ins of the composition of a nebula",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.178", "6.178 Stand-ins of the progenitor and ejecta of a planetary nebula",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.180", "6.180 Stand-ins of the drawing of the system sky",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.181", "6.181 Stand-ins of the look of a sky star, the star caps and the page's reach",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.175", "6.175 Stand-ins of the sky catalogue of a system",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.174", "6.174 Stand-ins of the glow band of the unresolved stars",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.171", "6.171 Stand-ins of the photometry of the system sky",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.170", "6.170 Stand-ins of the picture of a ring and of a glowing body",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.165", "6.165 Stand-ins of the habitable bodies per system",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.172", "6.172 Stand-ins of the zone the regular moons of a giant form in",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.182", "6.182 Stand-ins of where a stored belt member lies",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.183", "6.183 Stand-ins of the class-by-domain matrix and the phase gate",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.166", "6.166 Stand-ins of the interior viscosity ranges",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
@@ -285,7 +309,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.129", "6.129 Stand-ins of the strengths of the ice types",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.140", "6.140 Stand-ins of the gas disc of a satellite galaxy",
+    ("6.140", "6.140 Stand-ins of the gas disk of a satellite galaxy",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.141", "6.141 Stand-ins of the gas of a satellite galaxy by its distance from the host",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
@@ -321,7 +345,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.134", "6.134 Stand-ins of the ocean cover law and the mantle's water store",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.146", "6.146 Stand-ins of the thick disc's ages",
+    ("6.146", "6.146 Stand-ins of the thick disk's ages",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.147", "6.147 Stand-ins of the chemically peculiar stars",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
@@ -355,6 +379,12 @@ BURN_DOWN_COLUMN = "Burn-down (GEN.946)"
 `no data` or `replace` with the item), or a dash."""
 
 
+def _unwrap(cell):
+    """A register cell without the one pair of backticks that wraps it (a row ID may end in a backtick of its own, as `6.3a:`--rogues``)."""
+    cell = cell.strip()
+    return cell[1:-1].strip() if len(cell) > 1 and cell[0] == "`" and cell[-1] == "`" else cell
+
+
 def unread_rows(text):
     """
     The registry rows that the wiring register (GEN.754) says nothing in the app reads yet.
@@ -364,7 +394,7 @@ def unread_rows(text):
     """
     found = {}
     for line in text.splitlines():
-        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
+        cells = [_unwrap(cell) for cell in line.strip().strip("|").split("|")]
         if line.startswith("|") and len(cells) == 4 and cells[0] == "row":
             found[cells[1]] = cells[2]
     return found
@@ -379,7 +409,7 @@ def burn_down_rows(text):
     """
     found = {}
     for line in text.splitlines():
-        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
+        cells = [_unwrap(cell) for cell in line.strip().strip("|").split("|")]
         if line.startswith("|") and len(cells) == 4 and cells[1] in ("no data", "replace", "replaced"):
             found[cells[0]] = (cells[1], cells[2], cells[3])
     return found

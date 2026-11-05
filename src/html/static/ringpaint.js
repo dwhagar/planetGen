@@ -66,11 +66,11 @@ export function paintRing(ring, seed, n) {
     var here = profile(ring, seed >>> 0, ringlets, x);
     var open = 1;
     for (var g = 0; g < gaps.length; g++) {
-      var centre = gaps[g][0];
+      var center = gaps[g][0];
       var half = gaps[g][1] / 2;
       var depth = gaps[g][2];
       // Empty across the gap's inner third, fading to the ring's full opacity at its edge.
-      open *= 1 - depth * (1 - smoothstep(half * 0.35, half, Math.abs(x - centre)));
+      open *= 1 - depth * (1 - smoothstep(half * 0.35, half, Math.abs(x - center)));
     }
     var o = p * 4;
     out[o] = Math.round(Math.min(255, ring.rgb[0] * here.tone));

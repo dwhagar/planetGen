@@ -145,13 +145,28 @@ def test_a_plan_without_seed_draws_one_and_a_re_plan_keeps_it(mysql_config, monk
     assert "(kept from the earlier plan)" in capsys.readouterr().out
 
 
+def _place_a_sector(mysql_config):
+    """
+    Puts one sector in the galaxy grid, what `planetgen sectors` leaves behind, without generating one: the guard on a new seed
+    reads only that a sector is placed (`store.has_galaxy_sectors`), and generating one took four minutes on a fresh machine (PERF.232).
+    """
+    from planetgen.galaxy.sector import SpaceSector
+    position = {"center_x_pc": 5.0, "center_y_pc": 5.0, "center_z_pc": 5.0, "galactic_radius_pc": 8.7,
+                "shell_index": 1, "band_index": 0, "wedge_index": 0}
+    store.save_sector(SpaceSector("Placed Sector", edge_ly=10.0), config=mysql_config, galaxy_position=position)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.has_galaxy_sectors(conn)
+    finally:
+        conn.close()
+
+
 def test_a_new_seed_replaces_the_old_only_before_any_sector(mysql_config, monkeypatch):
     _plan(mysql_config, monkeypatch, "--seed", SEED_HEX)
     other = "F" * 32
     _plan(mysql_config, monkeypatch, "--seed", other)
     assert _stored_seed(mysql_config) == bytes.fromhex(other)
-    monkeypatch.setattr(sys, "argv", ["planetgen", "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
-    generate_cli.main()
+    _place_a_sector(mysql_config)
     with pytest.raises(SystemExit) as raised:
         _plan(mysql_config, monkeypatch, "--seed", SEED_HEX)
     assert raised.value.code == 1

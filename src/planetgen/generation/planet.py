@@ -75,7 +75,6 @@ class Planet(PlanetaryObject):
         is_moon (bool): True if the object is a moon, False otherwise.
         moons (list): A list of `Planet` objects representing the moons of this planet.
         zone (str): The orbital zone of the planet ('h' for hot, 'e' for ecosphere, 'c' for cold).
-        description (str): A text description of the planet's class.
         atm_molar_density (float): The molar density of the atmosphere.
         gravity (float): The surface gravity of the planet in g's.
         atm_density (float): The density of the atmosphere.
@@ -195,13 +194,13 @@ class Planet(PlanetaryObject):
         life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
                                   world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
                                   `life.apply_life_data` with the pace, `None` without one).
-        flavor_key (str or None): The flavour line `life.decide_flavor_text` drew, as `category:index` into the
-                                  `tuning` flavour lists (`flavor_text` reads it).
+        flavor_key (str or None): The flavor line `life.decide_flavor_text` drew, as `category:index` into the
+                                  `tuning` flavor lists (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
     SERIALIZABLE_FIELDS = [
-        "is_moon", "zone", "description", "atm_molar_density", "gravity",
+        "is_moon", "zone", "atm_molar_density", "gravity",
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
@@ -326,7 +325,7 @@ class Planet(PlanetaryObject):
                                                the star (`generate_moons`
                                                passes the parent planet's own
                                                `mass` here).
-            formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disc planet
+            formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disk planet
                                          formed in the volatile-poor debris of a disrupted star, so inside any snow line); it sets
                                          whether the planet is ice-rich or dry (`bulk_draw.origin_of`). Defaults to the distance.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
@@ -355,7 +354,6 @@ class Planet(PlanetaryObject):
         # GEN.458: whether it formed beyond its star's snow line; `StarSystem` sets it once the orbits are final
         # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
         self.born_beyond_snow_line = None
-        self.description = None
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
@@ -518,7 +516,8 @@ class Planet(PlanetaryObject):
         return planet
 
     def _decode(self, data):
-        self.habitable_zone = tuple(data["habitable_zone"])
+        # a rogue planet (GEN.1111) has no host and so no habitable zone of one's own
+        self.habitable_zone = tuple(data["habitable_zone"]) if data.get("habitable_zone") is not None else None
 
     @property
     def life_class_id(self):
@@ -533,7 +532,7 @@ class Planet(PlanetaryObject):
 
     @property
     def flavor_text(self):
-        """The flavour line `flavor_key` names (`life.flavor_line`), or `None`."""
+        """The flavor line `flavor_key` names (`life.flavor_line`), or `None`."""
         from planetgen.generation import life
         return life.flavor_line(self.flavor_key)
 

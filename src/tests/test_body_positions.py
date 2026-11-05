@@ -107,7 +107,7 @@ def test_a_close_pair_balances_on_the_barycenter():
         p = positions_at(scene, years)
         gap = sub(p["star:2"], p["star:1"])
         assert norm(gap) == pytest.approx(0.3 * AU_KM, rel=1e-9)
-        # mass fraction 0.25 for the second star: weighted centre sits at the origin
+        # mass fraction 0.25 for the second star: weighted center sits at the origin
         balance = [0.75 * a + 0.25 * b for a, b in zip(p["star:1"], p["star:2"])]
         assert norm(balance) < 1e-3 * AU_KM * 1e-6
 
@@ -133,7 +133,7 @@ def eccentric_wide_scene():
 
 
 def triple_scene(epoch_unix=SCENE_EPOCH):
-    """MAP.255: an eccentric close pair about the centre of a third star on a wide orbit (`scene_epoch` None: the scene has
+    """MAP.255: an eccentric close pair about the center of a third star on a wide orbit (`scene_epoch` None: the scene has
     none, the tree's first node says where time zero is)."""
     scene = sample_scene()
     scene["epoch_unix"] = epoch_unix
@@ -177,7 +177,7 @@ def test_a_circular_node_gives_the_positions_the_stored_phase_did(phase, years):
     assert p["star:1"] == pytest.approx([-c * AU_KM * fraction for c in here], rel=1e-9, abs=1.0)
 
 
-def test_a_triple_places_the_close_pair_about_the_outer_centre():
+def test_a_triple_places_the_close_pair_about_the_outer_center():
     scene = sample_scene()
     scene["stars"].append({"ref": "star:3", "orbit": None})
     scene["tree"]["nodes"][0].update(parent_node_no=1, slot=0, mass_solar=1.0)
@@ -186,10 +186,10 @@ def test_a_triple_places_the_close_pair_about_the_outer_centre():
                                        mean_anomaly_deg=0.0, inclination_deg=0.0, ascending_node_deg=0.0))
     scene["tree"]["members"].append({"ref": "star:3", "member_no": 2, "parent_node_no": 1, "slot": 1, "mass_solar": 1.0})
     p = positions_at(scene, 0.0)
-    pair_centre = [0.75 * a + 0.25 * b for a, b in zip(p["star:1"], p["star:2"])]
-    # The pair's centre of mass is 1/3 of the way from the pair to the third star, which sits at 40 AU
-    assert norm(sub(p["star:3"], pair_centre)) == pytest.approx(40.0 * AU_KM, rel=1e-9)
-    total = [(1.0 * c + 1.0 * t) for c, t in zip(pair_centre, p["star:3"])]
+    pair_center = [0.75 * a + 0.25 * b for a, b in zip(p["star:1"], p["star:2"])]
+    # The pair's center of mass is 1/3 of the way from the pair to the third star, which sits at 40 AU
+    assert norm(sub(p["star:3"], pair_center)) == pytest.approx(40.0 * AU_KM, rel=1e-9)
+    total = [(1.0 * c + 1.0 * t) for c, t in zip(pair_center, p["star:3"])]
     assert norm(total) < 1e-6 * AU_KM
 
 
@@ -289,15 +289,15 @@ def test_a_comets_position_at_the_epoch_is_the_one_it_was_generated_with(orbit_t
         assert _comet_relative_km(orbit, 0.0) == pytest.approx(stored, rel=1e-5, abs=1e6), vars(comet)
 
 
-def test_a_planet_of_a_pair_below_a_further_star_goes_round_the_pairs_centre_not_the_barycenter():
-    """A close pair that hangs below another orbit has its planets round `node:N`, the pair's centre of mass, which is
+def test_a_planet_of_a_pair_below_a_further_star_goes_round_the_pairs_center_not_the_barycenter():
+    """A close pair that hangs below another orbit has its planets round `node:N`, the pair's center of mass, which is
     away from the barycenter the third star pulls it from."""
     scene = triple_scene()
     scene["planets"] = [{"ref": "planet:1", "orbit": state_orbit("node:0", 1.5, 1.8, 3.0, 80.0, 10.0, SCENE_EPOCH), "moons": []}]
     here = positions_at(scene, 0.0)
     members = [m for m in scene["tree"]["members"] if m["parent_node_no"] == 0]
     total = sum(m["mass_solar"] for m in members)
-    centre = [sum(m["mass_solar"] * here[m["ref"]][axis] for m in members) / total for axis in range(3)]
-    away = [here["planet:1"][axis] - centre[axis] for axis in range(3)]
+    center = [sum(m["mass_solar"] * here[m["ref"]][axis] for m in members) / total for axis in range(3)]
+    away = [here["planet:1"][axis] - center[axis] for axis in range(3)]
     assert norm(away) == pytest.approx(1.5 * AU_KM, rel=1e-9)
-    assert norm(centre) > 1.0 * AU_KM, "the pair's centre is far from the barycenter"
+    assert norm(center) > 1.0 * AU_KM, "the pair's center is far from the barycenter"

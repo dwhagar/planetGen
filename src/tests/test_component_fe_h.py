@@ -30,7 +30,7 @@ def test_a_component_supplies_its_own_value_with_the_scatter_of_its_family():
     assert component_field.fe_h_peaks_of(satellite) == ((1.0, -0.7, tuning.COMPONENT_FE_H_SIGMA["satellite"]),)
 
 
-def test_the_stars_of_a_component_centre_on_its_value_and_are_stored():
+def test_the_stars_of_a_component_center_on_its_value_and_are_stored():
     peaks = component_field.fe_h_peaks_of(_component("cluster", -1.6))
     stars = star_population.sample_bright_stars(
         300, 50.0, "cluster", draw.Stream("gen662"),

@@ -30,7 +30,7 @@ the snow line, the ejection delay after formation, the age now (the donor's) and
 planet's orbital velocity then (both `(outward, along the rotation, up)` in km/s, relative to the donor), and the outer edge of the moon system it kept (km)."""
 
 
-def events(donor_uid, donor, losses, rng=draw):
+def events(donor_uid, donor, losses, rng=draw, first_index=0):
     """
     The events of the bodies a donor threw out.
 
@@ -39,13 +39,15 @@ def events(donor_uid, donor, losses, rng=draw):
         donor: The star the bodies were thrown from (`StarSystem.star`, or the star `StarSystem.ejected_losses` names).
         losses (iterable): `planet_architecture.Loss` records of kind `thrown` (`StarSystem.ejected_losses()` gives them with their star).
         rng: Anything with `random`; `draw` by default.
+        first_index (int): The index of the first body, so a donor with more than one star keeps its events' indexes apart (the second star's start
+            where the first star's end).
 
     Returns:
         list: An `EjectionEvent` for each body that ended ejected, in the order of `losses`; the index counts every body of every loss, ejected or
             not, so it stays the same if the shares change a little.
     """
     found = []
-    index = 0
+    index = first_index
     for loss in losses:
         for _body in range(loss.count):
             mass_kg = loss.mass_kg / loss.count

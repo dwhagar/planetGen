@@ -106,7 +106,7 @@ def test_a_main_sequence_star_follows_the_relations_with_its_own_draws():
     assert makeup.draws == draws
 
 
-def test_a_young_star_is_thin_disc_whatever_its_number_says():
+def test_a_young_star_is_thin_disk_whatever_its_number_says():
     for key in ("a", "b", "c", "d"):
         assert sc.star_makeup(sc.MAIN_SEQUENCE, -1.0, 2.0, 1.0, key).branch == sa.BRANCH_THIN
 

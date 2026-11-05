@@ -32,6 +32,17 @@ def _main(monkeypatch, mysql_config, *argv):
     generate.main()
 
 
+def _charted(mysql_config):
+    """The sectors the run charted (the chart ledger's cells), not the empty rows a landed rogue made."""
+    from planetgen.db import chart_ledger, store
+
+    conn = store.get_connection(mysql_config)
+    try:
+        return chart_ledger.charted_addresses(conn)
+    finally:
+        conn.close()
+
+
 def _expansion(args, mysql_config):
     [follower] = run_galaxy._plan_sectors(args, EDGE_PC, deferred=True)
     return run_galaxy.expand_generate_sectors({"database": wrapper.database_args(mysql_config), **follower.params()})
@@ -75,10 +86,10 @@ def test_a_rerun_after_a_stop_builds_only_what_is_missing(mysql_config, monkeypa
     args = _args(*argv, *mysql_argv(mysql_config))
     total = _expected(args).sectors
     _main(monkeypatch, mysql_config, "sectors", *argv)
-    assert len(_all_sectors(mysql_config)) == total > 0
+    assert len(_charted(mysql_config)) == total > 0      # GEN.1111: a rogue may land in a cell nobody charted, whose row is not a charted sector
     assert _expansion(args, mysql_config).units == []
     _main(monkeypatch, mysql_config, "sectors", *argv)
-    assert len(_all_sectors(mysql_config)) == total
+    assert len(_charted(mysql_config)) == total
 
 
 @pytest.mark.parametrize("argv,message", [

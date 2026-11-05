@@ -5,7 +5,7 @@ Where the References pages are and how a page points into them (DOC.87, Referenc
 
 The site speaks in universe. Where a number came from, what is a stand-in, what was fitted to a result and how sure a part is are said
 in one place: the References pages (`/references`, Help > References), which carry an Out of universe banner. Every other page keeps a
-quiet "Where this comes from" link to the entry that answers it. This module is the one place that knows the layout, so a page never
+quiet "More information" link to the entry that answers it. This module is the one place that knows the layout, so a page never
 writes a References address by hand: it calls `web.helpers.reference_link(kind, id)` (or `reference_path` here) and the build, the
 crawl test (`tests/test_references_crawl.py`) and the pages themselves cannot drift apart.
 

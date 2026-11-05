@@ -37,9 +37,9 @@ def lit(mysql_config):
                          " expected_system_count_at_density_1, outer_shell_index)"
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
             rows = []
-            for centre in ((8000.0, 100.0, 20.0), (-3000.0, 6000.0, 80.0), (200.0, -150.0, 5.0)):
+            for center in ((8000.0, 100.0, 20.0), (-3000.0, 6000.0, 80.0), (200.0, -150.0, 5.0)):
                 for _ in range(70):
-                    position = tuple(centre[a] + rng.gauss(0, 300.0 if centre[0] != 200.0 else 40.0) for a in range(3))
+                    position = tuple(center[a] + rng.gauss(0, 300.0 if center[0] != 200.0 else 40.0) for a in range(3))
                     rows.append(_bright_row(position, 10 ** rng.uniform(3, 6), rng.choice(("young", "old", "bulge"))))
             store.insert_bright_stars(conn, rows)
             conn.executemany("INSERT INTO galaxy_shell (shell_index, high_band_index, cell_count) VALUES (?, ?, 1)",
@@ -126,7 +126,7 @@ def test_the_aggregate_is_the_stored_light(lit):
                                   " AND band_index = ? AND wedge_index = ?", (block.shell, block.band, block.wedge)).fetchone()
         assert aggregate["lights"]["stars"] == stored_row["star_count"] > 0
         assert aggregate["lights"]["star_luminosity_sol"] == pytest.approx(stored_row["star_luminosity_sol"])
-        assert len(aggregate["lights"]["star_centre"]) == 3 and aggregate["lights"]["star_temperature_k"] > 0
+        assert len(aggregate["lights"]["star_center"]) == 3 and aggregate["lights"]["star_temperature_k"] > 0
         sector = nodes.galaxy_nodes(conn, [format_drill_key(chain[-1])])["nodes"][format_drill_key(chain[-1])]["aggregate"]
         assert "lights" not in sector
     finally:

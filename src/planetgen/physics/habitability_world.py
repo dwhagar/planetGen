@@ -10,7 +10,7 @@ section 8):
 
 * **Air.** Total pressure, temperature and gravity as stored; each species
   as a mole fraction of the total (the balance gas counts toward the total
-  only); relative humidity is the water vapour against its saturation
+  only); relative humidity is the water vapor against its saturation
   pressure at that temperature (Magnus formula, clamped to 5 to 99%).
 * **Solvent.** Water when the body has a surface ocean (a Hycean one too) or
   an ocean under its ice; liquid methane when the air holds saturated CH4
@@ -33,8 +33,8 @@ section 8):
 * **Dose.** The stored `surface_dose_msv_yr`, in Sv; the habitat of an ocean
   under ice sees only the ground's.
 * **Water source** (for the base): "liquid" at a surface ocean, "ice" for
-  an icy surface or shell, "vapour" for a steam world, "hydrated" for a dry
-  body with water in its rock, else vapour in the air or none.
+  an icy surface or shell, "vapor" for a steam world, "hydrated" for a dry
+  body with water in its rock, else vapor in the air or none.
 * **Life** (GEN.207). The food rung of Suitability reads the most advanced native
   life as `native_life` (`native_life`): none, microbial, macroscopic (the first
   flora and fauna) or a full biosphere, from the body's life chemistry and the
@@ -124,7 +124,7 @@ CHLORIDE_BRINE_CHAOTROPICITY = 200.0
 
 METHANE_SEA_MAX_K = 190.0
 METHANE_SATURATION = 0.98
-"""float: A methane sea needs CH4 at this share of its vapour pressure."""
+"""float: A methane sea needs CH4 at this share of its vapor pressure."""
 
 HYDRATED_MIN_WATER_FRACTION = 1e-5
 
@@ -230,14 +230,14 @@ def native_life(life_class, milestone, has_timeline):
 
 
 def saturation_kpa(temperature_c):
-    """Saturated water vapour pressure over liquid water, kPa (Magnus
+    """Saturated water vapor pressure over liquid water, kPa (Magnus
     formula, 6.1094 hPa at 0 deg C; temperatures clamped to -45 to 60)."""
     t = min(max(temperature_c, -45.0), 60.0)
     return 0.61094 * math.exp(17.625 * t / (t + 243.04))
 
 
 def relative_humidity(values):
-    """The air's water vapour against saturation at the surface temperature,
+    """The air's water vapor against saturation at the surface temperature,
     clamped to 5 to 99% (the range Stull's wet-bulb formula is fitted to)."""
     temperature_c = values["surface_temperature_k"] - constants.CELSIUS_ZERO_K
     share = atmosphere.partial_kpa(values, "h2o") / saturation_kpa(temperature_c)
@@ -259,7 +259,7 @@ def solvent(values):
     temperature = values["surface_temperature_k"]
     methane = atmosphere.partial_kpa(values, "ch4")
     if (methane > 0.0 and temperature <= METHANE_SEA_MAX_K
-            and methane >= METHANE_SATURATION * atmosphere.vapour_pressure_kpa("ch4", temperature)):
+            and methane >= METHANE_SATURATION * atmosphere.vapor_pressure_kpa("ch4", temperature)):
         return "hydrocarbon"
     return None
 
@@ -273,11 +273,11 @@ def water_source(values):
         return "ice"
     if groundwater(values) == "reachable":
         return "aquifer"
-    if state == "vapour":
-        return "vapour"
+    if state == "vapor":
+        return "vapor"
     if (values.get("water_mass_fraction") or 0.0) >= HYDRATED_MIN_WATER_FRACTION:
         return "hydrated"
-    return "vapour" if atmosphere.partial_kpa(values, "h2o") > 0.0 else None
+    return "vapor" if atmosphere.partial_kpa(values, "h2o") > 0.0 else None
 
 
 def air_inventories_kg(values):

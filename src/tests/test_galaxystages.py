@@ -3,7 +3,7 @@ Tests for `html/static/galaxystages.js`, the Galaxy Map drill-down's
 stage rules, run under node (skipped where node isn't installed): the
 galaxy's outline and each block's sector total must match a sector-by-
 sector count, the galaxy must list every block that can hold a sector, a
-window must be the blocks around its centre, stage URLs must round-trip,
+window must be the blocks around its center, stage URLs must round-trip,
 malformed ones must open the galaxy with a reason, a sector's designation
 must lead to the window that shows it, the breadcrumb must name every
 step, and the flight must start and end where it says (MAP.150, MAP.151,
@@ -137,7 +137,7 @@ console.log(JSON.stringify({
     assert out["problem"] is None and out["kind"] == "cell" and out["win"] is None
     assert out["options"] == out["blocks"] > 50
     assert out["same"] and out["bounded"] and out["picks"] and out["sameTwice"]
-    assert out["into"]["win"]["centre"]["m"] == 81 and out["into"]["win"]["g"] == 9
+    assert out["into"]["win"]["center"]["m"] == 81 and out["into"]["win"]["g"] == 9
 
 
 def test_camera_urls_round_trip_and_bad_ones_are_refused():
@@ -211,13 +211,13 @@ console.log(JSON.stringify({sector: s, stage: s ? S.sectorStage(s.shell, s.band,
 """)
     assert out["sector"] == {"shell": 4000, "band": 7, "wedge": 3}
     assert out["inOutline"] is False
-    assert out["stage"] == {"win": {"centre": {"m": 1, "shell": 4000, "band": 7, "wedge": 3}, "g": 9}}
+    assert out["stage"] == {"win": {"center": {"m": 1, "shell": 4000, "band": 7, "wedge": 3}, "g": 9}}
     assert out["past"] is None
 
 
 def test_sector_links_open_the_window_that_shows_the_sector():
     """MAP.26: a sector opens among its neighbours, the window of sectors
-    centred on it."""
+    centered on it."""
     out = _run("""
 const shell = 700, band = -20, wedge = Math.floor(P.wedgeCount(shell, band) / 3);
 const code = S.sectorDesignation(shell, band, wedge);
@@ -233,7 +233,7 @@ console.log(JSON.stringify({shell, band, wedge, code, back: S.parseSectorDesigna
     assert out["back"] == sector
     assert out["parsed"]["sector"] == sector
     assert out["parsed"]["camera"] is None
-    assert out["stage"] == {"win": {"centre": {"m": 1, **sector}, "g": 9}}
+    assert out["stage"] == {"win": {"center": {"m": 1, **sector}, "g": 9}}
     assert out["sectors"] and out["holds"]
     crumbs = out["crumbs"]
     assert crumbs[0] == "Galaxy"
@@ -260,23 +260,23 @@ console.log(JSON.stringify({steps, crumbs, repeated, last: stage}));
     assert out["last"] == {"win": None}
 
 
-def test_a_window_is_the_blocks_around_its_centre():
+def test_a_window_is_the_blocks_around_its_center():
     out = _run("""
 const stage = S.windowStage({m: 27, shell: 10, band: 0, wedge: 11});
 const r = S.resolveStage(stage, outline, edge);
-const middle = P.cellPositionPc(stage.win.centre, edge);
+const middle = P.cellPositionPc(stage.win.center, edge);
 const reach = 9 * 27 * edge / 2;
 console.log(JSON.stringify({
   problem: r.problem, kind: r.kind, blocks: r.view.blocks.length, options: r.options.length,
   bounded: r.view.blocks.every(b => b.bounds && S.blockTotal(b, outline) > 0 && b.m === 27),
-  holdsCentre: r.view.blocks.some(b => S.sameBlock(b, stage.win.centre)),
+  holdsCenter: r.view.blocks.some(b => S.sameBlock(b, stage.win.center)),
   pick: r.options[0].pick.kind,
   near: r.view.blocks.every(b => Math.hypot(...P.cellPositionPc(b, edge).map((v, k) => v - middle[k])) <= reach + 1e-6),
 }));
 """)
     assert out["problem"] is None and out["kind"] == "cell" and out["pick"] == "cell"
     assert out["blocks"] == out["options"] and 100 < out["blocks"] <= 729
-    assert out["bounded"] and out["holdsCentre"] and out["near"]
+    assert out["bounded"] and out["holdsCenter"] and out["near"]
 
 
 def test_a_click_opens_the_window_one_size_down_and_the_way_up_is_a_step_back():
@@ -287,13 +287,13 @@ const rows = [];
 for (const block of r.view.blocks.slice(0, 40)) {
   const into = S.windowInto(stage, block, null, edge);
   const back = S.parentStage(into, outline, edge);
-  const parent = P.drillParent(into.win.centre);
-  rows.push([into.win.centre.m, P.formatDrillKey(parent) === P.formatDrillKey(block), back.win.centre.m, back.win.g, into.win.g]);
+  const parent = P.drillParent(into.win.center);
+  rows.push([into.win.center.m, P.formatDrillKey(parent) === P.formatDrillKey(block), back.win.center.m, back.win.g, into.win.g]);
 }
 const sectorWindow = S.windowStage({m: 1, shell: 50, band: 3, wedge: 3});
 const sectorBlock = S.resolveStage(sectorWindow, outline, edge).view.blocks[0];
 const fromGalaxy = S.windowInto(S.galaxyStage(), S.resolveStage(S.galaxyStage(), outline, edge).view.blocks[5], null, edge);
-const three = S.windowChildCentre({m: 3, shell: 20, band: 0, wedge: 6}, null, edge);
+const three = S.windowChildCenter({m: 3, shell: 20, band: 0, wedge: 6}, null, edge);
 console.log(JSON.stringify({rows, sector: S.windowInto(sectorWindow, sectorBlock, null, edge), top: S.parentStage(S.galaxyStage(), outline, edge),
   topWindow: S.parentStage(stage, outline, edge), fromGalaxy, three,
   threeHeld: S.sameBlock(P.drillParent(three), {m: 3, shell: 20, band: 0, wedge: 6})}));
@@ -302,13 +302,13 @@ console.log(JSON.stringify({rows, sector: S.windowInto(sectorWindow, sectorBlock
     assert out["sector"] is None
     assert out["top"] is None
     assert out["topWindow"] == {"win": None}
-    assert out["fromGalaxy"]["win"]["centre"]["m"] == 81
+    assert out["fromGalaxy"]["win"]["center"]["m"] == 81
     # A level-3 block opens a window of the sectors round the one at its middle.
     assert out["three"]["m"] == 1 and out["threeHeld"]
 
 
 def test_a_click_opens_the_window_round_the_cell_under_the_click():
-    """The window centres on the child cell under the click, kept inside the
+    """The window centers on the child cell under the click, kept inside the
     block clicked; a click off the block's sides goes to the middle."""
     out = _run("""
 const block = S.resolveStage(S.galaxyStage(), outline, edge).view.blocks.find(b => b.shell === 3 && b.band === 0);
@@ -320,12 +320,12 @@ const point = (rf, cf, tf) => {
 const rows = [];
 for (const [rf, cf, tf] of [[0.05, 0.05, 0.05], [0.95, 0.95, 0.95], [0.5, 0.5, 0.5], [0.05, 0.95, 0.5], [0.95, 0.05, 0.1]]) {
   const p = point(rf, cf, tf);
-  const centre = S.windowChildCentre(S.stripBlock(block), p, edge);
-  const box = P.drillBlockBounds(centre, edge);
-  rows.push({parent: P.formatDrillKey(P.drillParent(centre)) === P.formatDrillKey(block), holds: P.boundsContain(box, p.x, p.y, p.z)});
+  const center = S.windowChildCenter(S.stripBlock(block), p, edge);
+  const box = P.drillBlockBounds(center, edge);
+  rows.push({parent: P.formatDrillKey(P.drillParent(center)) === P.formatDrillKey(block), holds: P.boundsContain(box, p.x, p.y, p.z)});
 }
-const far = S.windowChildCentre(block, {x: -1e6, y: 1e6, z: 5e5}, edge);
-const middle = S.windowChildCentre(block, null, edge);
+const far = S.windowChildCenter(block, {x: -1e6, y: 1e6, z: 5e5}, edge);
+const middle = S.windowChildCenter(block, null, edge);
 console.log(JSON.stringify({rows, farParent: P.formatDrillKey(P.drillParent(far)) === P.formatDrillKey(block),
   middleParent: P.formatDrillKey(P.drillParent(middle)) === P.formatDrillKey(block)}));
 """)
@@ -363,7 +363,7 @@ const across = {shell: 700, band: -20, wedge: (Math.floor(wedges / 3) + Math.flo
 const high = {shell: 5000, band: 0, wedge: 1};
 const holds = (stage, s) => {
   const chain = P.drillChainOf(s.shell, s.band, s.wedge);
-  const cell = chain.find(c => c.m === stage.win.centre.m);
+  const cell = chain.find(c => c.m === stage.win.center.m);
   return S.resolveStage(stage, outline, edge).view.blocks.some(b => S.sameBlock(b, cell));
 };
 const nearStage = S.courseStage([home, near], outline, edge);
@@ -371,9 +371,9 @@ const midStage = S.courseStage([home, mid], outline, edge);
 console.log(JSON.stringify({
   same: S.sameStage(S.courseStage([home, home], outline, edge), S.sectorStage(home.shell, home.band, home.wedge)),
   nearHolds: holds(nearStage, home) && holds(nearStage, near),
-  nearLevel: nearStage.win.centre.m,
+  nearLevel: nearStage.win.center.m,
   midHolds: holds(midStage, home) && holds(midStage, mid),
-  midLevel: midStage.win.centre.m,
+  midLevel: midStage.win.center.m,
   far: S.courseStage([home, across], outline, edge),
   apart: S.courseStage([core, home], outline, edge),
   outside: S.courseStage([core, high], outline, edge),
@@ -383,21 +383,21 @@ console.log(JSON.stringify({
     assert out["same"]
     assert out["nearHolds"] and out["nearLevel"] == 1
     assert out["midHolds"] and out["midLevel"] > 1
-    assert out["far"]["win"] is None or out["far"]["win"]["centre"]["m"] >= 3
+    assert out["far"]["win"] is None or out["far"]["win"]["center"]["m"] >= 3
     # A core sector and one 2,800 pc out need a window of the larger blocks.
-    assert out["apart"]["win"] is None or out["apart"]["win"]["centre"]["m"] >= 81
+    assert out["apart"]["win"] is None or out["apart"]["win"]["center"]["m"] >= 81
     assert out["outside"] == {"win": None}
     assert out["none"] == {"win": None}
 
 
 def test_a_window_stage_has_a_breadcrumb_down_from_the_galaxy():
     out = _run("""
-const centre = P.drillChainOf(600, 4, 20).find(c => c.m === 3);
-const stage = S.windowStage(centre);
+const center = P.drillChainOf(600, 4, 20).find(c => c.m === 3);
+const stage = S.windowStage(center);
 const crumbs = S.crumbs(stage, outline, edge);
 let steps = 0, current = stage, seen = [];
 for (let parent = S.parentStage(current, outline, edge); parent; parent = S.parentStage(current, outline, edge)) {
-  seen.push(parent.win ? parent.win.centre.m : "galaxy");
+  seen.push(parent.win ? parent.win.center.m : "galaxy");
   current = parent;
   if (++steps > 10) break;
 }
@@ -450,10 +450,10 @@ for (let n = 0; n < 200; n++) {
   const r = cell.r0 + (cell.r1 - cell.r0) * f, c = cell.c0 + (cell.c1 - cell.c0) * g, t = cell.t0 + (cell.t1 - cell.t0) * h;
   inside.push(S.columnContains(cell, r * Math.sin(c) * Math.cos(t), r * Math.sin(c) * Math.sin(t)));
 }
-const centre = P.cellCenter(cell);
-const R = Math.hypot(centre[0], centre[1]);
-outside.push(S.columnContains(cell, centre[0] * 2, centre[1] * 2), S.columnContains(cell, centre[0] / 2, centre[1] / 2),
-  S.columnContains(cell, -centre[0], -centre[1]));
+const center = P.cellCenter(cell);
+const R = Math.hypot(center[0], center[1]);
+outside.push(S.columnContains(cell, center[0] * 2, center[1] * 2), S.columnContains(cell, center[0] / 2, center[1] / 2),
+  S.columnContains(cell, -center[0], -center[1]));
 const cap = P.sectorBounds(300, P.bandRange(300)[1], 0, edge);
 const core = P.sectorBounds(0, 0, 0, edge);
 console.log(JSON.stringify({reach, radius: e.radius, inside, outside,
@@ -470,8 +470,8 @@ def test_labels_and_ranges_read_in_shells_bands_and_wedges():
     out = _run("""
 console.log(JSON.stringify({
   label: S.blockLabel({shell: 1705, band: -20, wedge: 3225}),
-  win: S.windowLabel({centre: {m: 27, shell: 3, band: 0, wedge: 2}, g: 9}),
-  win1: S.windowLabel({centre: {m: 1, shell: 30, band: -1, wedge: 7}, g: 9}),
+  win: S.windowLabel({center: {m: 27, shell: 3, band: 0, wedge: 2}, g: 9}),
+  win1: S.windowLabel({center: {m: 1, shell: 30, band: -1, wedge: 7}, g: 9}),
   key: S.parseCellKey("27.3.-1.2"), keyBad: [S.parseCellKey("27.3"), S.parseCellKey("1.2.3.x"), S.parseCellKey(null)],
   bearing: S.bearingRange({t0: 3 * Math.PI / 2, t1: 2 * Math.PI}), whole: S.bearingRange({t0: 0, t1: 2 * Math.PI}),
   latitude: S.latitudeRange({c0: Math.PI / 3, c1: Math.PI / 2}),

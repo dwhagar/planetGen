@@ -30,6 +30,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -617,12 +618,12 @@ API = "https://starmap.example/api"
 
 
 def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True, reply="", curl=None,
-                api=API, health_url=None):
+                api=API, health_url=None, wait="1"):
     """Runs the helper with fake `systemctl`, `apache2ctl` and `curl` that log their calls; returns
     `(process, calls)`. `fail` names the systemctl verbs that fail. `curl` is the body of the fake `curl` (it sees the
     address as its last argument) when the test needs different answers for different addresses. `api` is what the
     fake python prints for `get_settings().api_base_url` ("" is an unset api_base_url); `health_url` sets
-    PLANETGEN_HEALTH_URL."""
+    PLANETGEN_HEALTH_URL. `wait` is HEALTH_WAIT_SECONDS (None leaves the script's default)."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     log = tmp_path / "calls"
@@ -641,8 +642,10 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
     fake_python.chmod(0o755)
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
-    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1", HEALTH_SETTLE_SECONDS="0",
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS=wait or "", HEALTH_SETTLE_SECONDS="0",
                PYTHON=str(fake_python))
+    if wait is None:
+        env.pop("HEALTH_WAIT_SECONDS")
     env.pop("PLANETGEN_HEALTH_URL", None)
     if health_url:
         env["PLANETGEN_HEALTH_URL"] = health_url
@@ -747,6 +750,119 @@ def test_no_api_address_configured_stops_with_a_plain_message_and_asks_nothing(t
     assert proc.returncode == 1
     assert "no API address is configured" in proc.stderr and "api_base_url in config.json" in proc.stderr
     assert not calls
+
+
+# --- the warm stage's time limit (OPS.95) -----------------------------------------
+
+
+def _run_warm_stage(tmp_path, body, seconds=None):
+    """Runs `run_warm_stage` with a fake interpreter whose body is `body`; returns `(process, seconds it took)`."""
+    fake = tmp_path / "fakepython"
+    fake.write_text("#!/bin/bash\n" + body)
+    fake.chmod(0o755)
+    script = (f'SCRIPT_DIR="{tmp_path}"; source "{REPO_DIR}/scripts/deploy-common.sh"; PYTHON="{fake}"; '
+              f'WARM_MAP_LOG="{tmp_path}/warm.log"; run_warm_stage "stage 2 of 2, the full warm-up"; echo "returned $?"')
+    env = {key: value for key, value in os.environ.items() if key != "WARM_STAGE_SECONDS"}
+    if seconds is not None:
+        env["WARM_STAGE_SECONDS"] = str(seconds)
+    started = time.monotonic()
+    proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True, timeout=120)
+    return proc, time.monotonic() - started
+
+
+@pytest.mark.parametrize("seconds, words", [(14400, "4 hours"), (3600, "1 hour"), (5400, "90 minutes"), (60, "1 minute"),
+                                            (120, "2 minutes"), (45, "45 seconds"), (1, "1 second")])
+def test_a_limit_is_told_in_words(seconds, words):
+    proc = subprocess.run(["bash", "-c", f'source "{REPO_DIR}/scripts/deploy-common.sh"; duration_words {seconds}'],
+                          capture_output=True, text=True)
+    assert proc.stdout.strip() == words
+
+
+def test_the_warm_stage_has_four_hours_by_default_and_the_first_line_says_so(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, 'echo "limit seen: $PLANETGEN_WARM_TIME_LIMIT_SECONDS"\n')
+    first = proc.stdout.splitlines()[0]
+    assert "time limit 4 hours, WARM_STAGE_SECONDS sets it" in first and "log:" in first
+    assert "limit seen: 14400" in proc.stdout and "returned 0" in proc.stdout and proc.stderr == ""
+
+
+def test_a_stage_that_runs_past_a_short_limit_is_ended_and_says_so_and_that_stored_work_is_kept(tmp_path):
+    """A fake long run (30 s) under a 1 s limit: the stage ends at once, still returns 0 so the update goes on, and the
+    warning names the limit, says the stored work is kept and how to continue."""
+    proc, took = _run_warm_stage(tmp_path, "sleep 30\n", seconds=1)
+    assert took < 20 and "returned 0" in proc.stdout
+    assert "time limit 1 second, WARM_STAGE_SECONDS sets it" in proc.stdout.splitlines()[0]
+    assert "ran out of its time limit of 1 second (WARM_STAGE_SECONDS; 0 means none)" in proc.stderr
+    assert "What it stored is kept" in proc.stderr and "planetgen warm --progress" in proc.stderr
+    assert "Traceback" not in proc.stdout + proc.stderr
+
+
+def test_zero_means_no_limit_and_the_run_is_told_none(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, 'echo "limit seen: [${PLANETGEN_WARM_TIME_LIMIT_SECONDS:-}]"\n', seconds=0)
+    assert "no time limit" in proc.stdout.splitlines()[0] and "limit seen: []" in proc.stdout and proc.stderr == ""
+
+
+def test_a_failed_stage_says_its_status_and_that_stored_work_is_kept(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, "exit 3\n")
+    assert "returned 0" in proc.stdout and "failed with status 3" in proc.stderr
+    assert "ran out of its time limit" not in proc.stderr and "What it stored is kept" in proc.stderr
+
+
+def test_a_limit_that_is_not_a_number_is_said_and_the_default_used(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, "true\n", seconds="soon")
+    assert "WARM_STAGE_SECONDS=soon is not a number of seconds; using 14400" in proc.stderr
+    assert "time limit 4 hours" in proc.stdout.splitlines()[0]
+
+
+def test_no_deploy_script_still_holds_the_old_fixed_thirty_minute_limit():
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert "timeout 1800" not in common and "At most 30 minutes" not in common
+
+
+# --- the health wait (OPS.94) -------------------------------------------------
+
+REFUSED = "exit 7\n"
+TIMED_OUT = "exit 28\n"
+
+
+def test_the_health_wait_defaults_to_90_seconds_and_says_so():
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert "${HEALTH_WAIT_SECONDS:-20}" not in common and common.count("${HEALTH_WAIT_SECONDS:-90}") >= 3
+
+
+def test_a_good_answer_ends_the_wait_at_once_whatever_its_length(tmp_path):
+    proc, calls = _run_reload(tmp_path, wait=None)
+    assert proc.returncode == 0 and "(up to 90 seconds)" in proc.stdout
+    assert len([c for c in calls if c.startswith("curl")]) == 1
+
+
+def test_a_slow_start_is_waited_out_and_the_wait_ends_at_the_first_good_answer(tmp_path):
+    """The first two asks time out (the workers are still starting), the third is answered: no warning, and no more asks."""
+    counter = tmp_path / "count"
+    curl = (f'n=$(cat {counter} 2>/dev/null || echo 0); echo $((n + 1)) > {counter}\n'
+            'if [ "$n" -lt 2 ]; then exit 28; fi\nprintf "\\n200"\n')
+    started = time.monotonic()
+    proc, calls = _run_reload(tmp_path, curl=curl, wait="30")
+    assert proc.returncode == 0 and "warning" not in proc.stderr
+    assert len([c for c in calls if c.startswith("curl")]) == 3 and time.monotonic() - started < 20
+    assert "no good answer yet (HTTP 000: no answer in time)" in proc.stdout
+
+
+@pytest.mark.parametrize("curl, words", [
+    (TIMED_OUT, "no answer in time"),
+    (REFUSED, "the connection was refused: nothing listens on that address and port"),
+    ("exit 6\n", "the name could not be looked up"),
+    ("exit 60\n", "the TLS (https) handshake or certificate failed, curl exit 60"),
+])
+def test_every_retry_line_says_what_curl_saw(tmp_path, curl, words):
+    proc, _calls = _run_reload(tmp_path, curl=curl)
+    assert proc.returncode == 3
+    assert f"no good answer yet (HTTP 000: {words})" in proc.stdout
+    assert f"(no HTTP answer at all: {words})" in proc.stderr
+
+
+def test_an_http_error_is_a_retry_line_with_its_code(tmp_path):
+    proc, _calls = _run_reload(tmp_path, health=False)
+    assert "no good answer yet (HTTP 503)" in proc.stdout
 
 
 def test_no_deploy_script_reaches_the_api_on_a_literal_loopback_address():

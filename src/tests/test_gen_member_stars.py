@@ -54,13 +54,13 @@ def test_a_system_of_three_is_saved_with_a_member_row_and_every_star_in_its_slot
                             " FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()
         assert [r["role"] for r in rows] == ["primary", "secondary", "member"]
         assert [(r["parent_node_id"], r["slot"]) for r in rows] == [(0, 0), (0, 1), (1, 1)]
-        # the member sits on the far side of the pair's centre from the pair, in proportion to the masses
+        # the member sits on the far side of the pair's center from the pair, in proportion to the masses
         member = rows[2]
         distance_au = sum(member[f"offset_{axis}_au"] ** 2 for axis in "xyz") ** 0.5
         pair_mass = rows[0]["mass_kg"] + rows[1]["mass_kg"]
         assert 0 < distance_au < 400.0 * 1.3 * (pair_mass / (pair_mass + member["mass_kg"])) + 1.0
-        centre = [sum(r[f"offset_{axis}_au"] * r["mass_kg"] for r in rows) for axis in "xyz"]
-        assert all(abs(c) < 1e-6 * sum(r["mass_kg"] for r in rows) * 400.0 for c in centre)
+        center = [sum(r[f"offset_{axis}_au"] * r["mass_kg"] for r in rows) for axis in "xyz"]
+        assert all(abs(c) < 1e-6 * sum(r["mass_kg"] for r in rows) * 400.0 for c in center)
         assert orbit_trees.read_nodes(conn, system_id) == system.orbit_nodes
     finally:
         conn.close()

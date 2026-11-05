@@ -3,13 +3,14 @@
 """
 The points that draw the nebulae of one Galaxy Map node (MAP.365).
 
-`group_volume(conn, key)` reads the nebulae whose centre lies in the block `key` (`m.shell.band.wedge`, the node key of the map's
+`group_volume(conn, key)` reads the nebulae whose center lies in the block `key` (`m.shell.band.wedge`, the node key of the map's
 ladder) and the nebulae around it, and has `galaxy.nebula_volume` sample their shape from the model's density
 (`galaxy.nebula_density`). The same key always gives the same bytes for the same database contents; nothing is stored.
 """
 
 from planetgen import tuning
 from planetgen.db import query
+from planetgen.physics import units
 from planetgen.galaxy import nebula_blocks, nebula_volume
 from planetgen.galaxy.drill import parse_node_key
 from planetgen.galaxy.nodecut import block_box
@@ -63,7 +64,7 @@ def group_volume(conn, key, model=None):
     skeleton = query.get_galaxy_shape(conn)
     nebulae = [] if skeleton is None or skeleton.galaxy_seed is None else block_nebulae(conn, block, skeleton.edge_pc)
     if not nebulae:
-        return nebula_volume.pack(nebula_volume.sample_group([], None, None, 0.0, 0, nebula_blocks.FAMILIES))
+        return _empty()
     if model is None:
         from planetgen.galaxy import nebula_density as model
     seed, shape = skeleton.galaxy_seed, skeleton.shape
@@ -74,3 +75,47 @@ def group_volume(conn, key, model=None):
     volume = nebula_volume.sample_group(
         nebulae, inside_block(block, skeleton.edge_pc), density, model.FORM_LEVEL, model.MAX_DETAIL, nebula_blocks.FAMILIES)
     return nebula_volume.pack(volume)
+
+
+def single_nebula_volume(conn, nebula_id, model=None):
+    """
+    The packed points (`nebula_volume.pack`) that draw one nebula alone (MAP.142, the Sector Map and the nebula page): the same sampler and density as
+    `group_volume`, over this nebula's sphere only and at the lattice level its own radius asks for, so a nebula looks the same in a node of the Galaxy
+    Map and by itself.
+
+    Args:
+        conn: An open, read-only connection.
+        nebula_id (int): `nebulae.id`.
+        model (module, optional): As in `group_volume`.
+
+    Returns:
+        bytes: The packed volume; header-only for a nebula never placed or a galaxy that has never been planned.
+
+    Raises:
+        ValueError: If no such nebula exists.
+    """
+    row = conn.execute(
+        "SELECT radius_ly, center_x_pc, center_y_pc, center_z_pc, nebula_class FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no such nebula: {nebula_id!r}")
+    skeleton = query.get_galaxy_shape(conn)
+    if skeleton is None or skeleton.galaxy_seed is None or row["center_x_pc"] is None or not row["radius_ly"]:
+        return _empty()
+    if model is None:
+        from planetgen.galaxy import nebula_density as model
+    seed, shape = skeleton.galaxy_seed, skeleton.shape
+
+    def density(points, field, detail):
+        return model.density_at(seed, shape, points, field, detail)
+
+    cloud = {"class": row["nebula_class"], "type": "nebula"}
+    nebula = {"key": f"nebula:{nebula_id}", "x": row["center_x_pc"], "y": row["center_y_pc"], "z": row["center_z_pc"],
+              "radius_pc": units.ly_to_pc(row["radius_ly"]), "family": family_of(cloud)}
+    volume = nebula_volume.sample_group(
+        [nebula], None, density, model.FORM_LEVEL, model.MAX_DETAIL, nebula_blocks.FAMILIES)
+    return nebula_volume.pack(volume)
+
+
+def _empty():
+    """The header-only volume of a nebula with nothing to draw."""
+    return nebula_volume.pack(nebula_volume.sample_group([], None, None, 0.0, 0, nebula_blocks.FAMILIES))

@@ -73,7 +73,7 @@ export function positionsOf(volume, frame) {
 }
 
 // The middle of a volume's points, parsecs.
-export function centreOf(volume) {
+export function centerOf(volume) {
   const sum = [0, 0, 0];
   for (let i = 0; i < volume.count; i++) {
     sum[0] += volume.ix[i];
@@ -148,21 +148,35 @@ export function volumeAlpha(radiusPx, share) {
   return ease((radiusPx - MIN_RADIUS_PX) / (FULL_RADIUS_PX - MIN_RADIUS_PX)) * Math.min(1, Math.max(0, share));
 }
 
-// The nebulae a drawn node lists: its groups (`nebula_regions`, a centre and a radius each) and its single clouds. Returns
+// The nebulae a drawn node lists: its groups (`nebula_regions`, a center and a radius each) and its single clouds. Returns
 // `{ key, block, reaches }` for a node that holds any, `reaches` a list of `{ x, y, z, radiusPc }` (the groups' and the clouds' spheres).
 export function sourceOf(entry) {
   const node = entry && entry.node;
   if (!node) return null;
   const reaches = [];
   (node.nebula_regions || []).forEach((region) => {
-    if (region && region.centre && region.radius_pc > 0) {
-      reaches.push({ x: region.centre[0], y: region.centre[1], z: region.centre[2], radiusPc: region.radius_pc });
+    if (region && region.center && region.radius_pc > 0) {
+      reaches.push({ x: region.center[0], y: region.center[1], z: region.center[2], radiusPc: region.radius_pc });
     }
   });
   (node.clouds || []).forEach((cloud) => {
     if (cloud && cloud.radius_pc > 0) reaches.push({ x: cloud.x, y: cloud.y, z: cloud.z, radiusPc: cloud.radius_pc });
   });
   return reaches.length ? { key: entry.key, block: entry.block, reaches } : null;
+}
+
+// MAP.142: a source for one nebula drawn alone (the Sector Map's): `GET /galaxy/nebula/<id>/volume` holds the whole of it, so it is its own key
+// (`nebula:<id>`), has no node block to take a share from and shows at `weight` (0 to 1: the sector's fade, 0 for a hidden kind) of its strength.
+export function singleSource(id, sphere, weight) {
+  return {
+    key: "nebula:" + id, single: true, block: null, weight: Math.min(1, Math.max(0, weight === undefined ? 1 : weight)),
+    reaches: [{ x: sphere.x, y: sphere.y, z: sphere.z, radiusPc: sphere.radiusPc }],
+  };
+}
+
+// The id of a single source's key (`nebula:<id>`), or null for a node key.
+export function singleIdOf(key) {
+  return typeof key === "string" && key.indexOf("nebula:") === 0 ? key.slice("nebula:".length) : null;
 }
 
 // The pixel radius of the biggest nebula of `source` as the camera at `camera` ([x, y, z] parsecs) with focal length `focalPx` sees it.

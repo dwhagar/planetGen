@@ -78,8 +78,8 @@
   <details class="sheet-group" id="{{ group.key if group.key in ('habitability', 'life') else 'sheet-' ~ group.key }}">
     <summary><h3>{{ group.label }}</h3></summary>
     {{ rows_table(group.rows) }}
-    {%- if group.key == 'habitability' %}
-    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colors and symbols mean</a></p>
+    {%- if group.key == 'habitability' and not (planet.phi6_blocks or planet.phi6) %}
+    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">More information</a></p>
     {%- endif %}
   </details>
 {%- endmacro %}
@@ -107,7 +107,7 @@
   <h3 id="item-glance-heading">At a glance</h3>
   {{ glance_table(symbols) }}
   {%- if planet.life_class and planet.life_class.glance %}
-  <p class="life-glance"><strong>Life.</strong> {{ planet.life_class.glance }} <a class="help-link" href="{{ page_url('life_help_page') }}">What these words mean</a></p>
+  <p class="life-glance"><strong>Life.</strong> {{ planet.life_class.glance }}</p>
   {%- endif %}
   {%- if planet.summary %}
   <h3 id="item-summary-heading">Summary</h3>
@@ -121,7 +121,7 @@
   {%- if planet.life_class.readings %}
   <div class="table-scroll" tabindex="0"><table class="life-readings">
     <caption class="sr-only">Each kind of life on this {{ kind_label|lower }}</caption>
-    <thead><tr><th scope="col">Kind <a class="help-link help-mark" href="{{ page_url('life_help_page') }}" aria-label="What the kinds of life are">?</a></th><th scope="col">How much <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='abundance') }}" aria-label="What the words for how much mean">?</a></th><th scope="col">Trend <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='trend') }}" aria-label="What the words for trend mean">?</a></th><th scope="col">Security <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='security') }}" aria-label="What the words for security mean">?</a></th>{% if planet.life_class.readings|selectattr("left")|list %}<th scope="col">Conditions last</th>{% endif %}</tr></thead>
+    <thead><tr><th scope="col">Kind <a class="help-link help-mark" href="{{ page_url('life_help_page') }}" aria-label="More information about the kinds of life">?</a></th><th scope="col">How much <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='abundance') }}" aria-label="More information about how much">?</a></th><th scope="col">Trend <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='trend') }}" aria-label="More information about trend">?</a></th><th scope="col">Security <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='security') }}" aria-label="More information about security">?</a></th>{% if planet.life_class.readings|selectattr("left")|list %}<th scope="col">Conditions last</th>{% endif %}</tr></thead>
     <tbody>
       {%- for r in planet.life_class.readings %}
       <tr><th scope="row">{{ r.kind }}</th><td>{{ r.abundance }}</td><td>{{ r.trend }}</td><td>{{ r.security }}</td>{% if planet.life_class.readings|selectattr("left")|list %}<td>{{ r.left }}</td>{% endif %}</tr>
@@ -134,7 +134,7 @@
     {%- for label, text in planet.life_class.facts %}<dt>{{ label }}</dt><dd>{{ text }}</dd>{% endfor %}
   </dl>
   {%- endif %}
-  <p class="sheet-help life-help-links">Help: <a class="help-link" href="{{ page_url('life_help_topic', topic='stages') }}">stages and animal grades</a>, <a class="help-link" href="{{ page_url('life_help_topic', topic='suitability') }}">suitability</a>, <a class="help-link" href="{{ page_url('life_help_topic', topic='classes') }}">the life classes</a>.</p>
+  <p class="sheet-help life-help-links">More information: <a class="help-link" href="{{ page_url('life_help_topic', topic='stages') }}">stages and animal grades</a>, <a class="help-link" href="{{ page_url('life_help_topic', topic='suitability') }}">suitability</a>.</p>
   {%- endif %}
   {%- if planet.life %}<div class="prose">{{ planet.life }}</div>{% endif %}
   {%- if planet.life_class and planet.life_class.words %}
@@ -154,6 +154,10 @@
     <ul class="life-air-legend">{{ life_air.legend }}</ul>
     <ol class="life-air-stages">{% for stage in life_air.stages %}<li value="{{ stage.number }}">{{ stage.name }}, {{ stage.age }} Gyr</li>{% endfor %}</ol>
     {%- if life_air.note %}<p class="sheet-help life-air-note">{{ life_air.note }}</p>{% endif %}
+    {%- if life_air.makers %}
+    <p class="sheet-help">Several kinds of life changed this air. What each made of the change:</p>
+    <ul class="life-air-makers">{% for maker in life_air.makers %}<li>{{ maker.gas }}: {{ maker.text }}</li>{% endfor %}</ul>
+    {%- endif %}
     <table class="life-air-table">
       <thead><tr>{% for head in life_air.table.header %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
       <tbody>{% for row in life_air.table.rows %}<tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
@@ -181,7 +185,7 @@
   <div class="panel-header"><h2 id="habitability-heading">Habitability (PHI-6)</h2></div>
   {{ planet.phi6_blocks }}
   {%- if planet.phi6 %}{{ rows_table(planet.phi6.rows) }}{% endif %}
-  <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colors and symbols mean</a></p>
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">More information</a></p>
 </section>
 {%- endif %}
 {%- if planet.atmosphere or planet.gases %}

@@ -191,8 +191,8 @@ def _region_target():
     """The Go to target of the fixture's Fixture Beez Region (the 9-block 9.0.0.0): its block and the sphere its extent bounds."""
     from planetgen.galaxy.spherical import sector_position_pc
 
-    centre = sector_position_pc(*SECTORS[0][1:4], 4.0)
-    return {"region": {"block": {"m": 9, "shell": 0, "band": 0, "wedge": 0}, "center": list(centre), "radius": REGION_RADIUS_PC}}
+    center = sector_position_pc(*SECTORS[0][1:4], 4.0)
+    return {"region": {"block": {"m": 9, "shell": 0, "band": 0, "wedge": 0}, "center": list(center), "radius": REGION_RADIUS_PC}}
 
 
 def _stable_camera(page):
@@ -209,11 +209,11 @@ def _stable_camera(page):
 
 def test_go_to_a_region_lands_framed_by_default_and_on_the_densest_cluster_by_setting(page, map_site):
     target = _region_target()
-    centre = target["region"]["center"]
+    center = target["region"]["center"]
     _open_galaxy(page, map_site)
     assert page.evaluate(f"(t) => {CANVAS_JS}.galaxyGoTo(t)", target)
     framed = _stable_camera(page)
-    assert math.dist(framed["target"], centre) < 0.1, framed["target"]
+    assert math.dist(framed["target"], center) < 0.1, framed["target"]
     assert math.asin(min(1.0, REGION_RADIUS_PC / framed["dist"])) <= math.radians(25) + 1e-6
     assert framed["dist"] > 25, "framed on the whole charted part of the region"
 
@@ -223,7 +223,7 @@ def test_go_to_a_region_lands_framed_by_default_and_on_the_densest_cluster_by_se
     assert page.evaluate(f"(t) => {CANVAS_JS}.galaxyGoTo(t)", target)
     dense = _stable_camera(page)
     assert dense["dist"] < framed["dist"] * 0.6, (dense["dist"], framed["dist"])
-    assert math.dist(dense["target"], centre) < REGION_RADIUS_PC, dense["target"]
+    assert math.dist(dense["target"], center) < REGION_RADIUS_PC, dense["target"]
 
     # A word that is not one of the two reads as the default.
     page.click('#galaxymap3d-controls [data-action="reset"]')

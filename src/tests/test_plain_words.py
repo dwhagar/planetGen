@@ -27,8 +27,11 @@ from planetgen.web.lib import classref
 
 from tests.fuzz_support import deterministic_entropy
 
-SEEDS = range(10)
-"""range: The seeds of the systems whose Document is read (the `KNOWN` list was made from eighty)."""
+SEEDS = range(16)
+"""range: The seeds of the systems whose Document is read. The size of the corpus depends on the systems the seeds draw, and a change to
+the generator redraws them: ten seeds gave 1,522 items on 2026-11-04 and 1,306 after the epochs of that week (TEST.576), with three seeds
+drawing a lone star. Sixteen gave about 1,840, so the floor of 1,500 in `test_the_prose_and_labels_of_a_document_keep_the_guide_except_the_listed`
+holds with room; if a later epoch pulls it under, add seeds here, do not lower the floor."""
 
 OWNERS = ("UX.252", "UX.253")
 """tuple: The items that rewrite the text: planets, moons and belts; stars and systems."""
@@ -38,11 +41,10 @@ PLANET_CLASS_TYPES = ("planet", "rogue-planet", "asteroid-field", "comet")
 
 GUIDE = Path(__file__).resolve().parents[2] / "docs" / "design" / "interface" / "text-style.md"
 
-KNOWN = {
-    ('spelling', "Offset from the system's centre, x"): 'UX.253',
-}
-"""dict: `{(rule, start of the sentence or the whole label): the item that rewrites it}` for the text that breaks a rule today. The
-comment is one example. A rewrite item removes its entries; nothing is added without an owner."""
+KNOWN = {}
+"""dict: `{(rule, start of the sentence or the whole label): the item that rewrites it}` for the text that breaks a rule today. A rewrite item
+removes its entries; nothing is added without an owner. (DOC.103 spelled the last two, the system's center and the outer-disk belt origin, the
+American way, and moved the stored sentence with a migration.)"""
 
 
 def shape(sentence):

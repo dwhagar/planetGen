@@ -10,19 +10,19 @@ numbers; `REFERENCE_STRUCTURE` is the structure of a shape built with no seed (a
 published structure of the Milky Way, a check target and not a default the generator draws from.
 
 The populations' scale heights and dispersions follow ONE law, here, from the dispersion of the stars born with the
-gas and the way a disc's dispersion grows with age:
+gas and the way a disk's dispersion grows with age:
 
-- A thin-disc star of age `t` has a vertical dispersion `sigma_z(t)^2 = sigma_gas^2 + sigma_age^2 (t / tau)^(2 beta)`:
+- A thin-disk star of age `t` has a vertical dispersion `sigma_z(t)^2 = sigma_gas^2 + sigma_age^2 (t / tau)^(2 beta)`:
   the dispersion of the gas it was born from (molecular, 6.5 +/- 1 km/s inside the CO widths of 7.3 +/- 1.7 km/s, Mogotsi et al.
   2016, and 4.4 to 7.5 km/s, Sun et al. 2020, GEN.536; the atomic gas's is 10 +/- 2 km/s: [R4298]) plus a heating that grows as `t^beta` (`beta` = 0.441 +/- 0.007:
   [R4043: Table 2]; 0.5 +/- 0.1: [R2795]).
-- `sigma_age` is fixed by the disc's central vertical dispersion, which is a fraction of the circular speed
+- `sigma_age` is fixed by the disk's central vertical dispersion, which is a fraction of the circular speed
   (`0.248 +/- 0.038 V`, [R2917], 30 spirals): the root mean square of `sigma_z` over
   a star formation flat in age from 0 to `tau` is that central value.
 - The dispersion falls as `exp(-R / 2 h_R)` [R2917]; the model's profiles are at the reference radius
   (`tuning.REFERENCE_RADIUS_SCALE_LENGTHS` scale lengths), where every population is taken.
 - A population's scale height goes as its dispersion squared (an isothermal sheet: `h = sigma^2 / (pi G Sigma)`, one
-  surface density for all), so its ratio to the old disc's is `sigma_z(population)^2 / sigma_z(old)^2`.
+  surface density for all), so its ratio to the old disk's is `sigma_z(population)^2 / sigma_z(old)^2`.
 - The profile's dispersion is the three-axis total: the gas part is isotropic (`3 sigma_gas^2`), the heated part has
   the radial dispersion `sigma_z / 0.54` ([R4043]: `sigma_z / sigma_R` = 0.54 at 10 Gyr, inside the
   0.5 to 0.6 of [R0201]) and the azimuthal `sigma_R / sqrt(2)` (a flat
@@ -53,10 +53,10 @@ Structure = namedtuple(
         "thick_mass_ratio", "thick_length_ratio", "thick_height_ratio",
         "bar_present", "bar_axis_ratio_y", "bar_axis_ratio_z", "bar_angle_deg",
         "halo_stellar_ratio",
-        "disc_gas_dispersion_kms", "disc_central_dispersion_kms", "disc_age_exponent",
+        "disk_gas_dispersion_kms", "disk_central_dispersion_kms", "disk_age_exponent",
         "bulge_dispersion_scatter_dex",
         "stellar_mass_solar", "classical_bulge", "black_hole_deviation", "nuclear_cluster_mass_solar",
-        "nuclear_disc_mass_solar",
+        "nuclear_disk_mass_solar",
         "black_hole_solar_share", "black_hole_metal_free_share", "neutron_star_unbound_share",
         "neutron_star_ejecta_speeds_kms",
     ],
@@ -65,15 +65,15 @@ Structure = namedtuple(
 
 `vc_kms` is the circular speed; `thick_mass_ratio`, `thick_length_ratio` and `thick_height_ratio` are the thick disk's
 mass, scale length and scale height over the thin disk's; `bar_present` says whether the bulge is a bar (a boxy
-component along `bar_angle_deg` from the Sun-centre line with axes `bar_axis_ratio_y` and `bar_axis_ratio_z` of its
+component along `bar_angle_deg` from the Sun-center line with axes `bar_axis_ratio_y` and `bar_axis_ratio_z` of its
 length) or a spheroid with those axis ratios; `halo_stellar_ratio` is the stellar halo's mass over the galaxy's stellar
-mass; the three `disc_*` fields are the gas dispersion, the central vertical dispersion of the disc and the age
+mass; the three `disk_*` fields are the gas dispersion, the central vertical dispersion of the disk and the age
 exponent of its heating; `bulge_dispersion_scatter_dex` is the bulge's dispersion draw about its law.
 
 `stellar_mass_solar` is the galaxy's stellar mass; `classical_bulge` says whether its bulge is a classical one (the
 black hole follows the bulge's mass) or not (it follows the stellar mass); `black_hole_deviation` is the central black
 hole's draw about its law in standard deviations; `nuclear_cluster_mass_solar` is the nuclear star cluster's mass,
-zero for a galaxy that has none (GEN.402); `nuclear_disc_mass_solar` is the nuclear stellar disc's mass, drawn from the galaxy's stellar mass
+zero for a galaxy that has none (GEN.402); `nuclear_disk_mass_solar` is the nuclear stellar disk's mass, drawn from the galaxy's stellar mass
 (GEN.628) and zero for a galaxy without a bar; the two `black_hole_*_share` are the shares of the massive stars that fail to explode,
 at solar and at zero metallicity (GEN.563, `physics.black_hole_formation`); `neutron_star_unbound_share` is the share of the
 neutron stars formed that the galaxy ejects (GEN.554, `galaxy.natal_kick`: the kick law against the escape speed), which the black hole
@@ -108,13 +108,13 @@ def _milky_way_thick_mass_ratio():
     return amplitude * ratio ** 2 * _MILKY_WAY_THICK_HEIGHT_RATIO
 
 
-_MILKY_WAY_DISC_SCALE_LENGTH_KPC = 2.6
+_MILKY_WAY_DISK_SCALE_LENGTH_KPC = 2.6
 _MILKY_WAY_HALO_MASS_SOLAR = mass_chain.median_halo_mass(5.0e10)
 _MILKY_WAY_CHAIN = mass_chain.MassChain(
     5.0e10, _MILKY_WAY_HALO_MASS_SOLAR, mass_chain.virial_radius_kpc(_MILKY_WAY_HALO_MASS_SOLAR),
     mass_chain.median_concentration(_MILKY_WAY_HALO_MASS_SOLAR))
 _MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE = natal_kick.neutron_star_unbound_share(
-    _MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC)
+    _MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISK_SCALE_LENGTH_KPC)
 _REFERENCE_BLACK_HOLE_SHARES = black_hole_formation.reference_failed_shares(_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE)
 
 REFERENCE_STRUCTURE = Structure(
@@ -124,19 +124,19 @@ REFERENCE_STRUCTURE = Structure(
     thick_height_ratio=_MILKY_WAY_THICK_HEIGHT_RATIO,
     bar_present=True, bar_axis_ratio_y=620.0 / 1580.0, bar_axis_ratio_z=430.0 / 1580.0, bar_angle_deg=27.0,
     halo_stellar_ratio=1.4e9 / 5.0e10,
-    disc_gas_dispersion_kms=6.5, disc_central_dispersion_kms=0.248 * 220.0, disc_age_exponent=0.441,
+    disk_gas_dispersion_kms=6.5, disk_central_dispersion_kms=0.248 * 220.0, disk_age_exponent=0.441,
     bulge_dispersion_scatter_dex=0.0,
     stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
-    nuclear_disc_mass_solar=1.5e9,
+    nuclear_disk_mass_solar=1.5e9,
     black_hole_solar_share=_REFERENCE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_REFERENCE_BLACK_HOLE_SHARES[1],
     neutron_star_unbound_share=_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE,
-    neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(_MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC),
+    neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(_MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISK_SCALE_LENGTH_KPC),
 )
 """Structure: The Milky Way's published structure, the check target of the math check and the structure of a shape
 built with no seed. The thick disk and the bar are the [R0422] (ARA&A 54:529) and Dwek et al.
 1995 (ApJ 445:716, fit G2) numbers, the bar's angle [R4649] (MNRAS 435:1874) 27 degrees from the
-Sun-centre line (BHG16: 28 to 33), the halo 1.4e9 solar masses of the 5e10 of stars [R1026], the disc's motions the laws above at `Vc` = 220 km/s, the neutron stars' unbound share the kick law's at
-the median halo of 5e10 solar masses of stars and a 2.6 kpc disc, and the black hole shares the middle of the draws (a
+Sun-center line (BHG16: 28 to 33), the halo 1.4e9 solar masses of the 5e10 of stars [R1026], the disk's motions the laws above at `Vc` = 220 km/s, the neutron stars' unbound share the kick law's at
+the median halo of 5e10 solar masses of stars and a 2.6 kpc disk, and the black hole shares the middle of the draws (a
 stand-in: no measurement gives a galaxy's)."""
 
 
@@ -149,35 +149,35 @@ def stellar_halo_system_fraction(structure):
 def _heated_square(structure, name):
     """The squared vertical dispersion the heating gives population `name` at the solar-like radius, km^2 s^-2 (the
     root mean square over the population's ages of `sigma_age^2 (t / tau)^(2 beta)` times the radial fall squared)."""
-    low, high = tuning.THIN_DISC_OLD_WINDOW_GY if name == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[name]    # GEN.1025: the thin disc's
+    low, high = tuning.THIN_DISK_OLD_WINDOW_GY if name == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[name]    # GEN.1025: the thin disk's
     tau = tuning.STAR_FORMATION_AGE_RANGE_GY[1]
-    power = 1.0 + 2.0 * structure.disc_age_exponent
-    at_tau = (structure.disc_central_dispersion_kms ** 2 - structure.disc_gas_dispersion_kms ** 2) * power
-    mean = (high ** power - low ** power) / (power * (high - low)) / tau ** (2.0 * structure.disc_age_exponent)
+    power = 1.0 + 2.0 * structure.disk_age_exponent
+    at_tau = (structure.disk_central_dispersion_kms ** 2 - structure.disk_gas_dispersion_kms ** 2) * power
+    mean = (high ** power - low ** power) / (power * (high - low)) / tau ** (2.0 * structure.disk_age_exponent)
     return at_tau * mean * math.exp(-2.0 * REFERENCE_RADIUS_OVER_TWO_LENGTHS)
 
 
-def disc_vertical_dispersion_kms(structure, name):
-    """The vertical dispersion of the thin-disc population `name` ("young", "intermediate" or "old") at the
+def disk_vertical_dispersion_kms(structure, name):
+    """The vertical dispersion of the thin-disk population `name` ("young", "intermediate" or "old") at the
     solar-like radius, km/s."""
-    return math.sqrt(structure.disc_gas_dispersion_kms ** 2 + _heated_square(structure, name))
+    return math.sqrt(structure.disk_gas_dispersion_kms ** 2 + _heated_square(structure, name))
 
 
 def population_height_ratios(structure):
     """
-    The scale height of each thin-disc population over the old population's (the old one is 1): the squared vertical
+    The scale height of each thin-disk population over the old population's (the old one is 1): the squared vertical
     dispersions' ratio.
 
     Returns:
         dict: "young", "intermediate", "old" -> ratio.
     """
-    sigma = {name: disc_vertical_dispersion_kms(structure, name) ** 2 for name in ("young", "intermediate", "old")}
+    sigma = {name: disk_vertical_dispersion_kms(structure, name) ** 2 for name in ("young", "intermediate", "old")}
     return {name: value / sigma["old"] for name, value in sigma.items()}
 
 
-def disc_dispersion_kms(structure, name):
-    """The three-axis total dispersion of the thin-disc population `name` at the solar-like radius, km/s."""
-    return math.sqrt(3.0 * structure.disc_gas_dispersion_kms ** 2
+def disk_dispersion_kms(structure, name):
+    """The three-axis total dispersion of the thin-disk population `name` at the solar-like radius, km/s."""
+    return math.sqrt(3.0 * structure.disk_gas_dispersion_kms ** 2
                      + HEATED_TOTAL_OVER_VERTICAL ** 2 * _heated_square(structure, name))
 
 

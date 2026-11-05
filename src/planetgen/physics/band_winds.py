@@ -67,7 +67,7 @@ class BandWindError(ValueError):
 
 @dataclass(frozen=True)
 class Band:
-    """A latitude band's centre and its mean temperatures by day and by night (K)."""
+    """A latitude band's center and its mean temperatures by day and by night (K)."""
 
     latitude_deg: float
     day_k: float

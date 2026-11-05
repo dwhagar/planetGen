@@ -5,9 +5,9 @@ What an admin can do to a run in Redis (PERF.99, docs/design/operations/redis-an
 it, clear one that has stopped answering, delete a finished one, and keep its log. The Queue page and the Generate page
 call these; nothing here knows a page.
 
-* `cancel_run` -- sets the run to `cancelling` (the unit that completes a stage then queues no next one, and a unit that
+* `cancel_run` -- sets the run to `canceling` (the unit that completes a stage then queues no next one, and a unit that
   has not started finds the run not running and does nothing), cancels the stage's waiting units, sends RQ's stop command
-  to the started ones, and ends the run `cancelled`, which frees the machine. The job ids follow from the run id, the
+  to the started ones, and ends the run `canceled`, which frees the machine. The job ids follow from the run id, the
   stage and the unit's index (`units.job_id`), so there is no list to keep; the lookups are one pipeline, so a run of
   several thousand units is stopped in about a second (measured on 75: `tests/test_run_control.py`).
 * `clear_run` -- the Queue page's "Clear" for a run that shows no sign of life (`runrecord.is_stale`), or whose process
@@ -52,7 +52,7 @@ def stop_units(conn, run):
     (the ones that were there lose their job record).
 
     Returns:
-        dict: `{"cancelled": waiting units removed, "stopped": started units sent the stop command}`.
+        dict: `{"canceled": waiting units removed, "stopped": started units sent the stop command}`.
     """
     queue = redisqueue.queue(wrapper.queue_of(run["kind"]), conn)
     serializer = redisqueue.serializer_for(queue.name)
@@ -72,7 +72,7 @@ def stop_units(conn, run):
             stopped += 1
         except (rq.exceptions.InvalidJobOperation, rq.exceptions.NoSuchJobError):
             pass        # it finished between the two reads
-    return {"cancelled": len(removed), "stopped": stopped}
+    return {"canceled": len(removed), "stopped": stopped}
 
 
 def cancel_run(conn, run_id, who=None, now=None):
@@ -87,7 +87,7 @@ def cancel_run(conn, run_id, who=None, now=None):
         return None
     runrecord.request_cancel(conn, run_id, now)
     stopped = stop_units(conn, run)
-    runrecord.finish_run(conn, run_id, "cancelled", error=f"canceled by {who}" if who else "canceled", now=now)
+    runrecord.finish_run(conn, run_id, "canceled", error=f"canceled by {who}" if who else "canceled", now=now)
     write_log(conn, run_id)
     return stopped
 

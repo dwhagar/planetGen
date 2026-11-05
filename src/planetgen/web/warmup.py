@@ -18,6 +18,9 @@ Map's nodes to the disk cache (`web/lib/tilecache.py`).
 the `/galaxy` page asks for exactly them. `planetgen warm` runs it all.
 """
 
+import contextlib
+import hashlib
+import json
 import time
 
 from planetgen.admin import activity_log
@@ -194,7 +197,19 @@ NODE_WARM_FLOOR = 243
 bigger one, the nodes the map opens on its way in; finer blocks are built as a visit asks, then prefetched around it."""
 
 NODE_SECONDS = 0.3
-"""float: About how long one node takes to build, seconds (the weight of a unit in the stage's bar)."""
+"""float: The longest a node is allowed to take to build, seconds: the longest unit the commands declare (`queue.commands`)
+and the weight of an empty stage. What a node really takes is `ITEM_SECONDS`."""
+
+ITEM_SECONDS = {"galaxy-nodes": 0.062, "galaxy-deep-nodes": 0.02, "sectors": 3.0, "systems": 0.23, "phenomena": 0.15}
+"""dict: About how long one item of a family takes on one worker, seconds, measured (PERF.233/234: `galaxy-nodes` from a
+server's warm-up log, the rest on a test galaxy, one worker): the cost a unit declares per item, so a stage's cost is its
+expected seconds and the warm-up's overall bar weighs a stage by it. Systems and phenomena take about a hundred times a deep
+node, so the object stages are most of a warm-up."""
+
+EXPECTED_SECONDS = {"cluster-field": 10.0, "object-index": 2.0, "galaxy-map": 5.0, "lists": 2.0, "galaxy-nodes": 1800.0,
+                    "galaxy-deep-nodes": 120.0, "sectors": 40.0, "systems": 600.0, "phenomena": 700.0, "search": 1.0}
+"""dict: What each family is expected to cost, in one worker's seconds, on a galaxy of the size measured (`ITEM_SECONDS`), for
+the overall bar before a family has been queued and its real cost is known (`cli.warm_progress`). A guess, said to be one."""
 
 class WarmupFailed(Exception):
     """A family could not warm what it covers; the message says what."""
@@ -234,7 +249,7 @@ def warm_opening_view(db):
 
 def zoom_run_nodes(edge_pc, bounds_pc, start_radius_pc, finest_block):
     """
-    The nodes the map fetches on a zoom from the opening view in to the galaxy's centre, along the opening camera's
+    The nodes the map fetches on a zoom from the opening view in to the galaxy's center, along the opening camera's
     line (the page's starting angles round the origin, the central black hole): the union of `nodecut.node_cut` for the
     camera at `start_radius_pc`, then each `ZOOM_STEP` closer, down to blocks of `finest_block` shells (a block of that
     size is in the cut from about a few of its own sizes in), keeping the nodes finer than `NODE_WARM_FLOOR` and not
@@ -313,6 +328,8 @@ class _Visitor:
         self.client = app.test_client()
         self.pages = 0
         self.failed = []
+        self.skipped_answers = 0
+        """int: Answers of the slices `_warm_objects` found current and did not visit (PERF.239); they count as already cached."""
         self._hits, self._misses = apiclient.cache_stats["hits"], apiclient.cache_stats["misses"]
 
     def visit(self, path):
@@ -324,7 +341,7 @@ class _Visitor:
 
     @property
     def cached(self):
-        return apiclient.cache_stats["hits"] - self._hits
+        return apiclient.cache_stats["hits"] - self._hits + self.skipped_answers
 
     @property
     def built(self):
@@ -399,15 +416,28 @@ def _warm_lists(visitor, cap):
 def _warm_objects(visitor, cap, fetch, pages, noun, window=None):
     """Warms the pages of a listing's objects, up to `cap`. With a `window` (`{"offset", "count", "left_out"}`, PERF.180) it warms
     that slice of the listing alone, one unit of the family's stage, and `left_out` is the share of the cap's leaving-out that
-    unit reports."""
-    warmed = 0
+    unit reports.
+
+    A slice whose pages were all warmed before, with every answer still in the cache and every tag it read still at the
+    counter it had (`pagecache.ResponseCache.slice_is_current`, PERF.239), is not visited again: an unchanged warm-up costs a
+    few round trips to Redis a slice, not two requests through the app for every object. Its answers count as already cached."""
     start = 0 if window is None else window["offset"]
-    for row in _objects(visitor, fetch, _cap(cap) if window is None else window["count"], start):
-        for page in pages(row):
-            visitor.visit(page)
-        warmed += 1
-    left_out = max(0, visitor.total - warmed) if window is None else window["left_out"]
-    return {"warmed": warmed, "noun": noun, "left_out": left_out}
+    rows = list(_objects(visitor, fetch, _cap(cap) if window is None else window["count"], start))
+    cache = apiclient.response_cache()
+    name = f"{noun}:" + hashlib.sha256(json.dumps([[row.get("type"), row["id"]] for row in rows]).encode("utf-8")).hexdigest()
+    answers = cache.slice_is_current(visitor.db, name) if cache is not None and rows else None
+    failed = len(visitor.failed)
+    if answers is not None:
+        visitor.skipped_answers += answers
+    else:
+        with cache.recording() if cache is not None else contextlib.nullcontext() as recorded:
+            for row in rows:
+                for page in pages(row):
+                    visitor.visit(page)
+        if cache is not None and rows and len(visitor.failed) == failed:
+            cache.save_slice(visitor.db, name, recorded)
+    left_out = max(0, visitor.total - len(rows)) if window is None else window["left_out"]
+    return {"warmed": len(rows), "noun": noun, "left_out": left_out}
 
 
 def _warm_sectors(visitor, cap, window=None):
@@ -573,8 +603,9 @@ OBJECT_CHUNK = 250
 each. The stage is cut into units of this many (a whole multiple of it past `units.MAX_UNITS` units, `units.coarsen`)."""
 
 OBJECT_SECONDS = 0.3
-"""float: About how long one object takes to warm (its page and scene built, none cached), the weight of a unit and, times
-`OBJECT_CHUNK`, the longest unit the command declares (`queue.commands`)."""
+"""float: The longest an object is allowed to take to warm (its page and scene built, none cached), seconds: times
+`OBJECT_CHUNK`, the longest unit the command declares (`queue.commands`) and the weight of an empty stage. What an object
+really takes is `ITEM_SECONDS`."""
 
 _OBJECT_TOTALS = {"sectors": "get_sectors", "systems": "get_systems", "phenomena": "get_phenomena"}
 
@@ -593,7 +624,7 @@ def _expand_objects(params, family):
     wanted = min(total, cap)
     size = units_module.coarsen(wanted, OBJECT_CHUNK)
     units = [({"database": database, "cap": params.get("cap"), "offset": start, "count": min(size, wanted - start),
-               "left_out": total - wanted if start == 0 else 0}, OBJECT_SECONDS * min(size, wanted - start))
+               "left_out": total - wanted if start == 0 else 0}, ITEM_SECONDS[family] * min(size, wanted - start))
              for start in range(0, wanted, size)]
     if not units:
         units = [({"database": database, "cap": params.get("cap"), "offset": 0, "count": 0, "left_out": 0}, OBJECT_SECONDS)]
@@ -711,7 +742,7 @@ def expand_warm_galaxy_nodes(params):
     keys = _populated_nodes(database)
     size = units_module.coarsen(len(keys), NODE_CHUNK)
     units = [({"database": database, "keys": keys[start:start + size]},
-              NODE_SECONDS * len(keys[start:start + size])) for start in range(0, len(keys), size)]
+              ITEM_SECONDS["galaxy-nodes"] * len(keys[start:start + size])) for start in range(0, len(keys), size)]
     if not units:       # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
         units = [({"database": database, "keys": []}, NODE_SECONDS)]
     return commands.Expansion(units, {"nodes": len(keys), "floor": NODE_WARM_FLOOR})
@@ -733,7 +764,7 @@ def expand_warm_galaxy_deep_nodes(params):
     keys = deep_nodes_to_warm(shape, floor)
     size = units_module.coarsen(len(keys), NODE_CHUNK)
     units = [({"database": database, "keys": keys[start:start + size]},
-              NODE_SECONDS * len(keys[start:start + size])) for start in range(0, len(keys), size)]
+              ITEM_SECONDS["galaxy-deep-nodes"] * len(keys[start:start + size])) for start in range(0, len(keys), size)]
     if not units:
         units = [({"database": database, "keys": []}, NODE_SECONDS)]
     return commands.Expansion(units, {"nodes": len(keys), "zoom_floor": floor})

@@ -6,7 +6,7 @@ from tests.test_planet_classes import CASES, body
 
 def records():
     bodies = [(values, False) for values in CASES.values()]
-    bodies.append((body(surface_temperature_k=300.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapour", gravity_g=0.9), False))      # a hole in the class set
+    bodies.append((body(surface_temperature_k=300.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=0.9), False))      # a hole in the class set
     return cli.score_bodies(bodies)
 
 

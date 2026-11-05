@@ -229,6 +229,9 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     monkeypatch.setattr(warmup, "warm_galaxy_deep_nodes_unit",
                         lambda args, report: warmup._warm_unit("galaxy-deep-nodes", args))
     monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
+    # PERF.227: the cluster-field stage reads the galaxy's components from the database before it plans; one empty plan instead, as a galaxy with none gets
+    from planetgen.galaxy import field_job
+    monkeypatch.setattr(field_job, "expand_field", lambda params: commands.Expansion([({"database": params["database"], "state": "empty"}, 0.1)], {"state": "empty"}))
     # the sector, system and phenomenon stages read the listing from the API to cut it into slices (PERF.180): one empty slice instead
     monkeypatch.setattr(warmup, "_expand_objects", lambda params, family: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap"), "offset": 0, "count": 0, "left_out": 0}, 1.0)], {family: 0}))

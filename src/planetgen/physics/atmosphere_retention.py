@@ -13,8 +13,8 @@ The answer the design note gives, as functions. Three gates and one loss:
    cumulative XUV over the Sun's to 4.5 Gyr. The shoreline caps the pressure and does not set it.
 2. **Which gases are held** (`held_species`, `minimum_molar_mass_kg_mol`): a gas stays when its Jeans parameter at the exobase is 30 or more.
    The exobase temperature is the thermosphere model's (`thermosphere.exobase_temperature_k`), not a second one-line fit.
-3. **The cold side** (`cold_side_k`): the temperature under which a gas at a partial pressure is ice, from the vapour curves of
-   `saturation` (so Titan holds its nitrogen as vapour at 94 K and Pluto only a pascal of it).
+3. **The cold side** (`cold_side_k`): the temperature under which a gas at a partial pressure is ice, from the vapor curves of
+   `saturation` (so Titan holds its nitrogen as vapor at 94 K and Pluto only a pascal of it).
 4. **Energy-limited loss** (`energy_limited_loss_fraction`): the share of a planet's mass the absorbed XUV could lift out of its well over the
    star's life, an upper bound on the loss of an envelope or an ocean's hydrogen.
 
@@ -138,7 +138,7 @@ def held_species(escape_velocity, exobase, species):
 
 
 def cold_side_k(formula, partial_pressure_pa):
-    """The temperature under which `formula` at `partial_pressure_pa` is ice and not vapour, K (`None` over its critical pressure)."""
+    """The temperature under which `formula` at `partial_pressure_pa` is ice and not vapor, K (`None` over its critical pressure)."""
     return saturation.condensation_temperature_k(formula, partial_pressure_pa)
 
 

@@ -30,6 +30,7 @@
 //   up only for the camera coming near it, MAP.152: `ambient`, below);
 // - openSystem(entry) (optional): opens a star's system in place (MAP.125);
 //   the star's panel offers it when given;
+// - volumeSingles() (optional): true where the map draws each nebula of the scene from its own points (nebulaSources(), MAP.142);
 // - kindsChanged() (optional): called when a kind of object is shown or
 //   hidden other than by setKindHidden (a selection showing its kind).
 
@@ -296,10 +297,10 @@ export function createSectorStage(host) {
       state.center = data.centerPc;
       state.halfEdge = data.halfEdgePc;
       state.sector = buildSectorScene(data, {
+        // MAP.142: the map draws each nebula from its own points (the sphere is kept to be picked).
+        volumeSingles: !!(host.volumeSingles && host.volumeSingles()),
         origin: data.centerPc, unit: data.halfEdgePc / half, flipY: true,
         accentColor: host.accentColor, pixelRatio: host.pixelRatio(),
-        // How many nebulae are drawn from their shape now (read by the browser tests).
-        onShape: function (count) { host.canvasEl.dataset.sectorNebulaMeshes = String(count); },
       });
       host.scene.add(state.sector.group);
       hiddenKinds.forEach(function (kind) { state.sector.setKindHidden(kind, true); });
@@ -370,6 +371,10 @@ export function createSectorStage(host) {
     open: openSector,
     close: close,
     update: update,
+    // MAP.142: the open (or coming-near) sector's nebulae the map draws from their own points, as `nebulavolume.singleSource`s; none at no strength.
+    nebulaSources: function () {
+      return open ? open.sector.nebulaSources().filter(function (source) { return source.weight > 0; }) : [];
+    },
     // True while a sector is open in place (not one up only for the camera coming near it).
     isOpen: function () { return !!open && !open.ambient; },
     // MAP.152: the sector whose scene is up for the camera coming near it, and how much of it shows.

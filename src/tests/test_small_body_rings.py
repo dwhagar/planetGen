@@ -1,7 +1,7 @@
 # tests/test_small_body_rings.py
 
 """GEN.1056: the resonance rings of small bodies (R4) and the gate against rings close to a star (R9), `physics/small_body_rings.py`.
-Quaoar, Haumea and Chariklo are test targets only: nothing in the module is centred on one."""
+Quaoar, Haumea and Chariklo are test targets only: nothing in the module is centered on one."""
 
 import math
 

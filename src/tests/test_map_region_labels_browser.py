@@ -36,19 +36,19 @@ NODES_IN = ("() => document.querySelector('#galaxymap3d-canvas').galaxyNodeKeys(
             ".filter((n) => Number(n.key.split('.')[0]) >= 9).every((n) => n.loaded)")
 
 
-def _centre():
+def _center():
     """The middle of the fixture's regions, in pc."""
     regions = list(charted_regions().values())
-    return [sum(region["centre"][axis] for region in regions) / len(regions) for axis in range(3)]
+    return [sum(region["center"][axis] for region in regions) / len(regions) for axis in range(3)]
 
 
-def _look(page, base, centre, distance):
-    """Opens the Galaxy Map looking at `centre` (pc) from `distance` pc, in the orientation the map opens in, and waits for the
+def _look(page, base, center, distance):
+    """Opens the Galaxy Map looking at `center` (pc) from `distance` pc, in the orientation the map opens in, and waits for the
     nodes of 9 sectors and up to be in."""
     _open_galaxy(page, base)
     cam = next(part for part in page.evaluate("location.search").lstrip("?").split("&") if part.startswith("cam="))
     quaternion = cam[len("cam="):].split(",")[4:]
-    _open_galaxy(page, base, "?cam=" + ",".join(str(value) for value in centre + [distance] + quaternion))
+    _open_galaxy(page, base, "?cam=" + ",".join(str(value) for value in center + [distance] + quaternion))
     page.wait_for_function(NODES_IN, timeout=60000)
     page.wait_for_timeout(600)
 
@@ -63,19 +63,19 @@ def _wait_for_names(page, count=1):
 
 def test_far_out_the_family_is_named_once_and_no_region_by_its_own_name(page, map_site):
     for distance in (BIG_NODES, BIGGEST_NODES):
-        _look(page, map_site, _centre(), distance)
+        _look(page, map_site, _center(), distance)
         _wait_for_names(page)
         assert _names(page) == [REGION_FAMILY], (distance, _names(page))
 
 
 def test_closer_each_charted_region_is_named_and_the_family_is_not(page, map_site):
-    _look(page, map_site, _centre(), MIDDLE_NODES)
+    _look(page, map_site, _center(), MIDDLE_NODES)
     _wait_for_names(page, 2)
     assert _names(page) == sorted(REGION_NAMES.values()), _names(page)
 
 
 def test_in_blocks_of_three_sectors_and_below_no_region_is_named(page, map_site):
-    _look(page, map_site, _centre(), FINE_NODES)
+    _look(page, map_site, _center(), FINE_NODES)
     assert _names(page) == []
 
 
@@ -87,7 +87,7 @@ def test_where_nothing_is_charted_no_region_is_named(page, map_site):
 
 
 def test_the_region_names_switch_takes_the_names_away_and_the_address_keeps_it(page, map_site):
-    _look(page, map_site, _centre(), MIDDLE_NODES)
+    _look(page, map_site, _center(), MIDDLE_NODES)
     _wait_for_names(page, 2)
     page.click("#galaxymap3d-menu > summary")
     toggle = page.locator('#galaxymap3d-kinds [data-label="region"]')
@@ -99,18 +99,41 @@ def test_the_region_names_switch_takes_the_names_away_and_the_address_keeps_it(p
     _wait_for_names(page, 2)
 
 
+def _bare_spot(page, label):
+    """A point on the name that no region point button lies over (the buttons sit above their region's middle, often over its name)."""
+    x, y = _label_spot(page, label)
+    for dx in (0, -1, 1, -2, 2, -3, 3):
+        for dy in (0, -1, 1):
+            spot = (x + dx * label["width"] / 8, y + dy * label["height"] / 3)
+            if page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && !e.closest('.map-region-poi'); }", list(spot)):
+                return spot
+    return x, y
+
+
 def test_a_click_on_the_family_flies_to_its_block_and_on_a_region_to_the_region(page, map_site):
-    _look(page, map_site, _centre(), BIG_NODES)
+    _look(page, map_site, _center(), BIG_NODES)
     _wait_for_names(page)
     family = next(label for label in page.evaluate(LABELS) if label["kind"] == "region")
-    page.mouse.click(*_label_spot(page, family))
+    page.mouse.click(*_bare_spot(page, family))
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     assert _window_size(page) == 81
-    _look(page, map_site, _centre(), MIDDLE_NODES)
+    _look(page, map_site, _center(), MIDDLE_NODES)
     _wait_for_names(page, 2)
     region = next(label for label in page.evaluate(LABELS) if label["kind"] == "region" and label["text"] == REGION_NAMES[(0, 0, 0)])
-    page.mouse.click(*_label_spot(page, region))
+    page.mouse.click(*_bare_spot(page, region))
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     assert _window_size(page) == 9
+
+
+def test_a_click_on_a_group_of_regions_flies_to_a_block_that_holds_them_all(page, map_site):
+    _look(page, map_site, _center(), BIG_NODES)
+    _wait_for_names(page)
+    page.wait_for_selector(".map-region-poi")
+    groups = page.evaluate("() => [...document.querySelectorAll('.map-region-poi')].map((e) => e.querySelector('.map-region-poi-count').textContent)")
+    assert any(count and int(count) > 1 for count in groups), groups
+    page.locator(".map-region-poi", has=page.locator(".map-region-poi-count:not(:empty)")).first.click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    assert _window_size(page) >= 27

@@ -67,7 +67,7 @@ class TopUpField:
         rms_speed_ms (float): The speed it spreads at.
         age_yr (float): Its age, from its radius (`field_dispersal.age_yr_at_radius`).
         radius_m (float): Its rms radius, 0.25 to 1 light year.
-        position_pc (tuple): Where its centre is in the sector, pc from the sector's corner.
+        position_pc (tuple): Where its center is in the sector, pc from the sector's corner.
         velocity_km_s (tuple): Its velocity relative to the local standard of rest `(U, V, W)`.
         apparent_origin (rogue_topup.ApparentOrigin): Where it seems to have come from.
         origin (str): Always `ORIGIN`.
@@ -145,7 +145,7 @@ def plan(rng, remainder_kg, host_masses_kg, sector_edge_pc=tuning.DEFAULT_SECTOR
         age_law (AgeLaw): The star-formation history's age law for the sector's population.
         dispersion_km_s (tuple): The local hosts' velocity dispersion.
         placement (float, optional): Override of `tuning.ROGUE_TOPUP_PLACEMENT`.
-        galactocentric_radius_pc (float): The sector's distance from the galactic centre, for the arc the apparent origin lies along.
+        galactocentric_radius_pc (float): The sector's distance from the galactic center, for the arc the apparent origin lies along.
 
     Returns:
         FieldTopUp: The fields, the mass placed and the mass under the cut.

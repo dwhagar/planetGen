@@ -73,8 +73,8 @@ building caches changes nothing a visitor reads) or only reads it (`CHECK`, PERF
 one live run at a time, in a place of its own, so a check is never refused for a warm-up and neither holds up a
 generation run."""
 
-LIVE_STATES = ("running", "cancelling")
-FINAL_STATES = ("done", "failed", "cancelled")
+LIVE_STATES = ("running", "canceling")
+FINAL_STATES = ("done", "failed", "canceled")
 
 ALIVE_SECONDS = 120
 """int: How long a run's `alive` key lives after the last `touch`: the run's process is taken as gone when it has
@@ -529,23 +529,23 @@ def _record_stage_time(conn, run_id, index, key):
 
 
 def request_cancel(conn, run_id, now=None):
-    """Marks a live run as cancelling (the unit that completes a stage then queues no next stage). Returns
+    """Marks a live run as canceling (the unit that completes a stage then queues no next stage). Returns
     whether it was live."""
     now = _now(now)
     if _s(conn.hget(run_key(run_id), "state")) not in LIVE_STATES:
         return False
-    conn.hset(run_key(run_id), mapping={"state": "cancelling", "updated": now})
-    log(conn, run_id, "cancel requested", kind="run.cancelling", now=now)
+    conn.hset(run_key(run_id), mapping={"state": "canceling", "updated": now})
+    log(conn, run_id, "cancel requested", kind="run.canceling", now=now)
     return True
 
 
-def is_cancelling(conn, run_id):
-    return _s(conn.hget(run_key(run_id), "state")) == "cancelling"
+def is_canceling(conn, run_id):
+    return _s(conn.hget(run_key(run_id), "state")) == "canceling"
 
 
 def finish_run(conn, run_id, state="done", error=None, now=None):
     """
-    Ends the run in `state` (`done`, `failed` or `cancelled`): records it, frees the machine if this run owns
+    Ends the run in `state` (`done`, `failed` or `canceled`): records it, frees the machine if this run owns
     it, and gives the run's keys `KEEP_SECONDS` to live. A run already over is left as it is.
 
     Returns:
@@ -754,6 +754,6 @@ def recent_runs(conn, limit=20):
     return sorted(found, reverse=True)[:limit]
 
 
-__all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
+__all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_canceling", "is_stale",
            "EventHandler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
            "set_stage_plan", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]

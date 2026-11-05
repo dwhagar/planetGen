@@ -37,7 +37,7 @@ test("a packed volume decodes to its columns and its positions", () => {
   assert.deepEqual(Array.from(volume.strength), [200, 17]);
   assert.deepEqual(Array.from(volume.family), [4, 1]);
   assert.deepEqual(Array.from(V.positionsOf(volume, [1, 1, 1])), [1.5, -6, 6.5, -13.5, 14, -1]);
-  assert.deepEqual(V.centreOf(volume).map((v) => Math.round(v * 100) / 100), [-5, 5, 3.75]);
+  assert.deepEqual(V.centerOf(volume).map((v) => Math.round(v * 100) / 100), [-5, 5, 3.75]);
 });
 
 test("bytes that are not a volume are refused", () => {
@@ -90,7 +90,7 @@ test("a splat is as many pixels as its steps are, between its limits", () => {
 
 test("a node is asked for only once a nebula in it is wide enough, the biggest first", () => {
   const near = V.sourceOf({ key: "27.3.0.5", block: {}, node: { clouds: [{ x: 0, y: 0, z: 0, radius_pc: 30 }] } });
-  const far = V.sourceOf({ key: "27.4.0.1", block: {}, node: { nebula_regions: [{ centre: [5000, 0, 0], radius_pc: 30 }] } });
+  const far = V.sourceOf({ key: "27.4.0.1", block: {}, node: { nebula_regions: [{ center: [5000, 0, 0], radius_pc: 30 }] } });
   const empty = V.sourceOf({ key: "27.5.0.2", block: {}, node: { clouds: [] } });
   assert.equal(empty, null);
   assert.equal(V.sourceOf(null), null);
@@ -155,4 +155,16 @@ test("a star behind a nebula takes its hue, more the denser it is, and a little 
   const blue = V.tinted([0.4, 0.5, 1.0], [0.1, 0.1, 0.5]);
   assert.ok(blue[2] > blue[0], "a blue star behind a blue nebula stays blue");
   assert.ok(V.NEBULA_TINT_GLSL.includes("nebulaTinted") && V.NEBULA_TINT_GLSL.includes(V.TINT_MAX.toFixed(3)), "the shader carries the same constants");
+});
+
+test("a single nebula is its own key, has no node block, and shows at the weight it is given (MAP.142)", () => {
+  const source = V.singleSource("00001000000000-4000000-000", { x: 1, y: 2, z: 3, radiusPc: 4 }, 0.5);
+  assert.deepEqual(source, { key: "nebula:00001000000000-4000000-000", single: true, block: null, weight: 0.5, reaches: [{ x: 1, y: 2, z: 3, radiusPc: 4 }] });
+  assert.equal(V.singleIdOf(source.key), "00001000000000-4000000-000");
+  assert.equal(V.singleIdOf("27.3.0.5"), null, "a node key is not one");
+  assert.equal(V.singleSource(5, { x: 0, y: 0, z: 0, radiusPc: 1 }, 7).weight, 1, "held to 0..1");
+  assert.equal(V.singleSource(5, { x: 0, y: 0, z: 0, radiusPc: 1 }, -2).weight, 0);
+  assert.equal(V.singleSource(5, { x: 0, y: 0, z: 0, radiusPc: 1 }).weight, 1);
+  const found = V.wanted([source], [0, 0, 0], 800);
+  assert.equal(found.length, 1, "it is asked for like any source once wide enough");
 });
