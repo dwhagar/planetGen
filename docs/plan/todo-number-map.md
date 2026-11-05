@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.586 |
+| TEST | TEST.587 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -3932,6 +3932,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | done, PR #5025 |
 | TEST.584 | test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug) | none | done, PR #4993 |
 | TEST.585 | Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug) | none | open |
+| TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

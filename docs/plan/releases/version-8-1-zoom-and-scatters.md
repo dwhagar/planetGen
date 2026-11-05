@@ -600,6 +600,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | DOC.98 | Boss, citations only in the registry. |
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment |  | Boss, citations only in the registry. |
 | DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information |  | Boss, citation links. |
+| TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) |  |  |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | GEN.862 |  |
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages |  |  |
 | GEN.1207 | Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match |  |  |

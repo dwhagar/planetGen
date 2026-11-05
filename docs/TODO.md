@@ -18257,6 +18257,19 @@ clears each one.
   test-only fixes) is PR #5025.
   Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
 
+- [ ] **TEST.586 test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug)**
+  Core 2 (as the lane reported, 11:35 PM EST on 2026-11-04) found, and
+  the TODO thread reproduced on main at 9d1309d6e:
+  tests/test_web_seo.py::test_every_web_page_is_classified_on_purpose
+  fails, listing nine web.references_* pages (added with the References
+  pages DOC.88 to DOC.92) that need an entry in web/seo.py. Do: classify
+  each page on purpose (indexed or not, with the reason beside the
+  entry, following the nearby References entries), and make the next new
+  page without an entry fail the same test. Done: the test passes on
+  plain main with a narrow run (scripts/test.py changed). Lock-free.
+  Version 8.1. Owner: Core 5. Filed by the TODO thread.
+  Prerequisites: none. Related: DOC.97.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
