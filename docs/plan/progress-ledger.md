@@ -2498,3 +2498,4 @@ Baseline: PR #1817.
 | VIEW.37 | 8.2 | Bookmarks |
 | VIEW.38 | 8.2 | Bookmarks |
 | MAP.195 | 8.1 | Fly-through map |
+| NAV.54 | 8.5 | Steering clear of gravity wells |
