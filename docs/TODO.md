@@ -11672,6 +11672,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1092 part A. How many irregular moons a giant can capture now
   depends on how unstable its system was (lost or thrown planets in its
   architecture); roughly 4 percent of systems get a capture window.
+  Add: INSTABILITY wiring for belts (TODO, from Star 2) (10:50 AM EST on
+  2026-11-05): Star 2 found that GEN.1232b is satisfied by GEN.1068
+  except the Nice-type instability case: belt_origin
+  (src/planetgen/physics/belt_origin.py) already applies the Grand Tack
+  survival (BR4) and the origin_history sentence, and system.py already
+  trims belts inside the star's stability orbit ceiling. Left: when the
+  architecture records an instability (this item), belt_origin reads it
+  and applies the INSTABILITY survival 0.1 to 0.5 (BR5) with its history
+  sentence. Do that here, with a test and the stand-in rows BR5 already
+  registered.
   Prerequisites: GEN.1077. Related: GEN.728.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -13233,6 +13243,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on 2026-11-05): GEN.1232a merged: the belt history text is stored on
   the belt and shown on its page. GEN.1232b (wire giant_event into
   generation) stays open and waits for Aux 5.
+  Scope cut (TODO, from Star 2) (10:50 AM EST on 2026-11-05): GEN.1232b
+  closes as satisfied by GEN.1068 (belt_origin) except the INSTABILITY
+  case, which moves to GEN.1082. Star 2 repoints or removes the
+  wiring-register lines for history_text, giant_event and the companion
+  limit (belt_history.giant_event and limit are duplicated by
+  belt_origin and the stability ceiling; delete them with their tests if
+  nothing reads them, no shim), then this item retires.
   Prerequisites: none. Related: GEN.1072, GEN.1068.
 
 - [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
