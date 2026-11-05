@@ -287,3 +287,19 @@ def test_the_sphere_source_gives_a_shell_and_the_sky_comes_out_of_it():
     result = sky.sky_from(OBSERVER, source, 0.0, 7.5, circular_speed_kms=flat_speed, dust=NO_DUST, max_distance_pc=500.0)
     assert sorted(result.uid) == ["0:1", "0:2", "0:3"]
     assert result.report["tiers"]["charted"]["visible"] == 3
+
+
+# --- what the packed list needs (VIEW.29) -----------------------------------------------------------------------------
+
+def test_the_sky_carries_the_unretarded_offset_the_velocity_and_the_dimmed_absolute_magnitude():
+    row = {"position": (8228.0, 0.0, 0.0), "velocity": (0.0, 300.0, 0.0), "luminosity": 100.0, "temperature": 9000.0}
+    result = make([row], at_unix=1.0e9, dust={})
+    advanced = np.array([100.0 * PC_M, 300e3 * 1.0e9, 0.0]) / PC_M
+    assert np.allclose(result.offset_pc[0], advanced, rtol=1e-12)
+    assert np.allclose(result.velocity_kms[0], (0.0, 300.0, 0.0)) and result.temperature_k[0] == 9000.0
+    d = result.distance_pc[0]
+    assert result.dimmed_absolute_magnitude[0] + 5.0 * math.log10(d / 10.0) == pytest.approx(result.magnitude[0], abs=1e-12)
+    clear = make([row], at_unix=1.0e9)
+    assert result.dimmed_absolute_magnitude[0] > clear.dimmed_absolute_magnitude[0]        # the dust of the line of sight is in it
+    empty = sky.sky_from_stars(OBSERVER, sky.empty_stars(), 0.0)
+    assert empty.offset_pc.shape == (0, 3) and empty.dimmed_absolute_magnitude.shape == (0,)

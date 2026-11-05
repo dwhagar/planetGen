@@ -127,6 +127,10 @@ class Sky(NamedTuple):
     magnitude: np.ndarray
     colour_linear: np.ndarray
     report: dict
+    offset_pc: np.ndarray = None
+    velocity_kms: np.ndarray = None
+    temperature_k: np.ndarray = None
+    dimmed_absolute_magnitude: np.ndarray = None
 
 
 def empty_stars():
@@ -238,7 +242,7 @@ def sky_from_stars(observer, stars, at_unix, limit=DEFAULT_LIMIT, galaxy_key="",
                                                                    "farthest_pc": None} for t in tiers},
               "excluded_own_system": 0, "no_photometry": 0, "unknown_epoch": 0, "not_formed_yet": 0, "other_phase": 0, "unbuilt_velocity": 0, "visible": 0}
     nothing = Sky(np.empty(0, dtype=object), np.empty(0, dtype=object), np.empty((0, 3)), np.empty(0), np.empty(0), np.empty(0),
-                  np.empty((0, 3)), report)
+                  np.empty((0, 3)), report, np.empty((0, 3)), np.empty((0, 3)), np.empty(0), np.empty(0))
     if n == 0:
         return nothing
 
@@ -309,8 +313,10 @@ def sky_from_stars(observer, stars, at_unix, limit=DEFAULT_LIMIT, galaxy_key="",
             report["tiers"][tier].update(visible=int(mask.sum()), faintest_magnitude=float(magnitude[mask].max()),
                                          farthest_pc=float(distance[chosen][mask].max()))
     report["visible"] = int(len(chosen))
+    advanced = _m_to_pc(offsets[chosen] + _km_to_m(velocity[chosen]) * light_time_s[chosen][:, None])
     return Sky(np.asarray(stars.uid, dtype=object)[rows], result_tier, direction[bright][order], distance[chosen],
-               light_time_years[chosen], magnitude, star_colours(temperature[chosen]), report)
+               light_time_years[chosen], magnitude, star_colours(temperature[chosen]), report, advanced, velocity[chosen],
+               temperature[chosen], magnitude - 5.0 * np.log10(distance[chosen] / 10.0))
 
 
 def _km_to_pc_per_s(velocity_kms):

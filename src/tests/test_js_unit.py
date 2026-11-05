@@ -79,6 +79,7 @@ def fixtures():
         "designations": designations,
         "orbitPositions": orbit_positions(),
         "nodePack": node_pack(),
+        "skyPack": sky_pack(),
         "nodeCut": node_cut(),
         "galaxyControls": {
             "public": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view)),
@@ -140,6 +141,36 @@ def universal_steps():
             cases.append({"position": list(position), "velocity": list(velocity), "mu": mu, "dt": dt,
                           "position_after": list(moved[0]), "velocity_after": list(moved[1])})
     return cases
+
+
+def sky_pack():
+    """VIEW.29's packed sky list (`skypack.pack_sky`) of a small sky -- charted, bright, phenomenon and cluster stars, a moving star, hot and cool
+    ones, a fast one, a far dim one -- and of an empty sky, as base64 with the columns `skypack.unpack_sky` reads from them, for
+    static/skypack.js to match."""
+    import base64
+    from planetgen.galaxy import sky
+    from planetgen.web.lib import skypack
+    from tests.test_sky import OBSERVER, flat_speed, make
+
+    nan = float("nan")
+    rows = [
+        {"uid": "a", "tier": "charted", "position": (8138.0, 1.0, 0.5), "velocity": (3.0, 22.0, -4.0)},
+        {"uid": "b", "tier": "bright_star", "position": (8028.0, 40.0, -3.0), "velocity": (-80.0, 210.0, 12.0), "luminosity": 3.0e4, "temperature": 24000.0},
+        {"uid": "c", "tier": "phenomenon", "position": (8128.0, -500.0, 120.0), "velocity": (900.0, -1500.0, 300.0), "luminosity": 2.0e6, "temperature": 45000.0},
+        {"uid": "d", "tier": "cluster", "position": (8128.0, 0.0, 7.0), "velocity": (nan, nan, nan), "luminosity": 0.3, "temperature": 3600.0},
+        {"uid": "e", "tier": "charted", "position": (9300.0, 800.0, -60.0), "velocity": (0.0, 0.0, 0.0), "luminosity": 8.0e4, "temperature": 8000.0},
+    ]
+    result = make(rows, at_unix=3.0e8, limit=9.0, dust={})
+    observer_velocity = (4.0, -7.0, 2.0)
+    body = skypack.pack_sky(result, 3.0e8, 9.0, observer_velocity, meta={"observer": "x", "version": 3}, indices=[7, 2, 2 ** 32 - 1, 0, 15])
+    empty = skypack.pack_sky(sky.sky_from_stars(OBSERVER, sky.empty_stars(), 0.0), 5.0, 7.5)
+
+    def listed(raw):
+        back = skypack.unpack_sky(raw)
+        return {k: (v.tolist() if hasattr(v, "tolist") else v) for k, v in back.items()}
+
+    return {"body": base64.b64encode(body).decode("ascii"), "sky": listed(body), "emptyBody": base64.b64encode(empty).decode("ascii"),
+            "empty": listed(empty), "size": len(body), "perStar": skypack.BYTES_PER_STAR}
 
 
 def node_pack():
