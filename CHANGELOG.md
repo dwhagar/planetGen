@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3271] - 2026-11-05
+
+**Headline:** The nebula composition notes name the thing instead of an item code.
+
+### Changed
+
+- `physics/nebula_composition.py` showed `GEN.1270` and `GEN.1271` in the notes on a class's dust survival and in the open-item text a reader sees; they now say that the survival is a stand-in until the dust yields of the ejecta are modeled, and that a planetary nebula's ejecta and a remnant's are modeled separately. The codes stay in comments and docs. No output change beyond that text; `test_no_todo_codes_shown` passes again.
+
+generation-output: unchanged
+
 ## [8.0.3270] - 2026-11-05
 
 **Headline:** A system's sky now has a glow image of the faint stars it cannot resolve, served with the sky for the page's band layer.
