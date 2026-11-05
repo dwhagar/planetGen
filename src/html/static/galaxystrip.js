@@ -1,21 +1,21 @@
 // html/static/galaxystrip.js
 //
 // MAP.375: the linked side strip for height on the Galaxy Map. An edge-on strip of the same stars the map draws,
-// with the distance from the galactic centre across and the height above or below the galactic plane up and down,
-// so what the 3D view cannot show (how high a star lies, and how thin the disc is) is read at a glance. It is an
+// with the distance from the galactic center across and the height above or below the galactic plane up and down,
+// so what the 3D view cannot show (how high a star lies, and how thin the disk is) is read at a glance. It is an
 // option (Menu, "Side strip"), drawn on a 2D canvas under the map, and a drawer that slides up from the bottom
 // edge on a phone. A star picked in the strip is selected on the map and the map's own selection rings in the strip:
 // the two views share one selection (the map's `highlightPosition` and `showStarInfo`).
 //
-// The strip shows the stars of one WEDGE of the galaxy, a pie slice of `WEDGE_DEG` degrees from the galactic centre
-// (Boss, 5:48 PM EST on 2026-11-04: the same stars as the plane view's arc wedge, MAP.371), centred on the
-// direction of the map's focus unless the page sets the centre (`setWedge`, which MAP.371 will call so the two
+// The strip shows the stars of one WEDGE of the galaxy, a pie slice of `WEDGE_DEG` degrees from the galactic center
+// (Boss, 5:48 PM EST on 2026-11-04: the same stars as the plane view's arc wedge, MAP.371), centered on the
+// direction of the map's focus unless the page sets the center (`setWedge`, which MAP.371 will call so the two
 // views agree); a selection outside the wedge turns it to face the selection, so what is selected is always in the strip. Heights are drawn HEIGHT_EXAGGERATION times taller than true against the distance across (the
-// disc is about 3 percent as thick as it is wide); the readout says the exact height and how many scale
-// heights of the thin and the thick disc it is. The arithmetic below is free of the page, so
+// disk is about 3 percent as thick as it is wide); the readout says the exact height and how many scale
+// heights of the thin and the thick disk it is. The arithmetic below is free of the page, so
 // tests/js/galaxystrip.test.mjs holds it; `createSideStrip` is the page's part.
 //
-//     azimuth = atan2(y, x)       R = hypot(x, y)       height = z       (pc from the galactic centre)
+//     azimuth = atan2(y, x)       R = hypot(x, y)       height = z       (pc from the galactic center)
 //     x_px = pad + (R - R_min) * pxPerPc        y_px = middle - z * pxPerPc * HEIGHT_EXAGGERATION
 
 export const HEIGHT_EXAGGERATION = 2.2;
@@ -44,17 +44,17 @@ export function angleDifferenceDeg(a, b) {
   return d;
 }
 
-// Whether a point of the galaxy lies in the wedge `{ centreDeg, widthDeg }` (always, with no wedge).
+// Whether a point of the galaxy lies in the wedge `{ centerDeg, widthDeg }` (always, with no wedge).
 export function inWedge(x, y, wedge) {
   if (!wedge) return true;
   if (Math.hypot(x, y) < 1e-9) return true;
-  return Math.abs(angleDifferenceDeg(wedge.centreDeg, azimuthDeg(x, y))) <= wedge.widthDeg / 2 + 1e-9;
+  return Math.abs(angleDifferenceDeg(wedge.centerDeg, azimuthDeg(x, y))) <= wedge.widthDeg / 2 + 1e-9;
 }
 
-// The wedge of `widthDeg` centred on the direction of the point (x, y) (the focus), or on `fallbackDeg` when it is at the centre.
+// The wedge of `widthDeg` centered on the direction of the point (x, y) (the focus), or on `fallbackDeg` when it is at the center.
 export function wedgeAbout(x, y, widthDeg = WEDGE_DEG, fallbackDeg = 0) {
-  const centre = Math.hypot(x, y) < 1e-6 ? fallbackDeg : azimuthDeg(x, y);
-  return { centreDeg: centre, widthDeg: widthDeg };
+  const center = Math.hypot(x, y) < 1e-6 ? fallbackDeg : azimuthDeg(x, y);
+  return { centerDeg: center, widthDeg: widthDeg };
 }
 
 // The stars of the wedge, as strip entries `{ star, r, h }`, the brightest first and at most `limit`.
@@ -125,7 +125,7 @@ export function pickInStrip(entries, frame, px, py, reach) {
   return best;
 }
 
-// How high a point lies: the exact height and its size in scale heights of the thin and of the thick disc (null without a shape).
+// How high a point lies: the exact height and its size in scale heights of the thin and of the thick disk (null without a shape).
 export function heightReadout(heightPc, shape) {
   const thin = shape && shape.disk_scale_height_pc > 0 ? Math.abs(heightPc) / shape.disk_scale_height_pc : null;
   const thick = shape && shape.thick_disk_scale_height_pc > 0 ? Math.abs(heightPc) / shape.thick_disk_scale_height_pc : null;
@@ -136,17 +136,17 @@ function oneDecimal(v) {
   return (Math.round(v * 10) / 10).toString();
 }
 
-// The readout as a line: "Height +134 pc above the plane (1.0 thin-disc and 0.2 thick-disc scale heights), 8.2 kpc from the centre".
+// The readout as a line: "Height +134 pc above the plane (1.0 thin-disk and 0.2 thick-disk scale heights), 8.2 kpc from the center".
 export function readoutText(r, heightPc, shape) {
   const read = heightReadout(heightPc, shape);
   const side = heightPc > 0 ? " above the plane" : heightPc < 0 ? " below the plane" : " on the plane";
   const sign = heightPc > 0 ? "+" : heightPc < 0 ? "-" : "";
   let text = "Height " + sign + Math.round(Math.abs(heightPc)).toLocaleString("en-US") + " pc" + side;
   if (read.thin !== null && read.thick !== null) {
-    text += " (" + oneDecimal(read.thin) + " thin-disc and " + oneDecimal(read.thick) + " thick-disc scale heights)";
+    text += " (" + oneDecimal(read.thin) + " thin-disk and " + oneDecimal(read.thick) + " thick-disk scale heights)";
   }
   const across = r >= 1000 ? oneDecimal(r / 1000) + " kpc" : Math.round(r) + " pc";
-  return text + ", " + across + " from the centre";
+  return text + ", " + across + " from the center";
 }
 
 // A round step (1, 2 or 5 times a power of ten) giving about `count` ticks across `span`.
@@ -172,7 +172,7 @@ export function distanceTicks(rMin, rMax, count = 6) {
 const STAR_RGB = "238,240,255";
 
 // The strip on the page. `host` (the element the strip fills), `getStars()` (the stars the map draws), `getShape()` (the
-// density shape or null), `getFocus()` ({ x, y, z } the view's centre), `onPick(star)` (a star picked in the strip), and
+// density shape or null), `getFocus()` ({ x, y, z } the view's center), `onPick(star)` (a star picked in the strip), and
 // `isPhone()`. Returns { setOn, isOn, setSelected, setWedge, redraw, update, entries, pickAt }.
 export function createSideStrip(options) {
   const host = options.host;
@@ -180,7 +180,7 @@ export function createSideStrip(options) {
   const canvas = doc.createElement("canvas");
   canvas.className = "galaxy-strip-canvas";
   canvas.setAttribute("role", "img");
-  canvas.setAttribute("aria-label", "Edge-on strip of the stars of the wedge: distance from the galactic centre across, height up and down. Click a star to select it on the map.");
+  canvas.setAttribute("aria-label", "Edge-on strip of the stars of the wedge: distance from the galactic center across, height up and down. Click a star to select it on the map.");
   const caption = doc.createElement("p");
   caption.className = "galaxy-strip-caption hint";
   caption.setAttribute("aria-live", "polite");
@@ -202,7 +202,7 @@ export function createSideStrip(options) {
   let turnedTo = null;
   function facingWedge() {
     const focus = options.getFocus ? options.getFocus() : { x: 0, y: 0, z: 0 };
-    return wedgeAbout(focus.x, focus.y, WEDGE_DEG, cached.wedge ? cached.wedge.centreDeg : 0);
+    return wedgeAbout(focus.x, focus.y, WEDGE_DEG, cached.wedge ? cached.wedge.centerDeg : 0);
   }
   function wedgeNow() {
     return wedgeOverride || turnedTo || facingWedge();
@@ -217,7 +217,7 @@ export function createSideStrip(options) {
 
   function signatureOf(wedge, dims) {
     const focus = options.getFocus ? options.getFocus() : { x: 0, y: 0, z: 0 };
-    return [on, options.version ? options.version() : 0, Math.round(wedge.centreDeg * 4), dims.width, dims.height,
+    return [on, options.version ? options.version() : 0, Math.round(wedge.centerDeg * 4), dims.width, dims.height,
       selected ? [selected.x, selected.y, selected.z].map(Math.round).join(",") : "-", Math.round(focus.x / 20), Math.round(focus.y / 20)].join("|");
   }
 
@@ -258,7 +258,7 @@ export function createSideStrip(options) {
     ctx.moveTo(0, frame.middle);
     ctx.lineTo(dims.width, frame.middle);
     ctx.stroke();
-    // The disc's thickness: one scale height of the thin disc (dashed) and of the thick disc (dotted) either side.
+    // The disk's thickness: one scale height of the thin disk (dashed) and of the thick disk (dotted) either side.
     const shape = options.getShape ? options.getShape() : null;
     if (shape && ctx.setLineDash) {
       [[shape.disk_scale_height_pc, [6, 4]], [shape.thick_disk_scale_height_pc, [2, 4]]].forEach((row) => {
@@ -305,13 +305,13 @@ export function createSideStrip(options) {
         ctx.lineWidth = 1;
       }
     }
-    caption.textContent = "Side strip: the " + Math.round(wedge.widthDeg) + " degree wedge toward " + Math.round(wedge.centreDeg)
-      + " degrees from the galactic centre, " + drawn.toLocaleString("en-US") + " stars, heights drawn " + HEIGHT_EXAGGERATION + " times true.";
+    caption.textContent = "Side strip: the " + Math.round(wedge.widthDeg) + " degree wedge toward " + Math.round(wedge.centerDeg)
+      + " degrees from the galactic center, " + drawn.toLocaleString("en-US") + " stars, heights drawn " + HEIGHT_EXAGGERATION + " times true.";
     readout.textContent = selected
       ? readoutText(Math.hypot(selected.x, selected.y), selected.z, shape) + (inside ? "" : " (outside this wedge)")
       : "Click a star in the strip to select it on the map.";
     canvas.dataset.stars = String(drawn);
-    canvas.dataset.wedge = String(Math.round(wedge.centreDeg));
+    canvas.dataset.wedge = String(Math.round(wedge.centerDeg));
     canvas.dataset.selected = inside ? "ringed" : "none";
     lastSignature = cached.signature;
   }
@@ -348,7 +348,7 @@ export function createSideStrip(options) {
       if (!selected || inWedge(selected.x, selected.y, facingWedge())) {
         turnedTo = null;
       } else if (!turnedTo || !inWedge(selected.x, selected.y, turnedTo)) {
-        turnedTo = { centreDeg: azimuthDeg(selected.x, selected.y), widthDeg: WEDGE_DEG };
+        turnedTo = { centerDeg: azimuthDeg(selected.x, selected.y), widthDeg: WEDGE_DEG };
       }
       if (on) draw();
     },

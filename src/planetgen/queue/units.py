@@ -69,7 +69,7 @@ ENQUEUE_BATCH = 500
 """int: How many units go to Redis in one pipeline."""
 
 class RunStopped(RuntimeError):
-    """The run ended (failed, was cancelled or went stale) before its stage was done."""
+    """The run ended (failed, was canceled or went stale) before its stage was done."""
 
 
 def job_id(run_id, stage, unit):
@@ -171,7 +171,7 @@ class _Reporter:
 def run_unit(run_id, stage, unit, kind, args, cost=None):
     """
     The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes its stage, has the
-    wrapper queue the next one or, after the last, ends the run. A unit that finds the run no longer live (cancelled,
+    wrapper queue the next one or, after the last, ends the run. A unit that finds the run no longer live (canceled,
     failed) does nothing.
 
     Returns:
@@ -382,7 +382,7 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
     (a debug run prints the lines its workers relayed, `planetgen.util.log.RelayReader`).
 
     Raises:
-        RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was cancelled).
+        RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was canceled).
     """
     seen = set()
     last_ensure = float("-inf")

@@ -43,8 +43,8 @@ def hypervelocity_reference_radius_pc():
 
 
 def default_galactocentric_pc():
-    """Where a system with no place in the galaxy is taken to be, parsecs from the centre: the radius that holds
-    half of an exponential disc's stars, `tuning.DISK_HALF_MASS_SCALE_LENGTHS` scale lengths (1.678)."""
+    """Where a system with no place in the galaxy is taken to be, parsecs from the center: the radius that holds
+    half of an exponential disk's stars, `tuning.DISK_HALF_MASS_SCALE_LENGTHS` scale lengths (1.678)."""
     return tuning.DISK_HALF_MASS_SCALE_LENGTHS * disk_scale_length_pc()
 
 

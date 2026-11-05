@@ -1,7 +1,7 @@
 # planetgen/datasets/ir_ktables.py
 
 """
-Correlated-k absorption tables of the infrared-active gases (GEN.715, AD10): the opacity of water vapour, carbon dioxide and methane
+Correlated-k absorption tables of the infrared-active gases (GEN.715, AD10): the opacity of water vapor, carbon dioxide and methane
 from line lists, at every pressure and temperature the greenhouse model needs.
 
 Source: the ExoMolOP opacity tables of the ExoMol project [R0795], the
@@ -21,11 +21,11 @@ The reduction is the band mean of the k-distribution: all the (wavenumber, g) va
 opacity is cut at the new g edges, and each interval's mean is the new k (this keeps the band's total absorption).
 
 Limits (stated, and in the stand-in registry of docs/design/research/gap-filling-plan.md section 6): the tables cut each line at 25 cm-1 from its
-centre, so the far wings of a dense carbon dioxide air (Venus) are missing (`co2_far_wing` adds them in `line_opacity`); the
+center, so the far wings of a dense carbon dioxide air (Venus) are missing (`co2_far_wing` adds them in `line_opacity`); the
 broadening is the tables' own (air-like for H2O and CO2, so an air of hydrogen and helium is under-broadened); the temperature grid
 holds 100 K as its lowest point and 100 bar as its highest pressure, beyond which a lookup holds the edge value.
 
-The gas table's band centres and `line_opacity`'s plateaus are the labelled fallback for a run that disregards missing data
+The gas table's band centers and `line_opacity`'s plateaus are the labelled fallback for a run that disregards missing data
 (`fetch.Located.use_stand_in`).
 """
 

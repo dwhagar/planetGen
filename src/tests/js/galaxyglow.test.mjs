@@ -19,13 +19,13 @@ test("a node with no aggregate light has no blob", () => {
   assert.equal(G.blobOf("k", block, null, EDGE), null);
 });
 
-test("the blob is the stored light less the listed stars, centred on what is left", () => {
+test("the blob is the stored light less the listed stars, centered on what is left", () => {
   const a = star(100, middle[0] - 10, middle[1], middle[2]);
   const b = star(300, middle[0] + 10, middle[1], middle[2]);
-  // 1,000 in all, centre at the middle: the listed 400 weigh the centre to x of (100 * -10 + 300 * 10) / 400 = +5
+  // 1,000 in all, center at the middle: the listed 400 weigh the center to x of (100 * -10 + 300 * 10) / 400 = +5
   const node = {
     stars: [a, b],
-    aggregate: { lights: { star_luminosity_sol: 1000, star_centre: middle, star_temperature_k: 4100 } },
+    aggregate: { lights: { star_luminosity_sol: 1000, star_center: middle, star_temperature_k: 4100 } },
   };
   const blob = G.blobOf("k", block, node, EDGE);
   assert.equal(blob.luminosity, 600);
@@ -49,7 +49,7 @@ test("generated sectors' light joins at the middle of the block, less the genera
 
 test("listed stars brighter than the stored total leave nothing, never a negative light", () => {
   const node = { stars: [star(500, middle[0], middle[1], middle[2])],
-    aggregate: { lights: { star_luminosity_sol: 400, star_centre: middle } } };
+    aggregate: { lights: { star_luminosity_sol: 400, star_center: middle } } };
   assert.equal(G.blobOf("k", block, node, EDGE), null);
 });
 

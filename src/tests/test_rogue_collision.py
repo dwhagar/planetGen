@@ -28,11 +28,11 @@ def test_the_rate_per_rogue_follows_the_designs_table(kms, rate):
 
 
 def test_the_galaxy_has_about_one_collision_in_its_life():
-    disc = rc.galaxy_rate_per_year(6.5, 3.4e10, EARTH, EARTH, EARTH_RADIUS_M, EARTH_RADIUS_M, 40 * KM)
+    disk = rc.galaxy_rate_per_year(6.5, 3.4e10, EARTH, EARTH, EARTH_RADIUS_M, EARTH_RADIUS_M, 40 * KM)
     bulge = rc.galaxy_rate_per_year(6.5, 5.1e10, EARTH, EARTH, EARTH_RADIUS_M, EARTH_RADIUS_M, 120 * KM)
-    per_ten_gyr = (disc + bulge) * 1e10
+    per_ten_gyr = (disk + bulge) * 1e10
     assert 0.1 < per_ten_gyr < 10                            # design 2.3: 0.9 for Earth-size pairs, range 0.1 to 10
-    assert (disc + bulge) == pytest.approx(8.9e-11, rel=0.1)
+    assert (disk + bulge) == pytest.approx(8.9e-11, rel=0.1)
 
 
 @pytest.mark.parametrize("dispersion,expected", [

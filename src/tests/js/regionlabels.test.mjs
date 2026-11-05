@@ -7,9 +7,9 @@ import { STATIC_URL } from "./fakedom.mjs";
 
 const R = await import(new URL("regionlabels.js", STATIC_URL).href);
 
-const region = (key, name, parent, centre, sectors, percent = sectors / 7.8, radius = 12) =>
-  ({ key, name, parent, centre, radius, sectors, percent });
-const nine = (name, centre, sectors = 100) => ({ name, parent: "Vang Reach", extent: { centre, radius: 12 }, charted: { sectors, percent: sectors / 7.8 } });
+const region = (key, name, parent, center, sectors, percent = sectors / 7.8, radius = 12) =>
+  ({ key, name, parent, center, radius, sectors, percent });
+const nine = (name, center, sectors = 100) => ({ name, parent: "Vang Reach", extent: { center, radius: 12 }, charted: { sectors, percent: sectors / 7.8 } });
 
 test("the level of a node key is its first number", () => {
   assert.equal(R.levelOf("81.3.0.1"), 81);
@@ -22,7 +22,7 @@ test("a charted region's own node offers its name at the middle of its sphere, r
   assert.equal(label.id, "region:9.4.0.0");
   assert.equal(label.text, "Vang Zarh Region");
   assert.deepEqual([label.x, label.y, label.z], [10, 20, 30]);
-  assert.deepEqual(label.ref, { kind: "region", key: "9.4.0.0", extent: { centre: [10, 20, 30], radius: 12 } });
+  assert.deepEqual(label.ref, { kind: "region", key: "9.4.0.0", extent: { center: [10, 20, 30], radius: 12 } });
   assert.deepEqual(label.slice, { domain: "region", shareCharted: 0.1, first: true });
 });
 
@@ -45,7 +45,7 @@ test("a 27-block offers each region it lists, once, even when the region's own n
 });
 
 test("a region listed with no radius is framed by its block", () => {
-  const [label] = R.regionLabels([{ key: "27.1.0.0", node: { regions: [{ key: "9.4.0.0", name: "Vang Zarh Region", parent: "Vang Reach", centre: [1, 2, 3], sectors: 5, percent: 1 }] } }]);
+  const [label] = R.regionLabels([{ key: "27.1.0.0", node: { regions: [{ key: "9.4.0.0", name: "Vang Zarh Region", parent: "Vang Reach", center: [1, 2, 3], sectors: 5, percent: 1 }] } }]);
   assert.equal(label.ref.extent, null);
   assert.equal(label.ref.key, "9.4.0.0");
 });
@@ -66,7 +66,7 @@ test("an 81-block and a 243-block each offer one family name, the family with th
 
 test("a tie between families goes to the name that sorts first, and a region with no family adds nothing", () => {
   const labels = R.regionLabels([{ key: "81.1.0.0", node: { regions: [region("9.4.0.0", "B Region", "Bee Reach", [0, 0, 0], 10), region("9.5.0.0", "A Region", "Ann Reach", [9, 9, 9], 10),
-    { key: "9.6.0.0", name: "Lone", centre: [1, 1, 1], sectors: 99, percent: 9 }] } }]);
+    { key: "9.6.0.0", name: "Lone", center: [1, 1, 1], sectors: 99, percent: 9 }] } }]);
   assert.deepEqual(labels.map((label) => label.text), ["Ann Reach"]);
 });
 

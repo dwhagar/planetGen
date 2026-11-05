@@ -26,7 +26,7 @@ Use:
     old = old_density(density_at, radius_pc, z_pc)                               # the smooth part, a function of (R, z) only: what the low-zoom map reads
     mean = rogue_density(density_at, (x, y, z), history_myr)                     # the density the sector's Poisson mean takes: young share local, rest smooth
 
-Limits. A stationary disc is assumed (the ejection-time density equals today's; radial migration and the disc's ageing break that at the 10 to 30 percent level, the design note); the metallicity gradient across the
+Limits. A stationary disk is assumed (the ejection-time density equals today's; radial migration and the disk's ageing break that at the 10 to 30 percent level, the design note); the metallicity gradient across the
 displacement is ignored; nothing here knows the rogue yield or the sector volume, which are the caller's (`lambda = yield x V x density`).
 """
 

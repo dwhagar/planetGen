@@ -21,7 +21,7 @@ drawn, weighted by it); the schedule of the five hard steps is drawn at the pace
 needs (`physics.life_timeline`); a class that splits water builds the oxygen its photosynthesis has made by the star's age
 (`physics.biogenic_oxygen`); and the complexity of the class on the final air (`physics.life_complexity`) caps the milestones and gives
 the animal grade. All the draws of a body are made from a stream of its own, seeded by one draw of the run's (GEN.872), so a change in
-the life model no longer re-rolls the names and flavour text of every later body.
+the life model no longer re-rolls the names and flavor text of every later body.
 """
 
 import copy
@@ -74,7 +74,6 @@ class _Cand:
 
 
 def _apply(planet, keep_stored, key):
-    _set_description(planet)
     scores = life_classes.score_classes(planet)
     chosen, kept = _choose(planet, scores, keep_stored)
     if chosen is None:
@@ -327,12 +326,6 @@ def _set_best(planet, scores):
     planet.life_class_best_score = (top.score if top else 0) if scores else None
 
 
-def _set_description(planet):
-    """The class's own description. It claims no life and no planet, so a moon reads it as it stands; what the index
-    allows is said by the life sentences."""
-    planet.description = planet_classes.ASTEROID.sentence if planet.planet_class is None else tuning.PLANET_CLASSES[planet.planet_class]["description"]
-
-
 def _draw_waits(planet, row, stream=None):
     """
     Draws the five waiting times of the schedule of `planet` of life class `row` (GEN.750): one exponential wait for each step, the first scaled by the
@@ -437,13 +430,13 @@ def _flavor_lists():
 
 
 def flavor_key(category, text):
-    """The `category:index` key of the flavour line `text` in a `tuning` flavour list (`habitable`, `planet` or
+    """The `category:index` key of the flavor line `text` in a `tuning` flavor list (`habitable`, `planet` or
     `orbital`)."""
     return f"{category}:{_flavor_lists()[category].index(text)}"
 
 
 def flavor_line(key):
-    """The flavour line a `flavor_key` names, or `None` for no key."""
+    """The flavor line a `flavor_key` names, or `None` for no key."""
     if key is None:
         return None
     category, index = key.split(":")

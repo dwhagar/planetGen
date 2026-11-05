@@ -170,13 +170,13 @@ def test_validate_catches_broken_interiors():
 def test_the_polytrope_places_pressure_by_mass_and_the_thin_shell_formula_matches_the_limit():
     mass, radius = 1.9e27, 7.15e7
     profile = gi.Polytrope(1.0, mass, radius)
-    r_centre, p_centre = profile.at_mass_inside(0.0)
-    assert r_centre == pytest.approx(0.0, abs=1e-6)
+    r_center, p_center = profile.at_mass_inside(0.0)
+    assert r_center == pytest.approx(0.0, abs=1e-6)
     assert profile.at_mass_inside(1.0) == pytest.approx((1.0, 0.0), abs=1e-6)
-    assert p_centre == pytest.approx(math.pi * 6.674e-11 * mass ** 2 / (8 * radius ** 4), rel=0.02)
+    assert p_center == pytest.approx(math.pi * 6.674e-11 * mass ** 2 / (8 * radius ** 4), rel=0.02)
     _, p_half = profile.at_mass_inside(0.5)
     _, p_tenth = profile.at_mass_inside(0.1)
-    assert 0 < p_half < p_tenth < p_centre
+    assert 0 < p_half < p_tenth < p_center
 
 
 def test_the_compact_core_table_is_registered_with_open_rows():
@@ -256,12 +256,12 @@ def test_an_ice_giants_layers_are_stacked_on_the_structure_of_its_own_layers():
     assert mantle.bottom_pressure_gpa == pytest.approx(core.top_pressure_gpa) and core.bottom_pressure_gpa > mantle.bottom_pressure_gpa
 
 
-def test_the_structure_of_jupiter_is_near_the_n_one_polytropes_with_a_stiffer_centre():
+def test_the_structure_of_jupiter_is_near_the_n_one_polytropes_with_a_stiffer_center():
     """The two profiles are the same body: the pressure at half the mass inside is within half of the polytrope's."""
     jupiter = gi._structure(_subject(JUPITER), 1.0)
     polytrope = gi.Polytrope(1.0, JUPITER["mass_earth"] * gi.constants.EARTH_MASS_TO_KG, JUPITER["radius_km"] * 1e3)
     assert jupiter.at_mass_inside(0.5)[1] == pytest.approx(polytrope.at_mass_inside(0.5)[1], rel=0.5)
-    assert jupiter.central_pressure_pa > polytrope.central_pressure_pa      # a heavy core and a stiffer centre
+    assert jupiter.central_pressure_pa > polytrope.central_pressure_pa      # a heavy core and a stiffer center
 
 
 def test_without_the_tables_a_run_that_disregards_it_takes_the_polytrope_and_any_other_is_refused(tmp_path, monkeypatch):

@@ -63,7 +63,7 @@ def test_the_system_of_a_charted_star_rides_in_the_json_and_comes_back_on_its_st
 
 def test_the_tier_of_a_halo_or_satellite_star_rides_with_the_charted_flag():
     """MAP.252: the halo (1) and the satellite galaxies (2) are the first to dim under "Charted only"; the flag byte
-    carries them beside `charted` and a star of the disc has no `tier`."""
+    carries them beside `charted` and a star of the disk has no `tier`."""
     stars = [star(1, 1.0, 1.0, 1.0, 1.0, tier=1), star(2, 2.0, 1.0, 1.0, 1.0, tier=2, system_id=4),
              star(3, 3.0, 1.0, 1.0, 1.0), star(4, 4.0, 1.0, 1.0, 1.0, system_id=5)]
     back = tilepack.unpack_node(tilepack.pack_node({"stars": stars}))["stars"]

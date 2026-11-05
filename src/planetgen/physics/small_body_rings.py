@@ -71,7 +71,7 @@ class ResonanceRing:
     Attributes:
         ring (rings.Ring): The ring system (kind `narrow`, origin `disrupted_moon`).
         order (int): How many rotations of the body a ring orbit takes.
-        radius_km (float): The resonance radius the ring is centred on.
+        radius_km (float): The resonance radius the ring is centered on.
         roche_km (float): The Roche limit of the ring's own material for this body; `radius_km` is past it.
     """
 
@@ -83,7 +83,7 @@ class ResonanceRing:
 
 @finite_domain()
 def resonance_radius_km(mass_kg, spin_period_h, order=RESONANCE_ORDER):
-    """The radius, km from the body's centre, of the orbit whose period is `order` times the body's rotation period."""
+    """The radius, km from the body's center, of the orbit whose period is `order` times the body's rotation period."""
     if not (mass_kg > 0.0 and spin_period_h > 0.0 and order > 0):
         raise ValueError("the mass, the spin period and the order must be positive")
     period_s = order * spin_period_h * 3600.0
@@ -125,14 +125,14 @@ def resonance_ring(mass_kg, radius_km, spin_period_h, distance_au, host_mass_kg,
     if mass_kg >= moon_composition.DWARF_PLANET_MAX_MASS_KG or not ring_survives(distance_au) or chance >= RESONANCE_RING_RATE:
         return None
     ice_fraction = share if cold else 0.0
-    centre = resonance_radius_km(mass_kg, spin_period_h)
+    center = resonance_radius_km(mass_kg, spin_period_h)
     density = mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3)
     roche = rings.roche_limit_km(radius_km, density, rings.mixture_density_kg_m3(ice_fraction))
     hill_km = orbits.calculate_hill_sphere(distance_au * _AU_M, mass_kg, host_mass_kg) / 1000.0
-    if centre <= roche or centre > HILL_FRACTION_MAX * hill_km:
+    if center <= roche or center > HILL_FRACTION_MAX * hill_km:
         return None
-    inner, outer = centre * (1.0 - width / 2.0), centre * (1.0 + width / 2.0)
+    inner, outer = center * (1.0 - width / 2.0), center * (1.0 + width / 2.0)
     tau = rings.optical_depth(ring_mass, inner, outer, filling, ice_fraction, rings.RANGES["particle_radius_m"][NARROW])
     ring = rings.Ring(ring_kind=NARROW, ring_origin=ORIGIN, ring_inner_km=inner, ring_outer_km=outer, ring_mass_kg=ring_mass,
                       ring_optical_depth=tau, ring_ice_fraction=ice_fraction, ring_age_yr=None)
-    return ResonanceRing(ring, RESONANCE_ORDER, centre, roche)
+    return ResonanceRing(ring, RESONANCE_ORDER, center, roche)

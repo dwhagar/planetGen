@@ -284,10 +284,10 @@ same environment (installed packages, Python, MySQL and Redis versions, `PLANETG
 day) and none of the files that differ between that run's tree and this one is a file the test used. Which files a
 test used is what the dependency map records for `changed` (its own test file, every Python file it ran, every file it
 opened, and for a test that starts a subprocess all of `src/planetgen/`, `src/html/` and `scripts/`); it is written to
-the progress log as a `deps` line when the test passes, so a cancelled run keeps it. The rules of `changed` decide:
+the progress log as a `deps` line when the test passes, so a canceled run keeps it. The rules of `changed` decide:
 a changed test file, a changed file the test used or that imports one it used, or a change to the test setup
 (`conftest.py`, the `*_support.py` modules, fixtures, `pytest.ini`, the lock files) reruns it, the last one all of
-them. So after a gate was cancelled and main was merged in, only the tests the merge touched run again. A pass that
+them. So after a gate was canceled and main was merged in, only the tests the merge touched run again. A pass that
 has no `deps` line (the run was killed between the two lines, or `quick`, `area` or `browser` ran it, which record
 no dependencies) is reused only by a resume of the same build.
 
@@ -483,7 +483,7 @@ life depends only on the conditions, never on the class letter. Every terrestria
 letters with its stored conditions unchanged, and the life model (`life_classes.score_classes`, its best class) and the habitability index
 must answer the same on every letter; a failure names the body, the letter and the life class or index field that moved. The life code is
 scanned (AST) for every read of the class letter or the class tables, and each one must be listed with its reason in
-`src/tests/data/class_blind_life_notes.json` (today the class description text, the planet or orbital flavour line, and the value copy that
+`src/tests/data/class_blind_life_notes.json` (today the class description text, the planet or orbital flavor line, and the value copy that
 the index does not read); an unlisted read fails, a listed place that no longer reads it is reported stale. Both checks are proved able to
 fail by breaking the life model, the index and a planted module. The report is `class-blind-life-latest.md` (with the life-capable bodies of
 each letter). The draws that run before the life model and key on the letter (water fraction, albedo range, porosity, mass-radius branch)
@@ -529,7 +529,7 @@ Python 3.13).
   statistical properties but still run every time.
 - **Edge-case tests** (`test_edge_*.py`): the admin scripts (`jobRunner`,
   `resetDb`, `migrateDb`, `updateOrbits`) run in-process against empty,
-  broken and unreachable databases, cancelled jobs and malformed input.
+  broken and unreachable databases, canceled jobs and malformed input.
 - **Brute-force (fuzz) tests** (`test_fuzz_*.py`): property-based tests
   written with [Hypothesis](https://hypothesis.readthedocs.io/). Each one
   states a rule that must hold for every input (a generated planet is
@@ -690,7 +690,7 @@ accessibility, the JS tests, the installer checks, the dependency audit) never r
   run is created and every job is skipped.
 
 A newer run on the same branch cancels the older one that is still going;
-cancelled runs stay in the Actions history. The post-merge
+canceled runs stay in the Actions history. The post-merge
 `stamp-version.yml` and the PR check `release-note.yml` still run on their
 own. Run the suite locally before merging (see above).
 

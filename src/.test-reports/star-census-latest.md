@@ -9,12 +9,12 @@ Flags: 0 new, 2 known anomalies.
 
 Known anomalies:
 
-- OUT-OF-RANGE mix A: 0.0018 not in [0.0027, 0.0185] [observed: RECONS 4 of 378 = 0.011; Mamajek 0.006] (known: GEN.898)
-- OUT-OF-RANGE mix wd: 0.0804 not in [0.0409, 0.0751] [observed: RECONS 21 of 378 = 0.056; Mamajek 0.059] (known: GEN.898)
+- OUT-OF-RANGE mix A: 0.0015 not in [0.0027, 0.0185] [observed: RECONS 4 of 378 = 0.011; Mamajek 0.006] (known: GEN.898)
+- OUT-OF-RANGE mix wd: 0.0808 not in [0.0409, 0.0751] [observed: RECONS 21 of 378 = 0.056; Mamajek 0.059] (known: GEN.898)
 
 ## Star type mix at the reference solar position
 
-40000 stars: M 75.67%, K 10.44%, G 3.20%, F 1.92%, A 0.18%, B 0.04%, O 0.00%, wd 8.04%, evolved 0.51%
+40000 stars: M 75.89%, K 10.45%, G 3.14%, F 1.76%, A 0.15%, B 0.04%, O 0.00%, wd 8.08%, evolved 0.48%
 
 ## Multiplicity by primary type
 

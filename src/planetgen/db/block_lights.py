@@ -8,12 +8,12 @@ the rest, a glow made from their summed light. A block holds sectors that were g
 `galaxy_block_stats`) and, far more of them, sectors nothing has been built in, whose only stored objects are
 the pre-placed bright stars (`bright_stars` with no system built around them) and the scattered phenomena
 (`phenomenon_scatter` not built). This table sums those two kinds per block of every level above a sector
-(`drill.DRILL_LEVELS[:-1]`), so a node's glow and its centre of light are one row read.
+(`drill.DRILL_LEVELS[:-1]`), so a node's glow and its center of light are one row read.
 
 A row is one block `(m, shell_index, band_index, wedge_index)` holding at least one pre-placed object. Columns:
 
 * `star_count`, `star_luminosity_sol` (summed luminosity), `star_lpx`, `star_lpy`, `star_lpz` (luminosity times
-  position, so the centre of light is the sum over `star_luminosity_sol`; solar luminosities times parsecs) and
+  position, so the center of light is the sum over `star_luminosity_sol`; solar luminosities times parsecs) and
   `star_lt` (luminosity times temperature, the light's mean temperature over `star_luminosity_sol`);
 * `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy`, `point_lpz`: the same for scattered phenomena
   (`map_luminosity_sol`, no temperature).

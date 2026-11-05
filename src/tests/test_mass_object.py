@@ -202,7 +202,7 @@ def test_planets_moons_and_rogue_planets_share_the_planetary_object_family():
     from planetgen.generation.planetary_object import PlanetaryObject
 
     assert issubclass(Planet, PlanetaryObject) and issubclass(RoguePlanet, PlanetaryObject)
-    rogue = RoguePlanet(SystemConfig(), mass_bin="terrestrial")
+    rogue = RoguePlanet(SystemConfig())
     assert rogue.parent_kind is None
     assert rogue.is_giant == (rogue.planet_type == "g")
     planet = object.__new__(Planet)

@@ -70,10 +70,10 @@ def fayalite_mol_percent(feo_mass_fraction, mgo_mass_fraction):
 def _distance(coordinates, group):
     """The root-mean-square scaled difference over the axes both have, and how many that is."""
     total, used = 0.0, 0
-    for index, (value, centre) in enumerate(zip(coordinates, CHONDRITE_GROUPS[group])):
-        if value is None or centre is None:
+    for index, (value, center) in enumerate(zip(coordinates, CHONDRITE_GROUPS[group])):
+        if value is None or center is None:
             continue
-        total += ((value - centre) / AXIS_SCALES[index]) ** 2
+        total += ((value - center) / AXIS_SCALES[index]) ** 2
         used += 1
     return (math.sqrt(total / used) if used else math.inf), used
 

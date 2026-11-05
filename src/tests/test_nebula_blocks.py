@@ -18,9 +18,9 @@ EDGE_PC = float(tuning.DEFAULT_SECTOR_EDGE_PC)
 TWO_PI = 2 * math.pi
 
 
-def _spheres(seed, count, centre, spread, radius=(4.0, 12.0), letters="MNMNMNP"):
+def _spheres(seed, count, center, spread, radius=(4.0, 12.0), letters="MNMNMNP"):
     rng = np.random.default_rng(seed)
-    where = np.asarray(centre) + rng.uniform(-spread, spread, (count, 3))
+    where = np.asarray(center) + rng.uniform(-spread, spread, (count, 3))
     r = rng.uniform(*radius, count)
     codes = rules.class_codes(rng.choice(list(letters), count))
     return where[:, 0], where[:, 1], where[:, 2], r, codes
@@ -46,7 +46,7 @@ def test_a_point_is_in_the_block_whose_bounds_hold_it():
             assert start - 1e-12 <= longitude <= end + 1e-12
 
 
-def test_a_sectors_centre_is_in_the_block_chain_of_the_sector():
+def test_a_sectors_center_is_in_the_block_chain_of_the_sector():
     checked = 0
     for shell in (3, 17, 90, 400):
         low, high = spherical.band_range(shell)
@@ -114,9 +114,9 @@ def test_a_block_holds_its_families_dominant_class_centroid_and_bound():
     shell, band, wedge = (int(v[0]) for v in rules.locate(*(np.array([c]) for c in (800.0, 200.0, 50.0)), 3, EDGE_PC))
     (inner, outer), (north, south), (start, end) = drill.drill_block_bounds(drill.DrillBlock(3, shell, band, wedge), EDGE_PC)
     middle, colatitude, longitude = (inner + outer) / 2, (north + south) / 2, (start + end) / 2
-    centre = middle * np.array([math.sin(colatitude) * math.cos(longitude), math.sin(colatitude) * math.sin(longitude),
+    center = middle * np.array([math.sin(colatitude) * math.cos(longitude), math.sin(colatitude) * math.sin(longitude),
                                 math.cos(colatitude)])
-    inside = [centre, centre + [1.0, 0.5, -0.5], centre + [-0.5, 1.0, 0.5]]
+    inside = [center, center + [1.0, 0.5, -0.5], center + [-0.5, 1.0, 0.5]]
     radii = np.array([3.0, 1.0, 0.5])
     letters = ["M", "N", "C"]
     xs, ys, zs = (np.array([p[i] for p in inside]) for i in range(3))
@@ -137,7 +137,7 @@ def test_a_block_holds_its_families_dominant_class_centroid_and_bound():
 
 
 def test_a_block_a_cloud_only_reaches_has_a_cover_and_no_nebulae():
-    # A cloud wider than a level-3 block sits across two of them; the one that holds its centre counts it.
+    # A cloud wider than a level-3 block sits across two of them; the one that holds its center counts it.
     x, y, z = (np.array([v]) for v in (800.0, 200.0, 50.0))
     level = rules.level_rows(x, y, z, np.array([20.0]), rules.class_codes(["M"]), 3, EDGE_PC)
     counts = sorted(row["nebula_count"] for row in level.blocks)
@@ -146,14 +146,14 @@ def test_a_block_a_cloud_only_reaches_has_a_cover_and_no_nebulae():
     assert all(row["bound_radius_pc"] is None for row in level.blocks if row["nebula_count"] == 0)
 
 
-def _block_centre(m, shell, band, wedge, edge_pc):
+def _block_center(m, shell, band, wedge, edge_pc):
     (inner, outer), (north, south), (start, end) = drill.drill_block_bounds(drill.DrillBlock(m, shell, band, wedge), edge_pc)
     middle, colatitude, longitude = (inner + outer) / 2, (north + south) / 2, (start + end) / 2
     return middle * np.array([math.sin(colatitude) * math.cos(longitude), math.sin(colatitude) * math.sin(longitude),
                               math.cos(colatitude)])
 
 
-def _true_cover(block, m, edge_pc, centres, radii, tree, rng, points=40000):
+def _true_cover(block, m, edge_pc, centers, radii, tree, rng, points=40000):
     """The share of the block inside some sphere, from random points thrown at the block."""
     shell, band, wedge = block
     (inner, outer), (north, south), (start, end) = drill.drill_block_bounds(drill.DrillBlock(m, shell, band, wedge), edge_pc)
@@ -164,7 +164,7 @@ def _true_cover(block, m, edge_pc, centres, radii, tree, rng, points=40000):
     sample = np.column_stack((radius * sin_theta * np.cos(phi), radius * sin_theta * np.sin(phi), radius * cos_theta))
     inside = 0
     for point, near in zip(sample, tree.query_ball_point(sample, float(radii.max()))):
-        if near and (np.linalg.norm(centres[near] - point, axis=1) <= radii[near]).any():
+        if near and (np.linalg.norm(centers[near] - point, axis=1) <= radii[near]).any():
             inside += 1
     return inside / points
 
@@ -179,16 +179,16 @@ def test_the_stored_cover_is_within_five_percent_of_the_true_cover(m, direction)
     rng = np.random.default_rng(int(m * 31 + sum(direction) * 1000))
     unit = np.asarray(direction) / np.linalg.norm(direction)
     shell, band, wedge = (int(v[0]) for v in rules.locate(*(np.array([c]) for c in unit * m * 1.5 * edge), m, edge))
-    centre = _block_centre(m, shell, band, wedge, edge)
+    center = _block_center(m, shell, band, wedge, edge)
     half = 0.75 * m * edge + 4.0
     radius_range = (1.0, 3.5)
     count = int(0.11 * (2 * half) ** 3 / (4 / 3 * math.pi * np.mean(np.linspace(*radius_range, 200) ** 3)))
-    centres = centre + rng.uniform(-half, half, (count, 3))
+    centers = center + rng.uniform(-half, half, (count, 3))
     radii = rng.uniform(*radius_range, count)
-    level = rules.level_rows(centres[:, 0], centres[:, 1], centres[:, 2], radii,
+    level = rules.level_rows(centers[:, 0], centers[:, 1], centers[:, 2], radii,
                              rules.class_codes(["M"] * count), m, edge)
     row = _by_key(level)[(shell, band, wedge)]
-    true = _true_cover((shell, band, wedge), m, edge, centres, radii, cKDTree(centres), rng)
+    true = _true_cover((shell, band, wedge), m, edge, centers, radii, cKDTree(centers), rng)
     assert true > 0.05
     assert abs(row["cover"] - true) / true < 0.05, (row["cover"], true)
 

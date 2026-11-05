@@ -12,7 +12,7 @@ So each equation of state carries a weight from how well it fits those constrain
 and on its R(2.08) about the Miller et al. values, and for one too soft to hold PSR J0740+6620 (2.08 +- 0.07 solar masses, Fonseca et al.
 2021) a normal weight on the mass it falls short by. A star's radius is a weighted quantile of the radii, at its mass, of the equations
 of state that hold such a star: the standard-normal `deviation` the caller draws becomes the probability that picks the quantile
-(0 gives the weighted median, as the band's centre did before), interpolated between the radii so that it is continuous.
+(0 gives the weighted median, as the band's center did before), interpolated between the radii so that it is continuous.
 [Stand-in NS4, tier T2, tweak L1: the weights are a likelihood on the three numbers above, not a fit.]
 """
 
@@ -25,12 +25,12 @@ from planetgen.physics import neutron_star_structure as structure
 MILLER_R14 = (12.45, 0.65)
 MILLER_R208 = (12.35, 0.75)
 J0740_MASS = (2.08, 0.07)
-"""tuples: `(centre, sigma)` of the constraints the weights use: R(1.4) and R(2.08), km [R3075], and the mass of PSR
+"""tuples: `(center, sigma)` of the constraints the weights use: R(1.4) and R(2.08), km [R3075], and the mass of PSR
 J0740+6620, solar masses [R1404]."""
 
 
-def _normal_weight(value, centre, sigma):
-    return math.exp(-0.5 * ((value - centre) / sigma) ** 2)
+def _normal_weight(value, center, sigma):
+    return math.exp(-0.5 * ((value - center) / sigma) ** 2)
 
 
 def eos_weight(eos):

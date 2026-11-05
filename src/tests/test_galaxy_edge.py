@@ -46,7 +46,7 @@ def test_a_plan_stops_at_the_edge_and_stores_it_as_a_pin(mysql_config, capsys):
 
 
 @pytest.mark.db
-def test_an_edge_in_scale_lengths_follows_the_disc(mysql_config, capsys):
+def test_an_edge_in_scale_lengths_follows_the_disk(mysql_config, capsys):
     run_cli("plan", ["--edge=3L", "--disk-scale-length=100pc", "--nuclear-amplitude", "0",
                      "--seed", "00112233445566778899AABBCCDDEEFF"] + mysql_argv(mysql_config))
     conn = store.get_connection(mysql_config)

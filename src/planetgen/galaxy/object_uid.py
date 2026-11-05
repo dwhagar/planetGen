@@ -24,8 +24,8 @@ cell beyond shell 1,303.
   another's state: `SERIAL_GENERATED` (the object's rank in generation order
   in its birth sector), `SERIAL_RUNTIME` (added after generation: an admin's
   addition, an ejection, a facility) and `SERIAL_FIELD` (an object stored by
-  a sector other than the one holding its centre, such as a nebula) and `SERIAL_REGION` (a region of space stored on its
-  own, a globular cluster's or a superbubble's container, DB.85: its rank among the regions whose centre lies in the
+  a sector other than the one holding its center, such as a nebula) and `SERIAL_REGION` (a region of space stored on its
+  own, a globular cluster's or a superbubble's container, DB.85: its rank among the regions whose center lies in the
   birth sector).
 * The body number is 0 for the top-level object (a system, a rogue planet, a
   nebula, a facility) and 1 and up for the stars, planets, moons, belts and
@@ -341,7 +341,7 @@ def captured_member(belt_id, rank, planet_id, layout=LAYOUT):
 
 def outside_reservoir_member(planet_id, rank, layout=LAYOUT):
     """
-    A body from a reservoir that is not a belt of the system (the outer disc before it is a belt, a passing population) that a planet holds prints
+    A body from a reservoir that is not a belt of the system (the outer disk before it is a belt, a passing population) that a planet holds prints
     `<planet ID>.<rank hex>`, the same sub-number pattern with the planet's ID in the belt's place and the 12-bit body field untouched. Its
     parent link is the planet itself: `Captured(designation, format_id(planet_id))`. Which reservoir it came from is recorded apart.
     """

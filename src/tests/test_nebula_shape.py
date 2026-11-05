@@ -31,10 +31,10 @@ def _unit_ball_points(count=4000, seed=1):
 def test_the_same_seed_draws_the_same_shape_and_others_differ():
     assert _shape(3).to_dict() == _shape(3).to_dict()
     assert _shape(3).to_dict() != _shape(4).to_dict()
-    # 4 to 8 centres, each with a radius.
+    # 4 to 8 centers, each with a radius.
     for seed in SEEDS:
         shape = _shape(seed)
-        assert 4 <= len(shape.centres) <= 8 and len(shape.radii) == len(shape.centres)
+        assert 4 <= len(shape.centers) <= 8 and len(shape.radii) == len(shape.centers)
 
 
 def test_a_shape_round_trips_through_json():

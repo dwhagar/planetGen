@@ -84287,6 +84287,41 @@
    "volume": "77",
    "year": 1989
   },
+  "10.1016/0019-1035(90)90155-3": {
+   "authors": [
+    [
+     "Pearl",
+     "J."
+    ],
+    [
+     "Conrath",
+     "B."
+    ],
+    [
+     "Hanel",
+     "R."
+    ],
+    [
+     "Pirraglia",
+     "J."
+    ],
+    [
+     "Coustenis",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0019-1035(90)90155-3",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "12",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The albedo, effective temperature, and energy balance of Uranus, as determined from Voyager IRIS data",
+   "type": "journal-article",
+   "volume": "84",
+   "year": 1990
+  },
   "10.1016/0019-1035(91)90039-v": {
    "authors": [
     [
@@ -86290,6 +86325,29 @@
    "type": "book-chapter",
    "volume": "",
    "year": 2025
+  },
+  "10.1016/b978-0-444-53802-4.00176-7": {
+   "authors": [
+    [
+     "Guillot",
+     "T."
+    ],
+    [
+     "Gautier",
+     "D."
+    ]
+   ],
+   "book": "Treatise on Geophysics",
+   "doi": "10.1016/b978-0-444-53802-4.00176-7",
+   "editors": [],
+   "journal": "Treatise on Geophysics",
+   "page": "529",
+   "publisher": "Elsevier",
+   "src": "crossref",
+   "title": "Giant Planets",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2015
   },
   "10.1016/b978-1-4832-0088-0.50009-8": {
    "authors": [
@@ -131452,6 +131510,29 @@
    "volume": "311",
    "year": 2000
   },
+  "10.1046/j.1365-8711.2000.03133.x": {
+   "authors": [
+    [
+     "Boissier",
+     "S."
+    ],
+    [
+     "Prantzos",
+     "N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1046/j.1365-8711.2000.03133.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "398",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Chemo-spectrophotometric evolution of spiral galaxies -- II. Main properties of present-day disc galaxies",
+   "type": "journal-article",
+   "volume": "312",
+   "year": 2000
+  },
   "10.1046/j.1365-8711.2000.03138.x": {
    "authors": [
     [
@@ -131679,6 +131760,37 @@
    "type": "journal-article",
    "via": "title identified from the citing sentences, matched at Crossref",
    "volume": "322",
+   "year": 2001
+  },
+  "10.1046/j.1365-8711.2001.04049.x": {
+   "authors": [
+    [
+     "Boissier",
+     "S."
+    ],
+    [
+     "Boselli",
+     "A."
+    ],
+    [
+     "Prantzos",
+     "N."
+    ],
+    [
+     "Gavazzi",
+     "G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1046/j.1365-8711.2001.04049.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "733",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Chemo-spectrophotometric evolution of spiral galaxies--IV. Star formation efficiency and effective ages of spirals",
+   "type": "journal-article",
+   "volume": "321",
    "year": 2001
   },
   "10.1046/j.1365-8711.2001.04068.x": {
@@ -141807,6 +141919,33 @@
    "volume": "634",
    "year": 2020
   },
+  "10.1051/0004-6361/201936378": {
+   "authors": [
+    [
+     "Scheibe",
+     "L."
+    ],
+    [
+     "Nettelmann",
+     "N."
+    ],
+    [
+     "Redmer",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201936378",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A70",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Thermal evolution of Uranus and Neptune",
+   "type": "journal-article",
+   "volume": "632",
+   "year": 2019
+  },
   "10.1051/0004-6361/201936482": {
    "arxiv": "1911.04745",
    "authors": [
@@ -141893,6 +142032,29 @@
    "type": "journal-article",
    "via": "chosen by hand from the citing sentences; author and year checked against the record",
    "volume": "640",
+   "year": 2020
+  },
+  "10.1051/0004-6361/201936588": {
+   "authors": [
+    [
+     "Vazan",
+     "A."
+    ],
+    [
+     "Helled",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201936588",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A50",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Explaining the low luminosity of Uranus: a self-consistent thermal and structural evolution",
+   "type": "journal-article",
+   "volume": "633",
    "year": 2020
   },
   "10.1051/0004-6361/201936713": {
@@ -142845,6 +143007,33 @@
    "title": "The chemical make-up of the Sun: A 2020 vision",
    "type": "journal-article",
    "volume": "653",
+   "year": 2021
+  },
+  "10.1051/0004-6361/202140663": {
+   "authors": [
+    [
+     "Scheibe",
+     "L."
+    ],
+    [
+     "Nettelmann",
+     "N."
+    ],
+    [
+     "Redmer",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202140663",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A200",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Thermal evolution of Uranus and Neptune",
+   "type": "journal-article",
+   "volume": "650",
    "year": 2021
   },
   "10.1051/0004-6361/202140789": {
@@ -200232,6 +200421,37 @@
    "volume": "491",
    "year": 2019
   },
+  "10.1093/mnras/stz3271": {
+   "authors": [
+    [
+     "Reinhardt",
+     "C."
+    ],
+    [
+     "Chau",
+     "A."
+    ],
+    [
+     "Stadel",
+     "J."
+    ],
+    [
+     "Helled",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stz3271",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "5336",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Bifurcation in the history of Uranus and Neptune: the role of giant impacts",
+   "type": "journal-article",
+   "volume": "492",
+   "year": 2019
+  },
   "10.1093/mnras/stz3408": {
    "arxiv": "1910.07573",
    "authors": [
@@ -231897,6 +232117,49 @@
    "via": "chosen by hand from the citing sentences; author and year checked against the record",
    "volume": "281",
    "year": 1998
+  },
+  "10.1126/science.284.5417.1146": {
+   "authors": [
+    [
+     "Burns",
+     "J. A."
+    ],
+    [
+     "Showalter",
+     "M. R."
+    ],
+    [
+     "Hamilton",
+     "D. P."
+    ],
+    [
+     "Nicholson",
+     "P. D."
+    ],
+    [
+     "Pater",
+     "I. D."
+    ],
+    [
+     "Ockert-Bell",
+     "M. E."
+    ],
+    [
+     "Thomas",
+     "P. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.284.5417.1146",
+   "editors": [],
+   "journal": "Science",
+   "page": "1146",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "The Formation of Jupiter's Faint Rings",
+   "type": "journal-article",
+   "volume": "284",
+   "year": 1999
   },
   "10.1126/science.288.5466.658": {
    "authors": [
@@ -279123,7 +279386,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5112,
+ "id_next": 5123,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -279508,6 +279771,7 @@
   "10.1016/0019-1035(89)90025-0": "R1172",
   "10.1016/0019-1035(89)90083-3": "R0797",
   "10.1016/0019-1035(89)90089-4": "R4344",
+  "10.1016/0019-1035(90)90155-3": "R5116",
   "10.1016/0019-1035(91)90039-v": "R1771",
   "10.1016/0019-1035(91)90045-u": "R1140",
   "10.1016/0019-1035(91)90090-g": "R2248",
@@ -279590,6 +279854,7 @@
   "10.1016/b978-0-12-434750-2.50049-6": "R2540",
   "10.1016/b978-0-12-816490-7.00006-0": "R4839",
   "10.1016/b978-0-323-99762-1.00138-8": "R4156",
+  "10.1016/b978-0-444-53802-4.00176-7": "R5115",
   "10.1016/b978-1-4832-0088-0.50009-8": "R3996",
   "10.1016/j.ascom.2013.11.001": "R3221",
   "10.1016/j.ascom.2015.05.006": "R0226",
@@ -280824,6 +281089,7 @@
   "10.1046/j.1365-8711.1999.02692.x": "R4060",
   "10.1046/j.1365-8711.1999.02784.x": "R4088",
   "10.1046/j.1365-8711.2000.03053.x": "R3352",
+  "10.1046/j.1365-8711.2000.03133.x": "R5121",
   "10.1046/j.1365-8711.2000.03138.x": "R0327",
   "10.1046/j.1365-8711.2000.03374.x": "R4639",
   "10.1046/j.1365-8711.2000.03426.x": "R2055",
@@ -280833,6 +281099,7 @@
   "10.1046/j.1365-8711.2001.03974.x": "R2868",
   "10.1046/j.1365-8711.2001.03976.x": "R3582",
   "10.1046/j.1365-8711.2001.04022.x": "R2498",
+  "10.1046/j.1365-8711.2001.04049.x": "R5122",
   "10.1046/j.1365-8711.2001.04068.x": "R0583",
   "10.1046/j.1365-8711.2001.04285.x": "R1310",
   "10.1046/j.1365-8711.2001.04361.x": "R1309",
@@ -280997,9 +281264,11 @@
   "10.1051/0004-6361/201935812": "R1234",
   "10.1051/0004-6361/201935999": "R3446",
   "10.1051/0004-6361/201936329": "R1578",
+  "10.1051/0004-6361/201936378": "R5119",
   "10.1051/0004-6361/201936482": "R3384",
   "10.1051/0004-6361/201936557": "R3348",
   "10.1051/0004-6361/201936576": "R3935",
+  "10.1051/0004-6361/201936588": "R5117",
   "10.1051/0004-6361/201936713": "R3647",
   "10.1051/0004-6361/201936775": "R0373",
   "10.1051/0004-6361/201936804": "R3806",
@@ -281023,6 +281292,7 @@
   "10.1051/0004-6361/202040175": "R0860",
   "10.1051/0004-6361/202140390": "R0602",
   "10.1051/0004-6361/202140445": "R0168",
+  "10.1051/0004-6361/202140663": "R5120",
   "10.1051/0004-6361/202140789": "R0884",
   "10.1051/0004-6361/202140793": "R0405",
   "10.1051/0004-6361/202141506": "R4866",
@@ -282474,6 +282744,7 @@
   "10.1093/mnras/stz2937": "R2151",
   "10.1093/mnras/stz3081": "R2444",
   "10.1093/mnras/stz3098": "R2971",
+  "10.1093/mnras/stz3271": "R5118",
   "10.1093/mnras/stz3408": "R2428",
   "10.1093/mnras/stz3592": "R0831",
   "10.1093/mnras/stz3603": "R0457",
@@ -283120,6 +283391,7 @@
   "10.1126/science.277.5324.358": "R2578",
   "10.1126/science.278.5341.1245": "R2276",
   "10.1126/science.281.5381.1342": "R1969",
+  "10.1126/science.284.5417.1146": "R5114",
   "10.1126/science.288.5466.658": "R0630",
   "10.1126/science.341.6150.1062-b": "R4875",
   "10.1126/science.8105534": "R2362",
@@ -285474,11 +285746,13 @@
   "web:https://docs.python.org/3/library/concurrent.futures.html": "R5032",
   "web:https://docs.unity3d.com/packages/com.unity.visualeffectgraph@10.3/manual/block-camerafade.html": "R5062",
   "web:https://elib.dlr.de/203153/1/final.pdf": "R5046",
+  "web:https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/lod-catalogs.html": "R5113",
   "web:https://hedgedocs.com/index.php/transparency_dithering": "R5050",
   "web:https://interplayoflight.wordpress.com/2022/07/10/order-independent-transparency-endgame/": "R5052",
   "web:https://learnopengl.com/guest-articles/2020/oit/weighted-blended": "R5053",
   "web:https://learnopengl.com/guest-articles/2021/scene/frustum-culling": "R5054",
   "web:https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/": "R5058",
+  "web:https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/c/req/abcorr.html": "R5112",
   "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
   "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
   "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
@@ -285984,6 +286258,24 @@
    "name": "Part three – dithering in quantization of 2D images",
    "provider": "Wronski, B",
    "url": "https://bartwronski.com/page/3/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-05",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "NAIF SPICE: aberration corrections",
+   "provider": "NASA JPL Navigation and Ancillary Information Facility",
+   "url": "https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/abcorr.html",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-05",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Gaia Sky: level-of-detail catalogs",
+   "provider": "Gaia Sky project, Heidelberg University",
+   "url": "https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/LOD-catalogs.html",
    "year": ""
   }
  ]

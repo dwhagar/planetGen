@@ -3,7 +3,7 @@
 """
 The points that draw the nebulae of one Galaxy Map node (MAP.365).
 
-`group_volume(conn, key)` reads the nebulae whose centre lies in the block `key` (`m.shell.band.wedge`, the node key of the map's
+`group_volume(conn, key)` reads the nebulae whose center lies in the block `key` (`m.shell.band.wedge`, the node key of the map's
 ladder) and the nebulae around it, and has `galaxy.nebula_volume` sample their shape from the model's density
 (`galaxy.nebula_density`). The same key always gives the same bytes for the same database contents; nothing is stored.
 """

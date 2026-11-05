@@ -118,13 +118,13 @@ def test_the_members_are_young_light_stars_inside_the_cloud_and_the_same_every_t
     core = _cloud("Q")
     radius = ly_to_pc(core.radius_ly)
     for k in range(60):
-        centre = (500.0 + 3.7 * k, 20.0, -4.0)
-        members = nebula_contents.cloud_members(SEED, core, centre)
-        again = nebula_contents.cloud_members(SEED, core, centre)
+        center = (500.0 + 3.7 * k, 20.0, -4.0)
+        members = nebula_contents.cloud_members(SEED, core, center)
+        again = nebula_contents.cloud_members(SEED, core, center)
         assert [(m.position_pc, m.mass_sol, m.age_yr, m.seed) for m in members] == [
             (m.position_pc, m.mass_sol, m.age_yr, m.seed) for m in again]
         for m in members:
-            assert sum((m.position_pc[i] - centre[i]) ** 2 for i in range(3)) <= radius ** 2 * (1 + 1e-9)
+            assert sum((m.position_pc[i] - center[i]) ** 2 for i in range(3)) <= radius ** 2 * (1 + 1e-9)
             assert 0.08 <= m.mass_sol < tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL
             assert 0.0 <= m.age_yr < tuning.PROTOSTAR_MAX_AGE_YR
     other = nebula_contents.cloud_members(bytes(16), core, (500.0, 20.0, -4.0))
@@ -157,14 +157,14 @@ class _Sector:
 
 def test_each_sector_builds_only_the_members_inside_it_and_together_they_make_every_one():
     core = _cloud("Q")
-    centre_pc = (8000.0, 0.0, 0.0)
-    cloud_centre = (8000.0, 0.0, 0.0)
-    cloud_field = (SEED, None, centre_pc, 3.0)
+    center_pc = (8000.0, 0.0, 0.0)
+    cloud_center = (8000.0, 0.0, 0.0)
+    cloud_field = (SEED, None, center_pc, 3.0)
     args = _args()
     expected = 0
     built = []
     for k in range(10):
-        cloud = (core, (cloud_centre[0] + 0.01 * k, 0.0, 0.0))
+        cloud = (core, (cloud_center[0] + 0.01 * k, 0.0, 0.0))
         expected += len(nebula_contents.cloud_members(SEED, core, cloud[1]))
         halves = [_Sector([cloud], side) for side in (True, False)]
         for sector in halves:

@@ -90,9 +90,13 @@ Entry = collections.namedtuple("Entry", "incarnation tags body stored_at cost")
 process stored it (the cache's clock) and how many seconds it took to fetch."""
 
 
+UNCACHED_SUFFIXES = ("/sky",)
+"""tuple: Path endings never cached here: a system's sky (`/systems/<id>/sky`, VIEW.31) is megabytes of packed stars that `skycache.py` keeps on disk."""
+
+
 def is_cacheable(path):
     """Whether a GET of `path` (under `/api`, no query) may be cached."""
-    return not path.startswith(UNCACHED_PREFIXES)
+    return not path.startswith(UNCACHED_PREFIXES) and not path.endswith(UNCACHED_SUFFIXES)
 
 
 def _path_of(target):

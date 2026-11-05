@@ -33,10 +33,10 @@ def _sector(address, rogue):
 
 
 def _save(config, address, rogue=1):
-    centre = spherical.sector_position_pc(*address, float(tuning.DEFAULT_SECTOR_EDGE_PC))
+    center = spherical.sector_position_pc(*address, float(tuning.DEFAULT_SECTOR_EDGE_PC))
     return store.save_sector(_sector(address, rogue), config=config, galaxy_position={
-        "center_x_pc": float(centre[0]), "center_y_pc": float(centre[1]), "center_z_pc": float(centre[2]),
-        "galactic_radius_pc": math.dist(centre, (0.0, 0.0, 0.0)),
+        "center_x_pc": float(center[0]), "center_y_pc": float(center[1]), "center_z_pc": float(center[2]),
+        "galactic_radius_pc": math.dist(center, (0.0, 0.0, 0.0)),
         "shell_index": address[0], "band_index": address[1], "wedge_index": address[2]})
 
 

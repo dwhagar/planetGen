@@ -103,7 +103,7 @@ def test_states_by_temperature_and_pressure():
     assert 6.5 <= earth.ocean_ph <= 8.5 or earth.ocean_class != "neutral"
     venus = _body("M", 740.0, 9.2e6)
     _generate_hydrosphere(venus, 0.087)
-    assert venus.hydrosphere == "vapour" and venus.ocean_depth_km is None
+    assert venus.hydrosphere == "vapor" and venus.ocean_depth_km is None
     moon = _body("C", 250.0, 0.0)
     _generate_hydrosphere(moon, 0.02)
     assert moon.hydrosphere == "dry" and moon.land_fraction == 1.0
@@ -190,7 +190,7 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                     (ph_lo, ph_hi), (aw_lo, aw_hi) = hy.OCEAN_CHEMISTRY[body.ocean_class]
                     assert ph_lo <= body.ocean_ph <= ph_hi and aw_lo <= body.water_activity <= aw_hi
                     assert body.phosphorus in ("high", "limited", "starved")
-    # a runaway-greenhouse vapour world is rare (2 in 590 bodies) and is checked by hand above, so a sample need not hold one
+    # a runaway-greenhouse vapor world is rare (2 in 590 bodies) and is checked by hand above, so a sample need not hold one
     assert {"ice", "dry"} <= seen
 
 

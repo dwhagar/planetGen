@@ -222,12 +222,12 @@ def test_the_spin_switch_and_reduced_motion_hold_the_picture_still(browser, url)
 
 
 def _halves(page, y=160):
-    """The brightness of the left and the right part of the disc, along its middle row `y` (a locked world's disc is fitted into the picture
-    right of the arrow, so its middle row and the parts are those of its disc)."""
+    """The brightness of the left and the right part of the disk, along its middle row `y` (a locked world's disk is fitted into the picture
+    right of the arrow, so its middle row and the parts are those of its disk)."""
     return page.evaluate("""(y) => {
         const c = document.querySelector('canvas'), d = c.getContext('2d').getImageData(0, y, 320, 1).data;
-        const disc = c.dataset.disc ? JSON.parse(c.dataset.disc) : {x: 160, radius: 154};
-        const from = (a, b) => { let sum = 0; for (let x = Math.round(disc.x + a * disc.radius); x < Math.round(disc.x + b * disc.radius); x++) sum += d[x * 4] + d[x * 4 + 1] + d[x * 4 + 2]; return sum; };
+        const disk = c.dataset.disk ? JSON.parse(c.dataset.disk) : {x: 160, radius: 154};
+        const from = (a, b) => { let sum = 0; for (let x = Math.round(disk.x + a * disk.radius); x < Math.round(disk.x + b * disk.radius); x++) sum += d[x * 4] + d[x * 4 + 1] + d[x * 4 + 2]; return sum; };
         return {left: from(-0.85, -0.1), right: from(0.1, 0.85)};
     }""", y)
 
@@ -243,14 +243,14 @@ def _brightness(page, xs, y=160):
 @pytest.mark.parametrize("kind", ["upright", "tilted", "slow"])
 def test_a_world_shows_a_curved_day_and_night_line_with_more_than_half_lit_and_keeps_turning(browser, url, kind):
     """UX.250 (was UX.244): the star is to the left and a little in front, so the day and night line is a curve bowing into the night side with
-    more than half the disc lit: along the middle row the disc is still bright past its centre (the line was the centre) and dark by its right
+    more than half the disk lit: along the middle row the disk is still bright past its center (the line was the center) and dark by its right
     limb, and the surface turns past it."""
     page, errors = _opened(browser, url, kind)
     try:
         halves = _halves(page)
         assert halves["left"] > 1.5 * halves["right"], halves
-        left_limb, past_centre, right_limb = _brightness(page, [114, 206, 275])
-        assert past_centre > 1.8 * right_limb and left_limb > past_centre, (left_limb, past_centre, right_limb)
+        left_limb, past_center, right_limb = _brightness(page, [114, 206, 275])
+        assert past_center > 1.8 * right_limb and left_limb > past_center, (left_limb, past_center, right_limb)
         first = _sample(page)["angle"]
         page.wait_for_timeout(1500)
         assert _sample(page)["angle"] > first, kind
@@ -285,17 +285,17 @@ def test_a_locked_world_holds_its_day_side_toward_the_star_and_says_so(browser, 
         assert again["angle"] == first["angle"] and again["row"] == first["row"]
         assert page.evaluate("document.querySelector('canvas').dataset.locked") == "1"
         assert not page.is_visible("[data-spin]")
-        # UX.245: the picture itself carries the label (the strip under the disc is opaque where the label is) and the arrow on the left.
+        # UX.245: the picture itself carries the label (the strip under the disk is opaque where the label is) and the arrow on the left.
         marks = page.evaluate("""() => {
             const d = document.querySelector('canvas').getContext('2d').getImageData(0, 0, 320, 320).data;
             const at = (x, y) => d[(y * 320 + x) * 4 + 3];
-            const disc = JSON.parse(document.querySelector('canvas').dataset.disc);
-            return {label: at(160, 304), arrow: at(10, Math.round(disc.y)), free: at(2, 2), disc};
+            const disk = JSON.parse(document.querySelector('canvas').dataset.disk);
+            return {label: at(160, 304), arrow: at(10, Math.round(disk.y)), free: at(2, 2), disk};
         }""")
         assert marks["label"] > 100 and marks["arrow"] > 100 and marks["free"] == 0, marks
-        # UX.250: the arrow and its word are left of the disc and the label is under it, so neither covers it.
-        disc = marks["disc"]
-        assert disc["x"] - disc["radius"] >= 50 and disc["y"] + disc["radius"] <= 320 - 26, disc
+        # UX.250: the arrow and its word are left of the disk and the label is under it, so neither covers it.
+        disk = marks["disk"]
+        assert disk["x"] - disk["radius"] >= 50 and disk["y"] + disk["radius"] <= 320 - 26, disk
     finally:
         page.context.close()
     assert not errors, errors
@@ -307,10 +307,10 @@ def test_a_locked_world_holds_its_day_side_toward_the_star_and_says_so(browser, 
 def _rim_and_dusk(page):
     """`(alpha just outside the limb on the lit side, brightness a little past the day and night line)` of the picture."""
     return page.evaluate("""() => {
-        const c = document.querySelector('canvas'), disc = JSON.parse(c.dataset.disc), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-        const px = (nx, ny) => { const x = Math.round(disc.x + nx * disc.radius), y = Math.round(disc.y + ny * disc.radius); return (y * c.width + x) * 4; };
+        const c = document.querySelector('canvas'), disk = JSON.parse(c.dataset.disk), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        const px = (nx, ny) => { const x = Math.round(disk.x + nx * disk.radius), y = Math.round(disk.y + ny * disk.radius); return (y * c.width + x) * 4; };
         const outside = d[px(-1.03, 0) + 3];
-        const t = px(0.6, 0);                        // right of the centre: past the line, in the night side (the star is to the left and in front)
+        const t = px(0.6, 0);                        // right of the center: past the line, in the night side (the star is to the left and in front)
         return [outside, d[t] + d[t + 1] + d[t + 2]];
     }""")
 

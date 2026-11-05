@@ -530,7 +530,7 @@ def test_zone_and_quadrant_group_as_before():
 
 
 @pytest.mark.parametrize("address, radius", [((12, 17, 4), 0.0), ((5, 1, 25), 15.0)])
-def test_a_query_centred_on_a_cell_centre_does_not_trip_on_rounding(address, radius):
+def test_a_query_centered_on_a_cell_center_does_not_trip_on_rounding(address, radius):
     """A cosine that lands a hair over 1 (rounding) is clamped, not a math domain error."""
     center = spherical.sector_position_pc(*address, 4.0)
     cells = list(spherical.enumerate_sectors_within_radius(center, radius, 4.0))

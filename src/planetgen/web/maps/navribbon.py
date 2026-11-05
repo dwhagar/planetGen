@@ -105,7 +105,7 @@ def _labels(distance_ly):
 
 
 def _stub_slots(count):
-    """The x offsets, pixels, of `count` stubs on one side of a stop, centred on it."""
+    """The x offsets, pixels, of `count` stubs on one side of a stop, centered on it."""
     return [_round((slot - (count - 1) / 2) * STUB_SPACING) for slot in range(count)]
 
 
