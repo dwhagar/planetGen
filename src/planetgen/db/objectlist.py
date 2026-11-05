@@ -25,7 +25,7 @@ SORTS = {
 `_mass` and `_radius`. A list sorted by class, mass or radius holds the objects that have one. A star, planet or moon list also
 sorts by any key of `db.search_values` its kind has (UX.228, `value_sort_keys`); those read the kind's own table."""
 
-VALUE_KINDS = ("star", "planet", "moon")
+VALUE_KINDS = ("star", "planet", "moon", "nebula", "supernova_remnant")
 """tuple: The kinds whose lists take the range filters and sorts of `db.search_values` (UX.228)."""
 
 
@@ -70,7 +70,7 @@ PHYSICS_COLUMNS = {
 and age; a planet's or moon's orbit size, eccentricity and surface temperature), read from the kind's table. The lists show
 them; they are not sorts (the index holds no column to order by)."""
 
-_TABLES = {"star": "stars", "planet": "planets", "moon": "moons"}
+_TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "nebula": "nebulae", "supernova_remnant": "supernova_remnants"}
 
 HABITABILITY_COLUMNS = query._tier_columns()
 """tuple: The stored overall score and the six domain tiers (0 Blue to 3 Red) a planet or moon item carries."""
