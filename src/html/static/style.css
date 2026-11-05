@@ -6494,6 +6494,7 @@ a.help-mark {
   color: var(--accent, #7f8cff);
   filter: brightness(1.6);
   padding: 0 4px;
+}
 
 /* MAP.375: the Galaxy Map's side strip for height (galaxystrip.js): an edge-on strip of the wedge's stars under the map, and on
    a phone or a touch screen a drawer fixed to the bottom of the window. */
