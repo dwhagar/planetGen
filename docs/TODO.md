@@ -2369,28 +2369,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: POP.33, POP.34, DB.105.
 
-- [ ] **NAV.72 Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  8 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: a hop whose
-  straight line crosses a gravity-well keep-out sphere is drawn bent
-  around it or flagged in the diagram. Blocked on NAV.6. Done: a browser
-  test. Related: NAV.58 (editing a course by dragging waypoints wants an
-  editing surface; the diagram is a better one than the 3D map, a later
-  part). Goal #1679. Filed by the TODO thread.
-  Prerequisites: NAV.6.
-
 ## GEN: Generation and physics
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
@@ -18336,6 +18314,17 @@ clears each one.
   parity test needs both; that line changes what generation stores, so
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
+
+- [ ] **TEST.593 test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug)**
+  Core 2 (as the lane reported, 5:20 AM EST on 2026-11-05) found
+  tests/test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits...
+  red on plain main, not from its own change. Do: reproduce, decide
+  whether the page contents menu or the test is wrong (a menu that wraps
+  to two rows when it fits is a layout bug and is fixed in the page),
+  and repair. Done: the test passes on plain main under the narrow gate.
+  Lock-free. Version 8.1. Owner: Core 5, after TEST.591. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.591.
 
 ## USR: User accounts
 
