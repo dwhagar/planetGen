@@ -374,3 +374,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.174:SKB2 | VIEW.31 | the sky route reads the faint-light table through band_for |
 | row | 6.174:SKB3 | VIEW.31 | the sky route reads the table's ends through band_for |
 | row | 6.174:SKB4 | VIEW.31 | the sky route reads the cell, the map size and the steps through band_for |
+| module | planetgen.galaxy.sky | VIEW.31 | the sky route (VIEW.31) calls sky_from with the sphere query of VIEW.22 as its source and packs the result (VIEW.29) |
+| row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |

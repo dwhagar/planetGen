@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1090 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1092 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 153 | 17 | 8 | 1 | 0 | 179 |
 | T2 | 117 | 45 | 0 | 1 | 0 | 163 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
-| T4 | 52 | 5 | 1 | 18 | 10 | 86 |
+| T4 | 53 | 5 | 1 | 18 | 10 | 87 |
 | T5 | 49 | 19 | 2 | 1 | 0 | 71 |
 | T6 | 103 | 82 | 21 | 52 | 0 | 258 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 22 | 14 | 5 | 48 | 29 | 118 |
-| All | 613 | 238 | 52 | 147 | 40 | 1090 |
+| T9 | 23 | 14 | 5 | 48 | 29 | 119 |
+| All | 615 | 238 | 52 | 147 | 40 | 1092 |
 
 ## How the labels were given
 
@@ -1474,6 +1474,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.175 Stand-ins of the sky catalogue of a system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SKC1 | P | T4 | L0 | sky.DISPERSION_KMS (35, 25, 20): the velocity dispersion in the radial, tangential and vertical directions (km/s) of a star with no stored velocity, which moves counterclockwise at the circular speed of the galaxy at its radius | 25 to 45; 15 to 35; 12 to 30 | a thin-disc population in a galaxy of the Milky Way's mix; an old or halo star has a larger dispersion and a lagging mean speed (the asymmetric drift is left out) | a measured velocity ellipsoid of the solar neighbourhood outside these ranges, or the velocity law of GEN.339 giving a different spread for the same stars | the velocity law of GEN.339 and the stepper of GEN.340, which store a velocity for every scatter star | recalled: the thin-disc ellipsoid near the Sun is about 35, 25 and 20 km/s in U, V and W; not read from a paper. The error it causes is small: 30 km/s for 300 years of light time moves a star 0.01 arcsecond at 10 pc and 20 arcseconds at 3 kpc | VIEW.31 | - |
+| SKC2 | P | T9 | L0 | sky.stars_from_sphere and sky_from_stars: a star with no stored epoch (`epoch_unix` NULL, an unbuilt bright star) is taken to hold its stored position at the sky's time | the position is at most one orbit epoch old (a few hundred years to a few thousand years at the update's step) | an unbuilt bright star; a star that has an epoch is moved from it | a bright star's stored position stamped with the orbit epoch it was drawn at (the scatter's own epoch), which differs from the sky's time by more than a quarter of a light time | the epoch the scatter was drawn at (the database's orbit epoch, `db.store`), once every unbuilt bright star stores one | needed output: the sky has to put the star somewhere; a star moving at 30 km/s over 1,000 years is 0.03 pc, 0.6 arcminutes at 10 pc and 6 arcseconds at 1 kpc | - | - |
 
 ## 6.174 Stand-ins of the glow band of the unresolved stars
 
