@@ -1383,6 +1383,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   label a cluster by its name, or by its designation while it has none.
   Done: the page and the labels, and a browser test on a seeded cluster
   before and after its first sector is filled.
+  Branch (Core 2) (2:35 AM EST on 2026-11-05): Branch
+  claude/core2-map224, head 60f94eab1 (as the lane reported), stacked on
+  the GEN.359 branch (b6df8cbde), so it rides train 12 right after
+  GEN.359, not alone. No epoch of its own, output unchanged, no
+  migration. A globular cluster page lists its own stars (each linked)
+  and says how many more are not yet charted; an unnamed cluster reads
+  Globular cluster plus its ID until the first sector holding one of its
+  stars is filled; a star of a cluster shows Member of: <cluster> in its
+  Location block; the Galaxy Map names clusters when large enough on
+  screen (new Cluster names switch in the Labels group) and a click
+  opens a card linking to the cluster page. The Sector Map has no
+  cluster labels (it draws none): split out as a new item.
   Prerequisites: GEN.359. Related: GEN.209.
 
 - [ ] **MAP.232 Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters**
@@ -1910,6 +1922,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   question 2) is held until Boss answers. Goal #3241. Filed by the TODO
   thread.
   Prerequisites: none.
+
+- [ ] **MAP.381 Sector Map: draw the globular clusters and label them by name or designation**
+  Split out of MAP.224 by Core 2 (2:30 AM EST on 2026-11-05): the Sector
+  Map draws no clusters today, so the Galaxy Map's Cluster names switch
+  has no Sector Map twin. Do: draw each cluster that touches the sector
+  (a soft marker sized by its real radius) and label it by name or
+  designation with the same switch, click opens the same card with the
+  link to the cluster page. Done: a browser test for the label and the
+  click; the Menu switch works. Lock-free, no migration. Version 8.1.
+  Prerequisites: MAP.224. Owner: Core 2, after MAP.223. Filed by the
+  TODO thread.
+  Prerequisites: MAP.224. Related: MAP.224, MAP.223.
 
 ## NAV: Navigation and courses
 
