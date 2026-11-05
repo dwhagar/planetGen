@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1139 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1136 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 156 | 16 | 8 | 1 | 0 | 181 |
+| T1 | 155 | 16 | 8 | 1 | 0 | 180 |
 | T2 | 120 | 47 | 1 | 1 | 0 | 169 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 19 | 10 | 92 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
-| T6 | 103 | 84 | 22 | 58 | 0 | 267 |
+| T6 | 102 | 84 | 22 | 57 | 0 | 265 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 26 | 14 | 5 | 67 | 29 | 141 |
-| All | 631 | 240 | 54 | 174 | 40 | 1139 |
+| All | 629 | 240 | 54 | 173 | 40 | 1136 |
 
 ## How the labels were given
 
@@ -1292,13 +1292,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RM1 | P | T1 | L0 | rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83 | 3.5 to 4 | bodies of one density in a steady-state collisional cascade; the supply of a real disc is bimodal (embryos and planetesimals) | ejection records (GEN.1119) whose mass spectrum, 0.33 to 30 Earth masses, has a slope outside Sumi's 0.69 to 1.43 | the supply spectrum read from the architecture's own oligarch chain and sub-minimum bodies | (n(m) ~ m^-11/6, quoted in [R0335] eq. 1; q = 3.5 in the abstract of [R3421], up to 4 with velocity evolution); [R4254, R4255] [R4254] alpha = 0.96 +0.47 -0.27 read | GEN.1111 | - |
 | RM2 | P | T6 | L0 | rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass | 0.3 to 1 | scatterers that eject (Safronov number over 1) | an N-body run in which a scatterer ejects a body heavier than itself, or lets a body under a tenth of its mass stay | the ejection records (GEN.1119), which give every ejected body's mass beside its scatterer's | the lighter of a pair is the one ejected (the architecture's `_scatter_crowded_giants` already does it); [R0258] eject embryos of at most one Earth mass beside Jupiter and Saturn analogues, read | GEN.1111 | - |
 
-## 6.111 Stand-ins of the air and water of ejected planets
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| EV1 | P | T6 | L0 | rogue_volatiles.HELD_AIR_VERDICTS dense, moderate, tenuous: the shoreline verdicts that count as the body having held an air of its own before it left | trace counted as held, or tenuous not | rocky bodies of 0.01 to 10 Earth masses at the orbit they left | a rogue of Mars's size whose surface shows no frost where the model gives one, or the reverse | the outgassing and impact-loss inventory of the body (the volatile budget of GEN.849) | the verdict names are those of `atmosphere_retention.verdict_of` ([R4862] shoreline), and where the cut falls is ours | GEN.1111 | - |
-| EV2 | B | T1 | L0 | rogue_volatiles.ENVELOPE_LAW_MASS_RANGE_EARTH 1 to 30: the planet masses the radius law of [R2741] was fitted to, a mass outside held at the nearest edge | 1 to 20 for the strict fit | the gas-giant test of a rogue (`is_gas_giant`) | a planet under 1 Earth mass whose envelope the law cannot size, called a giant by the clamp | a radius law for envelopes on cores under 1 Earth mass | the range `envelope_escape` already uses for the same law; [R2741] Eqs. 1 and 3 (`bulk_structure.envelope_radius_earth`) | GEN.1111 | - |
-
 ## 6.112 Stand-ins of the moons carried out with ejected planets
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1315,12 +1308,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CU1 | B | T3 | L1 | cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit | a factor of a few either way for hard planets | planets soft against the cluster (circular speed under V, `soft`); a harder orbit is overestimated by a factor the paper does not give | an N-body unbinding rate for a planet at 5 to 30 AU in a cluster of 1 km/s that is far below the formula | the cross sections of the N-body encounters for hard orbits | [R4184] eqs. 36 and 37, read | - | - |
 | CU2 | B | T2 | L0 | cluster_unbinding.relative_speed_km_s: sqrt(6) times the one-axis dispersion, the rms relative speed of two stars from a Maxwellian | none | a cluster in virial equilibrium with isotropic motions | a cluster with a measured relative speed far from sqrt(6) sigma | the speed of encounters from the cluster's velocity distribution | the sum of two independent Maxwellians (our derivation) | - | - |
 | CU3 | P | T6 | L1 | cluster_unbinding.half_mass_density: the density the planet sees is the half-mass density 3 M / (8 pi r_h^3) for the whole life of the cluster | the density at 0.5 to 2 r_h | the encounters of planets in the half-mass region; the core is denser | a cluster where the unbound fraction of planets measured by radius shows no gradient | the density at the planet's own position from the cluster's profile (`king`) | the half-mass density is the usual single number for a cluster; the weighting is ours | - | - |
-
-## 6.114 Stand-ins of the radiogenic heat of a rogue
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| RY1 | P | T6 | L3 | rogue_radiogenic.ACTIVE_HEAT_FLUX_W_M2 0.04 W/m2: a rocky rogue whose heat flow reaches it is geologically active | 0.02 to 0.087 | rocky rogues of 0.01 to 3 Earth masses | a model of when a stagnant lid stops erupting that puts the cut far from 0.04 for an Earth-mass body | a stagnant-lid eruption model on the interior heat (mantle potential temperature against the solidus at the lid's base) | between Mars (about 0.02 W/m2, recalled, InSight) and the Earth (0.087, [R3559], recalled); the old `ROGUE_ACTIVE_HEAT_FLUX_W_M2`, moved here unchanged | GEN.1111 | no data |
 
 ## 6.115 Stand-ins of the composition of a belt member
 

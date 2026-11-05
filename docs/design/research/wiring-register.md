@@ -105,12 +105,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.rogue_mass_function | GEN.1111 | the masses of the bodies a system ejects and their shares; the rogue rows draw their masses from it |
 | row | 6.110:RM1 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
 | row | 6.110:RM2 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
-| module | planetgen.physics.rogue_volatiles | GEN.1111 | the envelope, water, giant class and frozen air of an ejected planet; the rogue rows read them |
-| row | 6.111:EV1 | GEN.1111 | a constant of the rogue volatiles module, read when its wiring step lands |
-| row | 6.111:EV2 | GEN.1111 | a constant of the rogue volatiles module, read when its wiring step lands |
 | module | planetgen.physics.cluster_unbinding | GEN.1111 | the share of planets a birth cluster has unbound; the rogue rows add it to the ejections |
-| module | planetgen.physics.rogue_radiogenic | GEN.1111 | the radiogenic content and heat of a rogue from the star it left; the rogue rows read them in place of the host-less draw |
-| row | 6.114:RY1 | GEN.1111 | a constant of the rogue radiogenic module, read when its wiring step lands |
 | module | planetgen.physics.super_puff | GEN.1048 | the super-puff radius, fade and gate (W15); the bulk step reads it when the wiring step lands |
 | row | 6.76:PF1 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
