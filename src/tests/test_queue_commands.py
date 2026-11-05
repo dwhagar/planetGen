@@ -47,7 +47,7 @@ def test_the_same_arguments_give_the_same_list(argv):
 def test_a_step_the_request_does_not_select_is_not_in_the_list():
     kinds = lambda argv: [step.kind for step in wrapper.steps_for(*(lambda a: (a.command, a))(_args(argv)))]  # noqa: E731
     assert "scatter-mass" in kinds(["galaxy"]) and "scatter-mass" not in kinds(["sectors"])
-    assert kinds(["galaxy", "--shell", "2"])[0] == "generate-sectors" and kinds(["link"]) == ["link-neighbours"]
+    assert kinds(["galaxy", "--shell", "2"])[0] == "generate-sectors" and kinds(["link"]) == ["link-neighbors"]
     assert kinds(["plan"]) == ["plan-skeleton"]
     assert kinds(["scatter", "--mass"]) == ["scatter-mass", "refresh-block-lights"]
     assert "scatter-backfill" in kinds(["galaxy"]) and kinds(["backfill"]) == ["scatter-backfill"]

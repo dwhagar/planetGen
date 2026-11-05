@@ -34,7 +34,7 @@ def _printed(container):
 
 @pytest.fixture
 def world(mysql_config):
-    """A client over a galaxy with stored containers and one system at the first cluster's centre, and the printed IDs
+    """A client over a galaxy with stored containers and one system at the first cluster's center, and the printed IDs
     of the first cluster and the first superbubble."""
     conn = store.get_connection(mysql_config)
     try:

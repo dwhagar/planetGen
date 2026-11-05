@@ -166,7 +166,7 @@ def _vertical_any(z, scale_height_pc):
 
 
 def _sech_vertical(z, scale_height_pc):
-    """The nuclear stellar disc's vertical profile: `sech^2(z / (2 * h))`, the isothermal sheet, whose tail away from
+    """The nuclear stellar disk's vertical profile: `sech^2(z / (2 * h))`, the isothermal sheet, whose tail away from
     the plane is `exp(-|z| / h)` and whose column is `4 h` times its midplane density."""
     return _sech_squared(z / (2.0 * scale_height_pc))
 
@@ -180,7 +180,7 @@ def _sech_vertical_any(z, scale_height_pc):
 
 
 def thick_disk_amplitude(shape):
-    """The thick disk's density at the centre, in the plane, against the thin disk's 1 (raw, before the arm level):
+    """The thick disk's density at the center, in the plane, against the thin disk's 1 (raw, before the arm level):
     its mass is `structure.thick_mass_ratio` of the thin disk's (`arm_level` times `2 pi L^2 x 4 h`), so with its own
     length and height (the structure's ratios to the thin disk's) the amplitude is the mass ratio over the product
     of the squared length ratio and the height ratio, times the arm level."""
@@ -191,7 +191,7 @@ def thick_disk_amplitude(shape):
 
 
 def population_height_ratios(shape):
-    """The scale height of each thin-disc population over the old one's, for this galaxy (`galaxy.structure`): a dict
+    """The scale height of each thin-disk population over the old one's, for this galaxy (`galaxy.structure`): a dict
     of "young", "intermediate" and "old" (1)."""
     return _height_ratios(shape.structure)
 
@@ -202,7 +202,7 @@ def _height_ratios(structure):
 
 
 def central_black_hole_mass_solar(shape):
-    """The mass, solar masses, of the black hole at the centre of the galaxy `shape` describes (GEN.402): the mass in
+    """The mass, solar masses, of the black hole at the center of the galaxy `shape` describes (GEN.402): the mass in
     its bulge, or in its stars without a classical bulge, with the galaxy's own draw about the relation."""
     return galaxyStructure.black_hole_mass_solar(shape.structure, bulge_to_total(shape))
 
@@ -240,8 +240,9 @@ def model_terms(shape):
             measured from: the inter-arm minimum at the reference radius), and the nuclear terms (GEN.280): `bulge_mass` (the bulge's
             integral, in the model's unnormalized units), `nuclear_cluster_mass`, `nuclear_cluster_scale_pc`
             (the Hernquist scale radius), `nuclear_cluster_softening_pc` (the radius inside which the
-            cusp is held flat, `tuning.NUCLEAR_RESOLUTION_PC`), `nuclear_disc_mass`, `nuclear_disc_length_pc`,
-            `nuclear_disc_height_pc` and `nuclear_disc_density` (the disc's centre).
+            cusp is held flat, `tuning.NUCLEAR_RESOLUTION_PC`), `nuclear_disk_mass`, `nuclear_disk_length_pc`,
+            `nuclear_disk_height_pc` and `nuclear_disk_density` (the disk's center; GEN.614: all of the disk's mass and density are zero
+            when its length is under `tuning.NUCLEAR_RESOLUTION_PC`, a bulge radius under about 35 pc).
     """
     if shape.spheroid_amplitude:
         raise ValueError("this galaxy stores a Sersic spheroid, which the density model has no component for yet")
@@ -259,13 +260,21 @@ def model_terms(shape):
     main_mass = (bulge_mass + _disk_mass(shape.arm_level, length, shape.disk_scale_height_pc)
                  + _disk_mass(thick_amplitude, thick_length, thick_height))
     # The model's units per solar mass of the visible stars (the galaxy's stars less the stellar halo's): the nuclear
-    # cluster (GEN.402) and the nuclear disc (GEN.628) are drawn in solar masses and enter the model through it.
+    # cluster (GEN.402) and the nuclear disk (GEN.628) are drawn in solar masses and enter the model through it.
     per_solar = main_mass / (structure.stellar_mass_solar * (1.0 - structure.halo_stellar_ratio))
     cluster_mass = max(shape.nuclear_amplitude, 0.0) * structure.nuclear_cluster_mass_solar * per_solar
     cluster_scale = tuning.NUCLEAR_CLUSTER_SCALE_RATIO * shape.bulge_scale_radius_pc
-    disc_mass = max(shape.nuclear_amplitude, 0.0) * structure.nuclear_disc_mass_solar * per_solar
-    disc_length = tuning.NUCLEAR_DISC_LENGTH_RATIO * shape.bulge_scale_radius_pc
-    disc_height = tuning.NUCLEAR_DISC_HEIGHT_RATIO * shape.bulge_scale_radius_pc
+    disk_mass = max(shape.nuclear_amplitude, 0.0) * structure.nuclear_disk_mass_solar * per_solar
+    disk_length = tuning.NUCLEAR_DISK_LENGTH_RATIO * shape.bulge_scale_radius_pc
+    disk_height = tuning.NUCLEAR_DISK_HEIGHT_RATIO * shape.bulge_scale_radius_pc
+    if disk_length < tuning.NUCLEAR_RESOLUTION_PC:
+        # GEN.614: a disk shorter than the grid's core ball is a point the grid cannot hold (the density-limits report,
+        # section 2.3: five times too many systems in one cell), so it is switched off rather than softened. Owner's
+        # choice: the cluster keeps its softening because it is one Hernquist profile whose cusp can be held flat to the
+        # ball's mean, while a disk has two lengths and no single flat core that holds its mass; the disk's mass is not
+        # moved anywhere (the bulge and the cluster already hold the center), and the cut sits at a bulge radius of
+        # 2 pc / 0.057 = 35 pc, far under the 1.58 kpc of the Milky Way.
+        disk_mass = 0.0
     return {
         "thick_disk_amplitude": thick_amplitude,
         "thick_disk_scale_length_pc": thick_length,
@@ -282,10 +291,10 @@ def model_terms(shape):
         "nuclear_cluster_mass": cluster_mass,
         "nuclear_cluster_scale_pc": cluster_scale,
         "nuclear_cluster_softening_pc": _cluster_softening(cluster_mass, cluster_scale),
-        "nuclear_disc_mass": disc_mass,
-        "nuclear_disc_length_pc": disc_length,
-        "nuclear_disc_height_pc": disc_height,
-        "nuclear_disc_density": disc_mass / (8.0 * math.pi * disc_length ** 2 * disc_height),
+        "nuclear_disk_mass": disk_mass,
+        "nuclear_disk_length_pc": disk_length,
+        "nuclear_disk_height_pc": disk_height,
+        "nuclear_disk_density": disk_mass / (8.0 * math.pi * disk_length ** 2 * disk_height) if disk_mass else 0.0,
     }
 
 
@@ -305,7 +314,7 @@ def _cluster_softening(mass, scale_pc):
     """
     The radius below which the nuclear cluster's cusp is held flat (GEN.280): where the Hernquist density equals the
     mean density of the grid's core ball (radius `tuning.NUCLEAR_RESOLUTION_PC`, `3 M / (4 pi R (R + a)^2)`), found
-    by bisection (the density falls with the radius). The ball's cell, which a point sample puts at the centre, then
+    by bisection (the density falls with the radius). The ball's cell, which a point sample puts at the center, then
     holds exactly the mass inside it. `0.0` for no cluster.
     """
     if mass <= 0.0:
@@ -417,7 +426,7 @@ def _interarm_angle(radius_pc, shape):
 
 
 def _nuclear_cluster(radius_pc, terms):
-    """The nuclear star cluster (GEN.280) at `radius_pc` from the centre, unnormalized: a Hernquist profile held
+    """The nuclear star cluster (GEN.280) at `radius_pc` from the center, unnormalized: a Hernquist profile held
     flat inside `nuclear_cluster_softening_pc`. `0.0` for a galaxy without one."""
     if not terms["nuclear_cluster_mass"]:
         return 0.0
@@ -435,28 +444,28 @@ def _nuclear_cluster_array(radius_pc, terms):
     return terms["nuclear_cluster_mass"] * scale / (2.0 * math.pi * r * (r + scale) ** 3)
 
 
-def _nuclear_disc(r_cyl, z, terms):
-    """The nuclear stellar disc (GEN.280) at cylindrical radius `r_cyl` and height `z`, unnormalized: an exponential
-    disc with a `sech^2` height, like the thin disc's form. `0.0` for a galaxy without one."""
-    if not terms["nuclear_disc_mass"]:
+def _nuclear_disk(r_cyl, z, terms):
+    """The nuclear stellar disk (GEN.280) at cylindrical radius `r_cyl` and height `z`, unnormalized: an exponential
+    disk with a `sech^2` height, like the thin disk's form. `0.0` for a galaxy without one."""
+    if not terms["nuclear_disk_mass"]:
         return 0.0
-    return (terms["nuclear_disc_density"] * math.exp(-r_cyl / terms["nuclear_disc_length_pc"])
-            * _sech_vertical(z, terms["nuclear_disc_height_pc"]))
+    return (terms["nuclear_disk_density"] * math.exp(-r_cyl / terms["nuclear_disk_length_pc"])
+            * _sech_vertical(z, terms["nuclear_disk_height_pc"]))
 
 
-def _nuclear_disc_array(r_cyl, z, terms):
-    """`_nuclear_disc` on arrays (`z` one height or an array that broadcasts against `r_cyl`)."""
-    if not terms["nuclear_disc_mass"]:
+def _nuclear_disk_array(r_cyl, z, terms):
+    """`_nuclear_disk` on arrays (`z` one height or an array that broadcasts against `r_cyl`)."""
+    if not terms["nuclear_disk_mass"]:
         return np.zeros_like(np.asarray(r_cyl, dtype=float) + np.asarray(z, dtype=float))
-    return (terms["nuclear_disc_density"] * np.exp(-np.asarray(r_cyl, dtype=float) / terms["nuclear_disc_length_pc"])
-            * _sech_vertical_any(z, terms["nuclear_disc_height_pc"]))
+    return (terms["nuclear_disk_density"] * np.exp(-np.asarray(r_cyl, dtype=float) / terms["nuclear_disk_length_pc"])
+            * _sech_vertical_any(z, terms["nuclear_disk_height_pc"]))
 
 
 def nuclear_bound(r_cyl, z, shape):
     """The nuclear terms' sum at `(r_cyl, z)` (unnormalized). Both depend on the radius or the height alone, so
     this is their value at any azimuth and the bound of the sector's outline."""
     terms = model_terms(shape)
-    return _nuclear_cluster(detmath.hypot(r_cyl, z), terms) + _nuclear_disc(r_cyl, z, terms)
+    return _nuclear_cluster(detmath.hypot(r_cyl, z), terms) + _nuclear_disk(r_cyl, z, terms)
 
 
 def _bulge(x, y, z, shape, terms):
@@ -502,7 +511,7 @@ def _components(position_pc, shape):
     return _bulge(x, y, z, shape, terms), thin, _thick_disk(r_cyl, z, shape, terms), _arm_cosine(x, y, shape)
 
 
-COMPONENT_NAMES = ("thin_disk", "thick_disk", "bulge", "halo", "nuclear_cluster", "nuclear_disc")
+COMPONENT_NAMES = ("thin_disk", "thick_disk", "bulge", "halo", "nuclear_cluster", "nuclear_disk")
 """tuple: The density model's components, in the order `density_components` lists them (GEN.379)."""
 
 ComponentValues = namedtuple("ComponentValues", (*COMPONENT_NAMES, "thin_profile", "arm_cosine"))
@@ -523,7 +532,7 @@ def component_values(position_pc, shape):
     return ComponentValues(
         profile * shape.arm_level * (1 + shape.arm_amplitude * arm_cos),
         _thick_disk(r_cyl, z, shape, terms), _bulge(x, y, z, shape, terms), _halo_scalar(r_cyl, z, halo_terms(shape)),
-        _nuclear_cluster(detmath.hypot(r_cyl, z), terms), _nuclear_disc(r_cyl, z, terms), profile, arm_cos)
+        _nuclear_cluster(detmath.hypot(r_cyl, z), terms), _nuclear_disk(r_cyl, z, terms), profile, arm_cos)
 
 
 def _raw_density(position_pc, shape):
@@ -539,11 +548,11 @@ def _raw_density(position_pc, shape):
 
     Returns:
         float: The sum of `component_values`: `bulge + thin_disk * arm_factor + thick_disk + halo + the nuclear cluster and
-              disc`, unnormalized (`>= 0`).
+              disk`, unnormalized (`>= 0`).
     """
     values = component_values(position_pc, shape)
     return (values.bulge + values.thin_disk + values.thick_disk + values.halo
-            + (values.nuclear_cluster + values.nuclear_disc))
+            + (values.nuclear_cluster + values.nuclear_disk))
 
 
 def _arm_cosine(x, y, shape):
@@ -570,8 +579,8 @@ def population_densities(position_pc, shape):
 
     The components always sum to `relative_density`, so no sector's total
     changes. The bulge term is the "bulge" population, the halo term the
-    "halo" population (GEN.234) and the thick disk is "old". The nuclear star cluster and the nuclear stellar disc
-    (GEN.280) are the "nuclear_cluster" and "nuclear_disc" populations, on top of the bulge. "cluster" and "satellite"
+    "halo" population (GEN.234) and the thick disk is "old". The nuclear star cluster and the nuclear stellar disk
+    (GEN.280) are the "nuclear_cluster" and "nuclear_disk" populations, on top of the bulge. "cluster" and "satellite"
     are the globular clusters' and the satellite galaxies' systems in the cell's cube over a cell's at density 1
     (`shape.components`, GEN.160 and GEN.237; 0 for a galaxy without). The thin disk is shared among the three
     disk populations in proportion to how many stars each would put here:
@@ -585,7 +594,7 @@ def population_densities(position_pc, shape):
 
     Returns:
         dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
-              "nuclear_disc"}` -> density, each
+              "nuclear_disk"}` -> density, each
               `>= 0`, summing to `relative_density(position_pc, shape)`.
     """
     z = position_pc[2]
@@ -615,17 +624,17 @@ def population_densities(position_pc, shape):
     densities.update(_component_densities(position_pc, shape))
     r_cyl = detmath.hypot(position_pc[0], position_pc[1])
     densities["nuclear_cluster"] = shape.k_norm * values.nuclear_cluster
-    densities["nuclear_disc"] = shape.k_norm * values.nuclear_disc
+    densities["nuclear_disk"] = shape.k_norm * values.nuclear_disk
     core = coreGas.core_gas(shape)
-    if core.young_density:      # the ring's young field stars are the nuclear disc's own (GEN.282)
-        moved = min(shape.k_norm * coreGas.young_density(r_cyl, z, core), densities["nuclear_disc"])
+    if core.young_density:      # the ring's young field stars are the nuclear disk's own (GEN.282)
+        moved = min(shape.k_norm * coreGas.young_density(r_cyl, z, core), densities["nuclear_disk"])
         densities["young"] += moved
-        densities["nuclear_disc"] -= moved
+        densities["nuclear_disk"] -= moved
     return densities
 
 
 ArrayValues = namedtuple("ArrayValues", ("r_cyl", "thin_profile", "thick_disk", "bulge", "arm_cosine", "halo",
-                                         "nuclear_cluster", "nuclear_disc"))
+                                         "nuclear_cluster", "nuclear_disk"))
 """`component_values` on arrays (`component_arrays`): each component's value at each point, unnormalized, the thin disk
 before its arm level and arms (`thin_profile`) and the arm cosine beside it; `r_cyl` is the cylindrical radius."""
 
@@ -656,7 +665,7 @@ def component_arrays(x, y, z, shape):
         r_cyl=r_cyl, thin_profile=thin, thick_disk=thick, bulge=bulge, arm_cosine=arm_cos,
         halo=_halo(r_cyl, z, halo_terms(shape)),
         nuclear_cluster=_nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms),
-        nuclear_disc=_nuclear_disc_array(r_cyl, z, terms))
+        nuclear_disk=_nuclear_disk_array(r_cyl, z, terms))
 
 
 def population_densities_array(x, y, z, shape):
@@ -668,7 +677,7 @@ def population_densities_array(x, y, z, shape):
 
     Returns:
         dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
-            "nuclear_disc"}` -> array of densities.
+            "nuclear_disk"}` -> array of densities.
     """
     values = component_arrays(x, y, z, shape)
     r_cyl, arm_cos = values.r_cyl, values.arm_cosine
@@ -699,12 +708,12 @@ def population_densities_array(x, y, z, shape):
     for name in componentField.POPULATIONS_IN_THE_GATE:
         densities[name] = np.zeros_like(densities["halo"])
     densities["nuclear_cluster"] = shape.k_norm * values.nuclear_cluster
-    densities["nuclear_disc"] = shape.k_norm * values.nuclear_disc
+    densities["nuclear_disk"] = shape.k_norm * values.nuclear_disk
     core = coreGas.core_gas(shape)
-    if core.young_density:      # the ring's young field stars are the nuclear disc's own (GEN.282)
-        moved = np.minimum(shape.k_norm * coreGas.young_density_array(r_cyl, z, core), densities["nuclear_disc"])
+    if core.young_density:      # the ring's young field stars are the nuclear disk's own (GEN.282)
+        moved = np.minimum(shape.k_norm * coreGas.young_density_array(r_cyl, z, core), densities["nuclear_disk"])
         densities["young"] = densities["young"] + moved
-        densities["nuclear_disc"] = densities["nuclear_disc"] - moved
+        densities["nuclear_disk"] = densities["nuclear_disk"] - moved
     return densities
 
 
@@ -761,7 +770,7 @@ def population_units(shape):
     """
     How many systems each population holds, in the model's unnormalized units (only the ratios mean anything): the thin
     disk shared among `young`, `intermediate` and `old` by its star formation history (`disk_history`), the thick disk
-    in `old`, and the bulge, the nuclear cluster and disc and the stellar halo each their own integral. The globular
+    in `old`, and the bulge, the nuclear cluster and disk and the stellar halo each their own integral. The globular
     clusters and satellite galaxies are not here: their systems come on top of the model (`shape.components`).
     """
     terms = model_terms(shape)
@@ -773,7 +782,7 @@ def population_units(shape):
         "old": thin * starFormation.disk_population_share("old", shape) + thick,
         "bulge": terms["bulge_mass"],
         "nuclear_cluster": terms["nuclear_cluster_mass"],
-        "nuclear_disc": terms["nuclear_disc_mass"],
+        "nuclear_disk": terms["nuclear_disk_mass"],
         "halo": halo_mass(shape),
     }
 
@@ -788,10 +797,10 @@ def mean_system_mass_solar(shape):
 
 
 def total_mass(shape):
-    """Everything the model holds, in its unnormalized units: the visible components, the nuclear cluster and disc, and
+    """Everything the model holds, in its unnormalized units: the visible components, the nuclear cluster and disk, and
     the stellar halo (the arm factor averages to 1 around any circle, so the arms add nothing)."""
     terms = model_terms(shape)
-    return terms["visible_mass"] + terms["nuclear_cluster_mass"] + terms["nuclear_disc_mass"] + halo_mass(shape)
+    return terms["visible_mass"] + terms["nuclear_cluster_mass"] + terms["nuclear_disk_mass"] + halo_mass(shape)
 
 
 def halo_mass(shape):
@@ -805,7 +814,7 @@ def halo_mass(shape):
 
 DensityComponent = namedtuple("DensityComponent", ["name", "population", "amplitude", "mass", "mass_solar", "parameters"])
 """One component of the density model (GEN.379): its `name`, the stellar `population` it fills (`"disk"` is shared by the
-young, intermediate and old thin-disk populations), its `amplitude` (the density at its centre in the model's units, or the
+young, intermediate and old thin-disk populations), its `amplitude` (the density at its center in the model's units, or the
 lever that scales it; `0` removes the component exactly), its `mass` in the model's units and in solar masses
 (`mass_solar`: the units scaled so the components together hold the galaxy's stellar mass), and the `parameters` that give
 its shape (scale lengths and heights in parsecs, the bar's angle in radians, the halo's slopes)."""
@@ -815,7 +824,7 @@ its shape (scale lengths and heights in parsecs, the bar's angle in radians, the
 def density_components(shape):
     """
     The galaxy's density as a list of components (GEN.379), in a fixed order: `thin_disk`, `thick_disk`, `bulge` (the bar
-    when the galaxy has one), `halo`, `nuclear_cluster`, `nuclear_disc`. Each component states its amplitude, mass and
+    when the galaxy has one), `halo`, `nuclear_cluster`, `nuclear_disk`. Each component states its amplitude, mass and
     shape (`DensityComponent`); a component with amplitude 0 has mass exactly 0 and adds nothing to the density or to the
     potential, so a galaxy without a thick disk, a bulge or a nucleus is the same list with zeros. The density itself is
     still the sum of the terms above (`relative_density`): this is the list the potential (GEN.338) reads each
@@ -851,8 +860,8 @@ def density_components(shape):
          {"scale_pc": terms["nuclear_cluster_scale_pc"], "softening_pc": terms["nuclear_cluster_softening_pc"],
           "softened_mass_fraction": _cluster_softened_fraction(terms["nuclear_cluster_scale_pc"],
                                                                terms["nuclear_cluster_softening_pc"])}),
-        ("nuclear_disc", "nuclear_disc", max(shape.nuclear_amplitude, 0.0), terms["nuclear_disc_mass"],
-         {"scale_length_pc": terms["nuclear_disc_length_pc"], "scale_height_pc": terms["nuclear_disc_height_pc"]}),
+        ("nuclear_disk", "nuclear_disk", max(shape.nuclear_amplitude, 0.0), terms["nuclear_disk_mass"],
+         {"scale_length_pc": terms["nuclear_disk_length_pc"], "scale_height_pc": terms["nuclear_disk_height_pc"]}),
     )
     return tuple(DensityComponent(name, population, amplitude, mass, mass * per_solar, parameters)
                  for name, population, amplitude, mass, parameters in rows)
@@ -912,7 +921,7 @@ def total_density_array(x, y, z, shape):
     values = component_arrays(x, y, z, shape)
     disk = shape.k_norm * values.thin_profile * shape.arm_level * (1 + shape.arm_amplitude * values.arm_cosine)
     halo = shape.k_norm * values.halo
-    nuclear = shape.k_norm * (values.nuclear_cluster + values.nuclear_disc)
+    nuclear = shape.k_norm * (values.nuclear_cluster + values.nuclear_disk)
     return (np.maximum(disk, 0.0) + np.maximum(shape.k_norm * values.thick_disk, 0.0)
             + np.maximum(halo, 0.0) + np.maximum(shape.k_norm * values.bulge, 0.0) + np.maximum(nuclear, 0.0))
 
@@ -957,8 +966,8 @@ def build_galaxy_shape(
             another.
         arm_level (float): The thin disk's density level, the middle of the
             arm crest and the inter-arm trough (ADM.49).
-        nuclear_amplitude (float): How much of the observed nuclear star cluster and nuclear stellar disc
-            the centre holds (GEN.280): 1 is the observed pair, scaled to the bulge, 0 is none.
+        nuclear_amplitude (float): How much of the observed nuclear star cluster and nuclear stellar disk
+            the center holds (GEN.280): 1 is the observed pair, scaled to the bulge, 0 is none.
         masses (tuple, optional): The galaxy's `(stellar mass, halo mass)`, solar masses (`GalaxyShape.masses`); the halo mass
             is `None` for a galaxy with no halo (`mass_chain.has_halo`).
         structure (galaxy.structure.Structure): The galaxy's thick disk, bar, stellar halo and population motions

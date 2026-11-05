@@ -118,6 +118,6 @@ def cut_radius_pc(profile, half_mass_radius_pc, king_w0=None):
 
 
 def central_density_per_pc3(component):
-    """The density at the centre, in the units of the component's mass per cubic parsec."""
+    """The density at the center, in the units of the component's mass per cubic parsec."""
     r0 = scale_radius_pc(component)
     return component.mass_solar / (4.0 * math.pi * r0 ** 3 * table_for(component).mass_over_central)

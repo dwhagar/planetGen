@@ -218,7 +218,7 @@ a fraction of a percent of mass wide."""
 def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window, fe_hs=(0.0,)):
     """
     An upper bound on `_bright_measure` for every mass in `[low_mass, high_mass]`, a cell that no phase-rule mass
-    (`_mass_grid`'s breaks) splits, at every birth [Fe/H] in `fe_hs` (a table's bin: its edges and centre).
+    (`_mass_grid`'s breaks) splits, at every birth [Fe/H] in `fe_hs` (a table's bin: its edges and center).
 
     Two terms. The main sequence is a window that stretches over every mass of the cell and every composition (lifetimes
     fall and luminosities rise with mass), at the threshold less `BRIGHT_TABLE_MAIN_SEQUENCE_SLACK`: the MIST main sequence
@@ -298,7 +298,7 @@ def _check_mass_range(mass_range):
 
 
 def fe_h_bin(fe_h):
-    """The centre of the `tuning.BRIGHT_TABLE_FE_H_STEP_DEX` bin of a birth [Fe/H]: the composition a sampling table is
+    """The center of the `tuning.BRIGHT_TABLE_FE_H_STEP_DEX` bin of a birth [Fe/H]: the composition a sampling table is
     built at (GEN.651)."""
     step = tuning.BRIGHT_TABLE_FE_H_STEP_DEX
     return round(fe_h / step) * step + 0.0
@@ -314,10 +314,10 @@ FE_H_BINS = tuple(sorted({fe_h_bin(tuning.METALLICITY_RANGE_FE_H[0] + i * tuning
 def reference_fe_h(population):
     """
     The birth [Fe/H] a population's star counts are worked out at (GEN.661): the mean of its distribution at the Sun's
-    distance from the galactic centre (`None` is the whole disc's `intermediate`; a young open cluster's stars follow
-    the disc's at their age; a cluster's or satellite's are the weighted mean of the generic peaks). The share of
+    distance from the galactic center (`None` is the whole disk's `intermediate`; a young open cluster's stars follow
+    the disk's at their age; a cluster's or satellite's are the weighted mean of the generic peaks). The share of
     a population's stars that are bright is close to linear in [Fe/H] across a population's few tenths of a dex, so the
-    share at the mean stands for the mixture over the distribution. It does not follow a place's own position (the disc's
+    share at the mean stands for the mixture over the distribution. It does not follow a place's own position (the disk's
     gradient) or a component's own value: a stand-in, row GEN.661 of the gap-filling plan.
     """
     if population in tuning.OPEN_CLUSTER_POPULATIONS:
@@ -346,7 +346,7 @@ def _grid_cells(fe_bin, reference=False):
 
 
 def _bin_fe_hs(fe_bin):
-    """The composition a sampling table's bounds are taken over: the bin's two edges, its centre and the points half way between
+    """The composition a sampling table's bounds are taken over: the bin's two edges, its center and the points half way between
     (GEN.1024: a star reads the track of its branch, which moves the thermal-pulse windows of the rarest floors faster across a bin).
     A star in the bin draws from the table with its own [Fe/H], so a cell's bound has to hold anywhere in the bin."""
     half = tuning.BRIGHT_TABLE_FE_H_STEP_DEX / 2.0

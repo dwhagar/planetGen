@@ -4,7 +4,7 @@
 The ledger of a belt: which bodies are its own objects, and how much mass is left over for the rest (GEN.1061; docs/design/systems/belt-evolution.md sections 3.1 and 11, belt-sources.md)
 ====================================================================================================================================================================================
 
-A planetesimal belt or outer disc holds far more bodies than anyone could store. Boss's rule (4:27 PM EDT 2026-10-30) is a **mass cut**: store every body above `L1_MASS_KG`; if those
+A planetesimal belt or outer disk holds far more bodies than anyone could store. Boss's rule (4:27 PM EDT 2026-10-30) is a **mass cut**: store every body above `L1_MASS_KG`; if those
 are fewer than the bodies needed to hold `LEDGER_COVERAGE` of the belt's mass, add the next heaviest until they do, or until `LEDGER_MAX_BODIES` are stored. The belt's mass is a budget that is spent, never exceeded:
 the stored bodies plus the `remainder_kg` (everything below the cut, the L2 and L3 tiers) add up to the belt's mass.
 
@@ -24,9 +24,9 @@ the stored bodies plus the `remainder_kg` (everything below the cut, the L2 and 
 
 The Solar System's main belt (about 10 to 30 bodies above 1e19 kg, Ceres 9.4e20 kg) and the Kuiper belt (the 31 largest bodies about 40 percent of 1.97e-2 Earth masses, [R3539]) are test targets, never inputs.
 
-Limits. One law for the whole belt: a belt of mixed populations (hot and cold classical, scattered) is a sum of these draws, which is the work of the outer-disc items (GEN.1071). The top of the rocky law (the break above 40 km and the slope past it) is a stand-in tuned
-to the count of the largest asteroids (BR20, L3). The top body is not limited by what a young disc can grow (Kenyon and Bromley's 1 750 km, BR10, is a check, not a cap). Nothing calls this yet: GEN.1069 stores the ledger and
-GEN.1071 and GEN.1092 wire the outer disc and the scatter; they ride merge trains.
+Limits. One law for the whole belt: a belt of mixed populations (hot and cold classical, scattered) is a sum of these draws, which is the work of the outer-disk items (GEN.1071). The top of the rocky law (the break above 40 km and the slope past it) is a stand-in tuned
+to the count of the largest asteroids (BR20, L3). The top body is not limited by what a young disk can grow (Kenyon and Bromley's 1 750 km, BR10, is a check, not a cap). Nothing calls this yet: GEN.1069 stores the ledger and
+GEN.1071 and GEN.1092 wire the outer disk and the scatter; they ride merge trains.
 
 Use:
 
@@ -302,7 +302,7 @@ class _MedianStream:
 
 @lru_cache(maxsize=2048)
 def _reference_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, age_myr, law):
-    """What the whole disc's solids of a star of the Sun's metals leave after `age_myr` when the belt's largest body is the median one: the mass per area every belt of the same stretch and age is called dense or sparse against."""
+    """What the whole disk's solids of a star of the Sun's metals leave after `age_myr` when the belt's largest body is the median one: the mass per area every belt of the same stretch and age is called dense or sparse against."""
     star_solar = _kg_to_msun(star_mass_kg)
     primordial = belt_mass.primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au)
     return solve_belt(primordial, lower_au, upper_au, star_solar, age_myr, law, _MedianStream()).mass_earth
@@ -310,10 +310,10 @@ def _reference_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, age_my
 
 def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_gy, law, stream, primordial_earth=None):
     """
-    `(mass_kg, density word, BeltLedger)` of a belt (`(0.0, "sparse", None)` where the giants took all of its solids): what its disc's solids leave after `age_gy` of collisions with the belt's largest body drawn from the size law `law` and settled with
+    `(mass_kg, density word, BeltLedger)` of a belt (`(0.0, "sparse", None)` where the giants took all of its solids): what its disk's solids leave after `age_gy` of collisions with the belt's largest body drawn from the size law `law` and settled with
     the collisional mass (`solve_belt`, GEN.1000: no stand-in largest body), and the word (`belt_mass.density_word`) that mass per area earns against the belt of the same stretch and age
     around a star of the Sun's metals whose largest body is the median one. `primordial_earth` is the mass the belt began with once the giants had acted on it (`belt_origin`, GEN.1068);
-    left out, the disc's solids over the whole stretch (`belt_mass.primordial_mass_earth`, with `metal_ratio`).
+    left out, the disk's solids over the whole stretch (`belt_mass.primordial_mass_earth`, with `metal_ratio`).
 
     Args:
         stream: A `draw.Stream` of the belt's own; `LEDGER_MAX_BODIES` draws are taken, whatever the belt.

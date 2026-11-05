@@ -66,7 +66,7 @@ def test_the_side_strip_opens_from_the_menu_and_a_pick_in_either_view_selects_in
     page.wait_for_function("() => document.querySelector('#galaxymap3d-strip canvas').dataset.selected === 'ringed'", timeout=10000)
     readout = page.locator(f"{STRIP} .galaxy-strip-readout").inner_text()
     assert "outside this wedge" not in readout, "a selection outside the wedge turns the wedge to face it"
-    assert readout.startswith("Height ") and " pc" in readout and "from the centre" in readout, readout
+    assert readout.startswith("Height ") and " pc" in readout and "from the center" in readout, readout
 
     # The strip to the map: with the map's selection put away (a click on bare map), a star clicked in the strip is selected on the map.
     mapbox = page.locator(GALAXY_CANVAS).bounding_box()

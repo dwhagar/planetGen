@@ -129,7 +129,7 @@ def estimate(run, now):
     Returns:
         Eta: `seconds` is 0 for a run that is over, `None` while nothing can be said.
     """
-    if run["state"] not in ("running", "cancelling"):
+    if run["state"] not in ("running", "canceling"):
         return Eta(seconds=0.0, low=0.0, high=0.0)
     run_rate = _run_rate(run, now)
     total, rough_total, source, partial, stalled, current_seen = 0.0, 0.0, None, False, False, False
@@ -159,7 +159,7 @@ def public_view(run, now):
     What a public read needs and nothing private (UX.3's banner, built on this): whether a run is going,
     which stage, how far, and the time left. No user, database or arguments.
     """
-    if run is None or run["state"] not in ("running", "cancelling"):
+    if run is None or run["state"] not in ("running", "canceling"):
         return {"active": False}
     eta = estimate(run, now)
     stages = run["stages"]

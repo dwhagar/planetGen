@@ -1,7 +1,7 @@
 // html/static/systemstep.js
 //
 // Stepping from the open system to a neighbouring one (MAP.121): the same six directions the step buttons and keys use
-// at the other levels (north, south, east, west, out from the galaxy's centre and in toward it), read in the frame of
+// at the other levels (north, south, east, west, out from the galaxy's center and in toward it), read in the frame of
 // the galaxy at the system's own place, go to the nearest system that lies that way. The System Map has no grid to step
 // through, so "that way" is a cone about the direction. Pure: runs under plain node (tests/js/systemstep.test.mjs).
 
@@ -10,10 +10,10 @@
 // the six cones overlap a little, so a system lies in at least one and a step is rarely refused where there are neighbours.
 export const CONE_HALF_ANGLE_DEG = 60;
 
-// The unit vector of `direction` at the point (x, y, z) in parsecs, in the galaxy's frame (the origin at its centre, z
+// The unit vector of `direction` at the point (x, y, z) in parsecs, in the galaxy's frame (the origin at its center, z
 // toward the north pole): out and in along the radius, north and south along the colatitude (south is the way it
 // grows), east and west along the longitude (east is the way it grows). Null for an unknown direction or a point on the
-// axis through the poles or at the centre, where north, east and west have no meaning.
+// axis through the poles or at the center, where north, east and west have no meaning.
 export function directionAt(point, direction) {
   const [x, y, z] = point;
   const plane = Math.hypot(x, y);

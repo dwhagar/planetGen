@@ -76,6 +76,7 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
 )
+from planetgen.db import obstacles as course_obstacles
 from planetgen.db import route_neighbours
 from planetgen.db import stones as nav_stones
 from planetgen.galaxy.nav_graph import build_route_graph, route_graph, shortest_path
@@ -1510,6 +1511,20 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         half_width = min(half_width * 2.0, NAV_CORRIDOR_MAX_LY)
 
 
+def _adjusted_course(conn, start_ly, end_ly):
+    """
+    NAV.6: the course between two galaxy-frame positions (light-years) bent around the keep-out spheres between them
+    (`db.obstacles.adjusted_course`), with the lengths also in light-years and the warp and fold times for the adjusted
+    length (NAV.2's tables use `length / speed` unchanged).
+    """
+    course = course_obstacles.adjusted_course(conn, tuple(ly_to_pc(v) for v in start_ly), tuple(ly_to_pc(v) for v in end_ly))
+    for name in ("length", "straight_length", "extra"):
+        course[name + "_ly"] = pc_to_ly(course[name])
+    course["warp_times"] = [leg._asdict() for leg in warp_travel_times(course["length_ly"])]
+    course["fold_times"] = [leg._asdict() for leg in fold_travel_times(course["length_ly"])]
+    return course
+
+
 def _with_stones(conn, path, positions, distance_ly):
     """
     NAV.47: `path` with every hop through unknown space broken up by the stepping stones
@@ -1627,7 +1642,7 @@ def _route_graph(conn, path, positions, in_galaxy):
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                  from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0,
-                 chart=False, stones=True, with_graph=False):
+                 chart=False, stones=True, with_graph=False, adjusted=False):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -1681,6 +1696,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             entry names its `kind` and `name`. `nav_chart_plan` turns this off,
             since it asks which cells lie on the direct jump.
         with_graph (bool): NAV.65: the route also gets `graph`, the links round it (`_route_graph`).
+        adjusted (bool): NAV.6: between systems the result also gets `adjusted`, the direct course bent around the keep-out spheres
+            it crosses, and every hop of the route (and the route) gets its own (`_adjusted_course`); see course-avoidance.md section 7.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -1765,6 +1782,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     # from the galactic core. Bearing 000 points at that center.
     frame = FRAME_SECTOR if scope == "sector" else FRAME_GALACTIC
     direct = course_between(origin_position, destination_position, frame=frame)
+    adjusted_direct = None
+    if adjusted and origin["galaxy_position_ly"] is not None and destination["galaxy_position_ly"] is not None:
+        adjusted_direct = _adjusted_course(conn, origin["galaxy_position_ly"], destination["galaxy_position_ly"])
 
     route = None
     if from_key != to_key:
@@ -1793,6 +1813,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 hop.update(_hop_course(hop, places, galaxy_frame, positions))
                 hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
                 hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
+            if adjusted and galaxy_frame is not None:
+                for hop in hops:
+                    hop["adjusted"] = _adjusted_course(conn, galaxy_frame[hop["from"]], galaxy_frame[hop["to"]])
             bypass = None
             if galaxy_frame is not None:
                 cells = unknown_cells(conn, [galaxy_frame[node_id] for node_id in path])
@@ -1825,12 +1848,17 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
                 "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
             }
+            if adjusted and galaxy_frame is not None:
+                lengths = [hop["adjusted"]["length_ly"] for hop in hops]
+                route["adjusted_distance_ly"] = sum(lengths)
+                route["adjusted_warp_times"] = route_warp_times(lengths, stay_minutes, stays=stays)
+                route["adjusted_fold_times"] = route_fold_times(lengths, stay_minutes, stays=stays)
             if bypass is not None:
                 route["bypass"] = bypass
             if with_graph:
                 route["graph"] = _route_graph(conn, path, positions, galaxy_frame is not None)
 
-    return {
+    answer = {
         "scope": scope,
         "direct": direct,
         "warp_times": warp_travel_times(direct.distance_ly),
@@ -1839,6 +1867,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         "destination_position": destination_position,
         "route": route,
     }
+    if adjusted_direct is not None:
+        answer["adjusted"] = adjusted_direct
+    return answer
 
 
 NAV_DEFAULT_HELIOPAUSE_AU = 120.0
@@ -1951,7 +1982,7 @@ def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACEN
             "bypass": route.get("bypass") if route else None}
 
 
-def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0, with_graph=False):
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0, with_graph=False, adjusted=False):
     """
     NAV between any two objects (NAV.16): `nav_between`'s result plus
     `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
@@ -1966,7 +1997,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
     `direct` is a `navigation.Course`.
 
-    `stay_minutes` (NAV.11) is the stay at each stop of the route. `with_graph` (NAV.65) adds `graph` to the route.
+    `stay_minutes` (NAV.11) is the stay at each stop of the route. `with_graph` (NAV.65) adds `graph` to the route. `adjusted` (NAV.6) adds the course bent around keep-out spheres (`nav_between`).
 
     Raises:
         ValueError: For a bad reference or a missing row.
@@ -1996,7 +2027,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     from_id, from_kind, from_type = anchor_args(origin)
     to_id, to_kind, to_type = anchor_args(destination)
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes, with_graph=with_graph)
+                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes, with_graph=with_graph, adjusted=adjusted)
 
     toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
     length = math.sqrt(sum(v * v for v in toward))
@@ -2421,7 +2452,7 @@ _PHENOMENON_TABLES = (
     ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly"),
     ("rogue_planets", "rogue_planet",
      "(CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' "
-     "WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
+     "WHEN planet_type = 'gas' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
     ("interstellar_comets", "interstellar_comet",
      "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0"),
     # v31: a galaxy's active nucleus, always at the galactic center
@@ -3199,7 +3230,7 @@ def _sibling_refs(conn, kind, table, where, params, object_id):
 
 
 def _enclosed_mass_kg(conn, radius_pc):
-    """The mass, kg, the stored galaxy holds inside `radius_pc` of its centre (`galaxy.enclosed_mass`, GEN.370): from
+    """The mass, kg, the stored galaxy holds inside `radius_pc` of its center (`galaxy.enclosed_mass`, GEN.370): from
     its stored shape and seed, or the shape the fallback seed draws when no skeleton is stored."""
     skeleton = get_galaxy_shape(conn)
     if skeleton is None:
@@ -3208,9 +3239,13 @@ def _enclosed_mass_kg(conn, radius_pc):
     return enclosed_mass.enclosed_mass_kg(skeleton.shape, skeleton.galaxy_seed, radius_pc)
 
 
-def keep_out_radius(conn, kind, object_id):
+def keep_out_radius(conn, kind, object_id, scale="galaxy"):
     """
-    The keep-out radius of one object (NAV.24, `planetgen.galaxy.keepout`).
+    The keep-out radius of one object (NAV.24, NAV.54, `planetgen.galaxy.keepout`).
+
+    Args:
+        scale (str): `"galaxy"` (the default; between systems and inside a sector) or `"system"` (inside a star system). Only a star
+            has two radii: its galactic Hill radius at galaxy scale, its radiation radius inside its own system.
 
     Returns:
         keepout.KeepOut: `radius_km`, `basis` and `note`.
@@ -3238,6 +3273,9 @@ def keep_out_radius(conn, kind, object_id):
             return keepout.KeepOut(body["radius_km"], "radius", None)
         return keepout.KeepOut(body["hill_radius_km"], "hill", None)
     if kind == "star":
+        if scale == "system":
+            star = row("stars", "radius_km, luminosity_w")
+            return keepout.star_in_system_keep_out(star["radius_km"], star["luminosity_w"])
         return system_perimeter(row("stars", "star_system_id")["star_system_id"])
     if kind == "system":
         row("star_systems", "id")
@@ -3246,7 +3284,9 @@ def keep_out_radius(conn, kind, object_id):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
         body = row(table, "star_id, mass_solar, radius_km, galactic_radius_pc"
                    if kind == "neutron_star" else "star_id, mass_solar, event_horizon_radius_km AS radius_km, "
-                   "galactic_radius_pc")
+                   "galactic_radius_pc, mass_class")
+        if kind == "black_hole" and body["mass_class"] == "supermassive":
+            return keepout.supermassive_keep_out(body["mass_solar"])
         if body["galactic_radius_pc"] is None and body["star_id"] is not None:
             # An anchored remnant is a star of its own system.
             return system_perimeter(row("stars", "star_system_id", body["star_id"])["star_system_id"])
@@ -3255,20 +3295,26 @@ def keep_out_radius(conn, kind, object_id):
         return keepout.compact_keep_out(
             _msun_to_kg(body["mass_solar"]), body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
-    if kind in ("quasar", "rogue_planet"):
+    if kind == "quasar":
+        body = row(_PHENOMENON_TYPE_TO_TABLE[kind], "black_hole_mass_solar, luminosity_w")
+        return keepout.quasar_keep_out(body["black_hole_mass_solar"], body["luminosity_w"])
+    if kind == "rogue_planet":
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
-        body = row(table, "black_hole_mass_solar * " + str(constants.SOLAR_MASS_TO_KG)
-                   + " AS mass_kg, event_horizon_radius_km AS radius_km, galactic_radius_pc"
-                   if kind == "quasar" else "mass_kg, radius_km, galactic_radius_pc")
+        body = row(table, "mass_kg, radius_km, galactic_radius_pc")
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT
         return keepout.compact_keep_out(
             body["mass_kg"], body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
-    if kind in ("nebula", "supernova_remnant", "asteroid_field"):
+    if kind == "asteroid_field":
+        return keepout.asteroid_field_keep_out(row(_PHENOMENON_TYPE_TO_TABLE[kind], "radius_ly")["radius_ly"])
+    if kind in ("nebula", "supernova_remnant"):
         row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
-    if kind in ("belt", "comet", "interstellar_comet", "facility"):
+    if kind == "belt":
+        row(object_ref.TABLES["belt"], "id")
+        return keepout.KeepOut(None, "none", keepout.BELT_NOTE)
+    if kind in ("comet", "interstellar_comet", "facility"):
         row(object_ref.TABLES.get(kind) or _PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.NO_KEEP_OUT
     if kind in object_ref.CONTAINER_KINDS:     # a place in the galaxy, not a body: nothing to keep out of
@@ -3481,6 +3527,8 @@ def resolve_object(conn, kind, object_id):
     }
     if kind in ("planet", "moon"):
         found.update({column: row[column] for column in _tier_columns()})
+    if kind == "star":
+        found["keep_out_in_system"] = keep_out_radius(conn, kind, object_id, scale="system")._asdict()    # NAV.54
     return found
 
 
@@ -3533,7 +3581,7 @@ def nebula_surroundings(conn, nebula_id):
     """
     The brightest stars round one nebula, for its page's 3D view (MAP.105):
     the pre-placed bright stars (`galaxy_bright_stars_in_box`) in a box
-    `NEBULA_SURROUNDINGS_REACH` radii each side of its centre, at most
+    `NEBULA_SURROUNDINGS_REACH` radii each side of its center, at most
     `NEBULA_SURROUNDINGS_STARS`.
 
     Args:
@@ -3542,10 +3590,10 @@ def nebula_surroundings(conn, nebula_id):
 
     Returns:
         dict: `radius_pc`, `half_width_pc` (of the box), `center_pc` (the
-            nebula's centre in the galaxy frame, `[x, y, z]` parsecs, `None`
+            nebula's center in the galaxy frame, `[x, y, z]` parsecs, `None`
             for a nebula never placed in the galaxy: MAP.142's view draws
             the nebula's own points round it) and `stars`: the most luminous
-            first, each `x`/`y`/`z` (parsecs from the nebula's centre),
+            first, each `x`/`y`/`z` (parsecs from the nebula's center),
             `luminosity_sol` and `temperature_k`. No stars for a nebula
             never placed in the galaxy.
 
@@ -3578,10 +3626,12 @@ def nebula_surroundings(conn, nebula_id):
 
 def _with_printed_uid(row):
     """A copy of a table row as a dict with its `uid` (a BINARY(12) column, GEN.170) as
-    the text the site prints, so the row can be written as JSON."""
+    the text the site prints, so the row can be written as JSON. A `donor_uid` (the system that threw a rogue planet out, GEN.1111) is
+    printed the same way."""
     out = dict(row)
-    if isinstance(out.get("uid"), (bytes, bytearray)):
-        out["uid"] = object_uid.format_id(object_uid.from_bytes(out["uid"]))
+    for column in ("uid", "donor_uid"):
+        if isinstance(out.get(column), (bytes, bytearray)):
+            out[column] = object_uid.format_id(object_uid.from_bytes(out[column]))
     return out
 
 
@@ -3641,6 +3691,9 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     detail["type"] = phenomenon_type
     if table == "rogue_planets":
         detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
+        if row["donor_uid"] is not None:     # GEN.1111: the system that threw it out, named where it is filed
+            donor = conn.execute("SELECT name FROM star_systems WHERE uid = ?", (bytes(row["donor_uid"]),)).fetchone()
+            detail["donor_name"] = None if donor is None else donor["name"]
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
     free = " AND star_id IS NULL" if "star_id" in detail else ""    # a black hole or neutron star of a system is not a free one
     for key, op, order in (("previous", "<", "DESC"), ("next", ">", "ASC")):
@@ -3648,11 +3701,11 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
                             (phenomenon_id,)).fetchone()
         detail[key] = None if peer is None else {"id": _with_printed_uid(peer)["uid"], "name": peer["name"]}
     if table == "supernova_remnants":
-        centre = (("black_holes", detail.get("compact_remnant_black_hole_id")),
+        center = (("black_holes", detail.get("compact_remnant_black_hole_id")),
                   ("neutron_stars", detail.get("compact_remnant_neutron_star_id")))
-        for centre_table, centre_id in centre:
-            if centre_id is not None:
-                found = conn.execute(f"SELECT name FROM {centre_table} WHERE id = ?", (centre_id,)).fetchone()
+        for center_table, center_id in center:
+            if center_id is not None:
+                found = conn.execute(f"SELECT name FROM {center_table} WHERE id = ?", (center_id,)).fetchone()
                 detail["compact_remnant_name"] = found["name"] if found else None
     if phenomenon_type in ("black_hole", "neutron_star", "rogue_planet"):
         # The Einstein radius (GEN.154) is seen from the galaxy's reference radius: no home position is stored (GEN.404).
@@ -3689,7 +3742,7 @@ _SCATTER_BUILT_TABLES = {
 from a row of that kind."""
 
 SCATTER_BUILT_MATCH_PC = 0.05
-"""float: How far (parsecs) a built object's centre may be from its scatter row's point and still be that row's."""
+"""float: How far (parsecs) a built object's center may be from its scatter row's point and still be that row's."""
 
 
 def _scattered_built_target(conn, row):
@@ -3743,7 +3796,7 @@ def scattered_phenomenon_detail(conn, scatter_id):
             `member_count` and `system_mass_solar` (UX.114; an unbuilt row with members also has `members` and
             `nodes`, as `scatter_member_tree`), and
             for a row with a velocity `speed_kms`, `direction` (a unit vector) and `flight_years` (the time to
-            fly its distance from the core at that speed, the age bound of a star ejected from the centre). A
+            fly its distance from the core at that speed, the age bound of a star ejected from the center). A
             built row also has `target`: `{"kind", "id", "name"}` of what it became (`"system"` for a
             hypervelocity star), or `None` when that cannot be found. `sector_id`/`sector_name` are those of its
             cell when that is charted.
@@ -5167,7 +5220,7 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
 
 
 BRIGHT_STAR_POPULATION_WEIGHT = {"young": 1.0, "intermediate": 10.0, "old": 400.0, "bulge": 400.0,
-                                 "nuclear_cluster": 400.0, "nuclear_disc": 400.0}
+                                 "nuclear_cluster": 400.0, "nuclear_disk": 400.0}
 """dict: The map key of a bright star is its luminosity times its population's
 weight (MAP.154). Ranking by luminosity alone puts the young blue stars first
 and leaves no room for the old giants of the bulge and the thick disk, which
@@ -5180,7 +5233,7 @@ child node lists every star its parent listed inside the child's box."""
 LOWEST_PRIORITY_TIER = {"halo": 1, "satellite": 2, "satellite_young": 2, "satellite_intermediate": 2}
 """dict: The tier of the populations every map lists last (MAP.250); a population not here is tier 0. Stars of the
 stellar halo (tier 1) and of the satellite galaxies (tier 2) are the lowest priority of any star budget: a list that
-cannot hold every star drops the satellite galaxies' first, then the halo's, and only then a star of the disc, the
+cannot hold every star drops the satellite galaxies' first, then the halo's, and only then a star of the disk, the
 bulge, the nuclei or a globular cluster, whatever the brightness. The tier comes before `_map_key`, so the order is
 still one for every node level and the lists stay nested."""
 
@@ -5296,7 +5349,7 @@ def _luminosity_walk_is_cheaper(total, cell_share, angle_share, limit):
     two answer the same, so this only chooses the cheaper (PERF.157). The address path reads the box's share of the
     stars; the walk reads, down each of its `2 x populations` arms, until `limit x EVEN_DROP_POOL` stars of the
     arm are inside the box, so about that many over the box's share. The share is the box's share of the outline's
-    cells and longitudes, which counts its height above the plane, where the share of the disc's area (which sets
+    cells and longitudes, which counts its height above the plane, where the share of the disk's area (which sets
     whether the box is answered from the sample) does not: a 1 kpc box a kiloparsec up holds a sliver of the stars.
     """
     share = max((1.0 if cell_share is None else cell_share) * angle_share, 1e-12)
@@ -5755,7 +5808,7 @@ GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 SCATTERED_MAX_SHELL_RANGES = 1000
 """int: Most `(shell, bands)` index ranges one tile's scattered-point query lists before it reads the whole run of shells
 in one range instead (PERF.157). The one range reads every row of those shells, bands and wedges the box does not reach
-included, and the optimizer then often scans the table (3.6 million rows for a 256 pc tile at the centre); a range per
+included, and the optimizer then often scans the table (3.6 million rows for a 256 pc tile at the center); a range per
 shell, with the bands the box reaches there, reads only those. It was 64."""
 
 
@@ -5800,6 +5853,64 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
             "charted": row["built_at"] is not None,
             "map_luminosity_sol": float("%.4g" % phenomenon_map_luminosity_sol(map_type, row["mass_solar"])),
             "mass_solar": None if row["mass_solar"] is None else float("%.4g" % row["mass_solar"]),
+            "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
+            "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
+        })
+    return _even_pick(points, limit, lambda point: (-point["size"], point["id"]),
+                      lambda point: int(point["size"] / SCATTERED_SIZE_BAND), lambda point: point["id"])
+
+
+SCATTERED_NEBULA_CLASSES = (
+    ("planetary-nebula", None, "planetary_nebula", "Planetary nebula"),
+    ("supernova-remnant", None, "supernova_remnant", "Supernova remnant"),
+)
+"""tuple: `(scatter kind, subtype, map type, label)` for the scattered nebulae the Galaxy Map marks before their sector is
+filled (MAP.179). Their rows are drawn as marks, not as points of light among the stars."""
+
+
+def galaxy_scattered_nebulae_in_box(conn, lo, hi, edge_pc, limit):
+    """
+    The scattered planetary nebulae and supernova remnants (`phenomenon_scatter`, not yet built into a sector) whose position lies in
+    the box `[lo, hi)`, at most `limit` (MAP.179): the points the map marks from far away, before their sector is filled. A row that is
+    built is a stored nebula, which the node lists in `clouds` (`galaxy_clouds_in_box`), so a built row is never listed here and no
+    nebula is on the map twice (GEN.202).
+
+    Returns:
+        list[dict]: Points as `galaxy_scattered_points_in_box` makes them (`type` `planetary_nebula` or `supernova_remnant`, `id`
+        `s<row>`, `name` "... (uncharted)", `scattered`, `charted` false, `x`/`y`/`z`), lowest id first, thinned evenly by `_even_pick`
+        when there are more than `limit`.
+    """
+    bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
+        where_address = "shell_index BETWEEN ? AND ?"
+        address_params = [bands[0][0], bands[-1][0]]
+    else:
+        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
+        address_params = [v for band in bands for v in band]
+    kinds = " OR ".join("kind = ?" for _ in SCATTERED_NEBULA_CLASSES)
+    kind_params = [cls[0] for cls in SCATTERED_NEBULA_CLASSES]
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    rows = conn.execute(
+        f"""
+        SELECT id, kind, position_x_mpc, position_y_mpc, position_z_mpc
+        FROM phenomenon_scatter
+        WHERE built_at IS NULL AND {where_address} AND ({kinds})
+          AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
+          AND position_z_mpc >= ? AND position_z_mpc < ?
+        ORDER BY id
+        LIMIT ?
+        """,
+        (*address_params, *kind_params, *box_params, int(limit) * EVEN_DROP_POOL),
+    ).fetchall()
+    kind_of = {cls[0]: (cls[2], cls[3]) for cls in SCATTERED_NEBULA_CLASSES}
+    points = []
+    for row in rows:
+        map_type, label = kind_of[row["kind"]]
+        points.append({
+            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)", "descriptor": "scattered",
+            "luminosity_sol": 0.0, "scattered": True, "size": 0.4, "charted": False, "map_luminosity_sol": 0.0, "mass_solar": None,
             "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
             "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
         })
@@ -6041,17 +6152,17 @@ def galaxy_window(conn, at, g, edge_pc):
         ValueError: On a malformed key or width, or a sector cell (a window
             of sectors lists names and comes from the parents' stages).
     """
-    centre = parse_window_key(at)
-    if centre.m == 1:
+    center = parse_window_key(at)
+    if center.m == 1:
         raise ValueError("a window of sectors is read from the stages of its parents")
     width = check_width(g)
-    cells = window_cells(centre, edge_pc, width)
-    found = galaxy_block_stats(conn, centre.m, [(c.shell, c.band, c.wedge) for c in cells])
+    cells = window_cells(center, edge_pc, width)
+    found = galaxy_block_stats(conn, center.m, [(c.shell, c.band, c.wedge) for c in cells])
     children = [{"shell": shell, "band": band, "wedge": wedge, **value}
                 for (shell, band, wedge), value in found.items()]
     children.sort(key=lambda c: (c["shell"], -c["band"], c["wedge"]))
     return {
-        "at": format_drill_key(centre), "g": width, "child_m": centre.m,
+        "at": format_drill_key(center), "g": width, "child_m": center.m,
         "cells": [[c.shell, c.band, c.wedge] for c in cells], "children": children, "sectors": None,
     }
 
@@ -6081,14 +6192,14 @@ def galaxy_nebula_cover(conn, at=None, g=None, edge_pc=None):
         ValueError: On a malformed or impossible `at` or `g`.
     """
     if g is not None:
-        centre = parse_window_key(at or "")
+        center = parse_window_key(at or "")
         width = check_width(g)
-        child_m = centre.m
+        child_m = center.m
         if child_m == 1:
-            return {"at": format_drill_key(centre), "child_m": 1, "cells": []}
+            return {"at": format_drill_key(center), "child_m": 1, "cells": []}
         edge_pc = galaxy_edge_pc(conn) if edge_pc is None else edge_pc
-        cells = [(c.shell, c.band, c.wedge) for c in window_cells(centre, edge_pc, width)]
-        key = format_drill_key(centre)
+        cells = [(c.shell, c.band, c.wedge) for c in window_cells(center, edge_pc, width)]
+        key = format_drill_key(center)
     elif at is None or at == "":
         found = nebula_blocks.covers(conn, STAGE_TOP)
         return {"at": None, "child_m": STAGE_TOP,
@@ -6306,7 +6417,7 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 11
+TILE_FORMAT = 12
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
@@ -6314,7 +6425,7 @@ a release that does not alter them leaves every stored node valid (PERF.133). 2:
 (MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
 (MAP.262), whose files are dropped with the generation. 5: a node of a charted region carries its `name` and `parent`
 (API.35), and so does the stage of a 9-block and each charted 9-block child of a stage. 6: a 9-block's node carries its
-`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system). 11: a node of 81 sectors or fewer lists the field clouds no sector has stored yet among its `clouds`, each with `field` true (MAP.178)."""
+`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system). 11: a node of 81 sectors or fewer lists the field clouds no sector has stored yet among its `clouds`, each with `field` true (MAP.178). 12: a node of 81 sectors or fewer lists the scattered planetary nebulae and supernova remnants no sector has built among its `points` (MAP.179)."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists nodes for. More than

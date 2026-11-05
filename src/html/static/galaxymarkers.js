@@ -45,7 +45,7 @@ export const MARKER_PX = 18;
 // pixels square. The black hole is the one drawn here; the other kinds are point-of-interest symbols (`icon`, MAP.320),
 // vector files, not code.
 export const GLYPHS = {
-  // A black hole: a dark disc in a ring.
+  // A black hole: a dark disk in a ring.
   "black-hole": function (ctx, size, color, outline) {
     const c = size / 2;
     ctx.lineJoin = "round";
@@ -68,7 +68,7 @@ export const GLYPHS = {
 };
 
 // The marks for worlds with life (MAP.311): a leaf for any life, a head and shoulders for a sentient species, a tower for a civilization. Each is
-// a disc ringed in the outline colour with a dark sign on it, so the shape and not only the colour tells them apart.
+// a disk ringed in the outline colour with a dark sign on it, so the shape and not only the colour tells them apart.
 function discWith(draw) {
   return function (ctx, size, color, outline) {
     const c = size / 2;
@@ -139,8 +139,8 @@ const CLASS_COLOR = "#e3a63b";
 const LIFE_CLASS_COLOR = "#5fc77a";
 const CLASS_LETTER_COLOR = "#14161f";
 
-// A class's glyph: a disc ringed in the outline colour with the class letter on it.
-function classGlyph(letter) {   // `letter` is the text on the disc: a planet class letter or a life class id
+// A class's glyph: a disk ringed in the outline colour with the class letter on it.
+function classGlyph(letter) {   // `letter` is the text on the disk: a planet class letter or a life class id
   return function (ctx, size, color, outline) {
     const c = size / 2;
     ctx.beginPath();
@@ -159,12 +159,37 @@ function classGlyph(letter) {   // `letter` is the text on the disc: a planet cl
   };
 }
 
+// MAP.179: a nebula: three overlapping soft puffs with a bright rim.
+GLYPHS.nebula = function (ctx, size, color, outline) {
+  const c = size / 2;
+  const puffs = [[c * 0.72, c * 1.08, c * 0.5], [c * 1.28, c * 1.08, c * 0.5], [c, c * 0.72, c * 0.56]];
+  ctx.lineJoin = "round";
+  puffs.forEach(function (puff) {
+    ctx.beginPath();
+    ctx.arc(puff[0], puff[1], puff[2], 0, Math.PI * 2);
+    ctx.lineWidth = size * 0.2;
+    ctx.strokeStyle = outline;
+    ctx.stroke();
+  });
+  puffs.forEach(function (puff) {
+    ctx.beginPath();
+    ctx.arc(puff[0], puff[1], puff[2], 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.55;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = size * 0.08;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  });
+};
+
 PLANET_CLASS_LETTERS.forEach(function (letter) { GLYPHS["class-" + letter] = classGlyph(letter); });
 LIFE_CLASS_IDS.forEach(function (id) { GLYPHS["lifeclass-" + id] = classGlyph(id); });
 
 // MAP.339: black holes are chosen for the view, not for the whole list: every node lists its own, whatever its distance, so the
 // heaviest 240 were mostly far from what the camera looks at (237 of 240 at a 10 pc zoom). The rule, with `d` the distance from the
-// camera to the point it looks at (the view centre) and `r` a hole's distance from that point (both in parsecs, so it is the same at
+// camera to the point it looks at (the view center) and `r` a hole's distance from that point (both in parsecs, so it is the same at
 // every zoom):
 //   reach   a hole within NEAR_FIELD_REACH view distances (r <= 3 d) is a candidate; one beyond only if its mass is at least
 //           BLACK_HOLE_MIN_MASS * (r / (3 d))^2, so a rare heavy hole stays and a crowd of light ones does not;
@@ -184,14 +209,14 @@ export function blackHoleMass(item) {
   return mass === undefined ? null : mass;
 }
 
-// The rule for a view: `view` is `{centre: [x, y, z], distance, width, height, densityPx}` (the point the camera looks at, its distance
+// The rule for a view: `view` is `{center: [x, y, z], distance, width, height, densityPx}` (the point the camera looks at, its distance
 // from the camera, the canvas size in CSS pixels and the density preference's side). Returns `{accepts(item), rank(item), cap}`
 // for `selectMarkers`' `near`.
 export function nearFieldRule(view) {
   const reach = NEAR_FIELD_REACH * Math.max(view.distance, 1e-9);
   const side = view.densityPx > 0 ? view.densityPx : BLACK_HOLE_DENSITY_PX;
   const distanceOf = function (item) {
-    return Math.hypot(item.x - view.centre[0], item.y - view.centre[1], item.z - view.centre[2]);
+    return Math.hypot(item.x - view.center[0], item.y - view.center[1], item.z - view.center[2]);
   };
   return {
     accepts: function (item) {
@@ -228,6 +253,27 @@ export const BLACK_HOLE_KIND = {
   },
   rank: function (item) { return item.map_luminosity_sol || item.mass_solar || item.size || 0; },
   describe: function (item) { return (item.name ? item.name + ", " : "") + "Black Hole" + (item.descriptor ? " (" + item.descriptor + ")" : ""); },
+};
+
+// MAP.179: the planetary nebulae and supernova remnants the galaxy has scattered and no sector has built yet (a built one is a stored nebula,
+// drawn as a cloud). The nodes list them in `points` with the types below, for blocks of 81 sectors and smaller, and they are marks, not points of
+// light among the stars (`NEBULA_POINT_TYPES`).
+export const NEBULA_POINT_TYPES = { planetary_nebula: "Planetary nebula", supernova_remnant: "Supernova remnant" };
+export const NEBULA_KIND = {
+  id: "marker-nebula",
+  label: "Nebula marks",
+  title: "Show or hide the marks over the planetary nebulae and supernova remnants that no sector has been filled for yet",
+  glyph: "nebula",
+  color: "#c9a8e0",
+  maxBlock: Infinity,
+  defaultOn: true,
+  source: function (node) {
+    return (node.points || []).filter(function (point) { return NEBULA_POINT_TYPES[point.type]; }).map(function (point) {
+      return Object.assign({ key: String(point.id) }, point);
+    });
+  },
+  rank: function (item) { return item.size || 0; },
+  describe: function (item) { return (item.name ? item.name : NEBULA_POINT_TYPES[item.type]); },
 };
 
 // The reasons a star system is worth a mark (MAP.305, MAP.303): the client side of `planetgen.db.interests.REASONS`. A
@@ -553,7 +599,7 @@ export function tokenOfItem(kind, item) {
   return kind.icon ? tokenOf(kind.icon, item && item.tier != null ? item.tier : null) : null;
 }
 
-// Marks closer together on the screen than this, in CSS pixels between their centres, are drawn as one (MAP.305): the symbols are
+// Marks closer together on the screen than this, in CSS pixels between their centers, are drawn as one (MAP.305): the symbols are
 // MARKER_PX across, so these would lie over each other.
 export const MERGE_PX = 22;
 

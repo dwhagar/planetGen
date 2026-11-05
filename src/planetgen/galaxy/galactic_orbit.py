@@ -78,7 +78,7 @@ def generate_galactic_orbit_fields(galactic_center_dist_ly=None, galactic_orbita
         galactic_center_dist_ly (float, optional): This body's actual
             distance from the galactic center, in light-years -- see
             `Star.calculate_system_perimeter`'s docstring for the same
-            parameter/fallback convention. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
+            parameter/fallback convention. `None` (the default) uses the radius that holds half of the galaxy's disk stars (`galaxy.scales`).
         galactic_orbital_phase_deg (float, optional): This body's current
             angular position around its galactic orbit, in degrees -- see
             `Star.__init__`'s docstring for the same parameter. `None`

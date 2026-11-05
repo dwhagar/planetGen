@@ -21,7 +21,7 @@ A body that is drawn again (an edit, `validation.reapply_life`) loses the trace 
 """
 
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import atmosphere, atmosphere_state, constants, mixture_subject, mixture_trace
+from planetgen.physics import atmosphere, atmosphere_state, constants, envelope_share, mixture_subject, mixture_trace
 from planetgen.util import draw
 
 TRACE_GASES = tuple(sorted({formula for row in mixture_trace.WIRED_ROWS for formula in mixture_trace.ABUNDANCES[row]}))
@@ -86,4 +86,5 @@ def apply(body):
         body.atm_molar_density = state.mean_molar_mass_kg_mol
         body.atm_density = state.density_kg_m3
         body.scale_height = state.scale_height_m / 1000.0      # km, as `planets` stores it
+    envelope_share.fill(body)       # GEN.1226: the trace gases take a share of the air
     return tuple(sorted(amounts))

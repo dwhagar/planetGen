@@ -1,7 +1,7 @@
 # tests/test_ring_darkening.py
 
 """GEN.1055: how bright a ring is (R6) and the shade it throws (R8), `physics/ring_darkening.py`.
-Saturn, Uranus and Neptune are test targets only: nothing in the module is centred on one."""
+Saturn, Uranus and Neptune are test targets only: nothing in the module is centered on one."""
 
 import math
 

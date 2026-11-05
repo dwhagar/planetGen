@@ -13,7 +13,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.generation import life as planetLife
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
-from planetgen.physics import life_complexity
+from planetgen.physics import life_complexity, planet_class_text
 from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
@@ -36,6 +36,11 @@ def host_star():
 def _planet(host_star, seed=0):
     inner, outer = host_star.habitable_zone
     return class_support.draw_planet(host_star, (inner + outer) / 2.0, seed)
+
+
+def _class_words(body):
+    """The words of the body's class, read at view time as the pages read them."""
+    return planet_class_text.description(body.planet_class, body.is_moon)
 
 
 def _description_and_life_text(planet):
@@ -99,7 +104,7 @@ def test_a_world_no_class_supports_makes_no_claim_of_life(host_star, seed, monke
     assert planet.life_class is None
     assert not planet.has_timeline and planet.evolutionary_pace is None
     assert planet.reflection_spectrum_visible is None and planet.reflection_spectrum_non_visible is None
-    assert not LIFE_WORDS.search(planet.description), planet.description
+    assert not LIFE_WORDS.search(_class_words(planet)), _class_words(planet)
     text = _description_and_life_text(planet)
     # The planet's table row gives the class and the like; the sentences must not talk of life.
     sentences = " ".join(s for s in re.split(r"(?<=[.!?])\s+", text) if not s.startswith("{{"))
@@ -114,7 +119,7 @@ def test_a_world_whose_class_stays_microbial_stops_its_timeline_before_complex_l
         planet = _planet(host_star, 10 * seed + attempt)
         planetLife.apply_life_data(planet)
         assert planet.life_stage in (None, "abiogenesis", "photosynthesis")
-        assert not COMPLEX_WORDS.search(planet.description), planet.description
+        assert not COMPLEX_WORDS.search(_class_words(planet)), _class_words(planet)
         life = life_facts.resolve(planet)
         timeline_text = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(life)) if life and life.timeline else ""
         assert not COMPLEX_WORDS.search(timeline_text), timeline_text
@@ -124,11 +129,12 @@ def test_no_class_description_claims_life_or_names_a_planet():
     """GEN.221: the class text is the same whatever the index allows, so it claims no life, no flora, no percentage and
     no "planet" (a moon reads it as it stands); the life sentences say what the index allows."""
     claims = re.compile(r"life|bacteri|vegetation|flora|Earth-like|planet|%")
-    for cls, found in tuning.PLANET_CLASSES.items():
-        assert not claims.search(found["description"]), (cls, found["description"])
+    for cls, text in planet_class_text.DESCRIPTIONS.items():
+        assert not claims.search(text), (cls, text)
 
 
-def test_a_class_description_stands_whatever_the_conditions_allow(host_star, monkeypatch):
+def test_a_body_keeps_no_description_whatever_the_conditions_allow(host_star, monkeypatch):
+    """GEN.1212: the words of a class are read at view time (`planet_class_text`), so generation stores none on the body."""
     for supported in (True, False):
         if not supported:
             monkeypatch.setattr(planetLife.life_classes, "score_classes", lambda *args, **kwargs: {})
@@ -136,17 +142,7 @@ def test_a_class_description_stands_whatever_the_conditions_allow(host_star, mon
             planet = _planet(host_star)
             planet.is_moon = is_moon
             planetLife.apply_life_data(planet)
-            stands = tuning.PLANET_CLASSES[planet.planet_class]["description"]
-            if is_moon:
-                stands = stands.replace("planets", "moons").replace("planet", "moon")
-            assert planet.description == stands
-
-
-def test_a_body_with_no_scores_is_left_to_its_class(host_star):
-    planet = _planet(host_star)
-    planet.phi_bio = planet.phi_cpx = None
-    planetLife.apply_life_data(planet)
-    assert planet.description == tuning.PLANET_CLASSES[planet.planet_class]["description"]
+            assert not hasattr(planet, "description") and "description" not in planet.SERIALIZABLE_FIELDS
 
 
 def test_no_generated_description_contradicts_its_own_habitability_index():
@@ -162,9 +158,9 @@ def test_no_generated_description_contradicts_its_own_habitability_index():
                 if body.life_class is None:
                     lifeless += 1
                     assert not body.has_timeline, body.name
-                    assert not LIFE_WORDS.search(body.description), (body.name, body.description)
+                    assert not LIFE_WORDS.search(_class_words(body)), (body.name, _class_words(body))
                 elif body.life_complexity < tuning.LIFE_COMPLEXITY["thresholds"]["multicellularity"]:
                     microbial_only += 1
                     assert body.life_stage in (None, "abiogenesis", "photosynthesis", "complex_cells")
-                    assert not COMPLEX_WORDS.search(body.description), (body.name, body.description)
+                    assert not COMPLEX_WORDS.search(_class_words(body)), (body.name, _class_words(body))
     assert lifeless > 0 and microbial_only >= 0

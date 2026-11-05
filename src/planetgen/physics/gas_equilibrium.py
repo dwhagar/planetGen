@@ -19,7 +19,7 @@ the mole fractions of every species, the ones below 1e-300 included as zero.
 Abundances are moles of atoms in any common scale (only their ratios and the pressure decide the mole fractions). With the oxygen
 potential held the oxygen abundance is not asked for: the mantle supplies or takes the oxygen that the buffer requires, so the
 mole fractions are those of a gas in contact with it, and the moles of the gas are per the other abundances. Condensed
-phases are not in the solution: the caller caps what the saturation curves allow (`physics/saturation.py`), because the vapour
+phases are not in the solution: the caller caps what the saturation curves allow (`physics/saturation.py`), because the vapor
 pressure of an ice is a pure-phase curve and the freeze-out belongs to the pressure bookkeeping of the generator (GEN.422).
 
 Species whose fit does not reach the temperature are left out and named in `skipped`. The standard state is 1 bar, as the

@@ -54,7 +54,7 @@ def test_each_stage_and_each_stream_within_a_stage_draws_from_a_stream_of_its_ow
     assert _sample(a, fill_stages.SYSTEMS) == _sample(b, fill_stages.SYSTEMS)
     draws = {_sample(a, name)[0] for name in fill_stages.STAGES}
     assert len(draws) == len(fill_stages.STAGES)
-    assert _sample(a, fill_stages.PER_STAR_KINDS, "comet") != _sample(a, fill_stages.PER_STAR_KINDS, "rogue-planet")
+    assert _sample(a, fill_stages.PER_STAR_KINDS, "comet") != _sample(a, fill_stages.PER_STAR_KINDS, "brown-dwarf")
     assert _sample(a, fill_stages.FLAGS, "nucleus") != _sample(a, fill_stages.FLAGS, "fast-stars")
 
 
@@ -256,7 +256,7 @@ def test_the_system_is_the_same_from_the_same_seed_and_in_any_order(certain):
                                               for planet in entry.star_system.planets]
                 for entry in sector.entries}
 
-    # Only a disc origin (a quarter of the pulsars that roll planets, GEN.317) leaves a system: take two seeds that do.
+    # Only a disk origin (a quarter of the pulsars that roll planets, GEN.317) leaves a system: take two seeds that do.
     first, second = [seed for seed in range(1, 60) if planets([seed])][:2]
     forward, backward = planets([first, second]), planets([second, first])
     assert forward == backward and len(forward) == 2

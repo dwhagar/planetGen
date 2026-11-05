@@ -5,7 +5,7 @@
 // goes on to the cluster of the region's heaviest sectors (the ranking MAP.322 names labels by) and frames that. No DOM and no
 // three.js: tests/js/regionlanding.test.mjs holds it.
 
-// How many of the heaviest sectors make up one cluster, and how far apart (in sector edges, centre to centre) two of them may be
+// How many of the heaviest sectors make up one cluster, and how far apart (in sector edges, center to center) two of them may be
 // and still be in the same cluster.
 export const CLUSTER_SECTORS = 9;
 export const CLUSTER_EDGES = 2.5;

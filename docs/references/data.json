@@ -781,6 +781,26 @@
       "name": "Part three – dithering in quantization of 2D images",
       "provider": "Wronski, B",
       "year": ""
+    },
+    {
+      "checked": "2026-11-05",
+      "id": "R5112",
+      "identifier": "",
+      "kind": "software documentation",
+      "link": "https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/abcorr.html",
+      "name": "NAIF SPICE: aberration corrections",
+      "provider": "NASA JPL Navigation and Ancillary Information Facility",
+      "year": ""
+    },
+    {
+      "checked": "2026-11-05",
+      "id": "R5113",
+      "identifier": "",
+      "kind": "software documentation",
+      "link": "https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/LOD-catalogs.html",
+      "name": "Gaia Sky: level-of-detail catalogs",
+      "provider": "Gaia Sky project, Heidelberg University",
+      "year": ""
     }
   ]
 }

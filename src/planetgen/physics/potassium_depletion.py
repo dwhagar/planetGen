@@ -13,8 +13,8 @@ chondrites from [R0270] (K 550 ppm, U 0.0077 ppm, K/U 71,429):
     Moon 0.034, Vesta 0.058, the angrite parent body 0.0018 (0.012 Earth masses down to a planetesimal).
 
 Two classes follow from the gap between Moon and Mercury, and the module draws the log10 depletion from a normal distribution of each class's
-mean and predictive spread (`s * sqrt(1 + 1/n)` of the three bodies): planets of 0.03 Earth masses or more, centred on 0.19 with 0.15 dex;
-smaller bodies, centred on 0.015 with 0.94 dex. The draw never exceeds 1 (the chondrites of Table 1 run from 0.26 for CV to 1.2 for the
+mean and predictive spread (`s * sqrt(1 + 1/n)` of the three bodies): planets of 0.03 Earth masses or more, centered on 0.19 with 0.15 dex;
+smaller bodies, centered on 0.015 with 0.94 dex. The draw never exceeds 1 (the chondrites of Table 1 run from 0.26 for CV to 1.2 for the
 enstatite groups; a body that kept all its potassium has 1).
 
 Limits, kept as registry rows (GEN.725, section 6.61): three bodies per class; the heliocentric trend the earlier recalled rule used
@@ -100,7 +100,7 @@ def statistics_of(planet):
 
 @finite_domain()
 def median_depletion(mass_earth):
-    """The depletion at the centre of the class of a body of `mass_earth` Earth masses."""
+    """The depletion at the center of the class of a body of `mass_earth` Earth masses."""
     return 10.0 ** statistics_of(is_planet(mass_earth))[1]
 
 
