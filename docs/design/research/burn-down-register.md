@@ -200,4 +200,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.170:RNG13 | no data | - | no source gives a jet count for Uranus or Neptune; the count is the output the picture needs |
 | 6.170:RNG18 | no data | - | no source gives a storm count law by rotation or heat flux; the count is a picture choice inside the design's 1 to 4 |
 | 6.170:RNG19 | no data | - | the contrast and colours by cloud-top temperature are tuned by eye; nothing measures them across giants |
-| 6.3a:--rogues | no data | - | the number behind each word (none, few, normal, many) is a lever of the user; the observed 2 to 10 rogues per star bounds it, and a measured rogue count would replace the ceilings |
+| `6.3a:`--rogues`` | no data | - | the number behind each word (none, few, normal, many) is a lever of the user; the observed 2 to 10 rogues per star bounds it, and a measured rogue count would replace the ceilings |

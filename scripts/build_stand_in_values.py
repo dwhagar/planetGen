@@ -359,6 +359,12 @@ BURN_DOWN_COLUMN = "Burn-down (GEN.946)"
 `no data` or `replace` with the item), or a dash."""
 
 
+def _unwrap(cell):
+    """A register cell without the one pair of backticks that wraps it (a row ID may end in a backtick of its own, as `6.3a:`--rogues``)."""
+    cell = cell.strip()
+    return cell[1:-1].strip() if len(cell) > 1 and cell[0] == "`" and cell[-1] == "`" else cell
+
+
 def unread_rows(text):
     """
     The registry rows that the wiring register (GEN.754) says nothing in the app reads yet.
@@ -368,7 +374,7 @@ def unread_rows(text):
     """
     found = {}
     for line in text.splitlines():
-        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
+        cells = [_unwrap(cell) for cell in line.strip().strip("|").split("|")]
         if line.startswith("|") and len(cells) == 4 and cells[0] == "row":
             found[cells[1]] = cells[2]
     return found
@@ -383,7 +389,7 @@ def burn_down_rows(text):
     """
     found = {}
     for line in text.splitlines():
-        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
+        cells = [_unwrap(cell) for cell in line.strip().strip("|").split("|")]
         if line.startswith("|") and len(cells) == 4 and cells[1] in ("no data", "replace", "replaced"):
             found[cells[0]] = (cells[1], cells[2], cells[3])
     return found

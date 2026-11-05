@@ -2239,11 +2239,7 @@
           "what": "--richness: 1 to 3 systems per solar mass"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the number behind each word (none, few, normal, many) is a lever of the user; the observed 2 to 10 rogues per star bounds it, and a measured rogue count would replace the ceilings"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "The range",
