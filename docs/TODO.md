@@ -15679,23 +15679,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
-- [ ] **PERF.239 A warm-up with nothing changed costs minutes: decide "already stored" from the cache keys, not by visiting every page**
-  Aux 3 (as the lane reported, 8:14 PM EST on 2026-11-04), unchanged
-  rerun of the 14-sector test galaxy, one process, same state folder: 4
-  min 15 s wall with every family built 0. Opening 1.4 s, built levels
-  0.2 s, deep nodes 25 s (6,855 stored, 3.7 ms each), objects 214 s
-  (43,782 stored pages, 4.9 ms each), search 0.3 s. The cluster field is
-  reused ("already a file"), so it is not part of the cost. The stored
-  check is one full Flask request per page, so a nothing-changed run
-  grows with the object cap (divided by the workers). Do: decide
-  "already stored" for object pages and deep nodes by checking the cache
-  keys directly (one pipelined Redis EXISTS per chunk, a directory
-  listing for the node files) before visiting a page. Done: an unchanged
-  run on the test galaxy takes seconds in the objects and deep-nodes
-  phases, a changed page is still rebuilt, and a test shows both.
-  Lock-free, no migration. Version 8.1. Owner: Aux 3.
-  Prerequisites: none. Related: PERF.235, PERF.234.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -20652,24 +20635,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   phones; missing stars are built when a system is charted, no visit
   job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
-
-- [ ] **VIEW.29 System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S11 of S1 to S22 in section 7. Do: observer-relative
-  positions and velocities in double precision, packed to about 30 bytes
-  a star, with the writer in Python, the reader in JS and one test that
-  holds the two to each other (as tilepack does). Done: the shared test.
-  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
-  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
-  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
-  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
-  it); the limiting magnitude is a setting with default 7.5, lower on
-  phones; missing stars are built when a system is charted, no visit
-  job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.23.
 
 - [ ] **VIEW.30 System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research

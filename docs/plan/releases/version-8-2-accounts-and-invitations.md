@@ -41,10 +41,9 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | VIEW.36 | System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points | VIEW.33 |  |
 | VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | VIEW.31, VIEW.33, VIEW.34 |  |
 | VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | VIEW.31 |  |
-| VIEW.33 | System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock | VIEW.29 |  |
-| VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= | VIEW.29 |  |
+| VIEW.33 | System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock |  |  |
+| VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= |  |  |
 | VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | VIEW.23, VIEW.25 |  |
-| VIEW.29 | System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both | VIEW.23 |  |
 | VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) | VIEW.25 |  |
 | VIEW.25 | System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill | VIEW.19, VIEW.24 |  |
 | VIEW.24 | System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725 | VIEW.19 |  |
@@ -66,7 +65,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | PERF.232 | test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug) |  |  |
 | PERF.236 | The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug) |  |  |
 | GEN.1275 | The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug) |  |  |
-| PERF.239 | A warm-up with nothing changed costs minutes: decide "already stored" from the cache keys, not by visiting every page |  |  |
 | PERF.235 | A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup |  |  |
 | DOC.103 | American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours |  |  |
 | GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) |  |  |
