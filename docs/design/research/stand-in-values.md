@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1145 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1140 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 19 | 10 | 92 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
-| T6 | 106 | 85 | 22 | 58 | 0 | 271 |
+| T6 | 103 | 84 | 22 | 58 | 0 | 267 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 27 | 14 | 5 | 67 | 29 | 142 |
-| All | 635 | 242 | 54 | 174 | 40 | 1145 |
+| T9 | 26 | 14 | 5 | 67 | 29 | 141 |
+| All | 631 | 241 | 54 | 174 | 40 | 1140 |
 
 ## How the labels were given
 
@@ -1170,16 +1170,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BW4 | P | T9 | L3 | band_winds.SURFACE_COUPLING 0.3, the share of the wind aloft that reaches the surface by day | 0.15 to 0.5 | rocky worlds with air | surface winds off the Earth's 5 to 8 m/s in the mid-latitudes | a boundary-layer drag law on the surface roughness | tuned to the Earth's mid-latitude surface wind | GEN.1110 | no data |
 | BW5 | P | T9 | L3 | band_winds.NIGHT_COUPLING 0.5, the share of the day's coupling left at night | 0.3 to 0.8 | worlds with a stable night layer | a measured night to day wind ratio far from a half | a boundary-layer stability model | the Earth's night winds are about half the day's, recalled | GEN.1110 | no data |
 | BW6 | P | T6 | L0 | band_winds.TROPICS_LIMIT_DEG 60, the latitude where westerlies give way to polar winds | 50 to 70 | worlds with a Hadley cell | a general-circulation run with the Ferrel cell ending far from 60 degrees | the Ferrel cell's edge from the same scaling | the Earth's polar front is near 60 degrees, recalled | GEN.1110 | - |
-
-## 6.99 Stand-ins of the belt density factor
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| BD1 | P | T6 | L0 | belt_density.MAIN_BELT cumulative exponents 1.3 (0.4 to 5 km) and 3.0 (5 km up) | 2.3 and 4.0 (the cumulative reading) to 1.3 and 3.0 | main belts | section 6 of [R2108] defining the index for the cumulative distribution, or counts above 40 km that the law misses by more than a factor of three | the exponents read verbatim from section 6, and a law fitted to the debiased counts [R0484] | the abstract states D^-2.3 and D^-4 and the 530,000 above 1 km; a summary of the PDF says section 6 defines the differential index; the cumulative reading leaves 3 asteroids above 40 km | UX.241 | - |
-| BD2 | P | T6 | L0 | belt_density.KUIPER_HOT breaks 1, 121 and 2500 km, exponents 1.0 and 4.35 | faint exponent 0.75 to 1.0 | hot Kuiper belt objects | a debiased count of hot KBOs above 100 km off by more than a factor of three | the DEEP tapered fit parameters [R3241] | [R1439], alpha 0.87 bright, H_B 7.7 at albedo 0.10; faint side about 1.0 | UX.241 | - |
-| BD3 | P | T6 | L0 | belt_density.KUIPER_COLD breaks 1, 175 and 1500 km, exponents 1.0 and 7.5 | bright exponent 6 to 8 | cold classical belts | the same for the cold population | the DEEP tapered fit parameters | [R1439], alpha 1.5, H_B 6.9 at albedo 0.10 | UX.241 | - |
-| BD4 | P | T9 | L0 | belt_density.DEFAULT_DIAMETERS_KM 1, 10, 100 | any set | the information page | Boss asks for another set | the page's own choice | Boss, 4:37 PM EDT 2026-10-30 | UX.241 | - |
-| BD5 | P | T6 | L1 | belt_density.BULK_DENSITY_KG_M3 2500 | 1000 (ice) to 3500 | the diameter of a mass, where no density is given | a belt whose bodies have a measured mean density far from this | the density of the belt's own composition (the compaction taper) | belt-evolution.md section 11.1 | - | - |
 
 ## 6.76 Stand-ins of the super-puff radius
 
