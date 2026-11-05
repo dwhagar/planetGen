@@ -888,8 +888,7 @@ with `clamp()`.
   look-2-chart-room.html, selectable through the look setting. Every
   text pair keeps a contrast of at least 4.5 to 1 and every control
   border at least 3 to 1 in light and dark, and every colour keeps its
-  symbol, word or shape. Held for Boss's answer on whether the extra two
-  looks ship in 8.7 or follow after it.
+  symbol, word or shape. Approved to ship in 8.7, built last.
   Boss decision (5:55 PM EST on 2026-11-05): approved to ship in 8.7,
   built last.
   Prerequisites: UX.131, UX.132, UX.265. Related: UX.43, UX.265, UX.268, UX.269, UX.270.
@@ -904,8 +903,7 @@ with `clamp()`.
   measured values in look-3-phosphor.html, selectable through the look
   setting; the light theme of this look is the paper-and-ink reading of
   the same hue. Same contrast and non-colour-cue rules as the Chart room
-  layer. Held for Boss's answer on whether the extra two looks ship in
-  8.7 or follow after it.
+  layer. Approved to ship in 8.7, built last.
   Boss decision (5:55 PM EST on 2026-11-05): approved to ship in 8.7,
   built last.
   Prerequisites: UX.131, UX.132, UX.265. Related: UX.43, UX.265, UX.268, UX.269, UX.270.
