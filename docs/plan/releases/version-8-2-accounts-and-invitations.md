@@ -74,6 +74,8 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) |  |  |
 | TEST.562 | test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug) |  |  |
 | GEN.1246 | The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source |  |  |
+| GEN.1268 | Nebulae carry a real composition: gas and dust fractions by kind, metals from the place and age, ejecta from the progenitor |  |  |
+| GEN.1267 | A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it |  |  |
 | GEN.1260 | The latitude band table's Day/Night and Longest day/night rows are empty or wrong for slow spinners: rewrite them as a time-stepped spell calculation (bug) |  |  |
 | GEN.1262 | Temperature coverage part 1: the shared illumination series (physics/surface_cycle.py): cosine of the zenith angle per latitude-longitude cell and time step, with GEN.1260's spell search moved onto it | GEN.1260 |  |
 | GEN.1263 | Temperature coverage part 2: the temperature series: one energy balance per cell, anchored so the area-and-time mean equals the stored mean | GEN.1262, GEN.1039, GEN.972 |  |
