@@ -40,6 +40,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline |  | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | MAP.207 | Map labels, Boss 2:30 PM EDT. |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae |  | Finding from Core 3. |
+| GEN.1273 | Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value | GEN.1269, GEN.367 |  |
 
 ### Rare stars and phenomena
 
