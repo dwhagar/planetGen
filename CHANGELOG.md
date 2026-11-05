@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3264] - 2026-11-05
+
+**Headline:** The hard-edged nebula shell is gone from the maps: nebulae are soft clouds everywhere.
+
+### Changed
+- The Galaxy Map, the Sector Map and the nebula page no longer draw a nebula as a translucent hard-edged mesh. A nebula is its own soft cloud of points (or, where the browser cannot draw that, the soft sprite or sphere it had before the mesh). The site no longer serves `/galaxy/nebula/<id>/shape`; the API's `GET /api/nebulae/<id>/shape` is unchanged.
+
+generation-output: unchanged
+
 ## [8.0.3263] - 2026-11-05
 
 **Headline:** The Galaxy Map marks the planetary nebulae and supernova remnants the galaxy has scattered but no sector has been filled for yet.
