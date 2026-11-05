@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5009 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5010 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -2995,6 +2995,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r2891"></a>**R2891** Marsaglia, G. & Tsang, W. W. 2000a, A simple method for generating gamma variables, ACM Trans. Math. Softw., 26, 363, doi:10.1145/358407.358414. [paper](https://doi.org/10.1145/358407.358414) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1145/358407.358414/abstract)
 - <a id="paper-r2892"></a>**R2892** Marsaglia, G. & Tsang, W. W. 2000b, The Ziggurat Method for Generating Random Variables, J. Stat. Soft., 5, doi:10.18637/jss.v005.i08. [paper](https://doi.org/10.18637/jss.v005.i08) · [ADS](https://ui.adsabs.harvard.edu/abs/10.18637/jss.v005.i08/abstract)
 - <a id="paper-r2893"></a>**R2893** Marschall, R., Morbidelli, A., & Marrocchi, Y. 2025, The refractory-to-ice ratio in comet 67P: implications on the composition of the comet-forming region of the protoplanetary disk, arXiv:2501.17864. [paper](https://arxiv.org/abs/2501.17864) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2501.17864/abstract)
+- <a id="paper-r5128"></a>**R5128** Marshall, D. J., Robin, A. C., Reylé, C., Schultheis, M., & Picaud, S. 2006, Modelling the Galactic interstellar extinction distribution in three dimensions, A&A, 453, 635, doi:10.1051/0004-6361:20053842, arXiv:astro-ph/0604427. [paper](https://doi.org/10.1051/0004-6361%3A20053842) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361%3A20053842/abstract)
 - <a id="paper-r2894"></a>**R2894** Marshall, J. P., et al. 2014, Correlations between the stellar, planetary, and debris components of exoplanet systems observed byHerschel, A&A, 565, A15, doi:10.1051/0004-6361/201323058, arXiv:1403.6186. [paper](https://doi.org/10.1051/0004-6361/201323058) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201323058/abstract)
 - <a id="paper-r2895"></a>**R2895** Marti, J. J., et al. 1997, H2SO4 vapor pressure of sulfuric acid and ammonium sulfate solutions, JGRD, 102, 3725, doi:10.1029/96jd03064. [paper](https://doi.org/10.1029/96jd03064) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/96jd03064/abstract)
 - <a id="paper-r2896"></a>**R2896** Martig, M., Minchev, I., & Flynn, C. 2014, Dissecting simulated disc galaxies – I. The structure of mono-age populations, MNRAS, 442, 2474, doi:10.1093/mnras/stu1003. [paper](https://doi.org/10.1093/mnras/stu1003) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stu1003/abstract)

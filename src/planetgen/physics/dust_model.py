@@ -48,7 +48,7 @@ from planetgen import tuning
 from planetgen.physics import constants, nebula_composition, stellar_abundances
 
 HYDROGEN_ATOMS_PER_AV_CM2 = 2.21e21
-"""float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants ([R5123: Eq. 1]). Stand-in DU1,
+"""float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants [R5123: Eq. 1]. Stand-in DU1,
 tier T1, tweak L0."""
 
 VISIBLE_SHARE = 0.5
