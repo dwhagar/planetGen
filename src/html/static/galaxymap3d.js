@@ -3572,15 +3572,17 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     // NAV.20: with stops on the way, the straight line from the start to the
     // end is drawn apart from the route, dashed and muted.
-    if (course.direct && course.direct.length === 2) {
-      var directPoints = course.direct.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+    // NAV.49: a course through waypoints has the straight line of each leg (`directs`).
+    var directPairs = course.directs && course.directs.length ? course.directs : course.direct && course.direct.length === 2 ? [course.direct] : [];
+    directPairs.forEach(function (pair) {
+      var directPoints = pair.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
       directPoints.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
       courseLines.direct.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
         color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
         dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
         gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
       }), true));
-    }
+    });
     // NAV.28: the course bent round keep-out spheres, one polyline for each line that bends, over the route in amber.
     var bentColor = mapVar("--tier-yellow", "#d9a400");
     (course.adjusted || []).forEach(function (line) {
@@ -3590,7 +3592,8 @@ function initGalaxyMap3d(canvasEl, data) {
         new THREE.LineBasicMaterial({ color: new THREE.Color(bentColor), depthTest: false, transparent: true })));
     });
     course.points.forEach(function (point, n) {
-      var ends = n === 0 || n === course.points.length - 1;
+      // NAV.49: a waypoint is ringed and named like an end.
+      var ends = n === 0 || n === course.points.length - 1 || point.role === "waypoint";
       var ring = new THREE.Sprite(new THREE.SpriteMaterial({
         map: highlightTexture, transparent: true, depthWrite: false, depthTest: false,
         sizeAttenuation: false, opacity: ends ? 1 : 0.7,
@@ -4655,8 +4658,8 @@ function initGalaxyMap3d(canvasEl, data) {
       if ((course.adjusted || []).length) {
         layers.registerKey({ id: "key-course-bent", layer: "course-adjusted", text: "Amber line: the course bent round a keep-out sphere", swatchClass: "map-key-bent", drawn: function () { return stageView.layers.isOn("course-adjusted"); } });
       }
-      if (course.direct && course.direct.length === 2) {
-        layers.registerKey({ id: "key-direct", layer: "course-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return stageView.layers.isOn("course-direct"); } });
+      if (courseLines && courseLines.direct.children.length) {
+        layers.registerKey({ id: "key-direct", layer: "course-direct", text: course.via ? "Dashed line: the direct line of each leg, waypoint to waypoint" : "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return stageView.layers.isOn("course-direct"); } });
       }
     }
   })();

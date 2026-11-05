@@ -2,6 +2,248 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3316] - 2026-11-05
+
+**Headline:** The sector page label test waits for the sector's map blocks to arrive before it checks which names are shown, so it no longer fails 1 run in 3.
+
+### Fixed
+- `test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch` (TEST.597) read the labels as soon as a system name showed, while the page was still loading its map blocks one level at a time (243, 81, 27, 9). A block is drawn whole until its children are in, and a whole block names its region or family for the two to four seconds that takes, so "Fixture Reach" showed in every run for a moment and the test failed whenever it read the labels in that moment. It waits until those names have gone. The map is as designed; no map bug was found.
+
+## [8.0.3315] - 2026-11-05
+
+**Headline:** Four map browser tests that failed on main wait for the right thing now, so the Galaxy Map and system view tests pass again.
+
+### Fixed
+- `test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate` (TEST.575) took the first generated system with moons, which can have only one freely turning body (its moons locked), and asked for two. It takes the first of up to eight systems with moons that has two, and fails only if none has.
+- `test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox` (TEST.575, TEST.595) waited for the first gas giant mark and then asserted all of them, so it saw only Fixture Jove while Fixture Eden had not drawn. It waits until every expected mark is drawn.
+- `test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out` (TEST.575) kept wheeling in after the sector's scene was whole (one edge in). At the window's nearest zoom, one more tick opens the sector by design (MAP.152), the scene share reads null and the test failed on a window whose nearest zoom is between 0.9 and 1 edge. It stops wheeling at one edge.
+- `test_web_browser_map_card.py` black hole cases (TEST.595) asked for the Fixture Maw button while the Black hole marks layer is off by default (MAP.368). They are marked like the other tests of the marks.
+- Not changed: the field cloud sprite test and the wheel tick test of the sector reach file passed alone in every run here (4 of 4, 3 of 3) and failed only late in a long file run or while other work ran on the machine, on 40 s and 15 s waits for a rendered frame of the software GL. No map bug was found; no wait was lengthened.
+
+## [8.0.3314] - 2026-11-05
+
+**Headline:** Two or more waypoints plot a course on the Galaxy Map that stays drawn until the waypoints are cleared.
+
+### Added
+- The Waypoints menu offers Plot the course once there are two or more waypoints. The Galaxy Map then draws the course through them: each leg planned like any other course (the route, the direct line, and the bend round keep-out spheres), the waypoints ringed and named, and a note giving the total distance.
+- The course stays: a Galaxy Map opened with two or more waypoints and no course of its own comes up with them plotted, until Clear all, or Remove down to fewer than two, takes the course away too.
+- The address carries the waypoints (`?via=`), so the plotted course can be bookmarked or shared; a waypoint the database no longer has simply draws no course.
+
+generation-output: unchanged
+
+## [8.0.3313] - 2026-11-05
+
+**Headline:** A sea now stores what it is made of: the methane, ethane and nitrogen of a hydrocarbon sea, the salt of a water sea, and a second liquid beside the main one.
+
+### Changed
+- **GEN.1218b.** Six new columns on planets and moons (migration 0205): `surface_liquid_methane_mol`, `surface_liquid_ethane_mol`, `surface_liquid_nitrogen_mol` (mole fractions of a methane, ethane or nitrogen sea by Raoult's law of the air over it with the ethane the rest, or the one liquid alone for a sea supplied by ice), `surface_liquid_salt_wt` (the sodium chloride that gives a water sea its water activity as a percent of the liquid's mass, 3.5 at 0.981, none for a brine under 0.753), `surface_liquid_2` and `surface_liquid_2_fraction` (the next sea the body supplies and has room for; Boss's answer 1 of 11:56 AM EDT 2026-10-31). The main liquid is chosen as before. The sheet shows the columns and says why one is empty. Stand-in row GN4.
+
+generation-output: changed
+
+TODO items advanced: GEN.1218.
+
+## [8.0.3312] - 2026-11-05
+
+**Headline:** An animal's score now falls on a world whose air carries hydrogen sulfide or sulfur dioxide.
+
+### Fixed
+- **The animal toxin test ignored sulfur gases.** `toxin_factor` read only carbon monoxide and carbon dioxide, so a world an acid-eating life had filled with sulfur dioxide (or hydrogen sulfide) scored as clean air for animals. It now adds a term for each, at a scale of twice the chronic limit (0.002 kPa of hydrogen sulfide, 0.001 kPa of sulfur dioxide), the way carbon monoxide and carbon dioxide sit against theirs. The scales are registered in LF22 as a tier T6, tweak L1 stand-in. Worlds without those gases are unchanged.
+
+generation-output: changed
+affects: fill
+
+TODO items resolved: GEN.1253.
+
+## [8.0.3311] - 2026-11-05
+
+**Headline:** Icy bodies that formed in the coldest zones of a disk can hold nitrogen ice, and ethane among the unlisted ices can make an ethane sea.
+
+### Changed
+- **GEN.1218a (rest).** The comet volatiles had no nitrogen, so no body held nitrogen ice. Now an icy body whose ice formed colder than N2 condenses at (28.7 K: the beta-N2 vapour pressure at the nitrogen's partial pressure in the disk gas, 6.8e-5 of the hydrogen at 1e-4 bar) gets N2 ice of 1e-4 to 1.4e-3 of its water's mass (the solar ceiling of 0.107 times a trapping efficiency of 0.1 to 1.3 percent, from comet 67P and the Pluto cometary model of GEN.1225). A warmer zone draws nothing, so its random draws do not change. The ethane in the ices that have no column of their own (a median share of them) now supplies an ethane sea where ethane is liquid and methane is not. Stand-in rows GN1 to GN3. Retention of N2 by a small warm body is not modelled, the strength of the ammonia-water sea that follows the temperature and the second liquid (GEN.1218b) are still to come.
+
+generation-output: changed
+
+TODO items advanced: GEN.1218, GEN.1214.
+
+## [8.0.3310] - 2026-11-05
+
+**Headline:** A world that holds an oxygenic class beside an anoxygenic or hydrogen-eating one now keeps the methane the second one's fuel supports.
+
+### Fixed
+- **Fuel-limited methane no longer shrinks with the class's share of the food.** The methane of the anoxygenic light-eaters and the hydrogen eaters is limited by their own donor or hydrogen supply, not by the food they share with an oxygenic class, so it was too small by the inverse of their share (about ten times for a 10 percent share). Only the buried-carbon methane of the oxygenic class still goes with its share, and classes that burn the same fuel count it once. Worlds with one living class are unchanged.
+
+generation-output: changed
+affects: fill
+
+TODO items resolved: GEN.1252.
+
+## [8.0.3309] - 2026-11-05
+
+**Headline:** Generating a system around a luminous star is faster, and two small slips that the old time limits were hiding are fixed.
+
+### Changed
+- **The impact erosion sum is cheaper (PERF.229).** The mass-weighted erosion of a planet's air by the impactors that hit it recomputed the same impactor-density factors for every grid step. They are now worked out once per call, and the sum is taken in the same order, so the result is identical to the last digit (a test pins it against the sum of the single efficiencies).
+- **The star-type fuzz test is split by spectral letter (PERF.229).** The heavy luminosity classes (Ia, Iab, Ib, II, III) each ran the whole letter range in one test, so the slowest cells hit the time limit and hid what failed behind them. Each letter now runs on its own, with its reason recorded in the test.
+- **A belt's "stirred" and "moved through" flags are plain true or false (PERF.229).** They could come out as numpy booleans, which the stored system could not serialize.
+- **A belt cut back keeps its middle inside its limits (PERF.229).** When a belt was cut back to the orbits a star holds, its distance could stay past the new outer limit (a luminous giant's belt had limits 497 to 575 AU and a distance of 643 AU). The distance now stops at the new limit.
+
+generation-output: changed
+
+TODO items resolved: PERF.229.
+
+## [8.0.3308] - 2026-11-05
+
+**Headline:** Seas of methane, ethane and other liquids now have an equilibrium tide, and a new module holds the exact tide numbers of a deep global liquid layer.
+
+### Changed
+- **GEN.1052.** `ocean_tides` took every sea for water. A body whose stored `surface_liquid` is another non-lava liquid (a methane, nitrogen, ammonia or carbon dioxide sea) and covers part of the surface now gets its spring and neap range and its `ocean_liquid` (the liquid named, its density at the body's temperature in the loading of the floor). In 60 systems 15 bodies gain the columns, all small (a locked moon feels the star's tide only). A liquid too heavy for a thin layer still gives no tide. New `physics/heavy_liquid_tide.py`: the Love numbers `k2` and `h2` of an incompressible body with a core under a global liquid layer, solved exactly with the core moving or fixed, checked against a homogeneous fluid (3/2, 5/2), a fluid surface (`1 + k2 - h2 = 0`), the fluid Earth (0.93 to 1.04) and the thin-sea loading factor, which it shows is exact for a floor that does not move at any depth. Mercury and the other liquid metals were already rows of the liquid table; no generated body has a molten core under a global liquid, so the module is registered `by design`.
+
+generation-output: changed
+
+TODO items advanced: GEN.1052.
+
+## [8.0.3307] - 2026-11-05
+
+**Headline:** The regular moons of a giant planet now form close in, inside the planet's circumplanetary disc, instead of tens of planet radii out.
+
+### Changed
+- **A giant's regular moons form inside the centrifugal radius of its disc, outside the corotation radius of its spin (GEN.1244).** A moon born of a giant's disc used to be placed anywhere between the body and the stable limit of its Hill radius, spread evenly in the logarithm, so six moons of one giant sat 46 to 130 planet radii out, beyond the radiation belts that reach about 20. The gas and solids that make such moons land inside the disc's centrifugal radius, about 30 planet radii, so a disc moon is now placed between that edge and the corotation radius of the planet's birth spin (where the planet's field truncates the disc; about 2.25 radii for a Jupiter-like spin). In sixty sun-like systems the disc moons now sit 4.7 to 29.9 planet radii out, with a median of 20.6. The origin of each moon is drawn before its orbit, as the design always said, so a disc that is full past its last moon makes no more disc moons while other origins (impact, ring, captured) still use the whole stable span. The two values are stand-ins MD1 and MD2 in the stand-in registry (GEN.725).
+
+generation-output: changed
+
+TODO items resolved: GEN.1244.
+
+## [8.0.3306] - 2026-11-05
+
+**Headline:** A galaxy whose centre is smaller than the grid no longer packs the nuclear stellar disc into one cell: the disc is switched off when it is shorter than 2 pc.
+
+### Changed
+- `galaxy.density.model_terms` (GEN.614): the nuclear stellar disc's length is 0.057 times the bulge radius, so under a bulge radius of about 35 pc it was smaller than the grid's 2 pc core ball (`tuning.NUCLEAR_RESOLUTION_PC`) while the nuclear cluster was softened to it, and the disc put about five times too many systems into one cell. The disc is now off there: its mass and density are zero, and the galaxy's other components are unchanged. Chosen over softening because the cluster is one Hernquist cusp that can be held flat to the ball's mean, while a disc has two lengths and no single flat core that holds its mass. A galaxy with a bulge radius of 35 pc or more, the Milky Way's 1.58 kpc included, is unchanged.
+- GEN.615 (no thick disc, bar, stellar halo or nuclear structures under 3e8 solar masses of stars) was already built with the Structure dial and has its tests in `tests/test_halo_threshold.py`; nothing to add.
+
+### Added
+- `tests/test_gen614_nuclear_disc_grid.py`: bulge radii from 0.7 pc to 1.58 kpc, the cut at 35 pc, no division by zero, a switched-off disc adds no density or mass in the model, the potential components or the array form.
+
+generation-output: changed
+TODO items resolved: GEN.614 (golden and epoch ride train 10; GEN.615 was already built)
+
+## [8.0.3305] - 2026-11-05
+
+**Headline:** Lighter discs now form their stars later and heavier ones earlier, because the disc's inflow carries the mass term of the Milky Way infall model.
+
+### Changed
+
+- The thin disc's inflow (`galaxy/disk_history.py`) is multiplied by `exp(0.4 t (1 - V / 220 km/s))` per gigayear ([R5121]: equation 21), with the disc speed V = 220 (M / 5e10)^(1/3) km/s. A disc slower than the Milky Way's is fed more and more into the present and a faster one the other way, matching the rising, flat and falling histories of [R5122] (GEN.1246).
+- The mass term brings back the downsizing the mass-blind infall of GEN.1230 had flattened: the share of young stars falls about 2.3 times from a 1e10 to a 5e10 solar mass spiral. The reference galaxy forms 2.7 solar masses a year (it was 2.8). Stored star ages, populations and clusters change (generator epoch, `--affects plan,scatter,fill,population`).
+
+## [8.0.3304] - 2026-11-05
+
+**Headline:** Every body now stores how much of its mass is a hydrogen-rich air, a body type (terrestrial, transitional or gas) and the digit of its class code.
+
+### Changed
+- **GEN.1226: the envelope share of every body.** A rocky planet or moon with a hydrogen-rich air (30 percent of its pressure as hydrogen or more) now stores that air's mass over its mass as its envelope share, instead of 0; a body with any other air keeps 0, and a giant keeps the envelope of its interior. The solid fractions give up the same share, so the five bulk fractions still add up to 1; the radius, density and gravity are as they were. Registered in GEN.725 as ES1 (T9, L1).
+- **GEN.1219: the body type.** `planets` and `moons` store `planet_type` (terrestrial under 0.5 percent envelope, transitional from 0.5 to 50 percent, gas from 50 percent), from that share (rows PT1 and PT2, Boss's choice; the ice giants are transitional). The property sheet shows it. The rogue planets keep their own `planet_type` of `t` and `g` until the rogue train.
+- **GEN.1220: the class code.** `planets` and `moons` store `class_variant` (0 to 9; 0 is not written), and `physics/class_code.py` formats, parses and sorts a code of a letter and a digit (M, F2, ...); the sheet and the one-line summary go through it. Every body stores 0 here; the digits 1 to 4 come with the best-fit classifier (GEN.1207). The letters Boss confirmed are recorded: R Hothouse, Y sulfuric acid, U methane-ethane, X ammonia-water, Z hot thin-air world.
+- Migration 0206 adds the two columns. Generator epoch bump (numbered at merge): the hydrogen-air dwarfs' stored envelope, and what reads it (the moons' parent kind, the rings), move; every other body is unchanged.
+generation-output: changed
+
+## [8.0.3303] - 2026-11-05
+
+**Headline:** A planet's or moon's page and map read the words of its class from one table when they are shown, so a change to the wording reaches every world at once.
+
+### Changed
+- **GEN.1212.** `planets` and `moons` lose the `description` column (migration 0208), and generation no longer copies the sentence of a body's class into it; `tuning.PLANET_CLASSES` keeps the composition text and the type of each class but no description. The words are read at view time from `physics/data/planet_class_text.json` (`physics/planet_class_text.py`, UX.252). `GET /api/systems/<id>` gives a planet or moon no `description`, a breaking change that raises the API version to 13; the class words are in the system's description document.
+
+generation-output: changed
+api-version: changed
+
+TODO items resolved: GEN.1212.
+
+## [8.0.3302] - 2026-11-05
+
+**Headline:** A sector that already holds rogue planets or asteroid fields that came from elsewhere now draws that much less mass in systems of its own.
+
+### Changed
+- **Arrived rogues and fields come off the system draw.** The rogue planets and asteroid fields filed in a sector but born in another (a rogue a neighbour's system threw into it) are counted against the sector's calculated mass, and the sector's own systems are drawn from what is left. A sector that holds none draws exactly as before, and a cell held to its bright stars takes nothing off. The share is tiny (a rogue weighs about a millionth of a sector's stellar mass), so the stored sectors move only by the draw's noise.
+
+generation-output: changed
+
+## [8.0.3301] - 2026-11-05
+
+**Headline:** Rogue planets now come from the systems that threw them out: each is built like any other world, with no star, and filed in the sector it has drifted to.
+
+### Changed
+- **A rogue planet row has every planet column.** Surface, air, interior, ocean, life and the rest sit on the rogue row the way they do on a planet row, with the same child tables for its layers, gases, spectrum and life scores. Rogue planets already in the database are not changed; the regenerated galaxy replaces them.
+- **A system that threw a body out saves it.** When a system is saved, each body its planet architecture ejected is built as a planet with no star (its own heat warming it, its air kept from the ejection), moved along its kick for the time since, and stored as a rogue planet in the sector where it landed. The rogue keeps the system that threw it out, which of that system's ejections it is, how long ago and how fast, and a sentence that says where it came from. Saving a system again replaces the rogues it made, so none are doubled.
+- **A rogue's sector may be one nobody has charted.** The sector gets an empty row, not in the chart ledger, which is filled when the cell is charted. A rogue's ID belongs to the sector of the system that threw it out, so deleting that sector removes its rogues wherever they are, and a sector holding a rogue from elsewhere cannot be deleted.
+- **A sector no longer rolls rogue planets of its own.** The flat per-star rate, the mass bins and the sector roll for rogue planets are gone; only the free brown dwarfs keep their roll, and a rogue planet exists because a system threw it out. The rogue-planet counts in the prevalence census are removed with them, to return with the top-up (GEN.1120).
+- **A rogue planet's page, sheet and API show what a planet's do.** The page names the system that threw it out, when, and how fast it left; the API detail names that system and prints its ID; a landing sector nobody has charted has a public ID and a page from the start.
+
+generation-output: changed
+
+## [8.0.3300] - 2026-11-05
+
+**Headline:** Every belt now keeps its biggest bodies one by one: where each lies, how its orbit is shaped, what it is made of and whether it counts as a planet, a dwarf planet or a minor body.
+
+### Changed
+- **Belts store their members (GEN.1070, schema v209, migration 0209).** A new `belt_members` table holds, for each belt, up to 300 of its heaviest bodies, ranked from the heaviest: mass, radius, distance, eccentricity, inclination, the three orbit angles, the taxon (spectral class), bulk density, the rock, metal, water and ice shares, the IAU status word and its Soter mu, and a scatter tag that stays empty until the scatter step tags members. The masses are the ones settled with the belt (the bodies above 1e19 kg, up to 90 percent of the belt's mass), so they add up to no more than the belt weighs. A belt read back from the database lists the same members as one just generated, and a belt cut back to the orbits its star holds draws its members again for the shorter belt.
+- **Where each member lies.** The distance of a member is drawn from where the belt's solids are (more bodies where the disc held more mass), and its eccentricity and inclination are drawn so a wide belt is more stirred than a narrow one (the rms eccentricity is the belt's width over its middle, with an inclination of the same size in radians). The angles are uniform. The draw is keyed on the belt and its star, so the heaviest bodies keep their rank and their place when the belt is cut back or its limit changes.
+- The belt's member list is not yet shown on the belt page or in the API (that comes with the belt page items), so the API version does not change. The four stand-ins of the placement are registered in the stand-in list with their tier and tweak level (MR1 to MR3).
+- Wiring register: lines for modules and numbers the belt generator now reads are removed, and the lines for the roundness and resonance code that is still waiting now name the open items that will read it.
+
+generation-output: changed
+
+TODO items resolved: none.
+
+## [8.0.3299] - 2026-11-05
+
+**Headline:** An ice giant can now radiate as little heat as Uranus does, or as much as Neptune does, instead of every one of them getting Neptune's.
+
+### Changed
+- **GEN.1033: the spread of ice-giant internal heat.** The cooling law runs through Jupiter and Neptune, so a Uranus-mass giant got Neptune's 0.32 W/m2 where Uranus radiates 0.042 W/m2 (Neptune 0.433). An ice giant now has one of two interiors: mixed (the law as it was) or layered by a stable compositional gradient that stops the convection and leaves a thermal boundary layer, radiating 3 to 30 percent of the law (log-uniform; 0.01 to 0.095 W/m2 at Uranus's mass, inside its measured 0.042 +0.047 -0.042). The chance of a layered interior is one half, from one of the two measured ice giants having one. The cause is the one the thermal evolution models give (a gradient is needed because no adiabatic interior reproduces Uranus's luminosity) and the impact history that mixes or spares it; sources are in the registry (R5115 to R5120, added to the References). The draw is on a stream of the giant's own (its mass), so the one-bar temperature, the helium rain, the air and the habitability all read the same heat and the run's stream does not move. Gas giants, brown dwarfs and rocky bodies are untouched. Stand-ins registered in GEN.725: IGH1 (T4, L0), IGH2 (T2, L1), IGH3 (T6, L0). The row CC14 (the Uranus anomaly of the old law) is retired.
+- Generator epoch bump (numbered at merge): about half the ice giants (and rogue ice giants) of 5 to 20 Earth masses get a lower internal heat, so their one-bar temperature, air and habitability score move; every other body is unchanged.
+generation-output: changed
+
+## [8.0.3298] - 2026-11-05
+
+**Headline:** Giants now keep faint dust rings fed by small inner moons, so most giants have a ring again instead of one in fifty.
+
+### Changed
+- **GEN.1233.** The ring lifetime law of GEN.1171 correctly kills a ring that nothing feeds, but dust rings that small moons keep supplying were not modelled. A giant now has a Poisson (mean 6) number of small moonlets inside 3 planet radii, drawn at ring time and not stored as moons (the generator makes no moon under a few hundred km), each 5 to 100 km. The meteoroid flux on their cross-sections, times a kept-dust yield of 10 and a dust life of 1e4 years, gives a steady ring mass, origin `moon_erosion`, added to the rings of fallen moons and comets. Jupiter's four inner moons come to 2.4e7 kg, inside the 1e7 to 1e9 kg of its ring. Over 60 systems the giants with a ring go from 1 of 52 to 39 of 52 (rocky planets are unchanged at 10 of 415); the median ring mass of ringed bodies is 3e8 kg. The draws change the unit's random stream after the ring step, so later values of a giant's unit change too. Stand-in rows RO14 to RO18 in the registry.
+
+generation-output: changed
+
+TODO items advanced: GEN.1233.
+
+## [8.0.3297] - 2026-11-05
+
+**Headline:** A massive star of an emission region born in a young group that has since decayed now keeps the companions the group left, where before it was a lone star.
+
+### Changed
+- **TEST.562 (a generator defect, not a stale test).** The hierarchy a decayed young group leaves (GEN.328) is drawn by `nebula_contents.member_group` at the Sun's [Fe/H], but the member's own star is built at the [Fe/H] its evolution draws at its place. Since GEN.951 a stored companion is rebuilt only if it is the same star to 1e-9 (`stored_trees.matches`), and a mate drawn at one [Fe/H] and rebuilt at another differs by about 7 percent in radius, so `system._add_companions` left the plan unspent and every member of a decayed group was a lone star while its tree said two to four. The sector that builds such a member now draws its [Fe/H] first (`run_sector._member_fe_h`, the evolution under the member's seed that `_build_member` makes) and gives it to `member_group(member, fe_h=...)`, so the companions are the stars the tree drew. The group is live or decayed, and has the same masses, whatever [Fe/H] is given, so live groups (whose mates are systems of their own) and every other sector's view of the group do not move. Generation: the decayed-group members of emission regions gain their companions (`--affects fill`).
+generation-output: changed
+
+## [8.0.3296] - 2026-11-05
+
+**Headline:** a belt now shows what its star's evolution did to it, in plain words on its page.
+
+### Added
+- Schema v200 (migration 0200, GEN.1232): `asteroid_belts.history_text`, one paragraph of the sentences `physics/belt_history.py` wrote for the events a belt went through (the part the giant branch engulfed, the share the mass loss threw inward). A belt nothing happened to stores nothing, and so does a row made before v200, which gets it when the galaxy is regenerated.
+- The belt's page shows that paragraph after its composition, and its property sheet has a "What the star did to it" row.
+- `belt_history.history_text` is now called by the store, so its wiring register line is gone. The giant event and companion limit (`giant_event`, GEN.1232b) are still not called by generation; that waits for the belt birth.
+
+## [8.0.3295] - 2026-11-05
+
+**Headline:** Stored values, API keys and names that were spelled the British way are now spelled the American way.
+
+### Changed
+- **Stored words and API keys (DOC.103, schema v211).** The values the site stores and the API returns use American spelling, with no alias for the old words: `center`, `center_pc` and `center_distance_pc` (were `centre...`), `vapor` (was `vapour`), `nuclear_disk` (was `nuclear_disc`), the states `canceling` and `canceled`, the column `ground_oxidized_fraction`, and the belt origin sentences (`asteroid_belts.origin_sentence`, `origin_history`: "the disk past ..."). A migration rewrites the stored rows.
+- **Names in code, commands, tests and the docs.** They follow the same spelling: disk, flavor, ionizing, oxidized, link-neighbors. `scripts/american_spelling_sweep.py` (`apply`, `check`) redoes the rewrite on any tree, and the spelling test fails if a British word is left anywhere in it.
+- **API version 13.** The keys and values named above changed.
+
+api-version: changed
+generation-output: changed
+
 ## [8.0.3294] - 2026-11-05
 
 **Headline:** Star systems and objects on the maps can be added as waypoints for a course, listed in a Waypoints menu, and cleared.

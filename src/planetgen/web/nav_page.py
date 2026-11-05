@@ -418,6 +418,105 @@ def galaxy_map_url(origin, destination):
     return page_url("galaxy", course=f"{origin},{destination}")
 
 
+def _galaxy_points(origin, destination, result):
+    """
+    The stops of a galaxy-scope course as the Galaxy Map draws them: `(points, names)`, `points` being
+    `[{name, role, url, x, y, z, hopUnknown}]` in galaxy-frame parsecs and `names` the route's node names.
+    """
+    names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+    points = []
+    for point in _waypoints(origin, destination, result, names):
+        x, y, z = point["position"]
+        points.append({
+            "name": point["name"], "role": point["role"], "url": _point_url(point),
+            "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
+            "hopUnknown": bool(point.get("hop_unknown")),  # NAV.36: the hop that arrives here is a jump through unknown space
+        })
+    return points, names
+
+
+MAX_VIA = 20
+"""int: The most waypoints a course through them may have (`static/waypoints.js` `MAX_WAYPOINTS`)."""
+
+
+def _end_point(end, position_pc, role):
+    """One end of a leg that has no route to draw, as a point of the Galaxy Map's course."""
+    return {"name": end["name"], "role": role, "url": end["url"], "x": position_pc[0], "y": position_pc[1], "z": position_pc[2],
+            "hopUnknown": False}
+
+
+def galaxy_course_through(raws):
+    """
+    NAV.49: a course through two or more waypoints as the Galaxy Map draws it: each leg is planned as `galaxy_course` plans a course,
+    and the legs are joined at the waypoints, which are marked (`role` `"waypoint"`).
+
+    Args:
+        raws (list of str): The waypoints' endpoints (`endpoint(...)`), in order.
+
+    Returns:
+        dict or None: The keys of `galaxy_course` for a galaxy-scope course: `points` (the stops of every leg, a waypoint once),
+            `waypoints` (the index in `points` of each waypoint), `directs` (the straight line of each leg, a pair of points),
+            `adjusted`, `navUrl` (the first waypoint to the last), `via` (`True`) and a short `readout`. A leg inside one sector is a
+            straight line between its ends. `None` when fewer than two waypoints are given, or one of them can't be navigated or
+            placed in the galaxy.
+
+    Raises:
+        apiclient.NotFoundError: For a waypoint that doesn't exist.
+    """
+    if len(raws) < 2 or len(raws) > MAX_VIA:
+        return None
+    ends = [_resolve(*parse_endpoint(raw)) for raw in raws]
+    if any(_unavailable_reason(end) for end in ends):
+        return None
+    points, directs, adjusted = [], [], []
+    marks = [None] * len(ends)  # the index in `points` of each waypoint
+    direct_ly = route_ly = 0.0
+    for k, (origin, destination) in enumerate(zip(ends, ends[1:])):
+        try:
+            result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], adjusted=True)
+        except apiclient.ApiError as exc:
+            if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
+                raise
+            return None  # two waypoints that can't be navigated together
+        direct_ly += result["direct"]["distance_ly"]
+        route_ly += result["route"]["distance_ly"] if result["route"] else result["direct"]["distance_ly"]
+        if result["scope"] == "galaxy":
+            leg, _names = _galaxy_points(origin, destination, result)
+        elif result["scope"] == "sector" and result.get("adjusted") is not None:
+            # Both ends are in one sector: the galaxy-frame ends of the straight line stand in for the leg.
+            start, finish = result["adjusted"]["waypoints"][0]["p"], result["adjusted"]["waypoints"][-1]["p"]
+            leg = [_end_point(origin, start, "origin"), _end_point(destination, finish, "destination")]
+        elif result["scope"] == "system":
+            leg = []  # the two are in one system: they are one place on this map
+        else:
+            return None
+        if not leg:
+            marks[k + 1] = marks[k]
+            continue
+        if points:
+            marks[k] = len(points) - 1 if marks[k] is None else marks[k]
+            leg = leg[1:]  # the first stop of a leg is the waypoint the last one ended at
+        else:
+            marks[k] = 0
+        points.extend(leg)
+        marks[k + 1] = len(points) - 1
+        directs.append([dict(points[marks[k]]), dict(points[marks[k + 1]])])
+        adjusted.extend([{"x": p[0], "y": p[1], "z": p[2]} for p in line] for line in _bent_lines(result))
+    if len(points) < 2:
+        return None
+    waypoint_at = list(dict.fromkeys(mark for mark in marks if mark is not None))
+    for index, point in enumerate(points):
+        point["role"] = "origin" if index == 0 else "destination" if index == len(points) - 1 else "waypoint" if index in waypoint_at else "hop"
+    stops = [{"name": points[index]["name"], "url": points[index]["url"]} for index in waypoint_at[1:-1]]
+    return {
+        "scope": "galaxy", "points": points, "sector": None, "via": True, "waypoints": waypoint_at,
+        "navUrl": nav_url(_param_of(ends[0]), _param_of(ends[-1])),
+        "direct": None, "directs": directs, "adjusted": adjusted,
+        "readout": {"distance": format_distance_ly(direct_ly), "course": None, "frame": "Galactic",
+                    "route_distance": format_distance_ly(route_ly), "times": [], "stops": stops, "diagram": None},
+    }
+
+
 def galaxy_course(from_raw, to_raw):
     """
     A course as the Galaxy Map draws it (the drill-down's section 9.4):
@@ -465,15 +564,7 @@ def galaxy_course(from_raw, to_raw):
                 "band": sector["band_index"], "wedge": sector["wedge_index"],
             },
         }
-    names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
-    points = []
-    for point in _waypoints(origin, destination, result, names):
-        x, y, z = point["position"]
-        points.append({
-            "name": point["name"], "role": point["role"], "url": _point_url(point),
-            "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
-            "hopUnknown": bool(point.get("hop_unknown")),  # NAV.36: the hop that arrives here is a jump through unknown space
-        })
+    points, names = _galaxy_points(origin, destination, result)
     direct = result["direct"]
     route = result["route"]
     stops = _route_stops(route, names) if route and route["path"] else []
