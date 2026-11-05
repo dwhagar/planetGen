@@ -5106,6 +5106,14 @@ function initGalaxyMap3d(canvasEl, data) {
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accentColor: accentColor,
     focus: function () { return [target.x, target.y, target.z]; },
     span: function () { return 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2); },
+    // MAP.372: what the stems may start from: the names the label engine has placed (not a region's, a sector's or a nebula's, which are
+    // places, not points) and the stars the map draws, brightest last.
+    stemSources: function () {
+      var named = galaxyLabels ? galaxyLabels.shown().filter(function (label) {
+        return label.x !== undefined && label.kind !== "region" && label.kind !== "sector" && label.kind !== "nebula";
+      }) : [];
+      return { named: named, stars: hiddenCell ? [] : pickableStars() };
+    },
   });
   // MAP.375: the side strip for height (galaxystrip.js), an option in the Menu and a drawer on a phone. A star picked in
   // the strip is selected on the map as a click on it would select it; the map's selection rings in the strip.

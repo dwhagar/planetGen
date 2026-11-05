@@ -117,3 +117,55 @@ def test_ring_distances_are_round_and_named_in_parsecs_and_kiloparsecs(page, map
     steps, labels = page.evaluate(script)
     assert steps == [1, 2, 5, 10, 500, 2000, 10000]
     assert labels == ["500 pc", "1 kpc", "2.5 kpc", "20 pc", "0.5 pc"]
+
+
+def _stem_ends(plane):
+    """The stems as ((x, y, z), (x, y, z)) pairs in galaxy coordinates, from the local ones the plane keeps about its anchor."""
+    flat, anchor = plane["stemPositions"], plane["anchor"]
+    points = [tuple(flat[i + k] + anchor[k] for k in range(3)) for i in range(0, len(flat), 3)]
+    return list(zip(points[0::2], points[1::2]))
+
+
+def test_stems_drop_from_chosen_stars_to_the_plane_inside_the_wedge_within_the_budget(page, map_site):
+    """MAP.372: one stem per chosen object, straight to its shadow on the grid plane, inside the wedge, never one under 2 px, never more
+    than the budget; with the plane at the galaxy's midplane the stars off it have stems. The cost of choosing and building them is measured."""
+    import math
+
+    _open_star_field(page, map_site)
+    _menu_click(page, "plane-view")
+    _menu_click(page, "plane-midplane")
+    page.wait_for_function(f"() => ({PLANE})().stems > 0")
+    plane = page.evaluate(PLANE)
+    assert plane["planeZ"] == 0 and 0 < plane["stems"] <= plane["stemBudget"]
+    assert plane["stemShortestPx"] >= 2, "a stem shorter than 2 px is skipped"
+    ends = _stem_ends(plane)
+    assert len(ends) == plane["stems"]
+    centre = math.radians(plane["centreDeg"])
+    for top, foot in ends:
+        assert top[:2] == pytest.approx(foot[:2], abs=1e-3), "a stem is straight up from its shadow"
+        assert foot[2] == pytest.approx(plane["planeZ"], abs=1e-3) and top[2] != pytest.approx(foot[2], abs=1e-6)
+        offset = abs((math.atan2(top[1], top[0]) - centre + math.pi) % (2 * math.pi) - math.pi)
+        assert math.degrees(offset) <= 30.01, "stems live inside the 60 degree wedge"
+    kinds = plane["stemKinds"]
+    assert kinds["bright"] > 0 and sum(kinds.values()) == plane["stems"]
+    # The frame cost at the budget: choosing and building the stems takes well under a frame (a running mean of the last runs, ms).
+    page.wait_for_function(f"() => ({PLANE})().stemMs > 0")
+    cost = page.evaluate(PLANE)["stemMs"]
+    print(f"MAP.372 stem rebuild: {cost:.2f} ms mean at {plane['stems']} stems")
+    assert cost < 8, cost
+    _menu_click(page, "plane-view")
+    assert page.evaluate(PLANE)["stems"] == 0 and page.evaluate(PLANE)["stemPositions"] == []
+
+
+def test_the_stem_of_a_selected_star_is_the_strongest_and_the_plane_through_it_gives_it_none(page, map_site):
+    _open_star_field(page, map_site)
+    _menu_click(page, "plane-view")
+    _menu_click(page, "plane-midplane")
+    page.click("#galaxymap3d-menu > summary")    # close the menu: it sits over the map
+    _click_galaxy_stars(page, 1)
+    page.wait_for_function(f"() => ({PLANE})().around === 'the selection'")
+    page.wait_for_function(f"() => ({PLANE})().stems > 0")
+    plane = page.evaluate(PLANE)
+    selected_z = plane["stemKinds"]["selected"]
+    assert selected_z in (0, 1), "the selection's stem is drawn first when it stands off the midplane (one in the fixture's field is on it)"
+    assert plane["stems"] <= plane["stemBudget"]
