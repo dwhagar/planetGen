@@ -256,6 +256,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [object-pages.md](interface/object-pages.md) | Object pages (UX.168 to UX.178): the page of every star, planet, moon, belt and comet, the property sheet, the children API and the summary trees on the system and sector pages | built |
 | [zoom-star-visibility.md](interface/zoom-star-visibility.md) | Smoother star visibility while zooming | research (superseded in part by MAP.152) |
 | [galaxy-map-wire-format.md](interface/galaxy-map-wire-format.md) | What the browser downloads for the map | built |
+| [system-sky-wire-format.md](interface/system-sky-wire-format.md) | What the System View downloads for its sky: the packed stars, the nebula and remnant sprites, the report, the cache (VIEW.31) | built |
 | [nebula-map-visibility.md](interface/nebula-map-visibility.md) | Making nebulae visible on the Galaxy Map | partly built |
 | [map-ui-and-frontend-libraries.md](interface/map-ui-and-frontend-libraries.md) | The map interface and front-end libraries | research |
 | [3d-rendering-camera-research.md](interface/3d-rendering-camera-research.md) | Camera proximity fading in dense 3D scenes | research (background) |

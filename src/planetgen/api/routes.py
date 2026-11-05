@@ -35,7 +35,9 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
+from planetgen.api import system_sky
 from planetgen.describe.sheet import sheet as object_sheet
+from planetgen.web.lib import skypack
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
@@ -67,9 +69,11 @@ from planetgen.db.query import (
     is_capped,
     count_systems,
     galaxy_changes,
+    galaxy_content_state,
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    galaxy_tile_stamp,
     sectors_made,
     galaxy_locate,
     galaxy_stage,
@@ -661,6 +665,28 @@ def system_scene(system_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(scene)
+
+
+@bp.route("/systems/<uid:system_id>/sky")
+def system_sky_route(system_id):
+    """
+    `GET /api/systems/<id>/sky?limit=` -- the sky the system sees (VIEW.31, `api/system_sky.py`): the stars brighter than the limiting magnitude `limit`
+    (2 to 9, default 7.5) from the stored stars, packed (`web/lib/skypack.py`), with the nebulae and supernova remnants beside them and the report of how
+    much of the sky is built. Answers `{"system", "limit", "epoch_unix", "version_key", "count", "sprites", "report", "seconds", "format": "PGK1",
+    "data"}`: `data` is the base64 of the packed list, whose `meta` holds the sprites and the report too. The web layer caches the bytes by `version_key`
+    (`/system/<id>/sky`, `web/lib/skycache.py`). A limit out of range is a 400, a system with no place in the galaxy a 404.
+    """
+    try:
+        limit = skypack.check_limit(request.args.get("limit"))
+    except skypack.SkyLimitError as exc:
+        raise ApiError(str(exc))
+    conn = get_db()
+    try:
+        built = system_sky.build_system_sky(conn, system_id, limit, tile_stamp=galaxy_tile_stamp(galaxy_content_state(conn)))
+    except system_sky.SkyError as exc:
+        return jsonify({"error": str(exc)}), 404
+    packed = built.pop("packed")
+    return jsonify({**built, "format": "PGK1", "data": base64.b64encode(packed).decode("ascii")})
 
 
 @bp.route("/systems/<uid:system_id>/description")

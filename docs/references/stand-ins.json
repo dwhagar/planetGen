@@ -33925,7 +33925,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "VIEW.25",
+          "unread": null,
           "what": "sky_tiers.BLOCK_VISIT_BUDGET 1e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, about an hour of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7, so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
         },
         {
@@ -34039,7 +34039,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "VIEW.25",
+          "unread": null,
           "what": "sky_tiers.NEAR_RING_MASSES_SOL (0.1, 0.3, 0.5, 0.7, 0.85): the mass edges under 1 solar mass the sky's rings add, so the stars born lighter than the Sun that show near the observer are drawn"
         },
         {
@@ -34077,7 +34077,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "VIEW.25",
+          "unread": null,
           "what": "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
         },
         {
@@ -34115,7 +34115,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "VIEW.25",
+          "unread": null,
           "what": "sky_tiers.LOCAL_MIX: the young, intermediate and old populations weigh alike in the share of a ring's stars that show, as near the Sun, where the halo and the bulge are a thousandth of the stars"
         }
       ],
@@ -34885,7 +34885,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky.DISPERSION_KMS (35, 25, 20): the velocity dispersion in the radial, tangential and vertical directions (km/s) of a star with no stored velocity, which moves counterclockwise at the circular speed of the galaxy at its radius"
         },
         {
@@ -35137,7 +35137,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.DUST_AV_PER_KPC_AT_SUN 1.0: V extinction per kpc in the plane at the solar circle, the normalisation of the dust disc"
         },
         {
@@ -35175,7 +35175,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.COOL_BC_TABLE_K_MAG: BC_V of K7V to L2V, 4,100 K to 2,060 K, linear in log T between rows and held under 2,060 K"
         },
         {
@@ -35213,7 +35213,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.V_WAVELENGTH_M 550e-9 and the blackbody step: over 50,000 K, BC_V(T) = BC_V(50,000 K) - 2.5 log10[T^4 expm1(c2/(550 nm T))] + the same at 50,000 K"
         },
         {
@@ -35251,7 +35251,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.DUST_SCALE_LENGTH_PC 2260, DUST_HEIGHT_PC 134.4, DUST_HEIGHT_FLARE_PC_PER_KPC 14.8, DUST_FLARE_START_PC 4400, DUST_SOLAR_RADIUS_PC 8000: the dust disc's shape; no warp, no spiral arms, no central hole"
         }
       ],

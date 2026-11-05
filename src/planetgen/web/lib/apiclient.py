@@ -530,6 +530,13 @@ def get_system(db, system_id):
     return _request(f"/systems/{system_id}", {"db": db})
 
 
+def get_system_sky(db, system_id, limit=None):
+    """Returns `GET /api/systems/<id>/sky`'s payload (`system`/`limit`/`epoch_unix`/`version_key`/`count`/`sprites`/`report`/`seconds`/`format`/`data`, `data`
+    the base64 of the packed list -- see `api/system_sky.py`). Callers go through `web/lib/skycache.py`, which keeps the bytes on disk."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/sky", {"db": db, "limit": limit})
+
+
 def get_life_air(db, kind, body_id):
     """Returns `GET /api/planets/<id>/life-air` (or `moons`)'s `{id, life_class_id, life_air}`: the data of the Life and air chart,
     `life_air` being `None` when the body has nothing to chart (UX.237)."""
