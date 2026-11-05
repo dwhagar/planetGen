@@ -869,7 +869,7 @@ with `clamp()`.
   register lines. Then remove the five register lines for it in
   docs/design/research/wiring-register.md. Done: the wiring guard passes
   with no line for belt_density. Lock-free if the page numbers do not
-  change. Version 8.4. Owner: Aux 5. Filed by the TODO thread.
+  change. Version 8.1. Owner: Aux 5. Filed by the TODO thread.
   Prerequisites: none. Related: UX.241, UX.240.
 
 ## MAP: Galaxy Map, Sector Map, System Map
