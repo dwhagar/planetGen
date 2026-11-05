@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1084 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1090 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 103 | 81 | 20 | 52 | 0 | 256 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 24 | 14 | 5 | 48 | 28 | 119 |
-| All | 612 | 235 | 51 | 147 | 39 | 1084 |
+| T9 | 26 | 14 | 5 | 48 | 32 | 125 |
+| All | 614 | 235 | 51 | 147 | 43 | 1090 |
 
 ## How the labels were given
 
@@ -836,7 +836,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DD1 | B | T1 | L0 | test_gen_debris_disk.SURVEY_SHARE_BY_MASS (0.022, 0.130, 0.143, 0.239, 0.24): the share of stars of each mass band that hold a cold disk, the benchmark the cut DU1 is tuned to | M 0.5 to 6 percent, K 9 to 17, G 10 to 19, F 19 to 29, A 20 to 33 (the published errors; Su et al. 2006 give 33 percent for A) | detected discs, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity | a completeness-corrected incidence (27.7 percent of FGK stars) | the survey's volume-limited incidence by type | READ ([R4081] section 3 and Table 2) | - | - |
-| DU1 | P | T9 | L3 | debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer discs are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disc) | 8e-5 to 3e-4 (G disc share 33 to 2 percent) | the generator's outer discs, which are heavy, old and mostly at their steady-state dust | the K, G and F dwarfs together holding a disc outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short | a cut from the survey's own sensitivity, once the outer disc's mass and width come from a planetesimal-formation model | tuned against a sweep of 70 to 160 systems each of K3V, G2V, F5V and A2V (A stars then hold none, F about half the survey's share) | - | - |
+| DU1 | P | T9 | L3 | debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer discs are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disc) | 8e-5 to 3e-4 (G disc share 33 to 2 percent) | the generator's outer discs, which are heavy, old and mostly at their steady-state dust | the K, G and F dwarfs together holding a disc outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short | a cut from the survey's own sensitivity, once the outer disc's mass and width come from a planetesimal-formation model | tuned against a sweep of 70 to 160 systems each of K3V, G2V, F5V and A2V (A stars then hold none, F about half the survey's share) | - | no data |
 | DU2 | P | T1 | L0 | debris_dust.F_MAX_COEFFICIENT 0.004: the steady-state fractional luminosity `0.004 r^1.5 (dr/r) Dc^0.5 L^-0.5 / (t G(Xc))`, r in AU, Dc in km, t in Myr | none (the paper's own) | size law q = 11/6, e equal to I, density 2700 kg/m^3 | a debris disc measured at its steady state with f outside a factor of 3 of this | the paper's Eq. 16 with the blow-out size of the star | [R4785: Eq. 18], checked against its Eq. 21 (1.5e-4 / t at r = 1 AU for its nominal belt) | - | - |
 | DU3 | P | T1 | L1 | debris_dust.CASCADE_MAX_KM 2000: the largest body the dust cascade is reckoned for, whatever the belt's own largest body | 1000 to 3000 | an outer disc whose largest body is protoplanet-size | a belt whose dust is the sum of cascades of bodies over 2000 km | a ledger that settles the cascade's Dc apart from the largest body | the nominal Dc of [R4785] (Fig. 2 and Eq. 21) | - | - |
 
@@ -1503,6 +1503,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | HCT1 | D | T1 | L0 | directives.HABITABLE_COUNT_PMF: the share of systems holding each count of habitable bodies, counted from 4,000 default systems of the generator itself | none (a count; re-run the script when the class rules or the planet draw change) | systems of the default configuration; a sector's systems differ by position and star mix (the sector check reads high by about 1.5 sigma) | the script re-run on a new epoch that moves the none-share by more than 3 percent | none: it is the generator's own output, re-measured, not a stand-in for a measurement of the sky | MEASURED (`scripts/measure_habitable_count.py`, seeds 5,000,000 upward, epoch 130) | - | - |
+
+## 6.168 Stand-ins of the orbits of the scatter populations of an outer disc
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BPO1 | P | T9 | L4 | belt_populations.COLD_STIRRING 0.25: the eccentricity and inclination of a cold classical member over the rms of the whole belt | 0.1 to 0.5 | cold members of an outer disc swept by a giant | a measured cold disc whose eccentricity is outside a quarter to a half of its width rule | the stirring of a disc by its own largest bodies (self-stirring) | none: a cold disc is stirred less than a belt that a giant stirs, by how much is not measured for any disc but our own | - | no data |
+| BPO2 | P | T9 | L4 | belt_populations.RESONANT_E_RANGE (0.05, 0.35): the eccentricity of a body held in the giant's resonance, uniform | 0 to 0.5 | members at the 3:2 or 2:1 resonance | a population captured by an outward-migrating giant with eccentricities outside 0 to 0.5 | the capture model of a migrating giant (adiabatic eccentricity growth) | none for another star's resonant bodies; the eccentricity growth of resonance capture is physics, not carried here | - | no data |
+| BPO3 | P | T9 | L4 | belt_populations.CENTAUR_PERIHELION_OVER_GIANT (0.5, 1.0): the perihelion of a body crossing the giant's orbit, over the giant's distance, uniform | 0.3 to 1.0 | members crossing the outermost giant | a crossing population with its perihelia mostly outside 0.3 to 1.0 of the giant's distance | the encounter rate of the scatter step | none; a crossing orbit is one whose perihelion is inside the giant's | - | no data |
+| BPO4 | P | T9 | L4 | belt_populations.DETACHED_PERIHELION_OVER_INNER_EDGE (1.0, 1.6): the perihelion of a body lifted out of the giant's reach, over the belt's inner edge, uniform | 1.0 to 2.0 | members the giant lifted beyond its reach | a detached population whose perihelia lie outside 1.0 to 2.0 of the belt's inner edge | the scatter step's perihelion lift | none | - | no data |
+| BPO5 | D | T9 | L0 | belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion | none (a numerical floor that keeps the orbit eccentric) | detached members | not applicable | the scatter step's own orbits | numerical choice | - | - |
+| BPO6 | D | T9 | L0 | belt_populations.E_MAX_BOUND 0.9: the largest eccentricity of a scattered, crossing or detached body | 0.8 to 0.95 | bound orbits of the disc | not applicable | the scatter step's own orbits | numerical choice | - | - |
 
 ## 6.167 Stand-ins of where a stored belt member lies
 

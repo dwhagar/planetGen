@@ -158,7 +158,7 @@ NULL_IN_THIS_GALAXY = {
     # GEN.1069: the sentences of what shaped a belt (none for a belt only the giants' gaps made) and the scatter shares of an outer disc (only an outer disc has them);
     # test_belt_origin_stored.py writes and reads both back. GEN.1070: the scatter tag of a member waits for the scatter step (GEN.1092).
     **{("asteroid_belts", column): CHANCE for column in ("origin_history", "scatter_fates")},
-    ("belt_members", "scatter_tag"): "NULL until the scatter step tags the members (GEN.1092)",
+    ("belt_members", "scatter_tag"): CHANCE,       # GEN.1092: only the members of an outer disc a giant swept are tagged
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},

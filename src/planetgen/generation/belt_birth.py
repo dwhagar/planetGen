@@ -80,14 +80,14 @@ def _debris(star, chain):
 
 
 def _fates(star_mass_kg, planets, origin, disc_edge_au):
-    """`(shares, sentence)` of an outer disc after the outermost giant (`scatter.scatter_shares`), or `(None, None)` where the belt is not an outer disc or no giant has been."""
+    """`(shares, sentence, giant_au)` of an outer disc after the outermost giant (`scatter.scatter_shares`, the giant's distance), or `(None, None, None)` where the belt is not an outer disc or no giant has been."""
     giants = sorted((planet for planet in planets if planet.body_type == 'g'), key=lambda planet: planet.distance)
     if origin.origin != "outer-disc" or not giants:
-        return None, None
+        return None, None, None
     giant = giants[-1]
     moved_out = max(giant.distance - (giant.formation_distance_au or giant.distance), 0.0)
     shares = scatter.scatter_shares(_kg_to_msun(star_mass_kg), _kg_to_mearth(giant.mass), giant.distance, _km_to_rearth(giant.radius), moved_out, origin.inner_au, disc_edge_au)
-    return shares, scatter.history_line(shares, giant.distance, moved_out)
+    return shares, scatter.history_line(shares, giant.distance, moved_out), giant.distance
 
 
 def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disc_edge_au):
@@ -121,8 +121,8 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disc_e
         kept = [max(found, key=lambda item: item[0])]
     belts = []
     for _mass, origin, lower, upper in kept:
-        shares, sentence = _fates(star_mass_kg, planets, origin, edge_au)
-        belt = AsteroidBelt(system_config, star, lower, lower, upper, origin=origin, scatter_fates=shares)
+        shares, sentence, giant_au = _fates(star_mass_kg, planets, origin, edge_au)
+        belt = AsteroidBelt(system_config, star, lower, lower, upper, origin=origin, scatter_fates=shares, scatter_giant_au=giant_au)
         if sentence:
             belt.origin_sentence = f"{belt.origin_sentence} {sentence[0].upper()}{sentence[1:]}."
         belts.append(belt)
