@@ -120,7 +120,7 @@ def _warm_once(args, reason=None):
             warmphases.begin(args.database, phases, reason)
             bars = warm_progress.WarmProgress(
                 [step.key for step in steps], log.normal, show=getattr(args, "progress", False),
-                rich_bars=warm_progress.stdout_is_terminal())
+                rich_bars=warm_progress.stdout_is_terminal(), expected=warmup.EXPECTED_SECONDS)
 
             def report_ended():
                 for name in tally.ended:
