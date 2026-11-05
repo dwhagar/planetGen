@@ -103,7 +103,7 @@ def test_a_small_body_has_the_share_of_the_table_and_a_planet_has_none(sun_like)
 
 @pytest.mark.parametrize("share,body_type,expected", [(0.2, "t", 0.2), (None, "g", 0.5), (None, "t", 1.0 / 12.0)])
 def test_the_chance_of_moons_is_the_tables_share_else_an_even_chance_for_a_giant_and_the_impact_rate_for_a_rocky_planet(monkeypatch, share, body_type, expected):
-    """GEN.962: a rocky planet with no row in the table has the chance of a massive moon from a giant impact ([R5123])."""
+    """GEN.962: a rocky planet with no row in the table has the chance of a massive moon from a giant impact ([R5127])."""
     monkeypatch.setattr(planet_physics, "satellite_share", lambda planet: share)
     body = types.SimpleNamespace(system_config=SystemConfig(), body_type=body_type)
     runs = 6000
