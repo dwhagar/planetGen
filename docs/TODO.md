@@ -4807,6 +4807,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain MAP.224, MAP.223 is theirs and no other lane is free for it.
   Build it first, small: stars get cluster_id and the cluster is named
   at first fill.
+  Part 1 branch and part 2 plan (Core 2) (1:20 AM EST on 2026-11-05):
+  Part 1 is on branch claude/core2-gen359 (head af84de114, as the lane
+  reported), a lock item for train 12: --affects scatter,fill, no
+  migration (DB.61 already added the columns), golden not rewritten (the
+  runner does it). The stars the plan places for a cluster now carry the
+  cluster they belong to, and a system built around such a star gives it
+  to all its stars; draws unchanged. Part 2 (the cluster named at first
+  fill), approved by the TODO thread within the item's own text:
+  generated clusters get a NULL name at the plan (stream key from their
+  seed), the first fill that touches one sets the name once with UPDATE
+  ... WHERE name IS NULL (race safe), spelled by a new naming-codec kind
+  for a globular cluster from the container uid, and the container row's
+  name follows. Changes generation streams, same train.
   Prerequisites: none. Related: GEN.209.
 
 - [ ] **GEN.360 Asteroid fields and belts render from their uid: one seeded generator in a shared asteroidfield.js for dust, rocks and heroes**
@@ -18350,6 +18363,18 @@ clears each one.
   after TEST.587. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.586, TEST.587.
 
+- [ ] **TEST.590 test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star fails on plain main with min() of an empty list in _nearest (bug)**
+  Core 2 (as the lane reported, 1:15 AM EST on 2026-11-05) found
+  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star
+  failing on a clean main: min() of an empty list in _nearest. Do:
+  reproduce, decide whether the generator (a fill after a failed shell
+  reaches _nearest with no candidates) or the test setup is wrong; a
+  generator crash is fixed in the generator and keeps its output
+  otherwise. Done: the test passes on plain main under the narrow gate.
+  Lock-free unless the fix changes output. Version 8.1. Owner: Bug 1.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.586, TEST.587, TEST.588, GEN.359.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20000,31 +20025,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
-
-- [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S16 of S1 to S22 in section 7. Do: the glow band as a
-  sphere shader sampling the S9 glow image with dither and grain. Done:
-  a screenshot test. Proposed owner: Core 2. Lock-free, no migration.
-  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
-  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
-  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
-  where noted, build it so the 9.1 item can reuse it); the limiting
-  magnitude is a setting with default 7.5, lower on phones; missing
-  stars are built when a system is charted, no visit job. Goal #4907.
-  Filed by the TODO thread.
-  Glow image contract (TODO, 11:55 PM EST on 2026-11-04) (11:55 PM EST
-  on 2026-11-04): The glow image producer is VIEW.13
-  (planetgen/galaxy/sky_band.py, the ray-march), label S9 of the sky
-  plan; no lane owns it yet (proposed: Planets 1, after VIEW.31). Core 2
-  defines the client contract in skyband.js and its docs row (proposed:
-  256 x 128 equirectangular, linear RGB half floats, a stated unit) so
-  VIEW.13 builds to it. Add VIEW.13 as the producer of the image served
-  with the VIEW.31 route.
-  Prerequisites: VIEW.31.
 
 - [ ] **VIEW.35 System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
