@@ -285,6 +285,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.182", "6.182 Stand-ins of where a stored belt member lies",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.183", "6.183 Stand-ins of the class-by-domain matrix and the phase gate",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.166", "6.166 Stand-ins of the interior viscosity ranges",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.164", "6.164 Stand-ins of the mass ratio of a companion",

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1146 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1154 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 19 | 10 | 92 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
-| T6 | 106 | 85 | 22 | 58 | 0 | 271 |
+| T6 | 107 | 85 | 22 | 61 | 0 | 275 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 27 | 14 | 5 | 67 | 29 | 142 |
-| All | 635 | 243 | 54 | 174 | 40 | 1146 |
+| T9 | 28 | 14 | 5 | 70 | 29 | 146 |
+| All | 637 | 243 | 54 | 180 | 40 | 1154 |
 
 ## How the labels were given
 
@@ -1623,6 +1623,19 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MR1 | D | T9 | L0 | belt_roster.CDF_POINTS 48 and CDF_STEPS 8: the log-spaced points across the belt at which the cumulative solids are tabulated, and the steps between points | none (numerical; the inverse is the same to a few parts in a thousand at twice the points) | any belt | a member distance that moves by more than 0.5 percent of the belt width when the points are doubled | an exact cumulative from the surface density in closed form | numerical choice; not read | - | - |
 | MR2 | P | T1 | L0 | belt_roster.E_OVER_I 1: the ratio of the rms eccentricity to the rms inclination in radians | 0.5 to 2 | a belt of planetesimals stirred by one giant | a measured belt whose ratio lies outside 0.5 to 2 | the belt's own stirring history, when the scatter step stores one | [R4785] section 2.2 | - | - |
 | MR3 | D | T9 | L0 | belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails | 0.3 to 0.7 and 40 to 90 | any belt | a published member of a main belt whose eccentricity exceeds 0.5 and which is held in the belt by a resonance | a cut taken from the belt's own width and the giants' crossing orbits | cut so that a body does not cross the belt's whole width; not read | - | - |
+
+## 6.183 Stand-ins of the class-by-domain matrix and the phase gate
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DM1 | P | T6 | L3 | planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K) | 3 to 10 K | terrestrial bodies with air and stored latitude bands | a climate scatter among bodies of one class wider or narrower than the band the shoulders give | the shoulder from the spread of the regional temperature among bodies of one class in the generator (the class sweep) | half the shoulder of the mean temperature (CF3, 10 K); the regional lines are the Earth-like extremes of the families design | - | - |
+| DM2 | P | T6 | L3 | planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25, 28 and 31 C lines fade over 3 C) | 2 to 5 C | terrestrial bodies with air | a wet-bulb limit research that puts the lines elsewhere than 28 and 31 C | the limit of the habitability index (`habitability.wet_bulb_c`, 31 C, Vecellio 2022) with the class lines read from it | the uncompensable limit of 31 C in `species_limits`; 28 C is M's margin in the design | - | - |
+| DM3 | P | T6 | L3 | planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207) | 0.05 to 0.2 | terrestrial bodies with air | a class whose humidity edge is measured | the humidity edges of the classes from their water and temperature | none read yet | - | - |
+| DM4 | P | T9 | L0 | planet_class_fit.json weights: 1 for each of the six main domains | any positive weights | every body | Boss tilting a domain | Boss's list | the design asks for equal weights to start, one list in the data file | - | - |
+| DM5 | P | T9 | L3 | the ranges of M, H, O, P and R in planet_class_fit.json: mean 275 to 305, 295 to 315, 298 to 312, 240 to 270 and 312 to 345 K, the regional, night and wet-bulb limits, oxygen 16 to 35 percent, 50 to 250 kPa and 0.75 to 1.25 g for the family | each edge by up to its shoulder | terrestrial bodies with oxygen-water air | a class sweep that finds a class near none of its edges, or a body of an obvious class that fits another | the family ranges from a survey of the habitable zone of the generator and the comfort limits of the habitability index | reports/class-families-and-positions-design-2026-10-31.md section 3 (Boss's directions of 10:39 to 10:55 AM EDT 10-31) | - | - |
+| DM6 | P | T9 | L3 | the range of Z, the hot thin-air world: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean | each edge by its shoulder | terrestrial bodies with thin air | a sweep that finds the gap filled by a different class or a body of Z outside the box | the sweep of the gap by GEN.1207 | reports/class-fit-shadow-2026-10-31.md (about 1.6 percent of bodies fit no class) | - | - |
+| DM7 | P | T9 | L3 | the ranges of U (91 to 130 K, 50 to 500 kPa, methane 1 percent or more, with the methane-ethane window) and Y (300 to 350 K, sulfur dioxide 3 percent or more, with the sulfuric acid window, until the acid medium is stored) | each edge by its shoulder | terrestrial bodies with the liquid of the family | a Titan-like body that does not fit U, or a sulfur air that fits Y without acid | the ranges from the family ideal bands once the acid medium and the sea fractions are stored | the families design section 4 ideal bands | - | - |
+| PG1 | P | T6 | L0 | phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure | 350 to 450 K | bodies with carbon dioxide above 7.38 MPa | a supercritical carbon dioxide life window that ends elsewhere | the window of the life class 6 chemistry | the 217 to 400 K window of the dense CO2 class in life_classes.json | - | - |
 
 ## 6.166 Stand-ins of the interior viscosity ranges
 

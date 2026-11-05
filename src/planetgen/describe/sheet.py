@@ -229,6 +229,7 @@ _BODY_GROUPS = (
            ("temp_mean_swing_k", "Day and night swing, whole surface (hottest to coldest)"), ("energy_flux_w_m2", "Stellar energy received"),
            ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
+           ("relative_humidity", "Relative humidity of the surface air"), ("groundwater", "Groundwater (liquid water underground)", TEXT),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
            ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
@@ -807,7 +808,7 @@ _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "me
                "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
 _MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
-    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
+    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
