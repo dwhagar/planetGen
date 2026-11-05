@@ -14139,6 +14139,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1. Owner: Core 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1265, PERF.228.
 
+- [ ] **GEN.1284 Generated systems hold less mass than the density profile expects: 78 percent in a solar-circle sample (bug)**
+  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
+  reports/map383-background-rule-2026-11-05.md) measured generated
+  blocks while deciding MAP.383: in a 125-sector solar circle sample the
+  generator placed 78 percent of the stellar mass the density profile
+  expects (85 percent of the systems, mean system mass 9 percent low,
+  about 3 sigma); one bulge sector placed 95 percent. Suspects, not
+  examined: the one-system-minimum per sector and the 'ran out of room'
+  cap. Do: find which stage loses the mass (count expected against
+  placed per sector, then per cause: minimum, cap, mass function,
+  multiplicity), fix it or show with numbers that the shortfall is the
+  intended physics (then say why in the density note). Done: the placed
+  mass matches the profile inside the sampling error in the solar circle
+  and the bulge, or the note says why not. A fix changes generated
+  stars, so it is a lock item (epoch). Version 8.1. Owner: Core 3. Filed
+  by the TODO thread.
+  Prerequisites: none. Related: MAP.383, GEN.115.
+
+- [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
+  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
+  reports/map383-background-rule-2026-11-05.md): the stellar mass the
+  smooth potential (GEN.115) carries differs from the stellar density
+  the density model generates from, by -15 percent at the solar circle
+  and +19 percent in the bulge, so the background rule of MAP.383
+  (smooth field minus the smooth galaxy's own stellar mass in the
+  sectors that have generated stars) leaves a residual. Do: make the
+  potential's stellar components follow the density model's, or derive
+  both from one table, and re-register the stand-ins GP1 to GP3 in
+  GEN.725 with tier and tweak level. Done: the two densities agree
+  inside the stated tolerance at the solar circle, the bulge and the
+  disk edge. Version 8.3. Owner: Tides 1 or Core 3. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: MAP.383, GEN.115, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
