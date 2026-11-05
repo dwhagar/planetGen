@@ -15114,25 +15114,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **PERF.234 The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug)**
-  Boss, 5:49 PM EST on 2026-11-04, ran planetgen warm --progress on a
-  real galaxy (8.0.3197): the opening phase took 50 s, then step 5 of 11
-  (galaxy-nodes, chunk 301 of 458 at 4.0 s a chunk, about 7 minutes left
-  for that step) showed 2:11:45 left overall. Cause
-  (src/planetgen/cli/warm_progress.py): the overall bar counts steps as
-  equal (completed = step index + share of the step done) and the time
-  left is the bar's recent speed carried over the steps still to run, so
-  a slow step makes every later step look as slow. Do: weight each step
-  by its expected cost (units times a per-family seconds figure measured
-  on a real galaxy, the same measurement PERF.233 takes), show the
-  step's own time left beside an overall time that is marked as a rough
-  guess until the later steps have run once, and never show a figure
-  from fewer than a few chunks. Done: a test with steps of very
-  different cost that the overall figure is within a set margin of the
-  real total. Proposed owner: Aux 3 (PERF.233 holds the measurement).
-  Filed by the TODO thread.
-  Prerequisites: none. Related: PERF.233.
-
 - [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
   Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
   warm --progress. What the code does (src/planetgen/cli/warm.py,
@@ -15169,24 +15150,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   machine, with the sample size and margin in the test. Proposed owner:
   Bug 1 (PERF.229 owner). Filed by the TODO thread.
   Prerequisites: none. Related: PERF.229, TEST.430.
-
-- [ ] **PERF.237 The warm-up's log line 'this chunk 64 nodes in 37 s' reads like a slowdown but is one worker's time for one chunk while about ten run side by side: say so in the line (bug)**
-  Boss, 6:27 PM EST on 2026-11-04, pasted the full warm-up log after
-  ./update.sh to 8.0.3206: every 23rd galaxy-nodes line says 'this chunk
-  64 nodes in 35 to 42 s', yet 184 chunks took 11:30 elapsed, which is
-  3.7 s a chunk, the same 4.0 s a chunk as his earlier run. So nothing
-  slowed down. The 'this chunk' figure
-  (src/planetgen/cli/warm_progress.py chunk_line, result seconds) is one
-  worker's own time for one chunk, and about ten chunks run side by side
-  (37 s divided by 3.7 s), so the line reads ten times slower than the
-  rate the bar and the time left use. Do: word the line so the two
-  numbers cannot be confused (for example 'this chunk took 37 s on its
-  worker; about 10 at a time, so 3.7 s a chunk overall'), taking the
-  count of chunks in flight from the run, and make the time left come
-  from the overall rate only. Done: a test of the line with several
-  chunks in flight. Proposed owner: Aux 3, with PERF.234. This replaces
-  the first reading of a slowdown after an update (no slowdown). Filed
-  by the TODO thread.
 
 ## DB: Database and schema
 
@@ -18413,6 +18376,18 @@ clears each one.
   cause of each. Proposed owner: Bug 1 after TEST.579. Filed by the TODO
   thread.
   Prerequisites: none. Related: TEST.579, GEN.367.
+
+- [ ] **TEST.581 test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug)**
+  Aux 3, 7:29 PM EST on 2026-11-04 (as the lane reported), found this
+  red on plain main, not from its PR: the test names a database 'x' that
+  the test MySQL does not have, so the rebuild fails with 'Unknown
+  database' before the check the test is about. Do: find the commit that
+  turned it red, make the test create or mock the database it names (or
+  stop the rebuild earlier through the real seam), and keep what it
+  asserts (a rebuild that cannot reopen the site fails loudly, and does
+  not exit zero). Done: the test green alone and in the changed gate.
+  Proposed owner: Bug 1, with TEST.580. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.580.
 
 ## USR: User accounts
 

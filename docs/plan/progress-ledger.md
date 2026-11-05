@@ -2434,3 +2434,5 @@ Baseline: PR #1817.
 | OPS.94 | 8.9 | Repair and proof |
 | OPS.95 | 8.9 | Repair and proof |
 | MAP.376 | 8.1 | Fly-through map |
+| PERF.237 | 8.2 | Robust tile caching |
+| PERF.234 | 8.2 | Robust tile caching |
