@@ -38,10 +38,11 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, clearance_ledger, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, clearance_ledger, debris_dust, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
+from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
 _km_to_au = units.converter("km", "au")
@@ -1345,6 +1346,29 @@ class StarSystem:
         bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
+        self._set_debris_disk(bodies, star)
+
+    def _set_debris_disk(self, bodies, star):
+        """
+        The cold debris disk of a main-sequence star (GEN.1071): the dust of its outer-disk belt, when a survey would find it (`debris_dust`). The star's `disk_kind` is then "debris" and the disk's edges are
+        the belt's, so the disk and the belt are one thing; a star without such a belt, or whose belt is too faint, holds none. Where two belts are outer disks the brighter one is the disk.
+        """
+        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
+        holder.disk_kind = holder.disk_mass_solar = holder.disk_inner_au = holder.disk_outer_au = None
+        if any(member.yerkes_class not in debris_dust.DEBRIS_CLASSES for member in getattr(star, "stars", [star])):
+            return
+        age_myr, mass_sol = star.age * 1.0e3, _kg_to_msun(remnant_orbits.formation_mass_kg(star))
+        brightest = None
+        for belt in bodies:
+            if belt.body_type != 'a' or belt.origin != "outer-disk" or not belt.mass_kg > 0.0:
+                continue
+            fractional = debris_dust.fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
+                                                           _kg_to_mearth(belt.mass_kg), mass_sol)
+            if debris_dust.is_detectable(fractional) and (brightest is None or fractional > brightest[0]):
+                brightest = (fractional, belt)
+        if brightest is not None:
+            belt = brightest[1]
+            holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
 
     def _requested_belt(self, bodies, star, orbit_ceiling_au):
         """
@@ -2337,5 +2361,6 @@ class StarSystem:
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
 _kg_to_msun = units.converter("kg", "Msun")
+_kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
 object_timing.track(StarSystem, "system")

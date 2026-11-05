@@ -55,12 +55,12 @@ _STAR = {
     "axial_tilt_deg": "Rayleigh about 15 degrees from the star's reference normal.",
     "nuclear_arrival_age_gy": "The age MIST's tracks put the star on the main sequence [R0773]; the star counts as pre-main-sequence "
                               "only until its radius has settled, the earlier age BHAC15 gives [R0254].",
-    "disk_kind": "A young star holds a class 0, I or II disk by its age; a main-sequence star has a cold debris belt at the share "
-                 "the DEBRIS survey found for its kind, 2 to 24 percent [R4081].",
-    "disk_inner_au": "A young star's disk starts at the dust sublimation radius; a debris belt starts at 0.7 of its radius, the "
-                     "blackbody radius of its drawn dust temperature times 1.74 [R4081].",
-    "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris belt ends at 1.5 of its radius, the "
-                     "blackbody radius of its drawn dust temperature times 1.74 [R4081].",
+    "disk_kind": "A young star holds a class 0, I or II disk by its age; a main-sequence star has a cold debris disk when "
+                 "the dust of its outer belt is bright enough for a survey to find (about 1e-5 of the star's light [R4081], the dust law of [R4785]).",
+    "disk_inner_au": "A young star's disk starts at the dust sublimation radius; a debris disk starts at the inner edge of "
+                     "the star's outer belt.",
+    "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris disk ends at the outer edge of the "
+                     "star's outer belt.",
     "chemistry_branch": "A star older than the thick disk's start is alpha-rich with [R0349]'s logistic probability of its "
                         "[Fe/H] (age gate, [R1863]); one draw of the star's own decides it.",
     "chemistry_alpha_fe": "The mean [X/Fe] of O, Mg, Si and Ca: the branch's hinge fit at the star's [Fe/H] [R0349, R3294] "
