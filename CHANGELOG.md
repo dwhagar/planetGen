@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3245] - 2026-11-05
+
+**Headline:** A route can now come back with the graph round it: the links between its stops and from each stop to the systems next to it.
+
+### Changed
+
+- `nav_between` and `nav_course` take `with_graph`, and `GET /api/nav` takes `graph=1`; the route then has `graph`: `nodes` (the linked systems off the route, with their galaxy-frame positions), `edges` (`from`, `to`, `distance_ly`, `on_route`) and `more` (how many linked systems a stop's cap left out). The route's own hops are always edges, `on_route` true, with the lengths `route.hops` gives. The other links follow the relative neighbourhood graph rule (Boss's answer 3.2 on the schematic route map): two points are linked when no system lies closer to both than they are to each other. It has no tuning number and gives about 1.5 links to a system. A link is a neighbour relation, not a travel lane.
+- The systems round a stop come from the cell-key index (`db/route_neighbours.py`, the same covering index the nearby search uses), so no new route search runs and the cost follows the neighbourhood, not the galaxy. Each stop weighs its `NAV_GRAPH_CANDIDATES` (24) nearest systems and lists at most `NAV_GRAPH_NEIGHBOURS` (6) off the route. A route in a sector with no galaxy placement takes its neighbours from the sector. Without `graph=1` nothing is read and the route is as before.
+- Measured on a synthetic galaxy of 150,000 systems in each of two boxes (about 0.08 systems per cubic parsec, like the Sun's neighbourhood, and about 4 per cubic parsec, a dense region), on the slow lane machine: 5 to 7 ms a stop, so 6 stops took 29 to 36 ms, 20 stops 104 to 116 ms and 60 stops 360 to 384 ms, about a rung and a half of the index per stop. The graph reads the stops' own positions from the same index as their neighbours, because the route search places a system at its sector's centre plus the offset without turning the offset into the galaxy frame (reported as a bug).
+- Tests: the rule against a brute-force graph, the hops, the cap and its `more`, the on-route flag, the links between two stops, a route inside one sector, a route over two sectors, the nearest-systems reader against brute force, and the API with and without `graph=1`.
+
+generation-output: unchanged
+
 ## [8.0.3244] - 2026-11-05
 
 **Headline:** The Galaxy Map's Color by menu has a new choice, Nebula cover, that shades each block by the share of it inside a nebula.
