@@ -14651,6 +14651,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   anything: a coarser grid or fewer steps for the census, or a cached
   series, with the stored mean unchanged. Owner: Aux 2, next lock-free
   item, before GEN.1265.
+  Fixture cost on the GEN.1265 branch (Core 5, as the lane reported)
+  (11:27 AM EST on 2026-11-05): The species_limits civilized-galaxy
+  fixture takes 275 s on the GEN.1265 branch against 109 s on plain
+  main, same machine. That is the temperature series cost per system.
+  Core 5 and Aux 2 check it against the 20 ms a rocky body target after
+  train 11 lands.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
 - [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
@@ -17252,21 +17258,6 @@ clears each one.
   pytest runs at once on one machine make queue tests fail.
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
-- [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
-  Found by Core 4 (relayed 6:38 AM EDT 2026-10-23 as the lane reported)
-  in its gate for GEN.284; filed by the TODO thread. Kind: slow flaky
-  test, the same family as TEST.198. Test:
-  src/tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star.
-  Failure: at load 9.7 it ran 130 s and failed; alone it passes in 97 s
-  (the lane's figures; the failure text was not given). Fails on main:
-  unknown. Frequency: once in one gate. Do: capture the failure text,
-  then find what the 97 s alone is spent on (the camera flight, a fixed
-  wait, building the scene) and make the test wait for the state it
-  needs rather than a long time. Done: the test passes 50 times in a row
-  at -n 4 under load and takes well under a minute alone. Owner: Bug
-  Hunt (proposed by the TODO thread).
-  Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
-
 - [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
   before 8.1 is ready. Lane E owns the end-to-end browser tests across
@@ -17510,26 +17501,6 @@ clears each one.
   its data are in reports/data/planet-class-distribution; the Bern
   synthesis binned fit is ngpps_formation_water.json. No occurrence
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-
-- [ ] **TEST.411 Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug)**
-  Found by Bug 1 (as the lane reported 8:36 AM EDT 2026-10-28) while
-  merging TEST.394 and TEST.383 (#3385): in a full-file run 132 of 136
-  passed; the dense click was fixed since, and the indexeddb revisit
-  test and two sector_reach double-click flight tests fail only after a
-  long run on a loaded 4-core box. Do: find what the loaded run changes
-  (animation timing, a flight that has not finished when the second
-  click lands, an indexeddb transaction not closed), replace fixed waits
-  with waits on the real condition (the flight end event, the db open
-  state), never raise a timeout to hide it. Done: the three tests pass
-  in a full-file run and under -n 4. Owner: Bug 1 or a free lane after
-  TEST.405/406/398/402. Rules: never skip or quarantine a test;
-  scripts/test.py changed --resume.
-  Research (2026-10-09): Update (Bug 1, about 9:40 AM EDT 2026-10-29 as
-  the lane reported): the three flaky map tests (indexeddb revisit and
-  two sector_reach double-click flights) did not reproduce in two long
-  runs. Kept open until it recurs; if it has not recurred when Bug 1
-  finishes its queue, Bug 1 retires it.
-  Prerequisites: none. Related: TEST.394, TEST.383.
 
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
