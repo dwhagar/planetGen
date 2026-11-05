@@ -154,11 +154,41 @@ def configured_cache_dir():
     return _config().dir or DEFAULT_CACHE_DIR
 
 
+_root_override = None
+"""str or None: A cache root `building_into` has put in place of the configured one (the full build writes into it)."""
+
+
+class building_into:
+    """
+    A context in which this process reads and writes the cache under `root` instead of the configured directory, and
+    leaves it unpruned: how `tilebuild` makes a whole new cache beside the live one (PERF.233). One process builds
+    into one root at a time.
+    """
+
+    def __init__(self, root):
+        self.root = root
+        self._was = None
+
+    def __enter__(self):
+        global _root_override
+        self._was = _root_override
+        os.makedirs(self.root, mode=0o750, exist_ok=True)
+        _root_override = self.root
+        return self.root
+
+    def __exit__(self, *_exc):
+        global _root_override
+        _root_override = self._was
+        return False
+
+
 def cache_dir():
     """
     The writable cache root, created if needed, or `None` when the disk
     cache is off or no candidate directory is writable.
     """
+    if _root_override is not None:
+        return _root_override
     configured = configured_cache_dir()
     if configured is None:
         return None
@@ -649,7 +679,7 @@ def _collect(db, keys, known_stamp, ahead=False):
                     for key, raw in made.items():
                         if key in missing and not _incomplete(raw):
                             _write_bytes(os.path.join(generation_dir, _node_filename(key)), raw, ahead=ahead)
-                    if random.random() < PRUNE_PROBABILITY:
+                    if _root_override is None and random.random() < PRUNE_PROBABILITY:
                         prune(root)
         finally:
             if owned:
@@ -898,16 +928,18 @@ def cache_is_full(root=None, max_bytes=None):
 
 def prune(root, max_bytes=None):
     """
-    Brings the cache under 80% of `max_bytes` (default `max_cache_bytes()`) when it is over `max_bytes`, and then
-    removes any directories that left empty (PERF.133): only the files a visit asked for are deleted, the
-    least recently visited first (a visit sets a file's modification time); the nodes built ahead
-    (`AHEAD_MODE`) stay, so a cache that holds nothing but those stays over the budget and the warm-up stops
-    (`cache_is_full`). The stamp files are skipped.
+    Brings the files a visit asked for under 80% of `max_bytes` (default `max_cache_bytes()`) when they are over
+    `max_bytes`, and then removes any directories that left empty (PERF.133): only those files are deleted, the
+    least recently visited first (a visit sets a file's modification time). The nodes built ahead (`AHEAD_MODE`)
+    stay and are not counted (PERF.233): the whole-galaxy build fills the cache with them every night and they carry
+    their own bound, the galaxy, so the budget is the allowance of the on-demand files that come after. A cache of
+    nothing but built-ahead nodes past the budget still stops the warm-up (`cache_is_full`). The stamp files are
+    skipped.
     """
     if max_bytes is None:
         max_bytes = max_cache_bytes()
     files = cache_files(root)
-    total = sum(size for _path, size, _mtime, _ahead in files)
+    total = sum(size for _path, size, _mtime, ahead in files if not ahead)
     if total <= max_bytes:
         return
     from planetgen.web.lib import tileprefetch
