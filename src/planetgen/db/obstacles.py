@@ -25,6 +25,7 @@ from planetgen.db import corridor
 from planetgen.galaxy import avoid, keepout, unresolved_crossings
 from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 KM_PER_PC = constants.PARSEC_M / 1000.0
 PC_CM = constants.PARSEC_M * 100.0
@@ -156,7 +157,7 @@ def obstacles_along_segment(conn, start_pc, end_pc, kinds=None):
                 "ref": row["ref"], "kind": kind, "id": row["id"], "name": row["name"], "center_pc": center,
                 "radius_pc": radius_pc, "radius_km": sphere.radius_km, "basis": sphere.basis, "note": sphere.note,
                 "distance_pc": row["distance_pc"], "along_pc": row["along_pc"],
-                "contains_start": math.dist(center, start) <= limit, "contains_end": math.dist(center, end) <= limit,
+                "contains_start": detmath.dist(center, start) <= limit, "contains_end": detmath.dist(center, end) <= limit,
             })
     found.sort(key=lambda row: (row["along_pc"], row["distance_pc"], row["kind"], str(row["id"])))
     return found
@@ -182,7 +183,7 @@ def passed_through_along_segment(conn, start_pc, end_pc):
             atoms per cm^2 along that length). Only the ones the segment actually enters.
     """
     start, end = tuple(float(v) for v in start_pc), tuple(float(v) for v in end_pc)
-    length = math.dist(start, end)
+    length = detmath.dist(start, end)
     if length <= 0.0:
         return []
     direction = tuple((e - s) / length for s, e in zip(start, end))
