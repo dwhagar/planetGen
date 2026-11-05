@@ -2032,29 +2032,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not change in practice (overhead 0.04% to 0.2% on average).
 
   Prerequisites: none.
-  - [ ] **NAV.25 Find the obstacles along a path**
-    Done: from the corridor query of NAV.10 (and NAV.38's
-    line-to-sectors helper), every
-    object whose keep-out sphere comes within reach of the path, at
-    each scale: between systems, inside a sector, inside a system.
-    Research (2026-10-09, course-routing.md): point at the shared
-    segment query (course-routing.md section 6); no separate work.
-    Research (2026-10-09, course-avoidance.md): specify the query as
-    "every object whose keep-out sphere is within R_i of the straight
-    segment" in two parts: stars, neutron stars, rogue planets and small
-    fields by the sectors the segment crosses plus a one-sector margin
-    (their largest radius, 2.1 pc, is under one 4 pc sector edge); large
-    kinds (intermediate black holes up to 25 pc, SMBH and quasar 2 to 10
-    pc and up, nebulae up to 200 ly, remnants, large fields) by a
-    bounding-box query on centre and radius, as
-    `_placed_phenomenon_rows` does. Return `ref`, centre, radius, basis
-    and note per object. An ungenerated sector has no objects to avoid;
-    the answer says so (NAV.12's unknown-space flag already marks it).
-    Scope after the review (2026-10-16 review): the obstacle query only;
-    it returns each object's radius and basis from the keep-out table
-    (NAV.54).
-    Prerequisites: NAV.54.
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
