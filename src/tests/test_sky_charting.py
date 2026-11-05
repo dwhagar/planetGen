@@ -9,13 +9,15 @@ VIEW.25: charting builds the sky tiers (`generation/sky_charting.py`, `db/sky_ti
 * the rings follow the luminosity bands, each cell as it stands.
 """
 
+import math
+
 import pytest
 
 from planetgen import tuning
 from planetgen.db import sky_tier_ledger as ledger_module
 from planetgen.db import store
 from planetgen.db.sky_tier_ledger import Draw, Ledger
-from planetgen.galaxy import spherical
+from planetgen.galaxy import sky_band, spherical
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import run_plan, sky_charting, sky_tiers
 from tests.test_bright_star_scatter import EDGE_PC, SMALL_E_VALUE, THRESHOLD, _scatter_args, _seed_galaxy, _stored_stars
@@ -244,3 +246,23 @@ def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_
     assert result["sky"]["spheres"] == 2 and result["stars"] == result["sky"]["stars"] == len(new_stars(conn, before))
     assert len(ledger_module.read(conn).draws) == 2
     assert run_galaxy._sky_units(params, [SPHERE_CENTER]) == []
+
+
+def test_a_charted_cell_is_built_out_to_its_spheres_and_a_half_chart_is_not(galaxy):
+    """VIEW.42: `built_to_pc` (the sky route's) reads the ledger: 0 before a chart and with only the luminosity chain, the sphere's reach once the luminosity bands reach the rings' 50 Lsun and the rings reach the lightest mass."""
+    conn = galaxy
+    top = store.bright_star_mass_limit(conn)
+    center = tuple(sky_band.cell_center(sky_band.cell_of(SPHERE_CENTER)))
+    tiers = sky_tiers.SkyTiers(7.5, SPHERE_CENTER, EDGE_PC, 0.0, (), (), ())
+    bands = tiers._replace(luminosity=(a_tier(low=sky_tiers.RING_TOP_SOL, high=THRESHOLD),), rings=(), dropped=())
+    toy = tiers._replace(luminosity=bands.luminosity, rings=(a_tier("mass", low=min(sky_tiers.ring_edges()), high=top),), dropped=())
+    assert sky_charting.built_to_pc(conn, center) == 0.0
+    sky_charting.chart(conn, center, 7.5, tiers=bands, center=center)
+    conn.commit()
+    assert sky_charting.built_to_pc(conn, center) == 0.0              # the luminosity chain is whole, the rings are not drawn
+    sky_charting.chart(conn, center, 7.5, tiers=toy, center=center)
+    conn.commit()
+    built = sky_charting.built_to_pc(conn, center)
+    assert built == pytest.approx(sky_charting.padded_radius(toy.luminosity[0]) - 0.0) and built > 0.0
+    far = tuple(c + 10.0 * EDGE_PC for c in center)
+    assert sky_charting.built_to_pc(conn, far) == 0.0                         # no drawn sphere holds an observer out there

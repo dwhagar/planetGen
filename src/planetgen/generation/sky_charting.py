@@ -300,6 +300,30 @@ def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, led
     return Drawn(tier, radius, walked, cells, stars, seconds)
 
 
+def built_to_pc(conn, observer_pc):
+    """
+    How far the stored stars are complete around `observer_pc` because the sky tiers were drawn (VIEW.42): the ledger's spheres that hold the observer, followed from the scatter's own luminosity
+    level down through the luminosity bands to `sky_tiers.RING_TOP_SOL` and from the mass limit down through the mass rings to the lightest ring edge. When both chains reach that far every tier
+    that shows a star to the observer is drawn, the largest of their spheres' margins (radius less the observer's distance from its center) is how far the sky is built, and the faint floors that
+    the rings carry (under 50 Lsun) count, which the cells' luminosity levels alone cannot say. 0.0 when a chain stops short (a tier not drawn yet, or dropped by the visit budget), when no
+    sphere holds the observer, or when the galaxy has no scatter level.
+    """
+    scatter = store.bright_star_scatter_settings(conn)
+    ledger = sky_tier_ledger.read(conn)
+    if scatter is None or not ledger:
+        return 0.0
+    observer = tuple(float(c) for c in observer_pc)
+    holding = sky_tier_ledger.Ledger(d for d in ledger.draws if math.dist(d.center, observer) < d.radius_pc)
+    if not holding:
+        return 0.0
+    if holding.sphere_reached(sky_tier_ledger.LUMINOSITY, observer, 0.0, float(scatter[0])) > sky_tiers.RING_TOP_SOL + sky_tier_ledger.EDGE_TOLERANCE:
+        return 0.0
+    mass_limit = store.bright_star_mass_limit(conn)
+    if mass_limit is not None and holding.sphere_reached(sky_tier_ledger.MASS, observer, 0.0, mass_limit) > min(sky_tiers.ring_edges()) + sky_tier_ledger.EDGE_TOLERANCE:
+        return 0.0
+    return max(d.radius_pc - math.dist(d.center, observer) for d in holding.draws)
+
+
 def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, tiers=None, center=None):
     """
     Draws the sky tiers of the cell of `observer_pc` for `limit_mag`: the luminosity bands from the top band down, then the mass rings from the top ring down, each as `draw_tier`, one draw at a time in the galaxy (`DrawLock`). Tiers the ledger holds are skipped. `tiers` (with

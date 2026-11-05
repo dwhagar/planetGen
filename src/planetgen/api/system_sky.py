@@ -25,7 +25,7 @@ from planetgen.api import ids
 from planetgen.db import sky_sprites, store
 from planetgen.galaxy import potential as galacticPotential
 from planetgen.galaxy import sky, sky_band, sky_sprites as spriteMaker
-from planetgen.generation import sky_tiers
+from planetgen.generation import sky_charting, sky_tiers
 from planetgen.web.lib import skypack
 
 MAX_SPRITES = 600
@@ -171,7 +171,7 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     at_unix = observer.epoch_unix
 
     stars = sky.sky_from_database(conn, observer, at_unix, limit, galaxy_key, circular_speed)
-    built = stars.report["built_to_pc"]
+    built = max(stars.report["built_to_pc"], sky_charting.built_to_pc(conn, observer.position_pc))          # VIEW.42: the tiers charting drew, not only the cells' luminosity levels
     objects = sky_sprites.objects_in_sphere(conn, observer.position_pc, spriteMaker.SEARCH_RADIUS_PC)
     printed = {}
     for kind in (sky_sprites.NEBULA, sky_sprites.REMNANT):
