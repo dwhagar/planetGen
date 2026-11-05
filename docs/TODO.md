@@ -2175,29 +2175,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.375 A linked side strip for height on the Galaxy Map: an optional panel with height on one axis and distance across, linked to the map so a pick in one rings the star in the other**
-  Boss, 5:40 PM EST on 2026-11-04, answered question 2.1 of the galaxy
-  projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): yes, as an optional panel, built together with the minimap
-  work (MAP.75, the second locked engine view). Do: an edge-on side
-  strip showing the same stars with height on one axis and distance
-  across; picking a star in the strip rings it on the map and the
-  reverse; it reads exact height and disc thickness; on phones it is a
-  drawer. Share the second-view engine and selection link with MAP.75;
-  if MAP.75 is built first, reuse it. Done: browser test of the link in
-  both directions and the phone drawer. Lock-free, no migration. Goal
-  #3241. Filed by the TODO thread.
-  Boss decision (5:48 PM EST on 2026-11-04) (2026-11-04 5:50 PM EST):
-  The side strip is an option on top of the 60 degree arc wedge
-  (MAP.371): mock D (galaxy-mock-d-arc-plus-strip.png) shows the arc
-  plus the edge-on strip, heights about 2.2 times true in the strip
-  against about 12 times in the plane view. It shows the same stars as
-  the wedge.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Star 2 (unowned
-  before).
-  Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
-
 - [ ] **MAP.380 The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug)**
   Core 2 (as the lane reported, 8:13 PM EST on 2026-11-04):
   test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parsec_apart
@@ -14780,6 +14757,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-11-04): report reports/gen1268-nebula-composition-2026-11-05.md.
   The build is split into GEN.1269 to GEN.1274 (parts a to f). This item
   is the umbrella and is done when they are.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items.
+  Question 2 of the report is answered; the other seven defaults stand.
 
 - [ ] **GEN.1269 Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place)**
   Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
@@ -14801,6 +14788,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   metal-poor nebula, every class of the table has a row, and the
   stand-ins are in GEN.725 with tier and tweak level. Lock-free. Version
   8.1. Owner: Sources 1.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items. The
+  lock-free statement above applies to this part's model code only.
   Prerequisites: none. Related: GEN.1268.
 
 - [ ] **GEN.1270 Nebula composition part b: planetary nebulae with the progenitor's ejecta and dredge-up enrichment**
@@ -14819,6 +14816,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   read time, one stream a later central star can read too) and its
   dredge-up. Done: tests on the progenitor to ejecta relation and on
   determinism. Lock-free. Version 8.1. Owner: Sources 2 after VIEW.23.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items. The
+  lock-free statement above applies to this part's model code only.
   Prerequisites: GEN.1269. Related: GEN.1269.
 
 - [ ] **GEN.1271 Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A**
@@ -14838,6 +14845,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sum, on a core-collapse versus a Type Ia ejecta pattern, and the
   Cas A check named in the report. Lock-free. Version 8.1. Owner:
   Planets 1 after its queue.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items. The
+  lock-free statement above applies to this part's model code only.
   Prerequisites: GEN.1269. Related: GEN.1269.
 
 - [ ] **GEN.1272 Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks**
@@ -14857,7 +14874,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sheet marks which values are derived. Done: a page test and a describe
   test, plain-words and the wiring guard green. Lock-free. Version 8.1.
   Owner: Core 5 after its stem view queue.
-  Prerequisites: GEN.1269. Related: GEN.1269.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items. This
+  part now reads the stored columns, so it waits for GEN.1276 and
+  GEN.1277.
+  Prerequisites: GEN.1269. Related: GEN.1269, GEN.1276, GEN.1277.
 
 - [ ] **GEN.1273 Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value**
   Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
@@ -14932,6 +14960,55 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1. Owner: Bug 1, with PERF.236 and TEST.579. Filed by the
   TODO thread.
   Prerequisites: none. Related: PERF.236, TEST.579, GEN.725.
+
+- [ ] **GEN.1276 Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register)**
+  Part of GEN.1268. Boss (8:49 PM EST on 2026-11-04, as the coordinator
+  relayed) decided the composition is STORED, not derived at read time,
+  so that as much as possible is searchable; the stored values include
+  the progenitor mass for planetary nebulae and supernova remnants. Do:
+  add the columns to the nebulae and supernova_remnants tables for the
+  values the model of GEN.1269 to GEN.1271 produces (H, He and Z mass
+  fractions, the ionized, atomic and molecular split, dust-to-gas and
+  dust-to-metals, the grain mix, the 12+log abundances of C, N, O, Ne,
+  S, Ar and Fe, for a remnant the ejecta and swept-up parts, and the
+  progenitor mass); write them at generation; backfill the existing rows
+  by a migration that runs the same model; register every new numeric
+  column in db/column_units.py and the wiring register (a wiring-guard
+  row for each reader: the nebula page, the describe sheet, the search
+  filters and the API); the old composition sentence and
+  dominant_species stay as the plain-words summary but are now generated
+  from the stored numbers, not copied from the family table; GEN.725
+  rows for every stand-in with tier and tweak level. Lock item: a
+  generator epoch with --affects fill and a migration; earliest train 12
+  (after the model parts and after train 11 forms). Done: every nebula
+  and remnant of a seeded galaxy has a full stored composition, the
+  fractions sum to one, a re-run of the backfill gives the same values,
+  and the columns are searchable through the object-list filters.
+  Version 8.1. Owner: the lane that takes the lock build (Core 3 holds
+  GEN.1261 for train 12; decide after the models land). Filed by the
+  TODO thread.
+  Prerequisites: GEN.1269, GEN.1270, GEN.1271. Related: GEN.1268,
+  GEN.1267, GEN.725.
+
+- [ ] **GEN.1277 Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one**
+  Part of GEN.1268. Boss decided to store the composition of the field
+  clouds too (8:49 PM EST on 2026-11-04, as the coordinator relayed).
+  The nebula_field table holds about 163,000 clouds with only a class
+  letter and size, so this adds columns for the same values as the
+  nebula composition part g (mass fractions, gas phases, dust, the
+  abundances, and the progenitor mass where the cloud is a planetary
+  nebula or remnant) in a compact encoding chosen so the table stays
+  small (state the bytes per row in the design note), a keyed per-cloud
+  draw from the place's metallicity and the class, a backfill migration,
+  db/column_units.py and wiring register rows. Do the encoding choice
+  first as a short design note (stored float columns against packed
+  integers) and report the table growth in MB. Lock item: an epoch with
+  --affects fill and a migration; the same train as the nebula
+  composition part g or later. Done: every field cloud carries a stored
+  composition, the table growth is within the stated budget, and a
+  re-run of the backfill is deterministic. Version 8.1. Owner: the lane
+  that takes the nebula composition part g. Filed by the TODO thread.
+  Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
