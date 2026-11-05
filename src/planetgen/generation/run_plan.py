@@ -1126,7 +1126,7 @@ def _plan_shape(skeleton, extents, fractions, band_share, components, tiered):
                                   componentPass.STAR_SLICE_STARS)
         # The cut is by the candidates (the most a slice holds, and what keeps the streams where they were); the stars
         # a task is expected to place are what its components keep at the places they lie (GEN.678).
-        kept = {(component.kind, component.name): stars for component, stars in
+        kept = {(component.kind, component.key): stars for component, stars in
                 componentPass.kept_weights(components, fractions, tiered, skeleton.edge_pc)}
         cut = [(sum(kept[(kind, name)] / slices for kind, name, _index, slices in task_parts), task_parts)
                for _candidates, task_parts in cut]

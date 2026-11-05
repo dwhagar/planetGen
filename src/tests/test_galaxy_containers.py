@@ -56,14 +56,14 @@ def test_a_bubble_container_is_a_bubble_of_the_field_and_a_cluster_container_is_
             assert c.center_pc == tuple(bubble.center_pc) and c.extent_pc == bubble.radius_pc
             assert c.name is None and c.component_id is None
         else:
-            assert c.bubble is None and c.name and c.component_id in (1, 2, 3, 4) and c.extent_pc > 0
+            assert c.bubble is None and c.name is None and c.component_id in (1, 2, 3, 4) and c.extent_pc > 0
 
 
 def test_an_open_cluster_is_not_a_container():
     drawn = _clusters(2)
     plummer = dataclasses.replace(drawn[0], profile="plummer", king_w0=None, name="Open cluster 00001")
     found = containers.build(None, None, EDGE_PC, REACH_PC, [plummer, drawn[1]])
-    assert [c.name for c in found] == [drawn[1].name]
+    assert [c.component_id for c in found] == [drawn[1].id]
 
 
 def test_an_object_id_is_the_birth_sector_the_region_kind_and_the_rank_in_that_sector():

@@ -33,7 +33,8 @@ class Component:
 
     Attributes:
         kind (str): One of `KINDS`.
-        name (str): The component's name, unique within its kind.
+        name (str or None): The component's name, unique within its kind; `None` for a generated cluster until the first fill that
+            touches it names it (GEN.359).
         source (str): One of `SOURCES`.
         center_pc (tuple): `(x, y, z)` in parsecs in the galaxy frame.
         velocity_kms (tuple): `(vx, vy, vz)` in km/s in the galaxy frame.
@@ -83,6 +84,12 @@ class Component:
             raise ValueError("a king profile needs king_w0, and no other profile has one")
         if self.tidal_radius_pc is None or self.tidal_radius_pc <= 0.0:
             raise ValueError("a component needs a positive tidal_radius_pc: the radius its profile is cut at")
+
+    @property
+    def key(self):
+        """What the component's draws and lookups go by: its name, or for a cluster nobody has named yet (GEN.359) `unnamed-` and its seed in
+        hex, so the stars drawn for it do not change when its first fill names it."""
+        return self.name if self.name is not None else f"unnamed-{self.seed:016x}"
 
     @property
     def mean_system_mass_solar(self):

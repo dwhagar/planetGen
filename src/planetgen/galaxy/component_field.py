@@ -118,7 +118,7 @@ class ComponentField:
         held = gate_components(found)
         self.edge_pc = float(edge_pc)
         self.expected_at_density_1 = float(expected_at_density_1)
-        self.names = tuple(c.name for c in held)
+        self.names = tuple(c.key for c in held)
         self.kinds = tuple(c.kind for c in held)
         self.families = tuple(components.family_of(c) for c in held)
         self.fe_h = tuple(c.metallicity_fe_h for c in held)

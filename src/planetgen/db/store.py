@@ -7235,12 +7235,79 @@ def filled_sector_addresses(conn):
     return chart_ledger.charted_addresses(conn)
 
 
+def _naming_key_of(conn):
+    """The galaxy database's naming key (GEN.70) from the control database, or `None` when none is drawn or the control database cannot be read."""
+    from planetgen.names import naming_key
+    config = getattr(conn, "_config", None)
+    if config is None:
+        return None
+    try:
+        control = get_control_connection(control_mysql_config(config))
+    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        return None
+    try:
+        return naming_key.key_of(control, config.database)
+    except Exception:  # noqa: BLE001 -- a control schema older than v9
+        return None
+    finally:
+        control.close()
+
+
+def name_clusters(conn, cluster_ids):
+    """
+    GEN.359: the first fill that touches a cluster nobody has named gives it one name, once. The name is the local name (`names.naming_key.local_name`)
+    of the cluster's container Object ID under the galaxy's naming key; the cluster's row takes it with `UPDATE ... WHERE name IS NULL`, so a second
+    worker, a rerun or a resumed fill finds it named and changes nothing, and the container row follows. A local name is only certain to be unique inside
+    its birth sector, so a name another cluster already has is spelled with the sector (`local_name_with_sector`). A cluster with a catalogue name, or
+    one with no container row, or a galaxy with no naming key yet, is left as it is.
+
+    Args:
+        conn (Connection): The open galaxy connection, inside the fill's transaction.
+        cluster_ids (iterable): `galaxy_components.id` of the clusters whose stars the fill built.
+
+    Returns:
+        dict: `{cluster id: name}` for the clusters this call named.
+    """
+    ids = sorted({int(i) for i in cluster_ids if i is not None})
+    if not ids:
+        return {}
+    marks = ", ".join("?" * len(ids))
+    unnamed = conn.execute(
+        f"SELECT c.id AS id, k.uid AS uid FROM galaxy_components c JOIN galaxy_containers k ON k.component_id = c.id"
+        f" WHERE c.id IN ({marks}) AND c.name IS NULL ORDER BY c.id", tuple(ids)).fetchall()
+    if not unnamed:
+        return {}
+    key = _naming_key_of(conn)
+    if key is None:
+        return {}
+    from planetgen.names import naming_key
+    named = {}
+    for row in unnamed:
+        uid = objectUid.from_bytes(bytes(row["uid"]))
+        for candidate in (naming_key.local_name(uid, key), naming_key.local_name_with_sector(uid, key)):
+            taken = conn.execute("SELECT 1 FROM galaxy_components WHERE kind = 'cluster' AND name = ?", (candidate,)).fetchone()
+            if taken is not None:
+                continue
+            try:
+                changed = conn.execute("UPDATE galaxy_components SET name = ? WHERE id = ? AND name IS NULL", (candidate, row["id"])).rowcount
+            except pymysql.err.IntegrityError:      # another worker took the name between the check and the update
+                continue
+            if changed:
+                conn.execute("UPDATE galaxy_containers SET name = ? WHERE component_id = ?", (candidate, row["id"]))
+                named[row["id"]] = candidate
+            break
+    return named
+
+
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
     """Links a pre-placed star to the system its sector's fill built
     around it. A star of a cluster (GEN.359) passes its cluster to every star of the system."""
     conn.execute("UPDATE bright_stars SET star_system_id = ? WHERE id = ?", (star_system_id, bright_star_id))
     conn.execute("UPDATE stars SET cluster_id = (SELECT cluster_id FROM bright_stars WHERE id = ?) WHERE star_system_id = ?",
                  (bright_star_id, star_system_id))
+    cluster = conn.execute("SELECT cluster_id FROM bright_stars WHERE id = ?", (bright_star_id,)).fetchone()
+    if cluster is not None and cluster["cluster_id"] is not None:
+        name_clusters(conn, [cluster["cluster_id"]])
 
 
 def sectors_reached_by(conn, center_pc, radius_pc):
@@ -7498,6 +7565,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         conn.deferred_name_confirmations = None
     if cluster_links:       # GEN.359: every star of a system built from a cluster's star points to the cluster
         conn.executemany("UPDATE stars SET cluster_id = ? WHERE star_system_id = ?", cluster_links)
+        name_clusters(conn, [cluster_id for cluster_id, _system_id in cluster_links])
     if bright_star_links:
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
     if built_tree_ids:  # GEN.315: a built row's members and nodes are its system's stars and orbit_nodes now

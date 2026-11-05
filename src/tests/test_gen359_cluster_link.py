@@ -91,3 +91,89 @@ def test_a_sectors_save_passes_the_cluster_of_a_pre_placed_star_to_its_stars(mys
     finally:
         conn.close()
     assert found == {"Memberholm": cluster_id, "Fieldfall": None}
+
+
+# --- GEN.359 part 2: the first fill that touches a cluster names it, once -------------------------------------------------------------------------
+
+KEY = "A1B2C3D4"
+
+
+def _stored_clusters(mysql_config, count=3):
+    from planetgen.db import containers as containersDb
+    from planetgen.generation import clusters, containers
+    from tests.test_galaxy_containers import EDGE_PC, REACH_PC, SEED, SHAPE
+
+    drawn = clusters.generate_clusters(SEED, count=count)
+    conn = store.get_connection(mysql_config)
+    try:
+        store.replace_galaxy_components(conn, drawn, kind="cluster")
+        conn.commit()
+        stored = store.get_galaxy_components(conn, kind="cluster")
+        made = containers.build(SEED, SHAPE, EDGE_PC, REACH_PC, stored)
+        containersDb.replace(conn, made)
+        conn.commit()
+    finally:
+        conn.close()
+    return stored, made
+
+
+def test_the_plan_draws_clusters_with_no_name_and_the_first_fill_names_each_once(mysql_config, monkeypatch):
+    from planetgen.galaxy import object_uid
+    from planetgen.names import naming_key
+
+    stored, made = _stored_clusters(mysql_config)
+    assert all(cluster.name is None for cluster in stored) and len({cluster.key for cluster in stored}) == 3
+    monkeypatch.setattr(store, "_naming_key_of", lambda conn: KEY)
+    conn = store.get_connection(mysql_config)
+    try:
+        first, second, third = stored
+        with conn:
+            named = store.name_clusters(conn, [first.id, second.id, first.id, None])
+        by_uid = {container.component_id: container.uid for container in made}
+        assert set(named) == {first.id, second.id}
+        for cluster_id, name in named.items():
+            assert name == naming_key.local_name(object_uid.from_bytes(by_uid[cluster_id]), KEY)
+        assert len(set(named.values())) == 2
+        rows = {row["id"]: row["name"] for row in conn.execute("SELECT id, name FROM galaxy_components").fetchall()}
+        assert rows[first.id] == named[first.id] and rows[second.id] == named[second.id] and rows[third.id] is None
+        containers_named = {row["component_id"]: row["name"] for row in conn.execute("SELECT component_id, name FROM galaxy_containers WHERE component_id IS NOT NULL").fetchall()}
+        assert containers_named == {first.id: named[first.id], second.id: named[second.id], third.id: None}
+        with conn:
+            assert store.name_clusters(conn, [first.id, second.id]) == {}          # a rerun or a resumed fill changes nothing
+        assert conn.execute("SELECT name FROM galaxy_components WHERE id = ?", (first.id,)).fetchone()["name"] == named[first.id]
+    finally:
+        conn.close()
+
+
+def test_a_cluster_with_a_catalogue_name_keeps_it_and_no_key_means_no_name(mysql_config, monkeypatch):
+    stored, _made = _stored_clusters(mysql_config, count=2)
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.execute("UPDATE galaxy_components SET name = 'NGC 104' WHERE id = ?", (stored[0].id,))
+            monkeypatch.setattr(store, "_naming_key_of", lambda c: None)
+            assert store.name_clusters(conn, [stored[0].id, stored[1].id]) == {}
+            monkeypatch.setattr(store, "_naming_key_of", lambda c: KEY)
+            named = store.name_clusters(conn, [stored[0].id, stored[1].id])
+        assert set(named) == {stored[1].id}
+        assert conn.execute("SELECT name FROM galaxy_components WHERE id = ?", (stored[0].id,)).fetchone()["name"] == "NGC 104"
+    finally:
+        conn.close()
+
+
+def test_a_local_name_another_cluster_already_has_is_spelled_with_its_sector(mysql_config, monkeypatch):
+    from planetgen.galaxy import object_uid
+    from planetgen.names import naming_key
+
+    stored, made = _stored_clusters(mysql_config, count=2)
+    uid = object_uid.from_bytes({container.component_id: container.uid for container in made}[stored[1].id])
+    taken = naming_key.local_name(uid, KEY)
+    monkeypatch.setattr(store, "_naming_key_of", lambda c: KEY)
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.execute("UPDATE galaxy_components SET name = ? WHERE id = ?", (taken, stored[0].id))
+            named = store.name_clusters(conn, [stored[1].id])
+        assert named == {stored[1].id: naming_key.local_name_with_sector(uid, KEY)}
+    finally:
+        conn.close()
