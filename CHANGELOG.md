@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3359] - 2026-11-05
+
+**Headline:** The unused second size-law module for belt density is removed; the belt information page keeps its one set of size laws.
+
+### Changed
+- **The separate belt density module (GEN.1093) is deleted (UX.263).** The belt information page already works out the size table and the density factor from the belt ledger's laws, which hold the same hot Kuiper belt and main belt numbers from the same papers, so the second module was never read. Its stand-in rows (section 6.99, BD1 to BD5) and wiring-register lines go with it. The cold classical Kuiper belt numbers stay recorded in the small-body size-law notes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.263.
+
 ## [8.0.3358] - 2026-11-05
 
 **Headline:** The system-generation fuzz tests are split or sampled so none passes the 900 second limit with every flag forced on; no generated output changes.
