@@ -65,7 +65,12 @@ share `ocean_fraction` of the cell, and the ground's skin `GROUND_INERTIA sqrt(P
 4. The emission `eps` is scaled until the mean of the series is the stored mean (the hot and cold places make the mean of the fourth powers more than the fourth power of the
    mean), and what is left is added as a shift, so the area-and-time mean is the stored mean exactly. Against a time-stepped implicit integration of the same equation with one
    heat capacity, the filter agrees to 0.3 K rms for a 0.3 bar Nitrikin-like world and 0.8 K for an Earth-like one (the tests hold the first); for a Mars-like one the two differ by
-   about 3 K rms at 6000 steps, the implicit stepping's own error at 9 steps a day.
+   about 3 K rms, the implicit stepping's own error at a few steps a day.
+
+**Cost (PERF.238).** The default resolution is 12 rows by 4 columns (12 for a body that turns fewer than `MANY_TURNS` times an orbit), 8 steps a solar day, 120 steps an orbit
+   and at most 1500 steps: on 310 rocky planets and moons drawn from four star types and three zones the series and `temperature_coverage.coverage` took a mean of 66 ms,
+   a median of 26 ms, 158 ms at the 90th percentile and 1.0 s at the most (40 ms with air, 72 ms for the airless ones, whose cold dry nights need many passes), against a mean
+   of 1.1 s at `FINE`; the livable share is within 0.005 of the fine one on average and 0.033 at the 95th percentile (0.21 at the worst, a body on the edge of a band).
 
 Limits. The orbit is circular (the eccentricity and `flux_variation` are not in the series yet); the sea is spread evenly over the longitudes and the latitudes (no land and sea
 laid out); the ice follows the cell's mean temperature, not its season, and carries no latent heat or snow; the air shares the heat toward the world's mean at each step, one
@@ -293,16 +298,28 @@ NONLINEAR_PASSES = 30
 """int: The most passes that put back the part of the emission the linear response leaves out. Source tier T6, tweak level L0 (numerical)."""
 ANDERSON_DEPTH = 6
 """int: The passes the mixing remembers. Source tier T6, tweak level L0 (numerical)."""
-NONLINEAR_TOLERANCE_K = 0.25
+NONLINEAR_TOLERANCE_K = 1.0
 """float: The passes stop when no temperature moves more than this, kelvin. Source tier T6, tweak level L0 (numerical)."""
 EMISSION_PASSES = 5
 """int: The most times the outgoing emission is scaled to close the stored mean. Source tier T6, tweak level L0 (numerical)."""
-EMISSION_TOLERANCE_K = 0.3
+EMISSION_TOLERANCE_K = 1.0
 """float: The mean of the series is taken as the stored one within this, kelvin, before the shift that makes it exact. Source tier T6, tweak level L0 (numerical)."""
 MIN_EMISSIVITY = 0.02
 """float: The least outgoing emissivity the closure takes (a greenhouse of 98 percent). Source tier T6, tweak level L0 (numerical)."""
-TEMPERATURE_MAX_STEPS = 6000
-"""int: The most time steps of a temperature series (a body of a short day and a long year has about 17 steps a day at 6000 for an Earth year, 9 for a Mars one). Source tier T6, tweak level L0 (numerical)."""
+TEMPERATURE_MAX_STEPS = 1500
+"""int: The most time steps of a temperature series (PERF.238: the median body costs about 26 ms; `FINE` is the resolution the tests compare it with). Source tier T6, tweak level L0 (numerical)."""
+SAMPLES_PER_DAY = 8
+"""int: The least time steps of a solar day when `TEMPERATURE_MAX_STEPS` allows them. Source tier T6, tweak level L0 (numerical)."""
+STEPS_PER_YEAR = 120
+"""int: The least time steps of an orbit (the declination moves slowly; `surface_cycle.STEPS_PER_YEAR` is 3000). Source tier T6, tweak level L0 (numerical)."""
+FEW_COLUMNS = 4
+"""int: The columns of longitude of a body that turns many times in an orbit (`MANY_TURNS`): every column then sees every hour of the day in each season, so its statistics are the same
+and more columns only repeat them. Source tier T6, tweak level L0 (numerical)."""
+MANY_TURNS = 24
+"""float: The solar days in an orbit from which `FEW_COLUMNS` are used; a body with fewer (a slow spinner, a near-resonant or a locked body, where longitude is the place of the cell
+in the day) has `surface_cycle.CELL_COLUMNS`. Source tier T6, tweak level L0 (numerical)."""
+FINE = {"columns": surface_cycle.CELL_COLUMNS, "samples_per_day": 24, "steps_per_year": surface_cycle.STEPS_PER_YEAR, "max_steps": 6000}
+"""dict: The keyword arguments of `temperature_series` for the fine resolution, which the default is checked against (it costs three to ten times as much)."""
 ICE_OUTER_PASSES = 2
 """int: The times the ice cover is laid again from the cell means the temperatures give. Source tier T6, tweak level L0 (numerical)."""
 
@@ -351,6 +368,14 @@ class TemperatureSeries:
     def area_time_mean_k(self):
         """The mean over the cells (by area) and the time."""
         return float(np.sum(self.temperature_k.mean(axis=(1, 2)) * self.grid.row_weight))
+
+
+def columns_for(rotation_hours, orbital_hours, tilt_deg):
+    """The columns of longitude a body needs: `FEW_COLUMNS` when it turns `MANY_TURNS` times or more in an orbit, else `surface_cycle.CELL_COLUMNS`."""
+    solar_days = surface_cycle.solar_day_days(rotation_hours, orbital_hours, tilt_deg)
+    if not math.isfinite(solar_days) or solar_days <= 0.0:
+        return surface_cycle.CELL_COLUMNS
+    return FEW_COLUMNS if orbital_hours / 24.0 / solar_days >= MANY_TURNS else surface_cycle.CELL_COLUMNS
 
 
 def _ocean_depth_m(period_s, mixed_layer_m, diffusivity):
@@ -449,7 +474,7 @@ def _mean_balance(absorbed_w_m2, emissivity_sigma, transport, world_mean_k, weig
 
 
 def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_flux_w_m2, bond_albedo, pressure_pa, gravity_ms2, ocean_fraction,
-                       ice_fraction=None, ice_law=None, transmission=None, samples_per_day=24, max_steps=TEMPERATURE_MAX_STEPS,
+                       ice_fraction=None, ice_law=None, transmission=None, rows=surface_cycle.CELL_ROWS, columns=None, samples_per_day=SAMPLES_PER_DAY, steps_per_year=STEPS_PER_YEAR, max_steps=TEMPERATURE_MAX_STEPS,
                        ocean_heat_capacity_j_m3_k=WATER_HEAT_CAPACITY_J_M3_K, mixed_layer_m=OCEAN_MIXED_LAYER_M, diffusivity=OCEAN_EDDY_DIFFUSIVITY_M2_S):
     """
     The temperature of every cell of the grid at every step of the year (the module section "The temperature of every place"): `TemperatureSeries`.
@@ -470,7 +495,10 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
                                    (gravity_ms2, "gravity", 1e-6, None), (rotation_hours, "rotation period", 1e-6, None), (orbital_hours, "orbital period", 1e-6, None)):
         _check(value, name, low, high)
     _check(tilt_deg, "tilt", 0.0, 360.0)
-    light = surface_cycle.series(rotation_hours, orbital_hours, tilt_deg, None, transmission, samples_per_day=samples_per_day, max_steps=max_steps, periodic=True)
+    if columns is None:
+        columns = columns_for(rotation_hours, orbital_hours, tilt_deg)
+    light = surface_cycle.series(rotation_hours, orbital_hours, tilt_deg, None, transmission, rows=rows, columns=columns, samples_per_day=samples_per_day, max_steps=max_steps,
+                                 periodic=True, steps_per_year=steps_per_year)
     grid = light.grid
     rows, columns, steps = light.cosine.shape
     weights = np.repeat(grid.row_weight / columns, columns).reshape(rows, columns)
@@ -514,8 +542,10 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
         carried = 4.0 * emission * mean_k ** 3 * share / (1.0 - share)
         steady = _mean_balance(absorbed_mean, emission, carried, mean_k, weights)
         steady += mean_k - float(np.sum(steady * weights))
-        # The linear operator that is inverted at every pass: the emission linearised about the cell's own mean (a slope that is the damping of a cycle), the air's transport towards
-        # the world's mean, and the capacity of the layer each cycle reaches. It is a preconditioner: the passes put right whatever it leaves out, so a poor slope costs passes, not accuracy.
+        state = np.maximum(steady[:, :, None] + np.zeros_like(forcing), FLOOR_K) if start is None else start
+        # The linear operator that is inverted at every pass: the emission linearised about the cell's own steady temperature (a slope that is the damping of a cycle), the air's
+        # transport towards the world's mean, and the capacity of the layer each cycle reaches. It is a preconditioner: the passes put right whatever it leaves out, so a poor
+        # slope costs passes, not accuracy.
         inverse = 1.0 / ((4.0 * emission * steady ** 3 + carried)[:, :, None] + capacity_term)
         coupling_denominator = 1.0 - carried * np.sum(weight * inverse, axis=(0, 1))
 
@@ -527,7 +557,7 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
             change = np.fft.irfft((residual + carried * coupling[None, None, :]) * inverse, n=steps, axis=2)
             return np.maximum(temperature + change, FLOOR_K)
 
-        return _anderson(step, np.maximum(steady[:, :, None] + np.zeros_like(forcing), FLOOR_K) if start is None else start)
+        return _anderson(step, state)
 
     # The outgoing emission is closed by the stored mean: the part of the world that runs hot or cold makes the mean of the fourth powers more than the fourth power of the mean, so the
     # emission is scaled until the mean of the series is the stored one, and the shift that is left is rounding.

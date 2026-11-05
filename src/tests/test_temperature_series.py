@@ -40,7 +40,7 @@ def livable_always(series, low_c=-20.0, high_c=45.0):
 def test_the_area_and_time_mean_is_the_stored_mean_to_rounding(world):
     series = ss.temperature_series(*world)
     assert series.area_time_mean_k() == pytest.approx(world[3], abs=1.0e-6)
-    assert series.mean_k.shape == (12, 12)
+    assert series.mean_k.shape == series.temperature_k.shape[:2] and series.mean_k.shape[0] == 12
     assert series.temperature_k.min() >= ss.FLOOR_K - 1.0e-9 + series.shift_k * 0 - abs(series.shift_k)
     assert series.converged
 
@@ -138,7 +138,7 @@ def test_the_filter_agrees_with_a_time_stepped_integration_of_the_same_equation(
     capacity = 2.0e5
     monkeypatch.setattr(ss, "capacity_by_harmonic", lambda span_s, harmonics, *a, **k: np.full(harmonics, capacity))
     world = (27.9 * 24.0, 28.5 * 24.0, 128.3, 288.0, 1361.0, 0.30, 30000.0, 9.8, 0.0)
-    series = ss.temperature_series(*world, max_steps=1500)
+    series = ss.temperature_series(*world, max_steps=1500, columns=12, samples_per_day=24, steps_per_year=3000)
     reference = _stepped(world, capacity, 6, 1500, series.emissivity)
     assert series.temperature_k.shape == reference.shape
     assert float(np.sqrt(np.mean((series.temperature_k - reference) ** 2))) < 1.0
@@ -190,3 +190,34 @@ def test_a_body_with_no_air_has_no_transport_and_the_floor_holds():
     series = ss.temperature_series(24.6 * 24.0, 24.6 * 24.0 * 3.0, 0.0, 250.0, 1361.0, 0.1, 0.0, 1.6, 0.0)
     assert series.share == 0.0
     assert series.temperature_k.min() >= ss.FLOOR_K - abs(series.shift_k) - 1.0e-9
+
+
+def test_a_body_that_turns_many_times_an_orbit_has_few_columns_and_a_slow_one_has_twelve():
+    assert ss.columns_for(24.0, YEAR_H, 23.4) == ss.FEW_COLUMNS
+    assert ss.columns_for(27.9 * 24.0, 28.5 * 24.0, 128.3) == surface_cycle.CELL_COLUMNS
+    assert ss.columns_for(720.0, 720.0, 0.0) == surface_cycle.CELL_COLUMNS
+    assert ss.temperature_series(*EARTH).temperature_k.shape[1] == ss.FEW_COLUMNS
+    assert ss.temperature_series(*NITRIKIN).temperature_k.shape[1] == surface_cycle.CELL_COLUMNS
+
+
+def test_the_default_resolution_gives_the_livable_share_of_the_fine_one_for_the_ten_worlds():
+    from tests.test_temperature_coverage import WORLDS
+    from planetgen.physics import temperature_coverage as tc
+    for name, world in WORLDS.items():
+        quick, fine = (tc.coverage(ss.temperature_series(*world, **kw)) for kw in ({}, ss.FINE))
+        assert quick.livable_share == pytest.approx(fine.livable_share, abs=0.06), name
+        assert quick.blue == pytest.approx(fine.blue, abs=0.06), name
+
+
+def test_the_series_stays_inside_its_budget_of_points_and_passes():
+    """PERF.238: the work of a body is bounded by the points of the series and the passes, whatever the body (the time is measured in the change note)."""
+    import time
+    worlds = (EARTH, NITRIKIN, locked(10132.0), (24.6, 687.0 * 24.0, 25.2, 235.0, 590.0, 0.25, 600.0, 3.7, 0.0), (3.6, 56.5 * 24.0, 125.0, 558.0, 36454.0, 0.1, 0.0, 9.8, 0.0))
+    started = time.perf_counter()
+    for world in worlds:
+        series = ss.temperature_series(*world)
+        rows, columns, steps = series.temperature_k.shape
+        assert rows * columns * steps <= 12 * 12 * ss.TEMPERATURE_MAX_STEPS
+        assert series.passes <= ss.NONLINEAR_PASSES * (1 + ss.EMISSION_PASSES)
+    # 26 ms is the median of 310 drawn bodies on a lane machine; the five hardest kinds together take about a second, so 15 s catches a loop that has gone wrong, not a slow machine
+    assert time.perf_counter() - started < 15.0

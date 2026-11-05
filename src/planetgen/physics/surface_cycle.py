@@ -131,11 +131,11 @@ def periodic_span(orbital_days, solar_days):
     return span, (span / turns if turns > 0 else math.inf)
 
 
-def time_step_days(orbital_days, solar_days, thermal_days=None, samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, span=None):
+def time_step_days(orbital_days, solar_days, thermal_days=None, samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, span=None, steps_per_year=STEPS_PER_YEAR):
     """The step and the number of steps of the series: the span is the longer of the orbit and a finite solar day, the step the least of a `samples_per_day`-th of the solar day,
     a quarter of the thermal time constant (when given) and a 3000th of the orbit, but never so small the span needs more than `max_steps`."""
     span = span or max(orbital_days, solar_days if math.isfinite(solar_days) else 0.0)
-    wanted = min(solar_days / samples_per_day if math.isfinite(solar_days) else math.inf, orbital_days / STEPS_PER_YEAR)
+    wanted = min(solar_days / samples_per_day if math.isfinite(solar_days) else math.inf, orbital_days / steps_per_year)
     if thermal_days:
         wanted = min(wanted, thermal_days / STEPS_PER_TIME_CONSTANT)
     count = int(min(max(math.ceil(span / wanted), 2), max_steps))
@@ -159,7 +159,7 @@ def cosine_zenith(latitude_deg, longitude_deg, time_days, orbital_days, solar_da
 
 
 def series(rotation_hours, orbital_hours, tilt_deg, thermal_days=None, transmission=None, rows=CELL_ROWS, columns=CELL_COLUMNS,
-           samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, periodic=False):
+           samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, periodic=False, steps_per_year=STEPS_PER_YEAR):
     """The `Series` of a body from its stored rotation period, orbital period (both hours) and tilt (degrees). `thermal_days` is the thermal time constant of the surface if the
     caller has one; `transmission(latitudes_deg, declinations_rad)`, if given, returns the share of the light left, shape (rows, steps), and multiplies the cosine of the cells
     where the star is up. `periodic` stretches the solar day a little and spans several orbits where it must (`periodic_span`) so the series repeats exactly: the form a Fourier
@@ -169,7 +169,7 @@ def series(rotation_hours, orbital_hours, tilt_deg, thermal_days=None, transmiss
     span = None
     if periodic:
         span, solar_days = periodic_span(orbital_days, solar_days)
-    step, count = time_step_days(orbital_days, solar_days, thermal_days, samples_per_day, max_steps, span)
+    step, count = time_step_days(orbital_days, solar_days, thermal_days, samples_per_day, max_steps, span, steps_per_year)
     grid = cell_grid(rows, columns)
     time = (np.arange(count) + 0.5) * step
     cosine = cosine_zenith(grid.latitude_deg, grid.longitude_deg, time, orbital_days, solar_days, tilt_deg)

@@ -26833,11 +26833,11 @@
           "fields": [
             [
               "What it is",
-              "seasonal_swing.TEMPERATURE_MAX_STEPS 6000, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 0.25, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 0.3, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series)"
+              "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
             ],
             [
               "The range it moves in",
-              "steps 3000 to 20000; tolerance 0.05 to 0.5 K"
+              "steps 1000 to 6000; tolerance 0.25 to 2 K"
             ],
             [
               "Where it holds",
@@ -26845,7 +26845,7 @@
             ],
             [
               "What would show it wrong",
-              "a body whose livable share changes by more than 0.01 when the steps are doubled or the tolerance halved"
+              "a body whose livable share is more than 0.06 from that of FINE (tests) or a sweep where it is more than 0.03 at the 95th percentile"
             ],
             [
               "What replaces it",
@@ -26864,7 +26864,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "seasonal_swing.TEMPERATURE_MAX_STEPS 6000, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 0.25, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 0.3, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series)"
+          "what": "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
         },
         {
           "burn_down": null,
