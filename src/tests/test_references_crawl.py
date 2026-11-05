@@ -109,7 +109,7 @@ def test_the_link_helper_is_a_template_global_and_escapes_its_label(app):
     from flask import render_template_string
     with app.test_request_context("/"):
         html = render_template_string("{{ reference_link('stand-in', '5.1:GR1') }} {{ reference_link('about', label='<b>Credits</b>') }}")
-    assert html == ('<a class="reference-link" href="/references/stand-ins/5-1-gr1">Where this comes from</a> '
+    assert html == ('<a class="reference-link" href="/references/stand-ins/5-1-gr1">More information</a> '
                     '<a class="reference-link" href="/references/about">&lt;b&gt;Credits&lt;/b&gt;</a>')
     with pytest.raises(ValueError):
         helpers.reference_link("method", "wizardry")

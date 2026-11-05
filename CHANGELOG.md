@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3220] - 2026-11-05
+
+**Headline:** The Galaxy Map names the generated sectors near the camera again, and a region's flight frames the region.
+
+### Changed
+
+- The sector names the label engine may place now include the generated sectors the server names near the camera (the read MAP.335 made), not only those of a stage window; since MAP.337 the stage the map draws is the galaxy's, so no sector was named at all.
+- A flight to a region fills the view with the region's sphere, as before MAP.376; only a flight to a block (a family) holds the camera back to the block's own window.
+- Fixture-map browser tests that read a window stage the map no longer draws now read what the map does: the wheel tests read the zoom level, the sector-name tests bring the camera beside the sectors, the block-lines test says the galaxy draws no block lines at any depth, the MAP.240 test reads an opened sector's buffers, the edge-on turn test reads the camera's place and zoom, and the popup tests ask for the Black hole marks they click.
+
+generation-output: unchanged
+
+## [8.0.3219] - 2026-11-05
+
+**Headline:** Clicking a gas giant or habitable-world mark on the Galaxy Map opens its system instead of "no system with ID".
+
+### Fixed
+- **The Galaxy Map's marked systems (gas giant, habitable world and the other reasons) linked to the wrong ID.** The map nodes listed each marked system by its row id, but the system page and the nearest-systems list take the printed Object ID, so View system answered "no system with ID 345604". The nodes now carry the printed ID, and stored nodes are rebuilt once (node format 10).
+
+## [8.0.3218] - 2026-11-05
+
+**Headline:** The help links on a planet page say "More information", and the ones that repeated a link the page already has are gone.
+
+### Changed
+- **Wording (UX.261).** The link under the habitability section says "More information" in place of "What the colors and symbols mean", and the hidden labels of the "?" marks in the life readings table say "More information about how much", "about trend", "about security", and "about the kinds of life". The line under the life readings reads "More information: stages and animal grades, suitability."
+- **The source link too.** The quiet "Where this comes from" link beside a value, a table, or the life air chart says "More information", and so does the heading of the life classes help section. The heading "Where the radiation comes from" on the habitability help page is now "Radiation", a plain noun, because a heading that only said "More information" would tell a screen reader nothing.
+- **Repeats removed.** The life glance no longer ends with "What these words mean" (its class names already link to their help pages), the habitability group of the facts list drops its second "colors and symbols" link when the habitability section is on the page, and the "the life classes" link of the life help line is gone (the class names are links).
+- **House style.** `docs/design/interface/text-style.md` has the rule: an explainer link says "More information" and is never repeated on a page.
+
+## [8.0.3217] - 2026-11-05
+
+**Headline:** The cache warm-up's overall time left is weighted by what each step costs, and its chunk lines say how many chunks run at once.
+
+### Changed
+
+- **The warm-up's overall bar and time left (PERF.234).** `planetgen warm --progress` moved its overall bar one step in eleven, so the long object steps (systems and phenomena, most of a warm-up) took the bar from 45% to 100% in one stride and the time left swung. It now weighs a step by what it is expected to cost: a step already queued by the cost its units declare (`warmup.ITEM_SECONDS`, seconds an item on one worker, measured: systems 0.23, phenomena 0.15, sectors 3.0, deep nodes 0.02, built-level nodes 0.062), a step not yet queued by `warmup.EXPECTED_SECONDS`. The whole warm-up's time left is marked `(rough guess)` while a later step has not been queued, and the plain bar at the end of a step now names it. `warmup.NODE_SECONDS` and `OBJECT_SECONDS` stay as the ceilings the commands declare for their longest unit.
+- **The chunk line and the time left from the overall rate (PERF.237).** The "this chunk 64 nodes in 37 s" figure is one worker's own time, and about ten chunks run side by side, so it read as ten times too slow. The line now says `took 37.0 s on its worker; about 10 chunks at once, 3.7 s a chunk overall`, and the time left comes only from the overall rate. No time left is shown for the stage or the whole warm-up from fewer than five chunks (`warm_progress.MIN_CHUNKS`), the first results being the first of the workers; the line says `time left not known yet` until then. The rich bars show the same figures. `text_bar` is gone, replaced by the weighted bar.
+
+generation-output: unchanged
+
+## [8.0.3216] - 2026-11-05
+
+**Headline:** The bands table now calls its two rows "Longest unbroken day" and "Longest unbroken night", which is what they are.
+
+### Changed
+
+- The rows were labelled "Longest day of the year" and "Longest night of the year" and held the polar day and night, so a slow spinner like Nitrikin III read 0 at the equator where the sun really stays up for days. The labels now say what a body's bands should hold: the longest stretch with the star unbroken above or below the horizon. The values themselves are recomputed in the next step of GEN.1260 (a lock item with the epoch).
+
 ## [8.0.3215] - 2026-11-05
 
 **Headline:** The belt rule is unchanged; two tests now pin that a planetless stretch becomes a belt only where enough solids were left in it, and the warm and cold belt shares were measured against the observed debris-disc rates.

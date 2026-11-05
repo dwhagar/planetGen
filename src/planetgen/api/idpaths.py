@@ -79,6 +79,7 @@ ID_PATHS = {
         "nodes.*.generated[].id": "star",
         "nodes.*.clouds[].id": "phenomenon",
         "nodes.*.points[].id": "phenomenon",
+        "nodes.*.interests[].id": "system",
     },
     "api.galaxy_bright_stars_in_cell": {},
     "api.nebula_surroundings_route": {},

@@ -2201,6 +2201,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 2, ahead of the PERF.233 measurement. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.575, MAP.376.
 
+- [ ] **MAP.379 Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug)**
+  Core 3 (as the lane reported, 2026-11-04 8:05 PM EST), full
+  test_web_browser_fixture_maps.py run on main af65299a5, alone with no
+  leftover databases: 15 failed, 186 passed, 43 minutes. Ten of the 15
+  are MAP.378 (fixture sectors missing from the map). These five are a
+  separate group: blocks_built_relative_to_origins (extent 15540 pc,
+  origin [0,0,0], 75675 prisms), draws_block_lines_only_in_a_window
+  (lines invisible at rest), turns_past_edge_on_and_under_the_plane
+  (bounds -503 to 1438),
+  one_wheel_scroll_runs_from_the_galaxy_to_a_sector and
+  wheel_keeps_the_view_over_the_disc. Find the commit that broke each
+  (bisect between the last green main and af65299a5), fix the code or,
+  where the test asserts a behavior a later item changed on purpose,
+  change the test and say why. Check first whether MAP.378's cause (no
+  charted sectors, so the camera never reaches a sector) also explains
+  these; if so, close this item with that fix. Done: the five pass on
+  main. Lock-free. Version 8.1. Owner: Core 2, with MAP.378.
+  Prerequisites: none. Related: MAP.378, TEST.580.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -12807,43 +12826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   decisions go away under GEN.1207.
   Prerequisites: none. Related: GEN.1142.
 
-- [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch**
-  Aux 2, GEN.1146 report
-  reports/ocean-fraction-physics-gen1146-2026-10-30.md (as the lane
-  reported, 1,000 systems): 16 percent of temperate air-bearing bodies
-  (36 of 223) have a 20 to 80 percent ocean, 48 percent under 20 and 35
-  percent over 80, a hole at 50 to 80. Causes: the cover law is steep in
-  the water (sqrt law, 20 to 80 percent over a factor of 16 in water
-  layer, full cover at about two Earth oceans) and the Bern water prior
-  is two-humped (46 percent hold under one Earth ocean, 43 percent over
-  ten, only the 1 to 10 ocean window, 11 percent, is Earth-like). Side
-  calculations: a two-level hypsometry [R0914] lifts 20
-  to 80 percent only from 24 to 26 percent, a late-delivery term for dry
-  bodies leaves it at 19 to 22, the mantle cap by mass changes nothing.
-  No physics lever makes Earth types common. Option 1 (Aux 2
-  recommends): replace the sqrt law with a two-level hypsometry plus the
-  mantle cap by mass (Guimond: 2 to 8 oceans) in one epoch, report the
-  share as a physics result, leave the Bern law alone. Option 2: add
-  late delivery for dry bodies. Option 3: change nothing. Do NOT build
-  until Boss picks. Lock work if built (epoch, golden, census). Where we
-  think it belongs (best guess, can move): Aux 2 with Aux 3, a later
-  train window.
-  Decided (Boss, 9:28 AM EDT 2026-10-31) (9:28 AM EDT 2026-10-31):
-  option 1, the recommended one: replace the square-root cover law with
-  a two-level hypsometry plus the mantle water cap by mass (2 to 8
-  oceans), in one epoch, report the share as a physics result, and leave
-  the Bern water prior alone. The BOSS DECIDES hold is lifted. Owner Aux
-  2 with Aux 3, a later train window. Lock work: epoch, golden, census
-  re-tag.
-  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
-  EDT): GEN.1147 is the biggest lever on how many bodies are class M,
-  because M needs 20 to 80 percent water cover (best-fit design,
-  GEN.1205). Boss chose option 1 earlier, so it is not blocked. After it
-  lands, GEN.1206 prints the temperate-ocean count per class (M against
-  O, V, F, G); read that count before GEN.1207 is built, and if both
-  want an epoch they may share one.
-  Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
-
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
   tests. Train 8 with belts, clearance and the region store. Report
@@ -14511,6 +14493,182 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1259. Related: GEN.1259, GEN.1068, GEN.1156,
   GEN.725.
 
+- [ ] **GEN.1262 Temperature coverage part 1: the shared illumination series (physics/surface_cycle.py): cosine of the zenith angle per latitude-longitude cell and time step, with GEN.1260's spell search moved onto it**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: build the illumination series (a new
+  physics/surface_cycle.py, used by the extended
+  physics/seasonal_swing.py of part 2): cells of about 12 by 12 equal
+  area, time over one orbit in steps of at most solar day over 48,
+  thermal time constant over 4 and year over 3000; the cosine of the
+  zenith angle from vector geometry (spin axis tilted by the stored tilt
+  from the orbit normal, planet turning at the rotation rate, star
+  direction turning at the orbital rate), the ring shade multiplying it;
+  no case for locked, retrograde, slow or near-resonance bodies, all
+  come out of the one formula. GEN.1260's spell search is rebuilt on
+  this series and its stored values must come out the same within
+  rounding (the same inputs, only the code path moves). Lock-free (no
+  stored value changes, no draws). Done: unit tests for a locked body,
+  tilt over 90, a 28 day spinner near resonance, and Earth; GEN.1260's
+  tests green on the new module. Proposed owner: Aux 2 (GEN.1260 owner),
+  after GEN.1260 part 2 merges. Filed by the TODO thread.
+  Prerequisites: GEN.1260. Related: GEN.1260, GEN.1108.
+
+- [ ] **GEN.1263 Temperature coverage part 2: the temperature series: one energy balance per cell, anchored so the area-and-time mean equals the stored mean**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: extend physics/seasonal_swing.py
+  (GEN.1039) with the temperature series by longitude and time of day
+  (physics/surface_cycle.py holds the shared parts): heat capacity C
+  dT/dt = absorbed starlight minus emitted heat minus air transport, C
+  the air column (c_p P over g) plus the ground skin at the solar day
+  (existing AIR_CP_J_KG_K and GROUND_INERTIA); emission scaled so the
+  mean matches; transport pulls each cell toward the world mean by the
+  existing share (transport_share, and LOCKED_TRANSPORT_X0 for a locked
+  world); after the run the series is shifted so the area-and-time mean
+  is exactly the stored mean, so the stored mean stays the anchor; the
+  production form linearises about the cell mean and filters the series
+  in one FFT (about 20 ms a rocky body) with one re-linearisation pass
+  for airless extremes. Ocean and ice are IN this build (Boss, 7:35 PM
+  EST on 2026-11-04, folding the old option 3 into option 1): the heat
+  capacity of a cell follows its ocean share (ocean_fraction,
+  ground_ocean_fraction; an ocean's mixed layer holds far more heat than
+  land or air, so coasts and seasons damp) and its albedo follows its
+  ice share (ground_ice_fraction, with the GEN.972 ice-albedo law), per
+  place. Extend physics/seasonal_swing.py (GEN.1039, the
+  latitude-by-season energy balance from tilt, eccentric orbit and air
+  transport, solved to a closed year; nothing calls it yet, GEN.1048 was
+  to wire it) with the longitude and time-of-day dimension instead of
+  building a second model. Register in GEN.725 the stand-ins: the locked
+  transport share (needs a published check against locked-planet
+  circulation models), the cell resolution, the ocean mixed-layer depth
+  and the sea-ice cover law if no sourced one is found. Lock-free (a
+  pure function, nothing stored yet). Done: tests against the report's
+  prototype table shape (thick-air locked world fully livable, 0.1 bar
+  locked about a quarter livable, Nitrikin-like 1 bar versus 0.3 bar),
+  the mean preserved to rounding, and the timing in the note. Proposed
+  owner: Aux 2. Filed by the TODO thread.
+  Prerequisites: GEN.1262, GEN.1039, GEN.972. Related: GEN.725,
+  GEN.1039, GEN.1048, GEN.972, GEN.1147.
+
+- [ ] **GEN.1264 Temperature coverage part 3: what is read off the series: Blue, Green, cold and hot shares, livable time, coldest and hottest hour, best site, longest spell out of the livable band**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: pure functions over the temperature
+  series: area (cosine of latitude weighted) and time shares in each PHI
+  band (Blue, Green, Yellow, Red) with cold (below -20 C) and hot (above
+  45 C) separate; livable time at each place and so the area livable all
+  the time, at least 90 percent of the time and at some time; the one
+  livable share L (area times time) with its two pieces, livable area
+  and livable time at a typical place; the coldest and hottest hour
+  anywhere and by latitude band, by longitude (locked: day side,
+  terminator, night side) and by season; the longest unbroken spell out
+  of the livable band at the best place; the best site (largest livable
+  share, ties to the more moderate). The wet-bulb rule is applied per
+  sample to the hot samples. Lock-free (functions only). Done: tests on
+  the report's ten example worlds. Proposed owner: Aux 2. Filed by the
+  TODO thread.
+  Prerequisites: GEN.1263.
+
+- [ ] **GEN.1265 Temperature coverage part 4 (lock): the temperature score from the coverage share, the new stored columns, and the migration**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: replace the mean-based temperature_score
+  in habitability.py with the coverage score: livable share L and the
+  Blue-band share B turned into a numeric score by interpolation so the
+  geometric mean still works; the Blue cut is lenient so Earth reads
+  Blue (near 0.8 livable share), the Green edge and the Yellow edge
+  cut-offs set on a sweep and registered in GEN.725 (tier and tweak
+  level stated, L3 when tuned on a sweep); the old mean is not kept as a
+  cap; a locked world livable only in the terminator belt reads Yellow
+  with a plain note; the wet-bulb rule per sample. Store the new columns
+  (the livable share and its two pieces, the Blue, Green, cold and hot
+  shares, the area livable all the time and at least 90 percent of the
+  time, the best site, the extremes, the longest spell out of the band)
+  with db/column_units.py, a migration, the models, the API object and a
+  bring-to-epoch column recompute (the dose-refresh path); re-derive the
+  seven latitude bands (bandN_mean_k, bandN_swing_k) from the same
+  series so the bands and the score agree. The sweep that sets the Blue
+  cut also checks cold-mean worlds with warm regions and hot-mean worlds
+  with cool regions, since a score can now rise as well as fall. No
+  random draws change. Lock item: migration, golden and epoch; the
+  TEST.430 prevalence census is re-baselined after it. Proposed owner:
+  Core 5 (habitability and API columns), after DOC.103. Filed by the
+  TODO thread.
+  Prerequisites: GEN.1264. Related: GEN.725, TEST.430.
+
+- [ ] **GEN.1266 Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: equipment.py reads the required gear from
+  the best site at its worst hour, and adds a note naming the worst
+  conditions elsewhere (the heavier gear recommended and where and
+  when); outside_hours reads the best site's own coldest and hottest
+  hour, the longest out-of-band spell sets the hours you can stay out,
+  and a range from the worst to the best site is shown; a locked world
+  keeps the 24 hour shift at the terminator with the ring's real range;
+  the descriptive text says 'livable only in the terminator belt' where
+  it applies; the habitability design doc replaces decision C
+  (habitability from the mean). Rides the same train as part 4 (same
+  migration or a second one, golden and epoch). Proposed owner: Core 5.
+  Filed by the TODO thread.
+  Prerequisites: GEN.1265. Related: GEN.768.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15114,25 +15272,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **PERF.234 The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug)**
-  Boss, 5:49 PM EST on 2026-11-04, ran planetgen warm --progress on a
-  real galaxy (8.0.3197): the opening phase took 50 s, then step 5 of 11
-  (galaxy-nodes, chunk 301 of 458 at 4.0 s a chunk, about 7 minutes left
-  for that step) showed 2:11:45 left overall. Cause
-  (src/planetgen/cli/warm_progress.py): the overall bar counts steps as
-  equal (completed = step index + share of the step done) and the time
-  left is the bar's recent speed carried over the steps still to run, so
-  a slow step makes every later step look as slow. Do: weight each step
-  by its expected cost (units times a per-family seconds figure measured
-  on a real galaxy, the same measurement PERF.233 takes), show the
-  step's own time left beside an overall time that is marked as a rough
-  guess until the later steps have run once, and never show a figure
-  from fewer than a few chunks. Done: a test with steps of very
-  different cost that the overall figure is within a set margin of the
-  real total. Proposed owner: Aux 3 (PERF.233 holds the measurement).
-  Filed by the TODO thread.
-  Prerequisites: none. Related: PERF.233.
-
 - [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
   Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
   warm --progress. What the code does (src/planetgen/cli/warm.py,
@@ -15170,23 +15309,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1 (PERF.229 owner). Filed by the TODO thread.
   Prerequisites: none. Related: PERF.229, TEST.430.
 
-- [ ] **PERF.237 The warm-up's log line 'this chunk 64 nodes in 37 s' reads like a slowdown but is one worker's time for one chunk while about ten run side by side: say so in the line (bug)**
-  Boss, 6:27 PM EST on 2026-11-04, pasted the full warm-up log after
-  ./update.sh to 8.0.3206: every 23rd galaxy-nodes line says 'this chunk
-  64 nodes in 35 to 42 s', yet 184 chunks took 11:30 elapsed, which is
-  3.7 s a chunk, the same 4.0 s a chunk as his earlier run. So nothing
-  slowed down. The 'this chunk' figure
-  (src/planetgen/cli/warm_progress.py chunk_line, result seconds) is one
-  worker's own time for one chunk, and about ten chunks run side by side
-  (37 s divided by 3.7 s), so the line reads ten times slower than the
-  rate the bar and the time left use. Do: word the line so the two
-  numbers cannot be confused (for example 'this chunk took 37 s on its
-  worker; about 10 at a time, so 3.7 s a chunk overall'), taking the
-  count of chunks in flight from the run, and make the time left come
-  from the overall rate only. Done: a test of the line with several
-  chunks in flight. Proposed owner: Aux 3, with PERF.234. This replaces
-  the first reading of a slowdown after an update (no slowdown). Filed
-  by the TODO thread.
+- [ ] **PERF.238 Temperature coverage cost: the illumination and temperature series must stay about 20 ms a rocky body in bulk generation and in the bring-to-epoch recompute**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9). Do: measure
+  the series and read-offs (GEN.1262 to GEN.1264) on a 600-system draw
+  and on the recompute of a real galaxy, set the step budgets so a body
+  costs about 20 ms, and add the figure to the performance guard.
+  Lock-free. Done: the measured cost in the note and a test with a
+  budget. Proposed owner: Aux 3, after GEN.1263. Filed by the TODO
+  thread.
+  Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
 ## DB: Database and schema
 
@@ -15499,13 +15631,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   EDT): GEN.1207 adds class_match, runner_up_class and runner_up_match
   beside the stored letter. The reclassification step here must keep all
   of them true after an edit or a rebuild, not just the letter.
-
-- [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
-  One migration, one generator epoch and the column_units.py entries.
-  Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: none.
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
@@ -16233,6 +16358,35 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DOC.103, proposed by the TODO thread. Related: GEN.1255, API.36
   (region-name search, open), GEN.1140. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
+
+- [ ] **API.39 /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug)**
+  Boss (EST on 2026-11-04, as the coordinator relayed): the marked
+  systems (gas giant and habitable points of interest, interests[].id)
+  come back from /api/galaxy/nodes as row ids, because api/idpaths.py
+  had no rule for nodes.*.interests[].id, so the View system link finds
+  no system. Fix: PR #4946 from the point-of-interest link thread (rule
+  added, node cache format 10, test). Its test has not run because that
+  session has no MySQL: a lane with MySQL runs it before the merge.
+  Lock-free, no migration; the cache format bump rebuilds galaxy-nodes
+  once on update. Done: interests[].id is an object ID, View system
+  opens the system, and the test passes. Version 8.1. Owner: the
+  point-of-interest link thread for the code; Bug 1 runs the MySQL test
+  and I merge.
+  Prerequisites: none. Related: MAP.378.
+
+- [ ] **API.40 Audit every link to a system or body page for row ids that should be object IDs**
+  Follow-up to API.39: the nodes.*.interests[].id gap shows the id rules
+  in api/idpaths.py can miss a field. Walk every link that opens a
+  system or body page and every response that feeds one: sector-scene
+  planet, moon and belt entries, search results, nearest lists, the
+  galaxy and system trees, and the points of interest lists. For each,
+  confirm the id it carries is an object ID and that idpaths.py has a
+  rule for it; add the missing rules in the same change. Done: a test
+  walks the API responses that feed a system or body link and fails on
+  any numeric row id there, and the audit lists each field checked.
+  Lock-free where no stored value changes. Version 8.1. Owner: Core 2
+  (map and links).
+  Prerequisites: API.39. Related: API.39.
 
 ## ADM: Admin tools
 
@@ -18413,6 +18567,33 @@ clears each one.
   cause of each. Proposed owner: Bug 1 after TEST.579. Filed by the TODO
   thread.
   Prerequisites: none. Related: TEST.579, GEN.367.
+
+- [ ] **TEST.581 test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug)**
+  Aux 3, 7:29 PM EST on 2026-11-04 (as the lane reported), found this
+  red on plain main, not from its PR: the test names a database 'x' that
+  the test MySQL does not have, so the rebuild fails with 'Unknown
+  database' before the check the test is about. Do: find the commit that
+  turned it red, make the test create or mock the database it names (or
+  stop the rebuild earlier through the real seam), and keep what it
+  asserts (a rebuild that cannot reopen the site fails loudly, and does
+  not exit zero). Done: the test green alone and in the changed gate.
+  Proposed owner: Bug 1, with TEST.580. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.580.
+
+- [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9). Do: sweep the
+  livable share over many generated worlds plus the report's ten example
+  worlds, set the lenient Blue cut near 0.8 so Earth reads Blue and the
+  Green and Yellow edges, register each as a stand-in in GEN.725 with
+  tier and tweak level (L3 when tuned on the sweep); the score now rises
+  as well as falls, so check cold-mean worlds with a large warm region
+  and hot-mean worlds with cool regions and list which read higher and
+  lower than the old mean-based score; re-baseline the TEST.430
+  prevalence census after GEN.1265. Done: the sweep report in reports/,
+  the registered thresholds, and the census green. Proposed owner: Bug 1
+  (prevalence census owner), after GEN.1265. Filed by the TODO thread.
+  Prerequisites: GEN.1265. Related: GEN.1265, TEST.430, GEN.725.
 
 ## USR: User accounts
 
