@@ -25475,6 +25475,26 @@
       "kind": "paper",
       "label": "Willingale et al. 2003",
       "title": "The mass and energy budget of Cassiopeia A"
+    },
+    "R5098": {
+      "kind": "paper",
+      "label": "Karakas and Lattanzio 2014",
+      "title": "The Dawes Review 2: Nucleosynthesis and Stellar Yields of Low- and Intermediate-Mass Single Stars"
+    },
+    "R5099": {
+      "kind": "paper",
+      "label": "Gruenwald and Viegas 1998",
+      "title": "Are He and N Abundances in Type I Planetary Nebulae as High as Empirically Derived?"
+    },
+    "R5100": {
+      "kind": "paper",
+      "label": "Karakas 2010",
+      "title": "Updated stellar yields from asymptotic giant branch models"
+    },
+    "R5101": {
+      "kind": "paper",
+      "label": "Nomoto et al. 2006",
+      "title": "Nucleosynthesis yields of core-collapse supernovae and hypernovae, and galactic chemical evolution"
     }
   }
 }
