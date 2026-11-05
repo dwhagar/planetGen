@@ -611,7 +611,7 @@ def nav():
     destination = _resolve(to_kind, to_id)
     stay, stay_text, stay_error = _stay_minutes(request.args)
     try:
-        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], stay=stay or None)
+        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], stay=stay or None, graph=True)
     except apiclient.NotFoundError:
         raise
     except apiclient.ApiError as exc:

@@ -16,8 +16,11 @@ and a long route wraps on a phone where it runs on in a row on a desktop. The gl
 colours with the site's theme tokens, in both themes; the glow of an unknown-space hop pulses only where the visitor has not asked
 for reduced motion.
 
-The stubs round the stops (NAV.68) and the link to the Galaxy Map (NAV.69) are not drawn here yet; the panel says what a hop is and
-that the spacing is not to scale.
+NAV.68: when the route carries its `graph` (NAV.65) the neighbours of each stop are drawn faintly under the route: a short stub from a
+stop to each neighbour off the route (as many as the graph lists, which it caps per stop), "and N more" where the cap cut some, and an
+arc between two stops of one row that are neighbours but no hop. A link is a neighbour relation (which systems lie near each other),
+not a travel lane, and the panel says so; the route's own hops are always drawn, over the neighbours. The link to the Galaxy Map
+(NAV.69) is not drawn here yet.
 """
 
 import html
@@ -113,6 +116,30 @@ def _hop_words(hop, source):
     return ", ".join(parts)
 
 
+def _stub_words(stub, names):
+    """The text alternative of a stub: a neighbour of the stop, how far off, and that it is not a lane."""
+    return f"A system {stub['label']} from {names.get(stub['stop'], stub['stop'])}: a neighbour, not a travel lane"
+
+
+def _link_words(link, names):
+    return (f"{names.get(link['from'], link['from'])} and {names.get(link['to'], link['to'])} are neighbours {link['label']} apart: "
+            "a neighbour relation, not a travel lane")
+
+
+def _more_words(more, names):
+    return f"{more['count']} more neighbours of {names.get(more['stop'], more['stop'])} are not drawn"
+
+
+def _anchored(x, text, width):
+    """`(text-anchor, x)` for `text` at a stop at `x`: centred on it, or starting or ending at it when it would run past the drawing's edge."""
+    half = len(text) * CHAR_WIDTH / 2
+    if x - half < 2:
+        return "start", x - NODE_RADIUS
+    if x + half > width - 2:
+        return "end", x + NODE_RADIUS
+    return "middle", x
+
+
 def _hop_gap_pixels(segments):
     return max(abs(s["x2"] - s["x1"]) for s in segments)
 
@@ -142,6 +169,30 @@ def render_drawing(route, names, urls, width, size, ids=None):
            '<feGaussianBlur stdDeviation="2.6" result="blur"/>'
            '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>']
 
+    # The neighbours, faint, under the route: the arcs between stops, the stubs round them and their "and N more".
+    for link in ribbon["links"]:
+        control = link["y"] + 2 * (link["peak_y"] - link["y"])
+        out.append(f'<g class="nav-diagram-neighbour nav-diagram-link"><title>{_esc(_link_words(link, names))}</title>'
+                   f'<path d="M{_number(link["x1"])} {_number(link["y"])} Q{_number((link["x1"] + link["x2"]) / 2)} {_number(control)} '
+                   f'{_number(link["x2"])} {_number(link["y"])}"/></g>')
+        out.append(f'<text class="nav-diagram-neighbour-label" x="{_number((link["x1"] + link["x2"]) / 2)}" '
+                   f'y="{_number(link["peak_y"] + (-3 if link["side"] == "above" else 11))}" text-anchor="middle" aria-hidden="true">'
+                   f'{_esc(link["short_label"])}</text>')
+    for stub in ribbon["stubs"]:
+        out.append(f'<g class="nav-diagram-neighbour nav-diagram-stub"><title>{_esc(_stub_words(stub, names))}</title>'
+                   f'<line x1="{_number(stub["x1"])}" y1="{_number(stub["y1"])}" x2="{_number(stub["x2"])}" y2="{_number(stub["y2"])}"/>'
+                   f'<circle cx="{_number(stub["x2"])}" cy="{_number(stub["y2"])}" r="2.2"/></g>')
+    stop_y = {stop["id"]: stop["y"] for stop in ribbon["stops"]}
+    more_spans = []       # where the "and N more" texts lie across the page: a hop's course text keeps clear of them
+    for more in ribbon["more"]:
+        # Above the stop, over the tips of its stubs (the layout's own place for it is on the side with fewer stubs, where the name is).
+        anchor, text_x = _anchored(more["x"], more["text"], ribbon["width"])
+        text_width = len(more["text"]) * CHAR_WIDTH
+        more_spans.append((text_x - text_width / 2, text_x + text_width / 2) if anchor == "middle"
+                          else (text_x, text_x + text_width) if anchor == "start" else (text_x - text_width, text_x))
+        out.append(f'<text class="nav-diagram-more" x="{_number(text_x)}" y="{_number(stop_y[more["stop"]] - navribbon.STUB_LENGTH - 4)}" '
+                   f'text-anchor="{anchor}"><title>{_esc(_more_words(more, names))}</title>{_esc(more["text"])}</text>')
+
     # The hops under the glyphs.
     for index, hop in enumerate(ribbon["hops"]):
         unknown = hop["unknown_space"]
@@ -161,7 +212,9 @@ def render_drawing(route, names, urls, width, size, ids=None):
                    f'aria-hidden="true">{_esc(text)}</text>')
         if "bearing_deg" in source:
             course = format_course(source["bearing_deg"], source["mark_deg"])
-            if len(course) * CHAR_WIDTH + 6 <= gap:
+            reach = (hop["label_x"] - len(course) * CHAR_WIDTH / 2, hop["label_x"] + len(course) * CHAR_WIDTH / 2)
+            clear = all(reach[1] < left - 4 or reach[0] > right + 4 for left, right in more_spans)
+            if len(course) * CHAR_WIDTH + 6 <= gap and clear:
                 out.append(f'<text class="nav-diagram-course" x="{_number(hop["label_x"])}" y="{_number(hop["label_y"] - FONT_SIZE - 5)}" '
                            f'text-anchor="middle" aria-hidden="true">{_esc(course)}</text>')
 
@@ -182,16 +235,14 @@ def render_drawing(route, names, urls, width, size, ids=None):
         out.append(glyph(stop["kind"], x, y))
         drop = NODE_RADIUS + 15 + (NAME_STAGGER if stop["index"] % 2 else 0)
         shown = _short_name(name)
-        # A name that would run past the drawing's edge starts or ends at its stop instead of being centred on it.
-        half = len(shown) * CHAR_WIDTH / 2
-        anchor, text_x = ("start", x - NODE_RADIUS) if x - half < 2 else ("end", x + NODE_RADIUS) if x + half > ribbon["width"] - 2 else ("middle", x)
+        anchor, text_x = _anchored(x, shown, ribbon["width"])
         out.append(f'<text class="nav-diagram-name" x="{_number(text_x)}" y="{_number(y + drop)}" text-anchor="{anchor}">{_esc(shown)}</text>')
         out.append('</a>' if url else '</g>')
     out.append('</svg>')
     return "".join(out)
 
 
-def render_legend(kinds, unknown=False):
+def render_legend(kinds, unknown=False, neighbours=False):
     """The legend of the glyphs the route uses: a small drawing and its words for each kind, then the unknown-space hop when `unknown`."""
     items = []
     for kind in KIND_LABELS:
@@ -202,6 +253,10 @@ def render_legend(kinds, unknown=False):
     if unknown:
         items.append('<li><svg class="nav-legend-glyph nav-diagram-hop-unknown" viewBox="0 0 34 22" width="34" height="22" aria-hidden="true" '
                      'focusable="false"><line class="nav-diagram-line" x1="1" y1="11" x2="33" y2="11"/></svg> Hop through unknown space</li>')
+    if neighbours:
+        items.append('<li><svg class="nav-legend-glyph" viewBox="0 0 34 22" width="34" height="22" aria-hidden="true" focusable="false">'
+                     '<g class="nav-diagram-neighbour nav-diagram-stub"><line x1="4" y1="11" x2="29" y2="11"/><circle cx="29" cy="11" r="2.2"/></g></svg>'
+                     ' Neighbour (not a travel lane)</li>')
     return f'<ul class="nav-diagram-legend" role="list">{"".join(items)}</ul>' if items else ""
 
 
@@ -223,8 +278,17 @@ def render_course_diagram(route, names, urls):
     places = {place["node"]: place for place in route.get("stop_places") or []}
     kinds = {navribbon._kind(node, places.get(node, {})) for node in path}
     unknown = sum(1 for hop in route.get("hops") or [] if hop.get("unknown_space"))
-    drawings = "".join(f'<div class="nav-diagram-{size}-box">{render_drawing(route, names, urls, width, size)}</div>'
-                       for size, width in WIDTHS)
+    has_graph = bool(route.get("graph"))
+    drawings = []
+    for size, width in WIDTHS:
+        hidden = navribbon.layout_ribbon(route, width)["hidden_links"]
+        hidden_note = (f'<p class="hint nav-diagram-hidden">{hidden} neighbour link{"" if hidden == 1 else "s"} between stops on '
+                       f'different rows {"is" if hidden == 1 else "are"} not drawn.</p>' if hidden else "")
+        drawings.append(f'<div class="nav-diagram-{size}-box">{render_drawing(route, names, urls, width, size)}{hidden_note}</div>')
+    drawings = "".join(drawings)
+    neighbour_note = (" The faint lines round a stop and the dotted arcs between stops show which systems are its nearest neighbours "
+                      "(the few drawn, and \u201cand N more\u201d where there are more); a link is a neighbour relation, not a travel "
+                      "lane. The route\u2019s own hops are always drawn." if has_graph else "")
     unknown_note = (f' {unknown} hop{"" if unknown == 1 else "s"} cross{"es" if unknown == 1 else ""} unknown space (uncharted '
                     f'sectors); {"it is" if unknown == 1 else "they are"} drawn in red, dashed and glowing, and the route list names '
                     f'{"it" if unknown == 1 else "them"} in words.' if unknown else "")
@@ -233,8 +297,8 @@ def render_course_diagram(route, names, urls):
         '<h2 id="course-diagram-heading">Course Diagram</h2>'
         '<p class="hint">The route as a line of stops, each hop with its length'
         ' (and its course where there is room). The spacing follows the logarithm of a hop’s length, so the diagram is a'
-        f' schematic, not a map to scale.{_esc(unknown_note)}</p>'
+        f' schematic, not a map to scale.{_esc(unknown_note)}{_esc(neighbour_note)}</p>'
         f'<div class="nav-diagram-scroll">{drawings}</div>'
-        f'{render_legend(kinds, bool(unknown))}'
+        f'{render_legend(kinds, bool(unknown), has_graph)}'
         '</section>'
     )

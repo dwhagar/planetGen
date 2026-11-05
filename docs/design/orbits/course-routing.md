@@ -582,8 +582,17 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   media query shows the one that fits, so a phone wraps a long route into rows while the text
   stays near its set size (12 px, drawn at 0.9 or more of it). Each stop is a link to its page
   (a stop in unknown space has none) and has a text alternative; the route list stays the
-  plain-text form. Neighbour stubs (NAV.68) and the link to the Galaxy Map (NAV.69) are drawn
-  later, and the panel will then say a link is a neighbour relation, not a travel lane.
+  plain-text form. The link to the Galaxy Map (NAV.69) is drawn later.
+  **Neighbours (NAV.68).** The NAV page asks for the route's graph (`graph=1`, NAV.65) and draws it
+  faintly under the route: a short stub from a stop to each neighbour off the route (the graph caps them
+  per stop), "and N more" over a stop where the cap cut some, and a dotted arc between two stops of one
+  row that are neighbours but no hop (a link between stops on two rows is counted in a note under the
+  drawing and not drawn). A stub has no text of its own, only a title with its distance, since the
+  stubs lie too close for labels; the arc carries its length. The panel and its legend say a link is a
+  neighbour relation (which systems lie near each other, by the relative neighbourhood rule), not a
+  travel lane, and the route's own hops are drawn over the neighbours. A hop's course text is left out
+  where an "and N more" sits over it. Names and labels carry a halo of the panel's colour so a stub
+  never cuts through their letters.
   The route list's unknown-space hops are red as well. The NAV page's own map polyline and the
   Galaxy Map course still draw an unknown-space hop like any other (NAV.36's remaining parts).
 - **Saved courses (NAV.39, phase 2).** A saved course (NAV.17) keeps which hops
