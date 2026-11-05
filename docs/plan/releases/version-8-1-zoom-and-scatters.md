@@ -590,7 +590,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.608 | The web app imports numba: tests/test_install_python_deps.py::test_the_web_app_never_imports_numba fails (bug) |  |  |
 | TEST.607 | Three cloud-placement tests find no cloud for a placed system (surrounding_cloud is None) (bug) |  |  |
 | TEST.606 | The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug) |  |  |
-| TEST.605 | test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug) |  |  |
 | TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) |  |  |
 | VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) |  |  |
 | TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) |  |  |

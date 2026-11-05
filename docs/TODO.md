@@ -17879,21 +17879,6 @@ clears each one.
   TODO thread.
   Prerequisites: none. Related: TEST.598.
 
-- [ ] **TEST.605 test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug)**
-  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
-  gate) found this red on clean main 0d10348c5, so it is not a train 11
-  regression; the list is reports/train11-main-reds-2026-11-05.md.
-  DOC.103 changed the script's label to vapor, but
-  docs/design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md
-  line 55 still says vapour, so the builder cannot find the row. Done:
-  the builder and the document agree (American spelling vapor) and the
-  test passes on current main. Owner: Aux 3. Do: reproduce on current
-  main first (it may be fixed by a merge since), fix at the cause with a
-  test that fails without the fix, never skip or loosen a test.
-  Lock-free if output is unchanged; tell the TODO thread if values
-  change. Version 8.1. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.606 The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug)**
   The Train Manager (as the lane reported, 20:13 UTC clock, train 11
   gate) found this red on clean main 0d10348c5, so it is not a train 11

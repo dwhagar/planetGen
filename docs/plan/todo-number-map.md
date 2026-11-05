@@ -3960,7 +3960,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) | none | open |
 | TEST.603 | The Help menu test pinned the exact list of help pages and went red when VIEW.38 added one (bug) | none | done, PR #5137 |
 | TEST.604 | A trace gas with no thermo data (CH3Cl) crashes instead of being handled, red on clean main (bug) | none | done, PR #5154 |
-| TEST.605 | test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug) | none | open |
+| TEST.605 | test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug) | none | done, PR #5154 |
 | TEST.606 | The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug) | none | open |
 | TEST.607 | Three cloud-placement tests find no cloud for a placed system (surrounding_cloud is None) (bug) | none | open |
 | TEST.608 | The web app imports numba: tests/test_install_python_deps.py::test_the_web_app_never_imports_numba fails (bug) | none | open |
