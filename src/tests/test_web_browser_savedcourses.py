@@ -167,3 +167,42 @@ def test_a_saved_course_says_what_changed_when_it_is_planned_again(page, fake):
     page.locator("[data-course-save-button]").click()
     page.wait_for_function("document.querySelector('[data-course-changes]').textContent.includes('Nothing has changed')")
     assert [entry["name"] for entry in _stored(page)] == ["Home run"]
+
+
+def test_a_course_through_waypoints_is_listed_and_edited_as_waypoints(page):
+    """NAV.58: a saved course through waypoints shows its stops, links to the Galaxy Map's course through them, has no Direct or Route
+    switch, can be renamed and deleted, and Edit makes its stops the waypoints and opens the map with the course plotted."""
+    page.goto(_ORIGIN + _COURSE, wait_until="load")
+    page.locator("[data-course-save-button]").wait_for(state="visible")
+    page.evaluate("""() => {
+        const db = document.querySelector('[data-course-db]').getAttribute('data-course-db');
+        const stops = [['system:1001', 'Start 1001'], ['nebula:3', 'Veil'], ['system:1002', 'End 1002']]
+            .map(([value, name]) => ({value, name, kind: value.split(':')[0]}));
+        const key = 'planetgen.courses.' + db;
+        localStorage.setItem(key, JSON.stringify([{kind: 'course', name: 'Round trip', from: 'system:1001', to: 'system:1002',
+            fromName: 'Start 1001', toName: 'End 1002', saved: new Date().toISOString(), direct: null, route: null, adjusted: null, stops}]));
+        window.dispatchEvent(new CustomEvent('planetgen-saved-change', {detail: {key}}));
+    }""")
+    panel = page.locator("[data-courses-panel]")
+    panel.locator("li.bookmarks-item").wait_for()
+    assert "3 stops: Start 1001, Veil, End 1002" in panel.inner_text()
+    assert panel.get_by_role("button", name="Show the direct form of Round trip").count() == 0
+    assert panel.get_by_role("link", name="Show Round trip on the Galaxy Map").get_attribute("href") == "/galaxy?via=system:1001,nebula:3,system:1002"
+
+    panel.get_by_role("button", name="Rename saved course Round trip").click()
+    panel.locator("form.bookmarks-rename input").fill("Long trip")
+    panel.locator("form.bookmarks-rename input").press("Enter")
+    panel.locator("a.bookmarks-open", has_text="Long trip").wait_for()
+
+    panel.get_by_role("button", name="Edit saved course Long trip as waypoints on the Galaxy Map").click()
+    page.wait_for_url("**/galaxy?via=system:1001,nebula:3,system:1002")
+    waypoints = page.evaluate("""() => {
+        const key = Object.keys(localStorage).find(k => k.startsWith('planetgen.waypoints.'));
+        return JSON.parse(localStorage.getItem(key)).map((entry) => entry.value);
+    }""")
+    assert waypoints == ["system:1001", "nebula:3", "system:1002"]
+
+    page.go_back()
+    page.locator("[data-courses-panel] li.bookmarks-item").wait_for()
+    page.get_by_role("button", name="Delete saved course Long trip").click()
+    page.wait_for_function("document.querySelector('[data-courses-panel]').textContent.includes('No saved courses yet')")
