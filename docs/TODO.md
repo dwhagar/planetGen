@@ -14474,6 +14474,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pole 14 d) and a fast spinner (Earth-like) unchanged within rounding.
   Proposed owner: Aux 2 (GEN.1108 and GEN.1097). Filed by the TODO
   thread.
+  Boss rule on the fix (7:18 PM EST on 2026-11-04) (2026-11-04 7:20 PM
+  EST): No body is 'ordinary': 24 h is just Earth. The fix must work
+  from each planet's own spin, orbit, tilt, star size and solar day,
+  assume no Earth-like case, and give a fast spinner no special
+  handling: one time-stepped spell calculation for every body. This
+  replaces the 'fast spinner unchanged within rounding' clause of Done:
+  a fast spinner is checked by the same calculation and its result is
+  what it is, with no guard that keeps old values.
   Prerequisites: none. Related: GEN.1108, GEN.1097.
 
 ## PERF: Speed, caching, bulk generation and parallel work
