@@ -18359,49 +18359,6 @@ clears each one.
   test-only fixes) is PR #5025.
   Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
 
-- [ ] **TEST.586 test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug)**
-  Core 2 (as the lane reported, 11:35 PM EST on 2026-11-04) found, and
-  the TODO thread reproduced on main at 9d1309d6e:
-  tests/test_web_seo.py::test_every_web_page_is_classified_on_purpose
-  fails, listing nine web.references_* pages (added with the References
-  pages DOC.88 to DOC.92) that need an entry in web/seo.py. Do: classify
-  each page on purpose (indexed or not, with the reason beside the
-  entry, following the nearby References entries), and make the next new
-  page without an entry fail the same test. Done: the test passes on
-  plain main with a narrow run (scripts/test.py changed). Lock-free.
-  Version 8.1. Owner: Core 5. Filed by the TODO thread.
-  Prerequisites: none. Related: DOC.97.
-
-- [ ] **TEST.587 Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug)**
-  Planets 1 (as the lane reported, 11:42 PM EST on 2026-11-04) found,
-  while building VIEW.41: test_backfill_block_path (the order test) and
-  test_galaxy_gen (the duplicate-address test) fail on plain main, with
-  no change of its own in play. Do: find the cause of each (a real
-  ordering or address bug in the generator is a GEN item and the fix is
-  not tests-only), repair, and keep the generation output unchanged
-  unless the bug is the cause. Done: both pass on plain main under the
-  narrow gate (scripts/test.py changed). Lock-free. Version 8.1. Owner:
-  Core 5, after TEST.586. Filed by the TODO thread.
-  More red tests on plain main (11:48 PM EST on 2026-11-04): Bug 1 (as
-  the lane reported, 11:45 PM EST on 2026-11-04) adds
-  test_burn_down_register, also failing on plain main. Planets 1 also
-  reports test_american_spelling failing on plain main at
-  admin/updateguard.py:245 and describe/sheet.py:559: these ride the
-  DOC.103 sweep re-run (Core 5), not a separate fix.
-  Prerequisites: none. Related: TEST.586.
-
-- [ ] **TEST.588 Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug)**
-  Planets 1 (as the lane reported, 12:20 AM EST on 2026-11-05) found
-  five test_fuzz_web_routes failures on plain main, involving the nebula
-  volume routes and the /systems page numbers, with no change of its own
-  in play. Do: reproduce each, decide whether the route or the test is
-  wrong (a route that answers a hostile or out-of-range page number with
-  an error page is a route bug and is fixed in the route), and repair.
-  Done: the five pass on plain main under the narrow gate
-  (scripts/test.py changed). Lock-free. Version 8.1. Owner: Core 5,
-  after TEST.587. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.586, TEST.587.
-
 - [ ] **TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug)**
   Core 5 (as the lane reported, 2:08 AM EST on 2026-11-05) found two
   tests red on plain main: test_number_guard (Oxford comma wording in
