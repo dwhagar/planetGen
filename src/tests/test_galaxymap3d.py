@@ -114,6 +114,19 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="cell-grid"' in html
 
 
+def test_the_panel_holds_the_side_strip_closed_with_its_menu_button():
+    """MAP.375: the side strip for height is an option, closed until the Menu's Side strip button opens it, with a Close button
+    of its own, and it sits under the map inside its column (a drawer on a phone, by the style sheet)."""
+    html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
+    controls = html[html.index('id="galaxymap3d-controls"'):]
+    menu = controls.split('id="galaxymap3d-menu"', 1)[1]
+    assert 'data-action="side-strip"' in menu and 'data-action="side-strip"' not in controls.split('id="galaxymap3d-menu"', 1)[0]
+    assert 'data-action="side-strip" data-icon="side-strip" aria-pressed="false"' in menu
+    map_row = html[html.index('class="galaxy-map-row"'):html.index('class="starmap-side"')]
+    strip = map_row[map_row.index('id="galaxymap3d-strip"'):]
+    assert strip.split(">", 1)[0].endswith("hidden") and "data-strip-close" in strip
+
+
 def test_the_panel_carries_the_superbubbles_as_centre_and_radius():
     """GEN.254: `[x, y, z, radius]` each, galaxy-frame parsecs; none when the page gives none."""
     bubbles = [{"x": 100.5, "y": -20.0, "z": 3.0, "radius_pc": 250.0}, {"x": 1.0, "y": 2.0, "z": 3.0, "radius_pc": 60.0}]
