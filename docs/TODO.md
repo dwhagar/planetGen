@@ -14103,6 +14103,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Example livable shares: thick-air locked 1.0, 0.1 bar locked 0.22,
   0.01 bar 0.06, Earth-like 0.97 (0.83 with ice), 12 h thin 0.62, 60 d
   spinner 0.67. Cost: see PERF.238.
+  PR #5053 (Core 5) (2:12 AM EST on 2026-11-05): Built in PR #5053
+  (branch claude/core5-gen1265, Core 5, as the lane reported), stacked
+  on Aux 2's claude/perf238-series-cost-t10; a lock item, train 12 at
+  the earliest and after Aux 2's stack. The temperature score now comes
+  from the share of surface and year a person needs no suit; gear and
+  hours come from the best site; 25 temp_* columns, migration 0205
+  provisional; stand-ins SS15 to SS19 in GEN.725. Decision to watch: a
+  0.15 credit for suit-only samples so a suit-everywhere world reads
+  Yellow, not Red (not in the plain spec; one constant, SS17, set to 0
+  removes it). The sweep of 1976 bodies shows the Blue cut at 0.80
+  livable and 0.30 Blue share keeps Earth-like worlds Blue. Also fixed
+  inside the PR: values_from_body lacked day_share_mean, so generation
+  used a point star.
   Prerequisites: GEN.1264. Related: GEN.725, TEST.430.
 
 - [ ] **GEN.1266 Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc**
@@ -14138,6 +14151,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Example livable shares: thick-air locked 1.0, 0.1 bar locked 0.22,
   0.01 bar 0.06, Earth-like 0.97 (0.83 with ice), 12 h thin 0.62, 60 d
   spinner 0.67. Cost: see PERF.238.
+  Built with GEN.1265 (Core 5, PR #5053) (2:12 AM EST on 2026-11-05):
+  Built in the same PR as GEN.1265; see the note there.
   Prerequisites: GEN.1265. Related: GEN.768.
 
 - [ ] **GEN.1267 A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it**
@@ -18362,6 +18377,19 @@ clears each one.
   (scripts/test.py changed). Lock-free. Version 8.1. Owner: Core 5,
   after TEST.587. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.586, TEST.587.
+
+- [ ] **TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug)**
+  Core 5 (as the lane reported, 2:08 AM EST on 2026-11-05) found two
+  tests red on plain main: test_number_guard (Oxford comma wording in
+  text it checks) and test_habitability_fill (the life_microbial value
+  of a rescore differs from the one generation stored). Do: for the
+  first, find the shown or doc text without the Oxford comma and fix it;
+  for the second, decide whether the rescore or generation is wrong (a
+  rescore that disagrees with generation is a real bug, fixed in the
+  code that disagrees). Done: both pass on plain main under the narrow
+  gate. Lock-free unless the second fix changes stored output. Version
+  8.1. Owner: Core 5, after TEST.588. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
 ## USR: User accounts
 
