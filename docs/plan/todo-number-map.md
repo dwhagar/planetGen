@@ -13,8 +13,8 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.273 |
-| MAP | MAP.393 |
+| UX | UX.275 |
+| MAP | MAP.394 |
 | NAV | NAV.78 |
 | GEN | GEN.1294 |
 | PERF | PERF.244 |
@@ -2471,6 +2471,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.390 | Past borders: the Territories layer gets a time control that shows the borders at any stored epoch, from the history rows the step writes | none | open |
 | MAP.391 | The ship page shows the territories crossed: a read of the owners along a vessel's track (borders block nothing) | none | open |
 | MAP.392 | Weird spheres and circle markers still drawn for nebulae (bug) | none | open |
+| MAP.393 | Chart View fixes: steady coordinate labels, fixed isometric tilt, wedge focus buttons, one Chart View menu group, Charted regions on by default | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -3287,6 +3288,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.270 | Console look on the admin shell and admin pages, by tokens only | none | open |
 | UX.271 | The polity history page: a timeline of its territory, cohesion, splits and trade totals, and the journal feed on the API | none | open |
 | UX.272 | Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted | none | open |
+| UX.273 | Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views | none | open |
+| UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
