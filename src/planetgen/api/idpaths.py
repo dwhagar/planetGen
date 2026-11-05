@@ -102,6 +102,7 @@ ID_PATHS = {
     "population.territories": {"points[].id": "system"},
     "api.system_text": {"id": "system"},
     "api.system_sky_route": {},
+    "api.system_sky_band_route": {},
     "api.create_sector": {"id": "sector"},
     "api.create_system": {"id": "system"},
     "api.update_system": {"id": "system"},

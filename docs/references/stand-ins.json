@@ -34969,7 +34969,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.LOCAL_V_LUMINOSITY_DENSITY 0.044: the V light of the stars in a cubic parsec where the relative density is 1 (L_V,sun per pc^3)"
         },
         {
@@ -35007,7 +35007,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.FAINT_LIGHT_TABLE rows (-0.19, 0.81), (2.31, 0.35), (4.81, 0.07): the share of the V light that comes from stars fainter than the absolute magnitude in the row"
         },
         {
@@ -35049,7 +35049,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L4",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.FAINT_LIGHT_TABLE ends (-10, 1.0), (9.0, 0.01), (12.0, 0.0): the share of light from stars fainter than a very bright, a faint and a very faint absolute magnitude"
         },
         {
@@ -35091,8 +35091,46 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.FACE_PIXELS 32, STEPS 400, MAX_DISTANCE_PC 30000 and CELL_PC 50: the cell that shares a band, the cube map's size, the steps of a ray and its length"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_band.TINT_TEMPERATURE_K 4500: the colour of the glow image, the blackbody of this temperature at a luminance of 1 (sky_band.tint)"
+            ],
+            [
+              "The range it moves in",
+              "4000 to 5500 K"
+            ],
+            [
+              "Where it holds",
+              "the band of the unresolved stars of a disc galaxy, whose faint light is mostly K and M dwarfs and giants"
+            ],
+            [
+              "What would show it wrong",
+              "a glow of another colour than the blackbody of 4500 K in the mean colour of the faint stars (the integrated colour of the unresolved Milky Way)"
+            ],
+            [
+              "What replaces it",
+              "the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix"
+            ],
+            [
+              "Evidence",
+              "needed output: the band is worked as one V surface brightness, the page needs three channels, and the faint-light stars (the table's rows) are cooler than the Sun"
+            ]
+          ],
+          "id": "GLW1",
+          "key": "6.174:GLW1",
+          "kind": "P",
+          "slug": "6-174-glw1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_band.TINT_TEMPERATURE_K 4500: the colour of the glow image, the blackbody of this temperature at a luminance of 1 (sky_band.tint)"
         }
       ],
       "slug": "6-174-stand-ins-of-the-glow-band-of-the-unresolved-stars",

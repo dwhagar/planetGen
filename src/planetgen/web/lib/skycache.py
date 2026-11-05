@@ -21,12 +21,23 @@ import base64
 import glob
 import os
 import random
+import re
 
 from planetgen.util import log
 from planetgen.web.lib import apiclient, singleflight, skypack, tilecache
 
 NAME_PREFIX = "k"
 """str: What a sky's file name starts with (`n` is a node's, `s` a stage's)."""
+
+BAND_PREFIX = "b"
+"""str: What a glow image's file name starts with: `b<key>.bin`, the key being the band's cache key (a hash of its cell, the galaxy, the limit and every constant
+it depends on), so the name says what the file holds and a changed galaxy is a new name."""
+
+_BAND_KEY = re.compile(r"^[0-9a-f]{16,64}$")
+
+
+_BAND_SIZE = (256, 128)
+_BAND_BYTES = _BAND_SIZE[0] * _BAND_SIZE[1] * 6
 
 
 def sky_filename(system_id, limit, key):
@@ -120,6 +131,52 @@ def _store(directory, system_id, limit, key, raw, root):
             log.debug(f"Sky cache: not pruned ({exc}).")
 
 
+def fetch_band(db, system_id, limit=None, key=None):
+    """
+    The glow image of the sky of `system_id` at `limit` (VIEW.13): the bytes (little-endian half floats, `rgb16f`) and `{"key", "width", "height", "format",
+    "source"}`. A band is named by its key, which `meta.band.key` of the sky gives, so a stored `b<key>.bin` is served without the API; otherwise the
+    API works it out (once for each 50 parsec cell and limit, in its process) and the file is stored under the key it answers.
+
+    Raises:
+        skypack.SkyLimitError: A limit out of range.
+        ValueError: A key that is not a hash.
+        apiclient.NotFoundError / ApiError: If the API is needed and fails.
+    """
+    limit = skypack.check_limit(limit)
+    if key is not None and not _BAND_KEY.match(key):
+        raise ValueError("key must be a hash")
+    root = tilecache.cache_dir()
+    directory = None
+    if root:
+        try:
+            info = tilecache.current_stamp(db, root)
+        except apiclient.ApiError:
+            info = None
+        if info and info.get("generation"):
+            directory = os.path.join(tilecache._db_dir(root, db), info["generation"])
+    if directory and key:
+        path = os.path.join(directory, f"{BAND_PREFIX}{key}.bin")
+        raw = tilecache._read_bytes(path)
+        if raw is not None and len(raw) == _BAND_BYTES:
+            tilecache._visited(path)
+            return raw, {"key": key, "width": _BAND_SIZE[0], "height": _BAND_SIZE[1], "format": "rgb16f", "source": "cache"}
+    name = f"{root}:{db}:band:{system_id}:{limit}" if directory else None
+    owned = []
+    if name:
+        owned, _held = singleflight.claim([name])
+    try:
+        built = apiclient.get_system_sky_band(db, system_id, limit)
+        raw = base64.b64decode(built["data"])
+        if len(raw) != built["width"] * built["height"] * 6:
+            raise apiclient.ApiError("the API sent a glow image of the wrong size")
+        if directory and _BAND_KEY.match(str(built["key"])):
+            tilecache._write_bytes(os.path.join(directory, f"{BAND_PREFIX}{built['key']}.bin"), raw)
+        return raw, {"key": built["key"], "width": built["width"], "height": built["height"], "format": built["format"], "source": "built"}
+    finally:
+        if owned:
+            singleflight.release(owned)
+
+
 def clear(db=None, root=None):
     """Removes every stored sky (of the database `db`, or of all when `None`) and returns how many files went: the clear the admin page of PERF.134 calls
     beside the nodes'."""
@@ -130,7 +187,7 @@ def clear(db=None, root=None):
     top = tilecache._db_dir(root, db) if db is not None else root
     for dirpath, _dirnames, filenames in os.walk(top):
         for name in filenames:
-            if name.startswith(NAME_PREFIX) and name.endswith(".bin") and "_" in name:
+            if name.endswith(".bin") and ((name.startswith(NAME_PREFIX) and "_" in name) or name.startswith(BAND_PREFIX)):
                 try:
                     os.unlink(os.path.join(dirpath, name))
                     removed += 1

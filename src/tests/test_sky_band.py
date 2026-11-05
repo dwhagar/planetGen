@@ -231,3 +231,46 @@ def test_a_file_store_serves_band_for_and_recomputes_a_damaged_file(tmp_path):
         path.write_bytes(b"torn")
     third = band.band_for((5.0, 5.0, 5.0), None, "g", store, pixels=2, steps=20, density_at=density_at)
     assert len(calls) > worked and np.array_equal(first, third)
+
+
+# --- the glow image the page samples (VIEW.13, `skyband.js`) ----------------------------------------------------------------
+
+def test_the_page_unit_is_ten_to_the_minus_point_four_of_the_magnitude_over_twenty_two_and_dark_is_zero():
+    values = band.values_of(np.array([22.0, 24.5, 19.5, band.DARK_MAG]))
+    assert values == pytest.approx([1.0, 0.1, 10.0, 0.0])
+    assert band.SB_REF == 22.0 and (band.EQUIRECT_WIDTH, band.EQUIRECT_HEIGHT) == (256, 128)
+
+
+def test_the_tint_has_a_luminance_of_one_and_is_warm():
+    red, green, blue = band.tint()
+    assert 0.2126 * red + 0.7152 * green + 0.0722 * blue == pytest.approx(1.0)
+    assert red > green > blue > 0.0
+
+
+def test_the_equirect_image_is_the_band_in_the_directions_the_page_looks_up():
+    sb = np.full((6, 8, 8), 22.0)
+    sb[4] = 20.0                                                     # the +z face (the north pole), brighter
+    image = band.equirect(sb, 64, 32)
+    assert image.shape == (32, 64, 3) and image.dtype == np.float32
+    north, equator, south = image[0, :, 1], image[16, :, 1], image[31, :, 1]
+    assert north.min() > equator.max()          # row 0 is the north pole
+    assert south.mean() == pytest.approx(equator.mean(), rel=0.05)
+    assert np.allclose(equator, equator[0], rtol=0.02)                                         # the equator is the same all the way round
+    luminance = image @ np.array([0.2126, 0.7152, 0.0722])
+    assert luminance[16].mean() == pytest.approx(1.0, rel=0.02)
+
+
+def test_the_equirect_texel_at_a_longitude_looks_that_way():
+    values = np.full((6, 8, 8), 30.0)
+    values[0] = 20.0                                                 # the +x face only
+    image = band.equirect(values, 64, 32)
+    row = image[16, :, 1]
+    assert row[31] == row[32] == row.max() and row[0] < row[31] / 100.0 and row[16] < row[31] / 100.0 and row[48] < row[31] / 100.0   # column 32 is longitude 0
+
+
+def test_half_float_bytes_are_little_endian_and_six_for_each_texel():
+    image = band.equirect(np.full((6, 8, 8), 22.0), 256, 128)
+    raw = band.to_half_bytes(image)
+    assert len(raw) == 256 * 128 * 6
+    back = np.frombuffer(raw, dtype="<f2").reshape(128, 256, 3)
+    assert np.allclose(back, image, rtol=2e-3)

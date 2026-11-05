@@ -85,6 +85,16 @@ percent of the local V light, from HYG within 25 pc); the ends are invented (sta
 MODEL_VERSION = 1
 """int: Raised when the arithmetic of the band changes, so old cached images miss."""
 
+SB_REF = 22.0
+"""float: The surface brightness of the page's unit (`html/static/skyband.js` `SB_REF`): a texel of 1.0 is 22 mag/arcsec^2."""
+
+EQUIRECT_WIDTH, EQUIRECT_HEIGHT = 256, 128
+"""int: The size of the equirectangular glow image the System View samples (the contract of `skyband.js`)."""
+
+TINT_TEMPERATURE_K = 4500.0
+"""float: The temperature of the blackbody whose colour tints the glow (stand-in GLW1): the unresolved light is mostly K and M dwarfs and the cool
+giants of the bulge."""
+
 
 def face_directions(pixels=FACE_PIXELS):
     """
@@ -274,3 +284,62 @@ def band_for(observer_pc, shape, galaxy_key, store, limiting_magnitude=DEFAULT_L
                               density_at)
     store.put(key, band)
     return band
+
+
+def values_of(surface_brightness_mag):
+    """The page's unit of each surface brightness (arrays): `10^(-0.4 (SB - SB_REF))`, and 0 where no light arrives (`DARK_MAG` or more)."""
+    sb = np.asarray(surface_brightness_mag, dtype=float)
+    return np.where(sb >= DARK_MAG, 0.0, 10.0 ** (-0.4 * (sb - SB_REF)))
+
+
+def tint():
+    """The colour of the glow, linear red, green and blue with a luminance (0.2126, 0.7152, 0.0722) of 1: the blackbody of `TINT_TEMPERATURE_K`."""
+    from planetgen.galaxy import sky
+    rgb = sky.star_colours([TINT_TEMPERATURE_K])[0]
+    return rgb / float(np.dot(rgb, (0.2126, 0.7152, 0.0722)))
+
+
+def face_bilinear(values, directions):
+    """
+    `values` (the `(6, n, n)` array of `values_of` a band) in the directions `directions` (`(..., 3)`), bilinear within the face each direction falls on
+    (clamped at the face's edge; a pixel is about 3 degrees, so the seams between faces are not seen).
+    """
+    values = np.asarray(values, dtype=float)
+    n = values.shape[1]
+    d = np.asarray(directions, dtype=float)
+    a = np.abs(d)
+    axis = np.argmax(a, axis=-1)
+    sign = np.take_along_axis(d, axis[..., None], axis=-1)[..., 0] < 0
+    major = np.take_along_axis(a, axis[..., None], axis=-1)[..., 0]
+    column_axis = np.where(axis == 0, 2, 0)
+    row_axis = np.where(axis == 1, 2, 1)
+    column = np.take_along_axis(d, column_axis[..., None], axis=-1)[..., 0] / major
+    row = np.take_along_axis(d, row_axis[..., None], axis=-1)[..., 0] / major
+    face = axis * 2 + sign.astype(int)
+    x = np.clip((column + 1.0) / 2.0 * n - 0.5, 0.0, n - 1.0)
+    y = np.clip((row + 1.0) / 2.0 * n - 0.5, 0.0, n - 1.0)
+    x0, y0 = np.floor(x).astype(int), np.floor(y).astype(int)
+    x1, y1 = np.minimum(x0 + 1, n - 1), np.minimum(y0 + 1, n - 1)
+    fx, fy = x - x0, y - y0
+    top = values[face, y0, x0] * (1.0 - fx) + values[face, y0, x1] * fx
+    bottom = values[face, y1, x0] * (1.0 - fx) + values[face, y1, x1] * fx
+    return top * (1.0 - fy) + bottom * fy
+
+
+def equirect(band, width=EQUIRECT_WIDTH, height=EQUIRECT_HEIGHT):
+    """
+    The glow image of the page (`html/static/skyband.js`): a `(height, width, 3)` float32 array of linear light in the page's unit (`values_of`), tinted
+    (`tint`), equirectangular in the sky's galactic axes: row 0 at the north pole, column 0 at longitude -180, texel centres half a texel in,
+    longitude `atan2(y, x)`, latitude `asin(z)`. `band` is the `(6, n, n)` surface brightness of `band_for`.
+    """
+    column = (np.arange(width) + 0.5) / width * 2.0 * math.pi - math.pi
+    latitude = (0.5 - (np.arange(height) + 0.5) / height) * math.pi
+    lon, lat = np.meshgrid(column, latitude)
+    directions = np.stack([np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)], axis=-1)
+    level = face_bilinear(values_of(band), directions)
+    return (level[..., None] * tint()[None, None, :]).astype(np.float32)
+
+
+def to_half_bytes(image):
+    """The image as little-endian half floats, red, green and blue a texel, row by row: what `skyband.js` puts in its texture."""
+    return np.asarray(image, dtype="<f2").tobytes()

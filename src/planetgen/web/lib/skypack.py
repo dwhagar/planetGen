@@ -45,7 +45,7 @@ MAGNITUDE_STEPS_PER_MAG = 512
 KIND_CODES = {"charted": 0, "bright_star": 1, "phenomenon": 2, "cluster": 3}
 """dict: The tier of each star, as the kind column numbers it."""
 
-SKY_VERSION = 1
+SKY_VERSION = 2
 """int: Raised when the sky an unchanged galaxy gives changes (a new field, a new constant), so every stored copy is built again (VIEW.31)."""
 
 DEFAULT_LIMIT = 7.5
