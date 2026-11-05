@@ -14625,6 +14625,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1, after GEN.1275 merges. Filed by the TODO thread.
   Prerequisites: GEN.1275. Related: GEN.1275, PERF.236.
 
+- [ ] **PERF.241 A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug)**
+  The Train Manager (as the lane reported, about 3:47 PM EST on
+  2026-11-05, full-suite run on main) timed one system with every orbit
+  flag forced on: O0V 96 s, O1V 46 s, O3V 45 s, O2V 20 s, O4V 15 s, O5V
+  22 s. Tests that build about 70 of them time out alone:
+  test_fuzz_system_generation (every_star_type x9, extreme_orbit_counts,
+  forced_flag_on_together, random_valid_configs), test_prevalence
+  (feature_moves_by_percentage x8, no_binaries),
+  test_census_representation (7), test_prevalence_census,
+  test_systems_census, census_nebula_wholesphere, generation_mix giants,
+  bughunt_sector_placement, test_systems O5V, life_text_consistency,
+  generation_size_estimate. Do: profile one O0V system with all flags on
+  (cProfile, top 20 by cumulative time), say where the time goes (the
+  temperature series of PERF.238, moon or rogue builds, the stability
+  search), and cut the cost where it changes no output; where a cut
+  would change values, file it as a lock item with the epoch. In
+  parallel the tests build fewer systems where the property allows
+  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box and
+  one all-flags O0V system takes under 20 s. Related: PERF.238,
+  TEST.417, TEST.571. Lock-free for the test parts. Version 8.1. Owner:
+  Bug 1. Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.238.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -17919,6 +17942,122 @@ clears each one.
   order. Done: both orders pass. Lock-free. Version 8.1. Owner: Core 2.
   Filed by the TODO thread.
   Prerequisites: none.
+
+- [ ] **TEST.613 tests/test_literal_insert.py (bright_stars_read_back_exactly_as_written, a_long_run_is_cut_into_statements) fail with pymysql 1136 Column count doesn't match value count (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Two tests fail at row 1 of the literal insert:
+  the statement the writer builds has a different number of values than
+  columns. Likely a column added to bright_stars or another table after
+  the writer or test was last updated. Done: both pass on current main
+  and the writer and the table agree. Owner: Bug 1. Do: reproduce on
+  current main first (a merge since may have fixed it), fix at the cause
+  with the property kept, never skip or loosen a test. Lock-free if
+  output is unchanged; tell the TODO thread if values change. Version
+  8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.614 tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Decide from the cause whether the forcing rules
+  or the test moved. Done: the test passes on current main. Owner: Bug
+  1. Do: reproduce on current main first (a merge since may have fixed
+  it), fix at the cause with the property kept, never skip or loosen a
+  test. Lock-free if output is unchanged; tell the TODO thread if values
+  change. Version 8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.615 tests/test_gen_fill_groups.py::test_a_member_in_a_decayed_group_is_built_from_the_hierarchy fails: a decayed group builds 1 star where at least 2 are expected (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. assert 1 >= 2 on the number of stars. Find
+  whether the fill, the hierarchy or the test moved. Done: the test
+  passes on current main. Owner: Core 1. Do: reproduce on current main
+  first (a merge since may have fixed it), fix at the cause with the
+  property kept, never skip or loosen a test. Lock-free if output is
+  unchanged; tell the TODO thread if values change. Version 8.1. Filed
+  by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.616 tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Either the rule's tolerance is tighter than the
+  arithmetic (a float order difference) or a value is rounded at
+  storage. Say which and fix at the cause; a tolerance may be set only
+  to the stated precision of the stored column. Done: the test passes on
+  current main. Owner: Aux 2. Do: reproduce on current main first (a
+  merge since may have fixed it), fix at the cause with the property
+  kept, never skip or loosen a test. Lock-free if output is unchanged;
+  tell the TODO thread if values change. Version 8.1. Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **TEST.617 tests/test_log_shell.py::test_update_sh_prints_its_own_lines_through_the_layer fails: update.sh echoes "The update steps are finished: waiting ..." without going through logrecord.sh (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. The lagging check finds an echo in update.sh
+  that does not use the logging layer. Done: the line goes through
+  logrecord.sh and the test passes. Owner: Aux 7. Do: reproduce on
+  current main first (a merge since may have fixed it), fix at the cause
+  with the property kept, never skip or loosen a test. Lock-free if
+  output is unchanged; tell the TODO thread if values change. Version
+  8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.618 tests/test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist fails: scripts/measure_tile_cache.py names db/nodes.py, which does not exist (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Fix the path in the script (or delete the script
+  if it is dead, with its docs). Done: the test passes. Owner: Aux 7.
+  Do: reproduce on current main first (a merge since may have fixed it),
+  fix at the cause with the property kept, never skip or loosen a test.
+  Lock-free if output is unchanged; tell the TODO thread if values
+  change. Version 8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.619 tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Use the registry converters (units.converter)
+  for the two multiplies. Done: the test passes with no new exception in
+  its allow list. Owner: Core 2. Do: reproduce on current main first (a
+  merge since may have fixed it), fix at the cause with the property
+  kept, never skip or loosen a test. Lock-free if output is unchanged;
+  tell the TODO thread if values change. Version 8.1. Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **TEST.620 tests/test_reproducible_draws.py fails: math.dist at db/field_clouds.py:51 and db/obstacles.py:158 must use detmath.dist (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Replace both with detmath.dist so results do not
+  depend on the platform's libm. Done: the test passes and obstacle and
+  cloud results are unchanged. Owner: Core 2. Do: reproduce on current
+  main first (a merge since may have fixed it), fix at the cause with
+  the property kept, never skip or loosen a test. Lock-free if output is
+  unchanged; tell the TODO thread if values change. Version 8.1. Filed
+  by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.621 The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug)**
+  The Train Manager (as the lane reported, about 3:47 PM EST on
+  2026-11-05, full-suite run on main) saw twice that the non-browser run
+  hung with all workers idle (futex wait, load 0) for 1.5 h and 3 h; the
+  timeout signal did not fire in a worker that has a process pool. Two
+  tests never ran:
+  test_prevalence_life_census::test_the_life_census_raises_no_new_flag
+  and
+  test_prevalence_occurrence::test_the_figures_count_planets_per_star_by_radius_and_period.
+  Do: find which test leaves a worker waiting on a pool (a child that
+  died, a pool not closed), switch the timeout method to thread or add a
+  per-test watchdog that kills the pool children, and make
+  scripts/test.py report a hung run within the limit instead of waiting.
+  Done: a deliberately hung test is killed at its limit with a clear
+  message, and the full run completes. Lock-free. Version 8.1. Owner:
+  Train Manager. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.417.
 
 ## USR: User accounts
 
