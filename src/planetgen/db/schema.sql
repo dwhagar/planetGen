@@ -1524,7 +1524,7 @@
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v212 (GEN.1221): `planets` and `moons` keep the relative humidity of the air (`relative_humidity`, DOUBLE, 0.05 to 0.99) and the groundwater of the body (`groundwater`, VARCHAR(10): none, reachable
---   or deep; `physics/habitability_world.py`), which the class-by-domain matrix reads (`physics/class_domains.py`). NULL for a row made before v212.
+--   or deep; `physics/habitability_world.py`), which the class-by-domain matrix reads (`physics/class_domains.py`); `rogue_planets` keep them too. NULL for a row made before v212.
 -- v206 (GEN.1219, GEN.1220, GEN.1226): `planets` and `moons` keep the body type (`planet_type`, VARCHAR(12): terrestrial, transitional or gas, from the envelope share
 --   of the mass, `physics/planet_type.py`) and the digit of the class code (`class_variant`, TINYINT 0 to 9, 0 not written; `physics/class_code.py`). The
 --   `envelope_mass_fraction` that was there holds the true share of a hydrogen-rich air for every rocky body (`physics/envelope_share.py`). NULL for a row made before v206.
@@ -4157,6 +4157,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     surface_liquid_2              VARCHAR(32),  -- v207 (GEN.1111)
     surface_liquid_2_fraction     DOUBLE,  -- v207 (GEN.1111)
     class_variant                 TINYINT,  -- v207 (GEN.1111)
+    relative_humidity             DOUBLE,  -- v212 (GEN.1221)
+    groundwater                   VARCHAR(10),  -- v212 (GEN.1221)
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)

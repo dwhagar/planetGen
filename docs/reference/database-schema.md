@@ -2322,7 +2322,7 @@ Migration 0202 creates `designations`, one row for each ID or name an object use
 
 ### v212 (GEN.1221): the relative humidity and the groundwater
 
-Migration 0212 adds `relative_humidity` (DOUBLE) and `groundwater` (VARCHAR(10)) to `planets` and `moons`, nullable and NULL for a row made before v212, skipping a column already there.
+Migration 0212 adds `relative_humidity` (DOUBLE) and `groundwater` (VARCHAR(10)) to `planets`, `moons` and `rogue_planets`, nullable and NULL for a row made before v212, skipping a column already there.
 
 ### v206 (GEN.1219, GEN.1220, GEN.1226): the body type, the class digit and the envelope share
 

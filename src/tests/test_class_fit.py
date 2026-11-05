@@ -13,7 +13,8 @@ from tests.test_planet_classes import CASES, EARTH, airless, body
 
 
 def test_every_class_letter_has_its_own_complete_conditions():
-    assert set(cf.LETTERS) == set(pc.LETTERS)
+    assert set(pc.LETTERS) <= set(cf.LETTERS)
+    assert set(cf.LETTERS) - set(pc.LETTERS) == set("RUYZ")      # the matrix classes the first-match tree has no row for (GEN.1221) until GEN.1207
     by_kind = {(c.letter, c.kind) for c in cf.CLASSES}
     for cls in pc.CLASSES:
         assert (cls.letter, cls.kind) in by_kind, f"{cls.letter} ({cls.kind}) has no row in planet_class_fit.json"
@@ -35,7 +36,7 @@ def test_every_quantity_a_condition_reads_has_a_shoulder_and_a_registry_basis():
             if "equals" not in condition:
                 assert condition["quantity"] in cf.SHOULDERS
     for name, entry in cf.SHOULDERS.items():
-        assert entry["basis"].startswith("CF")
+        assert entry["basis"].startswith(("CF", "DM"))
         assert ("absolute" in entry) != ("relative" in entry)
 
 
@@ -88,10 +89,11 @@ def test_a_cold_hydrogen_envelope_is_a_gas_dwarf_and_not_a_deep_frozen_world():
 def test_one_condition_missed_outright_zeroes_the_match_and_a_soft_miss_only_lowers_it():
     earth = cf.scores(EARTH_VALUES := body())
     assert earth["M"] == pytest.approx(1.0)
-    warm = cf.scores(body(surface_temperature_k=271.0))
+    warm = cf.scores(body(surface_temperature_k=274.0))      # water still freezes at 273.15 K: the phase gate (GEN.1221) is a hard condition
     assert 0.0 < warm["M"] < 1.0
     cold = cf.scores(body(surface_temperature_k=250.0))
     assert cold["M"] == 0.0
+    assert cf.scores(body(surface_temperature_k=271.0))["M"] == 0.0      # below freezing no water family applies
 
 
 def test_a_reducing_wet_world_is_f_and_not_m_by_its_own_fit():

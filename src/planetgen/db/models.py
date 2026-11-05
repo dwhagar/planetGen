@@ -2844,6 +2844,8 @@ rogue_planets = sa.Table(
     sa.Column('surface_liquid_2', sa.String(32), nullable=True),
     sa.Column('surface_liquid_2_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('class_variant', mysql.TINYINT(), nullable=True),
+    sa.Column('relative_humidity', mysql.DOUBLE(), nullable=True),
+    sa.Column('groundwater', sa.String(length=10), nullable=True),
     sa.Column('moon_origin', sa.String(8), nullable=True),
     sa.Column('moon_disk_lifetime_myr', mysql.DOUBLE(), nullable=True),
     sa.Column('moon_disk_alpha_over_f', mysql.DOUBLE(), nullable=True),
