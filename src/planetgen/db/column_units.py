@@ -911,6 +911,16 @@ TABLES = {
         "flag": ("exited",),
         "yr": ("duration_years",),
     },
+    "sky_tier_draws": {
+        "id": ("id",),
+        "row-defined": ("band_low", "band_high"),
+        "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "radius_pc"),
+        "mag": ("limit_mag",),
+        "count": ("stars", "batches_done"),
+        "s": ("seconds",),
+        "index": ("generator_epoch",),
+        "flag": ("complete",),
+    },
     "chart_ledger": {
         "index": ("shell_index", "band_index", "wedge_index", "generator_epoch"),
         "id": ("run_id",),

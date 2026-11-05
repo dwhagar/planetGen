@@ -1949,14 +1949,14 @@ Added in v201 (GEN.1127). One row for each sector cell that has been charted, ke
 
 ### `sky_tier_draws`
 
-Added in v205 (VIEW.25). One row for each sphere that charting has drawn for a tier of a system's sky (`generation/sky_charting.py`, `generation/sky_tiers.py`): a luminosity band or a mass ring, drawn with the star backfill over the sphere of its reach around the 50 parsec cell of the observer. A cell inside a complete sphere is complete down to the tier's floor without a `sector_stats` row of its own (a sky sphere holds billions of cells); the backfill and the fill settle the ledger's depth into the rows they read (`db/sky_tier_ledger.py`), and `db/sky_sphere.cell_levels` reads it for the sky's `filling`. A draw is committed in batches and goes on from the last one after a stop; only a `complete` row counts. `store.clear_bright_stars` and the by-part scatter reset delete the rows with the stars they drew.
+Added in v212 (VIEW.25). One row for each sphere that charting has drawn for a tier of a system's sky (`generation/sky_charting.py`, `generation/sky_tiers.py`): a luminosity band or a mass ring, drawn with the star backfill over the sphere of its reach around the 50 parsec cell of the observer. A cell inside a complete sphere is complete down to the tier's floor without a `sector_stats` row of its own (a sky sphere holds billions of cells); the backfill and the fill settle the ledger's depth into the rows they read (`db/sky_tier_ledger.py`), and `db/sky_sphere.cell_levels` reads it for the sky's `filling`. A draw is committed in batches and goes on from the last one after a stop; only a `complete` row counts. `store.clear_bright_stars` and the by-part scatter reset delete the rows with the stars they drew.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | NOT NULL | Primary key, auto-increment. |
 | `kind` | VARCHAR(12) | NOT NULL | `luminosity` or `mass` (a check). |
 | `band_low`, `band_high` | DOUBLE | NOT NULL, nullable | The band's range, Lsun or solar masses; `band_high` is NULL for the top of a ladder (no ceiling). |
-| `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | NOT NULL | The sphere's centre, galactocentric parsecs: the centre of the observer's 50 pc cell. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | NOT NULL | The sphere's center, galactocentric parsecs: the center of the observer's 50 pc cell. |
 | `radius_pc` | DOUBLE | NOT NULL | The sphere's radius: the tier's reach padded by half the cell's diagonal (stand-in SKC3); above zero (a check). |
 | `limit_mag` | DOUBLE | NOT NULL | The limiting magnitude the table was built for. |
 | `stars` | INT UNSIGNED | NOT NULL | Stars written so far. |
@@ -1966,7 +1966,7 @@ Added in v205 (VIEW.25). One row for each sphere that charting has drawn for a t
 | `complete` | TINYINT(1) | NOT NULL | 1 once every batch is in; only these rows count. |
 | `drawn_at` | TIMESTAMP(3) | NOT NULL | When the row was last written. |
 
-The key `uq_sky_tier_draws_cell` is (`kind`, `band_low`, the centre, `radius_pc`), so a sphere is found again by what it is.
+The key `uq_sky_tier_draws_cell` is (`kind`, `band_low`, the center, `radius_pc`), so a sphere is found again by what it is.
 
 ### `sector_paths`
 

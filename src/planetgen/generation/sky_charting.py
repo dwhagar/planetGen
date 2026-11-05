@@ -8,7 +8,7 @@ The sky a system sees (`galaxy/sky.py`, the route of `api/system_sky.py`) is mad
 backfill have stored can be listed. The tier table (`generation/sky_tiers.py`) says how far out each luminosity band and each mass ring must be drawn for a limiting magnitude;
 this module draws them, when a system is charted, with the star backfill, and records what it drew (`db/sky_tier_ledger.py`).
 
-* **Cells, not systems.** The tiers are built for the centre of the observer's 50 parsec cell (`galaxy/sky_band.py`, the cell the glow band is kept for), with every radius padded by
+* **Cells, not systems.** The tiers are built for the center of the observer's 50 parsec cell (`galaxy/sky_band.py`, the cell the glow band is kept for), with every radius padded by
   the cell's half diagonal, so every system in the cell is covered by the one set of draws. A system charted in a cell that is done adds nothing.
 * **Spheres, not sectors.** A tier is drawn over a sphere (`bright_stars.luminosity_sphere_batches`, `mass_sphere_batches`: the cells that hold a candidate, a few hundred at a time) and
   recorded as a sphere. No cell of it gets a `sector_stats` row; the backfill and the fill settle a sector's level from the ledger when they touch it (`db/sky_tier_ledger.py`).
@@ -17,9 +17,9 @@ this module draws them, when a system is charted, with the star backfill, and re
   nothing under. The luminosity bands are drawn first and the rings after, so a ring draws the stars born in its mass range that are dimmer than the cell's luminosity level
   by then, the order the sector backfill itself takes.
 * **Stopped draws go on.** A sphere is drawn in batches, each committed with the count of batches done (`sky_tier_draws.batches_done`); the walk of a sphere is the same each time, so a
-  stopped draw is found by its kind, band, centre and radius and goes on from there. A sphere counts only when its last batch is in.
+  stopped draw is found by its kind, band, center and radius and goes on from there. A sphere counts only when its last batch is in.
 
-    centre, tiers = plan(observer_pc, 7.5, edge_pc)
+    center, tiers = plan(observer_pc, 7.5, edge_pc)
     chart(conn, observer_pc, 7.5)             # draws and records every tier the ledger does not hold; returns the summary
 """
 
@@ -71,28 +71,28 @@ def limit_of(args):
 
 
 def observer_cell(observer_pc):
-    """The 50 parsec cell of an observer and its centre, galactocentric parsecs."""
+    """The 50 parsec cell of an observer and its center, galactocentric parsecs."""
     cell = sky_band.cell_of(observer_pc)
-    return cell, sky_band.cell_centre(cell)
+    return cell, sky_band.cell_center(cell)
 
 
 def plan(observer_pc, limit_mag, edge_pc, *, limits=None, **options):
     """
-    The tier table for the cell of `observer_pc` (`sky_tiers.build` at the cell's centre) and that centre. With `limits` (the galaxy's `ScatterLimits`) the top ring ends at the
+    The tier table for the cell of `observer_pc` (`sky_tiers.build` at the cell's center) and that center. With `limits` (the galaxy's `ScatterLimits`) the top ring ends at the
     galaxy's own mass limit instead of the default one, so no mass between the ring and the scatter is left out.
 
     Returns:
-        tuple: `(centre, SkyTiers)`; the radii are not padded (see `padded_radius`).
+        tuple: `(center, SkyTiers)`; the radii are not padded (see `padded_radius`).
     """
-    _cell, centre = observer_cell(observer_pc)
-    tiers = sky_tiers.build(centre, limit_mag, edge_pc, **options)
+    _cell, center = observer_cell(observer_pc)
+    tiers = sky_tiers.build(center, limit_mag, edge_pc, **options)
     if limits is not None and tiers.rings:
         top = [found.mass_limit_sol for found in (limits.tiers or ()) if found.mass_limit_sol is not None]
         if top:
             rings = list(tiers.rings)
             rings[-1] = rings[-1]._replace(high=float(max(top)))
             tiers = tiers._replace(rings=tuple(rings))
-    return centre, tiers
+    return center, tiers
 
 
 def padded_radius(tier):
@@ -234,15 +234,15 @@ class DrawLock:
         self.conn.execute("SELECT RELEASE_LOCK(?)", (self.NAME,))
 
 
-def draw_tier(context, tier, centre, *, generator_epoch=None, on_batch=None, ledger=None):
+def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, ledger=None):
     """
-    Draws one tier over the sphere of its padded reach around `centre`, in batches, each committed with the ledger's count, and records the sphere when the last is in. A tier the ledger
+    Draws one tier over the sphere of its padded reach around `center`, in batches, each committed with the ledger's count, and records the sphere when the last is in. A tier the ledger
     already holds a sphere for is not drawn (`Drawn.skipped`).
 
     Args:
         context (_Context): `_Context(conn)`.
         tier (sky_tiers.Tier): A luminosity band or mass ring of `plan`.
-        centre (tuple): The cell's centre, galactocentric parsecs.
+        center (tuple): The cell's center, galactocentric parsecs.
         generator_epoch (int, optional): Recorded with the sphere.
         on_batch (callable, optional): Called as `on_batch(batches, cells, stars)` after each batch commits (a progress tick).
         ledger (Ledger, optional): The ledger as it stands; read when left out.
@@ -253,19 +253,19 @@ def draw_tier(context, tier, centre, *, generator_epoch=None, on_batch=None, led
     conn = context.conn
     radius = padded_radius(tier)
     ledger = sky_tier_ledger.read(conn) if ledger is None else ledger
-    if ledger.drawn(tier.ledger, float(tier.low), tier.high, centre, radius):
+    if ledger.drawn(tier.ledger, float(tier.low), tier.high, center, radius):
         return Drawn(tier, radius, 0, 0, 0, 0.0, skipped=True)
     started = time.perf_counter()
-    draw = sky_tier_ledger.Draw(tier.ledger, float(tier.low), None if tier.high is None else float(tier.high), tuple(centre), radius, 0.0)
+    draw = sky_tier_ledger.Draw(tier.ledger, float(tier.low), None if tier.high is None else float(tier.high), tuple(center), radius, 0.0)
     draw_id, done = sky_tier_ledger.begin(conn, draw, generator_epoch)
     conn.commit()
     if tier.ledger == sky_tier_ledger.LUMINOSITY:
-        batches = bright_stars.luminosity_sphere_batches(context.skeleton.shape, centre, radius, context.edge_pc, context.expected, float(tier.low),
+        batches = bright_stars.luminosity_sphere_batches(context.skeleton.shape, center, radius, context.edge_pc, context.expected, float(tier.low),
                                                          None if tier.high is None else float(tier.high), context.seed, mass_range=context.walk_mass_range,
                                                          memo=context.blocks)
         make_rows = _luminosity_rows
     else:
-        batches = bright_stars.mass_sphere_batches(context.skeleton.shape, centre, radius, context.edge_pc, context.expected, float(tier.low),
+        batches = bright_stars.mass_sphere_batches(context.skeleton.shape, center, radius, context.edge_pc, context.expected, float(tier.low),
                                                    float(tier.high), context.walk_ceiling, context.seed, context.edges, memo=context.blocks)
         make_rows = _mass_rows
     row = conn.execute("SELECT stars, seconds FROM sky_tier_draws WHERE id = ?", (draw_id,)).fetchone()
@@ -300,27 +300,27 @@ def draw_tier(context, tier, centre, *, generator_epoch=None, on_batch=None, led
     return Drawn(tier, radius, walked, cells, stars, seconds)
 
 
-def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, tiers=None, centre=None):
+def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, tiers=None, center=None):
     """
     Draws the sky tiers of the cell of `observer_pc` for `limit_mag`: the luminosity bands from the top band down, then the mass rings from the top ring down, each as `draw_tier`, one draw at a time in the galaxy (`DrawLock`). Tiers the ledger holds are skipped. `tiers` (with
-    its `centre`) is a table already built by `plan`, so a caller that costed it first does not build it twice.
+    its `center`) is a table already built by `plan`, so a caller that costed it first does not build it twice.
 
     Returns:
-        dict: `centre`, `cell`, `limit_mag`, `tiers` (a `Drawn` each, in the order drawn), `stars`, `cells`, `seconds` and `dropped` (the luminosity bands the visit budget cut off).
+        dict: `center`, `cell`, `limit_mag`, `tiers` (a `Drawn` each, in the order drawn), `stars`, `cells`, `seconds` and `dropped` (the luminosity bands the visit budget cut off).
     """
     context = _Context(conn)
     if tiers is None:
-        centre, tiers = plan(observer_pc, limit_mag, context.edge_pc, limits=context.limits)
+        center, tiers = plan(observer_pc, limit_mag, context.edge_pc, limits=context.limits)
     started = time.perf_counter()
     drawn = []
     with DrawLock(conn):
         ledger = sky_tier_ledger.read(conn)
         # From the top down: a cell is inside every sphere of the bands above the one being drawn, so each band touches the level the one before it left.
         for tier in (*sorted(tiers.luminosity, key=lambda tier: -tier.low), *sorted(tiers.rings, key=lambda tier: -tier.low)):
-            result = draw_tier(context, tier, centre, generator_epoch=generator_epoch, on_batch=on_batch, ledger=ledger)
+            result = draw_tier(context, tier, center, generator_epoch=generator_epoch, on_batch=on_batch, ledger=ledger)
             drawn.append(result)
             if not result.skipped:
                 ledger = sky_tier_ledger.read(conn)        # the next tier's cells see what this one drew
-    return {"centre": tuple(centre), "cell": sky_band.cell_of(observer_pc), "limit_mag": float(limit_mag), "tiers": drawn,
+    return {"center": tuple(center), "cell": sky_band.cell_of(observer_pc), "limit_mag": float(limit_mag), "tiers": drawn,
             "stars": sum(d.stars for d in drawn), "cells": sum(d.cells for d in drawn), "seconds": time.perf_counter() - started,
             "dropped": [tier.key for tier in tiers.dropped]}

@@ -10,7 +10,7 @@ backfill (`generation/sky_charting.py`). A sphere of a 7.5 sky holds billions of
 
 `Ledger` holds the rows. `Ledger.luminosity_reached(addresses, edge_pc, starts)` and `Ledger.mass_reached(...)` say how deep a cell is complete: from the level the cell
 started at (the galaxy scatter's level, or the mass the scatter placed down to) the covering spheres are followed downward while their ranges touch, so a band that no
-sphere drew leaves everything under it where it was. A cell is covered by a sphere when its centre is (`spherical.cell_in_sphere`, the test the draw used).
+sphere drew leaves everything under it where it was. A cell is covered by a sphere when its center is (`spherical.cell_in_sphere`, the test the draw used).
 
 The backfill and the fill read this through `settle_levels` before they draw, which writes the depth into the `sector_stats` row of each sector they are about to touch, so the
 readers of a sector's level (`store.bright_star_fill_level`, `store.bright_star_fill_mass_limit`) see it without knowing about the spheres.
@@ -186,7 +186,7 @@ def read(conn):
 
 def begin(conn, draw, generator_epoch=None):
     """
-    Starts (or finds the start of) a sphere's draw: a row that does not count yet (`complete` 0). A draw stopped part way is found again by its kind, band, centre and radius, and goes
+    Starts (or finds the start of) a sphere's draw: a row that does not count yet (`complete` 0). A draw stopped part way is found again by its kind, band, center and radius, and goes
     on from the batch it had reached.
 
     Returns:

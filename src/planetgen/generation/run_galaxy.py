@@ -571,7 +571,7 @@ unit of sectors with it."""
 
 SKY_WRITE_FACTOR = 4.6
 """float: How many times the walk's predicted seconds (`sky_tiers.BLOCK_VISIT_SECONDS` a visit) a sky unit really takes: locking and writing the cells costs more than finding them. Measured on a full default galaxy,
-one 7.5 observer cell 2,500 pc from the centre, one worker: 1,826 s against 398 s predicted."""
+one 7.5 observer cell 2,500 pc from the center, one worker: 1,826 s against 398 s predicted."""
 
 
 def _sky_units(params, centers):
@@ -594,16 +594,16 @@ def _sky_units(params, centers):
         conn.close()
     cells = {}
     for center in centers:
-        cell, centre = sky_charting.observer_cell(center)
-        cells[cell] = centre
+        cell, center = sky_charting.observer_cell(center)
+        cells[cell] = center
     units = []
     for cell in sorted(cells):
-        centre, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits)
+        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits)
         owed = [tier for tier in (*tiers.luminosity, *tiers.rings)
-                if not ledger.drawn(tier.ledger, float(tier.low), tier.high, centre, sky_charting.padded_radius(tier))]
+                if not ledger.drawn(tier.ledger, float(tier.low), tier.high, center, sky_charting.padded_radius(tier))]
         if owed:
             seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
-            units.append(({"database": params["database"], "sky": {"centre": list(centre), "limit": limit}}, max(seconds / SKY_SECTOR_SECONDS, 1.0)))
+            units.append(({"database": params["database"], "sky": {"center": list(center), "limit": limit}}, max(seconds / SKY_SECTOR_SECONDS, 1.0)))
     return units
 
 
@@ -660,7 +660,7 @@ def _sky_unit(unit_args, report):
     try:
         steps_done = [0]
         # a tier is the progress step; `chart` draws tiers one after another, so a batch tick is the only call it makes between them
-        result = sky_charting.chart(conn, tuple(sky["centre"]), float(sky["limit"]), on_batch=lambda batches, cells, stars: report(steps_done[0], steps_done[0] + 1))
+        result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=lambda batches, cells, stars: report(steps_done[0], steps_done[0] + 1))
     except BaseException:
         conn.rollback()
         raise

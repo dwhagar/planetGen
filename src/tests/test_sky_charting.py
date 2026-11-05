@@ -20,15 +20,15 @@ from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import run_plan, sky_charting, sky_tiers
 from tests.test_bright_star_scatter import EDGE_PC, SMALL_E_VALUE, THRESHOLD, _scatter_args, _seed_galaxy, _stored_stars
 
-CENTRE = (0.0, 0.0, 0.0)
+CENTER = (0.0, 0.0, 0.0)
 
 
-def lum(low, high, centre=CENTRE, radius=50.0):
-    return Draw("luminosity", low, high, centre, radius)
+def lum(low, high, center=CENTER, radius=50.0):
+    return Draw("luminosity", low, high, center, radius)
 
 
-def mass(low, high, centre=CENTRE, radius=50.0):
-    return Draw("mass", low, high, centre, radius)
+def mass(low, high, center=CENTER, radius=50.0):
+    return Draw("mass", low, high, center, radius)
 
 
 # --- the ledger -------------------------------------------------------------------------------------------------------------------------------------
@@ -53,14 +53,14 @@ def test_a_cell_outside_a_sphere_is_not_reached_and_the_mass_rings_chain_the_sam
     ledger = Ledger([lum(50.0, 100.0, radius=5.0), mass(1.0, 2.0), mass(2.0, 5.0)])
     near = (1, 0, 0)
     far = (6, 0, 0)
-    assert spherical.cell_in_sphere(near, CENTRE, 50.0, EDGE_PC) and not spherical.cell_in_sphere(far, CENTRE, 5.0, EDGE_PC)
+    assert spherical.cell_in_sphere(near, CENTER, 50.0, EDGE_PC) and not spherical.cell_in_sphere(far, CENTER, 5.0, EDGE_PC)
     assert ledger.luminosity_reached([far], EDGE_PC, {far: 100.0}) == {}
     assert ledger.mass_reached([near], EDGE_PC, {near: 5.0}) == {near: 1.0}
     assert ledger.mass_reached([near], EDGE_PC, {near: 8.0}) == {}                              # 5 to 8 was not drawn
 
 
 def test_a_sphere_is_drawn_when_a_recorded_one_of_the_same_band_holds_it():
-    ledger = Ledger([lum(50.0, 100.0, centre=(0.0, 0.0, 0.0), radius=100.0)])
+    ledger = Ledger([lum(50.0, 100.0, center=(0.0, 0.0, 0.0), radius=100.0)])
     assert ledger.drawn("luminosity", 50.0, 100.0, (10.0, 0.0, 0.0), 80.0)
     assert not ledger.drawn("luminosity", 50.0, 100.0, (10.0, 0.0, 0.0), 95.0)
     assert not ledger.drawn("luminosity", 100.0, 200.0, (10.0, 0.0, 0.0), 10.0)
@@ -92,7 +92,7 @@ def test_the_test_suite_charts_without_the_sky_tiers():
 # --- a tier drawn over a sphere ---------------------------------------------------------------------------------------------------------------------
 
 MASS_PASS = ("--mass", "--phenomenon-min-mass", "20")
-SPHERE_CENTRE = spherical.sector_position_pc(4, 0, 5, EDGE_PC)
+SPHERE_CENTER = spherical.sector_position_pc(4, 0, 5, EDGE_PC)
 
 
 @pytest.fixture
@@ -120,9 +120,9 @@ def new_stars(conn, before):
     return remaining
 
 
-def expected_by_cells(conn, tier, centre, radius, level, limit):
+def expected_by_cells(conn, tier, center, radius, level, limit):
     context = sky_charting._Context(conn)
-    cells = [row[:3] for row in spherical.enumerate_sectors_within_radius(centre, radius, EDGE_PC)]
+    cells = [row[:3] for row in spherical.enumerate_sectors_within_radius(center, radius, EDGE_PC)]
     top = level if tier.high is None else min(tier.high, level)
     return sorted(tuple(row) for row in brightStars.backfill_cells(context.skeleton.shape, cells, EDGE_PC, context.expected, tier.low, top, context.seed,
                                                                    mass_range=(None, limit)))
@@ -133,18 +133,18 @@ def test_a_luminosity_tier_writes_the_stars_of_its_sphere_records_it_and_is_not_
     tier = a_tier()
     radius = sky_charting.padded_radius(tier)
     before = _stored_stars(conn)
-    done = sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTRE)
+    done = sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTER)
     assert not done.skipped and done.stars > 0 and done.batches >= 1 and done.radius_pc == radius
     added = new_stars(conn, before)
     limit = store.bright_star_mass_limit(conn)
     assert len(added) == done.stars
-    assert added == expected_by_cells(conn, tier, SPHERE_CENTRE, radius, THRESHOLD, limit)
+    assert added == expected_by_cells(conn, tier, SPHERE_CENTER, radius, THRESHOLD, limit)
     levels = {row["bright_level_sol"] for row in conn.execute("SELECT bright_level_sol FROM sector_stats").fetchall()}
     assert levels == {store.UNTOUCHED_LEVEL}          # the band stops short of the cells' level (2,500 and over), so it is the ledger's, not a cell row's, that holds the depth
     ledger = ledger_module.read(conn)
     (draw,) = ledger.draws
     assert (draw.kind, draw.low, draw.high, draw.radius_pc) == ("luminosity", 500.0, 1000.0, radius) and draw.stars == done.stars
-    again = sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTRE)
+    again = sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTER)
     assert again.skipped and new_stars(conn, before) == added
 
 
@@ -154,7 +154,7 @@ def test_a_stopped_draw_goes_on_and_ends_with_the_stars_of_an_unbroken_one(galax
     monkeypatch.setattr(brightStars, "SPHERE_BATCH_ROWS", 3)
     tier = a_tier(low=100.0, high=1000.0)
     unbroken_before = _stored_stars(conn)
-    sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTRE)
+    sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTER)
     unbroken = new_stars(conn, unbroken_before)
     batches = conn.execute("SELECT batches_done FROM sky_tier_draws").fetchone()["batches_done"]
     assert unbroken and batches >= 2, "the sphere must take two batches for this test"
@@ -169,11 +169,11 @@ def test_a_stopped_draw_goes_on_and_ends_with_the_stars_of_an_unbroken_one(galax
         raise Stop
 
     with pytest.raises(Stop):
-        sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTRE, on_batch=stop)
+        sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTER, on_batch=stop)
     conn.rollback()
     assert conn.execute("SELECT complete, batches_done FROM sky_tier_draws").fetchone() == {"complete": 0, "batches_done": 1}
     assert not ledger_module.read(conn).draws                                                      # a half-drawn sphere does not count
-    sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTRE)
+    sky_charting.draw_tier(sky_charting._Context(conn), tier, SPHERE_CENTER)
     assert sorted(_stored_stars(conn)) == sorted(unbroken)
     assert conn.execute("SELECT complete FROM sky_tier_draws").fetchone()["complete"] == 1
 
@@ -184,8 +184,8 @@ def test_a_mass_ring_draws_the_cells_as_the_mass_backfill_does_and_records_the_m
     radius = sky_charting.padded_radius(tier)
     context = sky_charting._Context(conn)
     before = _stored_stars(conn)
-    done = sky_charting.draw_tier(context, tier, SPHERE_CENTRE)
-    cells = [row[:3] for row in spherical.enumerate_sectors_within_radius(SPHERE_CENTRE, radius, EDGE_PC)]
+    done = sky_charting.draw_tier(context, tier, SPHERE_CENTER)
+    cells = [row[:3] for row in spherical.enumerate_sectors_within_radius(SPHERE_CENTER, radius, EDGE_PC)]
     expected = sorted(tuple(row) for row in brightStars.backfill_mass_cells(context.skeleton.shape, cells, EDGE_PC, context.expected, 5.0, 8.0, THRESHOLD,
                                                                            context.seed, context.edges))
     assert done.stars > 0 and new_stars(conn, before) == expected
@@ -206,11 +206,11 @@ def test_a_sphere_then_the_sector_backfill_gives_the_stars_of_the_sector_backfil
     conn = galaxy
     tier = a_tier(low=1000.0, high=3000.0)                 # reaches up to the scatter's 2,500, so the chain touches
     radius = sky_charting.padded_radius(tier)
-    cells = sorted(row[:3] for row in spherical.enumerate_sectors_within_radius(SPHERE_CENTRE, radius, EDGE_PC))
+    cells = sorted(row[:3] for row in spherical.enumerate_sectors_within_radius(SPHERE_CENTER, radius, EDGE_PC))
     first_id = conn.execute("SELECT MAX(id) AS id FROM bright_stars").fetchone()["id"]
     context = sky_charting._Context(conn)
 
-    sky_charting.draw_tier(context, tier, SPHERE_CENTRE)
+    sky_charting.draw_tier(context, tier, SPHERE_CENTER)
     run_plan._draw_sector_bands(conn, context.skeleton, cells, 1000.0, context.limits, context.seed)
     both = sorted(_stored_stars(conn))
     levels = {row["bright_level_sol"] for row in conn.execute("SELECT bright_level_sol FROM sector_stats").fetchall()}
@@ -230,17 +230,17 @@ def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_
     real_plan = sky_charting.plan
 
     def small_plan(observer_pc, limit_mag, edge_pc, **options):         # a toy table: one band and one ring, a few cells across
-        centre, tiers = real_plan(observer_pc, limit_mag, edge_pc, **options)
-        return centre, tiers._replace(luminosity=(a_tier(low=500.0, high=1000.0),), rings=(a_tier("mass", low=5.0, high=8.0),), dropped=())
+        center, tiers = real_plan(observer_pc, limit_mag, edge_pc, **options)
+        return center, tiers._replace(luminosity=(a_tier(low=500.0, high=1000.0),), rings=(a_tier("mass", low=5.0, high=8.0),), dropped=())
 
     monkeypatch.setattr(sky_charting, "plan", small_plan)
     named = {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}
     params = {"database": named, "sky_limit": 7.5}
-    units = run_galaxy._sky_units(params, [SPHERE_CENTRE, SPHERE_CENTRE])       # two sectors of one cell: one unit
+    units = run_galaxy._sky_units(params, [SPHERE_CENTER, SPHERE_CENTER])       # two sectors of one cell: one unit
     assert len(units) == 1 and units[0][1] >= 1.0 and units[0][0]["sky"]["limit"] == 7.5
     before = _stored_stars(conn)
     result = run_galaxy.backfill_bright_stars_unit(units[0][0], lambda done, total: None)
     conn.commit()                                                       # a new snapshot: the unit wrote through its own connection
     assert result["sky"]["spheres"] == 2 and result["stars"] == result["sky"]["stars"] == len(new_stars(conn, before))
     assert len(ledger_module.read(conn).draws) == 2
-    assert run_galaxy._sky_units(params, [SPHERE_CENTRE]) == []
+    assert run_galaxy._sky_units(params, [SPHERE_CENTER]) == []
