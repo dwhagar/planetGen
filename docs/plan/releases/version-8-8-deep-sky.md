@@ -21,7 +21,6 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.179 | Scattered nebulae as markers from level 8 | GEN.202 | Phase 2. Foundations lane 2. |
-| MAP.177 | Color by "Nebula cover" on the Galaxy Map |  | Phase 2. Foundations lane 2. |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table |  | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover |  | Phase 2. Foundations lane 2. |
 | MAP.181 | Dust colour for the dark nebula family on both themes |  | Phase 2. Foundations lane 2. |

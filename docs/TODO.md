@@ -1228,38 +1228,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
-- [ ] **MAP.177 Color by "Nebula cover" on the Galaxy Map**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. a new choice in the MAP.131 Color by switch: a
-  single-hue 5-bin ramp (0, under 5, 5 to 15, 15 to 30 and 30% or more),
-  legend "share of the block inside a nebula", hover shows the
-  percentage, works on unfilled cells. Off by default. Done: the choice,
-  legend and hover with a browser test. Owner: Foundations lane 2.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the cover
-  ramp bins are those of MAP.178's nebula density research (2026-10-10,
-  PR #1188): 0, under 0.5 percent, 0.5 to 1.5, 1.5 to 3 and 3 percent or
-  more, replacing 0, under 5, 5 to 15, 15 to 30 and 30 percent or more
-  (the alternative of per-view percentiles stays open for the builder).
-  Note from MAP.174 (Core 2, #2694 merged about 3:00 PM EDT 2026-10-23
-  as the lane reported): the Galaxy Map stage and window payloads now
-  carry the nebula cover per block cell (GET /api/galaxy/nebula-cover,
-  db.query.galaxy_nebula_cover, read live beside the cached payload
-  because the tile cache only invalidates on sector changes);
-  sector-level cells have no stored cover, so this item needs that if it
-  wants the colour at sector level. The route is additive, so
-  API_VERSION stays 5.
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, first (VIEW.21 and VIEW.28 are merged). Core 2 keeps MAP.142 and the
-  MAP.215, MAP.191, MAP.222 order.
-  Prerequisites: none. Related: MAP.131, MAP.174.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
 - [ ] **MAP.178 Field nebula clouds drawn one by one from the nebula table**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -2082,17 +2050,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.380 The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug)**
-  Core 2 (as the lane reported, 8:13 PM EST on 2026-11-04):
-  test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parsec_apart
-  fails the same on main before the MAP.378 and MAP.379 fix (#4954): at
-  the end of the wheel the second star is only 15 px from the first.
-  Find the commit that moved it (bisect), then either let the wheel zoom
-  close enough or, if a later item changed the closest zoom on purpose,
-  change the test and say why. Done: the test passes on main. Lock-free.
-  Version 8.1. Owner: Core 2.
-  Prerequisites: none. Related: MAP.378, MAP.379.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2537,59 +2494,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
-- [ ] **NAV.65 Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  1 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: add route.graph
-  to nav_between and /api/nav: the edges among the route's stops and
-  each stop's neighbours up to a cap (marked on-route or not),
-  neighbours chosen by the relative neighbourhood graph rule of Boss's
-  answer 3.2 from the cell-key index. The graph is already built for the
-  search, so returning its edges costs no new search. Measure the cost
-  on a real galaxy (the research had no database). Done: tests of the
-  edges, the cap and the on-route flag; the measured cost in the note.
-  Proposed owner: Aux 7 (python) after GEN.1255. Goal #1679. Filed by
-  the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
-  TEST.562 waits).
-  Prerequisites: none.
-
-- [ ] **NAV.66 Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  2 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: a pure layout
-  module for the ribbon (layout L1 of the report): the route as a line,
-  long hops compressed in log spacing with their length written on them,
-  stubs for branches, a wrapping rule for narrow panels, deterministic
-  output. Done: unit tests with fixed inputs. Proposed owner: Aux 7. The
-  plain ribbon needs no branches; branches need part 1. Goal #1679.
-  Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
-  TEST.562 waits).
-  Prerequisites: NAV.65.
-
 - [ ] **NAV.67 Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops**
   Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
   questions
@@ -2634,7 +2538,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   route's own hops always drawn. Done: a browser test in a dense and a
   sparse case. Proposed owner: Core 2. Goal #1679. Filed by the TODO
   thread.
-  Prerequisites: NAV.65, NAV.67.
+  Prerequisites: NAV.67.
 
 - [ ] **NAV.69 Schematic route map part 5: linked selection between the course diagram and the Galaxy Map**
   Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
@@ -18829,21 +18733,6 @@ clears each one.
   Done: the four pass on main. Lock-free. Version 8.1. Owner: Tides 1,
   with TEST.580 and TEST.581. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580, TEST.581, OPS.95.
-
-- [ ] **TEST.584 test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug)**
-  Core 5 (as the lane reported, 8:47 PM EST on 2026-11-04), merging
-  API.40 (#4972): this test fails on clean main and not from that
-  change; the delete of a sector that holds facilities returns 409 where
-  the test expects the delete to go through. Find the commit that
-  changed it, then fix the code or the test and say which (a sector with
-  facilities may rightly refuse deletion now; if so the test is stale).
-  Done: the test passes on main. Lock-free. Version 8.1. Owner: Tides 1,
-  with TEST.583. The american_spelling code-strings failures
-  (updateguard.py cancelled, sheet.py disc) are the DOC.103 sweep, which
-  is in train 10. Filed by the TODO thread.
-  Owner change (9:17 PM EST on 2026-11-04): Core 5 takes this item from
-  Tides 1 (Core 5 found the failure and has no other unlocked item).
-  Prerequisites: none. Related: TEST.583, TEST.580, TEST.581, DOC.103.
 
 ## USR: User accounts
 
