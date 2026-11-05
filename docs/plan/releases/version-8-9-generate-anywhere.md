@@ -1,4 +1,4 @@
-# Version 8.9: Generate anywhere
+# Version 8.9: Remote build
 
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
@@ -10,7 +10,7 @@ Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cor
 
 ## Goal
 
-Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it, plus generate by recipe. Proposed by the TODO thread; not yet approved by Boss. Boss (2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9") also put here what was planned for 9.0 and needs nothing of the atmosphere colour: the sky data and research of the view from a planet (phase 3) and the backups and repair chain (ADM.91, phases 4 and 5).
+Boss (5:40 PM EST on 2026-11-05): the headline is "Remote build". Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it, plus generate by recipe. Proposed by the TODO thread; not yet approved by Boss. Boss (2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9") also put here what was planned for 9.0 and needs nothing of the atmosphere colour: the sky data and research of the view from a planet (phase 3) and the backups and repair chain (ADM.91, phases 4 and 5).
 
 ## Phase 1: Upload groundwork and recipes
 
