@@ -8,13 +8,13 @@ The one record every log line the program writes for a person or a tool to read 
 written, so a file and a screen can never disagree. The standard, and every place the program logs today, are in
 `docs/design/operations/logging-standard.md`.
 
-A `Record` is a time (whole milliseconds, UTC), a severity (the RFC 5424 levels `debug`, `info`, `notice`, `warning`,
+A `Record` is a time (whole milliseconds since the epoch), a severity (the RFC 5424 levels `debug`, `info`, `notice`, `warning`,
 `error`, `critical`), a short component name, a message and ordered `key=value` fields for numbers and names a tool
 may want (a count, an elapsed time). It is written as:
 
-* a **file line** (`file_line`), logfmt, one record per line, the time always UTC::
+* a **file line** (`file_line`), logfmt, one record per line, the time local with the offset of its zone (OPS.97)::
 
-      ts=2026-10-24T18:40:00.123Z level=info component=generate msg="Stage 4 of 12: Scatter the massive stars" stage=4 stages=12
+      ts=2026-10-24T14:40:00.123-0400 level=info component=generate msg="Stage 4 of 12: Scatter the massive stars" stage=4 stages=12
 
 * a **JSON line** (`json_line`), the same record as JSON Lines, for machines;
 * a **display line** (`display_line`), for the command line and the web log: the time in local time and labelled with its
@@ -136,23 +136,29 @@ class Record:
         return f"Record({self.ms}, {self.severity!r}, {self.component!r}, {self.message!r}, {self.fields!r})"
 
 
-def _utc(ms):
-    """`"2026-10-24T18:40:00.123Z"` for `ms` milliseconds since the epoch."""
-    moment = _EPOCH + datetime.timedelta(milliseconds=ms)
-    return moment.strftime("%Y-%m-%dT%H:%M:%S") + f".{moment.microsecond // 1000:03d}Z"
+def _stamp(ms):
+    """`"2026-10-24T14:40:00.123-0400"` for `ms` milliseconds since the epoch: the computer's local time with the offset of its zone (OPS.97)."""
+    moment = (_EPOCH + datetime.timedelta(milliseconds=ms)).astimezone()
+    return moment.strftime("%Y-%m-%dT%H:%M:%S") + f".{moment.microsecond // 1000:03d}" + moment.strftime("%z")
 
 
 def _ms_of(stamp):
-    """The milliseconds since the epoch of a `_utc` text.
+    """The milliseconds since the epoch of a `_stamp` text.
 
     Raises:
         ValueError: Not a time in that form.
     """
-    match = re.match(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)\.(\d{3})Z$", stamp)
+    match = re.match(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)\.(\d{3})([+-]\d{4})$", stamp)
     if not match:
-        raise ValueError(f"{stamp!r} is not a time like 2026-10-24T18:40:00.123Z")
-    moment = datetime.datetime.strptime(match.group(1), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc)
+        raise ValueError(f"{stamp!r} is not a time like 2026-10-24T14:40:00.123-0400")
+    moment = datetime.datetime.strptime(match.group(1) + match.group(3), "%Y-%m-%dT%H:%M:%S%z")
     return int((moment - _EPOCH) / datetime.timedelta(milliseconds=1)) + int(match.group(2))
+
+
+def local_text(seconds):
+    """`"2026-10-24 14:40:00 EDT"` for `seconds` since the epoch: the local time labelled with its zone, as the display line writes it."""
+    moment = (_EPOCH + datetime.timedelta(seconds=seconds)).astimezone()
+    return f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}"
 
 
 _ESCAPES = {"\\": "\\\\", '"': '\\"', "\n": "\\n", "\r": "\\r", "\t": "\\t"}
@@ -189,8 +195,8 @@ def _value_text(value):
 
 
 def file_line(record):
-    """The record as a file line (logfmt, the time in UTC, no line break)."""
-    parts = [f"ts={_utc(record.ms)}", f"level={record.severity}", f"component={record.component}",
+    """The record as a file line (logfmt, the time local with its offset, no line break)."""
+    parts = [f"ts={_stamp(record.ms)}", f"level={record.severity}", f"component={record.component}",
              f"msg={_quote(record.message)}"]
     parts.extend(f"{name}={_value_text(value)}" for name, value in record.fields.items())
     return " ".join(parts)
@@ -198,7 +204,7 @@ def file_line(record):
 
 def json_line(record):
     """The record as a JSON Lines line: the same names as the file line, the fields beside them."""
-    body = {"ts": _utc(record.ms), "level": record.severity, "component": record.component, "msg": record.message}
+    body = {"ts": _stamp(record.ms), "level": record.severity, "component": record.component, "msg": record.message}
     body.update(record.fields)
     text = json.dumps(body, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
     return text.replace("\u0085", "\\u0085").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
