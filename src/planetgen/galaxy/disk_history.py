@@ -24,7 +24,7 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
    Milky Way's chemical evolution model ([R5095], section 3), stopped at 2 Gy inside and 8 Gy outside, the shortest and longest of
    the later model of [R5094] (`infall_time_gy`, `tuning.DISK_INFALL_*`). The ring at `x` scale lengths has the time scale of the
    Milky Way's ring at `x` of its own 2.6 kpc: no source gives how the infall scales with a galaxy's size (GEN.725 row GI1). The disk's mass enters through
-   its circular speed `V` (the cube root of its mass): the inflow is also multiplied by `exp(0.4 t (1 - V / 220))` per Gy ([R5119] equation 21), so a lighter
+   its circular speed `V` (the cube root of its mass): the inflow is also multiplied by `exp(0.4 t (1 - V / 220))` per Gy ([R5121] equation 21), so a lighter
    disk is fed more and more slowly and forms its stars late, a heavier one the other way (GEN.1246).
    Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's density
    gives it. (Until GEN.1230 the inflow followed the stars the galaxy's halo builds, which for the lighter halos of GEN.1154 kept
@@ -121,14 +121,14 @@ def infall_time_gy(radius_scale_lengths):
 
 
 def disk_speed_kms(stellar_mass_solar):
-    """The circular speed (km/s) of a disk of `stellar_mass_solar`: the Milky Way's 220 km/s at its 5e10 solar masses, as the cube root of the mass ([R5119], `M_d` proportional to `V_C^3`)."""
+    """The circular speed (km/s) of a disk of `stellar_mass_solar`: the Milky Way's 220 km/s at its 5e10 solar masses, as the cube root of the mass ([R5121], `M_d` proportional to `V_C^3`)."""
     return tuning.DISK_INFALL_REFERENCE_SPEED_KMS * (stellar_mass_solar / tuning.DISK_INFALL_REFERENCE_MASS_SOLAR) ** (1.0 / 3.0)
 
 
 def inflow_shapes(radius_scale_lengths, span_gy, steps, speed_kms):
     """
     The gas inflow of each ring over `span_gy` Gy on `steps` equal steps (oldest first), relative to its start: `exp(-t / tau + k t (1 - V / 220))` with
-    `infall_time_gy` of the ring, `k` `tuning.DISK_INFALL_MASS_TERM_PER_GY` and `V` the disk's circular speed `speed_kms` ([R5119], equation 21).
+    `infall_time_gy` of the ring, `k` `tuning.DISK_INFALL_MASS_TERM_PER_GY` and `V` the disk's circular speed `speed_kms` ([R5121], equation 21).
 
     Returns:
         numpy.ndarray: `steps + 1` rows by one column per ring.

@@ -5,17 +5,17 @@ The spread of ice-giant internal heat (GEN.1033, registry 6.166)
 ================================================================
 
 The cooling law of `rogue_surface.giant_internal_flux_w_m2` (GEN.816) runs through Jupiter and Neptune, so it gives a Uranus-mass giant
-Neptune's heat, 0.32 W/m2, where Uranus radiates 0.042 (+0.047, -0.042) W/m2 against Neptune's 0.433 +/- 0.046 ([R5113: Table 2], from
-[R3466, R5114]). The two planets are alike in mass, radius and composition, so a spread of ten in their heat needs a physical reason.
+Neptune's heat, 0.32 W/m2, where Uranus radiates 0.042 (+0.047, -0.042) W/m2 against Neptune's 0.433 +/- 0.046 ([R5115: Table 2], from
+[R3466, R5116]). The two planets are alike in mass, radius and composition, so a spread of ten in their heat needs a physical reason.
 
 **The reason.** An ice giant cools adiabatically (its whole interior convects) or it does not. A steep compositional gradient between its
 hydrogen-helium envelope and its ice-rich inner part stops the convection there and leaves a thermal boundary layer: the heat of the inner
-part leaks through it slowly and the planet looks cold from outside while the inside stays hot ([R5115]: a gradual composition distribution
+part leaks through it slowly and the planet looks cold from outside while the inside stays hot ([R5117]: a gradual composition distribution
 "acts as a thermal boundary to suppress convection and slow down the internal cooling", enough to give Uranus's luminosity, and stable for
-billions of years; [R5118]: even a thin conducting layer of a few kilometres changes the cooling a lot, and Uranus's luminosity is reproduced
-only if it has been near equilibrium with the sunlight for long). An adiabatic Uranus cannot be as faint as it is ([R5117]: cooling times of
+billions of years; [R5120]: even a thin conducting layer of a few kilometres changes the cooling a lot, and Uranus's luminosity is reproduced
+only if it has been near equilibrium with the sunlight for long). An adiabatic Uranus cannot be as faint as it is ([R5119]: cooling times of
 5.1 Gyr for Uranus and 3.7 for Neptune bracket the age and neither present luminosity is adiabatic). What decides which interior a giant
-keeps is its history: a violent impact mixes it ([R5116]: a head-on collision of a massive projectile can mix the interior to an adiabatic
+keeps is its history: a violent impact mixes it ([R5118]: a head-on collision of a massive projectile can mix the interior to an adiabatic
 temperature profile, which may explain Neptune's larger flux; an oblique one tilts Uranus and leaves it layered).
 
 **The draw.** An ice giant (a core that found no gas, `ICE_GIANT_MAX_EARTH`) either keeps a stable gradient, with the chance `STRATIFIED_SHARE`,
@@ -36,12 +36,12 @@ ICE_GIANT_MAX_EARTH = tuning.GIANT_NO_GAS_CORE_MAX_EARTH
 """float: The heaviest ice giant, Earth masses (a core that found no gas stops growing here, `giant_draw.ICE_GIANT_MAX_EARTH`)."""
 
 STRATIFIED_SHARE = 0.5
-"""float: The chance an ice giant keeps a stable compositional gradient. One of the two ice giants measured has one (Uranus; [R5113: Table 2]), so
+"""float: The chance an ice giant keeps a stable compositional gradient. One of the two ice giants measured has one (Uranus; [R5115: Table 2]), so
 the share is the rule of succession's (1 + 1) / (2 + 2). The impact history that mixes a giant (`giant_tilt`) is not drawn from this. Registry
 row IGH1 (source tier T6, tweak level L0)."""
 
 SUPPRESSION_RANGE = (0.03, 0.30)
-"""tuple: The share of the cooling law's flux a layered ice giant radiates, log-uniform. Uranus radiates 0.042 +0.047 -0.042 W/m2 ([R5113: Table 2]) of the
+"""tuple: The share of the cooling law's flux a layered ice giant radiates, log-uniform. Uranus radiates 0.042 +0.047 -0.042 W/m2 ([R5115: Table 2]) of the
 0.32 W/m2 the law gives at its mass, 0.13 of it and from nothing to 0.28; the range is 0.01 to 0.095 W/m2 there, inside that uncertainty. Registry row
 IGH2 (source tier T2, tweak level L1)."""
 

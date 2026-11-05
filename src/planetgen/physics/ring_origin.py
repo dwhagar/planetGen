@@ -77,7 +77,7 @@ DUST_YIELD = 10.0
 """float: The mass of dust that stays in orbit round the planet per unit mass of meteoroid that strikes a feeding moon (the ejecta of a hypervelocity impact are 1e1 to 1e3 impactor masses and most of them
 escape the moon's weak gravity or fall back; the share kept as ring dust is not measured, and 10 puts the four inner moons of Jupiter at 2.4e7 kg of dust, inside the 1e7 to 1e9 kg of Jupiter's ring). Source tier T6, tweak level L3 (GEN.1233)."""
 DUST_LIFETIME_YR = 1.0e4
-"""float: How long a dust grain of a faint ring lasts against Poynting-Robertson and plasma drag and the planet's shadow (1e3 to 1e5 years for micron grains round Jupiter, [R5112], recalled). Source tier T6, tweak level L1 (GEN.1233)."""
+"""float: How long a dust grain of a faint ring lasts against Poynting-Robertson and plasma drag and the planet's shadow (1e3 to 1e5 years for micron grains round Jupiter, [R5114], recalled). Source tier T6, tweak level L1 (GEN.1233)."""
 
 FEEDER_MEAN_COUNT = 6.0
 """float: How many small moonlets a giant has inside `FEEDER_MAX_DISTANCE_RADII` radii, on average, drawn Poisson: the generator makes no moon smaller than a few hundred km, so the inner moonlets that keep a dust ring
