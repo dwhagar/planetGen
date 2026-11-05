@@ -1497,6 +1497,19 @@ def uncharted_systems():
     })
 
 
+def _object_list_sector(raw_sector_id):
+    """The sector row an object list is limited to, from the `sector_id` query parameter (a sector ID), `None` when
+    absent; 0 (no sector has it) for a sector that is not there."""
+    if not raw_sector_id:
+        return None
+    try:
+        ids.parse(ids.SECTOR, raw_sector_id)
+    except ids.IdError:
+        raise ApiError(f"sector_id must be a sector ID, got {raw_sector_id!r}")
+    found = ids.row_id(get_db(), ids.SECTOR, raw_sector_id)
+    return 0 if found is None else found
+
+
 @bp.route("/object-lists/<kind>")
 def object_list(kind):
     """
@@ -1514,14 +1527,14 @@ def object_list(kind):
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
     `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
-    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a number.
+    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])
     try:
         limit = int(request.args.get("limit") or objectlist.DEFAULT_LIMIT)
-        sector_id = int(request.args["sector_id"]) if request.args.get("sector_id") else None
     except ValueError:
-        raise ApiError("limit and sector_id must be whole numbers")
+        raise ApiError("limit must be a whole number")
+    sector_id = _object_list_sector(request.args.get("sector_id"))
     try:
         ranges = search_values.ranges_from_args(request.args).get(kind) if kind in objectlist.VALUE_KINDS else None
         page = objectlist.list_objects(
