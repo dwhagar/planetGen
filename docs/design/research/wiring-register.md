@@ -338,3 +338,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.188:DU1 | VIEW.44 | `dust_model.HYDROGEN_ATOMS_PER_AV_CM2`, read when the sky reads the profile |
 | row | 6.188:DU2 | VIEW.44 | `dust_model.VISIBLE_SHARE`, read when the sky reads the profile |
 | row | 6.188:DU4 | VIEW.46 | `dust_model.LAYER_FLOOR_PC`, replaced by the vertical force of the potential |
+| function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |

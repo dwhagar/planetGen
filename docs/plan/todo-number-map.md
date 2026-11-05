@@ -13,8 +13,8 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.275 |
-| MAP | MAP.394 |
+| UX | UX.283 |
+| MAP | MAP.398 |
 | NAV | NAV.78 |
 | GEN | GEN.1294 |
 | PERF | PERF.244 |
@@ -22,10 +22,10 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.629 |
+| TEST | TEST.631 |
 | USR | USR.32 |
 | OPS | OPS.106 |
-| DOC | DOC.107 |
+| DOC | DOC.109 |
 | VIEW | VIEW.47 |
 | POP | POP.52 |
 
@@ -786,6 +786,8 @@ Parents marked "new parent" had no old number of their own.
 | DOC.104 | Headline of 8.7: full help for all pages, with the pilot's console look | none | open |
 | DOC.105 | Docs for politics: the help page for borders, contested systems, splits and the map time control, and the design note | none | open |
 | DOC.106 | Docs for ships and stations: the help page (states, courses, tracks, how the ship's place is found) and the design note | none | open |
+| DOC.107 | Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes | none | open |
+| DOC.108 | Docs: the View menu (headings, search, reset, how a layer declares its heading) in the help and the design notes | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -2444,7 +2446,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.363 | Object page: draw the lumpy silhouette of an unrounded small body, as the System Map and the 3D system view do (bodyview.js) | none | done, PR #4594 |
 | MAP.364 | Progress bar for each map level while its tiles load (Z0 to Z5) | none | done, PR #4820 |
 | MAP.365 | Galaxy Map nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density, tinting the map regions they cover, merged additively | none | done, PR #4844 |
-| MAP.366 | Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug) | none | open |
+| MAP.366 | Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug) | none | done, PR #5227 |
 | MAP.367 | Halve the cap on stars and other objects drawn on the Galaxy Map, except in Sector view where everything is shown | none | done, PR #4878 |
 | MAP.368 | Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on | none | done, PR #4858 |
 | MAP.369 | Region labels still do not show as clickable points of interest that zoom into the charted region (bug) | none | open |
@@ -2464,14 +2466,18 @@ Parents marked "new parent" had no old number of their own.
 | MAP.383 | Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both | none | done, PR #5187 |
 | MAP.384 | Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening | none | done, PR #5207 |
 | MAP.385 | Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget | none | done, PR #5207 |
-| MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies | none | open |
-| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field | none | open |
+| MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies | none | done, PR #5227 |
+| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field | none | done, PR #5227 |
 | MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | none | open |
 | MAP.389 | Borders on the maps: hard lines on the Sector and System Maps where two owners meet, a soft haze on the Galaxy Map, and a reserved hatch style for contested systems, drawn from the stored owners and cached by the territory epoch | none | open |
 | MAP.390 | Past borders: the Territories layer gets a time control that shows the borders at any stored epoch, from the history rows the step writes | none | open |
 | MAP.391 | The ship page shows the territories crossed: a read of the owners along a vessel's track (borders block nothing) | none | open |
 | MAP.392 | Weird spheres and circle markers still drawn for nebulae (bug) | none | open |
 | MAP.393 | Chart View fixes: steady coordinate labels, fixed isometric tilt, wedge focus buttons, one Chart View menu group, Charted regions on by default | none | done, PR #5223 |
+| MAP.394 | Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel | none | open |
+| MAP.395 | Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat | none | open |
+| MAP.396 | Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts | none | open |
+| MAP.397 | Some View menu options show only the word "Forward" and cannot be clicked (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2896,7 +2902,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.240 | A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug) | none | open |
 | PERF.241 | A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug) | none | open |
 | PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | none | open |
-| PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | none | open |
+| PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | none | done, PR #5227 |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3287,9 +3293,17 @@ Parents marked "new parent" had no old number of their own.
 | UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | none | open |
 | UX.270 | Console look on the admin shell and admin pages, by tokens only | none | open |
 | UX.271 | The polity history page: a timeline of its territory, cohesion, splits and trade totals, and the journal feed on the API | none | open |
-| UX.272 | Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted | none | open |
+| UX.272 | Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted | none | done, PR #5227 |
 | UX.273 | Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views | none | open |
 | UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps | none | open |
+| UX.275 | Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry | none | open |
+| UX.276 | Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels | none | open |
+| UX.277 | Map layer registry fields for the View menu: heading, keywords, common flag and a settings hook, every existing layer given its heading, and a guard test that fails for a layer with none | none | open |
+| UX.278 | Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default | none | open |
+| UX.279 | Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet | none | open |
+| UX.280 | Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list | none | open |
+| UX.281 | View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible | none | open |
+| UX.282 | Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -4051,6 +4065,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.626 | tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries fails on plain main (4 of 4 runs) (bug) | none | done, PR #5219 |
 | TEST.627 | Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3 | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | open |
+| TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
+| TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

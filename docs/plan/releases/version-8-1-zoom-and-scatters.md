@@ -74,7 +74,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 |---|---|---|---|
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.369 | Region labels still do not show as clickable points of interest that zoom into the charted region (bug) |  |  |
-| MAP.366 | Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug) |  |  |
 
 ### Composition research and design
 
@@ -113,6 +112,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |
 | MAP.392 | Weird spheres and circle markers still drawn for nebulae (bug) |  |  |
+| MAP.397 | Some View menu options show only the word "Forward" and cannot be clicked (bug) |  |  |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) |  |  |
 
@@ -227,8 +227,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) |  | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
-| UX.272 | Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted |  |  |
-| DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) | UX.272 |  |
+| DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) |  |  |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | UX.115 | Quality; queued after UX.115 |
 
 ### Habitability system
