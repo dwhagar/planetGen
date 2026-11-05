@@ -24,9 +24,10 @@ import math
 from planetgen.db import corridor
 from planetgen.galaxy import avoid, keepout
 from planetgen.physics import constants
-from planetgen.physics.units import ly_to_pc
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 KM_PER_PC = constants.PARSEC_M / 1000.0
+PC_CM = constants.PARSEC_M * 100.0
 
 CONTAIN_MARGIN = avoid.CONTAIN_MARGIN
 """float: A sphere contains a point when the center is no farther than `radius * (1 + CONTAIN_MARGIN)` (the closed test of the design,
@@ -161,11 +162,70 @@ def obstacles_along_segment(conn, start_pc, end_pc, kinds=None):
     return found
 
 
+PASS_THROUGH_KINDS = ("nebula", "supernova_remnant")
+"""tuple: The kinds a course passes through with a note and no keep-out (NAV.54, course-avoidance.md section 3.4)."""
+
+_PASS_THROUGH_TABLES = {"nebula": "nebulae", "supernova_remnant": "supernova_remnants"}
+
+
+def passed_through_along_segment(conn, start_pc, end_pc):
+    """
+    NAV.28: the clouds and remnants a straight segment crosses, in order along it. A nebula or a supernova remnant is no obstacle (the gas
+    is thin and the drawn shape fills a fraction of its bounding sphere), so the course goes through it and says so.
+
+    The length inside is the chord of the bounding sphere clipped to the segment, an upper bound: the drawn shape fills about 13% of the
+    sphere. A nebula's column density is its stored density times that length, also an upper bound.
+
+    Returns:
+        list[dict]: `ref`, `kind`, `id`, `name`, `note` (`keepout.PASS_THROUGH_NOTE`), `inside_length` and `inside_length_ly` (the length
+            inside, parsecs and light-years; never more than the segment) and, for a nebula with a density, `column_cm2` (hydrogen
+            atoms per cm^2 along that length). Only the ones the segment actually enters.
+    """
+    start, end = tuple(float(v) for v in start_pc), tuple(float(v) for v in end_pc)
+    length = math.dist(start, end)
+    if length <= 0.0:
+        return []
+    direction = tuple((e - s) / length for s, e in zip(start, end))
+    found = []
+    for kind in PASS_THROUGH_KINDS:
+        table = _PASS_THROUGH_TABLES[kind]
+        widest = ly_to_pc(_scalar(conn, f"SELECT MAX(radius_ly) AS v FROM {table} WHERE center_x_pc IS NOT NULL"))
+        if widest <= 0.0:
+            continue
+        density = "density_cm3" if kind == "nebula" else "NULL"
+        for row in corridor.objects_near_segment(conn, start, end, widest, kinds=[kind]):
+            extra = conn.execute(f"SELECT radius_ly, {density} AS density FROM {table} WHERE id = ?", (row["id"],)).fetchone()
+            radius = ly_to_pc(float(extra["radius_ly"] or 0.0))
+            center = tuple(row["point_pc"])
+            along = sum((c - s) * d for c, s, d in zip(center, start, direction))
+            off = math.sqrt(sum((c - s - along * d) ** 2 for c, s, d in zip(center, start, direction)))
+            if radius <= 0.0 or off >= radius:
+                continue
+            half = math.sqrt(radius * radius - off * off)
+            inside = max(0.0, min(length, along + half) - max(0.0, along - half))
+            if inside <= 0.0:
+                continue
+            entry = {"ref": row["ref"], "kind": kind, "id": row["id"], "name": row["name"], "note": keepout.PASS_THROUGH_NOTE,
+                     "inside_length": inside, "inside_length_ly": pc_to_ly(inside), "_along": max(0.0, along - half)}
+            if extra["density"]:
+                entry["column_cm2"] = float(extra["density"]) * inside * PC_CM
+            found.append(entry)
+    found.sort(key=lambda entry: (entry["_along"], entry["ref"]))
+    for entry in found:
+        del entry["_along"]
+    return found
+
+
 def adjusted_course(conn, start_pc, end_pc, kinds=None):
     """
     The course from `start_pc` to `end_pc` bent around the keep-out spheres between them (NAV.6): the obstacles of
     `obstacles_along_segment` handed to the planner (`galaxy.avoid.plan_course`). The `adjusted` object of
-    course-avoidance.md section 7, in the galactic frame, parsecs. Nothing is generated: space with no placed object has none to avoid.
+    course-avoidance.md section 7, in the galactic frame, parsecs, with `names` (`{ref: name}` of the objects it goes round) and `passed_through`
+    (`passed_through_along_segment`). Nothing is generated: space with no placed object has none to avoid.
     """
     found = obstacles_along_segment(conn, start_pc, end_pc, kinds=kinds)
-    return avoid.plan_course(start_pc, end_pc, avoid.spheres_from_obstacles(found), frame="galactic", unit="pc")
+    course = avoid.plan_course(start_pc, end_pc, avoid.spheres_from_obstacles(found), frame="galactic", unit="pc",
+                               passed_through=passed_through_along_segment(conn, start_pc, end_pc))
+    names = {row["ref"]: row["name"] for row in found}
+    course["names"] = {ref: names[ref] for ref in course["avoided"] + course["ignored_below_resolution"] if ref in names}
+    return course

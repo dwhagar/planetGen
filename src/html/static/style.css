@@ -1615,6 +1615,12 @@ a.navmap-label:focus-visible {
   stroke-width: 2;
 }
 
+/* NAV.28: the course bent round keep-out spheres, over the route, in the amber of the site's warning tier. */
+.navmap-bent-line {
+  stroke: var(--tier-yellow);
+  stroke-width: 2.5;
+}
+
 /* NAV.36: a jump through unknown space is red, dashed and glowing (the glow is the SVG's filter); it pulses only where the visitor has
    not asked for reduced motion. */
 .navmap-route-unknown,
@@ -3116,6 +3122,12 @@ code {
 .map-layer-legend-swatch.map-key-course-unknown {
   height: 0;
   border-top: 3px dashed var(--error);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
+.map-layer-legend-swatch.map-key-bent {
+  height: 0;
+  border-top: 3px solid var(--tier-yellow);
   border-radius: 0;
   vertical-align: 0.2rem;
 }

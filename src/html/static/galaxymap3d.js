@@ -3573,6 +3573,13 @@ function initGalaxyMap3d(canvasEl, data) {
         gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
       }), true));
     }
+    // NAV.28: the course bent round keep-out spheres, one polyline for each line that bends, over the route in amber.
+    var bentColor = mapVar("--tier-yellow", "#d9a400");
+    (course.adjusted || []).forEach(function (line) {
+      if (line.length < 2) return;
+      courseGroup.add(lineFrom(line.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); }),
+        new THREE.LineBasicMaterial({ color: new THREE.Color(bentColor), depthTest: false, transparent: true })));
+    });
     course.points.forEach(function (point, n) {
       var ends = n === 0 || n === course.points.length - 1;
       var ring = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -4602,6 +4609,9 @@ function initGalaxyMap3d(canvasEl, data) {
       layers.registerKey({ id: "key-course", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return true; } });
       if (course.points.some(function (point) { return point.hopUnknown; })) {
         layers.registerKey({ id: "key-course-unknown", text: "Red dashed glowing line: a jump through unknown space", swatchClass: "map-key-course-unknown", drawn: function () { return true; } });
+      }
+      if ((course.adjusted || []).length) {
+        layers.registerKey({ id: "key-course-bent", text: "Amber line: the course bent round a keep-out sphere", swatchClass: "map-key-bent", drawn: function () { return true; } });
       }
       if (course.direct && course.direct.length === 2) {
         layers.registerKey({ id: "key-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return true; } });

@@ -101,6 +101,7 @@ class FakeData:
         self.nav_unknown_space = False
         self.nav_stone = False
         self.nav_graph = False
+        self.nav_adjusted = None
         self.nav_chart_error = None
         self.nav_chart = {"unknown_hops": 2, "cells": [[1980, 0, 1], [1980, 0, 2]], "outside_galaxy": 1,
                           "route_distance_ly": 40.0, "confirm_over": 5000,
@@ -192,6 +193,9 @@ class FakeData:
                 {"kind": "between", "from": from_ref, "to": to_ref, "direct": direct}],
             "note": "Same warp and fold tables." if kind in objectref.BODY_KINDS else None,
         }
+        if adjusted and self.nav_adjusted is not None:   # NAV.28: the course bent round keep-out spheres
+            result["adjusted"] = self.nav_adjusted
+            result["route"]["adjusted_distance_ly"] = 3.9
         if graph and self.nav_graph and len(result["route"]["path"]) > 2:   # NAV.65: the links round the route, NAV.68 draws them
             stops = result["route"]["path"]
             result["route"]["graph"] = {
@@ -1340,3 +1344,73 @@ def test_nav_chart_with_nothing_to_chart_or_no_course(client, fake):
     html = client.get("/nav/chart?from=system:1001&to=system:1002").get_data(as_text=True)
     assert "NAV requires both endpoints to share a sector" in html and "planetGen API error" not in html
     assert client.get("/nav/chart").status_code == 302
+
+
+def _adjusted(bent=True, warnings=()):
+    waypoints = [{"p": [0.0, 0.0, 0.0], "kind": "start", "ref": None}]
+    if bent:
+        waypoints += [{"p": [0.4, 0.2, 0.0], "kind": "tangent_in", "ref": "system:1500"},
+                      {"p": [0.6, 0.2, 0.0], "kind": "tangent_out", "ref": "system:1500"}]
+    waypoints.append({"p": [1.0, 0.0, 0.0], "kind": "end", "ref": None})
+    return {"frame": "galactic", "unit": "pc", "waypoints": waypoints, "avoided": ["system:1500", "asteroid_field:4"] if bent else [],
+            "ignored_below_resolution": [], "names": {"system:1500": "Kepler", "asteroid_field:4": "Dust Ring"},
+            "polyline": [[0.0, 0.0, 0.0], [0.4, 0.2, 0.0], [0.5, 0.25, 0.0], [0.6, 0.2, 0.0], [1.0, 0.0, 0.0]] if bent
+            else [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            "straight_length_ly": 3.25, "length_ly": 3.45 if bent else 3.25, "extra_ly": 0.2 if bent else 0.0,
+            "warnings": list(warnings),
+            "warp_times": [{"warp_factor": 1, "formatted": "3 years, 6 months"}, {"warp_factor": 9, "formatted": "2 days"}],
+            "passed_through": [{"ref": "nebula:2", "name": "Rose Cloud", "kind": "nebula", "note": "It is thin gas and dust, so a course passes through it.",
+                                "inside_length_ly": 1.5, "column_cm2": 4.2e21}]}
+
+
+def test_the_nav_page_says_how_the_course_goes_round_what_it_would_pass_too_close_to(client, fake):
+    fake.nav_galaxy_scope = True
+    fake.nav_adjusted = _adjusted()
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "Adjusted Course" in page
+    assert ">Kepler</a> and <a" in page and ">Dust Ring</a>" in page and "of 2 objects" in page
+    assert "3.25" in page and "0.2" in page and "6.2%" in page
+    assert "Leave on" in page and "Warp travel time, straight and adjusted" in page and "3 years, 6 months" in page
+    assert "Passes through Rose Cloud for up to" in page and "4.2e+21 atoms per square centimeter" in page
+    assert "short detour, not a proven shortest path" in page
+    assert "on straight hops and" in page and "3.9" in page
+
+
+def test_the_nav_page_says_so_when_nothing_bends_the_course(client, fake):
+    fake.nav_galaxy_scope = True
+    adjusted = _adjusted(bent=False)
+    adjusted["passed_through"] = []
+    fake.nav_adjusted = adjusted
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "Adjusted Course" in page and "the direct course stands" in page
+    assert "Leave on" not in page and "Warp travel time, straight and adjusted" not in page
+
+
+def test_a_warning_of_the_planner_is_said_in_words(client, fake):
+    fake.nav_galaxy_scope = True
+    fake.nav_adjusted = _adjusted(bent=False, warnings=["overlap_fallback"])
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "overlap, so the course is not bent" in page and "the direct course stands" not in page
+
+
+def test_no_adjusted_panel_when_the_api_sends_none(client, fake):
+    fake.nav_galaxy_scope = True
+    assert "Adjusted Course" not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+
+
+def test_the_nav_map_draws_the_bent_course_and_the_galaxy_maps_course_carries_it(client, fake):  # NAV.28
+    from planetgen.web.nav_page import galaxy_course
+
+    fake.nav_galaxy_scope = True
+    fake.nav_adjusted = _adjusted()
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'class="navmap-bent-line"' in page and "The course bent round a keep-out sphere." in page
+    with client.application.test_request_context("/galaxy"):
+        course = galaxy_course("system:1001", "system:2001")
+    assert len(course["adjusted"]) == 1 and len(course["adjusted"][0]) == 5
+    assert course["adjusted"][0][1] == {"x": 0.4, "y": 0.2, "z": 0.0}
+
+    fake.nav_adjusted = _adjusted(bent=False)
+    assert 'class="navmap-bent-line"' not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    with client.application.test_request_context("/galaxy"):
+        assert galaxy_course("system:1001", "system:2001")["adjusted"] == []
