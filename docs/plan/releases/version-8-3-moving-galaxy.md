@@ -22,6 +22,20 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 |---|---|---|---|
 | MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter |  |  |
 
+### Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| OPS.96 | warmup.log in the log folder, written by planetgen warm itself, local time with zone |  |  |
+| OPS.97 | Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter | OPS.96 |  |
+| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | OPS.97 |  |
+| OPS.98 | A time on every line of every script and command | OPS.97 |  |
+| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh | OPS.96 |  |
+| OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
+| OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | OPS.96 |  |
+| OPS.102 | Debug log: an area column in, the dead logger-name column out |  |  |
+| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105 |  |
+
 ### Nightly maintenance
 
 | ID | Item | Needs | Note |
