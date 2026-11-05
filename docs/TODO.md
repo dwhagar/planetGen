@@ -2032,100 +2032,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not change in practice (overhead 0.04% to 0.2% on average).
 
   Prerequisites: none.
-  - [ ] **NAV.25 Find the obstacles along a path**
-    Done: from the corridor query of NAV.10 (and NAV.38's
-    line-to-sectors helper), every
-    object whose keep-out sphere comes within reach of the path, at
-    each scale: between systems, inside a sector, inside a system.
-    Research (2026-10-09, course-routing.md): point at the shared
-    segment query (course-routing.md section 6); no separate work.
-    Research (2026-10-09, course-avoidance.md): specify the query as
-    "every object whose keep-out sphere is within R_i of the straight
-    segment" in two parts: stars, neutron stars, rogue planets and small
-    fields by the sectors the segment crosses plus a one-sector margin
-    (their largest radius, 2.1 pc, is under one 4 pc sector edge); large
-    kinds (intermediate black holes up to 25 pc, SMBH and quasar 2 to 10
-    pc and up, nebulae up to 200 ly, remnants, large fields) by a
-    bounding-box query on centre and radius, as
-    `_placed_phenomenon_rows` does. Return `ref`, centre, radius, basis
-    and note per object. An ungenerated sector has no objects to avoid;
-    the answer says so (NAV.12's unknown-space flag already marks it).
-    Scope after the review (2026-10-16 review): the obstacle query only;
-    it returns each object's radius and basis from the keep-out table
-    (NAV.54).
-    Prerequisites: NAV.54.
-
-  - [ ] **NAV.26 Bend the path around keep-out spheres**
-    Done: a path planner that leaves the straight line only where it
-    crosses a keep-out sphere, going around it on the shortest detour
-    (a tangent arc, or waypoints just outside the sphere), checked
-    again against the other spheres; the end bodies' own spheres are
-    exempt (a ship has to enter them to arrive). Unit tests with
-    hand-placed spheres.
-    Asteroid fields count as keep-out areas too (Boss, 2026-10-09
-    01:02Z: "Courses should avoid asteroid fields."), which NAV.51
-    adds; nebulae and remnants stay pass-through with a note until Boss
-    decides.
-    Research (2026-10-09, course-avoidance.md): use the "insert wrap at
-    first hit, then validated polish" method (section 5 of the design
-    doc; the prototype needs only `math` and numpy). Exempt every sphere
-    that contains an end, not only the end body's own. Add the overlap
-    policy (cluster detection, enclosing sphere, flagged straight-line
-    fallback `overlap_fallback`). Hand-placed tests: one sphere on the
-    line (closed form), collinear start-centre-end, start inside a
-    sphere, end on a surface, two spheres with a gap and with contact, a
-    chain of wraps, 40 tiny spheres on a long line, an overlapping pair,
-    a scene shifted by 2e4 pc (same answer). Say "short detour", not
-    "shortest".
-    Waits on NAV.62: the study of how the gravity of the stars a cell
-    leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
-    Prerequisites: NAV.56, NAV.62.
-
-  - [ ] **NAV.27 Moving bodies inside a system**
-    Inside a system the planets move. Done: the in-system planner uses
-    positions at the time of travel (MAP.62's positions-at-time module,
-    Python twin), from the departure time and the leg's speed. That
-    answers the item's second open question: yes. Default departure:
-    now.
-    Research (2026-10-09, course-avoidance.md): warp and fold speeds
-    make departure-time positions sufficient, with the target aimed at
-    its arrival-time position (`t0 + L/v`, 2 to 3 fixed-point steps);
-    add the 3-to-6-pass iteration only if sub-0.01c speeds are
-    introduced. `body_positions.positions_at` is the position source; no
-    new ephemeris code. Galactic-scale motion is negligible at warp, so
-    this stays system-only.
-    Prerequisites: none.
-
-  - [ ] **NAV.51 Courses route around asteroid fields**
-    Boss (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
-    Follows NAV.24's open question (it ruled on asteroid fields only).
-    Done: course planning treats an asteroid field as a keep-out area
-    from its stored `radius_ly`, finds it with NAV.25's obstacle query and
-    goes around it with NAV.26's planner, at every scale. Nebulae and
-    supernova remnants stay undecided: the course passes through them
-    with a note. Parked with the rest of the NAV chain (Boss, 2026-10-09).
-    Research (2026-10-09, course-avoidance.md): keep as written.
-    `keepout.py` currently contradicts it (no keep-out for fields); the
-    whole stored sphere is the radius, no margin (the nebula document
-    suggested 1.1 times; the planner already offsets waypoints by 1e-6;
-    open question for Boss, default exactly the stored `radius_ly`). Say
-    plainly that it is a game rule: a real field would need millions of
-    times the belt's density to threaten a ship. Collision risk stays
-    keep-out only, with expected hits (about 1e-11 per AU in the main
-    belt for bodies over 1 km) as an optional note on the course.
-  Decided (2026-10-10): Boss (19:16Z, Accept all): the answers recorded
-  here stand: a lone star or object uses the galactic Hill radius;
-  inside a system a star uses the radiation radius.
-    Scope after the review (2026-10-16 review): routing around fields,
-    the course test at the three scales, using the keep-out table
-    (NAV.54) and the planner (NAV.26); the keep-out radius for fields is
-    NAV.54's.
-  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
-  2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
-  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
-  EDT): code built for a pending feature stays.
-    Prerequisites: NAV.25, NAV.26.
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
@@ -2158,8 +2064,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   modelled) and the phenomena (black holes, neutron stars, rogue
   planets, quasars, fields), so the planner's overlap fallback stays but
   should rarely fire. The real run decides it. NAV.62 (gravity of
-  unresolved stars), a listed prerequisite of NAV.26, is not done; Core
-  2 builds the planner mechanics first (pure geometry, lock-free).
+  unresolved stars) is done and is not a prerequisite of NAV.26 (Core 2,
+  PR #5136); Core 2 builds the planner mechanics (pure geometry,
+  lock-free).
   Prerequisites: NAV.54.
   Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
@@ -2179,37 +2086,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.5 (courses that bend around gravity wells).
   Prerequisites: NAV.6, NAV.4. Related: GEN.198,
   MAP.167.
-
-- [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
-  Boss (2026-10-16, 5:01 PM EDT, on the cell cap of GEN.364): "in the
-  core there are just too many stars to make all of them, no matter how
-  scientifically accurate it would be. I would like to figure out how we
-  can account for the gravity of items left out, but let's put that as a
-  TODO for the courses that bend around gravity wells phase." A cell
-  that expects more systems than its cap resolves the brightest and
-  leaves the rest unmade; GEN.281 already derives the unresolved count
-  and mass of a cell from its address (`galaxy/resolution.py`), from the
-  same density model as every other cell. Done: a written study (a
-  section in docs/design/galaxy/realistic-galactic-core.md) that says how the
-  pull of that unresolved mass is added: as a smooth field summed per
-  cell from the derived unresolved mass and the cell centre, how it
-  joins the galactic potential of GEN.285 and the keep-out spheres of
-  NAV.54, whether a course that bends around wells (NAV.26) and the
-  orbital update need it at every zoom or only inside the dense core,
-  its cost per query, and a recommendation with the work it needs as new
-  items. No fixed table: the mass comes from the density model and the
-  address, never from a stored list. No build in this item. Owner: not
-  assigned; the courses lane of 8.5.
-  Core 1 note (2026-10-16, 6:13 PM EDT): belts and asteroid fields have
-  no mass model, so DB.55 and GEN.337 store a stated zero mass for them;
-  the study says whether a real model is needed (GEN.295 refines nebula
-  mass).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
-  NAV.26, NAV.6.
-  Design: [docs/design/galaxy/realistic-galactic-core.md](design/galaxy/realistic-galactic-core.md)
 
 - [ ] **NAV.63 Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route**
   Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
@@ -12884,6 +12760,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated from the rules: if the generated pages are part of the
   golden, fold this into step 3's epoch, else it is lock-free. Where we
   think it belongs (best guess, can move): same lane as step 1.
+  Covered by GEN.1207 (Core 4, as the lane reported) (11:59 AM EST on
+  2026-11-05): The wording change (age and stage words dropped, Checked
+  after, leftover) is already in the GEN.1207 branch
+  (claude/core4-gen1207, train 12). No separate build. Retires when
+  GEN.1207 merges.
   Prerequisites: none.
 
 - [ ] **GEN.1209 Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence**
@@ -13011,6 +12892,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
+  Covered by GEN.1221 and GEN.1207 (Core 4, as the lane reported) (11:59
+  AM EST on 2026-11-05): Class Z (hot thin air, 1.4 to 2 g, 340 to 1100
+  K, 1 to 10 kPa, no ocean) is a full row in GEN.1221 (train 11) and in
+  GEN.1207's class table (claude/core4-gen1207, train 12). No separate
+  build. Retires when GEN.1207 merges. Core 4's sweep of 150 systems
+  (seed 1000): of 36 hot thin dry bodies, 25 are Z at 100 percent, 9 are
+  V, 1 is Z at 70 percent, 1 fits nothing (1.25 g, 379 K, 998 Pa, just
+  under Z's 1.4 g edge).
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 - [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
@@ -13218,39 +13107,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lines for is_polluted and pollution_rate_g_s name this item. Owner:
   Star 2.
   Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
-
-- [ ] **GEN.1232 Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event)**
-  From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
-  follow-up of GEN.1072 (#4430): belt_history.history_text and the
-  giant_event function (the giant event and companion limit for a belt)
-  are built and read only by tests. Do: the belt's page shows its
-  history in plain words (what the star's evolution did to it: survived,
-  scattered by a giant event, engulfed, or limited by a companion) from
-  history_text, with giant_event deciding the event from the stored
-  giants and companions; no generated output changes, so this is
-  lock-free and plain-words rules apply (Oxford comma, no
-  out-of-universe words). The wiring-register lines for history_text and
-  giant_event name this item. Owner: Star 2.
-  Star 2 re-scope (2026-11-01 12:05 AM EDT): Not lock-free as written. A
-  belt history is not stored (asteroid_belts has no history column) and
-  giant_event is not called by generation. Split: GEN.1232a (lock, one
-  epoch): store the belt history text in a new column on asteroid_belts
-  and show it on the belt page, engulfed or scattered by the giant
-  branch only (what #4430 computes); GEN.1232b (lock, after GEN.1068
-  belt birth): wire giant_event into generation. Owner: Star 2 for 1232a
-  once it has a train; 1232b waits for Aux 5.
-  Part merged (train 10, #5095, 7:11 AM EST on 2026-11-05) (7:20 AM EST
-  on 2026-11-05): GEN.1232a merged: the belt history text is stored on
-  the belt and shown on its page. GEN.1232b (wire giant_event into
-  generation) stays open and waits for Aux 5.
-  Scope cut (TODO, from Star 2) (10:50 AM EST on 2026-11-05): GEN.1232b
-  closes as satisfied by GEN.1068 (belt_origin) except the INSTABILITY
-  case, which moves to GEN.1082. Star 2 repoints or removes the
-  wiring-register lines for history_text, giant_event and the companion
-  limit (belt_history.giant_event and limit are duplicated by
-  belt_origin and the stability ceiling; delete them with their tests if
-  nothing reads them, no shim), then this item retires.
-  Prerequisites: none. Related: GEN.1072, GEN.1068.
 
 - [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
   Found by Core 3's TEST.212 part 1 radiation sweep (as the lane
@@ -14160,6 +14016,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
 
+- [ ] **GEN.1281 Heavy worlds with a plain nitrogen air and no oxygen or methane (about 1.3 percent of bodies) fit no class: widen a class or add one**
+  Core 4 (as the lane reported, about 11:58 AM EST on 2026-11-05, sweep
+  in reports/class-sweep-gen1207-2026-11-05.md): of 775 bodies in 150
+  systems (seed 1000), 10 are heavy worlds (1.3 to 1.8 g) with a plain
+  nitrogen air and no oxygen or methane, at 250 to 330 K with thin air
+  (about 10 kPa) and water or an ocean. They fit no class because class
+  F needs methane or hydrogen. Do: after GEN.1207 lands, take the 10
+  bodies and say from the physics which class they belong to; either
+  widen F's gas rule or propose a class for abiotic nitrogen-air heavy
+  worlds, with its conditions, name and letter, as a plain-word card to
+  the TODO thread (all 20 class letters stay; a new letter needs Boss's
+  word). Build the chosen option in the class table with a stand-in row
+  and tier in GEN.725, and re-run the sweep to show the gap closes.
+  Generation output changes (lock item, train 13 or the next train after
+  GEN.1207). Version 8.1. Owner: Core 4. Filed by the TODO thread.
+  Prerequisites: GEN.1207.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14729,6 +14602,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   anything: a coarser grid or fewer steps for the census, or a cached
   series, with the stored mean unchanged. Owner: Aux 2, next lock-free
   item, before GEN.1265.
+  Fixture cost on the GEN.1265 branch (Core 5, as the lane reported)
+  (11:27 AM EST on 2026-11-05): The species_limits civilized-galaxy
+  fixture takes 275 s on the GEN.1265 branch against 109 s on plain
+  main, same machine. That is the temperature series cost per system.
+  Core 5 and Aux 2 check it against the 20 ms a rocky body target after
+  train 11 lands.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
 - [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
@@ -17330,21 +17209,6 @@ clears each one.
   pytest runs at once on one machine make queue tests fail.
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
-- [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
-  Found by Core 4 (relayed 6:38 AM EDT 2026-10-23 as the lane reported)
-  in its gate for GEN.284; filed by the TODO thread. Kind: slow flaky
-  test, the same family as TEST.198. Test:
-  src/tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star.
-  Failure: at load 9.7 it ran 130 s and failed; alone it passes in 97 s
-  (the lane's figures; the failure text was not given). Fails on main:
-  unknown. Frequency: once in one gate. Do: capture the failure text,
-  then find what the 97 s alone is spent on (the camera flight, a fixed
-  wait, building the scene) and make the test wait for the state it
-  needs rather than a long time. Done: the test passes 50 times in a row
-  at -n 4 under load and takes well under a minute alone. Owner: Bug
-  Hunt (proposed by the TODO thread).
-  Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
-
 - [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
   before 8.1 is ready. Lane E owns the end-to-end browser tests across
@@ -17588,26 +17452,6 @@ clears each one.
   its data are in reports/data/planet-class-distribution; the Bern
   synthesis binned fit is ngpps_formation_water.json. No occurrence
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-
-- [ ] **TEST.411 Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug)**
-  Found by Bug 1 (as the lane reported 8:36 AM EDT 2026-10-28) while
-  merging TEST.394 and TEST.383 (#3385): in a full-file run 132 of 136
-  passed; the dense click was fixed since, and the indexeddb revisit
-  test and two sector_reach double-click flight tests fail only after a
-  long run on a loaded 4-core box. Do: find what the loaded run changes
-  (animation timing, a flight that has not finished when the second
-  click lands, an indexeddb transaction not closed), replace fixed waits
-  with waits on the real condition (the flight end event, the db open
-  state), never raise a timeout to hide it. Done: the three tests pass
-  in a full-file run and under -n 4. Owner: Bug 1 or a free lane after
-  TEST.405/406/398/402. Rules: never skip or quarantine a test;
-  scripts/test.py changed --resume.
-  Research (2026-10-09): Update (Bug 1, about 9:40 AM EDT 2026-10-29 as
-  the lane reported): the three flaky map tests (indexeddb revisit and
-  two sector_reach double-click flights) did not reproduce in two long
-  runs. Kept open until it recurs; if it has not recurred when Bug 1
-  finishes its queue, Bug 1 retires it.
-  Prerequisites: none. Related: TEST.394, TEST.383.
 
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
@@ -17993,6 +17837,15 @@ clears each one.
   loosen a check. Done: both green on main with the cause of each noted.
   Lock-free unless a stored value is the cause (then stop and tell
   TODO). Version 8.1. Owner: Aux 7. Filed by the TODO thread.
+  Halves (TODO, from Aux 7) (11:10 AM EST on 2026-11-05):
+  test_bring_to_epoch fixed on claude/test598 (d55b18ca8, lock-free, Aux
+  7 merges it). test_fingerprint fix is on claude/test598-fingerprint
+  (2b6eb08fb): the four rogue_planet_* child tables are compared,
+  designations and chart_ledger left out as bookkeeping. Comparing the
+  rogue tables changes the digests of the 12 golden-galaxy sectors that
+  hold a rogue, so src/tests/golden/galaxy.json must be rewritten: lock
+  item for train 12 (generation-output unchanged). This item stays open
+  until it lands.
   Prerequisites: none. Related: TEST.580.
 
 - [ ] **TEST.599 test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug)**
@@ -18025,6 +17878,21 @@ clears each one.
   with no other test moved. Version 8.1. Owner: Train Manager, after
   train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.430.
+
+- [ ] **TEST.602 test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug)**
+  Aux 7 (as the lane reported, about 11:05 AM EST on 2026-11-05) found
+  this test red on plain main with 24 saved sectors holding a NULL
+  leaf_digest, while working on TEST.598. Likely the sector rows that
+  rogue planets create in uncharted cells (GEN.1111 part 7) are saved
+  without a leaf digest, or the test counts them as saved sectors. Do:
+  run the test alone on current main, find which sectors have the NULL
+  (charted or uncharted), bisect to the commit, and fix at the cause: if
+  uncharted rogue-landing sectors are not meant to have a leaf, the test
+  counts charted sectors only (as TEST.417's snapshot does); if they
+  should, the save writes the digest (that is lock work, tell TODO).
+  Done: the test green on main. Version 8.1. Owner: Aux 7. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.598.
 
 ## USR: User accounts
 

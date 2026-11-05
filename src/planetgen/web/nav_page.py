@@ -33,6 +33,7 @@ through a link from its own page.
 """
 
 import json
+import math
 import re
 
 from flask import redirect, request, url_for
@@ -727,6 +728,14 @@ def _bent_lines(result):
     return lines
 
 
+def _unresolved_text(unresolved):
+    """NAV.75: what the NAV page says of the unresolved stars a course passes through (`db.obstacles.passed_through_unresolved`)."""
+    count = unresolved["crossings"]
+    about = f"{round(count, 1 - int(math.floor(math.log10(count)))):,.0f}" if count >= 10.0 else f"{count:.1f}"
+    return (f"This course crosses the dense core for {format_distance_ly(unresolved['length_ly'])}, where about {about} stars are too faint to be drawn "
+            "and come within their keep-out distance of it. It goes round the stars that are drawn and cannot go round the rest.")
+
+
 def _adjusted_view(result, names):
     """
     NAV.28: the adjusted course for the NAV page, or `None` when the API sent none. `rows` (`[(label, text)]`), `around` and `through`
@@ -747,6 +756,11 @@ def _adjusted_view(result, names):
             first, second = (tuple(pc_to_ly(c) for c in adjusted["waypoints"][i]["p"]) for i in (0, 1))
             leave = course_between(first, second, frame=FRAME_GALACTIC)
             rows.append(("Leave on", format_course(leave.bearing_deg, leave.mark_deg)))
+    if result["scope"] == "system" and adjusted.get("moving_end"):
+        # NAV.27: inside a system the destination moves; the course is aimed where it will be when the ship gets there.
+        first = adjusted["warp_times"][0] if adjusted.get("warp_times") else None
+        rows.append(("Aimed at", f"{result['destination']['name']} where it will be on arrival"
+                     + (f" (warp {first['warp_factor']:g}, {first['formatted']})" if first else "")))
     times = []
     if bent:
         straight = {leg["warp_factor"]: leg["formatted"] for leg in result["warp_times"]}
@@ -761,8 +775,11 @@ def _adjusted_view(result, names):
                       + (f" ({format_distance_ly(extra)} longer)." if extra > 1e-9 else "."))
     through = [{**_ref_link(entry["ref"], {entry["ref"]: entry["name"]}), "text": _passed_through_text(entry)}
                for entry in adjusted["passed_through"]]
+    unresolved = adjusted.get("passed_through_unresolved")
+    if unresolved:
+        through.append({"name": None, "url": None, "text": _unresolved_text(unresolved)})
     return {
-        "bent": bent, "rows": rows, "around": around, "through": through, "times": times, "route_text": route_text,
+        "bent": bent, "aimed": any(label == "Aimed at" for label, _ in rows), "rows": rows, "around": around, "through": through, "times": times, "route_text": route_text,
         "warnings": [ADJUSTED_WARNING_TEXT.get(code, code) for code in adjusted["warnings"]],
     }
 
@@ -843,7 +860,7 @@ def nav():
         bent=[[tuple(pc_to_ly(c) for c in point) for point in line] for line in _bent_lines(result)] if result["scope"] == "galaxy" else None)
     stops = _route_stops(route, names) if route and route["path"] else []
     # Like the route list (UX.70): not for a direct hop, which is the course above.
-    adjusted_view = None if in_system else _adjusted_view(result, names)
+    adjusted_view = _adjusted_view(result, names)
     diagram_html = "" if in_system or not route or len(route["path"]) < 3 else render_course_diagram(
         route, names, {node: stop["url"] for node, stop in zip(route["path"], stops)})
     return render_page(

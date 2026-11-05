@@ -2,6 +2,107 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3333] - 2026-11-05
+
+**Headline:** A test now shows a course across the dense galactic core goes round what is made and counts the unresolved stars it crosses.
+
+### Changed
+- **Dense-core course test (NAV.76).** `tests/test_nav_dense_core.py` stores a galaxy with a made central hole and a made asteroid field on a course across the core, and checks that the course bends round both, that it carries the count of unresolved stars it crosses, that the count matches `UnresolvedField` along the course's polyline, and that the bent course crosses fewer than the straight line (it skirts the hole's sphere). A course far past the core carries no count.
+
+## [8.0.3332] - 2026-11-05
+
+**Headline:** A course through the dense galactic core now says how many unmade stars it passes through.
+
+### Added
+- **The count of unresolved stars a course crosses.** Where an adjusted course crosses the capped cells of the dense core, `adjusted` (the direct course and each hop) carries `passed_through_unresolved` (`crossings`, `length_pc`, `length_ly`, `unresolved_systems`, `cells`), and the Navigation page says "This course crosses the dense core for ..., where about N stars are too faint to be drawn and come within their keep-out distance of it. It goes round the stars that are drawn and cannot go round the rest." It uses `galaxy/unresolved_crossings.py` (NAV.74) along the course's own polyline; elsewhere nothing is added.
+
+## [8.0.3331] - 2026-11-05
+
+**Headline:** The generator can now say how many of the stars a crowded cell leaves unmade a straight course would pass through.
+
+### Added
+- **The expected unresolved keep-out spheres of a segment.** `galaxy/unresolved_crossings.py` (`UnresolvedField.crossings`) gives, for a straight segment, the mean number of keep-out spheres of the unresolved stars it crosses, the length it spends in capped cells and their unresolved systems. A star's keep-out is its galactic Hill radius from the mean unresolved system mass and the galaxy's own mass inside the point. A segment that stays beyond the capped region's reach (`capped_reach_pc`) reads no cell. The course and the Navigation page do not use it yet (NAV.75).
+
+## [8.0.3330] - 2026-11-05
+
+**Headline:** The study of how the gravity of the stars a crowded cell leaves out affects courses and the orbital update is written.
+
+### Changed
+- **NAV.62 study.** `docs/design/galaxy/realistic-galactic-core.md` section 11 says the unresolved mass is already in the smooth galactic field the orbital update uses, that its fluctuation is under half a percent of a star's speed per Myr, that a course cannot steer clear of the unresolved stars in the core (about 1,100 keep-out spheres across the nuclear disc) and should say how many it passes through, and lists three small items to build.
+
+## [8.0.3329] - 2026-11-05
+
+**Headline:** The Help menu test no longer pins the exact list of help pages, so a new help page such as the sky page does not turn it red.
+
+### Changed
+
+- `test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone` compared the whole menu with a fixed list. The menu is now built from the help registry (`web/lib/help_registry.py`), and VIEW.38 registered "The sky behind a system" in it, so the test failed on main. The test now demands All help first, References last, and Classes, Habitability and Life in that order, and allows other registered pages between them. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3328] - 2026-11-05
+
+**Headline:** The fingerprint tree test counts the sectors that have been charted, since a sector made only for a landed rogue planet has no leaf yet.
+
+### Changed
+
+- `test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree` demanded a leaf digest of every placed sector. Since GEN.1111 a rogue planet that lands in a cell nobody has charted gets a sector row of its own (`store.uncharted_sector_id`) and no leaf, because a leaf is taken from the sector in memory when it is saved: 24 of the 37 sectors of the test galaxy. The test now demands a leaf of every charted sector (those in `chart_ledger`) and counts the tree's sectors against them. The gap itself, a rogue in an uncharted sector missing from the tree, stays open under TEST.602 as a save change. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3327] - 2026-11-05
+
+**Headline:** The sector reach wheel test now ticks the wheel one step at a time and waits for the camera to rest, so it passes every time instead of 1 run in 4.
+
+### Fixed
+- `test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is` (TEST.411) failed 3 runs of 4 alone on main. It turned the wheel by a large amount to reach the window's nearest zoom, but the map caps one wheel event at one step, and it read the zoom before a tick had moved the camera. It brought the camera to the sector by ticks that came faster than the camera moved, so where it ended depended on the machine's speed. It now ticks once the camera is at rest each time, until the tick that finds the camera at the nearest zoom opens the sector, and checks that the camera did not move in that one. `_zoom_in_until` also reads the zoom once the camera is at rest, which the scene fade test shares.
+- Not changed: the indexeddb revisit test passed 6 of 6 alone, and the two double-click flight tests and the system disc fade test passed in every full-file run here, so no cause was found for them to fix.
+
+## [8.0.3326] - 2026-11-05
+
+**Headline:** A test now shows that a course between two systems of one sector also goes round an asteroid field.
+
+### Changed
+- **Asteroid-field avoidance is tested at the sector scale too.** `tests/test_nav_adjusted.py` places a field on the line between two systems of one sector and checks that the course bends round it (NAV.51; the between-sector case was already tested).
+
+## [8.0.3325] - 2026-11-05
+
+**Headline:** A course inside a solar system now goes round the stars, planets and moons and is aimed where its destination will be when the ship arrives.
+
+### Added
+- **Courses inside a system are planned round the bodies.** `GET /api/nav?...&adjusted=1` now gives an `adjusted` course for a trip between two bodies of one system, and for the in-system parts of a longer trip (out to the system's edge, and in from it). Every star keeps out by its radiation radius and every planet and moon by its Hill radius, with each body placed where it is at the departure time (`physics/body_positions.positions_at`). The planner is `galaxy/system_course.plan_system_course`; the keep-out table is `db/obstacles.system_keep_outs`; the API step is `api/nav_system.adjust_legs`.
+- **The destination moves while the ship flies.** The course is aimed at the place the destination will be on arrival, found in up to `tuning.COURSE_SYSTEM_AIM_STEPS` steps. The planning speed is warp `tuning.COURSE_SYSTEM_WARP_FACTOR`. The Navigation page says "Aimed at ... where it will be on arrival" when it applies.
+
+## [8.0.3324] - 2026-11-05
+
+**Headline:** The test that brings a galaxy to the running epoch expects the sectors a galaxy really holds, so it is green again.
+
+### Changed
+
+- `test_a_sector_made_under_an_older_epoch_is_really_generated_again` expected a galaxy of one sector. Since GEN.1111 a saved star system's ejected rogue planets are written into the sectors where they landed, so the galaxy holds 11, each made under the old epoch. The test now expects every sector made again, each at the running epoch, and still checks the sector it made for a new row and the same systems. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3323] - 2026-11-05
+
+**Headline:** The sector resume and parallel-run tests now finish in two to four minutes each instead of fifteen to twenty-three, and no longer fail on the sector rows a rogue planet creates; no generated output changes.
+
+### Changed
+- **Whole-sector tests made small (TEST.417).** `test_gen_resume.py` (eight cases, 450 to 920 seconds each) and `test_work_queue.py` (1,354 seconds) filled 12 to 54 sectors three times over, and a sector costs about 3 seconds once the first fill's draw down to the backfill's deepest floor is left out (it is half to nine tenths of a sector's cost and the same in every run, so it says nothing about resuming). The resume tests now turn that draw off (`tests/first_fill.py`, as the bright-star scatter tests do) and use shells 0 to 2 (12 to 14 sectors a mode, not 12 to 54); the parallel-run test fills 4 sectors of shell 1 with 2 workers, not 50 of shell 2. Every check is kept: the same sectors after a resume and an uninterrupted run, each filled once, no orphan system or link, nearest-system lists equal to a recompute, every run record done. Eight cases of `test_gen_resume.py` and all of `test_work_queue.py` also failed on main: a rogue planet that lands in a cell nobody charted gets a sector row there (GEN.1111 part 7), so the sector counts were wrong. The snapshot now counts only charted sectors (those in the chart ledger) and checks that a resumed run and an uninterrupted run end with the same uncharted rows.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.417 continues).
+
+## [8.0.3322] - 2026-11-05
+
+**Headline:** The unused belt giant event and companion limit functions are removed, so the belt's history has one source for each cause.
+
+### Changed
+
+- Removed `belt_history.giant_event`, `belt_history.limit` and their constants (GEN.1232b): the Grand Tack-type depletion of a belt is `belt_origin`'s (GEN.1068), a companion's limit is the orbit ceiling every belt is trimmed to, and a Nice-type instability alone waits for GEN.1082. The registry row BHS1 is dropped, its values stay in row BG9.
+- generation-output: unchanged
+
 ## [8.0.3321] - 2026-11-05
 
 **Headline:** Two course-diagram tests expect the American spelling again.

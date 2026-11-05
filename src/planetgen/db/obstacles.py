@@ -22,7 +22,7 @@ Only placed, generated objects count; nothing is generated here. Parsecs, galaxy
 import math
 
 from planetgen.db import corridor
-from planetgen.galaxy import avoid, keepout
+from planetgen.galaxy import avoid, keepout, unresolved_crossings
 from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 
@@ -228,4 +228,64 @@ def adjusted_course(conn, start_pc, end_pc, kinds=None):
                                passed_through=passed_through_along_segment(conn, start_pc, end_pc))
     names = {row["ref"]: row["name"] for row in found}
     course["names"] = {ref: names[ref] for ref in course["avoided"] + course["ignored_below_resolution"] if ref in names}
+    unresolved = passed_through_unresolved(conn, course["polyline"])
+    if unresolved is not None:
+        course["passed_through_unresolved"] = unresolved
     return course
+
+
+_UNRESOLVED_FIELDS = {}
+"""dict: The `UnresolvedField` of each galaxy this process has been asked about (a few, newest last): its cells are worked out once."""
+_UNRESOLVED_FIELDS_KEPT = 4
+
+
+def unresolved_field(conn):
+    """The `galaxy.unresolved_crossings.UnresolvedField` of the galaxy `conn` holds, or `None` when it has no stored shape. Kept between calls."""
+    from planetgen.db import store
+
+    skeleton = store.get_galaxy_shape(conn)
+    if skeleton is None:
+        return None
+    limits = store.scatter_limits_of(conn, skeleton)
+    key = (skeleton.galaxy_seed, skeleton.edge_pc, skeleton.expected_system_count_at_density_1, skeleton.cell_star_ceiling,
+           skeleton.fill_luminosity_cap_sol, repr(skeleton.shape), repr(limits))
+    if key not in _UNRESOLVED_FIELDS:
+        while len(_UNRESOLVED_FIELDS) >= _UNRESOLVED_FIELDS_KEPT:
+            _UNRESOLVED_FIELDS.pop(next(iter(_UNRESOLVED_FIELDS)))
+        _UNRESOLVED_FIELDS[key] = unresolved_crossings.UnresolvedField(skeleton, limits.mass_limit_at)
+    return _UNRESOLVED_FIELDS[key]
+
+
+def passed_through_unresolved(conn, polyline_pc):
+    """
+    NAV.75: the unresolved stars a course passes through. The crowded cells of the core are filled only with their bright stars
+    (`galaxy.resolution`), so a course goes round the stars that are made and cannot go round the rest; this says how many of their keep-out
+    spheres it crosses (`galaxy.unresolved_crossings`, summed along the course's own polyline). `{"crossings", "length_pc", "length_ly",
+    "unresolved_systems", "cells"}`, or `None` when the course touches no capped cell (and always `None` in a galaxy with no stored shape).
+    """
+    field = unresolved_field(conn)
+    if field is None or field.reach_pc <= 0.0:
+        return None
+    found = field.along(polyline_pc)
+    if found.cells == 0:
+        return None
+    return {"crossings": found.crossings, "length_pc": found.length_pc, "length_ly": pc_to_ly(found.length_pc),
+            "unresolved_systems": found.unresolved_systems, "cells": found.cells}
+
+
+def system_keep_outs(conn, scene):
+    """
+    The keep-out radius, in km, of every body of a system's scene (NAV.27): a star its radiation radius, a planet or moon its Hill radius
+    (`db.query.keep_out_radius` at system scale). `{ref: radius_km}`; a comet and a belt keep nothing out (a comet is too small and a belt
+    is thin: `keepout.PASS_THROUGH_NOTE`). The scene is `web.maps.systemscene.build_scene`'s.
+    """
+    from planetgen.db import query
+
+    found = {}
+    for star in scene["stars"]:
+        found[star["ref"]] = query.keep_out_radius(conn, "star", star["id"], scale="system").radius_km
+    for planet in scene["planets"]:
+        found[planet["ref"]] = query.keep_out_radius(conn, "planet", planet["id"], scale="system").radius_km
+        for moon in planet["moons"]:
+            found[moon["ref"]] = query.keep_out_radius(conn, "moon", moon["id"], scale="system").radius_km
+    return {ref: radius for ref, radius in found.items() if radius}

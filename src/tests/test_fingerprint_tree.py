@@ -78,10 +78,14 @@ def test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree(make_da
     _generate(config, monkeypatch)
     conn = _connection(config)
     try:
-        sectors = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE shell_index IS NOT NULL").fetchone()["n"]
+        # A rogue planet lands in a cell that may never have been charted, and its sector row (`store.uncharted_sector_id`, GEN.1111) is
+        # written with no leaf: a leaf is taken from the sector in memory when it is saved. Only charted sectors (`chart_ledger`)
+        # have one until the landing sectors get theirs (TEST.602).
+        charted = ("FROM sectors s WHERE s.shell_index IS NOT NULL AND EXISTS (SELECT 1 FROM chart_ledger c WHERE c.shell_index = s.shell_index"
+                   " AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index)")
+        sectors = conn.execute(f"SELECT COUNT(*) AS n {charted}").fetchone()["n"]
         assert sectors >= 8
-        assert conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE leaf_digest IS NULL"
-                            " AND shell_index IS NOT NULL").fetchone()["n"] == 0
+        assert conn.execute(f"SELECT COUNT(*) AS n {charted} AND s.leaf_digest IS NULL").fetchone()["n"] == 0
         assert conn.execute("SELECT COUNT(*) AS n FROM sector_tree_nodes WHERE dirty = 1").fetchone()["n"] > 0
         root, count = tree.galaxy_root(conn)
         conn.commit()
