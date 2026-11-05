@@ -1638,8 +1638,18 @@ def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelle
     no stored shape to fetch, no page to open and no name to label."""
     requests = []
     page.on("request", lambda request: requests.append(request.url))
+    # TEST.575: the sprite is on screen for only a frame or two while the window settles, so polling the count can miss it. An observer
+    # that stays set once the count has been above 0 records it, and the wait is on that mark.
+    page.add_init_script("""
+        new MutationObserver((records) => {
+            for (const record of records) {
+                const value = record.target.getAttribute('data-field-clouds');
+                if (value !== null && value !== '0') document.documentElement.setAttribute('data-field-seen', value);
+            }
+        }).observe(document, {subtree: true, attributes: true, attributeFilter: ['data-field-clouds']});
+    """)
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
+    page.locator("html[data-field-seen]").wait_for(state="attached", timeout=40000)
     page.wait_for_timeout(1500)
     assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
     assert not any("/shape" in url for url in requests)
