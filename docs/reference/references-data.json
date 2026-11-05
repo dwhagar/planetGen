@@ -93113,6 +93113,37 @@
    "volume": "217",
    "year": 2012
   },
+  "10.1016/j.icarus.2011.05.025": {
+   "authors": [
+    [
+     "Elser",
+     "S."
+    ],
+    [
+     "Moore",
+     "B."
+    ],
+    [
+     "Stadel",
+     "J."
+    ],
+    [
+     "Morishima",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2011.05.025",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "357",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "How common are Earth–Moon planetary systems?",
+   "type": "journal-article",
+   "volume": "214",
+   "year": 2011
+  },
   "10.1016/j.icarus.2011.06.018": {
    "authors": [
     [
@@ -279554,7 +279585,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5127,
+ "id_next": 5128,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -280238,6 +280269,7 @@
   "10.1016/j.icarus.2011.04.002": "R0335",
   "10.1016/j.icarus.2011.05.016": "R2478",
   "10.1016/j.icarus.2011.05.018": "R0271",
+  "10.1016/j.icarus.2011.05.025": "R5127",
   "10.1016/j.icarus.2011.06.018": "R0904",
   "10.1016/j.icarus.2011.06.024": "R4186",
   "10.1016/j.icarus.2011.08.024": "R4548",
