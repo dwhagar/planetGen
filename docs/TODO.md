@@ -18332,17 +18332,6 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.593 test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug)**
-  Core 2 (as the lane reported, 5:20 AM EST on 2026-11-05) found
-  tests/test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits...
-  red on plain main, not from its own change. Do: reproduce, decide
-  whether the page contents menu or the test is wrong (a menu that wraps
-  to two rows when it fits is a layout bug and is fixed in the page),
-  and repair. Done: the test passes on plain main under the narrow gate.
-  Lock-free. Version 8.1. Owner: Core 5, after TEST.591. Filed by the
-  TODO thread.
-  Prerequisites: none. Related: TEST.591.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
