@@ -3540,11 +3540,12 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]')
     _poi_layers(page, "marker-gas-giant")
     assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" for e in entries))
+    # The marks come in as the nodes do (TEST.575): wait for all of them, not for the first.
+    found = _markers_until(page, lambda entries: giants <= {e["name"] for e in entries if e["kind"] == "marker-gas-giant"}, seconds=40)
     assert {e["name"] for e in found if e["kind"] == "marker-gas-giant"} == giants
     assert not [e for e in found if e["kind"] == "marker-habitable"]
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    found = _markers_until(page, lambda entries: worlds <= {e["name"] for e in entries if e["kind"] == "marker-habitable"}, seconds=40)
     marks = [e["name"] for e in found if e["kind"] in ("marker-habitable", "marker-gas-giant")]
     assert sorted(marks) == sorted(giants | worlds), marks    # Fixture Eden once, though it has both reasons
     page.locator("#galaxymap3d-menu > summary").click()

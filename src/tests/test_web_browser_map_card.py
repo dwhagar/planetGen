@@ -52,6 +52,7 @@ def _system(page, base, width, height):
 
 
 def _hole(page, base):
+    page.holes_marked = True      # MAP.368: the Black hole marks layer starts off, and the black hole's button is a mark (TEST.595)
     _open_window(page, base, 27, 27, 0, 0, g=3)
     page.wait_for_timeout(500)
     page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")

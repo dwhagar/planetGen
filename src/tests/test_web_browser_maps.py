@@ -1242,32 +1242,51 @@ def test_reduced_motion_holds_the_bodies_still(page, base_url, site_app):
     assert page.evaluate("() => localStorage.getItem('planetgen.spin')") is None, "the switch itself was not touched"
 
 
+def _systems_with_moons(client, limit=8):
+    """Up to `limit` generated systems that have a planet with moons, each as `(system id, scene)`."""
+    found = []
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if any(planet["moons"] for planet in scene["planets"]):
+            found.append((system["id"], scene))
+            if len(found) == limit:
+                break
+    return found
+
+
 def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(page, base_url, site_app):
     """MAP.328: in the 3D view a body's mesh turns by the angle spin.js gives for the elapsed spin time, about its stored
-    axis; a body with no stored period stays where it is."""
+    axis; a body with no stored period stays where it is. (TEST.575: the first system with moons may have only one body that turns
+    freely, its moons locked, so the test takes the first of the systems with moons that has two.)"""
     import math
-    system_id, scene = _system_with_moons(site_app.test_client())
     page.emulate_media(reduced_motion="no-preference")
-    page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
-    page.wait_for_selector('#sysview3d[data-ready="true"]')
-    got = page.evaluate("""async () => {
-        const view = document.querySelector('#sysview3d-canvas').systemView;
-        const first = view.spins();
-        await new Promise((resolve) => setTimeout(resolve, 900));
-        return {first: first, second: view.spins()};
-    }""")
-    checked = 0
-    for a, b in zip(got["first"], got["second"]):
-        elapsed = b["at"] - a["at"]
-        assert elapsed > 0.2, elapsed
-        dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
-        turned = 2 * math.acos(min(1.0, dot))
-        if a["locked"]:
-            assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
-            continue
-        assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
-        checked += a["rate"] > 0
-    assert checked >= 2, ("bodies with a stored period turn", [(a["ref"], a["rate"], a["locked"]) for a in got["first"]])
+    systems = _systems_with_moons(site_app.test_client())
+    assert systems, "no generated system has a planet with moons"
+    seen = []
+    for system_id, _scene in systems:
+        page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
+        page.wait_for_selector('#sysview3d[data-ready="true"]')
+        got = page.evaluate("""async () => {
+            const view = document.querySelector('#sysview3d-canvas').systemView;
+            const first = view.spins();
+            await new Promise((resolve) => setTimeout(resolve, 900));
+            return {first: first, second: view.spins()};
+        }""")
+        checked = 0
+        for a, b in zip(got["first"], got["second"]):
+            elapsed = b["at"] - a["at"]
+            assert elapsed > 0.2, elapsed
+            dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
+            turned = 2 * math.acos(min(1.0, dot))
+            if a["locked"]:
+                assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
+                continue
+            assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
+            checked += a["rate"] > 0
+        seen.append((system_id, checked))
+        if checked >= 2:
+            return
+    pytest.fail(f"no system with moons has two bodies that turn freely: {seen}")
 
 
 @pytest.mark.viewport(1280, 900)
