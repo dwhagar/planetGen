@@ -76,7 +76,7 @@ const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VER
 const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { starLight } = await import(`./starlight.js${VERSION_QUERY}`);
-const { NEBULA_LOOKS } = await import(`./nebulalook.js${VERSION_QUERY}`);
+const { NEBULA_LOOKS, NEBULA_RIMS } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const { drawnSignature, nodeRevision } = await import(`./nodeview.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
@@ -805,8 +805,17 @@ function cloudTexture(cloud) {
     var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
     gradient.addColorStop(0, rgba(look[0], look[1]));
     gradient.addColorStop(0.35, rgba(look[0], look[1] * 0.8));
-    gradient.addColorStop(0.75, rgba(look[0], look[2]));
-    gradient.addColorStop(1, rgba(look[0], 0));
+    var rim = NEBULA_RIMS[cloud.descriptor];
+    if (rim) {
+      // MAP.181: a dust cloud's fill is too dim to see on the black map; a light rim near its edge outlines it.
+      gradient.addColorStop(0.7, rgba(look[0], look[2]));
+      gradient.addColorStop(0.8, rgba(rim[0], rim[1]));
+      gradient.addColorStop(0.92, rgba(rim[0], rim[1] * 0.4));
+      gradient.addColorStop(1, rgba(rim[0], 0));
+    } else {
+      gradient.addColorStop(0.75, rgba(look[0], look[2]));
+      gradient.addColorStop(1, rgba(look[0], 0));
+    }
   } else {
     gradient.addColorStop(0, rgba("#ffb07a", 0.12));
     gradient.addColorStop(0.6, rgba("#ffb07a", 0.2));

@@ -28,7 +28,7 @@ from planetgen.galaxy.spherical import provisional_sector_designation, sector_po
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_HALO_RADIUS_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
-    dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
+    dense_region_query, dense_site, close_pair_centre, DENSE_PAIR_IDS, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
     map_site, nebula_volume_payload,
 )
@@ -2247,9 +2247,9 @@ def test_galaxy_map_draws_no_block_lines_on_the_way_down(page, map_site):
     assert page.evaluate(LINES)["blockEdges"] == 0, "the pointer over the map lights no block"
 
 
-def open_dense_region(page, base, dist_pc=30.0):
-    """TEST.368: the Galaxy Map of `dense_site` looking at its dense region from `dist_pc` parsecs, settled."""
-    _open_galaxy(page, base, dense_region_query(dist_pc))
+def open_dense_region(page, base, dist_pc=30.0, at=None):
+    """TEST.368: the Galaxy Map of `dense_site` looking at its dense region (at the point `at`, if given) from `dist_pc` parsecs, settled."""
+    _open_galaxy(page, base, dense_region_query(dist_pc, at))
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFill().count > 0", timeout=20000)
     # The page's header may leave part of the map below the window: bring the whole map on screen.
     page.evaluate("() => document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
@@ -2363,22 +2363,30 @@ def test_a_selected_star_can_be_bookmarked(page, dense_site):
 
 
 def _close_pair_on_the_map(page):
-    """MAP.300: two fixture stars of the dense region under a tenth of a parsec apart that the map draws, in view, as stars of their own
-    at the start (the nearest pair of the bright ones): `(a, b)`."""
+    """MAP.300, MAP.380: the dense region's two bright stars 0.05 pc apart (`DENSE_PAIR_IDS`), in view and drawn as stars of their own at the
+    start: `(a, b)`. They lie side by side across the view, which looks straight down at the start (a camera that comes in on one star sees the
+    other at the angle the pair makes with the line of sight, however close it comes), and in a cell no generated sector holds, so the galaxy
+    draws them all the way in (a generated sector's cell hands its stars to the sector scene as the camera nears)."""
     by_id = {star["id"]: star for star in DENSE_STARS}
-    drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()")
-    stars = sorted((by_id[star["id"]] for star in drawn if star["visible"] and star["id"] in by_id and by_id[star["id"]]["luminosity_sol"] >= 1.0),
-                   key=lambda star: star["x"])
-    best = None
-    for index, first in enumerate(stars):
-        for second in stars[index + 1:index + 150]:
-            if second["x"] - first["x"] > 0.1:
-                break
-            gap = math.dist((first["x"], first["y"], first["z"]), (second["x"], second["y"], second["z"]))
-            if 0.02 < gap < 0.1 and (best is None or gap < best[0]):
-                best = (gap, first, second)
-    assert best, "the dense region has no two bright stars in view under a tenth of a parsec apart"
-    return best[1], best[2]
+    pair = tuple(by_id[star_id] for star_id in DENSE_PAIR_IDS)
+    for _attempt in range(20):    # the map lists its stars as they load
+        drawn = {star["id"]: star for star in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()")}
+        if all(star_id in drawn and drawn[star_id]["visible"] for star_id in DENSE_PAIR_IDS):
+            return pair
+        page.wait_for_timeout(500)
+    raise AssertionError("the dense region's close pair is not drawn in view")
+
+
+def _map_spot(page, star):
+    """Where the map itself draws `star` (client pixels), or None when it does not pick it: the map lists its stars to a coarser precision
+    than the fixture's, so close in a pointer must be on the map's own place for the star, not the fixture's."""
+    return page.evaluate("""(id) => {
+        const canvas = document.querySelector('#galaxymap3d-canvas');
+        const found = canvas.galaxyPickableStars().find((star) => star.id === id && star.visible);
+        if (!found) return null;
+        const rect = canvas.getBoundingClientRect();
+        return { x: rect.left + found.x, y: rect.top + found.y };
+    }""", star["id"])
 
 
 def _spot(page, star):
@@ -2386,19 +2394,20 @@ def _spot(page, star):
     return page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [star["x"], star["y"], star["z"]])
 
 
-def _under(page, star):
+def _under(page, star, spot_of=None):
     """What the map finds under the pointer placed on `star`'s spot: `galaxyNearestThing`'s `{kind, point}`."""
-    spot = _spot(page, star)
+    spot = (spot_of or _spot)(page, star)
     return page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)", [spot["x"], spot["y"]])
 
 
-def _wheel_in_on(page, star, steps, until=None, delta=-150):
-    """Scrolls in with the pointer on `star`, each step, until `until(camera)` holds or `steps` are used; returns the camera."""
+def _wheel_in_on(page, star, steps, until=None, delta=-150, spot_of=None):
+    """Scrolls in with the pointer on `star` (at `spot_of(page, star)`, the fixture's place for it by default), each step, until
+    `until(camera)` holds or `steps` are used; returns the camera."""
     for _ in range(steps):
         camera = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
         if until and until(camera):
             return camera
-        spot = _spot(page, star)
+        spot = (spot_of or _spot)(page, star) or _spot(page, star)
         thing = page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)", [spot["x"], spot["y"]])
         page.mouse.move(spot["x"], spot["y"])
         page.mouse.wheel(0, delta)
@@ -2412,26 +2421,31 @@ def test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parse
     away, is a star of its own: each is the thing under the pointer on its own spot, tens of pixels apart, and the wheel goes on to the
     least distance the map allows (a thousandth of a parsec, `FIELD_FLOOR_PC`)."""
     page.set_viewport_size(VIEWPORT)
-    open_dense_region(page, dense_site, 3.0)
+    open_dense_region(page, dense_site, 3.0, at=close_pair_centre())
     first, second = _close_pair_on_the_map(page)
     gap = math.dist((first["x"], first["y"], first["z"]), (second["x"], second["y"], second["z"]))
-    assert gap < 0.1
+    assert 0.02 < gap < 0.1
 
     def apart(_camera):
-        one, other = _spot(page, first), _spot(page, second)
-        return math.hypot(one["x"] - other["x"], one["y"] - other["y"])
+        one, other = _map_spot(page, first), _map_spot(page, second)
+        return math.hypot(one["x"] - other["x"], one["y"] - other["y"]) if one and other else 0
+
+    def stand_clear(camera):
+        # Far enough apart on the page, and each the thing under the pointer on its own spot (a star the map draws; further out it is
+        # the focus plane's point).
+        return apart(camera) >= 40 and all(_map_spot(page, star) and _under(page, star, _map_spot)["kind"] == "star" for star in (first, second))
 
     # In on the first star, the pointer on it at each step, until the second stands clear of it.
-    camera = _wheel_in_on(page, first, 40, until=lambda camera: apart(camera) >= 40)
-    assert apart(camera) >= 40, (apart(camera), camera["dist"])
+    camera = _wheel_in_on(page, first, 40, until=stand_clear, spot_of=_map_spot)
+    assert stand_clear(camera), (apart(camera), camera["dist"])
     # The map lists its stars to a coarser precision than the fixture's: the point is the star's, to a hundredth of a parsec at worst.
     for star, other in ((first, second), (second, first)):
-        found = _under(page, star)
+        found = _under(page, star, _map_spot)
         near = math.dist(found["point"], (star["x"], star["y"], star["z"]))
         assert found["kind"] == "star" and near < 0.01 and near < math.dist(found["point"], (other["x"], other["y"], other["z"])), (found, star)
     # And on: the camera goes down to the least the map allows, and the first star is still the thing under the pointer on it.
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyZoomLimits()")["nearestPc"] <= 0.002
-    camera = _wheel_in_on(page, first, 60, until=lambda camera: camera["dist"] <= 0.0011)
+    camera = _wheel_in_on(page, first, 60, until=lambda camera: camera["dist"] <= 0.0011, spot_of=_map_spot)
     assert camera["dist"] <= 0.0011, camera["dist"]
     assert math.dist(camera["eye"], (first["x"], first["y"], first["z"])) < gap, (camera["eye"], first)
 
@@ -4687,17 +4701,20 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     legend = page.locator("#galaxymap3d-legend")
     assert legend.is_hidden()
     page.locator("#galaxymap3d-menu > summary").click()
-    for mode in ("density", "age", "luminosity", "stars", "habitable"):
+    for mode in ("density", "age", "luminosity", "stars", "habitable", "cover"):
         page.select_option("#galaxymap3d-color-by", mode)
         _settle(page)
         assert f"color={mode}" in _query(page)
         assert legend.is_visible(), mode
         assert legend.locator(".galaxy-legend-low").inner_text() != ""
         assert legend.locator(".galaxy-legend-title").inner_text() != ""
+    # MAP.177: the Nebula cover legend is a fixed scale of the share inside a nebula.
+    assert legend.locator(".galaxy-legend-title").inner_text().startswith("Nebula cover")
+    assert legend.locator(".galaxy-legend-low").inner_text() == "under 0.5%"
     # Reload on the address: the select and the mode follow it.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
-    assert page.input_value("#galaxymap3d-color-by") == "habitable"
+    assert page.input_value("#galaxymap3d-color-by") == "cover"
     legend.wait_for(state="visible", timeout=15000)  # drawn once the nodes are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()

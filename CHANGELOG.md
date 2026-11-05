@@ -2,6 +2,75 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3248] - 2026-11-05
+
+**Headline:** Dark nebulae on the Galaxy Map are now drawn as dust, a warm umber cloud with a light rim, so they can be seen on the black map.
+
+### Changed
+
+- The dark family's colour is an umber (`#a9805a` at 0.45 opacity) with a thin light rim (`#d9b48a`), chosen with the contrast checker of MAP.175 (MAP.181). The fill alone is dust and does not reach 3:1 on black; the rim does (4.2:1), and the contrast test now measures a family by its rim where it has one. The map is black in either theme, so one colour serves both.
+- Nebula cover shading (Color by, MAP.177) and the dark nebula regions use the same umber hue.
+
+## [8.0.3247] - 2026-11-05
+
+**Headline:** The test that scrolls in on two close stars now uses a pair the map can show, so the Galaxy Map's close-in zoom is checked again.
+
+### Changed
+
+- The two-star wheel test (MAP.300) used the nearest pair of the dense fixture region, which lies one star behind the other as the map looks down, so the pair stays about 15 pixels apart however close the camera comes, and which sits inside the first generated sector's cell, whose stars the sector scene takes over as the camera nears. The dense fixture region now holds a pair of bright stars 0.05 parsecs apart side by side in the cell beside it, and the test scrolls in on that pair, with the pointer on the map's own place for each star. The map is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3246] - 2026-11-05
+
+**Headline:** The schematic route map has its layout: a route and the links round it become a ribbon of stops, hops and stubs.
+
+### Changed
+
+- New `planetgen.web.maps.navribbon.layout_ribbon(route, width)` (NAV.66, part 2 of the schematic route map): pure arithmetic over a route as `nav_between` and `GET /api/nav` give it, with its `graph` when it has one. It returns the stops left to right with their kind (a system, a stop in unknown space by its kind, or a phenomenon end) and role, the hops with their length written on them (the site's unit text and its first unit alone) and the flag for unknown space, the neighbour links from `route.graph` as stubs above and below each stop (alternating, centred, with an "and N more" text where the graph's cap cut some), and the links between two stops that are no hop as arcs.
+- A hop's gap on the page follows the logarithm of its length (68 px at 1 ly or less, 200 px at 10,000 ly or more), the same on every route, so one 6,500 ly hop no longer squeezes nine hops of 3 ly to dots. A ribbon wraps to a new row where the next stop would pass the right margin of the panel (at least 240 px wide); a hop that wraps is two pieces, one to the right edge and one in from the left edge, and says so. The same route gives the same answer, with coordinates rounded to a hundredth.
+- Nothing draws it yet: NAV.67 puts it on the NAV page as an SVG. Tests on fixed routes: the gap law, a plain route, stops in unknown space, no route and one stop, wrapping and narrow panels, stubs, the cap's text, arcs and links across rows, determinism, and a route from `nav_between`.
+
+generation-output: unchanged
+
+## [8.0.3245] - 2026-11-05
+
+**Headline:** A route can now come back with the graph round it: the links between its stops and from each stop to the systems next to it.
+
+### Changed
+
+- `nav_between` and `nav_course` take `with_graph`, and `GET /api/nav` takes `graph=1`; the route then has `graph`: `nodes` (the linked systems off the route, with their galaxy-frame positions), `edges` (`from`, `to`, `distance_ly`, `on_route`) and `more` (how many linked systems a stop's cap left out). The route's own hops are always edges, `on_route` true, with the lengths `route.hops` gives. The other links follow the relative neighbourhood graph rule (Boss's answer 3.2 on the schematic route map): two points are linked when no system lies closer to both than they are to each other. It has no tuning number and gives about 1.5 links to a system. A link is a neighbour relation, not a travel lane.
+- The systems round a stop come from the cell-key index (`db/route_neighbours.py`, the same covering index the nearby search uses), so no new route search runs and the cost follows the neighbourhood, not the galaxy. Each stop weighs its `NAV_GRAPH_CANDIDATES` (24) nearest systems and lists at most `NAV_GRAPH_NEIGHBOURS` (6) off the route. A route in a sector with no galaxy placement takes its neighbours from the sector. Without `graph=1` nothing is read and the route is as before.
+- Measured on a synthetic galaxy of 150,000 systems in each of two boxes (about 0.08 systems per cubic parsec, like the Sun's neighbourhood, and about 4 per cubic parsec, a dense region), on the slow lane machine: 5 to 7 ms a stop, so 6 stops took 29 to 36 ms, 20 stops 104 to 116 ms and 60 stops 360 to 384 ms, about a rung and a half of the index per stop. The graph reads the stops' own positions from the same index as their neighbours, because the route search places a system at its sector's centre plus the offset without turning the offset into the galaxy frame (reported as a bug).
+- Tests: the rule against a brute-force graph, the hops, the cap and its `more`, the on-route flag, the links between two stops, a route inside one sector, a route over two sectors, the nearest-systems reader against brute force, and the API with and without `graph=1`.
+
+generation-output: unchanged
+
+## [8.0.3244] - 2026-11-05
+
+**Headline:** The Galaxy Map's Color by menu has a new choice, Nebula cover, that shades each block by the share of it inside a nebula.
+
+### Changed
+
+- Color by gains "Nebula cover" (MAP.177). Each block or window cell is drawn in one of four steps of a single umber hue (the dust colour of the dark nebulae) that lightens with the share of the cell inside a nebula (under 0.5%, 0.5% to 1.5%, 1.5% to 3%, 3% or more, the bins of the nebula density research), whether or not the cell holds a charted sector. A cell with no nebula is drawn as plain unfilled space.
+- The steps are fixed shares, not ranked against the cells in view, so the same share has the same colour on every screen. The legend names them and the hover text of a block says its share ("0.60% inside a nebula"), or that none is charted for a sector, which has no stored cover.
+- The choice rides in the address as `color=cover`, like the other fills.
+
+## [8.0.3243] - 2026-11-05
+
+**Headline:** The sector-delete test now matches the rule that a sector holding a filed facility cannot be deleted until the facility is removed.
+
+### Fixed
+- **test_deleting_a_sector_with_facilities was stale.** Since GEN.1127 a facility filed in a sector stops the sector's delete with a 409 (`facilities.sector_id` is `ON DELETE RESTRICT`); the test now checks the refusal, deletes the facility, then the sector.
+
+## [8.0.3242] - 2026-11-05
+
+**Headline:** The Galaxy Map's Plane view now has a Stems switch, a height stretch and spherical-coordinate labels.
+
+### Added
+- **Stems switch and height stretch (Menu).** "Stems" turns the stems of the Plane view off and on. "Stem height" draws each stem on past its star to a bead at 2 to 10 times the star's height above or below the plane (1 is true height); a note in the corner of the map says how tall the heights are drawn, so the exaggeration is never hidden.
+- **Spherical coordinates on labels and in the info card.** A selected star and the stars with stems that carry a name, or that the pointer is near, get a label with its position as an ordered triple with units: (radius, longitude, latitude) from the galactic center, or from the center of the sector when one is open. With a star selected, the other labels give (distance, bearing, elevation) from the selected star. The same line, "Position (radius, longitude, latitude)", is in the info card of a star while the Plane view is on.
+
 ## [8.0.3241] - 2026-11-05
 
 **Headline:** The sky catalogue can now be built straight from the stars the database stores.

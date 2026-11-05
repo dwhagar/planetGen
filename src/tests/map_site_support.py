@@ -524,6 +524,14 @@ def _dense_field():
             "shell_index": shell, "band_index": band, "wedge_index": wedge,
             "system_id": SYSTEMS[i % len(SYSTEMS)][0],
         })
+    # MAP.300, MAP.380: two bright stars 0.05 pc apart, side by side across the view, in the cell beside the first sector (no generated sector
+    # there, so its stars are all the galaxy's to draw: the first sector's cell hands its stars to the sector scene as the camera nears).
+    for k, side in enumerate((-1, 1)):
+        stars.append({
+            "id": DENSE_PAIR_IDS[k], "name": None, "x": center[0] + side * DENSE_PAIR_GAP_PC / 2, "y": center[1] - 1.8, "z": center[2],
+            "luminosity_sol": 30.0 - 10.0 * k, "temperature_k": 6000, "radius_sol": 2.0, "star_type": "fixture",
+            "shell_index": 1, "band_index": 0, "wedge_index": 0, "system_id": SYSTEMS[k][0],
+        })
     points = [
         _point("neutron_star", 1.4, id=141, name="Dense Pulsar", descriptor="millisecond",
                x=center[0] + 0.6, y=center[1] - 0.4, z=center[2] + 0.2),
@@ -539,6 +547,8 @@ def _dense_field():
     return stars, points, worlds, center
 
 
+DENSE_PAIR_IDS = (23000, 23001)
+DENSE_PAIR_GAP_PC = 0.05
 DENSE_CLUSTER_STARS = 2200
 DENSE_HALO_STARS = 800
 DENSE_CLUSTER_SCALE_PC = 0.6
@@ -549,9 +559,14 @@ DENSE_STARS, DENSE_POINTS, DENSE_WORLDS, DENSE_CENTER_PC = _dense_field()
 sector, a filled one), with points (rogue planets, a neutron star, a black hole) and habitable-world systems."""
 
 
-def dense_region_query(dist_pc=30.0):
-    """The address (`?cam=`) of a view of the dense region from `dist_pc` parsecs, looking down the z axis."""
-    x, y, z = DENSE_CENTER_PC
+def close_pair_centre():
+    """The middle of the dense region's close pair (`DENSE_PAIR_IDS`, `DENSE_PAIR_GAP_PC` apart), in parsecs."""
+    return (DENSE_CENTER_PC[0], DENSE_CENTER_PC[1] - 1.8, DENSE_CENTER_PC[2])
+
+
+def dense_region_query(dist_pc=30.0, at=None):
+    """The address (`?cam=`) of a view of the dense region (of `at`, a point, instead) from `dist_pc` parsecs, looking down the z axis."""
+    x, y, z = at or DENSE_CENTER_PC
     return f"?cam={x:.6f},{y:.6f},{z:.6f},{dist_pc:.6f},0,0,0,1"
 
 
@@ -655,6 +670,14 @@ def _stats(ids):
             "mean_age_gy": sum(r[2] * r[1] for r in rows if r[1]) / stars if stars else None,
             "luminosity_sol": sum(r[3] for r in rows), "habitable_worlds": sum(r[4] for r in rows),
             "mass_kg": sum(r[5] for r in rows)}
+
+
+COVER_SHARES = (0.0, 0.002, 0.01, 0.02, 0.08)
+
+
+def cover_of_fixture_cell(shell, band, wedge):
+    """The nebula cover (a share of the cell) the fixture gives the cell at this address: every step of the colour in turn, and none."""
+    return COVER_SHARES[(shell * 7 + band * 3 + wedge) % len(COVER_SHARES)]
 
 
 def _children(counts):
@@ -845,8 +868,19 @@ class FixtureApi:
         return {"username": "fixture-admin", "must_change_credentials": False} if cookie_header else None
 
     def get_galaxy_nebula_cover(self, db, at=None, g=None):
-        """No fixture cell lies inside a nebula, and the real API is not asked for a database that does not exist."""
-        return {"at": at, "child_m": 1, "cells": []}
+        """`GET /api/galaxy/nebula-cover` over the fixture cells (MAP.177): a share from `COVER_SHARES` for every cell a stage or a
+        window shows, by its address, so the map's Nebula cover colour has every step to draw; a sector's cells have none. The real
+        API is not asked for a database that does not exist."""
+        if g is not None:
+            window = self.get_galaxy_window(db, at, g)
+            child_m, cells = window["child_m"], window["cells"]
+        else:
+            stage = galaxy_stage(at or None)
+            child_m, cells = stage["child_m"], [[c["shell"], c["band"], c["wedge"]] for c in stage["children"]]
+        if child_m == 1:
+            return {"at": at, "child_m": 1, "cells": []}
+        return {"at": at, "child_m": child_m,
+                "cells": [[*cell, cover_of_fixture_cell(*cell)] for cell in sorted(cells) if cover_of_fixture_cell(*cell) > 0]}
 
     def get_galaxy_charted_regions(self, db):
         """`GET /api/galaxy/charted-regions` over `SECTORS`: one region per 9-block that holds a fixture sector (`charted_regions`),

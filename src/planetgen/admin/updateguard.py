@@ -242,7 +242,7 @@ class MarkerSource:
         return found
 
     def cancel(self, item):
-        stop_reason.leave(item["pid"], "the update guard cancelled it, because an update or a cancel from the Stats page needs the machine")
+        stop_reason.leave(item["pid"], "the update guard canceled it, because an update or a cancel from the Stats page needs the machine")
         with contextlib.suppress(OSError):
             os.kill(item["pid"], signal.SIGTERM)
         return True
