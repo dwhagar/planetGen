@@ -10,18 +10,18 @@ metals, and the generator has the gas of every ring of the disk (`galaxy.disk_hi
 dust-to-gas law of its metals (`physics.nebula_composition`, GEN.1269), and the gravity that sets how thick a gas layer is. So the dust of a place is:
 
 1. **The column.** The gas surface density `Sigma_gas(R)` of the ring, its hydrogen share `X`, and `N_H / A_V = 2.21e21` hydrogen atoms per cm2 per
-   magnitude ([R5123: Eq. 1], 22 supernova remnants, X-ray N_H against optical A_V) make the V extinction through the whole layer, both sides:
+   magnitude ([R5130: Eq. 1], 22 supernova remnants, X-ray N_H against optical A_V) make the V extinction through the whole layer, both sides:
 
        A_V(column) = f_vis * Sigma_gas * X / (m_H * 2.21e21) * [dust-to-gas(Z(R)) / dust-to-gas(solar)]
 
    `Z(R)` is the gas metallicity at the ring's radius (`nebula_composition.GAS_GRADIENT_DEX_PER_KPC`, zero at the galaxy's reference radius) and the
    dust-to-gas ratio is the broken power law of [R5102] (`nebula_composition.gas_to_dust_law`), linear in the metals above 12 + log(O/H) 7.96.
    `f_vis` is the share of the gas column that dims the stars a catalogue or a person can use (stand-in DU2: the model column at the Sun is twice the
-   measured high-latitude one, 0.24 mag through the layer, [R5125]; stars behind dense clouds are not in the maps and part of the gas is not in the thin layer).
+   measured high-latitude one, 0.24 mag through the layer, [R5132]; stars behind dense clouds are not in the maps and part of the gas is not in the thin layer).
 
 2. **The layer.** Gas in the disk's own gravity is a sech^2 sheet of scale height `h(R) = sigma_g^2 / (pi G (Sigma_gas + Sigma_stars))`, with the
    velocity dispersion of the neutral gas `sigma_g` (stand-in DU3). It is 113 pc at the Sun and flares to 470 pc at 12.5 kpc, as the dust does
-   (thin and thick disks of [R5124] at 12 to 13 kpc: 340 and 1,000 pc), because the surface density falls outward. A floor `LAYER_FLOOR_PC` (DU4) stands in for
+   (thin and thick disks of [R5131] at 12 to 13 kpc: 340 and 1,000 pc), because the surface density falls outward. A floor `LAYER_FLOOR_PC` (DU4) stands in for
    the bulge's pull and the central molecular zone's thickness, which the surface density of the disk alone leaves out (VIEW.46 replaces it with the vertical force of the
    potential, GEN.115).
 
@@ -29,11 +29,11 @@ dust-to-gas law of its metals (`physics.nebula_composition`, GEN.1269), and the 
    and a hyperbolic cosine a point, the cost of the fixed law it replaces.
 
 Against what is measured (the Milky Way, scale length 2,600 pc, 5e10 solar masses; none but the first was a tuning target): the column through the layer at the Sun
-0.24 mag; the plane at the Sun 1.06 mag per kpc (0.85 +- 0.20, [R5125]; 0.8 to 1.0, [R5124]); the plane at 9.5, 10.5 and 12.5 kpc 0.51, 0.24 and 0.08 (0.75, 0.60 and 0.14 from
-the thin and thick disks of [R5124]); the Sun to the Galactic Center 39 mag with the 40 pc floor (A_V 31 to 59 in the literature, 38 to 42 for the model of [R5127]). The center moves
+0.24 mag; the plane at the Sun 1.06 mag per kpc (0.85 +- 0.20, [R5132]; 0.8 to 1.0, [R5131]); the plane at 9.5, 10.5 and 12.5 kpc 0.51, 0.24 and 0.08 (0.75, 0.60 and 0.14 from
+the thin and thick disks of [R5131]); the Sun to the Galactic Center 39 mag with the 40 pc floor (A_V 31 to 59 in the literature, 38 to 42 for the model of [R5134]). The center moves
 by a factor of 6 with the floor, so it is consistent, not confirmed. A galaxy with less gas, fewer metals and a thicker layer is clearer: the small test galaxy gives 0.14 mag per kpc.
 
-What is left out: the spiral arms' contrast (the gas rings are azimuthally smooth), the warp, a thin and a thick disk of dust (a third of the dust is thick, [R5124]), the
+What is left out: the spiral arms' contrast (the gas rings are azimuthally smooth), the warp, a thin and a thick disk of dust (a third of the dust is thick, [R5131]), the
 central molecular zone ring (GEN.1292), clumpy clouds (the mean is used; dense clouds and nebulae are VIEW.8's) and reddening (VIEW.11). Nothing here is stored: a profile is worked out from the
 galaxy's shape, which is stored, and is kept in memory.
 """
@@ -48,12 +48,12 @@ from planetgen import tuning
 from planetgen.physics import constants, nebula_composition, stellar_abundances
 
 HYDROGEN_ATOMS_PER_AV_CM2 = 2.21e21
-"""float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants [R5123: Eq. 1]. Stand-in DU1,
+"""float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants [R5130: Eq. 1]. Stand-in DU1,
 tier T1, tweak L0."""
 
 VISIBLE_SHARE = 0.5
 """float: The share of the gas column that dims the stars a catalogue or a person can use: the model column at the Sun (0.47 mag for 11.8 solar masses per pc2) over the
-measured one through a half layer at high latitude doubled (0.24, [R5125]); the maps leave out the stars behind dense clouds. Stand-in DU2, tier T6, tweak L2."""
+measured one through a half layer at high latitude doubled (0.24, [R5132]); the maps leave out the stars behind dense clouds. Stand-in DU2, tier T6, tweak L2."""
 
 GAS_DISPERSION_KMS = 9.0
 """float: The velocity dispersion of the neutral gas, km/s, that holds a layer of scale height sigma^2 / (pi G Sigma) up (the HI of the Galaxy is 7 to 11, recalled, not read). Stand-in

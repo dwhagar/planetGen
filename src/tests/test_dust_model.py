@@ -34,7 +34,7 @@ def small():
 # --- the parts -----------------------------------------------------------------------------------------------------------
 
 def test_the_constants_are_the_ones_read_or_argued():
-    assert dm.HYDROGEN_ATOMS_PER_AV_CM2 == 2.21e21                      # [R5123: Eq. 1]
+    assert dm.HYDROGEN_ATOMS_PER_AV_CM2 == 2.21e21                      # [R5130: Eq. 1]
     assert dm.hydrogen_mass_fraction() == pytest.approx(0.713, abs=0.005)
     assert dm._MSUN_PC2_IN_HYDROGEN_PER_CM2 == pytest.approx(1.248e20, rel=2e-3)
     assert dm._G_PC_KMS2_PER_MSUN == pytest.approx(4.30e-3, rel=1e-3)
@@ -65,7 +65,7 @@ def test_the_layer_is_a_gas_sheet_in_its_own_gravity_and_no_thinner_than_the_flo
 
 def test_the_column_follows_the_gas_the_visible_share_and_the_metals():
     base = dm.column_av(11.8, 0.0)
-    assert base == pytest.approx(0.24, rel=0.05)                         # the measured column through the layer at the Sun, [R5125]
+    assert base == pytest.approx(0.24, rel=0.05)                         # the measured column through the layer at the Sun, [R5132]
     assert dm.column_av(23.6, 0.0) == pytest.approx(2.0 * base)
     assert dm.column_av(11.8, -0.3) == pytest.approx(0.5 * base, rel=0.01)
     assert dm.column_av(11.8, 0.0, visible_share=1.0) == pytest.approx(2.0 * base)
@@ -75,25 +75,25 @@ def test_the_column_follows_the_gas_the_visible_share_and_the_metals():
 # --- the Milky Way against what is measured -------------------------------------------------------------------------------
 
 def test_the_milky_way_has_the_measured_column_and_layer_at_the_sun(milky_way):
-    assert float(milky_way.column_at(SUN_PC)) == pytest.approx(0.24, abs=0.03)       # 0.12 through a half layer, [R5125]
+    assert float(milky_way.column_at(SUN_PC)) == pytest.approx(0.24, abs=0.03)       # 0.12 through a half layer, [R5132]
     assert 100.0 < float(milky_way.height_at(SUN_PC)) < 150.0                          # 125 to 134 pc, a single sech^2 layer
-    assert 0.7 < float(milky_way.plane_av_per_kpc(SUN_PC)) < 1.3                      # 0.85 +- 0.20, [R5125]; 0.8 to 1.0, [R5124]
+    assert 0.7 < float(milky_way.plane_av_per_kpc(SUN_PC)) < 1.3                      # 0.85 +- 0.20, [R5132]; 0.8 to 1.0, [R5131]
 
 
 def test_the_layer_flares_and_the_plane_dims_less_outward(milky_way):
     radii = np.array([6000.0, 8000.0, 10000.0, 12500.0, 14000.0])
     heights = milky_way.height_at(radii)
     assert np.all(np.diff(heights) > 0)
-    assert 300.0 < float(milky_way.height_at(12500.0)) < 700.0                         # thin 340 pc and thick 1,000 pc at 12 to 13 kpc, [R5124]
+    assert 300.0 < float(milky_way.height_at(12500.0)) < 700.0                         # thin 340 pc and thick 1,000 pc at 12 to 13 kpc, [R5131]
     plane = milky_way.plane_av_per_kpc(radii)
     assert np.all(np.diff(plane) < 0)
-    assert float(plane[3]) == pytest.approx(0.14, abs=0.1)                             # thin plus thick x 3.1 at 12 to 13 kpc, [R5124]
+    assert float(plane[3]) == pytest.approx(0.14, abs=0.1)                             # thin plus thick x 3.1 at 12 to 13 kpc, [R5131]
 
 
 def test_the_plane_from_the_sun_to_the_center_dims_by_tens_of_magnitudes_not_two(milky_way):
     radii = np.linspace(50.0, SUN_PC, 4000)
     total = np.trapezoid(milky_way.av_per_pc(radii, 0.0, 0.0), radii)
-    assert 25.0 < total < 60.0                                                         # A_V 31 to 59 in the literature, 38 to 42 for [R5127]
+    assert 25.0 < total < 60.0                                                         # A_V 31 to 59 in the literature, 38 to 42 for [R5134]
     old = np.trapezoid(1.0e-3 * np.exp(-(8000.0 - radii) / sky.DUST_SCALE_LENGTH_PC), radii)
     assert old < 3.0                                                                   # the fixed law gave 2.3
 
