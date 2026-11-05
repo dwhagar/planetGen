@@ -159,3 +159,13 @@ def obstacles_along_segment(conn, start_pc, end_pc, kinds=None):
             })
     found.sort(key=lambda row: (row["along_pc"], row["distance_pc"], row["kind"], str(row["id"])))
     return found
+
+
+def adjusted_course(conn, start_pc, end_pc, kinds=None):
+    """
+    The course from `start_pc` to `end_pc` bent around the keep-out spheres between them (NAV.6): the obstacles of
+    `obstacles_along_segment` handed to the planner (`galaxy.avoid.plan_course`). The `adjusted` object of
+    course-avoidance.md section 7, in the galactic frame, parsecs. Nothing is generated: space with no placed object has none to avoid.
+    """
+    found = obstacles_along_segment(conn, start_pc, end_pc, kinds=kinds)
+    return avoid.plan_course(start_pc, end_pc, avoid.spheres_from_obstacles(found), frame="galactic", unit="pc")
