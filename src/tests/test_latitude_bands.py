@@ -142,6 +142,12 @@ def test_the_climate_values_of_a_body_carry_its_ring():
     assert (values["ring_inner_km"], values["ring_outer_km"], values["ring_optical_depth"]) == (8000.0, 14000.0, 0.5)
 
 
+def longest_spells(latitude, tilt, alpha, orbital_hours, solar_day_hours, **options):
+    """`(longest day, longest night, step)` at one latitude from `latitude_bands.spells`."""
+    found = lb.spells([latitude], tilt, alpha, orbital_hours, solar_day_hours, **options)
+    return float(found.longest_day[0]), float(found.longest_night[0]), found.step
+
+
 # --- GEN.1260: the longest unbroken day and night of a slow spinner -------------------------------------------------------------
 
 NITRIKIN_LIKE = dict(surface_temperature_k=280.0, atmospheric_pressure_pa=101325.0, gravity_g=1.0, rotation_period_hours=27.9 * 24.0, axial_tilt_deg=127.0,
@@ -152,13 +158,13 @@ NITRIKIN_LIKE = dict(surface_temperature_k=280.0, atmospheric_pressure_pa=101325
 def test_a_slow_spinner_has_an_equator_day_of_half_a_solar_day_and_a_pole_day_of_half_a_year():
     orbital, solar = 28.5 * 24.0, 24.0 / (1.0 / 27.9 + 1.0 / 28.5)
     assert solar == pytest.approx(14.1 * 24.0, rel=0.002)
-    day, night, _ = lb.longest_spells(0.0, 127.0, 0.0, orbital, solar)
+    day, night, _ = longest_spells(0.0, 127.0, 0.0, orbital, solar)
     assert day == pytest.approx(7.05, abs=0.2) and night == pytest.approx(7.05, abs=0.2)       # about 7.1 days, not 0
-    day, night, _ = lb.longest_spells(25.7, 127.0, 0.0, orbital, solar)
+    day, night, _ = longest_spells(25.7, 127.0, 0.0, orbital, solar)
     assert day == pytest.approx(8.4, abs=0.3) and night == pytest.approx(8.4, abs=0.3)
-    day, night, _ = lb.longest_spells(38.6, 127.0, 0.0, orbital, solar)
+    day, night, _ = longest_spells(38.6, 127.0, 0.0, orbital, solar)
     assert day == pytest.approx(17.0, abs=1.5) and night == pytest.approx(17.0, abs=1.5) and day > solar / 24.0      # the star stays up past a solar day
-    pole_day, pole_night, _ = lb.longest_spells(90.0, 127.0, 0.0, orbital, solar)
+    pole_day, pole_night, _ = longest_spells(90.0, 127.0, 0.0, orbital, solar)
     assert pole_day == pytest.approx(14.25, abs=0.2) and pole_night == pytest.approx(14.25, abs=0.2)       # half the 28.5-day year
 
 
@@ -187,17 +193,34 @@ def _closed_form_polar_days(latitude_deg, tilt_deg, alpha, orbital_days):
 def test_the_search_finds_the_textbook_polar_day_and_night_without_a_case_for_it():
     alpha = math.radians(0.267)
     for latitude in (70.0, 80.0, 90.0):
-        day, night, step = lb.longest_spells(latitude, 23.44, alpha, 8766.0, 24.0)
+        day, night, step = longest_spells(latitude, 23.44, alpha, 8766.0, 24.0)
         expected = _closed_form_polar_days(latitude, 23.44, alpha, 365.25)
         assert day == pytest.approx(expected[0], abs=2.0) and night == pytest.approx(expected[1], abs=2.0)       # the search adds the day before and the day after the polar one: the sun is up from the sunrise before it to the sunset after
 
 
 def test_a_body_with_a_year_of_many_thousand_days_is_searched_by_the_same_function():
     alpha = math.radians(0.267)
-    day, night, step = lb.longest_spells(90.0, 97.77, 0.0, 84.0 * 8766.0, 17.24)
+    day, night, step = longest_spells(90.0, 97.77, 0.0, 84.0 * 8766.0, 17.24)
     assert step > 17.24 / 24.0 / lb._MIN_SAMPLES_PER_DAY      # the steps hold whole solar days, so the search takes the average through a step
     assert day == pytest.approx(84.0 * 365.25 / 2.0, rel=0.01) and night == pytest.approx(84.0 * 365.25 / 2.0, rel=0.01)
-    equator = lb.longest_spells(12.9, 97.77, alpha, 84.0 * 8766.0, 17.24)
+    equator = longest_spells(12.9, 97.77, alpha, 84.0 * 8766.0, 17.24)
     assert equator[0] > 365.0       # even the equator has a day of years at that tilt
-    short = lb.longest_spells(0.0, 23.44, alpha, 84.0 * 8766.0, 17.24)
+    short = longest_spells(0.0, 23.44, alpha, 84.0 * 8766.0, 17.24)
     assert short[0] == pytest.approx(17.24 / 48.0, rel=0.1)       # a tilt of 23 degrees leaves the equator its half solar day
+
+
+def test_the_day_and_night_of_a_band_are_the_mean_length_of_a_stretch_not_half_a_solar_day_at_every_latitude():
+    bands = {b.name: b for b in lb.compute(NITRIKIN_LIKE, 0.0)}
+    equator = bands["equator"]
+    assert equator.day_hours == pytest.approx(14.1 * 24.0 / 2.0, rel=0.03) and equator.night_hours == pytest.approx(14.1 * 24.0 / 2.0, rel=0.03)      # about 7 days
+    polar = bands["north_polar"]
+    assert polar.day_hours > 1.2 * equator.day_hours and polar.night_hours > 1.2 * equator.night_hours      # the long stretches near the pole pull the mean up
+    earth = {b.name: b for b in lb.compute(EARTH, ALPHA_EARTH_DEG)}
+    assert earth["north_polar"].day_hours > 20.0 and earth["equator"].day_hours == pytest.approx(12.0, abs=0.15)      # a polar day of months is one stretch
+
+
+def test_the_mean_is_the_time_up_over_the_number_of_stretches():
+    orbital, solar = 28.5 * 24.0, 24.0 / (1.0 / 27.9 + 1.0 / 28.5)
+    found = lb.spells([0.0, 25.7, 90.0], 127.0, 0.0, orbital, solar)
+    assert list(found.mean_day) == pytest.approx([7.05, 6.9, 14.25], abs=0.4) and list(found.mean_night) == pytest.approx([7.05, 7.0, 14.25], abs=0.4)
+    assert all(found.mean_day <= found.longest_day + 1e-9) and all(found.mean_night <= found.longest_night + 1e-9)
