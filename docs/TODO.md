@@ -18025,19 +18025,6 @@ clears each one.
   TEST.571's). Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580.
 
-- [ ] **TEST.597 test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug)**
-  Core 2 (as the lane reported, about 7:35 AM EST on 2026-11-05) saw
-  tests/test_web_browser_sector_map*.py::test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch
-  fail about 1 run in 3 on plain main (4 of 6 runs passed): a region
-  label shows when only system names are expected. Not from NAV.49. Do:
-  loop the test 20 times with the label list printed on a failure; find
-  whether the test waits for the label engine's second pass or the
-  region label is a real map bug (if real, file it as its own item); fix
-  at the cause, not with a longer wait. Done: 20 passes in a row on
-  plain main. Lock-free. Version 8.1. Owner: Core 5, with TEST.575 and
-  TEST.595 (same family). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.575.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
