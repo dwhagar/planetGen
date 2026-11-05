@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3310] - 2026-11-05
+
+**Headline:** A world that holds an oxygenic class beside an anoxygenic or hydrogen-eating one now keeps the methane the second one's fuel supports.
+
+### Fixed
+- **Fuel-limited methane no longer shrinks with the class's share of the food.** The methane of the anoxygenic light-eaters and the hydrogen eaters is limited by their own donor or hydrogen supply, not by the food they share with an oxygenic class, so it was too small by the inverse of their share (about ten times for a 10 percent share). Only the buried-carbon methane of the oxygenic class still goes with its share, and classes that burn the same fuel count it once. Worlds with one living class are unchanged.
+
+generation-output: changed
+affects: fill
+
+TODO items resolved: GEN.1252.
+
 ## [8.0.3309] - 2026-11-05
 
 **Headline:** Generating a system around a luminous star is faster, and two small slips that the old time limits were hiding are fixed.
