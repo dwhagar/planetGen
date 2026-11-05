@@ -16340,6 +16340,35 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (region-name search, open), GEN.1140. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
 
+- [ ] **API.39 /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug)**
+  Boss (EST on 2026-11-04, as the coordinator relayed): the marked
+  systems (gas giant and habitable points of interest, interests[].id)
+  come back from /api/galaxy/nodes as row ids, because api/idpaths.py
+  had no rule for nodes.*.interests[].id, so the View system link finds
+  no system. Fix: PR #4946 from the point-of-interest link thread (rule
+  added, node cache format 10, test). Its test has not run because that
+  session has no MySQL: a lane with MySQL runs it before the merge.
+  Lock-free, no migration; the cache format bump rebuilds galaxy-nodes
+  once on update. Done: interests[].id is an object ID, View system
+  opens the system, and the test passes. Version 8.1. Owner: the
+  point-of-interest link thread for the code; Bug 1 runs the MySQL test
+  and I merge.
+  Prerequisites: none. Related: MAP.378.
+
+- [ ] **API.40 Audit every link to a system or body page for row ids that should be object IDs**
+  Follow-up to API.39: the nodes.*.interests[].id gap shows the id rules
+  in api/idpaths.py can miss a field. Walk every link that opens a
+  system or body page and every response that feeds one: sector-scene
+  planet, moon and belt entries, search results, nearest lists, the
+  galaxy and system trees, and the points of interest lists. For each,
+  confirm the id it carries is an object ID and that idpaths.py has a
+  rule for it; add the missing rules in the same change. Done: a test
+  walks the API responses that feed a system or body link and fails on
+  any numeric row id there, and the audit lists each field checked.
+  Lock-free where no stored value changes. Version 8.1. Owner: Core 2
+  (map and links).
+  Prerequisites: API.39. Related: API.39.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
