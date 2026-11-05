@@ -27,7 +27,7 @@ complete; nothing in the generator puts them on a surface until a rule for their
    overstates the nitrogen the cold lakes hold, so a permanent gas keeps `SOLUBILITY_FACTOR` of its ideal share; the result is a stand-in (OT3).
 4. **Density and viscosity.** The density is linear from the reference point in the expansion coefficient, held to 30 percent of the reference at least (a
    liquid near its critical point is lighter than that line says); the viscosity is interpolated linearly in its logarithm between the row's points and
-   held at the ends. A mixture's density is the mole-weighted molar volume (`sea_density_kg_m3`).
+   held at the ends.
 
 Every number that is not a verified measurement is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.69, rows LQ1 to LQ10).
 """
@@ -38,7 +38,7 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-from planetgen.physics import elements, gases, saturation
+from planetgen.physics import elements, saturation
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "surface_liquids.json")
 
@@ -190,11 +190,6 @@ def is_stable(liquid_id, temperature_k, pressure_pa):
     return window is not None and window[0] <= temperature_k <= window[1]
 
 
-def stable_liquids(temperature_k, pressure_pa, kinds=None):
-    """The ids of the liquids stable at the temperature and pressure (those of `kinds`, if given), in file order."""
-    return tuple(row.id for row in LIQUIDS if (kinds is None or row.kind in kinds) and is_stable(row.id, temperature_k, pressure_pa))
-
-
 # --- density and viscosity -------------------------------------------------------------------------------------------------
 
 def density_kg_m3(liquid_id, temperature_k):
@@ -314,18 +309,3 @@ def ideal_sea(temperature_k, partial_pressures_pa, solvent="C2H6"):
     if rest > 1e-9:
         fractions[solvent] = rest
     return fractions
-
-
-def sea_density_kg_m3(fractions, temperature_k):
-    """The density of a mixed sea, kg/m3: the mole-weighted molar volume of its pure liquids (ideal mixing; no excess volume)."""
-    if not fractions:
-        raise ValueError("a sea needs at least one liquid")
-    mass = volume = 0.0
-    for formula, x in fractions.items():
-        row = next((r for r in LIQUIDS if r.saturation == formula), None)
-        if row is None:
-            raise SurfaceLiquidError(f"{formula!r} has no liquid row")
-        molar_mass = gases.gas(formula).molar_mass
-        mass += x * molar_mass
-        volume += x * molar_mass / density_kg_m3(row.id, temperature_k)
-    return mass / volume
