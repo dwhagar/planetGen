@@ -23,7 +23,7 @@ Detection
 ---------
 `DETECTABLE_FRACTIONAL_LUMINOSITY` is the dust a survey finds against the star's light, a stand-in. [R4081] find most of their discs near a fractional luminosity of 1e-5, but the belts the
 generator builds are all heavy and old and nearly all at their steady state, so about half the K, G and F stars would shine above 1e-5 where the survey finds 13 to 24 percent. The cut is
-tuned to the combined share of the K, G and F dwarfs, 17 percent ([R4081]): it is the number the generator's discs must pass to be as rare as the surveys' (L3, hand-tuned against a sweep of
+tuned to the combined share of the K, G and F dwarfs, 17 percent [R4081]: it is the number the generator's discs must pass to be as rare as the surveys' (L3, hand-tuned against a sweep of
 the generator). It leaves the A stars (young, bright, their dust diluted by `L^-0.5`) with fewer discs than the survey's 24 percent and the F stars with about half theirs; both are gaps of
 the outer disc's mass and width, not of this law. [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]
 """
