@@ -2580,3 +2580,4 @@ Baseline: PR #1817.
 | MAP.385 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
 | OPS.96 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
 | OPS.97 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| PERF.219 | later | Paging audit |

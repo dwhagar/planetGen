@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.626 |
+| TEST | TEST.627 |
 | USR | USR.32 |
 | OPS | OPS.106 |
 | DOC | DOC.107 |
@@ -2870,7 +2870,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.216 | Find where the 50 pc spherical region count spends its time: the key statement is 3x to 10x slower than the research figure | none | done, PR #3992 |
 | PERF.217 | The near list (near._systems_in_reach) reads the full row of every system in reach: list ids by the covering index and read names for the page only | none | done, PR #4019 |
 | PERF.218 | run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor) | none | done, PR #4075 |
-| PERF.219 | The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target | none | open |
+| PERF.219 | The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target | none | done, PR #5214 |
 | PERF.220 | Cap the workers of the bright-star and massive-star scatter stages by the memory available, so a run is not killed for running out of memory (bug) | none | done, PR #4560 (scatter workers capped at 60 percent of host memory at 600 MB each; Boss's kernel log confirmed the out of memory kill, 450 to 900 MB seen) |
 | PERF.221 | A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug) | none | done, PR #4576 |
 | PERF.222 | Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug) | none | done, PR #4568 |
@@ -4043,6 +4043,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.623 | Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark) | none | open |
 | TEST.624 | Politics tests: determinism over 100 steps at different batchings, no flicker, a split, a locked case, and polity count and area in a sane range on a census galaxy | none | open |
 | TEST.625 | Ships and stations tests: position against the course planner, the arrival job, refused orbits, and determinism of generated traffic | none | open |
+| TEST.626 | tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries fails on plain main (4 of 4 runs) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

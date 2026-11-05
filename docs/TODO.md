@@ -14648,16 +14648,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   anywhere and takes load off 8.2.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.219 The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target**
-  Left over from the PERF.137 audit
-  (reports/limit-offset-final-audit-perf137-2026-10-31.md): the name
-  sort is already keyset, the filter plus the sector or octant sort is
-  not. Also residual and smaller: planetgen planets and moons with a
-  class or radius filter and no cursor (CLI only), and a hand-typed deep
-  offset on the Phenomena list. Measure on a real MySQL at a full galaxy
-  before and after.
-  Prerequisites: none.
-
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
   Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
   generation run on hal that began about 2:34 PM EDT failed after 11104
@@ -18334,6 +18324,18 @@ clears each one.
   same galaxy and seed. Done: the file runs in the changed-files gate
   whenever a ships module changes.
   Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
+
+- [ ] **TEST.626 tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries fails on plain main (4 of 4 runs) (bug)**
+  Found by Core 5 (6:16 PM EST on 2026-11-05) while building PERF.219:
+  the test that the sector and system pages use a fixed number of
+  queries fails on main without any change of theirs. Do: run it on
+  main, find which page now issues more queries than the fixed number (a
+  recent read added to the page), then either remove the extra query or,
+  if the new read is needed, make it part of the fixed count with a
+  stated reason; do not loosen the test to a larger limit without naming
+  what the extra queries are. Done: the test passes on main and a
+  comment in it names the query count and what each query is.
+  Prerequisites: none. Related: PERF.219.
 
 ## USR: User accounts
 
