@@ -14732,34 +14732,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: with GEN.367's owner.
   Prerequisites: GEN.1269, GEN.367. Related: GEN.1269, GEN.367.
 
-- [ ] **GEN.1274 Nebula composition part f: read the sources marked recalled and replace their stand-ins**
-  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
-  in /mnt/project-files/reports/): every kind of nebula can be derived
-  at read time with no new column, so the chain is lock-free unless Boss
-  answers question 2 with "store the progenitor mass". Defaults taken
-  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
-  gradient now as a registry stand-in; derive progenitors from the
-  object ID at read time; Magellanic gas drawn within the widest range
-  of the two methods; dust-destruction fractions as tweakable GEN.725
-  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
-  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
-  GEN.1268. Do: open the sources the report marks "Recalled, not opened"
-  at the end of its Sources section (the star-formation efficiency, the
-  Type Ia yield tables, the grain-model paper, the Peimbert Type I
-  limits, the Crab and Cassiopeia A dust masses, and the warm neutral
-  and ionized medium fractions), add them to the citation registry with
-  scripts/build_references.py add, and replace their GEN.725 rows with
-  verified values. Done: no nebula composition row is marked recalled.
-  Lock-free. Version 8.1. Owner: Sources 1.
-  Owner change (9:08 PM EST on 2026-11-04): Sources 2 takes this item
-  (Sources 1 builds GEN.1269). Include the planetary nebula stand-ins
-  PNE1 to PNE7 of GEN.1270 that the lane tiered as recalled or tuned
-  (second dredge-up helium, intershell mix, hot bottom burning share)
-  and the Type Ia and core-collapse tables of GEN.1271 marked recalled;
-  replace them with sourced values where a source can be read, and where
-  the on-line tables cannot be opened say so and keep the tier.
-  Prerequisites: none. Related: GEN.1269.
-
 - [ ] **GEN.1275 The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug)**
   Bug 1 (as the lane reported, 8:50 PM EST on 2026-11-04), found while
   working PERF.236. Measured on main at the train 9 head with the same
