@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.590 |
+| TEST | TEST.591 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -3252,7 +3252,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= | none | done, PR #5041 |
 | VIEW.32 | System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test | none | done, PR #4958 |
 | VIEW.33 | System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock | none | done, PR #5034 |
-| VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | none | open |
+| VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | none | done, PR #5047 |
 | VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | none | open |
 | VIEW.36 | System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points | none | open |
 | VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | none | open |
@@ -3936,6 +3936,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.587 | Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug) | none | open |
 | TEST.588 | Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug) | none | open |
 | TEST.589 | test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug) | none | done, PR #5045 |
+| TEST.590 | test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star fails on plain main with min() of an empty list in _nearest (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
