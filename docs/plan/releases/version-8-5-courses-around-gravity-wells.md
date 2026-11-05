@@ -51,12 +51,8 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.22 | Courses inside a sector and a system |  |  |
 | NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
 | NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
-| NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | NAV.68 |  |
-| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | NAV.67 |  |
-| NAV.68 | Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more' | NAV.65, NAV.67 |  |
-| NAV.67 | Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops | NAV.66 |  |
-| NAV.66 | Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels | NAV.65 |  |
-| NAV.65 | Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap |  |  |
+| NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain |  |  |
+| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map |  |  |
 
 ### Steering clear of gravity wells
 

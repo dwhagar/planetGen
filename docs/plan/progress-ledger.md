@@ -2439,3 +2439,37 @@ Baseline: PR #1817.
 | GEN.1147 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | DB.99 | 8.4 | Asteroid fields |
 | UX.261 | later | Multiple galaxies |
+| MAP.378 | 8.1 | Fly-through map |
+| MAP.379 | 8.1 | Fly-through map |
+| VIEW.21 | 8.2 | Bookmarks |
+| VIEW.32 | 8.2 | Bookmarks |
+| VIEW.20 | 8.2 | Bookmarks |
+| VIEW.27 | 8.2 | Bookmarks |
+| VIEW.28 | 8.2 | Bookmarks |
+| PERF.233 | 8.2 | Robust tile caching |
+| API.40 | 8.1 | Fly-through map |
+| API.39 | 8.1 | Fly-through map |
+| MAP.375 | 8.1 | Fly-through map |
+| PERF.239 | 8.2 | Robust tile caching |
+| VIEW.29 | 8.2 | Bookmarks |
+| MAP.371 | 8.1 | Fly-through map |
+| VIEW.24 | 8.2 | Bookmarks |
+| GEN.1270 | 8.2 | Robust tile caching |
+| VIEW.22 | 8.2 | Bookmarks |
+| MAP.372 | 8.1 | Fly-through map |
+| MAP.373 | 8.1 | Fly-through map |
+| TEST.584 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.177 | 8.8 | Nebula drawing |
+| NAV.65 | 8.5 | Courses on the maps |
+| NAV.66 | 8.5 | Courses on the maps |
+| MAP.380 | 8.1 | Fly-through map |
+| GEN.1274 | 8.2 | Robust tile caching |
+| UX.237 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1269 | 8.2 | Robust tile caching |
+| TEST.234 | 8.1 | Bugs and flaky tests |
+| NAV.67 | 8.5 | Courses on the maps |
+| VIEW.23 | 8.2 | Bookmarks |
+| PERF.232 | 8.2 | Robust tile caching |
+| NAV.73 | 8.5 | Courses on the maps |
+| GEN.1255 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.68 | 8.5 | Courses on the maps |

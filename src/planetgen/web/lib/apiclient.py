@@ -168,6 +168,11 @@ def set_response_cache(provider):
     _response_cache = provider
 
 
+def response_cache():
+    """The `pagecache.ResponseCache` the current call reads through, or `None` (see `set_response_cache`)."""
+    return None if _response_cache is None else _response_cache()
+
+
 cache_stats = {"hits": 0, "misses": 0}
 """dict: How many cached GETs were answered from the response cache and how many had to be fetched and were answered, in
 this process (the warm-up reports them, PERF.104). A GET the API refused (a 404, a 400) built no answer and counts as neither:
@@ -581,16 +586,19 @@ def get_near(db, params):
     return _request("/near", {"db": db, **params})
 
 
-def get_nav(db, from_ref, to_ref, stay=None):
+def get_nav(db, from_ref, to_ref, stay=None, graph=False):
     """Returns `GET /api/nav`'s course/route dict -- see `docs/reference/api.md`'s
     "NAV" section for the full shape. `from_ref`/`to_ref` are object
     references (`planetgen.galaxy.objectref`): a system, a body in one, or
     a standalone phenomenon. `stay` is the minutes spent at each stop of
-    the route (NAV.11; the API's default, 0, when `None`)."""
+    the route (NAV.11; the API's default, 0, when `None`). `graph` asks for
+    `route.graph`, the links round the route (NAV.65)."""
     _require_db(db)
     params = {"db": db, "from": from_ref, "to": to_ref}
     if stay is not None:
         params["stay"] = stay
+    if graph:
+        params["graph"] = 1
     return _request("/nav", params)
 
 

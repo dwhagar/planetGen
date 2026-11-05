@@ -569,6 +569,32 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   route strip, on the NAV page's map and on the Galaxy Map course, with a legend
   entry; under `prefers-reduced-motion` red without the pulse; readable in both
   themes; the list also labels it "unknown space" in text.
+- **Course diagram (NAV.67, with NAV.36).** A panel below the NAV page's map
+  (`web/maps/navdiagram.py`) draws the ribbon of `navribbon.layout_ribbon` (NAV.66) as SVG:
+  the stops left to right, a glyph for each kind (a disc for a system, a hexagon for a
+  phenomenon, and a shape of its own for each kind of stop in unknown space, so the kinds read
+  by shape and not by colour), the hop's length on it and its course where the gap is wide
+  enough, the start ringed dashed and the destination ringed twice. A hop through unknown
+  space is red, dashed and glowing, with a legend entry and the words in the panel's text and
+  in the hop's title; the glow pulses only without `prefers-reduced-motion`. The spacing
+  follows the logarithm of a hop's length, so the panel says it is a schematic and not to
+  scale. Three drawings of one route are on the page (layout widths 260, 520 and 880 px) and a
+  media query shows the one that fits, so a phone wraps a long route into rows while the text
+  stays near its set size (12 px, drawn at 0.9 or more of it). Each stop is a link to its page
+  (a stop in unknown space has none) and has a text alternative; the route list stays the
+  plain-text form. The link to the Galaxy Map (NAV.69) is drawn later.
+  **Neighbours (NAV.68).** The NAV page asks for the route's graph (`graph=1`, NAV.65) and draws it
+  faintly under the route: a short stub from a stop to each neighbour off the route (the graph caps them
+  per stop), "and N more" over a stop where the cap cut some, and a dotted arc between two stops of one
+  row that are neighbours but no hop (a link between stops on two rows is counted in a note under the
+  drawing and not drawn). A stub has no text of its own, only a title with its distance, since the
+  stubs lie too close for labels; the arc carries its length. The panel and its legend say a link is a
+  neighbour relation (which systems lie near each other, by the relative neighbourhood rule), not a
+  travel lane, and the route's own hops are drawn over the neighbours. A hop's course text is left out
+  where an "and N more" sits over it. Names and labels carry a halo of the panel's colour so a stub
+  never cuts through their letters.
+  The route list's unknown-space hops are red as well. The NAV page's own map polyline and the
+  Galaxy Map course still draw an unknown-space hop like any other (NAV.36's remaining parts).
 - **Saved courses (NAV.39, phase 2).** A saved course (NAV.17) keeps which hops
   were unknown-space jumps; opening it checks again, since sectors may have
   been filled, and says what changed.

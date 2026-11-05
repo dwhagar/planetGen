@@ -339,6 +339,30 @@ def _with_class_reasons(systems, class_systems):
     return list(found.values())
 
 
+def all_node_keys(conn):
+    """
+    The key of every node the Galaxy Map can ask for (PERF.233): every block of every level that holds a generated
+    sector or a pre-placed object (`populated_node_keys` to level 1), then the node of each generated sector, the
+    biggest blocks first and, within a level, in key order. The map's address space is 23.9 billion cells; only these
+    are nodes.
+
+    Returns:
+        list[str]: `m.shell.band.wedge` keys, each once.
+    """
+    keys = populated_node_keys(conn, 1)
+    seen = set(keys)
+    rows = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE shell_index IS NOT NULL "
+                        "AND band_index IS NOT NULL AND wedge_index IS NOT NULL "
+                        "ORDER BY shell_index, band_index, wedge_index").fetchall()
+    for r in rows:
+        key = format_drill_key(DrillBlock(1, r["shell_index"], r["band_index"], r["wedge_index"]))
+        if key not in seen:
+            seen.add(key)
+            keys.append(key)
+    keys.sort(key=lambda key: -int(key.split(".", 1)[0]))      # stable: key order holds within a level
+    return keys
+
+
 def populated_node_keys(conn, floor_m):
     """
     The keys of the nodes a visit is likely to open, for the warm-up (MAP.260): every block of level `floor_m` and

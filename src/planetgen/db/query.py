@@ -76,8 +76,9 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
 )
+from planetgen.db import route_neighbours
 from planetgen.db import stones as nav_stones
-from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
+from planetgen.galaxy.nav_graph import build_route_graph, route_graph, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
     warp_travel_times,
@@ -85,7 +86,7 @@ from planetgen.galaxy.navigation import (
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
-    NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
+    NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_GRAPH_CANDIDATES, NAV_GRAPH_NEIGHBOURS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
     NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
@@ -1354,14 +1355,15 @@ def _load_nav_endpoint(conn, system_id):
     )
 
     galaxy_position_ly = None
+    center_pc = None
     if row["center_x_pc"] is not None:
-        galaxy_position_ly = (
-            pc_to_ly(row["center_x_pc"]) + position_ly[0],
-            pc_to_ly(row["center_y_pc"]) + position_ly[1],
-            pc_to_ly(row["center_z_pc"]) + position_ly[2],
-        )
+        center_pc = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        # The offset is along the sector's own axes (`frame.sector_orientation`), so it is turned into the galaxy
+        # frame, as the stored `galaxy_x_pc` is (NAV.73).
+        galaxy_position_ly = tuple(pc_to_ly(c) for c in local_to_galaxy_pc(center_pc, tuple(ly_to_pc(c) for c in position_ly)))
 
-    return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly}
+    return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly,
+            "sector_center_pc": center_pc}
 
 
 def _phenomenon_nav_key(phenomenon_type, phenomenon_id):
@@ -1591,9 +1593,41 @@ def _bypass_route(conn, origin_position, destination_position, from_key, to_key,
     return {"found": found is not None, "distance_ly": found[1] if found is not None else None, "checked": True}
 
 
+def _route_graph(conn, path, positions, in_galaxy):
+    """
+    NAV.65: the graph round a route (`nav_graph.route_graph`): the route's hops, the relative-neighbourhood links
+    between its stops and each stop's links to the systems round it, at most `NAV_GRAPH_NEIGHBOURS` systems off the
+    route for a stop. No new search: the systems round a stop are read from the cell-key index (`route_neighbours`),
+    or, for a route searched inside one sector, from the sector's own systems.
+
+    The route's positions and the index's are one (NAV.73), so a stop is measured from the same points as its neighbours.
+
+    Args:
+        path (list): The route's node ids.
+        positions (dict): `{node: (x, y, z)}` light-years, as the route search had them: galaxy frame when `in_galaxy`,
+            else sector-local.
+        in_galaxy (bool): Whether `positions` is the galaxy frame (the systems round a stop come from the index).
+
+    Returns:
+        dict: `nav_graph.route_graph`'s `nodes`, `edges` and `more`; positions in the galaxy frame (sector-local for
+        a route in a sector with no galaxy placement).
+    """
+    stop_points = {node: positions[node] for node in path}
+
+    def nearby(stop, point):
+        exclude = None if isinstance(stop, str) else stop
+        if in_galaxy:
+            return route_neighbours.nearby_systems(conn, point, NAV_GRAPH_CANDIDATES, exclude_id=exclude)
+        around = sorted((detmath.dist(point, other), key) for key, other in positions.items() if key != exclude)
+        return ({key: positions[key] for _away, key in around[:NAV_GRAPH_CANDIDATES]},
+                around[NAV_GRAPH_CANDIDATES - 1][0] if len(around) >= NAV_GRAPH_CANDIDATES else math.inf)
+
+    return route_graph(path, stop_points, nearby, NAV_GRAPH_NEIGHBOURS)
+
+
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                  from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0,
-                 chart=False, stones=True):
+                 chart=False, stones=True, with_graph=False):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -1646,6 +1680,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             exists (`stones.chain_for_jump`); each such stop's `stop_places`
             entry names its `kind` and `name`. `nav_chart_plan` turns this off,
             since it asks which cells lie on the direct jump.
+        with_graph (bool): NAV.65: the route also gets `graph`, the links round it (`_route_graph`).
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -1663,7 +1698,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             hop's course), "warp_times", "fold_times"}], "stop_places": [{"node", "sector_id",
             "sector_position_ly"}] (NAV.42: one per id in `path`),
             "longest_hop_ly": float, "stops": int, "stay_minutes": float,
-            "warp_times", "fold_times"}` (NAV.11: a hop's lists are
+            "warp_times", "fold_times", and with `with_graph` "graph" (NAV.65, `_route_graph`)}` (NAV.11: a hop's lists are
             `WarpLeg`/`FoldLeg` dicts for that hop alone; the route's are
             `WarpLeg`/`FoldLeg` for the whole route, a stop at every system
             between the ends for `stay_minutes` each) (one entry per id in
@@ -1705,14 +1740,14 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         and destination["galaxy_position_ly"] is not None
     )
 
-    sector_offset = None
+    sector_center = None
     if sector_scope_ok:
         scope = "sector"
         origin_position, destination_position = origin["position_ly"], destination["position_ly"]
         if galaxy_scope_ok:
             # NAV.12: the route may leave the sector, so it is searched in the
-            # galaxy frame and shifted back into this sector's local frame.
-            sector_offset = tuple(g - l for g, l in zip(origin["galaxy_position_ly"], origin["position_ly"]))
+            # galaxy frame and turned back into this sector's local frame (NAV.73).
+            sector_center = origin["sector_center_pc"]
             positions = None
         else:
             positions = _sector_local_positions(conn, origin["sector_id"])
@@ -1741,7 +1776,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             galaxy_frame = None
         else:
             search_from, search_to = ((origin["galaxy_position_ly"], destination["galaxy_position_ly"])
-                                      if sector_offset is not None else (origin_position, destination_position))
+                                      if sector_center is not None else (origin_position, destination_position))
             positions, found = _galaxy_route(conn, search_from, search_to, from_key, to_key, adjacency_k)
             galaxy_frame = positions
             search_ends = (search_from, search_to)
@@ -1769,9 +1804,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                         hop["unknown_cells"] = hop_cells
                 if chart and any(cells):
                     bypass = _bypass_route(conn, *search_ends, from_key, to_key, adjacency_k)
-                if sector_offset is not None:
-                    route_positions = {node_id: tuple(c - o for c, o in zip(position, sector_offset))
-                                       for node_id, position in route_positions.items()}
+                if sector_center is not None:
+                    # Back into the sector's own axes, the inverse of how a system's offset became a galaxy position.
+                    route_positions = {node_id: tuple(pc_to_ly(c) for c in galaxy_to_local_pc(
+                        sector_center, tuple(ly_to_pc(v) for v in position))) for node_id, position in route_positions.items()}
             stays = max(len(hops) - 1 - len(stops_found), 0)  # not at a stop in unknown space (NAV.47)
             route = {
                 "path": path,
@@ -1791,6 +1827,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             }
             if bypass is not None:
                 route["bypass"] = bypass
+            if with_graph:
+                route["graph"] = _route_graph(conn, path, positions, galaxy_frame is not None)
 
     return {
         "scope": scope,
@@ -1913,7 +1951,7 @@ def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACEN
             "bypass": route.get("bypass") if route else None}
 
 
-def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0):
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0, with_graph=False):
     """
     NAV between any two objects (NAV.16): `nav_between`'s result plus
     `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
@@ -1928,7 +1966,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
     `direct` is a `navigation.Course`.
 
-    `stay_minutes` (NAV.11) is the stay at each stop of the route.
+    `stay_minutes` (NAV.11) is the stay at each stop of the route. `with_graph` (NAV.65) adds `graph` to the route.
 
     Raises:
         ValueError: For a bad reference or a missing row.
@@ -1958,7 +1996,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     from_id, from_kind, from_type = anchor_args(origin)
     to_id, to_kind, to_type = anchor_args(destination)
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes)
+                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes, with_graph=with_graph)
 
     toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
     length = math.sqrt(sum(v * v for v in toward))
