@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1101 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1108 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 18 | 10 | 91 |
 | T5 | 50 | 19 | 2 | 1 | 0 | 72 |
-| T6 | 103 | 83 | 21 | 53 | 0 | 260 |
-| T7 | 32 | 14 | 7 | 12 | 0 | 65 |
+| T6 | 106 | 83 | 22 | 53 | 0 | 264 |
+| T7 | 33 | 14 | 7 | 12 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 23 | 14 | 5 | 50 | 29 | 121 |
-| All | 620 | 239 | 52 | 150 | 40 | 1101 |
+| T9 | 25 | 14 | 5 | 50 | 29 | 123 |
+| All | 626 | 239 | 53 | 150 | 40 | 1108 |
 
 ## How the labels were given
 
@@ -1474,6 +1474,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.177 Stand-ins of the composition of a supernova remnant
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SNC1 | D | T6 | L0 | remnant_yields.json yield_exponent alpha_heavy 2.5, alpha_light 1.5, iron_group 0 (yield_group): a progenitor of mass M makes an element in proportion to M^p, the table's mean over 10 to 50 solar masses scaled so the IMF-weighted mean is the table's | alpha_heavy 2 to 3; alpha_light 1 to 2; iron_group 0 to 0.5 | core-collapse explosions of 10 to 50 solar masses at solar metallicity; beyond that the law is carried on, held by processed_share_cap | a yield table by progenitor mass (Sukhbold et al., Limongi and Chieffi) whose oxygen mass does not rise between 15 and 25 solar masses by a factor of 2.5 to 4, or whose iron mass is not flat within a factor of 2 | the per-mass yield tables of [R4251], fetched at setup (stellar-composition decision D6) and fitted | physics: the oxygen made grows with the helium core, which grows faster than the star, and the iron is the mass that fell back or not (0.04 to 0.05 per explosion, [R4251: Table 4]); the exponents are recalled, not read from the yield tables | - | - |
+| SNC2 | P | T6 | L0 | remnant_yields.json wind_coefficient 0.02, wind_reference_mass_sol 10 and wind_exponent 1.5: an unstripped progenitor loses 2 percent of its mass at 10 solar masses and more above, capped at half | coefficient 0.01 to 0.05; exponent 1 to 2.5 | red supergiant progenitors of 8 to 30 solar masses | an evolution track whose mass at core collapse differs from this by more than 5 percent of the initial mass | the final masses of the stellar evolution tracks the repo reads (stellar_evolution), when they carry the wind | educated guess from physics: the hydrogen envelope is kept to explosion, the wind takes a few percent | - | - |
+| SNC3 | P | T6 | L2 | remnant_yields.json helium_core_coefficient 0.08, helium_core_exponent 1.4 and helium_core_cap_sol 15: the mass at explosion of a progenitor that lost its hydrogen envelope, and the helium core inside an unstripped one | coefficient 0.06 to 0.10; exponent 1.2 to 1.6; cap 10 to 20 | stripped progenitors of 8 to 80 solar masses and the helium core of the rest; a Wolf-Rayet progenitor is held at the cap | a stripped progenitor whose final mass differs from this by more than 30 percent at 16 and at 40 solar masses | the final masses of a binary or Wolf-Rayet stellar evolution grid | tuned to a published statistic: a 16 solar mass progenitor gives 3.9 solar masses, so a 1.5 solar mass neutron star leaves 2.4 of ejecta against the 2.2 of Cassiopeia A [R5097], a Type IIb | - | - |
+| SNC4 | P | T7 | L0 | remnant_yields.json stripped_above_mass_sol 30 and binary_stripped_share 0.33: every progenitor above 30 solar masses explodes without its hydrogen, and a third of the lighter ones do (a companion took the envelope) | above 25 to 35; share 0.2 to 0.5 | core-collapse remnants of any age; the share is for the whole population of progenitors, not one galaxy | an observed Type Ib and Ic and IIb share of core-collapse supernovae outside 0.2 to 0.4 of the lighter stars | a binary population synthesis of the explosion types, and the mass-loss grids of the stripped stars | the 30 solar masses is the edge the research note reports from [R4251]; the third is recalled (the share of massive stars that give up their envelope to a companion), not read | - | - |
+| SNC5 | D | T6 | L0 | remnant_yields.json type_ia_progenitor_range_sol (3, 8): the main-sequence mass of the star that became the white dwarf of a Type Ia remnant, drawn from the IMF | 2 to 3 at the bottom; 7 to 9 at the top | Type Ia remnants of the single-degenerate and double-degenerate channels alike | a binary-evolution study of the white dwarf's mass at ignition whose progenitor range lies outside 2 to 9 | the delay-time and progenitor models of the Type Ia rate the generator will use | educated guess from physics: the primary of the pair that makes a 1.0 to 1.3 solar mass carbon-oxygen white dwarf; the stored mass is for a later central object to share, not for the ejecta (which is the Chandrasekhar-mass explosion W7) | - | - |
+| SNC6 | D | T9 | L0 | remnant_yields.json processed_share_cap 0.9 and least_ejecta_share 0.02: the elements the explosion made are at most 90 percent of the burned inner shells, and a core never takes more than 98 percent of the star's final mass | cap 0.5 to 1; share 0.01 to 0.1 | a core-collapse remnant whose progenitor is light and stripped, where the scaled yields could exceed the shells | none: a bound that keeps the sums positive | none | needed output: a mass balance that cannot go negative | - | - |
+| SNC7 | P | T9 | L0 | remnant_composition.ambient_masses default: the swept-up gas is the birth composition at the progenitor's [Fe/H] (stellar_abundances.composition) unless the caller gives the gas | gas [Fe/H] within 0.3 dex of the progenitor's | a remnant in gas of the star's own metallicity | the gas metallicity of GEN.1269 at the place differs from the progenitor's birth gas by more than 0.3 dex | GEN.1269's shared nebula model (gas metallicity at the place, the class's phases), passed as `ambient` | needed output: until the shared nebula model lands, the swept gas of a remnant is the gas of its star's birth | - | - |
 
 ## 6.176 Stand-ins of the sky tier table
 
