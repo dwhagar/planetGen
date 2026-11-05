@@ -2192,6 +2192,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Train Manager posts one real run from the census database after
   train 10 (python scripts/census_keep_out_overlap.py --database
   planetgen).
+  Correction (Core 2) (4:55 AM EST on 2026-11-05): The estimate of 24 to
+  43 percent above was wrong for systems: the sector fill keeps systems
+  at least the sum of their Hill radii apart inside a sector. What can
+  still overlap is cross-sector pairs (about 8 to 11 percent of systems,
+  modelled) and the phenomena (black holes, neutron stars, rogue
+  planets, quasars, fields), so the planner's overlap fallback stays but
+  should rarely fire. The real run decides it. NAV.62 (gravity of
+  unresolved stars), a listed prerequisite of NAV.26, is not done; Core
+  2 builds the planner mechanics first (pure geometry, lock-free).
   Prerequisites: NAV.54.
   Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
