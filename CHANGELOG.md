@@ -2,6 +2,77 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3218] - 2026-11-05
+
+**Headline:** The help links on a planet page say "More information", and the ones that repeated a link the page already has are gone.
+
+### Changed
+- **Wording (UX.261).** The link under the habitability section says "More information" in place of "What the colors and symbols mean", and the hidden labels of the "?" marks in the life readings table say "More information about how much", "about trend", "about security", and "about the kinds of life". The line under the life readings reads "More information: stages and animal grades, suitability."
+- **The source link too.** The quiet "Where this comes from" link beside a value, a table, or the life air chart says "More information", and so does the heading of the life classes help section. The heading "Where the radiation comes from" on the habitability help page is now "Radiation", a plain noun, because a heading that only said "More information" would tell a screen reader nothing.
+- **Repeats removed.** The life glance no longer ends with "What these words mean" (its class names already link to their help pages), the habitability group of the facts list drops its second "colors and symbols" link when the habitability section is on the page, and the "the life classes" link of the life help line is gone (the class names are links).
+- **House style.** `docs/design/interface/text-style.md` has the rule: an explainer link says "More information" and is never repeated on a page.
+
+## [8.0.3217] - 2026-11-05
+
+**Headline:** The cache warm-up's overall time left is weighted by what each step costs, and its chunk lines say how many chunks run at once.
+
+### Changed
+
+- **The warm-up's overall bar and time left (PERF.234).** `planetgen warm --progress` moved its overall bar one step in eleven, so the long object steps (systems and phenomena, most of a warm-up) took the bar from 45% to 100% in one stride and the time left swung. It now weighs a step by what it is expected to cost: a step already queued by the cost its units declare (`warmup.ITEM_SECONDS`, seconds an item on one worker, measured: systems 0.23, phenomena 0.15, sectors 3.0, deep nodes 0.02, built-level nodes 0.062), a step not yet queued by `warmup.EXPECTED_SECONDS`. The whole warm-up's time left is marked `(rough guess)` while a later step has not been queued, and the plain bar at the end of a step now names it. `warmup.NODE_SECONDS` and `OBJECT_SECONDS` stay as the ceilings the commands declare for their longest unit.
+- **The chunk line and the time left from the overall rate (PERF.237).** The "this chunk 64 nodes in 37 s" figure is one worker's own time, and about ten chunks run side by side, so it read as ten times too slow. The line now says `took 37.0 s on its worker; about 10 chunks at once, 3.7 s a chunk overall`, and the time left comes only from the overall rate. No time left is shown for the stage or the whole warm-up from fewer than five chunks (`warm_progress.MIN_CHUNKS`), the first results being the first of the workers; the line says `time left not known yet` until then. The rich bars show the same figures. `text_bar` is gone, replaced by the weighted bar.
+
+generation-output: unchanged
+
+## [8.0.3216] - 2026-11-05
+
+**Headline:** The bands table now calls its two rows "Longest unbroken day" and "Longest unbroken night", which is what they are.
+
+### Changed
+
+- The rows were labelled "Longest day of the year" and "Longest night of the year" and held the polar day and night, so a slow spinner like Nitrikin III read 0 at the equator where the sun really stays up for days. The labels now say what a body's bands should hold: the longest stretch with the star unbroken above or below the horizon. The values themselves are recomputed in the next step of GEN.1260 (a lock item with the epoch).
+
+## [8.0.3215] - 2026-11-05
+
+**Headline:** The belt rule is unchanged; two tests now pin that a planetless stretch becomes a belt only where enough solids were left in it, and the warm and cold belt shares were measured against the observed debris-disc rates.
+
+### Changed
+
+- Added `test_a_gap_is_a_belt_only_where_enough_solids_were_left_in_it` and `test_a_stretch_just_over_the_least_mass_is_a_belt_and_just_under_it_is_not` to `test_belt_origin.py`: a gap between two planets is a belt when the disc's solids in it reach `MIN_BELT_MASS_EARTH` (BG3) and is none under it (GEN.1259). No generated output changes.
+- The census of 240 F, G and K main-sequence systems (80 each) is in `reports/gen1259-belt-shares-2026-11-05.md`.
+
+## [8.0.3214] - 2026-11-05
+
+**Headline:** The Galaxy Map window-size test now expects the 95 percent of the browser window that the map is sized to, so its three sizes pass.
+
+### Changed
+
+- `test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves` still expected the map to be the browser window's height less the header and 40 px (the first MAP.350 rule). The map is sized to 95 percent of the window's height less the header (`mapfit.js` `fillHeight`, Boss's later rule), so the 1000x900, 1280x720 and 390x700 runs failed by 2 to 8 px. The test now expects `max(320, round((height - header) * 0.95))`. The three runs pass (TEST.575).
+
+## [8.0.3213] - 2026-11-05
+
+**Headline:** The update's cache warm-up gets four hours instead of thirty minutes, and a warm-up that is stopped says what stopped it instead of printing a traceback.
+
+### Changed
+
+- **A longer limit (OPS.95).** `update.sh` ran each warm stage under `timeout 1800`. A first warm-up after a new epoch on a real galaxy takes longer (it reached chunk 414 of 458 of the galaxy nodes in 30 minutes), so the run was ended with a `KeyboardInterrupt` traceback and nothing said why. The limit is now `WARM_STAGE_SECONDS`, default 14400 (4 hours), 0 for none, and the stage's first line says it: "Building the site's caches, stage 2 of 2, the full warm-up (time limit 4 hours, WARM_STAGE_SECONDS sets it; log: ...)". A value that is not a number is said and the default used.
+- **One line instead of a traceback.** When SIGTERM or a hangup ends `planetgen warm`, it prints one line saying what ended it and that a rerun continues, and exits 143 (SIGTERM), 129 (hangup) or 130 (Ctrl+C): "The cache warm-up was ended by update.sh's time limit for this stage (14400 s, WARM_STAGE_SECONDS). What it stored is kept: run `planetgen warm --progress` again and it continues where it stopped." The run is still marked cancelled in Redis, so its workers stop as before.
+- **Cancellers leave a reason.** The update guard's cancel and stop-all each leave one line for the process they are about to signal, in `stop-reasons` in the state folder (`admin/stop_reason.py`), and the run reads it, so the line names who stopped it. update.sh's limit is told to the run by environment and recognized when it has passed. A signal with no reason says so.
+- **The final warning says what was kept.** When a stage does not finish, update.sh's warning says whether it failed (with the status) or ran out of its limit, that what it stored is kept, and that `planetgen warm --progress` or the next `./update.sh` continues.
+
+generation-output: unchanged
+
+## [8.0.3212] - 2026-11-04
+
+**Headline:** When a system's ID changes, every body in it takes the new ID in the same step, and each keeps its old ID on record, so an old link still finds the right body.
+
+### Added
+- `designation_rows.renumber_system` gives a system, or a free planet, a new ID and its stars, planets, moons, belts, comets and facilities the new ID with their own body numbers, in one transaction. Each body writes its own row in `designations` with the reason `parent change`, the system's row keeps the caller's reason, and a new ID that is live or reserved for any of them stops the whole change. Nothing calls it yet; the 8.6 edit flow will.
+- `designation_rows.member_now` turns the old text of a belt member or a captured body (`<parent ID>.<rank hex>`) into its current text after the parent's ID changed. Members are stored nowhere, so they follow the belt's or the planet's ID by themselves and need no row of their own.
+- Tests in `tests/test_designation_rows.py`: the bodies follow, each keeps its old ID reserved, a member's old text redirects to the new one, and a refused cascade changes nothing.
+
+generation-output: unchanged
+TODO items resolved: GEN.1141 cascade half (the tombstone on delete waits on GEN.1123's audit of the delete paths)
+
 ## [8.0.3211] - 2026-11-04
 
 **Headline:** The Life and air chart and its route now sum every life class that lives on a world, and the page says which class made how much of each gas.

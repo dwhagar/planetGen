@@ -462,7 +462,7 @@ def test_habitability_levels_page_says_what_sets_each_radiation_term_with_the_sc
     assert f"Blue under {limit('dose_blue_sv_yr') * 1000:g} mSv" in text
     assert f"Yellow to {limit('uv_lethal_index'):g} times" in text
     html = _html(client, "/help/habitability")
-    assert 'id="radiation-heading"' in html and "Where the radiation comes from" in html
+    assert 'id="radiation-heading"' in html and "Radiation" in html
 
 
 def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):

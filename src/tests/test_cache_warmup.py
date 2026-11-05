@@ -934,30 +934,38 @@ def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
 
 
 def test_the_progress_bar_counts_families():
-    """update.sh shows this line while it waits for the warm-up."""
-    assert warm_progress.text_bar(1, 4, "lists", width=8) == "[##------] 1/4 lists"
-    assert warm_progress.text_bar(4, 4, "search", width=8) == "[########] 4/4 search"
+    """update.sh shows this line while it waits for the warm-up; with equal costs it advances a step at a time."""
+    lines = []
+    progress = warm_progress.WarmProgress(["lists", "search"], lines.append, show=True, expected={"lists": 1.0, "search": 1.0})
+    progress.plan(0, {"units": 1, "cost": 1.0})
+    progress.result({"line": "lists: 20 pages warmed"})
+    progress.plan(1, {"units": 1, "cost": 1.0})
+    progress.result({"line": "search: warmed"})
+    assert lines[1] == "[###############---------------] 1/2 lists"
+    assert lines[3] == "[##############################] 2/2 search"
 
 
 def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):
     """SIGTERM (the update guard's cancel, update.sh's timeout) reaches the starter as Ctrl+C does, and the run ends
-    as cancelled in Redis, freeing its place."""
+    as cancelled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
     import os
     import signal
-    original = signal.getsignal(signal.SIGTERM)
-    warm_cli._stop_on_sigterm()
+    original = signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP)
+    warm_cli._stop_on_signals()
     try:
         with pytest.raises(KeyboardInterrupt):
             os.kill(os.getpid(), signal.SIGTERM)
     finally:
-        signal.signal(signal.SIGTERM, original)
+        signal.signal(signal.SIGTERM, original[0])
+        signal.signal(signal.SIGHUP, original[1])
 
     def interrupted(*args, **kwargs):
         raise KeyboardInterrupt
 
     monkeypatch.setattr(units, "follow_stage", interrupted)
-    with pytest.raises(KeyboardInterrupt):
+    with pytest.raises(SystemExit) as stopped:
         warm_cli.run_warm(_args("lists"))
+    assert stopped.value.code == 130
     conn = redisqueue.connect(redis_server)
     assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "cancelled"
     assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None
