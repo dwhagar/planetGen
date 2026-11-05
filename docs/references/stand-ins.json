@@ -35073,6 +35073,94 @@
       "title": "Stand-ins of the photometry of the system sky"
     },
     {
+      "key": "6.180",
+      "number": "6.180",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "capture_windows.ENCOUNTERS_PER_INSTABILITY 130 (irregular_population.REFERENCE_ENCOUNTERS): the close giant-giant encounters of one instability, the mean of the three histories (59, 280 and 49)"
+            ],
+            [
+              "The range it moves in",
+              "49 to 280"
+            ],
+            [
+              "Where it holds",
+              "one instability of two giants"
+            ],
+            [
+              "What would show it wrong",
+              "a count of close encounters of a two-giant scattering outside 49 to 280"
+            ],
+            [
+              "What replaces it",
+              "the encounters from the pair's masses, spacing and the time to the first ejection"
+            ],
+            [
+              "Evidence",
+              "NDD14 as read in irregular_population (CM2); the Solar System instability had four giants and a fifth, so a two-giant event may have fewer"
+            ]
+          ],
+          "id": "CW1",
+          "key": "6.180:CW1",
+          "kind": "P",
+          "slug": "6-180-cw1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "capture_windows.ENCOUNTERS_PER_INSTABILITY 130 (irregular_population.REFERENCE_ENCOUNTERS): the close giant-giant encounters of one instability, the mean of the three histories (59, 280 and 49)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no census of another system's giant scatterings is in hand, so one thrown giant pair stands for the instability the hot share was set for; it goes when the scatter step takes the events' number and masses"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "capture_windows.FULL_INSTABILITIES 1: one instability of the architecture is the full one the scatter step scales its hot classical share to"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "systems with one or more thrown giant pairs"
+            ],
+            [
+              "What would show it wrong",
+              "a census of the hot classical share of discs of systems with one giant instability well below or above a quarter of the cold disc left"
+            ],
+            [
+              "What replaces it",
+              "the scatter step taking the number and masses of the events"
+            ],
+            [
+              "Evidence",
+              "none: scatter.HOT_SHARE (0.4) was set for a Nice-type event, one instability here stands for it"
+            ]
+          ],
+          "id": "CW2",
+          "key": "6.180:CW2",
+          "kind": "P",
+          "slug": "6-180-cw2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "capture_windows.FULL_INSTABILITIES 1: one instability of the architecture is the full one the scatter step scales its hot classical share to"
+        }
+      ],
+      "slug": "6-180-stand-ins-of-the-capture-windows-of-a-system",
+      "title": "Stand-ins of the capture windows of a system"
+    },
+    {
       "key": "6.170",
       "number": "6.170",
       "rows": [
