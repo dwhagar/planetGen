@@ -321,6 +321,21 @@ def test_single_star_system_renders_star_and_planet_markers():
     assert "sysmap-hidden" not in html.split("</svg>")[0]  # the system scene itself is never hidden
 
 
+def test_a_nav_course_in_the_system_is_handed_to_the_3d_view_and_listed_under_it():  # NAV.22
+    system = {"name": "Test System", "binary_configuration": None}
+    course = {"navUrl": "/nav?from=system:1&to=planet:2", "legs": [{
+        "kind": "into", "label": "Into the system", "from": "the heliopause", "to": "Two <b>", "points": [[-1.0e9, 0.0, 0.0], [1.0e8, 0.0, 0.0]],
+        "aimed": None, "length_au": 7.34, "bent": True, "avoided": ["Giant"]}]}
+    html = sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [], scene_url="/system/1/scene", course=course)
+    attribute = re.search(r'data-course="([^"]*)"', html).group(1)
+    assert json.loads(html_lib.unescape(attribute)) == course
+    listed = html.split('id="sysview3d-course"')[1].split("</ul>")[0]
+    assert "Into the system" in listed and "Two &lt;b&gt;" in listed and "7.34 AU" in listed and "goes round Giant" in listed
+    assert 'href="/nav?from=system:1&amp;to=planet:2"' in listed
+    plain = sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [], scene_url="/system/1/scene")
+    assert "data-course" not in plain and "sysview3d-course" not in plain
+
+
 def test_a_system_with_facilities_has_a_layer_menu_and_legend_for_the_registry_to_fill():
     """MAP.217: the map's Menu and legend are containers static/maplayers.js fills; every system has the names (MAP.231) to
     toggle in the Menu, only one with facilities has a legend line."""
