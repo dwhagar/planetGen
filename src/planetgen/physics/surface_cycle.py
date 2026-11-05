@@ -27,7 +27,7 @@ constant of the surface when the caller has one, and a `STEPS_PER_YEAR`-th of th
 **Shade.** A ring (GEN.1055) takes sunlight off the cells behind it; `series` takes an optional `transmission(latitudes_deg, declinations_rad)` that returns the light left for each
 latitude and each step, and multiplies it into the cosine where the star is up.
 
-Limits. The orbit is circular, so the declination is a sine of the orbital angle; the axis does not precess; the star is a disc without refraction; the cosine is the instantaneous
+Limits. The orbit is circular, so the declination is a sine of the orbital angle; the axis does not precess; the star is a disk without refraction; the cosine is the instantaneous
 one, not the day's mean.
 """
 
