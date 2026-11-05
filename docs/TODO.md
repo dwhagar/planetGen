@@ -13909,6 +13909,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 3 after GEN.1246. Filed by the TODO thread.
   Prerequisites: GEN.1259. Related: GEN.1259, GEN.1068, GEN.1156,
   GEN.725.
+  Lock branch (Core 3) (5:27 AM EST on 2026-11-05): Branch
+  claude/gen1261-belt-loss, head c27c6fde9 (as the lane reported);
+  stand-ins BG17 to BG19 in GEN.725; --affects fill, no migration; lock
+  item with epoch. Findings: belt presence unchanged, the cold share is
+  still 70 percent against 14 to 24 percent observed, 3 of 240 belts
+  over 300 Earth masses are flagged. Two generation-set reds are still
+  being attributed; the final head follows.
 
 - [ ] **GEN.1262 Temperature coverage part 1: the shared illumination series (physics/surface_cycle.py): cosine of the zenith angle per latitude-longitude cell and time step, with GEN.1260's spell search moved onto it**
   Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
@@ -14381,6 +14388,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own varied composition keyed on its cell; rogue planets are left out;
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
+  Owner change (TODO) (5:27 AM EST on 2026-11-05): Planets 1 takes this
+  item from Core 3, who is held on GEN.1261's gate and has not started
+  it. Planets 1 has no ready item and already owns the stored-ID and
+  sky-tier work in store.py and run_plan.py (VIEW.25, GEN.1256), where
+  these columns also live. Lock item, train 12 at the earliest.
 
 - [ ] **GEN.1277 Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one**
   Part of GEN.1268. Boss decided to store the composition of the field
@@ -14414,6 +14426,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own varied composition keyed on its cell; rogue planets are left out;
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
+  Owner change (TODO) (5:27 AM EST on 2026-11-05): Planets 1 takes this
+  item from Core 3, who is held on GEN.1261's gate and has not started
+  it. Planets 1 has no ready item and already owns the stored-ID and
+  sky-tier work in store.py and run_plan.py (VIEW.25, GEN.1256), where
+  these columns also live. Lock item, train 12 at the earliest.
   Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
 
 - [ ] **GEN.1278 Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14)**
