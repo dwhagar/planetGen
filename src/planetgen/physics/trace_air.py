@@ -21,7 +21,7 @@ A body that is drawn again (an edit, `validation.reapply_life`) loses the trace 
 """
 
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import atmosphere, envelope_share, mixture_subject, mixture_trace
+from planetgen.physics import atmosphere, atmosphere_state, constants, envelope_share, mixture_subject, mixture_trace
 from planetgen.util import draw
 
 TRACE_GASES = tuple(sorted({formula for row in mixture_trace.WIRED_ROWS for formula in mixture_trace.ABUNDANCES[row]}))
@@ -67,7 +67,8 @@ def apply(body):
     """
     if getattr(body, "body_type", "t") == "g":
         return ()
-    partials = _strip(atmosphere.gas_partials_pa(body))
+    before = atmosphere.gas_partials_pa(body)
+    partials = _strip(before)
     if not partials:
         return ()
     subject = subject_of(body, partials)
@@ -79,5 +80,12 @@ def apply(body):
         partials = {formula: pascal * (1.0 - share) for formula, pascal in partials.items()}
         partials.update({formula: fraction * total for formula, fraction in amounts.items()})
     atmosphere.store_air(body, partials, body.mantle_delta_iw)
+    if partials != before:
+        # TEST.615: the trace gases are in the air now, so the mean molar mass, density and scale height that follow from it are made again at the stored temperature (the pressure is the
+        # same; the temperature is not moved, the trace gases shift it by parts in a thousand)
+        state = atmosphere_state.air_state(partials, body.surface_temperature, body.gravity * constants.EARTH_GRAVITY)
+        body.atm_molar_density = state.mean_molar_mass_kg_mol
+        body.atm_density = state.density_kg_m3
+        body.scale_height = state.scale_height_m / 1000.0
     envelope_share.fill(body)       # GEN.1226: the trace gases take a share of the air
     return tuple(sorted(amounts))

@@ -139,3 +139,22 @@ def test_apply_life_data_stores_the_trace_gases_after_the_life_stage(world):
 def test_a_subject_missing_a_quantity_is_refused_by_name():
     with pytest.raises(MixtureError):
         mixture_trace.draw_trace_amounts(mixture_trace.Subject("terrestrial", {}))
+
+
+def test_the_stored_molar_mass_density_and_scale_height_follow_the_air_with_its_trace_gases(world):
+    """TEST.616: the trace gases are added after the air was solved, so the molar mass, density and scale height are made again from the air they leave (they were off by
+    parts in 1e8 to 1e7 and the sweep's 1e-9 rules caught it)."""
+    from planetgen.physics import constants, mixture
+    drawn = None
+    for seed in range(60):
+        other = copy.deepcopy(world)
+        other.mass = world.mass * (1.0 + seed * 1e-3)
+        if trace_air.apply(other):
+            drawn = other
+            break
+    assert drawn is not None
+    air = atmosphere.gas_partials_pa(drawn)
+    molar_mass = mixture.mean_molar_mass_kg_mol(air)
+    assert drawn.atm_molar_density == pytest.approx(molar_mass, rel=1e-12)
+    assert drawn.atm_density == pytest.approx(drawn.atmospheric_pressure * molar_mass / (constants.R * drawn.surface_temperature), rel=1e-12)
+    assert drawn.scale_height == pytest.approx(constants.R * drawn.surface_temperature / (molar_mass * drawn.gravity * constants.EARTH_GRAVITY) / 1000.0, rel=1e-12)
