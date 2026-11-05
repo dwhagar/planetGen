@@ -9,11 +9,11 @@ sector grid against 1.6 million stars), so the far sources are summed as one poi
 pure steps in front of `gravity_kernel`:
 
 1. **`build(positions, masses)`** puts the sources into a hierarchy of cubic cells whose smallest ("leaf") cell is `LEAF_PC` (0.5 pc, PERF.72) wide and whose
-   every level doubles the edge. A cell holds its total mass and its centre of mass. The cells are the Morton (bit-interleaved) cells of the integer leaf
+   every level doubles the edge. A cell holds its total mass and its center of mass. The cells are the Morton (bit-interleaved) cells of the integer leaf
    coordinates, so a cell's parent is a shift of its code and the whole structure is a few sorted arrays, built in one pass.
-2. **`interaction_list(hierarchy, centre, radius, theta)`** takes a target (a ball round the zones to be filled: a sector's bounding sphere) and returns the
-   point masses to hand the kernel: the stars of every leaf cell the target is too near to take as a point, and the centre of mass of every cell that is
-   far enough. A cell is taken as a point when `0.866 * edge / (|centre of mass - target centre| - radius) < theta`, i.e. its half-diagonal over its
+2. **`interaction_list(hierarchy, center, radius, theta)`** takes a target (a ball round the zones to be filled: a sector's bounding sphere) and returns the
+   point masses to hand the kernel: the stars of every leaf cell the target is too near to take as a point, and the center of mass of every cell that is
+   far enough. A cell is taken as a point when `0.866 * edge / (|center of mass - target center| - radius) < theta`, i.e. its half-diagonal over its
    distance from the target ball's surface. `theta` is at most 1 (a cell then cannot reach into the ball); the PERF.72 errors of the pull against the exact
    sum are 0.15 percent at 0.5, 0.45 percent at 0.7 and 4.6 percent at 1.0, so the choice is capped at `MAX_THETA` (0.7).
 3. **`choose_theta`** takes the smallest `theta` from `MIN_THETA` (0.3) to `MAX_THETA` (0.7) whose list fits a pair budget (`PAIR_BUDGET`, 50 million
@@ -63,7 +63,7 @@ class Hierarchy:
         level_start (numpy.ndarray): Where level `l`'s cells begin in the cell arrays; level 0 holds the leaves, the last level the top; `len == levels + 1`.
         codes (numpy.ndarray): Each cell's Morton code at its own level.
         cell_mass (numpy.ndarray): Each cell's mass.
-        cell_centre (numpy.ndarray): Each cell's centre of mass, `(cells, 3)`.
+        cell_center (numpy.ndarray): Each cell's center of mass, `(cells, 3)`.
         child_lo (numpy.ndarray): For a cell above level 0, the first of its children in the cell arrays; for a leaf, the first of its sources in `positions`.
         child_hi (numpy.ndarray): One past the last of them.
     """
@@ -75,7 +75,7 @@ class Hierarchy:
     level_start: np.ndarray
     codes: np.ndarray
     cell_mass: np.ndarray
-    cell_centre: np.ndarray
+    cell_center: np.ndarray
     child_lo: np.ndarray
     child_hi: np.ndarray
 
@@ -129,14 +129,14 @@ def build(positions, masses_solar, leaf_pc=LEAF_PC):
     order = np.argsort(code, kind="stable")
     code, positions, masses = code[order], positions[order], masses[order]
 
-    codes, mass, centre, lo, hi = [], [], [], [], []
+    codes, mass, center, lo, hi = [], [], [], [], []
     unique, start = np.unique(code, return_index=True)
     mass0 = np.add.reduceat(masses, start)
     moment = np.stack([np.add.reduceat(masses * positions[:, k], start) for k in range(3)], 1)
     plain = np.stack([np.add.reduceat(positions[:, k], start) for k in range(3)], 1) / np.diff(np.append(start, count))[:, None]
     codes.append(unique)
     mass.append(mass0)
-    centre.append(np.where(mass0[:, None] > 0.0, moment / np.where(mass0 > 0.0, mass0, 1.0)[:, None], plain))
+    center.append(np.where(mass0[:, None] > 0.0, moment / np.where(mass0 > 0.0, mass0, 1.0)[:, None], plain))
     lo.append(start.astype(np.int64))
     hi.append(np.append(start[1:], count).astype(np.int64))
     sizes = [len(unique)]
@@ -144,21 +144,21 @@ def build(positions, masses_solar, leaf_pc=LEAF_PC):
         below = codes[-1] >> np.uint64(3)
         unique, first = np.unique(below, return_index=True)
         total = np.add.reduceat(mass[-1], first)
-        moment = np.stack([np.add.reduceat(mass[-1] * centre[-1][:, k], first) for k in range(3)], 1)
-        plain = np.stack([np.add.reduceat(centre[-1][:, k], first) for k in range(3)], 1) / np.diff(np.append(first, len(below)))[:, None]
+        moment = np.stack([np.add.reduceat(mass[-1] * center[-1][:, k], first) for k in range(3)], 1)
+        plain = np.stack([np.add.reduceat(center[-1][:, k], first) for k in range(3)], 1) / np.diff(np.append(first, len(below)))[:, None]
         codes.append(unique)
         mass.append(total)
-        centre.append(np.where(total[:, None] > 0.0, moment / np.where(total > 0.0, total, 1.0)[:, None], plain))
+        center.append(np.where(total[:, None] > 0.0, moment / np.where(total > 0.0, total, 1.0)[:, None], plain))
         base = int(np.sum(sizes[:-1]))
         lo.append(first.astype(np.int64) + base)
         hi.append(np.append(first[1:], len(below)).astype(np.int64) + base)
         sizes.append(len(unique))
     return Hierarchy(origin, leaf_pc, positions, masses, np.concatenate([[0], np.cumsum(sizes)]).astype(np.int64), np.concatenate(codes), np.concatenate(mass),
-                     np.concatenate(centre), np.concatenate(lo), np.concatenate(hi))
+                     np.concatenate(center), np.concatenate(lo), np.concatenate(hi))
 
 
 @njit(cache=True)
-def _walk(level_start, cell_mass, cell_centre, child_lo, child_hi, leaf_pc, positions, masses, centre, radius, theta, exact_total, fill, out_positions, out_masses):
+def _walk(level_start, cell_mass, cell_center, child_lo, child_hi, leaf_pc, positions, masses, center, radius, theta, exact_total, fill, out_positions, out_masses):
     """
     Walks the cells from the top level down for one target ball. Returns `(exact, points)`: the number of sources in the leaves too near to take as points, and the
     number of cells taken as points. When `fill`, writes the exact sources to the outputs from index 0 and the points from index `exact_total`.
@@ -181,15 +181,15 @@ def _walk(level_start, cell_mass, cell_centre, child_lo, child_hi, leaf_pc, posi
         level = stack_level[depth]
         if cell_mass[cell] <= 0.0:
             continue
-        dx = cell_centre[cell, 0] - centre[0]
-        dy = cell_centre[cell, 1] - centre[1]
-        dz = cell_centre[cell, 2] - centre[2]
+        dx = cell_center[cell, 0] - center[0]
+        dy = cell_center[cell, 1] - center[1]
+        dz = cell_center[cell, 2] - center[2]
         distance = math.sqrt(dx * dx + dy * dy + dz * dz) - radius
         if distance > 0.0 and 0.8660254037844386 * leaf_pc * (2.0 ** level) < theta * distance:
             if fill:
-                out_positions[exact_total + points, 0] = cell_centre[cell, 0]
-                out_positions[exact_total + points, 1] = cell_centre[cell, 1]
-                out_positions[exact_total + points, 2] = cell_centre[cell, 2]
+                out_positions[exact_total + points, 0] = cell_center[cell, 0]
+                out_positions[exact_total + points, 1] = cell_center[cell, 1]
+                out_positions[exact_total + points, 2] = cell_center[cell, 2]
                 out_masses[exact_total + points] = cell_mass[cell]
             points += 1
         elif level == 0:
@@ -214,7 +214,7 @@ class InteractionList:
     What the kernel is handed for one target.
 
     Attributes:
-        positions (numpy.ndarray): The point masses, parsecs, `(exact + points, 3)`: the exact sources first, then the cells' centres of mass.
+        positions (numpy.ndarray): The point masses, parsecs, `(exact + points, 3)`: the exact sources first, then the cells' centers of mass.
         masses (numpy.ndarray): Their masses, solar masses.
         exact (int): How many of them are single sources.
         points (int): How many are cells.
@@ -233,42 +233,42 @@ class InteractionList:
         return self.exact + self.points
 
 
-def _check_target(centre, radius, theta):
-    centre = np.ascontiguousarray(centre, dtype=np.float64)
-    if centre.shape != (3,) or not np.isfinite(centre).all():
-        raise ValueError("the target centre is three finite numbers")
+def _check_target(center, radius, theta):
+    center = np.ascontiguousarray(center, dtype=np.float64)
+    if center.shape != (3,) or not np.isfinite(center).all():
+        raise ValueError("the target center is three finite numbers")
     if not (math.isfinite(radius) and radius >= 0.0):
         raise ValueError("the target radius must be zero or more and finite")
     if theta is not None and not (0.0 < theta <= 1.0):
         raise ValueError("the opening angle must be above 0 and at most 1")
-    return centre
+    return center
 
 
-def count(hierarchy, centre, radius, theta):
+def count(hierarchy, center, radius, theta):
     """`(exact, points)`: the size of the list `interaction_list` would make, without making it."""
-    centre = _check_target(centre, radius, theta)
+    center = _check_target(center, radius, theta)
     if hierarchy.source_count == 0:
         return 0, 0
     nothing = np.zeros((0, 3))
-    return tuple(int(n) for n in _walk(hierarchy.level_start, hierarchy.cell_mass, hierarchy.cell_centre, hierarchy.child_lo, hierarchy.child_hi, hierarchy.leaf_pc,
-                                       hierarchy.positions, hierarchy.masses, centre, float(radius), float(theta), 0, False, nothing, nothing[:, 0]))
+    return tuple(int(n) for n in _walk(hierarchy.level_start, hierarchy.cell_mass, hierarchy.cell_center, hierarchy.child_lo, hierarchy.child_hi, hierarchy.leaf_pc,
+                                       hierarchy.positions, hierarchy.masses, center, float(radius), float(theta), 0, False, nothing, nothing[:, 0]))
 
 
-def interaction_list(hierarchy, centre, radius, theta):
+def interaction_list(hierarchy, center, radius, theta):
     """
-    The `InteractionList` for the target ball of `radius` parsecs round `centre`, at opening angle `theta` (above 0, at most 1). The same hierarchy, target and
+    The `InteractionList` for the target ball of `radius` parsecs round `center`, at opening angle `theta` (above 0, at most 1). The same hierarchy, target and
     angle give the same list in the same order.
     """
-    exact, points = count(hierarchy, centre, radius, theta)
+    exact, points = count(hierarchy, center, radius, theta)
     positions = np.empty((exact + points, 3))
     masses = np.empty(exact + points)
     if exact + points:
-        _walk(hierarchy.level_start, hierarchy.cell_mass, hierarchy.cell_centre, hierarchy.child_lo, hierarchy.child_hi, hierarchy.leaf_pc, hierarchy.positions,
-              hierarchy.masses, np.ascontiguousarray(centre, dtype=np.float64), float(radius), float(theta), exact, True, positions, masses)
+        _walk(hierarchy.level_start, hierarchy.cell_mass, hierarchy.cell_center, hierarchy.child_lo, hierarchy.child_hi, hierarchy.leaf_pc, hierarchy.positions,
+              hierarchy.masses, np.ascontiguousarray(center, dtype=np.float64), float(radius), float(theta), exact, True, positions, masses)
     return InteractionList(positions, masses, exact, points, float(theta))
 
 
-def choose_theta(hierarchy, centre, radius, point_count, budget=PAIR_BUDGET, minimum=MIN_THETA, maximum=MAX_THETA):
+def choose_theta(hierarchy, center, radius, point_count, budget=PAIR_BUDGET, minimum=MIN_THETA, maximum=MAX_THETA):
     """
     The smallest opening angle from `minimum` to `maximum` (steps of `THETA_STEP`) whose list costs no more than `budget` pairs with `point_count` points; the
     `maximum` when none does. Returns `(theta, fits)`.
@@ -276,17 +276,17 @@ def choose_theta(hierarchy, centre, radius, point_count, budget=PAIR_BUDGET, min
     steps = int(round((maximum - minimum) / THETA_STEP))
     for step in range(steps + 1):
         theta = round(minimum + step * THETA_STEP, 10)
-        exact, points = count(hierarchy, centre, radius, theta)
+        exact, points = count(hierarchy, center, radius, theta)
         if (exact + points) * point_count <= budget:
             return theta, True
     return round(maximum, 10), False
 
 
 def bounding_sphere(points):
-    """`(centre, radius)` of a ball round `points`, parsecs: the middle of their box and the distance to the farthest."""
+    """`(center, radius)` of a ball round `points`, parsecs: the middle of their box and the distance to the farthest."""
     points = np.asarray(points, dtype=np.float64)
-    centre = (points.min(axis=0) + points.max(axis=0)) / 2.0
-    return centre, float(np.sqrt(((points - centre) ** 2).sum(axis=1)).max())
+    center = (points.min(axis=0) + points.max(axis=0)) / 2.0
+    return center, float(np.sqrt(((points - center) ** 2).sum(axis=1)).max())
 
 
 @dataclasses.dataclass(frozen=True)
@@ -303,9 +303,9 @@ def fields_at(hierarchy, points, theta=None, budget=PAIR_BUDGET, softening_pc=gr
     The field at `points` (one target: the ball round them) from the hierarchy's sources. `theta` `None` takes `choose_theta` against `budget`.
     """
     points = np.ascontiguousarray(points, dtype=np.float64)
-    centre, radius = bounding_sphere(points)
+    center, radius = bounding_sphere(points)
     fits = True
     if theta is None:
-        theta, fits = choose_theta(hierarchy, centre, radius, len(points), budget)
-    chosen = interaction_list(hierarchy, centre, radius, theta)
+        theta, fits = choose_theta(hierarchy, center, radius, len(points), budget)
+    chosen = interaction_list(hierarchy, center, radius, theta)
     return Result(gravity_kernel.fields(points, chosen.positions, chosen.masses, softening_pc, threads), chosen, fits)

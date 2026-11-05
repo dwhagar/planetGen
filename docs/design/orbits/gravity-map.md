@@ -28,16 +28,23 @@ are marked.
 - **Zones.** A sector (edge 4 pc, `DEFAULT_SECTOR_EDGE_PC`) is cut into
   equal zones; the default is 16 per edge (0.25 pc), a setting. The field
   is sampled at each zone's centre.
-- **Sources.** Every point mass in the sector and its neighbours: stars,
-  planets, moons, compact objects and stand-alone facilities with a mass
-  (the same influence set as GEN.109's Hill-sphere rule), plus the galaxy's
-  own smooth potential (GEN.115) as the background, joined by the rule in
-  "The smooth galaxy and the generated stars" below (MAP.383). Plummer
-  softening keeps a zone that holds a source finite.
+- **Sources.** Every point mass in the sector and its neighbours: **one per
+  star system** (its stars, planets and moons together at the system's place,
+  which changes the field at a zone's size by under 0.1 percent; MAP.386,
+  `db/gravity_sources.py`), stand-alone black holes and neutron stars (the
+  same table the orbital update reads); rogue planets, comets and asteroid
+  fields are below the tolerance and left out. The System Map's orbital-plane
+  version reads the bodies themselves (MAP.169). The galaxy's own smooth
+  potential (GEN.115) is the background, joined by the rule in "The smooth
+  galaxy and the generated stars" below (MAP.383). Plummer softening keeps a
+  zone that holds a source finite.
 - **Near and far.** Sources close to a zone are summed exactly; distant
-  ones are summed as one aggregate per region (mass and centre of mass,
-  re-using the MAP.151 region pyramid), the way a tree code does. The
-  cost study (PERF.72) fixes the split and checks it against the exact sum.
+  ones are summed as one point per cell (mass and centre of mass) of a
+  hierarchy with 0.5 pc leaf cells, the way a tree code does
+  (MAP.385, `galaxy/gravity_tree.py`; the MAP.151 region is the data window and
+  holds no masses). The cost study (PERF.72) fixes the split, the opening
+  angle (0.3 to 0.7, chosen to a pair budget) and checks it against the exact
+  sum; the kernel is `galaxy/gravity_kernel.py` (MAP.384).
 - **Cache.** The grid is derived data, cached like the Galaxy Map tiles and
   thrown away when the orbital update (GEN.105) moves the sources; it is
   never part of the galaxy itself, so it needs no galaxy-table migration.
