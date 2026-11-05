@@ -153,8 +153,17 @@ def apparent_magnitude(luminosity_sol, temperature_k, distance_pc, a_v=0.0):
 
 def dust_av_per_pc(x_pc, y_pc, z_pc, *, av_per_kpc_at_sun=DUST_AV_PER_KPC_AT_SUN, scale_length_pc=DUST_SCALE_LENGTH_PC,
                    height_pc=DUST_HEIGHT_PC, flare_pc_per_kpc=DUST_HEIGHT_FLARE_PC_PER_KPC,
-                   flare_start_pc=DUST_FLARE_START_PC, solar_radius_pc=DUST_SOLAR_RADIUS_PC):
-    """The dust disk's extinction in magnitudes per parsec at galactocentric `(x, y, z)` in parsecs (arrays or numbers)."""
+                   flare_start_pc=DUST_FLARE_START_PC, solar_radius_pc=DUST_SOLAR_RADIUS_PC, profile=None):
+    """
+    The dust disk's extinction in magnitudes per parsec at galactocentric `(x, y, z)` in parsecs (arrays or numbers).
+
+    With a `profile` (a `physics.dust_model.DustProfile`, the dust of the galaxy's own gas, VIEW.43) the profile answers and the fixed Milky Way law's keywords are not read;
+    `av_per_kpc_at_sun=0` still means no dust at all.
+    """
+    if profile is not None:
+        if av_per_kpc_at_sun == 0:
+            return np.zeros(np.broadcast(np.asarray(x_pc), np.asarray(y_pc), np.asarray(z_pc)).shape)
+        return profile.av_per_pc(x_pc, y_pc, z_pc)
     r = np.hypot(np.asarray(x_pc, dtype=float), np.asarray(y_pc, dtype=float))
     h_z = height_pc + flare_pc_per_kpc * np.maximum(r - flare_start_pc, 0.0) / 1000.0
     layer = 1.0 / np.cosh(np.asarray(z_pc, dtype=float) / h_z) ** 2
