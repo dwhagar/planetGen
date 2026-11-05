@@ -3706,7 +3706,7 @@ MILKY_WAY_CATALOGUED_CLOUDS = 8107
 
 SATELLITE_MOLECULAR_GAS_MASS_SOLAR = {"Large Magellanic Cloud": 5.0e7, "Small Magellanic Cloud": 3.2e7}
 """dict: The molecular gas of the two reference satellites that hold any, solar masses. Large Cloud: about 5e7 in 272 CO clouds with
-X_CO 7e20 [R5123]. Small Cloud: H2 3.2e7 from dust, with X_CO 13e21 over the whole galaxy [R5124]; dust counts gas the CO does not
+X_CO 7e20 [R5128]. Small Cloud: H2 3.2e7 from dust, with X_CO 13e21 over the whole galaxy [R5129]; dust counts gas the CO does not
 trace, so it is the upper end for the clouds. Not the CO-bright mass of the Milky Way's catalogue, but the same order of method."""
 
 SATELLITE_NEBULA_GAS_SCALE = {"Large Magellanic Cloud": 0.435, "Small Magellanic Cloud": 0.724}
@@ -3715,7 +3715,7 @@ satellite's name; a satellite not named here has 1. A satellite's gas follows it
 in a ball out to six half-mass radii, so unscaled the field draws 1,085 giant clouds in the Large Cloud and 340 in the Small (the
 class M clouds it keeps). The Milky Way's 8,107 clouds hold 1.2e9 solar masses of H2, so a satellite holds
 `MILKY_WAY_CATALOGUED_CLOUDS * mass / MILKY_WAY_MOLECULAR_GAS_MASS_SOLAR` of them: 338 for the Large Cloud (272 catalogued above
-the survey's limit [R5123]) and 216 for the Small. The scale is that target over the unscaled count; `tests/test_gen367_cloud_gas.py`
+the survey's limit [R5128]) and 216 for the Small. The scale is that target over the unscaled count; `tests/test_gen367_cloud_gas.py`
 works both again and holds the scale to them within 15 percent."""
 
 SUPERBUBBLE_CELL_PC = 250.0

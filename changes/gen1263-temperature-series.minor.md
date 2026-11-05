@@ -1,8 +1,6 @@
-# GEN.1263: the temperature of every place at every time
+**Headline:** A new calculation gives the temperature of every place on a world, by latitude, longitude and time of day, through its whole year (no stored value changes yet).
 
 ### Changed
-
-**Headline:** A new calculation gives the temperature of every place on a world, by latitude, longitude and time of day, through its whole year (no stored value changes yet).
 
 - `seasonal_swing.temperature_series` extends the seasonal energy balance with the longitude and the time of day on the 12 by 12 cells of `surface_cycle`. One calculation serves every body: a tidally locked world, a world that turns backwards, a slow spinner near resonance and Earth.
 - The heat capacity follows the cycle: the air column, the sea to the depth the cycle mixes (a few metres for a day, 50 m for a year) on the ocean share, and the ground's skin on the rest. The air carries heat toward the world's mean (`transport_share`, the locked share for a body that turns once an orbit).

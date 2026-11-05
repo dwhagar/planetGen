@@ -2877,7 +2877,7 @@ The words `physics/life_readings.py` says a world's life in: how much of each ki
 | NS6 | P | T6 | L1 | nebula_sprites.REFLECTION_ALBEDO 0.5: the albedo of interstellar grains in V | 0.3 to 0.7 | reflection nebulae | a measured albedo | the grain model of the reflection nebulae | recalled |
 | NS7 | P | T9 | L3 | nebula_sprites.REFLECTION_CENTRAL_ABSOLUTE_V -3: the absolute V magnitude of the star that lights a reflection nebula | -5 to 0 | class F | a stored central star | the nebula's stored host star | set so a 10 ly reflection nebula is near 22 to 23, the order of the bright ones (recalled) |
 
-### 6.183 Stand-ins of the gas of the Magellanic Clouds in the nebula field (GEN.367)
+### 6.187 Stand-ins of the gas of the Magellanic Clouds in the nebula field (GEN.367)
 
 The nebula field draws giant molecular clouds from a gas tracer (`galaxy/nebula_field.py`), and a satellite's tracer is its young stars' density (GEN.528). The Clouds' young stars fill a ball out to six half-mass radii, not the disc their gas lies in, so unscaled the field kept 1,085 class M clouds in the Large Cloud and 340 in the Small, where the Milky Way's 8,107 clouds hold 1.2e9 solar masses of H2 [R3102] and the Large Cloud's CO survey found 272 clouds above its limit and about 5e7 solar masses [R5123]. A named satellite's tracer is now scaled (`tuning.SATELLITE_NEBULA_GAS_SCALE`, `ComponentField.gas_density`) so its class M cloud count is the Milky Way's count times its molecular mass over the Milky Way's. The Small Cloud's mass is the dust-based H2 [R5124], which counts gas the CO does not trace, so its 216 is a ceiling for CO clouds. Only the two Clouds are scaled; any other satellite keeps the young-star tracer. Checked by `tests/test_gen367_cloud_gas.py`.
 

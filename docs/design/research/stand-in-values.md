@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1177 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1179 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 159 | 18 | 8 | 1 | 0 | 186 |
+| T1 | 159 | 18 | 10 | 1 | 0 | 188 |
 | T2 | 121 | 49 | 1 | 1 | 0 | 172 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 32 | 14 | 5 | 72 | 33 | 156 |
-| All | 647 | 249 | 54 | 183 | 44 | 1177 |
+| All | 647 | 249 | 56 | 183 | 44 | 1179 |
 
 ## How the labels were given
 
@@ -1596,6 +1596,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SKP2 | D | T2 | L1 | sky_photometry.COOL_BC_TABLE_K_MAG: BC_V of K7V to L2V, 4,100 K to 2,060 K, linear in log T between rows and held under 2,060 K | the table's own scatter, about 0.1 mag between calibrations | main-sequence stars of 2,060 to 4,100 K; a cool giant has a smaller correction in the red, so its V magnitude here is somewhat too faint | a bolometric correction of a measured M giant or of an M dwarf outside 0.3 mag of the row | a correction by temperature and gravity from a stellar atmosphere grid | READ (E. Mamajek's table "A Modern Mean Dwarf Stellar Color and Effective Temperature Sequence", version 2022.04.16, from Pecaut and Mamajek [R3469: Table 5]: M5V 3060 K -3.11, M0V 3850 K -1.15; G2V 5770 K -0.085, the zero point of Flower's fit). [R4407]: Flower's fit "breaks down completely for the M dwarfs" (-2.31 at 3,500 K against the table's -1.73) | - | - |
 | SKP3 | T | T5 | L0 | sky_photometry.V_WAVELENGTH_M 550e-9 and the blackbody step: over 50,000 K, BC_V(T) = BC_V(50,000 K) - 2.5 log10[T^4 expm1(c2/(550 nm T))] + the same at 50,000 K | the V wavelength 500 to 600 nm | a hot star, white dwarf, Wolf-Rayet or stripped helium star over 50,000 K whose spectrum is near a blackbody in the V band | a bolometric correction from a model atmosphere of a 100,000 K star that differs by more than 0.3 mag | a bolometric correction table of hot stars and white dwarfs read from a source | physics: the V band lies on the Rayleigh-Jeans side, where flux goes as T and the bolometric flux as T^4 (7.5 mag a decade in the limit, 7.2 from 50,000 K); the form is Planck's law at one wavelength, not the filter's bandpass | - | - |
 | SKP4 | P | T2 | L0 | sky_photometry.DUST_SCALE_LENGTH_PC 2260, DUST_HEIGHT_PC 134.4, DUST_HEIGHT_FLARE_PC_PER_KPC 14.8, DUST_FLARE_START_PC 4400, DUST_SOLAR_RADIUS_PC 8000: the dust disc's shape; no warp, no spiral arms, no central hole | scale length 2.0 to 2.5 kpc; height 120 to 150 pc | lines of sight outside the inner 4 kpc of a galaxy of the Milky Way's size; scale lengths and heights are scaled by the caller for another | the paper's own Table 1 differing from these (the flare and the height were read from a summary of the table, to confirm), or a line of sight through the inner 4 kpc | the full dust model of VIEW.8 (the warp, the arms and the central hole of [R1158] section 3.2) | [R1158: Eq. 13 and 14]: exponential in R, sech^2 in z, a linearly flaring scale height; the abstract's scale length 0.28 R_sun is 2.24 kpc at their R_sun of 8 kpc, against 2.26 in Table 1 | - | - |
+
+## 6.187 Stand-ins of the gas of the Magellanic Clouds in the nebula field
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MG1 | P | T1 | L2 | tuning.SATELLITE_NEBULA_GAS_SCALE["Large Magellanic Cloud"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count) | 0.32 to 0.58 (a factor of 1.5 either way on the count) | the Large Cloud as the reference satellites place it | a CO catalogue of the Large Cloud whose cloud count or mass is more than a factor of 1.5 from 338 clouds and 5e7 solar masses | a gas disc for the Cloud (its HI disc is already modelled in galaxy/satellite_history.py) that the cloud field follows | [R5123] (ApJS 178, 56, section 3.1 READ): 272 clouds, molecular gas about 5e7 solar masses with X_CO 7e20; [R3102] (abstract READ): 8,107 clouds and 1.2e9 solar masses of H2 for the Milky Way. 8107 * 5e7 / 1.2e9 = 338, against 272 catalogued above the survey limit. test_gen367_cloud_gas::test_the_large_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass | - | - |
+| MG2 | P | T1 | L2 | tuning.SATELLITE_NEBULA_GAS_SCALE["Small Magellanic Cloud"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count) | 0.55 to 0.95 | the Small Cloud as the reference satellites place it | a CO catalogue of the Small Cloud whose cloud count is below 100 or its CO mass below a tenth of the Large Cloud's | a gas disc for the Cloud that the cloud field follows | [R5124] (ApJ 658, 1027, abstract READ): H2 3.2e7 solar masses from dust, X_CO 13e21 over the whole galaxy; the CO-bright mass is lower, so 216 clouds is a ceiling. 8107 * 3.2e7 / 1.2e9 = 216. test_gen367_cloud_gas::test_the_small_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass | - | - |
 
 ## 6.170 Stand-ins of the picture of a ring and of a glowing body
 
