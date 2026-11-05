@@ -519,7 +519,6 @@ _BODY_NOT_SHOWN = {
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
     "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world",
-    "description": "the page's paragraph text",
     "atmosphere": "described in the paragraph text and the Atmosphere rows",
     "composition": "described in the paragraph text",
     "flavor_text_count": "how many flavor lines exist; bookkeeping",

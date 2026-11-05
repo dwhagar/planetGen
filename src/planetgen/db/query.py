@@ -2383,7 +2383,7 @@ _PHENOMENON_TABLES = (
     ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly"),
     ("rogue_planets", "rogue_planet",
      "(CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' "
-     "WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
+     "WHEN planet_type = 'gas' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
     ("interstellar_comets", "interstellar_comet",
      "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0"),
     # v31: a galaxy's active nucleus, always at the galactic center

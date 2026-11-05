@@ -3871,7 +3871,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
-    planet_type         VARCHAR(12) NULL,   -- v207: NULL for a row of the physics rogue (its type is `body_type`)
+    planet_type         VARCHAR(12) NULL,   -- v207: the body type of GEN.1219: terrestrial, transitional or gas
     -- v47: its PLANET_CLASSES letter (GEN.8); NULL for a brown dwarf.
     planet_class        VARCHAR(4),
     -- v37: the mass bin it was drawn from (program_constants.
@@ -4198,7 +4198,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     CONSTRAINT chk_rogue_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
     KEY idx_rogue_planets_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
-    KEY idx_rogue_planets_descriptor_name (((CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END) COLLATE utf8mb4_unicode_ci), name),
+    KEY idx_rogue_planets_descriptor_name (((CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' WHEN planet_type = 'gas' THEN 'gas giant' ELSE 'terrestrial' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_rogue_planets_next_update_due (next_update_due),
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_rogue_planets_placement CHECK (

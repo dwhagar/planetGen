@@ -62,7 +62,7 @@ def test_a_rogue_planet_is_stored_with_every_planet_column_and_its_ejection(worl
     assert row["mass_kg"] == pytest.approx(planet.mass) and row["body_type"] == planet.body_type
     assert row["center_x_pc"] == pytest.approx(landing.position_pc[0]) and row["galactic_radius_pc"] > 7000.0
     assert row["velocity_x_kms"] == pytest.approx(landing.velocity_km_s[0])
-    assert row["galactic_orbital_period_gy"] > 0.0 and row["planet_type"] is None and row["has_moons"] is None
+    assert row["galactic_orbital_period_gy"] > 0.0 and row["planet_type"] == planet.planet_type and row["has_moons"] is None
     assert row["surface_temperature_k"] == pytest.approx(planet.surface_temperature)
     moons = conn.execute("SELECT parent_type, parent_id, rogue_planet_id FROM moons WHERE rogue_planet_id = ?", (row_id,)).fetchall()
     assert len(moons) == len(planet.moons) == 1 and moons[0]["parent_type"] == "rogue_planet" and moons[0]["parent_id"] == row_id

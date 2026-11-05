@@ -229,6 +229,10 @@ COLUMNS = (
 )
 """tuple: The columns added to `rogue_planets`, each with its definition."""
 
+DESCRIPTOR = ("(CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' WHEN planet_type = 'gas' THEN 'gas giant' "
+              "ELSE 'terrestrial' END) COLLATE utf8mb4_unicode_ci")
+"""str: The key part of the rogue planets' descriptor sort index."""
+
 RELAXED = (
     ("planet_type", "VARCHAR(12) NULL"),
     ("composition", "TEXT NULL"),
@@ -317,6 +321,8 @@ def upgrade():
     for column, definition in RELAXED:
         if helpers.exists_column(connection, "rogue_planets", column):
             connection.execute(sa.text(f"ALTER TABLE rogue_planets MODIFY {column} {definition}"))
+    helpers.drop_index_online(connection, "rogue_planets", "idx_rogue_planets_descriptor_name")    # a gas giant is `gas` (GEN.1219)
+    helpers.add_expression_indexes(connection, "rogue_planets", {"idx_rogue_planets_descriptor_name": [DESCRIPTOR, "name"]})
     helpers.add_index_online(connection, "rogue_planets", "uq_rogue_planets_donor_event", ["donor_uid", "event_index"], unique=True)
     for statement in TABLES:
         connection.execute(sa.text(statement))
