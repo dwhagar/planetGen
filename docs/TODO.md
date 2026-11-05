@@ -2168,17 +2168,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/galaxy/multiple-galaxies.md](design/galaxy/multiple-galaxies.md)
 
-- [ ] **NAV.58 Edit a course: add, remove, reorder and drag its waypoints, then save the edit**
-  Boss (2026-10-10 21:05Z): the 8.5 headline is courses with waypoints
-  that are editable and saved. Waypoints today are picked once and
-  plotted (NAV.49). Done: a course drawn on the map (any display) can be
-  edited in place: add a waypoint by picking an object, remove one,
-  reorder them, or drag a waypoint to another object; the course is
-  re-planned after each edit (bending around gravity wells once NAV.6 is
-  built) and the edit is saved over the saved course or as a new one
-  (NAV.4); a test checks add, remove, reorder and save.
-  Prerequisites: NAV.4. Related: NAV.6, NAV.18, NAV.59.
-
 - [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
   Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
   end of phase 2). Umbrella: it is done when a viewer plots a course
@@ -2188,7 +2177,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
   a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
-  Prerequisites: NAV.6, NAV.58, NAV.4. Related: GEN.198,
+  Prerequisites: NAV.6, NAV.4. Related: GEN.198,
   MAP.167.
 
 - [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
@@ -14154,6 +14143,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
 
+- [ ] **GEN.1279 The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug)**
+  Core 3 (as the lane reported, about 10:20 AM EST on 2026-11-05),
+  building the HYG calibration test VIEW.30
+  (reports/system-sky-hyg-calibration-2026-11-05.md), measured the
+  dust-free sky at limiting magnitude 6.5 for the Sun's place: 2,184
+  stars against HYG's 8,920 (24.5 percent), and the shortfall sits
+  between absolute magnitude -3 and 4 (A and F stars and giants), where
+  the model holds about a fifth of the real count. Do: find out why from
+  the star mass function, the age and evolution mix, and the giant
+  branch shares (physics drives, no game rates); fix the generator at
+  the cause or register a stand-in in GEN.725 with tier and tweak level,
+  and say which. Done: the dust-free count at 6.5 for that place inside
+  a band the report gives, and the shortfall by magnitude bin shown
+  before and after. Lock item (it changes generated stars): next train
+  after it is built. Version 8.1. Owner: Star 2 (stellar populations),
+  proposed by the TODO thread. Related: VIEW.30. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: VIEW.30.
+
+- [ ] **GEN.1280 The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug)**
+  Core 3 (as the lane reported, about 10:20 AM EST on 2026-11-05), in
+  the HYG calibration
+  (reports/system-sky-hyg-calibration-2026-11-05.md), found about 24
+  times too many stars brighter than absolute magnitude -6 in the
+  dust-free sky against HYG. Do: find why (the top of the initial mass
+  function, the lifetime of the massive stars, the supergiant branch
+  share); fix at the cause or register a stand-in in GEN.725 with tier
+  and tweak level. Done: the bright-end count within the band the report
+  gives, shown before and after. Lock item. Version 8.1. Owner: Star 2,
+  proposed by the TODO thread. Related: VIEW.30. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: VIEW.30.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19640,6 +19662,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
+  Built (Core 3) (10:25 AM EST on 2026-11-05): Branch
+  claude/view30-sky-calibration f6d1a5301, stacked on view25; merge
+  after VIEW.25 lands. Band set: the dust-free sky at 6.5 holds 15 to 40
+  percent of the HYG count (measured 24.5 percent). Setup also fetches
+  the HYG v4.1 catalog (dataset hyg_stars, not required; CC BY-SA 4.0,
+  noted for Boss's DATA-LICENSE.md). Test needs
+  PLANETGEN_SKY_CALIBRATION=1 and the catalog, 25 to 40 minutes, so
+  normal gates skip it. Follow-ups: GEN.1279, GEN.1280 (stars, from the
+  findings), VIEW.42 (sky route ledger). The default dust law leaves 586
+  stars beyond 217 pc against 2,184 dust-free: whoever builds the dust
+  law (VIEW.20 was its home) should check its scale.
   Prerequisites: VIEW.25.
 
 - [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
@@ -19674,6 +19707,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.35.
+
+- [ ] **VIEW.42 The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug)**
+  Core 3 (as the lane reported, about 10:20 AM EST on 2026-11-05) found
+  that the sky route (VIEW.31) reports built_to_pc 0.0 after a full
+  chart, because it does not read the sky_tier_draws ledger of VIEW.25.
+  Do: make the route read the ledger so built_to_pc says how far out the
+  sky is built; a test charts a sector and expects built_to_pc above 0.
+  Done: the test. Lock-free once VIEW.25 has landed (train 12), stack it
+  on branch view25. Version 8.1. Owner: Planets 1 (wrote VIEW.31 and
+  VIEW.25). Filed by the TODO thread.
+  Prerequisites: none. Related: VIEW.31.
 
 ## POP: Population and politics
 

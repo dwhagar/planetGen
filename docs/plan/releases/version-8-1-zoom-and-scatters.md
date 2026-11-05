@@ -588,6 +588,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | DOC.98 | Boss, citations only in the registry. |
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment |  | Boss, citations only in the registry. |
 | DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information |  | Boss, citation links. |
+| VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) |  |  |
+| GEN.1280 | The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug) |  |  |
+| GEN.1279 | The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug) |  |  |
 | TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) |  |  |
 | TEST.599 | test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug) |  |  |
 | TEST.598 | test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug) |  |  |
