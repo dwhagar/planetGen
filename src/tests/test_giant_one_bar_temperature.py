@@ -13,7 +13,7 @@ from planetgen.physics import constants, giant_draw, planets
 from tests import class_support
 
 # (mass in Earth masses, radius km, distance AU, measured 1 bar K, tolerance, measured internal heat W/m2 or None for the generator's law): three of the
-# four giants round a Sun of 4.5 Gy. Uranus and Neptune are given their measured heat ([R5097: Table 2]: 0.042 and 0.433 W/m2), because an ice giant draws
+# four giants round a Sun of 4.5 Gy. Uranus and Neptune are given their measured heat ([R5113: Table 2]: 0.042 and 0.433 W/m2), because an ice giant draws
 # either the cooling law or a share of it (a stable composition gradient, GEN.1033, `test_ice_giant_heat.py`), and this test of the greenhouse should not
 # carry that draw.
 GIANTS = ((317.8, 69911.0, 5.2, 166.0, 0.10, None), (14.5, 25362.0, 19.2, 76.0, 0.10, 0.042), (17.1, 24622.0, 30.07, 72.0, 0.10, 0.433))

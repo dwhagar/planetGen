@@ -63,7 +63,7 @@ def test_the_inflow_of_each_ring_decays_with_that_rings_time_scale():
 
 
 def test_a_disk_slower_than_the_milky_ways_is_fed_ever_more_slowly_and_a_faster_one_the_other_way():
-    """[R5103] equation 21: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per Gy, so it is the Milky Way's at 220 km/s."""
+    """[R5119] equation 21: the inflow is multiplied by exp(0.4 t (1 - V / 220)) per Gy, so it is the Milky Way's at 220 km/s."""
     rings = np.array([3.0])
     reference = disk_history.inflow_shapes(rings, 10.0, 800, 220.0)
     slow = disk_history.inflow_shapes(rings, 10.0, 800, 100.0)
@@ -78,7 +78,7 @@ def test_the_speed_of_a_disk_is_the_cube_root_of_its_mass_from_the_milky_ways_tw
 
 
 def test_light_disks_rise_to_the_present_and_heavy_ones_fall():
-    """[R5104] section 4.1: a disk of 100 km/s has a rising star formation, one of 360 km/s a falling one; the Milky Way's is near constant."""
+    """[R5120] section 4.1: a disk of 100 km/s has a rising star formation, one of 360 km/s a falling one; the Milky Way's is near constant."""
     light, milky_way, heavy = (disk_history.history_of(_shape(stellar_mass=mass)).present_over_mean() for mass in (5.0e9, 5.0e10, 2.0e11))
     assert light > 1.0 > milky_way > heavy
 
@@ -122,7 +122,7 @@ def test_a_shape_without_masses_takes_the_median_galaxy_of_its_disk():
 
 
 def test_lighter_galaxies_have_more_recent_stars():
-    """Downsizing: a spiral of 1e10 solar masses is fed more slowly (the infall of [R5103] equation 21) and spends its thinner gas more slowly, so it forms its
+    """Downsizing: a spiral of 1e10 solar masses is fed more slowly (the infall of [R5119] equation 21) and spends its thinner gas more slowly, so it forms its
     stars later than one of 5e10. The shares fall with mass from 1e10 to 5e10 (the chain's range is 3e9 to 2e11): 2.3 times between them (GEN.1246; 7.5 times
     with the halo-growth inflow, which kept the Milky Way's own disk forming 2.7 times the stars per year it does)."""
     young = [disk_history.population_shares(_shape(stellar_mass=mass))["young"] for mass in (1.0e10, 3.0e10, 5.0e10)]

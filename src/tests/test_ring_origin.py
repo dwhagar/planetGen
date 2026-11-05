@@ -118,7 +118,7 @@ def test_drawn_comet_passages_follow_the_rate_and_come_from_the_units_stream():
 
 
 def test_small_moons_near_a_giant_keep_a_faint_dust_ring_by_a_steady_supply():
-    """GEN.1233: the four inner moons of Jupiter keep a dust ring of 1e7 to 1e9 kg ([R5096]: Jupiter's faint rings) with no moon ever having fallen."""
+    """GEN.1233: the four inner moons of Jupiter keep a dust ring of 1e7 to 1e9 kg ([R5112]: Jupiter's faint rings) with no moon ever having fallen."""
     inner = [ring_origin.FeederMoon(21.0, 128.0e3), ring_origin.FeederMoon(8.2, 129.0e3), ring_origin.FeederMoon(83.5, 181.4e3), ring_origin.FeederMoon(49.0, 222.0e3)]
     assert 1.0e7 < ring_origin.dust_supply_mass_kg(JUPITER, inner) < 1.0e9
     result = ring_origin.ring_origin(JUPITER, AGE, feeders=inner)
