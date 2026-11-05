@@ -43,7 +43,7 @@ def test_star_dots_grow_on_a_log_scale_from_white_dwarfs_to_supergiants():
     assert sizes[2] == pytest.approx(starmap._SUN_DOT_R)
     assert sizes[-1] == pytest.approx(starmap._MAX_DOT_R, abs=0.05)
     # A giant (10 solar radii) is still larger than the Sun, but every core
-    # stays small: a supergiant is a point, not a big disc.
+    # stays small: a supergiant is a point, not a big disk.
     assert sizes[3] > sizes[2]
     assert starmap._MAX_DOT_R <= 8
     assert starmap._star_dot_radius(sun * 1e5) == starmap._MAX_DOT_R

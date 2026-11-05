@@ -1,6 +1,6 @@
 # tests/test_comet_ice_budget.py
 
-"""GEN.595: the ices of a comet from the zone of the disc it formed in (`physics/comet_ice_budget.py`; [R3322])."""
+"""GEN.595: the ices of a comet from the zone of the disk it formed in (`physics/comet_ice_budget.py`; [R3322])."""
 
 import math
 
@@ -12,7 +12,7 @@ SOLAR = cib.SOLAR_LUMINOSITY_W
 
 
 def test_the_snow_lines_of_a_sun_like_star_are_those_oberg_et_al_give():
-    """Their text puts the CO2 and CO lines at 10 and 40 AU for the average disc."""
+    """Their text puts the CO2 and CO lines at 10 and 40 AU for the average disk."""
     assert cib.ice_line_au("H2O") == pytest.approx(1.9, abs=0.05)
     assert cib.ice_line_au("CO2") == pytest.approx(10.3, abs=0.2)
     assert cib.ice_line_au("CO") == pytest.approx(41.0, abs=0.5)
@@ -96,7 +96,7 @@ def test_the_co2_of_3i_atlas_is_beyond_any_zone_of_this_budget():
     assert 7.6 / cib.nebular_ratios(carbon=2.0)[0] > 10.0
 
 
-def test_a_comet_forms_between_the_snow_line_and_the_edge_of_the_disc_in_equal_masses_per_interval_of_ln_r():
+def test_a_comet_forms_between_the_snow_line_and_the_edge_of_the_disk_in_equal_masses_per_interval_of_ln_r():
     """GEN.595 wiring: the uniform draw is a position in ln r, so u = 0 is the inner edge (the water zone) and u near 1 the outer (the CO zone)."""
     inner = cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 0.0)
     outer = cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 0.999)
@@ -108,7 +108,7 @@ def test_a_comet_forms_between_the_snow_line_and_the_edge_of_the_disc_in_equal_m
         assert hits.count(zone) / 4000 == pytest.approx(shares[zone], abs=0.01)
 
 
-def test_a_disc_that_ends_inside_the_water_line_still_gives_the_ice_at_its_inner_edge():
+def test_a_disk_that_ends_inside_the_water_line_still_gives_the_ice_at_its_inner_edge():
     assert cib.formation_ratios(SOLAR, 1.0, 1.5, 1.0, 1.0, 0.5) is not None
     assert cib.formation_ratios(SOLAR, 1.0, 0.5, 1.0, 1.0, 0.5) is not None
 

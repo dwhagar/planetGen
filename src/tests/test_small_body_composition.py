@@ -1,6 +1,6 @@
 """GEN.442: the composition of belts, comets, icy bodies and rings (`planetgen/physics/small_body_composition.py`;
 docs/design/small-bodies-composition.md sections 3 to 5 and 9). The Solar System bodies named below are test targets only: the
-draw must be able to reach them, and nothing in the module is centred on one."""
+draw must be able to reach them, and nothing in the module is centered on one."""
 
 import concurrent.futures
 import math

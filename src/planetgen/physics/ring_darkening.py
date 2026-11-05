@@ -179,7 +179,7 @@ def shadow_transmission(latitude_deg, declination_deg, inner_radii, outer_radii,
     The share of a day's sunlight that reaches a latitude of the planet through its ring (R8), 1 where the ring casts no shade.
 
     The ring is a thin annulus in the equatorial plane from `inner_radii` to `outer_radii` planet radii. A point on the planet at `latitude_deg` sees the Sun, whose subsolar
-    latitude is `declination_deg`, through the ring when the line to the Sun crosses the equatorial plane at a distance from the planet's centre between the two edges. The light
+    latitude is `declination_deg`, through the ring when the line to the Sun crosses the equatorial plane at a distance from the planet's center between the two edges. The light
     that comes through is `exp(-tau / sin(delta))` (the slant path through a ring of optical depth `tau`). The mean is over the lit half of a turn of the planet, weighted by the
     cosine of the Sun's zenith angle (the daily mean insolation) .
 

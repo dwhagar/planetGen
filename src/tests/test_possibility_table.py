@@ -93,10 +93,10 @@ def test_condition_predicates_gate_on_stored_quantities():
     table = Table("t", 1, [
         row("ice", ("rocky",), conditions=(Condition("formation_distance_au", minimum=2.7),)),
         row("rock", ("rocky",), conditions=(Condition("formation_distance_au", maximum=3.0),)),
-        row("oxidised", ("rocky",), conditions=(Condition("redox", equals="oxidised"),))])
+        row("oxidized", ("rocky",), conditions=(Condition("redox", equals="oxidized"),))])
     assert probs(table, formation_distance_au=1.0, redox="reduced") == {"rock": 1.0}
     assert probs(table, formation_distance_au=2.8, redox="reduced") == {"ice": 0.5, "rock": 0.5}
-    assert probs(table, formation_distance_au=5.0, redox="oxidised") == {"ice": 0.5, "oxidised": 0.5}
+    assert probs(table, formation_distance_au=5.0, redox="oxidized") == {"ice": 0.5, "oxidized": 0.5}
     assert probs(table, formation_distance_au=2.7, redox="x")["ice"] == 0.5     # a bound is inclusive
 
 

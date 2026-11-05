@@ -87,7 +87,7 @@ def test_a_gas_giant_closes_and_a_lighter_one_is_less_deep():
     assert saturn.central_pressure_pa < jupiter.central_pressure_pa
 
 
-def test_a_brown_dwarf_is_degenerate_at_the_centre():
+def test_a_brown_dwarf_is_degenerate_at_the_center():
     mass = 40 * 317.8
     dwarf = _fit(mass, 0.9 * 71492.0, 0.015 * mass, 0.015, 1000.0)
     assert dwarf.closed and dwarf.central_pressure_pa > 1.0e13

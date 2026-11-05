@@ -12,12 +12,12 @@ middle got a Hill sphere several times too small.
 `enclosed_mass_solar(shape, galaxy_seed, radius_pc)` adds three parts, all from the one galaxy:
 
 1. **The stars.** The smooth density model (`galaxy.density.total_density_array`: thin and thick disk, bar bulge,
-   stellar halo, nuclear cluster and disc, the arms averaged round the circle) integrated over the cells of a grid in
-   cylindrical radius and height, each cell's mass given to its radius from the centre, then summed in order of
+   stellar halo, nuclear cluster and disk, the arms averaged round the circle) integrated over the cells of a grid in
+   cylindrical radius and height, each cell's mass given to its radius from the center, then summed in order of
    radius. The model's units become solar masses through `model_terms["mass_per_solar"]`. The star clusters and
    satellites the shape's `components` add are left out: they are stars of the smooth model already, or lie in the
    halo where their mass is small beside the dark halo's.
-2. **The central black hole** (`density.central_black_hole_mass_solar`), a point at the centre.
+2. **The central black hole** (`density.central_black_hole_mass_solar`), a point at the center.
 3. **The dark halo.** An NFW halo [R3248] of the mass chain's halo mass less its stars, with the
    chain's own virial radius and concentration, so the halo's share inside `r` is
    `M_dark (ln(1 + x) - x / (1 + x)) / (ln(1 + c) - c / (1 + c))`, `x = r c / r200`, held at `M_dark` beyond `r200`.

@@ -25,7 +25,7 @@ from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
 from tests.test_nebula_field import ARM_ANGLE, EDGE_PC, REACH_PC, SEED, SHAPE, _on_ring
 
 CENTER_PC = (0.0, 8000.0, 0.0)
-"""tuple: A sector centre on the +y axis, so the sector's local +X is the galaxy's +y (`frame.sector_orientation`)."""
+"""tuple: A sector center on the +y axis, so the sector's local +X is the galaxy's +y (`frame.sector_orientation`)."""
 
 
 def _nebula(nebula_class, radius_ly=2.0):
@@ -114,8 +114,8 @@ def test_one_o9v_like_star_gives_about_a_thousand_habing_units_at_a_parsec():
 
 def test_a_host_is_never_taken_closer_than_the_minimum_distance():
     cloud = _host_cloud("O9V x1")
-    at_centre = cloudContext.g0_at(cloud, (0.0, 0.0, 0.0))
-    assert math.isfinite(at_centre) and at_centre == cloudContext.g0_at(
+    at_center = cloudContext.g0_at(cloud, (0.0, 0.0, 0.0))
+    assert math.isfinite(at_center) and at_center == cloudContext.g0_at(
         cloud, (tuning.CLOUD_HOST_MIN_DISTANCE_PC / 2, 0.0, 0.0))
 
 
@@ -158,11 +158,11 @@ def test_the_enrichment_is_log_normal_about_the_field_median_with_the_classes_ch
 def test_a_system_placed_inside_a_field_cloud_gets_the_cloud_and_its_effects():
     nebula = _nebula("D")
     nebula.hosts = "O9V x2"
-    centre = CENTER_PC
-    sector = _sector(nebula, centre)
+    center = CENTER_PC
+    sector = _sector(nebula, center)
     system = _system()
     sector.add_system(system, position=(0.0, 0.0, 0.0))
-    assert system.surrounding_cloud["class"] == "D" and system.surrounding_cloud["center"] == centre
+    assert system.surrounding_cloud["class"] == "D" and system.surrounding_cloud["center"] == center
     effects = system.cloud_effects
     assert effects.cloud_class == "D" and effects.cloud_id is None
     assert effects.enrichment_k is not None and effects.g0 > 0.0
@@ -179,7 +179,7 @@ def test_a_system_outside_every_cloud_is_untouched():
 
 
 def test_the_sectors_local_axes_are_turned_into_the_galaxy_frame_before_the_test():
-    """The cloud lies 3 ly along the sector's local +X, which is the galaxy's +y for a centre on the +y axis."""
+    """The cloud lies 3 ly along the sector's local +X, which is the galaxy's +y for a center on the +y axis."""
     nebula = _nebula("D", radius_ly=2.0)
     sector = _sector(nebula, (0.0, CENTER_PC[1] + ly_to_pc(3.0), 0.0))
     along_x, along_y = _system(), _system()
@@ -244,7 +244,7 @@ def test_apply_cloud_leaves_the_planets_as_drawn():
 
 
 def _generate(monkeypatch, cloud_in_play, hook=True):
-    """A galaxy-placed sector of planets-and-all systems with one field cloud over its centre (or none), the hook on or off."""
+    """A galaxy-placed sector of planets-and-all systems with one field cloud over its center (or none), the hook on or off."""
     from planetgen.galaxy.spherical import SectorCell, sector_address_at, sector_position_pc
 
     address = sector_address_at(_on_ring(ARM_ANGLE), EDGE_PC)

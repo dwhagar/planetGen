@@ -56,7 +56,7 @@ FAR_POINTS = [
     (14000.0, 0.0, 0.0),        # the far edge of the disk
     (0.0, -16000.0, 300.0),
     (9000.0, 9000.0, 4000.0),   # the halo above the disk
-    (0.0, 0.0, 30000.0),        # far above the centre
+    (0.0, 0.0, 30000.0),        # far above the center
     (0.0, 0.0, -100000.0),      # where every disk profile underflows
 ]
 

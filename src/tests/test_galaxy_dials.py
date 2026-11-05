@@ -171,3 +171,25 @@ def test_the_gap_filling_plan_carries_the_range_registry_as_built():
     assert text[start:end] == dials.registry_block(), "the plan is stale: run python3 -m planetgen.galaxy.dials --write"
     for row in dials.LEVERS:
         assert f"`{row.flag}`" in text[start:end]
+
+
+def test_the_rogues_level_is_kept_as_its_place_in_the_choices_and_read_back():
+    """GEN.1120: the Rogues level is the one enum lever kept with the pins; `choice_pinned` reads it back and Auto is not pinned."""
+    import types
+
+    from planetgen.galaxy import shape_draw
+
+    args = types.SimpleNamespace(**{row.dest: None for row in dials.LEVERS})
+    assert dials.choice_pinned(shape_draw.pins_of(args), "rogues") is None
+    args.rogues = "few"
+    pins = shape_draw.pins_of(args)
+    assert pins["rogues"] == 1.0 and dials.choice_pinned(pins, "rogues") == "few"
+    assert "Rogue planets few" in dials.describe_pins(pins)
+
+
+def test_the_sectors_command_takes_the_rogues_level_only_with_around():
+    from planetgen.cli import generate
+
+    parser = generate.build_parser()[0]
+    args = parser.parse_args(["sectors", "--around", "0", "0", "0", "--radius-pc", "5", "--rogues", "many"])
+    assert args.rogues == "many"

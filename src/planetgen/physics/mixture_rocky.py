@@ -258,7 +258,7 @@ def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True)
         volcanic (Equilibrium, optional): The first stage; where the result would be at the magmatic temperature already
             it is returned as it is.
         held_diw (float, optional): Hold the oxygen fugacity at this log10 units above iron-wuestite (a surface that buffers the
-            air, as an evolved oxidised body's crust does); `atoms` then carry no oxygen.
+            air, as an evolved oxidized body's crust does); `atoms` then carry no oxygen.
         quenched (bool): Freeze the gas at the quench temperature when the surface is colder (a fresh outgassed air whose reactions
             stop, drawn here and recorded in `constants`); `False` for an old air that has had the time to settle to the surface
             temperature, with the least temperature the species of the table are all fitted for (`MIN_EQUILIBRIUM_K`).

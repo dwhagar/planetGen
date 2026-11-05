@@ -3,7 +3,7 @@
 """
 The members of a scattered multi-star system in the database (GEN.260 tables, GEN.265 motion).
 
-A scatter row (`bright_stars`, `phenomenon_scatter`) with companions is one point in space, the system's barycentre:
+A scatter row (`bright_stars`, `phenomenon_scatter`) with companions is one point in space, the system's barycenter:
 its position, velocity and epoch columns move with the nightly update like any other scatter point
 (`store.advance_scatter_points`), `system_mass_solar` is the mass it carries, and `member_count` says it has members.
 The members and their orbits are `scatter_members` and `scatter_nodes`, which the nightly update never writes: a
@@ -281,7 +281,7 @@ def groups_past_decay(conn):
 def member_positions_pc(conn, table, row_id, unix):
     """
     Where each member of a scatter row's system is at `unix`, in the galaxy frame, in parsecs, as
-    `{member_no: (x, y, z)}`: the barycentre (the row's stored point, as of its own epoch) plus each member's offset
+    `{member_no: (x, y, z)}`: the barycenter (the row's stored point, as of its own epoch) plus each member's offset
     from the tree. A row with no members is one object at its point, member 0.
 
     Args:
@@ -297,13 +297,13 @@ def member_positions_pc(conn, table, row_id, unix):
         f"SELECT position_x_mpc, position_y_mpc, position_z_mpc FROM {table} WHERE id = ?", (row_id,)).fetchone()
     if row is None:
         raise LookupError(f"{table} has no row {row_id}")
-    centre = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+    center = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
     members, nodes = read_member_tree(conn, table, row_id)
     if not members:
-        return {0: centre}
+        return {0: center}
     offsets = member_offsets_au(members, nodes, unix)
     per_pc = constants.AU_PER_PARSEC
-    return {number: (centre[0] + o[0] / per_pc, centre[1] + o[1] / per_pc, centre[2] + o[2] / per_pc)
+    return {number: (center[0] + o[0] / per_pc, center[1] + o[1] / per_pc, center[2] + o[2] / per_pc)
             for number, o in offsets.items()}
 
 

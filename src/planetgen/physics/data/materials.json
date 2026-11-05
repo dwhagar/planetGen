@@ -1800,7 +1800,7 @@
   {
    "id": "hematite_fine",
    "name": "hematite fine",
-   "family": "oxidised",
+   "family": "oxidized",
    "formula": "Fe2O3",
    "composition": "Fe2O3",
    "aliases": [],
@@ -1848,7 +1848,7 @@
   {
    "id": "hematite_lt10um",
    "name": "hematite lt10um",
-   "family": "oxidised",
+   "family": "oxidized",
    "formula": "Fe2O3",
    "composition": "Fe2O3",
    "aliases": [],
@@ -1896,7 +1896,7 @@
   {
    "id": "goethite",
    "name": "goethite",
-   "family": "oxidised",
+   "family": "oxidized",
    "formula": "FeOOH",
    "composition": "FeOOH",
    "aliases": [],

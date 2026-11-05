@@ -6,7 +6,7 @@ import math
 import pytest
 
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import compaction, moon_composition as mc
+from planetgen.physics import compaction, envelope_share, moon_composition as mc
 from planetgen.util import draw
 
 
@@ -241,7 +241,7 @@ def test_every_generated_moon_has_a_composition_from_its_origin(generated_moons)
         shares = [moon.metal_mass_fraction, moon.rock_mass_fraction, moon.water_mass_fraction, moon.ice_mass_fraction,
                   moon.envelope_mass_fraction]
         assert sum(shares) == pytest.approx(1.0, abs=1e-9)
-        assert moon.envelope_mass_fraction == 0.0
+        assert moon.envelope_mass_fraction == pytest.approx(envelope_share.air_share(moon))      # GEN.1226: the share of a hydrogen-rich air, else 0
     impact = [moon for moon in generated_moons if moon.moon_origin == "impact"]
     assert all(moon.water_mass_fraction < 1e-3 and moon.ice_mass_fraction == 0.0 for moon in impact)
     assert all(0.0 < moon.metal_mass_fraction <= 0.06 for moon in impact)

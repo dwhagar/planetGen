@@ -120,7 +120,7 @@ class Raiser:
 
     Attributes:
         mass_kg (float): Its mass (the star's, or a moon's).
-        distance_m (float): Its distance from the planet's centre of attraction (the star's: the planet's semi-major axis; a moon's: its own).
+        distance_m (float): Its distance from the planet's center of attraction (the star's: the planet's semi-major axis; a moon's: its own).
         orbital_rate (float): The rate at which it goes round, rad/s, signed (negative for a retrograde moon).
     """
 
@@ -297,17 +297,17 @@ def equilibria(torques, eccentricity=0.0):
     """
     found = []
     scale = max([abs(r.orbital_rate) for r in torques.raisers] + [torques.thermal.relaxation_rate if torques.thermal else 0.0])
-    centres = sorted({r.orbital_rate for r in torques.raisers})
-    for centre in centres:
-        eps = 1.0e-9 * max(abs(centre), 1.0e-12)
-        below, above = torques.total(centre - eps), torques.total(centre + eps)
+    centers = sorted({r.orbital_rate for r in torques.raisers})
+    for center in centers:
+        eps = 1.0e-9 * max(abs(center), 1.0e-12)
+        below, above = torques.total(center - eps), torques.total(center + eps)
         if below > 0.0 > above:
-            found.append((centre, "synchronous"))
+            found.append((center, "synchronous"))
     span = 40.0 * scale
-    grid = [centres[0] - span + 2.0 * span * i / (2 * SCAN_POINTS) for i in range(2 * SCAN_POINTS + 1)]
-    grid = sorted(set(grid) | {c + s * span * 10.0 ** (-k / 20.0) for c in centres for s in (-1.0, 1.0) for k in range(0, 100)})
+    grid = [centers[0] - span + 2.0 * span * i / (2 * SCAN_POINTS) for i in range(2 * SCAN_POINTS + 1)]
+    grid = sorted(set(grid) | {c + s * span * 10.0 ** (-k / 20.0) for c in centers for s in (-1.0, 1.0) for k in range(0, 100)})
     values = [torques.total(w) for w in grid]
-    flips = {c for c in centres}
+    flips = {c for c in centers}
     for (w0, v0), (w1, v1) in zip(zip(grid, values), zip(grid[1:], values[1:])):
         if v0 == 0.0 or v0 * v1 > 0.0:
             continue

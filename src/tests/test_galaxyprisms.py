@@ -90,10 +90,10 @@ const cells = {json.dumps(sectors)};
 console.log(JSON.stringify(cells.map(([s, b, w]) => {{
   const x = P.sectorBounds(s, b, w, {EDGE_PC});
   return [P.wedgeCount(s, b), P.bandRange(s), P.isCap(s, b), [x.r0, x.r1, x.c0, x.c1, x.t0, x.t1],
-    P.sectorPositionPc(s, b, w, {EDGE_PC}), P.bandCentrePc(s, b, {EDGE_PC})];
+    P.sectorPositionPc(s, b, w, {EDGE_PC}), P.bandCenterPc(s, b, {EDGE_PC})];
 }})));
 """)
-    for (shell, band, wedge), (count, band_range, cap, bounds, position, centre) in zip(sectors, got):
+    for (shell, band, wedge), (count, band_range, cap, bounds, position, center) in zip(sectors, got):
         assert count == spherical.wedge_count(shell, band), (shell, band)
         assert band_range == list(spherical.band_range(shell))
         assert cap == spherical.is_cap(shell, band)
@@ -102,7 +102,7 @@ console.log(JSON.stringify(cells.map(([s, b, w]) => {{
         start, end = spherical.wedge_longitude_bounds(shell, band, wedge)
         assert bounds == pytest.approx([inner, outer, north, south, start, end], abs=1e-9, rel=1e-12), (shell, band, wedge)
         assert position == pytest.approx(spherical.sector_position_pc(shell, band, wedge, EDGE_PC), abs=1e-6, rel=1e-12)
-        assert centre == pytest.approx(spherical.band_center_pc(shell, band, EDGE_PC), abs=1e-6, rel=1e-12)
+        assert center == pytest.approx(spherical.band_center_pc(shell, band, EDGE_PC), abs=1e-6, rel=1e-12)
 
 
 def test_addresses_at_points_and_designations_match_python():
@@ -235,26 +235,26 @@ console.log(JSON.stringify({{chain, stage, root: P.drillParent(top), stageTop: P
 @pytest.mark.parametrize("g", [3, 9, 11])
 def test_windows_match_python(g):
     rng = random.Random(g)
-    centres = []
+    centers = []
     for m in STAGE_LEVELS:
         for _ in range(5):
             if m == 1:
                 shell = rng.choice([rng.randint(2, 40), rng.randint(40, 3000)])
                 low, high = spherical.band_range(shell)
                 band = rng.randint(low, high)
-                centres.append(DrillBlock(1, shell, band, rng.randrange(spherical.wedge_count(shell, band))))
+                centers.append(DrillBlock(1, shell, band, rng.randrange(spherical.wedge_count(shell, band))))
             else:
                 shell = rng.choice([0, 1, 2, 3, rng.randint(0, max(1, 3700 // m))])
                 rows = drill_band_count(m, shell)
                 band = rng.randint(-(rows // 2), rows // 2)
-                centres.append(DrillBlock(m, shell, band, rng.randrange(drill_wedge_count(m, shell, band))))
+                centers.append(DrillBlock(m, shell, band, rng.randrange(drill_wedge_count(m, shell, band))))
     got = _run(f"""
-const centres = {json.dumps([list(c) for c in centres])};
-console.log(JSON.stringify(centres.map(([m, s, b, w]) =>
+const centers = {json.dumps([list(c) for c in centers])};
+console.log(JSON.stringify(centers.map(([m, s, b, w]) =>
   P.windowCells({{m, shell: s, band: b, wedge: w}}, {EDGE_PC}, {g}).map(c => [c.m, c.shell, c.band, c.wedge]))));
 """)
-    for centre, cells in zip(centres, got):
-        assert cells == [list(c) for c in window_cells(centre, EDGE_PC, g)], tuple(centre)
+    for center, cells in zip(centers, got):
+        assert cells == [list(c) for c in window_cells(center, EDGE_PC, g)], tuple(center)
 
 
 def test_the_outline_and_what_a_block_can_hold_match_python():
@@ -348,8 +348,8 @@ PALETTE = {"dim": [0.01, 0.02, 0.05], "accent": [0.1, 0.2, 0.9], "hot": [0.8, 0.
 
 SCENE_CELLS = """
 const palette = %s;
-const centre = {m: 9, shell: 40, band: 2, wedge: 5};
-const cells = P.windowCells(centre, %s, 5).map(c => Object.assign({m: c.m, shell: c.shell, band: c.band, wedge: c.wedge},
+const center = {m: 9, shell: 40, band: 2, wedge: 5};
+const cells = P.windowCells(center, %s, 5).map(c => Object.assign({m: c.m, shell: c.shell, band: c.band, wedge: c.wedge},
   P.drillBlockBounds(c, %s), {filled: 0, total: 729, stats: null}));
 const plain = part => Object.fromEntries(Object.entries(part).map(([k, v]) => [k, ArrayBuffer.isView(v) ? Array.from(v) : v]));
 """ % (json.dumps(PALETTE), EDGE_PC, EDGE_PC)
@@ -533,7 +533,7 @@ console.log(JSON.stringify({
     low, high = out["ends1"]
     assert out["count1"] == 1 and out["mean1"] == pytest.approx(lone_log)
     assert (low + high) / 2 == pytest.approx(lone_log) and high - low == pytest.approx(2 * out["pad"])
-    # Two cells: still centred on their mean, the ends at least as far out as the cells themselves.
+    # Two cells: still centered on their mean, the ends at least as far out as the cells themselves.
     low2, high2 = out["ends2"]
     assert (low2 + high2) / 2 == pytest.approx(out["mean2"])
     assert low2 <= math.log10(100) and high2 >= math.log10(1000)
@@ -664,6 +664,64 @@ console.log(JSON.stringify({sector: B.COLOR_MODES.habitable.value(sector.stats, 
     assert out["sector"] == pytest.approx(math.log10(8))
     assert out["block"] == pytest.approx(math.log10(8))
     assert out["ranges"]["count"] == 2
+
+
+COVER_SETUP = STATS_SETUP + """
+const covered = (cover, filled = 0) => ({...cell(filled, filled || 1, filled ? stats(40, 60, 4.5, 500) : null), cover});
+const set = [covered(0), covered(0.002), covered(0.01), covered(0.02), covered(0.08)];
+const r = B.statsRanges(set);
+const unfilledColor = [0.1, 0.2, 0.4];
+"""
+
+
+def test_nebula_cover_color_is_one_hue_in_four_steps_by_the_share_not_by_the_cells_in_view():
+    """MAP.177: the colour reads the cell's own share (`cover`), filled or not, so the same share has the same colour on every screen."""
+    out = _run(COVER_SETUP + """
+const colors = set.map((c) => B.statsColor(c, unfilledColor, r, "cover"));
+const alone = B.statsColor(covered(0.02), unfilledColor, B.statsRanges([covered(0.02)]), "cover");
+const luminance = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+console.log(JSON.stringify({colors, alone, lum: colors.map(luminance), legend: B.legendFor("cover", r),
+  bins: [0, 0.0049, 0.005, 0.0149, 0.015, 0.0299, 0.03, 1].map(B.coverBin), edges: B.COVER_EDGES,
+  filled: B.statsColor(covered(0.02, 1), unfilledColor, r, "cover")}));
+""")
+    # No cover: unfilled space; the rest climb in light, a step each, however few or many cells are in view.
+    assert out["colors"][0] == [0.1, 0.2, 0.4]
+    lum = out["lum"][1:]
+    assert lum == sorted(lum) and len(set(lum)) == 4
+    assert out["alone"] == out["colors"][3] == out["filled"]
+    assert out["bins"] == [0, 0, 1, 1, 2, 2, 3, 3]
+    legend = out["legend"]
+    assert legend["label"] == "Nebula cover" and legend["unit"] == "share of the block inside a nebula"
+    assert len(legend["stops"]) == 8 and legend["lowText"] == "under 0.5%" and legend["highText"] == "3% or more"
+
+
+def test_a_cell_with_no_nebula_cover_has_no_fill_but_one_with_some_does_whether_or_not_it_is_charted():
+    out = _run(COVER_SETUP + """
+const scene = B.createBlockScene({shape: null, palette: {dim: [0.1, 0.1, 0.1], accent: [0.2, 0.3, 0.4], hot: [1, 1, 1],
+  placedLow: [0.1, 0.1, 0.1], placedHigh: [0.3, 0.3, 0.3]}});
+const geometry = (c) => ({...c, r0: 1000, r1: 1010, c0: 1.5, c1: 1.6, t0: 0, t1: 0.01});
+const cells = set.concat([covered(0.02, 1), covered(0, 1)]).map(geometry);
+const built = scene.buildCells(cells, [0, 0, 0], null, "cover");
+const drawn = built.cells[0].concat(built.cells[1]);
+const packed = built.glass.fills.length ? Array.from(built.glass.fills) : [];
+console.log(JSON.stringify({
+  rows: drawn.map((c) => [c.cover, c.filled > 0, c.noFill, c.coverShown, c.opacity]),
+  unfilled: B.unfilledOpacity(cells[0]), max: B.MAX_FILL_OPACITY, legend: built.legend && built.legend.label,
+  fills: Array.from(new Set(packed)).sort((a, b) => a - b),
+  plain: scene.buildCells(cells.map(geometry), [0, 0, 0], null, "stars").cells[1].map((c) => c.noFill || c.coverShown),
+}));
+""")
+    rows = sorted(out["rows"], key=lambda row: (row[0], not row[1]))
+    # Cover 0 (charted or not): no fill, the unfilled opacity. Every other cell is filled, lifted a quarter of the way to the most for each step.
+    zero = [row for row in rows if row[0] == 0]
+    assert zero and all(row[2] is True and row[3] is False and row[4] == pytest.approx(out["unfilled"]) for row in zero)
+    shown = [row for row in rows if row[0] > 0]
+    assert all(row[2] is False and row[3] is True for row in shown)
+    opacities = [row[4] for row in shown if not row[1]]
+    assert opacities == sorted(opacities) and len(set(opacities)) == 4
+    assert max(opacities) == pytest.approx(out["max"]) and min(opacities) > out["unfilled"]
+    assert out["fills"] == [0, 255] and out["legend"] == "Nebula cover"
+    assert not any(out["plain"])
 
 
 def test_a_neighbour_shares_the_wall_it_is_stepped_through():

@@ -36,12 +36,12 @@ def test_the_same_seed_draws_the_same_fe_h_and_another_draws_another():
     assert first != [_row_dict(row)["metallicity_fe_h"] for row in _scatter(seed=12)]
 
 
-def test_halo_stars_are_far_poorer_in_metals_than_disc_stars():
+def test_halo_stars_are_far_poorer_in_metals_than_disk_stars():
     kpc_mpc = 1_000_000
-    rng = draw.Stream("test-halo-disc")
-    disc = [brightStars.spot_fe_h("young", [((8 * kpc_mpc, 0, 0),)], rng)(0) for _ in range(300)]
+    rng = draw.Stream("test-halo-disk")
+    disk = [brightStars.spot_fe_h("young", [((8 * kpc_mpc, 0, 0),)], rng)(0) for _ in range(300)]
     halo = [brightStars.spot_fe_h("halo", [((30 * kpc_mpc, 0, 0),)], rng)(0) for _ in range(300)]
-    assert statistics.mean(disc) - statistics.mean(halo) > 1.5
+    assert statistics.mean(disk) - statistics.mean(halo) > 1.5
 
 
 def test_a_cluster_star_stores_the_value_its_cluster_gave_it():

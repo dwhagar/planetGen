@@ -16,9 +16,9 @@ Which place takes which limit (GEN.333)
 
 The scatter walks the galaxy a *band* at a time (a shell and a band index: the unit the object-first sampler bounds
 its density over), so a band is the unit of a tier. `tier_indices` gives each band of a shell its tier from the
-population mix at the band's centre line, averaged over azimuth: the **core** tier when the two nuclear terms are at
+population mix at the band's center line, averaged over azimuth: the **core** tier when the two nuclear terms are at
 least `tuning.TIER_DOMINANCE_SHARE` of the band's density, the **halo** tier when the halo is, the **baseline** tier
-everywhere else (the thin and thick disc, the bulge, the arms). One tier per band is a pure function of the address, so
+everywhere else (the thin and thick disk, the bulge, the arms). One tier per band is a pure function of the address, so
 the scatter's passes, the backfill, the fill and the sector page all read the same limits from it with no state kept.
 
 `ScatterLimits` holds the baseline the scatter ran at (its luminosity floor and mass limit, `None` before any scatter
@@ -90,7 +90,7 @@ def check_halo_min_luminosity(value):
                          f"got {value!r}")
 
 
-_NUCLEAR = ("nuclear_cluster", "nuclear_disc")
+_NUCLEAR = ("nuclear_cluster", "nuclear_disk")
 
 
 @functools.lru_cache(maxsize=TIER_AZIMUTH_BINS + 1)
@@ -112,9 +112,9 @@ def _tiers_of_places(shape, places, edge_pc):
     if not places:
         return np.zeros(0, dtype=np.int8)
     counts = np.array([min(wedge_count(shell_index, band), TIER_AZIMUTH_BINS) for shell_index, band in places])
-    centres = [band_center_pc(shell_index, band, edge_pc) for shell_index, band in places]
-    planes = np.repeat(np.array([plane for plane, _z in centres]), counts)
-    zs = np.repeat(np.array([z for _plane, z in centres]), counts)
+    centers = [band_center_pc(shell_index, band, edge_pc) for shell_index, band in places]
+    planes = np.repeat(np.array([plane for plane, _z in centers]), counts)
+    zs = np.repeat(np.array([z for _plane, z in centers]), counts)
     cosines = np.concatenate([_azimuths(int(count))[0] for count in counts])
     sines = np.concatenate([_azimuths(int(count))[1] for count in counts])
     xs, ys = planes * cosines, planes * sines
@@ -299,7 +299,7 @@ class ScatterLimits:
 
 def tier_of_densities(densities):
     """
-    The tier index of a band from the population densities at its centre line (a list of `{population: density}`,
+    The tier index of a band from the population densities at its center line (a list of `{population: density}`,
     one per longitude bin, a gate kind's counted as none and a negative term as none, as the scatter reads them): the
     same rule `tier_indices` applies to a whole shell at once.
     """

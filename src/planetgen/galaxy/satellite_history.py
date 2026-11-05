@@ -13,14 +13,14 @@ stars. That is enough to say how much of it formed recently, with no share typed
    its history (the Large Cloud), a falling one an older one (the dwarf spheroidals), and a flat one has half the span as
    its mean age. The stellar mass sets the amplitude, so the present rate is the share of the mass formed in the
    history's last instant.
-2. **The gas.** The gas is an exponential disc `exp(-R / g)` whose scale length is
+2. **The gas.** The gas is an exponential disk `exp(-R / g)` whose scale length is
    `tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO` times the stars' (an exponential's half-mass radius is 1.678
    scale lengths), longer than the stars as a dwarf irregular's HI is (GEN.1192). The star formation law is
    `A gas^n (gas / (gas + gas_s))^(m - n)` (Schmidt-Kennicutt, `tuning.STAR_FORMATION_LAW_EXPONENT` and
    `STAR_FORMATION_LAW_COEFFICIENT`, steepening to `tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT` where the gas thins, as
-   the galaxy's disc does, `galaxy.star_formation`), so a thin gas disc lasts longer than a dense one. Its integral
-   over the disc is the present rate; the central density that makes it so gives the gas surface density at the
-   half-mass radius and the whole disc's gas.
+   the galaxy's disk does, `galaxy.star_formation`), so a thin gas disk lasts longer than a dense one. Its integral
+   over the disk is the present rate; the central density that makes it so gives the gas surface density at the
+   half-mass radius and the whole disk's gas.
 3. **The threshold.** Where the gas at the half-mass radius is under `tuning.SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2`
    a satellite forms no stars, so its young share is nothing; the stars its history put in the last 3 Gy are still there,
    and stay its intermediate share.
@@ -41,10 +41,10 @@ _YOUNG_WINDOW = tuning.STELLAR_POPULATION_AGE_RANGES_GY["satellite_young"]
 _INTERMEDIATE_WINDOW = tuning.STELLAR_POPULATION_AGE_RANGES_GY["satellite_intermediate"]
 _PC2_PER_KPC2 = 1.0e6
 _EXPONENTIAL_HALF_MASS_OVER_SCALE = 1.6783
-"""float: The projected half-mass radius of an exponential disc over its scale length: the root of
+"""float: The projected half-mass radius of an exponential disk over its scale length: the root of
 `1 - (1 + x) exp(-x) = 1/2`."""
-_DISC_POINTS = 1200
-_DISC_EDGE_SCALE_LENGTHS = 40.0
+_DISK_POINTS = 1200
+_DISK_EDGE_SCALE_LENGTHS = 40.0
 _GAS_SEARCH_MSUN_PC2 = (1.0e-9, 1.0e7)
 _LAMBDA_LIMIT_PER_GY = 12.0
 """float: The steepest rise or fall the family is searched over, per Gy: far steeper than any mean age asks for."""
@@ -61,7 +61,7 @@ class SatelliteHistory:
         rate_per_gy (float): `lambda`, the exponent of the rate over the history, per Gy (negative: rising).
         present_rate_msun_yr (float): The present star formation rate the history gives, solar masses per year.
         gas_surface_density (float): The gas per area at the half-mass radius that rate needs, solar masses per pc2.
-        gas_mass_solar (float): The whole gas disc.
+        gas_mass_solar (float): The whole gas disk.
         forming (bool): Whether the gas at the half-mass radius is at or above the threshold, so the satellite forms stars
             now.
     """
@@ -124,22 +124,22 @@ def _law_rate_per_kpc2(surface):
     return (tuning.STAR_FORMATION_LAW_COEFFICIENT * surface ** index * (surface / (surface + saturation)) ** thin)
 
 
-def _disc_rate_msun_yr(central, gas_scale_length_pc):
-    """The rate of an exponential gas disc of this central density (solar masses per pc2) and scale length: the law
-    integrated over the disc, in `x = R / scale length`."""
-    x = np.linspace(0.0, _DISC_EDGE_SCALE_LENGTHS, _DISC_POINTS)
+def _disk_rate_msun_yr(central, gas_scale_length_pc):
+    """The rate of an exponential gas disk of this central density (solar masses per pc2) and scale length: the law
+    integrated over the disk, in `x = R / scale length`."""
+    x = np.linspace(0.0, _DISK_EDGE_SCALE_LENGTHS, _DISK_POINTS)
     per_kpc2 = _law_rate_per_kpc2(central * np.exp(-x))
     scale_kpc = gas_scale_length_pc / 1000.0
     return float(np.trapezoid(per_kpc2 * 2.0 * math.pi * x, x)) * scale_kpc ** 2
 
 
 def _central_gas_for_rate(rate_msun_yr, gas_scale_length_pc):
-    """The central gas density (solar masses per pc2) whose disc forms stars at `rate_msun_yr`, by bisection on the
+    """The central gas density (solar masses per pc2) whose disk forms stars at `rate_msun_yr`, by bisection on the
     logarithm (the rate rises steadily with the density)."""
     low, high = math.log(_GAS_SEARCH_MSUN_PC2[0]), math.log(_GAS_SEARCH_MSUN_PC2[1])
     for _ in range(70):
         middle = 0.5 * (low + high)
-        if _disc_rate_msun_yr(math.exp(middle), gas_scale_length_pc) < rate_msun_yr:
+        if _disk_rate_msun_yr(math.exp(middle), gas_scale_length_pc) < rate_msun_yr:
             low = middle
         else:
             high = middle

@@ -40,10 +40,11 @@ CLASS_MEASURES = {
 magnetars, which the scatter counts as a class of their own)."""
 
 RATE_MEASURES = (
-    "rogue_terrestrial_per_star", "rogue_terrestrial_per_pc3", "rogue_jupiter_per_star", "brown_dwarfs_per_pc3", "runaway_stars_per_star",
+    "brown_dwarfs_per_pc3", "runaway_stars_per_star",
     "interstellar_debris_per_pc3", "open_clusters")
 """tuple: The measures of the second cut: the rates per star and densities the sectors' fill draws from (read where the fill reads
-them, `tuning.phenomenon_rate_per_star` and `ROGUE_PLANET_MASS_BINS`, scale included), and the open clusters of the reference galaxy."""
+them, `tuning.phenomenon_rate_per_star` and the densities, scale included; a rogue planet has no rate of its own since GEN.1111, its donor
+system throws it out), and the open clusters of the reference galaxy."""
 
 OPEN_CLUSTER_SEED = b"phenomena-census-open-clusters"
 
@@ -207,14 +208,9 @@ def rate_values():
     from planetgen.physics.units import ly_to_pc
 
     scale = tuning.PHENOMENON_RATE_SCALE
-    reference = tuning.REFERENCE_STELLAR_DENSITY_PC3
-    terrestrial = tuning.ROGUE_PLANET_MASS_BINS["terrestrial"][2] * scale["rogue-planet"]
     edge_pc = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
     clusters = open_clusters.generate_open_clusters(OPEN_CLUSTER_SEED, milky_way_like_shape(), edge_pc, skeleton.expected_system_count_at_density_1())
     return {
-        "rogue_terrestrial_per_star": terrestrial,
-        "rogue_terrestrial_per_pc3": terrestrial * reference,
-        "rogue_jupiter_per_star": tuning.ROGUE_PLANET_MASS_BINS["jupiter"][2] * scale["rogue-planet"],
         "brown_dwarfs_per_pc3": tuning.PHENOMENON_DENSITY_PC3["brown-dwarf"] * scale["brown-dwarf"],
         "runaway_stars_per_star": tuning.phenomenon_rate_per_star("runaway-star"),
         "interstellar_debris_per_pc3": tuning.INTERSTELLAR_DEBRIS_DENSITY_PC3,

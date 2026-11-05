@@ -4,8 +4,8 @@
 Galaxy components (GEN.159): the discrete stellar components of a galaxy beyond the disk, one record each.
 
 A globular cluster (and later a satellite or a stream, GEN.237) is stored as a density, not as stars: a profile of its
-mass about a centre. `Component` is one `galaxy_components` row (`db/store.py` writes and reads them); the profile
-itself is `physics/king.py` for the `king` profile. Positions are in parsecs in the galaxy frame (the galactic centre
+mass about a center. `Component` is one `galaxy_components` row (`db/store.py` writes and reads them); the profile
+itself is `physics/king.py` for the `king` profile. Positions are in parsecs in the galaxy frame (the galactic center
 at the origin), velocities in km/s there, both at `epoch_unix`.
 """
 

@@ -27,7 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy.spherical import sector_address_at, sectors_along_segment
+from planetgen.galaxy.spherical import local_to_galaxy_pc, sector_address_at, sectors_along_segment
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
 from planetgen.util import detmath
 
@@ -199,8 +199,8 @@ def _systems_of(conn, sectors, start, end, distance):
         ).fetchall()
         for row in rows:
             center = sectors[row["sector_id"]][0]
-            point = (center[0] + mpc_to_pc(row["position_x_mpc"]), center[1] + mpc_to_pc(row["position_y_mpc"]),
-                     center[2] + mpc_to_pc(row["position_z_mpc"]))
+            point = local_to_galaxy_pc(center, (mpc_to_pc(row["position_x_mpc"]), mpc_to_pc(row["position_y_mpc"]),
+                                                mpc_to_pc(row["position_z_mpc"])))   # the sector's axes are turned (NAV.73)
             away, along = segment_distance(point, start, end)
             if away <= distance:
                 found[row["id"]] = {"name": row["name"], "sector_id": row["sector_id"], "point": point,

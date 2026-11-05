@@ -168,6 +168,11 @@ def set_response_cache(provider):
     _response_cache = provider
 
 
+def response_cache():
+    """The `pagecache.ResponseCache` the current call reads through, or `None` (see `set_response_cache`)."""
+    return None if _response_cache is None else _response_cache()
+
+
 cache_stats = {"hits": 0, "misses": 0}
 """dict: How many cached GETs were answered from the response cache and how many had to be fetched and were answered, in
 this process (the warm-up reports them, PERF.104). A GET the API refused (a 404, a 400) built no answer and counts as neither:
@@ -525,6 +530,20 @@ def get_system(db, system_id):
     return _request(f"/systems/{system_id}", {"db": db})
 
 
+def get_system_sky(db, system_id, limit=None):
+    """Returns `GET /api/systems/<id>/sky`'s payload (`system`/`limit`/`epoch_unix`/`version_key`/`count`/`sprites`/`report`/`seconds`/`format`/`data`, `data`
+    the base64 of the packed list -- see `api/system_sky.py`). Callers go through `web/lib/skycache.py`, which keeps the bytes on disk."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/sky", {"db": db, "limit": limit})
+
+
+def get_system_sky_band(db, system_id, limit=None):
+    """Returns `GET /api/systems/<id>/sky/band`'s payload (`key`/`limit`/`cell`/`width`/`height`/`format`/`seconds`/`data`, `data` the base64 of the half
+    floats -- see `api/system_sky.py`). Callers go through `web/lib/skycache.py`."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/sky/band", {"db": db, "limit": limit})
+
+
 def get_life_air(db, kind, body_id):
     """Returns `GET /api/planets/<id>/life-air` (or `moons`)'s `{id, life_class_id, life_air}`: the data of the Life and air chart,
     `life_air` being `None` when the body has nothing to chart (UX.237)."""
@@ -581,16 +600,22 @@ def get_near(db, params):
     return _request("/near", {"db": db, **params})
 
 
-def get_nav(db, from_ref, to_ref, stay=None):
+def get_nav(db, from_ref, to_ref, stay=None, graph=False, adjusted=False):
     """Returns `GET /api/nav`'s course/route dict -- see `docs/reference/api.md`'s
     "NAV" section for the full shape. `from_ref`/`to_ref` are object
     references (`planetgen.galaxy.objectref`): a system, a body in one, or
     a standalone phenomenon. `stay` is the minutes spent at each stop of
-    the route (NAV.11; the API's default, 0, when `None`)."""
+    the route (NAV.11; the API's default, 0, when `None`). `graph` asks for
+    `route.graph`, the links round the route (NAV.65). `adjusted` asks for the course bent round keep-out spheres (NAV.6): `adjusted`, and
+    `adjusted` on each hop of the route."""
     _require_db(db)
     params = {"db": db, "from": from_ref, "to": to_ref}
     if stay is not None:
         params["stay"] = stay
+    if graph:
+        params["graph"] = 1
+    if adjusted:
+        params["adjusted"] = 1
     return _request("/nav", params)
 
 
@@ -729,7 +754,7 @@ def get_galaxy_nebula_cover(db, at=None, g=None):
 
 def get_galaxy_nebula_volume(db, key):
     """Returns `GET /api/galaxy/nebula-volume`'s payload (`key`/`format`/`level`/`count`/`data`, the base64 of the packed points that
-    draw the nebulae centred in the node `key`, MAP.365 -- see `db.nebula_volumes.group_volume`)."""
+    draw the nebulae centered in the node `key`, MAP.365 -- see `db.nebula_volumes.group_volume`)."""
     _require_db(db)
     return _request("/galaxy/nebula-volume", {"db": db, "key": key})
 
@@ -843,14 +868,6 @@ def get_galaxy_locate(db, q):
     `db.query.galaxy_locate`)."""
     _require_db(db)
     return _request("/galaxy/locate", {"db": db, "q": q})["matches"]
-
-
-def get_nebula_shape(db, nebula_id, lod="low"):
-    """Returns `GET /api/nebulae/<id>/shape`'s payload: one nebula's mesh
-    (`vertices` in nebula-radius units from its center, `faces`), at the
-    `"low"` or `"full"` level of detail (GEN.75)."""
-    _require_db(db)
-    return _request(f"/nebulae/{nebula_id}/shape", {"db": db, "lod": lod})
 
 
 def get_nebula_volume(db, nebula_id):

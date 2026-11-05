@@ -20,12 +20,12 @@ def test_the_file_holds_the_gases_and_the_condensed_phases_the_chemistry_needs()
         assert name in st.CONDENSED
 
 
-LAVA_VAPOUR_NAMES = {"AL": "Al", "ALO": "AlO", "AL2O": "Al2O", "ALO2": "AlO2", "AL2O2": "Al2O2", "K2": "K2", "KO": "KO", "K2O": "K2O", "Na2O": "Na2O"}
-"""dict: The lava vapour's aluminium and alkali species (GEN.751, GEN.818) by their name in the NASA file (which spells aluminium AL) and in the gas table."""
+LAVA_VAPOR_NAMES = {"AL": "Al", "ALO": "AlO", "AL2O": "Al2O", "ALO2": "AlO2", "AL2O2": "Al2O2", "K2": "K2", "KO": "KO", "K2O": "K2O", "Na2O": "Na2O"}
+"""dict: The lava vapor's aluminium and alkali species (GEN.751, GEN.818) by their name in the NASA file (which spells aluminium AL) and in the gas table."""
 
 
-def test_the_aluminium_and_alkali_species_of_the_lava_vapour_are_in_the_table_under_the_gas_tables_formulas():
-    for name, formula in LAVA_VAPOUR_NAMES.items():
+def test_the_aluminium_and_alkali_species_of_the_lava_vapor_are_in_the_table_under_the_gas_tables_formulas():
+    for name, formula in LAVA_VAPOR_NAMES.items():
         assert name in st.GASES and st.SPECIES[name].formula == formula
         assert gases.has(formula), formula
         row = gases.gas(formula)

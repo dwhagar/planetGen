@@ -79,6 +79,27 @@ def test_render_nav_map_panel_with_route_draws_route_line_and_hops():
     assert "data-nav" not in html
 
 
+def test_render_nav_map_panel_draws_a_jump_through_unknown_space_red_dashed_and_glowing():
+    """NAV.36: a hop flagged as a jump through unknown space is its own path (red, dashed, glowing, a title in words), the known hops stay
+    one solid path, and the panel and its help say what the red hop is; with no such hop none of it is drawn."""
+    waypoints = [
+        _waypoint(1, "Origin", (0.0, 0.0, 0.0), "origin"),
+        {**_waypoint(2, "Waystation", (2.0, 0.0, 0.0), "hop"), "hop_unknown": True},
+        _waypoint(3, "Far", (4.0, 1.0, 0.0), "hop"),
+        _waypoint(4, "Destination", (6.0, 1.0, 0.0), "destination"),
+    ]
+    html = render_nav_map_panel(_link, waypoints, has_route=True)
+    assert html.count("navmap-route-unknown") == 2 + 0          # the path, and the legend's sample line
+    assert html.count('class="navmap-route-line navmap-route-unknown"') == 1
+    assert 'filter="url(#navmap-glow)"' in html and '<filter id="navmap-glow"' in html
+    assert "A jump through unknown space: no charted system lies on this hop" in html
+    assert "A jump through unknown space: red, dashed and glowing." in html and "A red, dashed, glowing hop" in html
+    assert html.count('class="navmap-route-line"') == 1          # Far to Destination is one known run
+    known = render_nav_map_panel(_link, [{**w, "hop_unknown": False} for w in waypoints], has_route=True)
+    assert "navmap-route-unknown" not in known and "navmap-glow" not in known and "navmap-key" not in known
+    assert known.count('class="navmap-route-line"') == 1
+
+
 def test_render_nav_map_panel_escapes_names():
     waypoints = [
         _waypoint(1, "<script>alert(1)</script>", (0.0, 0.0, 0.0), "origin"),
@@ -143,3 +164,22 @@ def test_render_nav_map_panel_tooltips_name_the_course_to_the_next_stop():
     html = render_nav_map_panel(_link, [first, last], has_route=True)
     assert "<title>Alpha (next stop: 045 mark 012)</title>" in html
     assert "<title>Omega</title>" in html
+
+
+def test_a_course_bent_round_a_sphere_is_drawn_over_the_route_and_the_key_says_so():  # NAV.28
+    waypoints = [_waypoint(1, "Alpha", (0.0, 0.0, 0.0), "origin"), _waypoint(2, "Beta", (10.0, 0.0, 0.0), "destination")]
+    bent = [[(0.0, 0.0, 0.0), (4.0, 1.5, 0.0), (6.0, 1.5, 0.0), (10.0, 0.0, 0.0)]]
+    plain = render_nav_map_panel(_link, waypoints, has_route=True)
+    html = render_nav_map_panel(_link, waypoints, has_route=True, bent=bent)
+    assert "navmap-bent-line" not in plain and "bent round" not in plain
+    assert html.count('<path class="navmap-bent-line"') == 2 and "The course bent round a keep-out sphere." in html
+    assert "amber line" in html
+    # one in the drawing, one in the key
+    assert html.index("navmap-route-line") < html.index('<path class="navmap-bent-line"')       # over the route
+
+
+def test_the_map_is_scaled_to_hold_a_bend_that_leaves_the_straight_line():
+    waypoints = [_waypoint(1, "Alpha", (0.0, 0.0, 0.0), "origin"), _waypoint(2, "Beta", (10.0, 0.0, 0.0), "destination")]
+    flat = render_nav_map_panel(_link, waypoints, has_route=False, bent=[[(0.0, 0.0, 0.0), (10.0, 0.0, 0.0)]])
+    bulged = render_nav_map_panel(_link, waypoints, has_route=False, bent=[[(0.0, 0.0, 0.0), (5.0, 40.0, 0.0), (10.0, 0.0, 0.0)]])
+    assert flat != bulged and "navmap-bent-line" in bulged

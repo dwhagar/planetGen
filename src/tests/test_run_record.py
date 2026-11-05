@@ -119,10 +119,10 @@ def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path
 
 def test_cancel_marks_the_run_and_a_finished_run_expires_later(conn):
     run_id = runrecord.start_run(conn, "Fill", _stages(), now=0.0)
-    assert not runrecord.is_cancelling(conn, run_id)
-    assert runrecord.request_cancel(conn, run_id, now=1.0) and runrecord.is_cancelling(conn, run_id)
-    assert runrecord.read_run(conn, run_id)["state"] == "cancelling"
-    assert runrecord.finish_run(conn, run_id, "cancelled", now=2.0)
+    assert not runrecord.is_canceling(conn, run_id)
+    assert runrecord.request_cancel(conn, run_id, now=1.0) and runrecord.is_canceling(conn, run_id)
+    assert runrecord.read_run(conn, run_id)["state"] == "canceling"
+    assert runrecord.finish_run(conn, run_id, "canceled", now=2.0)
     assert not runrecord.request_cancel(conn, run_id)
     assert 0 < conn.ttl(runrecord.run_key(run_id)) <= runrecord.KEEP_SECONDS
     assert conn.ttl(runrecord.stage_key(run_id, 0)) > 0 and conn.ttl(runrecord.events_key(run_id)) > 0
@@ -262,7 +262,7 @@ def test_a_run_whose_process_was_killed_no_longer_makes_the_next_run_busy(conn):
     assert runrecord.active_run(conn) == second
     old = runrecord.read_run(conn, first)
     assert old["state"] == "failed" and "was gone" in old["error"]
-    assert runrecord.is_cancelling(conn, first) is False and runrecord.finish_run(conn, first, "done") is False
+    assert runrecord.is_canceling(conn, first) is False and runrecord.finish_run(conn, first, "done") is False
 
 
 def test_a_run_whose_process_lives_keeps_the_machine_even_when_its_sign_of_life_lapsed(conn):

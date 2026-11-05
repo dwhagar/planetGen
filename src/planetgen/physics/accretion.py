@@ -11,7 +11,7 @@ Three ways the gas arrives, named by `mode`:
   `v_rel^2 = v_wind^2 + v_orbit^2` (the supergiant high-mass X-ray binary). The wind loses mass at a rate that scales with
   the star's luminosity (`tuning.WIND_MASS_LOSS_MSUN_YR_AT_1E5_LSUN`) and blows at `tuning.WIND_SPEED_OVER_ESCAPE` times
   its escape speed.
-* `disc`: the slow decretion disc of a Be star, captured the same way at the closest approach of an eccentric orbit
+* `disk`: the slow decretion disk of a Be star, captured the same way at the closest approach of an eccentric orbit
   (the Be/X-ray binary).
 * `overflow`: a donor that fills its lobe gives up its mass over `tuning.OVERFLOW_TIMESCALE_YR` (the low-mass X-ray
   binary).
@@ -32,7 +32,7 @@ _YEAR_S = units.converter("yr", "s")(1.0)
 PROTON_MASS_KG = 1.67262192369e-27  # [R4361]
 THOMSON_CROSS_SECTION_M2 = 6.6524587321e-29  # [R4361]
 
-MODES = ("wind", "disc", "overflow")
+MODES = ("wind", "disk", "overflow")
 """tuple: The ways the gas arrives."""
 
 SPEED_OF_LIGHT_M_S = constants.SPEED_OF_LIGHT_M_S
@@ -97,7 +97,7 @@ def x_ray_luminosity_w(mode, accretor_kind, accretor_mass_solar, accretor_radius
     """
     The X-ray luminosity in watts of a neutron star or a black hole that accretes in `mode` from a donor on an orbit of
     semi-major axis `axis_au` and `eccentricity`: `eta Mdot c^2`, never above the accretor's Eddington limit. The wind
-    mode reads the mean separation, the disc mode the closest approach (the outburst).
+    mode reads the mean separation, the disk mode the closest approach (the outburst).
     """
     if mode not in MODES:
         raise ValueError(f"unknown accretion mode {mode!r}; choose from {MODES}")
@@ -105,10 +105,10 @@ def x_ray_luminosity_w(mode, accretor_kind, accretor_mass_solar, accretor_radius
     if mode == "wind":
         mdot = captured_mdot_kg_s(accretor_mass_solar, axis_au, wind_mdot_kg_s(donor_mass_solar),
                                   wind_speed_m_s(donor_mass_solar, donor_radius_au), total)
-    elif mode == "disc":
+    elif mode == "disk":
         mdot = captured_mdot_kg_s(accretor_mass_solar, axis_au * (1.0 - eccentricity),
-                                  _msun_to_kg(tuning.BE_DISC_MASS_LOSS_MSUN_YR) / _YEAR_S,
-                                  tuning.BE_DISC_OUTFLOW_KMS * 1000.0, total)
+                                  _msun_to_kg(tuning.BE_DISK_MASS_LOSS_MSUN_YR) / _YEAR_S,
+                                  tuning.BE_DISK_OUTFLOW_KMS * 1000.0, total)
     else:
         mdot = overflow_mdot_kg_s(donor_mass_solar, donor_kind)
     power = efficiency(accretor_kind, accretor_mass_solar, accretor_radius_au) * mdot * SPEED_OF_LIGHT_M_S ** 2

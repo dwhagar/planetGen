@@ -269,7 +269,7 @@ def moon_max_eccentricity(semi_major_axis_au, hill_radius_au, planet_eccentricit
 def moon_bounds_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_eccentricity=0.0, retrograde=False, margin_km=0.0,
                    largest_moon_radius_km=0.0):
     """
-    The edges `(low_km, high_km)` of where a moon may orbit its planet, km from the planet's centre: outside the planet, the largest moon it could
+    The edges `(low_km, high_km)` of where a moon may orbit its planet, km from the planet's center: outside the planet, the largest moon it could
     hold and the caller's margin (the air's drag-free height), and inside the Domingos limit for the planet's and the moon's eccentricity (the fit
     is for the moon's semi-major axis, its own eccentricity term already making the limit lower). `low_km >= high_km` means no room.
 

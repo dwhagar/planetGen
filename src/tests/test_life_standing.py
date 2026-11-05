@@ -232,7 +232,7 @@ def test_the_solvent_rule_can_fail():
     water = next((body for _label, body in _lived() if _class_id(body) and life_classes.describe(_class_id(body)).solvent["medium"] == "water"), None)
     assert water is not None, "no body of the sweep carries a water class"
     assert solvent_problems(water) == []
-    dry = sweep.broken_copy(water, hydrosphere="vapour", aquifer_thickness_km=0.0, surface_temperature=900.0)
+    dry = sweep.broken_copy(water, hydrosphere="vapor", aquifer_thickness_km=0.0, surface_temperature=900.0)
     assert solvent_problems(dry)
 
 

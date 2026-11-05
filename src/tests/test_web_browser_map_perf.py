@@ -24,7 +24,7 @@ import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
-from tests.map_site_support import LARGE_CENTRE_PC, large_site  # noqa: E402,F401
+from tests.map_site_support import LARGE_CENTER_PC, large_site  # noqa: E402,F401
 from tests.test_web_browser_fixture_maps import GALAXY_CANVAS, _open, _settle, gl_browser, page  # noqa: E402,F401
 
 pytestmark = pytest.mark.timeout(900)
@@ -75,7 +75,7 @@ STEP = """([wait_ms]) => new Promise((resolve) => {
                 frameMedianMs: frames.length ? Math.round(frames[frames.length >> 1]) : 0,
                 frameMaxMs: frames.length ? Math.round(frames[frames.length - 1]) : 0,
                 longestTaskMs: tasks.length ? Math.round(Math.max.apply(null, tasks)) : 0,
-                level: stage.win ? stage.win.centre.m : null, dist: canvas.galaxyCamera().dist,
+                level: stage.win ? stage.win.center.m : null, dist: canvas.galaxyCamera().dist,
             });
             return;
         }
@@ -153,19 +153,19 @@ def _profile(page, out_path, run):
 
 
 def _dive_and_climb(page, steps):
-    page.evaluate("([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(x, y, z)", list(LARGE_CENTRE_PC))
-    _step(page, "centre", lambda: None, steps)
+    page.evaluate("([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(x, y, z)", list(LARGE_CENTER_PC))
+    _step(page, "center", lambda: None, steps)
     for i in range(DIVE_STEPS_MAX):
         figures = _step(page, f"in {i + 1}", lambda: _wheel(page, -WHEEL_DELTA), steps)
         if figures["dist"] <= PAN_AT_PC and not any(step["step"] == "pan 1" for step in steps):
-            # Across the level the dive just reached: jump the centre round a circle.
+            # Across the level the dive just reached: jump the center round a circle.
             for k in range(PAN_STOPS):
                 angle = 2.0 * math.pi * (k + 1) / PAN_STOPS
-                point = [LARGE_CENTRE_PC[0] + PAN_PC * math.cos(angle), LARGE_CENTRE_PC[1] + PAN_PC * math.sin(angle), LARGE_CENTRE_PC[2]]
+                point = [LARGE_CENTER_PC[0] + PAN_PC * math.cos(angle), LARGE_CENTER_PC[1] + PAN_PC * math.sin(angle), LARGE_CENTER_PC[2]]
                 _step(page, f"pan {k + 1}", lambda: page.evaluate(
-                    "([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(x, y, z)", point), steps)
+                    "([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(x, y, z)", point), steps)
             _step(page, "pan back", lambda: page.evaluate(
-                "([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(x, y, z)", list(LARGE_CENTRE_PC)), steps)
+                "([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(x, y, z)", list(LARGE_CENTER_PC)), steps)
         if figures["dist"] <= 2.0 + 1e-6 and i > 2:
             break
     page.locator(GALAXY_CANVAS).focus()

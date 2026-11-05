@@ -4,7 +4,7 @@
 Galaxy-Scale Spherical Sector Grid
 ====================================
 
-Every galaxy-placed sector is one cell of a grid of spherical shells centred
+Every galaxy-placed sector is one cell of a grid of spherical shells centered
 on the galactic origin (`docs/design/galaxy/spherical-sector-coordinates.md`, the
 plan; Boss, 2026-10-15). A cell is named by three integers, `(shell, band,
 wedge)`, and the three words mean:
@@ -254,8 +254,8 @@ def _wedges_at(layout, i):
     if layout.table_wedges is not None:
         return layout.table_wedges[i]
     i = min(i, layout.band_count - 1 - i)
-    centre = (layout.edge(i) + layout.edge(i + 1)) / 2
-    arc = TWO_PI * layout.shell * math.sin(centre) / BAND_ARC_EDGES
+    center = (layout.edge(i) + layout.edge(i + 1)) / 2
+    arc = TWO_PI * layout.shell * math.sin(center) / BAND_ARC_EDGES
     return CAP_RIM_WEDGES * nearest_smooth(arc / CAP_RIM_WEDGES)
 
 
@@ -263,8 +263,8 @@ def wedge_count(shell, band):
     """
     How many wedges a band holds: `6 * m`, `m` the number with no prime
     factor above 7 nearest (in ratio) to `2 * pi * R * sin(phi) / (6 * e)`,
-    `phi` the band's centre colatitude, and at least 1. The wedge's arc at the
-    band's centre stays near one edge, the six cap meridians stay wedge
+    `phi` the band's center colatitude, and at least 1. The wedge's arc at the
+    band's center stays near one edge, the six cap meridians stay wedge
     boundaries, and the rule is the same in every band of every shell (Boss,
     2026-10-15). A cap and the core are one cell: `1`.
 
@@ -864,16 +864,106 @@ def sector_quadrant(x_pc, y_pc):
     return min(3, int(theta // (math.pi / 2))) + 1
 
 
+def _wedge_window(count, center, half_width):
+    """The wedges (of a band of `count`) whose center longitude lies within `half_width` of `center`, as the run
+    `(first, length)` that starts at wedge `first` and goes on `length` wedges, wrapping past `count`; `length` is
+    `count` when the window covers the whole circle and 0 when no wedge is in it."""
+    if count == 1 or half_width * 2 >= TWO_PI - TWO_PI / count:
+        return 0, count
+    step = TWO_PI / count
+    first = math.ceil((center - half_width) / step - 0.5 - 1e-9)
+    last = math.floor((center + half_width) / step - 0.5 + 1e-9)
+    if last < first:
+        return 0, 0
+    return first % count, min(last - first + 1, count)
+
+
 def _wedges_near_longitude(count, center, half_width):
     """Wedge indices (of a band of `count` wedges) whose center longitude
     lies within `half_width` of `center`, wrapping around; every wedge when
     the window covers the whole circle."""
-    if count == 1 or half_width * 2 >= TWO_PI - TWO_PI / count:
+    first, length = _wedge_window(count, center, half_width)
+    if length == count:
         return range(count)
-    step = TWO_PI / count
-    first = math.ceil((center - half_width) / step - 0.5 - 1e-9)
-    last = math.floor((center + half_width) / step - 0.5 + 1e-9)
-    return sorted({k % count for k in range(first, last + 1)})
+    return sorted((first + k) % count for k in range(length))
+
+
+def sphere_rows(center, radius_pc, edge_pc):
+    """
+    The rows (a shell's band) the sphere of `radius_pc` around `center` reaches, each with the window of wedges its centers can
+    lie in: the walk `enumerate_sectors_within_radius` makes before it tests one cell, so a caller that draws by blocks of
+    a row can skip the cells (BLOCK_WEDGES to a block) instead of listing them. The core cell is not a row.
+
+    Args:
+        center (tuple): `(x, y, z)`, parsecs.
+        radius_pc (float): `>= 0`.
+        edge_pc (float): `> 0`.
+
+    Yields:
+        tuple: `(shell, band, count, first, length)`: the row holds `count` wedges and the window is the `length` wedges
+        from `first` on, wrapping past `count` (`length == count`: the whole row). Every cell of the row whose center
+        is within `radius_pc` lies in the window; some in it may lie outside the sphere (`cell_in_sphere` tests one).
+
+    Raises:
+        ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
+    """
+    if radius_pc < 0:
+        raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
+    if edge_pc <= 0:
+        raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
+    eps = 1e-9
+    cx, cy, cz = center
+    reach = math.sqrt(cx * cx + cy * cy + cz * cz)
+    shell_min = max(1, math.ceil((reach - radius_pc) / edge_pc - eps))
+    shell_max = math.floor((reach + radius_pc) / edge_pc + eps)
+    colat_c = math.atan2(math.sqrt(cx * cx + cy * cy), cz)
+    lon_c = math.atan2(cy, cx) % TWO_PI
+    on_axis = math.sqrt(cx * cx + cy * cy) < 1e-9
+    for shell in range(shell_min, shell_max + 1):
+        radius = shell * edge_pc
+        if reach < 1e-9:
+            cos_delta = -2.0 if radius <= radius_pc + eps else 2.0
+        else:
+            cos_delta = (radius * radius + reach * reach - radius_pc * radius_pc) / (2 * radius * reach)
+        if cos_delta > 1.0 + 1e-9:
+            continue
+        delta = math.pi if cos_delta <= -1.0 else math.acos(min(1.0, cos_delta))
+        low, high = band_range(shell)
+        layout = shell_layout(shell)
+        # Bands whose center colatitude can lie within `delta` of the center's, padded by one band.
+        lo_colat = max(0.0, colat_c - delta)
+        hi_colat = min(math.pi, colat_c + delta)
+        first = max(0, int(math.floor((lo_colat - layout.cap_colatitude) / layout.band_step)) - 1)
+        last = min(layout.band_count - 1, int(math.ceil((hi_colat - layout.cap_colatitude) / layout.band_step)) + 1)
+        bands = [layout.high_band - i for i in range(first, last + 1)]
+        if lo_colat <= layout.cap_colatitude + 1e-9:
+            bands.append(high)
+        if hi_colat >= math.pi - layout.cap_colatitude - 1e-9:
+            bands.append(low)
+        for band in bands:
+            n = wedge_count(shell, band)
+            plane, z = band_center_pc(shell, band, edge_pc)
+            if n == 1 or on_axis or delta >= math.pi:
+                window = (0, n)
+            else:
+                colat_b = math.atan2(plane, z)
+                denominator = math.sin(colat_b) * math.sin(colat_c)
+                if denominator < 1e-12:
+                    window = (0, n)
+                else:
+                    cos_width = (cos_delta - math.cos(colat_b) * math.cos(colat_c)) / denominator
+                    if cos_width > 1.0 + 1e-6:
+                        continue
+                    width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, cos_width))
+                    window = _wedge_window(n, lon_c, width + 1e-6)
+            if window[1]:
+                yield (shell, band, n, window[0], window[1])
+
+
+def cell_in_sphere(address, center, radius_pc, edge_pc):
+    """Whether the center of the cell `address` lies within `radius_pc` of `center` (the test `enumerate_sectors_within_radius`
+    applies to each cell of a row)."""
+    return detmath.dist(sector_position_pc(*address, edge_pc), center) <= radius_pc + 1e-9
 
 
 def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
@@ -882,7 +972,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
     -- the primitive behind `planetgen galaxy`'s neighborhood modes and the
     Galaxy Map's planned-sector tier. Visits only the shells that can reach
     the sphere and, within each, only the bands and wedges in the angular
-    window the sphere cuts out of the shell's centerline sphere, so the cost
+    window the sphere cuts out of the shell's centerline sphere (`sphere_rows`), so the cost
     scales with the answer, not with a shell's cell count.
 
     Args:
@@ -913,53 +1003,13 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
     reach = math.sqrt(cx * cx + cy * cy + cz * cz)
     if reach <= radius_pc + eps:
         yield (0, 0, 0, 0.0, 0.0, 0.0, reach)
-    shell_min = max(1, math.ceil((reach - radius_pc) / edge_pc - eps))
-    shell_max = math.floor((reach + radius_pc) / edge_pc + eps)
-    colat_c = math.atan2(math.sqrt(cx * cx + cy * cy), cz)
-    lon_c = math.atan2(cy, cx) % TWO_PI
-    on_axis = math.sqrt(cx * cx + cy * cy) < 1e-9
-    for shell in range(shell_min, shell_max + 1):
-        radius = shell * edge_pc
-        if reach < 1e-9:
-            cos_delta = -2.0 if radius <= radius_pc + eps else 2.0
-        else:
-            cos_delta = (radius * radius + reach * reach - radius_pc * radius_pc) / (2 * radius * reach)
-        if cos_delta > 1.0 + 1e-9:
-            continue
-        delta = math.pi if cos_delta <= -1.0 else math.acos(min(1.0, cos_delta))
-        low, high = band_range(shell)
-        layout = shell_layout(shell)
-        # Bands whose centre colatitude can lie within `delta` of the center's, padded by one band.
-        lo_colat = max(0.0, colat_c - delta)
-        hi_colat = min(math.pi, colat_c + delta)
-        first = max(0, int(math.floor((lo_colat - layout.cap_colatitude) / layout.band_step)) - 1)
-        last = min(layout.band_count - 1, int(math.ceil((hi_colat - layout.cap_colatitude) / layout.band_step)) + 1)
-        bands = [layout.high_band - i for i in range(first, last + 1)]
-        if lo_colat <= layout.cap_colatitude + 1e-9:
-            bands.append(high)
-        if hi_colat >= math.pi - layout.cap_colatitude - 1e-9:
-            bands.append(low)
-        for band in bands:
-            n = wedge_count(shell, band)
-            plane, z = band_center_pc(shell, band, edge_pc)
-            if n == 1 or on_axis or delta >= math.pi:
-                wedges = range(n)
-            else:
-                colat_b = math.atan2(plane, z)
-                denominator = math.sin(colat_b) * math.sin(colat_c)
-                if denominator < 1e-12:
-                    wedges = range(n)
-                else:
-                    cos_width = (cos_delta - math.cos(colat_b) * math.cos(colat_c)) / denominator
-                    if cos_width > 1.0 + 1e-6:
-                        continue
-                    width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, cos_width))
-                    wedges = _wedges_near_longitude(n, lon_c, width + 1e-6)
-            for wedge in wedges:
-                x, y, zz = sector_position_pc(shell, band, wedge, edge_pc)
-                distance = detmath.dist((x, y, zz), center)
-                if distance <= radius_pc + eps:
-                    yield (shell, band, wedge, x, y, zz, distance)
+    for shell, band, n, first, length in sphere_rows(center, radius_pc, edge_pc):
+        for k in range(length):
+            wedge = (first + k) % n
+            x, y, zz = sector_position_pc(shell, band, wedge, edge_pc)
+            distance = detmath.dist((x, y, zz), center)
+            if distance <= radius_pc + eps:
+                yield (shell, band, wedge, x, y, zz, distance)
 
 
 CELL_REACH_EDGES = 1.3
@@ -995,10 +1045,10 @@ def _quadratic_roots(a, b, c):
     """Real roots of `a t^2 + b t + c = 0` (a linear one when `a` is 0)."""
     if abs(a) < 1e-300:
         return [] if b == 0.0 else [-c / b]
-    disc = b * b - 4 * a * c
-    if disc < 0.0:
+    disk = b * b - 4 * a * c
+    if disk < 0.0:
         return []
-    root = math.sqrt(disc)
+    root = math.sqrt(disk)
     return [(-b - root) / (2 * a), (-b + root) / (2 * a)]
 
 
@@ -1047,10 +1097,10 @@ def sectors_along_segment(start, end, edge_pc):
         radius_far = max(math.sqrt(c), math.sqrt(sum(v * v for v in end)))
         for shell in range(max(1, shell_index_at(radius_near, edge_pc)), shell_index_at(radius_far, edge_pc) + 2):
             face = shell_bounds_pc(shell, edge_pc)[0]
-            disc = b * b - a * (c - face * face)
-            if disc < 0.0:
+            disk = b * b - a * (c - face * face)
+            if disk < 0.0:
                 continue
-            root = math.sqrt(disc)
+            root = math.sqrt(disk)
             for t in ((-b - root) / a, (-b + root) / a):
                 if 0.0 < t < 1.0:
                     cuts.add(t)

@@ -34,7 +34,7 @@ total` only when the answer is stored.
 
 An admin cancels a job with `POST /api/page-jobs/<id>/cancel` (`cancel`): a job that has not started is
 removed and one that has not begun its query stops; a query already running finishes, and its answer is kept in the
-cache (it is a correct answer the next visitor gets), but the job reports `cancelled`. Every visitor waiting on a
+cache (it is a correct answer the next visitor gets), but the job reports `canceled`. Every visitor waiting on a
 request shares its job, so a visitor's own "Cancel" only stops that page waiting; it never cancels the job.
 """
 
@@ -54,7 +54,7 @@ SOCKET_SECONDS = 0.5
 ID_RE = api_jobs.JOB_ID_RE
 """re.Pattern: A page job's id (16 hex digits). Checked before an id from a URL reaches Redis."""
 
-STATES = ("queued", "running", "succeeded", "failed", "cancelled")
+STATES = ("queued", "running", "succeeded", "failed", "canceled")
 """tuple: The states `status` reports."""
 
 PROGRESS_CEILING = 0.95
@@ -178,7 +178,7 @@ def status(job_id):
     Returns:
         dict | None: `id`, `state` (one of `STATES`), `done` and `total` (rows, estimated; `None` when the request's
             size is not known), `unit` (`"rows"`), `estimated` (always true: see the module's text), `eta_seconds`
-            (the expected time left, or `None`), `seconds` (how long it has run), `cancelling` (a cancel was asked
+            (the expected time left, or `None`), `seconds` (how long it has run), `canceling` (a cancel was asked
             and has not taken effect), `error` (once failed), `cache_key` (where the finished answer is stored)
             and `target` (the request). `None` for an unknown, expired or bad id.
 
@@ -194,13 +194,13 @@ def status(job_id):
         state = queued["state"]
         if state == "succeeded":
             result = queued["result"] or {}
-            state = "cancelled" if result.get("cancelled") else "succeeded"
+            state = "canceled" if result.get("canceled") else "succeeded"
         elif state == "failed":
             error = queued["error"]
     elif meta.get("queue_job") or time.time() - (_float(meta, "created") or 0) > api_jobs.RESULT_TTL_SECONDS:
         state, error = "failed", "the job is gone from the queue"
-    if meta.get("cancelled") == "1" and state == "failed" and queued is not None and "ended without" in (error or ""):
-        state, error = "cancelled", None        # removed from the queue before it started
+    if meta.get("canceled") == "1" and state == "failed" and queued is not None and "ended without" in (error or ""):
+        state, error = "canceled", None        # removed from the queue before it started
     total = int(meta["rows"]) if meta.get("rows") else None
     expected = _float(meta, "expected") or 0.0
     started, finished = _float(meta, "started"), _float(meta, "finished")
@@ -220,14 +220,14 @@ def status(job_id):
     from planetgen.web.lib import pagecache   # not at import: the queue modules load without the web package
     return {"id": job_id, "state": state, "done": done, "total": total, "unit": "rows", "estimated": True,
             "eta_seconds": eta, "seconds": round(elapsed, 3), "error": error,
-            "cancelling": meta.get("cancelled") == "1" and state in ("queued", "running"),
+            "canceling": meta.get("canceled") == "1" and state in ("queued", "running"),
             "cache_key": pagecache.shared_key(meta["db"], meta["target"]), "target": meta["target"]}
 
 
 def ensure(db, target, rows=None, expected=None, config=None, retry=False):
     """
     The job that builds `target` in `db`: the one already queued or running for it, else a new one. A job that
-    finished (its answer has since been invalidated or evicted) is replaced; one that failed or was cancelled is
+    finished (its answer has since been invalidated or evicted) is replaced; one that failed or was canceled is
     shown for `SLOW_PAGE_FAILED_SECONDS` and then replaced, or at once with `retry`.
 
     Args:
@@ -236,7 +236,7 @@ def ensure(db, target, rows=None, expected=None, config=None, retry=False):
         rows (int, optional): The estimated rows it reads, for the progress.
         expected (float, optional): The seconds it is expected to take.
         config (MySQLConfig, optional): The database the job connects to; the site's own when not given.
-        retry (bool): Replace a failed or cancelled job at once.
+        retry (bool): Replace a failed or canceled job at once.
 
     Returns:
         dict: `status` of the job.
@@ -255,8 +255,8 @@ def ensure(db, target, rows=None, expected=None, config=None, retry=False):
             if current is not None:
                 found = status(current)
                 if found is not None and (found["state"] in ("queued", "running")
-                                          or (found["state"] in ("failed", "cancelled") and not retry)):
-                    if found["state"] in ("failed", "cancelled"):
+                                          or (found["state"] in ("failed", "canceled") and not retry)):
+                    if found["state"] in ("failed", "canceled"):
                         connection.expire(key, tuning.SLOW_PAGE_FAILED_SECONDS)
                     return found
                 connection.delete(key)       # finished, expired or retried: start afresh
@@ -298,7 +298,7 @@ def cancel(job_id):
         return None
     try:
         connection = _redis()
-        connection.hset(meta_key(job_id), "cancelled", "1")
+        connection.hset(meta_key(job_id), "canceled", "1")
         connection.expire(job_key(meta["db"], meta["target"]), tuning.SLOW_PAGE_FAILED_SECONDS)
     except (redis.RedisError, OSError) as exc:
         raise NoQueue(f"no Redis server answers: {exc}") from exc
@@ -309,7 +309,7 @@ def cancel(job_id):
 
 def _cancel_asked(job_id):
     try:
-        return _redis().hget(meta_key(job_id), "cancelled") == "1"
+        return _redis().hget(meta_key(job_id), "canceled") == "1"
     except (redis.RedisError, OSError):
         return False
 
@@ -333,7 +333,7 @@ def build_answer(db, target, job_id, config=None):
         config (MySQLConfig, optional): The database to build the app on; the site's own when not given.
 
     Returns:
-        dict: `seconds` and `bytes` of the answer, or `{"cancelled": True}`.
+        dict: `seconds` and `bytes` of the answer, or `{"canceled": True}`.
     """
     from planetgen.web import warmup
     from planetgen.web.lib import apiclient
@@ -343,14 +343,14 @@ def build_answer(db, target, job_id, config=None):
         _mark(job_id, started=time.time())
         if _cancel_asked(job_id):
             log.debug(f"Slow page job {job_id}: {target[:200]} canceled before it started.")
-            return {"cancelled": True}
+            return {"canceled": True}
         app = warmup.build_app(config)
         with app.test_request_context("/"):
             size = len(apiclient.fetch_target(target))
         seconds = time.monotonic() - started
         log.debug(f"Slow page job {job_id}: {target[:200]}: {size} bytes in {seconds:.1f} s.")
         # A cancel that came while the query ran does not undo it: the answer is stored and correct.
-        return {"cancelled": True, "seconds": seconds} if _cancel_asked(job_id) else {"seconds": seconds, "bytes": size}
+        return {"canceled": True, "seconds": seconds} if _cancel_asked(job_id) else {"seconds": seconds, "bytes": size}
     except Exception as exc:
         log.debug(f"Slow page job {job_id}: {target[:200]}: {exc}")
         raise

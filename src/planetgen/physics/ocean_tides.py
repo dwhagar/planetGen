@@ -30,9 +30,9 @@ The depth of the basin, the dissipation of the tide and non-water liquids (GEN.1
 **The stored columns** (`FIELDS`, on `planets` and `moons`; `generate`, called where `daylight.generate` is, after the moons and the spin are final):
 
 * `tide_range_spring_m` and `tide_range_neap_m`, metres: the open-ocean equilibrium ranges above, for a body whose hydrosphere is `surface ocean` (a free
-  sea); `0` for an `ice-covered ocean` (no free surface, with the reason in `ocean_tide`); `None` for every other body (dry, vapour, ice, a brine seep, a
+  sea) or that holds a sea of another liquid (a methane or ethane sea, GEN.1052; a lava is no sea here); `0` for an `ice-covered ocean` (no free surface, with the reason in `ocean_tide`); `None` for every other body (dry, vapor, ice, a brine seep, a
   hycean world, a gas giant, a body with no spin on record).
-* `ocean_liquid`: the liquid of that sea, `water` until the surface liquid inventory (GEN.1035) names others; `None` where the tide columns are.
+* `ocean_liquid`: the liquid of that sea (the stored `surface_liquid` for a non-water sea, with its density at the body's temperature); `None` where the tide columns are.
 
 The raisers of a planet are its star and each of its moons; those of a moon are its planet and the star (at the planet's distance). The other planets'
 tides are not counted (a planet at one astronomical unit raises on the Earth 1 percent of the Moon's). The spin sense is read against each raiser's orbit
@@ -43,7 +43,7 @@ normal: a raiser that goes round the other way is a retrograde one for the body 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, icy_tide, spin, tidal_heating
+from planetgen.physics import constants, icy_tide, spin, surface_liquids, tidal_heating
 
 FIELDS = ("tide_range_spring_m", "tide_range_neap_m", "ocean_liquid")
 """tuple: The stored columns on `planets` and `moons` (see the module text)."""
@@ -131,7 +131,7 @@ def loading_factor(liquid_density_kg_m3, mean_density_kg_m3):
     if ratio > LOADING_REFUSE:
         raise OceanTideError(f"a liquid of {liquid_density_kg_m3:g} kg/m3 on a body of mean density {mean_density_kg_m3:g} kg/m3 is not a thin layer "
                              f"(3 rho_liquid / 5 rho_mean = {ratio:.2f} over {LOADING_REFUSE:g}); a global layer that heavy needs the fluid Love numbers")
-    return 1.0 / (1.0 - ratio)
+    return 1.0 / (1.0 - ratio)         # exact for a floor that does not move at any depth: `heavy_liquid_tide.rigid_floor_love` (GEN.1052)
 
 
 def oscillates(spin_rate_rad_s, raiser):
@@ -180,8 +180,28 @@ def ocean_tide(body_mass_kg, body_radius_m, spin_rate_rad_s, raisers, k2, liquid
 # --- The stored columns ------------------------------------------------------------------------------------------
 
 def _liquid_of(body):
-    """The liquid of the body's sea: water until the surface liquid inventory (GEN.1035) says otherwise."""
+    """The liquid of the body's sea: the stored surface liquid (GEN.1035) at the body's temperature when it is a non-water sea (a methane or ethane sea, an ammonia-water or acid one), else water."""
+    name = getattr(body, "surface_liquid", None)
+    if name and name != "water" and not _is_melt(name):
+        temperature = getattr(body, "surface_temperature", None)
+        if temperature:
+            return Liquid(name, surface_liquids.density_kg_m3(name, temperature))
     return WATER
+
+
+MELT_KINDS = ("silicate", "carbonate")
+"""tuple: The kinds of liquid in `surface_liquids` that are rock melts (basalt, komatiite, rhyolite, peridotite magma, carbonatite): a molten surface is not a free sea with a tide here."""
+
+
+def _is_melt(name):
+    """Whether `name` (an id of `surface_liquids`) is a rock melt, by its kind, so a melt the surface liquid step does not store yet (carbonatite) is left out too."""
+    return surface_liquids.liquid(name).kind in MELT_KINDS
+
+
+def _has_liquid_sea(body):
+    """Whether the body's surface is a free sea of a non-water, non-lava liquid (a stored `surface_liquid` that covers part of it)."""
+    name = getattr(body, "surface_liquid", None)
+    return bool(name) and name != "water" and not _is_melt(name) and bool(getattr(body, "surface_liquid_fraction", None))
 
 
 def _axis(body):
@@ -217,7 +237,8 @@ def compute(body, parent=None):
     star = getattr(body, "star", None)
     rotation = getattr(body, "rotation_period_hours", None)
     axis = _axis(body)
-    if hydrosphere not in ("surface ocean", "ice-covered ocean") or star is None or not rotation or rotation <= 0.0 or axis is None:
+    free_sea = hydrosphere in ("surface ocean", "ice-covered ocean") or _has_liquid_sea(body)
+    if not free_sea or star is None or not rotation or rotation <= 0.0 or axis is None:
         return out
     mass, radius_m = body.mass, body.radius * 1000.0
     host = parent if parent is not None else body
@@ -231,7 +252,10 @@ def compute(body, parent=None):
         raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
                                  _retrograde(axis, _normal(moon))))
     liquid = _liquid_of(body)
-    tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")
+    try:
+        tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")
+    except OceanTideError:
+        return out                  # a liquid that cannot be a surface layer on this body has no thin-sea tide
     out["tide_range_spring_m"], out["tide_range_neap_m"], out["ocean_liquid"] = tide.spring_range_m, tide.neap_range_m, liquid.name
     return out
 

@@ -159,13 +159,19 @@ def _sector_case(address):
 
 
 def _phenomenon_case():
-    """One rogue planet under a unit seed of its own."""
+    """One rogue planet an ejection made (GEN.1111): a 3 Earth mass body built with no star against a G2 donor, under a unit seed of its own."""
     from planetgen.galaxy import seed as galaxySeed
     from planetgen.generation.config import SystemConfig
-    from planetgen.generation.run_phenomenon import generate_phenomenon
+    from planetgen.generation.phenomena import starless_host
+    from planetgen.generation.system import StarSystem
+    from planetgen.physics import unit_registry
 
     with galaxySeed.seeded(GALAXY_SEED, "phenomenon", PHENOMENON_ADDRESS):
-        return tree(generate_phenomenon("rogue-planet", SystemConfig(), False, name="Battery Rogue"))
+        config = SystemConfig()
+        config.STAR_TYPE = "G2V"
+        donor = StarSystem(config).star
+        rogue = starless_host.build_ejected_planet(config, donor, 2.0, unit_registry.converter("Mearth", "kg")(3.0), formation_au=5.0, moon_count=1)
+        return tree(rogue)
 
 
 def _brown_dwarf_case():
@@ -175,7 +181,7 @@ def _brown_dwarf_case():
     from planetgen.generation.phenomena.rogue import RoguePlanet
 
     with galaxySeed.seeded(GALAXY_SEED, "brown-dwarf", PHENOMENON_ADDRESS):
-        dwarf = RoguePlanet(SystemConfig(), name="Battery Dwarf", mass_bin="brown-dwarf")
+        dwarf = RoguePlanet(SystemConfig(), name="Battery Dwarf")
         return {"record": tree(dwarf), "spectral_type": dwarf.spectral_type}
 
 

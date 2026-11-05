@@ -27,25 +27,25 @@ export function levelOf(key) {
   return parseInt(String(key).split(".")[0], 10);
 }
 
-function item(id, text, centre, share, extent, key) {
+function item(id, text, center, share, extent, key) {
   return {
-    id: id, text: text, x: centre[0], y: centre[1], z: centre[2], ref: { kind: "region", key: key, extent: extent },
+    id: id, text: text, x: center[0], y: center[1], z: center[2], ref: { kind: "region", key: key, extent: extent },
     slice: { domain: "region", shareCharted: share / 100, first: true },
   };
 }
 
 // The family a list of regions names: the one with the most generated sectors (ties by name), at the sector-weighted centroid
-// of its regions' centres, and the mean share charted of its regions. `null` for a list with no named region.
+// of its regions' centers, and the mean share charted of its regions. `null` for a list with no named region.
 export function familyOf(regions) {
   const families = new Map();
   regions.forEach(function (region) {
-    if (!region.parent || !region.centre) return;
+    if (!region.parent || !region.center) return;
     const family = families.get(region.parent) || { name: region.parent, sectors: 0, sum: [0, 0, 0], share: 0, count: 0 };
     const weight = Math.max(region.sectors || 0, 1);
     family.sectors += weight;
     family.share += region.percent || 0;
     family.count += 1;
-    for (let axis = 0; axis < 3; axis++) family.sum[axis] += weight * region.centre[axis];
+    for (let axis = 0; axis < 3; axis++) family.sum[axis] += weight * region.center[axis];
     families.set(region.parent, family);
   });
   let best = null;
@@ -54,13 +54,13 @@ export function familyOf(regions) {
   });
   if (!best) return null;
   return { name: best.name, sectors: best.sectors, share: best.share / best.count,
-    centre: best.sum.map(function (total) { return total / best.sectors; }) };
+    center: best.sum.map(function (total) { return total / best.sectors; }) };
 }
 
 // The names to offer for `entries`, `[{key, node}]` (the nodes of the view; a node not loaded yet has no `node`): items of
 // `{id, text, x, y, z, ref: {kind: "region", key, extent}, slice}` for the engine, `x`, `y`, `z` in parsecs. `ref.key` is the
 // key of the block a click on the name flies to (the node's own, or the region's 9-block) and `ref.extent` the sphere
-// `{centre, radius}` to frame there, or `null`.
+// `{center, radius}` to frame there, or `null`.
 export function regionLabels(entries) {
   const found = new Map();
   entries.forEach(function (entry) {
@@ -70,16 +70,16 @@ export function regionLabels(entries) {
     if (level === 9) {
       if (!node.name || !node.extent) return;
       const share = node.charted ? node.charted.percent : 0;
-      found.set("region:" + entry.key, item("region:" + entry.key, node.name, node.extent.centre, share, node.extent, entry.key));
+      found.set("region:" + entry.key, item("region:" + entry.key, node.name, node.extent.center, share, node.extent, entry.key));
     } else if (level === 27 && node.regions) {
       node.regions.forEach(function (region) {
-        if (!region.name || !region.centre) return;
-        const extent = region.radius > 0 ? { centre: region.centre, radius: region.radius } : null;
-        found.set("region:" + region.key, item("region:" + region.key, region.name, region.centre, region.percent || 0, extent, region.key));
+        if (!region.name || !region.center) return;
+        const extent = region.radius > 0 ? { center: region.center, radius: region.radius } : null;
+        found.set("region:" + region.key, item("region:" + region.key, region.name, region.center, region.percent || 0, extent, region.key));
       });
     } else if (FAMILY_LEVELS.indexOf(level) >= 0 && node.regions) {
       const family = familyOf(node.regions);
-      if (family) found.set("family:" + entry.key, item("family:" + entry.key, family.name, family.centre, family.share, null, entry.key));
+      if (family) found.set("family:" + entry.key, item("family:" + entry.key, family.name, family.center, family.share, null, entry.key));
     }
   });
   return Array.from(found.values());

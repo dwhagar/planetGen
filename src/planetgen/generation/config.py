@@ -251,7 +251,7 @@ class SystemConfig:
 
         self.GALAXY_SHAPE = None
         """
-        galaxy.density.GalaxyShape or None: The galaxy a body is made in, which gives the disc's star formation history the thorium to
+        galaxy.density.GalaxyShape or None: The galaxy a body is made in, which gives the disk's star formation history the thorium to
         uranium ratio of its rock follows (GEN.759, `physics.rprocess_enrichment`). A galaxy sector sets it with `POPULATION`; None takes
         the default shape (`galaxy.shape_draw.default_shape`), as any work with no stored shape does. Not saved with the config.
         """
@@ -260,7 +260,7 @@ class SystemConfig:
         """
         tuple or None: `((weight, mean, sigma), ...)`, the [Fe/H] a random primary star of a cluster or satellite is
         drawn from (GEN.237): the sector's own profile gives them, since those populations have no mean at a distance
-        from the centre. None draws from the population's mean (`metallicity.mean_fe_h`). Not saved with the config.
+        from the center. None draws from the population's mean (`metallicity.mean_fe_h`). Not saved with the config.
         """
 
         self.PLACE_TERMS = None

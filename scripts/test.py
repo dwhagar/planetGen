@@ -46,7 +46,7 @@ Resuming (TEST.148, TEST.208): every run keeps `.test-progress/<build id>.jsonl`
 a test that passed, the files it used. After a run was killed or stopped, the same command with `--resume` skips the
 tests that passed in the same build, and the tests that passed in an earlier run (any command) of the same
 environment (packages, Python, MySQL and Redis versions, PLANETGEN_* variables, day) when none of the files that
-changed since is one the test used (the rules of `changed`), so a merge of main after a cancelled gate reruns only
+changed since is one the test used (the rules of `changed`), so a merge of main after a canceled gate reruns only
 what it touched. A different environment reuses nothing and every test runs. It says RESUMING first and RESUMED on
 its last line, with how many tests were reused and from which runs. Never automatic, and not part of the merge gate.
 

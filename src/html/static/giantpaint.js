@@ -122,7 +122,7 @@ export function bandsFor(look, rand) {
   return n % 2 === 1 ? n : n + 1;
 }
 
-// The edges of `n` bands (n odd) as shares of the way from the north pole (0) to the south pole (1): the equatorial band is centred on 0.5 and
+// The edges of `n` bands (n odd) as shares of the way from the north pole (0) to the south pole (1): the equatorial band is centered on 0.5 and
 // `halfDeg` degrees either way, the rest share what is left on each side evenly, with a seeded jitter.
 export function bandEdges(n, halfDeg, rand) {
   var half = halfDeg / 180;
@@ -182,7 +182,7 @@ export function giantRecipe(look) {
   };
 }
 
-// The storms of a giant: `r.storms` large ovals and a field of small ones, each `{ u, v, rx, ry, weight, colour, size, cyclone, large }` with the centre
+// The storms of a giant: `r.storms` large ovals and a field of small ones, each `{ u, v, rx, ry, weight, colour, size, cyclone, large }` with the center
 // at longitude share `u` and latitude share `v`, the half-sizes `rx` (of the longitude circle) and `ry` (of the half circle from pole to pole), `size` the
 // storm's length in km. A large storm is 1 to 6.3 deformation radii long (none under 1000 km), 1.2 to 1.9 times as long as high, nine in ten an
 // anticyclone (the tinted oval) and the rest a dark cyclone; the small ones are 1000 to 3000 km, faint.

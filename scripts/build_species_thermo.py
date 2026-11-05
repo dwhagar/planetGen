@@ -48,9 +48,9 @@ WANTED = {
     # Phosphorus and the halogens
     "P2": "g", "PH3": "g", "HF": "g",
     "F": "g", "F2": "g", "CL": "g", "CL2": "g", "HCL": "g",     # the halogen gases of the outgassed air (GEN.524 part 2; "CL", "CL2" and "HCL" are the file's spellings)
-    # Alkalis, silicon, iron, magnesium, titanium, vanadium, aluminium, calcium (lava vapour, hot giants, part 05 sections 4, 7, 8)
+    # Alkalis, silicon, iron, magnesium, titanium, vanadium, aluminium, calcium (lava vapor, hot giants, part 05 sections 4, 7, 8)
     "Na": "g", "NaOH": "g", "Na2": "g", "NaO": "g", "K": "g", "KOH": "g",
-    "AL": "g", "K2": "g", "KO": "g", "K2O": "g", "Na2O": "g",     # the rest of the lava vapour's alkali and aluminium species (GEN.751; "AL" is the file's spelling)
+    "AL": "g", "K2": "g", "KO": "g", "K2O": "g", "Na2O": "g",     # the rest of the lava vapor's alkali and aluminium species (GEN.751; "AL" is the file's spelling)
     "ALO": "g", "AL2O": "g", "ALO2": "g", "AL2O2": "g",     # the aluminium oxides over a melt with an Al2O3 activity (GEN.818)
     "Fe": "g", "FeO": "g", "Fe(OH)2": "g", "Mg": "g", "MgO": "g", "MgOH": "g", "Mg(OH)2": "g",
     "Si": "g", "SiO": "g", "SiO2": "g", "SiH4": "g", "SiS": "g",
@@ -61,7 +61,7 @@ WANTED = {
     "Fe(a)": "c", "Fe(L)": "c", "MgO(cr)": "c", "MgO(L)": "c", "SiO2(a-qz)": "c", "SiO2(L)": "c",
     "Na(cr)": "c", "Na(L)": "c", "K(cr)": "c", "K(L)": "c",
     "CaO(cr)": "c", "CaO(L)": "c", "TiO2(cr)": "c", "TiO2(L)": "c",
-    "Na2O(L)": "c", "K2O(L)": "c", "AL2O3(L)": "c",     # the melt's alkali oxides (the Na and K vapour over a lava world, part 05 section 4)
+    "Na2O(L)": "c", "K2O(L)": "c", "AL2O3(L)": "c",     # the melt's alkali oxides (the Na and K vapor over a lava world, part 05 section 4)
 }
 
 ATOMIC_MASS_TOLERANCE = 0.01  # g/mol between the file's molar mass and the sum over its elements (physics.elements)

@@ -73,7 +73,7 @@ KRAFT_BREAK_LOW_K = 6450.0
 KRAFT_BREAK_HIGH_K = 6650.0
 """float: The Kraft break (GEN.1163): below `KRAFT_BREAK_LOW_K` a dwarf has a convective envelope deep enough to brake (gyrochronology); above
 `KRAFT_BREAK_HIGH_K` it keeps the speed it was born with; between them the median speed passes from one to the other. [R0378]
-([R0378], read in full): centred on 6550 K, about 200 K wide (6450 to 6650 K, 1.32 to 1.41 solar masses)."""
+([R0378], read in full): centered on 6550 K, about 200 K wide (6450 to 6650 K, 1.32 to 1.41 solar masses)."""
 
 GYRO_MIN_COLOUR_EXCESS = 0.05
 """float: The least `B - V - c` the gyrochronology law is given: a star bluer than c + 0.05 (about 6200 K) has the period of that colour, not the
@@ -172,8 +172,8 @@ def rayleigh_tilt_deg(sigma_deg=STELLAR_TILT_SIGMA_DEG):
 
 def yorp_tilt_deg():
     """A small body's obliquity: near 10 or near 170 degrees (YORP)."""
-    centre = YORP_TILT_DEG[0] if draw.random() < 0.5 else YORP_TILT_DEG[1]
-    return min(180.0, max(0.0, draw.gauss(centre, YORP_TILT_SIGMA_DEG)))
+    center = YORP_TILT_DEG[0] if draw.random() < 0.5 else YORP_TILT_DEG[1]
+    return min(180.0, max(0.0, draw.gauss(center, YORP_TILT_SIGMA_DEG)))
 
 
 def draw_axis(normal, tilt_deg):

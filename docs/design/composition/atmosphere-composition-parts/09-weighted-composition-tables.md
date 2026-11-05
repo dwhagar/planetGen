@@ -33,10 +33,10 @@ Design requirement (project owner): for every composition category there is a ta
 | a1 | Magma-ocean-stage fO2 (PARAM) | ROCKY, MOON, ROGUE rocky; any M (the clamp holds -2 below 0.01) | dIW ~ N(mu, sigma); mu = clamp(-2+1.25(log10 M+2), -2, 0.5) + clamp(log10 M, 0, 0.7324); sigma = 0.5 + 0.4 clamp(log10 M+1, 0, 1) (GEN.482b); floor on sigma 0.22 = 4 log10(1+0.005/0.037) | anchors [R4154] via part 08 s2: +0.5 at about 1 Me, about -2 for core-formation-set small bodies (READ); floor COMPUTED; interpolation, 0.5 DESIGN | DERIVED | sets the first atmosphere; Fe3+/sumFe 0.037+-0.005; GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): the mean is inside the first-hand ranges at the Moon, Mars and Earth, the width and the clamp above 1 Me are not sourced |
 | a2 | Later upper mantle (PARAM) | ROCKY with air; tectonic or long-lived | dIW ~ N(3.5+2 clamp(log10 M, -3, 0), 1.0), clip [-6,6]; the draw takes max(a2, a1) (GEN.482b) | repo `atmosphere.py` REDOX_* ([D] fitted by eye to Moon, Mars, Earth) | DERIVED | far above meteoritic building blocks (part 05 s3.2); GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): inside one standard deviation of the three first-hand anchors, no source above 1 Me |
 | a3 | Building-block redox (PARAM) | AST, C, D, small bodies | dIW ~ U[-1.4, 0] | [R3944: Table 2] via part 05 s3.2: EH about -1, eucrite -1.4 to -0.8, ranking CI>CV>H>EH (READ); uniform shape DESIGN | DESIGN R3 | bracket sourced, shape not |
-| a4 | White-dwarf debris (PARAM) | host WD, rocky | dIW ~ N(-1, 0.5), bracket [-1.37, -0.6] | [R1154] data (READ); centre and width RECALLED design (part 05 s10) | DESIGN R10 | |
+| a4 | White-dwarf debris (PARAM) | host WD, rocky | dIW ~ N(-1, 0.5), bracket [-1.37, -0.6] | [R1154] data (READ); center and width RECALLED design (part 05 s10) | DESIGN R10 | |
 | a5 | Redox class R (reduced) | ROCKY, any dIW | Phi((0-dIW)/0.5) | cut 0: [R2686] classes (READ) and part 05 s3.4 crossovers (COMPUTED); width 0.5 DESIGN | DERIVED | parent of c1, c2 |
 | a6 | Redox class I (intermediate) | same | 1 - w[a5] - w[a7] | same | DERIVED | parent of c3 |
-| a7 | Redox class O (oxidised) | same | Phi((dIW-2.5)/0.5) | cut 2.5: H2S/SO2 crossover near +3 at 1200 K (COMPUTED, part 05 s3.4); equals repo REDOX_OXIDIZED_DELTA_IW | DERIVED | parent of c4 |
+| a7 | Redox class O (oxidized) | same | Phi((dIW-2.5)/0.5) | cut 2.5: H2S/SO2 crossover near +3 at 1200 K (COMPUTED, part 05 s3.4); equals repo REDOX_OXIDIZED_DELTA_IW | DERIVED | parent of c4 |
 
 **Example a (COMPUTED, Python).** Planet M=1.0: a1 mu=+0.50; integrating a5 to a7 over the draw N(0.5,0.5) gives a5 R 0.240, a6 I 0.758, a7 O 0.002; the later stage a2 (mu 3.5, s 1.0) gives a5 R 0.001, a6 I 0.185, a7 O 0.814. Planet M=0.05: a1 mu=-1.13, classes a5 R 0.944, a6 I 0.056; later stage mu=0.90: a5 R 0.211, a6 I 0.713, a7 O 0.076. For a single drawn dIW=+0.5: R 0.159, I 0.841, O 0.000.
 
@@ -75,7 +75,7 @@ Design requirement (project owner): for every composition category there is a ta
 | d3 | Tenuous | same | P_K(1<r<=2.5) | same | DERIVED | |
 | d4 | Moderate | same | P_K(0.7<r<=1) | same | DERIVED | |
 | d5 | Dense | same | P_K(r<=0.7) | same | DERIVED | |
-| d6 | Pressure cap of the winning row (PARAM) | d1 to d5 | P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapour) | smooth caps suggested in the project doc s3.6 (values DESIGN) | DESIGN R4 | |
+| d6 | Pressure cap of the winning row (PARAM) | d1 to d5 | P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapor) | smooth caps suggested in the project doc s3.6 (values DESIGN) | DESIGN R4 | |
 | d7 | Primary H/He kept (flag outside the d1 to d5 draw) | M 1 to 30, lambda_H2=2.016 amu v_esc^2/(2 k T_exo)>=30 (T_exo = Teq + min(1500, 750 sqrt(F_xuv_rel)) K) | goes to table e (e1 or e2) | same doc s3.2 and s3.4 ([C]) | DERIVED | gate only |
 
 **Example d (COMPUTED).** r = X/(K v^4), v = 11.186 sqrt(M/R) km/s, K log-uniform, so P_K(r in [r0,r1]) is the log-length of the K interval. Planet M=0.3, R=0.68 gives v=7.43 km/s. Sun-like host with X=1.5: d5 dense 0.000, d4 moderate 0.372, d3 tenuous 0.628, d2 trace 0.000, d1 none 0.000. Same planet, M-dwarf host with X=15 (the doc's factor of 10 in XUV exposure): d5 dense 0.000, d4 moderate 0.000, d3 tenuous 0.000, d2 trace 1.000, d1 none 0.000.
@@ -103,7 +103,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | f2 | Warm giant, 200 to 700 K (CO quench-set 1e-9 to 1e-5) | GIANT | Phi-window | same | DERIVED | |
 | f3 | T-like, 700 to 1300 K (CH4, NH3 1.2e-4 m, Na, K gas above clouds) | GIANT, BD | Phi-window | same | DERIVED | |
 | f4 | Hot, Teq>=1300 K (go to table h; BD to table g) | GIANT zone h | Phi-window | same | DERIVED | |
-| f5 | Metallicity m (PARAM) | GIANT | log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3), range [-0.5, 2.0] | centre: [R4352] Zpl/Zstar relation (READ); 0.26 dex scatter of the Mz fit (READ) is the bracket for 0.3 (0.3 RECALLED design) | DERIVED | [R0710] gives lower Z for sub-Saturns |
+| f5 | Metallicity m (PARAM) | GIANT | log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3), range [-0.5, 2.0] | center: [R4352] Zpl/Zstar relation (READ); 0.26 dex scatter of the Mz fit (READ) is the bracket for 0.3 (0.3 RECALLED design) | DERIVED | [R0710] gives lower Z for sub-Saturns |
 | f6 | Metallicity bins of f5 (BINS) | same | edges log10 m = -0.5, 0, 0.5, 1.0, 1.5, 2.0 | same | DERIVED | |
 | f7 | C/O (PARAM, mixture) | GIANT, BD | (1-f_tail) core + f_tail tail; core log10(C/O) ~ N(log10 0.55, 0.15) truncated to [0.2, 0.8]; tail U[0.8, 1.5]; f_tail = LU[0.0013, 0.34], default 0.03 | stellar C/O median 0.47 with no star above 0.8 (N=849; recounted on the full 1,592-star Brewer and Fischer table on the [R0168] scale: median 0.49, 0.9 percent above 0.8, 97.5th percentile 0.68); planets (LExACoM, 69): median 0.57, tail 0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.21 dex reproduces the 12 of 69 planets below 0.35 (GEN.516; the single planet WASP-77Ab 0.59 +/- 0.08, Line 2021, READ, gave 0.15) (READ, COMPUTED) | DERIVED R5 | bins <0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, >1.0 |
 | f8 | Carbon carrier CH4 vs CO | GIANT, BD | CH4: Phi((T_trans-T)/100); T_trans 500 (planets), 1100 (BD) | [R4863] (READ); generator should evaluate the quench formula t_q with its own g, m, Kzz instead | DERIVED | HCN, C2H2 appear at C/O>=1 ([R2801, R2803] READ) |
@@ -135,7 +135,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 
 **Example h (COMPUTED).** Tday=2500 K: h2 CO-H2O 0.0013, h3 dissociated 0.9987. Tday=2150 K: h2 CO-H2O 0.6915, h3 dissociated 0.3085. TiO/VO kept for 1 um grains: log Kmin = 9.24, p = 0.440.
 
-### i. Lava-world vapour regimes
+### i. Lava-world vapor regimes
 
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
@@ -144,7 +144,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | i3 | Type III: O2, O, SiO columns equal | 2588 to 2890 K | Phi-window | same | SOURCED | 0 of 193 |
 | i4 | Type IV: SiO > O2 | 2890 to 3168 K | Phi-window | same | SOURCED | 1 of 193 (0.005) |
 | i5 | Type V: SiO, O, O2, Na | Tp>3168 K | Phi-window | same | SOURCED | 0 of 193 |
-| i6 | Bare silicate vapour (volatile-free melt) vs volatile-bearing CO2/CO | ROCKY zone h, 1<=M<=10 | volatile-bearing c[0.1,0.9], bare 1-c | 2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511) (READ, COMPUTED) | DERIVED R7 | P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 ([R2380], 1400 to 2800 K, READ) |
+| i6 | Bare silicate vapor (volatile-free melt) vs volatile-bearing CO2/CO | ROCKY zone h, 1<=M<=10 | volatile-bearing c[0.1,0.9], bare 1-c | 2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511) (READ, COMPUTED) | DERIVED R7 | P_eq: log10 P = k1 exp(k2 Ts), small vapor fraction k1=-34.7, k2=-0.00112 ([R2380], 1400 to 2800 K, READ) |
 
 **Example i (COMPUTED).** Tp=2060 K: i1 I 0.326, i2 II 0.674; P_eq = 3.5e-04 bar. Tp=2500 K: i2 II 0.929, i3 III 0.071; P_eq = 7.8e-03 bar.
 
@@ -155,7 +155,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | j1 | Venus-like dense CO2-N2 (97:3), SO2 trace | N, V, A, S[with air]; S_eff above the runaway limit (1.04 to 1.11 for a Sun-like star); dIW>=1; water lost | c[0.1,1] | CO2-N2 ratio: [R4154] (part 08 s2, READ); runaway limit [R2446]/2014 ([R] in project doc); prior DESIGN | DESIGN R8 | S_eff limit depends on Teff (Kopparapu polynomial) |
 | j2 | Mars-like thin CO2-N2-Ar | K, L, U[P]; M<0.5; 1<r<=2.5 (d3); 190<=Ts<=270 K | c[0.1,1] | same CO2-N2 ratio at lower pressure (Sossi, READ); TEST Mars CO2 .96 N2 .019 Ar .019 | DESIGN R8 | |
 | j3 | Titan-like N2-CH4 (N2 0.5 to 2 bar) | Y[P], MOON; 57<=Ts<=125 K (s 5), r<0.7, S<=0.02, R 1500 to 4000 km | c[0.1,1] | T window: N2 ice p_sat 30.6 to 62.2 K for 1e-7 to 0.1 bar (part 06 s2.4, 2ND-HAND); TEST Titan CH4 1.5 to 5.7 % ([R3289], READ) | DESIGN R8 | |
-| j4 | Pluto/Triton-like frost equilibrium: N2 >99 %, CH4 0.3 %, CO 0.05 % | D, C, U[P]; 30<=Ts<=67 K (s 5), r<1 | c[0.1,1] | p_i = chi_i p_sat,i(Ts) (Raoult); TEST values ([R3186] 2ND-HAND); N2/CO/CH4 vapour-pressure relations not reached | DESIGN R8 | CO column vs near-surface ratio differ 8x |
+| j4 | Pluto/Triton-like frost equilibrium: N2 >99 %, CH4 0.3 %, CO 0.05 % | D, C, U[P]; 30<=Ts<=67 K (s 5), r<1 | c[0.1,1] | p_i = chi_i p_sat,i(Ts) (Raoult); TEST values ([R3186] 2ND-HAND); N2/CO/CH4 vapor-pressure relations not reached | DESIGN R8 | CO column vs near-surface ratio differ 8x |
 | j5 | Abiotic O2 world (10 to 100+ bar O2, or CO build-up) | Z[P]; host M dwarf, age>1 Gyr, HZ, 0.3<=M<=5 | c[0.05,0.5] | [R2769] via [R3014, R3016] (2ND-HAND): 240 bar O2 per ocean; [R1511] cap 50 % CO2 loss (READ) | DESIGN R8 | |
 
 **Example j (COMPUTED).** R=2500 km, Ts=61 K, r=0.5, S=0.012, all priors at the midpoint 0.316: gates j3 and j4 both pass (edge overlap 57 to 67 K): j3 Titan-like 0.471, j4 frost-eq 0.529. (This reproduces the transition region where N2 is neither thick nor frozen out.)
@@ -178,7 +178,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
-| l1 | Rocky body with silicate-vapour exosphere (Na, SiO, Mg, Fe) | host WD or PSR; rocky | Phi((log10 P_eq(Ts) + 6)/0.5), P_eq from i6 formula | [R2380] (READ); threshold 1e-6 bar and width DESIGN | DESIGN R10 | composition via a4 |
+| l1 | Rocky body with silicate-vapor exosphere (Na, SiO, Mg, Fe) | host WD or PSR; rocky | Phi((log10 P_eq(Ts) + 6)/0.5), P_eq from i6 formula | [R2380] (READ); threshold 1e-6 bar and width DESIGN | DESIGN R10 | composition via a4 |
 | l2 | Airless | same | 1 - w[l1] | complement of l1 | DESIGN R10 | fallback row |
 | l3 | Surviving H/He giant | host WD, GIANT | c[0,0.1] | no more than 1 percent of white dwarfs should host close-in giants ([R3224], three giants, read in the abstract and discussion, and as [R4532] quotes it; READ); the bracket 0 to 0.1 holds the wider orbits that survive | DESIGN R10 | composition via tables f and g |
 
@@ -214,7 +214,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | n6 | Silicate-dominated aerosol | GIANT, BD, hot rocky | Phi((Teq-950)/100) | crossover Teq about 950 K, [R1513] (READ); width DESIGN | DESIGN R12 | |
 | n7 | Photochemical haze (tholin, soot) | carbon-bearing air | (1 - w[n6]) * y; yield y = LU[0.01, 1]; monomer 1 to 50 nm, 1.0 g/cm3 | lab rates span 250x ([R2009] READ); haze threshold CH4/CO2 0.1 to 0.2 ([R0156] READ) | DESIGN R12 | near zero for carbon-free gas, lower in H2 gas |
 | n8 | Mineral dust (Mars-type, r_eff 1 to 2 um) | ROCKY with air and surface wind u*>u*_t | 1 if u*>u*_t | threshold from Shao-Lu and Iversen-White formulas (READ, COMPUTED to 1.6x of [R2426]) | DERIVED | |
-| n9 | S8 / H2SO4 aerosol | outgassing S flux >=100x Earth volcanic (N2, CO2 air); Earth flux in H2 air | 1 | Hu 2013 (READ); H2SO4-H2O vapour curve NOT REACHED | DERIVED | |
+| n9 | S8 / H2SO4 aerosol | outgassing S flux >=100x Earth volcanic (N2, CO2 air); Earth flux in H2 air | 1 | Hu 2013 (READ); H2SO4-H2O vapor curve NOT REACHED | DERIVED | |
 
 **Example n (COMPUTED).** Giant with profile 300 to 2000 K and Teq=800 K: windows crossed (n1, n2): Al-Ti oxides, Fe, forsterite, enstatite, Cr, MnS, Na2S, KCl/ZnS; n3 to n5 are below 300 K and absent. Aerosol dominance: n6 silicate 0.067, n7 haze 0.933 (before the yield factor).
 
@@ -222,14 +222,14 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
-| o1 | Thorium (and U) scale, thin-disc Sun-like host (PARAM) | host thin disc, FGK; rocky | log10 f_Th ~ N(0.08, 0.058), f relative to BSE | [R0479]: [Th/H] mean +0.080, scatter 0.058 dex, 53 solar twins (READ) | SOURCED | BSE: U 0.020, Th 0.077, K 280 ppm ([R2987] READ) |
-| o2 | Other populations (thick disc, halo, young, M host) | not o1 | log10 f ~ U[-0.23, +0.40] | [R4469]: 59 to 251 % of solar (READ); shape DESIGN | DESIGN R13 | |
+| o1 | Thorium (and U) scale, thin-disk Sun-like host (PARAM) | host thin disk, FGK; rocky | log10 f_Th ~ N(0.08, 0.058), f relative to BSE | [R0479]: [Th/H] mean +0.080, scatter 0.058 dex, 53 solar twins (READ) | SOURCED | BSE: U 0.020, Th 0.077, K 280 ppm ([R2987] READ) |
+| o2 | Other populations (thick disk, halo, young, M host) | not o1 | log10 f ~ U[-0.23, +0.40] | [R4469]: 59 to 251 % of solar (READ); shape DESIGN | DESIGN R13 | |
 | o3 | K/U (mass) | ROCKY | LU[8.9e3, 1.4e4] | crust 8900 to 11800, BSE 1.4e4 ([R2987, R4726], READ); volatile-depleted bodies lower, NOT REACHED | DESIGN R13 | |
 | o4 | Th/U | ROCKY | U[3.8, 4.5] | BSE 3.77, crust 4.0 to 4.5 (READ); stellar Th/U vs cosmic age NOT REACHED | DESIGN R13 | |
 | o5 | Heating vs age | ROCKY | h(t)/h(4.5 Gyr) = sum s_i exp(lam_i (4.5 - t)), shares U238 .384, U235 .016, Th .402, K40 .193 | [R2987] shares and half-lives (READ); COMPUTED | DERIVED | Al-26 adds 4.2e-7 W/kg for the first 20 Myr (RECALLED Al) |
 | o6 | Al-26 early heating present | planetesimals formed within a few Myr | c[0.1,1] | 26Al/27Al 5.25e-5 ([R2987] READ); presence in a given system unsourced; `birth_radioisotopes.py` (GEN.476) gives the share of stars born above the melting ratio: 12 percent (6 to 20) | DESIGN R13 | |
 
-**Example o (COMPUTED).** Thin-disc Sun-like host. Bins f<0.7, 0.7 to 1.4, >1.4: 0.0000, 0.8729, 0.1271. Heating at age 3 Gyr relative to 4.5 Gyr: 1.432 (part 07 table: 1.43); at 8 Gyr 0.589. Heat per kg of rock = 98.29 U + 26.18 Th + 3.387e-3 K (uW/kg per kg/kg, [R2987]).
+**Example o (COMPUTED).** Thin-disk Sun-like host. Bins f<0.7, 0.7 to 1.4, >1.4: 0.0000, 0.8729, 0.1271. Heating at age 3 Gyr relative to 4.5 Gyr: 1.432 (part 07 table: 1.43); at 8 Gyr 0.589. Heat per kg of rock = 98.29 U + 26.18 Th + 3.387e-3 K (uW/kg per kg/kg, [R2987]).
 
 ### p. Host-star UV regime (ozone and photochemistry)
 
@@ -246,7 +246,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 
 ## 3. Formula quick list for the coder
 
-dIW_class cuts: a5, a7. Snow line: a_snow = sqrt(L/Lsun) (278.6/T_snow)^2 AU. Shoreline: r = X/(K v^4), v = 11.186 sqrt(M/R) km/s, K ~ LU[3.0e-4, 6.6e-4]. Envelope loss: f_lost = eps pi R^3 E_cum S/(G M^2). Metallicity: log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3). Brown dwarf: L = 4e-5 Lsun (t/Gyr)^-1.3 (M/0.05 Msun)^2.64, Teff = (L/(4 pi R^2 sigma))^(1/4), R = 1 RJ. Lava vapour: log10 P_eq = k1 exp(k2 Ts) (k1 -34.7, -60.1, -60.2; k2 -0.00112, -0.00122, -0.00101 for vapour fraction <0.01, about 0.5, >0.9). Quench: part 05 s7.3. Condensation: part 05 s7.2, part 06 s2.1.
+dIW_class cuts: a5, a7. Snow line: a_snow = sqrt(L/Lsun) (278.6/T_snow)^2 AU. Shoreline: r = X/(K v^4), v = 11.186 sqrt(M/R) km/s, K ~ LU[3.0e-4, 6.6e-4]. Envelope loss: f_lost = eps pi R^3 E_cum S/(G M^2). Metallicity: log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3). Brown dwarf: L = 4e-5 Lsun (t/Gyr)^-1.3 (M/0.05 Msun)^2.64, Teff = (L/(4 pi R^2 sigma))^(1/4), R = 1 RJ. Lava vapor: log10 P_eq = k1 exp(k2 Ts) (k1 -34.7, -60.1, -60.2; k2 -0.00112, -0.00122, -0.00101 for vapor fraction <0.01, about 0.5, >0.9). Quench: part 05 s7.3. Condensation: part 05 s7.2, part 06 s2.1.
 
 
 **Row counts (parsed from the tables above):** 104 rows: SOURCED 8, DERIVED 48, DESIGN 48.
@@ -261,12 +261,12 @@ Every DESIGN row, grouped by the research that would source it. Until then the g
 - **R4** (d6): Cosmic-shoreline constants and pressure caps by regime: [R4862] (fetch via export.arxiv.org), [R3037], XUV histories ([R2183], part 04).
 - **R5** (f7): Giant-planet C/O and C-rich host fraction: [R0535] [R0536] (PDF downloaded, body unread), Delgado [R1060] sample selection, [R4663] retrieval spread, [R4352] scatter of Zpl/Zstar.
 - **R6** (h2, h3, h4): Hot-Jupiter thermochemistry above 2200 K (FastChem or GGchem tables), [R4527] body, a Kzz distribution, edges of the 1500 and 2200 K regimes.
-- **R7** (i6): Lava-world vapour: [R3059] numeric Type I to V tables, [R3943], LavAtmos [R4488], and the fraction of lava worlds that keep volatiles (JWST 55 Cnc e and other targets).
-- **R8** (j1, j2, j3, j4, j5): Evolved and frost atmospheres: [R1445, R1708] vapour pressures (N2, CO, CH4, CO2), Kopparapu c and d coefficients and the 5 and 0.1 Earth-mass sets, occurrence of Titan-, Pluto-, Venus-like bodies, abiotic-O2 frequency ([R2769] body).
+- **R7** (i6): Lava-world vapor: [R3059] numeric Type I to V tables, [R3943], LavAtmos [R4488], and the fraction of lava worlds that keep volatiles (JWST 55 Cnc e and other targets).
+- **R8** (j1, j2, j3, j4, j5): Evolved and frost atmospheres: [R1445, R1708] vapor pressures (N2, CO, CH4, CO2), Kopparapu c and d coefficients and the 5 and 0.1 Earth-mass sets, occurrence of Titan-, Pluto-, Venus-like bodies, abiotic-O2 frequency ([R2769] body).
 - **R9** (k1, k2, k3, k4, k5, k7): Comet coma classes and ratios: Harrington [R3535] full per-comet table (the class fractions here are a SNIPPET), [R0436, R3206], Dello [R0048, R1063], and a second comet with O2, noble gases, N2.
 - **R10** (a4, l1, l2, l3): White-dwarf and pulsar planets: [R4532] body, polluted-WD debris compositions beyond Doyle's six, atmospheres of pulsar planets (none found).
 - **R11** (m2, m3, m4, m5, m6, m11): Trace gases: [R1813] NOx and N2O, [R1137] numeric abiotic O3, [R0233] PH3, other [R3945] inventories (HCl, HF by composition), lightning yields.
-- **R12** (n6, n7): Clouds and hazes: [R1513] width of the 950 K crossover, [R2009] yield against T and C/O, H2SO4-H2O vapour curve, perchlorate and carbonate decomposition equilibria.
+- **R12** (n6, n7): Clouds and hazes: [R1513] width of the 950 K crossover, [R2009] yield against T and C/O, H2SO4-H2O vapor curve, perchlorate and carbonate decomposition equilibria.
 - **R13** (o2, o3, o4, o6): Radioisotopes: Th, U, K against [Fe/H] and Galactic population (Frebel and Hill cosmochronometers), K volatile depletion by body class, [R4687] oceanic crust, 26Al abundance spread between systems.
 - **R14** (p6): Initial-rotation distribution to weight Tu 2015 tracks, and tau_sat against stellar mass for M dwarfs (MUSCLES-type samples).
 - **R15** (g1, g4): Brown-dwarf type-Teff relation and the T/Y boundary near 500 to 700 K from an observational compilation; hot young end above 2200 K.
@@ -278,7 +278,7 @@ Every DESIGN row, grouped by the research that would source it. Until then the g
 3. **NOAIR classes.** C, D and S have `atmosphere` None in every zone; `CLASS_MIXES` has no key for them, so a pressure would fall to DEFAULT_MIX (N2 .78, O2 .2). Table d can give them trace or tenuous air (part 04 and the design doc say a 2 to 10 Earth-mass rock in e or c is far inside the shoreline).
 4. **Free O2 without life.** CLASS_MIXES has O2 0.10 (G), 0.25 (H), 0.30 (L), 0.22 (O, P), 0.15 (Q), 0.08 (V). Abiotic O2 needs water loss around M or K stars (part 04 s3.6); PLANET_CLASS_MAX_LIFE_STAGE caps G at photosynthesis but no rule ties O2 to life stage. L has Ar 0.60, far above the radiogenic budget (Earth: Ar 0.93 % with about 43 % of 40Ar degassed, part 07 s2.10).
 5. **E and F.** Text and mixes (E: H2O .55, CH4 .25, NH3 balance; F: CO2 .60, CH4 .20, NH3 balance) put NH3 and CH4 in 340 to 400 K air; NH3 appears in part 05 only at 800 K and 100 bar for dIW<=1 and is photolysed fast (part 04); redox rows a5 to a7 should select these mixes.
-6. **N.** Text says "dense, reducing mix of CO2 and sulfides"; CLASS_MIXES is oxidised (CO2 .965, SO2 1.5e-4, H2S 1e-4). Sulfur is H2S only below dIW about +2.5 (part 05 s3.4). There is no hot-zone Venus-like letter (N is e only; A, B are small).
+6. **N.** Text says "dense, reducing mix of CO2 and sulfides"; CLASS_MIXES is oxidized (CO2 .965, SO2 1.5e-4, H2S 1e-4). Sulfur is H2S only below dIW about +2.5 (part 05 s3.4). There is no hot-zone Venus-like letter (N is e only; A, B are small).
 7. **I, J, T mixes.** One CH4 3e-3, H2O 1e-3, H2S 1e-4 (T: CH4 .02) for every zone. Part 05 s7.4: CH4 holds carbon only below about 500 K; J in zone h is a hot Jupiter (CO, tables h); H2O and H2S are cloud-depleted in cold giants.
 8. **Redox.** Repo mean dIW 3.5 + 2 log10 M (a2) against magma-ocean +0.5 at 1 Earth mass (a1, Sossi); REDOX_OXIDIZED_DELTA_IW=2.5 equals the a7 cut (consistent). Meteoritic dIW is -1.4 to 0.
 9. **Brown dwarfs** have no class letter (planet_class NULL; rogue-eligible letters are C D I J S T only); their type must come from Teff (table g). Part 05 s7.4 leaves 500 to 700 K uncovered (row g4 added).

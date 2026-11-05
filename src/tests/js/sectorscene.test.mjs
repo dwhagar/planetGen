@@ -237,7 +237,6 @@ test("the remnant in the scene is painted from its age, a plain shell when it ha
 
 test("with volumeSingles a nebula is drawn by the host from its own points: the sphere is only picked, and the sources follow the fade and the hidden kind (MAP.142)", () => {
   const data = structuredClone(F.sectorMap.data);
-  data.nebulaShapePath = "/galaxy/nebula/{id}/shape";
   const sector = SS.buildSectorScene(data, { origin: [10, 20, 30], unit: 1, flipY: false, pixelRatio: 1, volumeSingles: true });
   const nebulae = data.clouds.filter((c) => c.kind === "nebula" && c.nebulaId != null);
   assert.ok(nebulae.length, "the fixture sector holds a nebula");
@@ -258,7 +257,6 @@ test("with volumeSingles a nebula is drawn by the host from its own points: the 
   sector.setFade(1);
   sector.setKindHidden("nebula", true);
   assert.equal(sector.nebulaSources()[0].weight, 0, "a hidden kind draws nothing");
-  assert.equal(sector.nebulaMeshCount(), 0, "no shape mesh is asked for");
 });
 
 test("without volumeSingles a scene lists no nebula sources", () => {
