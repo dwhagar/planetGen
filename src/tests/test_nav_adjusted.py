@@ -135,3 +135,25 @@ def test_a_cloud_off_the_line_is_not_listed_and_the_names_of_bent_objects_come_w
     adjusted = _nav(mysql_config, west, east, adjusted=True)["adjusted"]
     assert adjusted["passed_through"] == []
     assert list(adjusted["names"]) == [f"asteroid_field:{field_id}"] and adjusted["names"][f"asteroid_field:{field_id}"]
+
+
+def test_a_field_between_two_systems_of_one_sector_bends_the_sector_scale_course_too(mysql_config):  # NAV.51
+    first, second = _save_grid_sector(mysql_config, "Same", 0, [(-3.0, 0.0, 0.0), (3.0, 0.0, 0.0)])
+    straight = _nav(mysql_config, first, second, adjusted=True)
+    assert straight["scope"] == "sector" and straight["adjusted"]["avoided"] == []
+    start, end = straight["adjusted"]["waypoints"][0]["p"], straight["adjusted"]["waypoints"][-1]["p"]
+    middle = [(a + b) / 2.0 for a, b in zip(start, end)]
+    field = AsteroidField(SystemConfig())
+    field.radius_ly = 1.0
+    placement = {"center_x_pc": middle[0], "center_y_pc": middle[1] + 0.01, "center_z_pc": middle[2],
+                 "galactic_radius_pc": math.hypot(middle[0], middle[1])}
+    conn = store.get_connection(mysql_config)
+    try:
+        field_id = store.insert_asteroid_field(conn, field, placement=placement)
+        conn.commit()
+    finally:
+        conn.close()
+    result = _nav(mysql_config, first, second, adjusted=True)
+    assert result["scope"] == "sector"
+    assert result["adjusted"]["avoided"] == [f"asteroid_field:{field_id}"]
+    assert result["adjusted"]["length"] > result["adjusted"]["straight_length"]
