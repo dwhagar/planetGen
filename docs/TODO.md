@@ -14511,6 +14511,182 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1259. Related: GEN.1259, GEN.1068, GEN.1156,
   GEN.725.
 
+- [ ] **GEN.1262 Temperature coverage part 1: the shared illumination series (physics/surface_cycle.py): cosine of the zenith angle per latitude-longitude cell and time step, with GEN.1260's spell search moved onto it**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: build the illumination series (a new
+  physics/surface_cycle.py, used by the extended
+  physics/seasonal_swing.py of part 2): cells of about 12 by 12 equal
+  area, time over one orbit in steps of at most solar day over 48,
+  thermal time constant over 4 and year over 3000; the cosine of the
+  zenith angle from vector geometry (spin axis tilted by the stored tilt
+  from the orbit normal, planet turning at the rotation rate, star
+  direction turning at the orbital rate), the ring shade multiplying it;
+  no case for locked, retrograde, slow or near-resonance bodies, all
+  come out of the one formula. GEN.1260's spell search is rebuilt on
+  this series and its stored values must come out the same within
+  rounding (the same inputs, only the code path moves). Lock-free (no
+  stored value changes, no draws). Done: unit tests for a locked body,
+  tilt over 90, a 28 day spinner near resonance, and Earth; GEN.1260's
+  tests green on the new module. Proposed owner: Aux 2 (GEN.1260 owner),
+  after GEN.1260 part 2 merges. Filed by the TODO thread.
+  Prerequisites: GEN.1260. Related: GEN.1260, GEN.1108.
+
+- [ ] **GEN.1263 Temperature coverage part 2: the temperature series: one energy balance per cell, anchored so the area-and-time mean equals the stored mean**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: extend physics/seasonal_swing.py
+  (GEN.1039) with the temperature series by longitude and time of day
+  (physics/surface_cycle.py holds the shared parts): heat capacity C
+  dT/dt = absorbed starlight minus emitted heat minus air transport, C
+  the air column (c_p P over g) plus the ground skin at the solar day
+  (existing AIR_CP_J_KG_K and GROUND_INERTIA); emission scaled so the
+  mean matches; transport pulls each cell toward the world mean by the
+  existing share (transport_share, and LOCKED_TRANSPORT_X0 for a locked
+  world); after the run the series is shifted so the area-and-time mean
+  is exactly the stored mean, so the stored mean stays the anchor; the
+  production form linearises about the cell mean and filters the series
+  in one FFT (about 20 ms a rocky body) with one re-linearisation pass
+  for airless extremes. Ocean and ice are IN this build (Boss, 7:35 PM
+  EST on 2026-11-04, folding the old option 3 into option 1): the heat
+  capacity of a cell follows its ocean share (ocean_fraction,
+  ground_ocean_fraction; an ocean's mixed layer holds far more heat than
+  land or air, so coasts and seasons damp) and its albedo follows its
+  ice share (ground_ice_fraction, with the GEN.972 ice-albedo law), per
+  place. Extend physics/seasonal_swing.py (GEN.1039, the
+  latitude-by-season energy balance from tilt, eccentric orbit and air
+  transport, solved to a closed year; nothing calls it yet, GEN.1048 was
+  to wire it) with the longitude and time-of-day dimension instead of
+  building a second model. Register in GEN.725 the stand-ins: the locked
+  transport share (needs a published check against locked-planet
+  circulation models), the cell resolution, the ocean mixed-layer depth
+  and the sea-ice cover law if no sourced one is found. Lock-free (a
+  pure function, nothing stored yet). Done: tests against the report's
+  prototype table shape (thick-air locked world fully livable, 0.1 bar
+  locked about a quarter livable, Nitrikin-like 1 bar versus 0.3 bar),
+  the mean preserved to rounding, and the timing in the note. Proposed
+  owner: Aux 2. Filed by the TODO thread.
+  Prerequisites: GEN.1262, GEN.1039, GEN.972. Related: GEN.725,
+  GEN.1039, GEN.1048, GEN.972, GEN.1147.
+
+- [ ] **GEN.1264 Temperature coverage part 3: what is read off the series: Blue, Green, cold and hot shares, livable time, coldest and hottest hour, best site, longest spell out of the livable band**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: pure functions over the temperature
+  series: area (cosine of latitude weighted) and time shares in each PHI
+  band (Blue, Green, Yellow, Red) with cold (below -20 C) and hot (above
+  45 C) separate; livable time at each place and so the area livable all
+  the time, at least 90 percent of the time and at some time; the one
+  livable share L (area times time) with its two pieces, livable area
+  and livable time at a typical place; the coldest and hottest hour
+  anywhere and by latitude band, by longitude (locked: day side,
+  terminator, night side) and by season; the longest unbroken spell out
+  of the livable band at the best place; the best site (largest livable
+  share, ties to the more moderate). The wet-bulb rule is applied per
+  sample to the hot samples. Lock-free (functions only). Done: tests on
+  the report's ten example worlds. Proposed owner: Aux 2. Filed by the
+  TODO thread.
+  Prerequisites: GEN.1263.
+
+- [ ] **GEN.1265 Temperature coverage part 4 (lock): the temperature score from the coverage share, the new stored columns, and the migration**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: replace the mean-based temperature_score
+  in habitability.py with the coverage score: livable share L and the
+  Blue-band share B turned into a numeric score by interpolation so the
+  geometric mean still works; the Blue cut is lenient so Earth reads
+  Blue (near 0.8 livable share), the Green edge and the Yellow edge
+  cut-offs set on a sweep and registered in GEN.725 (tier and tweak
+  level stated, L3 when tuned on a sweep); the old mean is not kept as a
+  cap; a locked world livable only in the terminator belt reads Yellow
+  with a plain note; the wet-bulb rule per sample. Store the new columns
+  (the livable share and its two pieces, the Blue, Green, cold and hot
+  shares, the area livable all the time and at least 90 percent of the
+  time, the best site, the extremes, the longest spell out of the band)
+  with db/column_units.py, a migration, the models, the API object and a
+  bring-to-epoch column recompute (the dose-refresh path); re-derive the
+  seven latitude bands (bandN_mean_k, bandN_swing_k) from the same
+  series so the bands and the score agree. The sweep that sets the Blue
+  cut also checks cold-mean worlds with warm regions and hot-mean worlds
+  with cool regions, since a score can now rise as well as fall. No
+  random draws change. Lock item: migration, golden and epoch; the
+  TEST.430 prevalence census is re-baselined after it. Proposed owner:
+  Core 5 (habitability and API columns), after DOC.103. Filed by the
+  TODO thread.
+  Prerequisites: GEN.1264. Related: GEN.725, TEST.430.
+
+- [ ] **GEN.1266 Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9): time-stepped
+  cell model for every body; livable is the Green band, -20 to 45 C; one
+  livable share (area times time) shown as two pieces; Earth reads Blue
+  through a lenient Blue cut near 0.8 livable share, set on a sweep and
+  registered in GEN.725; required gear from the best site at its worst
+  hour plus a note naming the worst conditions elsewhere; hours outside
+  from the best site's own series with a worst-to-best range; a locked
+  world livable only in the terminator belt reads Yellow with a plain
+  note; the old mean is NOT kept as a cap, so a score can rise as well
+  as fall; the wet-bulb rule applies per sample; registered stand-ins
+  accepted (locked transport share, thresholds, no ocean or ice in the
+  first pass). Order: GEN.1260 first with the shared illumination
+  series, then the score. Do: equipment.py reads the required gear from
+  the best site at its worst hour, and adds a note naming the worst
+  conditions elsewhere (the heavier gear recommended and where and
+  when); outside_hours reads the best site's own coldest and hottest
+  hour, the longest out-of-band spell sets the hours you can stay out,
+  and a range from the worst to the best site is shown; a locked world
+  keeps the 24 hour shift at the terminator with the ring's real range;
+  the descriptive text says 'livable only in the terminator belt' where
+  it applies; the habitability design doc replaces decision C
+  (habitability from the mean). Rides the same train as part 4 (same
+  migration or a second one, golden and epoch). Proposed owner: Core 5.
+  Filed by the TODO thread.
+  Prerequisites: GEN.1265. Related: GEN.768.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15150,6 +15326,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   machine, with the sample size and margin in the test. Proposed owner:
   Bug 1 (PERF.229 owner). Filed by the TODO thread.
   Prerequisites: none. Related: PERF.229, TEST.430.
+
+- [ ] **PERF.238 Temperature coverage cost: the illumination and temperature series must stay about 20 ms a rocky body in bulk generation and in the bring-to-epoch recompute**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9). Do: measure
+  the series and read-offs (GEN.1262 to GEN.1264) on a 600-system draw
+  and on the recompute of a real galaxy, set the step budgets so a body
+  costs about 20 ms, and add the figure to the performance guard.
+  Lock-free. Done: the measured cost in the note and a test with a
+  budget. Proposed owner: Aux 3, after GEN.1263. Filed by the TODO
+  thread.
+  Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
 ## DB: Database and schema
 
@@ -18388,6 +18575,21 @@ clears each one.
   not exit zero). Done: the test green alone and in the changed gate.
   Proposed owner: Bug 1, with TEST.580. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580.
+
+- [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
+  Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
+  (reports/temperature-coverage-2026-11-04.md, section 9). Do: sweep the
+  livable share over many generated worlds plus the report's ten example
+  worlds, set the lenient Blue cut near 0.8 so Earth reads Blue and the
+  Green and Yellow edges, register each as a stand-in in GEN.725 with
+  tier and tweak level (L3 when tuned on the sweep); the score now rises
+  as well as falls, so check cold-mean worlds with a large warm region
+  and hot-mean worlds with cool regions and list which read higher and
+  lower than the old mean-based score; re-baseline the TEST.430
+  prevalence census after GEN.1265. Done: the sweep report in reports/,
+  the registered thresholds, and the census green. Proposed owner: Bug 1
+  (prevalence census owner), after GEN.1265. Filed by the TODO thread.
+  Prerequisites: GEN.1265. Related: GEN.1265, TEST.430, GEN.725.
 
 ## USR: User accounts
 
