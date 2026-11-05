@@ -723,6 +723,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '      <option value="luminosity">Luminosity</option>\n'
             '      <option value="stars">Star count</option>\n'
             '      <option value="habitable">Habitable worlds</option>\n'
+            '      <option value="cover">Nebula cover</option>\n'
             '    </select></label>\n')
         legend_block = (
             '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'

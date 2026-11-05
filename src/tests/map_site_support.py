@@ -657,6 +657,14 @@ def _stats(ids):
             "mass_kg": sum(r[5] for r in rows)}
 
 
+COVER_SHARES = (0.0, 0.002, 0.01, 0.02, 0.08)
+
+
+def cover_of_fixture_cell(shell, band, wedge):
+    """The nebula cover (a share of the cell) the fixture gives the cell at this address: every step of the colour in turn, and none."""
+    return COVER_SHARES[(shell * 7 + band * 3 + wedge) % len(COVER_SHARES)]
+
+
 def _children(counts):
     return [{"shell": b.shell, "band": b.band, "wedge": b.wedge, "generated": len(ids), "stats": _stats(ids)}
             for b, ids in sorted(counts.items(), key=lambda item: (item[0].shell, -item[0].band, item[0].wedge))]
@@ -845,8 +853,19 @@ class FixtureApi:
         return {"username": "fixture-admin", "must_change_credentials": False} if cookie_header else None
 
     def get_galaxy_nebula_cover(self, db, at=None, g=None):
-        """No fixture cell lies inside a nebula, and the real API is not asked for a database that does not exist."""
-        return {"at": at, "child_m": 1, "cells": []}
+        """`GET /api/galaxy/nebula-cover` over the fixture cells (MAP.177): a share from `COVER_SHARES` for every cell a stage or a
+        window shows, by its address, so the map's Nebula cover colour has every step to draw; a sector's cells have none. The real
+        API is not asked for a database that does not exist."""
+        if g is not None:
+            window = self.get_galaxy_window(db, at, g)
+            child_m, cells = window["child_m"], window["cells"]
+        else:
+            stage = galaxy_stage(at or None)
+            child_m, cells = stage["child_m"], [[c["shell"], c["band"], c["wedge"]] for c in stage["children"]]
+        if child_m == 1:
+            return {"at": at, "child_m": 1, "cells": []}
+        return {"at": at, "child_m": child_m,
+                "cells": [[*cell, cover_of_fixture_cell(*cell)] for cell in sorted(cells) if cover_of_fixture_cell(*cell) > 0]}
 
     def get_galaxy_charted_regions(self, db):
         """`GET /api/galaxy/charted-regions` over `SECTORS`: one region per 9-block that holds a fixture sector (`charted_regions`),
