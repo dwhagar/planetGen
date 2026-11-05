@@ -21,16 +21,16 @@
       "T6": 271,
       "T7": 66,
       "T8": 8,
-      "T9": 142
+      "T9": 144
     },
     "by_tweak": {
-      "L0": 635,
+      "L0": 637,
       "L1": 243,
       "L2": 54,
       "L3": 174,
       "L4": 40
     },
-    "rows": 1146
+    "rows": 1148
   },
   "tiers": [
     [
@@ -108,8 +108,8 @@
   ],
   "verdict": {
     "chosen_for_the_output": {
-      "percent": 12,
-      "rows": 142
+      "percent": 13,
+      "rows": 144
     },
     "educated_guess_from_physics": {
       "percent": 36,

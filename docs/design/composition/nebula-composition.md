@@ -30,7 +30,7 @@ Krumholz, McKee and Tumlinson's form is checked only in its chi coefficient and 
 
 ## 4. What is stored (GEN.1276, GEN.1277)
 
-**Nebulae and remnants** (GEN.1276): `physics/nebula_columns.py` turns a row into the columns of `nebulae` and `supernova_remnants` (DOUBLE, searchable through the API object lists), at insert and in migration 0205. `composition` and `dominant_species` are written from the stored numbers.
+**Nebulae and remnants** (GEN.1276): `physics/nebula_columns.py` turns a row into the columns of `nebulae` and `supernova_remnants` (DOUBLE, searchable through the API object lists), at insert and in migration 0212. `composition` and `dominant_species` are written from the stored numbers.
 
 **Field clouds** (GEN.1277, design note). About 163,000 rows in `nebula_field` (classes M and N) carry only a cell, a class, a radius and a place, about 70 bytes a row. Two ways to add the composition were weighed:
 
@@ -39,5 +39,5 @@ Krumholz, McKee and Tumlinson's form is checked only in its chi coefficient and 
 
 Table growth: from about 11 MB of data to about 29 MB, and a plan writes it in the same pass that already draws the cloud (no second pass).
 
-The key of a field cloud is its cell and place (`nebula_columns.field_key`: the cell index and the centre in milliparsecs), not its object ID, because the row exists at plan time and has none until a sector stores it. The `nebulae` row the cloud becomes is keyed the same way (a class M or N nebula with a centre, `row_key`), so the two read one composition; the stored nebula keeps full doubles and the field row the FLOAT of the same number. The cloud's density is the one its `Nebula` was drawn with (`cell_draw`), which differs from cloud to cloud inside the class range, so gas, dust and phases differ with it and with the place's gas. `field_cloud_density_cm3` is kept for a cloud the draw does not give back (a table planned under another seed), in migration 0206 only. No progenitor mass is stored: no class M or N cloud has a progenitor.
+The key of a field cloud is its cell and place (`nebula_columns.field_key`: the cell index and the centre in milliparsecs), not its object ID, because the row exists at plan time and has none until a sector stores it. The `nebulae` row the cloud becomes is keyed the same way (a class M or N nebula with a centre, `row_key`), so the two read one composition; the stored nebula keeps full doubles and the field row the FLOAT of the same number. The cloud's density is the one its `Nebula` was drawn with (`cell_draw`), which differs from cloud to cloud inside the class range, so gas, dust and phases differ with it and with the place's gas. `field_cloud_density_cm3` is kept for a cloud the draw does not give back (a table planned under another seed), in migration 0213 only. No progenitor mass is stored: no class M or N cloud has a progenitor.
 

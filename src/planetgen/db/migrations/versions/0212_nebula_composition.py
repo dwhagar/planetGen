@@ -1,6 +1,6 @@
 """The stored composition of every nebula and supernova remnant (GEN.1276).
 
-Schema v205. `nebulae` and `supernova_remnants` gain the columns of `physics/nebula_columns.py`: the gas's [O/H], the hydrogen, helium and metal mass fractions and those of C, N, O, Ne, S, Ar
+Schema v212. `nebulae` and `supernova_remnants` gain the columns of `physics/nebula_columns.py`: the gas's [O/H], the hydrogen, helium and metal mass fractions and those of C, N, O, Ne, S, Ar
 and Fe, their gas-phase abundances (12 + log(X/H)), the ionized, atomic and molecular shares of the hydrogen, the dust-to-gas and dust-to-metals ratios, the share of the dust in each
 grain kind and the progenitor's mass; a remnant adds the mass of its ejecta and of its swept-up gas and their hydrogen, helium and metal fractions. The rows already there are filled by the same
 model the generator runs (`nebula_columns.values_for`, keyed on the object's ID (a field cloud, class M or N, on its place), so the numbers are the ones a regeneration of the seed gives), and their `composition` and `dominant_species` are
@@ -13,8 +13,8 @@ from alembic import op
 from planetgen.db import alembic_runner
 from planetgen.db.migrations import helpers
 
-revision = "0205"
-down_revision = "0204"
+revision = "0212"
+down_revision = "0211"
 branch_labels = None
 depends_on = None
 
