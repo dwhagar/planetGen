@@ -90,13 +90,6 @@ def _reference_place(shape):
     return (radius * math.cos(angle), radius * math.sin(angle), 0.0)
 
 
-def _reference_place(shape):
-    """The Sun's place in the model: the reference radius (3.15 scale lengths) in the disk plane, between two arms."""
-    radius = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc
-    angle = density._interarm_angle(radius, shape)
-    return (radius * math.cos(angle), radius * math.sin(angle), 0.0)
-
-
 @pytest.mark.parametrize("name", sorted(CASES))
 def test_the_generated_naked_eye_sky_holds_the_share_of_the_real_one_that_was_measured(name, control_database):  # noqa: F811
     if WANTED not in (name, "all") and not (WANTED == "1" and name == "small"):
