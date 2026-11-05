@@ -25,10 +25,10 @@ What each draw returns is a `SmallBodyMakeup` (see `small_body_composition`) wit
 
 Use:
 
-    origin = draw_origin("giant")                                    # a Possibility; origin.row.name is "disk" or "captured"
-    inclination = draw_inclination_deg(origin.row.name)              # degrees to the parent's equator
+    origin = draw_origin("giant", moon_mass_kg)                       # "disk" or "captured"
+    inclination = draw_inclination_deg(origin)                       # degrees to the parent's equator
     system = draw_disk_system(parent_mass_kg)                        # tau, alpha/f, masses, ice line, f_inf
-    moon = draw_moon(origin.row.name, formation_km, system)          # SmallBodyMakeup
+    moon = draw_moon(origin, formation_km, system)                   # SmallBodyMakeup
 """
 
 import math
@@ -90,17 +90,16 @@ ORIGIN_TABLE = pt.REGISTRY.register(pt.Table(
 """Table: The moon origin rows (every weight open)."""
 
 
-def draw_origin(kind, has_ring=False, roche_ratio=math.inf):
+def draw_origin(kind, mass_kg, has_ring=False, roche_ratio=math.inf):
     """
-    The origin of a moon of a parent of `kind`. A `Possibility`: `.row.name` is `disk`, `impact`, `captured`, `ring` or `binary`.
+    The origin of a moon of `mass_kg` of a parent of `kind`: `disk`, `impact`, `captured`, `ring` or `binary`, drawn with `origin_probabilities` (the `captured` row weighs less the heavier the moon, GEN.1083).
     The origin comes first and the orbit follows from it (`draw_inclination_deg`).
 
     Raises:
-        PossibilityError: No row supports the moon (cannot happen for the three kinds).
+        ValueError: The parent kind is none of `PARENT_KINDS` or the mass is not positive.
     """
-    if kind not in PARENT_KINDS:
-        raise ValueError(f"the parent kind {kind!r} is none of {PARENT_KINDS}")
-    return ORIGIN_TABLE.draw(kind, {"has_ring": 1 if has_ring else 0, "roche_ratio": roche_ratio})
+    probabilities = origin_probabilities(kind, mass_kg, has_ring, roche_ratio)
+    return draw.choices([name for name, _p in probabilities], weights=[p for _name, p in probabilities], k=1)[0]
 
 
 def captured_weight(mass_kg):

@@ -156,16 +156,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.93:MT7 | GEN.1048 | `mantle_stripping.IMPACT_ANGLE_DEG` of the mantle stripping module, read when its wiring step lands |
 | module | planetgen.physics.hycean_candidate | GEN.1047 | the Hycean box as a flag on the classes T, I and V; the oddity line names the planets it selects when the oddity wiring lands |
 | row | 6.79:HC1 | GEN.1047 | the four ranges of the Hycean box, read when its wiring step lands |
-| module | planetgen.physics.irregular_zone | GEN.1083 | the stable limits, Kozai band and inner edge of the irregular zone; the irregular orbit draw (GEN.1078) and the captured-moon wiring will call it |
-| row | 6.94:IZ1 | GEN.1083 | a constant of the irregular zone module, read when its wiring step lands |
-| row | 6.94:IZ2 | GEN.1083 | a constant of the irregular zone module, read when its wiring step lands |
-| row | 6.94:IZ3 | GEN.1083 | a constant of the irregular zone module, read when its wiring step lands |
 | module | planetgen.physics.rogue_collision | GEN.1103 | the rate, disruption speed, largest remnant, fragment speeds and shock of a rogue-rogue collision; the field columns and host rule (GEN.1103, GEN.1104) call it |
-| module | planetgen.physics.irregular_orbits | GEN.1083 | the a / r_H, eccentricity, inclination and family draw of irregular moons; the captured-moon wiring will call it |
-| row | 6.96:IO1 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
-| row | 6.96:IO2 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
-| row | 6.96:IO3 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
-| row | 6.96:IO4 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | module | planetgen.galaxy.rogue_density | GEN.1111 | the smoothed star density a rogue is drawn from (lock-free, GEN.1115); the virtual-donor sector draw takes its Poisson mean from it and the low-zoom map reads `old_density` |
 | row | 6.102:RSM1 | GEN.1111 | `rogue_density.RADIAL_SMOOTH_PC`, read when the wiring step lands |
 | row | 6.102:RSM2 | GEN.1111 | `rogue_density.VERTICAL_SMOOTH_PC`, read when the wiring step lands |
@@ -207,21 +198,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP5 | GEN.1092 | `resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT`, read when the wiring step lands |
 | row | 6.116:RGP6 | GEN.1092 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1092 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
-| module | planetgen.physics.irregular_population | GEN.1083 | the capture windows, ground-down count and stored irregulars of a planet (lock-free, GEN.1077); the captured-moon wiring calls `make_pool`, `draw_irregulars` and `draw_exchange` |
-| row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISC_MASS_EARTH`, read when the captured-moon wiring lands |
-| row | 6.118:IP2 | GEN.1083 | `irregular_population.CAPTURED_DENSITY_KG_M3`, read when the captured-moon wiring lands |
-| row | 6.118:IP3 | GEN.1083 | `irregular_population.ENCOUNTER_YIELD`, read when the captured-moon wiring lands |
-| row | 6.118:IP4 | GEN.1083 | `irregular_population.REFERENCE_HILL_AU`, read when the captured-moon wiring lands |
-| row | 6.118:IP5 | GEN.1083 | `irregular_population.GAS_WINDOW_STRENGTH`, read when the captured-moon wiring lands |
-| row | 6.118:IP6 | GEN.1083 | `irregular_population.GAS_SIZE_WINDOW_KM`, read when the captured-moon wiring lands |
-| row | 6.118:IP7 | GEN.1083 | `irregular_population.EXCHANGE_CHANCE`, read when the captured-moon wiring lands |
-| row | 6.118:IP8 | GEN.1083 | `irregular_population.EXCHANGE_MIN_RADIUS_KM`, read when the captured-moon wiring lands |
-| row | 6.118:IP9 | GEN.1083 | `irregular_population.TEMPORARY_MIN_PLANET_RADII`, read when the captured-moon wiring lands |
-| row | 6.118:IP10 | GEN.1083 | `irregular_population.DISRUPTION_SIZE_RATIO`, read when the captured-moon wiring lands |
-| row | 6.118:IP11 | GEN.1083 | `irregular_population.MODEL_MIN_RADIUS_KM`, read when the captured-moon wiring lands |
-| module | planetgen.physics.captured_composition | GEN.1083 | the taxon, ice and density of a captured body from its source and a family's lumps (lock-free, GEN.1080); the captured-moon wiring calls `compose`, `draw_parent` and `fragment` |
-| row | 6.119:CP1 | GEN.1083 | `captured_composition.FEEDING_ZONE_HILL_RADII`, read when the captured-moon wiring lands |
-| row | 6.119:CP3 | GEN.1083 | `captured_composition.PARENT_LUMPS`, read when the captured-moon wiring lands |
 | module | planetgen.physics.trojans | GEN.1150 | what may sit at L4 and L5 of a pair: mass rule, libration, swarm split, map label (lock-free); the generator draw and the map icon call it |
 | row | 6.121:TJ1 | GEN.1150 | `trojans.MU_CRIT`, read when the swarm draw lands |
 | row | 6.121:TJ3 | GEN.1150 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
@@ -256,9 +232,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.density.component_masses | by design | each density component's closed-form mass (GEN.379), the total `test_density_components` holds the numerical integral (`integrated_masses`) to; the potential (GEN.338) reads the component masses from `density_components` directly |
 | function | planetgen.galaxy.density.predicted_star_count | by design | the sector gate of the density design (`predicted_star_count >= 1`) as one pure function of the position; `run_plan` and the sector profile apply the same product with the clamp at 0 inline, and the tests use this as the rule's definition |
 | function | planetgen.galaxy.object_uid.is_on_demand | GEN.1161 | a belt or field member above the individually stored count is drawn on demand, never stored; the member ledger wires it |
-| function | planetgen.galaxy.object_uid.captured_member | GEN.1083 | the designation and parent link of a belt member a planet has captured; the irregular-moon wiring prints it |
-| function | planetgen.galaxy.object_uid.outside_reservoir_member | GEN.1083 | the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it |
-| function | planetgen.galaxy.object_uid.parse_captured | GEN.1083 | reads a captured body's designation and link back; the irregular-moon wiring and the designation cascade (GEN.1141) use it |
+| function | planetgen.galaxy.object_uid.captured_member | GEN.1084 | the designation and parent link of a belt member a planet has captured; the irregular-moon wiring prints it |
+| function | planetgen.galaxy.object_uid.outside_reservoir_member | GEN.1084 | the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it |
+| function | planetgen.galaxy.object_uid.parse_captured | GEN.1084 | reads a captured body's designation and link back; the irregular-moon wiring and the designation cascade (GEN.1141) use it |
 | function | planetgen.galaxy.region_run.next_units | GEN.1128 | the barrier of the region run (stages 0 to 2 for every unit, then the top-up); the command wires it when the top-up stage exists |
 | function | planetgen.galaxy.spherical.shell_cells | by design | every cell of one shell in order, the independent reference the grid tests count, sum volumes and compare neighbours against; the generator reaches cells by band ranges and never walks a whole shell |
 | function | planetgen.galaxy.star_formation.star_formation_rate_profile | by design | the present star-formation rate against radius that `test_star_formation_profile` compares with the observed profile; the generator reads `recent_factor`, never the profile |
@@ -302,7 +278,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.mass_radius_sample.observed_sampler | by design | the simulated mass and radius sample of the iron branch tuning: the simulated side of the `mass_radius_sample` selection model, run by test_mass_radius_sample and test_iron_branch through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
 | function | planetgen.physics.mass_radius_sample.population_pass_fraction | by design | the share of a population that passes the measurement cut: the simulated side of the `mass_radius_sample` selection model, run by test_mass_radius_sample and test_iron_branch through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |
 | function | planetgen.physics.materials.class_composition | by design | the rows a planet class text names; read by test_materials_table, which fails when a class text of `tuning.PLANET_CLASSES` resolves to no row |
-| function | planetgen.physics.moon_composition.origin_probabilities | GEN.1083 | the probabilities of a moon's origin with the captured row weighted by its mass (`captured_weight`, GEN.1081); the captured-moon wiring weights the origin draw with them |
 | function | planetgen.physics.moon_orbits.drift_rate_m_s | by design | the instantaneous `da/dt` of one moon at a given spin; `evolve` integrates all moons together and does not call it, the tests use it to hold the Earth-Moon recession (3.8 cm a year), Phobos and Triton to the torque |
 | function | planetgen.physics.neutron_star.radius_limits_km | by design | the radius bounds of the equation-of-state spread, read by the plausibility gate (phenomena_plausibility, test_phenomena_plausibility, its batch CLI) and test_neutron_star_radius |
 | function | planetgen.physics.neutron_star_structure.integrated_maximum_mass_solar | by design | the integrated maximum mass of an equation of state, read by scripts/build_neutron_star_table.py (run by hand when the table is rebuilt) and test_neutron_star_structure_real |

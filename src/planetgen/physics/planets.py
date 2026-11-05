@@ -1089,7 +1089,7 @@ def generate_moons(planet, moon_count=None):
         moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
         moon_distance = _km_to_au(moon_distance_km)
         # GEN.714: the origin comes first and the orbit follows from it
-        origin = moon_composition.draw_origin(parent_kind).row.name
+        origin = moon_composition.draw_origin(parent_kind, moon_mass)
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           mass=moon_mass, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,

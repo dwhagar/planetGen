@@ -21,7 +21,8 @@ the system.
 import dataclasses
 import math
 
-from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation import irregular_moons
+from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
@@ -496,6 +497,8 @@ class StarSystem:
         if self.unmet_requirements:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
+
+        self._add_irregular_moons()
 
         # Comets don't participate in the planet-slot retry loop above --
         # see _generate_comets' own docstring for why -- so they're rolled
@@ -1380,6 +1383,21 @@ class StarSystem:
         if brightest is not None:
             belt = brightest[1]
             holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
+
+    def _add_irregular_moons(self):
+        """
+        Gives every planet that orbits a star its irregular moons (GEN.1083, `generation/irregular_moons.py`): the small bodies it caught from the outer disc of its star's bodies and from its own feeding zone. It runs once the
+        planets, belts and ages are final, so the outer disc, the instabilities of the architecture (`capture_windows`) and the regular moons are all known; a planet of a star with no outer disc has none. Nothing is stored yet.
+        """
+        hosts = [(self.planets, self.star)]
+        if self.binary_type == "wide":
+            hosts.append((self.secondary_planets, self.secondary_star))
+        hosts += [(bodies, star) for star, bodies in self.member_hosts()]
+        for bodies, star in hosts:
+            source = irregular_moons.source_of(bodies, star, self.capture_windows(star), star_al26_ratio(self.system_config, star))
+            for body in bodies:
+                if body.body_type != 'a' and not body.is_moon:
+                    body.irregulars = irregular_moons.for_planet(body, source)
 
     def capture_windows(self, star):
         """
