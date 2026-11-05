@@ -485,7 +485,7 @@ def test_gen1108_a_planets_page_has_the_climate_by_latitude_table_between_the_at
     assert page.index('id="sheet-atmosphere"') < page.index('id="sheet-bands"') < page.index('id="sheet-composition"')
     table = page.split('id="sheet-bands"')[1].split("</section>")[0]
     assert "Climate by latitude" in table and "North polar" in table and "South polar" in table and "Equator" in table
-    assert "Annual mean temperature" in table and "Longest day of the year" in table and "Polar day and night" in table
+    assert "Annual mean temperature" in table and "Longest unbroken day" in table and "Polar day and night" in table
     assert "no day and night range stored" not in page
 
 
