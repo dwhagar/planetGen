@@ -33888,9 +33888,9 @@
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "VIEW.41",
-            "the cell visit budget goes when a coarser block draw serves the sparse luminosity bands"
+            "no data",
+            "-",
+            "the visit budget is a serving limit chosen so a dust-free sky drops nothing; a coarser block draw for the sparse luminosity bands (a new draw and an epoch, not yet filed) would remove the need for it"
           ],
           "fields": [
             [
@@ -34005,7 +34005,11 @@
           "what": "sky_tiers.BLOCK_VISIT_SECONDS 4e-5: what the sphere draw spends on a row or a block, one worker, warm, in the far bands that hold most of the visits"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the near-ring mass edges are spaced by hand over the lightest stars the sampler draws; a spacing taken from the mass-luminosity relation would replace them"
+          ],
           "fields": [
             [
               "What it is",
@@ -34043,7 +34047,11 @@
           "what": "sky_tiers.NEAR_RING_MASSES_SOL (0.1, 0.3, 0.5, 0.7, 0.85): the mass edges under 1 solar mass the sky's rings add, so the stars born lighter than the Sun that show near the observer are drawn"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the ring yield is a cost set by hand (100 stars drawn for each one that shows, as the heavier rings do); a cost per visible star set by the queue would replace it"
+          ],
           "fields": [
             [
               "What it is",
@@ -34081,7 +34089,11 @@
           "what": "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the local mix weighs the young, intermediate and old populations alike, as near the Sun; the populations' densities at the observer, which a caller can pass, would replace it"
+          ],
           "fields": [
             [
               "What it is",
@@ -34847,6 +34859,220 @@
       "title": "Stand-ins of the progenitor and ejecta of a planetary nebula"
     },
     {
+      "key": "6.180",
+      "number": "6.180",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the soft knee of the glow image is chosen by eye so the band shows at the faint end and the core does not clip; a display model of the eye's response to surface brightness would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skyband.PEAK 0.4 and GAIN 0.5: the soft knee that turns a glow value into the share of white the band is drawn at, PEAK (1 - exp(-GAIN v))"
+            ],
+            [
+              "The range it moves in",
+              "PEAK 0.2 to 0.6, GAIN 0.3 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "the glow image's values of 0.4 to 1.5 (the Milky Way at the Sun, 21.6 to 23.0 mag per square arcsec)"
+            ],
+            [
+              "What would show it wrong",
+              "a band that is blown out at the core or is not seen at the edge on a dark monitor in a dark room"
+            ],
+            [
+              "What replaces it",
+              "a display model that maps the surface brightness to the eye's response (a tone curve fitted to the dark-adapted sky)"
+            ],
+            [
+              "Evidence",
+              "chosen by eye so the band shows at the faint end and the core does not clip; no source"
+            ]
+          ],
+          "id": "SKD1",
+          "key": "6.180:SKD1",
+          "kind": "P",
+          "slug": "6-180-skd1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skyband.PEAK 0.4 and GAIN 0.5: the soft knee that turns a glow value into the share of white the band is drawn at, PEAK (1 - exp(-GAIN v))"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the grain of the glow is a seeded noise sized by eye; the Poisson variation of the stars under the limit in a cell would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skyband.GRAIN 0.2 and GRAIN_CELL_DEG 0.12: the relative variation (plus or minus) of the glow over cells of this width on the sky, a seeded noise standing for the stars too faint to resolve"
+            ],
+            [
+              "The range it moves in",
+              "GRAIN 0.05 to 0.4, cells 0.05 to 0.5 degrees"
+            ],
+            [
+              "Where it holds",
+              "the glow of the unresolved stars at a limit of 7.5"
+            ],
+            [
+              "What would show it wrong",
+              "a band that looks like smooth paint, or one whose grain is larger than the stars it stands for"
+            ],
+            [
+              "What replaces it",
+              "the grain worked from the star counts under the limit (the Poisson variation of the stars in a cell)"
+            ],
+            [
+              "Evidence",
+              "needed output: the plan asks for a seeded noise in the shader; the size is chosen by eye"
+            ]
+          ],
+          "id": "SKD2",
+          "key": "6.180:SKD2",
+          "kind": "P",
+          "slug": "6-180-skd2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skyband.GRAIN 0.2 and GRAIN_CELL_DEG 0.12: the relative variation (plus or minus) of the glow over cells of this width on the sky, a seeded noise standing for the stars too faint to resolve"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skyband.SB_REF 22: the surface brightness the glow image's value 1 stands for (value = 10^(-0.4 (SB - 22)))"
+            ],
+            [
+              "The range it moves in",
+              "21 to 23"
+            ],
+            [
+              "Where it holds",
+              "the glow image contract (docs/reference/html-interface.md)"
+            ],
+            [
+              "What would show it wrong",
+              "none (a unit of the image, the server builds to the same number)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the middle of the range the Milky Way runs at the Sun, 21.6 to 23.0 (sky-view.md); a unit, not a measurement"
+            ]
+          ],
+          "id": "SKD3",
+          "key": "6.180:SKD3",
+          "kind": "P",
+          "slug": "6-180-skd3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "skyband.SB_REF 22: the surface brightness the glow image's value 1 stands for (value = 10^(-0.4 (SB - 22)))"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the sprite glow ramp is chosen by eye, like the stars' own scale; the same display model as SKD1 would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skysprites.SB_RAMP 5 and GLOW_MAX 0.55: a sprite's glow goes from nothing at the limit of 23 mag per square arcsec to GLOW_MAX at 5 magnitudes brighter (smoothstep), so a bright nebula does not blind the sky"
+            ],
+            [
+              "The range it moves in",
+              "RAMP 3 to 8, GLOW_MAX 0.3 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "nebulae and remnants of mean surface brightness 15 to 23"
+            ],
+            [
+              "What would show it wrong",
+              "a faint nebula that is lost on the sky or a bright one that outshines the stars"
+            ],
+            [
+              "What replaces it",
+              "the eye's response to a surface brightness (the same display model as SKD1)"
+            ],
+            [
+              "Evidence",
+              "chosen by eye, like the stars' own scale in skylight.js; no source"
+            ]
+          ],
+          "id": "SKD4",
+          "key": "6.180:SKD4",
+          "kind": "P",
+          "slug": "6-180-skd4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skysprites.SB_RAMP 5 and GLOW_MAX 0.55: a sprite's glow goes from nothing at the limit of 23 mag per square arcsec to GLOW_MAX at 5 magnitudes brighter (smoothstep), so a bright nebula does not blind the sky"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the stored model ties no orbital plane to the galactic frame, so the Milky Way's plane is drawn in the plane of the orbits; a stored orientation of each system would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "systemsky.GALAXY_TO_SCENE: the galactic plane laid in the System View's reference plane (the galaxy's north pole is the scene's up, the galactic x stays x)"
+            ],
+            [
+              "The range it moves in",
+              "any turn about the scene's up axis"
+            ],
+            [
+              "Where it holds",
+              "every system, since a stored system has no orientation to the galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose stored orbital plane is tilted to the galactic plane by a known angle, whose sky then lies at the wrong angle to its orbits"
+            ],
+            [
+              "What replaces it",
+              "the system's stored orientation (the angle of its reference plane to the galactic frame), when one is stored"
+            ],
+            [
+              "Evidence",
+              "needed output: the stored model ties no orbital plane to the galactic frame, so the plane of the Milky Way is drawn in the plane of the orbits"
+            ]
+          ],
+          "id": "SKD5",
+          "key": "6.180:SKD5",
+          "kind": "P",
+          "slug": "6-180-skd5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "systemsky.GALAXY_TO_SCENE: the galactic plane laid in the System View's reference plane (the galaxy's north pole is the scene's up, the galactic x stays x)"
+        }
+      ],
+      "slug": "6-180-stand-ins-of-the-drawing-of-the-system-sky",
+      "title": "Stand-ins of the drawing of the system sky"
+    },
+    {
       "key": "6.175",
       "number": "6.175",
       "rows": [
@@ -35095,7 +35321,11 @@
           "what": "sky_band.FACE_PIXELS 32, STEPS 400, MAX_DISTANCE_PC 30000 and CELL_PC 50: the cell that shares a band, the cube map's size, the steps of a ray and its length"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the glow's colour is a blackbody of 4500 K because the band is worked as one V surface brightness and the page needs three channels; the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix, would replace it"
+          ],
           "fields": [
             [
               "What it is",
