@@ -2072,32 +2072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: one line
-  segment per drawn object from the object to its shadow on the grid
-  plane, only for the labelled objects (the label budget of MAP.317),
-  the selection, the pointer neighbourhood and the brightest N inside a
-  radius of the focus, never for all stars; thin, low contrast,
-  strongest for the selection; fade by distance and skip a stem shorter
-  than 2 px; the line layer uses the relative-to-eye encoding of the
-  star points (the MAP.240 class); shown only at region and sector
-  scale. Done: browser test and a measured frame cost at the budget.
-  Goal #3241. Filed by the TODO thread. Related: MAP.317, MAP.240.
-  Stems live inside the wedge (Boss, 5:48 PM EST on 2026-11-04)
-  (2026-11-04 5:50 PM EST): With the 60 degree arc wedge chosen (note on
-  MAP.371), the stem layer draws only inside the wedge; the budget rules
-  are unchanged (labelled, selected, near-focus objects, never all
-  stars). With a star selected, the grid rings are drawn around it (1, 2
-  and 3 kpc in mock C).
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
-  before).
-  Prerequisites: MAP.371.
-
 - [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
   Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
   (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
@@ -14788,34 +14762,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research thread, not by Sources 1.
   Prerequisites: none. Related: GEN.1268.
 
-- [ ] **GEN.1270 Nebula composition part b: planetary nebulae with the progenitor's ejecta and dredge-up enrichment**
-  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
-  in /mnt/project-files/reports/): every kind of nebula can be derived
-  at read time with no new column, so the chain is lock-free unless Boss
-  answers question 2 with "store the progenitor mass". Defaults taken
-  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
-  gradient now as a registry stand-in; derive progenitors from the
-  object ID at read time; Magellanic gas drawn within the widest range
-  of the two methods; dust-destruction fractions as tweakable GEN.725
-  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
-  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
-  GEN.1268. Do: section 5: a planetary nebula's helium, carbon, nitrogen
-  and oxygen from its progenitor's mass (drawn from the object ID at
-  read time, one stream a later central star can read too) and its
-  dredge-up. Done: tests on the progenitor to ejecta relation and on
-  determinism. Lock-free. Version 8.1. Owner: Sources 2 after VIEW.23.
-  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
-  composition for all nebulae, all supernova remnants and the field
-  clouds, because he wants as much as possible searchable, and the
-  stored values include the progenitor mass for planetary nebulae and
-  remnants. This replaces the report's default of deriving at read time
-  (question 2 of the report). The model parts keep their work (they
-  compute the values from the place, the class and the progenitor) but
-  the values are written at generation and backfill by GEN.1276 (nebulae
-  and remnants) and GEN.1277 (field clouds), which are lock items. The
-  lock-free statement above applies to this part's model code only.
-  Prerequisites: GEN.1269. Related: GEN.1269.
-
 - [ ] **GEN.1271 Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A**
   Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
   in /mnt/project-files/reports/): every kind of nebula can be derived
@@ -14914,6 +14860,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scripts/build_references.py add, and replace their GEN.725 rows with
   verified values. Done: no nebula composition row is marked recalled.
   Lock-free. Version 8.1. Owner: Sources 1.
+  Owner change (9:08 PM EST on 2026-11-04): Sources 2 takes this item
+  (Sources 1 builds GEN.1269). Include the planetary nebula stand-ins
+  PNE1 to PNE7 of GEN.1270 that the lane tiered as recalled or tuned
+  (second dredge-up helium, intershell mix, hot bottom burning share)
+  and the Type Ia and core-collapse tables of GEN.1271 marked recalled;
+  replace them with sourced values where a source can be read, and where
+  the on-line tables cannot be opened say so and keep the tier.
   Prerequisites: none. Related: GEN.1269.
 
 - [ ] **GEN.1275 The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug)**
@@ -14979,7 +14932,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1. Owner: the lane that takes the lock build (Core 3 holds
   GEN.1261 for train 12; decide after the models land). Filed by the
   TODO thread.
-  Prerequisites: GEN.1269, GEN.1270, GEN.1271. Related: GEN.1268,
+  Prerequisites: GEN.1269, GEN.1271. Related: GEN.1268,
   GEN.1267, GEN.725.
   BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
   GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
@@ -20491,27 +20444,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Filed by the TODO thread.
   Owner (TODO thread) (8:20 PM EST on 2026-11-04): Planets 1 (while its
   queue waits).
-  Prerequisites: none.
-
-- [ ] **VIEW.22 System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S4 of S1 to S22 in section 7. Do: a query that returns,
-  as arrays, every star and phenomenon inside a sphere above a
-  luminosity floor from the charted stars, bright_stars,
-  phenomenon_scatter and cluster members, plus the cell levels it
-  reached. Done: tests against a small galaxy, and a measured query
-  time. No prerequisite. Lock-free, no migration. Boss decided at 5:29
-  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
-  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
-  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
-  the 9.1 item can reuse it); the limiting magnitude is a setting with
-  default 7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Sources 1 (while its
-  lane is free).
   Prerequisites: none.
 
 - [ ] **VIEW.23 System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report**
