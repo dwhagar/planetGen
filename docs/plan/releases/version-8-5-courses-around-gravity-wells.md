@@ -69,6 +69,7 @@ Showing courses on the maps and bending them around keep-out spheres.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | UX.268 |  |
+| UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps |  |  |
 
 ### Edit everything foundations: aspects and the recipe schema (spread back from 8.6)
 

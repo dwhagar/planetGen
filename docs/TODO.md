@@ -975,6 +975,23 @@ with `clamp()`.
   carries the region and no quadrant field is shown, and the tests pass.
   Prerequisites: none. Related: UX.115, MAP.314.
 
+- [ ] **UX.273 Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views**
+  Boss asked for it with the Chart View fixes (PR 5208, 6:40 PM EST on
+  2026-11-05, as the lane reported); the first part waits on his answers
+  to the design questions S1 to S4, so nothing is built yet. Do: after
+  Boss answers S1 to S4, write the design and the build items. Version
+  8.8. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.143.
+
+- [ ] **UX.274 Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps**
+  Boss asked for more View menu streamlining after the Chart View menu
+  group of PR 5208 (6:40 PM EST on 2026-11-05, as the lane reported); it
+  needs a design first. Do: list every View menu entry on the three
+  maps, propose the grouping, put the plain-word choices to Boss, then
+  build. Version 8.5 (with the console look on the maps chrome). Owner:
+  none yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.269.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
