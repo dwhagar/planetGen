@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1171 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1173 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 159 | 17 | 10 | 1 | 0 | 187 |
-| T2 | 122 | 49 | 1 | 1 | 0 | 173 |
+| T2 | 122 | 50 | 1 | 1 | 0 | 174 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
 | T6 | 108 | 83 | 23 | 61 | 0 | 275 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 30 | 14 | 5 | 72 | 33 | 154 |
-| All | 643 | 244 | 58 | 182 | 44 | 1171 |
+| T9 | 30 | 14 | 5 | 73 | 33 | 155 |
+| All | 643 | 245 | 58 | 183 | 44 | 1173 |
 
 ## How the labels were given
 
@@ -1590,6 +1590,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | MG1 | P | T1 | L2 | tuning.SATELLITE_NEBULA_GAS_SCALE["Large Magellanic Cloud"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count) | 0.32 to 0.58 (a factor of 1.5 either way on the count) | the Large Cloud as the reference satellites place it | a CO catalogue of the Large Cloud whose cloud count or mass is more than a factor of 1.5 from 338 clouds and 5e7 solar masses | a gas disc for the Cloud (its HI disc is already modelled in galaxy/satellite_history.py) that the cloud field follows | [R5128] (ApJS 178, 56, section 3.1 READ): 272 clouds, molecular gas about 5e7 solar masses with X_CO 7e20; [R3102] (abstract READ): 8,107 clouds and 1.2e9 solar masses of H2 for the Milky Way. 8107 * 5e7 / 1.2e9 = 338, against 272 catalogued above the survey limit. test_gen367_cloud_gas::test_the_large_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass | - | - |
 | MG2 | P | T1 | L2 | tuning.SATELLITE_NEBULA_GAS_SCALE["Small Magellanic Cloud"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count) | 0.55 to 0.95 | the Small Cloud as the reference satellites place it | a CO catalogue of the Small Cloud whose cloud count is below 100 or its CO mass below a tenth of the Large Cloud's | a gas disc for the Cloud that the cloud field follows | [R5129] (ApJ 658, 1027, abstract READ): H2 3.2e7 solar masses from dust, X_CO 13e21 over the whole galaxy; the CO-bright mass is lower, so 216 clouds is a ceiling. 8107 * 3.2e7 / 1.2e9 = 216. test_gen367_cloud_gas::test_the_small_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass | - | - |
+
+## 6.189 Stand-ins of the capture windows of a system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CW1 | P | T2 | L1 | capture_windows.ENCOUNTERS_PER_INSTABILITY 130 (`irregular_population.REFERENCE_ENCOUNTERS`): the close giant-giant encounters of one instability, the mean of the three histories (59, 280 and 49) | 49 to 280 | one instability of two giants | a count of close encounters of a two-giant scattering outside 49 to 280 | the encounters from the pair's masses, spacing and the time to the first ejection | NDD14 as read in `irregular_population` (CM2); the Solar System instability had four giants and a fifth, so a two-giant event may have fewer | - | - |
+| CW2 | P | T9 | L3 | capture_windows.FULL_INSTABILITIES 1: one instability of the architecture is the full one the scatter step scales its hot classical share to | 1 to 3 | systems with one or more thrown giant pairs | a census of the hot classical share of disks of systems with one giant instability well below or above a quarter of the cold disk left | the scatter step taking the number and masses of the events | none: scatter.HOT_SHARE (0.4) was set for a Nice-type event, one instability here stands for it | - | no data |
 
 ## 6.170 Stand-ins of the picture of a ring and of a glowing body
 

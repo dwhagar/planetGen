@@ -239,3 +239,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.179:NBC9 | no data | - | the dust survival shares are recalled from sputtering and reverse-shock literature; no measured dust share of an old remnant is in hand |
 | 6.179:NBC10 | no data | - | the ionized, atomic and molecular shares by class are recalled from observed phase fractions; none is measured per class here |
 | 6.179:NBC13 | no data | - | the wind share of a Wolf-Rayet ring is argued from the observed rings, not measured |
+| 6.189:CW2 | no data | - | no census of another system's giant scatterings is in hand, so one thrown giant pair stands for the instability the hot share was set for; it goes when the scatter step takes the events' number and masses |
