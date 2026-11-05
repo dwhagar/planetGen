@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3262] - 2026-11-05
+
+**Headline:** A nebula's own page now draws it as a soft, irregular cloud with fading edges, like the maps do.
+
+### Changed
+- The nebula page's 3D view draws the nebula from its own cloud of points (the same points and layer as the Galaxy Map and the Sector Map) instead of a translucent surface, so it fades unevenly toward its edge and reads as gas. It still turns slowly, zooms and re-centers, with the brightest stars of the galaxy dimmed round it. A nebula that was never placed in the galaxy keeps its still drawing.
+- `GET /api/nebulae/<id>/surroundings` now also says where the nebula is (`center_pc`, parsecs in the galaxy frame; null for one never placed).
+
+generation-output: unchanged
+
 ## [8.0.3261] - 2026-11-05
 
 **Headline:** On the Galaxy Map you can now hover a group of nebulae to see what it holds, click it to fly to it, and reach every large group from the keyboard.
