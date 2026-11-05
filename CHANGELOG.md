@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3317] - 2026-11-05
+
+**Headline:** Waypoints are flagged and numbered on the Galaxy Map and a sector's map, and a system, phenomenon or body page can add one.
+
+### Added
+- A waypoint picked from a card on the Galaxy Map or a sector's map is flagged and numbered where it is, at every zoom level and inside an opened sector or system. A new Waypoint flags switch in the Menu's Show on the map hides the flags, and the key explains them. A plotted course flags its waypoints too.
+- The Nav menu of a system, phenomenon or body page has Add waypoint; it becomes Remove waypoint once the place is one, and the list is the same as the maps'.
+
+generation-output: unchanged
+
 ## [8.0.3316] - 2026-11-05
 
 **Headline:** The sector page label test waits for the sector's map blocks to arrive before it checks which names are shown, so it no longer fails 1 run in 3.
