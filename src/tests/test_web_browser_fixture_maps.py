@@ -1618,19 +1618,19 @@ def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
     volumes = page.evaluate(f"() => ({VOLUMES})().volumes().filter((volume) => volume.key === 'nebula:31')")
     assert volumes and len(volumes[0]["ix"]) > 0
     assert any("/galaxy/nebula/31/volume" in url for url in requests), requests
-    assert not any("/galaxy/nebula/31/shape" in url for url in requests), requests
-    assert page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").count() == 0
+    assert not any("/shape" in url for url in requests), requests
 
 
-def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
-    """MAP.103: a nebula big enough on screen is drawn from its shape mesh
-    (fetched from the site), not only as a sprite; far out it stays a sprite."""
+def test_galaxy_map_draws_a_nebula_and_asks_for_no_shape_mesh(page, map_site):
+    """MAP.103, MAP.142 part 4: a nebula big enough on screen is drawn (from its points or as a sprite), and the map asks the site for no
+    per-nebula shape mesh any more."""
     shape_requests = []
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     # A locator, not wait_for_function: the page's CSP forbids evaluating strings.
-    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)
-    assert any("/galaxy/nebula/801/shape?lod=low" in url for url in shape_requests), shape_requests
+    page.locator("#galaxymap3d-canvas:not([data-nebula-clouds='0'])").wait_for(state="attached", timeout=15000)
+    page.wait_for_timeout(1000)
+    assert not shape_requests, shape_requests
 
 
 def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelled_or_meshed(page, map_site):
@@ -1642,7 +1642,7 @@ def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelle
     page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
     page.wait_for_timeout(1500)
     assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
-    assert any("/galaxy/nebula/801/shape?lod=low" in url for url in requests)    # a stored cloud still gets its mesh
+    assert not any("/shape" in url for url in requests)
 
 
 def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
@@ -1650,7 +1650,7 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     (the fixture's generated sectors are all in the core, thousands of
     parsecs away), in a close view of the block as well as a far one."""
     _open_window(page, map_site, 3, 250, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
+    page.locator("#galaxymap3d-canvas:not([data-nebula-clouds='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
 
 
 VOLUMES = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes"
