@@ -1255,7 +1255,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   API_VERSION stays 5.
   Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
   nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 5, after MAP.371 to MAP.373. Core 2 keeps MAP.142 and the
+  Core 4, first (VIEW.21 and VIEW.28 are merged). Core 2 keeps MAP.142 and the
   MAP.215, MAP.191, MAP.222 order.
   Prerequisites: none. Related: MAP.131, MAP.174.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
@@ -1279,7 +1279,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 1.5%, 1.5 to 3% and 3% or more (or per-view percentiles).
   Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
   nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 5, after MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  Core 4, after MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
   MAP.222 order.
   Prerequisite: MAP.173. Related: MAP.142.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
@@ -1311,7 +1311,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests. Owner: Foundations lane 2.
   Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
   nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 5, after MAP.178. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  Core 4, after MAP.178. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
   MAP.222 order.
   Prerequisite: MAP.176. Related: MAP.150 (done, #1382).
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
@@ -1328,7 +1328,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pass for the new colours. Owner: Foundations lane 2.
   Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
   nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 5, with MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  Core 4, with MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
   MAP.222 order.
   Prerequisites: none. Related: MAP.142.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
