@@ -524,6 +524,14 @@ def _dense_field():
             "shell_index": shell, "band_index": band, "wedge_index": wedge,
             "system_id": SYSTEMS[i % len(SYSTEMS)][0],
         })
+    # MAP.300, MAP.380: two bright stars 0.05 pc apart, side by side across the view, in the cell beside the first sector (no generated sector
+    # there, so its stars are all the galaxy's to draw: the first sector's cell hands its stars to the sector scene as the camera nears).
+    for k, side in enumerate((-1, 1)):
+        stars.append({
+            "id": DENSE_PAIR_IDS[k], "name": None, "x": center[0] + side * DENSE_PAIR_GAP_PC / 2, "y": center[1] - 1.8, "z": center[2],
+            "luminosity_sol": 30.0 - 10.0 * k, "temperature_k": 6000, "radius_sol": 2.0, "star_type": "fixture",
+            "shell_index": 1, "band_index": 0, "wedge_index": 0, "system_id": SYSTEMS[k][0],
+        })
     points = [
         _point("neutron_star", 1.4, id=141, name="Dense Pulsar", descriptor="millisecond",
                x=center[0] + 0.6, y=center[1] - 0.4, z=center[2] + 0.2),
@@ -539,6 +547,8 @@ def _dense_field():
     return stars, points, worlds, center
 
 
+DENSE_PAIR_IDS = (23000, 23001)
+DENSE_PAIR_GAP_PC = 0.05
 DENSE_CLUSTER_STARS = 2200
 DENSE_HALO_STARS = 800
 DENSE_CLUSTER_SCALE_PC = 0.6
@@ -549,9 +559,14 @@ DENSE_STARS, DENSE_POINTS, DENSE_WORLDS, DENSE_CENTER_PC = _dense_field()
 sector, a filled one), with points (rogue planets, a neutron star, a black hole) and habitable-world systems."""
 
 
-def dense_region_query(dist_pc=30.0):
-    """The address (`?cam=`) of a view of the dense region from `dist_pc` parsecs, looking down the z axis."""
-    x, y, z = DENSE_CENTER_PC
+def close_pair_centre():
+    """The middle of the dense region's close pair (`DENSE_PAIR_IDS`, `DENSE_PAIR_GAP_PC` apart), in parsecs."""
+    return (DENSE_CENTER_PC[0], DENSE_CENTER_PC[1] - 1.8, DENSE_CENTER_PC[2])
+
+
+def dense_region_query(dist_pc=30.0, at=None):
+    """The address (`?cam=`) of a view of the dense region (of `at`, a point, instead) from `dist_pc` parsecs, looking down the z axis."""
+    x, y, z = at or DENSE_CENTER_PC
     return f"?cam={x:.6f},{y:.6f},{z:.6f},{dist_pc:.6f},0,0,0,1"
 
 
