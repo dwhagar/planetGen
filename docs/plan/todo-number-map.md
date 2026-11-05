@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.594 |
+| TEST | TEST.595 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -2464,7 +2464,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
-| NAV.28 | Show and save the adjusted course | none | open |
+| NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
@@ -3941,6 +3941,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.591 | test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug) | none | open |
 | TEST.592 | test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug) | none | done, PR #5073 |
 | TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | done, PR #5079 |
+| TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

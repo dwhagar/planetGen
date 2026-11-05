@@ -61,9 +61,8 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
 | NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56, NAV.62 |  |
 | NAV.27 | Moving bodies inside a system | NAV.26 |  |
-| NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
 | NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
-| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
+| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.51 | Parent; closes with its subitems. |
 
 ## Phase 3: Waypoints and the headline
 

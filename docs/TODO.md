@@ -2113,16 +2113,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     this stays system-only.
     Prerequisites: none.
 
-  - [ ] **NAV.28 Show and save the adjusted course**
-    Done: the adjusted path, its extra length and its times beside the
-    straight line on the NAV page and on the map (NAV.5); saved courses
-    (NAV.4) keep it as a third form.
-    Research (2026-10-09, course-avoidance.md): use the `adjusted`
-    object of design section 7 (exact legs, waypoints, polyline,
-    `avoided`, `passed_through`, `ignored_below_resolution`, `ruleset`,
-    `warnings`); keep `waypoints`, `legs` and the radii used in the
-    saved record (NAV.17).
-
   - [ ] **NAV.51 Courses route around asteroid fields**
     Boss (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
     Follows NAV.24's open question (it ruled on asteroid fields only).
@@ -18339,6 +18329,15 @@ clears each one.
   parity test needs both; that line changes what generation stores, so
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
+
+- [ ] **TEST.594 tests/js/galaxymap.test.mjs fails on plain main (bug)**
+  Core 2 (as the lane reported, 5:40 AM EST on 2026-11-05) found the
+  Galaxy Map JS unit test file tests/js/galaxymap.test.mjs failing on
+  plain main, not from its own change. Do: run it, find the commit that
+  turned it red (git bisect on the one file), and fix the test with the
+  reason or the code. Done: the file passes on plain main. Lock-free.
+  Version 8.1. Owner: Core 5, after TEST.580. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.580.
 
 ## USR: User accounts
 
