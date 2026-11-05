@@ -643,6 +643,7 @@ The map panels and their data.
 | `systemnav.js` | The NAV buttons of a body's info panel on the System Map, in both views (NAV.50). |
 | `systempage3d.js` | The system page's switch between the Diagram and the 3D view (MAP.74). |
 | `systemscale.js` | How the 3D system view maps real kilometres to what is drawn (MAP.71). |
+| `systemcourse.js` | A NAV course's legs inside one system, turned from kilometers into the units the 3D system view draws in, so the line meets the heliopause sphere and the bodies (NAV.22). |
 | `systemview3d.js` | The 3D system view: one star system from `GET /api/systems/<id>/scene` drawn with three.js (MAP.72, MAP.73). |
 | `tilepack.js` | Reads the packed Galaxy Map nodes `/galaxy/nodes` sends and the node store keeps (MAP.159, MAP.260). |
 | `unitpreference.js` | The reader's unit preference: Automatic, Metric only or Customary (UX.78). |

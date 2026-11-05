@@ -71,16 +71,16 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
     Attributes:
         name (str): A generated or explicitly given name.
         planet_type (str): `'t'` (terrestrial/icy) or `'g'` (gas giant),
-            the same letters `Planet.body_type` uses, chosen by mass
-            relative to `tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`.
+            the same letters `Planet.body_type` uses, chosen by the body's
+            radius, as the planet chain does for a bound planet.
         planet_class (str or None): Its class letter (GEN.8, GEN.687), derived from its surface (`rogue_class`);
             `None` for a brown dwarf.
         mass_kg (float): Mass in kilograms.
         radius_km (float): Radius in kilometers.
         composition (str): A descriptive bulk-composition string.
         has_internal_heat (bool): Whether it is still geologically active
-            (a giant always is): its heat flow reaches
-            `ROGUE_ACTIVE_HEAT_FLUX_W_M2` (from `rogueSurface`).
+            (a giant always is): its own heat reaches the
+            cut of `rogueSurface`.
         has_moons (bool): Whether it retains a captured companion moon.
         age_gy, internal_heat_flux_w_m2, effective_temperature_k,
         surface_regime, surface_temperature_k, surface_pressure_pa,

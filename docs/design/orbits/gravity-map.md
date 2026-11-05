@@ -1,12 +1,12 @@
 # Gravity map: the field of a sector as a heat map
 
-**Status (2026-10-15):** decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the feature of the 9.1 headline.
+**Status (2026-10-15):** decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the third phase of 9.0 (Boss folded 9.1 into 9.0 on 2026-11-05).
 
 Boss (2026-10-10 20:57Z): the orbits are worked out from point-mass
 vectors, so show "a gravitational map of a sector, probably using colors
 and calculating it per zone ... the gravitational gradients of the vector
 field as kind of a heat map of the inside of the sector". Foundations are
-phase 2; the feature roll-out is phase 3 and the seminal feature of 9.1 (Boss moved it from 9.0 on 2026-10-16).
+phase 2; the feature roll-out is phase 3 and phase 3 of 9.0 (9.1 was folded into 9.0 on 2026-11-05; its foundations are built in 8.2, 8.3 and 8.5).
 
 ## What is drawn
 
@@ -31,8 +31,9 @@ are marked.
 - **Sources.** Every point mass in the sector and its neighbours: stars,
   planets, moons, compact objects and stand-alone facilities with a mass
   (the same influence set as GEN.109's Hill-sphere rule), plus the galaxy's
-  own smooth potential (GEN.115) as the background. Plummer softening keeps
-  a zone that holds a source finite.
+  own smooth potential (GEN.115) as the background, joined by the rule in
+  "The smooth galaxy and the generated stars" below (MAP.383). Plummer
+  softening keeps a zone that holds a source finite.
 - **Near and far.** Sources close to a zone are summed exactly; distant
   ones are summed as one aggregate per region (mass and centre of mass,
   re-using the MAP.151 region pyramid), the way a tree code does. The
@@ -43,6 +44,33 @@ are marked.
 - **Slices and volumes.** The map shows one slab (a plane slice) at a time
   and can show the whole volume as transparent layers; on the System Map it
   is the orbital plane.
+
+## The smooth galaxy and the generated stars (MAP.383)
+
+The smooth potential (`galaxy/potential.py`, GEN.115) already holds the mass of the stars the generator draws: its disks, bulge and halo are fitted to the
+same density model. Adding the generated stars on top of it counts that mass twice. Measured on generated blocks (`reports/map383-background-rule-2026-11-05.md`),
+the double count is small in the pull (0.02 percent of the smooth pull at the solar circle, 0.3 percent in the bulge) and in the potential, and
+**large in the tidal strength: the tidal norm is off by about 36 percent at the median and 67 to 80 percent at the 95th percentile**, because the smooth tidal
+trace is the mean stellar density (`4 pi G rho`) and a sum of point masses has none between the stars.
+
+The rule (points 1 to 4 and 6 are MAP.383's; point 5 is a recommendation MAP.167 confirms):
+
+1. **Field = smooth galaxy + generated stars - the smooth galaxy's own stars in the same sectors.** The last term is each generated sector's share of the
+   smooth model's stellar mass, spread through the sector as a cube and softened by the zone edge, and summed by the same tree as the generated stars.
+   Equivalent: the smooth field plus the *fluctuation* of the generated stars about their mean.
+2. **The mass subtracted is the smooth potential's own stellar density** (the Poisson density of its disk and sphere terms, closed forms), not the density
+   model's expected mass. The two differ by 15 to 19 percent where measured (solar circle: potential 0.026 against model 0.031 Msun per pc^3; bulge: 3.68
+   against 3.10) because the potential's disks and spheres are stand-ins (GP1 to GP3). Using the potential's own mass changes the tidal norm by 5 to 7
+   percent against subtracting the model's, and removes that mismatch from the map instead of showing it as stars that are not there.
+3. **A sector that is not generated adds nothing and subtracts nothing** (its generated and subtracted mass would be equal), so the near region needs no
+   expected-mass cells for holes.
+4. **Dark halo, gas, black hole and every other smooth term stay in the background untouched.**
+5. **The map has two readings of each quantity.** The *total* field (the rule above) and the *local* field (generated stars minus their mean). In the pull
+   the local field is 0.03 to 0.09 percent of the total, so a total-pull map shows the galaxy and none of the stars; the tidal local field is as large as the
+   smooth one (100 to 130 percent). The Pull and Well depth modes therefore draw the local field by default with the total as a switch; Tidal strength draws the total.
+6. **A generated sector holds less than the model expects in the sample measured** (see the report: 85 percent of the systems and 78 percent of the mass in a
+   125-sector solar-circle block, 98 and 95 percent in one bulge sector), so the local field shows a small real deficit. The rule leaves it visible on
+   purpose; the generator side is filed as its own bug.
 
 ## Colours
 
@@ -75,5 +103,5 @@ The plan, to be settled in GEN.198, GEN.199 and PERF.72:
 GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
 per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
 MAP.168 Sector Map layer; MAP.169 System Map layer; UX.94 wording and
-legend (phase 3, the 9.1 headline). MAP.170 Galaxy Map layer (phase 3+).
+legend (phase 3, phase 3 of 9.0). MAP.170 Galaxy Map layer (phase 3+).
 Course planning (NAV.6) does not use the evaluator: it plans around keep-out spheres.

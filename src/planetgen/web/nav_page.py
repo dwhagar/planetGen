@@ -42,9 +42,11 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.navdiagram import render_course_diagram
 from planetgen.web.maps.navmap import render_nav_map_panel
-from planetgen.galaxy import objectref
+from planetgen.galaxy import frame, objectref
 from planetgen.galaxy.navigation import FRAME_GALACTIC, course_between, format_course
+from planetgen.physics import unit_registry as units
 from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 from . import bp
 from .helpers import crumb, current_admin, db_name, page_url, render_page, trusted_html
@@ -413,6 +415,24 @@ def _leg_rows(legs, origin, destination, names):
     return rows
 
 
+def system_view_links(result, origin, destination):
+    """
+    NAV.22: where to see the legs of this course that lie in a system, in that system's 3D view: `[{label, url}]`, one for each system a
+    leg of `result` is in (the origin's system, the destination's, or the one they share), in the order the legs run.
+    """
+    links, seen = [], set()
+    for leg in result.get("legs") or []:
+        system_id = leg.get("system_id")
+        if system_id is None or system_id in seen:
+            continue
+        seen.add(system_id)
+        links.append({"label": "Show in system view" if len(seen) == 1 else "Show in the other system's view",
+                      "url": page_url("system", system_id=system_id, view="3d", course=f"{_param_of(origin)},{_param_of(destination)}")})
+    if len(links) == 2:
+        links[0]["label"], links[1]["label"] = "Show in start system view", "Show in destination system view"
+    return links
+
+
 def galaxy_map_url(origin, destination):
     """`/galaxy` showing this course (`?course=<from>,<to>`, read by
     `web/galaxy_views.py`)."""
@@ -432,6 +452,23 @@ def _galaxy_points(origin, destination, result):
             "name": point["name"], "role": point["role"], "url": _point_url(point),
             "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
             "hopUnknown": bool(point.get("hop_unknown")),  # NAV.36: the hop that arrives here is a jump through unknown space
+        })
+    return points, names
+
+
+def _sector_points(origin, destination, result, center_pc):
+    """
+    NAV.22: the stops of a course inside one sector as the Galaxy Map draws them in that sector: `(points, names)` as `_galaxy_points`
+    gives for a galaxy-scope course. The API gives a sector-scope course's positions in the sector's own axes in light-years, so each is
+    turned into the galaxy frame (parsecs) from the sector's center.
+    """
+    names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+    points = []
+    for point in _waypoints(origin, destination, result, names):
+        x, y, z = frame.local_to_galaxy_pc(center_pc, tuple(ly_to_pc(c) for c in point["position"]))
+        points.append({
+            "name": point["name"], "role": point["role"], "url": _point_url(point), "x": x, "y": y, "z": z,
+            "hopUnknown": bool(point.get("hop_unknown")),
         })
     return points, names
 
@@ -530,8 +567,10 @@ def galaxy_course(from_raw, to_raw):
 
     Returns:
         dict or None: `scope` (`"galaxy"` or `"sector"`), `points`
-            (`[{name, url, role, x, y, z}]`, parsecs; only for
-            `"galaxy"`), `sector` (`{id, name, shell, band, wedge}`, only
+            (`[{name, url, role, x, y, z}]`, parsecs; for a course inside
+            one sector (NAV.22) they are placed in the galaxy frame from
+            the sector's center, so the map draws the course in that
+            sector), `sector` (`{id, name, shell, band, wedge}`, only
             for `"sector"`, where the whole course sits inside one
             sector) and `navUrl` (back to the course on the NAV page).
             `None` when either endpoint can't be navigated, or the two
@@ -553,19 +592,20 @@ def galaxy_course(from_raw, to_raw):
     nav_url_here = nav_url(_param_of(origin), _param_of(destination))
     if result["scope"] == "system":
         return None  # inside one system: nothing to draw on the Galaxy Map
+    sector = None
     if result["scope"] != "galaxy":
-        # One sector holds the whole course: the map shows that sector.
-        sector = apiclient.get_sector(db_name(), origin["sector_id"])
-        if sector.get("shell_index") is None:
+        # One sector holds the whole course: the map shows that sector, with the course drawn in it (NAV.22).
+        found = apiclient.get_sector(db_name(), origin["sector_id"])
+        if found.get("shell_index") is None:
             return None
-        return {
-            "scope": "sector", "points": [], "navUrl": nav_url_here,
-            "sector": {
-                "id": sector["id"], "name": sector["name"], "shell": sector["shell_index"],
-                "band": sector["band_index"], "wedge": sector["wedge_index"],
-            },
-        }
-    points, names = _galaxy_points(origin, destination, result)
+        sector = {"id": found["id"], "name": found["name"], "shell": found["shell_index"],
+                  "band": found["band_index"], "wedge": found["wedge_index"]}
+        center = tuple(found.get(f"center_{axis}_pc") for axis in "xyz")
+        if None in center:
+            return {"scope": "sector", "points": [], "navUrl": nav_url_here, "sector": sector}
+        points, names = _sector_points(origin, destination, result, center)
+    else:
+        points, names = _galaxy_points(origin, destination, result)
     direct = result["direct"]
     route = result["route"]
     stops = _route_stops(route, names) if route and route["path"] else []
@@ -575,13 +615,70 @@ def galaxy_course(from_raw, to_raw):
         readout["diagram"] = render_course_diagram(route, names, {node: stop["url"] for node, stop in zip(route["path"], stops)},
                                                    linked=True)
     return {
-        "scope": "galaxy", "points": points, "sector": None, "navUrl": nav_url_here,
+        "scope": "galaxy" if sector is None else "sector", "points": points, "sector": sector, "navUrl": nav_url_here,
         # NAV.20: the straight line apart from the route, and the readout beside the map.
         "direct": [points[0], points[-1]] if len(points) > 2 else None,
         # NAV.28: the course bent round keep-out spheres, one polyline of `{x, y, z}` (parsecs) for each line that bends.
         "adjusted": [[{"x": p[0], "y": p[1], "z": p[2]} for p in line] for line in _bent_lines(result)],
         "readout": readout,
     }
+
+
+SYSTEM_LEG_ENDS = {"out": ("origin", "the heliopause"), "into": ("the heliopause", "destination")}
+"""dict: Where each in-system leg kind starts and ends when an end is the heliopause rather than a named body."""
+
+_km_to_au = units.converter("km", "au")
+
+
+def system_course(system_id, from_raw, to_raw):
+    """
+    NAV.22: the legs of a course that lie in one system, as the 3D system view draws them (`static/systemcourse.js`), in kilometers in the
+    system's own frame.
+
+    Args:
+        system_id (int): The system being shown.
+        from_raw (str): The origin's `from` value (`endpoint(...)`).
+        to_raw (str): The destination's `to` value.
+
+    Returns:
+        dict or None: `navUrl` (back to the course on the NAV page) and `legs`, each `{kind, label, from, to, points, aimed, length_au,
+            bent, avoided}`: the leg's polyline (`[[x, y, z], ...]`, km) bent clear of the bodies it would pass too close to (the straight
+            line where the API planned none), where a moving destination is aimed at (`aimed`, km, or `None`), its length in AU, whether
+            it bends, and the names of what it goes round. `None` when no leg of the course lies in this system, or an endpoint can't be
+            navigated.
+
+    Raises:
+        apiclient.NotFoundError: For an endpoint that doesn't exist.
+    """
+    origin = _resolve(*parse_endpoint(from_raw))
+    destination = _resolve(*parse_endpoint(to_raw))
+    if _unavailable_reason(origin) or _unavailable_reason(destination):
+        return None
+    try:
+        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], adjusted=True)
+    except apiclient.ApiError as exc:
+        if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
+            raise
+        return None
+    drawn = []
+    for leg in result.get("legs") or []:
+        if leg.get("system_id") != system_id:
+            continue
+        adjusted = leg.get("adjusted")
+        points = [list(point) for point in adjusted["polyline"]] if adjusted else [list(leg["from_km"]), list(leg["to_km"])]
+        length_km = sum(detmath.dist(a, b) for a, b in zip(points, points[1:]))
+        start, end = SYSTEM_LEG_ENDS.get(leg["kind"], ("origin", "destination"))
+        names = {"origin": origin["name"], "destination": destination["name"]}
+        drawn.append({
+            "kind": leg["kind"], "label": LEG_LABELS[leg["kind"]], "from": names.get(start, start), "to": names.get(end, end),
+            "points": points, "aimed": list(adjusted["aimed_at"]) if adjusted and adjusted.get("moving_end") else None,
+            "length_au": _km_to_au(length_km),
+            "bent": bool(adjusted and any(point["kind"] == "tangent_in" for point in adjusted["waypoints"])),
+            "avoided": [adjusted["names"].get(ref, ref) for ref in adjusted["avoided"]] if adjusted else [],
+        })
+    if not drawn:
+        return None
+    return {"navUrl": nav_url(_param_of(origin), _param_of(destination)), "legs": drawn}
 
 
 READOUT_WARP_FACTORS = (1, 9)
@@ -888,6 +985,7 @@ def nav():
         bookmark_changes=[_bookmark_pick("from", _param_of(destination), "New start"),
                           _bookmark_pick("to", _param_of(origin), "New destination")],
         galaxy_map_url=galaxy_map_url(_param_of(origin), _param_of(destination)),
+        system_view_links=system_view_links(result, origin, destination),
         start_over=nav_url(_param_of(origin)),
         **page,
     )

@@ -1,17 +1,29 @@
-"""UX.121: the logging layer (`planetgen/util/logrecord.py`). The same records give a file line, a JSON line and a display
+"""UX.121, OPS.104: the logging layer (`planetgen/util/logrecord.py` is the record and its lines; `planetgen/util/log.py` writes them). The same records give a file line, a JSON line and a display
 line that agree, and a file line reads back to the record it was written from."""
 
 import datetime
 import io
 import json
 import logging
+import time
 import zoneinfo
 
 import pytest
 
+from planetgen.util import log as planetgen_log
 from planetgen.util import logrecord
 
 NEW_YORK = zoneinfo.ZoneInfo("America/New_York")
+
+
+@pytest.fixture(autouse=True)
+def new_york_clock(monkeypatch):
+    """OPS.97: a file line and a JSON line carry the computer's local time with its offset, so the tests run in one zone."""
+    monkeypatch.setenv("TZ", "America/New_York")
+    time.tzset()
+    yield
+    monkeypatch.undo()
+    time.tzset()
 
 
 def _ms(year, month, day, hour, minute, second, milli):
@@ -34,16 +46,16 @@ RECORDS = [
 ]
 
 
-def test_a_file_line_is_logfmt_with_the_time_in_utc():
+def test_a_file_line_is_logfmt_with_the_local_time_and_its_offset():
     record = logrecord.Record(OCTOBER, "info", "generate", "Stage 4 of 12: Scatter", {"stage": 4, "stages": 12})
     assert logrecord.file_line(record) == (
-        'ts=2026-10-24T18:40:00.123Z level=info component=generate msg="Stage 4 of 12: Scatter" stage=4 stages=12')
+        'ts=2026-10-24T14:40:00.123-0400 level=info component=generate msg="Stage 4 of 12: Scatter" stage=4 stages=12')
 
 
 def test_a_json_line_has_the_same_names_with_the_fields_beside_them():
     record = logrecord.Record(OCTOBER, "warning", "queue", "Slow", {"seconds": 2.5, "flag": True})
     assert json.loads(logrecord.json_line(record)) == {
-        "ts": "2026-10-24T18:40:00.123Z", "level": "warning", "component": "queue", "msg": "Slow", "seconds": 2.5,
+        "ts": "2026-10-24T14:40:00.123-0400", "level": "warning", "component": "queue", "msg": "Slow", "seconds": 2.5,
         "flag": True}
 
 
@@ -115,9 +127,9 @@ def test_the_stage_wording_is_the_stage_markers():
     assert logrecord.stage_start(4, 12, "x", count=9).startswith(stagemark.marker(4, 12, 9))
 
 
-def test_the_time_is_whole_milliseconds_in_utc():
+def test_the_time_is_whole_milliseconds_local_with_its_offset():
     record = logrecord.Record.at(1_792_867_200.1239, "info", "generate", "x")
-    assert record.ms % 1000 == 124 and logrecord.file_line(record).startswith("ts=2026-10-24T18:40:00.124Z ")
+    assert record.ms % 1000 == 124 and logrecord.file_line(record).startswith("ts=2026-10-24T14:40:00.124-0400 ")
     assert logrecord.Record.now("info", "generate", "x").ms > OCTOBER
 
 
@@ -160,11 +172,11 @@ def _handler(formatter):
 
 
 def test_a_logger_takes_fields_and_a_handler_writes_the_file_line_the_screen_line_and_the_json_line():
-    log = logrecord.get_logger("layer-test")
-    file_handler, file_out = _handler(logrecord.FileFormatter())
-    json_handler, json_out = _handler(logrecord.JsonFormatter())
-    screen_handler, screen_out = _handler(logrecord.DisplayFormatter(NEW_YORK))
-    plain_handler, plain_out = _handler(logrecord.DisplayFormatter(plain=True))
+    log = planetgen_log.get("layer-test")
+    file_handler, file_out = _handler(planetgen_log.LineFormatter("file"))
+    json_handler, json_out = _handler(planetgen_log.LineFormatter("json"))
+    screen_handler, screen_out = _handler(planetgen_log.LineFormatter("display", NEW_YORK))
+    plain_handler, plain_out = _handler(planetgen_log.LineFormatter("plain"))
     logger = log.logger
     old_level = logger.level
     logger.setLevel(logging.DEBUG)
@@ -198,17 +210,41 @@ def test_a_field_may_be_named_like_an_argument_of_the_logging_calls():
 
 
 def test_a_logger_refuses_a_field_a_file_line_could_not_hold_and_a_bad_component():
-    log = logrecord.get_logger("layer-test")
+    log = planetgen_log.get("layer-test")
     log.logger.setLevel(logging.DEBUG)
     with pytest.raises(ValueError):
         log.info("x", msg="y")
     with pytest.raises(ValueError):
-        logrecord.get_logger("Bad Name")
+        planetgen_log.get("Bad Name")
 
 
 def test_a_standard_log_record_from_any_logger_becomes_a_record():
     log_record = logging.LogRecord("planetgen.queue.units", logging.WARNING, "f.py", 1, "Unit %s slow", ("7",), None)
-    record = logrecord.record_of(log_record)
+    record = planetgen_log.record_of(log_record)
     assert (record.severity, record.component, record.message) == ("warning", "queue.units", "Unit 7 slow")
-    odd = logrecord.record_of(logging.LogRecord("urllib3.connectionpool", 5, "f.py", 1, "x", None, None))
+    odd = planetgen_log.record_of(logging.LogRecord("urllib3.connectionpool", 5, "f.py", 1, "x", None, None))
     assert (odd.severity, odd.component) == ("debug", "urllib3.connectionpool")
+
+
+def test_the_formatter_set_has_one_class_with_a_form_for_each_way_a_line_is_written():
+    assert planetgen_log.FORMS == ("plain", "display", "debug", "file", "json")
+    with pytest.raises(ValueError):
+        planetgen_log.LineFormatter("loud")
+    log_record = logging.LogRecord("planetgen.queue", logging.INFO, "queue.py", 12, "Unit %s done", ("7",), None)
+    log_record.created, log_record.origin = OCTOBER / 1000, "main"
+    debug = planetgen_log.LineFormatter("debug").format(log_record)
+    assert debug.endswith("| Unit 7 done") and "INFO" in debug and "queue.py:12" in debug
+    assert planetgen_log.LineFormatter("plain").format(log_record) == "Unit 7 done"
+
+
+def test_winter_time_has_the_winter_offset_and_the_old_utc_form_is_refused():
+    winter = logrecord.Record(JANUARY, "info", "web", "Up", {})
+    assert logrecord.file_line(winter).startswith("ts=2027-01-05T13:40:00.007-0500 ")
+    assert logrecord.parse_file_line(logrecord.file_line(winter)) == winter
+    with pytest.raises(ValueError):
+        logrecord.parse_file_line('ts=2027-01-05T18:40:00.007Z level=info component=web msg="Up"')
+
+
+def test_a_time_in_seconds_is_written_as_the_display_line_writes_it():
+    assert logrecord.local_text(OCTOBER / 1000) == "2026-10-24 14:40:00 EDT"
+    assert logrecord.local_text(JANUARY / 1000) == "2027-01-05 13:40:00 EST"

@@ -469,6 +469,19 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     assert "Dominant species" not in page and "A technological civilization or a colony lives here." in page
 
 
+def test_a_planets_page_shows_its_sky_colour_as_the_first_row_of_the_atmosphere(client, monkeypatch):
+    """GEN.420: the Atmosphere color row (a chip and a word) sits in the page's Atmosphere section, ahead of the pressure and the gases."""
+    document = _rich_document()
+    document["sections"][0]["children"][0]["blocks"].insert(0, model.facts("Planet", [
+        model.fact("atmosphere_colour", "Atmosphere color", model.swatch("#99bfff", "pale blue"))]))
+    monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: _rich_sheet(ref))
+    monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: document)
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    section = page.split('id="sheet-atmosphere"')[1].split("</section>")[0]
+    assert "Atmosphere color" in section and 'data-colour="#99bfff"' in section and "pale blue" in section
+    assert section.index("Atmosphere color") < section.index("Surface pressure")
+
+
 def test_gen1108_a_planets_page_has_the_climate_by_latitude_table_between_the_atmosphere_and_the_composition(client, monkeypatch):
     from planetgen.describe import sheet as sheet_registry
     from planetgen.physics import regional_temperature

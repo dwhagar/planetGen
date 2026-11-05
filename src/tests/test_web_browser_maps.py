@@ -873,6 +873,41 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
 
 
+def test_system_page_3d_view_draws_a_nav_course_that_lies_in_the_system(page, base_url, site_app, monkeypatch):
+    """NAV.22: a course asked for with `?course=` is drawn in the 3D view as a line from where it crosses the heliopause to its body, with
+    a ring at each end and one where a moving destination is aimed, in both scales, and listed under the view with the way back."""
+    from planetgen.web import nav_page
+
+    system_id, scene = _system_with_planets(site_app.test_client())
+    au_km = 149597870.7
+    heliopause = 120.0 * au_km
+    course = {"navUrl": "/nav?from=system:1&to=planet:9", "legs": [{
+        "kind": "into", "label": "Into the system", "from": "the heliopause", "to": "Fixture World",
+        "points": [[-heliopause, 0.0, 0.0], [-2.0 * au_km, 0.5 * au_km, 0.0], [0.4 * au_km, 0.0, 0.0]],
+        "aimed": [0.45 * au_km, 0.0, 0.0], "length_au": 122.0, "bent": True, "avoided": ["Fixture Giant"]}]}
+    monkeypatch.setattr(nav_page, "system_course", lambda system, from_raw, to_raw: course)
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}?course=system:1,planet:9", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    assert not errors, errors
+    drawn = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().map((leg) => ({kind: leg.kind, points: leg.line.length, aimed: !!leg.aimed}))")
+    assert drawn == [{"kind": "into", "points": 2 * 24 + 1, "aimed": True}]
+    note = page.locator("#sysview3d-course").inner_text()
+    assert "Into the system" in note and "Fixture World" in note and "Fixture Giant" in note and "back to the course" in note
+    assert page.locator("#sysview3d-course a").get_attribute("href") == "/nav?from=system:1&to=planet:9"
+    page.select_option("#sysview3d-scale", "true")
+    drawn = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().map((leg) => leg.line.length)")
+    assert drawn == [3]
+    assert not errors, errors
+    # No course asked for: nothing is drawn and no list is made.
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    assert page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().length") == 0
+
+
 def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_url, site_app):
     """MAP.287: the 3D system view takes the body look record the System Map takes: a star, planet and moon is drawn
     from its `look` (seeded, composition-led), and once the painters have run a star and a solid world show a painted

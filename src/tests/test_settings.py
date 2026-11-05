@@ -222,6 +222,8 @@ NON_OPTION_VARIABLES = {
                                   "set but empty, none are kept)",
     "PLANETGEN_WARM_TIME_LIMIT_SECONDS": "set by update.sh for the warm-up stage (WARM_STAGE_SECONDS): the time limit it ends the stage at, "
                                          "told to the run so it can say the limit ended it (the warm command's stop reason)",
+    "PLANETGEN_WARM_STARTED_BY": "set by update.sh for each warm-up stage: what started the run, for the line that opens its record in "
+                                 "warmup.log (OPS.96)",
     "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209; a test-run switch: the "
                                       "test suite sets it, nothing else does)",
 }
