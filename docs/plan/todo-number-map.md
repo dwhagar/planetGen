@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.263 |
 | MAP | MAP.383 |
 | NAV | NAV.74 |
-| GEN | GEN.1279 |
+| GEN | GEN.1281 |
 | PERF | PERF.241 |
 | DB | DB.110 |
 | API | API.41 |
@@ -26,7 +26,7 @@ release is stamped.
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
-| VIEW | VIEW.42 |
+| VIEW | VIEW.43 |
 | POP | POP.46 |
 
 ## Why this exists
@@ -2056,6 +2056,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1276 | Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register) | none | open |
 | GEN.1277 | Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one | none | open |
 | GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) | none | open |
+| GEN.1279 | The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug) | none | open |
+| GEN.1280 | The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3262,6 +3264,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
 | VIEW.41 | System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer | none | done, PR #5034 |
+| VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) | none | open |
 
 ## Tree IDs to flat IDs
 
