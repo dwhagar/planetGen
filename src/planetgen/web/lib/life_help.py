@@ -349,7 +349,7 @@ def _classes(href):
     sections = [
         _section("classes", "The nine life classes", table=_table(["Class", "Name", "Drinks", "Eats", "How far it can go"], rows)),
     ]
-    source = _section("reference", "Where this comes from", ["How sure each class is, and which air numbers are only estimated, is in the References section."])
+    source = _section("reference", "More information", ["How sure each class is, and which air numbers are only estimated, is in the References section."])
     source["reference"] = ("speculative", None)
     sections.append(source)
     return "Life classes", "The nine life classes and what sets them apart.", intro, sections

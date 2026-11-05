@@ -752,6 +752,72 @@ def test_no_api_address_configured_stops_with_a_plain_message_and_asks_nothing(t
     assert not calls
 
 
+# --- the warm stage's time limit (OPS.95) -----------------------------------------
+
+
+def _run_warm_stage(tmp_path, body, seconds=None):
+    """Runs `run_warm_stage` with a fake interpreter whose body is `body`; returns `(process, seconds it took)`."""
+    fake = tmp_path / "fakepython"
+    fake.write_text("#!/bin/bash\n" + body)
+    fake.chmod(0o755)
+    script = (f'SCRIPT_DIR="{tmp_path}"; source "{REPO_DIR}/scripts/deploy-common.sh"; PYTHON="{fake}"; '
+              f'WARM_MAP_LOG="{tmp_path}/warm.log"; run_warm_stage "stage 2 of 2, the full warm-up"; echo "returned $?"')
+    env = {key: value for key, value in os.environ.items() if key != "WARM_STAGE_SECONDS"}
+    if seconds is not None:
+        env["WARM_STAGE_SECONDS"] = str(seconds)
+    started = time.monotonic()
+    proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True, timeout=120)
+    return proc, time.monotonic() - started
+
+
+@pytest.mark.parametrize("seconds, words", [(14400, "4 hours"), (3600, "1 hour"), (5400, "90 minutes"), (60, "1 minute"),
+                                            (120, "2 minutes"), (45, "45 seconds"), (1, "1 second")])
+def test_a_limit_is_told_in_words(seconds, words):
+    proc = subprocess.run(["bash", "-c", f'source "{REPO_DIR}/scripts/deploy-common.sh"; duration_words {seconds}'],
+                          capture_output=True, text=True)
+    assert proc.stdout.strip() == words
+
+
+def test_the_warm_stage_has_four_hours_by_default_and_the_first_line_says_so(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, 'echo "limit seen: $PLANETGEN_WARM_TIME_LIMIT_SECONDS"\n')
+    first = proc.stdout.splitlines()[0]
+    assert "time limit 4 hours, WARM_STAGE_SECONDS sets it" in first and "log:" in first
+    assert "limit seen: 14400" in proc.stdout and "returned 0" in proc.stdout and proc.stderr == ""
+
+
+def test_a_stage_that_runs_past_a_short_limit_is_ended_and_says_so_and_that_stored_work_is_kept(tmp_path):
+    """A fake long run (30 s) under a 1 s limit: the stage ends at once, still returns 0 so the update goes on, and the
+    warning names the limit, says the stored work is kept and how to continue."""
+    proc, took = _run_warm_stage(tmp_path, "sleep 30\n", seconds=1)
+    assert took < 20 and "returned 0" in proc.stdout
+    assert "time limit 1 second, WARM_STAGE_SECONDS sets it" in proc.stdout.splitlines()[0]
+    assert "ran out of its time limit of 1 second (WARM_STAGE_SECONDS; 0 means none)" in proc.stderr
+    assert "What it stored is kept" in proc.stderr and "planetgen warm --progress" in proc.stderr
+    assert "Traceback" not in proc.stdout + proc.stderr
+
+
+def test_zero_means_no_limit_and_the_run_is_told_none(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, 'echo "limit seen: [${PLANETGEN_WARM_TIME_LIMIT_SECONDS:-}]"\n', seconds=0)
+    assert "no time limit" in proc.stdout.splitlines()[0] and "limit seen: []" in proc.stdout and proc.stderr == ""
+
+
+def test_a_failed_stage_says_its_status_and_that_stored_work_is_kept(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, "exit 3\n")
+    assert "returned 0" in proc.stdout and "failed with status 3" in proc.stderr
+    assert "ran out of its time limit" not in proc.stderr and "What it stored is kept" in proc.stderr
+
+
+def test_a_limit_that_is_not_a_number_is_said_and_the_default_used(tmp_path):
+    proc, _took = _run_warm_stage(tmp_path, "true\n", seconds="soon")
+    assert "WARM_STAGE_SECONDS=soon is not a number of seconds; using 14400" in proc.stderr
+    assert "time limit 4 hours" in proc.stdout.splitlines()[0]
+
+
+def test_no_deploy_script_still_holds_the_old_fixed_thirty_minute_limit():
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert "timeout 1800" not in common and "At most 30 minutes" not in common
+
+
 # --- the health wait (OPS.94) -------------------------------------------------
 
 REFUSED = "exit 7\n"

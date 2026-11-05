@@ -77,12 +77,12 @@ def test_the_later_mantle_is_never_more_reduced_than_the_magma_ocean_surface_of_
     assert md.draw_redox(old, recipe, {}) == pytest.approx(3.0, abs=0.05)
 
 
-def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidised_one_carbon_dioxide_and_sulfur_dioxide():
-    reduced, oxidised = [], []
+def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidized_one_carbon_dioxide_and_sulfur_dioxide():
+    reduced, oxidized = [], []
     for seed in range(40):
         result = mixture(seed, long_lived_geology=False, ts_k=1000.0, pressure_bar=1.0)
         fractions = result.mole_fractions
-        (reduced if result.redox_diw < 0.0 else oxidised if result.redox_diw > 3.0 else []).append(fractions)
+        (reduced if result.redox_diw < 0.0 else oxidized if result.redox_diw > 3.0 else []).append(fractions)
     assert reduced
     assert all(f.get("CO", 0.0) > f.get("CO2", 0.0) * 0.3 for f in reduced)
     for seed in range(40):
@@ -91,7 +91,7 @@ def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidised_one_carbon_dioxi
         if result.redox_diw > 3.0:
             assert result.mole_fractions.get("CO", 0.0) < result.mole_fractions.get("CO2", 0.0)
             return
-    pytest.fail("no oxidised draw in 40 seeds")
+    pytest.fail("no oxidized draw in 40 seeds")
 
 
 def test_the_inventory_follows_the_delivered_water_class():
@@ -133,7 +133,7 @@ def test_the_equilibrium_temperature_is_the_surface_one_above_the_quench_and_the
     assert cold.constants["quench_temperature_k"] == cold.temperature_k
 
 
-def test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent():
+def test_an_earth_like_oxidized_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent():
     # Part 05 3.4: dIW+4, 1200 K, 1 bar: H2O .78, CO2 .16, SO2 .021 for a wet inventory; the vent temperature is the first stage.
     for seed in range(80):
         with draw.bound(seed):
@@ -141,9 +141,9 @@ def test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_d
         if result.drawn["b"] in ("b2", "b3") and result.redox_diw > 3.0 and result.constants["magmatic_temperature_k"] < 1200.0 + 1.0:
             fractions = result.mole_fractions
             assert next(iter(fractions)) == "H2O"
-            assert fractions["CO2"] > max(fractions.get("CO", 0.0), fractions.get("CH4", 0.0)), "CO2 is the carbon gas of an oxidised vent"
+            assert fractions["CO2"] > max(fractions.get("CO", 0.0), fractions.get("CH4", 0.0)), "CO2 is the carbon gas of an oxidized vent"
             return
-    pytest.skip("no wet, oxidised draw below 1200 K in 80 seeds")
+    pytest.skip("no wet, oxidized draw below 1200 K in 80 seeds")
 
 
 def test_a_subject_without_a_quantity_the_tables_read_is_refused_by_name():

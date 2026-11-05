@@ -1,8 +1,8 @@
 // html/static/galaxynebulae.js
 //
 // MAP.176: the nebula regions of the Galaxy Map, the choosing half (galaxyglowlayer.js draws them). A node of 9 to 729 sectors lists
-// the groups of the nebulae inside it, its child blocks that hold nebulae (`nebula_regions`, MAP.173: count, volume, centre, reach,
-// family shares, dominant class), the largest first. A region is a soft sprite at the group's centre, as wide as the group, in the
+// the groups of the nebulae inside it, its child blocks that hold nebulae (`nebula_regions`, MAP.173: count, volume, center, reach,
+// family shares, dominant class), the largest first. A region is a soft sprite at the group's center, as wide as the group, in the
 // colour of the family with the most volume and with a thin ring to tell it from a single nebula. The groups are a fixed grid (the
 // block ladder), so a parent's groups are the union of its children's and the picture is the same for everyone at the same zoom:
 // a node draws its groups for the share the cut gives it (galaxynodecut.weightCalculator), a block hands over to its children, and
@@ -71,12 +71,12 @@ export function regionBlobs(entries, looks, isShown) {
   const seen = new Set();
   (entries || []).forEach((entry) => {
     ((entry.node && entry.node.nebula_regions) || []).forEach((region) => {
-      if (!region || !region.centre || !(region.radius_pc > 0) || !(region.count > 0) || seen.has(region.key)) return;
+      if (!region || !region.center || !(region.radius_pc > 0) || !(region.count > 0) || seen.has(region.key)) return;
       const family = dominantFamily(region.shares);
       if (!family || (isShown && !isShown(family))) return;
       seen.add(region.key);
       found.push({
-        key: region.key, block: entry.block, node: entry.key, x: region.centre[0], y: region.centre[1], z: region.centre[2],
+        key: region.key, block: entry.block, node: entry.key, x: region.center[0], y: region.center[1], z: region.center[2],
         radiusPc: region.radius_pc, count: region.count, volume: region.volume_pc3, family, nebulaClass: region.class || null,
         color: familyColour(family, looks), ring: region.count > 1,
       });

@@ -685,6 +685,34 @@ def test_galaxy_page_shows_the_course_legend_and_readout(client, fake, monkeypat
     assert "Direct line" not in client.get("/galaxy?course=system:1,system:2").get_data(as_text=True)
 
 
+def test_the_galaxy_map_draws_the_course_through_the_waypoints_in_its_address(client, fake, monkeypatch):  # NAV.49
+    from planetgen.web import nav_page
+
+    asked = []
+
+    def through(raws):
+        asked.append(raws)
+        return {"scope": "galaxy", "points": [{"name": "A", "role": "origin", "url": "/system/1", "x": 1.0, "y": 0.0, "z": 0.0, "hopUnknown": False},
+                                              {"name": "B", "role": "waypoint", "url": "/system/2", "x": 2.0, "y": 1.0, "z": 0.0, "hopUnknown": False},
+                                              {"name": "C", "role": "destination", "url": "/system/3", "x": 3.0, "y": 0.0, "z": 0.0, "hopUnknown": False}],
+                "sector": None, "via": True, "waypoints": [0, 1, 2], "navUrl": "/nav?from=system:1&to=system:3", "direct": None,
+                "directs": [[{"x": 1.0, "y": 0.0, "z": 0.0}, {"x": 2.0, "y": 1.0, "z": 0.0}]], "adjusted": [],
+                "readout": {"distance": "2 ly", "course": None, "frame": "Galactic", "route_distance": "2 ly", "times": [],
+                            "stops": [{"name": "B", "url": "/system/2"}], "diagram": None}}
+
+    monkeypatch.setattr(nav_page, "galaxy_course_through", through)
+    page = client.get("/galaxy?via=system:1,system:2,system:3").get_data(as_text=True)
+    assert asked == [["system:1", "system:2", "system:3"]]
+    assert "Showing the course through your <strong>3 waypoints</strong>, from <strong>A</strong> to <strong>C</strong>" in page
+    assert "course-readout" in page and "Direct line" in page
+    asked.clear()
+    assert "Showing the course" not in client.get("/galaxy?via=system:1").get_data(as_text=True) and asked == []
+    # A course of its own wins over the waypoints.
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda a, b: None)
+    client.get("/galaxy?course=system:1,system:2&via=system:1,system:2,system:3")
+    assert asked == []
+
+
 def test_galaxy_page_without_a_course(client, fake):
     assert _scene(client.get("/galaxy").get_data(as_text=True))["course"] is None
     # A malformed value asks nothing and draws nothing.
@@ -736,36 +764,10 @@ def test_locate_endpoint_reports_an_api_failure(client, fake, monkeypatch):
     assert "error" in resp.get_json()
 
 
-# --- /galaxy/nebula/<id>/shape -----------------------------------------------------------
+# --- /galaxy/nebula/<id>/shape (MAP.142 part 4: gone; the maps draw a nebula from its points) -----------------------------
 
-def test_nebula_shape_endpoint_passes_the_mesh_through(client, fake, monkeypatch):
-    calls = []
-
-    def fake_shape(db, nebula_id, lod="low"):
-        calls.append((db, nebula_id, lod))
-        return {"id": nebula_id, "lod": lod, "vertices": [[0, 0, 0]], "faces": []}
-
-    monkeypatch.setattr(apiclient, "get_nebula_shape", fake_shape)
-    resp = client.get("/galaxy/nebula/5/shape?lod=full")
-    assert resp.get_json()["lod"] == "full"
-    assert client.get("/galaxy/nebula/5/shape").get_json()["lod"] == "low"
-    assert calls == [(DB, "5", "full"), (DB, "5", "low")]
-
-
-def test_nebula_shape_endpoint_reports_a_missing_nebula_and_an_api_failure(client, fake, monkeypatch):
-    def missing(db, nebula_id, lod="low"):
-        raise apiclient.NotFoundError("no such nebula: 9")
-
-    monkeypatch.setattr(apiclient, "get_nebula_shape", missing)
-    assert client.get("/galaxy/nebula/9/shape").status_code == 404
-
-    def fail(db, nebula_id, lod="low"):
-        raise apiclient.ApiError("down")
-
-    monkeypatch.setattr(apiclient, "get_nebula_shape", fail)
-    resp = client.get("/galaxy/nebula/9/shape")
-    assert resp.status_code == 502
-    assert "error" in resp.get_json()
+def test_the_site_no_longer_serves_a_nebula_shape_mesh(client, fake):
+    assert client.get("/galaxy/nebula/5/shape?lod=full").status_code == 404
 
 
 def test_nebula_volume_endpoint_serves_the_packed_bytes(client, fake, monkeypatch):

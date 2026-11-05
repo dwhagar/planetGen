@@ -863,7 +863,7 @@ tbody tr:last-child td {
 
 /* MAP.199: the center the view turns and zooms about -- always the middle
    of the map -- marked with a small cross so it is always known. */
-.starmap-centre {
+.starmap-center {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -878,7 +878,7 @@ tbody tr:last-child td {
   filter: drop-shadow(0 0 1px var(--bg-subtle));
 }
 
-.starmap-centre.is-moving {
+.starmap-center.is-moving {
   opacity: 1;
   transform: scale(1.5);
 }
@@ -1076,7 +1076,7 @@ tbody tr:last-child td {
   cursor: default;
 }
 
-.starmap-centre-readout {
+.starmap-center-readout {
   position: absolute;
   left: 50%;
   top: 0.5rem;
@@ -1615,6 +1615,37 @@ a.navmap-label:focus-visible {
   stroke-width: 2;
 }
 
+/* NAV.28: the course bent round keep-out spheres, over the route, in the amber of the site's warning tier. */
+.navmap-bent-line {
+  stroke: var(--tier-yellow);
+  stroke-width: 2.5;
+}
+
+/* NAV.36: a jump through unknown space is red, dashed and glowing (the glow is the SVG's filter); it pulses only where the visitor has
+   not asked for reduced motion. */
+.navmap-route-unknown,
+.navmap-route-unknown-sample {
+  stroke: var(--error);
+  stroke-width: 3;
+  stroke-dasharray: 7 4;
+}
+
+.navmap-key {
+  margin: 0.25rem 0 0;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.navmap-key-glyph {
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .navmap-route-unknown {
+    animation: nav-diagram-glow 2.4s ease-in-out infinite;
+  }
+}
+
 .navmap-point circle {
   stroke-width: 2;
   cursor: pointer;
@@ -2069,6 +2100,209 @@ a:focus-visible .navmap-point circle {
 
 .nav-hop-unknown {
   font-style: italic;
+  color: var(--error);
+}
+
+/* NAV.67, NAV.36: the course diagram. Three drawings of one route are on the page (a narrow, a middle and a wide one); the one that
+   fits the viewport shows. An unknown-space hop is red, dashed and glowing, and says so in words as well. */
+.nav-diagram-scroll {
+  overflow-x: auto;
+}
+
+.nav-diagram-narrow-box,
+.nav-diagram-middle-box,
+.nav-diagram-wide-box {
+  display: none;
+}
+
+.nav-diagram-narrow-box {
+  display: block;
+}
+
+@media (min-width: 560px) {
+  .nav-diagram-narrow-box { display: none; }
+  .nav-diagram-middle-box { display: block; }
+}
+
+@media (min-width: 960px) {
+  .nav-diagram-middle-box { display: none; }
+  .nav-diagram-wide-box { display: block; }
+}
+
+.nav-diagram-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.nav-diagram-line {
+  stroke: var(--line);
+  stroke-width: 2;
+  fill: none;
+}
+
+.nav-diagram-hop-unknown .nav-diagram-line {
+  stroke: var(--error);
+  stroke-width: 3;
+  stroke-dasharray: 7 4;
+}
+
+.nav-diagram-bend {
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+}
+
+.nav-diagram-bend-flag {
+  stroke: var(--tier-yellow);
+}
+
+.nav-diagram-label,
+.nav-diagram-course {
+  fill: var(--text-muted);
+  font-size: 12px;
+}
+
+.nav-diagram-neighbour {
+  stroke: var(--text-muted);
+  stroke-width: 1.2;
+  fill: none;
+  opacity: 0.55;
+}
+
+.nav-diagram-stub circle {
+  fill: var(--text-muted);
+  stroke: none;
+}
+
+.nav-diagram-link path {
+  stroke-dasharray: 2 3;
+}
+
+.nav-diagram-neighbour-label,
+.nav-diagram-more {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* A name over a faint stub keeps a halo of the page's color, so the stub never cuts through its letters. */
+.nav-diagram-name,
+.nav-diagram-label,
+.nav-diagram-course {
+  paint-order: stroke;
+  stroke: var(--bg-elevated);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.nav-diagram-label-unknown {
+  fill: var(--error);
+  font-weight: 700;
+}
+
+.nav-diagram-name {
+  fill: var(--text);
+  font-size: 12px;
+}
+
+.nav-diagram-stop {
+  cursor: default;
+}
+
+a.nav-diagram-stop {
+  cursor: pointer;
+}
+
+a.nav-diagram-stop:hover .nav-diagram-name,
+a.nav-diagram-stop:focus-visible .nav-diagram-name {
+  fill: var(--link);
+  text-decoration: underline;
+}
+
+a.nav-diagram-stop:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.nav-glyph-fill {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+
+.nav-glyph-stone {
+  fill: var(--tier-yellow);
+  stroke: var(--text);
+  stroke-width: 1.2;
+}
+
+.nav-glyph-hole {
+  fill: var(--text);
+}
+
+.nav-glyph-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+}
+
+.nav-diagram-select {
+  display: none;
+  fill: none;
+  stroke: var(--link);
+  stroke-width: 2.5;
+}
+
+.nav-diagram-stop.is-selected .nav-diagram-select {
+  display: inline;
+}
+
+.nav-diagram-stop.is-selected .nav-diagram-name {
+  fill: var(--link);
+  font-weight: 700;
+}
+
+.nav-diagram-end {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.nav-diagram-origin {
+  stroke-dasharray: 3 2;
+}
+
+.nav-diagram-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.nav-diagram-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-legend-glyph {
+  flex: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-diagram-hop-unknown {
+    animation: nav-diagram-glow 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes nav-diagram-glow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 .nav-skip {
@@ -2885,6 +3119,27 @@ code {
   border-radius: 0;
   vertical-align: 0.2rem;
 }
+.map-layer-legend-swatch.map-key-course-unknown {
+  height: 0;
+  border-top: 3px dashed var(--error);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
+.map-layer-legend-swatch.map-key-waypoint {
+  background: none;
+  border-radius: 0;
+}
+.map-layer-legend-swatch.map-key-waypoint::before {
+  content: "\2691";
+  color: var(--accent);
+  line-height: 1;
+}
+.map-layer-legend-swatch.map-key-bent {
+  height: 0;
+  border-top: 3px solid var(--tier-yellow);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
 .map-layer-legend-swatch.map-key-direct {
   height: 0;
   border-top: 2px dashed var(--text-muted);
@@ -3268,7 +3523,8 @@ code {
 }
 
 .starmap-info[data-overlay] .map-info-head > .map-info-close,
-.starmap-info[data-overlay] .map-info-head > .map-info-bookmark {
+.starmap-info[data-overlay] .map-info-head > .map-info-bookmark,
+.starmap-info[data-overlay] .map-info-head > .map-info-waypoint {
   flex: none;
 }
 
@@ -4764,6 +5020,16 @@ body.app {
   border-color: var(--accent);
 }
 
+/* NAV.18: a saved course's Direct / Route switch and its link to the map look like the other actions. */
+.bookmarks-action[aria-pressed="true"] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+a.bookmarks-action {
+  text-decoration: none;
+}
+
 .bookmarks-rename {
   display: flex;
   flex: 1 1 100%;
@@ -4827,7 +5093,7 @@ body.app {
 }
 
 .badge.job-paused,
-.badge.job-cancelled {
+.badge.job-canceled {
   border-style: dashed;
 }
 
@@ -5029,6 +5295,17 @@ body.app {
   cursor: grab;
 }
 
+.sysview-sky {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.sysview-sky-note {
+  margin: 0.25rem 0;
+}
+
 .sysview-canvas:focus-visible {
   outline: 2px solid var(--accent, #4f8cff);
   outline-offset: -2px;
@@ -5176,6 +5453,12 @@ body.app {
   margin: 0.25rem 0 0.75rem;
   font-size: 0.9rem;
 }
+.course-readout .nav-diagram {
+  flex: 1 1 100%;
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
 .course-key,
 .course-stops {
   margin: 0;
@@ -5706,7 +5989,7 @@ p.hint a {
 }
 
 
-/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the centre of each
+/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the center of each
    wall that faces a neighbouring sector, screen-sized whatever the zoom, over the names; a click flies there. */
 .map-wall-icons {
   position: absolute;
@@ -5862,7 +6145,7 @@ p.hint a {
   display: none;
 }
 
-/* The kind's mark: a small disc, a ring for a body that is not a whole world, drawn by CSS. */
+/* The kind's mark: a small disk, a ring for a body that is not a whole world, drawn by CSS. */
 .tree-kind {
   display: inline-block;
   align-self: center;
@@ -6487,3 +6770,83 @@ a.help-mark {
 .day-counter-bands caption { text-align: left; font-weight: 600; padding-bottom: 0.25rem; }
 .day-counter-bands th, .day-counter-bands td { padding: 0.2rem 0.6rem; text-align: left; vertical-align: top; }
 .day-counter-bands tbody tr + tr { border-top: 1px solid var(--border, rgba(128, 128, 128, 0.3)); }
+
+/* MAP.371: the plane view's ring distances, smaller and in the accent so they read as the grid's, not the map's names. */
+.map-plane-labels .map-label {
+  font-size: 0.68rem;
+  color: var(--accent, #7f8cff);
+  filter: brightness(1.6);
+  padding: 0 4px;
+}
+
+/* MAP.375: the Galaxy Map's side strip for height (galaxystrip.js): an edge-on strip of the wedge's stars under the map, and on
+   a phone or a touch screen a drawer fixed to the bottom of the window. */
+.galaxy-strip {
+  margin-top: 0.5rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.galaxy-strip[hidden] {
+  display: none;
+}
+
+.galaxy-strip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.galaxy-strip-caption {
+  margin: 0.25rem 0;
+}
+
+.galaxy-strip-canvas {
+  display: block;
+  width: 100%;
+  height: 9.5rem;
+  border-radius: 6px;
+  cursor: crosshair;
+  touch-action: manipulation;
+}
+
+.galaxy-strip-readout {
+  margin: 0.35rem 0 0;
+  min-height: 1.3em;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .galaxy-strip {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+    max-height: 45vh;
+    padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  .galaxy-strip-canvas {
+    height: 8rem;
+  }
+}
+
+/* MAP.373: the stems' coordinate labels and the note on the grid that says how tall the heights are drawn. */
+.map-plane-labels .map-plane-coords {
+  font-size: 0.66rem;
+  color: #eef1fb;
+  background: rgba(8, 10, 20, 0.45);
+  border-radius: 3px;
+  margin: -18px 0 0 6px;
+}
+.map-plane-labels .map-plane-coords[data-selected] { color: #fff; font-weight: 600; }
+.map-plane-labels .map-plane-note { font-size: 0.68rem; padding: 0 4px; }
+.galaxy-menu-stretch { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+.galaxy-menu-stretch input[type="range"] { flex: 1; min-width: 6rem; }

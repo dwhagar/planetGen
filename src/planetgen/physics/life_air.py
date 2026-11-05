@@ -160,17 +160,33 @@ def standing_methane_mol(body, living, age_gyr):
     moles = biogenic_oxygen.air_moles(body)
     if not moles:
         return 0.0
+    flux = summed_methane_flux_mol_yr(body, living, lambda one: row_of(one.life_class)["methane"].get("until") == "oxygen" and one.started(body) is not None
+                                      and one.started(body) <= age_gyr)
+    return methane_target_mol(flux, moles) if flux > 0.0 else 0.0
+
+
+def summed_methane_flux_mol_yr(body, living, counts=None):
+    """
+    The methane, mol a year, the classes of `living` make together on `body` (GEN.1213, GEN.1252). `counts(one)` says which classes count (all if not given). A row
+    whose fuel is the buried carbon of the food (`burial`) is a slice of the food, so it goes with the class's share of the body's production; a row limited by its
+    own fuel (the donor supply of the anoxygenic eaters, the hydrogen supply of the hydrogen eaters) is not limited by the food, so each fuel's flux is counted once
+    however many classes burn it and whatever their shares.
+    """
     supplies = None
-    flux = 0.0
+    burial = 0.0
+    fuels = {}
     for one in living:
         row = row_of(one.life_class)
-        started = one.started(body)
-        if row["status"] != "built" or not row.get("methane") or row["methane"].get("until") != "oxygen" or started is None or started > age_gyr:
+        if row["status"] != "built" or not row.get("methane") or (counts is not None and not counts(one)):
             continue
-        if row["methane"]["fuel"] != "burial" and supplies is None:
+        fuel = row["methane"]["fuel"]
+        if fuel == "burial":
+            burial += one.share * methane_flux_mol_yr(body, one.life_class)
+            continue
+        if supplies is None:
             supplies = life_supply.supplies(habitability_world.values_from_body(body))
-        flux += one.share * methane_flux_mol_yr(body, one.life_class, supplies)
-    return methane_target_mol(flux, moles) if flux > 0.0 else 0.0
+        fuels[fuel] = max(fuels.get(fuel, 0.0), methane_flux_mol_yr(body, one.life_class, supplies))
+    return burial + sum(fuels.values())
 
 
 def oxygen_rise_gyr(body, living):
@@ -236,15 +252,7 @@ def apply_gases(body, living, rose):
     changed = False
     new = dict(moles)
     oxygen_free = moles.get("O2", 0.0) <= number("oxygen_max_share") * sum(moles.values())
-    flux = 0.0
-    supplies = None
-    for one in living:
-        row = row_of(one.life_class)
-        if row["status"] != "built" or not row.get("methane") or not _producing(body, one, rose):
-            continue
-        if row["methane"]["fuel"] != "burial" and supplies is None:
-            supplies = life_supply.supplies(habitability_world.values_from_body(body))
-        flux += one.share * methane_flux_mol_yr(body, one.life_class, supplies)
+    flux = summed_methane_flux_mol_yr(body, living, lambda one: _producing(body, one, rose))
     if oxygen_free and flux > 0.0:
         have = moles.get("CH4", 0.0)
         wanted = methane_target_mol(flux, moles)
@@ -287,6 +295,26 @@ def _kpa(body, moles):
     return {formula: pascal / 1000.0 for formula, pascal in biogenic_oxygen.partials_pa(body, moles).items()}
 
 
+def _contributions(body, living, formula, flux_of):
+    """
+    How much of the change life made in the gas `formula` each class of `living` made (GEN.1213), as `[{"life_class", "variant", "share"}, ...]` with the shares
+    adding up to 1, or `[]` when none made any: the methane and the carbon dioxide it is made from by each class's methane flux (`flux_of`, mol a year, in the
+    order of `living`), the oxygen by each oxygenic class's share of the food production (the source the rise sums). A class that made none is left out.
+    """
+    if formula in ("CH4", "CO2"):
+        weights = list(flux_of)
+    elif formula == "O2":
+        oxygenic = {id(one) for one in living if one.life_class.releases_oxygen and one.started(body) is not None}
+        weights = [one.share if id(one) in oxygenic else 0.0 for one in living]
+    else:
+        return []
+    total = sum(weights)
+    if total <= 0.0:
+        return []
+    return [{"life_class": one.life_class.number, "variant": one.life_class.variant or None, "share": round(weight / total, 6)}
+            for one, weight in zip(living, weights) if weight > 0.0]
+
+
 def air_history(body, living, stage_ages):
     """
     The air of `body` through the age of its star, as far as the life on it changed it (UX.237, GEN.1213, docs/design/habitability/life-classes.md section 6.2):
@@ -306,7 +334,7 @@ def air_history(body, living, stage_ages):
     Returns:
         dict or None: `age_gyr` (the star's age), `producers_gyr` (the first producers' age), `rose_gyr` (the age of the oxygen rise or `None`), `classes` (a
             list of `{"life_class", "variant", "share", "producers_gyr"}`, one for each class), `gases` (a list of `{"formula", "name", "steps": [[age_gyr,
-            kPa], ...]}`, each value holding until the next age, only the gases that are ever above `HISTORY_MINIMUM_KPA`), `stages` (the `stage_ages` the
+            kPa], ...], "by_class": [{"life_class", "variant", "share"}, ...]}`, each value holding until the next age and `by_class` the share of what life changed in the gas that each class made, only the gases that are ever above `HISTORY_MINIMUM_KPA`), `stages` (the `stage_ages` the
             star is old enough for, sorted by age) and `speculative` (the ledger's tier and tweak level for a class with `tweak` L3 or L4, else `None`).
             `None` when the body is a giant, has no air, no producers, or the air never differs from one age to another (nothing to draw).
     """
@@ -359,6 +387,8 @@ def air_history(body, living, stage_ages):
     if not gases or all(len({value for _, value in gas["steps"]}) == 1 for gas in gases):
         return None
     tuned = [row_of(one.life_class) for one in living if row_of(one.life_class)["tweak"] in ("L3", "L4")]
+    for gas in gases:
+        gas["by_class"] = _contributions(body, living, gas["formula"], flux_of)
     return {"age_gyr": star_age, "producers_gyr": begun[0][0], "rose_gyr": rise,
             "classes": [{"life_class": one.life_class.number, "variant": one.life_class.variant or None, "share": round(one.share, 6), "producers_gyr": one.started(body)}
                         for one in living],

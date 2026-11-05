@@ -15,7 +15,7 @@ _km_to_au = units.converter("km", "au")
 
 
 def _joined(detail, node_no):
-    """What fills the two places of a node, slot 0 (the centre) first: a star's name, or `orbit N` for a pair hung below
+    """What fills the two places of a node, slot 0 (the center) first: a star's name, or `orbit N` for a pair hung below
     the node. `None` for a place nothing hangs in."""
     places = {}
     for star in detail.get("stars") or []:

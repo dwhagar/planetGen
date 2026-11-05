@@ -16,7 +16,7 @@ kills the queue workers on this host, then removes what is left:
 
 The databases and the Generate page's job directories are not touched. `update.sh --reset-jobs` runs this
 first. It asks before it changes anything (`--yes` is the answer for a script); `--dry-run` only prints what
-there is. It exits 0 when it finished (or has nothing to do) and 1 when it was cancelled or failed.
+there is. It exits 0 when it finished (or has nothing to do) and 1 when it was canceled or failed.
 """
 
 import argparse

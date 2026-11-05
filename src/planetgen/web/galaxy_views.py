@@ -273,18 +273,25 @@ def _course_from_args():
     """
     The NAV course the map should draw, from `?course=<from>,<to>` (the
     NAV result's "Show on Galaxy Map" link, the drill-down's section
-    9.4), or `None`. A course that can't be drawn is simply not drawn;
+    9.4) or `?via=<a>,<b>,...` (the waypoints, NAV.49; `?course=` wins), or `None`. A course that can't be drawn is simply not drawn;
     an endpoint that doesn't exist is the usual 404.
     """
+    via = [part.strip() for part in (request.args.get("via") or "").split(",") if part.strip()]
     raw = (request.args.get("course") or "").strip()
-    if not raw or "," not in raw:
+    explicit = bool(raw) and "," in raw
+    if not explicit and len(via) < 2:
         return None
-    from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
-    if not from_raw or not to_raw:
-        return None
-    from .nav_page import galaxy_course  # imported here: both modules register routes on `bp`
+    from .nav_page import galaxy_course, galaxy_course_through  # imported here: both modules register routes on `bp`
 
     try:
+        if not explicit:
+            try:
+                return galaxy_course_through(via)  # NAV.49: the waypoints the visitor picked (`?via=<a>,<b>,...`)
+            except apiclient.NotFoundError:
+                return None  # a waypoint kept in the browser that the database no longer has: no course, not a 404 page
+        from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
+        if not from_raw or not to_raw:
+            return None
         return galaxy_course(from_raw, to_raw)
     except apiclient.ApiError as exc:
         if isinstance(exc, apiclient.NotFoundError):
@@ -574,31 +581,6 @@ def galaxy_uncharted_scene(shell, band, wedge):
 
 
 galaxy_uncharted_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
-
-
-@bp.route("/galaxy/nebula/<uid:nebula_id>/shape")
-@page_limit("galaxy_tiles")
-def galaxy_nebula_shape(nebula_id):
-    """
-    JSON for the maps' nebula meshes (MAP.103): `?lod=low|full`. Returns
-    `GET /api/nebulae/<id>/shape`'s payload; an unknown nebula is a 404
-    and an API failure a 502, both as `{"error": ...}` JSON.
-    """
-    lod = request.args.get("lod", "low")
-    try:
-        payload = apiclient.get_nebula_shape(db_name(), nebula_id, lod)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching a nebula's shape: {exc}")
-        return _json_error("The nebula could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
-    # A nebula's shape is drawn from its own properties, so it doesn't change.
-    response.headers["Cache-Control"] = "private, max-age=3600"
-    return response
-
-
-galaxy_nebula_shape.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/galaxy/nebula/<uid:nebula_id>/volume")

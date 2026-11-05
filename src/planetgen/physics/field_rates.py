@@ -14,10 +14,10 @@ made-up per-sector rate. So a sector holds a field when a source of the Galaxy p
   time `field_dispersal.retirement_age_yr` it needs to leave a light year (27 kyr at 11 km/s), about 200 fields stand in the whole Galaxy (`standing_number`), 3e-9 to 8e-9 per sector.
   **Hosted**: the field does not exist apart from its remnant. `hosted_belt` is the rule the supernova remnant draws from: the remnant of age `t` hosts an unbound belt of age `t` when
   the progenitor kept a belt (`belt_unit` against `belt_share`), the mass loss unbinds it and `t` is under the retirement age.
-* **S3, a young cluster stripping the discs of its stars** (`flyby_stripping_rate_per_star_per_year`, `cluster_swarm_lifetime_yr`, `cluster_swarm_standing`): a flyby closer than the belt
+* **S3, a young cluster stripping the disks of its stars** (`flyby_stripping_rate_per_star_per_year`, `cluster_swarm_lifetime_yr`, `cluster_swarm_standing`): a flyby closer than the belt
   radius over `TRUNCATION_FRACTION` takes the belt away from the star, with the gravitational focusing of the pair; the swarm spreads at the orbital speed it had and so leaves a light
   year in about 70 thousand years. Standing swarms are the stripping rate times that life.
-* **Not sources.** A rogue disrupted by a neutron star or black hole (S4) feeds the pulsar-planet disc, an ejected belt (S5) joins the interstellar background, a destroyed planet (S6) is
+* **Not sources.** A rogue disrupted by a neutron star or black hole (S4) feeds the pulsar-planet disk, an ejected belt (S5) joins the interstellar background, a destroyed planet (S6) is
   bound and already a belt, a disrupted giant (S7) leaves gas. They have no function here.
 
 Stand-ins are IF19 to IF22 of `docs/design/research/gap-filling-plan.md` section 6.106. Nothing reads the module yet: the supernova host rule and the columns (GEN.1103, GEN.1104) wire it.
@@ -34,7 +34,7 @@ PROGENITOR_BELT_SHARE_BY_AGE = ((3.0e7, 0.41), (1.89e8, 0.25), (4.0e8, 0.15), (m
 """tuple: `(upper age, share)` of A stars of 2 to 3 solar masses with a 24 micron excess by age, years (Su et al. 2006, Table 4, row IF9); the progenitors of a core-collapse supernova
 live 10 to 40 Myr, so nearly all of them take the first row."""
 TRUNCATION_FRACTION = 0.3
-"""float: A flyby of periastron `q` truncates a disc at about `0.3 q` (Holman and Wiegert style cut; [R0527], recalled); a belt of radius `a` is stripped by `q < a / 0.3`. IF20,
+"""float: A flyby of periastron `q` truncates a disk at about `0.3 q` (Holman and Wiegert style cut; [R0527], recalled); a belt of radius `a` is stripped by `q < a / 0.3`. IF20,
 tier T2, L1."""
 CLUSTER_BELT_SHARE = 0.32
 """float: The share of the stars of a young cluster that hold a debris belt: the overall 32 +/- 5 percent of the Spitzer sample of A stars (IF9), used for solar-type stars too until a sample is
@@ -64,7 +64,7 @@ def collision_field_rate_per_sector_per_year(rogue_density_pc3, sector_volume_pc
     """
     Fields born from rogue-rogue collisions in one sector per year: the collisions `0.5 n V Gamma` of the sector (`Gamma` the rate per rogue of `rogue_collision.rate_per_rogue_per_year`
     at the characteristic speed `speed_ms`) times the share whose speed lies in the rubble window of the pair (`rogue_collision.speed_fractions` at the dispersion `dispersion_ms`, with the
-    focusing of the pair). Two Earths in the disc (0.78 per pc3, 40 km/s, dispersion 25 km/s) give 1e-23 collisions per rogue per year, about 2e-22 fields per sector per year for a cube of 4 pc.
+    focusing of the pair). Two Earths in the disk (0.78 per pc3, 40 km/s, dispersion 25 km/s) give 1e-23 collisions per rogue per year, about 2e-22 fields per sector per year for a cube of 4 pc.
     """
     _positive(rogue_density_pc3=rogue_density_pc3, sector_volume_pc3=sector_volume_pc3, speed_ms=speed_ms, dispersion_ms=dispersion_ms)
     low, high = rogue_collision.rubble_speed_window_ms(max(mass1_kg, mass2_kg), min(mass1_kg, mass2_kg))

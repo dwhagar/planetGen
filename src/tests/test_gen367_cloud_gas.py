@@ -5,7 +5,7 @@ GEN.367: a Magellanic Cloud holds the molecular clouds its gas would, not the cl
 
 The nebula field draws clouds from a tracer that follows a satellite's young stars (GEN.528). Those stars fill a ball out to six
 half-mass radii, so the Large Cloud came out with about 2.5 times the clouds of its gas. `tuning.SATELLITE_NEBULA_GAS_SCALE` scales a
-named satellite's tracer, and these tests work the target again from the sources [R3102, R5096, R5097] and hold the scale to it.
+named satellite's tracer, and these tests work the target again from the sources [R3102, R5123, R5124] and hold the scale to it.
 """
 
 import itertools
@@ -55,7 +55,7 @@ def test_the_sourced_numbers_are_the_papers():
 def test_the_large_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass():
     found = _expected_class_m_clouds(LMC, WITH_SATELLITES)
     assert found == pytest.approx(_target(LMC.name), rel=0.15)
-    assert 0.8 < found / 272 < 1.6      # the 272 clouds the CO survey catalogued above its limit [R5096]
+    assert 0.8 < found / 272 < 1.6      # the 272 clouds the CO survey catalogued above its limit [R5123]
 
 
 def test_the_small_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass():

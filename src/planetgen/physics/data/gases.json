@@ -2,11 +2,11 @@
  "retrieved": "2026-10-17",
  "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity, infrared bands, ultraviolet and visible absorption (GEN.410)",
  "sources": [
-  "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
+  "chemicals 1.5.2 (heos_constants, critical, triple and vapor-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
   "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); [R3470]; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
   "[R4066] gas-phase fundamentals at [R0620] as read in part 03 table 2.1; photochem_clima_data 0.3.4 ([R1873, R2040, R2258, R3966], [R2302, R2303]) binned to 35 bins in part 02 section 2.3"
  ],
- "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists the band centres (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` where under half of the bin is covered.",
+ "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists the band centers (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` where under half of the bin is covered.",
  "uv_bins_nm": [
   [
    10.0,
@@ -1687,7 +1687,7 @@
     "king_factor_550": 1.001,
     "king_factor_assumed": false,
     "research_status": "COMPUTED",
-    "research_row": "H2O vapour (generic check only)",
+    "research_row": "H2O vapor (generic check only)",
     "research_note": "report gives n - 1 = 2.362e-4 at 550 nm with unknown reference temperature: n-based sigma is 3.11e-27 (if 288.15 K) or 2.80e-27 (if 273.15 K); the generic formula with alpha = 1.501 A^3 gives 3.38e-27, 9 to 21 percent above. Use the report value",
     "reference_temperature_k": null,
     "note": "generic polarizability route (alpha 1.501 A^3), because the refractivity n - 1 = 2.362e-4 at 550 nm has no known reference temperature: n-based sigma(550) is 3.11e-27 if 288.15 K or 2.80e-27 if 273.15 K, so the generic value is 9 to 21 percent above; F_K 1.0010 from the vapor depolarization 2.99e-4 (linear), not the liquid's 0.17",
@@ -2385,7 +2385,7 @@
     ],
     "research_row": "CO2",
     "fundamentals_text": "nu2 667 (15.0); nu3 2349 (4.26); 2nu2/nu1 Fermi dyad about 1388 and 1285 (7.2, 7.8); hot bands about 960 and 1063 (10.4, 9.4)",
-    "strength_text": "strong in band centre, saturated; rank 16; far wings plus CIA matter at tens of bar",
+    "strength_text": "strong in band center, saturated; rank 16; far wings plus CIA matter at tens of bar",
     "saturated_rank": 16,
     "no_band": false,
     "source": "recalled",
@@ -7797,7 +7797,7 @@
    "latent_heat_vaporisation_source": null,
    "latent_heat_sublimation_kj_mol": null,
    "thermal_status": "DATA",
-   "extras_note": "JANAF Cp in T3 agrees within 4% at 300 K; vapour curve in T6",
+   "extras_note": "JANAF Cp in T3 agrees within 4% at 300 K; vapor curve in T6",
    "infrared": {
     "bands": [],
     "research_row": "TiO, VO, Na, K, Fe, Mg",

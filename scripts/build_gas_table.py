@@ -91,7 +91,7 @@ RAYLEIGH_ROWS = {
     "Xe": ("a", "Xe", None, "Bideau-Mehu fit; spread 4.0 percent"),
     "N2O": ("a", "N2O", 288.15, "He 2021 Table 1; 18.3e-27 measured at 532 nm"),
     "NH3": ("a", "NH3, Cuthbertson", 273.15, "Cuthbertson fit (0.48 to 0.67 um); the generic formula gives 6.65e-27"),
-    "H2O": ("a", "H2O vapour (generic check only)", None, "see the note on the water vapour row"),
+    "H2O": ("a", "H2O vapor (generic check only)", None, "see the note on the water vapor row"),
     "H2S": ("b", "H2S", None, "polarizability route, each value about +-8 percent; [R0443] not reached"),
     "SO2": ("b", "SO2", None, "polarizability route, each value about +-8 percent; [R0443] not reached"),
     "C2H6": ("b", "C2H6", None, "polarizability route"),
@@ -346,11 +346,11 @@ def build_viscosity(rows):
 # ---- Infrared bands (part 03 table 2.1) ----
 
 def _band(label, cm1=None, low=None, high=None, about=False):
-    """One band: its label as the research writes it, a centre in cm-1 (`about` where the research writes "about") or a range."""
+    """One band: its label as the research writes it, a center in cm-1 (`about` where the research writes "about") or a range."""
     return {"label": label, "wavenumber_cm1": cm1, "range_cm1": None if low is None else [low, high], "approximate": about}
 
 
-# The rows of table 2.1: the row label of the research table, then the band centres typed from its "Fundamentals" cell (the check in
+# The rows of table 2.1: the row label of the research table, then the band centers typed from its "Fundamentals" cell (the check in
 # `build_infrared` fails when a number is not in that cell), and the rank of the gas in the saturated-absorption ordering of [R0620]
 # where the strength cell gives one. A gas with no band has an empty list and the research's reason in the row.
 INFRARED = {
@@ -579,7 +579,7 @@ def build():
         "retrieved": RETRIEVED,
         "title": "The gases and compounds that can be in an atmosphere: identity, phase points, heat capacity, Rayleigh scattering, Henry constants, viscosity, infrared bands, ultraviolet and visible absorption (GEN.410)",
         "sources": [
-            "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, "
+            "chemicals 1.5.2 (heos_constants, critical, triple and vapor-pressure tables), thermo 0.6.1, periodictable 2.1.0, "
             "cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
             "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); [R3470]; Mansfield and Peck; "
             "Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
@@ -593,7 +593,7 @@ def build():
                   "`physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the "
                   "temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K "
                   "with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists "
-                  "the band centres (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean "
+                  "the band centers (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean "
                   "photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` "
                   "where under half of the bin is covered."),
         "uv_bins_nm": uv["bins_nm"],

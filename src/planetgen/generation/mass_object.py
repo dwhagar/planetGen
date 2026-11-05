@@ -46,7 +46,7 @@ GALACTIC_MOTION_UNITS = {
     "galactic_orbital_phase_deg": "deg", "galactic_min_update_interval_years": "yr",
 }
 """dict: The four fields `set_galactic_motion` sets, with their native units: the circular speed and period about the
-galactic centre, the phase along that orbit, and the shortest interval between orbital updates."""
+galactic center, the phase along that orbit, and the shortest interval between orbital updates."""
 
 GALACTIC_MOTION_FIELDS = list(GALACTIC_MOTION_UNITS)
 """list: The names of `GALACTIC_MOTION_UNITS`."""
@@ -277,7 +277,7 @@ class MassObject:
         return KinematicRecord(position, velocity, self.spin_axis, self.spin_rate_rad_s, mass, mu, epoch, next_due)
 
     def set_galactic_motion(self, galactic_center_dist_ly=None, galactic_orbital_phase_deg=None):
-        """Sets the four `GALACTIC_MOTION_FIELDS` from the body's distance from the galactic centre (none: the
+        """Sets the four `GALACTIC_MOTION_FIELDS` from the body's distance from the galactic center (none: the
         generator's default distance) and a given phase (none: drawn)."""
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \

@@ -22,7 +22,7 @@ and near the plane). A sector takes every cloud whose sphere reaches it
 first sector saved that it reaches is its home, and later sectors find it
 already stored.
 
-Molecular gas does not survive in a superbubble (GEN.254, `superbubble_field`): `cloud_kept` loses a cloud whose centre
+Molecular gas does not survive in a superbubble (GEN.254, `superbubble_field`): `cloud_kept` loses a cloud whose center
 lies in one, after the draw, so the clouds that stay and their object IDs are as they were.
 """
 
@@ -114,7 +114,7 @@ def gas_factor(position_pc, shape):
 
 
 def _arm_cosine_array(x, y, shape):
-    """`galaxyDensity._arm_cosine` at arrays `x`, `y`: 0 at the centre, where the arms are undefined."""
+    """`galaxyDensity._arm_cosine` at arrays `x`, `y`: 0 at the center, where the arms are undefined."""
     r_cyl = np.hypot(x, y)
     with np.errstate(divide="ignore", invalid="ignore"):
         theta_arm = (shape.spiral_reference_angle_rad
@@ -148,7 +148,7 @@ def cell_index(position_pc):
 def cloud_kept(galaxy_seed, index, n, nebula, center=None, shape=None):
     """Whether the galaxy keeps draw number `n` of cell `index` (GEN.152): a hash of the two against the share
     `tuning.NEBULA_FIELD_KEEP` keeps of the cloud's class, so what the draw makes does not change, only what is kept.
-    With the cloud's `center` and the galaxy's `shape` given, a cloud whose centre is inside a superbubble is lost too
+    With the cloud's `center` and the galaxy's `shape` given, a cloud whose center is inside a superbubble is lost too
     (GEN.254): molecular gas does not survive in the hot cavity. The draw and the object IDs still count it."""
     if center is not None and shape is not None:
         from planetgen.galaxy import superbubble_field  # imports this module for the gas factor
@@ -196,7 +196,7 @@ platform's last-bit noise cannot move it across a sector face except at a face i
 
 
 def centroid_mpc(nebula, center_pc):
-    """The centre of the space `nebula` fills, as whole milliparsecs `(x, y, z)` in the galaxy frame (GEN.176)."""
+    """The center of the space `nebula` fills, as whole milliparsecs `(x, y, z)` in the galaxy frame (GEN.176)."""
     offset = nebula.get_shape().interior_centroid()
     radius_pc = ly_to_pc(nebula.radius_ly)
     step = CENTROID_ROUND_MPC
@@ -236,7 +236,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
     if mine is None:
         raise ValueError(f"no field cloud at {tuple(center_pc)!r} in cell {index}")
     n_self, address = mine
-    # Every cloud born here has its centre within a cloud radius of the sector.
+    # Every cloud born here has its center within a cloud radius of the sector.
     sector_size = edge_pc * math.sqrt(3.0)
     reach = MAX_CLOUD_RADIUS_PC + sector_size
     sector_center = galaxySpherical.sector_position_pc(*address, edge_pc)

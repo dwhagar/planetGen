@@ -29,7 +29,7 @@ from tests.test_slowpages import _site, slow  # noqa: F401 -- the fixtures
 
 def _job(state="running", done=300, total=1000, eta=5.0, error=None, job_id="0123456789abcdef"):
     return {"id": job_id, "state": state, "done": done, "total": total, "unit": "rows", "estimated": True,
-            "eta_seconds": eta, "seconds": 3.0, "error": error, "cancelling": False,
+            "eta_seconds": eta, "seconds": 3.0, "error": error, "canceling": False,
             "cache_key": "planetgen:page:x:y", "target": "/phenomena?db=x"}
 
 
@@ -81,7 +81,7 @@ def test_a_queued_job_has_a_bar_with_no_value_and_says_it_is_waiting(client, mon
     assert "Waiting for a worker to start building this page." in html
 
 
-@pytest.mark.parametrize("state,words", [("failed", "Disk full"), ("cancelled", "An administrator stopped")])
+@pytest.mark.parametrize("state,words", [("failed", "Disk full"), ("canceled", "An administrator stopped")])
 def test_a_job_that_ended_badly_shows_why_and_offers_to_try_again(client, monkeypatch, state, words):
     monkeypatch.setattr(apiclient, "get_phenomena", _pending(_job(state, done=0, error="Disk full")))
     html = client.get("/phenomena").get_data(as_text=True)

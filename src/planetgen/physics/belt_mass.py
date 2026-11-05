@@ -1,18 +1,18 @@
 # planetgen/physics/belt_mass.py
 
 """
-How much is left in a planetesimal belt: the disc's solids ground down by collisions (GEN.477 E2, part 1; docs/design/composition/small-bodies-composition.md section 14).
+How much is left in a planetesimal belt: the disk's solids ground down by collisions (GEN.477 E2, part 1; docs/design/composition/small-bodies-composition.md section 14).
 
 The belt density of `AsteroidBelt` was a uniform draw of "dense", "sparse" or "typical" and the belt's mass was stated as zero (NAV.62). Here the mass is derived.
 
-1. **What formed.** The solids of the disc between the belt's limits, `planet_mass.solids_surface_density_gcm2` integrated over the annulus: the primordial mass,
+1. **What formed.** The solids of the disk between the belt's limits, `planet_mass.solids_surface_density_gcm2` integrated over the annulus: the primordial mass,
    a few Earth masses at 2 to 3 AU for a Sun-like star.
 2. **What collisions leave.** [R4785] (MNRAS 380, 1737, [R4785], section 2.2, READ) work out a planetesimal belt in collisional
    equilibrium: the mass falls as `M(t) = M0 / (1 + t / tc(0))` (their Eq. 14) and `tc` depends on the mass, so the late-time mass is independent of the initial mass
    (their Eq. 13 and 15): `M_max = 3.8e-6 rho r^3.5 (dr/r) Dc / (M*^0.5 t) * (12q - 20) [1 + 1.25 (e/I)^2]^-0.5 / ((18 - 9q) G(q, Xc))`, with
    `G(11/6, Xc) = Xc^-0.5 + 0.67 Xc^-1.5 + 0.2 Xc^-2.5 - 1.87`, `Xc = 1e-3 (r Q*D / e^2)^(1/3)`, `q = 11/6`, in Earth masses for `rho` in kg/m^3, `r` and `dr` in AU,
    `Dc` (the largest planetesimal, in equilibrium) in km, `M*` in solar masses and `t` in Myr. `belt_mass_earth` is `1 / (1 / M0 + t / A)` with `A = M_max t`, so a young or
-   light belt keeps what formed and an old belt keeps `M_max` whatever formed: in a belt a few AU wide, the disc's thousands of times the mass.
+   light belt keeps what formed and an old belt keeps `M_max` whatever formed: in a belt a few AU wide, the disk's thousands of times the mass.
 3. **The numbers it needs from the belt.** `Dc` and the disruption threshold `Q*D` of the largest bodies: for a gravity-bound body the generator's own
    [R2633] threshold of `collision_outcome.catastrophic_energy`, with the strength of 200 J/kg of Wyatt et al.'s nominal 2 km planetesimals as a
    floor; the particles' eccentricity from the belt's width, `e = (upper - lower) / (upper + lower)` (the extent of the orbits of a belt that stirs itself), and `e/I = 1`.
@@ -66,7 +66,7 @@ def disruption_threshold_j_per_kg(largest_km, density_kg_m3=GRAIN_DENSITY_KG_M3)
 
 @finite_domain()
 def primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio=1.0, scatter=1.0, steps=64):
-    """The solids of the disc between two distances, Earth masses: `2 pi a Sigma(a)` integrated over the annulus (log-spaced steps)."""
+    """The solids of the disk between two distances, Earth masses: `2 pi a Sigma(a)` integrated over the annulus (log-spaced steps)."""
     if not 0.0 < lower_au < upper_au:
         raise ValueError("the belt needs 0 < lower < upper")
     au_cm = constants.AU_M * 100.0

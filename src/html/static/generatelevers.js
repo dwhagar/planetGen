@@ -7,7 +7,7 @@
 //
 // GEN.617: under the dials a line says how dense the galaxy is and how much of it the outline holds, the numbers
 // `planetgen plan` prints (the server works them out with the same code, `generation.plan_outline`), with a warning
-// when the disc is thin and a refusal when the outline would be empty.
+// when the disk is thin and a refusal when the outline would be empty.
 
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;

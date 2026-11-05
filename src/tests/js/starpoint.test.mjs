@@ -20,7 +20,7 @@ test("a star is a point at far and mid distances and fully grown near a sector",
   assert.equal(P.pointSizePx(full, P.POINT_FAR_PC), P.POINT_PX);
   assert.equal(P.pointSizePx(4, 20000), P.POINT_PX);
   assert.ok(P.POINT_PX >= 1 && P.POINT_PX <= 2, "one to two pixels");
-  // Mid distance (a few sectors away): still a point, not yet a disc.
+  // Mid distance (a few sectors away): still a point, not yet a disk.
   const mid = P.pointSizePx(full, P.POINT_FAR_PC / 2);
   assert.ok(mid < full / 2, `mid ${mid}`);
   // Near a sector: the full size, and nearer stays the same (never sized by distance).

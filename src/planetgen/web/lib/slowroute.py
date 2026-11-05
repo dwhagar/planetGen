@@ -8,7 +8,7 @@ holding the request (PERF.105). When one does, the view is abandoned and the vis
 (`title`, breadcrumbs, header) with a progress bar in place of the content, status `202`, never cached or indexed.
 `static/slowload.js` polls `GET /api/page-jobs/<id>`; when the job has finished it fetches the page again with
 the same address and swaps the finished content in without reloading, and if that page is waiting for another job
-(a search asks for several answers) it carries on with that one. A failed or cancelled job shows its reason and a
+(a search asks for several answers) it carries on with that one. A failed or canceled job shows its reason and a
 Try again, which asks for the page with the `X-Slow-Retry` header: a new job replaces the failed one. Without
 JavaScript the page refreshes itself every few seconds (`<noscript>`).
 
@@ -29,7 +29,7 @@ from planetgen.web.helpers import render_page
 from planetgen.web.lib import slowpages
 
 RETRY_HEADER = "X-Slow-Retry"
-"""str: The header the loading page's Try again sends: replace a failed or cancelled job at once."""
+"""str: The header the loading page's Try again sends: replace a failed or canceled job at once."""
 
 REFRESH_SECONDS = 5
 """int: How often the page refreshes itself without JavaScript."""
@@ -38,7 +38,7 @@ STATE_TEXT = {
     "queued": "Waiting for a worker to start building this page.",
     "running": "Building this page.",
     "failed": "This page could not be built.",
-    "cancelled": "An administrator stopped building this page.",
+    "canceled": "An administrator stopped building this page.",
     "succeeded": "Built. Showing it now.",
 }
 """dict: What each job state says, in the page and (the same words) in `slowload.js`."""

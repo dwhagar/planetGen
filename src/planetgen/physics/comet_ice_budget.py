@@ -1,17 +1,17 @@
 # planetgen/physics/comet_ice_budget.py
 
 """
-The ices a comet can hold, from where in the disc it formed (GEN.595, part 1; docs/design/composition/comet-composition-tuning.md section 5).
+The ices a comet can hold, from where in the disk it formed (GEN.595, part 1; docs/design/composition/comet-composition-tuning.md section 5).
 
 `comet_population` draws a comet's CO and CO2 from the Solar System's measured comets (a log-normal about the population's median) and, for an interstellar comet,
 from the wider ranges its two objects force (CO/H2O to 2, CO2/H2O to 10). Those are the Solar System's shape with a per-system offset knob (GEN.520 D6). This module
-derives the shape from the disc instead, from the snow lines and the carbon and oxygen budget of [R3322] (ApJL 743, L16, [R3322: Table 1] and section 2, READ):
+derives the shape from the disk instead, from the snow lines and the carbon and oxygen budget of [R3322] (ApJL 743, L16, [R3322: Table 1] and section 2, READ):
 
-1. **Where the ices freeze.** The disc is a power law `T = T0 (r / 1 AU)^-q` with the average of a large sample of discs, T0 200 K and q 0.62 (Andrews and Williams
-   2007, as Oberg et al. use it), and the star's luminosity scales T0 as `L^0.25`. The evaporation temperatures at disc densities are 135 K (H2O), 47 K (CO2) and 20 K
+1. **Where the ices freeze.** The disk is a power law `T = T0 (r / 1 AU)^-q` with the average of a large sample of disks, T0 200 K and q 0.62 (Andrews and Williams
+   2007, as Oberg et al. use it), and the star's luminosity scales T0 as `L^0.25`. The evaporation temperatures at disk densities are 135 K (H2O), 47 K (CO2) and 20 K
    (CO), which put the lines of a Sun-like star at 1.9, 10 and 41 AU (`ice_line_au`).
 2. **What is there to freeze.** Table 1 gives the O and C in each carrier per 10^4 hydrogen: H2O 0.9, CO2 0.3 and CO 1.5 ([R3574], from the ice and gas of one
-   disc, as Oberg et al. take them). So a body formed beyond the CO2 line has CO2/H2O 0.33 and beyond the CO line CO/H2O 1.67, in the star's own carbon and oxygen: the CO and
+   disk, as Oberg et al. take them). So a body formed beyond the CO2 line has CO2/H2O 0.33 and beyond the CO line CO/H2O 1.67, in the star's own carbon and oxygen: the CO and
    CO2 scale with the star's carbon and the H2O with its oxygen after the rock has taken its fixed share (`condensate_shares.ROCK_OXYGEN_SHARE`).
 3. **What a warm body keeps.** Above its line a molecule is not frozen but can be trapped in water ice: Oberg et al. cite [R1336] that it is hard to trap more than
    5 to 10 percent of the CO (`TRAPPED_FRACTION`); the same fraction is taken for CO2, which sublimes warmer.
@@ -21,12 +21,12 @@ derives the shape from the disc instead, from the snow lines and the carbon and 
 Tests against measurement (never inputs): 2I/Borisov had CO/H2O of 130 to 155 percent ([R0439], READ), which is the CO zone's 167 percent for a
 Sun-like carbon and oxygen to within 30 percent; the Solar System's median comet (CO2/H2O 10.9, CO/H2O 2.5 percent, `comet_population`) falls between the CO2 zone and the
 warm zone, 0.5 dex under the CO2 zone's 33 percent in CO2 and 0.7 dex under its trapped CO (the model's absolute level for comets of the Solar System is the stand-in that stays); and
-3I/ATLAS, CO2/H2O 7.6 ([R0890], READ), is 23 times the most a disc of this budget gives, an excess no zone explains here (the interstellar bracket of
+3I/ATLAS, CO2/H2O 7.6 ([R0890], READ), is 23 times the most a disk of this budget gives, an excess no zone explains here (the interstellar bracket of
 `comet_population` stays a registered stand-in).
 
-Limits. The temperature profile is the average of a sample of discs, one for all stars ([R3322] also use it); the lines do not move as the disc cools or the
+Limits. The temperature profile is the average of a sample of disks, one for all stars ([R3322] also use it); the lines do not move as the disk cools or the
 snow line walks out; transport (drift and diffusion of icy grains) and processing by cosmic rays and radiation are not in it; the trapped fraction is a bound, not a measurement
-of comets; the H2O line here (135 K) is the disc-density value and `condensate_shares` has Lodders's 182 K at 10^-4 bar, which the wiring leaves be (comets form beyond the star's own snow line, `formation_ratios`). Wired (train 7): a comet of a star's system forms at a distance drawn between the star's snow line and the edge of its disc (`formation_ratios`), and
+of comets; the H2O line here (135 K) is the disk-density value and `condensate_shares` has Lodders's 182 K at 10^-4 bar, which the wiring leaves be (comets form beyond the star's own snow line, `formation_ratios`). Wired (train 7): a comet of a star's system forms at a distance drawn between the star's snow line and the edge of its disk (`formation_ratios`), and
 `comet_population.draw_volatiles` takes its median CO and CO2 from the zone (the scatter stays the population's). The interstellar bracket stays a registered stand-in.
 """
 
@@ -41,16 +41,16 @@ and 18-22 K). [Stand-in CI1, tier T2, tweak L0.]"""
 
 DISK_T0_K = 200.0
 DISK_INDEX = 0.62
-"""float: The temperature at 1 AU and the power-law index of the average protoplanetary disc round a Sun-like star ([R0115], as Oberg et al. use them). [Stand-in CI1, tier T2, tweak L0.]"""
+"""float: The temperature at 1 AU and the power-law index of the average protoplanetary disk round a Sun-like star ([R0115], as Oberg et al. use them). [Stand-in CI1, tier T2, tweak L0.]"""
 
 LUMINOSITY_EXPONENT = 0.25
-"""float: The disc temperature goes as the star's luminosity to this power (radiative equilibrium: T goes as L^(1/4)). [Stand-in CI2, tier T5, tweak L0.]"""
+"""float: The disk temperature goes as the star's luminosity to this power (radiative equilibrium: T goes as L^(1/4)). [Stand-in CI2, tier T5, tweak L0.]"""
 
 SOLAR_LUMINOSITY_W = 3.828e26
-"""float: The luminosity the disc profile is for (IAU nominal solar luminosity)."""
+"""float: The luminosity the disk profile is for (IAU nominal solar luminosity)."""
 
 NEBULA_PER_1E4_H = {"H2O": 0.9, "CO2": 0.3, "CO": 1.5}
-"""dict: The molecules of each carrier per 10^4 hydrogen atoms in the midplane of a typical disc ([R3322: Table 1]: nO of H2O 0.9, of CO2 0.6 (two atoms: 0.3 molecules), of CO 1.5; from
+"""dict: The molecules of each carrier per 10^4 hydrogen atoms in the midplane of a typical disk ([R3322: Table 1]: nO of H2O 0.9, of CO2 0.6 (two atoms: 0.3 molecules), of CO 1.5; from
 [R3574]). [Stand-in CI3, tier T2, tweak L0.]"""
 
 TRAPPED_FRACTION = 0.075
@@ -70,7 +70,7 @@ def disk_temperature_k(distance_au, luminosity_w=SOLAR_LUMINOSITY_W):
 
 @finite_domain()
 def ice_line_au(ice, luminosity_w=SOLAR_LUMINOSITY_W):
-    """The distance, AU, inside which an ice is not frozen: where the disc is at its evaporation temperature (1.9, 10 and 41 AU for H2O, CO2 and CO round the Sun)."""
+    """The distance, AU, inside which an ice is not frozen: where the disk is at its evaporation temperature (1.9, 10 and 41 AU for H2O, CO2 and CO round the Sun)."""
     if ice not in ICE_LINES_K:
         raise ValueError(f"no ice line for {ice!r}")
     if not luminosity_w > 0.0:
@@ -133,12 +133,12 @@ def ice_ratios(distance_au, luminosity_w=SOLAR_LUMINOSITY_W, carbon=1.0, oxygen=
 def formation_ratios(luminosity_w, snow_line_au, outer_au, carbon, oxygen, u):
     """
     The CO2/H2O and CO/H2O of the ice of one comet, as `(co2, co)`: formed at a distance drawn log-uniformly (the equal masses in equal intervals of ln r of
-    `zone_shares`, by the uniform `u` in [0, 1)) between the star's snow line, or the water line of the disc model past it, and `outer_au`, the edge of the disc.
+    `zone_shares`, by the uniform `u` in [0, 1)) between the star's snow line, or the water line of the disk model past it, and `outer_au`, the edge of the disk.
 
     Args:
         luminosity_w (float): The star's luminosity.
         snow_line_au (float): The star's own snow line (`Star.snow_line_au`): comets form beyond it.
-        outer_au (float): The outer edge of the disc.
+        outer_au (float): The outer edge of the disk.
         carbon, oxygen (float): As `nebular_ratios`.
         u (float): The uniform draw that places the comet.
     """

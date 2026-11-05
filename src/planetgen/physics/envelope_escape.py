@@ -72,6 +72,8 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
     start = f_env0 * core_mass_earth / (1.0 - f_env0)
     if age_gy <= ONSET_GY or f_env0 <= 0.0:
         return start
+    if insolation <= 0.0 or luminosity_solar <= 0.0:
+        return start        # no star's light on it (a rogue planet, GEN.1111): no stellar XUV to drive the loss, so the envelope stays
     teq = min(max(teq_k if teq_k else equilibrium_temperature_k(insolation), thermosphere.HYDRO_BASED_TEQ_RANGE_K[0]),
               thermosphere.HYDRO_BASED_TEQ_RANGE_K[1])
     luminosity_w = luminosity_solar * constants.SOLAR_LUMINOSITY

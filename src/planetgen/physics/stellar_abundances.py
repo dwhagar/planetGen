@@ -14,7 +14,7 @@ The chain:
 1. **The scale.** [R0168] log eps (`tuning.STELLAR_SOLAR_LOG_EPS`) moved to the proto-solar Sun give
    the mass fraction of each element at [Fe/H] = 0 (`PROTO_MASS_FRACTION`), the proto-solar X, Y, Z and the helium-to-metal
    ratio `HELIUM_PER_METAL` that carries the scale from primordial helium [R3544] to the proto-solar value.
-2. **The branch.** A star younger than `tuning.STELLAR_THICK_START_GY` is thin-disc; an older one is high-alpha with the
+2. **The branch.** A star younger than `tuning.STELLAR_THICK_START_GY` is thin-disk; an older one is high-alpha with the
    logistic probability of [Fe/H] (`high_alpha_probability`, [R0349]). `BRANCH_TABLE` is that choice as a row of the
    gated possibility-table loader (GEN.472), in the order that lets one fixed uniform number decide it: it falls to
    high-alpha when the number is below the probability, so the branch flips at most once as [Fe/H] falls and an edited
@@ -56,7 +56,7 @@ _msun_to_kg = units.converter("Msun", "kg")
 BRANCH_THIN = "thin"
 BRANCH_HIGH_ALPHA = "high-alpha"
 BRANCHES = (BRANCH_THIN, BRANCH_HIGH_ALPHA)
-"""tuple: The two abundance sequences of the disc and halo."""
+"""tuple: The two abundance sequences of the disk and halo."""
 
 RESIDUAL_ELEMENTS = ("C", "O", "Mg", "Si", "Ca")
 """tuple: The elements that carry a correlated residual, in the order of `tuning.STELLAR_XFE_CORRELATION`."""
@@ -180,7 +180,7 @@ UNLISTED_METAL_FRACTION = PROTO_Z - sum(PROTO_MASS_FRACTION.values())
 # --- The branch --------------------------------------------------------------------------------------------------------
 
 def high_alpha_probability(fe_h):
-    """P(high-alpha) for a star old enough to be thick-disc, a logistic in [Fe/H] [R0349]: 0.5 at
+    """P(high-alpha) for a star old enough to be thick-disk, a logistic in [Fe/H] [R0349]: 0.5 at
     -0.35, 0.76 at -0.5, 0.97 at -0.8 and 0.9999 at -1.6."""
     f0, width = tuning.STELLAR_HIGH_ALPHA_LOGISTIC
     return 1.0 / (1.0 + math.exp((fe_h - f0) / width))
@@ -407,7 +407,7 @@ ALPHA_ELEMENTS = ("O", "Mg", "Si", "Ca")
 
 
 def alpha_enhancement(composition_or_offsets):
-    """[alpha/Fe] (dex): the mean [X/Fe] of `ALPHA_ELEMENTS`, for a `StellarComposition` or an offsets dict. A thin-disc star at [Fe/H] 0 is near 0, a
+    """[alpha/Fe] (dex): the mean [X/Fe] of `ALPHA_ELEMENTS`, for a `StellarComposition` or an offsets dict. A thin-disk star at [Fe/H] 0 is near 0, a
     high-alpha one near +0.2 to +0.3 (the branches' fits, `tuning.STELLAR_XFE_FITS`)."""
     offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) else composition_or_offsets
     return sum(offsets[symbol] for symbol in ALPHA_ELEMENTS) / len(ALPHA_ELEMENTS)
@@ -612,7 +612,7 @@ class BlackHole:
         hawking_temperature_k (float): hbar c^3 / (8 pi G M k_B).
         horizon_radius_km (float): The Kerr outer horizon, GM/c^2 (1 + sqrt(1 - a^2)).
         isco_gm_c2 (float): The prograde innermost stable circular orbit, in GM/c^2.
-        efficiency (float): The radiative efficiency 1 - sqrt(1 - 2/(3 r_isco)) of a thin disc.
+        efficiency (float): The radiative efficiency 1 - sqrt(1 - 2/(3 r_isco)) of a thin disk.
     """
 
     schwarzschild_radius_km: float

@@ -25,7 +25,7 @@ pytestmark = pytest.mark.real_queue
 def sure_nothing_changed(fake=None):
     assert not maintenance.is_on() and updateguard.read_lock() is None
     if fake is not None:
-        assert fake.cancelled == []
+        assert fake.canceled == []
 
 
 # --- the decision ---------------------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ def test_running_work_is_listed_and_without_a_terminal_the_update_refuses(say, l
 def test_the_flag_is_the_operators_word_to_cancel(say, lines):
     fake = FakeWork("Generate sectors", "Warm-up")
     assert begin(sources=[fake], yes=True, write=say)
-    assert sorted(fake.cancelled) == ["job-0", "job-1"] and fake.items() == []
+    assert sorted(fake.canceled) == ["job-0", "job-1"] and fake.items() == []
     assert maintenance.read()["cause"] == updateguard.UPDATE_CAUSE and updateguard.read_lock() is not None
     assert "Everything stopped" in "\n".join(lines)
 
@@ -61,15 +61,15 @@ def test_on_a_terminal_a_no_changes_nothing_and_a_yes_cancels(say):
     assert len(questions) == 1 and "Cancel these" in questions[0]
     sure_nothing_changed(fake)
     assert begin(sources=[fake], interactive=True, answer=lambda text: "Yes", write=say)
-    assert fake.cancelled == ["job-0"]
+    assert fake.canceled == ["job-0"]
 
 
-def test_a_queued_job_is_listed_and_cancelled_like_a_running_one(say, lines):
+def test_a_queued_job_is_listed_and_canceled_like_a_running_one(say, lines):
     fake = FakeWork("Backfill", queued=("Backfill",))
     assert not begin(sources=[fake], write=say)
     assert "queued" in "\n".join(lines)
     assert begin(sources=[fake], yes=True, write=say)
-    assert fake.cancelled == ["job-0"]
+    assert fake.canceled == ["job-0"]
 
 
 def test_a_job_that_does_not_stop_in_time_is_reported_and_the_update_stops_before_any_change(say, lines):
@@ -77,11 +77,11 @@ def test_a_job_that_does_not_stop_in_time_is_reported_and_the_update_stops_befor
     assert not begin(sources=[fake], yes=True, write=say, timeout=0.1)
     text = "\n".join(lines)
     assert "did not stop within" in text and "Stubborn run" in text and "nothing was changed" in text
-    assert fake.cancelled == ["job-0"]       # asked once, not every poll
+    assert fake.canceled == ["job-0"]       # asked once, not every poll
     sure_nothing_changed()
 
 
-def test_work_that_starts_between_the_first_look_and_the_lock_is_not_cancelled_without_a_word(say, lines):
+def test_work_that_starts_between_the_first_look_and_the_lock_is_not_canceled_without_a_word(say, lines):
     class Late(FakeWork):
         looks = 0
 
@@ -95,7 +95,7 @@ def test_work_that_starts_between_the_first_look_and_the_lock_is_not_cancelled_w
     sure_nothing_changed(late)
 
 
-def test_work_that_starts_after_the_word_is_cancelled_too(say):
+def test_work_that_starts_after_the_word_is_canceled_too(say):
     class Late(FakeWork):
         looks = 0
 
@@ -105,7 +105,7 @@ def test_work_that_starts_after_the_word_is_cancelled_too(say):
 
     late = Late("Started a moment ago")
     assert begin(sources=[late], yes=True, write=say)
-    assert late.cancelled == ["job-0"]
+    assert late.canceled == ["job-0"]
 
 
 # --- nothing new starts during the update --------------------------------------------------------------------
@@ -189,7 +189,7 @@ def test_a_marker_of_a_process_that_died_is_ignored_and_removed():
     assert os.listdir(updateguard.running_dir()) == []
 
 
-def test_a_generate_job_is_listed_with_its_title_and_cancelled_through_its_own_cancel_file(tmp_path, monkeypatch):
+def test_a_generate_job_is_listed_with_its_title_and_canceled_through_its_own_cancel_file(tmp_path, monkeypatch):
     from planetgen.web import jobs
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path))
     runner = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)", "fake-runner"])
@@ -216,7 +216,7 @@ def test_no_jobs_directory_is_listed_as_nothing_and_not_created(tmp_path, monkey
     assert not (tmp_path / "not-there").exists()
 
 
-def test_queued_and_running_jobs_on_the_shared_queues_are_listed_and_cancelled(redis_server, monkeypatch):
+def test_queued_and_running_jobs_on_the_shared_queues_are_listed_and_canceled(redis_server, monkeypatch):
     unique = f"planetgen-update-guard-test-{os.getpid()}"
     monkeypatch.setattr(redisqueue, "QUEUES", (unique,))
     connection = redisqueue.connect(redis_server)

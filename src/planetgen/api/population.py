@@ -12,6 +12,7 @@ from flask import Blueprint, jsonify, request
 from planetgen.db import species_fit
 from planetgen.population import model
 
+from . import ids
 from .common import ApiError
 from .routes import _paginate, _parse_sort, get_db
 
@@ -179,7 +180,7 @@ def planet_species(planet_id):
     world; 404 when the planet has none."""
     found = model.species_on_planet(get_db(), planet_id)
     if found is None:
-        raise ApiError(f"no species on planet {planet_id}", status_code=404)
+        raise ApiError(f"no species on planet {ids.printed(get_db(), 'planet', planet_id)}", status_code=404)
     return jsonify(found)
 
 

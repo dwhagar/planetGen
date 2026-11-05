@@ -125,21 +125,21 @@ class _Frame(_Sector):
     """A sector holding one side of the plane x = 0 (sector-local light-years), as `_Sector` does."""
 
 
-def _cloud_field(centre_pc):
-    return (SEED, None, centre_pc, 3.0)
+def _cloud_field(center_pc):
+    return (SEED, None, center_pc, 3.0)
 
 
 def test_each_sector_builds_only_the_members_inside_it_and_together_they_make_every_one():
     """A region across two sectors: both reach it, the seed star's own and a neighbour's, and none is built twice."""
     nebula = D_REGIONS[1]
-    centre_pc = (8000.0, 0.0, 0.0)
-    field = _cloud_field(centre_pc)
+    center_pc = (8000.0, 0.0, 0.0)
+    field = _cloud_field(center_pc)
     args = _args()
     built = []
     wanted = 0
     for k in range(3):
         from planetgen.galaxy.frame import local_to_galaxy_pc
-        point = local_to_galaxy_pc(centre_pc, tuple(ly_to_pc(v) for v in (0.001 * k, 0.0, 0.0)))
+        point = local_to_galaxy_pc(center_pc, tuple(ly_to_pc(v) for v in (0.001 * k, 0.0, 0.0)))
         wanted += len(nebula_contents.emission_members(SEED, nebula, "O5V", point))
         for side in (True, False):
             sector = _Frame([], side)
@@ -155,11 +155,11 @@ def test_each_sector_builds_only_the_members_inside_it_and_together_they_make_ev
 
 def test_the_sector_that_lights_a_region_and_the_one_beside_it_give_the_same_members():
     nebula = E_REGIONS[1]
-    centre_pc = (8000.0, 0.0, 0.0)
+    center_pc = (8000.0, 0.0, 0.0)
     from planetgen.galaxy.frame import local_to_galaxy_pc
     local = (0.002, 0.0, 0.0)
-    point = local_to_galaxy_pc(centre_pc, tuple(ly_to_pc(v) for v in local))
-    field = _cloud_field(centre_pc)
+    point = local_to_galaxy_pc(center_pc, tuple(ly_to_pc(v) for v in local))
+    field = _cloud_field(center_pc)
     own = _Frame([], True)
     run_sector.add_emission_members(own, _args(), field, [(nebula, "O5V", local)], (), 26000.0)
     beside = _Frame([], False)
@@ -186,6 +186,7 @@ def test_a_pre_placed_hot_star_rolls_the_same_region_as_the_star_its_sector_buil
                "metallicity_fe_h": -0.1, "position_x_mpc": 1.0e6 + k, "position_y_mpc": 2.0e3, "position_z_mpc": -50.0}
         config = SystemConfig()
         config.POPULATION = "young"
+        config.PLANETS = False     # the nebula is the star's own draw: a system of planets costs minutes a star
         with draw.bound(1000 + k):
             system = StarSystem(system_config=config, primary_star_params=brightStars.star_params(row),
                                 member_tree=stored_trees.SINGLE)

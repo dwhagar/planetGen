@@ -127,7 +127,7 @@ class ComponentField:
         self._reach = np.array([c.tidal_radius_pc for c in held], dtype=float)
         self._scale_pc = np.array([component_profiles.scale_radius_pc(c) for c in held], dtype=float)
         means = [c.mean_system_mass_solar if mean_by_age is None else mean_by_age[age_key(c)] for c in held]
-        # Systems per pc3 at the centre: the central density of the mass over the component's mean system mass.
+        # Systems per pc3 at the center: the central density of the mass over the component's mean system mass.
         self._central = np.array([component_profiles.central_density_per_pc3(c) / mean for c, mean in zip(held, means)],
                                  dtype=float)
         self._tables = tuple(component_profiles.table_for(c) for c in held)
@@ -145,9 +145,9 @@ class ComponentField:
 
     def _qualifying_reach(self, total_systems):
         """
-        How far from its centre each component can put a cell at or over one expected system (GEN.627): the radius where
+        How far from its center each component can put a cell at or over one expected system (GEN.627): the radius where
         its density times the cell's volume falls to one system, grown by the cell's half-diagonal, and never beyond its
-        tidal radius. A component that holds under one system in all, or whose centre cell would hold under one, never
+        tidal radius. A component that holds under one system in all, or whose center cell would hold under one, never
         qualifies a cell, and its reach is `0`. The outline takes a component in by this reach and not by its tidal one:
         a dwarf galaxy's tidal sphere (15.6 kpc for the Sagittarius remnant) covers the whole host, though its density
         never reaches one system in a cell.
@@ -213,7 +213,7 @@ class ComponentField:
         return {key: tuple(value) for key, value in index.items()}
 
     def _systems_per_pc3(self, i, radius_pc):
-        """Component `i`'s systems per cubic parsec at `radius_pc` from its centre (0 beyond the tidal radius)."""
+        """Component `i`'s systems per cubic parsec at `radius_pc` from its center (0 beyond the tidal radius)."""
         table = self._tables[i]
         x = radius_pc / self._scale_pc[i]
         if x >= table.tidal_x:
@@ -292,7 +292,7 @@ class ComponentField:
         """
         The [Fe/H] distribution of the stars of `population` at `position_pc` (a family's populations share one:
         a satellite's three, a young cluster's twelve), `((weight, mean, sigma), ...)`: one peak per
-        component of the family that reaches the point, weighted by the systems it puts in the cell and centred on its own
+        component of the family that reaches the point, weighted by the systems it puts in the cell and centered on its own
         [Fe/H] with `tuning.COMPONENT_FE_H_SIGMA[family]`. For a young cluster, only the clusters whose age is that
         population's. Empty where no component of the family reaches.
         """

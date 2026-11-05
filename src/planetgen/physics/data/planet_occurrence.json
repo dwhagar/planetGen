@@ -109,8 +109,8 @@
   {"id": "valley_radius_10d", "host": "all", "measure": "radius_valley_at_10_days", "unit": "Earth radii", "value": 1.9, "minus": 0.2, "plus": 0.2,
    "definition": "radius of the valley between rocky planets and sub-Neptunes at a 10-day period and one solar mass; it goes as (P / 10 d) to the -0.09 and (M / Msun) to the 0.26",
    "source": "[R4897], quoting [R0353, R1307]", "citing": "[R4897]", "label": "2ND-HAND", "where": "full text", "tier": "T2"},
-  {"id": "disc_dust_scatter", "host": "all", "measure": "disc_dust_mass_scatter_dex", "unit": "dex", "value": 0.7, "minus": null, "plus": null,
-   "definition": "root-mean-square dispersion of the dust mass of a protoplanetary disc about the relation with the host's mass, at fixed host mass; the median goes as the host mass to a power of 1.3 to 1.9 [R3444]",
+  {"id": "disk_dust_scatter", "host": "all", "measure": "disk_dust_mass_scatter_dex", "unit": "dex", "value": 0.7, "minus": null, "plus": null,
+   "definition": "root-mean-square dispersion of the dust mass of a protoplanetary disk about the relation with the host's mass, at fixed host mass; the median goes as the host mass to a power of 1.3 to 1.9 [R3444]",
    "source": "[R0114]", "label": "READ", "where": "abstract", "tier": "T1"}
  ],
  "transit_multiplicity": {

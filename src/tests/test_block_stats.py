@@ -24,9 +24,9 @@ def _addresses(count=48, seed=7):
     found = set()
     for shell in (30, 31, 32, 33, 90, 91, 300):
         low, high = spherical.band_range(shell)
-        centre = rng.randint(low // 2, high // 2)
+        center = rng.randint(low // 2, high // 2)
         for _ in range(count // 7):
-            band = max(low, min(high, centre + rng.randint(-2, 2)))
+            band = max(low, min(high, center + rng.randint(-2, 2)))
             n = spherical.wedge_count(shell, band)
             found.add((shell, band, rng.randrange(n)))
     return sorted(found)

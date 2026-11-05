@@ -76,7 +76,7 @@ def test_dense_carbon_dioxide_is_orange_never_the_clipped_red_of_single_scatter(
     assert (result.colour.x, result.colour.y) == pytest.approx((0.4259, 0.3972), abs=0.002)
     assert result.hex == "#ffbb79"
     assert result.word == "orange"
-    assert result.sun_luminance_ratio < 1e-4          # the direct beam is dead; the disc is a faint deep red
+    assert result.sun_luminance_ratio < 1e-4          # the direct beam is dead; the disk is a faint deep red
 
 
 def test_a_megapascal_of_nitrogen_is_white_cyan_with_an_orange_sun():

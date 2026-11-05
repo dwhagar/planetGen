@@ -1,9 +1,9 @@
 # planetgen/galaxy/core_gas.py
 
 """
-The gas of a galaxy's centre and the young stars it forms (GEN.282; docs/design/galaxy/realistic-galactic-core.md 3.4 and 6).
+The gas of a galaxy's center and the young stars it forms (GEN.282; docs/design/galaxy/realistic-galactic-core.md 3.4 and 6).
 
-A bar carries the gas of its gap inward and piles it into a ring near the centre, the central molecular zone, which forms
+A bar carries the gas of its gap inward and piles it into a ring near the center, the central molecular zone, which forms
 stars at a small share of what comes in. Nothing here is typed in for a galaxy:
 
 1. **The inflow.** The disk's gas inside the bar's gap (`galaxy.disk_history`, GEN.469: each ring's gas at the end of
@@ -13,12 +13,12 @@ stars at a small share of what comes in. Nothing here is typed in for a galaxy:
 2. **The rate.** The ring forms stars at `tuning.CORE_STAR_FORMATION_PER_INFLOW` of the inflow (0.07 over 0.8 in the Milky
    Way: the review's continuity equation, inflow = star formation + outflow + growth).
 3. **The ring.** Radius, width and height are the bulge's scale radius times ratios (`tuning.CORE_RING_*`), as the
-   nuclear disc's are. The rate over its area is a star formation rate density; the cluster formation efficiency of that
+   nuclear disk's are. The rate over its area is a star formation rate density; the cluster formation efficiency of that
    (`physics.open_cluster_evolution.cluster_formation_efficiency`, [R2502]) is the share of the new stars that
    form in bound clusters, which `generation/open_clusters.py` draws as components; the rest are the field's.
 4. **The field's young stars.** The rate times the age of the `young` population (0.1 Gy) times the unbound share is
-   the mass of field stars the ring holds younger than that. They are part of the nuclear disc, not on top of it: the
-   density model takes them out of the `nuclear_disc` population and puts them in `young`, so the total density, the
+   the mass of field stars the ring holds younger than that. They are part of the nuclear disk, not on top of it: the
+   density model takes them out of the `nuclear_disk` population and puts them in `young`, so the total density, the
    skeleton's bound and the map prisms do not change, while the places the profile calls young, with their supernova
    remnants, nebulae and massive stars, follow the ring.
 """
@@ -50,7 +50,7 @@ class CoreGas:
         rate_density (float): The rate over the ring's area, solar masses per year per kpc2.
         bound_share (float): The share of the new stars that form in bound clusters.
         young_density (float): The amplitude of the field's young stars at the ring, in the model's unnormalized
-            units (like `nuclear_disc_density`).
+            units (like `nuclear_disk_density`).
         gas_surface_density_msun_pc2 (float): The ring's gas over its area: the inflow times
             `tuning.CORE_RING_GAS_RESIDENCE_MYR`, over `2 pi R FWHM` (GEN.1195; the most massive cluster the ring forms
             reads it, `physics.cluster_maximum_mass`).

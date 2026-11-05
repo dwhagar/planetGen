@@ -84,7 +84,7 @@ def _fields(phenomenon_type, detail):
                      mass=_msun_to_kg(detail.get("mass_solar") or 0.0), radius=detail.get("radius_km"),
                      age=detail.get("age_gy"), name=detail["name"])
     elif phenomenon_type == "supernova_remnant":
-        extra["compact_remnant"] = None    # the remnant's centre is its own page; its name is `compact_remnant_name`
+        extra["compact_remnant"] = None    # the remnant's center is its own page; its name is `compact_remnant_name`
     return extra
 
 

@@ -26,7 +26,7 @@ import tempfile
 import time
 from datetime import datetime, timezone
 
-from planetgen.admin import maintenance
+from planetgen.admin import maintenance, stop_reason
 
 FILE_NAME = "stopped.json"
 """str: The hold's file in the state folder: `{"by": name, "at": Unix seconds}` as JSON."""
@@ -230,6 +230,8 @@ def kill_processes(protected=None, term_seconds=None):
             survivors = []
             break
         killed.update(targets)
+        for pid in targets:
+            stop_reason.leave(pid, "stop-all ended every planetgen worker and command on this machine")
         refused = set(_signal(targets, signal.SIGTERM))
         deadline = time.monotonic() + term_seconds
         while time.monotonic() < deadline and any(_alive(pid) for pid in targets if pid not in refused):
@@ -249,14 +251,14 @@ def kill_processes(protected=None, term_seconds=None):
 def _cancel_runs(connection, who):
     from planetgen.queue import runcontrol, runrecord
 
-    cancelled = 0
+    canceled = 0
     for run_id in runrecord.recent_runs(connection, limit=100_000):
         try:
             if runcontrol.cancel_run(connection, run_id, who=who) is not None:
-                cancelled += 1
+                canceled += 1
         except Exception:       # noqa: BLE001 -- the next run, and the kill that follows, still go ahead
             pass
-    return cancelled
+    return canceled
 
 
 def _empty_queues(connection):
@@ -341,7 +343,7 @@ def stop_all(who=None, connection=None, kill=True, hold=True):
             out while it runs, and the site works again after it, but nothing the update left running survives it.
 
     Returns:
-        dict: `{"already": the hold was on, "runs": cancelled, "queued": jobs removed from the queues, "job": a page
+        dict: `{"already": the hold was on, "runs": canceled, "queued": jobs removed from the queues, "job": a page
             job was stopped, "killed": processes ended, "survivors": pids this user could not signal}`.
     """
     from planetgen.queue import pause, redisqueue

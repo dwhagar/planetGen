@@ -1,7 +1,7 @@
 # tests/test_gen_system_motion.py
 
 """
-GEN.265: the nightly motion of a scattered multi-star system. The barycentre is the scatter point and moves with the
+GEN.265: the nightly motion of a scattered multi-star system. The barycenter is the scatter point and moves with the
 rest of the galaxy; the members are computed on read from the stored node phases, so the update writes no member or
 node row (`planetgen/physics/system_tree.py`, `planetgen/db/scatter_systems.py`,
 docs/design/systems/multi-star-systems.md section 7).
@@ -36,12 +36,12 @@ def _sub(a, b):
     return tuple(x - y for x, y in zip(a, b))
 
 
-def _centre(offsets, masses):
+def _center(offsets, masses):
     total = sum(masses.values())
     return tuple(sum(masses[n] * offsets[n][axis] for n in offsets) / total for axis in range(3))
 
 
-def test_a_circular_pair_swings_round_its_barycentre_and_sits_opposite_after_half_a_period():
+def test_a_circular_pair_swings_round_its_barycenter_and_sits_opposite_after_half_a_period():
     members = [TreeMember(0, 1, 0, 1.0), TreeMember(1, 1, 1, 0.25)]
     nodes = [_node(1, None, 0, 1.25, 10.0)]
     start = member_offsets_au(members, nodes, EPOCH)
@@ -49,7 +49,7 @@ def test_a_circular_pair_swings_round_its_barycentre_and_sits_opposite_after_hal
     assert _length(_sub(start[1], start[0])) == pytest.approx(10.0)
     assert _length(start[0]) == pytest.approx(10.0 * 0.25 / 1.25) and _length(start[1]) == pytest.approx(10.0 * 1.0 / 1.25)
     assert later[1] == pytest.approx(tuple(-c for c in start[1]), abs=1e-9)
-    assert _centre(start, {0: 1.0, 1: 0.25}) == pytest.approx((0.0, 0.0, 0.0), abs=1e-12)
+    assert _center(start, {0: 1.0, 1: 0.25}) == pytest.approx((0.0, 0.0, 0.0), abs=1e-12)
 
 
 def test_an_eccentric_pair_follows_keplers_equation_from_its_stored_phase():
@@ -68,7 +68,7 @@ def test_phase_is_read_at_the_requested_time_before_the_epoch_as_well_as_after()
     assert node_relative_au(node, EPOCH - 3.0 * YEAR) != pytest.approx(node_relative_au(node, EPOCH), abs=1e-3)
 
 
-def test_a_hierarchical_triple_keeps_its_barycentre_and_its_inner_pair_orbits_the_outer_centre():
+def test_a_hierarchical_triple_keeps_its_barycenter_and_its_inner_pair_orbits_the_outer_center():
     # members 0 and 1 are the close pair (node 2) that is slot 0 of the wide node 1; member 2 is its slot 1.
     members = [TreeMember(0, 2, 0, 1.0), TreeMember(1, 2, 1, 0.5), TreeMember(2, 1, 1, 0.8)]
     nodes = [_node(1, None, 0, 2.3, 300.0, e=0.4, period=2000.0, anomaly=70.0, i=20.0, node=40.0, peri=10.0, kind="wide"),
@@ -76,13 +76,13 @@ def test_a_hierarchical_triple_keeps_its_barycentre_and_its_inner_pair_orbits_th
     masses = {0: 1.0, 1: 0.5, 2: 0.8}
     for years in (0.0, 0.37, 400.0, 1234.5):
         offsets = member_offsets_au(members, nodes, EPOCH + years * YEAR)
-        assert _centre(offsets, masses) == pytest.approx((0.0, 0.0, 0.0), abs=1e-9)
+        assert _center(offsets, masses) == pytest.approx((0.0, 0.0, 0.0), abs=1e-9)
         assert _sub(offsets[1], offsets[0]) == pytest.approx(node_relative_au(nodes[1], EPOCH + years * YEAR), abs=1e-9)
-        inner_centre = tuple((1.0 * offsets[0][a] + 0.5 * offsets[1][a]) / 1.5 for a in range(3))
-        assert _sub(offsets[2], inner_centre) == pytest.approx(node_relative_au(nodes[0], EPOCH + years * YEAR), abs=1e-9)
+        inner_center = tuple((1.0 * offsets[0][a] + 0.5 * offsets[1][a]) / 1.5 for a in range(3))
+        assert _sub(offsets[2], inner_center) == pytest.approx(node_relative_au(nodes[0], EPOCH + years * YEAR), abs=1e-9)
 
 
-def test_a_single_object_sits_at_the_barycentre():
+def test_a_single_object_sits_at_the_barycenter():
     assert member_offsets_au([TreeMember(0, 0, 0, 1.0)], [], EPOCH) == {0: (0.0, 0.0, 0.0)}
 
 
@@ -103,7 +103,7 @@ def test_a_malformed_tree_is_refused():
 
 
 @pytest.mark.parametrize("seed", range(8))
-def test_drawn_trees_place_every_member_with_the_barycentre_at_the_centre_of_mass(seed):
+def test_drawn_trees_place_every_member_with_the_barycenter_at_the_center_of_mass(seed):
     tree = multistar.draw_member_tree(multistar.Placed("star", 1.0), 5e9, draw.Stream(seed), n_stars=4)
     members = [TreeMember(m.member_no, m.parent_node_no, m.slot, m.mass_solar) for m in tree.members]
     nodes = [OrbitNode(n.node_no, n.parent_node_no, n.slot, n.mass_solar, n.separation_km, n.eccentricity, n.inclination_deg,
@@ -114,7 +114,7 @@ def test_drawn_trees_place_every_member_with_the_barycentre_at_the_centre_of_mas
         offsets = member_offsets_au(members, nodes, EPOCH + years * YEAR)
         assert set(offsets) == set(masses)
         scale = max(_length(o) for o in offsets.values()) or 1.0
-        assert _centre(offsets, masses) == pytest.approx((0.0, 0.0, 0.0), abs=1e-9 * scale)
+        assert _center(offsets, masses) == pytest.approx((0.0, 0.0, 0.0), abs=1e-9 * scale)
 
 
 def _store_tree(conn, table, row_id, seed=3):
@@ -127,7 +127,7 @@ def _checksums(conn):
     return {name: conn.execute(f"CHECKSUM TABLE {name}").fetchone()["Checksum"] for name in ("scatter_members", "scatter_nodes")}
 
 
-def test_the_nightly_update_moves_the_barycentre_and_writes_no_member_or_node_row(mysql_config):
+def test_the_nightly_update_moves_the_barycenter_and_writes_no_member_or_node_row(mysql_config):
     _seed_scatter_grid(mysql_config)
     point = (SCATTER_RADIUS_PC, 0.0, 0.0)
     conn = store.get_connection(mysql_config)
@@ -155,7 +155,7 @@ def test_the_nightly_update_moves_the_barycentre_and_writes_no_member_or_node_ro
     assert counts == {"scatter_members": 2 * 3, "scatter_nodes": 2 * 2}
 
 
-def test_a_members_position_is_the_moved_barycentre_plus_its_offset_at_the_stored_phase(mysql_config):
+def test_a_members_position_is_the_moved_barycenter_plus_its_offset_at_the_stored_phase(mysql_config):
     _seed_scatter_grid(mysql_config)
     point = (SCATTER_RADIUS_PC, 0.0, 0.0)
     conn = store.get_connection(mysql_config)
@@ -175,12 +175,12 @@ def test_a_members_position_is_the_moved_barycentre_plus_its_offset_at_the_store
                        n.ascending_node_deg, n.arg_periapsis_deg, n.mean_anomaly_deg, EPOCH, n.period_years, n.kind)
              for n in tree.nodes]
     offsets = member_offsets_au(members, nodes, when)
-    centre = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+    center = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
     assert set(positions) == {0, 1, 2}
     for number, offset in offsets.items():
-        expected = tuple(centre[a] + offset[a] / constants.AU_PER_PARSEC for a in range(3))
+        expected = tuple(center[a] + offset[a] / constants.AU_PER_PARSEC for a in range(3))
         assert positions[number] == pytest.approx(expected, abs=1e-12)
-    # the widest pair of this tree is its root node's orbit, and members never stray further than that from the centre
+    # the widest pair of this tree is its root node's orbit, and members never stray further than that from the center
     widest = max(_length(_sub(positions[a], positions[b])) * constants.AU_PER_PARSEC for a in positions for b in positions)
     assert widest <= tree.nodes[0].separation_au * (1.0 + tree.nodes[0].eccentricity) * (1.0 + 1e-9)
 
