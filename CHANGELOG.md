@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3339] - 2026-11-05
+
+**Headline:** An air that holds a trace gas with no thermodynamic fit (methyl chloride) no longer crashes the heat capacity ratio that the greenhouse table reads.
+
+### Changed
+
+- `mixture.heat_capacity_ratio` raised `KeyError` for a gas that has a row in the gas table but no NASA Glenn fit (CH3Cl, which the trace-gas draw can add to an air). It now takes the heat capacity of such a gas from the rule the radiative-convective model already used (stand-in row IR9: the gas table's values at 100, 300 and 1000 K, then a rigid-rotor count of the atoms), now one function, `mixture.cp_over_r_without_fit`, that both use. Values for every air that did not crash are unchanged.
+- The test of that rule took HCl as its gas with no fit; HCl has one now, so it takes CH3Cl, and a second test holds that a gas with a fit takes the fit.
+
 ## [8.0.3338] - 2026-11-05
 
 **Headline:** Three bright-star scatter tests that took four to nine minutes under load now take one to two; no generated output changes.
