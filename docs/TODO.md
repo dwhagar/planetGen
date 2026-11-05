@@ -1913,22 +1913,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
 
-- [ ] **MAP.382 The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug)**
-  Core 5 (as the lane reported, about 8:30 AM EST on 2026-11-05), fixing
-  TEST.575, found that the field cloud sprite (MAP.178) is on screen
-  only 1 to 2 frames about 3.7 s after the window opens, even at
-  MAP.178's own commit d4051832b, so the test now records it with a
-  MutationObserver. If the sprite is meant to stay on screen at steady
-  state, this is a map bug; if it is a one-time fade by design, say so
-  in the item and close it. Do: look at the field cloud sprite lifecycle
-  in the map JS (when it is added, when it is removed or hidden), decide
-  which is intended from MAP.178's text, and either fix it with a
-  browser test that holds at steady state or record the by-design
-  behavior. Done: the answer in the item and, if a bug, a passing test
-  that the sprite is present 5 s after the window opens. Lock-free.
-  Version 8.1. Owner: Core 4 (wrote MAP.178). Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.178.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
