@@ -17,7 +17,7 @@ phenomenon and other pages use to link a class label here.
 from flask import abort
 from markupsafe import Markup
 
-from planetgen.web.lib import habitability_ref, help_registry, life_help  # noqa: F401  (each registers its help page)
+from planetgen.web.lib import habitability_ref, help_registry, life_help, sky_help  # noqa: F401  (each registers its help page)
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp
@@ -127,6 +127,20 @@ def _render_life_help(topic, number=None):
         title=built["title"],
         section="help",
         breadcrumbs=[crumb("Life", "life_help_page")] + ([crumb(built["title"])] if built["topic"] != "kinds" else []),
+        description=built["description"],
+        page=built,
+    )
+
+
+@bp.route("/help/sky")
+def sky_help_page():
+    """VIEW.38: what the stars, the glow and the clouds behind a system in the System View are, and how to read them."""
+    built = sky_help.page()
+    return render_page(
+        "sky_help.html",
+        title=built["title"],
+        section="help",
+        breadcrumbs=[crumb("The sky behind a system")],
         description=built["description"],
         page=built,
     )

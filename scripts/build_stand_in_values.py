@@ -269,6 +269,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.180", "6.180 Stand-ins of the drawing of the system sky",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.181", "6.181 Stand-ins of the look of a sky star, the star caps and the page's reach",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.175", "6.175 Stand-ins of the sky catalogue of a system",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.174", "6.174 Stand-ins of the glow band of the unresolved stars",

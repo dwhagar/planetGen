@@ -35073,6 +35073,356 @@
       "title": "Stand-ins of the drawing of the system sky"
     },
     {
+      "key": "6.181",
+      "number": "6.181",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skylight.PEAK_MAGNITUDE 4.5: a star this bright or brighter is drawn at full strength in its middle, and fainter ones at 10^(-0.4 (m - 4.5)) of it"
+            ],
+            [
+              "The range it moves in",
+              "3.5 to 5.5"
+            ],
+            [
+              "Where it holds",
+              "stars of apparent magnitude -1.5 to 7.5 on a dark monitor in a dark room"
+            ],
+            [
+              "What would show it wrong",
+              "a sky in which the stars of magnitude 5 to 7 cannot be told from the black, or in which the naked-eye ones are all alike"
+            ],
+            [
+              "What replaces it",
+              "a display model of the eye's response, fitted to the dark-adapted sky"
+            ],
+            [
+              "Evidence",
+              "chosen by eye so the faint end shows and the bright end does not clip; no source"
+            ]
+          ],
+          "id": "SKL1",
+          "key": "6.181:SKL1",
+          "kind": "P",
+          "slug": "6-181-skl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.PEAK_MAGNITUDE 4.5: a star this bright or brighter is drawn at full strength in its middle, and fainter ones at 10^(-0.4 (m - 4.5)) of it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skylight.SIGMA_PX 0.7, SIGMA_PER_MAG_PX 0.45, SIZE_SIGMAS 4 and MAX_SIZE_PX 12: the Gaussian width of a point (0.7 pixel at the peak magnitude plus 0.45 pixel per magnitude brighter), the width it is cut at and the widest it is drawn"
+            ],
+            [
+              "The range it moves in",
+              "sigma 0.4 to 1.2, per magnitude 0.2 to 0.8, cap 8 to 24"
+            ],
+            [
+              "Where it holds",
+              "the System View on a 1,000 pixel canvas and a field of view of 60 degrees or more"
+            ],
+            [
+              "What would show it wrong",
+              "a bright star whose glow hides a neighbor a degree away, or a faint one too small to see"
+            ],
+            [
+              "What replaces it",
+              "the point-spread function of the eye for a bright source"
+            ],
+            [
+              "Evidence",
+              "needed output: a bright star has to look brighter than a faint one on a monitor that cannot make it so; chosen by eye"
+            ]
+          ],
+          "id": "SKL2",
+          "key": "6.181:SKL2",
+          "kind": "P",
+          "slug": "6-181-skl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.SIGMA_PX 0.7, SIGMA_PER_MAG_PX 0.45, SIZE_SIGMAS 4 and MAX_SIZE_PX 12: the Gaussian width of a point (0.7 pixel at the peak magnitude plus 0.45 pixel per magnitude brighter), the width it is cut at and the widest it is drawn"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skylight.SAT_MIN 0.35, SAT_SLOPE 0.65, SAT_REF_MAG 5.5 and SAT_SPAN_MAG 4: a star keeps all of its colour at magnitude 1.5 and brighter and 35% of it at 5.5 and fainter, linear between"
+            ],
+            [
+              "The range it moves in",
+              "min 0.2 to 0.6, reference magnitude 4 to 7"
+            ],
+            [
+              "Where it holds",
+              "the stars of a naked-eye sky"
+            ],
+            [
+              "What would show it wrong",
+              "a faint red star that is drawn grey, or a faint blue one that is as vivid as a bright one"
+            ],
+            [
+              "What replaces it",
+              "the eye's loss of colour vision at low light (the same display model as SKL1)"
+            ],
+            [
+              "Evidence",
+              "chosen by eye, as sky-view.md section 4 says; no source"
+            ]
+          ],
+          "id": "SKL3",
+          "key": "6.181:SKL3",
+          "kind": "P",
+          "slug": "6-181-skl3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.SAT_MIN 0.35, SAT_SLOPE 0.65, SAT_REF_MAG 5.5 and SAT_SPAN_MAG 4: a star keeps all of its colour at magnitude 1.5 and brighter and 35% of it at 5.5 and fainter, linear between"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skylight.SKY_LIMIT_PHONE 6.5 (and sky.DEFAULT_LIMIT, skylight.SKY_LIMIT 7.5, which Boss chose on 2026-11-04): the limiting magnitude on a window 700 pixels wide or narrower"
+            ],
+            [
+              "The range it moves in",
+              "5.5 to 7.0"
+            ],
+            [
+              "Where it holds",
+              "a phone's graphics card, which draws 15,000 stars"
+            ],
+            [
+              "What would show it wrong",
+              "a phone whose frame rate drops at 6.5, or one that could show 7.5"
+            ],
+            [
+              "What replaces it",
+              "the frame time the phone measures"
+            ],
+            [
+              "Evidence",
+              "the plan's count of about 9,000 stars at 6.5, in step with the 15,000 cap of SKL5"
+            ]
+          ],
+          "id": "SKL4",
+          "key": "6.181:SKL4",
+          "kind": "P",
+          "slug": "6-181-skl4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.SKY_LIMIT_PHONE 6.5 (and sky.DEFAULT_LIMIT, skylight.SKY_LIMIT 7.5, which Boss chose on 2026-11-04): the limiting magnitude on a window 700 pixels wide or narrower"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skysphere.MAX_STARS 60000 and MAX_STARS_PHONE 15000: the most stars the page draws, the brightest kept"
+            ],
+            [
+              "The range it moves in",
+              "20,000 to 200,000, phone 5,000 to 30,000"
+            ],
+            [
+              "Where it holds",
+              "one draw call of points, no per-frame upload"
+            ],
+            [
+              "What would show it wrong",
+              "a frame time of more than 16 ms on a mid-range laptop at 60,000"
+            ],
+            [
+              "What replaces it",
+              "the count the frame time of the page's machine allows"
+            ],
+            [
+              "Evidence",
+              "needed output: the plan's phone count of 15,000; the 7.5 count is about 25,000 and a limit of 8.5 about 75,000"
+            ]
+          ],
+          "id": "SKL5",
+          "key": "6.181:SKL5",
+          "kind": "P",
+          "slug": "6-181-skl5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skysphere.MAX_STARS 60000 and MAX_STARS_PHONE 15000: the most stars the page draws, the brightest kept"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skysphere.FAST_KMS 1000: a star faster than this relative to the observer takes a third light-time pass"
+            ],
+            [
+              "The range it moves in",
+              "300 to 3,000"
+            ],
+            [
+              "Where it holds",
+              "stars of the stored velocities (hypervelocity stars to 2,000 km/s)"
+            ],
+            [
+              "What would show it wrong",
+              "a hypervelocity star that is more than a pixel from the position a fourth pass gives"
+            ],
+            [
+              "What replaces it",
+              "the speed at which the residual of two passes ((v/c)^2) is a pixel of the finest view"
+            ],
+            [
+              "Evidence",
+              "the plan: two passes leave v/c of the error each, 3e-3 at 1,000 km/s"
+            ]
+          ],
+          "id": "SKL6",
+          "key": "6.181:SKL6",
+          "kind": "P",
+          "slug": "6-181-skl6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skysphere.FAST_KMS 1000: a star faster than this relative to the observer takes a third light-time pass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skypick.REACH_PX 10 and PREFILTER_SLACK_PX 30: how near the pointer must be to a star to pick it, and the margin the first filter keeps"
+            ],
+            [
+              "The range it moves in",
+              "reach 6 to 16"
+            ],
+            [
+              "Where it holds",
+              "a mouse; a touch screen would want a larger reach"
+            ],
+            [
+              "What would show it wrong",
+              "a star that cannot be picked with the pointer on it, or a click that picks a different star of a crowd"
+            ],
+            [
+              "What replaces it",
+              "a reach set by the pointer's kind (mouse, pen, touch)"
+            ],
+            [
+              "Evidence",
+              "needed output: a star is a point of a pixel or two and a hand is not exact"
+            ]
+          ],
+          "id": "SKL7",
+          "key": "6.181:SKL7",
+          "kind": "P",
+          "slug": "6-181-skl7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skypick.REACH_PX 10 and PREFILTER_SLACK_PX 30: how near the pointer must be to a star to pick it, and the margin the first filter keeps"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "system_sky.MAX_CHARTED_NAMES 5000: the most charted stars the sky route names in meta.charted"
+            ],
+            [
+              "The range it moves in",
+              "1,000 to 50,000"
+            ],
+            [
+              "Where it holds",
+              "a sky of 25,000 stars, of which the charted ones are a few hundred in a young galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a sky with more charted stars than this, whose fainter ones are not named or linked"
+            ],
+            [
+              "What replaces it",
+              "a name carried in the packed list itself, or looked up on a pick"
+            ],
+            [
+              "Evidence",
+              "needed output: bounds the size of meta; the brightest are kept"
+            ]
+          ],
+          "id": "SKL8",
+          "key": "6.181:SKL8",
+          "kind": "P",
+          "slug": "6-181-skl8",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "system_sky.MAX_CHARTED_NAMES 5000: the most charted stars the sky route names in meta.charted"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "systemsky.POLL_MS 30000, MAX_POLLS 20 and PHONE_MAX_WIDTH_PX 700: a sky still filling in is asked for every 30 seconds up to 20 times, and a window this narrow is a phone"
+            ],
+            [
+              "The range it moves in",
+              "poll 10 to 120 s, polls 5 to 60, width 500 to 900"
+            ],
+            [
+              "Where it holds",
+              "a sky whose tiers are being built by charting"
+            ],
+            [
+              "What would show it wrong",
+              "a build that takes longer than 10 minutes, or a phone wider than 700 pixels"
+            ],
+            [
+              "What replaces it",
+              "the build's own notice of completion"
+            ],
+            [
+              "Evidence",
+              "needed output: a poll must not hammer the route and must end"
+            ]
+          ],
+          "id": "SKL9",
+          "key": "6.181:SKL9",
+          "kind": "P",
+          "slug": "6-181-skl9",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "systemsky.POLL_MS 30000, MAX_POLLS 20 and PHONE_MAX_WIDTH_PX 700: a sky still filling in is asked for every 30 seconds up to 20 times, and a window this narrow is a phone"
+        }
+      ],
+      "slug": "6-181-stand-ins-of-the-look-of-a-sky-star-the-star-caps-and-the-page-s-reach",
+      "title": "Stand-ins of the look of a sky star, the star caps and the page's reach"
+    },
+    {
       "key": "6.175",
       "number": "6.175",
       "rows": [
