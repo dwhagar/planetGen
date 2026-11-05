@@ -18334,6 +18334,16 @@ clears each one.
   after TEST.587. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.586, TEST.587.
 
+- [ ] **TEST.589 test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug)**
+  Planets 1 (as the lane reported, 12:32 AM EST on 2026-11-05) found
+  test_no_todo_codes_shown red on plain main, from the strings in
+  physics/nebula_composition.py (and its neighbours from GEN.1269,
+  GEN.1270, GEN.1271). Do: reword every shown string so it names the
+  thing, not the item code (codes stay in comments and docs). Done: the
+  test passes on plain main under the narrow gate. Lock-free, no output
+  change. Version 8.1. Owner: Aux 7. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1271, TEST.586.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19668,6 +19678,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and `nebulae.extinction_av`) applied along the ray. Done: the band as
   an image array for an observer, compared against the resolved counts
   of child b, with a cache test.
+  Light version done (Planets 1, #5042) (12:35 AM EST on 2026-11-05):
+  The 8.2 light version is merged: a 256 x 128 equirectangular glow
+  image in galactic axes (row 0 north pole, column 0 at longitude -180),
+  3 linear channels a texel, value 10^(-0.4(SB-22)) times a 4500 K tint
+  (stand-in GLW1 in 6.174), little-endian half floats, 196,608 bytes.
+  The sky's meta.band gives {key, width, height, format rgb16f, href};
+  the page fetches href plus &key=<key> (GET
+  /system/<id>/sky/band?limit=, raw bytes). API twin: GET
+  /api/systems/<id>/sky/band?limit= (JSON, base64). SKY_VERSION is 2.
+  The first band per 50 pc cell can take tens of seconds (full galaxy
+  shape load), then it is cached. Wire format section 3.2. This item
+  stays open for the full 9.1 version (the planet's own sky, VIEW.14
+  onward).
   Prerequisites: VIEW.11, VIEW.8. Related: VIEW.2.
 
 - [ ] **VIEW.14 Orientation and horizon: the planet's own sky, time of day and twilight**
@@ -20013,6 +20036,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Band wiring (TODO) (12:35 AM EST on 2026-11-05): VIEW.34 (skyband.js)
+  wires to the sky route's meta.band (see VIEW.13 note).
   Prerequisites: VIEW.34.
 
 - [ ] **VIEW.36 System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points**
