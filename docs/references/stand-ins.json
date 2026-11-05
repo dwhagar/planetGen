@@ -33685,6 +33685,90 @@
       "title": "Stand-ins of the two cuts of the body type"
     },
     {
+      "key": "6.176",
+      "number": "6.176",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_tiers.CELL_VISIT_BUDGET 3e8: the cell visits the luminosity bands of one sky may take, so the bands over about 1,000 Lsun are dropped at a 7.5 limit"
+            ],
+            [
+              "The range it moves in",
+              "5e7 to 2e9"
+            ],
+            [
+              "Where it holds",
+              "a sky of 6.5 to 7.5 from a place at the density of the Sun, the backfill as of epoch 131 at 2 to 30 microseconds a visit"
+            ],
+            [
+              "What would show it wrong",
+              "a measured visit cost far from VIEW.19's, a sky whose dropped bands hide a conspicuous star the glow band cannot stand in for, or a backfill that visits blocks instead of cells (VIEW.41), which removes the need for a budget"
+            ],
+            [
+              "What replaces it",
+              "VIEW.41 (a coarser block draw for the sparse bands)"
+            ],
+            [
+              "Evidence",
+              "VIEW.19: 2.7e8 visits to 1,000 Lsun is half of the luminosity stars at 7.5 (22 minutes warm, 1.8 hours cold); 8.3e9 uncut"
+            ]
+          ],
+          "id": "SKT1",
+          "key": "6.176:SKT1",
+          "kind": "P",
+          "slug": "6-176-skt1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": "VIEW.25",
+          "what": "sky_tiers.CELL_VISIT_BUDGET 3e8: the cell visits the luminosity bands of one sky may take, so the bands over about 1,000 Lsun are dropped at a 7.5 limit"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_tiers.RING_TOP_SOL 50: the luminosity the rings stop at and the luminosity bands start at, tuning.WD_LUMINOSITY_RANGE_SOL[1], the brightest white dwarf, under which star_population.check_threshold refuses a luminosity floor"
+            ],
+            [
+              "The range it moves in",
+              "fixed by the star model"
+            ],
+            [
+              "Where it holds",
+              "the luminosity backfill as written"
+            ],
+            [
+              "What would show it wrong",
+              "a luminosity backfill that takes a floor under 50 Lsun (the white dwarfs left out of the sky), which would let the bands replace the rings"
+            ],
+            [
+              "What replaces it",
+              "a luminosity floor under 50 Lsun for the sky"
+            ],
+            [
+              "Evidence",
+              "VIEW.19 section 5: the rings draw about 140 stars for each one that shows"
+            ]
+          ],
+          "id": "SKT2",
+          "key": "6.176:SKT2",
+          "kind": "D",
+          "slug": "6-176-skt2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_tiers.RING_TOP_SOL 50: the luminosity the rings stop at and the luminosity bands start at, tuning.WD_LUMINOSITY_RANGE_SOL[1], the brightest white dwarf, under which star_population.check_threshold refuses a luminosity floor"
+        }
+      ],
+      "slug": "6-176-stand-ins-of-the-sky-tier-table",
+      "title": "Stand-ins of the sky tier table"
+    },
+    {
       "key": "6.175",
       "number": "6.175",
       "rows": [

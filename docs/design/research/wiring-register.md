@@ -376,3 +376,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.174:SKB4 | VIEW.31 | the sky route reads the cell, the map size and the steps through band_for |
 | module | planetgen.galaxy.sky | VIEW.31 | the sky route (VIEW.31) calls sky_from with the sphere query of VIEW.22 as its source and packs the result (VIEW.29) |
 | row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |
+| module | planetgen.generation.sky_tiers | VIEW.25 | charting a system builds the sky tiers from this table: build() gives the luminosity bands and mass rings to draw and the radius of each, floor_table() gives the floor against distance for the report |
+| row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the cell-visit budget |
