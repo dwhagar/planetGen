@@ -353,9 +353,11 @@ def test_system_owner_unknown_unowned_and_deleted(admin_client, seeded_sector):
 def test_deleting_a_sector_with_facilities(admin_client, mysql_config):
     """Pins what `DELETE /api/sectors/<id>` does to what hangs off it:
 
-    - a stand-alone facility parked in the sector goes with it
-      (`facilities.sector_id` is `ON DELETE CASCADE`);
-    - its systems stay, detached (`sector_id` set to NULL), and keep
+    - a stand-alone facility filed in the sector stops the delete with a
+      409 (GEN.1127: `facilities.sector_id` is `ON DELETE RESTRICT`, since a
+      filed object may have drifted in from another sector); the sector
+      stays readable until the facility is deleted or moved;
+    - then its systems stay, detached (`sector_id` set to NULL), and keep
       their own facilities;
     - the sector's reads are then 404s, and so is a second delete.
     """
@@ -374,6 +376,12 @@ def test_deleting_a_sector_with_facilities(admin_client, mysql_config):
     assert [f["id"] for f in admin_client.get(f"/api/sectors/{pid('sector', sector_id)}/facilities").get_json()["items"]] == [
         standalone_id]
 
+    refused = admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}")
+    _assert_json_error(refused, 409)
+    assert "still holds objects" in refused.get_json()["error"]
+    assert admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").status_code == 200
+
+    assert admin_client.delete(f"/api/facilities/{pid('facility', standalone_id)}").status_code == 200
     assert admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}").status_code == 200
 
     _assert_json_error(admin_client.get(f"/api/sectors/{pid('sector', sector_id)}"), 404)
