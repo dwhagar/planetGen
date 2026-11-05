@@ -2,6 +2,96 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3358] - 2026-11-05
+
+**Headline:** The system-generation fuzz tests are split or sampled so none passes the 900 second limit with every flag forced on; no generated output changes.
+
+### Changed
+- **Smaller fuzz cases (TEST.417, PERF.241).** A system with every orbit flag forced on costs 15 to 96 s for an O-type star (profile in reports/perf241-all-flags-o0v-profile-2026-11-05.md), so ten of them in one case passed 900 s. `test_every_star_type_generates_a_sane_system` now runs each letter and class in two cases, subclasses 0 to 4 and 5 to 9, with the same systems and seeds (all 70 combinations are still built); the slowest case of the M class took 215 s. `test_extreme_orbit_counts` (30 to 12 examples), `test_every_forced_flag_on_together` (25 to 10) and `test_random_valid_configs_generate_sane_systems` (20 to 10) draw fewer examples in the ordinary profile; the deep profile (`PLANETGEN_FUZZ_PROFILE=deep`) draws thousands as before. Restore the counts when GEN.1282 and PERF.242 cut the cost of a system.
+
+generation-output: unchanged
+
+TODO items resolved: none (PERF.241 continues).
+
+## [8.0.3357] - 2026-11-05
+
+**Headline:** A course's legs inside a system are now drawn in that system's 3D view, from the heliopause to the body it is bound for.
+
+### Added
+- **The 3D system view draws a course (NAV.22 part b).** A course page now offers "Show in system view" (or "Show in start system view"
+  and "Show in destination system view") for each system the course has a leg in. The view draws the leg as a line from where the
+  course crosses the system's heliopause to the body it is bound for (or from the body out to the heliopause), bent clear of the bodies
+  it would pass too close to, with a ring at each end and one where a moving destination is aimed. It is drawn in both the compressed and
+  the true scale, and listed under the view with the legs' lengths in AU and the way back to the course.
+
+## [8.0.3356] - 2026-11-05
+
+**Headline:** Every asteroid belt now has an information page that lists its individually tracked bodies by designation, the sizes and contents of the rest of its mass, and how crowded it is.
+
+### Added
+- **The asteroid belt information page, `/object/belt:<ID>/belt` (UX.241).** It shows the belt's limits, mass and typical contents; the bodies the belt keeps one by one, each by designation with its mass, diameter, distance, type, density, make-up, shape word and, for a body the giants scattered, its orbit group; the rest of the belt's mass as a table of sizes (how many bodies, how much mass, what share of the belt, their typical density and contents, and whether they are drawn on demand or kept as a total only); and the density factor, the objects larger than 1, 10 and 100 km in each square astronomical unit and the mass in each square astronomical unit, every number with its unit. The listed bodies and the sizes add up to the belt's mass. The belt's own page and its row in the system tree link to it.
+- **`GET /api/objects/<ref>/belt-page`** answers the same data for a belt (`belt`, `bodies`, `bins`, `density_factor`, `totals`). It is a new route, so the API version does not change.
+
+generation-output: unchanged
+
+TODO items resolved: UX.241.
+
+## [8.0.3355] - 2026-11-05
+
+**Headline:** The habitability re-score no longer dies with a MySQL deadlock when four workers run its units at once.
+
+### Fixed
+- `rescore-habitability` ran each unit as one transaction at the default isolation level, so two workers re-scoring neighbouring id ranges held gap locks on the shared `system_interests` and planet index ranges and each waited on the other (MySQL error 1213), which stopped the stage. The unit now runs at READ COMMITTED, which takes no gap locks, and starts over on a deadlock or a lock wait timeout (`store.RETRYABLE_ERRORS`) on a connection of its own, up to `store.SECTOR_SAVE_ATTEMPTS` times (8) with a pause that grows with each try, then fails as before. The numbers are the same whenever a unit is run, so a retry changes nothing stored.
+
+### Added
+- `tests/test_perf228_rescore_deadlock.py`: four threads re-scoring neighbouring ranges of 16 saved systems for 12 rounds each finish with no error (it failed on the old unit with error 1213), a unit that meets one deadlock gives the same answer, a unit that keeps meeting one gives up after 8 attempts, and any other database error is not retried.
+
+generation-output: unchanged
+TODO items resolved: PERF.228
+
+## [8.0.3354] - 2026-11-05
+
+**Headline:** A course that stays inside one sector is now drawn in that sector on the Galaxy Map, with its line, rings and names.
+
+### Added
+- **A course inside one sector has a line (NAV.22 part a).** Until now the Galaxy Map opened the sector for such a course and drew
+  nothing. The course's stops (the two ends and any systems between them on the route) are placed in the galaxy frame from the sector's
+  center, so the map draws the route, the straight line, any bend round a keep-out sphere, the rings, the names and the course readout
+  and diagram, as it does for a course across the galaxy.
+
+## [8.0.3353] - 2026-11-05
+
+**Headline:** A cache warm-up now goes on when its terminal is closed, and `planetgen warm --follow` watches a running one from another session.
+
+### Changed
+- A lost terminal (an SSH session that dropped, a hangup) no longer ends the cache warm-up as canceled (OPS.95 had done so). The command stops writing to the terminal, notes in the run's log that the terminal was closed, and the warm-up carries on to its end. SIGTERM and Ctrl+C still end it.
+
+### Added
+- `planetgen warm --follow` draws the progress of the warm-up that is running, started by `update.sh` or by hand, from its run record in Redis, the same bars and phase lines the starting session shows. It starts nothing; ending it with Ctrl+C or a hangup leaves the warm-up running. It says so when none is running.
+
+## [8.0.3352] - 2026-11-05
+
+**Headline:** A full backup now holds a copy of the sector repair file, so a galaxy whose live repair file is lost can still be repaired.
+
+### Changed
+
+- New backup part `parity` (DB.40, `backup/parts.py`): a copy of the parity file of the database repair (`db/parity_file.py`, DB.9) in `parity/sector-parity.pgpr`. The copy is taken with the file locked against every save (the lock the saves take) and cut at the end of its last whole record, so it is a state the file really had, never half a record. A file damaged behind its last record is refused with the reason (run `planetgen repair-db`), because that copy could repair nothing. With no parity file yet the part is empty and says so.
+- The manifest keeps what a part says about its dump as `info` (`Part.dump` may return a dict); for the parity part it is `bytes`, `sectors` covered and `groups`, or `present: false` with the reason. `planetgen.backup.PartInfo.info` holds it.
+- New option `settings.backup_parity` (default on, Admin settings, "Back up the repair file"): off leaves the copy out of full archives, for a very large galaxy. The settings backup made before each save still holds the settings part alone.
+- Restoring the part is DB.41; until then a restore of a whole archive leaves the parity copy in the archive and says so.
+
+generation-output: unchanged
+
+## [8.0.3351] - 2026-11-05
+
+**Headline:** Opening a saved course now says when a jump through unknown space has since been filled in with known sectors, or the reverse.
+
+### Changed
+- **A saved course keeps which of its hops were jumps through unknown space (NAV.39).** The record the Save button keeps now carries
+  an `unknown_space` flag on each hop of the route. When the course is opened again and the route runs through the same systems,
+  the list of what has changed adds a line for each hop whose flag differs ("Hop 1 of 2 is now through known space; it was a jump
+  through unknown space."). A course saved before the flag was kept says nothing about it, so no old record is flagged wrongly.
+
 ## [8.0.3350] - 2026-11-05
 
 **Headline:** The population tests that run two passes at once now pass alone as well as in a whole-file run, because the test helper that sets the civilization chance no longer lets one pass undo it for the other.

@@ -164,7 +164,7 @@ item has no row there.
 | 8.1 | [version-8-1-zoom-and-scatters.md](plan/releases/version-8-1-zoom-and-scatters.md) | Infinite zoom and the new generate scatters |
 | 8.2 | [version-8-2-accounts-and-invitations.md](plan/releases/version-8-2-accounts-and-invitations.md) | User accounts with email invitations |
 | 8.3 | [version-8-3-moving-galaxy.md](plan/releases/version-8-3-moving-galaxy.md) | The moving galaxy |
-| 8.4 | [version-8-4-new-worlds.md](plan/releases/version-8-4-new-worlds.md) | New worlds |
+| 8.4 | [version-8-4-new-worlds.md](plan/releases/version-8-4-new-worlds.md) | New worlds and the first settlements |
 | 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/releases/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
 | 8.6 | [version-8-6-edit-everything.md](plan/releases/version-8-6-edit-everything.md) | Edit everything |
 | 8.7 | [version-8-7-console-and-help.md](plan/releases/version-8-7-console-and-help.md) | The pilot's console and built-in help |
@@ -206,7 +206,13 @@ body, star and atmosphere is its joint headline, with the radiation derived
 from it, and the building blocks go down to 8.1; everything planned for 9.0 before
 split between 8.9, the backups chain and the sky data, and 9.1, the view
 from a planet, 11:26 PM EDT); multiple galaxies is a possible future
-feature. A
+feature. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
+items: 8.4 is now New worlds and the first settlements, and the gravity map
+(MAP.167, the second feature of 9.1) is built across 8.2 (grid foundations
+MAP.383 to MAP.386, PERF.72, PERF.243), 8.3 (GEN.198, GEN.199, MAP.387,
+API.24), 8.5 (the Sector and System Map layers MAP.168, MAP.169, UX.94) and
+9.1 (the parent and the optional Galaxy Map layer MAP.170); nothing of it
+lands in 8.1. A
 headline feature carries a `Headline: VERSION (name).` line in its item;
 `scripts/build_todo_docs.py` reads it and shows, in every plan page, each
 headline with all the open items it needs in build order. Every release in
@@ -1085,6 +1091,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-16, 11:25 and 11:26 PM EDT): 9.1 is the view from a planet
   (VIEW.18) with the gravity map as its second feature, and 9.0 is
   composition and the atmosphere colour.
+  Gravity grid study done (PERF.72, Tides 1) (5:02 PM EST on
+  2026-11-05): Report reports/perf72-gravity-grid-cost-2026-11-05.md.
+  Build items filed: MAP.383 (decide first: GEN.115 smooth potential
+  versus generated stars would double count), MAP.384 kernel, MAP.385
+  hierarchy, MAP.386 system point mass, MAP.387 cache, PERF.243 perf
+  guard. Open question for MAP.167 to MAP.170: whether the volume view
+  is wanted at the core; it is a queued job there (about 2 minutes for
+  1,000 sectors), not an interactive layer. Needs Boss's word when the
+  layer is built.
+  Boss decision (5:14 PM EST on 2026-11-05): the gravity map is built so
+  it lands by 9.1, with the foundations spread back: 8.2 holds the
+  double-count decision (MAP.383), the kernel (MAP.384), the interaction
+  lists (MAP.385), the point mass per system (MAP.386), the perf guard
+  (PERF.243) and the cost study close-out (PERF.72); 8.3 holds the
+  evaluator (GEN.198), the per-zone grid (GEN.199), the cache and stamps
+  (MAP.387) and the route (API.24), because they ride on the orbital
+  update and the galaxy potential (GEN.115); 8.5 holds the Sector and
+  System Map layers and the wording (MAP.168, MAP.169, UX.94), because
+  courses around gravity wells use them; 9.1 keeps this parent and the
+  optional Galaxy Map layer (MAP.170). Nothing of it lands in 8.1: only
+  generation aspects that directly impact 8.1 do. The 8.2 items read
+  stars already generated and change no generated output.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
 
 - [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
@@ -1912,6 +1940,92 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.224. Owner: Core 2, after MAP.223. Filed by the
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
+
+- [ ] **MAP.383 Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Adding the smooth background and the discrete
+  stars double counts. Do: write the rule (the smooth field minus the
+  smooth mass of the region represented by members, or the smooth field
+  only where nothing is generated), the rule for ungenerated sectors
+  inside the near region (expected mass as one point per sector, as
+  GEN.1120 treats rogue mass, or generate them), and note that the
+  galactic tidal term across 4 pc is tiny and can be a constant per
+  sector; then measure the double count on a small generated galaxy. A
+  short design note in docs/design plus the measurement. Done: the rule
+  is written, measured and the other items of this chain read it.
+  Lock-free, no code. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.167, MAP.168, MAP.169, MAP.170,
+  PERF.72, GEN.115.
+
+- [ ] **MAP.384 Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the kernel in float64, with a test against a
+  plain numpy reference to 1e-9 on random sets; the web app never
+  imports it (a lazy import inside the job), and the wiring register
+  names where it is read once wired. Done: kernel and tests pass;
+  lock-free until wired. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.385 Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: build the hierarchy (check first whether the
+  MAP.151 region pyramid has a sub-sector level; if it does not, the
+  leaf level is a separate small item), the opening angle chosen to a
+  pair budget (floor 0.3, ceiling 0.7), and one interaction list per
+  target sector. Tests: accuracy against the exact sum on a fixed small
+  generated galaxy (pull 1 percent, tidal 2 percent at p95) and a
+  pair-budget test. Done: both tests pass. Lock-free until wired. Owner:
+  Tides 1. Filed by the TODO thread.
+  Prerequisites: MAP.384. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.386 Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the rule and its code, with a test that the
+  folded field is within 0.1 percent of the explicit sum at 0.25 pc.
+  Done: the test passes. Lock-free until wired. Owner: Tides 1. Filed by
+  the TODO thread.
+  Prerequisites: none. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.387 Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the cache as derived data only (no
+  galaxy-table migration), rebuilt on a threshold-based move, a job
+  queue for volume views, a slab on request. Done: a second request of
+  an unchanged sector reads the cache and a changed source stamp
+  rebuilds it, with tests. Lock-free (derived data only) unless it needs
+  a migration, then tell the TODO thread. Owner: Tides 1. Filed by the
+  TODO thread.
+  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
 
 ## NAV: Navigation and courses
 
@@ -3209,7 +3323,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72, MAP.383, MAP.384, MAP.385, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -14077,7 +14191,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151
+  Prerequisites: none. Related: GEN.198, GEN.199, MAP.151
   (done, PR #1539).
   Scope after the review (2026-10-16 review): the cost study of the grid
   on top of the kernel (measure the kernel and the aggregate split, pick
@@ -14691,6 +14805,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item with the generator epoch, after the item above. Done: see the
   item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: GEN.1282. Related: PERF.241.
+
+- [ ] **PERF.243 Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: a test that the densest-place sector grid
+  stays under 0.25 s with the pair budget of the hierarchy item, and a
+  reference file for the lane-machine pair rate so a slow machine is
+  recognised (the test scales its limit by it). Done: the test passes on
+  the reference machine and skips with a stated reason on none.
+  Lock-free. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: MAP.384, MAP.385. Related: MAP.167, PERF.72.
 
 ## DB: Database and schema
 

@@ -73,6 +73,7 @@ untouched by whether a sphere successfully renders on top of it.
 """
 
 import colorsys
+import json
 import math
 import statistics
 
@@ -1817,7 +1818,21 @@ _NEBULA_WASH_TYPES = ("diffuse", "emission", "reflection", "planetary", "dark")
 (`.sysmap-nebula-<type>`); any other gets `.sysmap-nebula-other`."""
 
 
-def render_system_map_panel(system, stars, planets, belts, facilities=None, scene_url=None, nav=None, sky_url=None, sky_star_url=None, sky_help_url=None):
+def _course_in_system_html(course):
+    """NAV.22: the legs of a NAV course drawn in the 3D view, listed under it, with the way back to the course."""
+    rows = []
+    for leg in course["legs"]:
+        bend = f"; it goes round {', '.join(esc(name) for name in leg['avoided'])}" if leg["avoided"] else ""
+        rows.append(f"<li><strong>{esc(leg['label'])}:</strong> from {esc(leg['from'])} to {esc(leg['to'])}, {leg['length_au']:.3g} AU{bend}.</li>")
+    return (
+        '<div class="sysview-course" id="sysview3d-course"><p class="hint">The course drawn in the view '
+        f'(<a href="{esc(course["navUrl"])}">back to the course</a>). It is the course for a ship leaving at the moment the planets were last placed, '
+        "so a planet it is bound for has moved on from where the line ends; the ring marks where it is aimed.</p>"
+        f'<ul>{"".join(rows)}</ul></div>')
+
+
+def render_system_map_panel(system, stars, planets, belts, facilities=None, scene_url=None, nav=None, sky_url=None, sky_star_url=None, sky_help_url=None,
+                            course=None):
     """
     Builds the "System Map" panel embedded in `system.py`: TWO sibling
     `<svg>`s per scene (an orbits-only layer plus a body-marker layer --
@@ -1864,6 +1879,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
             switch (MAP.74).
         sky_star_url (str, optional): A charted star's page with `{id}` where its printed ID goes (VIEW.37), as `data-sky-star-url`; the sky's
             picked stars link through it.
+        course (dict, optional): NAV.22: the legs of a NAV course that lie in this system (`nav_page.system_course`), drawn by the 3D view as
+            a line from where the course crosses the heliopause to the body it is bound for (or from the body to the heliopause), bent
+            clear of what it would pass too close to. Handed to `static/systempage3d.js` as `data-course` (JSON) and listed under the view.
         sky_help_url (str, optional): The help page about the sky (VIEW.38); a small "About the sky" link by the sky switch.
         sky_url (str, optional): Where the 3D view fetches the sky the system
             sees (`GET /system/<id>/sky`, VIEW.31); handed to
@@ -1964,6 +1982,8 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
 
     view_switch = ""
     view3d_html = ""
+    course_attr = f' data-course="{esc(json.dumps(course, separators=(",", ":")))}"' if course and scene_url else ""
+    course_html = _course_in_system_html(course) if course and scene_url else ""
     if scene_url and stars:
         sky_attr = f' data-sky-url="{esc(sky_url)}"' if sky_url else ""
         if sky_url and sky_star_url:    # VIEW.37: a charted star of the sky links to its page
@@ -1979,7 +1999,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
             '<button type="button" class="starmap-btn" id="sysmap-view-3d" aria-pressed="false">3D</button></div>'
         )
         view3d_html = (
-            f'<div class="sysview3d" id="sysview3d" data-scene-url="{esc(scene_url)}"{sky_attr} hidden>'
+            f'<div class="sysview3d" id="sysview3d" data-scene-url="{esc(scene_url)}"{sky_attr}{course_attr} hidden>'
             '<div class="starmap-viewport sysview-viewport" id="sysview3d-viewport">'
             '<canvas id="sysview3d-canvas" class="sysview-canvas" aria-label="3D system view" role="img"></canvas>'
             '<div class="sysview-labels" id="sysview3d-labels" aria-hidden="true"></div>'
@@ -2000,7 +2020,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
             '<button type="button" class="starmap-btn" data-dialog-open="sysview3d-help" '
             'title="How to use the 3D view">Map help</button></div>'
             '<p class="hint sysview-scale-note" id="sysview3d-scale-note"></p>'
-            + sky_note +
+            + course_html + sky_note +
             '<details class="sysview-list"><summary>Bodies in this view</summary>'
             '<ul id="sysview3d-list"></ul></details></div>'
         )
