@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3250] - 2026-11-05
+
+**Headline:** The settings review-page width test waits for the page's components before it measures the page.
+
+### Fixed
+- **A phone-width overflow reported once (606 px at the gear dropdown) came from measuring before the components had loaded.** The settings browser tests now wait until the dropdown components are defined (at most five seconds) before reading the page width, and a test holds the components script back two seconds to pin it.
+
 ## [8.0.3249] - 2026-11-05
 
 **Headline:** Three nebula composition numbers that were recalled are now read from their papers: the second dredge-up helium, the Type I limits, and the wind loss and helium star of a supernova progenitor.
