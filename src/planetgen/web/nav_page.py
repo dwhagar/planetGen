@@ -444,7 +444,7 @@ def galaxy_course(from_raw, to_raw):
     if _unavailable_reason(origin) or _unavailable_reason(destination):
         return None
     try:
-        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"])
+        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], adjusted=True)
     except apiclient.ApiError as exc:
         if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
             raise
@@ -623,7 +623,7 @@ def nav():
     destination = _resolve(to_kind, to_id)
     stay, stay_text, stay_error = _stay_minutes(request.args)
     try:
-        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], stay=stay or None, graph=True)
+        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], stay=stay or None, graph=True, adjusted=True)
     except apiclient.NotFoundError:
         raise
     except apiclient.ApiError as exc:

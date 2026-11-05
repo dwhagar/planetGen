@@ -155,7 +155,7 @@ class FakeData:
         except KeyError:
             raise apiclient.NotFoundError("No such phenomenon")
 
-    def get_nav(self, db, from_ref, to_ref, stay=None, graph=False):
+    def get_nav(self, db, from_ref, to_ref, stay=None, graph=False, adjusted=False):
         self.calls.append(("get_nav", db, from_ref, to_ref) if stay is None else ("get_nav", db, from_ref, to_ref, stay))
         if self.nav_error:
             raise self.nav_error

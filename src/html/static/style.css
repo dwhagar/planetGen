@@ -2141,6 +2141,16 @@ a:focus-visible .navmap-point circle {
   stroke-dasharray: 7 4;
 }
 
+.nav-diagram-bend {
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+}
+
+.nav-diagram-bend-flag {
+  stroke: var(--tier-yellow);
+}
+
 .nav-diagram-label,
 .nav-diagram-course {
   fill: var(--text-muted);
