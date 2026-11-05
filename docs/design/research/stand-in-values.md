@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1094 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1101 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 153 | 17 | 8 | 1 | 0 | 179 |
 | T2 | 117 | 45 | 0 | 1 | 0 | 163 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
-| T4 | 53 | 5 | 1 | 18 | 10 | 87 |
+| T4 | 57 | 5 | 1 | 18 | 10 | 91 |
 | T5 | 50 | 19 | 2 | 1 | 0 | 72 |
-| T6 | 103 | 82 | 21 | 52 | 0 | 258 |
+| T6 | 103 | 83 | 21 | 53 | 0 | 260 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 23 | 14 | 5 | 49 | 29 | 120 |
-| All | 616 | 238 | 52 | 148 | 40 | 1094 |
+| T9 | 23 | 14 | 5 | 50 | 29 | 121 |
+| All | 620 | 239 | 52 | 150 | 40 | 1101 |
 
 ## How the labels were given
 
@@ -1481,6 +1481,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SKT1 | P | T9 | L3 | sky_tiers.CELL_VISIT_BUDGET 3e8: the cell visits the luminosity bands of one sky may take, so the bands over about 1,000 Lsun are dropped at a 7.5 limit | 5e7 to 2e9 | a sky of 6.5 to 7.5 from a place at the density of the Sun, the backfill as of epoch 131 at 2 to 30 microseconds a visit | a measured visit cost far from VIEW.19's, a sky whose dropped bands hide a conspicuous star the glow band cannot stand in for, or a backfill that visits blocks instead of cells (VIEW.41), which removes the need for a budget | VIEW.41 (a coarser block draw for the sparse bands) | VIEW.19: 2.7e8 visits to 1,000 Lsun is half of the luminosity stars at 7.5 (22 minutes warm, 1.8 hours cold); 8.3e9 uncut | VIEW.25 | - |
 | SKT2 | D | T5 | L0 | sky_tiers.RING_TOP_SOL 50: the luminosity the rings stop at and the luminosity bands start at, `tuning.WD_LUMINOSITY_RANGE_SOL[1]`, the brightest white dwarf, under which `star_population.check_threshold` refuses a luminosity floor | fixed by the star model | the luminosity backfill as written | a luminosity backfill that takes a floor under 50 Lsun (the white dwarfs left out of the sky), which would let the bands replace the rings | a luminosity floor under 50 Lsun for the sky | VIEW.19 section 5: the rings draw about 140 stars for each one that shows | - | - |
+
+## 6.178 Stand-ins of the progenitor and ejecta of a planetary nebula
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PNE1 | P | T6 | L1 | planetary_nebula_ejecta.MIN_MASS_SOL 0.9: the lightest progenitor of a planetary nebula | 0.85 to 1.2 | a disc of 10 Gy; an older galaxy reaches lighter stars | a measured lightest progenitor, or the track's lifespan against the galaxy's age at the place | the lightest mass whose track ends inside the age of the place | a star must end inside the age of the disc, a little under a solar mass at the track's lifespans; the initial-final relation starts at 0.83 | - | - |
+| PNE2 | P | T4 | L0 | planetary_nebula_ejecta.RGB_MASS_LOSS_SOL 0.2: the mass lost on the red giant branch before the thermally pulsing branch | 0.1 to 0.4 | stars of 1 to 3 solar masses | a mass-loss law on the red giant branch | the star track's own mass at the start of the asymptotic branch (`post_main_sequence`) | recalled, about 0.2 solar masses; not looked up | GEN.1276 | - |
+| PNE3 | P | T4 | L0 | planetary_nebula_ejecta.SECOND_DREDGE_UP_DELTA_Y 0.03: the helium mass fraction the second dredge-up adds, for stars of 4 solar masses and more | 0.02 to 0.06 | 4 to 7 solar masses at solar metallicity; larger for the heaviest | a published surface helium after the second dredge-up outside 0.02 to 0.06 | the yield tables of a grid of asymptotic branch models | recalled, a few hundredths; the paper opened for this carries no per-mass table of it | GEN.1276 | - |
+| PNE4 | P | T4 | L0 | planetary_nebula_ejecta.INTERSHELL_HE 0.75, INTERSHELL_O 0.02, INTERSHELL_REST 0.01: the helium, oxygen and neon-22 mass fractions of the dredged intershell (the carbon is 0.22, CS3) | 0.70 to 0.75; 0.01 to 0.05 | intershells of pulsing branch stars | a measured intershell composition | the intershell of a thermally pulsing track | recalled, intershell 70 to 75 percent helium, 20 to 25 percent carbon, about 2 percent oxygen | GEN.1276 | - |
+| PNE5 | P | T6 | L3 | planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen | 0.5 to 1.0 | progenitors of 4 solar masses and more at solar metallicity | a surface N/O of a hot-bottom-burning model under log -0.3 at 5 solar masses, or the carbon left over 0.5 | the surface abundances of hot-bottom-burning models by mass and metallicity | set so a 5 solar mass progenitor at solar metallicity is Type I (log N/O 0.1 to 0.3); no source | GEN.1276 | - |
+| PNE6 | P | T4 | L0 | planetary_nebula_ejecta.TYPE_I_HE_TO_H 0.125 and TYPE_I_LOG_N_TO_O -0.3: the limits of Type I planetary nebulae | none | the usual classification | the classification as defined in its paper | the definition read from its paper | recalled | GEN.1276 | - |
+| PNE7 | P | T9 | L3 | planetary_nebula_ejecta.CARBON_RICH_TRIES 40: draws of a class K progenitor before the heaviest mass of the window is taken | 10 to 100 | class K | none (a safety limit: at solar metallicity no draw is refused) | none | needed to end the loop; every class K progenitor of the tests came out carbon-rich at the first or second draw | GEN.1276 | - |
 
 ## 6.175 Stand-ins of the sky catalogue of a system
 

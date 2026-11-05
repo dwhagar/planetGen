@@ -33769,6 +33769,280 @@
       "title": "Stand-ins of the sky tier table"
     },
     {
+      "key": "6.178",
+      "number": "6.178",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planetary_nebula_ejecta.MIN_MASS_SOL 0.9: the lightest progenitor of a planetary nebula"
+            ],
+            [
+              "The range it moves in",
+              "0.85 to 1.2"
+            ],
+            [
+              "Where it holds",
+              "a disc of 10 Gy; an older galaxy reaches lighter stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured lightest progenitor, or the track's lifespan against the galaxy's age at the place"
+            ],
+            [
+              "What replaces it",
+              "the lightest mass whose track ends inside the age of the place"
+            ],
+            [
+              "Evidence",
+              "a star must end inside the age of the disc, a little under a solar mass at the track's lifespans; the initial-final relation starts at 0.83"
+            ]
+          ],
+          "id": "PNE1",
+          "key": "6.178:PNE1",
+          "kind": "P",
+          "slug": "6-178-pne1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "planetary_nebula_ejecta.MIN_MASS_SOL 0.9: the lightest progenitor of a planetary nebula"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planetary_nebula_ejecta.RGB_MASS_LOSS_SOL 0.2: the mass lost on the red giant branch before the thermally pulsing branch"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.4"
+            ],
+            [
+              "Where it holds",
+              "stars of 1 to 3 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a mass-loss law on the red giant branch"
+            ],
+            [
+              "What replaces it",
+              "the star track's own mass at the start of the asymptotic branch (post_main_sequence)"
+            ],
+            [
+              "Evidence",
+              "recalled, about 0.2 solar masses; not looked up"
+            ]
+          ],
+          "id": "PNE2",
+          "key": "6.178:PNE2",
+          "kind": "P",
+          "slug": "6-178-pne2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "planetary_nebula_ejecta.RGB_MASS_LOSS_SOL 0.2: the mass lost on the red giant branch before the thermally pulsing branch"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planetary_nebula_ejecta.SECOND_DREDGE_UP_DELTA_Y 0.03: the helium mass fraction the second dredge-up adds, for stars of 4 solar masses and more"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.06"
+            ],
+            [
+              "Where it holds",
+              "4 to 7 solar masses at solar metallicity; larger for the heaviest"
+            ],
+            [
+              "What would show it wrong",
+              "a published surface helium after the second dredge-up outside 0.02 to 0.06"
+            ],
+            [
+              "What replaces it",
+              "the yield tables of a grid of asymptotic branch models"
+            ],
+            [
+              "Evidence",
+              "recalled, a few hundredths; the paper opened for this carries no per-mass table of it"
+            ]
+          ],
+          "id": "PNE3",
+          "key": "6.178:PNE3",
+          "kind": "P",
+          "slug": "6-178-pne3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "planetary_nebula_ejecta.SECOND_DREDGE_UP_DELTA_Y 0.03: the helium mass fraction the second dredge-up adds, for stars of 4 solar masses and more"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planetary_nebula_ejecta.INTERSHELL_HE 0.75, INTERSHELL_O 0.02, INTERSHELL_REST 0.01: the helium, oxygen and neon-22 mass fractions of the dredged intershell (the carbon is 0.22, CS3)"
+            ],
+            [
+              "The range it moves in",
+              "0.70 to 0.75; 0.01 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "intershells of pulsing branch stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured intershell composition"
+            ],
+            [
+              "What replaces it",
+              "the intershell of a thermally pulsing track"
+            ],
+            [
+              "Evidence",
+              "recalled, intershell 70 to 75 percent helium, 20 to 25 percent carbon, about 2 percent oxygen"
+            ]
+          ],
+          "id": "PNE4",
+          "key": "6.178:PNE4",
+          "kind": "P",
+          "slug": "6-178-pne4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "planetary_nebula_ejecta.INTERSHELL_HE 0.75, INTERSHELL_O 0.02, INTERSHELL_REST 0.01: the helium, oxygen and neon-22 mass fractions of the dredged intershell (the carbon is 0.22, CS3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "progenitors of 4 solar masses and more at solar metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "a surface N/O of a hot-bottom-burning model under log -0.3 at 5 solar masses, or the carbon left over 0.5"
+            ],
+            [
+              "What replaces it",
+              "the surface abundances of hot-bottom-burning models by mass and metallicity"
+            ],
+            [
+              "Evidence",
+              "set so a 5 solar mass progenitor at solar metallicity is Type I (log N/O 0.1 to 0.3); no source"
+            ]
+          ],
+          "id": "PNE5",
+          "key": "6.178:PNE5",
+          "kind": "P",
+          "slug": "6-178-pne5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1276",
+          "what": "planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planetary_nebula_ejecta.TYPE_I_HE_TO_H 0.125 and TYPE_I_LOG_N_TO_O -0.3: the limits of Type I planetary nebulae"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the usual classification"
+            ],
+            [
+              "What would show it wrong",
+              "the classification as defined in its paper"
+            ],
+            [
+              "What replaces it",
+              "the definition read from its paper"
+            ],
+            [
+              "Evidence",
+              "recalled"
+            ]
+          ],
+          "id": "PNE6",
+          "key": "6.178:PNE6",
+          "kind": "P",
+          "slug": "6-178-pne6",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "planetary_nebula_ejecta.TYPE_I_HE_TO_H 0.125 and TYPE_I_LOG_N_TO_O -0.3: the limits of Type I planetary nebulae"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planetary_nebula_ejecta.CARBON_RICH_TRIES 40: draws of a class K progenitor before the heaviest mass of the window is taken"
+            ],
+            [
+              "The range it moves in",
+              "10 to 100"
+            ],
+            [
+              "Where it holds",
+              "class K"
+            ],
+            [
+              "What would show it wrong",
+              "none (a safety limit: at solar metallicity no draw is refused)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "needed to end the loop; every class K progenitor of the tests came out carbon-rich at the first or second draw"
+            ]
+          ],
+          "id": "PNE7",
+          "key": "6.178:PNE7",
+          "kind": "P",
+          "slug": "6-178-pne7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": "GEN.1276",
+          "what": "planetary_nebula_ejecta.CARBON_RICH_TRIES 40: draws of a class K progenitor before the heaviest mass of the window is taken"
+        }
+      ],
+      "slug": "6-178-stand-ins-of-the-progenitor-and-ejecta-of-a-planetary-nebula",
+      "title": "Stand-ins of the progenitor and ejecta of a planetary nebula"
+    },
+    {
       "key": "6.175",
       "number": "6.175",
       "rows": [

@@ -261,6 +261,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.176", "6.176 Stand-ins of the sky tier table",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.178", "6.178 Stand-ins of the progenitor and ejecta of a planetary nebula",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.175", "6.175 Stand-ins of the sky catalogue of a system",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.174", "6.174 Stand-ins of the glow band of the unresolved stars",

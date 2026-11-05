@@ -378,3 +378,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |
 | module | planetgen.generation.sky_tiers | VIEW.25 | charting a system builds the sky tiers from this table: build() gives the luminosity bands and mass rings to draw and the radius of each, floor_table() gives the floor against distance for the report |
 | row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the cell-visit budget |
+| module | planetgen.physics.planetary_nebula_ejecta | GEN.1276 | the composition item writes the progenitor mass and the ejecta values of each planetary nebula from `progenitor(...).values()` at generation and backfill |
+| row | 6.178:PNE2 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE3 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE6 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
