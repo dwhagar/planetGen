@@ -2289,7 +2289,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   System Maps, and add a browser test that every visible menu control is
   a working button or checkbox. It may fold into the shared builder of
   UX.278; fix it now on the present menu, lock-free. Version 8.1. Owner:
-  Core 4 after MAP.392. Filed by the TODO thread.
+  Core 5. Filed by the TODO thread.
   Prerequisites: none. Related: UX.274, UX.278, MAP.392.
 
 ## NAV: Navigation and courses
