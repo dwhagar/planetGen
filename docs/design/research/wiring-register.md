@@ -353,3 +353,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
+| row | 6.91:SS4 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS11 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS12 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS13 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS14 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| module | planetgen.physics.temperature_coverage | GEN.1265 | the temperature score, columns and pages read the coverage of the series (GEN.1264 builds it, GEN.1265 wires it) |
+| row | 6.183:PG1 | GEN.1258 | the phase gate's carbon dioxide fluid window is read when the class-by-domain matrix wires it |

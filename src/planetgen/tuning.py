@@ -263,7 +263,7 @@ MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 # GEN.962: a rocky planet's moons come from giant impacts (its regular moons) and capture (the small irregular ones of `captured_moons`), and a planet with no
 # row in the hosting gate's `satellite-share` table holds a massive moon, one of at least ROCKY_MASSIVE_MOON_MASS_RATIO of its mass, in about 1 planet in 12
 # [R5127]. That chance is drawn once for the planet and again after each moon (a further impact), so the count of moons per rocky planet is geometric with this
-# chance; the planet's room and Hill sphere still limit it. Stand-ins of registry section 6.183.
+# chance; the planet's room and Hill sphere still limit it. Stand-ins of registry section 6.186.
 ROCKY_IMPACT_MOON_CHANCE = 1.0 / 12.0
 ROCKY_MASSIVE_MOON_MASS_RATIO = 0.006
 

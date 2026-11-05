@@ -2490,7 +2490,7 @@ CREATE TABLE IF NOT EXISTS planets (
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
-    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapour over saturation, 0.05 to 0.99
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
     groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
@@ -2935,7 +2935,7 @@ CREATE TABLE IF NOT EXISTS moons (
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
-    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapour over saturation, 0.05 to 0.99
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
     groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,

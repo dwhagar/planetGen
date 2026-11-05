@@ -17,7 +17,7 @@ lifted out of reach. A stored member of that belt (`belt_roster`, GEN.1070) is o
 * `detached`: perihelion `DETACHED_PERIHELION_OVER_INNER_EDGE` times the belt's inner edge, beyond the giant's reach, with the semi-major axis the belt's.
 
 The populations that left the disk (`ejected`, `trojans`, `implanted_inner_belt`, `captured_moons`) hold no member. A belt without a giant has all its members cold. All the numbers are stand-ins
-(registry 6.183).
+(registry 6.185).
 """
 
 import math
