@@ -26,7 +26,7 @@ release is stamped.
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
-| VIEW | VIEW.41 |
+| VIEW | VIEW.42 |
 | POP | POP.46 |
 
 ## Why this exists
@@ -3253,6 +3253,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | none | open |
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
+| VIEW.41 | System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer | none | open |
 
 ## Tree IDs to flat IDs
 

@@ -20697,6 +20697,35 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   charted, no visit job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.35.
 
+- [ ] **VIEW.41 System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer**
+  Planets 1 (as the lane reported, 8:44 PM EST on 2026-11-04), VIEW.19
+  report reports/system-sky-backfill-cost-2026-11-05.md (script in
+  #4969). (1) The backfill is paid by cells visited, not by stars: the
+  full luminosity side of a 7.5 magnitude sky is about 8e9 cell visits
+  (5.7 h warm, 32 h cold on one worker) for 9,100 stars, and a 6.5 sky
+  is 2.1e9 visits (1.4 h warm, 8 h cold) for 3,300 stars; the plan's
+  "under a minute" was off by three orders. Cutting at 1,000 solar
+  luminosities gives about half the luminosity stars for 22 minutes warm
+  at 7.5. (2) The charted-star ledger and the backfill ledger never
+  overlap (measured in both orders on 8,162 cells, agreement to 0.1
+  percent), so use both. (3) The luminosity backfill refuses floors
+  under 50 solar luminosities, so tiers under that can only be mass
+  rings, which draw about 140 stars for each one shown. (4) No backfill
+  makes stars born under 1 solar mass: 6 percent of a 7.5 sky, nearly
+  all inside 50 pc. (5) The model sky at the solar density is 5,300
+  stars at 6.5 and 15,500 at 7.5 (recalled real: 9,000 and 25,000). Do:
+  a coarser block draw for the sparse bright bands (draw a block's
+  bright stars from the block's own stats instead of visiting every
+  cell), and a ring under 1 solar mass near the observer, so a 7.5 sky
+  is built in minutes, not hours. VIEW.24 and VIEW.25 plan around a
+  luminosity cut or the 6.5 default and a queued tier job until this
+  lands. Done: a 7.5 sky builds in under 30 minutes cold with its star
+  count within 10 percent of the exact backfill, measured by the VIEW.19
+  script. Lock-free if it is a new reader; a lock item if the draw
+  changes what is stored. Version 8.2. Owner: Planets 1, after VIEW.24.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: VIEW.19, VIEW.24, VIEW.25.
+
 ## POP: Population and politics
 
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
