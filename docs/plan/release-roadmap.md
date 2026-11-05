@@ -26,6 +26,7 @@ Headline: User accounts, with sign-up by an email invitation that only an admin 
 Today: (new)
 Change: Boss, 6:28 PM EDT 2026-10-28: the continuous zoom (the Galaxy Map rebuilt so one camera drives every scene: MAP.334 to MAP.338 and the preferences screen UX.236, owners Core 2 and Core 5) is a seminal feature of this version; its quick-fix first step Z0 (MAP.333) is built in 8.1. Boss, 12:45 PM EDT. It is already planned as USR.1 to USR.7; the configuration page left this version for 8.1 (Boss, 1:43 PM EDT) and USR.2 stores four roles (user, moderator, admin, Owner) behind one guard so the roles of 10.0 fit without a rebuild; this moves it up and puts the bookmark items (UX.46, UX.47) with it. One change to USR.4 on approval: its decided answer says the invitee's email is optional and the admin may only copy the link; the email invitation becomes the main path, with the link shown only when SMTP is not set up.
 Needs: the settings page (ADM.43, ADM.84), now built in 8.1, is where the SMTP form sits; its Owner tier (ADM.86) opens this version's thread after USR.2; SEC.32 (Argon2id) before USR.2 so new accounts start on it. Mail goes out as a queue job (USR.3), so the queue steps PERF.97 to PERF.100 in 8.1 phase 1 come first.
+Reorganized (Boss, 5:15 PM EST on 2026-11-05): the gravity grid foundations land here (MAP.383 to MAP.386, PERF.72, PERF.243), since the sector grid reads stars that are already generated and changes no generated output; nothing of the gravity map lands in 8.1. The settlements design and storage (POP.16, DB.103 to DB.105) and the tile caching are also here, as foundations for 8.3 and 8.4.
 
 ## Release 8.3: The moving galaxy
 Status: proposed; the orbital update moves here from 8.0 Progress (12:34 PM EDT 2026-10-28): 33 of 70 items finished (47.1 percent), 37 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
@@ -33,13 +34,15 @@ Headline: The orbital update: every object moves on its orbit each day, with n-b
 Today: 8.0 the orbital update system (GEN.105)
 Change: GEN.105 needs open items that take database migrations from Core 1 (GEN.289, GEN.294), so it earns its own version after the scatters. GEN.198 (the gravity field evaluator) is placed here, not with the gravity map, because the courses of 8.5 reuse it.
 Needs: GEN.294 and GEN.289 (every object as one SpatialPosition3D and kept planets and moons) first, in phase 1; GEN.115 and GEN.142 have no prerequisites. GEN.111 needs 8.2's SMTP settings (USR.3). GEN.299 and GEN.300 (the Quantity class) need GEN.294 and GEN.135. OPS.16 and OPS.17 set up the nightly run.
+Reorganized (Boss, 5:15 PM EST on 2026-11-05): the gravity evaluator, the per-zone grid, its cache and stamps and the route (GEN.198, GEN.199, MAP.387, API.24) ride on the orbital update and the galaxy potential (GEN.115); the world population simulation (POP.29 to POP.31) and the resource locations are phase 4.
 
-## Release 8.4: New worlds
+## Release 8.4: New worlds and the first settlements
 Status: proposed Progress (12:34 PM EDT 2026-10-28): 33 of 90 items finished (36.7 percent), 57 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
-Headline: Planet classes R to Z and the habitability-driven refactor: a world's class, atmosphere and life follow its index
+Headline: New worlds and the first settlements: nebula conditions and asteroid fields on the planets and belts, and nation-states, cities and ports for worlds with a technological civilization (the planet classes, composition and habitability moved into 8.1)
 Today: (new)
 Change: The planet class work (GEN.33, GEN.28, GEN.27, GEN.90 and the rest) has no headline today. Boss (11:25 PM EDT) put the generation and storage half of the atmosphere colour here, as four phases ahead of the class work: the bulk composition that drives density, mass and gravity (GEN.428 to GEN.430, DB.69), the albedo records (GEN.412), the surface and small-body composition (GEN.441, GEN.442), the one mixture and its stored values (GEN.411, GEN.422 to GEN.424, DB.67), ozone, haze, dust and cloud (GEN.413, GEN.414), the stored shares (DB.70, DB.68), the text and the sweeps (GEN.415, TEST.209, TEST.210, DOC.63, DOC.65). The research, designs and tables they read moved to 8.1 (Boss, 11:57 PM EDT).
 Needs: The habitability index (built). GEN.33 first, one class per PR. GEN.95 comes before GEN.93 (nebula conditions on planets). POP.13 (the species editor) goes with it because the "find me a world" idea needs species limits.
+Reorganized (Boss, 5:15 PM EST on 2026-11-05): the headline is now New worlds and the first settlements, because settlements and nation-states (POP.17 to POP.23, POP.38 to POP.45) are the larger half of what the version holds; they are generated once and stay fixed until 9.2. Planet classes, composition and the habitability pages are in 8.1.
 
 ## Release 8.5: Courses that bend around gravity wells
 Status: Boss named it; headline unchanged Progress (12:34 PM EDT 2026-10-28): 14 of 51 items finished (27.5 percent), 37 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
@@ -47,6 +50,7 @@ Headline: Courses that bend around gravity wells, with waypoints, editable and s
 Today: 8.5 courses that bend around gravity wells, NAV.59
 Change: No change to the headline. NAV.19 (saved courses in the account) rides here because accounts arrive in 8.2.
 Needs: MAP.122 (Select mode) from 8.1 for waypoints (NAV.49); GEN.198 (the evaluator) from 8.3; saved courses in the account need USR.7 from 8.2, while per-browser saving (NAV.18) needs nothing. NAV.6's open question on keep-out radii still stands, with its default.
+Reorganized (Boss, 5:15 PM EST on 2026-11-05): the gravity layers on the Sector and System Maps with their wording (MAP.168, MAP.169, UX.94) are built here because the courses that bend around wells draw on them; trade routes (POP.32 to POP.34, NAV.63, NAV.64, NAV.71) are phase 4.
 
 ## Release 8.6: Edit everything
 Status: Boss named it (1:07 PM EDT); items filed Progress (12:34 PM EDT 2026-10-28): 4 of 50 items finished (8.0 percent), 46 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
@@ -90,6 +94,7 @@ Headline: Stand on a world and look up: the sky from any planet or moon, with re
 Today: (new)
 Change: Boss (11:26 PM EDT, 11:42 PM EDT): the view from a planet moved here from 9.0 and is the headline of 9.1, with the gravity map (MAP.167) as the second feature. Its sky data and research are in 8.9 (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and it builds on the atmosphere colour of 9.0 (VIEW.11 extends GEN.416). The gravity map keeps its foundations in 8.3 (GEN.198, TEST.131).
 Needs: 8.3 (so the sky changes with the date), 8.4 (the worlds) and the atmosphere colour of 9.0. VIEW.2 starts with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates. The gravity map (Boss, 5:14 PM EST on 2026-11-05: foundations spread back, nothing in 8.1) is built in 8.2 (MAP.383 to MAP.386, PERF.72, PERF.243), 8.3 (GEN.198, GEN.199, MAP.387, API.24), 8.5 (MAP.168, MAP.169, UX.94) and 9.1 (MAP.167 and the optional MAP.170).
+Reorganized (Boss, 5:15 PM EST on 2026-11-05): the gravity map is finished here: its parent MAP.167 closes when the layers of 8.5 are in, and the optional Galaxy Map layer MAP.170 is the only part still waiting; the view from a planet stays the headline.
 
 ## Release 9.2: Politics and territories
 Status: Boss ordered it before ships and stations; idea only, no items
