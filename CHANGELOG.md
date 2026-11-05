@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3357] - 2026-11-05
+
+**Headline:** A course's legs inside a system are now drawn in that system's 3D view, from the heliopause to the body it is bound for.
+
+### Added
+- **The 3D system view draws a course (NAV.22 part b).** A course page now offers "Show in system view" (or "Show in start system view"
+  and "Show in destination system view") for each system the course has a leg in. The view draws the leg as a line from where the
+  course crosses the system's heliopause to the body it is bound for (or from the body out to the heliopause), bent clear of the bodies
+  it would pass too close to, with a ring at each end and one where a moving destination is aimed. It is drawn in both the compressed and
+  the true scale, and listed under the view with the legs' lengths in AU and the way back to the course.
+
 ## [8.0.3356] - 2026-11-05
 
 **Headline:** Every asteroid belt now has an information page that lists its individually tracked bodies by designation, the sizes and contents of the rest of its mass, and how crowded it is.
