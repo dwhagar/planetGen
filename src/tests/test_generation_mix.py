@@ -44,7 +44,7 @@ def test_zone_mix_is_spread(systems):
     """About 38% hot, 16% ecosphere and 46% cold (it was 96% cold; the ecosphere was 6% before GEN.146 widened it to
     the Kopparapu edges, 0.95 to 1.68 AU for the Sun; the mass law of GEN.646 puts more planets close in). TEST.596: 400 systems on main gave
     0.38, 0.165 and 0.456, each hundred of them ranging 0.33 to 0.42 hot (the planets of a system fall in one zone together), so the bands keep
-    three standard errors of a 250-system sample (0.03 hot, 0.02 ecosphere, 0.03 cold) from those centres; "0.42 hot" and "0.40 cold" were
+    three standard errors of a 250-system sample (0.03 hot, 0.02 ecosphere, 0.03 cold) from those centers; "0.42 hot" and "0.40 cold" were
     within two and failed one run in four."""
     zones = collections.Counter(planet.zone for planet in _planets(systems))
     total = sum(zones.values())
