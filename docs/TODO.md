@@ -10986,6 +10986,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/gen842-eccentricity-first-2026-10-29-files; [R1429] radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
+  Lock branch (Bug 1) (11:48 PM EST on 2026-11-04): Branch
+  bug1/gen962-rocky-moons, head af3933443 (main merged), as the lane
+  reported. A rocky planet holds a massive moon from a giant impact in
+  about 1 planet in 12 (range 1 in 45 to 1 in 4), of at least 0.006 of
+  its mass; a further one needs a further impact; before, rocky planets
+  held 1.5 to 2.0 moons. Measured: 8 percent of rocky planets of 0.1 to
+  1 Earth masses and 4 percent of those over 1 Earth mass hold one.
+  Stand-ins RM1 to RM3 in registry section 6.180 (no L3 or L4).
+  generation-output: changed, a lock item (epoch with --affects fill,
+  planets and moons); rides train 11. Census effect: moons per planet
+  falls from about 1.3 to 0.1 in every star type; the six census rows
+  are tagged GEN.962 for the re-baseline.
   Prerequisites: none. Related: GEN.921, GEN.522, GEN.725.
 
 - [ ] **GEN.968 Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii**
@@ -13750,6 +13762,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position-ID spelling; the audit written into the item's note. Owner
   Planets 1 (rogues and the phenomena stores) after GEN.1111. Related:
   GEN.64, GEN.71, GEN.1254, GEN.1255. Filed by the TODO thread.
+  Audit done (Planets 1) (11:46 PM EST on 2026-11-04): First step
+  written: reports/gen1256-position-id-audit-2026-11-05.md. Eight tables
+  carry the position ID in name and all eight already have a uid column;
+  one writer (store._claim_object_ids with its collision chain). Readers
+  needing real change: api/naming.rename_names,
+  api/lookup._holders_of_name, the name search and autocomplete in
+  db/query.py, and every list that sorts or pages on name (its order
+  stops meaning kind and distance). About eight test files pin the old
+  scheme. Two decisions left for the build: compute the name on output
+  (Planets 1 recommends it, so a naming-key change still renames at
+  once) or store it, and what order the phenomena lists take. Build
+  after GEN.1111 (train 10) and GEN.1254 land.
   Prerequisites: GEN.1254.
 
 - [ ] **GEN.1257 Charting keeps the old ID-derived name as the first Formerly line when a word-salad name replaces it**
@@ -18280,6 +18304,12 @@ clears each one.
   unless the bug is the cause. Done: both pass on plain main under the
   narrow gate (scripts/test.py changed). Lock-free. Version 8.1. Owner:
   Core 5, after TEST.586. Filed by the TODO thread.
+  More red tests on plain main (11:48 PM EST on 2026-11-04): Bug 1 (as
+  the lane reported, 11:45 PM EST on 2026-11-04) adds
+  test_burn_down_register, also failing on plain main. Planets 1 also
+  reports test_american_spelling failing on plain main at
+  admin/updateguard.py:245 and describe/sheet.py:559: these ride the
+  DOC.103 sweep re-run (Core 5), not a separate fix.
   Prerequisites: none. Related: TEST.586.
 
 ## USR: User accounts
