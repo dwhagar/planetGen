@@ -152,10 +152,11 @@ export function statsRanges(cells) {
 const HABITABLE_BINS = 5;
 // MAP.177: the Nebula cover colour. COVER_EDGES are the shares (of a cell) that part its steps, from the nebula density
 // research (MAP.178: cover is about 2% at the median): none, under 0.5%, 0.5% to 1.5%, 1.5% to 3% and 3% or more. A cell with
-// none is drawn as unfilled space, so the other COVER_BINS steps are one hue that lightens with the share.
+// none is drawn as unfilled space, so the other COVER_BINS steps are one hue, the dust umber of the dark nebulae (nebulalook.js), that
+// lightens with the share so it reads on the black map and in greyscale.
 const COVER_BINS = 4;
 export const COVER_EDGES = [0.005, 0.015, 0.03];
-const COVER_RAMP = [[0.30, 0.20, 0.55], [0.48, 0.32, 0.74], [0.68, 0.50, 0.88], [0.88, 0.76, 0.98]];
+const COVER_RAMP = [[0.45, 0.30, 0.18], [0.62, 0.44, 0.27], [0.80, 0.62, 0.40], [0.95, 0.84, 0.62]];
 const HABITABLE_RAMP = [[0.10, 0.30, 0.18], [0.18, 0.49, 0.29], [0.31, 0.68, 0.37], [0.56, 0.83, 0.42], [0.83, 0.96, 0.54]];
 
 // MAP.131: what the Galaxy Map's fill can show. "default" is the age hue,
