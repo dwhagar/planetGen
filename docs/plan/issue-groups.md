@@ -15,7 +15,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#4907](https://github.com/dwhagar/planetGen/issues/4907) | open | System View sky: the background stars as that system sees them, at true direction and distance, placed where they were when the light left (8.2 stream) | VIEW.19, VIEW.25, VIEW.26, , VIEW.30, VIEW.35, VIEW.36, VIEW.37, VIEW.38, VIEW.39, VIEW.40 |
+| [#4907](https://github.com/dwhagar/planetGen/issues/4907) | open | System View sky: the background stars as that system sees them, at true direction and distance, placed where they were when the light left (8.2 stream) | VIEW.19, VIEW.25, VIEW.26, , VIEW.30, VIEW.37, VIEW.38, VIEW.39, VIEW.40 |
 | [#4899](https://github.com/dwhagar/planetGen/issues/4899) | open | Names from the Object ID: scatter uids, short local names with the sector beside them, one scheme for every ID-named object | GEN.1254, GEN.1256, GEN.1257, UX.259, API.38 |
 | [#4589](https://github.com/dwhagar/planetGen/issues/4589) | open | Help > References menu and the plain-words rules: out-of-universe pages for sources, stand-ins and method, and the Oxford comma | DOC.86, DOC.87, DOC.88, DOC.95, DOC.96, DOC.97, DOC.98, DOC.99, DOC.100, DOC.101, DOC.103 |
 | [#4088](https://github.com/dwhagar/planetGen/issues/4088) | open | Multi-star systems never overlap, by design (GEN.1006) | GEN.1006, GEN.1004, GEN.1017, TEST.477, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016, GEN.1023, GEN.1028, GEN.1204 |

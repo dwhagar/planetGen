@@ -20026,54 +20026,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
 
-- [ ] **VIEW.35 System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S17 of S1 to S22 in section 7. Do: the System View
-  background becomes this sky; a preference switches it; while the tiers
-  are still filling the page shows a 'filling in' note and polls; no
-  WebGL falls back to the old backdrop. Done: browser fixture test.
-  Proposed owner: Core 2. Lock-free, no migration. Boss decided at 5:29
-  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
-  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
-  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
-  the 9.1 item can reuse it); the limiting magnitude is a setting with
-  default 7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Band wiring (TODO) (12:35 AM EST on 2026-11-05): VIEW.34 (skyband.js)
-  wires to the sky route's meta.band (see VIEW.13 note).
-  Prerequisites: VIEW.34.
-
-- [ ] **VIEW.36 System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S18 of S1 to S22 in section 7. Do: draw S10's data as
-  sprites and the other luminous phenomena as points. Done: browser
-  test. Proposed owner: Core 2. Lock-free, no migration. Boss decided at
-  5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop
-  (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and
-  VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where noted,
-  build it so the 9.1 item can reuse it); the limiting magnitude is a
-  setting with default 7.5, lower on phones; missing stars are built
-  when a system is charted, no visit job. Goal #4907. Filed by the TODO
-  thread.
-  Client part merged (Core 2, #5036) (11:50 PM EST on 2026-11-04):
-  skysprites.js merged: a nebula bright enough for the naked eye draws
-  as a soft disc in its family's colour, a seen supernova remnant draws
-  as a ring, a dark cloud dims the stars behind it; remnants not yet
-  seen, faint nebulae and a nebula the observer sits inside are not
-  drawn. Luminous black holes, neutron stars and quasars ride the packed
-  stars (kind phenomenon) through skysphere.js and need nothing more.
-  Left open: the wire-format check against VIEW.31 (the record shape is
-  below), and the page wiring in VIEW.35. Stand-ins SB_RAMP 5 mag and
-  GLOW_MAX 0.55 (Unverified, L3, chosen by eye) are to be registered in
-  GEN.725.
-  Prerequisites: VIEW.33.
-
 - [ ] **VIEW.37 System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
   thread, Boss 5:17 PM EST on 2026-11-04: the System View background
