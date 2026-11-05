@@ -2080,7 +2080,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     The NAV.62 study is done (Core 2, PR #5136): the unresolved stars
     are not steered round; the course goes round the made stars and the
     central hole's sphere and reports the expected unresolved count
-    (NAV.74, NAV.75). Not a prerequisite of this item.
+    (the unresolved-star count). Not a prerequisite of this item.
     Prerequisites: NAV.56.
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
@@ -2243,59 +2243,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here. Done: decided when it is scheduled. Goal #1679. Filed by the
   TODO thread.
   Prerequisites: POP.33, POP.34, DB.105.
-
-- [ ] **NAV.74 A pure function for the expected number of unresolved stars a course segment crosses, with a cheap miss test outside the capped core**
-  Study result (NAV.62, section 11 of
-  docs/design/galaxy/realistic-galactic-core.md,
-  reports/nav62-unresolved-gravity-calc-2026-11-05.py, Core 2, PR
-  #5136): the gravity of the stars a crowded cell leaves out is already
-  in the smooth galactic field the orbital update uses, and the leftover
-  fluctuation is under half a percent of a star's speed per Myr, so the
-  update needs nothing; a course cannot steer round the unresolved stars
-  in the core (about 1,100 keep-out spheres across the nuclear disc), so
-  it goes round the made stars and the central hole's sphere and says
-  how many unresolved stars it passes through, like the nebula rule;
-  belts and asteroid fields need no mass model. Do: a pure function (no
-  database) that returns the expected count of unresolved keep-out
-  spheres a straight segment crosses, from the cell's derived unresolved
-  count and mass (galaxy/resolution.py, GEN.281) and the sphere size of
-  NAV.54, with a cheap exit when the segment stays outside every capped
-  cell. Unit tests with a hand-placed cell and a closed-form
-  expectation. Done: the function and its tests pass. Lock-free. Version
-  8.5. Owner: Core 2. Filed by the TODO thread.
-  Prerequisites: none.
-  Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
-
-- [ ] **NAV.75 The adjusted course says how many unresolved stars it passes through: the course, the API and the Navigation page**
-  Study result (NAV.62, section 11 of
-  docs/design/galaxy/realistic-galactic-core.md,
-  reports/nav62-unresolved-gravity-calc-2026-11-05.py, Core 2, PR
-  #5136): the gravity of the stars a crowded cell leaves out is already
-  in the smooth galactic field the orbital update uses, and the leftover
-  fluctuation is under half a percent of a star's speed per Myr, so the
-  update needs nothing; a course cannot steer round the unresolved stars
-  in the core (about 1,100 keep-out spheres across the nuclear disc), so
-  it goes round the made stars and the central hole's sphere and says
-  how many unresolved stars it passes through, like the nebula rule;
-  belts and asteroid fields need no mass model. Do: put the count from
-  the function of NAV.74 into the adjusted course, its API field
-  (testing mode, a version bump is fine) and the Navigation page, worded
-  like the nebula pass-through note. Done: a course through a capped
-  cell reports the count and a course outside reports none, with API and
-  page tests. Lock-free. Version 8.5. Owner: Core 2. Filed by the TODO
-  thread.
-  Prerequisites: NAV.74.
-  Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
-
-- [ ] **NAV.76 A dense-core scale test for course avoidance: a course through the capped core stays within its time budget**
-  Study result in NAV.74. Do: a scale test that plans courses through
-  the capped core of a full-size test galaxy and across it, checks the
-  time per course against the planner's budget and that the unresolved
-  count is stable between runs. Done: the test passes and its budget is
-  written in the test. Lock-free. Version 8.5. Owner: Core 2. Filed by
-  the TODO thread.
-  Prerequisites: NAV.74, NAV.75.
-  Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
 ## GEN: Generation and physics
 
