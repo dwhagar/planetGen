@@ -194,7 +194,19 @@ NODE_WARM_FLOOR = 243
 bigger one, the nodes the map opens on its way in; finer blocks are built as a visit asks, then prefetched around it."""
 
 NODE_SECONDS = 0.3
-"""float: About how long one node takes to build, seconds (the weight of a unit in the stage's bar)."""
+"""float: The longest a node is allowed to take to build, seconds: the longest unit the commands declare (`queue.commands`)
+and the weight of an empty stage. What a node really takes is `ITEM_SECONDS`."""
+
+ITEM_SECONDS = {"galaxy-nodes": 0.062, "galaxy-deep-nodes": 0.02, "sectors": 3.0, "systems": 0.23, "phenomena": 0.15}
+"""dict: About how long one item of a family takes on one worker, seconds, measured (PERF.233/234: `galaxy-nodes` from a
+server's warm-up log, the rest on a test galaxy, one worker): the cost a unit declares per item, so a stage's cost is its
+expected seconds and the warm-up's overall bar weighs a stage by it. Systems and phenomena take about a hundred times a deep
+node, so the object stages are most of a warm-up."""
+
+EXPECTED_SECONDS = {"cluster-field": 10.0, "object-index": 2.0, "galaxy-map": 5.0, "lists": 2.0, "galaxy-nodes": 1800.0,
+                    "galaxy-deep-nodes": 120.0, "sectors": 40.0, "systems": 600.0, "phenomena": 700.0, "search": 1.0}
+"""dict: What each family is expected to cost, in one worker's seconds, on a galaxy of the size measured (`ITEM_SECONDS`), for
+the overall bar before a family has been queued and its real cost is known (`cli.warm_progress`). A guess, said to be one."""
 
 class WarmupFailed(Exception):
     """A family could not warm what it covers; the message says what."""
@@ -573,8 +585,9 @@ OBJECT_CHUNK = 250
 each. The stage is cut into units of this many (a whole multiple of it past `units.MAX_UNITS` units, `units.coarsen`)."""
 
 OBJECT_SECONDS = 0.3
-"""float: About how long one object takes to warm (its page and scene built, none cached), the weight of a unit and, times
-`OBJECT_CHUNK`, the longest unit the command declares (`queue.commands`)."""
+"""float: The longest an object is allowed to take to warm (its page and scene built, none cached), seconds: times
+`OBJECT_CHUNK`, the longest unit the command declares (`queue.commands`) and the weight of an empty stage. What an object
+really takes is `ITEM_SECONDS`."""
 
 _OBJECT_TOTALS = {"sectors": "get_sectors", "systems": "get_systems", "phenomena": "get_phenomena"}
 
@@ -593,7 +606,7 @@ def _expand_objects(params, family):
     wanted = min(total, cap)
     size = units_module.coarsen(wanted, OBJECT_CHUNK)
     units = [({"database": database, "cap": params.get("cap"), "offset": start, "count": min(size, wanted - start),
-               "left_out": total - wanted if start == 0 else 0}, OBJECT_SECONDS * min(size, wanted - start))
+               "left_out": total - wanted if start == 0 else 0}, ITEM_SECONDS[family] * min(size, wanted - start))
              for start in range(0, wanted, size)]
     if not units:
         units = [({"database": database, "cap": params.get("cap"), "offset": 0, "count": 0, "left_out": 0}, OBJECT_SECONDS)]
@@ -711,7 +724,7 @@ def expand_warm_galaxy_nodes(params):
     keys = _populated_nodes(database)
     size = units_module.coarsen(len(keys), NODE_CHUNK)
     units = [({"database": database, "keys": keys[start:start + size]},
-              NODE_SECONDS * len(keys[start:start + size])) for start in range(0, len(keys), size)]
+              ITEM_SECONDS["galaxy-nodes"] * len(keys[start:start + size])) for start in range(0, len(keys), size)]
     if not units:       # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
         units = [({"database": database, "keys": []}, NODE_SECONDS)]
     return commands.Expansion(units, {"nodes": len(keys), "floor": NODE_WARM_FLOOR})
@@ -733,7 +746,7 @@ def expand_warm_galaxy_deep_nodes(params):
     keys = deep_nodes_to_warm(shape, floor)
     size = units_module.coarsen(len(keys), NODE_CHUNK)
     units = [({"database": database, "keys": keys[start:start + size]},
-              NODE_SECONDS * len(keys[start:start + size])) for start in range(0, len(keys), size)]
+              ITEM_SECONDS["galaxy-deep-nodes"] * len(keys[start:start + size])) for start in range(0, len(keys), size)]
     if not units:
         units = [({"database": database, "keys": []}, NODE_SECONDS)]
     return commands.Expansion(units, {"nodes": len(keys), "zoom_floor": floor})

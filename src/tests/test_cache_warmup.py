@@ -934,9 +934,15 @@ def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
 
 
 def test_the_progress_bar_counts_families():
-    """update.sh shows this line while it waits for the warm-up."""
-    assert warm_progress.text_bar(1, 4, "lists", width=8) == "[##------] 1/4 lists"
-    assert warm_progress.text_bar(4, 4, "search", width=8) == "[########] 4/4 search"
+    """update.sh shows this line while it waits for the warm-up; with equal costs it advances a step at a time."""
+    lines = []
+    progress = warm_progress.WarmProgress(["lists", "search"], lines.append, show=True, expected={"lists": 1.0, "search": 1.0})
+    progress.plan(0, {"units": 1, "cost": 1.0})
+    progress.result({"line": "lists: 20 pages warmed"})
+    progress.plan(1, {"units": 1, "cost": 1.0})
+    progress.result({"line": "search: warmed"})
+    assert lines[1] == "[###############---------------] 1/2 lists"
+    assert lines[3] == "[##############################] 2/2 search"
 
 
 def test_a_sigterm_ends_the_run_as_canceled_not_stranded(script, redis_server, monkeypatch):

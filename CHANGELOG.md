@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3217] - 2026-11-05
+
+**Headline:** The cache warm-up's overall time left is weighted by what each step costs, and its chunk lines say how many chunks run at once.
+
+### Changed
+
+- **The warm-up's overall bar and time left (PERF.234).** `planetgen warm --progress` moved its overall bar one step in eleven, so the long object steps (systems and phenomena, most of a warm-up) took the bar from 45% to 100% in one stride and the time left swung. It now weighs a step by what it is expected to cost: a step already queued by the cost its units declare (`warmup.ITEM_SECONDS`, seconds an item on one worker, measured: systems 0.23, phenomena 0.15, sectors 3.0, deep nodes 0.02, built-level nodes 0.062), a step not yet queued by `warmup.EXPECTED_SECONDS`. The whole warm-up's time left is marked `(rough guess)` while a later step has not been queued, and the plain bar at the end of a step now names it. `warmup.NODE_SECONDS` and `OBJECT_SECONDS` stay as the ceilings the commands declare for their longest unit.
+- **The chunk line and the time left from the overall rate (PERF.237).** The "this chunk 64 nodes in 37 s" figure is one worker's own time, and about ten chunks run side by side, so it read as ten times too slow. The line now says `took 37.0 s on its worker; about 10 chunks at once, 3.7 s a chunk overall`, and the time left comes only from the overall rate. No time left is shown for the stage or the whole warm-up from fewer than five chunks (`warm_progress.MIN_CHUNKS`), the first results being the first of the workers; the line says `time left not known yet` until then. The rich bars show the same figures. `text_bar` is gone, replaced by the weighted bar.
+
+generation-output: unchanged
+
+## [8.0.3216] - 2026-11-05
+
+**Headline:** The bands table now calls its two rows "Longest unbroken day" and "Longest unbroken night", which is what they are.
+
+### Changed
+
+- The rows were labelled "Longest day of the year" and "Longest night of the year" and held the polar day and night, so a slow spinner like Nitrikin III read 0 at the equator where the sun really stays up for days. The labels now say what a body's bands should hold: the longest stretch with the star unbroken above or below the horizon. The values themselves are recomputed in the next step of GEN.1260 (a lock item with the epoch).
+
+## [8.0.3215] - 2026-11-05
+
+**Headline:** The belt rule is unchanged; two tests now pin that a planetless stretch becomes a belt only where enough solids were left in it, and the warm and cold belt shares were measured against the observed debris-disc rates.
+
+### Changed
+
+- Added `test_a_gap_is_a_belt_only_where_enough_solids_were_left_in_it` and `test_a_stretch_just_over_the_least_mass_is_a_belt_and_just_under_it_is_not` to `test_belt_origin.py`: a gap between two planets is a belt when the disc's solids in it reach `MIN_BELT_MASS_EARTH` (BG3) and is none under it (GEN.1259). No generated output changes.
+- The census of 240 F, G and K main-sequence systems (80 each) is in `reports/gen1259-belt-shares-2026-11-05.md`.
+
 ## [8.0.3214] - 2026-11-05
 
 **Headline:** The Galaxy Map window-size test now expects the 95 percent of the browser window that the map is sized to, so its three sizes pass.
