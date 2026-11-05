@@ -40,12 +40,8 @@ def build_supernova_remnant(config, galactic_center_dist_ly):
     return SupernovaRemnant(config)
 
 
-def build_rogue_planet(config, galactic_center_dist_ly):
-    return RoguePlanet(config)
-
-
 def build_brown_dwarf(config, galactic_center_dist_ly):
-    return RoguePlanet(config, mass_bin="brown-dwarf")
+    return RoguePlanet(config)
 
 
 def build_comet(config, galactic_center_dist_ly):

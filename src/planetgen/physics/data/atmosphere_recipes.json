@@ -12,7 +12,7 @@
   "f": "Giant planets: temperature regime, metallicity bins, C/O bins, carbon carrier",
   "g": "Brown dwarf spectral-type sequence (BD; free-floating, 13 to 80 MJ)",
   "h": "Hot and ultra-hot Jupiters",
-  "i": "Lava-world vapour regimes",
+  "i": "Lava-world vapor regimes",
   "j": "Frost-equilibrium and evolved atmospheres (Titan-, Pluto-, Venus-, Mars-like)",
   "k": "Comet and KBO coma volatile classes (ratios to water)",
   "l": "White-dwarf and pulsar planet options",
@@ -338,7 +338,7 @@
    "research": [
     "R10"
    ],
-   "notes": "Corrected 2026-10-18 (tunable-gaps 3.2): the centre -1.0 came from the first six stars; the 22-value mean is -1.25 +/- 0.10 and the bracket [-1.37, -0.6] of six stars is dropped.",
+   "notes": "Corrected 2026-10-18 (tunable-gaps 3.2): the center -1.0 came from the first six stars; the 22-value mean is -1.25 +/- 0.10 and the bracket [-1.37, -0.6] of six stars is dropped.",
    "labels": [
     "READ",
     "COMPUTED"
@@ -422,7 +422,7 @@
    "id": "a7",
    "category": "a",
    "kind": "option",
-   "option": "Redox class O (oxidised)",
+   "option": "Redox class O (oxidized)",
    "gate_text": "same",
    "weight_text": "Phi((dIW-2.5)/0.5)",
    "source": "cut 2.5: H2S/SO2 crossover near +3 at 1200 K (COMPUTED, part 05 s3.4); equals repo REDOX_OXIDIZED_DELTA_IW",
@@ -453,7 +453,7 @@
    "source": "classes and wt%: [R3378: Table 1] (READ), except the dry CO2: the delivered 0.6 wt% is replaced by a log bracket from the stored 0.018 to the High case's 0.1 wt%, tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813, `volatile-inventory-against-planet-totals.md`); the weight is weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, `ngpps_formation_water.json`; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); T_snow bracket 161 to 213 K COMPUTED from the water-ice p_sat fit (part 05 s12.1) at nebula partial pressure 1e-9 to 1e-5 bar (that pressure unsourced)",
    "status": "DERIVED",
    "research": [],
-   "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 (centre 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).",
+   "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 (center 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).",
    "labels": [
     "READ",
     "COMPUTED",
@@ -1047,7 +1047,7 @@
    "kind": "derived",
    "option": "Pressure cap of the winning row (PARAM)",
    "gate_text": "d1 to d5",
-   "weight_text": "P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapour)",
+   "weight_text": "P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapor)",
    "source": "smooth caps suggested in the project doc s3.6 (values DESIGN)",
    "status": "DESIGN",
    "research": [
@@ -1443,7 +1443,7 @@
    "source": "147 warm giants: Zp/Z* = 2.6/M + 3.3 (M in Jupiter masses; a +/- 0.3, b +/- 0.5), 0.03 to 12 Jupiter masses ([R0710]; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to 0.27 ([R4352], N=47; READ, COMPUTED)",
    "status": "DERIVED",
    "research": [],
-   "notes": "[R0710] gives lower Z for sub-Saturns Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 [R4352] is 1.6 times the 147-giant fit at one Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex.",
+   "notes": "[R0710] gives lower Z for sub-Saturns Retuned 2026-10-23 (GEN.516): the center 9.7 M^-0.45 [R4352] is 1.6 times the 147-giant fit at one Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex.",
    "labels": [
     "READ",
     "COMPUTED"
@@ -1514,7 +1514,7 @@
    "research": [
     "R5"
    ],
-   "notes": "bins <0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, >1.0 Corrected 2026-10-18 (tunable-gaps 3.4): the tail share LU[0.0013, 0.34] is outside the data (planet tail 0.043 to 0.087) and the core centre is 0.57. Part 05's recipe 0.55*10^N(0, 0.15) truncated to [0.2, 1.5] put 13.9 percent of giants above C/O 0.8, where about 2 to 5 percent was intended: the core stops at 0.8 and the tail is explicit.",
+   "notes": "bins <0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, >1.0 Corrected 2026-10-18 (tunable-gaps 3.4): the tail share LU[0.0013, 0.34] is outside the data (planet tail 0.043 to 0.087) and the core center is 0.57. Part 05's recipe 0.55*10^N(0, 0.15) truncated to [0.2, 1.5] put 13.9 percent of giants above C/O 0.8, where about 2 to 5 percent was intended: the core stops at 0.8 and the tail is explicit.",
    "labels": [
     "READ",
     "COMPUTED"
@@ -2078,7 +2078,7 @@
    "id": "i6",
    "category": "i",
    "kind": "binary",
-   "option": "Bare silicate vapour (volatile-free melt) vs volatile-bearing CO2/CO",
+   "option": "Bare silicate vapor (volatile-free melt) vs volatile-bearing CO2/CO",
    "gate_text": "ROCKY zone h, 1<=M<=10",
    "weight_text": "volatile-bearing c[0.1,0.9], bare 1-c",
    "source": "2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511) (READ, COMPUTED)",
@@ -2086,7 +2086,7 @@
    "research": [
     "R7"
    ],
-   "notes": "P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 ([R2380], 1400 to 2800 K, READ)",
+   "notes": "P_eq: log10 P = k1 exp(k2 Ts), small vapor fraction k1=-34.7, k2=-0.00112 ([R2380], 1400 to 2800 K, READ)",
    "labels": [
     "READ",
     "COMPUTED"
@@ -2253,7 +2253,7 @@
    "option": "Pluto/Triton-like frost equilibrium: N2 >99 %, CH4 0.3 %, CO 0.05 %",
    "gate_text": "D, C, U[P]; 30<=Ts<=67 K (s 5), r<1",
    "weight_text": "c[0.1,1]",
-   "source": "p_i = chi_i p_sat,i(Ts) (Raoult); TEST values ([R3186] 2ND-HAND); N2/CO/CH4 vapour-pressure relations not reached",
+   "source": "p_i = chi_i p_sat,i(Ts) (Raoult); TEST values ([R3186] 2ND-HAND); N2/CO/CH4 vapor-pressure relations not reached",
    "status": "DERIVED",
    "research": [],
    "notes": "CO column vs near-surface ratio differ 8x Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it.",
@@ -2630,7 +2630,7 @@
    "id": "l1",
    "category": "l",
    "kind": "option",
-   "option": "Rocky body with silicate-vapour exosphere (Na, SiO, Mg, Fe)",
+   "option": "Rocky body with silicate-vapor exosphere (Na, SiO, Mg, Fe)",
    "gate_text": "host WD or PSR; rocky",
    "weight_text": "Phi((log10 P_eq(Ts) + 6)/0.5), P_eq from i6 formula",
    "source": "[R2380] (READ); threshold 1e-6 bar and width DESIGN",
@@ -3297,7 +3297,7 @@
    "option": "S8 / H2SO4 aerosol",
    "gate_text": "outgassing S flux >=100x Earth volcanic (N2, CO2 air); Earth flux in H2 air",
    "weight_text": "1",
-   "source": "Hu 2013 (READ); H2SO4-H2O vapour curve NOT REACHED",
+   "source": "Hu 2013 (READ); H2SO4-H2O vapor curve NOT REACHED",
    "status": "DERIVED",
    "research": [],
    "notes": "",
@@ -3324,8 +3324,8 @@
    "id": "o1",
    "category": "o",
    "kind": "param",
-   "option": "Thorium (and U) scale, thin-disc Sun-like host (PARAM)",
-   "gate_text": "host thin disc, FGK; rocky",
+   "option": "Thorium (and U) scale, thin-disk Sun-like host (PARAM)",
+   "gate_text": "host thin disk, FGK; rocky",
    "weight_text": "log10 f_Th ~ N(0.08, 0.058), f relative to BSE",
    "source": "[R0479]: [Th/H] mean +0.080, scatter 0.058 dex, 53 solar twins (READ)",
    "status": "SOURCED",
@@ -3343,7 +3343,7 @@
    ],
    "conditions": [
     {
-     "quantity": "thin_disc_fgk",
+     "quantity": "thin_disk_fgk",
      "equals": true
     }
    ],
@@ -3362,21 +3362,21 @@
    "id": "o2",
    "category": "o",
    "kind": "param",
-   "option": "Other populations (thick disc, halo, young, M host)",
+   "option": "Other populations (thick disk, halo, young, M host)",
    "gate_text": "not o1",
    "weight_text": "log10 f ~ U[-0.23, +0.40]",
-   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, [R0479]) as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
+   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disk stars mean -0.063, sd 0.193 (N=32); thin disk -0.044, sd 0.153 (N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, [R0479]) as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
    "status": "DESIGN",
    "research": [
     "R13"
    ],
-   "notes": "Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest of the intrinsic 0.056 [R0479] and the catalogue's 0.15 to 0.19.",
+   "notes": "Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; the 32 thick-disk stars give a center of 86 percent of the solar ratio and a spread of 0.19 dex, the widest of the intrinsic 0.056 [R0479] and the catalogue's 0.15 to 0.19.",
    "labels": [
     "DATA",
     "COMPUTED"
    ],
    "state": "partly verified",
-   "limit": "thick-disc [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)",
+   "limit": "thick-disk [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -3384,7 +3384,7 @@
    ],
    "conditions": [
     {
-     "quantity": "thin_disc_fgk",
+     "quantity": "thin_disk_fgk",
      "equals": false
     }
    ],
@@ -3440,7 +3440,7 @@
    "option": "Th/U",
    "gate_text": "ROCKY",
    "weight_text": "U[3.8, 4.5]",
-   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 ([R1447: Table 1], READ), F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation (galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr (physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
+   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 ([R1447: Table 1], READ), F = th_u_f, the thorium-232 over uranium-238 left of the disk's r-process input at the star's birth: the disk's star formation (galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr (physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
    "status": "DESIGN",
    "research": [
     "R13"
@@ -3451,7 +3451,7 @@
     "COMPUTED"
    ],
    "state": "partly verified",
-   "limit": "the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disc's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disc began is left out, so F is a lower bound for old stars (GEN.663)",
+   "limit": "the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disk's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disk began is left out, so F is a lower bound for old stars (GEN.663)",
    "replacement": "",
    "items": [],
    "classes": [

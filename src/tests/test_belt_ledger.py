@@ -12,7 +12,7 @@ from planetgen.physics import belt_ledger as bl, belt_mass, constants, formation
 EARTH_KG = constants.EARTH_MASS_TO_KG
 MAIN_BELT_KG = 4.008e-4 * EARTH_KG        # [R3538, R3539]; a test point only
 KUIPER_BELT_KG = 1.97e-2 * EARTH_KG       # the same, with the 31 largest objects; a test point only
-KENYON_BROMLEY_MAX_KG = 4.0 / 3.0 * math.pi * (1.75e6) ** 3 * 1000.0     # the largest icy body of a young disc: 1 750 km radius, 1 g/cm3
+KENYON_BROMLEY_MAX_KG = 4.0 / 3.0 * math.pi * (1.75e6) ** 3 * 1000.0     # the largest icy body of a young disk: 1 750 km radius, 1 g/cm3
 
 
 class Stream:
@@ -99,7 +99,7 @@ def test_a_light_belt_with_nothing_above_the_cut_adds_bodies_until_ninety_percen
     assert ledger.covered >= bl.LEDGER_COVERAGE or len(ledger.masses_kg) == bl.LEDGER_MAX_BODIES
 
 
-def test_a_rich_disc_is_held_to_the_cap():
+def test_a_rich_disk_is_held_to_the_cap():
     ledger = bl.draw_ledger(bl.ICY_LAW, KUIPER_BELT_KG, Stream(3))
     assert len(ledger.masses_kg) == bl.LEDGER_MAX_BODIES
     assert ledger.above_cut >= bl.LEDGER_MAX_BODIES
@@ -148,7 +148,7 @@ def test_the_solar_system_main_belt_is_a_test_target():
 
 
 def test_the_kuiper_belt_is_a_test_target():
-    """At the Kuiper belt's mass: hundreds of bodies above the cut (so the cap holds), a largest body of 1e21 to 1e22 kg, none beyond a young disc's 1 750 km."""
+    """At the Kuiper belt's mass: hundreds of bodies above the cut (so the cap holds), a largest body of 1e21 to 1e22 kg, none beyond a young disk's 1 750 km."""
     tops = sorted(l.masses_kg[0] for l in ledgers(bl.ICY_LAW, KUIPER_BELT_KG))
     assert 3.0e20 < tops[len(tops) // 2] < 1.0e22
     assert sum(1 for t in tops if t > KENYON_BROMLEY_MAX_KG) <= 0.1 * len(tops)

@@ -84,7 +84,7 @@ GRB_LETHAL_RATE_AT_SUN_PER_GYR = 2.0
 # bubbles and the X-ray echoes of the molecular clouds (Su et al. 2010;
 # [R3573]) show Seyfert-like episodes in the last few Myr. Take
 # 1e44 erg/s for 1 Myr every 100 Myr: the fluence 1e44 * 3.15e13 s / (4 pi r^2)
-# is 30 kJ/m2 at 2.9 kpc, so a planet that close to the centre loses its
+# is 30 kJ/m2 at 2.9 kpc, so a planet that close to the center loses its
 # ozone once per episode.
 AGN_EPISODES_PER_GYR = 10.0
 AGN_LETHAL_RADIUS_PC = 2900.0
@@ -293,7 +293,7 @@ def _galactic_radius_pc(galactic_distance_ly):
 
 def supernova_rate_per_gyr(galactic_distance_ly):
     """GEN.87 rule 7: supernovae within 8 pc per Gyr at this distance from
-    the galactic centre (1.5 at the Sun's 8 kpc, up to 250 times that)."""
+    the galactic center (1.5 at the Sun's 8 kpc, up to 250 times that)."""
     boost = min(SN_MAX_BOOST, math.exp(
         (SUN_GALACTIC_RADIUS_PC - _galactic_radius_pc(galactic_distance_ly)) / SN_SCALE_LENGTH_PC))
     return SN_RATE_AT_SUN_PER_GYR * boost
@@ -301,7 +301,7 @@ def supernova_rate_per_gyr(galactic_distance_ly):
 
 def grb_rate_per_gyr(galactic_distance_ly):
     """GEN.189: gamma-ray bursts per Gyr that reach this distance from the
-    centre with an ozone-stripping fluence: `GRB_LETHAL_RATE_AT_SUN_PER_GYR`
+    center with an ozone-stripping fluence: `GRB_LETHAL_RATE_AT_SUN_PER_GYR`
     at the Sun's distance and inward, falling off outward."""
     boost = min(1.0, math.exp(
         (SUN_GALACTIC_RADIUS_PC - _galactic_radius_pc(galactic_distance_ly)) / SN_SCALE_LENGTH_PC))
@@ -310,14 +310,14 @@ def grb_rate_per_gyr(galactic_distance_ly):
 
 def agn_rate_per_gyr(galactic_distance_ly):
     """GEN.189: nuclear-activity episodes per Gyr that strip the ozone of a
-    planet this far from the centre: `AGN_EPISODES_PER_GYR` inside
+    planet this far from the center: `AGN_EPISODES_PER_GYR` inside
     `AGN_LETHAL_RADIUS_PC`, none beyond."""
     return AGN_EPISODES_PER_GYR if _galactic_radius_pc(galactic_distance_ly) <= AGN_LETHAL_RADIUS_PC else 0.0
 
 
 def lethal_event_rate_per_gyr(galactic_distance_ly):
     """Ozone-stripping galactic events per Gyr at this distance from the
-    galactic centre: nearby supernovae (GEN.87), gamma-ray bursts and the
+    galactic center: nearby supernovae (GEN.87), gamma-ray bursts and the
     nucleus (GEN.189), or `None` for a star with no galaxy placement."""
     if galactic_distance_ly is None:
         return None

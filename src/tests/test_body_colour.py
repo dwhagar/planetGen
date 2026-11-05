@@ -55,9 +55,9 @@ def test_a_thick_cloud_deck_whitens_the_sky():
 
 
 def test_the_stored_aerosols_become_layers_with_their_own_depths():
-    haze, dust, cloud = aerosols.colour_layers(aerosols.Aerosols(0.3, 0.5, 2.0, 0.7, 0.4), body_colour._CENTRES)
+    haze, dust, cloud = aerosols.colour_layers(aerosols.Aerosols(0.3, 0.5, 2.0, 0.7, 0.4), body_colour._CENTERS)
     assert (haze.tau_550, dust.tau_550, cloud.tau_550) == (0.3, 0.5, 2.0)
-    assert aerosols.colour_layers(aerosols.Aerosols(0.0, 0.0, 0.0, 0.0, 0.0), body_colour._CENTRES) == (None, None, None)
+    assert aerosols.colour_layers(aerosols.Aerosols(0.0, 0.0, 0.0, 0.0, 0.0), body_colour._CENTERS) == (None, None, None)
 
 
 def test_a_giant_takes_the_colour_of_its_air_at_the_reference_level():
@@ -76,10 +76,10 @@ def _ground(**fractions):
     return body
 
 
-def _at_centres(body):
+def _at_centers(body):
     import numpy as np
     from planetgen.physics import surface_composition
-    return np.interp(surface_composition.BAND_CENTRES_NM, body_colour._CENTRES, body_colour.ground_albedo(body))
+    return np.interp(surface_composition.BAND_CENTERS_NM, body_colour._CENTERS, body_colour.ground_albedo(body))
 
 
 def test_a_body_with_no_stored_mix_keeps_the_stand_in_ground():
@@ -87,17 +87,17 @@ def test_a_body_with_no_stored_mix_keeps_the_stand_in_ground():
     assert body_colour.ground_albedo(_body()) == atmosphere_colour.STAND_IN_GROUND_ALBEDO
 
 
-def test_a_pure_ground_has_the_lab_reflectance_of_its_rows_at_the_band_centres():
+def test_a_pure_ground_has_the_lab_reflectance_of_its_rows_at_the_band_centers():
     from planetgen.physics import materials
     body = _ground(basaltic=1.0)
     want = [materials.material("basalt_powder").prop(band).value for band in ("alb_040_050", "alb_050_060", "alb_060_070")]
-    assert list(_at_centres(body)) == pytest.approx(want)
+    assert list(_at_centers(body)) == pytest.approx(want)
 
 
 def test_an_ice_cover_brightens_the_ground_and_an_ocean_alone_leaves_the_stand_in():
     from planetgen.physics import atmosphere_colour
     rock, frost = _ground(basaltic=1.0), _ground(basaltic=0.5, ice=0.5)
-    assert min(_at_centres(frost)) > max(_at_centres(rock))
+    assert min(_at_centers(frost)) > max(_at_centers(rock))
     assert body_colour.ground_albedo(_ground(ocean=1.0)) == atmosphere_colour.STAND_IN_GROUND_ALBEDO
 
 
@@ -105,7 +105,7 @@ def test_the_part_with_no_spectrum_is_filled_with_the_stand_in_by_its_share():
     from planetgen.physics import atmosphere_colour, materials
     body = _ground(ice=0.5, ocean=0.5)
     ice = materials.material("water_ice").prop("alb_050_060").value
-    assert _at_centres(body)[1] == pytest.approx(0.5 * ice + 0.5 * atmosphere_colour.STAND_IN_GROUND_ALBEDO)
+    assert _at_centers(body)[1] == pytest.approx(0.5 * ice + 0.5 * atmosphere_colour.STAND_IN_GROUND_ALBEDO)
 
 
 def test_a_bright_ground_lightens_the_sky_of_a_thick_air_and_the_colour_is_repeatable():

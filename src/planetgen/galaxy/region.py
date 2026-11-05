@@ -2,7 +2,7 @@
 planetgen/galaxy/region.py
 
 The round region (MAP.151, docs/design/interface/drilldown-region-sizes.md section
-5.2): a ball of sectors around a centre -- the shape the radial fills
+5.2): a ball of sectors around a center -- the shape the radial fills
 (ADM.30) cut -- described as ranges: in each shell the ball reaches, in
 each band of it, one arc of wedges that may wrap past wedge 0 or be the
 whole band. That is `span.Span`'s vocabulary, so stats, fills, backfills and
@@ -10,7 +10,7 @@ the Galaxy Map's data windows can all read a region the same way, and its
 count and its cells cost a few arithmetic steps per band, never a walk of
 the ball around it.
 
-A sector is inside when its centre is within `reach_pc` of the centre. (The
+A sector is inside when its center is within `reach_pc` of the center. (The
 cylinder this replaced had a second height limit; on shells a ball is the
 natural shape and the height option is gone.)
 """
@@ -23,9 +23,9 @@ from planetgen.util import detmath
 
 BALL_EDGE_ALLOWANCE = 0.75
 """float: Edges added to a radial fill's radius in sectors. A ball of exactly
-x edges holds only the centre at x = 1, because the centres of face
+x edges holds only the center at x = 1, because the centers of face
 neighbours sit 0.75 to 1.76 edges away (99% within 1.71); x + 0.75 returns
-the centre and its face neighbours at x = 1 and a round shape joined by face
+the center and its face neighbours at x = 1 and a round shape joined by face
 adjacency above it."""
 
 _EPS = 1e-9
@@ -42,9 +42,9 @@ class Region:
     def __init__(self, center_pc, reach_pc, edge_pc, wedge_count=spherical.wedge_count):
         """
         Args:
-            center_pc (tuple): `(x, y, z)` parsecs, the centre of the ball.
-            reach_pc (float): `>= 0`, how far from the centre a sector's
-                own centre may be.
+            center_pc (tuple): `(x, y, z)` parsecs, the center of the ball.
+            reach_pc (float): `>= 0`, how far from the center a sector's
+                own center may be.
             edge_pc (float): `> 0`, a cell's edge: sectors for the sector
                 grid, or `m` sector edges for a lattice of blocks `m` a side.
             wedge_count (callable): `(shell, band) -> wedges in that band`;
@@ -67,13 +67,13 @@ class Region:
     @classmethod
     def around_sector(cls, shell, band, wedge, sectors, edge_pc, wedge_count=spherical.wedge_count):
         """The region `sectors` sectors across (plus `BALL_EDGE_ALLOWANCE`)
-        around the sector at `(shell, band, wedge)`, centred on that sector's
-        own centre."""
+        around the sector at `(shell, band, wedge)`, centered on that sector's
+        own center."""
         return cls(spherical.sector_position_pc(shell, band, wedge, edge_pc),
                    (sectors + BALL_EDGE_ALLOWANCE) * edge_pc, edge_pc, wedge_count)
 
     def _position(self, shell, band, wedge):
-        """The centre of one cell, as `spherical.sector_position_pc` puts it, for this region's wedge count."""
+        """The center of one cell, as `spherical.sector_position_pc` puts it, for this region's wedge count."""
         plane, z = spherical.band_center_pc(shell, band, self.edge_pc)
         if plane == 0.0:
             return 0.0, 0.0, z
@@ -86,7 +86,7 @@ class Region:
 
     def _band_arc(self, shell, band, cos_delta, delta, colat_c, lon_c):
         """The wedges of `band` of `shell` inside the ball, as a `BandArc`, or `None`; `delta` is the angle on the
-        shell's centreline sphere the ball cuts out around the centre's direction, `cos_delta` its cosine."""
+        shell's centreline sphere the ball cuts out around the center's direction, `cos_delta` its cosine."""
         n = self.wedge_count(shell, band)
         plane, z = spherical.band_center_pc(shell, band, self.edge_pc)
         if n == 1 or plane == 0.0:
@@ -192,8 +192,8 @@ class Region:
                 yield arc.shell, arc.band, (arc.first + k) % n
 
     def cells(self, bounds=None):
-        """`addresses` with each sector's own centre and its distance from
-        the region's centre, as `spherical.enumerate_sectors_within_radius`
+        """`addresses` with each sector's own center and its distance from
+        the region's center, as `spherical.enumerate_sectors_within_radius`
         yields them: `(shell, band, wedge, x, y, z, distance_pc)`."""
         for shell, band, wedge in self.addresses(bounds):
             x, y, z = self._position(shell, band, wedge)

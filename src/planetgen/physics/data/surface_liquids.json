@@ -1414,7 +1414,7 @@
    "surface_tension_mn_m": 350.0,
    "tier": "T3",
    "tweak": "L0",
-   "source": "recalled: solidus near 1270 K, liquidus near 1470 K, viscosity of order 10 Pa s at the liquidus rising by orders of magnitude on cooling; the lava vapour is `mixture_lava`",
+   "source": "recalled: solidus near 1270 K, liquidus near 1470 K, viscosity of order 10 Pa s at the liquidus rising by orders of magnitude on cooling; the lava vapor is `mixture_lava`",
    "note": "fully liquid above the liquidus; partly molten (a slush) between the solidus and the liquidus"
   },
   {

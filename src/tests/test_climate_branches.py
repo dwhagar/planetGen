@@ -91,7 +91,7 @@ def test_the_stable_branches_are_the_coldest_and_the_warmest():
 
 
 def test_the_bistable_window_of_an_earth_twin_lies_under_the_present_flux_and_is_a_tenth_wide():
-    """W20 asks for a window 10 to 20 percent of the flux wide for an Earth twin; the toy holds the greenhouse of the Earth fixed, which the vapour and cloud of
+    """W20 asks for a window 10 to 20 percent of the flux wide for an Earth twin; the toy holds the greenhouse of the Earth fixed, which the vapor and cloud of
     the full response will move."""
     fluxes = np.arange(900.0, 2200.0, 10.0)
     low, high = cb.bistable_window(_response_at, fluxes)

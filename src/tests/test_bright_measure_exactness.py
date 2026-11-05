@@ -118,5 +118,5 @@ def test_the_fraction_is_the_sum_over_every_cell_and_star_as_it_was_worked_out_b
 
 
 def test_the_birth_track_pieces_are_the_ones_the_prune_reads():
-    # `_outside_window` reads the pieces of `alpha_tracks.track_segments`; a star with a second piece (the thick disc's) is checked too.
+    # `_outside_window` reads the pieces of `alpha_tracks.track_segments`; a star with a second piece (the thick disk's) is checked too.
     assert any(len(alpha_tracks.track_segments(fe_h)) > 1 for fe_h in (-2.0, -1.2, -0.4, 0.0, 0.07, 0.25))

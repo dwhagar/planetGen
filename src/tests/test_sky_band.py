@@ -81,11 +81,11 @@ def test_steps_cover_the_ray_and_are_fine_near_the_observer():
     assert ds[0] < 1.0 < ds[-1]
 
 
-def test_the_cell_holds_the_observer_and_its_centre_is_in_the_middle():
+def test_the_cell_holds_the_observer_and_its_center_is_in_the_middle():
     assert band.cell_of((0.0, 0.0, 0.0)) == (0, 0, 0)
     assert band.cell_of((49.9, 50.0, -0.1)) == (0, 1, -1)
-    assert band.cell_centre((0, 1, -1)) == (25.0, 75.0, -25.0)
-    assert band.cell_of(band.cell_centre((7, -3, 2))) == (7, -3, 2)
+    assert band.cell_center((0, 1, -1)) == (25.0, 75.0, -25.0)
+    assert band.cell_of(band.cell_center((7, -3, 2))) == (7, -3, 2)
 
 
 def test_the_key_is_the_same_in_a_cell_and_changes_with_everything_the_image_depends_on():
@@ -165,14 +165,14 @@ def test_dust_dims_the_band():
 
 # --- the band of a galaxy shaped like the Milky Way --------------------------------------------------------------------
 
-def test_the_band_of_a_milky_way_like_galaxy_is_brightest_towards_the_centre_and_in_the_plane(milky_way_like):
+def test_the_band_of_a_milky_way_like_galaxy_is_brightest_towards_the_center_and_in_the_plane(milky_way_like):
     b = band.surface_brightness(SUN, milky_way_like)
-    centre = band.face_lookup(b, np.array([-1.0, 0.0, 0.04]))
-    anticentre = band.face_lookup(b, np.array([1.0, 0.0, 0.0]))
+    center = band.face_lookup(b, np.array([-1.0, 0.0, 0.04]))
+    anticenter = band.face_lookup(b, np.array([1.0, 0.0, 0.0]))
     pole = band.face_lookup(b, np.array([0.0, 0.0, 1.0]))
-    assert centre < anticentre < pole
-    assert 21.0 < centre < 23.5                 # the sky-view.md 3.1 figures for the Milky Way are 21.6 to 23.0
-    assert 22.0 < anticentre < 24.5
+    assert center < anticenter < pole
+    assert 21.0 < center < 23.5                 # the sky-view.md 3.1 figures for the Milky Way are 21.6 to 23.0
+    assert 22.0 < anticenter < 24.5
     assert 22.5 < pole < 25.5
     assert 20.0 < b.min() and b.max() < 26.5
 
@@ -201,7 +201,7 @@ def test_a_cell_is_worked_out_once_and_shared_by_the_systems_in_it():
     assert len(calls) > after
 
 
-def test_the_band_of_a_cell_is_worked_from_its_centre():
+def test_the_band_of_a_cell_is_worked_from_its_center():
     store = band.MemoryBandStore()
     stored = band.band_for((10.0, 10.0, 10.0), None, "g", store, pixels=2, steps=50, density_at=uniform(1.0))
     direct = band.surface_brightness((25.0, 25.0, 25.0), None, pixels=2, steps=50, density_at=uniform(1.0))

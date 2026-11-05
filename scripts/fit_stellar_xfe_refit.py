@@ -6,9 +6,9 @@ Refits the generated stellar [X/Fe] to the [R0535] table of 1,615 FGK dwarfs (GE
 
 Prints the constants `tuning.py` takes (they are copied by hand; nothing is written):
 
-* the thin-disc [Mg/Fe] trend (GEN.989), with it the [Si/Fe] one and the [O/Fe] one (GEN.991; the first fit's line fell to -0.14 dex at
+* the thin-disk [Mg/Fe] trend (GEN.989), with it the [Si/Fe] one and the [O/Fe] one (GEN.991; the first fit's line fell to -0.14 dex at
   [Fe/H] 0.3 where the table's stars stay at -0.03): the `("min", c, b, k)` form of `tuning.STELLAR_XFE_FITS`, robust
-  least squares to the stars younger than 8 Gyr (the thin disc of `tuning.STELLAR_THICK_START_GY`) at [Fe/H] -0.6 and up. Magnesium
+  least squares to the stars younger than 8 Gyr (the thin disk of `tuning.STELLAR_THICK_START_GY`) at [Fe/H] -0.6 and up. Magnesium
   alone would pull the Mg/Si ratio of every rock 0.07 dex below the table's, where the generated silicon sits 0.03 to 0.05 dex above
   it, so both come to the table's scale together;
 * the residual correlation of C, O, Mg, Si and Ca (the same table): the residuals are the [X/Fe] less the median of their 0.1 dex
@@ -50,7 +50,7 @@ an arbitrary 0.04: only the ratio between the branches of an element is kept, th
 
 
 def fit_thin(table, element, start):
-    """`(c, b, k)` of `c + b * min(F - k, 0)` to the [X/Fe] of the thin-disc stars (younger than the thick-disc start) at [Fe/H] >= -0.6."""
+    """`(c, b, k)` of `c + b * min(F - k, 0)` to the [X/Fe] of the thin-disk stars (younger than the thick-disk start) at [Fe/H] >= -0.6."""
     fe_h, age = table["[Fe/H]"], table["Age"]
     xfe = table[f"[{element}/H]"] - fe_h
     keep = np.isfinite(age) & (age < tuning.STELLAR_THICK_START_GY) & (fe_h >= -0.6) & np.isfinite(xfe)

@@ -70,8 +70,8 @@ def surface_spectrum(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distanc
     star = body.star
     share = getattr(star, "uv_c_share", None)
     stored = aerosols.of_body(body)
-    centres = uv_cross_sections.centres(uv_cross_sections.standard_edges())
-    haze, cloud = aerosols.layers(stored, centres)
+    centers = uv_cross_sections.centers(uv_cross_sections.standard_edges())
+    haze, cloud = aerosols.layers(stored, centers)
     return atmospheric_radiation.surface_radiation(
         column, temperature_k=temperature, flux_w_m2=flux, uv_c_share=1.0 if share is None else share, uv_shares=activity.uv_shares_of(star),
         ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
@@ -102,7 +102,7 @@ def bare_dna_dose_w_m2(body, mu0=1.0, distance_au=None):
     share = getattr(body.star, "uv_c_share", None)
     edges = uv_cross_sections.standard_edges()
     top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share, activity.uv_shares_of(body.star))
-    return float(mu0 * np.sum(top * atmospheric_radiation.setlow_weight(uv_cross_sections.centres(edges))))
+    return float(mu0 * np.sum(top * atmospheric_radiation.setlow_weight(uv_cross_sections.centers(edges))))
 
 
 @functools.lru_cache(maxsize=1)

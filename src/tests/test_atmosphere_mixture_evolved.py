@@ -94,7 +94,7 @@ def test_a_coma_is_water_with_the_drawn_ratios_and_the_class_ordering_of_carbon_
     assert seen == {"k1", "k2", "k3"}
 
 
-def test_a_white_dwarf_planet_without_a_vapour_exosphere_has_no_gas():
+def test_a_white_dwarf_planet_without_a_vapor_exosphere_has_no_gas():
     subject = Subject("terrestrial", {**BASE, "host_type": "WD", "ts_k": 400.0, "tp_k": 400.0, "zone": "h"})
     kinds = set()
     for seed in range(30):

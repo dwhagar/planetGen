@@ -152,7 +152,7 @@ def test_two_stored_segments_meet_inside_the_window_from_their_own_epochs():
 
 
 def test_positions_are_differenced_from_sector_relative_values():
-    """Two bodies 2 km apart across a sector face at 1.5e20 m from the centre, where absolute positions are only good to
+    """Two bodies 2 km apart across a sector face at 1.5e20 m from the center, where absolute positions are only good to
     33 km: differencing the origins first (exactly) and then the sector-relative positions keeps the 2 km."""
     edge, far = 2.0 ** 57, 2.0 ** 67
     x = ca.Segment((-edge / 2 + 1000.0, 0.0, 0.0), (-1.0, 0.0, 0.0), 0.0, origin_m=(far + edge, 0.0, 0.0))

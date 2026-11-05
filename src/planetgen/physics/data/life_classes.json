@@ -385,7 +385,7 @@
     ],
     "tier": "T7",
     "tweak": "L3",
-    "basis": "Anoxygenic photosynthesis needs one reaction centre and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)"
+    "basis": "Anoxygenic photosynthesis needs one reaction center and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)"
    },
    "supply": {
     "quantity": "donor_supply",

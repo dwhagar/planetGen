@@ -115,3 +115,38 @@ def test_drawn_comet_passages_follow_the_rate_and_come_from_the_units_stream():
     assert again == ring_origin.draw_comet_passages(JUPITER, 1.0e11)
     low, high = ring_origin.COMET_MASS_KG_RANGE
     assert all(low <= c.mass_kg <= high and 0.0 <= c.time_yr <= 1.0e11 for c in again)
+
+
+def test_small_moons_near_a_giant_keep_a_faint_dust_ring_by_a_steady_supply():
+    """GEN.1233: the four inner moons of Jupiter keep a dust ring of 1e7 to 1e9 kg ([R5114]: Jupiter's faint rings) with no moon ever having fallen."""
+    inner = [ring_origin.FeederMoon(21.0, 128.0e3), ring_origin.FeederMoon(8.2, 129.0e3), ring_origin.FeederMoon(83.5, 181.4e3), ring_origin.FeederMoon(49.0, 222.0e3)]
+    assert 1.0e7 < ring_origin.dust_supply_mass_kg(JUPITER, inner) < 1.0e9
+    result = ring_origin.ring_origin(JUPITER, AGE, feeders=inner)
+    assert result.exists and result.origin == "moon_erosion" and result.age_yr == AGE
+
+
+def test_only_small_moons_near_the_planet_feed_a_dust_ring():
+    big = [ring_origin.FeederMoon(1821.0, 422.0e3)]                  # Io is no feeder: over 100 km and outside 3 radii
+    far = [ring_origin.FeederMoon(20.0, 4.0 * JUPITER.radius_km)]
+    assert ring_origin.dust_supply_mass_kg(JUPITER, big) == 0.0 and ring_origin.dust_supply_mass_kg(JUPITER, far) == 0.0
+    assert not ring_origin.ring_origin(JUPITER, AGE, feeders=far).exists
+    close = Planet(JUPITER.mass_kg, JUPITER.radius_km, 0.05, JUPITER.star_mass_kg)
+    assert ring_origin.dust_supply_mass_kg(close, [ring_origin.FeederMoon(20.0, 2.0 * close.radius_km)]) == 0.0      # no ring inside 0.1 AU
+
+
+def test_a_ring_of_a_fallen_moon_and_a_steady_dust_ring_add_and_the_larger_names_the_origin():
+    inner = [ring_origin.FeederMoon(21.0, 128.0e3)]
+    result = ring_origin.ring_origin(SATURN, AGE, [FallenMoon(3.7e19, AGE - 1.5e8)], feeders=inner)
+    assert result.origin == "disrupted_moon" and result.from_moons_kg > ring_origin.spread(0.3 * 3.7e19, 1.5e8, SATURN)
+
+
+def test_the_drawn_moonlets_are_small_near_and_counted_by_the_mean():
+    counts = []
+    for seed in range(200):
+        with draw.bound(draw.Stream(seed)):
+            found = ring_origin.draw_feeders(JUPITER)
+        counts.append(len(found))
+        for f in found:
+            assert ring_origin.FEEDER_RADIUS_KM_RANGE[0] <= f.radius_km <= ring_origin.FEEDER_RADIUS_KM_RANGE[1]
+            assert ring_origin.FEEDER_DISTANCE_RADII_RANGE[0] * JUPITER.radius_km <= f.distance_km <= ring_origin.FEEDER_DISTANCE_RADII_RANGE[1] * JUPITER.radius_km
+    assert sum(counts) / len(counts) == pytest.approx(ring_origin.FEEDER_MEAN_COUNT, rel=0.15)

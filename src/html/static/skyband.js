@@ -6,9 +6,9 @@
 // of the stars too faint to resolve, so the band does not look like smooth paint.
 //
 // The glow image (the contract the server builds to, docs/reference/html-interface.md):
-//   * an equirectangular map in the sky's own axes (the packed sky's: galactic, x toward the centre, z toward the north pole), `width` x `height`
-//     texels, row 0 at the north pole (latitude +90), column 0 at longitude -180 (the texel centres are half a texel in), longitude = atan2(y, x),
-//     latitude = asin(z), the left edge on the anti-centre; 256 x 128 by default;
+//   * an equirectangular map in the sky's own axes (the packed sky's: galactic, x toward the center, z toward the north pole), `width` x `height`
+//     texels, row 0 at the north pole (latitude +90), column 0 at longitude -180 (the texel centers are half a texel in), longitude = atan2(y, x),
+//     latitude = asin(z), the left edge on the anti-center; 256 x 128 by default;
 //   * three floats a texel (red, green, blue), linear light, in units of one mag/arcsec^2 of 22: value = 10^(-0.4 (SB - SB_REF)) for the
 //     surface brightness SB (V mag/arcsec^2) of that colour channel's share of the unresolved light. The Milky Way at the Sun runs 21.6 to 23.0
 //     (sky-view.md), so the band is values of about 0.4 to 1.5. Zero is no light.
@@ -57,7 +57,7 @@ export function equirectUV(direction) {
   return [(lon + Math.PI) / (2 * Math.PI), 0.5 - lat / Math.PI];
 }
 
-// The direction (unit vector) at the centre of the texel (column, row) of a map `width` x `height`: the inverse of `equirectUV` there.
+// The direction (unit vector) at the center of the texel (column, row) of a map `width` x `height`: the inverse of `equirectUV` there.
 export function texelDirection(column, row, width, height) {
   const lon = ((column + 0.5) / width) * 2 * Math.PI - Math.PI;
   const lat = (0.5 - (row + 0.5) / height) * Math.PI;

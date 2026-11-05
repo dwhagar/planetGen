@@ -220,7 +220,7 @@ def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air
     assert checked > 0
 
 
-def test_supernova_hazard_rises_toward_the_galactic_centre():
+def test_supernova_hazard_rises_toward_the_galactic_center():
     def ly(pc):
         return pc * constants.PARSEC_M / constants.LY_TO_M
 
@@ -250,7 +250,7 @@ def test_gamma_ray_bursts_and_the_nucleus_add_to_the_lethal_rate():
 
 def test_bursts_and_the_nucleus_push_the_ozone_flag_out_to_larger_radii():
     """The galactic rate alone decides the flag where no flares do: it now
-    exceeds `LETHAL_EVENT_LIMIT_PER_GYR` farther from the centre."""
+    exceeds `LETHAL_EVENT_LIMIT_PER_GYR` farther from the center."""
     def flag_radius_pc(rate):
         radius = 100
         while radius < 20000 and rate(radius * constants.PARSEC_M / constants.LY_TO_M) > rad.LETHAL_EVENT_LIMIT_PER_GYR:
@@ -292,7 +292,7 @@ def test_every_generated_body_has_a_consistent_dose():
             assert (body.ozone_column_du > 0.0) == (atmosphere.partial_kpa(body, "o2") > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
             assert body.uv_surface_index is None or body.uv_surface_index >= 0.0
-            assert body.uv_surface_index != 0.0 or body.atmospheric_pressure > 0.0     # a dose of exactly 0 is an opaque air (a dense vapour air passes no UV), never a bare body
+            assert body.uv_surface_index != 0.0 or body.atmospheric_pressure > 0.0     # a dose of exactly 0 is an opaque air (a dense vapor air passes no UV), never a bare body
     assert seen["rocky"] > 10 and seen["giant"] > 0
 
 
@@ -307,7 +307,7 @@ def test_a_star_with_no_galaxy_placement_is_rated_where_a_system_with_no_place_i
     assert star.lethal_event_rate_per_gyr > 0.0
 
 
-def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
+def test_a_star_nearer_the_center_flags_ozone_loss_on_a_world_with_air():
     with deterministic_entropy(5):
         draw.set_run_seed(5)
         system = StarSystem(SystemConfig(), galactic_center_dist_ly=2000.0)

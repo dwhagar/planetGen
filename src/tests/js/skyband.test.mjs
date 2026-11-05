@@ -26,16 +26,16 @@ test("the display level is nothing for no light, rises with it and never passes 
   assert.ok(level > 0.1 && level < 0.3);
 });
 
-test("the map is laid out from the north pole down and the left edge on the anti-centre", () => {
+test("the map is laid out from the north pole down and the left edge on the anti-center", () => {
   const [u, v] = B.equirectUV([1, 0, 0]);
-  assert.ok(near(u, 0.5) && near(v, 0.5));          // toward the centre: the middle of the map
+  assert.ok(near(u, 0.5) && near(v, 0.5));          // toward the center: the middle of the map
   assert.ok(near(B.equirectUV([-1, 0, 0])[0], 0, 1e-9) || near(B.equirectUV([-1, 0, 0])[0], 1, 1e-9));
   assert.ok(near(B.equirectUV([0, 1, 0])[0], 0.75));  // longitude +90 is three quarters of the way
   assert.ok(near(B.equirectUV([0, 0, 1])[1], 0));     // the north pole is the top row
   assert.ok(near(B.equirectUV([0, 0, -1])[1], 1));
 });
 
-test("a texel's direction maps back to its own texel centre", () => {
+test("a texel's direction maps back to its own texel center", () => {
   const w = 16, h = 8;
   for (const [c, r] of [[0, 0], [3, 2], [8, 4], [15, 7]]) {
     const [u, v] = B.equirectUV(B.texelDirection(c, r, w, h));
@@ -53,7 +53,7 @@ test("sampling a constant image gives the constant everywhere; between two texel
   assert.ok(near(between, 1, 1e-9));
 });
 
-test("the longitude wraps across the anti-centre and the poles clamp", () => {
+test("the longitude wraps across the anti-center and the poles clamp", () => {
   const w = 16, h = 8;
   const image = B.makeImage(w, h, (d) => [Math.abs(d[1]) < 0.2 && d[0] < 0 ? 1 : 0, 0, 0]);
   const across = [-1, 0.0001, 0];

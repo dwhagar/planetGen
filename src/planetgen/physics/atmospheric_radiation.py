@@ -98,9 +98,9 @@ class AerosolLayer:
     g: np.ndarray
 
 
-def grey_layer(tau_550, omega, g, centres_nm, exponent=0.0):
+def grey_layer(tau_550, omega, g, centers_nm, exponent=0.0):
     """An `AerosolLayer` whose optical depth is `tau_550 (550 nm / lambda)^exponent` (0 for a grey cloud), with constant albedo and asymmetry."""
-    tau = tau_550 * (550.0 / np.asarray(centres_nm, dtype=float)) ** exponent
+    tau = tau_550 * (550.0 / np.asarray(centers_nm, dtype=float)) ** exponent
     return AerosolLayer(tau, np.full_like(tau, omega), np.full_like(tau, g))
 
 
@@ -128,12 +128,12 @@ class SurfaceSpectrum:
     ozone_du: float
 
     @property
-    def centres_nm(self):
+    def centers_nm(self):
         return 0.5 * (self.edges_nm[:-1] + self.edges_nm[1:])
 
     def _band(self, values, band):
         low, high = stellar_spectrum.BAND_EDGES_NM[band]
-        return float(np.sum(values[(self.centres_nm >= low) & (self.centres_nm < high)]))
+        return float(np.sum(values[(self.centers_nm >= low) & (self.centers_nm < high)]))
 
     def band_top_w_m2(self, band):
         """The star's flux on a horizontal surface at the top of the atmosphere in `band`, W/m2."""
@@ -154,7 +154,7 @@ class SurfaceSpectrum:
 
     def erythemal_w_m2(self):
         """The erythemally weighted irradiance on a horizontal surface at the ground, W/m2 (CIE)."""
-        return float(np.sum(self.ground_w_m2 * erythemal_weight(self.centres_nm)))
+        return float(np.sum(self.ground_w_m2 * erythemal_weight(self.centers_nm)))
 
     def uv_index(self):
         """The CIE UV index at the ground: 40 m2/W times the erythemally weighted irradiance."""
@@ -162,15 +162,15 @@ class SurfaceSpectrum:
 
     def top_uv_index(self):
         """The UV index of the star's light on a horizontal surface with no atmosphere."""
-        return UVI_PER_W_M2 * self.mu0 * float(np.sum(self.top_w_m2 * erythemal_weight(self.centres_nm)))
+        return UVI_PER_W_M2 * self.mu0 * float(np.sum(self.top_w_m2 * erythemal_weight(self.centers_nm)))
 
     def dna_dose_w_m2(self):
         """The Setlow DNA-damage weighted irradiance at the ground, W/m2 (energy basis: weight times lambda / 300)."""
-        return float(np.sum(self.ground_w_m2 * setlow_weight(self.centres_nm)))
+        return float(np.sum(self.ground_w_m2 * setlow_weight(self.centers_nm)))
 
     def top_dna_dose_w_m2(self):
         """The Setlow weighted irradiance with no atmosphere, W/m2."""
-        return self.mu0 * float(np.sum(self.top_w_m2 * setlow_weight(self.centres_nm)))
+        return self.mu0 * float(np.sum(self.top_w_m2 * setlow_weight(self.centers_nm)))
 
 
 def ozone_peak_pressure_pa(column, ozone_du=0.0):
@@ -194,15 +194,15 @@ def mix_layers(a, b):
     return tau, omega, asymmetry
 
 
-def gas_layers(column, centres, edges):
+def gas_layers(column, centers, edges):
     """The Rayleigh and absorption optical depth of the whole column at each cell, and the absorption alone."""
-    tau_rayleigh = np.zeros_like(centres)
+    tau_rayleigh = np.zeros_like(centers)
     for formula, pressure in column.partials_pa.items():
         if pressure / column.pressure_pa < 1e-6:
             continue
         tau_rayleigh = tau_rayleigh + column.number_column_cm2(formula) * np.array(
-            [rayleigh.cross_section_cm2(formula, nm) for nm in centres])
-    tau_absorption = np.zeros_like(centres)
+            [rayleigh.cross_section_cm2(formula, nm) for nm in centers])
+    tau_absorption = np.zeros_like(centers)
     for formula, pressure in column.partials_pa.items():
         if formula == "O3" or pressure / column.pressure_pa < 1e-12:
             continue
@@ -257,13 +257,13 @@ def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone
     if not 0.2 <= mu0 <= 1.0:
         raise ValueError("the two-stream model is made for the star between 0.2 and 1 in cosine of the zenith angle")
     edges = uv_cross_sections.standard_edges() if edges_nm is None else np.asarray(edges_nm, dtype=float)
-    centres = uv_cross_sections.centres(edges)
+    centers = uv_cross_sections.centers(edges)
     top = stellar_spectrum.irradiance_w_m2(edges, temperature_k, flux_w_m2, uv_c_share, uv_shares)
-    tau_rayleigh, tau_absorption = gas_layers(column, centres, edges)
+    tau_rayleigh, tau_absorption = gas_layers(column, centers, edges)
 
     pressure_ozone = ozone_peak_pressure_pa(column, ozone_du) if ozone_pressure_pa is None else ozone_pressure_pa
     above = min(max(pressure_ozone / column.pressure_pa, 0.0), 1.0)
-    tau_ozone = np.zeros_like(centres)
+    tau_ozone = np.zeros_like(centers)
     if ozone_du > 0.0:
         sigma = uv_cross_sections.ozone_cross_section_cm2(edges, ozone_temperature_k)
         tau_ozone = ozone_du * uv_cross_sections.DOBSON_CM2 * sigma
@@ -279,7 +279,7 @@ def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone
     if haze is not None:
         lower_slab = mix_layers(lower_slab, (haze.tau, haze.omega, haze.g))
     lower = two_stream.scattering_layer(*lower_slab, mu0)
-    albedo = np.broadcast_to(np.asarray(ground_albedo, dtype=float), centres.shape)
+    albedo = np.broadcast_to(np.asarray(ground_albedo, dtype=float), centers.shape)
 
     def solve(with_low_layer):
         layers = [upper, ozone, lower]

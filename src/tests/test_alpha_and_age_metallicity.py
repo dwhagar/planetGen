@@ -29,13 +29,13 @@ def test_the_high_alpha_branch_is_more_enhanced_than_the_thin_one_and_plateaus_w
     assert alpha_tracks.alpha_fe(0.0, THICK) < 0.1
 
 
-def test_a_thick_disc_star_reads_a_track_richer_in_iron_than_itself_and_a_thin_one_nearly_its_own():
+def test_a_thick_disk_star_reads_a_track_richer_in_iron_than_itself_and_a_thin_one_nearly_its_own():
     assert alpha_tracks.equivalent_fe_h(-0.8, THICK) == pytest.approx(-0.8 + 0.27, abs=0.04)
     assert alpha_tracks.equivalent_fe_h(0.0, THIN) == pytest.approx(0.0, abs=0.02)
     assert alpha_tracks.equivalent_fe_h(-0.8, THICK) > alpha_tracks.equivalent_fe_h(-0.8, THIN)
 
 
-def test_the_thin_disc_gains_metals_at_the_slope_haywood_gives_and_the_thick_disc_six_times_faster():
+def test_the_thin_disk_gains_metals_at_the_slope_haywood_gives_and_the_thick_disk_six_times_faster():
     thin = age_metallicity.mean_fe_h(2.0, THIN) - age_metallicity.mean_fe_h(6.0, THIN)
     assert thin / 4.0 == pytest.approx(0.025)
     thick = age_metallicity.mean_fe_h(9.0, THICK) - age_metallicity.mean_fe_h(12.0, THICK)
@@ -43,7 +43,7 @@ def test_the_thin_disc_gains_metals_at_the_slope_haywood_gives_and_the_thick_dis
     assert thick / 3.0 / (thin / 4.0) == pytest.approx(6.0)
 
 
-def test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window():
+def test_the_thick_disk_ends_at_its_anchor_and_is_held_outside_its_window():
     assert age_metallicity.mean_fe_h(tuning.STELLAR_THICK_START_GY, THICK) == pytest.approx(age_metallicity.THICK_ANCHOR_FE_H)
     assert age_metallicity.mean_fe_h(5.0, THICK) == age_metallicity.mean_fe_h(8.0, THICK)
     assert age_metallicity.mean_fe_h(20.0, THICK) == age_metallicity.mean_fe_h(13.0, THICK)
@@ -51,20 +51,20 @@ def test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window():
 
 
 def test_the_relation_matches_the_populations_the_generator_has_today():
-    """The young and intermediate disc average 0 in `tuning.METALLICITY_BY_POPULATION`, and the old (3 to 13 Gyr, the thick disc's 8 to 13 among them) its offset."""
+    """The young and intermediate disk average 0 in `tuning.METALLICITY_BY_POPULATION`, and the old (3 to 13 Gyr, the thick disk's 8 to 13 among them) its offset."""
     assert age_metallicity.mean_fe_h(1.5, THIN) == pytest.approx(0.0, abs=0.06)
     assert age_metallicity.mean_fe_h(6.5, THIN) == pytest.approx(-0.2, abs=0.1)
     assert tuning.METALLICITY_BY_POPULATION["old"]["offset"] == pytest.approx(-0.325)
 
 
-def test_only_the_discs_populations_follow_the_relation():
+def test_only_the_disks_populations_follow_the_relation():
     for population in ("young", "intermediate", "old"):
         assert age_metallicity.takes(population)
     for population in (None, "halo", "bulge", "cluster", "satellite", "open_cluster_03"):
         assert not age_metallicity.takes(population)
 
 
-def test_the_thick_disc_exists_only_past_the_gate():
+def test_the_thick_disk_exists_only_past_the_gate():
     assert age_metallicity.thick_share(7.9) == 0.0
     assert age_metallicity.thick_share(8.0) == age_metallicity.THICK_SHARE
 
@@ -79,14 +79,14 @@ def test_the_density_never_underflows_far_from_both_branches():
     assert value < -100.0 and value > -1.0e6
 
 
-def test_a_population_outside_the_disc_draws_one_age_and_no_more():
+def test_a_population_outside_the_disk_draws_one_age_and_no_more():
     rng = random.Random(1)
     calls = []
     age = age_metallicity.tilted_age(-1.5, "halo", lambda: calls.append(1) or 11.0, rng)
     assert age == 11.0 and len(calls) == 1
 
 
-def test_the_tilt_moves_the_old_disc_ages_with_the_metallicity():
+def test_the_tilt_moves_the_old_disk_ages_with_the_metallicity():
     rng = random.Random(7)
 
     def mean_age(fe_h):
@@ -111,7 +111,7 @@ def test_an_unknown_branch_is_refused():
         age_metallicity.mean_fe_h(4.0, "halo")
 
 
-def test_a_drawn_old_disc_star_is_older_the_poorer_it_is():
+def test_a_drawn_old_disk_star_is_older_the_poorer_it_is():
     """The generator's own draw (`sample_living_star` with the birth [Fe/H] fixed) follows the tilt."""
     from planetgen.physics import stellar_evolution
     rng = random.Random(5)
@@ -124,7 +124,7 @@ def test_a_drawn_old_disc_star_is_older_the_poorer_it_is():
 
 
 def test_the_tilt_leaves_a_population_s_mean_age_where_it_was():
-    """Each disc population's [Fe/H] is about the relation's mix over its window, so tilting the ages moves them with the metals and not as a whole."""
+    """Each disk population's [Fe/H] is about the relation's mix over its window, so tilting the ages moves them with the metals and not as a whole."""
     from planetgen.physics import stellar_evolution
     rng = random.Random(11)
     for population in ("intermediate", "old"):
@@ -150,11 +150,11 @@ def test_the_branches_follow_the_logistic_in_feh_among_the_old():
         assert low <= share <= high, (fe_h, share)
 
 
-def test_a_thick_disc_star_reads_a_richer_track_than_a_thin_one_of_the_same_feh():
+def test_a_thick_disk_star_reads_a_richer_track_than_a_thin_one_of_the_same_feh():
     old = [fe_h for fe_h in (-0.9 - 0.001 * n for n in range(200)) if stellar_abundances.branch_of(fe_h, 11.0) == THICK]
     assert old
     for fe_h in old[:5]:
-        assert alpha_tracks.track_fe_h(fe_h, 11.0) > alpha_tracks.track_fe_h(fe_h, 3.0) + 0.05    # a younger star is thin-disc at any metallicity
+        assert alpha_tracks.track_fe_h(fe_h, 11.0) > alpha_tracks.track_fe_h(fe_h, 3.0) + 0.05    # a younger star is thin-disk at any metallicity
         assert alpha_tracks.track_fe_h(fe_h, 3.0) == alpha_tracks.equivalent_fe_h(fe_h, THIN)
 
 
@@ -168,7 +168,7 @@ def test_a_star_is_read_off_the_track_of_its_branch():
     assert state["lifespan_gy"] != pytest.approx(post_main_sequence.timeline(0.9, fe_h).end_gy, rel=1e-4)
 
 
-def test_a_thin_disc_star_of_solar_feh_sits_on_the_reference_track():
+def test_a_thin_disk_star_of_solar_feh_sits_on_the_reference_track():
     """The grid is solar-scaled: the fits' own offset at the Sun (-0.017 dex) is the zero of the shift, so the Sun's [Fe/H] is read as it is."""
     assert alpha_tracks.track_fe_h(0.0, 4.5) == pytest.approx(0.0, abs=1e-12)
     assert alpha_tracks.track_fe_h(0.0, 4.5) == alpha_tracks.equivalent_fe_h(0.0, THIN)

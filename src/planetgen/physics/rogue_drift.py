@@ -127,7 +127,7 @@ class Drift:
 @dataclass(frozen=True)
 class RingDrift:
     """
-    The same drift with the along-orbit offset as an angle round the galactic centre.
+    The same drift with the along-orbit offset as an angle round the galactic center.
 
     Attributes:
         radial_pc, vertical_pc (float): The offsets outward and up (bounded).
@@ -182,12 +182,12 @@ def drift(kick_km_s, time_myr, galaxy=SOLAR_NEIGHBOURHOOD):
 @finite_domain()
 def ring_drift(kick_km_s, time_myr, galactocentric_radius_pc, galaxy=SOLAR_NEIGHBOURHOOD):
     """
-    The drift with the along-orbit offset as an angle `y / R` round the galactic centre, wrapped to one turn: good for a rogue that has gone far along the orbit, where the
+    The drift with the along-orbit offset as an angle `y / R` round the galactic center, wrapped to one turn: good for a rogue that has gone far along the orbit, where the
     linear offset in pc is an arc.
 
     Args:
         kick_km_s, time_myr, galaxy: As for `drift`.
-        galactocentric_radius_pc (float): The star's distance from the galactic centre.
+        galactocentric_radius_pc (float): The star's distance from the galactic center.
     """
     if not galactocentric_radius_pc > 0.0:
         raise RogueDriftError("the galactocentric radius must be positive")

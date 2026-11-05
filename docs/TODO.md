@@ -1935,17 +1935,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bookmarks), moved into the account when USR.7 lands. NAV.4 then does
   not wait for user accounts.
 
-  - [ ] **NAV.18 Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store**
-    Done: a Save course button on the NAV result; a Courses list
-    (beside Bookmarks, from `bookmarks.js` or a sibling module) with
-    open, rename and delete; the viewer switches between Direct and
-    Route on a saved course.
-    Owns the Courses list over the saved-list store (open, rename,
-    delete) and the viewer's switch between Direct and Route; the Save
-    action is NAV.4's; this adds the `course` kind to the store
-    (2026-10-16 review).
-    Prerequisites: none.
-
   - [ ] **NAV.19 Saved courses in the account (after USR.7)**
     Done: the `course` kind of the saved-list store (USR.7's
     `user_saved`, no second table): courses saved per browser can be
@@ -1962,6 +1951,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     shared `user_saved` table of USR.7, with no second table and no
     second import path (2026-10-16
     review).
+  Browser part merged (Core 2, #5084) (5:58 AM EST on 2026-11-05): Save
+  course button on the NAV page (asks for a name, keeps the course in
+  this browser) and a Saved Courses panel (Direct and Route forms side
+  by side, open, On the map, Rename, Delete); saving again says what
+  changed since the first save. NAV.18 is done. This item stays open for
+  NAV.19 (saved courses in the account, after USR.7).
 
 - [ ] **NAV.5 Show a course on the Galaxy Map**
   Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
@@ -1986,14 +1981,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
   on the galactic map and stay until cleared." See NAV.49.
 
-  - [ ] **NAV.21 Fit the view to the whole course**
-    Done: the course opens zoomed in as far as possible with every
-    point of both paths on screen, fitted to the window (the same fit as
-    MAP.53), refitted on resize. This view is exempt from any zoom
-    limit (MAP.58 was superseded by MAP.125); the user can still rotate it.
-    Research (2026-10-09, course-avoidance.md): fit the view to the
-    bounding box of the adjusted `polyline`, not of the waypoints.
-
   - [ ] **NAV.22 Courses inside a sector and a system**
     Today a course that stays in one sector opens the sector with no
     line. Done: the same course drawing at the sector stage (MAP.61)
@@ -2005,10 +1992,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (`heliosphere_radius_km`) and ends at the target body; sector-scale
     courses use the same keep-out table in light-years.
     Prerequisites: MAP.217.
-
-  - [ ] **NAV.23 Open a saved course on the map**
-    Done: a saved course (NAV.4) opens in this view, with Direct, Route
-    and (NAV.6) Adjusted switchable.
 
 - [ ] **NAV.6 Courses that steer clear of gravity wells**
   Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
@@ -2112,16 +2095,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     new ephemeris code. Galactic-scale motion is negligible at warp, so
     this stays system-only.
     Prerequisites: none.
-
-  - [ ] **NAV.28 Show and save the adjusted course**
-    Done: the adjusted path, its extra length and its times beside the
-    straight line on the NAV page and on the map (NAV.5); saved courses
-    (NAV.4) keep it as a third form.
-    Research (2026-10-09, course-avoidance.md): use the `adjusted`
-    object of design section 7 (exact legs, waypoints, polyline,
-    `avoided`, `passed_through`, `ignored_below_resolution`, `ruleset`,
-    `warnings`); keep `waypoints`, `legs` and the radii used in the
-    saved record (NAV.17).
 
   - [ ] **NAV.51 Courses route around asteroid fields**
     Boss (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
@@ -17752,6 +17725,13 @@ clears each one.
   assertion fails (contrast or nested summary), and fixes it or files
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
+  Owner change (TODO) (7:10 AM EST on 2026-11-05): Core 3 takes this
+  (Bug Hunt is retired); it saw the failure first and has a slow lane
+  machine to reproduce it. Run the four web.system variants of
+  tests/test_web_a11y.py on current main, find which assertion fails
+  (contrast or nested summary) and whether it is a real defect, a
+  data-set or Playwright difference, or fixed since; fix at the cause or
+  document the machine difference. Lock-free.
   Prerequisites: none. Related: TEST.329.
 
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
@@ -18230,6 +18210,12 @@ clears each one.
   3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
   test that follows its map changes (proposed by the TODO thread). Filed
   by the TODO thread.
+  Owner change (TODO) (6:12 AM EST on 2026-11-05): Core 5 takes this
+  from Core 3 (who is on the GEN.1261 gate and has not started it).
+  Start by dropping leftover planetgen_* databases and running each of
+  the four files alone on current main; the item's own Done line says
+  they pass in three runs, so if they do, close it with the run log and
+  no change.
   Prerequisites: none.
 
 - [ ] **TEST.579 Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug)**
@@ -18267,6 +18253,14 @@ clears each one.
   nebula group (census_nebula_wholesphere, emission_members,
   hosted_nebula_rows); Bug 1 keeps the life-class tests (split from Bug
   1).
+  Owner change (TODO) (5:40 AM EST on 2026-11-05): Core 5 takes the
+  non-nebula groups from Bug 1, who is carrying GEN.962, GEN.1275,
+  PERF.240, TEST.579 and PERF.236: test_gen_kind_factors (halo versus
+  disk planets), test_gen_magellanic_classes (the 0.92 supernova
+  factor), and any 6.170 rows left in test_burn_down_register (TEST.587
+  added lines for the sky and glow rows only). The nebula group stays
+  with Tides 1. The train 10 gate shows kind factors red on main too, so
+  check first whether train 10 changes it.
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -18332,16 +18326,20 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.593 test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug)**
-  Core 2 (as the lane reported, 5:20 AM EST on 2026-11-05) found
-  tests/test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits...
-  red on plain main, not from its own change. Do: reproduce, decide
-  whether the page contents menu or the test is wrong (a menu that wraps
-  to two rows when it fits is a layout bug and is fixed in the page),
-  and repair. Done: the test passes on plain main under the narrow gate.
-  Lock-free. Version 8.1. Owner: Core 5, after TEST.591. Filed by the
-  TODO thread.
-  Prerequisites: none. Related: TEST.591.
+- [ ] **TEST.595 Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug)**
+  Core 2 (as the lane reported, about 7:00 AM EST on 2026-11-05) saw
+  these red on plain main, not from NAV.49a (#5092):
+  tests/test_web_browser_map_card.py, the black hole case at 1920x1080
+  and at 390x844, which waits for a button named Fixture Maw that never
+  appears, and
+  test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox,
+  which misses Fixture Eden. Do: first drop leftover planetgen_*
+  databases and run each alone on current main; find the commit that
+  turned them red; fix the tests at the cause (not by loosening waits
+  that hide a bug) and file any real map bug as its own item. Done: all
+  three pass in 3 runs. Lock-free. Version 8.1. Owner: Core 5, with
+  TEST.575 (same family). Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.575.
 
 ## USR: User accounts
 

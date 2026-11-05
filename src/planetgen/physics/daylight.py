@@ -8,7 +8,7 @@ that share and the length of the daylight from the geometry the generator alread
 the rotation period, the orbital period round the star, the axial tilt (the spin axis and the orbit normal), the star's
 radius and its distance. For a moon it adds the extra night when its planet stands between it and the star.
 
-* **The share at the equator** (`equator_day_share`): the star is up while its centre is above `-alpha`, `alpha` being the
+* **The share at the equator** (`equator_day_share`): the star is up while its center is above `-alpha`, `alpha` being the
   angular radius of the star (its upper limb counts, no refraction): the half day arc `H` has `cos H = -sin(alpha)/cos(delta)`
   and the share is `H / pi`, averaged over a circular year, the declination following `sin(delta) = sin(e) sin(lambda)` with
   `e` the angle between the spin axis and the normal of the orbit round the star. Earth gives 50.15 percent, 12.04 h of a
@@ -23,8 +23,8 @@ radius and its distance. For a moon it adds the extra night when its planet stan
 * **The polar circle** (`polar_circle_deg`): the latitude beyond which the star does not set for at least a day,
   `90 - e - alpha` degrees (zero or less becomes 0: the whole world has polar days and nights; a tilt past 90 degrees
   counts as `180 - tilt`).
-* **The parent's shadow** (`parent_shadow_share`): a moon is in its planet's shadow while the centre of the star is behind the
-  planet's disc, which the planet fills with the angular radius `theta = asin(R_planet / a)` as the moon sees it. With the
+* **The parent's shadow** (`parent_shadow_share`): a moon is in its planet's shadow while the center of the star is behind the
+  planet's disk, which the planet fills with the angular radius `theta = asin(R_planet / a)` as the moon sees it. With the
   angle `u` along the orbit from the point towards the star and `beta` the angle between the star's direction and the moon's
   orbit plane, the condition is `-cos(beta) cos(u) >= cos(theta)`, so a share `arccos(cos(theta)/cos(beta))/pi` of each orbit
   when `beta < theta`, none otherwise. The year turns the star round the planet's orbit plane, so `sin(beta) = sin(Theta)
@@ -128,7 +128,7 @@ def solar_day_hours(rotation_period_hours, orbital_period_hours, prograde=True):
 
 
 def shadow_share_at(orbit_radius_km, parent_radius_km, beta_deg):
-    """The share of one orbit a moon spends hiding the centre of the star behind its planet while the star stands `beta_deg` degrees
+    """The share of one orbit a moon spends hiding the center of the star behind its planet while the star stands `beta_deg` degrees
     from the moon's orbit plane: `arccos(cos(theta) / cos(beta)) / pi`, none once `beta` passes the planet's angular radius."""
     if not orbit_radius_km or not parent_radius_km or orbit_radius_km <= parent_radius_km:
         return 0.0
@@ -139,7 +139,7 @@ def shadow_share_at(orbit_radius_km, parent_radius_km, beta_deg):
 
 
 def longest_eclipse_hours(orbit_radius_km, parent_radius_km, orbit_period_hours):
-    """The longest time a moon spends hiding the centre of the star behind its planet in one pass, hours (UX.205): the pass through the
+    """The longest time a moon spends hiding the center of the star behind its planet in one pass, hours (UX.205): the pass through the
     middle of the shadow (the star in the moon's orbit plane), which is `theta / pi` of one orbit, `theta` the angular radius of the
     planet as the moon sees it. Zero when the moon is not outside the planet or has no period."""
     if not orbit_period_hours or orbit_period_hours <= 0.0:
@@ -148,7 +148,7 @@ def longest_eclipse_hours(orbit_radius_km, parent_radius_km, orbit_period_hours)
 
 
 def parent_shadow_share(orbit_radius_km, parent_radius_km, mutual_inclination_deg):
-    """The share of a moon's time its planet hides the centre of the star over a circular year (see the module text): the orbit radius
+    """The share of a moon's time its planet hides the center of the star over a circular year (see the module text): the orbit radius
     and the planet's radius in kilometres, and the angle between the moon's orbit normal and the planet's, degrees."""
     sin_incl = math.sin(math.radians(mutual_inclination_deg))
     total = 0.0

@@ -2243,6 +2243,28 @@
           "fields": [
             [
               "The range",
+              "none, few, normal, many"
+            ],
+            [
+              "Source",
+              "Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to 10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)"
+            ]
+          ],
+          "id": "--rogues",
+          "key": "6.3a:--rogues",
+          "kind": "P",
+          "slug": "6-3a-rogues",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "--rogues: none, few, normal, many"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "The range",
               "1 to 10"
             ],
             [
@@ -9705,7 +9727,7 @@
           "fields": [
             [
               "What it is",
-              "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0"
+              "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0, habitability.H2S_TOX_KPA 0.002, habitability.SO2_TOX_KPA 0.001 (GEN.1253: the last two are twice the chronic limits of GAS_LIMITS_KPA, as CO and CO2 sit at about twice theirs)"
             ],
             [
               "The range it moves in",
@@ -9713,7 +9735,7 @@
             ],
             [
               "Where it holds",
-              "T_metazoa's CO and CO2 scales"
+              "T_metazoa's CO, CO2, H2S and SO2 scales"
             ],
             [
               "What would show it wrong",
@@ -9734,9 +9756,9 @@
           "slug": "6-18-lf22",
           "tier": "T2",
           "tier_code": "T2",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
-          "what": "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0"
+          "what": "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0, habitability.H2S_TOX_KPA 0.002, habitability.SO2_TOX_KPA 0.001 (GEN.1253: the last two are twice the chronic limits of GAS_LIMITS_KPA, as CO and CO2 sit at about twice theirs)"
         },
         {
           "burn_down": [
@@ -11335,7 +11357,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.PLANET_INNER_DISC_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
+              "tuning.PLANET_INNER_DISK_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
             ],
             [
               "The range it moves in",
@@ -11366,7 +11388,7 @@
           "tier_code": "T3",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.PLANET_INNER_DISC_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
+          "what": "tuning.PLANET_INNER_DISK_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
         },
         {
           "burn_down": null,
@@ -12567,44 +12589,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "climate_draws.GIANT_BOND_ALBEDO_RANGE (0.29, 0.503) (a generated giant draws its Bond albedo uniformly from the lowest to the highest of the four measured in the Solar System: Neptune 0.29 [R3466], Uranus 0.30 [R3466], Saturn 0.342 and Jupiter 0.503 Li et al. 2018; GEN.1030)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
-            ],
-            [
-              "The range it moves in",
-              "the exponent 1.4 to 1.9"
-            ],
-            [
-              "Where it holds",
-              "giants"
-            ],
-            [
-              "What would show it wrong",
-              "test_giant_one_bar_temperature::the cooling law gives a Uranus-mass giant far more heat than Uranus has"
-            ],
-            [
-              "What replaces it",
-              "the cooling tracks of the radius tables with the heavy-element interior of each giant (GEN.1033)"
-            ],
-            [
-              "Evidence",
-              "RECALLED ([R3466]: Neptune 0.43 W/m2, Uranus 0.042; Jupiter 5.4)"
-            ]
-          ],
-          "id": "CC14",
-          "key": "6.22:CC14",
-          "kind": "P",
-          "slug": "6-22-cc14",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L1",
-          "unread": null,
-          "what": "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
         },
         {
           "burn_down": null,
@@ -15979,7 +15963,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.PLANET_DISC_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
+              "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
             ],
             [
               "The range it moves in",
@@ -16010,7 +15994,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.PLANET_DISC_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
+          "what": "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
         },
         {
           "burn_down": [
@@ -16105,7 +16089,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISC_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
+              "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
             ],
             [
               "The range it moves in",
@@ -16136,7 +16120,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISC_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
+          "what": "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
         },
         {
           "burn_down": [
@@ -16433,7 +16417,7 @@
           "fields": [
             [
               "What it is",
-              "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
+              "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISK_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
             ],
             [
               "The range it moves in",
@@ -16464,7 +16448,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
+          "what": "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISK_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
         },
         {
           "burn_down": [
@@ -18977,7 +18961,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.IMF_BELL_CENTRE_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
+              "tuning.IMF_BELL_CENTER_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
             ],
             [
               "The range it moves in",
@@ -19008,7 +18992,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.IMF_BELL_CENTRE_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
+          "what": "tuning.IMF_BELL_CENTER_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
         },
         {
           "burn_down": null,
@@ -23363,7 +23347,7 @@
           "fields": [
             [
               "What it is",
-              "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused"
+              "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused (GEN.1052: heavy_liquid_tide shows the thin-sea factor is exact for a floor that does not move at any depth, so the refusal guards a layer that is no sea, not a deep one)"
             ],
             [
               "The range it moves in",
@@ -23394,7 +23378,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused"
+          "what": "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused (GEN.1052: heavy_liquid_tide shows the thin-sea factor is exact for a floor that does not move at any depth, so the refusal guards a layer that is no sea, not a deep one)"
         },
         {
           "burn_down": null,
@@ -24503,6 +24487,204 @@
           "tweak": "L3",
           "unread": null,
           "what": "ring_origin.EROSION_YIELD 1.0, the ring mass an impactor takes away in impactor masses"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of the inner moonlets of giants outside the four of the Solar System is in hand"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_MEAN_COUNT 6, the mean number of small moonlets a giant has inside 3 radii (the generator makes no moon under a few hundred km, so these are drawn, not stored)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 15"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of giants' inner moonlets whose mean inside 3 radii is outside 2 to 15, or a giant with a dust ring and none"
+            ],
+            [
+              "What replaces it",
+              "a moonlet population from the ring-moon cycle (the Roche-limit spreading and re-accretion, [R0920])"
+            ],
+            [
+              "Evidence",
+              "Jupiter 4, Saturn 6 to 8, Uranus 13 and Neptune 6 inner moons; four giants, none without any"
+            ]
+          ],
+          "id": "RO14",
+          "key": "6.70:RO14",
+          "kind": "P",
+          "slug": "6-70-ro14",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ring_origin.FEEDER_MEAN_COUNT 6, the mean number of small moonlets a giant has inside 3 radii (the generator makes no moon under a few hundred km, so these are drawn, not stored)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_MAX_DISTANCE_RADII 3 and FEEDER_MAX_RADIUS_KM 100: a moon feeds the dust ring if it orbits inside 3 planet radii and is under 100 km"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4 radii; 50 to 150 km"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "a ring-feeding moon found over 150 km or outside 4 radii"
+            ],
+            [
+              "What replaces it",
+              "the ejecta escape speed and the dust lifetime of each moon from its size and orbit"
+            ],
+            [
+              "Evidence",
+              "Amalthea (84 km, 2.5 Jupiter radii) feeds the gossamer ring; larger moons keep their ejecta"
+            ]
+          ],
+          "id": "RO15",
+          "key": "6.70:RO15",
+          "kind": "P",
+          "slug": "6-70-ro15",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ring_origin.FEEDER_MAX_DISTANCE_RADII 3 and FEEDER_MAX_RADIUS_KM 100: a moon feeds the dust ring if it orbits inside 3 planet radii and is under 100 km"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no impact-ejecta experiment on a small moon's surface gives the kept share of the dust"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon"
+            ],
+            [
+              "The range it moves in",
+              "1 to 100"
+            ],
+            [
+              "Where it holds",
+              "feeding moons of 5 to 100 km"
+            ],
+            [
+              "What would show it wrong",
+              "an impact-ejecta measurement whose kept share is under 1 or over 100"
+            ],
+            [
+              "What replaces it",
+              "the ejecta yield and speed distribution of a hypervelocity impact on a small moon's surface (the escape fraction)"
+            ],
+            [
+              "Evidence",
+              "puts Jupiter's four inner moons at 2.4e7 kg, inside the 1e7 to 1e9 kg of its ring"
+            ]
+          ],
+          "id": "RO16",
+          "key": "6.70:RO16",
+          "kind": "P",
+          "slug": "6-70-ro16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow"
+            ],
+            [
+              "The range it moves in",
+              "1e3 to 1e5"
+            ],
+            [
+              "Where it holds",
+              "micron grains round a giant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured grain lifetime outside 1e3 to 1e5 years"
+            ],
+            [
+              "What replaces it",
+              "the Poynting-Robertson, plasma and Lorentz drag of each grain size at the planet"
+            ],
+            [
+              "Evidence",
+              "1e3 to 1e5 years for micron grains round Jupiter, [R5114], recalled"
+            ]
+          ],
+          "id": "RO17",
+          "key": "6.70:RO17",
+          "kind": "P",
+          "slug": "6-70-ro17",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet"
+            ],
+            [
+              "The range it moves in",
+              "one factor"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "an inner moonlet found outside 3 to 150 km or 1.2 to 4 radii"
+            ],
+            [
+              "What replaces it",
+              "the size distribution of the moonlets from the ring-moon cycle"
+            ],
+            [
+              "Evidence",
+              "Metis 22, Adrastea 8, Pan 14, Cordelia 20, Galatea 79 km; between 1.7 and 3 radii"
+            ]
+          ],
+          "id": "RO18",
+          "key": "6.70:RO18",
+          "kind": "P",
+          "slug": "6-70-ro18",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet"
         }
       ],
       "slug": "6-70-stand-ins-of-the-ring-origin",
@@ -24769,7 +24951,7 @@
           "fields": [
             [
               "What it is",
-              "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOUR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
+              "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
             ],
             [
               "The range it moves in",
@@ -24800,14 +24982,14 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": "GEN.1050",
-          "what": "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOUR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
+          "what": "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disintegrating_planet.VAPOUR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
+              "disintegrating_planet.VAPOR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
             ],
             [
               "The range it moves in",
@@ -24838,7 +25020,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": "GEN.1050",
-          "what": "disintegrating_planet.VAPOUR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
+          "what": "disintegrating_planet.VAPOR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
         },
         {
           "burn_down": null,
@@ -25401,7 +25583,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "tuning.ROGUE_LEVEL_CEILINGS None 0, Few 2.5, Normal 4.3, Many 10 terrestrial rogues per star, the most the top-up may bring a sector to"
         },
         {
@@ -25443,7 +25625,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "tuning.ROGUE_TOPUP_PLACEMENT 1, the share of the sector edge a top-up rogue may be placed over, centred (1 is the whole sector)"
         },
         {
@@ -25485,7 +25667,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.SCATTERER_AU_RANGE 1 to 30 AU, where the scattering giant of an apparent origin sits, drawn log-uniform"
         },
         {
@@ -25523,7 +25705,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.VELOCITY_DISPERSION_KM_S 35, 25, 20 km/s, the thin disc's U, V and W dispersion of the hosts"
         },
         {
@@ -25561,7 +25743,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.GALACTOCENTRIC_RADIUS_PC 8000, the galactocentric radius of the ring used for the arc of an apparent origin where the caller gives none"
         }
       ],
@@ -25607,7 +25789,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.SCATTER_SPEED_KM_S 3, the ejection speed scale of a Jupiter-mass scatterer at 1 AU, km/s; v_c goes as the square root of the scatterer's mass over its distance"
         },
         {
@@ -25645,7 +25827,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects"
         },
         {
@@ -25683,7 +25865,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.MEAN_OVER_SCALE 0.87, the mean ejection speed in units of v_c"
         },
         {
@@ -25721,7 +25903,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.SPEED_SIGMA_LN 0.51, the ln-width of the ejection speed in units of v_c, set so the 99th percentile is 2.5 v_c"
         },
         {
@@ -25759,7 +25941,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays"
         },
         {
@@ -25797,7 +25979,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass)"
         },
         {
@@ -25839,7 +26021,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_MASS_INDEX 1.13, the median closest approach goes as the scatterer's mass to this power"
         },
         {
@@ -25877,7 +26059,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_SIGMA_LN 2.35, the ln-width of the closest approach"
         }
       ],
@@ -25923,7 +26105,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation"
         },
         {
@@ -25965,7 +26147,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1"
         }
       ],
@@ -26011,7 +26193,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.OORT_A_KM_S_KPC 15.3 km/s/kpc, the shear at the Sun"
         },
         {
@@ -26049,7 +26231,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.OORT_B_KM_S_KPC -11.9 km/s/kpc"
         },
         {
@@ -26087,7 +26269,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.VERTICAL_FREQUENCY_KM_S_KPC 76 km/s/kpc, nu = sqrt(4 pi G rho) for 0.1 solar masses per cubic parsec"
         },
         {
@@ -26125,7 +26307,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.LINEAR_LIMIT_PC 1500, the separation up to which the linear equations are taken as good"
         }
       ],
@@ -27165,7 +27347,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_density.BULK_DENSITY_KG_M3 2500"
         }
       ],
@@ -27379,7 +27561,7 @@
           "fields": [
             [
               "What it is",
-              "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONISED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
+              "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
             ],
             [
               "The range it moves in",
@@ -27410,7 +27592,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": "GEN.1047",
-          "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONISED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
+          "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
         },
         {
           "burn_down": null,
@@ -27947,7 +28129,7 @@
           "fields": [
             [
               "What it is",
-              "scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
+              "scatter.ZONE_COEFFICIENT 1.3 and DISK_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
             ],
             [
               "The range it moves in",
@@ -27978,7 +28160,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
+          "what": "scatter.ZONE_COEFFICIENT 1.3 and DISK_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
         },
         {
           "burn_down": [
@@ -28149,8 +28331,8 @@
           "what": "scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared"
         }
       ],
-      "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disc",
-      "title": "Stand-ins of the scatter step of an outer disc"
+      "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disk",
+      "title": "Stand-ins of the scatter step of an outer disk"
     },
     {
       "key": "6.103",
@@ -30135,7 +30317,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_moons.SURVIVAL_AT_0P01_HILL 0.82 and SURVIVAL_AT_0P1_HILL 0.48: the shares of ejections whose closest approach stayed beyond 0.01 and 0.1 mutual Hill radii"
         },
         {
@@ -30215,7 +30397,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_moons.EJECTED_MOON_ECCENTRICITY 0.13: the eccentricity of a moon carried out with its planet"
         },
         {
@@ -30563,7 +30745,7 @@
           "fields": [
             [
               "What it is",
-              "irregular_population.REFERENCE_DISC_MASS_EARTH 30, DISC_REFERENCE_RADIUS_KM 40, DISC_COUNT_AT_REFERENCE 3.5e7, DISC_BREAK_RADIUS_KM 70, DISC_INDEX_BELOW 1.8, DISC_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
+              "irregular_population.REFERENCE_DISK_MASS_EARTH 30, DISK_REFERENCE_RADIUS_KM 40, DISK_COUNT_AT_REFERENCE 3.5e7, DISK_BREAK_RADIUS_KM 70, DISK_INDEX_BELOW 1.8, DISK_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
             ],
             [
               "The range it moves in",
@@ -30594,7 +30776,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": "GEN.1083",
-          "what": "irregular_population.REFERENCE_DISC_MASS_EARTH 30, DISC_REFERENCE_RADIUS_KM 40, DISC_COUNT_AT_REFERENCE 3.5e7, DISC_BREAK_RADIUS_KM 70, DISC_INDEX_BELOW 1.8, DISC_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
+          "what": "irregular_population.REFERENCE_DISK_MASS_EARTH 30, DISK_REFERENCE_RADIUS_KM 40, DISK_COUNT_AT_REFERENCE 3.5e7, DISK_BREAK_RADIUS_KM 70, DISK_INDEX_BELOW 1.8, DISK_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
         },
         {
           "burn_down": null,
@@ -30757,7 +30939,7 @@
           "fields": [
             [
               "What it is",
-              "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISC_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
+              "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISK_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
             ],
             [
               "The range it moves in",
@@ -30788,7 +30970,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": "GEN.1083",
-          "what": "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISC_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
+          "what": "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISK_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
         },
         {
           "burn_down": null,
@@ -31309,7 +31491,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.BIN_EDGES_KM (1, 10, 100, 1000) and BIN_LOW_KM 0.001: the size table of the rest of the belt splits at the decades below the smallest stored body, the lowest bin running down to a metre"
         },
         {
@@ -31347,7 +31529,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.DENSITY_DIAMETERS_KM (1, 10, 100): the density factor counts objects per square AU above these diameters"
         },
         {
@@ -31385,7 +31567,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L1",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.L2_FLOOR_KG 1e15: bins whose bodies are over this mass are labelled drawn on demand from the belt's seed, the rest a total only"
         },
         {
@@ -31423,7 +31605,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_page.SHARE_SAMPLES 24 and MIN_SHARE 0.005: the typical composition of a belt is the taxon kernel averaged at 24 distances taken at equal steps of the belt's mass, taxa under half a percent left out of the list"
         }
       ],
@@ -31889,7 +32071,7 @@
           "fields": [
             [
               "What it is",
-              "trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
+              "trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
             ],
             [
               "The range it moves in",
@@ -31920,7 +32102,7 @@
           "tier_code": "T4",
           "tweak": "L4",
           "unread": "GEN.1151",
-          "what": "trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
+          "what": "trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
         }
       ],
       "slug": "6-125-stand-ins-of-the-whole-bodies-at-lagrange-points",
@@ -31965,7 +32147,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1159",
+          "unread": "GEN.1201",
           "what": "roundness.SPHERICITY_FACTOR 1.1: the longest axis of a body counted round is at most this times its mean radius"
         },
         {
@@ -32003,7 +32185,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1159",
+          "unread": "GEN.1201",
           "what": "roundness.ICE_STRENGTH_PA 1 MPa and roundness.ROCK_STRENGTH_PA 16.5 MPa (from roundness_strengths.json): the default strength of ice (the creep strength of pure ice near 158 K) and the strength that rounds rock at 300 km and 2500 kg/m3"
         },
         {
@@ -32083,7 +32265,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1159",
+          "unread": "GEN.1201",
           "what": "roundness.METAL_STRENGTH_PA 100 MPa"
         },
         {
@@ -32695,7 +32877,7 @@
             ],
             [
               "What it is",
-              "giant_structure.CENTRE_MASS_FRACTION, CENTRE_RADIUS_FRACTION"
+              "giant_structure.CENTER_MASS_FRACTION, CENTER_RADIUS_FRACTION"
             ],
             [
               "The range it moves in",
@@ -32718,7 +32900,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "giant_structure.CENTRE_MASS_FRACTION, CENTRE_RADIUS_FRACTION"
+          "what": "giant_structure.CENTER_MASS_FRACTION, CENTER_RADIUS_FRACTION"
         },
         {
           "burn_down": null,
@@ -33639,7 +33821,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1219",
+          "unread": null,
           "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
         },
         {
@@ -35153,7 +35335,11 @@
       "number": "6.181",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the peak magnitude of the star look is chosen by eye so the faint end shows and the bright end does not clip; a display model of the eye's response fitted to the dark-adapted sky would replace it"
+          ],
           "fields": [
             [
               "What it is",
@@ -35191,7 +35377,11 @@
           "what": "skylight.PEAK_MAGNITUDE 4.5: a star this bright or brighter is drawn at full strength in its middle, and fainter ones at 10^(-0.4 (m - 4.5)) of it"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the width of a drawn star and its growth per magnitude are chosen by eye so a bright star looks brighter on a monitor that cannot make it so; the eye's point-spread function would replace them"
+          ],
           "fields": [
             [
               "What it is",
@@ -35229,7 +35419,11 @@
           "what": "skylight.SIGMA_PX 0.7, SIGMA_PER_MAG_PX 0.45, SIZE_SIGMAS 4 and MAX_SIZE_PX 12: the Gaussian width of a point (0.7 pixel at the peak magnitude plus 0.45 pixel per magnitude brighter), the width it is cut at and the widest it is drawn"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the colour a faint star keeps is chosen by eye; the eye's loss of colour vision at low light (the display model of SKL1) would replace it"
+          ],
           "fields": [
             [
               "What it is",
@@ -35267,7 +35461,11 @@
           "what": "skylight.SAT_MIN 0.35, SAT_SLOPE 0.65, SAT_REF_MAG 5.5 and SAT_SPAN_MAG 4: a star keeps all of its colour at magnitude 1.5 and brighter and 35% of it at 5.5 and fainter, linear between"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the phone's limiting magnitude is set from the plan's count of about 9,000 stars in step with the 15,000 cap; the frame time a phone measures would replace it"
+          ],
           "fields": [
             [
               "What it is",
@@ -35305,7 +35503,11 @@
           "what": "skylight.SKY_LIMIT_PHONE 6.5 (and sky.DEFAULT_LIMIT, skylight.SKY_LIMIT 7.5, which Boss chose on 2026-11-04): the limiting magnitude on a window 700 pixels wide or narrower"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the star caps are the plan's phone count and a laptop's frame time at 60 frames a second; the count the frame time of the page's own machine allows would replace them"
+          ],
           "fields": [
             [
               "What it is",
@@ -35343,7 +35545,11 @@
           "what": "skysphere.MAX_STARS 60000 and MAX_STARS_PHONE 15000: the most stars the page draws, the brightest kept"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the speed that takes a third light-time pass is where the residual of two passes reaches a pixel of the finest view; no measured star needs a lower one"
+          ],
           "fields": [
             [
               "What it is",
@@ -35381,7 +35587,11 @@
           "what": "skysphere.FAST_KMS 1000: a star faster than this relative to the observer takes a third light-time pass"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the pick reach is chosen so a pixel-sized star can be hit by a mouse; a reach set by the pointer's kind (mouse, pen, touch) would replace it"
+          ],
           "fields": [
             [
               "What it is",
@@ -35419,7 +35629,11 @@
           "what": "skypick.REACH_PX 10 and PREFILTER_SLACK_PX 30: how near the pointer must be to a star to pick it, and the margin the first filter keeps"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the cap on charted names bounds the size of the route's meta; a name carried in the packed list or looked up on a pick would remove the need for it"
+          ],
           "fields": [
             [
               "What it is",
@@ -35457,7 +35671,11 @@
           "what": "system_sky.MAX_CHARTED_NAMES 5000: the most charted stars the sky route names in meta.charted"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the poll interval, poll count and phone width are serving limits so a poll does not hammer the route and ends; the build's own notice of completion would replace the poll"
+          ],
           "fields": [
             [
               "What it is",
@@ -36763,6 +36981,212 @@
       ],
       "slug": "6-165-stand-ins-of-the-habitable-bodies-per-system",
       "title": "Stand-ins of the habitable bodies per system"
+    },
+    {
+      "key": "6.172",
+      "number": "6.172",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
+            ],
+            [
+              "The range it moves in",
+              "15 to 50"
+            ],
+            [
+              "Where it holds",
+              "giants with a circumplanetary disc; the value was adopted for Jupiter and Saturn"
+            ],
+            [
+              "What would show it wrong",
+              "a hydrodynamic or population study of moons forming a good way past 30 planet radii of a giant of another mass, or a mass dependence of the centrifugal radius"
+            ],
+            [
+              "What replaces it",
+              "a centrifugal radius from the planet's mass, spin and the inflow's angular momentum (the Hill-sphere inflow runs behind [R3922])"
+            ],
+            [
+              "Evidence",
+              "[R3922] Appendix A: \"we adopt r_c = 30 R_p\" from three-dimensional hydrodynamic runs of the flow within the Hill sphere; its Table 1 puts Callisto at 26.4, Titan at 20.3 and Ganymede at 15.0 planet radii"
+            ]
+          ],
+          "id": "MD1",
+          "key": "6.172:MD1",
+          "kind": "P",
+          "slug": "6-172-md1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
+            ],
+            [
+              "The range it moves in",
+              "none (the planet's spin is drawn)"
+            ],
+            [
+              "Where it holds",
+              "giants whose spin is drawn by planets.draw_birth_spin; 2.25 planet radii for the Jupiter of the source"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose innermost regular moon sits well inside the corotation radius of its birth spin, or a disc whose cavity is set by something other than the spin"
+            ],
+            [
+              "What replaces it",
+              "a magnetospheric truncation radius from the planet's field and the disc's accretion rate"
+            ],
+            [
+              "Evidence",
+              "[R3922] section 2.4 (the disc truncated \"at the corotation radius where the disk gas corotates with the planetary spin\"; set I takes about 2.25 planet radii for Jupiter)"
+            ]
+          ],
+          "id": "MD2",
+          "key": "6.172:MD2",
+          "kind": "P",
+          "slug": "6-172-md2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
+        }
+      ],
+      "slug": "6-172-stand-ins-of-the-zone-the-regular-moons-of-a-giant-form-in",
+      "title": "Stand-ins of the zone the regular moons of a giant form in"
+    },
+    {
+      "key": "6.182",
+      "number": "6.182",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_roster.CDF_POINTS 48 and CDF_STEPS 8: the log-spaced points across the belt at which the cumulative solids are tabulated, and the steps between points"
+            ],
+            [
+              "The range it moves in",
+              "none (numerical; the inverse is the same to a few parts in a thousand at twice the points)"
+            ],
+            [
+              "Where it holds",
+              "any belt"
+            ],
+            [
+              "What would show it wrong",
+              "a member distance that moves by more than 0.5 percent of the belt width when the points are doubled"
+            ],
+            [
+              "What replaces it",
+              "an exact cumulative from the surface density in closed form"
+            ],
+            [
+              "Evidence",
+              "numerical choice; not read"
+            ]
+          ],
+          "id": "MR1",
+          "key": "6.182:MR1",
+          "kind": "D",
+          "slug": "6-182-mr1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_roster.CDF_POINTS 48 and CDF_STEPS 8: the log-spaced points across the belt at which the cumulative solids are tabulated, and the steps between points"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_roster.E_OVER_I 1: the ratio of the rms eccentricity to the rms inclination in radians"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "a belt of planetesimals stirred by one giant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured belt whose ratio lies outside 0.5 to 2"
+            ],
+            [
+              "What replaces it",
+              "the belt's own stirring history, when the scatter step stores one"
+            ],
+            [
+              "Evidence",
+              "[R4785] section 2.2"
+            ]
+          ],
+          "id": "MR2",
+          "key": "6.182:MR2",
+          "kind": "P",
+          "slug": "6-182-mr2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_roster.E_OVER_I 1: the ratio of the rms eccentricity to the rms inclination in radians"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7 and 40 to 90"
+            ],
+            [
+              "Where it holds",
+              "any belt"
+            ],
+            [
+              "What would show it wrong",
+              "a published member of a main belt whose eccentricity exceeds 0.5 and which is held in the belt by a resonance"
+            ],
+            [
+              "What replaces it",
+              "a cut taken from the belt's own width and the giants' crossing orbits"
+            ],
+            [
+              "Evidence",
+              "cut so that a body does not cross the belt's whole width; not read"
+            ]
+          ],
+          "id": "MR3",
+          "key": "6.182:MR3",
+          "kind": "D",
+          "slug": "6-182-mr3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
+        }
+      ],
+      "slug": "6-182-stand-ins-of-where-a-stored-belt-member-lies",
+      "title": "Stand-ins of where a stored belt member lies"
     },
     {
       "key": "6.166",
@@ -38535,8 +38959,8 @@
           "what": "tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO 1.8: the scale length of a satellite's gas disc over its stars'"
         }
       ],
-      "slug": "6-140-stand-ins-of-the-gas-disc-of-a-satellite-galaxy",
-      "title": "Stand-ins of the gas disc of a satellite galaxy"
+      "slug": "6-140-stand-ins-of-the-gas-disk-of-a-satellite-galaxy",
+      "title": "Stand-ins of the gas disk of a satellite galaxy"
     },
     {
       "key": "6.141",
@@ -39301,7 +39725,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L1",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_dispersal.RETIREMENT_RADIUS_M 1 light year: the rms radius past which a field is retired (its mass is then under 1e-6 of the background density of a 1 ly ball for a planet's worth of rock, and the field is no longer a place)"
         },
         {
@@ -39339,7 +39763,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1105",
+          "unread": null,
           "what": "field_dispersal.OORT_A_KMS_KPC 15.0 km/s/kpc, with SHEAR_VALID_YEARS 2.6e7: the galactic shear of the field along the orbit, 2 A x t for an offset x, applied to the bodies of a field only while the epicyclic approximation holds"
         },
         {
@@ -39377,7 +39801,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1105",
+          "unread": null,
           "what": "field_dispersal.DEFAULT_DENSITY_KG_M3 3000: the bulk density of a rocky piece, used for the freeze-out radius sqrt(3 M / (2 pi rho D)) at which a column of pieces of diameter D stops colliding (one collision per piece when the optical depth is 1)"
         },
         {
@@ -39789,7 +40213,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.LARGEST_BODY_MASS_KG 1e17, BULK_DENSITY_KG_M3 1500: the largest body of a light field (a rubble pile about 50 km across, a hundredth of the ledger cut of 1e19) and its bulk density (a porous pile, half of the silicate pieces of IF17)"
         },
         {
@@ -39831,7 +40255,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it)"
         },
         {
@@ -39873,7 +40297,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up"
         }
       ],
@@ -39957,7 +40381,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1))"
         },
         {
@@ -39995,7 +40419,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones"
         },
         {
@@ -40033,7 +40457,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed"
         },
         {
@@ -40071,7 +40495,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2)"
         },
         {
@@ -40109,7 +40533,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2"
         },
         {
@@ -40147,7 +40571,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1069",
+          "unread": "GEN.1092",
           "what": "resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for"
         }
       ],
@@ -40797,7 +41221,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
+              "tuning.THICK_DISK_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
             ],
             [
               "The range it moves in",
@@ -40828,7 +41252,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
+          "what": "tuning.THICK_DISK_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
         },
         {
           "burn_down": null,
@@ -40869,8 +41293,8 @@
           "what": "thick_ages.mixed_old_law: the thick disc's star formation is flat over its window"
         }
       ],
-      "slug": "6-146-stand-ins-of-the-thick-disc-s-ages",
-      "title": "Stand-ins of the thick disc's ages"
+      "slug": "6-146-stand-ins-of-the-thick-disk-s-ages",
+      "title": "Stand-ins of the thick disk's ages"
     },
     {
       "key": "6.147",
@@ -42171,7 +42595,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISC_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
+              "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
             ],
             [
               "The range it moves in",
@@ -42202,7 +42626,7 @@
           "tier_code": "T2",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISC_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
+          "what": "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
         },
         {
           "burn_down": null,
@@ -42475,7 +42899,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
         },
         {
@@ -42513,7 +42937,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
         },
         {
@@ -43049,7 +43473,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "body_status.ZONE_HILL_RADII 2 sqrt 3: the half-width of the zone of a body, in its Hill radii, within which Soter's mu counts the other bodies (Margot's C, so the two discriminants use one zone)"
         },
         {
@@ -43087,7 +43511,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "body_status.LAMBDA_K: the k of Stern and Levison's Lambda = k m^2 / P, fixed so that Lambda is 1 at Margot's clearing mass at 1 au round the Sun (6.7e5 per Earth mass squared per year); their own k was not read"
         }
       ],
@@ -44177,7 +44601,7 @@
           "fields": [
             [
               "What it is",
-              "scatter.DISC_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+              "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
             ],
             [
               "The range it moves in",
@@ -44208,7 +44632,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "scatter.DISC_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+          "what": "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
         }
       ],
       "slug": "6-127-stand-ins-of-the-architecture-s-losses",

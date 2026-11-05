@@ -106,7 +106,7 @@ class Ring:
     Attributes:
         kind (str): `KINDS`.
         origin (str): `ORIGINS`.
-        inner_km, outer_km (float): The radii of its inner and outer edges, km from the planet's centre.
+        inner_km, outer_km (float): The radii of its inner and outer edges, km from the planet's center.
         mass_kg (float): Its mass.
         optical_depth (float): Its mean optical depth over the area it covers.
         ice_fraction (float): Its water-ice share by mass.
@@ -124,7 +124,7 @@ class Ring:
 
 
 def roche_limit_km(radius_km, planet_density_kg_m3, particle_density_kg_m3):
-    """The fluid Roche limit of a planet for material of `particle_density_kg_m3`, km from the planet's centre."""
+    """The fluid Roche limit of a planet for material of `particle_density_kg_m3`, km from the planet's center."""
     return ROCHE_COEFFICIENT * radius_km * (planet_density_kg_m3 / particle_density_kg_m3) ** (1.0 / 3.0)
 
 
@@ -159,7 +159,7 @@ def build_ring(origin, mass_kg, age_yr, radius_km, planet_mass_kg, cold, moon_di
         age_yr (float): The years since its main event.
         radius_km, planet_mass_kg (float): The planet's radius and mass.
         cold (bool): Whether the planet orbits beyond its star's snow line, where a ring keeps its ice.
-        moon_distances_km (iterable): The distances of the planet's moons from its centre.
+        moon_distances_km (iterable): The distances of the planet's moons from its center.
     """
     kind = kind_of_mass(mass_kg)
     low, high = RANGES["ice_fraction"][kind]
@@ -211,7 +211,10 @@ def apply(planet, host=None):
     age_yr = planet.star.age * 1.0e9
     body = ring_origin.Planet(planet.mass, planet.radius, around.distance, star_mass_kg)
     passages = ring_origin.draw_comet_passages(body, age_yr, cold)
-    history = ring_origin.ring_origin(body, age_yr, getattr(planet, "fallen_moons", ()) or (), passages)
+    feeders = () if planet.is_moon else tuple(ring_origin.FeederMoon(moon.radius or 0.0, _au_to_km(moon.distance)) for moon in planet.moons)
+    if planet.body_type == "g" and not planet.is_moon:
+        feeders += ring_origin.draw_feeders(body)
+    history = ring_origin.ring_origin(body, age_yr, getattr(planet, "fallen_moons", ()) or (), passages, feeders)
     resonance = None
     if parent == moon_composition.DWARF_PLANET and not planet.is_moon and planet.rotation_period_hours:
         resonance = small_body_rings.resonance_ring(planet.mass, planet.radius, planet.rotation_period_hours, around.distance, star_mass_kg, cold, draw)

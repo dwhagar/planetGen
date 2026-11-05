@@ -422,7 +422,7 @@ def _set_star(mysql_config, star_id, **columns):
 
 
 def test_a_star_shows_its_chemistry_from_the_stored_values_with_units_and_sources(client, mysql_config):
-    """UX.254: the disc population, [alpha/Fe] and the metal mass fraction come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H]
+    """UX.254: the disk population, [alpha/Fe] and the metal mass fraction come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H]
     and age (no column), and read the same on every request; a red giant adds the helium its first dredge-up added."""
     from planetgen.physics import constants, stellar_abundances, stellar_composition
     system_id = _save_wide_binary_with_moons(mysql_config)

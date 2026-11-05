@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.594 |
+| TEST | TEST.596 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -2454,17 +2454,17 @@ Parents marked "new parent" had no old number of their own.
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | done, PR #697 |
 | NAV.17 | A saved course record with both forms | none | done, PR #2553 |
-| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | open |
+| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | done, PR #5084 |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
 | NAV.20 | Draw the direct line and the route apart | none | done, PR #711 |
-| NAV.21 | Fit the view to the whole course | none | open |
+| NAV.21 | Fit the view to the whole course | none | done, PR #5091 |
 | NAV.22 | Courses inside a sector and a system | none | open |
-| NAV.23 | Open a saved course on the map | none | open |
+| NAV.23 | Open a saved course on the map | none | done, PR #5091 |
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
-| NAV.28 | Show and save the adjusted course | none | open |
+| NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
@@ -3940,7 +3940,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.590 | test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star fails on plain main with min() of an empty list in _nearest (bug) | none | done, PR #5051 |
 | TEST.591 | test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug) | none | open |
 | TEST.592 | test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug) | none | done, PR #5073 |
-| TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | open |
+| TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | done, PR #5079 |
+| TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | done, PR #5088 |
+| TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
