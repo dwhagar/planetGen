@@ -17893,26 +17893,17 @@ clears each one.
   fails without the fix, never skip or loosen a test. Lock-free if
   output is unchanged; tell the TODO thread if values change. Version
   8.1. Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.607 Three cloud-placement tests find no cloud for a placed system (surrounding_cloud is None) (bug)**
-  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
-  gate) found this red on clean main 0d10348c5, so it is not a train 11
-  regression; the list is reports/train11-main-reds-2026-11-05.md.
-  tests/test_gen_cloud_at_generation.py:
-  test_a_system_placed_inside_a_field_cloud_gets_the_cloud_and_its_effects
-  (line 165),
-  test_the_same_placement_draws_the_same_enrichment_and_another_placement_another
-  (line 222),
-  test_the_sectors_local_axes_are_turned_into_the_galaxy_frame_before_the_test
-  (line 188). Same root: no cloud is found for a placed system. Decide
-  from the cause whether the code or the test moved (field clouds
-  changed under MAP.177/181 and GEN.1268). Done: all three pass on
-  current main. Owner: Core 4. Do: reproduce on current main first (it
-  may be fixed by a merge since), fix at the cause with a test that
-  fails without the fix, never skip or loosen a test. Lock-free if
-  output is unchanged; tell the TODO thread if values change. Version
-  8.1. Filed by the TODO thread.
+  Cause fixed in GEN.1265 (Tides 1, as the lane reported) (3:33 PM EST
+  on 2026-11-05): The cause was habitability_world.values_from_body not
+  carrying day_share_mean, so generation worked the latitude bands for a
+  point star while a re-score used the star's angular radius (up to
+  about 1 percent in the day and night hours of a band). The same
+  one-line fix is in Core 5's GEN.1265 branch (PR #5053, train 12), so
+  it rides that train. What is left: Tides 1's test-only branch
+  claude/test606-test (head 0fe61c513), the new test_latitude_bands
+  test, which is red on main until GEN.1265 lands and merges after it.
+  Ignore the old branch claude/test606. TEST.606 retires when both are
+  in.
   Prerequisites: none.
 
 - [ ] **TEST.612 test_post_main_sequence.py::test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright fails after test_bright_measure_exactness.py in one process (190 against 150 Gy) (bug)**
