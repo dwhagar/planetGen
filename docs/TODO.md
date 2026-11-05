@@ -18003,6 +18003,18 @@ clears each one.
   Train Manager. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.417.
 
+- [ ] **TEST.622 tests/test_parallel_names.py::test_two_passes_drawing_the_same_names_still_save_unique_ones fails alone on main (no species made) and passes in a whole-file run (bug)**
+  Core 5 (as the lane reported, about 4:15 PM EST on 2026-11-05) saw the
+  test fail alone on plain main with assert ([]) because no species was
+  made, while it passes when the whole file runs; it depends on test
+  order. Do: reproduce alone, find what an earlier test in the file sets
+  up that this one needs (a seeded draw, a table row, a cached pool),
+  and make the test set up its own state; a test that only passes after
+  another is a bug in the test. Add a check that runs the test alone in
+  the file's own run. Done: the test passes alone and in the whole file.
+  Lock-free. Version 8.1. Owner: Core 5. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.417.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
