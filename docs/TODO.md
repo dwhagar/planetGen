@@ -17960,6 +17960,15 @@ clears each one.
   loosen a check. Done: both green on main with the cause of each noted.
   Lock-free unless a stored value is the cause (then stop and tell
   TODO). Version 8.1. Owner: Aux 7. Filed by the TODO thread.
+  Halves (TODO, from Aux 7) (11:10 AM EST on 2026-11-05):
+  test_bring_to_epoch fixed on claude/test598 (d55b18ca8, lock-free, Aux
+  7 merges it). test_fingerprint fix is on claude/test598-fingerprint
+  (2b6eb08fb): the four rogue_planet_* child tables are compared,
+  designations and chart_ledger left out as bookkeeping. Comparing the
+  rogue tables changes the digests of the 12 golden-galaxy sectors that
+  hold a rogue, so src/tests/golden/galaxy.json must be rewritten: lock
+  item for train 12 (generation-output unchanged). This item stays open
+  until it lands.
   Prerequisites: none. Related: TEST.580.
 
 - [ ] **TEST.599 test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug)**
@@ -17992,6 +18001,21 @@ clears each one.
   with no other test moved. Version 8.1. Owner: Train Manager, after
   train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.430.
+
+- [ ] **TEST.602 test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug)**
+  Aux 7 (as the lane reported, about 11:05 AM EST on 2026-11-05) found
+  this test red on plain main with 24 saved sectors holding a NULL
+  leaf_digest, while working on TEST.598. Likely the sector rows that
+  rogue planets create in uncharted cells (GEN.1111 part 7) are saved
+  without a leaf digest, or the test counts them as saved sectors. Do:
+  run the test alone on current main, find which sectors have the NULL
+  (charted or uncharted), bisect to the commit, and fix at the cause: if
+  uncharted rogue-landing sectors are not meant to have a leaf, the test
+  counts charted sectors only (as TEST.417's snapshot does); if they
+  should, the save writes the digest (that is lock work, tell TODO).
+  Done: the test green on main. Version 8.1. Owner: Aux 7. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.598.
 
 ## USR: User accounts
 
