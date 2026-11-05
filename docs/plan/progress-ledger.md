@@ -2583,3 +2583,8 @@ Baseline: PR #1817.
 | PERF.219 | later | Paging audit |
 | TEST.626 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.393 | 8.5 | Console look: icons and the maps' chrome |
+| MAP.366 | 8.1 | Nebula data foundations |
+| UX.272 | 8.1 | Interface update |
+| MAP.386 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| PERF.243 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| MAP.387 | 8.3 | Gravity field evaluator |
