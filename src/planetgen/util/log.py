@@ -277,15 +277,15 @@ class LineFormatter(logging.Formatter):
     """
     The one formatter set (OPS.104): every line the program writes, on a screen, in a file or in a run's log, is a `logrecord.Record` written
     in one of `FORMS` by this class, so no form has a second implementation to drift. `tz` (a `datetime.tzinfo`, the computer's own zone when
-    `None`) and `parts` (`times`, `component`, `fields`) shape the `display` form. The `debug` form is local time with milliseconds and the
+    `None`) and `parts` (`times`, `component`, `fields`) shape the `display` form; `component` names the one component every line carries, whichever module logged it (a log that belongs to one job). The `debug` form is local time with milliseconds and the
     UTC offset, e.g. `2026-09-24T02:57:37.123-0400`, so lines from several processes (and across a DST change) still sort and compare.
     """
 
-    def __init__(self, form="display", tz=None, **parts):
+    def __init__(self, form="display", tz=None, component=None, **parts):
         if form not in FORMS:
             raise ValueError(f"no form {form!r}; the forms are {', '.join(FORMS)}")
         super().__init__(_DEBUG_LOG_FORMAT if form == "debug" else None)
-        self.form, self.tz, self.parts = form, tz, parts
+        self.form, self.tz, self.component, self.parts = form, tz, component, parts
 
     def formatTime(self, record, datefmt=None):
         local = time.localtime(record.created)
@@ -296,6 +296,8 @@ class LineFormatter(logging.Formatter):
         if self.form == "debug":
             return super().format(log_record)
         record = record_of(log_record)
+        if self.component:
+            record.component = self.component
         if self.form == "file":
             return logrecord.file_line(record)
         if self.form == "json":
@@ -365,6 +367,32 @@ class _ConsoleHandler(logging.Handler):
 
 
 _console_handler = _ConsoleHandler()
+
+
+def file_handler(path, form="display", component=None, level=logging.INFO):
+    """
+    A handler that appends to `path` in `form` (`FORMS`; with `component` every line carries that one), reopening the file if a rotation moves it
+    (OPS.104: a job's own log, such as the warm-up log, is made here and not with a handler of its own). Add it with `attach` and take it off
+    with `detach`.
+
+    Raises:
+        OSError: The file cannot be opened.
+    """
+    handler = logging.handlers.WatchedFileHandler(path, encoding="utf-8")
+    handler.setFormatter(LineFormatter(form, component=component))
+    handler.setLevel(level)
+    return handler
+
+
+def attach(handler):
+    """Adds `handler` (a `file_handler`) to the program's logger."""
+    _logger.addHandler(handler)
+
+
+def detach(handler):
+    """Takes `handler` off the program's logger and closes it."""
+    _logger.removeHandler(handler)
+    handler.close()
 
 
 _record_file = None

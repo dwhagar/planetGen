@@ -8,7 +8,7 @@ Every `planetgen warm` that runs a warm-up appends it to `warmup.log` itself, in
 the background run that starts after a change (`warmstart`) alike, so the record does not depend on how the run was started (it
 used to be a `tee` into one /tmp file that stage 2 overwrote, and a background run left nothing). Each run is bracketed by a line that
 says what started it and a line that says how it ended and after how long; between them are the lines the run printed, each in the
-logging layer's display form (`logrecord.display_line`): the local time with its zone, the severity, the component and the message.
+logging layer's display form (`log.LineFormatter`): the local time with its zone, the severity, the component and the message.
 
     2026-11-05 07:44:10 EST INFO     warm: Cache warm-up started (update.sh, stage 2 of 2, the full warm-up; time limit 4 hours)
     2026-11-05 08:01:54 EST INFO     warm: Cache warm-up finished after 17:44 (5 families)
@@ -20,12 +20,11 @@ warm-up. The folder is rotated by the rule `examples/apache/setup-debug-log.sh` 
 """
 
 import logging
-import logging.handlers
 import os
 import time
 
 from planetgen.cli import warm_progress
-from planetgen.util import log, logpaths, logrecord
+from planetgen.util import log, logpaths
 
 STARTED_BY_ENV = "PLANETGEN_WARM_STARTED_BY"
 """str: What `scripts/deploy-common.sh` tells a stage's run about itself, for the line that opens the run in `warmup.log`."""
@@ -35,15 +34,6 @@ TIME_LIMIT_ENV = "PLANETGEN_WARM_TIME_LIMIT_SECONDS"
 
 COMPONENT = "warm"
 """str: The component every line of the file carries, whichever module printed it."""
-
-
-class _Formatter(logging.Formatter):
-    """A record as the display line, with the one component `COMPONENT`."""
-
-    def format(self, log_record):
-        record = logrecord.record_of(log_record)
-        record.component = COMPONENT
-        return logrecord.display_line(record)
 
 
 def _words(seconds):
@@ -90,13 +80,11 @@ class RunLog:
         self.started = time.monotonic()
         try:
             path = self.path or logpaths.warmup_log_path()
-            self.handler = logging.handlers.WatchedFileHandler(path, encoding="utf-8")
+            self.handler = log.file_handler(path, "display", COMPONENT)
         except (OSError, TypeError, ValueError) as exc:
             log.warning(f"Cannot write the warm-up log ({exc}); the warm-up goes on without it.")
             return self
-        self.handler.setFormatter(_Formatter())
-        self.handler.setLevel(logging.INFO)
-        logging.getLogger("planetgen").addHandler(self.handler)
+        log.attach(self.handler)
         self._write(logging.INFO, f"Cache warm-up started ({started_by(self.reason, self.environ)})")
         return self
 
@@ -124,7 +112,6 @@ class RunLog:
             self._write(logging.ERROR, f"Cache warm-up ended by Ctrl+C after {took}")
         else:
             self._write(logging.ERROR, f"Cache warm-up failed after {took}: {exc}")
-        logging.getLogger("planetgen").removeHandler(self.handler)
-        self.handler.close()
+        log.detach(self.handler)
         self.handler = None
         return False
