@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3350] - 2026-11-05
+
+**Headline:** The population tests that run two passes at once now pass alone as well as in a whole-file run, because the test helper that sets the civilization chance no longer lets one pass undo it for the other.
+
+### Fixed
+- `every_window_has_a_civilization` (TEST.622) saved the civilization chance and put it back for each block on its own. Two passes on two threads overlapped: the one that finished first put the chance back to 1 in 1,000 under the one still running, which made no species, and the one that finished last saved the first one's value of 1 and left the chance there for every test after it. That is why `test_two_passes_drawing_the_same_names_still_save_unique_ones` failed alone and passed in a whole-file run. The first block in saves the chance and the last one out puts it back, under a lock.
+
 ## [8.0.3349] - 2026-11-05
 
 **Headline:** The tests that need a generated civilization no longer each pay minutes to find one: the systems are drawn from numbered seeds and the numbers that gave a civilization are kept for the other test processes.
