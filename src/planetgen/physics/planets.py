@@ -144,6 +144,38 @@ def apply_class(planet):
         planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
 
 
+def is_life_class(body):
+    """Whether the finished body's class is one that can carry life (`tuning.HABITABLE_PLANET_CLASSES`)."""
+    return body.planet_class in tuning.HABITABLE_PLANET_CLASSES
+
+
+def bars_life_classes(body):
+    """Whether the system `body` is in bars bodies of a class that can carry life (`HABITABLE_WORLD` False, GEN.1275)."""
+    return getattr(getattr(body, "system_config", None), "HABITABLE_WORLD", None) is False
+
+
+def bar_life_class(body, remake):
+    """
+    Makes a body of a class that can carry life again, in a system that bars them (GEN.1275: `HABITABLE_WORLD` False means no body of any such class
+    anywhere in the system, Boss 2026-11-04): up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times `remake()` runs from a stream of its own (the body's
+    mass, distance, star and the attempt, so the run's stream does not move) and ends when the class is not one that can carry life.
+
+    Args:
+        body (Planet): A planet or moon whose class was just derived.
+        remake (callable): Makes the body's air, water and class again from the conditions it has (called inside the stream).
+
+    Returns:
+        bool: Whether the body ends outside the classes that can carry life (True too for a body that was never in one).
+    """
+    for attempt in range(tuning.BARRED_CLASS_MAX_ATTEMPTS):
+        if not is_life_class(body):
+            return True
+        with draw.bound(draw.Stream(f"barred-life-class:{float(body.mass)!r}:{float(body.distance)!r}:{float(body.star.mass)!r}:"
+                                    f"{float(body.star.age)!r}:{int(body.is_moon)}:{attempt}")):
+            remake()
+    return not is_life_class(body)
+
+
 @finite_domain()
 def calculate_orbital_period_years(distance_au, primary_mass_kg):
     """

@@ -187,3 +187,44 @@ def test_the_answer_is_aim_exactly_when_a_body_meets_the_conditions_of_the_reque
     assert StarSystem.habitable_request_status(holder) == "aim"
     holder.all_planets = [types.SimpleNamespace(body_type="g", moons=[])]
     assert StarSystem.habitable_request_status(holder) == "unmet"
+
+
+def test_a_barred_habitable_world_leaves_no_body_of_a_life_class_anywhere_in_the_system():
+    """GEN.1275: `HABITABLE_WORLD` False barred only an ecosphere planet that met the request, so 0.35 of such systems still held a body
+    of a class that can carry life (a moon, an outer planet, a body whose class changed in the life pass). It now bars every planet and moon
+    of those classes, remade from the same conditions when the class comes out as one and dropped when none of the attempts leaves it."""
+    for seed in range(8):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V" if seed % 2 else "K5V"
+        cfg.BINARY_SYSTEM = False
+        cfg.HABITABLE_WORLD = False
+        draw.set_run_seed(seed)
+        built = StarSystem(system_config=cfg)
+        assert built.count_habitable_class_worlds() == 0, seed
+        for body in built.all_planets:
+            assert getattr(body, "planet_class", None) not in tuning.HABITABLE_PLANET_CLASSES, (seed, body)
+            for moon in getattr(body, "moons", []):
+                assert moon.planet_class not in tuning.HABITABLE_PLANET_CLASSES, (seed, moon.planet_class)
+
+
+def test_bar_life_class_remakes_a_body_until_it_leaves_the_life_classes_and_says_so_when_it_cannot():
+    from planetgen.physics import planets as planetPhysics
+    life = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
+    body = types.SimpleNamespace(planet_class=life, mass=1.0, distance=1.0, is_moon=False, star=types.SimpleNamespace(mass=1.0, age=1.0))
+    calls = []
+
+    def remake_after_two():
+        calls.append(1)
+        if len(calls) == 2:
+            body.planet_class = "D"
+
+    draw.set_run_seed(0)
+    assert planetPhysics.bar_life_class(body, remake_after_two) is True
+    assert len(calls) == 2
+    body.planet_class = life
+    never = []
+    assert planetPhysics.bar_life_class(body, lambda: never.append(1)) is False
+    assert len(never) == tuning.BARRED_CLASS_MAX_ATTEMPTS
+    body.planet_class = "D"
+    assert planetPhysics.bar_life_class(body, lambda: never.append(1)) is True
+    assert len(never) == tuning.BARRED_CLASS_MAX_ATTEMPTS
