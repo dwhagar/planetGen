@@ -1621,6 +1621,24 @@ def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
     assert not any("/shape" in url for url in requests), requests
 
 
+def test_sector_map_draws_a_remnant_and_a_nebula_from_points_and_never_as_a_hard_ball_or_shell(page, map_site):
+    """MAP.392 (Boss: "I'm still seeing the weird spheres / circle markers"): the Sector Map draws every nebula and supernova remnant of the sector from
+    points, the stored nebula by its id and the remnant (which has none) by its sphere (`/galaxy/cloud-volume`), and no analytic ball or shell is
+    left on screen for either; this fails on a nebula or remnant drawn as the sphere fallback."""
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
+    _open_sector(page, map_site)
+    page.wait_for_function(
+        f"() => {{ const v = ({VOLUMES})(); return v && v.volumes().some((volume) => volume.key.startsWith('sphere:supernova-remnant:')) "
+        "&& v.volumes().some((volume) => volume.key === 'nebula:31'); }", timeout=30000)
+    drawn = page.evaluate(f"() => ({VOLUMES})().volumes().map((volume) => [volume.key, volume.ix.length])")
+    remnant = [entry for entry in drawn if entry[0].startswith("sphere:supernova-remnant:")]
+    assert remnant and all(count > 0 for _, count in remnant), drawn
+    assert any("/galaxy/cloud-volume" in url and "family=supernova-remnant" in url for url in requests), requests
+    assert not any("/shape" in url for url in requests), requests
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyHardClouds()") == [], "no hard sphere or shell"
+
+
 def test_galaxy_map_draws_a_nebula_and_asks_for_no_shape_mesh(page, map_site):
     """MAP.103, MAP.142 part 4: a nebula big enough on screen is drawn (from its points or as a sprite), and the map asks the site for no
     per-nebula shape mesh any more."""

@@ -104,7 +104,7 @@ const {
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
-const { sourceOf: nebulaVolumeSource, singleIdOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { sourceOf: nebulaVolumeSource, singleIdOf, sphereOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
 const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
@@ -2121,7 +2121,10 @@ function initGalaxyMap3d(canvasEl, data) {
     colours: NEBULA_FAMILIES.map(function (family) { return nebulaFamilyColour(family, NEBULA_LOOKS); }),
     fetchBytes: function (key) {
       var alone = singleIdOf(key);
-      var url = alone !== null ? String(data.nebulaAloneVolumePath).replace("{id}", encodeURIComponent(alone))
+      var sphere = sphereOf(key);
+      var url = sphere !== null ? data.cloudVolumePath + "?x=" + sphere.x + "&y=" + sphere.y + "&z=" + sphere.z + "&radius_pc=" + sphere.radiusPc
+          + "&family=" + encodeURIComponent(sphere.family)
+        : alone !== null ? String(data.nebulaAloneVolumePath).replace("{id}", encodeURIComponent(alone))
         : data.nebulaVolumePath + "?key=" + encodeURIComponent(key);
       return fetch(url).then(function (response) {
         if (!response.ok) throw new Error(url + " returned " + response.status);
@@ -2861,6 +2864,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // from it, in the points' own (offset) coordinates.
   // For tests (MAP.267): how the star buffer was filled: syncs so far, stars written and moved in all, and the last
   // sync's own figures (chunks added and removed, stars kept untouched, written, moved, in all, and its milliseconds).
+  // MAP.392, for the browser tests: the nebulae and supernova remnants of the open sector still drawn as a hard sphere or shell ([] when all are points).
+  canvasEl.galaxyHardClouds = function () { return stageView.sectorHardClouds(); };
   canvasEl.galaxyStarFill = function () {
     return { syncs: starSync.syncs, written: starSync.written, moved: starSync.moved, last: starSync.last,
       capacity: starCapacity, count: starList.length };
