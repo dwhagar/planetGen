@@ -431,7 +431,7 @@ class Planet(PlanetaryObject):
             planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
             planetPhysics.calculate_atmospheric_conditions(self, distance_override)
             planetPhysics.apply_class(self)
-            if not (system_config.HABITABLE_WORLD is False and self.zone == 'e' and habitable_request.meets(self)):
+            if not (system_config.HABITABLE_WORLD is False and habitable_request.meets(self)):
                 break
             draw.redrawn("planet.barred_world")
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
