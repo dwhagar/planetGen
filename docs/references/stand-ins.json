@@ -26743,6 +26743,424 @@
           "tweak": "L1",
           "unread": "GEN.1048",
           "what": "seasonal_swing.MAX_SHARE 0.999, the transport share is cut here; the seasonal damping is the mean state's own, B_t = B s / (1 - s)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "seasonal_swing.OCEAN_EDDY_DIFFUSIVITY_M2_S 2.5e-4, how fast the sea mixes heat down: the depth a cycle of period P reaches is sqrt(kappa P / pi), 50 m for a year and 2.6 m for a day"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "worlds with a liquid water ocean"
+            ],
+            [
+              "What would show it wrong",
+              "an ocean model whose diurnal mixed layer averages under 1 m or over 8 m"
+            ],
+            [
+              "What replaces it",
+              "the ocean's own mixing from the wind and the heat flux (the hydrosphere)"
+            ],
+            [
+              "Evidence",
+              "set to give the 50 m of SS1 at a year; the observed diurnal mixed layers are a few metres"
+            ]
+          ],
+          "id": "SS4",
+          "key": "6.91:SS4",
+          "kind": "P",
+          "slug": "6-91-ss4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "seasonal_swing.OCEAN_EDDY_DIFFUSIVITY_M2_S 2.5e-4, how fast the sea mixes heat down: the depth a cycle of period P reaches is sqrt(kappa P / pi), 50 m for a year and 2.6 m for a day"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_cycle.CELL_ROWS 12 and CELL_COLUMNS 12, the cells of the grid of equal area and equal longitude"
+            ],
+            [
+              "The range it moves in",
+              "rows and columns 8 to 24"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose livable share changes by more than 0.03 when the grid is doubled"
+            ],
+            [
+              "What replaces it",
+              "a finer grid, if the sweep shows the share moves"
+            ],
+            [
+              "Evidence",
+              "a numerical choice (Boss, plan of 7:32 PM EST 11-04)"
+            ]
+          ],
+          "id": "SS5",
+          "key": "6.91:SS5",
+          "kind": "P",
+          "slug": "6-91-ss5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_cycle.CELL_ROWS 12 and CELL_COLUMNS 12, the cells of the grid of equal area and equal longitude"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_cycle.PERIODIC_TOLERANCE 0.02 and MAX_PERIODIC_ORBITS 12 (the solar day may be stretched by 2 percent, or the span lengthened to up to 12 orbits, so the series repeats exactly)"
+            ],
+            [
+              "The range it moves in",
+              "tolerance 0.005 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose livable share changes by more than 0.02 when the tolerance is halved"
+            ],
+            [
+              "What replaces it",
+              "an exact commensurate solver"
+            ],
+            [
+              "Evidence",
+              "a numerical choice"
+            ]
+          ],
+          "id": "SS6",
+          "key": "6.91:SS6",
+          "kind": "P",
+          "slug": "6-91-ss6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_cycle.PERIODIC_TOLERANCE 0.02 and MAX_PERIODIC_ORBITS 12 (the solar day may be stretched by 2 percent, or the span lengthened to up to 12 orbits, so the series repeats exactly)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.LOCKED_TRANSPORT_X0 0.1, the air column in Earth's at which the air removes half of the day to night contrast of a tidally locked world"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "tidally locked bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a published locked-planet circulation model whose night side of a 1 bar world is more than 15 K under the day side's mean"
+            ],
+            [
+              "What replaces it",
+              "the day to night contrast of a general circulation model grid of locked worlds by pressure"
+            ],
+            [
+              "Evidence",
+              "the order that general circulation models of locked Earth-like worlds give: a bar of air removes about 90 percent of the contrast, a Mars-thin one about 14 percent"
+            ]
+          ],
+          "id": "SS7",
+          "key": "6.91:SS7",
+          "kind": "P",
+          "slug": "6-91-ss7",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "regional_temperature.LOCKED_TRANSPORT_X0 0.1, the air column in Earth's at which the air removes half of the day to night contrast of a tidally locked world"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.TRANSPORT_X0 20, the air column in Earth's at which the air removes half of the pole to equator contrast"
+            ],
+            [
+              "The range it moves in",
+              "10 to 40"
+            ],
+            [
+              "Where it holds",
+              "bodies that turn faster than once an orbit"
+            ],
+            [
+              "What would show it wrong",
+              "a general circulation model whose polar annual mean for an Earth-like world is not 35 to 40 K under the mean"
+            ],
+            [
+              "What replaces it",
+              "a diffusion coefficient from the circulation"
+            ],
+            [
+              "Evidence",
+              "fitted so Earth's polar band sits about 35 K under its mean (the observed annual polar mean is 35 to 40 K under)"
+            ]
+          ],
+          "id": "SS8",
+          "key": "6.91:SS8",
+          "kind": "P",
+          "slug": "6-91-ss8",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "regional_temperature.TRANSPORT_X0 20, the air column in Earth's at which the air removes half of the pole to equator contrast"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.GROUND_INERTIA 300, the thermal inertia of the ground, J/(m2 K s^0.5)"
+            ],
+            [
+              "The range it moves in",
+              "55 (regolith) to 2500 (bare rock)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a measured thermal inertia of the body's own ground more than 2 times from 300"
+            ],
+            [
+              "What replaces it",
+              "the surface composition and grain (GEN.441)"
+            ],
+            [
+              "Evidence",
+              "lunar regolith 55, Mars about 300, bare rock 2000 to 2500"
+            ]
+          ],
+          "id": "SS9",
+          "key": "6.91:SS9",
+          "kind": "P",
+          "slug": "6-91-ss9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "regional_temperature.GROUND_INERTIA 300, the thermal inertia of the ground, J/(m2 K s^0.5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.AIR_CP_J_KG_K 1000, the heat capacity of air per kilogram"
+            ],
+            [
+              "The range it moves in",
+              "850 (carbon dioxide) to 14000 (hydrogen)"
+            ],
+            [
+              "Where it holds",
+              "bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose air has a heat capacity under 700 or over 3000 and that is a thin one where the column dominates the capacity"
+            ],
+            [
+              "What replaces it",
+              "the mixture's own heat capacity"
+            ],
+            [
+              "Evidence",
+              "air 1004, carbon dioxide 850, hydrogen 14,000"
+            ]
+          ],
+          "id": "SS10",
+          "key": "6.91:SS10",
+          "kind": "P",
+          "slug": "6-91-ss10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "regional_temperature.AIR_CP_J_KG_K 1000, the heat capacity of air per kilogram"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
+            ],
+            [
+              "The range it moves in",
+              "steps 1000 to 6000; tolerance 0.25 to 2 K"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose livable share is more than 0.06 from that of FINE (tests) or a sweep where it is more than 0.03 at the 95th percentile"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "numerical choices"
+            ]
+          ],
+          "id": "SS11",
+          "key": "6.91:SS11",
+          "kind": "P",
+          "slug": "6-91-ss11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on what counts as livable most of the time"
+            ],
+            [
+              "What replaces it",
+              "Boss's number"
+            ],
+            [
+              "Evidence",
+              "definitions from the research note of 11-04 and the decision of 7:32 PM EST"
+            ]
+          ],
+          "id": "SS12",
+          "key": "6.91:SS12",
+          "kind": "D",
+          "slug": "6-91-ss12",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
+            ],
+            [
+              "The range it moves in",
+              "45 to 75 and 105 to 135"
+            ],
+            [
+              "Where it holds",
+              "tidally locked bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on where the belt ends"
+            ],
+            [
+              "What replaces it",
+              "Boss's number"
+            ],
+            [
+              "Evidence",
+              "definitions; the plan says only day side, terminator and night side"
+            ]
+          ],
+          "id": "SS13",
+          "key": "6.91:SS13",
+          "kind": "D",
+          "slug": "6-91-ss13",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the best site changes with the tolerance in more than 1 percent of worlds"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "a numerical choice"
+            ]
+          ],
+          "id": "SS14",
+          "key": "6.91:SS14",
+          "kind": "P",
+          "slug": "6-91-ss14",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
         }
       ],
       "slug": "6-91-stand-ins-of-the-seasonal-swing",

@@ -1121,8 +1121,8 @@ def _longest_eclipse(conn, kind, object_id):
     return hours or None
 
 
-BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and night swing (hottest to coldest)"), ("day_hours", "Day"),
-                   ("night_hours", "Night"), ("longest_day_days", "Longest unbroken day"),
+BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and night swing (hottest to coldest)"), ("day_hours", "Mean day"),
+                   ("night_hours", "Mean night"), ("longest_day_days", "Longest unbroken day"),
                    ("longest_night_days", "Longest unbroken night"), ("state", "State"))
 """tuple: The rows of the table of the bands (GEN.1108), `regional_temperature.BAND_FIELDS` in order, each with its label."""
 
