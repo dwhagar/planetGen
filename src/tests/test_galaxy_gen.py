@@ -1515,10 +1515,18 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
 
     sectors = _all_sectors(mysql_config)
     expected_sector_count = sum(wedge_count(shell, band) for shell, band in _BOUNDS_TEST_BANDS)
-    assert len(sectors) == expected_sector_count
+    conn = _db.get_connection(mysql_config)
+    try:
+        charted = {(row["shell_index"], row["band_index"], row["wedge_index"])
+                   for row in conn.execute("SELECT shell_index, band_index, wedge_index FROM chart_ledger").fetchall()}
+    finally:
+        conn.close()
+    # A rogue planet lands in a cell that may not be charted (GEN.1111) and that cell gets a row of its own, so the rows are the charted
+    # cells and the cells the rogues landed in.
+    assert len([row for row in sectors if _address(row) in charted]) == expected_sector_count
 
     contexts = _sector_cell_contexts(mysql_config)
-    assert len(contexts) == expected_sector_count
+    assert len(contexts) == len(sectors) >= expected_sector_count
 
     conn = _db.get_connection(mysql_config)
     try:

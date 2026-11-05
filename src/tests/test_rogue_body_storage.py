@@ -25,7 +25,8 @@ def _event():
 
 
 def _rogue(seed, mass_earth, moons):
-    system = make_system()
+    with draw.bound(f"rogue-storage-donor-{seed}"):    # the donor star is drawn from a stream of its own, so the moon below does not depend on the run seed
+        system = make_system()
     donor = system.star
     with draw.bound(f"rogue-storage-{seed}"):
         planet = starless_host.build_ejected_planet(system.system_config, donor, 5.0, mass_earth * EARTH_KG, moon_count=moons)

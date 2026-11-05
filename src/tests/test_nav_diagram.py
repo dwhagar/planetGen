@@ -149,12 +149,12 @@ def test_stubs_a_link_and_an_and_n_more_are_drawn_faintly_with_their_words():
     html = render_course_diagram(_with_graph(route, edges, {13: 6}), _names(PATH), _urls(PATH))
     assert html.count('class="nav-diagram-neighbour nav-diagram-stub"') == 3 * len(WIDTHS) + 1       # and the legend's
     # On the narrow drawing the two stops are on different rows, so the arc is counted in a note, not drawn.
-    assert html.count('class="nav-diagram-neighbour nav-diagram-link"') == 2 and "1 neighbour link between stops on different rows is not drawn" in html
+    assert html.count('class="nav-diagram-neighbour nav-diagram-link"') == 2 and "1 neighbor link between stops on different rows is not drawn" in html
     assert html.count("and 6 more") >= len(WIDTHS)
-    assert "6 more neighbours of Star 13 are not drawn" in html
-    assert "A system 6.13 pc (20 ly) from Star 11: a neighbour, not a travel lane" in html or "from Star 11: a neighbour, not a travel lane" in html
-    assert "Star 11 and Star 13 are neighbours" in html
-    assert "a link is a neighbour relation, not a travel lane" in html and "Neighbour (not a travel lane)" in html
+    assert "6 more neighbors of Star 13 are not drawn" in html
+    assert "A system 6.13 pc (20 ly) from Star 11: a neighbor, not a travel lane" in html or "from Star 11: a neighbor, not a travel lane" in html
+    assert "Star 11 and Star 13 are neighbors" in html
+    assert "a link is a neighbor relation, not a travel lane" in html and "Neighbor (not a travel lane)" in html
 
 
 def test_the_route_s_own_hops_are_drawn_over_the_neighbours():
@@ -169,5 +169,5 @@ def test_links_between_stops_on_different_rows_are_counted_in_a_note_and_not_dra
     path = list(range(100, 112))
     route = _with_graph(_route(path, [40.0] * 11), [_edge(100, 111, 400.0), _edge(101, 109, 300.0)])
     html = render_course_diagram(route, _names(path), _urls(path))
-    assert "neighbour links between stops on different rows are not drawn" in html
+    assert "neighbor links between stops on different rows are not drawn" in html
     assert 'class="nav-diagram-neighbour nav-diagram-link"' not in html.split("nav-diagram-wide-box")[1].split("</svg>")[0]
