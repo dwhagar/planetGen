@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1082 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1085 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 153 | 17 | 8 | 1 | 0 | 179 |
-| T2 | 115 | 43 | 0 | 1 | 0 | 159 |
+| T2 | 117 | 43 | 0 | 1 | 0 | 161 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
 | T5 | 48 | 19 | 2 | 1 | 0 | 70 |
-| T6 | 103 | 82 | 21 | 52 | 0 | 258 |
+| T6 | 104 | 82 | 21 | 52 | 0 | 259 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 22 | 14 | 5 | 47 | 28 | 116 |
-| All | 610 | 235 | 52 | 146 | 39 | 1082 |
+| All | 613 | 235 | 52 | 146 | 39 | 1085 |
 
 ## How the labels were given
 
@@ -1871,6 +1871,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BG14 | P | T9 | L3 | belt_birth.MIN_PRESENT_MASS_EARTH 1e-9, the least mass a belt can have after the star's age of collisions and be kept (about 6e15 kg of warm dust) | 1e-10 to 1e-7 | every belt of a generated system | the share of main-sequence systems with an inner belt (a belt ending within BG15 snow lines) outside 4 to 14 percent, or a belt kept that holds less than its own largest body | the size law of GEN.566 with each belt's own largest body, and a survey of warm dust masses | GEN.1156: after the giants and the collisions 12 percent of systems keep an inner belt with no floor and 9 percent of main-sequence systems with this floor (a sweep of 117 of 600 systems, the belt's own present mass from `belt_mass.belt_state`); Boss decided the inner belt counts in the 4 to 14 percent and the outer and Kuiper belts are separate kinds | - | no data |
 | BG15 | P | T6 | L0 | belt_birth.INNER_BELT_SNOW_LINE_RATIO 1.2, a belt that ends within this many snow lines is an inner belt (the asteroid belt kind) | 1.0 to 2.0 | every belt | a belt that ends inside the snow line by this rule and is icy, or one outside it that is dry | the zoning of belt composition (BC14) | the Solar System's belt ends at 3.4 AU and its snow line was near 2.7 to 3 AU at formation | - | - |
 | BG16 | P | T6 | L1 | belt_birth.MIGRATED_RATIO 1.25, a giant that ended this many times nearer or further than where it formed is one that moved (it swept the belts it passed) | 1.1 to 2 | giants of the planet architecture | a giant that moved less and still cleared its belt, or one that moved more and left it whole | the architecture's own migration flag carried onto the planet | the architecture marks migration only for hot Jupiters (`Seed.migrated`); a placement nudge of a few percent (spacing, mass loss) is not a migration | - | - |
+| BG17 | P | T2 | L0 | belt_origin.PEBBLE_CONVERSION_PER_ORBIT 0.01, the share of a patch's pebbles the streaming instability turns into planetesimals each orbit where it works | 0.003 to 0.03 | the solids of the disc past the snow line | a streaming-instability simulation or a planetesimal population synthesis that finds a conversion rate outside 0.003 to 0.03 per orbit | the rate read from Lenz et al. 2019 or Gerbig and Li 2023 in the paper | Drazkowska et al. 2016 and Lenz et al. 2019 use 0.01 of the pebble surface density per orbit; read second-hand, not opened | - | - |
+| BG18 | D | T2 | L0 | belt_origin.PEBBLE_TO_GAS_SOLAR 0.01, the solids-to-gas ratio of a disc of solar metal content; it scales with the star's metal ratio | 0.005 to 0.02 | any disc | a measured dust-to-gas ratio of discs outside 0.005 to 0.02 | the ratio of the star's own composition | the interstellar value, the standard in disc models | - | - |
+| BG19 | P | T6 | L0 | belt_origin.PEBBLE_DRIFT_FACTOR 1.1, the pebbles of a drift-limited disc fall in over 1 / (1.1 Z Omega): the drift-limited Stokes number is 0.55 Z / eta and the drift speed 2 St eta v_K, so eta drops out | 0.5 to 2 | the solids of the disc past the snow line | a dust-evolution model of the outer disc whose pebbles live more than twice or less than half this long | the drift time read from a dust-evolution run (Birnstiel et al. 2012, Appelgren et al. 2023) | physics fixes the form (growth and drift rates both scale with the orbital frequency); the 0.55 is Birnstiel et al. 2012 as quoted second-hand | - | - |
 
 ## 6.59 Stand-ins of the comet species
 

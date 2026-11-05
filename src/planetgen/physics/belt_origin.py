@@ -33,6 +33,8 @@ surface density (`belt_mass.primordial_mass_earth`):
   `INSTABILITY_SURVIVAL_RANGE` of the swept stretch survives, log-uniform in the draw `u`; the rest is `scattered_earth` (the scatter step, GEN.1089,
   decides where it went).
 
+**What a stretch starts with** (GEN.1261): the solids of the disc in it, less the cold disc's drift loss (`planetesimal_share`: past the snow line only the share of solids that grew to planetesimals before the pebbles drifted in), and for a gap no more than the isolation mass at its centre (`isolation_cap_earth`: more would have grown the planet). That is the `primordial_mass_earth` below.
+
 Mass is conserved: `primordial_mass_earth = mass_earth + cleared_earth + scattered_earth` (`conservation_error`). The mass later lost to
 collisional grinding is not here: that is `belt_mass.belt_mass_earth`, which needs the age and the largest body.
 
@@ -52,7 +54,7 @@ import math
 import os
 
 from planetgen import tuning
-from planetgen.physics import belt_mass, clearance_ledger, elements, planet_architecture, unit_registry as units
+from planetgen.physics import belt_mass, clearance_ledger, elements, formation, planet_architecture, planet_mass, unit_registry as units
 from planetgen.physics.elements import DataError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -97,6 +99,39 @@ DESTROYED_RETAINED_SHARE = 0.5
 
 DEBRIS_MIN_WIDTH = 0.05
 """float: The least half-width of the belt of debris round its distance, as a share of the distance (BG11)."""
+
+PEBBLE_CONVERSION_PER_ORBIT = 0.01
+"""float: The share of the pebbles of a patch of the disc that the streaming instability turns into planetesimals each orbit, where it works (Drazkowska et al. 2016 and
+Lenz et al. 2019 set the rate at 0.01 of the pebble surface density per orbit). [Stand-in BG17, tier Confident Unverified, tweak L0.]"""
+
+PEBBLE_TO_GAS_SOLAR = 0.01
+"""float: The solids-to-gas ratio of a disc of solar metal content, the interstellar value; it scales with the star's `metal_ratio`. [Stand-in BG18, tier Confident Unverified, tweak L0.]"""
+
+PEBBLE_DRIFT_FACTOR = 1.1
+"""float: The pebbles of a drift-limited disc fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)`: their Stokes number is the drift limit `0.55 Z / (eta)` of Birnstiel et al. 2012
+and the drift speed `2 St eta v_K`, so the pressure gradient `eta` drops out and the time is 1.1 inverse growth rates, whatever the radius. [Stand-in BG19, tier Marginal educated guess from physics, tweak L0.]"""
+
+
+def planetesimal_share(metal_ratio=1.0):
+    """
+    The share of the solids of the cold disc that grew into planetesimals before the pebbles drifted in (GEN.1261). Pebbles turn into planetesimals at
+    `PEBBLE_CONVERSION_PER_ORBIT` of their mass an orbit and fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)` (Z the solids-to-gas ratio, `PEBBLE_TO_GAS_SOLAR` times
+    `metal_ratio`); the two compete, so the share that becomes planetesimals is `zeta / (zeta + PEBBLE_DRIFT_FACTOR Z)`, the same at every radius because both rates scale with
+    the orbital frequency. The rest is the drift loss ("the majority of the dust reservoir is lost through drift", Appelgren et al. 2023).
+    """
+    zeta = PEBBLE_CONVERSION_PER_ORBIT
+    return zeta / (zeta + PEBBLE_DRIFT_FACTOR * PEBBLE_TO_GAS_SOLAR * max(metal_ratio, 0.0))
+
+
+def isolation_cap_earth(lower, upper, star_mass_kg, snow_line_au, metal_ratio=1.0, scatter=1.0, separation=None):
+    """
+    The most solids a planetless stretch can hold (GEN.1261): the isolation mass a planet at its centre would have taken from its feeding zone (`formation.isolation_mass_kg`,
+    Lissauer 1987, Kokubo and Ida 2000) in the disc's own solids there. A stretch holding more would have grown the planet, so the chain would not have the gap.
+    """
+    centre = math.sqrt(lower * upper)
+    density = planet_mass.solids_surface_density_gcm2(centre, star_mass_kg, snow_line_au, metal_ratio, scatter)
+    return _kg_to_mearth(formation.isolation_mass_kg(centre, density, star_mass_kg, tuning.OLIGARCH_SEPARATION_MEDIAN if separation is None else separation))
+
 
 COLLISIONAL_DEBRIS_PER_GYR = 0.003
 COLLISIONAL_DEBRIS_MASS_EARTH = 1.0e-4
@@ -334,11 +369,21 @@ def _text(cause, **fields):
 def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u):
     lower, upper = candidate["inner_au"], candidate["outer_au"]
 
-    def mass(low, high):
-        return _primordial(low, high, star_mass_kg, snow_line_au, metal_ratio, scatter)
+    cold_share = planetesimal_share(metal_ratio)
 
-    primordial = candidate.get("mass_earth") or mass(lower, upper)
-    scale = primordial / mass(lower, upper) if candidate.get("mass_earth") else 1.0
+    def mass(low, high):
+        """The planetesimals of a stretch: the solids of the disc, less the cold disc's drift loss (past the snow line only `cold_share` of them grew to planetesimals)."""
+        warm_high = min(high, formation_snow_line_au)
+        warm = _primordial(low, warm_high, star_mass_kg, snow_line_au, metal_ratio, scatter) if warm_high > low else 0.0
+        cold_low = max(low, formation_snow_line_au)
+        cold = _primordial(cold_low, high, star_mass_kg, snow_line_au, metal_ratio, scatter) if high > cold_low else 0.0
+        return warm + cold_share * cold
+
+    whole = mass(lower, upper)
+    primordial = candidate.get("mass_earth") or whole
+    if candidate["cause"] == "gap" and not candidate.get("mass_earth"):
+        primordial = min(primordial, isolation_cap_earth(lower, upper, star_mass_kg, snow_line_au, metal_ratio, scatter))
+    scale = primordial / whole if whole > 0.0 else 1.0
     remaining = [(lower, upper)]
     history, cleared, stirred = [], 0.0, False
     for body in sorted((b for b in chain if b.giant), key=lambda b: abs(math.log(b.distance_au / (lower * upper) ** 0.5))):

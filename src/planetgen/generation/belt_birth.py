@@ -90,7 +90,7 @@ def _fates(star_mass_kg, planets, origin, disc_edge_au):
     return shares, scatter.history_line(shares, giant.distance, moved_out)
 
 
-def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disc_edge_au):
+def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disc_edge_au, disc_scatter=1.0):
     """
     The `AsteroidBelt` list of a system: the stretches the planets in `planets` leave unfinished, each as `belt_origin` traced it, cut to the orbits between `orbit_floor_au` and
     `orbit_ceiling_au` and kept when `MIN_PRESENT_MASS_EARTH` is left after the star's age. Nearest the star first. A system asked to hold a belt (`ASTEROID_BELT` True) that has none
@@ -102,13 +102,14 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disc_e
         planets (list): The `Planet` list (a belt in it is skipped, and its stretch is not counted twice by the caller).
         orbit_floor_au, orbit_ceiling_au (float): The innermost and outermost orbits the star holds.
         disc_edge_au (float): The disc's outer edge, AU (infinite when the star's light no longer describes its disc: then `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` snow lines).
+        disc_scatter (float): The factor the planets' disc was scattered by about the median of its star's mass (`planet_architecture.Architecture.disc_scatter`): the belts are made of the same disc (GEN.1261).
     """
     chain = chain_of(planets)
     star_mass_kg = remnant_orbits.formation_mass_kg(star)
     snow_line_au = star.snow_line_au
     edge_au = disc_edge_au if disc_edge_au < float("inf") else tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
     origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
-                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star))
+                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disc_scatter)
     found = []
     for origin in origins:
         lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
