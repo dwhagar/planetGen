@@ -33685,6 +33685,166 @@
       "title": "Stand-ins of the two cuts of the body type"
     },
     {
+      "key": "6.174",
+      "number": "6.174",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_band.LOCAL_V_LUMINOSITY_DENSITY 0.044: the V light of the stars in a cubic parsec where the relative density is 1 (L_V,sun per pc^3)"
+            ],
+            [
+              "The range it moves in",
+              "0.04 to 0.06"
+            ],
+            [
+              "Where it holds",
+              "the stars of a galaxy of the Milky Way's mix; a galaxy with another stellar population has another value"
+            ],
+            [
+              "What would show it wrong",
+              "a luminosity function integrated over the stored stars of a generated galaxy, or a measured local V luminosity density outside 0.04 to 0.06"
+            ],
+            [
+              "What replaces it",
+              "the light of the model galaxy's own populations from their mass and age (the stars the generator makes)"
+            ],
+            [
+              "Evidence",
+              "sky-view.md 3.1: measured from the 3,081 HYG stars within 25 pc (incomplete for M dwarfs, which carry little light); the literature is about 0.05 [C]"
+            ]
+          ],
+          "id": "SKB1",
+          "key": "6.174:SKB1",
+          "kind": "P",
+          "slug": "6-174-skb1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "VIEW.31",
+          "what": "sky_band.LOCAL_V_LUMINOSITY_DENSITY 0.044: the V light of the stars in a cubic parsec where the relative density is 1 (L_V,sun per pc^3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_band.FAINT_LIGHT_TABLE rows (-0.19, 0.81), (2.31, 0.35), (4.81, 0.07): the share of the V light that comes from stars fainter than the absolute magnitude in the row"
+            ],
+            [
+              "The range it moves in",
+              "the sample's scatter, a few percent a row"
+            ],
+            [
+              "Where it holds",
+              "the stars of the solar neighbourhood; linear in absolute magnitude between rows"
+            ],
+            [
+              "What would show it wrong",
+              "a luminosity function from a larger sample (Gaia within 100 pc) that differs by more than 0.1 in a row"
+            ],
+            [
+              "What replaces it",
+              "the share worked from the luminosity function of the generator's own stars"
+            ],
+            [
+              "Evidence",
+              "sky-view.md 3.1: the stars dimmer than 100, 10 and 1 L_sun carry 81, 35 and 7 percent of the local V light, from HYG within 25 pc [C]; the table reads them as absolute V magnitudes -0.19, 2.31 and 4.81"
+            ]
+          ],
+          "id": "SKB2",
+          "key": "6.174:SKB2",
+          "kind": "D",
+          "slug": "6-174-skb2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "VIEW.31",
+          "what": "sky_band.FAINT_LIGHT_TABLE rows (-0.19, 0.81), (2.31, 0.35), (4.81, 0.07): the share of the V light that comes from stars fainter than the absolute magnitude in the row"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_band.FAINT_LIGHT_TABLE ends (-10, 1.0), (9.0, 0.01), (12.0, 0.0): the share of light from stars fainter than a very bright, a faint and a very faint absolute magnitude"
+            ],
+            [
+              "The range it moves in",
+              "0.99 to 1.0 at -10; 0 to 0.03 at 9"
+            ],
+            [
+              "Where it holds",
+              "any galaxy of stars like the Sun's neighbourhood"
+            ],
+            [
+              "What would show it wrong",
+              "the same larger sample, or the model galaxy's luminosity function"
+            ],
+            [
+              "What replaces it",
+              "the share worked from the luminosity function of the generator's own stars"
+            ],
+            [
+              "Evidence",
+              "invented to close the table: the light of stars fainter than M_V 9 is small (red dwarfs carry few percent of the local V light) and none is brighter than -10"
+            ]
+          ],
+          "id": "SKB3",
+          "key": "6.174:SKB3",
+          "kind": "D",
+          "slug": "6-174-skb3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": "VIEW.31",
+          "what": "sky_band.FAINT_LIGHT_TABLE ends (-10, 1.0), (9.0, 0.01), (12.0, 0.0): the share of light from stars fainter than a very bright, a faint and a very faint absolute magnitude"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_band.FACE_PIXELS 32, STEPS 400, MAX_DISTANCE_PC 30000 and CELL_PC 50: the cell that shares a band, the cube map's size, the steps of a ray and its length"
+            ],
+            [
+              "The range it moves in",
+              "25 to 100 pc; 16 to 64 pixels; 200 to 800 steps; 20000 to 50000 pc"
+            ],
+            [
+              "Where it holds",
+              "the band of a galaxy of the Milky Way's size; a larger galaxy needs a longer ray"
+            ],
+            [
+              "What would show it wrong",
+              "a band at twice the steps or pixels that differs by more than 0.02 mag, or a band 20 ly away that differs by more than 0.02"
+            ],
+            [
+              "What replaces it",
+              "a size set by the picture's need, once the sky route (VIEW.31) shows it"
+            ],
+            [
+              "Evidence",
+              "chosen so the pixel is about 3 degrees (the band is smooth), the step is fine near the observer, and a move of 20 ly inside the cell changes the band by under 0.02 mag"
+            ]
+          ],
+          "id": "SKB4",
+          "key": "6.174:SKB4",
+          "kind": "P",
+          "slug": "6-174-skb4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": "VIEW.31",
+          "what": "sky_band.FACE_PIXELS 32, STEPS 400, MAX_DISTANCE_PC 30000 and CELL_PC 50: the cell that shares a band, the cube map's size, the steps of a ray and its length"
+        }
+      ],
+      "slug": "6-174-stand-ins-of-the-glow-band-of-the-unresolved-stars",
+      "title": "Stand-ins of the glow band of the unresolved stars"
+    },
+    {
       "key": "6.171",
       "number": "6.171",
       "rows": [
