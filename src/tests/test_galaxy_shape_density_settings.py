@@ -61,13 +61,13 @@ def test_the_crest_and_the_trough_of_the_thin_disk_are_one_plus_and_minus_the_co
     assert shape.arm_level * (1 + shape.arm_amplitude * trough) == pytest.approx(0.4)
 
 
-def test_the_nuclear_structures_raise_the_density_at_the_centre_and_not_far_away():
+def test_the_nuclear_structures_raise_the_density_at_the_center_and_not_far_away():
     plain, nuclear = _shape(), _shape(nuclear=1.0)
     assert density.relative_density((0.0, 0.0, 0.0), nuclear) > 10 * density.relative_density((0.0, 0.0, 0.0), plain)
     far = (6000.0, 0.0, 0.0)
     assert density.relative_density(far, nuclear) == pytest.approx(density.relative_density(far, plain), rel=0.01)
-    # Past the nuclear disc's few scale lengths only the bulge is left.
-    out = (8 * density.model_terms(nuclear)["nuclear_disc_length_pc"], 0.0, 0.0)
+    # Past the nuclear disk's few scale lengths only the bulge is left.
+    out = (8 * density.model_terms(nuclear)["nuclear_disk_length_pc"], 0.0, 0.0)
     assert density.relative_density(out, nuclear) < 1.05 * density.relative_density(out, plain)
 
 
@@ -129,4 +129,4 @@ def test_a_plan_stores_the_settings_and_the_stored_shape_gives_the_same_density(
     terms = density.shape_with_terms(stored)
     full = density.model_terms(stored._replace(nuclear_amplitude=1.0))
     assert terms["nuclear_cluster_mass"] == pytest.approx(0.5 * full["nuclear_cluster_mass"])
-    assert terms["nuclear_disc_mass"] == pytest.approx(0.5 * full["nuclear_disc_mass"])
+    assert terms["nuclear_disk_mass"] == pytest.approx(0.5 * full["nuclear_disk_mass"])

@@ -114,6 +114,7 @@
   "tile_cache": {
     "dir": "",
     "warm_zoom_floor": 9,
+    "build_workers": 0,
     "prefetch_per_visit": 128,
     "prefetch_per_minute": 600,
     "prefetch_max_queued": 8

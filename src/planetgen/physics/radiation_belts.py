@@ -14,7 +14,7 @@ shell `L` and drifts around the body, and it stays while the field is steady. Th
 * an **outer edge** `L_max`, the smaller of the wind's limit and the spin's. The wind's is `WIND_EDGE_FRACTION` (0.75) of the magnetopause standoff
   `R_mp = 9.75 R_earth (M / M_earth)^(1/3) (p / p_earth)^(-1/6)` (Chapman and Ferraro: the field's pressure against the wind's), which puts Earth's at
   7.3 (the outer belt ends at about 40 000 km). The spin's is `ROTATION_EDGE_FACTOR` (9) times the synchronous distance `L_sync = (G m P^2 /
-  (4 pi^2 R^3))^(1/3)`, beyond which the plasma no longer turns with the body and its field is stretched into a disc (`L` of 20 for Jupiter, about
+  (4 pi^2 R^3))^(1/3)`, beyond which the plasma no longer turns with the body and its field is stretched into a disk (`L` of 20 for Jupiter, about
   16 for Saturn). A slow rotator is bounded by the wind; a fast one by its spin.
 * an **inner edge** `L_in`: the surface (`L` of 1) or, for a body with an atmosphere, the height at which the air stops a bouncing particle,
   `ATMOSPHERE_EDGE_SCALE_HEIGHTS` (45) scale heights up (Earth's belts begin at about 400 km, `L` of 1.06).

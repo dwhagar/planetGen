@@ -1664,6 +1664,27 @@
     },
     "TileCache": {
       "properties": {
+        "build_workers": {
+          "default": 0,
+          "description": "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once; 0 is one per core.",
+          "maximum": 64,
+          "minimum": 0,
+          "title": "Build Workers",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Whole-map build processes",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many processes the nightly whole-map build uses; 0 is one per core.",
+          "x-unit": "processes"
+        },
         "dir": {
           "default": "",
           "description": "Where the Galaxy Map's nodes are cached on disk; empty means /var/cache/planetgen/tiles.",
@@ -2317,6 +2338,7 @@
     "tile_cache": {
       "$ref": "#/$defs/TileCache",
       "default": {
+        "build_workers": 0,
         "dir": "",
         "prefetch_max_queued": 8,
         "prefetch_per_minute": 600,

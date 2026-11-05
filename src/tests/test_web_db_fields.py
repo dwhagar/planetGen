@@ -216,10 +216,10 @@ def test_phenomenon_and_system_detail_carry_stored_nearest_systems(mysql_config)
         conn.close()
 
 
-def test_compact_objects_show_the_einstein_radius_against_the_galactic_centre():
+def test_compact_objects_show_the_einstein_radius_against_the_galactic_center():
     label = "Einstein Radius (seen from the reference radius, against the galactic center)"
     sol_pc = 8200.0  # the observer's radius the page is given
-    near = sol_pc - 1000.0  # 1 kpc from the observer on the line to the centre
+    near = sol_pc - 1000.0  # 1 kpc from the observer on the line to the center
     hole = _fields("black_hole", {"mass_solar": 10.0, "has_accretion_disk": True, "galactic_radius_pc": near,
                                   "reference_radius_pc": sol_pc})
     assert "AU" in hole[label] or "au" in hole[label].lower()
@@ -227,7 +227,7 @@ def test_compact_objects_show_the_einstein_radius_against_the_galactic_centre():
     assert label in star
     rogue = _fields("rogue_planet", {"mass_kg": 2e27, "galactic_radius_pc": near, "reference_radius_pc": sol_pc})
     assert label in rogue
-    # Beyond the observer's radius from the centre nothing lies between it and the centre.
+    # Beyond the observer's radius from the center nothing lies between it and the center.
     assert label not in _fields("black_hole", {"mass_solar": 10.0, "galactic_radius_pc": sol_pc + 100.0,
                                                "reference_radius_pc": sol_pc})
     assert label not in _fields("black_hole", {"mass_solar": 10.0})

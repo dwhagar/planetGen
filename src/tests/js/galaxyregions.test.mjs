@@ -8,7 +8,7 @@ import { STATIC_URL } from "./fakedom.mjs";
 const R = await import(new URL("galaxyregions.js", STATIC_URL).href);
 
 const region = (key, share, extra) => Object.assign({
-  key, m: 9, shell: 1, band: 0, wedge: 1, centre: [100, 0, 0], radius: 12, sector_count: 3, capacity: 780, share,
+  key, m: 9, shell: 1, band: 0, wedge: 1, center: [100, 0, 0], radius: 12, sector_count: 3, capacity: 780, share,
   name: "Fardoo Beez Region", parent: "Fardoo Reach",
 }, extra);
 
@@ -22,7 +22,7 @@ test("a region's blob is its extent sphere, with the share's color", () => {
 });
 
 test("a region without an extent is left out, and every share above zero is kept", () => {
-  const list = R.regionBlobs([region("a", 0.0001), region("b", 0.5, { centre: null }), region("c", 0.2, { radius: 0 }), null]);
+  const list = R.regionBlobs([region("a", 0.0001), region("b", 0.5, { center: null }), region("c", 0.2, { radius: 0 }), null]);
   assert.deepEqual(list.map((b) => b.key), ["a"]);
 });
 
@@ -36,8 +36,8 @@ test("the color goes from cool for a lone sector to warm for a filled region, in
 });
 
 test("a far region is a visible mark and a charted one is stronger than a lone sector", () => {
-  const blob = R.regionBlobs([region("a", 0.01, { centre: [0, 0, 0] })])[0];
-  const stronger = R.regionBlobs([region("b", 0.9, { centre: [0, 0, 0] })])[0];
+  const blob = R.regionBlobs([region("a", 0.01, { center: [0, 0, 0] })])[0];
+  const stronger = R.regionBlobs([region("b", 0.9, { center: [0, 0, 0] })])[0];
   const far = R.regionLook(blob, [0, 0, 60000], 800);
   assert.equal(far.radiusPx, R.REGION_RADIUS_PX[0], "never under the smallest mark");
   assert.ok(far.alpha >= R.REGION_ALPHA[0]);
@@ -45,7 +45,7 @@ test("a far region is a visible mark and a charted one is stronger than a lone s
 });
 
 test("the sphere fades as the camera comes in and is gone once it fills the view", () => {
-  const blob = R.regionBlobs([region("a", 0.5, { centre: [0, 0, 0], radius: 12 })])[0];
+  const blob = R.regionBlobs([region("a", 0.5, { center: [0, 0, 0], radius: 12 })])[0];
   const alphaAt = (distance) => R.regionLook(blob, [0, 0, distance], 800).alpha;
   const near = alphaAt(12 * 800 / 100);      // 100 px in radius: not yet fading
   const mid = alphaAt(12 * 800 / 350);       // 350 px: half way

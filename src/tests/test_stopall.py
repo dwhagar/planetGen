@@ -243,7 +243,7 @@ def test_cancel_of_a_job_whose_runner_died_ends_its_step_and_frees_the_lock(tmp_
         assert jobs.get_job(job_id)["status"] == "interrupted"      # what the page shows: the runner is gone
         assert jobs.cancel_job(job_id, who="boss") is True
         assert step.wait(timeout=10) is not None                   # its step was still running; now it is not
-        assert jobs.get_job(job_id)["status"] == "cancelled"
+        assert jobs.get_job(job_id)["status"] == "canceled"
         assert jobs.active_job() is None
         assert jobs.cancel_job(job_id) is False                    # nothing left to cancel
     finally:
@@ -261,4 +261,4 @@ def test_a_step_that_ignores_the_request_to_stop_is_killed(tmp_path, monkeypatch
     started = time.time()
     assert job_runner.run(path) == 1
     assert time.time() - started < 60
-    assert jobs.get_job(job_id)["status"] == "cancelled"
+    assert jobs.get_job(job_id)["status"] == "canceled"

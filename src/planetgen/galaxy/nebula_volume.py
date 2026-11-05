@@ -16,7 +16,7 @@ gas and star-forming density, never a circle and never a random blob per object 
   only the lattice points that lie in it (a nebula that crosses a border is drawn half by each block). So two blocks never draw
   the same place twice (adding their colors would double it), no point is lost where nebulae touch, and the shape needs no home
   block.
-* **Soft, uneven edges.** The value of a point is the density near the nebula's centre pushed through a soft threshold at the
+* **Soft, uneven edges.** The value of a point is the density near the nebula's center pushed through a soft threshold at the
   model's `FORM_LEVEL` and a window that fades to nothing at the nebula's radius, so a core is dense, the rim is wispy and the
   edge follows the density, not a circle. A shell family (a planetary nebula, a supernova remnant) uses a shell profile.
 * **Detail follows the lattice.** The finer the lattice, the more noise octaves the density is asked for
@@ -111,7 +111,7 @@ def _smoothstep(edge0, edge1, x):
 
 
 def profile(u, shell):
-    """The window of a nebula at `u` (the distance from its centre in its radii): 1 in a solid nebula's core, down to 0 at the edge;
+    """The window of a nebula at `u` (the distance from its center in its radii): 1 in a solid nebula's core, down to 0 at the edge;
     a shell's rises to a ring and falls again."""
     u = np.asarray(u, dtype=np.float64)
     if shell:
@@ -178,13 +178,13 @@ def sample_group(nebulae, inside, density, form_level, max_detail, families, lev
     if not len(lattice):
         return _empty_volume(level)
     points = lattice * spacing
-    centres = np.array([[n["x"], n["y"], n["z"]] for n in nebulae])
+    centers = np.array([[n["x"], n["y"], n["z"]] for n in nebulae])
     radii = np.array([n["radius_pc"] for n in nebulae], dtype=np.float64)
     nearest = np.zeros(len(points), dtype=np.int64)
     nearest_u = np.full(len(points), np.inf)
     for start in range(0, len(nebulae), 64):    # in slices of nebulae, so the (points x nebulae) array stays small
         block = slice(start, start + 64)
-        distance = np.sqrt(((points[:, None, :] - centres[None, block, :]) ** 2).sum(axis=2)) / radii[None, block]
+        distance = np.sqrt(((points[:, None, :] - centers[None, block, :]) ** 2).sum(axis=2)) / radii[None, block]
         best = np.argmin(distance, axis=1)
         best_u = distance[np.arange(len(points)), best]
         better = best_u < nearest_u

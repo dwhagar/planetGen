@@ -450,7 +450,7 @@ def test_sector_runs_clean(mysql_config, argv, seed):
 
 
 def _sector_at_the_old_default_distance(monkeypatch):
-    """A sector with no galaxy is taken at the galaxy's half-mass radius (GEN.404), nearer the centre than the 8,200 pc
+    """A sector with no galaxy is taken at the galaxy's half-mass radius (GEN.404), nearer the center than the 8,200 pc
     it was, where the stars' Hill spheres are smaller and a full cube holds three times the systems: minutes of work
     for a test that is about stopping, so it keeps the old distance."""
     monkeypatch.setattr(scales, "default_galactocentric_ly", lambda: pc_to_ly(8200.0))
@@ -587,7 +587,7 @@ def test_plan_degenerate_shape_is_a_usage_error(extra, consequence):
 # ---------------------------------------------------------------------------
 
 # Relative density ~1 everywhere near the center (no bulge, no arms, huge
-# scale lengths, normalized to 1 at the centre) so every sector expects the realistic
+# scale lengths, normalized to 1 at the center) so every sector expects the realistic
 # ~4 systems -- fast -- and an outline of shells 0..3, bands -1..1.
 _FLAT_UNNORMALIZED = build_galaxy_shape(
     disk_scale_length_pc=1e6, disk_scale_height_pc=1e6, bulge_scale_radius_pc=1.0,

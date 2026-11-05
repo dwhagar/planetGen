@@ -1,7 +1,7 @@
 // html/static/systemreach.js
 //
 // Which star's system the Galaxy Map has up while the camera is in an opened sector, and how much of it shows
-// (MAP.152, docs/design/interface/fly-through-view-distance.md sections 4.4 and 4.7): a system's disc becomes drawable when it
+// (MAP.152, docs/design/interface/fly-through-view-distance.md sections 4.4 and 4.7): a system's disk becomes drawable when it
 // subtends about `LOAD_PX` pixels, fades in to `FULL_PX`, and is dropped below `UNLOAD_PX`. The gap between the
 // two ends is the hysteresis: a camera hovering near the size does not load and drop the system again and
 // again. A system's real size is not known until its scene is loaded, so until then it is `NOMINAL_RADIUS_PC`
@@ -14,11 +14,11 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 
-export const LOAD_PX = 20; // the system's disc is this many pixels across: it starts to fade in
+export const LOAD_PX = 20; // the system's disk is this many pixels across: it starts to fade in
 export const FULL_PX = 40; // ... and is whole
 export const UNLOAD_PX = 10; // ... and below this it is dropped
 export const NOMINAL_RADIUS_PC = convert(50, "au", "pc"); // 50 AU
-// A system takes over from the one up only when its disc is clearly the larger.
+// A system takes over from the one up only when its disk is clearly the larger.
 export const TAKE_OVER_SHARE = 0.85;
 // How long (ms) a system must stay in range before its scene is asked for.
 export const DWELL_MS = 250;
@@ -40,7 +40,7 @@ export function distanceForPixels(px, radiusPc, heightPx, fovDeg) {
   return (radiusPc * heightPx) / (px * Math.tan((fovDeg * Math.PI) / 360));
 }
 
-// How much of a system shows when its disc is `px` pixels across: 0 at LOAD_PX, 1 at FULL_PX.
+// How much of a system shows when its disk is `px` pixels across: 0 at LOAD_PX, 1 at FULL_PX.
 export function systemShare(px) {
   return smoothstep(LOAD_PX, FULL_PX, px);
 }

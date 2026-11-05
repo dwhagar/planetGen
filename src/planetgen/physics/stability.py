@@ -74,14 +74,14 @@ def _q_out(m1, m2, m3):
     return m3 / (m1 + m2)
 
 
-def mardling_aarseth_pericentre_ratio(q_out, e_out, i):
+def mardling_aarseth_pericenter_ratio(q_out, e_out, i):
     """[R2868] (Equation 2 of Vynatheya et al.): the smallest `a_out (1 - e_out) / a_in` that is stable."""
     return 2.8 * ((1.0 + q_out) * (1.0 + e_out) / math.sqrt(1.0 - e_out)) ** 0.4 * (1.0 - 0.3 * i / math.pi)
 
 
 def mardling_aarseth_axis_ratio(q_out, e_out, i):
     """The smallest stable `a_out / a_in` by Mardling and Aarseth."""
-    return mardling_aarseth_pericentre_ratio(q_out, e_out, i) / (1.0 - e_out)
+    return mardling_aarseth_pericenter_ratio(q_out, e_out, i) / (1.0 - e_out)
 
 
 def eggleton_kiseleva_ycrit(q_out, q_in):
@@ -193,7 +193,7 @@ def kozai_verdict(m1, m2, m3, a_in, a_out, e_in, e_out, i, age_yr, extent_sum_au
 
     Returns `"safe"`, `"kl_active"` (cycles run but the pair keeps clear of
     its stars' extent: the pair is kept and marked) or `"unsafe"` (the
-    cycle brings the pericentre inside four times `extent_sum_au`, a
+    cycle brings the pericenter inside four times `extent_sum_au`, a
     merger). A cycle needs all of: a mutual inclination in the Kozai window
     (39.2 to 140.8 degrees), a Kozai time shorter than the age, and a Kozai
     time shorter than the inner orbit's relativistic precession period. The

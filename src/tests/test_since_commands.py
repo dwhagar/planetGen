@@ -26,7 +26,7 @@ def _run(monkeypatch, mysql_config, *argv):
     generate.main()
 
 
-@pytest.mark.parametrize("command, kind", [("link", "link-neighbours"), ("backfill", "scatter-backfill"),
+@pytest.mark.parametrize("command, kind", [("link", "link-neighbors"), ("backfill", "scatter-backfill"),
                                            ("settle", "settle-sector-paths")])
 def test_each_command_is_one_stage_and_one_registered_command(command, kind):
     args = _args(command, "--since", LONG_AGO)
@@ -157,13 +157,13 @@ def test_the_link_stage_is_cut_into_static_chunks_that_store_the_same_links(mysq
     saved = _link_rows(mysql_config)
     assert saved, "saving a sector links it"
     params = {"database": wrapper.database_args(mysql_config), "since": LONG_AGO, "workers": 4}
-    assert len(run_galaxy.expand_link_neighbours(params).units) == 1, "a short stage is one unit"
+    assert len(run_galaxy.expand_link_neighbors(params).units) == 1, "a short stage is one unit"
 
     monkeypatch.setattr(run_galaxy, "LINK_UNIT_SECTORS", 1)
-    cut = run_galaxy.expand_link_neighbours(params)
+    cut = run_galaxy.expand_link_neighbors(params)
     assert len(cut.units) == cut.plan["sectors"] == 4
     assert [unit["chunk"] for unit, _cost in cut.units] == [unit["chunk"] for unit, _cost in
-                                                           run_galaxy.expand_link_neighbours(params).units]
+                                                           run_galaxy.expand_link_neighbors(params).units]
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("DELETE FROM nearest_systems")

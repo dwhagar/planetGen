@@ -49,7 +49,7 @@ _TEXT = {"alias", "ra", "dec", "spectral_type", "collapse_flag"}
 
 @dataclass(frozen=True)
 class Cluster:
-    """One cluster. Distances are in kiloparsecs (the Galactic centre at 8.0 kpc), radii in arcminutes, magnitudes as printed;
+    """One cluster. Distances are in kiloparsecs (the Galactic center at 8.0 kpc), radii in arcminutes, magnitudes as printed;
     `ra_deg` and `dec_deg` are J2000. A field the catalog leaves blank is None."""
 
     name: str

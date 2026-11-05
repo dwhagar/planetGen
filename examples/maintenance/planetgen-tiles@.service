@@ -1,0 +1,42 @@
+# examples/maintenance/planetgen-tiles@.service
+#
+# Rebuilds the whole Galaxy Map's node cache from scratch for one database (PERF.233, `planetgen.cli.tiles`): every node of
+# every level of the whole galaxy, built into a new cache beside the live one and swapped in when it is complete, so visitors
+# never meet an empty cache and a run that is killed leaves the old cache serving. Then `planetgen warm` rebuilds the other
+# caches (lists, objects, search) on top.
+#
+# A *template* unit like planetgen-orbits@.service: the instance name is the database (`planetgen-tiles@planetgen.timer`).
+# It runs after the orbit update (`After=planetgen-orbits@%i.service` orders it behind that run whenever both are queued;
+# planetgen-tiles@.timer fires at 05:00, well after the orbit update's 03:30 on the first of the month) and never during a
+# deployment update (planetgen.cli.tiles exits 75 then, which is not a failure: the next night tries again).
+#
+# Runs as the web server's user so Apache can read what it writes: change User= and Group= if Apache runs as another account
+# (www-data on Debian and Ubuntu). The account in /etc/planetgen/maintenance.env only needs to read the database. The disk
+# needs room for the new cache beside the live one: the run refuses to start unless twice the projected size is free, and says
+# the figures (reports/perf233-tile-cache-cost-2026-11-04.md has the sizes and times: about 20 nodes a second on 4 cores).
+#
+# Installed by install-maintenance-timer.sh (leave it out with --skip-tiles-timer).
+
+[Unit]
+Description=planetGen whole-map tile build (%i database)
+After=network-online.target
+Wants=network-online.target
+After=planetgen-update.service planetgen-orbits@%i.service
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/var/lib/planetGen/src
+EnvironmentFile=-/etc/planetgen/maintenance.env
+Environment=PLANETGEN_MYSQL_DATABASE=%i
+ExecStart=/usr/local/planetgen/venv/bin/python -m planetgen.cli.tiles
+# The other caches are rebuilt on top of it; a failure there does not fail the tile build that finished.
+ExecStartPost=-/usr/local/planetgen/venv/bin/python -m planetgen.cli.generate warm --progress
+# 75 (EX_TEMPFAIL): an update is running, nothing was built; the next night tries again.
+SuccessExitStatus=75
+# A full build is hours on a big galaxy.
+TimeoutStartSec=12h
+# Behind the real work for CPU and disk.
+Nice=10
+IOSchedulingClass=idle

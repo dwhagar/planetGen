@@ -301,8 +301,6 @@ export function createSectorStage(host) {
         volumeSingles: !!(host.volumeSingles && host.volumeSingles()),
         origin: data.centerPc, unit: data.halfEdgePc / half, flipY: true,
         accentColor: host.accentColor, pixelRatio: host.pixelRatio(),
-        // How many nebulae are drawn from their shape now (read by the browser tests).
-        onShape: function (count) { host.canvasEl.dataset.sectorNebulaMeshes = String(count); },
       });
       host.scene.add(state.sector.group);
       hiddenKinds.forEach(function (kind) { state.sector.setKindHidden(kind, true); });

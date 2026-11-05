@@ -70,7 +70,7 @@ def test_the_wheel_carries_the_map_into_a_system_and_back_out_with_no_page_load(
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
     page.evaluate("() => { window.__same_page = true; }")
-    page.evaluate(f"(p) => {CANVAS_JS}.galaxyCentreOn(...p)", list(point))
+    page.evaluate(f"(p) => {CANVAS_JS}.galaxyCenterOn(...p)", list(point))
     _ready(page)
     page.wait_for_timeout(1500)
     states = []

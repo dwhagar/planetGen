@@ -31,7 +31,7 @@ brightest channel is always full); the brightness is kept separately, as the sky
 4. The word comes from the hue and saturation of the hex colour. When the aerosols alone move the colour by 0.03 or more in CIE xy
    the label says "(aerosol-dominated)".
 5. **The thick-air limit.** Single scattering would saturate to red in very thick air; the two-stream light reddens smoothly instead,
-   so 9 MPa of carbon dioxide gives an orange, never a clipped red. The direct beam dies as exp(-tau / mu0) and the sun disc is a faint
+   so 9 MPa of carbon dioxide gives an orange, never a clipped red. The direct beam dies as exp(-tau / mu0) and the sun disk is a faint
    deep red.
 6. **Gas and ice giants** have no ground, so the colour is read at a reference level, the lower of 1 bar and the cloud top, with a
    cloud deck (or the dark deep gas) below (`physics/giant_colour.py`). Methane, ammonia and water use the gas table's coarse bins, so
@@ -40,7 +40,7 @@ brightest channel is always full); the brightness is kept separately, as the sky
 
 ## What it does not include
 
-Sunsets, twilight and the day strip, the view of the sun's disc and the sky in other directions, and the colour of a planet seen from
+Sunsets, twilight and the day strip, the view of the sun's disk and the sky in other directions, and the colour of a planet seen from
 space belong to the view from a planet and the planet's own appearance; they are not part of this colour. The glow ring is the limb
 of the air, not the surface.
 

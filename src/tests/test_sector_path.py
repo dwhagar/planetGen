@@ -136,7 +136,7 @@ def test_paths_chain_across_sectors_from_the_exit_state():
     first = sp.integrate_path((-9.0 * PC, 0.0, 0.0), (50.0e3, 5.0e3, 0.0), [], _box(), EDGE)
     entry = first.restart()
     assert entry.t_s == 0.0 and entry.position == first.end.position and entry.velocity == first.end.velocity
-    shifted = tuple(c - EDGE for c in entry.position)  # the neighbour cell's own box, centred one edge along x
+    shifted = tuple(c - EDGE for c in entry.position)  # the neighbour cell's own box, centered one edge along x
     second = sp.integrate_path(entry.position, entry.velocity, [], _box(center=(EDGE, 0.0, 0.0)), EDGE)
     assert second.exited and shifted[0] == pytest.approx(-EDGE / 2.0, abs=1e-3 * PC)
     assert second.end.position[0] == pytest.approx(1.5 * EDGE, abs=1e-6 * PC)
@@ -145,9 +145,9 @@ def test_paths_chain_across_sectors_from_the_exit_state():
 def test_sector_inside_follows_the_grid_cell():
     edge_pc = 4.0
     address = (1500, 2, 700)
-    centre_pc = spherical.sector_position_pc(*address, edge_pc)
+    center_pc = spherical.sector_position_pc(*address, edge_pc)
     inside = sp.sector_inside(address, edge_pc)
-    assert inside(tuple(c * PC for c in centre_pc))
+    assert inside(tuple(c * PC for c in center_pc))
     far = tuple(c * PC for c in spherical.sector_position_pc(1500, 2, 703, edge_pc))
     assert not inside(far)
 
@@ -161,12 +161,12 @@ def test_sector_inside_agrees_with_the_grid_everywhere_including_the_faces():
     edge_pc = 4.0
     for address in ((0, 0, 0), (1, 1, 0), (1, -1, 0), (2, 0, 1), (5, 2, 7), (40, 3, 11), (1500, 2, 700), (1500, 2, 0)):
         inside = sp.sector_inside(address, edge_pc)
-        centre = spherical.sector_position_pc(*address, edge_pc)
-        points = [tuple(c + rnd.uniform(-1.5, 1.5) * edge_pc for c in centre) for _ in range(400)]
+        center = spherical.sector_position_pc(*address, edge_pc)
+        points = [tuple(c + rnd.uniform(-1.5, 1.5) * edge_pc for c in center) for _ in range(400)]
         for shell_delta in (-1e-9, 1e-9):   # a hair inside and outside the cell's faces, along its own radius
-            radius = math.sqrt(sum(c * c for c in centre)) or edge_pc
-            points.append(tuple(c * (1 + shell_delta) for c in centre))
-            points.append(tuple(c * (1 + shell_delta) * (radius + edge_pc / 2) / radius for c in centre))
+            radius = math.sqrt(sum(c * c for c in center)) or edge_pc
+            points.append(tuple(c * (1 + shell_delta) for c in center))
+            points.append(tuple(c * (1 + shell_delta) * (radius + edge_pc / 2) / radius for c in center))
         for point in points:
             wanted = spherical.sector_address_at(point, edge_pc) == address
             assert inside(tuple(c * PC for c in point)) == wanted, (address, point)
