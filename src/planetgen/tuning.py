@@ -2965,54 +2965,27 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
 # Mass bins (Boss's research, 2026-09-30; docs/design/systems/
-# interstellar-object-rates.md): a rogue planet draws a bin by its
-# per-star rate, then a mass inside it. Since GEN.45 the rates and the draw
-# inside a bin both follow one mass function, dN/dlogM ~ M^-0.65 from 0.1
-# Earth masses to 13 Jupiter masses (Boss's research, 2026-10-01, which
-# writes it dN/dM ~ M^-0.65; read per unit mass that would make about 87%
-# of rogues gas giants, against its own aim of keeping them rare, so it is
-# read per logarithm of mass). The total is ROGUE_PLANET_RATE_PER_STAR, 5.8 per
-# star (the bins sum to it). That gives:
-#   - terrestrial 0.1-2 Earth masses, about 5.0 per star (2-10; Johnson
-#     et al. 2020, AJ 160:123; [R3190]:L11);
-#   - sub-Neptune / ice giant 2-20, about 0.64 per star ([R4254, R4255]
-#     find Neptune-mass candidates but give no rate);
-#   - Saturn-class 20 Earth masses to 1 Jupiter mass, about 0.15;
-#   - Jupiter-mass 1-13 Jupiter masses, about 0.025 per star (under Mroz
-#     et al. 2017's upper limit of 0.25, Nature 548:183).
-# So about 96% of rogues are not gas giants and 4% are. The old hand-set rates
-# (5, 1, 0.25, 0.25) with a log-uniform mass in each bin gave 91% and 9%,
-# twice the reference's share of gas giants.
-# Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
-ROGUE_PLANET_RATE_PER_STAR = 5.8
-ROGUE_PLANET_MASS_FUNCTION_SLOPE = 0.65
-_ROGUE_PLANET_BIN_EDGES_EARTH = {
+# interstellar-object-rates.md): the classes a rogue planet's mass falls in.
+# Terrestrial 0.1-2 Earth masses, sub-Neptune / ice giant 2-20, Saturn-class
+# 20 Earth masses to 1 Jupiter mass, Jupiter-mass 1-13 Jupiter masses. The bins
+# only name a mass; how many rogues there are and how heavy comes from the
+# ejections (the planet architecture's loss records) and, for the top-up, from
+# `rogue_mass_function` (GEN.1287). Above 13 Jupiter masses is a brown dwarf
+# (ROGUE_BROWN_DWARF_*).
+ROGUE_PLANET_MASS_BIN_EDGES_EARTH = {
     "terrestrial": (0.1, 2.0),
     "sub-neptune": (2.0, 20.0),
     "saturn": (20.0, 317.8),
     "jupiter": (317.8, _boundaries.jupiter("deuterium_burning_limit") * 317.8),
 }
-
-
-def _rogue_planet_mass_bins():
-    slope = ROGUE_PLANET_MASS_FUNCTION_SLOPE
-    low_all = min(low for low, _high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
-    high_all = max(high for _low, high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
-    total = low_all ** -slope - high_all ** -slope
-    return {name: (low, high, ROGUE_PLANET_RATE_PER_STAR * (low ** -slope - high ** -slope) / total)
-            for name, (low, high) in _ROGUE_PLANET_BIN_EDGES_EARTH.items()}
-
-
-ROGUE_PLANET_MASS_BINS = _rogue_planet_mass_bins()
-"""dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
-The rates' sum is the rogue-planet rate per star (`ROGUE_PLANET_RATE_PER_STAR`)."""
+"""dict: bin name -> `(min_mass_earth, max_mass_earth)`, the classes of a rogue planet's mass."""
 
 ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (_boundaries.jupiter("deuterium_burning_limit"), _boundaries.jupiter("brown_dwarf_upper_limit"))
 """tuple: A free-floating brown dwarf, between the deuterium-burning
 (~13 Mjup) and hydrogen-burning (~80 Mjup) limits. Stored as a
 `rogue_planets` row with `mass_bin = 'brown-dwarf'` (schema v37)."""
 
-ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
+ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BIN_EDGES_EARTH) + ("brown-dwarf",)
 """tuple: Every `rogue_planets.mass_bin` value."""
 
 ROGUE_LEVEL_CEILINGS = {"None": 0.0, "Few": 2.5, "Normal": 4.3, "Many": 10.0}
