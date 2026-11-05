@@ -806,23 +806,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
-- [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
-  Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
-  asteroid belt information page that will show the bodies in the
-  asteroid belt that are named and the contents and sizes of the rest of
-  the mass of the asteroid belt, as well as a density factor in
-  object/square (something, not sure which unit)"; design
-  docs/design/systems/belt-evolution.md section 12, goal #4130). Belt
-  members have a designation, not a name (Boss 4:21 PM EDT), so the list
-  is the individually tracked bodies by designation. Lock work (route
-  and API field, API version bump with the change note). Done: page and
-  API tests, the web a11y and link checks, the unit shown beside every
-  number, a link from the system page. No backward-compat shim. Where we
-  think it belongs (best guess, can move): Core 2, train 7 (after the
-  members are stored on train 7).
-  Prerequisites: GEN.1070, GEN.1069.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **UX.259 Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>'**
   Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
   questions of reports/id-names-without-region-prefix-2026-11-04.md
@@ -872,6 +855,22 @@ with `clamp()`.
   wiring guard green. Lock-free once GEN.876 is merged. Version 8.1.
   Owner: Core 5. Filed by the TODO thread.
   Prerequisites: GEN.876. Related: UX.237, GEN.875, GEN.876.
+
+- [ ] **UX.263 The belt page reads the belt density module: wire planetgen.physics.belt_density into the belt page data builder, or delete it**
+  The TODO thread (5:22 PM EST on 2026-11-05), after UX.241 merged
+  (#5178): the wiring guard shows planetgen.physics.belt_density, with
+  its constants 6.99:BD1 to BD4, is built and nothing imports it; the
+  belt page data builder (physics/belt_page.py) computes the density
+  factor and the size-table bins without it. Do: either make the page
+  builder call belt_density (objects above 1, 10 and 100 km per square
+  AU, mass per square AU, the size-table bins), checking that the page
+  numbers do not change, or, if belt_page already holds the same
+  arithmetic, delete the module and its tests and drop its constants and
+  register lines. Then remove the five register lines for it in
+  docs/design/research/wiring-register.md. Done: the wiring guard passes
+  with no line for belt_density. Lock-free if the page numbers do not
+  change. Version 8.1. Owner: Aux 5. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.241, UX.240.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1751,7 +1750,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a new command follows the PERF.120 rules (one command does one thing);
   tests are `scripts/test.py changed --resume`; no fixed content from
   the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
-  Prerequisites: POP.34, NAV.5. Related: NAV.5, NAV.36, MAP.240,
+  Prerequisites: POP.34. Related: NAV.5, NAV.36, MAP.240,
   MAP.307.
 
 - [ ] **MAP.310 Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it**
@@ -2072,41 +2071,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed since the first save. NAV.18 is done. This item stays open for
   NAV.19 (saved courses in the account, after USR.7).
 
-- [ ] **NAV.5 Show a course on the Galaxy Map**
-  Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
-  to view the route in the context of the galactic map, zoomed in as far
-  as it can be zoomed in and still show the entire path. The course
-  path, direct and system-to-system, should then be specially
-  highlighted as a course." Today the NAV page draws its own flat map
-  of the route (`lib/navmap.py`), and the Galaxy Map only takes
-  `?course=` for an end point. Done: from the NAV page (and a saved
-  course, NAV.4), the course opens on the Galaxy Map, zoomed in as far
-  as it can be while showing the whole path. Both the direct line and
-  the system-to-system route are drawn in a distinct course style,
-  told apart from each other, with their end points and hops marked
-  and clickable. The same works inside a sector. Ties in with MAP.61 (a course view
-  may need a fitted zoom outside the user range; MAP.58's zoom limits
-  were superseded by MAP.125).
-  Much of this exists: `/galaxy?course=<from>,<to>` (MAP.27, 7.52.0)
-  draws one line through the route's stops with the ends named. Missing:
-  the direct line drawn apart from the route, a fitted zoom, and any
-  course inside a sector.
-  Prerequisites: none.
-  Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
-  on the galactic map and stay until cleared." See NAV.49.
-
-  - [ ] **NAV.22 Courses inside a sector and a system**
-    Today a course that stays in one sector opens the sector with no
-    line. Done: the same course drawing at the sector stage (MAP.61)
-    and in the 3D system view (MAP.62), and a course that spans levels
-    shows its in-system legs when zoomed in.
-    Research (2026-10-09, course-avoidance.md): define the scale
-    hand-off: the galactic path ends at the system's star; the in-system
-    leg starts where the path crosses the heliopause
-    (`heliosphere_radius_km`) and ends at the target body; sector-scale
-    courses use the same keep-out table in light-years.
-    Prerequisites: MAP.217.
-
 - [ ] **NAV.6 Courses that steer clear of gravity wells**
   Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
   the course. A ship piloting would adjust the course to avoid falling
@@ -2146,13 +2110,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not change in practice (overhead 0.04% to 0.2% on average).
 
   Prerequisites: none.
-- [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
-  Done: a saved course (NAV.17) keeps which hops were unknown-space
-  jumps when it was saved, and opening it checks again, since sectors
-  may have been filled in the meantime; a hop that is now known shows
-  as ordinary, and the course says what changed. Prerequisites: none.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
   Count how many pairs of keep-out spheres overlap in a generated
   galaxy. The answer decides whether NAV.26's cluster fallback ever
@@ -14163,6 +14120,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: none. Related: PERF.241.
 
+- [ ] **GEN.1283 The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug)**
+  Core 1 (as the lane reported, about 5:16 PM EST on 2026-11-05, while
+  fixing PERF.228) found two tests in tests/test_habitability_fill.py
+  red on plain main:
+  test_a_system_comes_back_with_the_numbers_generation_stored and
+  test_the_command_re_scores_every_system_and_a_second_run_changes_nothing.
+  The re-score of a 'wide' system, planet 1, gives band1_day_hours 14.21
+  where generation stored 13.60. A re-score must reproduce what
+  generation stored, or a second run changes the galaxy. Do: find which
+  input differs between the generation pass and the re-score (the same
+  class of cause as the day_share_mean fix in values_from_body in
+  GEN.1265: a value generation read from the live body that the re-score
+  reads from the stored row, or the reverse), fix the side that is
+  wrong, and check every band number, not only the day length. Done:
+  both tests pass and a re-score of a generated galaxy changes no stored
+  number. A fix that changes generated numbers is a lock item (epoch).
+  Version 8.1. Owner: Core 1. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1265, PERF.228.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14655,50 +14631,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.0.3021) for this, PERF.225 and PERF.226, and Boss must cancel and
   clear the stuck run.
   Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
-
-- [ ] **PERF.228 The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug)**
-  Star 2 (reported 2026-10-31 8:04 PM EDT as the lane reported): while
-  measuring PERF.226 on its populated test database, the
-  rescore-habitability stage failed with a MySQL deadlock (error 1213,
-  'Deadlock found when trying to get lock; try restarting transaction')
-  in unit 4, with 4 workers running at once. A deadlock between units of
-  one stage means two workers update overlapping rows in a different
-  order, or one holds a range lock the other needs. Do: (1) reproduce on
-  a populated database with 4 workers and capture `SHOW ENGINE INNODB
-  STATUS` for the latest detected deadlock, naming the two statements
-  and the index; (2) make the units touch disjoint rows in one fixed
-  order (update by primary key in ascending order, or per-unit key
-  ranges that do not share a gap lock), or retry the unit transaction on
-  1213 a bounded number of times as the repository's other stages do,
-  whichever the statements show is the cause; (3) check the other stages
-  that update stored rows from several workers for the same pattern.
-  Done: a test that runs two overlapping units against one database and
-  finishes without error, and a populated run with 4 workers that
-  finishes the stage. Lock-free, generation output unchanged. Owner:
-  unassigned (Star 2 has PERF.226; a waiting lane may take it). Version
-  8.1. Prerequisites: none. Related: PERF.226.
-  Prerequisites: none.
-
-- [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
-  Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
-  warm --progress. What the code does (src/planetgen/cli/warm.py,
-  queue/wrapper.py, queue/redisqueue.py): the command is a client that
-  follows a run whose units are done by queue workers started in their
-  own session (start_new_session=True), and the next stage is queued by
-  the unit that ends the previous one, so the work most likely keeps
-  going after the hangup; the client itself only handles SIGTERM, so a
-  hangup ends the progress view, and the phase notes the client writes
-  (warmphases) stop. Do: (1) a planetgen warm --follow that attaches to
-  the running warm-up from the run record (wrapper.py already says a
-  second process can follow a run from the record alone) and draws the
-  same bars; (2) handle SIGHUP in the warm command so a hangup leaves
-  the run going and says so, or document the detached way (nohup or
-  tmux) in the operations guide; (3) verify on a real run that killing
-  the client leaves the run finishing, and the admin page's phase list
-  still moves. Done: a test of the follow from a second process and of
-  the hangup. Proposed owner: Aux 3 (PERF.233). Filed by the TODO
-  thread.
-  Prerequisites: none. Related: PERF.233, PERF.234.
 
 - [ ] **PERF.236 The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug)**
   Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
@@ -18135,30 +18067,6 @@ clears each one.
   thread.
   Prerequisites: none.
 
-- [ ] **TEST.619 tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Use the registry converters (units.converter)
-  for the two multiplies. Done: the test passes with no new exception in
-  its allow list. Owner: Core 2. Do: reproduce on current main first (a
-  merge since may have fixed it), fix at the cause with the property
-  kept, never skip or loosen a test. Lock-free if output is unchanged;
-  tell the TODO thread if values change. Version 8.1. Filed by the TODO
-  thread.
-  Prerequisites: none.
-
-- [ ] **TEST.620 tests/test_reproducible_draws.py fails: math.dist at db/field_clouds.py:51 and db/obstacles.py:158 must use detmath.dist (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Replace both with detmath.dist so results do not
-  depend on the platform's libm. Done: the test passes and obstacle and
-  cloud results are unchanged. Owner: Core 2. Do: reproduce on current
-  main first (a merge since may have fixed it), fix at the cause with
-  the property kept, never skip or loosen a test. Lock-free if output is
-  unchanged; tell the TODO thread if values change. Version 8.1. Filed
-  by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.621 The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug)**
   The Train Manager (as the lane reported, about 3:47 PM EST on
   2026-11-05, full-suite run on main) saw twice that the non-browser run
@@ -18175,18 +18083,6 @@ clears each one.
   Done: a deliberately hung test is killed at its limit with a clear
   message, and the full run completes. Lock-free. Version 8.1. Owner:
   Train Manager. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.417.
-
-- [ ] **TEST.622 tests/test_parallel_names.py::test_two_passes_drawing_the_same_names_still_save_unique_ones fails alone on main (no species made) and passes in a whole-file run (bug)**
-  Core 5 (as the lane reported, about 4:15 PM EST on 2026-11-05) saw the
-  test fail alone on plain main with assert ([]) because no species was
-  made, while it passes when the whole file runs; it depends on test
-  order. Do: reproduce alone, find what an earlier test in the file sets
-  up that this one needs (a seeded draw, a table row, a cached pool),
-  and make the test set up its own state; a test that only passes after
-  another is a bug in the test. Add a check that runs the test alone in
-  the file's own run. Done: the test passes alone and in the whole file.
-  Lock-free. Version 8.1. Owner: Core 5. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.417.
 
 ## USR: User accounts
