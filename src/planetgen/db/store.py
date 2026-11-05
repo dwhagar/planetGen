@@ -7243,6 +7243,15 @@ def filled_sector_addresses(conn):
     return chart_ledger.charted_addresses(conn)
 
 
+def give_system_uid(conn, system_id, uid):
+    """Gives a system that has no Object ID the one it was born with (a scatter star's, GEN.1254), before `assign_uids` numbers its bodies
+    under it. Does nothing for `uid` `None` or a system that has one already."""
+    if uid is None:
+        return
+    conn.execute("UPDATE star_systems SET uid = ? WHERE id = ? AND uid IS NULL", (bytes(uid), system_id))
+    storage_checksum.mark_rows(conn, "star_systems", [system_id])
+
+
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
     """Links a pre-placed star to the system its sector's fill built
     around it."""
