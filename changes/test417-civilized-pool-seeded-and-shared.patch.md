@@ -1,5 +1,0 @@
-**Headline:** The tests that need a generated civilization no longer each pay minutes to find one: the systems are drawn from numbered seeds and the numbers that gave a civilization are kept for the other test processes.
-
-### Changed
-- `tests/test_population.py` (TEST.417): the pool of civilized systems (`_civilized_candidates`) draws candidate N under a stream seeded from N, so the same number gives the same system. A number that gave a civilization is written to a file in the temporary directory, named for the size and time of the package's source files, and every test process reads it before it searches: a process that needs a civilized system makes one known to hold a civilization and does not look for another among about one in thirteen. Parallel workers start their search a thousand numbers apart. The generator is not touched, and the same G2V system with a habitable world and intelligent life requested is drawn.
-- The species limits test of a generated galaxy took 1,222 s alone on a lane machine, all in setup; with a file from an earlier run it sets up in under 40 s here, and on a cold start it takes the time the draws take, as before.
