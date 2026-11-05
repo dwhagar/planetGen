@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3327] - 2026-11-05
+
+**Headline:** The sector reach wheel test now ticks the wheel one step at a time and waits for the camera to rest, so it passes every time instead of 1 run in 4.
+
+### Fixed
+- `test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is` (TEST.411) failed 3 runs of 4 alone on main. It turned the wheel by a large amount to reach the window's nearest zoom, but the map caps one wheel event at one step, and it read the zoom before a tick had moved the camera. It brought the camera to the sector by ticks that came faster than the camera moved, so where it ended depended on the machine's speed. It now ticks once the camera is at rest each time, until the tick that finds the camera at the nearest zoom opens the sector, and checks that the camera did not move in that one. `_zoom_in_until` also reads the zoom once the camera is at rest, which the scene fade test shares.
+- Not changed: the indexeddb revisit test passed 6 of 6 alone, and the two double-click flight tests and the system disc fade test passed in every full-file run here, so no cause was found for them to fix.
+
 ## [8.0.3326] - 2026-11-05
 
 **Headline:** A test now shows that a course between two systems of one sector also goes round an asteroid field.
