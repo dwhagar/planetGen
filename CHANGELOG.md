@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3330] - 2026-11-05
+
+**Headline:** The study of how the gravity of the stars a crowded cell leaves out affects courses and the orbital update is written.
+
+### Changed
+- **NAV.62 study.** `docs/design/galaxy/realistic-galactic-core.md` section 11 says the unresolved mass is already in the smooth galactic field the orbital update uses, that its fluctuation is under half a percent of a star's speed per Myr, that a course cannot steer clear of the unresolved stars in the core (about 1,100 keep-out spheres across the nuclear disc) and should say how many it passes through, and lists three small items to build.
+
 ## [8.0.3329] - 2026-11-05
 
 **Headline:** The Help menu test no longer pins the exact list of help pages, so a new help page such as the sky page does not turn it red.
