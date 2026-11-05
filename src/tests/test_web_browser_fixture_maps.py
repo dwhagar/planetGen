@@ -6041,3 +6041,42 @@ def test_galaxy_map_names_a_cluster_by_its_name_or_by_its_designation_while_it_h
     assert "label-cluster" in parse_qs(urlparse(page.url).query).get("hide", [""])[0]
     toggle.click()
     page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'cluster')")
+
+
+def _click_cluster_name(page, text):
+    """Clicks a cluster's name where the label engine placed it (as `_click_nebula_name` does for the nebula)."""
+    page.wait_for_function(f"(text) => ({LABELS})().some((label) => label.kind === 'cluster' && label.text === text)", arg=text, timeout=20000)
+    label = page.evaluate(f"(text) => ({LABELS})().find((l) => l.kind === 'cluster' && l.text === text)", text)
+    canvas = page.locator("#galaxymap3d-canvas")
+    canvas.scroll_into_view_if_needed()
+    box = canvas.bounding_box()
+    page.mouse.click(box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2)
+
+
+@pytest.mark.viewport(1000, 900)
+def test_choosing_a_cluster_opens_its_window_on_the_cluster_alone_across_the_sectors_it_crosses(page, map_site):
+    """MAP.223: choosing a cluster by its name flies to a window on its sphere (wider than the sectors it crosses, so a window on a sector
+    would cut it): the bar names it, the camera frames its centre, only the stars inside the sphere are drawn, and the way back returns."""
+    unnamed = FIXTURE_CLUSTERS[0]
+    assert unnamed["extent_pc"] > EDGE_PC, "the fixture cluster spans more than one sector"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})", [unnamed["center_pc"], 110])
+    _settle(page)
+    before = _camera(page)
+    everything = page.evaluate(WINDOW)
+    assert everything["window"] is None and everything["total"] > 0
+    _click_cluster_name(page, "Globular cluster FE81000A2B-0000005-001")
+    page.wait_for_function(f"() => ({WINDOW})().window !== null", timeout=20000)
+    opened = page.evaluate(WINDOW)
+    win = opened["window"]
+    assert win["kind"] == "cluster" and win["key"] == "globular_cluster:" + unnamed["uid"]
+    assert win["title"] == "Globular cluster FE81000A2B-0000005-001" and win["summary"] == "a globular cluster"
+    assert math.dist(win["centre"], unnamed["center_pc"]) < 1e-6 and abs(win["radiusPc"] - unnamed["extent_pc"]) < 1e-6
+    assert page.locator("#galaxymap3d-window").is_visible()
+    assert opened["drawn"] < opened["total"], "stars outside the cluster's sphere are not drawn"
+    page.click('#galaxymap3d-window [data-action="close-window"]')
+    page.wait_for_function(f"() => ({WINDOW})().window === null", timeout=15000)
+    after = page.evaluate(WINDOW)
+    assert after["drawn"] == after["total"] and not page.locator("#galaxymap3d-window").is_visible()
+    back = _camera(page)
+    assert math.dist(back["target"], before["target"]) < 1.0
