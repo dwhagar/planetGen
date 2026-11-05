@@ -17893,6 +17893,118 @@ clears each one.
   values change. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.725.
 
+- [ ] **TEST.605 test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md.
+  DOC.103 changed the script's label to vapor, but
+  docs/design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md
+  line 55 still says vapour, so the builder cannot find the row. Done:
+  the builder and the document agree (American spelling vapor) and the
+  test passes on current main. Owner: Aux 3. Do: reproduce on current
+  main first (it may be fixed by a merge since), fix at the cause with a
+  test that fails without the fix, never skip or loosen a test.
+  Lock-free if output is unchanged; tell the TODO thread if values
+  change. Version 8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.606 The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md.
+  tests/test_habitability_fill.py::test_a_system_comes_back_with_the_numbers_generation_stored
+  and
+  ::test_the_command_re_scores_every_system_and_a_second_run_changes_nothing.
+  A re-score must give exactly what generation stored. Done: the stored
+  and re-scored values are equal for a wide binary and both tests pass
+  on current main. Owner: Tides 1. Do: reproduce on current main first
+  (it may be fixed by a merge since), fix at the cause with a test that
+  fails without the fix, never skip or loosen a test. Lock-free if
+  output is unchanged; tell the TODO thread if values change. Version
+  8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.607 Three cloud-placement tests find no cloud for a placed system (surrounding_cloud is None) (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md.
+  tests/test_gen_cloud_at_generation.py:
+  test_a_system_placed_inside_a_field_cloud_gets_the_cloud_and_its_effects
+  (line 165),
+  test_the_same_placement_draws_the_same_enrichment_and_another_placement_another
+  (line 222),
+  test_the_sectors_local_axes_are_turned_into_the_galaxy_frame_before_the_test
+  (line 188). Same root: no cloud is found for a placed system. Decide
+  from the cause whether the code or the test moved (field clouds
+  changed under MAP.177/181 and GEN.1268). Done: all three pass on
+  current main. Owner: Core 4. Do: reproduce on current main first (it
+  may be fixed by a merge since), fix at the cause with a test that
+  fails without the fix, never skip or loosen a test. Lock-free if
+  output is unchanged; tell the TODO thread if values change. Version
+  8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.608 The web app imports numba: tests/test_install_python_deps.py::test_the_web_app_never_imports_numba fails (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md.
+  import planetgen.web.app pulls in numba because physics/*_kernel.py
+  import it at the top level. The web daemon must start without it.
+  Done: the kernels import numba lazily (or the web app does not reach
+  them at import), the test passes, and startup time of the web app is
+  not worse. Owner: Core 2. Do: reproduce on current main first (it may
+  be fixed by a merge since), fix at the cause with a test that fails
+  without the fix, never skip or loosen a test. Lock-free if output is
+  unchanged; tell the TODO thread if values change. Version 8.1. Filed
+  by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.609 tests/test_precision.py::test_the_floor_of_every_table_with_a_position_is_the_documented_one fails: the table set has an extra belt_members (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md. The
+  belt_members table has a position and so needs a documented precision
+  floor (the belt member storage came with GEN.1070 and GEN.1232). Done:
+  belt_members has its documented floor in the precision doc and the
+  test passes on current main. Owner: Core 2. Do: reproduce on current
+  main first (it may be fixed by a merge since), fix at the cause with a
+  test that fails without the fix, never skip or loosen a test.
+  Lock-free if output is unchanged; tell the TODO thread if values
+  change. Version 8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.610 tests/test_api_job_runs.py::test_a_neighborhood_job_runs_its_sectors_through_the_wrapper counts 16 sectors where it expects 1 + 14 (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md. A
+  rogue planet that lands in a cell nobody charted gets a sector row
+  there (GEN.1111 part 7), so the sector count is off by the
+  landing-cell rows; Bug 1 made the same correction in
+  test_gen_resume.py and test_work_queue.py (count only sectors in the
+  chart ledger). Done: the test counts charted sectors and still checks
+  every property, and passes on current main. Owner: Core 5. Do:
+  reproduce on current main first (it may be fixed by a merge since),
+  fix at the cause with a test that fails without the fix, never skip or
+  loosen a test. Lock-free if output is unchanged; tell the TODO thread
+  if values change. Version 8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.611 tests/test_radiative_convective.py::test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends gives 38.69 against 31.63 +- 0.03 (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md. A gas
+  without a fit should take the table heat capacities held at the ends;
+  the value differs by 22 percent. Find whether the table, the lookup or
+  the expected number moved, and say from the physics which is right
+  (secondary sources accepted; a stand-in is registered in GEN.725).
+  Done: the test passes on current main with the physics stated in the
+  change note. Owner: Core 5. Do: reproduce on current main first (it
+  may be fixed by a merge since), fix at the cause with a test that
+  fails without the fix, never skip or loosen a test. Lock-free if
+  output is unchanged; tell the TODO thread if values change. Version
+  8.1. Filed by the TODO thread.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
