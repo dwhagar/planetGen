@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1090 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1093 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
 | T5 | 48 | 21 | 3 | 1 | 0 | 73 |
-| T6 | 106 | 84 | 21 | 52 | 0 | 263 |
+| T6 | 107 | 84 | 21 | 52 | 0 | 264 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 22 | 14 | 5 | 47 | 28 | 116 |
-| All | 613 | 239 | 53 | 146 | 39 | 1090 |
+| T9 | 24 | 14 | 5 | 47 | 28 | 118 |
+| All | 616 | 239 | 53 | 146 | 39 | 1093 |
 
 ## How the labels were given
 
@@ -1153,6 +1153,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SS9 | P | T6 | L1 | regional_temperature.GROUND_INERTIA 300, the thermal inertia of the ground, J/(m2 K s^0.5) | 55 (regolith) to 2500 (bare rock) | rocky bodies | a measured thermal inertia of the body's own ground more than 2 times from 300 | the surface composition and grain (GEN.441) | lunar regolith 55, Mars about 300, bare rock 2000 to 2500 | - | - |
 | SS10 | P | T6 | L1 | regional_temperature.AIR_CP_J_KG_K 1000, the heat capacity of air per kilogram | 850 (carbon dioxide) to 14000 (hydrogen) | bodies with air | a body whose air has a heat capacity under 700 or over 3000 and that is a thin one where the column dominates the capacity | the mixture's own heat capacity | air 1004, carbon dioxide 850, hydrogen 14,000 | - | - |
 | SS11 | P | T6 | L0 | seasonal_swing.TEMPERATURE_MAX_STEPS 6000, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 0.25, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 0.3, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series) | steps 3000 to 20000; tolerance 0.05 to 0.5 K | any body | a body whose livable share changes by more than 0.01 when the steps are doubled or the tolerance halved | none needed | numerical choices | - | - |
+| SS12 | D | T9 | L0 | temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always) | none | any body | a decision of Boss on what counts as livable most of the time | Boss's number | definitions from the research note of 11-04 and the decision of 7:32 PM EST | - | - |
+| SS13 | D | T9 | L0 | temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface) | 45 to 75 and 105 to 135 | tidally locked bodies | a decision of Boss on where the belt ends | Boss's number | definitions; the plan says only day side, terminator and night side | - | - |
+| SS14 | P | T6 | L0 | temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning) | 1e-4 to 1e-2 | any body | a sweep where the best site changes with the tolerance in more than 1 percent of worlds | none needed | a numerical choice | - | - |
 
 ## 6.92 Stand-ins of the resonant chains
 

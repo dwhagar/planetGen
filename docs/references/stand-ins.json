@@ -26865,6 +26865,120 @@
           "tweak": "L0",
           "unread": null,
           "what": "seasonal_swing.TEMPERATURE_MAX_STEPS 6000, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 0.25, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 0.3, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on what counts as livable most of the time"
+            ],
+            [
+              "What replaces it",
+              "Boss's number"
+            ],
+            [
+              "Evidence",
+              "definitions from the research note of 11-04 and the decision of 7:32 PM EST"
+            ]
+          ],
+          "id": "SS12",
+          "key": "6.91:SS12",
+          "kind": "D",
+          "slug": "6-91-ss12",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
+            ],
+            [
+              "The range it moves in",
+              "45 to 75 and 105 to 135"
+            ],
+            [
+              "Where it holds",
+              "tidally locked bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on where the belt ends"
+            ],
+            [
+              "What replaces it",
+              "Boss's number"
+            ],
+            [
+              "Evidence",
+              "definitions; the plan says only day side, terminator and night side"
+            ]
+          ],
+          "id": "SS13",
+          "key": "6.91:SS13",
+          "kind": "D",
+          "slug": "6-91-ss13",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the best site changes with the tolerance in more than 1 percent of worlds"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "a numerical choice"
+            ]
+          ],
+          "id": "SS14",
+          "key": "6.91:SS14",
+          "kind": "P",
+          "slug": "6-91-ss14",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
         }
       ],
       "slug": "6-91-stand-ins-of-the-seasonal-swing",
