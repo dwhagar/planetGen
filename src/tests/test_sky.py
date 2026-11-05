@@ -303,3 +303,45 @@ def test_the_sky_carries_the_unretarded_offset_the_velocity_and_the_dimmed_absol
     assert result.dimmed_absolute_magnitude[0] > clear.dimmed_absolute_magnitude[0]        # the dust of the line of sight is in it
     empty = sky.sky_from_stars(OBSERVER, sky.empty_stars(), 0.0)
     assert empty.offset_pc.shape == (0, 3) and empty.dimmed_absolute_magnitude.shape == (0,)
+
+
+# --- the database entry point (VIEW.23 with VIEW.22) -------------------------------------------------------------------
+
+def test_built_to_pc_is_the_last_shell_complete_down_to_its_floor_without_a_gap():
+    inf = float("inf")
+    assert sky.built_to_pc([(0.0, 8.0, 1e-5, 1e-6), (8.0, 16.0, 2e-5, 2e-5), (16.0, 32.0, 8e-5, 1e-3), (32.0, 64.0, 3e-4, 1e-9)]) == 16.0
+    assert sky.built_to_pc([(0.0, 8.0, 1e-5, 1e-3)]) == 0.0
+    assert sky.built_to_pc([(0.0, 8.0, 1e-5, inf)]) == 0.0
+    assert sky.built_to_pc([]) == 0.0
+
+
+def test_the_sphere_source_reports_the_levels_of_each_shell():
+    from types import SimpleNamespace
+    sphere = fake_sphere([{"ident": 1, "x": 8128.0 + 5.0}])
+    sphere.levels = SimpleNamespace(complete_above_sol=0.5)
+    levels = []
+    source = sky.sphere_source(lambda centre, radius, floor: sphere, levels)
+    source(OBSERVER.position_pc, 0.0, 8.0, 0.001)
+    bare = fake_sphere([{"ident": 2}])                    # a query with no levels is complete above nothing it can say
+    sky.sphere_source(lambda c, r, f: bare, levels)(OBSERVER.position_pc, 8.0, 16.0, 0.01)
+    assert levels == [(0.0, 8.0, 0.001, 0.5), (8.0, 16.0, 0.01, float("inf"))]
+
+
+def test_the_database_entry_point_asks_the_sphere_query_on_its_connection(monkeypatch):
+    from types import SimpleNamespace
+    sphere = fake_sphere([{"ident": 1, "x": 8128.0 + 5.0}, {"ident": 2, "x": 8128.0 + 30.0, "lum": 50.0}])
+    sphere.levels = SimpleNamespace(complete_above_sol=0.0)
+    seen = []
+
+    def stars_in_sphere(conn, centre, radius, floor):
+        seen.append((conn, radius, floor))
+        keep = (sphere.distance_pc <= radius) & (sphere.luminosity_sol >= floor)
+        picked = SimpleNamespace(**{k: v[keep] for k, v in vars(sphere).items() if k != "levels"})
+        picked.levels = sphere.levels
+        return picked
+
+    monkeypatch.setattr(sky.sky_sphere, "stars_in_sphere", stars_in_sphere)
+    result = sky.sky_from_database("the connection", OBSERVER, 0.0, 7.5, circular_speed_kms=flat_speed, dust=NO_DUST, max_distance_pc=500.0)
+    assert sorted(result.uid) == ["0:1", "0:2"]
+    assert all(conn == "the connection" for conn, *_ in seen) and len(seen) == len(sky.shell_radii_pc(500.0))
+    assert result.report["built_to_pc"] == 500.0 and result.report["complete_above_sol"] == 0.0

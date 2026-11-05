@@ -397,6 +397,7 @@ The content database: writing, reading, migrating and checking it. `schema.sql` 
 | [`render.py`](../../../src/planetgen/db/render.py) | On-demand rendering of a stored star system's text. |
 | [`sector_paths.py`](../../../src/planetgen/db/sector_paths.py) | `compute_sector_paths` and `settle_sectors`: the path every system, rogue planet and interstellar comet takes from where it is now to where it leaves its sector, saved when a run settles. |
 | [`shell_specs.py`](../../../src/planetgen/db/shell_specs.py) | The galaxy's outline as the Generate page shows it (ADM.28): how many shells it has, how far out they reach, and how many sectors are charted in each. |
+| [`sky_sphere.py`](../../../src/planetgen/db/sky_sphere.py) | The stars of a sphere above a luminosity floor, as arrays, from the charted systems, the pre-placed bright stars and the scattered phenomena (cluster members are among them, by `cluster_id`), with the cell levels the sphere reached (VIEW.22). |
 | [`species_fit.py`](../../../src/planetgen/db/species_fit.py) | Which species could live where (POP.12). |
 | [`stats.py`](../../../src/planetgen/db/stats.py) | Read-only statistics about one content database, for the admin stats page (`html/adminstats.py`, via `GET /api/admin/stats` and `GET /api/admin/duplicate-names` in `planetgen/api/admin.py`). |
 | [`stones.py`](../../../src/planetgen/db/stones.py) | Stepping stones for a route from system to system (NAV). |

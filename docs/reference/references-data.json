@@ -146155,6 +146155,37 @@
    "volume": "395",
    "year": 2002
   },
+  "10.1051/0004-6361:20021554": {
+   "authors": [
+    [
+     "Willingale",
+     "R."
+    ],
+    [
+     "Bleeker",
+     "J. A. M."
+    ],
+    [
+     "van der Heyden",
+     "K. J."
+    ],
+    [
+     "Kaastra",
+     "J. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361:20021554",
+   "editors": [],
+   "journal": "A&A",
+   "page": "1021",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "The mass and energy budget of Cassiopeia A",
+   "type": "journal-article",
+   "volume": "398",
+   "year": 2003
+  },
   "10.1051/0004-6361:20021560": {
    "authors": [
     [
@@ -154205,6 +154236,49 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "108",
    "year": 1997
+  },
+  "10.1086/313278": {
+   "authors": [
+    [
+     "Iwamoto",
+     "K."
+    ],
+    [
+     "Brachwitz",
+     "F."
+    ],
+    [
+     "Nomoto",
+     "K."
+    ],
+    [
+     "Kishimoto",
+     "N."
+    ],
+    [
+     "Umeda",
+     "H."
+    ],
+    [
+     "Hix",
+     "W. R."
+    ],
+    [
+     "Thielemann",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/313278",
+   "editors": [],
+   "journal": "ApJS",
+   "page": "439",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Nucleosynthesis in Chandrasekhar Mass Models for Type Ia Supernovae and Constraints on Progenitor Systems and Burning‐Front Propagation",
+   "type": "journal-article",
+   "volume": "125",
+   "year": 1999
   },
   "10.1086/316403": {
    "arxiv": "astro-ph/9904017",
@@ -278555,7 +278629,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5096,
+ "id_next": 5098,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -280520,6 +280594,7 @@
   "10.1051/0004-6361:20020994": "R3554",
   "10.1051/0004-6361:20021248": "R3111",
   "10.1051/0004-6361:20021321": "R0376",
+  "10.1051/0004-6361:20021554": "R5097",
   "10.1051/0004-6361:20021560": "R3541",
   "10.1051/0004-6361:20021819": "R4362",
   "10.1051/0004-6361:20021842": "R3888",
@@ -280793,6 +280868,7 @@
   "10.1086/312287": "R3141",
   "10.1086/312838": "R1359",
   "10.1086/312955": "R0355",
+  "10.1086/313278": "R5096",
   "10.1086/316403": "R1908",
   "10.1086/316878": "R3420",
   "10.1086/317312": "R4215",

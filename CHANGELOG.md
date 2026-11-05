@@ -2,6 +2,39 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3240] - 2026-11-05
+
+**Headline:** A supernova remnant's ejecta and swept-up gas, and its progenitor's mass, can now be worked out from the physics (not yet stored or shown).
+
+### Added
+
+- `remnant_composition.py` gives a remnant two parts: the interstellar gas swept up inside its radius, and the ejecta of the star that exploded, element by element, with the progenitor's initial mass. A Type Ia remnant throws out the 1.37 solar masses of the W7 model (mostly iron, no hydrogen or helium); a core-collapse remnant throws out oxygen-rich ejecta that grow with the progenitor's mass, from a progenitor drawn from the windows of the core it left (a neutron star or a black hole).
+- A progenitor above 30 solar masses is stripped of its hydrogen, and a third of the lighter ones are; the remnant's core and the ejecta add up to the star's mass at death.
+- Checked against Cassiopeia A: the swept-up mass at 350 years and 3 particles per cm^3 is 8.0 solar masses (7.9 measured) and the ejecta of a stripped 16 solar mass star is 2.4 (2.2 measured).
+- The tables are the published ones (a Type Ia and a Type II table, read as `remnant_yields.json`); what scales them with the progenitor's mass, strips the star and bounds the sums are stand-ins with rows SNC1 to SNC7 in the registry.
+- Nothing reads the model yet: GEN.1276 writes the values at generation and GEN.1272 shows them. The swept-up gas is the star's own birth gas until the shared nebula model (GEN.1269) gives the gas of the place.
+
+generation-output: unchanged
+
+## [8.0.3239] - 2026-11-05
+
+**Headline:** The stars of a sphere above a luminosity floor can be read from the database as arrays, ready for the System View sky.
+
+### Added
+
+- `planetgen.db.sky_sphere` (VIEW.22): `stars_in_sphere` returns, as arrays, every charted star, unbuilt pre-placed bright star and unbuilt scattered phenomenon inside a sphere at or above a luminosity floor (with position, distance, velocity, epoch, luminosity, temperature, age, lifespan, cluster and kind), nearest first; `cell_levels` names the sectors the sphere reaches and how far each was drawn, and the level down to which the sphere is complete.
+- Nothing changes in what a person sees yet; the sky catalogue (VIEW.23) reads it.
+
+generation-output: unchanged
+
+## [8.0.3238] - 2026-11-05
+
+**Headline:** The generator can now work out what a planetary nebula is made of, from the star that threw it off.
+
+### Changed
+
+- `physics/planetary_nebula_ejecta.py` (GEN.1270, part b of GEN.1268): `progenitor(nebula_class, place_fe_h, key)` draws the star that lost a planetary nebula from the nebula's own key (the same nebula always has the same progenitor, and a later central star or white dwarf that reads the same key gets the same mass), between 0.9 and 7.2 solar masses weighted by the initial mass function and inside the window of its class (K carbon-rich: a star that dredges carbon up but does not burn it again; L nitrogen-rich: 4 solar masses and more), and works its ejecta through the first, second and third dredge-ups and hot bottom burning: helium, carbon, nitrogen and oxygen mass fractions, C/O, N/O, He/H and whether it is Type I. In the tests a solar-metallicity progenitor of 1.5 to 3.9 solar masses ejects carbon-rich gas (C/O 1.4 to 2.8) and one of 4 to 7 solar masses nitrogen-rich gas (N/O 1.1 to 2.1, helium over hydrogen near 0.12). The values and the progenitor mass are returned together (`values()`) for the composition item (GEN.1276) to write. Nothing reads it yet. Seven stand-ins are registered (6.178, PNE1 to PNE7). generation-output: unchanged
+
 ## [8.0.3237] - 2026-11-05
 
 **Headline:** In the Galaxy Map's Plane view, stars now have thin stems dropping to the grid plane, so height reads on the tilted map.
