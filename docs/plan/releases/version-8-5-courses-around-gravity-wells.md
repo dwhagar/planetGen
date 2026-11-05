@@ -64,7 +64,6 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
 | NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
 | NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
-| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | NAV.6 |  |
 
 ## Phase 3: Waypoints and the headline
 
