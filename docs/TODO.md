@@ -14767,6 +14767,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the values are written at generation and backfill by GEN.1276 (nebulae
   and remnants) and GEN.1277 (field clouds), which are lock items.
   Question 2 of the report is answered; the other seven defaults stand.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
 
 - [ ] **GEN.1269 Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place)**
   Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
@@ -14798,6 +14812,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the values are written at generation and backfill by GEN.1276 (nebulae
   and remnants) and GEN.1277 (field clouds), which are lock items. The
   lock-free statement above applies to this part's model code only.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
   Prerequisites: none. Related: GEN.1268.
 
 - [ ] **GEN.1270 Nebula composition part b: planetary nebulae with the progenitor's ejecta and dredge-up enrichment**
@@ -14989,6 +15017,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: GEN.1269, GEN.1270, GEN.1271. Related: GEN.1268,
   GEN.1267, GEN.725.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
 
 - [ ] **GEN.1277 Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one**
   Part of GEN.1268. Boss decided to store the composition of the field
@@ -15008,6 +15050,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   composition, the table growth is within the stated budget, and a
   re-run of the backfill is deterministic. Version 8.1. Owner: the lane
   that takes the nebula composition part g. Filed by the TODO thread.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
   Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
 
 ## PERF: Speed, caching, bulk generation and parallel work
