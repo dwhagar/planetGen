@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3284] - 2026-11-05
+
+**Headline:** The course planner can now bend a straight course around the objects it would pass too close to.
+
+### Added
+- `galaxy/avoid.py` takes a start, an end and the keep-out spheres between them and returns a short detour: a straight line when nothing is in the way, otherwise tangent lines and arcs around the spheres it crosses. A sphere that holds the start or the end is ignored, overlapping spheres are treated as one larger sphere, and a course it cannot bend safely is given as the straight line with a warning. Nothing shows it yet; the route and the NAV page call it next (NAV.6).
+
+generation-output: unchanged
+
 ## [8.0.3283] - 2026-11-05
 
 **Headline:** The course planner can now ask which keep-out spheres a straight path touches.
