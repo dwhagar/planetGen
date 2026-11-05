@@ -2149,30 +2149,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as ordinary, and the course says what changed. Prerequisites: none.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
 
-- [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
-  Boss (2026-10-07 11:47Z): "Then you can go find another location
-  (star, planet, whatever) and select it and you can add a 2nd waypoint,
-  waypoints are highlighted at all map levels with an icon it will plot
-  a course." And: "Plotted courses should appear on the galactic map and
-  stay until cleared." Done: waypoints set from Star select mode are
-  marked with an icon at every map level, two or more plot a course, and
-  the course stays drawn on every map until cleared.
-  Research (2026-10-09): MAP.122 was rescoped (7:40 PM EDT 2026-10-28):
-  it now delivers the Bookmark action and the touch reach on the star
-  panel; this item only adds the Waypoint button on that panel.
-  Parts 49a and 49c merged (Core 2, #5092, #5101) (7:40 AM EST on
-  2026-11-05): 49a: a waypoint flag on the info card of a system or
-  object and a Waypoints menu beside Bookmarks (order picked, Remove,
-  Clear all), kept in the browser. 49c: with two or more waypoints the
-  menu offers Plot the course; the Galaxy Map draws the course through
-  them (each leg planned like any course: route, direct line, bend round
-  keep-out spheres), waypoints ringed and named, fitted view, kept until
-  Clear all or Remove down to one; the address carries ?via=. Galaxy Map
-  only (inside a sector or system is NAV.22, MAP.217). Left: 49b,
-  waypoint icons at every map level. This item stays open for 49b.
-  Prerequisites: MAP.122.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
   Count how many pairs of keep-out spheres overlap in a generated
   galaxy. The answer decides whether NAV.26's cluster fallback ever
@@ -2217,7 +2193,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   re-planned after each edit (bending around gravity wells once NAV.6 is
   built) and the edit is saved over the saved course or as a new one
   (NAV.4); a test checks add, remove, reorder and save.
-  Prerequisites: NAV.49, NAV.4. Related: NAV.6, NAV.18, NAV.59.
+  Prerequisites: NAV.4. Related: NAV.6, NAV.18, NAV.59.
 
 - [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
   Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
@@ -2228,7 +2204,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
   a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
-  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4. Related: GEN.198,
+  Prerequisites: NAV.6, NAV.58, NAV.4. Related: GEN.198,
   MAP.167.
 
 - [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
@@ -18038,6 +18014,21 @@ clears each one.
   Lock-free unless a stored value is the cause (then stop and tell
   TODO). Version 8.1. Owner: Aux 7. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580.
+
+- [ ] **TEST.599 test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug)**
+  Core 2 (as the lane reported, about 9:10 AM EST on 2026-11-05) saw
+  tests/test_web_a11y.py -k web.system-phone-light fail on plain main on
+  a skip-link tab stop, and says link-colour axe checks also read red on
+  its machine. Core 3 saw web.system pass (8 passed, 4 skipped) on its
+  machine at main 10cf0b86d, so the failure may follow a later commit or
+  the machine. Do: run web.system-phone-light alone on current main,
+  print the failing assertion (the tab order with the skip link first,
+  or a link contrast), bisect test_web_a11y.py to the commit that turned
+  it red, and fix the page or the test at the cause; if it still passes
+  on a second lane machine, say which difference matters. Done:
+  web.system passes on current main on two lane machines. Lock-free.
+  Version 8.1. Owner: Core 3. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.346.
 
 ## USR: User accounts
 
