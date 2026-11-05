@@ -2470,6 +2470,31 @@ CREATE TABLE IF NOT EXISTS planets (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v205 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v205: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v205: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v205: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v205: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v205: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v205: the share above 45 C
+    temp_area_always            DOUBLE,  -- v205: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v205: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v205: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v205: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v205: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v205: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v205: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v205: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v205: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v205: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v205: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v205: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v205: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v205: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -2906,6 +2931,31 @@ CREATE TABLE IF NOT EXISTS moons (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v205 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v205: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v205: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v205: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v205: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v205: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v205: the share above 45 C
+    temp_area_always            DOUBLE,  -- v205: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v205: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v205: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v205: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v205: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v205: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v205: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v205: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v205: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v205: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v205: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v205: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v205: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v205: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v205: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface

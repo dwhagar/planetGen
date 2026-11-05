@@ -516,6 +516,13 @@ def _equipment_block(planet):
     if day is not None:
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
         rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
+    if getattr(planet, "temp_site_coldest_k", None) is not None:           # GEN.1266: the temperatures the gear is chosen for, and the worst of the world
+        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k)))
+        rows.append(fact("worst-range", "Worst conditions anywhere", _kelvin(planet.temp_coldest_k), " to ", _kelvin(planet.temp_hottest_k)))
+        if planet.temp_site_longest_out_days:
+            rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+        if planet.temp_livable_belt_only:
+            rows.append(fact("belt-only", "Where a person can live", "Only the terminator belt"))
     return facts("Survival equipment", rows) if rows else None
 
 

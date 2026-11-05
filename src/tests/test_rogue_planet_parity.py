@@ -17,6 +17,7 @@ import pytest
 
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.generation.planet import Planet
+from planetgen.physics import temperature_coverage
 
 HOST_ONLY = frozenset({
     # where the planet is around its host: no host, none of it
@@ -33,7 +34,7 @@ ROGUE_ONLY_PREFIXES = ("rogue_", "galactic_", "ejection_", "parent_system")
 """tuple: The columns only a rogue planet has: its note (`rogue_note`), its motion round the galaxy in place of an orbit, and the system it was
 ejected from (GEN.1111)."""
 
-MISSING_CEILING = 200
+MISSING_CEILING = 225
 """int: Planet columns (net of `HOST_ONLY`) the rogue planet does not carry under the same name: 148 when the test was written (TEST.498), plus the
 columns the planet gained while the rogue is still a generator of its own (below). It falls to zero when the rogue is built through the planet code
 (GEN.1111 and the rogue train, where every one of them comes with the planet); until then it rises only by the planet columns a lane adds, named in
@@ -55,6 +56,7 @@ PLANET_COLUMNS_ADDED = {
     "GEN.983 (belt dose of a moon)": ("dose_belt_msv_yr",),
     "GEN.1108 (seven latitude bands)": tuple(f"band{n}_{name}" for n in range(1, 8) for name in (
         "mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")),
+    "GEN.1265 (temperature coverage)": tuple(temperature_coverage.FIELDS),
 }
 """dict: The planet columns added since TEST.498 was written, by the item that added them. A lane that adds a planet column raises
 `MISSING_CEILING` by its count and lists the names here; `test_the_columns_added_since_the_test_was_written_are_all_missing_from_the_rogue` checks
