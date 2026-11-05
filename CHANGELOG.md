@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3243] - 2026-11-05
+
+**Headline:** The sector-delete test now matches the rule that a sector holding a filed facility cannot be deleted until the facility is removed.
+
+### Fixed
+- **test_deleting_a_sector_with_facilities was stale.** Since GEN.1127 a facility filed in a sector stops the sector's delete with a 409 (`facilities.sector_id` is `ON DELETE RESTRICT`); the test now checks the refusal, deletes the facility, then the sector.
+
 ## [8.0.3242] - 2026-11-05
 
 **Headline:** The Galaxy Map's Plane view now has a Stems switch, a height stretch and spherical-coordinate labels.
