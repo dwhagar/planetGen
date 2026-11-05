@@ -2456,30 +2456,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
-- [ ] **NAV.67 Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  3 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: draw the ribbon
-  from part 2 as SVG on the NAV page below the existing map: a glyph per
-  stop kind (system, stone kinds, phenomenon), hop length and course
-  labels, unknown-space hops red and glowing (the same work as NAV.36,
-  do them together), readable at 320 px, both themes, reduced motion
-  respected, text alternatives (the route stays a list). Done: a browser
-  test. Proposed owner: Core 2 (map and SVG). Folds in NAV.36. Related:
-  NAV.36. Goal #1679. Filed by the TODO thread.
-  Prerequisites: NAV.66.
-
 - [ ] **NAV.68 Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more'**
   Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
   questions
@@ -18621,6 +18597,19 @@ clears each one.
   Done: the four pass on main. Lock-free. Version 8.1. Owner: Tides 1,
   with TEST.580 and TEST.581. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580, TEST.581, OPS.95.
+
+- [ ] **TEST.585 Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug)**
+  Core 2 (as the lane reported, 9:43 PM EST on 2026-11-04) saw the
+  accessibility test fail with a sample_params error for
+  /references/method/<area>, and Aux 7 (9:24 PM EST) saw
+  test_health_reports_the_reason_for_maintenance and
+  test_sweep_atmosphere fail the same on main as on its branch. None is
+  from those lanes' changes. Find the commit for each, fix the code or
+  the test and say which. test_burn_down_register (the 6.170 rows) is
+  already in TEST.580. Done: the three pass on main. Lock-free. Version
+  8.1. Owner: Tides 1, with TEST.580, TEST.581 and TEST.583. Filed by
+  the TODO thread.
+  Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
 
 ## USR: User accounts
 
