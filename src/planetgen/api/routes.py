@@ -689,6 +689,27 @@ def system_sky_route(system_id):
     return jsonify({**built, "format": "PGK1", "data": base64.b64encode(packed).decode("ascii")})
 
 
+@bp.route("/systems/<uid:system_id>/sky/band")
+def system_sky_band_route(system_id):
+    """
+    `GET /api/systems/<id>/sky/band?limit=` -- the glow image of the system's sky (VIEW.13 light version, `galaxy/sky_band.py`): the light of the stars
+    dimmer than the limiting magnitude `limit` (2 to 9, default 7.5), ray-marched through the model galaxy's density with its dust, for the 50 parsec cell
+    of the system, as the equirectangular image `static/skyband.js` samples. Answers `{"key", "limit", "cell", "width", "height", "format": "rgb16f",
+    "seconds", "data"}`, `data` the base64 of the half floats (see `docs/design/interface/system-sky-wire-format.md` section 3.2). A limit out of range is a
+    400, a system with no place in the galaxy a 404.
+    """
+    try:
+        limit = skypack.check_limit(request.args.get("limit"))
+    except skypack.SkyLimitError as exc:
+        raise ApiError(str(exc))
+    try:
+        built = system_sky.build_system_band(get_db(), system_id, limit)
+    except system_sky.SkyError as exc:
+        return jsonify({"error": str(exc)}), 404
+    data = built.pop("data")
+    return jsonify({**built, "data": base64.b64encode(data).decode("ascii")})
+
+
 @bp.route("/systems/<uid:system_id>/description")
 def system_description(system_id):
     """

@@ -17,13 +17,14 @@ The `version_key` of an answer is `skypack.version_key(stamp)`: the galaxy's til
 and the generator epoch) with `skypack.SKY_VERSION`, which is raised when the answer changes for the same data.
 """
 
+import hashlib
 import math
 import time
 
 from planetgen.api import ids
 from planetgen.db import sky_sprites, store
 from planetgen.galaxy import potential as galacticPotential
-from planetgen.galaxy import sky, sky_sprites as spriteMaker
+from planetgen.galaxy import sky, sky_band, sky_sprites as spriteMaker
 from planetgen.generation import sky_tiers
 from planetgen.web.lib import skypack
 
@@ -31,8 +32,61 @@ MAX_SPRITES = 600
 """int: The most sprites a sky sends, the widest first (stand-in SKV2: the browser draws a quad each)."""
 
 
+_bands = sky_band.MemoryBandStore()
+"""The glow bands this process has worked out, by cache key: a band is shared by every system of a 50 parsec cell."""
+
+BAND_FORMAT = "rgb16f"
+"""str: The glow image's wire form: little-endian half floats, red, green and blue a texel, row by row (`sky_band.to_half_bytes`)."""
+
+
 class SkyError(ValueError):
     """A system with no place in the galaxy, or a galaxy with no shape."""
+
+
+def _band_galaxy_key(info, galaxy_key):
+    """Names the galaxy for the glow band's cache: the seed and the shape's numbers (not its cluster field)."""
+    shape = info.shape._replace(components=None, structure=None)
+    return f"{galaxy_key}|{hashlib.sha256(repr(shape).encode('utf-8')).hexdigest()[:16]}"
+
+
+def band_key(info, galaxy_key, observer, limit):
+    """The cache key of the glow image of `observer` (its 50 parsec cell) at `limit`: the band's own key and what turns it into the image; also the name of the file the web layer keeps."""
+    inner = sky_band.cache_key(sky_band.cell_of(observer.position_pc), _band_galaxy_key(info, galaxy_key), limit)
+    image = f"{inner}|{skypack.SKY_VERSION}|{sky_band.SB_REF}|{sky_band.TINT_TEMPERATURE_K}|{sky_band.EQUIRECT_WIDTH}x{sky_band.EQUIRECT_HEIGHT}|{BAND_FORMAT}"
+    return hashlib.sha256(image.encode("utf-8")).hexdigest()[:32]
+
+
+def _setup(conn, system_id):
+    info = store.get_galaxy_shape(conn, light=True)
+    if info is None:
+        raise SkyError("the galaxy has no shape yet")
+    pot = galacticPotential.for_galaxy(info.shape, info.galaxy_seed)
+    circular_speed = lambda radius: galacticPotential.circular_speed_kms(pot, radius)
+    galaxy_key = "galaxy:" + (info.galaxy_seed.hex() if info.galaxy_seed is not None else "none")
+    return info, circular_speed, galaxy_key, _observer(conn, system_id, galaxy_key, circular_speed)
+
+
+def build_system_band(conn, system_id, limit=None):
+    """
+    The glow image of the sky of `system_id` at `limit` (`skypack.check_limit`): the band of its 50 parsec cell (`galaxy.sky_band.band_for`, kept in this
+    process) as the equirectangular image of the page, in half floats.
+
+    Returns:
+        dict: `key` (the band's cache key), `limit`, `cell`, `width`, `height`, `format` (`BAND_FORMAT`), `seconds` and `data` (the bytes).
+
+    Raises:
+        SkyError: As `build_system_sky`.
+        skypack.SkyLimitError: A limit out of range.
+    """
+    started = time.perf_counter()
+    limit = skypack.check_limit(limit)
+    info, _speed, galaxy_key, observer = _setup(conn, system_id)
+    key = band_key(info, galaxy_key, observer, limit)
+    full = store.get_galaxy_shape(conn)
+    band = sky_band.band_for(observer.position_pc, full.shape, _band_galaxy_key(info, galaxy_key), _bands, limit)
+    image = sky_band.equirect(band)
+    return {"key": key, "limit": limit, "cell": list(sky_band.cell_of(observer.position_pc)), "width": image.shape[1], "height": image.shape[0],
+            "format": BAND_FORMAT, "seconds": round(time.perf_counter() - started, 3), "data": sky_band.to_half_bytes(image)}
 
 
 def _observer(conn, system_id, galaxy_key, circular_speed):
@@ -86,13 +140,7 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     """
     started = time.perf_counter()
     limit = skypack.check_limit(limit)
-    info = store.get_galaxy_shape(conn, light=True)
-    if info is None:
-        raise SkyError("the galaxy has no shape yet")
-    pot = galacticPotential.for_galaxy(info.shape, info.galaxy_seed)
-    circular_speed = lambda radius: galacticPotential.circular_speed_kms(pot, radius)
-    galaxy_key = "galaxy:" + (info.galaxy_seed.hex() if info.galaxy_seed is not None else "none")
-    observer = _observer(conn, system_id, galaxy_key, circular_speed)
+    info, circular_speed, galaxy_key, observer = _setup(conn, system_id)
     at_unix = observer.epoch_unix
 
     stars = sky.sky_from_database(conn, observer, at_unix, limit, galaxy_key, circular_speed)
@@ -119,7 +167,9 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     report["sprites"] = sprite_report
     key = skypack.version_key(tile_stamp)
     printed_system = ids.printed(conn, "system", system_id) or f"system:{system_id}"
-    meta = {"system": printed_system, "version_key": key, "limit": limit, "galaxy": galaxy_key, "nebulae": records, "report": report}
+    band = {"key": band_key(info, galaxy_key, observer, limit), "width": sky_band.EQUIRECT_WIDTH, "height": sky_band.EQUIRECT_HEIGHT, "format": BAND_FORMAT,
+            "href": f"/system/{printed_system}/sky/band?limit={limit:g}"}
+    meta = {"system": printed_system, "version_key": key, "limit": limit, "galaxy": galaxy_key, "nebulae": records, "band": band, "report": report}
     packed = skypack.pack_sky(stars, at_unix, limit, observer.velocity_kms, meta=meta)
     return {"system": printed_system, "limit": limit, "epoch_unix": at_unix, "version_key": key, "count": int(len(stars.uid)), "sprites": len(records),
             "report": report, "seconds": round(time.perf_counter() - started, 3), "packed": packed}

@@ -260,6 +260,32 @@ def test_the_api_route_refuses_a_limit_out_of_range_and_an_unknown_system(conn, 
     assert client.get("/api/systems/999999/sky").status_code == 404
 
 
+def test_a_system_band_is_the_glow_image_of_its_cell_and_the_sky_names_it(conn, monkeypatch):
+    own, *_ = a_neighbourhood(conn)
+    monkeypatch.setattr(system_sky, "_bands", system_sky.sky_band.MemoryBandStore())
+    band = system_sky.build_system_band(conn, own, 7.5)
+    assert (band["width"], band["height"], band["format"]) == (256, 128, "rgb16f") and len(band["data"]) == 256 * 128 * 6 and len(band["key"]) == 32
+    image = np.frombuffer(band["data"], dtype="<f2").reshape(128, 256, 3).astype(float)
+    assert np.isfinite(image).all() and image.max() > 0.0 and (image[..., 0] >= image[..., 2]).all()          # warm: red over blue
+    assert band["cell"] == list(system_sky.sky_band.cell_of(HOME))
+    again = system_sky.build_system_band(conn, own, 7.5)
+    assert again["data"] == band["data"] and again["key"] == band["key"]
+    assert system_sky.build_system_band(conn, own, 5.0)["key"] != band["key"]
+    meta = skypack.unpack_sky(system_sky.build_system_sky(conn, own, 7.5, "s")["packed"])["meta"]
+    assert meta["band"] == {"key": band["key"], "width": 256, "height": 128, "format": "rgb16f", "href": f"/system/{pid('system', own)}/sky/band?limit=7.5"}
+
+
+def test_the_band_route_answers_the_half_floats_as_base64_and_checks_the_limit(conn, client, monkeypatch):
+    own, *_ = a_neighbourhood(conn)
+    monkeypatch.setattr(system_sky, "_bands", system_sky.sky_band.MemoryBandStore())
+    answer = client.get(f"/api/systems/{pid('system', own)}/sky/band?limit=6")
+    assert answer.status_code == 200
+    body = answer.get_json()
+    assert len(base64.b64decode(body["data"])) == 256 * 128 * 6 and body["limit"] == 6.0 and body["format"] == "rgb16f" and "seconds" in body
+    assert client.get(f"/api/systems/{pid('system', own)}/sky/band?limit=1").status_code == 400
+    assert client.get("/api/systems/999999/sky/band").status_code == 404
+
+
 # --- The disk cache and the web route --------------------------------------------------------------------------------------------------------
 
 def packed_sky(count=40, seed=3):
@@ -370,3 +396,70 @@ def test_the_web_route_sends_the_packed_list_and_says_where_it_came_from(cache):
         assert web.get("/system/FE81-0000005-000/sky?limit=5").status_code == 404
         patch.setattr(apiclient, "get_system_sky", broken)
         assert web.get("/system/FE81-0000005-000/sky?limit=5").status_code == 502
+
+
+class FakeBandApi:
+    """`apiclient.get_system_sky_band` over a flat image, counting its calls."""
+
+    KEY = "ab" * 16
+
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, db, system_id, limit=None):
+        self.calls.append((db, system_id, limit))
+        data = np.full((128, 256, 3), 1.0, dtype="<f2").tobytes()
+        return {"key": self.KEY, "limit": limit, "cell": [0, 0, 0], "width": 256, "height": 128, "format": "rgb16f", "seconds": 0.1,
+                "data": base64.b64encode(data).decode("ascii")}
+
+
+def band_files(root):
+    return sorted(name for _, _, names in os.walk(root) for name in names if name.startswith(skycache.BAND_PREFIX))
+
+
+def test_a_band_is_built_once_stored_by_its_key_and_served_from_the_disk(cache, monkeypatch):
+    api, root = cache
+    band_api = FakeBandApi()
+    monkeypatch.setattr(apiclient, "get_system_sky_band", band_api)
+    raw, header = skycache.fetch_band("db", "FE81-0000005-000", "7.5")
+    assert header == {"key": band_api.KEY, "width": 256, "height": 128, "format": "rgb16f", "source": "built"} and len(raw) == 256 * 128 * 6
+    assert band_files(root) == [f"b{band_api.KEY}.bin"]
+    again, header2 = skycache.fetch_band("db", "FE81-0000005-000", 7.5, band_api.KEY)
+    assert again == raw and header2["source"] == "cache" and len(band_api.calls) == 1
+    assert skycache.clear() == 1 and band_files(root) == []                     # the clear removes the glow images with the skies
+
+
+def test_a_band_key_that_is_not_a_hash_or_a_torn_file_is_not_trusted(cache, monkeypatch):
+    api, root = cache
+    band_api = FakeBandApi()
+    monkeypatch.setattr(apiclient, "get_system_sky_band", band_api)
+    with pytest.raises(ValueError):
+        skycache.fetch_band("db", "FE81-0000005-000", 7.5, "../../etc/passwd")
+    skycache.fetch_band("db", "FE81-0000005-000", 7.5)
+    (path,) = [os.path.join(d, n) for d, _, names in os.walk(root) for n in names if n.startswith(skycache.BAND_PREFIX)]
+    with open(path, "r+b") as handle:
+        handle.truncate(100)
+    _, header = skycache.fetch_band("db", "FE81-0000005-000", 7.5, band_api.KEY)
+    assert header["source"] == "built" and len(band_api.calls) == 2
+
+
+def test_the_web_route_sends_the_glow_image_with_its_size_in_headers(cache, monkeypatch):
+    api, root = cache
+    band_api = FakeBandApi()
+    monkeypatch.setattr(apiclient, "get_system_sky_band", band_api)
+
+    class SiteConfig(Config):
+        WEB_DATABASE = "db"
+        SESSION_COOKIE_SECURE = False
+        SECRET_KEY = "sky-secret"
+
+    app = create_app(SiteConfig)
+    app.testing = True
+    web = app.test_client()
+    first = web.get("/system/FE81-0000005-000/sky/band?limit=6")
+    assert first.status_code == 200 and len(first.data) == 256 * 128 * 6 and first.mimetype == "application/octet-stream"
+    assert first.headers["X-Sky-Source"] == "built" and first.headers["X-Sky-Band-Key"] == band_api.KEY and first.headers["X-Sky-Band-Format"] == "rgb16f"
+    assert (first.headers["X-Sky-Band-Width"], first.headers["X-Sky-Band-Height"]) == ("256", "128")
+    assert web.get(f"/system/FE81-0000005-000/sky/band?limit=6&key={band_api.KEY}").headers["X-Sky-Source"] == "cache"
+    assert web.get("/system/FE81-0000005-000/sky/band?limit=12").status_code == 400
+    assert web.get("/system/FE81-0000005-000/sky/band?limit=6&key=zz").status_code == 400

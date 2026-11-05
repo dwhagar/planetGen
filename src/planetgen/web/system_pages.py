@@ -300,6 +300,32 @@ def system_sky(system_id):
 system_sky.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+@bp.route("/system/<uid:system_id>/sky/band")
+def system_sky_band(system_id):
+    """
+    The glow image of the system's sky (VIEW.13): `?limit=` as for the sky and `&key=` the `meta.band.key` the sky named. Raw half floats
+    (`application/octet-stream`, `rgb16f`: red, green and blue a texel, row by row, `X-Sky-Band-Width` by `X-Sky-Band-Height` texels), kept on disk under the
+    key by `skycache`. A limit out of range or a key that is not a hash is a 400, an unknown system a 404, an API failure a 502, as `{"error": ...}` JSON.
+    """
+    try:
+        body, header = skycache.fetch_band(db_name(), system_id, request.args.get("limit"), request.args.get("key") or None)
+    except (skypack.SkyLimitError, ValueError) as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while building a system's glow image: {exc}")
+        return _json_error("The glow image could not be loaded. Please try again shortly.", 502)
+    response = Response(body, mimetype="application/octet-stream")
+    response.headers["Cache-Control"] = "no-store"
+    response.headers.update({"X-Sky-Source": header["source"], "X-Sky-Band-Key": header["key"], "X-Sky-Band-Width": str(header["width"]),
+                             "X-Sky-Band-Height": str(header["height"]), "X-Sky-Band-Format": header["format"]})
+    return response
+
+
+system_sky_band.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/system/<uid:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin

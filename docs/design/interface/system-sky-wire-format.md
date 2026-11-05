@@ -1,6 +1,6 @@
 # System sky wire format: what the System View downloads for its background (VIEW.31)
 
-Status: built (VIEW.31, 2026-11-05). Plan: `reports/system-sky-from-the-system-2026-11-04.md` (section 7, label S13). Code: `src/planetgen/api/system_sky.py` (the build), `src/planetgen/web/lib/skypack.py` (the packed list), `src/planetgen/web/lib/skycache.py` (the disk cache), `src/planetgen/galaxy/sky_sprites.py` and `src/planetgen/db/sky_sprites.py` (the sprites). Readers: `src/html/static/skypack.js` (the stars, VIEW.33) and `src/html/static/skysprites.js` (the sprites, VIEW.36). Tests: `src/tests/test_system_sky_route.py`, `src/tests/test_skypack.py`, `src/tests/js/skypack.test.mjs`.
+Status: built (VIEW.31 and the glow image of VIEW.13, 2026-11-05). Plan: `reports/system-sky-from-the-system-2026-11-04.md` (section 7, label S13). Code: `src/planetgen/api/system_sky.py` (the build), `src/planetgen/web/lib/skypack.py` (the packed list), `src/planetgen/web/lib/skycache.py` (the disk cache), `src/planetgen/galaxy/sky_sprites.py` and `src/planetgen/db/sky_sprites.py` (the sprites). Readers: `src/html/static/skypack.js` (the stars, VIEW.33) and `src/html/static/skysprites.js` (the sprites, VIEW.36). Tests: `src/tests/test_system_sky_route.py`, `src/tests/test_skypack.py`, `src/tests/js/skypack.test.mjs`.
 
 The System View's background is the sky its system sees: each star at its true direction and distance, placed where it was when its light left it. One request gives a page everything it draws behind the system, as one packed file.
 
@@ -30,6 +30,7 @@ One file, little-endian. The layout is the docstring of `skypack.py` and is held
 | `limit` | the limiting magnitude it was built to (also in the header, as a float32) |
 | `galaxy` | names the galaxy the stand-in velocities were drawn for |
 | `nebulae` | the sprite records, below |
+| `band` | the glow image, section 3.2: `{key, width, height, format, href}` |
 | `report` | the tier state and counts, section 4 |
 
 ### 3.1 The sprite records (`meta.nebulae`)
@@ -51,6 +52,19 @@ The nebulae, the supernova remnants and the dark and diffuse clouds that the sys
 | `seen` | boolean | for a remnant, its explosion has been seen (it exploded longer ago than its light takes to arrive); always true in the list, because an unseen remnant is not sent |
 
 A record is sent when it is wider than 0.002 rad (SPR1), its explosion has been seen, and it either shines under the limit (`visible`) or dims by at least 0.02 magnitude (SPR2). The counts of what was left out are in `report.sprites`.
+
+### 3.2 The glow image (`meta.band`, VIEW.13)
+
+The light of the stars too faint to be listed, as one small image the band layer (`skyband.js`, VIEW.34) lays behind the stars. It is not in the packed list: `meta.band.href` (`/system/<id>/sky/band?limit=<limit>`) is its route, and the page asks for it with `&key=<meta.band.key>` so a stored copy is served by name.
+
+| Route | Answers |
+|---|---|
+| `GET /system/<id>/sky/band?limit=&key=` (the web layer) | the bytes, `Content-Type: application/octet-stream`, `Cache-Control: no-store`, with `X-Sky-Source` (`cache` or `built`), `X-Sky-Band-Key`, `X-Sky-Band-Width`, `X-Sky-Band-Height` and `X-Sky-Band-Format` |
+| `GET /api/systems/<id>/sky/band?limit=` | JSON: `key`, `limit`, `cell` (the 50 parsec cell of the observer), `width`, `height`, `format` (`"rgb16f"`), `seconds` and `data` (the base64 of the bytes) |
+
+The image is 256 by 128 texels (`sky_band.EQUIRECT_WIDTH`, `EQUIRECT_HEIGHT`), equirectangular in the sky's galactic axes, as `skyband.js` `equirectUV` reads it: row 0 at the north pole, column 0 at longitude -180 (longitude is `atan2(y, x)`, latitude `asin(z)`), a texel's value taken at its centre. Each texel is red, green and blue as little-endian half floats (`rgb16f`, 196,608 bytes), linear light in the page's unit: `10^(-0.4 (SB - 22))` for a surface brightness `SB` in V magnitudes per square arcsecond (a texel of 1.0 is 22 mag/arcsec^2, 0 is no light), times the tint of a 4500 K blackbody scaled to a luminance of 1 (red 1.30, green 0.95, blue 0.65; stand-in GLW1). The surface brightness is `sky_band.band_for`'s: the integrated light of the stars fainter than the limit, marched through the galaxy's density and dust from the centre of the observer's 50 parsec cell, so every system in a cell, at one limit, shares one image. It is worked out in the API process the first time (tens of seconds on a galaxy with many clusters) and then kept in memory; the web layer keeps `b<key>.bin` beside the skies and `skycache.clear()` removes it.
+
+`key` is 32 hex characters: a hash of the cell, the galaxy (its seed and the numbers of its shape), the limit, the band's own constants and the image's (size, reference, tint, `SKY_VERSION`). It does not follow the cluster field, which the band reads but the key leaves out; after clusters are regenerated, clear the cache.
 
 ## 4. The report
 
@@ -78,4 +92,4 @@ The web layer keeps each packed list on disk beside the Galaxy Map's nodes (`web
 
 ## 6. Stand-ins and what is not here
 
-The sizes and cuts above are registered in GEN.725 (`docs/design/research/gap-filling-plan.md` section 6.179: SPR1, SPR2, SPR3, SKV1, SKV2, SKV3). The physics of a sprite is VIEW.28's (section 6.173), the stars' is VIEW.23's (6.175). Not here, by decision (Boss, 5:29 PM EST on 2026-11-04): reddening by dust (VIEW.11), the full dust of nebulae (VIEW.8), the HYG calibration (VIEW.12) and the full glow ray-march (VIEW.13), which stay in 9.1. The glow image the band layer samples (VIEW.34) is VIEW.13's `galaxy/sky_band.py`; when it is served with this route its field joins `meta`. The 9.1 twins (VIEW.7, VIEW.8, VIEW.11 to VIEW.13) read the same list and the same records.
+The sizes and cuts above are registered in GEN.725 (`docs/design/research/gap-filling-plan.md` section 6.179: SPR1, SPR2, SPR3, SKV1, SKV2, SKV3). The physics of a sprite is VIEW.28's (section 6.173), the stars' is VIEW.23's (6.175). Not here, by decision (Boss, 5:29 PM EST on 2026-11-04): reddening by dust (VIEW.11), the full dust of nebulae (VIEW.8), the HYG calibration (VIEW.12) and the full glow ray-march (VIEW.13's full version), which stay in 9.1. The glow image the band layer samples (VIEW.34) is built here (section 3.2): the light version of VIEW.13, `galaxy/sky_band.py`. The 9.1 twins (VIEW.7, VIEW.8, VIEW.11 to VIEW.13) read the same list and the same records.
