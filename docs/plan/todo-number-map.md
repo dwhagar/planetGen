@@ -2197,7 +2197,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | done, PR #2468 |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
-| MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |
+| MAP.142 | Nebulae have fuzzy, fading boundaries | none | done, PR #5030 |
 | MAP.143 | Color sectors by their number of habitable locations | none | done, PR #2742 |
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
