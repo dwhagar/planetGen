@@ -126,7 +126,7 @@ def chart(history, class_id, grade=0):
     makers = _makers(history)
     note = ""
     if history.get("speculative"):
-        note = Markup('This class\'s air numbers are less sure than the rest. <a class="reference-link" href="{}">Where this comes from</a>').format(
+        note = Markup('This class\'s air numbers are less sure than the rest. <a class="reference-link" href="{}">More information</a>').format(
             reference_urls.reference_path("speculative", class_id))
     return {"svg": "".join(parts), "legend": legend, "stages": stages, "note": note, "makers": makers,
             "table": {"header": ["Age (Gyr)"] + [gas["name"] for gas in history["gases"]], "rows": rows}}

@@ -262,6 +262,10 @@ def format_report(result, findings, header=""):
     if living and result["life"]:
         lines += ["", "Share of the life worlds each class lives on (GEN.1209, the dominant class or one beside it; an outcome to measure): "
                   + ", ".join(f"{name} {count / result['life']:.3f}" for name, count in sorted(living.items(), key=lambda item: -item[1]))]
+        from planetgen.physics import life_classes
+        unseen = [class_id for class_id in life_classes.IDS if class_id not in living]
+        lines += ["", "Life classes that lived on no sampled world (every class of the registry is listed, a class the sample never met is named; an outcome to measure): "
+                  + (", ".join(unseen) if unseen else "none")]
         lines += ["", f"Life worlds where a class beside the dominant one reached a civilization: {result.get('minor_sentient', 0)} of {result['life']}"]
     by_class = result.get("by_class", {})
     if by_class:

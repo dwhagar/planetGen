@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.261 |
-| MAP | MAP.378 |
-| NAV | NAV.73 |
-| GEN | GEN.1260 |
-| PERF | PERF.238 |
+| UX | UX.262 |
+| MAP | MAP.381 |
+| NAV | NAV.74 |
+| GEN | GEN.1269 |
+| PERF | PERF.240 |
 | DB | DB.110 |
-| API | API.39 |
+| API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.581 |
+| TEST | TEST.584 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -564,6 +564,8 @@ Parents marked "new parent" had no old number of their own.
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) | none | open |
 | API.37 | API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump | none | done, PR #3871 |
 | API.38 | API and search for local names: name is the local name, a new sector field carries the place, a typed name returns every match with its sector, an ID typed in full still opens its object | none | open |
+| API.39 | /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug) | none | open |
+| API.40 | Audit every link to a system or body page for row ids that should be object IDs | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -662,7 +664,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | none | done, PR #3393 |
 | DB.97 | Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message | none | done, PR #2905 |
 | DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | done, PR #2931 |
-| DB.99 | Store the ground colour and the ice fraction on planets and moons | none | open |
+| DB.99 | Store the ground colour and the ice fraction on planets and moons | none | dropped (covered by the stored ground_type, grain and ground_*_fraction columns; a colour is derived when a body renderer is built) |
 | DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results | none | done, PR #3184 |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item | none | open |
 | DB.102 | The version key stored with the galaxy seed carries the API version, the database schema and the generator epoch after the release version, with the zero padding shortened to make room | none | done, PR #3323 |
@@ -1922,7 +1924,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1144 | Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach | none | open |
 | GEN.1145 | Ocean-fraction spread of temperate air-bearing bodies, printed before the train 6 epoch (decides whether the H line can fill) | none | done, PR #4247 |
 | GEN.1146 | Upstream water inventory and land share: temperate bodies with air nearly always keep their water, so no desert world (Class H) exists; decide whether the generator should produce dry temperate planets (only if GEN.1145 shows H stays empty) | none | done, PR #report-ocean-fraction-physics-gen1146 |
-| GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch | none | open |
+| GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch | none | done, PR #4655 |
 | GEN.1148 | Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug) | none | done, report gen1148-belt-binary-shift-2026-10-31.md |
 | GEN.1149 | Lagrange trojans T1: pure physics module physics/trojans.py: Gascheau-Routh stability test (host, secondary and trojan masses), libration period, tadpole and horseshoe limit, e and i screen, swarm mass from the scatter trojan share with leading and trailing split, plausibility harness against Jupiter, Neptune, Saturn moons and the exoplanet upper bound (WR10), GEN.725 registry rows, design note | none | done, PR #4273 |
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | none | open |
@@ -2035,6 +2037,15 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1257 | Charting keeps the old ID-derived name as the first Formerly line when a word-salad name replaces it | none | open |
 | GEN.1258 | Store an ammonia-water fraction for icy bodies so class X (ammonia-water) can join the class-by-domain fit table | none | open |
 | GEN.1259 | A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7) | none | open |
+| GEN.1260 | The latitude band table's Day/Night and Longest day/night rows are empty or wrong for slow spinners: rewrite them as a time-stepped spell calculation (bug) | none | open |
+| GEN.1261 | Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken | none | open |
+| GEN.1262 | Temperature coverage part 1: the shared illumination series (physics/surface_cycle.py): cosine of the zenith angle per latitude-longitude cell and time step, with GEN.1260's spell search moved onto it | none | open |
+| GEN.1263 | Temperature coverage part 2: the temperature series: one energy balance per cell, anchored so the area-and-time mean equals the stored mean | none | open |
+| GEN.1264 | Temperature coverage part 3: what is read off the series: Blue, Green, cold and hot shares, livable time, coldest and hottest hour, best site, longest spell out of the livable band | none | open |
+| GEN.1265 | Temperature coverage part 4 (lock): the temperature score from the coverage share, the new stored columns, and the migration | none | open |
+| GEN.1266 | Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc | none | open |
+| GEN.1267 | A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it | none | open |
+| GEN.1268 | Nebulae carry a real composition: gas and dust fractions by kind, metals from the place and age, ejecta from the progenitor | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2410,8 +2421,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.373 | Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple | none | open |
 | MAP.374 | Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection | none | open |
 | MAP.375 | A linked side strip for height on the Galaxy Map: an optional panel with height on one axis and distance across, linked to the map so a pick in one rings the star in the other | none | open |
-| MAP.376 | Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug) | none | open |
+| MAP.376 | Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug) | none | done, PR #4929 |
 | MAP.377 | Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug) | none | done, PR #4921 |
+| MAP.378 | The Galaxy Map no longer shows the fixture galaxy's charted sectors in the browser tests: 11 to 12 fixture-map tests are red alone on main (zoom stuck near 2.5e-8, no sector label, no Fixture Maw or Fixture Eden marker) (bug) | none | done, PR #4954 |
+| MAP.379 | Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug) | none | done, PR #4954 |
+| MAP.380 | The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2484,6 +2498,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | none | open |
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
 | NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | open |
+| NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -2578,7 +2593,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.92 | The warm-up shows which chunk of how many it is on, with a timed progress bar on a terminal | none | done, PR #4687 |
 | OPS.93 | Recording the version key is faster: the bright-star scatter case skips table bounds it never reads | none | done, PR #4688 |
 | OPS.94 | update.sh's health check gave up after 20 s with HTTP 000 right after a reload on a real server: widen the window, say what curl saw, and ask again once workers are up (bug) | none | done, PR #4923 |
-| OPS.95 | update.sh ends its full warm-up with timeout 1800 (30 minutes), which a first warm-up after a new epoch overruns: the run dies with a KeyboardInterrupt traceback at chunk 414 of 458 and nothing says why (bug) | none | open |
+| OPS.95 | update.sh ends its full warm-up with timeout 1800 (30 minutes), which a first warm-up after a new epoch overruns: the run dies with a KeyboardInterrupt traceback at chunk 414 of 458 and nothing says why (bug) | none | done, PR #4934 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -2811,11 +2826,13 @@ Parents marked "new parent" had no old number of their own.
 | PERF.230 | Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical | none | done, PR #4742 |
 | PERF.231 | The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug) | none | done, PR #4880 |
 | PERF.232 | test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug) | none | open |
-| PERF.233 | One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update | none | open |
-| PERF.234 | The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug) | none | open |
+| PERF.233 | One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update | none | done, PR #4965 |
+| PERF.234 | The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug) | none | done, PR #4942 |
 | PERF.235 | A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup | none | open |
 | PERF.236 | The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug) | none | open |
-| PERF.237 | The warm-up's log line 'this chunk 64 nodes in 37 s' reads like a slowdown but is one worker's time for one chunk while about ten run side by side: say so in the line (bug) | none | open |
+| PERF.237 | The warm-up's log line 'this chunk 64 nodes in 37 s' reads like a slowdown but is one worker's time for one chunk while about ten run side by side: say so in the line (bug) | none | done, PR #4942 |
+| PERF.238 | Temperature coverage cost: the illumination and temperature series must stay about 20 ms a rocky body in bulk generation and in the bring-to-epoch recompute | none | open |
+| PERF.239 | A warm-up with nothing changed costs minutes: decide "already stored" from the cache keys, not by visiting every page | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3189,6 +3206,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.258 | The describer writes the hours outside in a day with a raw format (build.py line 516), failing the wording-agrees-with-the-index test (bug) | none | done, PR #4749 |
 | UX.259 | Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>' | none | open |
 | UX.260 | Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere | none | open |
+| UX.261 | Explainer links read as talking down and repeat links the page already has: drop the repeats, reword the rest to "More information" | none | done, PR #4950 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3208,19 +3226,19 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | none | open |
 | VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | none | open |
 | VIEW.19 | System sky S1: measure the backfill cost of a 6.5 and a 7.5 magnitude sky on a real galaxy, and settle the luminosity-versus-mass ledger question | none | open |
-| VIEW.20 | System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule | none | open |
-| VIEW.21 | System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility | none | open |
+| VIEW.20 | System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule | none | done, PR #4961 |
+| VIEW.21 | System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility | none | done, PR #4959 |
 | VIEW.22 | System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py | none | open |
 | VIEW.23 | System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report | none | open |
 | VIEW.24 | System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725 | none | open |
 | VIEW.25 | System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill | none | open |
 | VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) | none | open |
-| VIEW.27 | System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell | none | open |
-| VIEW.28 | System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction | none | open |
+| VIEW.27 | System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell | none | done, PR #4964 |
+| VIEW.28 | System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction | none | done, PR #4962 |
 | VIEW.29 | System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both | none | open |
 | VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | none | open |
 | VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= | none | open |
-| VIEW.32 | System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test | none | open |
+| VIEW.32 | System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test | none | done, PR #4958 |
 | VIEW.33 | System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock | none | open |
 | VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | none | open |
 | VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | none | open |
@@ -3896,6 +3914,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.578 | test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug) | none | done, PR #4866 |
 | TEST.579 | Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug) | none | open |
 | TEST.580 | Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug) | none | open |
+| TEST.581 | test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug) | none | open |
+| TEST.582 | Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census | none | open |
+| TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

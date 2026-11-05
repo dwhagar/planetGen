@@ -2,6 +2,163 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3227] - 2026-11-05
+
+**Headline:** One command, `python3 -m planetgen.cli.tiles`, builds the whole Galaxy Map's tile cache from scratch, and a nightly timer runs it after the orbit update.
+
+### Changed
+
+- **The whole-map build (PERF.233).** `planetgen.cli.tiles` builds every node of every level of the whole galaxy (a block of each level that holds a generated sector or a placed object, and each generated sector) into a new cache beside the live one and swaps it in when it is complete, so visitors never meet an empty cache and a run that is killed leaves the old cache serving. It builds a level at a time, `tile_cache.build_workers` processes at once (0 is one per core), prints a line per level, ignores the cache budget while it runs, checks the data once more before the swap and refuses to start unless twice the projected size is free on the cache's disk.
+- **`cache.max_mb` counts only the nodes visits asked for.** The nodes built ahead (the build's and the warm-up's) are no longer counted against the budget or pruned, so a full cache no longer makes every on-demand node get deleted at the next prune.
+- **A nightly timer.** `examples/maintenance/planetgen-tiles@.service` and `.timer` run the build at 05:00 after the orbit update, then `planetgen warm` rebuilds the lists, objects and search; `install-maintenance-timer.sh` installs and enables them (`--skip-tiles-timer` leaves them out). Documented in INSTALL.md, `docs/reference/cli.md` and `docs/design/operations/cache-warm-up.md`.
+
+generation-output: unchanged
+
+TODO items resolved: none (PERF.233 is done with this; the TODO thread retires it).
+
+## [8.0.3226] - 2026-11-05
+
+**Headline:** The generator can now work out the glow of the stars too faint to see one by one, as seen from any place in the galaxy.
+
+### Changed
+
+- `galaxy/sky_band.py` (VIEW.27, the glow band of the unresolved stars): `surface_brightness` marches along 6,144 lines of sight (a cube map of six 32 by 32 faces) through the galaxy's stellar density with the dust of the disc in the way (VIEW.20) and takes out the light of the stars bright enough to be drawn, at the limiting magnitude the caller gives (7.5 by default), so the glow and the drawn stars never count the same star twice. The result is the surface brightness in magnitudes per square arcsecond; in a galaxy shaped like the Milky Way it runs from about 20 in the bright bulge direction to about 25 at the pole. `band_for` keeps one image per 50 pc cell of the observer's place (a move of 20 ly changes it by less than 0.02 mag), in memory or in `.npy` files (`MemoryBandStore`, `FileBandStore`), under a key that names the cell, the galaxy, the limit, the size and every constant the image depends on. A band takes about 0.7 s to work out. Nothing reads it yet: the sky route (VIEW.31) does. Four stand-ins are registered (6.174, SKB1 to SKB4). generation-output: unchanged
+
+## [8.0.3225] - 2026-11-05
+
+**Headline:** The sky of a system can now size, brighten and dim its nebulae and supernova remnants: the data for their sprites is worked out from what each stores.
+
+### Changed
+- **VIEW.28: sprite data for nebulae and remnants.** New `physics/nebula_sprites.py` works, on arrays and from the retarded geometry of VIEW.21, the angular radius of a nebula or remnant (the silhouette of its ball; a ball that holds the observer covers the sky), the extinction it puts in front of what lies behind it (its stored extinction through the middle, a chord's share along other lines of sight, half for an observer inside), its mean V surface brightness and total magnitude, whether it is bright enough to see (under 23 magnitudes per square arcsecond) and whether a remnant's explosion has been seen yet. Ionised gas (H II regions, planetary nebulae, Wolf-Rayet rings) is worked out from its hydrogen-alpha emission measure; reflection nebulae from a central star's scattered light; remnants from the Sedov-Taylor shell; dark and diffuse clouds and plerions have no light of their own. Seven constants are registered stand-ins, none looked up (GEN.725, section 6.173, rows NS1 to NS7). Nothing generated or stored changes. The module is read by the sky route (VIEW.31) once it exists.
+
+## [8.0.3224] - 2026-11-05
+
+**Headline:** The generator can now work out how bright any star would look from another system, with the dust of the galaxy in the way.
+
+### Changed
+
+- `physics/sky_photometry.py` (VIEW.20, the photometry of the system sky on arrays): `apparent_magnitude` and `absolute_visual_magnitude` for arrays of luminosity, temperature and distance; `bolometric_correction` for any temperature (Flower's fit from 4,100 K to 50,000 K, the main-sequence table of Pecaut and Mamajek under 4,100 K, which answers what VIEW.9 left open for a star cooler than 3,500 K, and the blackbody tail over 50,000 K); and `galactic_extinction_av`, the dust of the smooth disc of Drimmel and Spergel integrated along a line of sight. The Sun comes out at -26.75 at 1 au and Sirius A, Alpha Centauri A and Procyon A within 0.03 mag of their catalogue values. Nothing reads it yet: the sky catalogue (VIEW.23) and the glow band (VIEW.27) do. Four stand-ins are registered (6.171, SKP1 to SKP4). generation-output: unchanged
+
+## [8.0.3223] - 2026-11-05
+
+**Headline:** The light-travel law now runs on arrays, so the sky of a system can place tens of thousands of stars where their light left them.
+
+### Changed
+- **VIEW.21: sky vectors on arrays with light-travel time.** `physics/light_travel.py` gains `retarded_offsets` (every star advanced to the sky's time by its own epoch, the observer's motion taken out, and the apparent offset solved by passes until none changes, two at least), `seen_age` (the age a star had when its light left it, a flag for stars too young to be seen yet and for stars whose phase ended within the light time), `remnant_seen` (an explosion younger than its light time has not been seen) and `curvature_bound_m` (a straight line is exact enough: 0.003 pc, 0.07 arcsecond, for a star 10 kpc away; the research plan's 7e-8 radians was an arithmetic slip, corrected here). Tests: a star at rest 1 ly away, a receding and an approaching one, a 1,000 km/s star (11.5 arcminutes), the agreement with the one-body function, the age and remnant rules and the bound. The module's wiring entry now points at the sky catalogue (VIEW.23), its first reader. Nothing generated or stored changes.
+
+## [8.0.3222] - 2026-11-05
+
+**Headline:** A new browser module works out how one star of the sky behind a system is drawn, ready for the system page's backdrop.
+
+### Added
+
+- `skylight.js` turns a star's apparent magnitude into the strength, width and colour of its point of light, with the same arithmetic written out in shader code for the sky layer (VIEW.33) to use. It builds on the Galaxy Map's star visibility law and smallest point size, so the sky and the map agree on what a faint star looks like.
+- A star's colour is its blackbody colour (cool stars take the model's offset), read from a table of 128 temperatures, and fades toward white as the star dims. The limiting magnitude is a setting: 7.5 by default and 6.5 on a phone.
+- Nothing on a page draws it yet. The constants (the peak knee, the point widths and the fade to white) are by-eye stand-ins, as the sky design says.
+- Adds `tests/js/skylight.test.mjs`, which holds the colour to the Python colour code at fifteen temperatures and the shader text to the browser functions.
+
+generation-output: unchanged
+
+## [8.0.3221] - 2026-11-05
+
+**Headline:** A script now measures what a full Galaxy Map tile build costs on a given galaxy: nodes per level, bytes and seconds a node, disk and hours.
+
+### Changed
+
+- **`scripts/measure_tile_cache.py` (PERF.233).** Counts the populated nodes of each level of the block ladder from the stored block rows and the sectors, builds a random sample of each level through `tilecache.fetch_nodes` into a private scratch folder (never the site's cache), and prints per level the count, the sample's mean and 95th percentile bytes and seconds a node and the projected disk and serial time, then the rate of one process against `--workers` processes in chunks of `warmup.NODE_CHUNK`, the hours a full build of every node takes and the site's `cache.max_mb`. It only reads the database. The measured figures for a test galaxy and what they say about `cache.max_mb` are in the project report `perf233-tile-cache-cost-2026-11-04.md`.
+
+generation-output: unchanged
+
+## [8.0.3220] - 2026-11-05
+
+**Headline:** The Galaxy Map names the generated sectors near the camera again, and a region's flight frames the region.
+
+### Changed
+
+- The sector names the label engine may place now include the generated sectors the server names near the camera (the read MAP.335 made), not only those of a stage window; since MAP.337 the stage the map draws is the galaxy's, so no sector was named at all.
+- A flight to a region fills the view with the region's sphere, as before MAP.376; only a flight to a block (a family) holds the camera back to the block's own window.
+- Fixture-map browser tests that read a window stage the map no longer draws now read what the map does: the wheel tests read the zoom level, the sector-name tests bring the camera beside the sectors, the block-lines test says the galaxy draws no block lines at any depth, the MAP.240 test reads an opened sector's buffers, the edge-on turn test reads the camera's place and zoom, and the popup tests ask for the Black hole marks they click.
+
+generation-output: unchanged
+
+## [8.0.3219] - 2026-11-05
+
+**Headline:** Clicking a gas giant or habitable-world mark on the Galaxy Map opens its system instead of "no system with ID".
+
+### Fixed
+- **The Galaxy Map's marked systems (gas giant, habitable world and the other reasons) linked to the wrong ID.** The map nodes listed each marked system by its row id, but the system page and the nearest-systems list take the printed Object ID, so View system answered "no system with ID 345604". The nodes now carry the printed ID, and stored nodes are rebuilt once (node format 10).
+
+## [8.0.3218] - 2026-11-05
+
+**Headline:** The help links on a planet page say "More information", and the ones that repeated a link the page already has are gone.
+
+### Changed
+- **Wording (UX.261).** The link under the habitability section says "More information" in place of "What the colors and symbols mean", and the hidden labels of the "?" marks in the life readings table say "More information about how much", "about trend", "about security", and "about the kinds of life". The line under the life readings reads "More information: stages and animal grades, suitability."
+- **The source link too.** The quiet "Where this comes from" link beside a value, a table, or the life air chart says "More information", and so does the heading of the life classes help section. The heading "Where the radiation comes from" on the habitability help page is now "Radiation", a plain noun, because a heading that only said "More information" would tell a screen reader nothing.
+- **Repeats removed.** The life glance no longer ends with "What these words mean" (its class names already link to their help pages), the habitability group of the facts list drops its second "colors and symbols" link when the habitability section is on the page, and the "the life classes" link of the life help line is gone (the class names are links).
+- **House style.** `docs/design/interface/text-style.md` has the rule: an explainer link says "More information" and is never repeated on a page.
+
+## [8.0.3217] - 2026-11-05
+
+**Headline:** The cache warm-up's overall time left is weighted by what each step costs, and its chunk lines say how many chunks run at once.
+
+### Changed
+
+- **The warm-up's overall bar and time left (PERF.234).** `planetgen warm --progress` moved its overall bar one step in eleven, so the long object steps (systems and phenomena, most of a warm-up) took the bar from 45% to 100% in one stride and the time left swung. It now weighs a step by what it is expected to cost: a step already queued by the cost its units declare (`warmup.ITEM_SECONDS`, seconds an item on one worker, measured: systems 0.23, phenomena 0.15, sectors 3.0, deep nodes 0.02, built-level nodes 0.062), a step not yet queued by `warmup.EXPECTED_SECONDS`. The whole warm-up's time left is marked `(rough guess)` while a later step has not been queued, and the plain bar at the end of a step now names it. `warmup.NODE_SECONDS` and `OBJECT_SECONDS` stay as the ceilings the commands declare for their longest unit.
+- **The chunk line and the time left from the overall rate (PERF.237).** The "this chunk 64 nodes in 37 s" figure is one worker's own time, and about ten chunks run side by side, so it read as ten times too slow. The line now says `took 37.0 s on its worker; about 10 chunks at once, 3.7 s a chunk overall`, and the time left comes only from the overall rate. No time left is shown for the stage or the whole warm-up from fewer than five chunks (`warm_progress.MIN_CHUNKS`), the first results being the first of the workers; the line says `time left not known yet` until then. The rich bars show the same figures. `text_bar` is gone, replaced by the weighted bar.
+
+generation-output: unchanged
+
+## [8.0.3216] - 2026-11-05
+
+**Headline:** The bands table now calls its two rows "Longest unbroken day" and "Longest unbroken night", which is what they are.
+
+### Changed
+
+- The rows were labelled "Longest day of the year" and "Longest night of the year" and held the polar day and night, so a slow spinner like Nitrikin III read 0 at the equator where the sun really stays up for days. The labels now say what a body's bands should hold: the longest stretch with the star unbroken above or below the horizon. The values themselves are recomputed in the next step of GEN.1260 (a lock item with the epoch).
+
+## [8.0.3215] - 2026-11-05
+
+**Headline:** The belt rule is unchanged; two tests now pin that a planetless stretch becomes a belt only where enough solids were left in it, and the warm and cold belt shares were measured against the observed debris-disc rates.
+
+### Changed
+
+- Added `test_a_gap_is_a_belt_only_where_enough_solids_were_left_in_it` and `test_a_stretch_just_over_the_least_mass_is_a_belt_and_just_under_it_is_not` to `test_belt_origin.py`: a gap between two planets is a belt when the disc's solids in it reach `MIN_BELT_MASS_EARTH` (BG3) and is none under it (GEN.1259). No generated output changes.
+- The census of 240 F, G and K main-sequence systems (80 each) is in `reports/gen1259-belt-shares-2026-11-05.md`.
+
+## [8.0.3214] - 2026-11-05
+
+**Headline:** The Galaxy Map window-size test now expects the 95 percent of the browser window that the map is sized to, so its three sizes pass.
+
+### Changed
+
+- `test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves` still expected the map to be the browser window's height less the header and 40 px (the first MAP.350 rule). The map is sized to 95 percent of the window's height less the header (`mapfit.js` `fillHeight`, Boss's later rule), so the 1000x900, 1280x720 and 390x700 runs failed by 2 to 8 px. The test now expects `max(320, round((height - header) * 0.95))`. The three runs pass (TEST.575).
+
+## [8.0.3213] - 2026-11-05
+
+**Headline:** The update's cache warm-up gets four hours instead of thirty minutes, and a warm-up that is stopped says what stopped it instead of printing a traceback.
+
+### Changed
+
+- **A longer limit (OPS.95).** `update.sh` ran each warm stage under `timeout 1800`. A first warm-up after a new epoch on a real galaxy takes longer (it reached chunk 414 of 458 of the galaxy nodes in 30 minutes), so the run was ended with a `KeyboardInterrupt` traceback and nothing said why. The limit is now `WARM_STAGE_SECONDS`, default 14400 (4 hours), 0 for none, and the stage's first line says it: "Building the site's caches, stage 2 of 2, the full warm-up (time limit 4 hours, WARM_STAGE_SECONDS sets it; log: ...)". A value that is not a number is said and the default used.
+- **One line instead of a traceback.** When SIGTERM or a hangup ends `planetgen warm`, it prints one line saying what ended it and that a rerun continues, and exits 143 (SIGTERM), 129 (hangup) or 130 (Ctrl+C): "The cache warm-up was ended by update.sh's time limit for this stage (14400 s, WARM_STAGE_SECONDS). What it stored is kept: run `planetgen warm --progress` again and it continues where it stopped." The run is still marked cancelled in Redis, so its workers stop as before.
+- **Cancellers leave a reason.** The update guard's cancel and stop-all each leave one line for the process they are about to signal, in `stop-reasons` in the state folder (`admin/stop_reason.py`), and the run reads it, so the line names who stopped it. update.sh's limit is told to the run by environment and recognized when it has passed. A signal with no reason says so.
+- **The final warning says what was kept.** When a stage does not finish, update.sh's warning says whether it failed (with the status) or ran out of its limit, that what it stored is kept, and that `planetgen warm --progress` or the next `./update.sh` continues.
+
+generation-output: unchanged
+
+## [8.0.3212] - 2026-11-04
+
+**Headline:** When a system's ID changes, every body in it takes the new ID in the same step, and each keeps its old ID on record, so an old link still finds the right body.
+
+### Added
+- `designation_rows.renumber_system` gives a system, or a free planet, a new ID and its stars, planets, moons, belts, comets and facilities the new ID with their own body numbers, in one transaction. Each body writes its own row in `designations` with the reason `parent change`, the system's row keeps the caller's reason, and a new ID that is live or reserved for any of them stops the whole change. Nothing calls it yet; the 8.6 edit flow will.
+- `designation_rows.member_now` turns the old text of a belt member or a captured body (`<parent ID>.<rank hex>`) into its current text after the parent's ID changed. Members are stored nowhere, so they follow the belt's or the planet's ID by themselves and need no row of their own.
+- Tests in `tests/test_designation_rows.py`: the bodies follow, each keeps its old ID reserved, a member's old text redirects to the new one, and a refused cascade changes nothing.
+
+generation-output: unchanged
+TODO items resolved: GEN.1141 cascade half (the tombstone on delete waits on GEN.1123's audit of the delete paths)
+
 ## [8.0.3211] - 2026-11-04
 
 **Headline:** The Life and air chart and its route now sum every life class that lives on a world, and the page says which class made how much of each gas.

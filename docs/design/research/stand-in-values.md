@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1082 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1090 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 153 | 17 | 8 | 1 | 0 | 179 |
-| T2 | 115 | 43 | 0 | 1 | 0 | 159 |
-| T3 | 85 | 40 | 7 | 9 | 0 | 141 |
+| T2 | 117 | 45 | 0 | 1 | 0 | 163 |
+| T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
-| T5 | 48 | 19 | 2 | 1 | 0 | 70 |
+| T5 | 49 | 19 | 2 | 1 | 0 | 71 |
 | T6 | 103 | 82 | 21 | 52 | 0 | 258 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 22 | 14 | 5 | 47 | 28 | 116 |
-| All | 610 | 235 | 52 | 146 | 39 | 1082 |
+| T9 | 22 | 14 | 5 | 48 | 29 | 118 |
+| All | 613 | 238 | 52 | 147 | 40 | 1090 |
 
 ## How the labels were given
 
@@ -1474,6 +1474,24 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.174 Stand-ins of the glow band of the unresolved stars
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SKB1 | P | T2 | L1 | sky_band.LOCAL_V_LUMINOSITY_DENSITY 0.044: the V light of the stars in a cubic parsec where the relative density is 1 (L_V,sun per pc^3) | 0.04 to 0.06 | the stars of a galaxy of the Milky Way's mix; a galaxy with another stellar population has another value | a luminosity function integrated over the stored stars of a generated galaxy, or a measured local V luminosity density outside 0.04 to 0.06 | the light of the model galaxy's own populations from their mass and age (the stars the generator makes) | sky-view.md 3.1: measured from the 3,081 HYG stars within 25 pc (incomplete for M dwarfs, which carry little light); the literature is about 0.05 [C] | VIEW.31 | - |
+| SKB2 | D | T2 | L0 | sky_band.FAINT_LIGHT_TABLE rows (-0.19, 0.81), (2.31, 0.35), (4.81, 0.07): the share of the V light that comes from stars fainter than the absolute magnitude in the row | the sample's scatter, a few percent a row | the stars of the solar neighbourhood; linear in absolute magnitude between rows | a luminosity function from a larger sample (Gaia within 100 pc) that differs by more than 0.1 in a row | the share worked from the luminosity function of the generator's own stars | sky-view.md 3.1: the stars dimmer than 100, 10 and 1 L_sun carry 81, 35 and 7 percent of the local V light, from HYG within 25 pc [C]; the table reads them as absolute V magnitudes -0.19, 2.31 and 4.81 | VIEW.31 | - |
+| SKB3 | D | T9 | L4 | sky_band.FAINT_LIGHT_TABLE ends (-10, 1.0), (9.0, 0.01), (12.0, 0.0): the share of light from stars fainter than a very bright, a faint and a very faint absolute magnitude | 0.99 to 1.0 at -10; 0 to 0.03 at 9 | any galaxy of stars like the Sun's neighbourhood | the same larger sample, or the model galaxy's luminosity function | the share worked from the luminosity function of the generator's own stars | invented to close the table: the light of stars fainter than M_V 9 is small (red dwarfs carry few percent of the local V light) and none is brighter than -10 | VIEW.31 | - |
+| SKB4 | P | T9 | L3 | sky_band.FACE_PIXELS 32, STEPS 400, MAX_DISTANCE_PC 30000 and CELL_PC 50: the cell that shares a band, the cube map's size, the steps of a ray and its length | 25 to 100 pc; 16 to 64 pixels; 200 to 800 steps; 20000 to 50000 pc | the band of a galaxy of the Milky Way's size; a larger galaxy needs a longer ray | a band at twice the steps or pixels that differs by more than 0.02 mag, or a band 20 ly away that differs by more than 0.02 | a size set by the picture's need, once the sky route (VIEW.31) shows it | chosen so the pixel is about 3 degrees (the band is smooth), the step is fine near the observer, and a move of 20 ly inside the cell changes the band by under 0.02 mag | VIEW.31 | - |
+
+## 6.171 Stand-ins of the photometry of the system sky
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SKP1 | P | T3 | L1 | sky_photometry.DUST_AV_PER_KPC_AT_SUN 1.0: V extinction per kpc in the plane at the solar circle, the normalisation of the dust disc | 0.7 to 1.8 mag per kpc | a line of sight in the plane within a few kpc of the solar circle | a measured mean A_V per kpc in the plane near the Sun outside 0.7 to 1.8, or a catalogue-wide comparison of generated and real naked-eye star counts that needs a different value | a normalisation from a dust map read from its paper (a 3-D dust map integrated to A_V per kpc), or the model galaxy's own gas density with a dust-to-gas ratio | [S] an encyclopedia mirror of "Extinction (astronomy)": 0.7 to 1.0 mag/kpc near the Sun, about 1.8 in the plane over a few kpc; primary not confirmed. The value sits at the top of the near-Sun range. [R1158] fixes the shape, not the A_V scale (their normalisation is far-infrared) | VIEW.23 | - |
+| SKP2 | D | T2 | L1 | sky_photometry.COOL_BC_TABLE_K_MAG: BC_V of K7V to L2V, 4,100 K to 2,060 K, linear in log T between rows and held under 2,060 K | the table's own scatter, about 0.1 mag between calibrations | main-sequence stars of 2,060 to 4,100 K; a cool giant has a smaller correction in the red, so its V magnitude here is somewhat too faint | a bolometric correction of a measured M giant or of an M dwarf outside 0.3 mag of the row | a correction by temperature and gravity from a stellar atmosphere grid | READ (E. Mamajek's table "A Modern Mean Dwarf Stellar Color and Effective Temperature Sequence", version 2022.04.16, from Pecaut and Mamajek [R3469: Table 5]: M5V 3060 K -3.11, M0V 3850 K -1.15; G2V 5770 K -0.085, the zero point of Flower's fit). [R4407]: Flower's fit "breaks down completely for the M dwarfs" (-2.31 at 3,500 K against the table's -1.73) | VIEW.23 | - |
+| SKP3 | T | T5 | L0 | sky_photometry.V_WAVELENGTH_M 550e-9 and the blackbody step: over 50,000 K, BC_V(T) = BC_V(50,000 K) - 2.5 log10[T^4 expm1(c2/(550 nm T))] + the same at 50,000 K | the V wavelength 500 to 600 nm | a hot star, white dwarf, Wolf-Rayet or stripped helium star over 50,000 K whose spectrum is near a blackbody in the V band | a bolometric correction from a model atmosphere of a 100,000 K star that differs by more than 0.3 mag | a bolometric correction table of hot stars and white dwarfs read from a source | physics: the V band lies on the Rayleigh-Jeans side, where flux goes as T and the bolometric flux as T^4 (7.5 mag a decade in the limit, 7.2 from 50,000 K); the form is Planck's law at one wavelength, not the filter's bandpass | VIEW.23 | - |
+| SKP4 | P | T2 | L0 | sky_photometry.DUST_SCALE_LENGTH_PC 2260, DUST_HEIGHT_PC 134.4, DUST_HEIGHT_FLARE_PC_PER_KPC 14.8, DUST_FLARE_START_PC 4400, DUST_SOLAR_RADIUS_PC 8000: the dust disc's shape; no warp, no spiral arms, no central hole | scale length 2.0 to 2.5 kpc; height 120 to 150 pc | lines of sight outside the inner 4 kpc of a galaxy of the Milky Way's size; scale lengths and heights are scaled by the caller for another | the paper's own Table 1 differing from these (the flare and the height were read from a summary of the table, to confirm), or a line of sight through the inner 4 kpc | the full dust model of VIEW.8 (the warp, the arms and the central hole of [R1158] section 3.2) | [R1158: Eq. 13 and 14]: exponential in R, sech^2 in z, a linearly flaring scale height; the abstract's scale length 0.28 R_sun is 2.24 kpc at their R_sun of 8 kpc, against 2.26 in Table 1 | VIEW.23 | - |
 
 ## 6.170 Stand-ins of the picture of a ring and of a glowing body
 

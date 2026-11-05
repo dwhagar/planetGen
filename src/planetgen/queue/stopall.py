@@ -26,7 +26,7 @@ import tempfile
 import time
 from datetime import datetime, timezone
 
-from planetgen.admin import maintenance
+from planetgen.admin import maintenance, stop_reason
 
 FILE_NAME = "stopped.json"
 """str: The hold's file in the state folder: `{"by": name, "at": Unix seconds}` as JSON."""
@@ -230,6 +230,8 @@ def kill_processes(protected=None, term_seconds=None):
             survivors = []
             break
         killed.update(targets)
+        for pid in targets:
+            stop_reason.leave(pid, "stop-all ended every planetgen worker and command on this machine")
         refused = set(_signal(targets, signal.SIGTERM))
         deadline = time.monotonic() + term_seconds
         while time.monotonic() < deadline and any(_alive(pid) for pid in targets if pid not in refused):

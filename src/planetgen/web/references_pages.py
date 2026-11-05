@@ -4,7 +4,7 @@
 The References pages (DOC.88, References R2; design: `docs/design/interface/references.md`).
 
 Help > References is the one section of the site that speaks out of universe: where each number came from, what is a stand-in, what was
-fitted to a result and how sure each part is. Every other page keeps a quiet "Where this comes from" link to the entry here
+fitted to a result and how sure each part is. Every other page keeps a quiet "More information" link to the entry here
 (`helpers.reference_link`; the addresses are `lib/reference_urls.py`).
 
 - `/references`: the start page: what the section is, the headline numbers and the tier and tweak legends.

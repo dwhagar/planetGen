@@ -1512,8 +1512,8 @@ export function createStageView(host) {
       target: target.center.slice(), quat: view.quat.toArray(),
       dist: FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }),
     };
-    // MAP.376: held to the block's own level (a family's block or a region's 9-block), so the window the camera lands in is that block's.
-    flyToStage(next, { camera: holdingLevel(want, block.m) });
+    // The region's sphere fills the view (MAP.319); the camera's window follows its distance, as on any wheel zoom.
+    flyToStage(next, { camera: want });
     return true;
   }
 
@@ -3969,14 +3969,34 @@ export function createStageView(host) {
   function sectorLabels() {
     if (!display || !display.options || entered || pinned) return [];
     const labels = [];
+    const seen = new Set();
+    // MAP.378: the generated sectors the server named near the camera (the camera alone chooses what is near, MAP.335) ...
+    if (nearRead) {
+      nearRead.candidates.forEach(function (candidate) {
+        const record = candidate.record;
+        const middle = candidate.center;
+        const id = "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(candidate.block));
+        seen.add(id);
+        labels.push({
+          id: id,
+          text: record.name || "Sector " + S.sectorDesignation(candidate.block.shell, candidate.block.band, candidate.block.wedge),
+          x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
+          slice: { massKg: record.stats && record.stats.mass_kg > 0 ? record.stats.mass_kg : 0 },
+          ref: { kind: "sector", sector: { shell: candidate.block.shell, band: candidate.block.band, wedge: candidate.block.wedge } },
+        });
+      });
+    }
+    // ... and those of a stage whose window holds sectors.
     display.options.forEach(function (option) {
       const block = option.blocks[0];
       if (option.blocks.length !== 1 || block.m !== 1) return;
       const record = sectorRecord(block);
       if (!record) return;
       const middle = P.cellCenter(block.bounds);
+      const id = "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block));
+      if (seen.has(id)) return;
       labels.push({
-        id: "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block)),
+        id: id,
         text: record.name || "Sector " + S.sectorDesignation(block.shell, block.band, block.wedge),
         x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
         slice: { massKg: record.stats && record.stats.mass_kg > 0 ? record.stats.mass_kg : 0 },    // MAP.322: the heaviest sectors are named first

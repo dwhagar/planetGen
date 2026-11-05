@@ -2432,3 +2432,18 @@ Baseline: PR #1817.
 | TEST.577 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.377 | 8.1 | Fly-through map |
 | OPS.94 | 8.9 | Repair and proof |
+| OPS.95 | 8.9 | Repair and proof |
+| MAP.376 | 8.1 | Fly-through map |
+| PERF.237 | 8.2 | Robust tile caching |
+| PERF.234 | 8.2 | Robust tile caching |
+| GEN.1147 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DB.99 | 8.4 | Asteroid fields |
+| UX.261 | later | Multiple galaxies |
+| MAP.378 | 8.1 | Fly-through map |
+| MAP.379 | 8.1 | Fly-through map |
+| VIEW.21 | 8.2 | Bookmarks |
+| VIEW.32 | 8.2 | Bookmarks |
+| VIEW.20 | 8.2 | Bookmarks |
+| VIEW.27 | 8.2 | Bookmarks |
+| VIEW.28 | 8.2 | Bookmarks |
+| PERF.233 | 8.2 | Robust tile caching |

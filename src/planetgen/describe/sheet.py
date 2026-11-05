@@ -512,7 +512,7 @@ _BODY_NOT_SHOWN = {
               "not list it as a row yet"),
     **_excuse(regional_temperature.BAND_COLUMNS,
               "the seven bands of latitude (the rings of a world that turns once an orbit), side by side in the table of the bands: the annual mean, the day and night swing, "
-              "the hours of day and night, the longest polar day and night and the state of each"),
+              "the hours of day and night, the longest unbroken day and night and the state of each"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -1080,8 +1080,8 @@ def _longest_eclipse(conn, kind, object_id):
 
 
 BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and night swing (hottest to coldest)"), ("day_hours", "Day"),
-                   ("night_hours", "Night"), ("longest_day_days", "Longest day of the year"),
-                   ("longest_night_days", "Longest night of the year"), ("state", "State"))
+                   ("night_hours", "Night"), ("longest_day_days", "Longest unbroken day"),
+                   ("longest_night_days", "Longest unbroken night"), ("state", "State"))
 """tuple: The rows of the table of the bands (GEN.1108), `regional_temperature.BAND_FIELDS` in order, each with its label."""
 
 BAND_LABELS = {"north_polar": "North polar", "north_middle": "North middle", "north_tropic": "North tropics", "equator": "Equator",

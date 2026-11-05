@@ -32,6 +32,7 @@ DIGESTS = {
     7: "357d5259c09ea2060f7b9d665b6e64ef",   # MAP.314: the same bytes for this node; the format goes up so the stored nodes get their region lists
     8: "357d5259c09ea2060f7b9d665b6e64ef",   # MAP.305: the same bytes for this node; the format goes up so the stored nodes get `interests` for `worlds`
     9: "357d5259c09ea2060f7b9d665b6e64ef",   # MAP.173: the same bytes for this node; the format goes up so the stored nodes get their `nebula_regions`
+    10: "357d5259c09ea2060f7b9d665b6e64ef",  # the same bytes for this node; the format goes up so stored `interests` ids are rebuilt as printed IDs
 }
 """dict: `TILE_FORMAT` to the SHA-256 (first 32 hex) of `NODE`'s stored bytes under it."""
 

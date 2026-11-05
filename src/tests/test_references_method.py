@@ -106,7 +106,7 @@ def test_a_body_page_links_a_value_to_its_method_row_and_keeps_no_source_line():
     assert property_help.method_ref("planet", "No such value") is None
     from planetgen.web.helpers import value_source
     assert str(value_source("planet", "Eccentricity")) == (
-        '<a class="reference-link" href="/references/method/orbits#eccentricity">Where this comes from</a>')
+        '<a class="reference-link" href="/references/method/orbits#eccentricity">More information</a>')
     assert str(value_source("planet", "No such value")) == ""
     for kind, label in (("planet", "Eccentricity"), ("moon", "Eccentricity"), ("star", "Rotation period")):
         path, _fragment = reference_urls.reference_path("method", property_help.method_ref(kind, label)).split("#")
