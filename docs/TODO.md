@@ -18317,6 +18317,14 @@ clears each one.
   the citation lock failing on main from
   src/tests/test_nav_route_graph.py (a wedge label that read as a name and
   a year, from NAV.73; Aux 7 fixed that one in #5012). Include all of these in this item.
+  Part 2 (Tides 1, as the lane reported) (11:10 PM EST on 2026-11-04): a
+  LOCK item for the next train: branch claude/test585-trace-air-state
+  head 3bf0c3584, build-only (no epoch, no golden): trace_air.apply
+  recomputes the stored molar mass, density and scale height after
+  adding trace gases (fixes test_sweep_atmosphere, off by 1.4e-8 on N2O
+  worlds), and gas_equilibrium.solve retries with trace-element amounts
+  1e-12 then 1e-9 (fixes the element-balance error). Part 1 (the
+  test-only fixes) is PR #5025.
   Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
 
 ## USR: User accounts
