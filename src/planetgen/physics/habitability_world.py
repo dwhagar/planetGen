@@ -176,7 +176,6 @@ def values_from_body(body):
         "magnetic_moment_a_m2": getattr(body, "magnetic_moment_a_m2", None),
         "rotation_period_hours": getattr(body, "rotation_period_hours", None),
         "daylight_hours": getattr(body, "daylight_hours", None),
-        "day_share_mean": getattr(body, "day_share_mean", None),                 # the angular radius of the star the bands' day lengths are worked with (a rescore reads the column)
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
         "period_years": getattr(body, "period", None),
         "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
