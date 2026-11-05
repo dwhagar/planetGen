@@ -34,11 +34,11 @@ def test_a_lens_not_between_the_observer_and_the_source_has_none():
     assert lensing.einstein_radius_m(0.0, 5.0, 10.0) is None
 
 
-def test_against_the_galactic_centre_the_lens_distance_is_the_observers_radius_less_the_lens_radius():
+def test_against_the_galactic_center_the_lens_distance_is_the_observers_radius_less_the_lens_radius():
     mass = constants.SOLAR_MASS_TO_KG
     observer_pc = 8000.0
     source = observer_pc * constants.PARSEC_M
     radius_pc = observer_pc - 1000.0  # 1 kpc from the observer
-    assert lensing.einstein_radius_against_galactic_centre_m(mass, radius_pc, observer_pc) == pytest.approx(
+    assert lensing.einstein_radius_against_galactic_center_m(mass, radius_pc, observer_pc) == pytest.approx(
         lensing.einstein_radius_m(mass, 1000 * constants.PARSEC_M, source))
-    assert lensing.einstein_radius_against_galactic_centre_m(mass, observer_pc + 1.0, observer_pc) is None
+    assert lensing.einstein_radius_against_galactic_center_m(mass, observer_pc + 1.0, observer_pc) is None

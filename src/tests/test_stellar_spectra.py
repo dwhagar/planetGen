@@ -78,11 +78,11 @@ def test_the_bands_of_a_star_add_up_to_its_whole_light(library):
     assert sum(shares.values()) == pytest.approx(1.0, abs=1e-6)
 
 
-def test_a_star_with_a_corona_has_more_far_ultraviolet_and_ionising_light_and_the_same_visible(library):
+def test_a_star_with_a_corona_has_more_far_ultraviolet_and_ionizing_light_and_the_same_visible(library):
     quiet = stellar_library.band_shares(3300.0, 5.0, 0.0, library)
     active = stellar_library.band_shares(3300.0, 5.0, 1e-4, library)
     assert active["uv_c"] - quiet["uv_c"] == pytest.approx(stellar_library.FUV_OVER_XUV * 1e-4 * stellar_library.FUV_IN_UV_C, rel=1e-6)
-    assert active["ionising"] - quiet["ionising"] == pytest.approx(1e-4 + stellar_library.FUV_OVER_XUV * 1e-4 * (1 - stellar_library.FUV_IN_UV_C), rel=1e-6)
+    assert active["ionizing"] - quiet["ionizing"] == pytest.approx(1e-4 + stellar_library.FUV_OVER_XUV * 1e-4 * (1 - stellar_library.FUV_IN_UV_C), rel=1e-6)
     for band in ("uv_b", "uv_a", "visible", "near_infrared", "thermal_infrared"):
         assert active[band] == quiet[band]
 

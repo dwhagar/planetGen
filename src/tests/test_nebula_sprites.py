@@ -23,7 +23,7 @@ def test_an_observer_inside_the_ball_sees_it_cover_the_sky():
     assert list(theta) == [pytest.approx(math.pi), pytest.approx(math.pi)]
 
 
-def test_the_chord_extinction_is_the_diameter_at_the_centre_and_none_at_the_edge():
+def test_the_chord_extinction_is_the_diameter_at_the_center_and_none_at_the_edge():
     dimming = ns.chord_extinction_mag(2.0, 10.0, [0.0, 5.0, 10.0, 12.0])
     assert dimming[0] == pytest.approx(2.0) and dimming[1] == pytest.approx(2.0 * math.sqrt(0.75)) and dimming[2] == 0.0 and dimming[3] == 0.0
 
@@ -45,11 +45,11 @@ def test_a_rayleigh_of_hydrogen_alpha_is_about_thirty_magnitudes_per_square_arcs
 
 def test_a_bright_h_ii_region_is_far_brighter_than_the_naked_eye_limit_and_a_diffuse_gas_is_not_visible():
     bright = ns.emission_surface_brightness(1.0e3, 3.0)           # a compact H II region
-    faint = ns.emission_surface_brightness(0.3, 100.0)            # diffuse ionised gas
+    faint = ns.emission_surface_brightness(0.3, 100.0)            # diffuse ionized gas
     assert bright < 18.0 and faint > 25.0
 
 
-def test_a_larger_or_denser_gas_is_brighter_and_a_shock_shell_is_fainter_than_a_photoionised_gas():
+def test_a_larger_or_denser_gas_is_brighter_and_a_shock_shell_is_fainter_than_a_photoionized_gas():
     assert ns.emission_surface_brightness(1.0e3, 3.0) < ns.emission_surface_brightness(1.0e2, 3.0)
     assert ns.emission_surface_brightness(100.0, 30.0) < ns.emission_surface_brightness(100.0, 3.0)
     assert ns.remnant_surface_brightness(1.0, 50.0) > ns.emission_surface_brightness(1.0, 50.0)      # the same gas, a thin shell at half the light

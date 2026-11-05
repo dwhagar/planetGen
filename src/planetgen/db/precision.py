@@ -22,13 +22,13 @@ number a test can read.
 
 Roles:
 
-* `position`: a coordinate in a frame (`galaxy`: from the galactic centre, `sector`: from the sector's centre,
+* `position`: a coordinate in a frame (`galaxy`: from the galactic center, `sector`: from the sector's center,
   `system`: from the object's star or parent).
 * `separation`: a distance between two bodies of a system (an orbit's size, a limit about a star); a coordinate-free
   length whose reach is the system's.
 * `size`: the extent of the object itself (a radius, a depth, a scale length); it keeps its relative precision at any
   size, so it declares no reach.
-* `relative`: a length in units of the object's own size (a nebula ball's centre in nebula radii).
+* `relative`: a length in units of the object's own size (a nebula ball's center in nebula radii).
 * `derived`: a magnitude worked out from a position (the galactic radius of a point, the distance of a listed
   neighbour); it is not stored for precision.
 """

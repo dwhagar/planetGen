@@ -135,7 +135,7 @@ def test_a_cell_profile_records_its_address_and_the_exact_cell_volume():
         profile.sector_profile((2, 99, 0), skeleton)
 
 
-def test_a_fill_context_reads_the_mix_and_the_centre_from_the_profile():
+def test_a_fill_context_reads_the_mix_and_the_center_from_the_profile():
     found = _at(SUN)
     fill = brightStars.FillContext(found, min_luminosity_sol=2500.0)
     assert fill.profile is found and fill.center_pc == found.position_pc and fill.shape is SHAPE

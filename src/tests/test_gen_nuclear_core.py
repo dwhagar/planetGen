@@ -1,7 +1,7 @@
 # tests/test_gen_nuclear_core.py
 
 """
-GEN.280: the nuclear star cluster and the nuclear stellar disc are density terms of the model, scaled to the bulge,
+GEN.280: the nuclear star cluster and the nuclear stellar disk are density terms of the model, scaled to the bulge,
 and the Gaussian core of ADM.49 is gone. The ball of shell 0 holds exactly the cluster's mass inside it.
 """
 
@@ -41,24 +41,24 @@ def test_the_masses_follow_the_bulge_and_the_amplitude():
     # The cluster is the drawn mass in solar masses, in the model's units (GEN.404: those hold the stellar mass).
     assert terms["nuclear_cluster_mass"] == pytest.approx(structure.nuclear_cluster_mass_solar * terms["mass_per_solar"])
     systems_per_unit = shape.k_norm * physicalConstants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
-    # (the cluster and the nuclear disc add 3% to the stars the stellar mass makes, so the solar masses come out so far under)
+    # (the cluster and the nuclear disk add 3% to the stars the stellar mass makes, so the solar masses come out so far under)
     assert terms["nuclear_cluster_mass"] * systems_per_unit * density.mean_system_mass_solar(shape) == pytest.approx(
         structure.nuclear_cluster_mass_solar, rel=0.05)
-    assert terms["nuclear_disc_mass"] == pytest.approx(structure.nuclear_disc_mass_solar * terms["mass_per_solar"])
+    assert terms["nuclear_disk_mass"] == pytest.approx(structure.nuclear_disk_mass_solar * terms["mass_per_solar"])
     half = density.model_terms(_shape(nuclear=0.5))
     assert half["nuclear_cluster_mass"] == pytest.approx(0.5 * terms["nuclear_cluster_mass"])
     for amplitude in (0.0, -1.0):
         none = density.model_terms(_shape(nuclear=amplitude))
-        assert none["nuclear_cluster_mass"] == 0.0 and none["nuclear_disc_mass"] == 0.0
+        assert none["nuclear_cluster_mass"] == 0.0 and none["nuclear_disk_mass"] == 0.0
         assert density.nuclear_bound(0.0, 0.0, _shape(nuclear=amplitude)) == 0.0
 
 
-def test_a_smaller_galaxy_gets_a_proportionately_smaller_centre():
+def test_a_smaller_galaxy_gets_a_proportionately_smaller_center():
     small = density.model_terms(_shape(bulge_scale_radius_pc=158.0, disk_scale_length_pc=260.0, disk_scale_height_pc=30.0))
     large = density.model_terms(_shape())
     assert small["nuclear_cluster_scale_pc"] == pytest.approx(large["nuclear_cluster_scale_pc"] / 10)
-    assert small["nuclear_disc_length_pc"] == pytest.approx(large["nuclear_disc_length_pc"] / 10)
-    assert small["nuclear_disc_height_pc"] == pytest.approx(large["nuclear_disc_height_pc"] / 10)
+    assert small["nuclear_disk_length_pc"] == pytest.approx(large["nuclear_disk_length_pc"] / 10)
+    assert small["nuclear_disk_height_pc"] == pytest.approx(large["nuclear_disk_height_pc"] / 10)
 
 
 def test_outside_the_softening_the_cluster_is_a_hernquist_profile():
@@ -85,11 +85,11 @@ def test_the_core_ball_holds_exactly_the_clusters_mass_inside_it():
         terms = density.model_terms(shape)
         ball = tuning.NUCLEAR_RESOLUTION_PC
         mass_inside = terms["nuclear_cluster_mass"] * ball ** 2 / (ball + terms["nuclear_cluster_scale_pc"]) ** 2
-        at_centre = density._nuclear_cluster(0.0, terms)
-        assert at_centre * 4.0 / 3.0 * math.pi * ball ** 3 == pytest.approx(mass_inside, rel=1e-9)
+        at_center = density._nuclear_cluster(0.0, terms)
+        assert at_center * 4.0 / 3.0 * math.pi * ball ** 3 == pytest.approx(mass_inside, rel=1e-9)
 
 
-def test_the_cell_at_the_centre_resolves_about_the_clusters_systems():
+def test_the_cell_at_the_center_resolves_about_the_clusters_systems():
     shape = _shape()
     expected_per_cell_at_1 = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
     profile = profile_at((0.0, 0.0, 0.0), shape, EDGE_PC, expected_per_cell_at_1, address=(0, 0, 0),
@@ -107,12 +107,12 @@ def test_the_cell_at_the_centre_resolves_about_the_clusters_systems():
     assert profile.mix["nuclear_cluster"] > 0.95 * profile.density
 
 
-def test_the_nuclear_disc_has_the_observed_run_of_density():
+def test_the_nuclear_disk_has_the_observed_run_of_density():
     terms = density.model_terms(_shape())
-    per_pc3 = terms["nuclear_disc_density"]
-    assert density._nuclear_disc(0.0, 0.0, terms) == pytest.approx(per_pc3)
-    assert density._nuclear_disc(terms["nuclear_disc_length_pc"], 0.0, terms) == pytest.approx(per_pc3 / math.e)
-    assert density._nuclear_disc(0.0, 10 * terms["nuclear_disc_height_pc"], terms) < 1e-3 * per_pc3
+    per_pc3 = terms["nuclear_disk_density"]
+    assert density._nuclear_disk(0.0, 0.0, terms) == pytest.approx(per_pc3)
+    assert density._nuclear_disk(terms["nuclear_disk_length_pc"], 0.0, terms) == pytest.approx(per_pc3 / math.e)
+    assert density._nuclear_disk(0.0, 10 * terms["nuclear_disk_height_pc"], terms) < 1e-3 * per_pc3
 
 
 def test_the_array_forms_match_the_scalar_ones():
@@ -121,11 +121,11 @@ def test_the_array_forms_match_the_scalar_ones():
     radii = np.array([0.0, 0.5, 2.0, 7.0, 90.0, 700.0])
     assert density._nuclear_cluster_array(radii, terms) == pytest.approx([density._nuclear_cluster(r, terms) for r in radii])
     rs, zs = np.array([0.0, 30.0, 150.0, 900.0]), np.array([0.0, 10.0, 80.0, 400.0])
-    assert density._nuclear_disc_array(rs, zs, terms) == pytest.approx([density._nuclear_disc(r, z, terms) for r, z in zip(rs, zs)])
-    assert density._nuclear_disc_array(rs, 25.0, terms) == pytest.approx([density._nuclear_disc(r, 25.0, terms) for r in rs])
+    assert density._nuclear_disk_array(rs, zs, terms) == pytest.approx([density._nuclear_disk(r, z, terms) for r, z in zip(rs, zs)])
+    assert density._nuclear_disk_array(rs, 25.0, terms) == pytest.approx([density._nuclear_disk(r, 25.0, terms) for r in rs])
 
 
-def test_the_populations_sum_to_the_density_at_the_centre_too():
+def test_the_populations_sum_to_the_density_at_the_center_too():
     shape = _shape()
     for point in ((0.0, 0.0, 0.0), (3.0, 1.0, 0.5), (60.0, 20.0, 5.0), (400.0, -200.0, 50.0)):
         parts = density.population_densities(point, shape)

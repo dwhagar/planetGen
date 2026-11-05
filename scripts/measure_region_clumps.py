@@ -5,10 +5,10 @@ How often do the generated sectors of one region cell form two far-apart clumps 
     python scripts/measure_region_clumps.py [--trials 400] [--seed 5]
 
 A model, not the galaxy: the cell is 9 sectors of 4 pc on a side (the 36 pc of a 9-block, the grid taken as cubic), and k fills
-of radius r (sectors whose centre is within r of a random point of the cell) are made in it. For each (k, r) the script prints
+of radius r (sectors whose center is within r of a random point of the cell) are made in it. For each (k, r) the script prints
 the share of cells whose sectors form two or more face-connected clumps, and the share where the bounding sphere of all the
 sectors is more than 1.5 times the sphere of the largest clump (the gap the single sphere would cover). The bounding sphere is
-the one of `named_regions.bounding_sphere` (centres plus a sector's circumradius). A standard fill at an anchor (GEN.826) makes
+the one of `named_regions.bounding_sphere` (centers plus a sector's circumradius). A standard fill at an anchor (GEN.826) makes
 one clump; the cases here are the ad hoc fills a user makes by hand.
 """
 
@@ -47,16 +47,16 @@ def clumps(cells):
 
 
 def fill(rng, radius):
-    """The cells whose centre is within `radius` of a random point of the cell."""
-    centre = rng.uniform(0, BOX, 3)
+    """The cells whose center is within `radius` of a random point of the cell."""
+    center = rng.uniform(0, BOX, 3)
     reach = int(radius // EDGE) + 1
-    base = np.floor(centre / EDGE).astype(int)
+    base = np.floor(center / EDGE).astype(int)
     out = []
     for dx in range(-reach, reach + 1):
         for dy in range(-reach, reach + 1):
             for dz in range(-reach, reach + 1):
                 cell = base + np.array([dx, dy, dz])
-                if np.linalg.norm((cell + 0.5) * EDGE - centre) <= radius:
+                if np.linalg.norm((cell + 0.5) * EDGE - center) <= radius:
                     out.append(tuple(int(v) for v in cell))
     return out
 

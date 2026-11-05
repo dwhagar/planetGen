@@ -65,11 +65,11 @@ function inhabitedOf(found) {
 export function regionBlobs(regions) {
   const found = [];
   (regions || []).forEach((region) => {
-    if (!region || !region.centre || !(region.radius > 0)) return;
+    if (!region || !region.center || !(region.radius > 0)) return;
     found.push({
       key: region.key,
       block: { m: region.m, shell: region.shell, band: region.band, wedge: region.wedge },
-      x: region.centre[0], y: region.centre[1], z: region.centre[2], radiusPc: region.radius,
+      x: region.center[0], y: region.center[1], z: region.center[2], radiusPc: region.radius,
       share: region.share, color: shareColor(region.share), name: region.name || null, parent: region.parent || null,
       sectorCount: region.sector_count, capacity: region.capacity, inhabited: inhabitedOf(region.inhabited),
     });

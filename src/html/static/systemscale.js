@@ -35,7 +35,7 @@ const NOTES = {
   [MODE_COMPRESSED]: "Compressed scale: distances are on a log scale and bodies are drawn larger than life.",
 };
 
-const nodeRef = (nodeNo) => `node:${nodeNo}`; // orbitpositions.js's `nodeRef`: the ref of a tree node's centre of mass
+const nodeRef = (nodeNo) => `node:${nodeNo}`; // orbitpositions.js's `nodeRef`: the ref of a tree node's center of mass
 
 const length = (v) => Math.hypot(v[0], v[1], v[2]);
 
@@ -80,7 +80,7 @@ function orbitedRefs(scene) {
 }
 
 // The drawn scale of each non-group tree node, compressed: Map(nodeRef -> units per km). Children are sized before their
-// parents (a node's reach is how far its farthest star, with what goes round it, lies from its centre).
+// parents (a node's reach is how far its farthest star, with what goes round it, lies from its center).
 function nodeScales(scene, radii) {
   const tree = scene.tree;
   const orbited = orbitedRefs(scene);
@@ -112,8 +112,8 @@ function nodeScales(scene, radii) {
     const units = Math.max(COMPRESSED_INNER_UNITS, (NODE_MARGIN * (sides[0].reach + sides[1].reach)) / periapsisShare);
     const total = sides[0].mass + sides[1].mass;
     let reach = Math.max(units * (sides[1].mass / total) + sides[0].reach, units * (sides[0].mass / total) + sides[1].reach);
-    // A pair with bodies going round its centre (a close pair below a further star's orbit) is as wide as the span they cover
-    // beyond its stars' farthest reach from the centre, a(1 + e).
+    // A pair with bodies going round its center (a close pair below a further star's orbit) is as wide as the span they cover
+    // beyond its stars' farthest reach from the center, a(1 + e).
     if (orbited.has(nodeRef(node.node_no))) reach = Math.max(reach, units * (1 + (node.eccentricity || 0)) + COMPRESSED_SPAN_UNITS);
     reaches.set(node.node_no, reach);
     if (node.separation_km > 0) scales.set(nodeRef(node.node_no), units / node.separation_km);
@@ -164,7 +164,7 @@ export function createLayout(scene, mode) {
   // node's separation is as many units as its two sides need to clear each other (a star with bodies going round it needs
   // their whole span, a star alone its drawn size, a sub-pair the reach of its own orbit), and the orbit is that, scaled
   // straight, so its ellipse keeps its shape.
-  // The bodies going round a node's centre (`around` is its `nodeRef`) start outside the node's own orbit, where the stars
+  // The bodies going round a node's center (`around` is its `nodeRef`) start outside the node's own orbit, where the stars
   // of the node are never found: beyond a(1 + e) the map compresses them over the span like any other parent's.
   if (compressed && scene.tree) {
     const nodes = new Map(scene.tree.nodes.map((node) => [nodeRef(node.node_no), node]));

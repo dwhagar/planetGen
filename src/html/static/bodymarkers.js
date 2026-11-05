@@ -11,7 +11,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { TIER_NAMES } = await import(`./poiicons.js${VERSION_QUERY}`);
 const { PLANET_CLASS_LETTERS, LIFE_CLASS_IDS } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 
-// The distance from the system's centre, in radii of the system, at which the body symbols come in and at which they go (the camera
+// The distance from the system's center, in radii of the system, at which the body symbols come in and at which they go (the camera
 // that has just flown in to fit the system sits about four radii away, so the symbols are there from the first view).
 export const HANDOFF_ON = 6;
 export const HANDOFF_OFF = 10;

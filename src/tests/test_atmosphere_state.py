@@ -13,7 +13,7 @@ from planetgen.physics import constants, mixture, saturation
 
 EARTH = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0, "H2O": 1000.0}
 EARTH_SURFACE = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0, "H2O": 1300.0}
-"""dict: Earth's air with the vapour pressure of its surface, 0.77 of saturation at 288 K (1.3 kPa); the vapour thins with height."""
+"""dict: Earth's air with the vapor pressure of its surface, 0.77 of saturation at 288 K (1.3 kPa); the vapor thins with height."""
 VENUS = {"CO2": 0.965 * 92.0e5, "N2": 0.035 * 92.0e5}
 MARS = {"CO2": 600.0 * 0.953, "N2": 600.0 * 0.027, "Ar": 600.0 * 0.016}
 G_EARTH, G_VENUS, G_MARS = 9.81, 8.87, 3.71
@@ -76,7 +76,7 @@ def test_the_warming_rises_with_the_greenhouse_gas():
         previous = warm.factor
 
 
-def test_water_vapour_warms_a_dry_air_and_the_factor_is_the_repos_variable():
+def test_water_vapor_warms_a_dry_air_and_the_factor_is_the_repos_variable():
     dry = {"N2": 8.0e4, "O2": 2.0e4}
     wet = dict(dry, H2O=2000.0)
     warm_dry = state.greenhouse_warming(dry, G_EARTH, 240.0)
@@ -136,30 +136,30 @@ def test_bad_input_is_refused():
         state.greenhouse_warming(EARTH, G_EARTH, 0.0)
 
 
-def _at_the_fixed_point_of_its_own_vapour(flux, co2=40.0, n2_pa=1.0e5, gravity=G_EARTH):
-    """The surface temperature of an Earth-like air whose vapour stands at 0.77 of saturation at the temperature it makes (the fixed
+def _at_the_fixed_point_of_its_own_vapor(flux, co2=40.0, n2_pa=1.0e5, gravity=G_EARTH):
+    """The surface temperature of an Earth-like air whose vapor stands at 0.77 of saturation at the temperature it makes (the fixed
     point the generator solves), the damped iteration of `surface_air`."""
-    vapour_pa = 400.0
+    vapor_pa = 400.0
     for _ in range(200):
-        warm = state.greenhouse_warming({"N2": n2_pa - vapour_pa - co2, "CO2": co2, "H2O": vapour_pa}, gravity, flux)
+        warm = state.greenhouse_warming({"N2": n2_pa - vapor_pa - co2, "CO2": co2, "H2O": vapor_pa}, gravity, flux)
         updated = 0.77 * saturation.pressure_pa("H2O", warm.surface_temperature_k)
-        if abs(updated - vapour_pa) < 1e-6:
+        if abs(updated - vapor_pa) < 1e-6:
             break
-        vapour_pa = 0.5 * (vapour_pa + updated)
+        vapor_pa = 0.5 * (vapor_pa + updated)
     return warm.surface_temperature_k
 
 
 def test_an_earth_twin_at_its_own_fixed_point_lands_within_two_kelvin_of_the_measured_288():
-    """GEN.812: 1 bar N2, 400 ppm CO2, 239 W/m2 absorbed, vapour at 0.77 of saturation at the answer's own temperature (it was 319 K
-    with the vapour well mixed up the whole column). The model puts the twin at 287.9 K; the table reads the model to a few percent (its file says by how much) and puts it
+    """GEN.812: 1 bar N2, 400 ppm CO2, 239 W/m2 absorbed, vapor at 0.77 of saturation at the answer's own temperature (it was 319 K
+    with the vapor well mixed up the whole column). The model puts the twin at 287.9 K; the table reads the model to a few percent (its file says by how much) and puts it
     at 283 K, within the six kelvin the table's accuracy on temperate airs allows."""
-    assert _at_the_fixed_point_of_its_own_vapour(239.0) == pytest.approx(288.0, abs=6.0)
+    assert _at_the_fixed_point_of_its_own_vapor(239.0) == pytest.approx(288.0, abs=6.0)
 
 
 def test_the_water_runaway_starts_between_the_earths_flux_and_the_published_limits():
     """The Earth keeps its ocean at 239 W/m2 absorbed; the spectrally resolved limit of a saturated air is 282 W/m2 (Goldblatt et al.
     2013), the inner edge of the habitable zone at 1.1 times the present flux, 262 W/m2 absorbed [R2446]. The table
     steps from the temperate branch to the steam one between them."""
-    temperate = _at_the_fixed_point_of_its_own_vapour(239.0)
-    assert _at_the_fixed_point_of_its_own_vapour(255.0) < 300.0 < _at_the_fixed_point_of_its_own_vapour(285.0)
+    temperate = _at_the_fixed_point_of_its_own_vapor(239.0)
+    assert _at_the_fixed_point_of_its_own_vapor(255.0) < 300.0 < _at_the_fixed_point_of_its_own_vapor(285.0)
     assert temperate < 295.0

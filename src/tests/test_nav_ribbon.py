@@ -138,7 +138,7 @@ def test_a_panel_narrower_than_the_least_is_made_that_wide_and_a_long_hop_is_cut
 
 # --- the links ---------------------------------------------------------------------------------------------------------------
 
-def test_stubs_leave_a_stop_one_above_one_below_and_so_on_centred_on_it():
+def test_stubs_leave_a_stop_one_above_one_below_and_so_on_centered_on_it():
     stops = [1, 2, 3]
     graph = {"nodes": [], "edges": [
         _edge(1, 2, 3.2, True), _edge(2, 3, 12.0, True),

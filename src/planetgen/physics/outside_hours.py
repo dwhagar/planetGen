@@ -80,7 +80,7 @@ def _resistance(garment, pressure_kpa, temperature_k):
 
 
 def saturation_kpa(temperature_k):
-    """The saturation vapour pressure of water at `temperature_k`, kPa (Magnus, over water above 0 C and over ice below)."""
+    """The saturation vapor pressure of water at `temperature_k`, kPa (Magnus, over water above 0 C and over ice below)."""
     celsius = temperature_k - constants.CELSIUS_ZERO_K
     if celsius >= 0.0:
         return 0.61094 * math.exp(17.625 * celsius / (celsius + 243.04))
@@ -88,8 +88,8 @@ def saturation_kpa(temperature_k):
 
 
 def _sweat_w(garment, pressure_kpa, temperature_k, relative_humidity):
-    """What the evaporation of sweat can carry away, W (ISO 7933): the vapour pressure between the wet skin and the air over
-    the vapour resistance of the garment and the film (the Lewis relation ties the film's to its convection), at most what
+    """What the evaporation of sweat can carry away, W (ISO 7933): the vapor pressure between the wet skin and the air over
+    the vapor resistance of the garment and the film (the Lewis relation ties the film's to its convection), at most what
     the body can sweat; none inside a sealed garment (the sweat has nowhere to go)."""
     if garment.sealed:
         return 0.0

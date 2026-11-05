@@ -19,13 +19,13 @@ NUCLEUS_TABLE = [
     ("1 pc", 7.1e5, 173.0, 0.06),
     ("4 pc", 2.3e4, 128.0, 0.4),
     ("10 pc", 1.2e3, 96.0, 2.0),
-    ("nuclear disc, centre", 540.0, 90.0, 3.0),
+    ("nuclear disk, center", 540.0, 90.0, 3.0),
     ("100 pc", 180.0, 80.0, 5.6),
     ("200 pc", 58.0, 70.0, 11.0),
 ]
 
 # The cluster note's four rows: systems per pc^3, dispersion (km/s), the hard-binary boundary a_h (AU) and the expected
-# ionising passes of an orbit at a_h that the note reads (188, 11, 2.6 and 2.1).
+# ionizing passes of an orbit at a_h that the note reads (188, 11, 2.6 and 2.1).
 CLUSTER_TABLE = [(4.8e5, 11.5, 3.4, 188.0), (1.0e4, 8.0, 6.9, 11.0), (1.0e3, 6.0, 12.0, 2.6), (1.0e2, 3.0, 49.0, 2.1)]
 
 

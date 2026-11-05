@@ -61,7 +61,7 @@ def add_check_db_arguments(parser):
 
 
 def _stop_on_sigterm():
-    """Makes SIGTERM end the run as cancelled in Redis, as Ctrl+C does."""
+    """Makes SIGTERM end the run as canceled in Redis, as Ctrl+C does."""
     def on_term(_signum, _frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, on_term)

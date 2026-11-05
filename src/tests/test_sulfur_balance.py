@@ -21,8 +21,8 @@ def _crust():
     return sb.crust_column_kg_m2(EARTH_RELEASED_J, EARTH_RADIUS_M)
 
 
-def _balance(degassed=1.0e7, ocean=True, oxidised=0.9, crust=None, age=AGE_S):
-    return sb.balance(degassed, age_s=age, ocean_present=ocean, oxidised_share=oxidised,
+def _balance(degassed=1.0e7, ocean=True, oxidized=0.9, crust=None, age=AGE_S):
+    return sb.balance(degassed, age_s=age, ocean_present=ocean, oxidized_share=oxidized,
                       crust_kg_m2=_crust() if crust is None else crust, lifetimes=LIFETIMES)
 
 
@@ -38,9 +38,9 @@ def test_a_hotter_interior_has_built_more_crust():
 
 @pytest.mark.parametrize("degassed", [0.0, 1.0e3, 1.0e7, 1.0e9, 1.0e11])
 @pytest.mark.parametrize("ocean", [True, False])
-@pytest.mark.parametrize("oxidised", [0.0, 0.3, 1.0])
-def test_the_sulfur_is_conserved(degassed, ocean, oxidised):
-    result = _balance(degassed, ocean, oxidised)
+@pytest.mark.parametrize("oxidized", [0.0, 0.3, 1.0])
+def test_the_sulfur_is_conserved(degassed, ocean, oxidized):
+    result = _balance(degassed, ocean, oxidized)
     assert result.air_mol_m2 + result.sulfate_mol_m2 + result.sulfide_mol_m2 == pytest.approx(degassed, rel=1e-12, abs=1e-9)
     assert min(result.air_mol_m2, result.sulfate_mol_m2, result.sulfide_mol_m2) >= 0.0
 
@@ -78,9 +78,9 @@ def test_sulfur_beyond_the_capacity_of_the_sinks_stays_in_the_air_whole():
     assert result.sulfide_mol_m2 == pytest.approx(capacity_sulfide, rel=1e-6)
 
 
-def test_an_oxidised_gas_fills_the_sulfate_sink_and_a_reduced_one_the_sulfide_sink():
-    oxidised, reduced = _balance(1.0e7, True, 1.0), _balance(1.0e7, True, 0.0)
-    assert oxidised.sulfide_mol_m2 == 0.0 and oxidised.sulfate_mol_m2 > 0.99e7
+def test_an_oxidized_gas_fills_the_sulfate_sink_and_a_reduced_one_the_sulfide_sink():
+    oxidized, reduced = _balance(1.0e7, True, 1.0), _balance(1.0e7, True, 0.0)
+    assert oxidized.sulfide_mol_m2 == 0.0 and oxidized.sulfate_mol_m2 > 0.99e7
     assert reduced.sulfate_mol_m2 == 0.0 and reduced.sulfide_mol_m2 > 0.99e7
 
 
@@ -97,12 +97,12 @@ def test_the_capacity_is_one_calcium_and_one_iron_per_sulfur():
     assert sulfide == pytest.approx(1000.0 * sb.CRUST_IRON_WT / 0.055845, rel=1e-3)
 
 
-def test_the_oxidised_share_reads_the_gas():
-    assert sb.oxidised_share_of({"SO2": 0.002, "H2S": 0.002}) == pytest.approx(0.5)
-    assert sb.oxidised_share_of({"SO2": 1.0e-3, "S2": 1.0e-3}) == pytest.approx(1.0 / 3.0)
-    assert sb.oxidised_share_of({"SO3": 1.0, "CO2": 5.0}) == 1.0
-    assert sb.oxidised_share_of({"H2S": 1.0e-6, "OCS": 1.0e-6, "N2": 1.0}) == 0.0
-    assert sb.oxidised_share_of({"N2": 1.0}) == 1.0
+def test_the_oxidized_share_reads_the_gas():
+    assert sb.oxidized_share_of({"SO2": 0.002, "H2S": 0.002}) == pytest.approx(0.5)
+    assert sb.oxidized_share_of({"SO2": 1.0e-3, "S2": 1.0e-3}) == pytest.approx(1.0 / 3.0)
+    assert sb.oxidized_share_of({"SO3": 1.0, "CO2": 5.0}) == 1.0
+    assert sb.oxidized_share_of({"H2S": 1.0e-6, "OCS": 1.0e-6, "N2": 1.0}) == 0.0
+    assert sb.oxidized_share_of({"N2": 1.0}) == 1.0
 
 
 def test_the_lifetime_draws_stay_in_their_brackets_and_are_recorded():

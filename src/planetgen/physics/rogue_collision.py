@@ -20,7 +20,7 @@ this module gives the rate, the speed at which the pair breaks up, what is left 
   that leaves the pair's escape speed and `unbound_rms_speed_ms` the root mean square of the speed it keeps at infinity, the dispersion of the field it makes.
 * **Shock.** `peak_shock_pressure_pa`: the planar impact of two equal rocks, particle speed half the impact speed, the linear Hugoniot of forsterite.
 
-What the law does not have: melt and vapour (it is a gravity-only N-body fit at speeds of up to a few km/s, used here far outside that range: IF14), and the transition from merging
+What the law does not have: melt and vapor (it is a gravity-only N-body fit at speeds of up to a few km/s, used here far outside that range: IF14), and the transition from merging
 to hit-and-run of a grazing impact (a grazing impact below the disruption energy is taken as hit-and-run, IF14). `rubble_speed_window_ms` is the window of a large remnant plus rubble, from `V*` to the speed at which the
 largest remnant falls to a tenth of the mass. Nothing reads the module yet: the field host rule and the columns (GEN.1103 and GEN.1104) wire it.
 """
@@ -97,7 +97,7 @@ def rate_per_rogue_per_year(number_density_pc3, mass1_kg, mass2_kg, radius1_m, r
 def galaxy_rate_per_year(rogues_per_star, star_pair_integral_pc3, mass1_kg, mass2_kg, radius1_m, radius2_m, speed_ms):
     """
     Collisions per year in one component of the Galaxy, `0.5 sigma v (rogues per star)^2 I`, with `I = integral(n_star^2 dV)` in stars squared per pc3
-    (3.4e10 for the exponential disc and 5.1e10 for the bulge of the design). Two Earth-size pairs, the disc at 40 km/s and the bulge at 120 km/s: 8.9e-11 a year in all, about one in
+    (3.4e10 for the exponential disk and 5.1e10 for the bulge of the design). Two Earth-size pairs, the disk at 40 km/s and the bulge at 120 km/s: 8.9e-11 a year in all, about one in
     the life of the Galaxy.
     """
     _positive(rogues_per_star=rogues_per_star, star_pair_integral_pc3=star_pair_integral_pc3)

@@ -32,9 +32,9 @@ Blocks nest by counts. A child block shell's row count is a whole odd
 multiple of its parent's, so every parent row edge is a child row edge, and a
 child row's wedge count is a whole multiple of the wedge count of the parent
 row that holds it, so every parent wedge line is a child wedge line. A sector
-joins the level-3 block holding its centre (Boss, 2026-10-15 06:58Z): the
-block shell of its shell, the row holding its band's centre colatitude, and
-the wedge holding its centre longitude. The core and the polar caps lie on the
+joins the level-3 block holding its center (Boss, 2026-10-15 06:58Z): the
+block shell of its shell, the row holding its band's center colatitude, and
+the wedge holding its center longitude. The core and the polar caps lie on the
 axis: they join wedge 0 of the polar rows (the core, the equatorial row).
 
 Everything is integer math apart from the row and wedge counts, which are
@@ -94,7 +94,7 @@ def check_stage_level(m):
 
 
 def block_radius(m, shell):
-    """Centreline radius of block shell `shell` at size `m`, in edges."""
+    """Centerline radius of block shell `shell` at size `m`, in edges."""
     return shell * m + (m - 1) / 2
 
 
@@ -138,7 +138,7 @@ def drill_wedge_count(m, shell, band):
     Wedges in row `band` of block shell `shell` at size `m`:
 
     - the root: `max(1, round(2*pi*R*sin(theta) / m))`, `theta` the row's
-      centre colatitude, so a wedge's arc at the row's centre is about `m`
+      center colatitude, so a wedge's arc at the row's center is about `m`
       edges.
     - every other level: the count of the parent row holding this one times
       `max(1, round(T / parent))`, `T` as above.
@@ -168,7 +168,7 @@ def _parent_band(m, shell, band):
     return (parent_count - 1) // 2 - parent_row
 
 
-def _centre_row(m, shell, colatitude):
+def _center_row(m, shell, colatitude):
     """The row (signed) of block shell `shell` at size `m` holding a
     colatitude; the poles go to the end rows."""
     count = drill_band_count(m, shell)
@@ -177,7 +177,7 @@ def _centre_row(m, shell, colatitude):
 
 
 def cell_colatitude(shell, band):
-    """The colatitude a sector's centre lies at: the middle of its band, the
+    """The colatitude a sector's center lies at: the middle of its band, the
     plane for band 0, the axis for a cap, and `pi / 2` for the core."""
     if shell == 0:
         return math.pi / 2
@@ -190,8 +190,8 @@ def cell_colatitude(shell, band):
 
 
 def _cell_wedge_in(cell_wedges, cell_wedge, block_wedges):
-    """The block wedge holding a sector wedge's centre longitude, in integers;
-    a centre exactly on a meridian goes to the higher wedge."""
+    """The block wedge holding a sector wedge's center longitude, in integers;
+    a center exactly on a meridian goes to the higher wedge."""
     return ((2 * cell_wedge + 1) * block_wedges) // (2 * cell_wedges)
 
 
@@ -210,7 +210,7 @@ def drill_parent(block):
     m, shell, band, wedge = block
     if m == 1:
         parent_shell = shell // DRILL_STEP
-        parent_band = _centre_row(DRILL_STEP, parent_shell, cell_colatitude(shell, band))
+        parent_band = _center_row(DRILL_STEP, parent_shell, cell_colatitude(shell, band))
         if shell == 0 or spherical.is_cap(shell, band):
             return DrillBlock(DRILL_STEP, parent_shell, parent_band, 0)
         parent_wedges = drill_wedge_count(DRILL_STEP, parent_shell, parent_band)
@@ -243,7 +243,7 @@ def drill_chain_of(shell, band, wedge):
 
 
 def _wedge_cells(cell_wedges, wedge, block_wedges):
-    """The sector wedges `[first, last]` of a band whose centres fall in block
+    """The sector wedges `[first, last]` of a band whose centers fall in block
     wedge `wedge` of a row of `block_wedges` (an empty range when none do)."""
     first = max(0, -((block_wedges - 2 * wedge * cell_wedges) // (2 * block_wedges)))
     last = min(cell_wedges - 1, -((block_wedges - 2 * (wedge + 1) * cell_wedges) // (2 * block_wedges)) - 1)
@@ -252,21 +252,21 @@ def _wedge_cells(cell_wedges, wedge, block_wedges):
 
 def _bands_in(shell, row, rows):
     """The sector bands of `shell` (not the core), north to south, whose
-    centre colatitude lies in row `row` of `rows` equal steps; the poles belong
+    center colatitude lies in row `row` of `rows` equal steps; the poles belong
     to the end rows."""
     low, high = spherical.band_range(shell)
     bands = list(range(high, low - 1, -1))
-    centres = [cell_colatitude(shell, b) for b in bands]
-    start = 0 if row == 0 else bisect_left(centres, row * math.pi / rows)
-    stop = len(bands) if row == rows - 1 else bisect_left(centres, (row + 1) * math.pi / rows)
+    centers = [cell_colatitude(shell, b) for b in bands]
+    start = 0 if row == 0 else bisect_left(centers, row * math.pi / rows)
+    stop = len(bands) if row == rows - 1 else bisect_left(centers, (row + 1) * math.pi / rows)
     return bands[start:stop]
 
 
 def drill_block_sectors(block):
     """
     The sectors of level-3 block `block`, as `DrillBlock(1, shell, band,
-    wedge)`: in each of its three shells, the bands whose centre lies in its
-    row and, in each, the wedges whose centre lies in its wedge.
+    wedge)`: in each of its three shells, the bands whose center lies in its
+    row and, in each, the wedges whose center lies in its wedge.
     """
     m, shell, band, wedge = block
     if m != DRILL_STEP:

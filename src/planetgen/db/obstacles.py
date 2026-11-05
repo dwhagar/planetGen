@@ -47,7 +47,7 @@ def _scalar(conn, sql):
 def widest_reach_pc(conn, kind):
     """
     The widest keep-out radius, parsecs, any placed object of `kind` can have, from aggregates of its table (a bound, not an exact
-    maximum: the heaviest object is taken at the farthest distance from the centre, and the galactic Hill radius only grows outward).
+    maximum: the heaviest object is taken at the farthest distance from the center, and the galactic Hill radius only grows outward).
     `0.0` when the kind has no placed object.
     """
     from planetgen.db import query  # not at the top: query imports this module's neighbor, corridor

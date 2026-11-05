@@ -90,7 +90,7 @@ def _finished(job_dir):
     """Whether the job in `job_dir` says it finished (`state.json`)."""
     try:
         with open(os.path.join(job_dir, "state.json"), "r", encoding="utf-8") as f:
-            return json.load(f).get("status") in ("succeeded", "failed", "cancelled")
+            return json.load(f).get("status") in ("succeeded", "failed", "canceled")
     except (OSError, ValueError, AttributeError):
         return False
 

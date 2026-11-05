@@ -2,7 +2,7 @@
 
 """
 NAV.73: a routed system sits where the database stores it. The route search used to add a system's sector-local offset to
-its sector's centre without turning it by the sector's axes (`frame.local_to_galaxy_pc`), so a system of a sector away
+its sector's center without turning it by the sector's axes (`frame.local_to_galaxy_pc`), so a system of a sector away
 from the +X axis sat several light-years from its stored `galaxy_x_pc`, `galaxy_y_pc` and `galaxy_z_pc`.
 """
 

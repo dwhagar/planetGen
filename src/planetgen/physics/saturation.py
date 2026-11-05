@@ -2,13 +2,13 @@
 
 """
 The saturation pressure of the gases and ices (GEN.470): `saturation(species, temperature_k)`, the pressure at which the
-solid and its vapour are in balance, with the standing of the answer.
+solid and its vapor are in balance, with the standing of the answer.
 
 The curves are the [R1445] polynomials `ln P[bar] = A0 + sum Ai / T^i` (i = 1 to 6) as quoted in the
 supplementary table of Lisse et al. [R2711], for water ice the [R1345] form that IAPWS
 R14-08 adopts, and the laboratory-corrected cold ends and the carbon dioxide equation described below.
 `data/saturation_pressure.json` holds the coefficients and says where each came from. This is the one place a
-vapour-pressure curve lives; the callers (GEN.452) read it.
+vapor-pressure curve lives; the callers (GEN.452) read it.
 
 * **A curve is only as good as its window, and the windows were not read.** The paper is behind a paywall and the quoted
   table has no lower limits. Where a species has more than one fit (alpha, beta and gamma O2, alpha and beta N2, CO and
@@ -47,7 +47,7 @@ vapour-pressure curve lives; the callers (GEN.452) read it.
 * **Known departures at the triple point** from the gas table's pressure: SO2 3.8 percent over, benzene 7 percent over,
   acetylene 3.6 percent under; the other species are within 3 percent (src/tests/test_saturation.py).
 * **Hydrogen's solid** is Clausius-Clapeyron from its triple point with a latent heat of sublimation of 1.02 kJ/mol (the
-  gas table's 0.90 of vapourisation plus 0.12 of fusion, a stand-in, unchecked against any measurement). Helium and the species
+  gas table's 0.90 of vaporisation plus 0.12 of fusion, a stand-in, unchecked against any measurement). Helium and the species
   without a curve raise `UnknownSpecies`.
 
 The functions are pure.
@@ -346,7 +346,7 @@ def _clausius_clapeyron_pa(formula, sublimation_kj_mol, temperature_k):
 
 
 EDMISTER_COEFFICIENT = 5.373
-"""float: the Edmister correlation: `ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T)`, the vapour pressure from the critical point and the acentric factor."""
+"""float: the Edmister correlation: `ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T)`, the vapor pressure from the critical point and the acentric factor."""
 
 
 def _edmister_pa(formula, temperature_k):

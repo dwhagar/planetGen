@@ -105,7 +105,7 @@ def test_save_course_names_it_and_keeps_it_in_this_browser(page):
     assert panel.get_by_role("link", name="Show Home run on the Galaxy Map").get_attribute("href") == "/galaxy?course=system:1001,system:1002"
 
 
-def test_cancelling_the_name_saves_nothing(page):
+def test_canceling_the_name_saves_nothing(page):
     page.goto(_ORIGIN + _COURSE, wait_until="load")
     page.locator("[data-course-save-button]").wait_for(state="visible")
     _answer_prompt(page, None)

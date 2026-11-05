@@ -863,7 +863,7 @@ tbody tr:last-child td {
 
 /* MAP.199: the center the view turns and zooms about -- always the middle
    of the map -- marked with a small cross so it is always known. */
-.starmap-centre {
+.starmap-center {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -878,7 +878,7 @@ tbody tr:last-child td {
   filter: drop-shadow(0 0 1px var(--bg-subtle));
 }
 
-.starmap-centre.is-moving {
+.starmap-center.is-moving {
   opacity: 1;
   transform: scale(1.5);
 }
@@ -1076,7 +1076,7 @@ tbody tr:last-child td {
   cursor: default;
 }
 
-.starmap-centre-readout {
+.starmap-center-readout {
   position: absolute;
   left: 50%;
   top: 0.5rem;
@@ -5084,7 +5084,7 @@ a.bookmarks-action {
 }
 
 .badge.job-paused,
-.badge.job-cancelled {
+.badge.job-canceled {
   border-style: dashed;
 }
 
@@ -5980,7 +5980,7 @@ p.hint a {
 }
 
 
-/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the centre of each
+/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the center of each
    wall that faces a neighbouring sector, screen-sized whatever the zoom, over the names; a click flies there. */
 .map-wall-icons {
   position: absolute;
@@ -6136,7 +6136,7 @@ p.hint a {
   display: none;
 }
 
-/* The kind's mark: a small disc, a ring for a body that is not a whole world, drawn by CSS. */
+/* The kind's mark: a small disk, a ring for a body that is not a whole world, drawn by CSS. */
 .tree-kind {
   display: inline-block;
   align-self: center;

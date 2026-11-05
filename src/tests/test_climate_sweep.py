@@ -6,13 +6,13 @@ range of IPCC AR6, 2021, chapter 7), a forcing of 3.7 W/m2 for the doubling, so 
 
 The twin is the Earth itself: its dry air (78.08 percent nitrogen, 20.95 oxygen, 0.93 argon, 420 ppm carbon dioxide, 1 bar), its gravity and radius, and its
 ocean (1.4e21 kg over 71 percent of the surface), held in the fixed point through a stand-in for the mixture draw, so the air is the Earth's and the fixed point
-still brings the vapour, the pressure and the temperature. (TEST.509: the twin of GEN.975 was a random drawn body at 313 K with a hydrogen and carbon dioxide air,
+still brings the vapor, the pressure and the temperature. (TEST.509: the twin of GEN.975 was a random drawn body at 313 K with a hydrogen and carbon dioxide air,
 whose response said nothing of the Earth's.) The model stands about 6.5 K under the Earth's 288 K at the Earth's own 238 W/m2 absorbed, because it has no cloud
 (GEN.974), so the absorbed flux of the twin is set, by bisection, to the flux at which the fixed point stands at the measured 288 K: the sweep then measures
 the response of a 288 K Earth, the number the published range is about.
 
 Where the fixed point stands: it converges and warms with the light, with a response of 0.44 K per W/m2 at 288 K (0.40 before the ice-albedo law, GEN.972), under the
-published lower bound of 0.54. Of the feedbacks of IPCC AR6 (2021) table 7.10 the Planck response, the water vapour with the lapse rate and, since GEN.972, the surface
+published lower bound of 0.54. Of the feedbacks of IPCC AR6 (2021) table 7.10 the Planck response, the water vapor with the lapse rate and, since GEN.972, the surface
 albedo are in it (1 / (3.22 - 1.30) = 0.52 K per W/m2 by the assessment's own numbers; the fixed point's outgoing flux rises faster with the temperature, 2.5 W/m2 per
 K, a gap GEN.973 follows). The ice law gives the twin +0.34 W/m2 per K at 288 K by design, and less as the ice is gone: 0.61 K per W/m2 on the cooling half of the
 sweep, 0.41 on the warming half. The cloud (+0.42, GEN.974) feedback is still missing; with it 1 / (2.5 - 0.77) = 0.58. The lower bound is held by a strict expected
@@ -109,14 +109,14 @@ def test_the_response_to_the_flux_is_not_below_the_published_climate_sensitivity
     assert all(response > SENSITIVITY_K_PER_W_M2[0] for response in _responses(sweep))
 
 
-def test_the_vapour_of_the_ocean_is_a_feedback_in_the_fixed_point(sweep):
-    """GEN.973: the fixed point already lets the vapour follow the temperature (the ocean holds it at a share of saturation at each step's own temperature, and the
+def test_the_vapor_of_the_ocean_is_a_feedback_in_the_fixed_point(sweep):
+    """GEN.973: the fixed point already lets the vapor follow the temperature (the ocean holds it at a share of saturation at each step's own temperature, and the
     column's humidity follows Manabe and Wetherald). Hold the air of the unchanged twin and ask the table for each flux of the sweep: the response is smaller than the
-    fixed point's, so the vapour feedback is in it and the held-air response is the Planck one with the lapse rate."""
+    fixed point's, so the vapor feedback is in it and the held-air response is the Planck one with the lapse rate."""
     flux, airs = sweep
     held = airs[1.0].partials_pa
     held_response = (atmosphere_state.greenhouse_warming(held, EARTH_GRAVITY_M_S2, flux * FACTORS[-1]).surface_temperature_k
                      - atmosphere_state.greenhouse_warming(held, EARTH_GRAVITY_M_S2, flux * FACTORS[0]).surface_temperature_k) / (flux * (FACTORS[-1] - FACTORS[0]))
     free_response = (airs[FACTORS[-1]].temperature_k - airs[FACTORS[0]].temperature_k) / (flux * (FACTORS[-1] - FACTORS[0]))
     assert 0.0 < held_response < free_response
-    assert airs[FACTORS[-1]].partials_pa["H2O"] > 1.5 * airs[FACTORS[0]].partials_pa["H2O"]          # the vapour that carried the extra warming
+    assert airs[FACTORS[-1]].partials_pa["H2O"] > 1.5 * airs[FACTORS[0]].partials_pa["H2O"]          # the vapor that carried the extra warming

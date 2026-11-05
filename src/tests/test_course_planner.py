@@ -62,7 +62,7 @@ def test_one_sphere_matches_the_closed_form():
         assert np.linalg.norm(np.array(w["p"]) - c) == pytest.approx(r * (1 + avoid.WAYPOINT_MARGIN), rel=1e-12)
 
 
-def test_a_dead_centre_sphere_has_the_documented_overhead():
+def test_a_dead_center_sphere_has_the_documented_overhead():
     # section 5.1: 2.0e-2 at r/L = 0.1
     course = avoid.plan_course([0, 0, 0], [100, 0, 0], [sphere("a", [50, 0, 0], 10.0)])
     assert course["length"] / course["straight_length"] - 1 == pytest.approx(2.0e-2, rel=0.05)

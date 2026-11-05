@@ -224,7 +224,7 @@ def test_every_infrared_band_is_a_number_the_research_cell_states():
                 assert value in (None, 0.0) or f"{value:g}" in text, f"{row.formula}: {value} is not in {entry.fundamentals_text!r}"
 
 
-def test_the_band_centres_agree_with_the_wavelengths_the_research_prints_beside_them():
+def test_the_band_centers_agree_with_the_wavelengths_the_research_prints_beside_them():
     water = {band.label: band for band in gases.gas("H2O").infrared.bands}
     assert water["nu2 bend"].wavelength_um == pytest.approx(6.27, abs=0.005)
     assert water["nu1"].wavelength_um == pytest.approx(2.73, abs=0.005)
@@ -294,7 +294,7 @@ def test_the_ultraviolet_search_for_the_longest_absorbing_wavelength():
     assert gases.gas("SO2").uv.longest_wavelength_above(1e-20) == 320.0       # the 300 to 320 nm bin is the last at 1e-20
     assert gases.gas("NO2").uv.longest_wavelength_above(1e-20) == 650.0
     assert gases.gas("N2").uv.longest_wavelength_above(1e-10) is None
-    assert gases.gas("H2O").uv.longest_wavelength_above(1e-18) < 200.0, "water vapour does not shield the ground ultraviolet"
+    assert gases.gas("H2O").uv.longest_wavelength_above(1e-18) < 200.0, "water vapor does not shield the ground ultraviolet"
 
 
 def test_the_limits_the_research_names_for_the_ultraviolet_bins_are_kept():
@@ -309,10 +309,10 @@ def test_the_loader_refuses_an_infrared_or_ultraviolet_entry_that_is_not_physica
     def row(data, formula):
         return next(item for item in data["gases"] if item["formula"] == formula)
 
-    def no_centre(data):
+    def no_center(data):
         row(data, "CH4")["infrared"]["bands"][0]["wavenumber_cm1"] = None
 
-    def negative_centre(data):
+    def negative_center(data):
         row(data, "CH4")["infrared"]["bands"][0]["wavenumber_cm1"] = -1.0
 
     def wrong_band_count(data):
@@ -330,7 +330,7 @@ def test_the_loader_refuses_an_infrared_or_ultraviolet_entry_that_is_not_physica
     def no_bins(data):
         data.pop("uv_bins_nm")
 
-    for edit in (no_centre, negative_centre, wrong_band_count, short_values, negative_value, bins_apart, no_bins):
+    for edit in (no_center, negative_center, wrong_band_count, short_values, negative_value, bins_apart, no_bins):
         with pytest.raises(DataError):
             broken(edit)()
 
@@ -425,7 +425,7 @@ def test_no_planet_class_carries_an_atmosphere_text():
 
 def test_every_gas_the_atmosphere_text_names_is_a_row_of_the_table():
     """GEN.415: the text is written from the partial pressures, so a gas it names is a gas of the stored mixture, named as the table
-    names it (one spelling: "water vapor", never "water vapour"), whichever gases the air holds."""
+    names it (one spelling: "water vapor", never "water vapor"), whichever gases the air holds."""
     for start in range(0, len(gases.GASES) - 5):
         rows = gases.GASES[start:start + 6]
         partials = {row.formula: 10.0 ** (3 - 0.8 * i) for i, row in enumerate(rows)}

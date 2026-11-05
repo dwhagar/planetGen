@@ -2452,7 +2452,7 @@ _PHENOMENON_TABLES = (
     ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly"),
     ("rogue_planets", "rogue_planet",
      "(CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' "
-     "WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
+     "WHEN planet_type = 'gas' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
     ("interstellar_comets", "interstellar_comet",
      "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0"),
     # v31: a galaxy's active nucleus, always at the galactic center
@@ -3230,7 +3230,7 @@ def _sibling_refs(conn, kind, table, where, params, object_id):
 
 
 def _enclosed_mass_kg(conn, radius_pc):
-    """The mass, kg, the stored galaxy holds inside `radius_pc` of its centre (`galaxy.enclosed_mass`, GEN.370): from
+    """The mass, kg, the stored galaxy holds inside `radius_pc` of its center (`galaxy.enclosed_mass`, GEN.370): from
     its stored shape and seed, or the shape the fallback seed draws when no skeleton is stored."""
     skeleton = get_galaxy_shape(conn)
     if skeleton is None:
@@ -3581,7 +3581,7 @@ def nebula_surroundings(conn, nebula_id):
     """
     The brightest stars round one nebula, for its page's 3D view (MAP.105):
     the pre-placed bright stars (`galaxy_bright_stars_in_box`) in a box
-    `NEBULA_SURROUNDINGS_REACH` radii each side of its centre, at most
+    `NEBULA_SURROUNDINGS_REACH` radii each side of its center, at most
     `NEBULA_SURROUNDINGS_STARS`.
 
     Args:
@@ -3590,10 +3590,10 @@ def nebula_surroundings(conn, nebula_id):
 
     Returns:
         dict: `radius_pc`, `half_width_pc` (of the box), `center_pc` (the
-            nebula's centre in the galaxy frame, `[x, y, z]` parsecs, `None`
+            nebula's center in the galaxy frame, `[x, y, z]` parsecs, `None`
             for a nebula never placed in the galaxy: MAP.142's view draws
             the nebula's own points round it) and `stars`: the most luminous
-            first, each `x`/`y`/`z` (parsecs from the nebula's centre),
+            first, each `x`/`y`/`z` (parsecs from the nebula's center),
             `luminosity_sol` and `temperature_k`. No stars for a nebula
             never placed in the galaxy.
 
@@ -3626,10 +3626,12 @@ def nebula_surroundings(conn, nebula_id):
 
 def _with_printed_uid(row):
     """A copy of a table row as a dict with its `uid` (a BINARY(12) column, GEN.170) as
-    the text the site prints, so the row can be written as JSON."""
+    the text the site prints, so the row can be written as JSON. A `donor_uid` (the system that threw a rogue planet out, GEN.1111) is
+    printed the same way."""
     out = dict(row)
-    if isinstance(out.get("uid"), (bytes, bytearray)):
-        out["uid"] = object_uid.format_id(object_uid.from_bytes(out["uid"]))
+    for column in ("uid", "donor_uid"):
+        if isinstance(out.get(column), (bytes, bytearray)):
+            out[column] = object_uid.format_id(object_uid.from_bytes(out[column]))
     return out
 
 
@@ -3689,6 +3691,9 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     detail["type"] = phenomenon_type
     if table == "rogue_planets":
         detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
+        if row["donor_uid"] is not None:     # GEN.1111: the system that threw it out, named where it is filed
+            donor = conn.execute("SELECT name FROM star_systems WHERE uid = ?", (bytes(row["donor_uid"]),)).fetchone()
+            detail["donor_name"] = None if donor is None else donor["name"]
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
     free = " AND star_id IS NULL" if "star_id" in detail else ""    # a black hole or neutron star of a system is not a free one
     for key, op, order in (("previous", "<", "DESC"), ("next", ">", "ASC")):
@@ -3696,11 +3701,11 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
                             (phenomenon_id,)).fetchone()
         detail[key] = None if peer is None else {"id": _with_printed_uid(peer)["uid"], "name": peer["name"]}
     if table == "supernova_remnants":
-        centre = (("black_holes", detail.get("compact_remnant_black_hole_id")),
+        center = (("black_holes", detail.get("compact_remnant_black_hole_id")),
                   ("neutron_stars", detail.get("compact_remnant_neutron_star_id")))
-        for centre_table, centre_id in centre:
-            if centre_id is not None:
-                found = conn.execute(f"SELECT name FROM {centre_table} WHERE id = ?", (centre_id,)).fetchone()
+        for center_table, center_id in center:
+            if center_id is not None:
+                found = conn.execute(f"SELECT name FROM {center_table} WHERE id = ?", (center_id,)).fetchone()
                 detail["compact_remnant_name"] = found["name"] if found else None
     if phenomenon_type in ("black_hole", "neutron_star", "rogue_planet"):
         # The Einstein radius (GEN.154) is seen from the galaxy's reference radius: no home position is stored (GEN.404).
@@ -3737,7 +3742,7 @@ _SCATTER_BUILT_TABLES = {
 from a row of that kind."""
 
 SCATTER_BUILT_MATCH_PC = 0.05
-"""float: How far (parsecs) a built object's centre may be from its scatter row's point and still be that row's."""
+"""float: How far (parsecs) a built object's center may be from its scatter row's point and still be that row's."""
 
 
 def _scattered_built_target(conn, row):
@@ -3791,7 +3796,7 @@ def scattered_phenomenon_detail(conn, scatter_id):
             `member_count` and `system_mass_solar` (UX.114; an unbuilt row with members also has `members` and
             `nodes`, as `scatter_member_tree`), and
             for a row with a velocity `speed_kms`, `direction` (a unit vector) and `flight_years` (the time to
-            fly its distance from the core at that speed, the age bound of a star ejected from the centre). A
+            fly its distance from the core at that speed, the age bound of a star ejected from the center). A
             built row also has `target`: `{"kind", "id", "name"}` of what it became (`"system"` for a
             hypervelocity star), or `None` when that cannot be found. `sector_id`/`sector_name` are those of its
             cell when that is charted.
@@ -5215,7 +5220,7 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
 
 
 BRIGHT_STAR_POPULATION_WEIGHT = {"young": 1.0, "intermediate": 10.0, "old": 400.0, "bulge": 400.0,
-                                 "nuclear_cluster": 400.0, "nuclear_disc": 400.0}
+                                 "nuclear_cluster": 400.0, "nuclear_disk": 400.0}
 """dict: The map key of a bright star is its luminosity times its population's
 weight (MAP.154). Ranking by luminosity alone puts the young blue stars first
 and leaves no room for the old giants of the bulge and the thick disk, which
@@ -5228,7 +5233,7 @@ child node lists every star its parent listed inside the child's box."""
 LOWEST_PRIORITY_TIER = {"halo": 1, "satellite": 2, "satellite_young": 2, "satellite_intermediate": 2}
 """dict: The tier of the populations every map lists last (MAP.250); a population not here is tier 0. Stars of the
 stellar halo (tier 1) and of the satellite galaxies (tier 2) are the lowest priority of any star budget: a list that
-cannot hold every star drops the satellite galaxies' first, then the halo's, and only then a star of the disc, the
+cannot hold every star drops the satellite galaxies' first, then the halo's, and only then a star of the disk, the
 bulge, the nuclei or a globular cluster, whatever the brightness. The tier comes before `_map_key`, so the order is
 still one for every node level and the lists stay nested."""
 
@@ -5344,7 +5349,7 @@ def _luminosity_walk_is_cheaper(total, cell_share, angle_share, limit):
     two answer the same, so this only chooses the cheaper (PERF.157). The address path reads the box's share of the
     stars; the walk reads, down each of its `2 x populations` arms, until `limit x EVEN_DROP_POOL` stars of the
     arm are inside the box, so about that many over the box's share. The share is the box's share of the outline's
-    cells and longitudes, which counts its height above the plane, where the share of the disc's area (which sets
+    cells and longitudes, which counts its height above the plane, where the share of the disk's area (which sets
     whether the box is answered from the sample) does not: a 1 kpc box a kiloparsec up holds a sliver of the stars.
     """
     share = max((1.0 if cell_share is None else cell_share) * angle_share, 1e-12)
@@ -5803,7 +5808,7 @@ GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 SCATTERED_MAX_SHELL_RANGES = 1000
 """int: Most `(shell, bands)` index ranges one tile's scattered-point query lists before it reads the whole run of shells
 in one range instead (PERF.157). The one range reads every row of those shells, bands and wedges the box does not reach
-included, and the optimizer then often scans the table (3.6 million rows for a 256 pc tile at the centre); a range per
+included, and the optimizer then often scans the table (3.6 million rows for a 256 pc tile at the center); a range per
 shell, with the bands the box reaches there, reads only those. It was 64."""
 
 
@@ -6147,17 +6152,17 @@ def galaxy_window(conn, at, g, edge_pc):
         ValueError: On a malformed key or width, or a sector cell (a window
             of sectors lists names and comes from the parents' stages).
     """
-    centre = parse_window_key(at)
-    if centre.m == 1:
+    center = parse_window_key(at)
+    if center.m == 1:
         raise ValueError("a window of sectors is read from the stages of its parents")
     width = check_width(g)
-    cells = window_cells(centre, edge_pc, width)
-    found = galaxy_block_stats(conn, centre.m, [(c.shell, c.band, c.wedge) for c in cells])
+    cells = window_cells(center, edge_pc, width)
+    found = galaxy_block_stats(conn, center.m, [(c.shell, c.band, c.wedge) for c in cells])
     children = [{"shell": shell, "band": band, "wedge": wedge, **value}
                 for (shell, band, wedge), value in found.items()]
     children.sort(key=lambda c: (c["shell"], -c["band"], c["wedge"]))
     return {
-        "at": format_drill_key(centre), "g": width, "child_m": centre.m,
+        "at": format_drill_key(center), "g": width, "child_m": center.m,
         "cells": [[c.shell, c.band, c.wedge] for c in cells], "children": children, "sectors": None,
     }
 
@@ -6187,14 +6192,14 @@ def galaxy_nebula_cover(conn, at=None, g=None, edge_pc=None):
         ValueError: On a malformed or impossible `at` or `g`.
     """
     if g is not None:
-        centre = parse_window_key(at or "")
+        center = parse_window_key(at or "")
         width = check_width(g)
-        child_m = centre.m
+        child_m = center.m
         if child_m == 1:
-            return {"at": format_drill_key(centre), "child_m": 1, "cells": []}
+            return {"at": format_drill_key(center), "child_m": 1, "cells": []}
         edge_pc = galaxy_edge_pc(conn) if edge_pc is None else edge_pc
-        cells = [(c.shell, c.band, c.wedge) for c in window_cells(centre, edge_pc, width)]
-        key = format_drill_key(centre)
+        cells = [(c.shell, c.band, c.wedge) for c in window_cells(center, edge_pc, width)]
+        key = format_drill_key(center)
     elif at is None or at == "":
         found = nebula_blocks.covers(conn, STAGE_TOP)
         return {"at": None, "child_m": STAGE_TOP,

@@ -1,6 +1,6 @@
 # tests/test_scatter.py
 
-"""The scatter step (GEN.1089): giant-free and giant-rich discs; the Solar System is a test target, never an input."""
+"""The scatter step (GEN.1089): giant-free and giant-rich disks; the Solar System is a test target, never an input."""
 
 import math
 
@@ -13,7 +13,7 @@ def _shares(giant_mass=0.0, giant_au=30.0, radius=3.9, migration=0.0, inner=15.0
     return scatter.scatter_shares(STAR, giant_mass, giant_au, radius, migration, inner, edge, instability)
 
 
-def test_a_disc_with_no_giant_stays_cold():
+def test_a_disk_with_no_giant_stays_cold():
     shares = _shares(0.0)
     assert shares["cold_classical"] == 1.0
     assert sum(shares.values()) == 1.0
@@ -37,13 +37,13 @@ def test_a_giant_that_never_moved_scatters_only_its_zone():
     assert "never moved" in scatter.history_line(shares, 30.0, 0.0)
 
 
-def test_a_migrating_giant_scatters_most_of_the_disc_it_crossed():
-    # a Neptune-sized giant that moved from 18 to 30 AU through a disc of 15 to 35 AU (test target; the line of the design: "scattered 82 percent")
+def test_a_migrating_giant_scatters_most_of_the_disk_it_crossed():
+    # a Neptune-sized giant that moved from 18 to 30 AU through a disk of 15 to 35 AU (test target; the line of the design: "scattered 82 percent")
     shares = _shares(17.1, 30.0, 3.9, 12.0, 15.0, 35.0, instability=1.0)
     assert 0.7 < scatter.scattered_share(shares) < 0.95
     assert shares["resonant"] > 0.0 and shares["hot_classical"] > 0.0 and shares["cold_classical"] < 0.2
     assert "moved from 18 to 30 AU" in scatter.history_line(shares, 30.0, 12.0)
-    # more migration, less cold disc
+    # more migration, less cold disk
     assert _shares(17.1, 30.0, 3.9, 6.0, 15.0, 35.0)["cold_classical"] > shares["cold_classical"]
 
 
@@ -65,12 +65,12 @@ def test_the_resonance_positions_and_the_safronov_number():
     assert scatter.safronov_number(5.0, 1.5, 1.0, STAR) < 1.0
 
 
-def test_the_disc_fraction():
-    assert math.isclose(scatter.disc_fraction(0.0, 100.0, 10.0, 40.0), 1.0)
-    assert scatter.disc_fraction(50.0, 60.0, 10.0, 40.0) == 0.0
+def test_the_disk_fraction():
+    assert math.isclose(scatter.disk_fraction(0.0, 100.0, 10.0, 40.0), 1.0)
+    assert scatter.disk_fraction(50.0, 60.0, 10.0, 40.0) == 0.0
     # more mass near the star for a falling surface density
-    assert scatter.disc_fraction(10.0, 20.0, 10.0, 40.0) > scatter.disc_fraction(30.0, 40.0, 10.0, 40.0)
-    assert math.isclose(scatter.disc_fraction(10.0, 25.0, 10.0, 40.0, slope=2.0), math.log(2.5) / math.log(4.0))
+    assert scatter.disk_fraction(10.0, 20.0, 10.0, 40.0) > scatter.disk_fraction(30.0, 40.0, 10.0, 40.0)
+    assert math.isclose(scatter.disk_fraction(10.0, 25.0, 10.0, 40.0, slope=2.0), math.log(2.5) / math.log(4.0))
 
 
 def test_the_split_of_the_swept_mass_sums_to_one():

@@ -60,7 +60,7 @@ def test_the_exemplars_land_where_the_design_notes_table_puts_them(name):
     field = component_field.ComponentField([_cluster(mass, half, w0)], EDGE, E1)
     rt = king.tidal_radius_pc(w0, half)
     middle, corner = _lattice(field, rt), _lattice(field, rt, shift=EDGE / 2)
-    assert middle.max() == pytest.approx(high, rel=0.12)       # centred in a cell
+    assert middle.max() == pytest.approx(high, rel=0.12)       # centered in a cell
     assert corner.max() == pytest.approx(low, rel=0.12)        # on a cell corner
     for cells in (middle, corner):
         assert int((cells >= 1.0).sum()) == pytest.approx(count, rel=0.12)

@@ -38,7 +38,7 @@ def test_a_closer_and_brighter_companion_swings_the_light_more():
 
 
 def test_a_circumbinary_planets_light_swings_by_the_luminosity_centroid_offset():
-    """Equal stars of equal mass have the centroid at the barycentre: no swing. A dim light companion makes one."""
+    """Equal stars of equal mass have the centroid at the barycenter: no swing. A dim light companion makes one."""
     assert insolation.circumbinary_swing(1.0, 1.0, 1.0, 1.0, 0.2, 1.0) == 0.0
     # 1 and 0.1 Msun, 1 and 0.01 Lsun, 0.2 AU apart, planet at 1 AU: r1 = 0.0182, r2 = 0.182,
     # delta = |1 * 0.0182 - 0.01 * 0.182| / 1.01 = 0.0162; 4 delta / d = 0.065.

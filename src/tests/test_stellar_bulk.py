@@ -12,9 +12,11 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
-from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+from planetgen.galaxy.sector import SpaceSector
+from planetgen.generation.phenomena.rogue import InterstellarComet
 from planetgen.physics import binding_energy, body_strength, constants
 from planetgen.util import draw
+from tests.test_rogue_body_storage import _insert, _rogue
 
 MSUN = constants.SOLAR_MASS_TO_KG
 
@@ -61,17 +63,15 @@ def test_an_object_without_a_mass_or_a_radius_has_none():
     assert body_strength.remnant_values("neutron-star", 1.4, 0.0) == (None, None)
 
 
-def test_a_rogue_giant_and_a_rogue_brown_dwarf_keep_a_density_and_a_binding_energy_only():
-    for mass_bin in ("jupiter", "brown-dwarf"):
-        draw.set_run_seed(4)
-        rogue = RoguePlanet(SystemConfig(), mass_bin=mass_bin)
-        assert rogue.density_g_cm3 > 0.0 and rogue.binding_energy_j > 0.0
+def test_a_rogue_giant_keeps_a_binding_energy_only():
+    for mass_earth in (300.0, 3000.0):
+        rogue, _ = _rogue(4, mass_earth, 0)
+        assert rogue.body_type == "g" and rogue.binding_energy_j > 0.0
         assert rogue.roundness_ratio is None and rogue.yield_strength_pa is None
 
 
 def test_a_terrestrial_rogue_planet_is_round_and_has_a_strength():
-    draw.set_run_seed(4)
-    rogue = RoguePlanet(SystemConfig(), mass_bin="terrestrial")
+    rogue, _ = _rogue(4, 3.0, 0)
     assert rogue.roundness_ratio > 1.0 and rogue.yield_strength_pa > 0.0 and rogue.binding_energy_j > 0.0
 
 
@@ -87,11 +87,13 @@ def test_an_interstellar_comet_has_what_a_comet_has():
 def test_the_rows_of_every_kind_are_stored_with_the_values(mysql_config):
     config = SystemConfig()
     draw.set_run_seed(9)
+    sector_id = store.save_sector(SpaceSector("Bulk Sector", edge_ly=10.0), config=mysql_config)
+    rogue, landing = _rogue(9, 3.0, 0)
     with store.get_connection(mysql_config) as conn:
         ids = {
             "black_holes": store.insert_black_hole(conn, BlackHole(config)),
             "neutron_stars": store.insert_neutron_star(conn, NeutronStar(config)),
-            "rogue_planets": store.insert_rogue_planet(conn, RoguePlanet(config, mass_bin="terrestrial")),
+            "rogue_planets": _insert(conn, sector_id, rogue, landing),
             "interstellar_comets": store.insert_interstellar_comet(conn, InterstellarComet(config)),
         }
         conn.commit()

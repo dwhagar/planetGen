@@ -156,7 +156,7 @@ def test_the_bars_central_density_matches_its_mass_and_the_suns_disk():
 def test_the_very_center_is_the_nuclear_cluster_and_the_bulge_rules_beyond_it():
     shares = density.population_densities((0.0, 0.0, 0.0), SHAPE)
     assert shares["nuclear_cluster"] > 0.7 * sum(shares.values())
-    # Past the nuclear disc's few scale lengths (90 pc) and the cluster's, and off the plane, the bar is left.
+    # Past the nuclear disk's few scale lengths (90 pc) and the cluster's, and off the plane, the bar is left.
     for point in ((700.0, 0.0, 100.0), (0.0, 0.0, 800.0)):
         parts = density.population_densities(point, SHAPE)
         assert parts["bulge"] > 0.5 * sum(parts.values()), point

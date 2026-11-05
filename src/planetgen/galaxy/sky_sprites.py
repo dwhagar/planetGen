@@ -13,11 +13,11 @@ Per object, as the stars of `galaxy/sky.py` are:
 
 1. **Its velocity.** One with none stored gets the stand-in velocity of a star at its place (`sky.unbuilt_velocity_kms`, the same stand-in SKC1; a
    cloud rides the galaxy's rotation). One with no epoch holds at the sky's time.
-2. **Where it appears.** `light_travel.retarded_offsets`: the centre where it was when its light left it. `direction` is the unit vector of that offset
+2. **Where it appears.** `light_travel.retarded_offsets`: the center where it was when its light left it. `direction` is the unit vector of that offset
    in the galaxy frame, `distanceLy` its length.
 3. **What it looks like.** `nebula_sprites.sprite_data`: the angular radius, whether the observer is inside, the dimming through its middle, the mean surface
    brightness (V mag per square arcsecond, `null` for no light of its own), `visible` (under the naked-eye limit) and `seen` (a remnant's explosion has been
-   seen). The surface brightness is dimmed by the dust of the disc between the observer and the object (`sky_photometry.galactic_extinction_av`).
+   seen). The surface brightness is dimmed by the dust of the disk between the observer and the object (`sky_photometry.galactic_extinction_av`).
 4. **Whether it is worth sending.** A record is kept when it is wider than `MIN_ANGULAR_RADIUS_RAD` and either shines under the limit (`visible`) or dims
    what lies behind it by at least `MIN_EXTINCTION_MAG`, and its explosion has been seen. The counts of what was left out are in the report.
 """

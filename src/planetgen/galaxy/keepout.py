@@ -15,7 +15,7 @@ data for it read by `planetgen.db.query.keep_out_radius`
   smaller than the object itself;
 - supermassive black hole: its sphere of influence `G M / sigma^2`
   (`sphere_of_influence_km`), which the galactic Hill radius (zero at the
-  centre) cannot give; a quasar the larger of that and its radiation radius;
+  center) cannot give; a quasar the larger of that and its radiation radius;
 - asteroid field: its stored bounding radius (NAV.51: courses avoid asteroid fields);
 - nebula, supernova remnant: none, with a note: the gas is thin and the
   drawn cloud fills a fraction of its bounding sphere, so a course passes
@@ -81,7 +81,7 @@ def sphere_of_influence_km(mass_solar):
     """
     The sphere of influence `G M / sigma^2`, km, of a supermassive black hole of `mass_solar` solar masses, `sigma` the bulge dispersion its
     mass sets (`galaxy.structure.black_hole_dispersion_kms`, the M-sigma relation the generator drew the hole with): 3.1 pc at 4e6 solar
-    masses. A course should not graze the event horizon (0.08 AU there) and the galactic Hill radius is zero at the centre.
+    masses. A course should not graze the event horizon (0.08 AU there) and the galactic Hill radius is zero at the center.
     """
     from planetgen.galaxy import structure     # not at the top: the galaxy package imports this module first
     sigma_m_s = structure.black_hole_dispersion_kms(mass_solar) * 1000.0

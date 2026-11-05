@@ -108,7 +108,7 @@ def test_the_laws_probabilities_are_the_histories_shares_inside_the_window():
     for name, law in LAWS.items():
         low, high = law.window
         if name == "old":
-            high = tuning.STELLAR_THICK_START_GY    # GEN.1025: from there the thick disc adds its stars to the thin disc's own
+            high = tuning.STELLAR_THICK_START_GY    # GEN.1025: from there the thick disk adds its stars to the thin disk's own
         middle = 0.5 * (low + high)
         expected = found.share_between(low, middle) / found.share_between(low, high)
         assert law.probability(low, middle) / law.probability(low, high) == pytest.approx(expected, abs=0.01)
@@ -117,7 +117,7 @@ def test_the_laws_probabilities_are_the_histories_shares_inside_the_window():
 def test_a_light_galaxy_forms_its_old_stars_later_than_a_heavy_one():
     """Downsizing inside the old window: the mean age of its stars falls from a heavy galaxy to a light one."""
     def mean_age(mass):
-        law = disk_history.history_of(_shape(mass)).age_law(*tuning.THIN_DISC_OLD_WINDOW_GY)    # the thin disc's own (GEN.1025)
+        law = disk_history.history_of(_shape(mass)).age_law(*tuning.THIN_DISK_OLD_WINDOW_GY)    # the thin disk's own (GEN.1025)
         ages = np.array(law.ages)
         rates = np.array(law.rates)
         return np.trapezoid(ages * rates, ages) / np.trapezoid(rates, ages)

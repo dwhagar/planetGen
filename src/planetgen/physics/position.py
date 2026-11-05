@@ -58,7 +58,7 @@ due.
 
 Stored positions: nothing inside a system stores an absolute sector or galactic position (TEST.241, section 5 point 3 of
 docs/design/architecture/unified-system-barycentre.md). A body in a system is stored parent-relative: its state about the parent's central
-object, in the galactic axes (not rotating), with its epoch; the barycentre is the system's row point and the galactic frame
+object, in the galactic axes (not rotating), with its epoch; the barycenter is the system's row point and the galactic frame
 is derived. `db.point_columns` names the tables and `tests/test_parent_relative_positions.py` fails if one with a parent link
 is stored in another frame.
 

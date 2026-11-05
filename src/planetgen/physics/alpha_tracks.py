@@ -3,7 +3,7 @@
 """
 Alpha-enhanced stars on solar-scaled tracks (GEN.744, part 1).
 
-The MIST isochrones of `datasets.isochrones` are solar-scaled ([alpha/Fe] = 0); the thick disc and the halo are alpha-enhanced. A
+The MIST isochrones of `datasets.isochrones` are solar-scaled ([alpha/Fe] = 0); the thick disk and the halo are alpha-enhanced. A
 star rich in the alpha elements (O, Mg, Si, Ca, Ti) burns and looks like a solar-scaled star of a higher [Fe/H]: the alpha elements
 carry most of the opacity and the CNO catalysts, and the same total metal content is reached with less iron. The rule of [R3878] is
 
@@ -37,7 +37,7 @@ def alpha_fe(fe_h, branch):
 
 
 ZERO_POINT_DEX = alpha_fe(0.0, stellar_abundances.BRANCH_THIN)
-"""float: The thin branch's fitted [alpha/Fe] at [Fe/H] = 0 (-0.017 dex). The grid is solar-scaled, so a thin-disc star of solar
+"""float: The thin branch's fitted [alpha/Fe] at [Fe/H] = 0 (-0.017 dex). The grid is solar-scaled, so a thin-disk star of solar
 [Fe/H] has no alpha excess by definition; `equivalent_fe_h` reads the excess from this zero point, not from 0, so that star sits on the
 reference track and only the excess the fits give above it shifts a star (the fits' own offset at the Sun is inside their scatter)."""
 
@@ -62,7 +62,7 @@ def track_fe_h(fe_h, age_gy):
 def track_segments(fe_h):
     """
     The pieces of the age axis on which a star of this birth [Fe/H] reads one track, as `(start_gy, end_gy, track [Fe/H])`. A star's branch
-    is fixed by its own uniform number and changes with age only at the thick disc's age gate (`tuning.STELLAR_THICK_START_GY`), where the
+    is fixed by its own uniform number and changes with age only at the thick disk's age gate (`tuning.STELLAR_THICK_START_GY`), where the
     high-alpha chance leaves 0, so the star reads the thin branch's track below it and `track_fe_h` at it above, which is the same piece
     when the star is thin. The scatter's windows and bounds (`star_population`) are drawn on these pieces so they mirror `evolve_star`.
     """

@@ -152,7 +152,7 @@ NodeCut = namedtuple("NodeCut", ["keys", "expanded"])
 
 def _quantized(value):
     """`value` to nine significant digits: blocks that are the same distance away (the ladder is symmetric about the
-    centre) differ by the last bits of a sine, and those bits are not the same in the page's twin; the order the cut
+    center) differ by the last bits of a sine, and those bits are not the same in the page's twin; the order the cut
     keeps its nodes and opens its blocks in must not follow them."""
     return float(f"{value:.9g}")
 
