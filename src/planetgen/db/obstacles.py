@@ -22,13 +22,13 @@ Only placed, generated objects count; nothing is generated here. Parsecs, galaxy
 import math
 
 from planetgen.db import corridor
-from planetgen.galaxy import keepout
+from planetgen.galaxy import avoid, keepout
 from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc
 
 KM_PER_PC = constants.PARSEC_M / 1000.0
 
-CONTAIN_MARGIN = 1e-9
+CONTAIN_MARGIN = avoid.CONTAIN_MARGIN
 """float: A sphere contains a point when the center is no farther than `radius * (1 + CONTAIN_MARGIN)` (the closed test of the design,
 course-avoidance.md section 2.1)."""
 

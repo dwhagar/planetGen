@@ -22,6 +22,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
+| function | planetgen.galaxy.avoid.plan_course | NAV.6 | the planner of NAV.26; the route's API, the NAV page and the map call it for each hop with the spheres `db.obstacles` finds |
+| function | planetgen.galaxy.avoid.spheres_from_obstacles | NAV.6 | turns the obstacle query's dicts into the planner's spheres; the same wiring calls it |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
