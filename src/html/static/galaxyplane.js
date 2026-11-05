@@ -8,6 +8,12 @@
 // clipped to the wedge like the rest; with none they are arcs about the galactic center. The existing 3D mode is untouched:
 // everything outside the wedge is drawn as before and the grid is a few thousand line vertices at most.
 //
+// MAP.372: stems. A thin line from each of a few objects down (or up) to its shadow on the grid plane, so height reads on the tilted
+// map: the selection (the strongest), the objects the map has named (the label budget, MAP.317), the stars about the pointer and the
+// brightest stars near the focus, never every star. Only the stems inside the wedge are drawn, one shorter than STEM_MIN_PX on the
+// screen is skipped, and a far stem is fainter. They are rebuilt a few times a second, in the same anchor-local coordinates as the
+// grid (the MAP.240 class of precision).
+//
 // The lines are built in coordinates local to the plane's anchor (the focus), and the group sits at the anchor, so the
 // camera-relative arithmetic stays exact at the scales a few parsecs across (the MAP.240 class: a single-precision position
 // 8 kpc out is good to a thousandth of a parsec). No DOM at import; three.js comes in as a parameter.
@@ -18,6 +24,15 @@ const RINGS_ACROSS = 4;
 const MAX_RINGS = 40;
 const ARC_STEP_DEG = 2;
 const REBUILD_SHARE = 0.05;
+// MAP.372: the most stems drawn, the share of them the brightest stars near the focus may take, the pointer's reach in pixels, the
+// radius about the focus (in views' widths) the bright stars are taken from, the stem a screen shorter than this many pixels is
+// skipped, and the milliseconds between two choices of stems.
+export const STEM_BUDGET = 60;
+const BRIGHTEST_STEMS = 24;
+const POINTER_REACH_PX = 90;
+const STEM_RADIUS_SPANS = 0.75;
+export const STEM_MIN_PX = 2;
+const STEM_EVERY_MS = 150;
 
 // The round distance (1, 2 or 5 times a power of ten) nearest `value` from above in log terms: the ring spacing.
 export function roundStep(value) {
@@ -51,6 +66,7 @@ export function createPlaneView(options) {
   const accent = options.accentColor || 0x7f8cff;
   const focus = options.focus;           // () => [x, y, z] the camera's target
   const spanNow = options.span;          // () => the width in parsecs the view covers at its focus
+  const stemSources = options.stemSources || function () { return { named: [], stars: [] }; };    // () => {named, stars}, plain {x, y, z} lists
   const half = (WEDGE_DEG / 2) * Math.PI / 180;
 
   const group = new THREE.Group();
@@ -64,6 +80,17 @@ export function createPlaneView(options) {
   edges.frustumCulled = false;
   group.add(rings);
   group.add(edges);
+  const stems = new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.8, depthWrite: false }));
+  stems.renderOrder = 3;
+  stems.frustumCulled = false;
+  group.add(stems);
+  const stemColor = new THREE.Color(accent);
+  const stemSelectedColor = new THREE.Color(0xffffff);
+  let pointerAt = null;
+  if (canvasEl.addEventListener) {
+    canvasEl.addEventListener("pointermove", function (event) { pointerAt = { x: event.clientX, y: event.clientY }; });
+    canvasEl.addEventListener("pointerleave", function () { pointerAt = null; });
+  }
 
   const labelBox = document.createElement("div");
   labelBox.className = "map-labels map-plane-labels";
@@ -73,6 +100,7 @@ export function createPlaneView(options) {
   const state = {
     on: false, midplane: false, centreAngle: -Math.PI / 2, selected: null,
     built: null, step: 0, ringCount: 0, labels: [], planeZ: 0, around: "galactic center",
+    stemCount: 0, stemShortestPx: null, stemMs: 0, stemRuns: 0, stemChosenAt: -1e9, stemKinds: { selected: 0, named: 0, pointer: 0, bright: 0 },
   };
   const point = new THREE.Vector3();
 
@@ -85,7 +113,106 @@ export function createPlaneView(options) {
     return state.selected ? state.selected[2] : target[2];
   }
 
+  function clearStems() {
+    stems.geometry.dispose();
+    stems.geometry = new THREE.BufferGeometry();
+    state.stemCount = 0;
+  }
+
+  // The screen length, in pixels, of the line from a point straight down to the plane.
+  const upper = new THREE.Vector3();
+  const lower = new THREE.Vector3();
+  function stemPixels(x, y, z, planeZ) {
+    const width = canvasEl.clientWidth || 1;
+    const height = canvasEl.clientHeight || 1;
+    upper.set(x, y, z).project(camera);
+    lower.set(x, y, planeZ).project(camera);
+    if (upper.z > 1 || lower.z > 1 || upper.z < -1 || lower.z < -1) return 0;
+    return Math.hypot((upper.x - lower.x) * width / 2, (upper.y - lower.y) * height / 2);
+  }
+
+  // Chooses the stems and builds their lines: {selected, named, pointer, bright} counts are kept for the tests. Called at most every
+  // STEM_EVERY_MS, and at once when the plane or the selection changes.
+  function buildStems(target, now) {
+    const began = performance.now();
+    const span = Math.max(1e-9, spanNow());
+    const planeZ = state.planeZ;
+    const width = canvasEl.clientWidth || 1;
+    const height = canvasEl.clientHeight || 1;
+    const rect = canvasEl.getBoundingClientRect ? canvasEl.getBoundingClientRect() : { left: 0, top: 0 };
+    const sources = stemSources();
+    const chosen = [];
+    const taken = new Set();
+    const kinds = { selected: 0, named: 0, pointer: 0, bright: 0 };
+    let shortest = Infinity;
+    function offer(item, kind, strong) {
+      if (!item || chosen.length >= STEM_BUDGET) return;
+      const key = `${item.x},${item.y},${item.z}`;
+      if (taken.has(key) || !insideWedge(item.x, item.y)) return;
+      const pixels = stemPixels(item.x, item.y, item.z, planeZ);
+      if (pixels < STEM_MIN_PX) return;
+      shortest = Math.min(shortest, pixels);
+      taken.add(key);
+      kinds[kind] += 1;
+      chosen.push({ x: item.x, y: item.y, z: item.z, strong: strong });
+    }
+    if (state.selected) offer({ x: state.selected[0], y: state.selected[1], z: state.selected[2] }, "selected", true);
+    (sources.named || []).forEach(function (item) { offer(item, "named", false); });
+    const stars = sources.stars || [];
+    if (pointerAt) {
+      const px = pointerAt.x - rect.left;
+      const py = pointerAt.y - rect.top;
+      const near = [];
+      for (let i = stars.length - 1; i >= 0 && near.length < 4 * STEM_BUDGET; i -= 1) {
+        point.set(stars[i].x, stars[i].y, stars[i].z).project(camera);
+        if (point.z < -1 || point.z > 1) continue;
+        const sx = ((point.x + 1) / 2) * width;
+        const sy = ((1 - point.y) / 2) * height;
+        if (Math.hypot(sx - px, sy - py) <= POINTER_REACH_PX) near.push(stars[i]);
+      }
+      near.forEach(function (star) { offer(star, "pointer", false); });
+    }
+    // The brightest are last in the list the map keeps (brightest last, so they win a tie on the screen).
+    const reach = span * STEM_RADIUS_SPANS;
+    let bright = 0;
+    for (let i = stars.length - 1; i >= 0 && bright < BRIGHTEST_STEMS && chosen.length < STEM_BUDGET; i -= 1) {
+      const star = stars[i];
+      if (Math.hypot(star.x - target[0], star.y - target[1], star.z - target[2]) > reach) continue;
+      const before = chosen.length;
+      offer(star, "bright", false);
+      if (chosen.length > before) bright += 1;
+    }
+    const positions = [];
+    const colors = [];
+    const eye = camera.position;
+    chosen.forEach(function (item) {
+      // Fainter with distance from the eye, as far as three spans; the selection stays full strength.
+      const away = Math.hypot(item.x - eye.x, item.y - eye.y, item.z - eye.z);
+      const fade = item.strong ? 1 : Math.max(0.25, 1 - away / (3 * span));
+      const color = item.strong ? stemSelectedColor : stemColor;
+      const level = item.strong ? 1 : 0.55 * fade;
+      positions.push(item.x - state.built.anchor[0], item.y - state.built.anchor[1], item.z - state.built.anchor[2],
+        item.x - state.built.anchor[0], item.y - state.built.anchor[1], planeZ - state.built.anchor[2]);
+      for (let k = 0; k < 2; k += 1) colors.push(color.r * level, color.g * level, color.b * level);
+    });
+    stems.geometry.dispose();
+    stems.geometry = new THREE.BufferGeometry();
+    stems.geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    stems.geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    state.stemCount = chosen.length;
+    state.stemKinds = kinds;
+    state.stemShortestPx = shortest;
+    state.stemChosenAt = now;
+    state.stemRuns += 1;
+    state.stemMs += (performance.now() - began - state.stemMs) / Math.min(state.stemRuns, 20);
+  }
+
+  function insideWedge(x, y) {
+    return Math.abs(wrap(Math.atan2(y, x) - state.centreAngle)) <= half + 1e-9;
+  }
+
   function clear() {
+    clearStems();
     rings.geometry.dispose();
     edges.geometry.dispose();
     rings.geometry = new THREE.BufferGeometry();
@@ -180,7 +307,8 @@ export function createPlaneView(options) {
     rings.geometry.setAttribute("position", new THREE.Float32BufferAttribute(ringVerts, 3));
     edges.geometry.setAttribute("position", new THREE.Float32BufferAttribute(edgeVerts, 3));
     state.segments = ringVerts.length / 6 + edgeVerts.length / 6;
-    state.built = { target: target.slice(), span: span, midplane: state.midplane, selected: state.selected ? state.selected.slice() : null, angle: state.centreAngle };
+    state.built = { target: target.slice(), span: span, midplane: state.midplane, selected: state.selected ? state.selected.slice() : null, angle: state.centreAngle, anchor: anchor };
+    state.stemChosenAt = -1e9;
   }
 
   function stale(target) {
@@ -218,6 +346,8 @@ export function createPlaneView(options) {
     }
     if (stale(target)) build(target);
     placeLabels();
+    const now = performance.now();
+    if (now - state.stemChosenAt >= STEM_EVERY_MS) buildStems(target, now);
   }
 
   function set(on) {
@@ -247,6 +377,8 @@ export function createPlaneView(options) {
   canvasEl.galaxyPlane = function () {
     return {
       maxOffsetDeg: widestOffsetDeg(),
+      stems: state.stemCount, stemShortestPx: state.stemShortestPx === Infinity ? null : state.stemShortestPx, stemKinds: Object.assign({}, state.stemKinds), stemMs: state.stemMs, stemBudget: STEM_BUDGET,
+      stemPositions: stems.geometry.getAttribute("position") ? Array.from(stems.geometry.getAttribute("position").array) : [],
       on: state.on, midplane: state.midplane, planeZ: state.planeZ, step: state.step, rings: state.ringCount, segments: state.segments || 0,
       wedgeDeg: WEDGE_DEG, centreDeg: (state.centreAngle * 180) / Math.PI, around: state.around, anchor: group.position.toArray(),
       labels: state.labels.map(function (label) { return { text: label.text, world: label.world.slice(), shown: label.el.style.opacity === "0.9" }; }),
