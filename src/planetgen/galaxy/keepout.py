@@ -35,6 +35,7 @@ from planetgen.physics import unit_registry as units
 _pc_to_m = units.converter("pc", "m")
 _m_to_km = units.converter("m", "km")
 _ly_to_km = units.converter("ly", "km")
+_msun_to_kg = units.converter("Msun", "kg")
 
 KeepOut = namedtuple("KeepOut", ["radius_km", "basis", "note"])
 """
@@ -85,7 +86,7 @@ def sphere_of_influence_km(mass_solar):
     """
     from planetgen.galaxy import structure     # not at the top: the galaxy package imports this module first
     sigma_m_s = structure.black_hole_dispersion_kms(mass_solar) * 1000.0
-    return _m_to_km(constants.G * mass_solar * constants.SOLAR_MASS_TO_KG / sigma_m_s ** 2)
+    return _m_to_km(constants.G * _msun_to_kg(mass_solar) / sigma_m_s ** 2)
 
 
 def radiation_radius_km(luminosity_w, flux_w_m2):
