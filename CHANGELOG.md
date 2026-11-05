@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3318] - 2026-11-05
+
+**Headline:** A test now records that a field cloud's sprite on the Galaxy Map hands over to the nebula density volume by design, and that the cloud is never left undrawn.
+
+### Changed
+- MAP.382: the field cloud sprite is on screen for a few frames when its node arrives and then fades out as the nebula volume layer (MAP.365) draws the same region from the model's density; the map was not changed. A browser test holds that 5 s after the sprite is first seen either the volume layer or the sprite draws the cloud.
+
 ## [8.0.3317] - 2026-11-05
 
 **Headline:** Waypoints are flagged and numbered on the Galaxy Map and a sector's map, and a system, phenomenon or body page can add one.
