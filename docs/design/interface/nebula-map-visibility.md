@@ -106,7 +106,7 @@ The sector fill's colours carry age (hue), density (transparency) and luminosity
 | Planetary | `#5be8c9` | keep |
 | Diffuse | `#e3a6c8` | keep |
 | Remnant | orange with a pale blue rim | keep |
-| **Dark** | `#1c1c24` at 0.91 | **replace with a dust colour that clears 3:1 on both themes** (proposal: a warm umber, about `#a9805a` at 0.45, with a thin light rim `#d9b48a` on the dark theme; keep the dark fill on the light theme). Checked with the project's contrast test, not by eye. |
+| **Dark** | `#1c1c24` at 0.91 | **replace with a dust colour that clears 3:1 on both themes** (proposal: a warm umber, about `#a9805a` at 0.45, with a thin light rim `#d9b48a` on the dark theme; keep the dark fill on the light theme). Checked with the project's contrast test, not by eye. **Done (MAP.181):** the map is black in either theme (UX.255), so there is one colour: `#a9805a` at 0.45 with a `#d9b48a` rim at 0.6 (`NEBULA_LOOKS`, `NEBULA_RIMS`); the rim reaches 3:1, the fill alone does not. |
 | Cover shading | none yet | the same umber, pale to deep, 5 bins |
 
 A region takes its dominant family's colour with a thin outline to separate it from a single nebula. The legend is a small "Nebulae" block under the existing Color by legend with one swatch per kind and a toggle each (MAP.123), plus the line "grouped when close together; zoom in to separate". Colour is never the only cue (MAP.142 asks for a non-colour cue per class): regions get the outline, dark clouds the rim, remnants their ring.
