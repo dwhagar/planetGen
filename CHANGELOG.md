@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3375] - 2026-11-05
+
+**Headline:** The MAP.366 design note writes its date in the form the citation test accepts.
+
+### Changed
+- The star-density section of `docs/design/interface/zoom-star-visibility.md` now says "on 2026-11-04" instead of a clock time with "EST 2026", which the citation test read as a source name. Documentation only; `generation-output: unchanged`.
+
 ## [8.0.3374] - 2026-11-05
 
 **Headline:** The galaxy pages name the regions where sectors are charted instead of four quadrants.
