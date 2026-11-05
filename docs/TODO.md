@@ -1913,6 +1913,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
 
+- [ ] **MAP.382 The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug)**
+  Core 5 (as the lane reported, about 8:30 AM EST on 2026-11-05), fixing
+  TEST.575, found that the field cloud sprite (MAP.178) is on screen
+  only 1 to 2 frames about 3.7 s after the window opens, even at
+  MAP.178's own commit d4051832b, so the test now records it with a
+  MutationObserver. If the sprite is meant to stay on screen at steady
+  state, this is a map bug; if it is a one-time fade by design, say so
+  in the item and close it. Do: look at the field cloud sprite lifecycle
+  in the map JS (when it is added, when it is removed or hidden), decide
+  which is intended from MAP.178's text, and either fix it with a
+  browser test that holds at steady state or record the by-design
+  behavior. Done: the answer in the item and, if a bug, a passing test
+  that the sprite is present 5 s after the window opens. Lock-free.
+  Version 8.1. Owner: Core 4 (wrote MAP.178). Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.178.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -17886,28 +17902,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.575 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug)**
-  Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
-  reported). Not from the spelling sweep: they fail on the map pages on
-  pixel positions and waits. Possible causes seen since: the log ruler
-  over the halo point and continuous zoom no longer changing crumbs
-  (TEST.573 found the same in two tests), the MAP.367 and MAP.370
-  changes, and leftover planetgen_* databases slowing fixtures (see
-  lanes.md). Do: first drop leftover planetgen_* databases, then run
-  each file alone on current main, split real causes from load, fix the
-  tests at the cause (not by loosening waits that hide a bug), and file
-  any real map bug as its own item. Done: all four files pass on main in
-  3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
-  test that follows its map changes (proposed by the TODO thread). Filed
-  by the TODO thread.
-  Owner change (TODO) (6:12 AM EST on 2026-11-05): Core 5 takes this
-  from Core 3 (who is on the GEN.1261 gate and has not started it).
-  Start by dropping leftover planetgen_* databases and running each of
-  the four files alone on current main; the item's own Done line says
-  they pass in three runs, so if they do, close it with the run log and
-  no change.
-  Prerequisites: none.
-
 - [ ] **TEST.579 Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug)**
   Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
   GEN.951 prevalence check: the three failing cases (habitable_world
@@ -18015,21 +18009,6 @@ clears each one.
   parity test needs both; that line changes what generation stores, so
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
-
-- [ ] **TEST.595 Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug)**
-  Core 2 (as the lane reported, about 7:00 AM EST on 2026-11-05) saw
-  these red on plain main, not from NAV.49a (#5092):
-  tests/test_web_browser_map_card.py, the black hole case at 1920x1080
-  and at 390x844, which waits for a button named Fixture Maw that never
-  appears, and
-  test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox,
-  which misses Fixture Eden. Do: first drop leftover planetgen_*
-  databases and run each alone on current main; find the commit that
-  turned them red; fix the tests at the cause (not by loosening waits
-  that hide a bug) and file any real map bug as its own item. Done: all
-  three pass in 3 runs. Lock-free. Version 8.1. Owner: Core 5, with
-  TEST.575 (same family). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.575.
 
 - [ ] **TEST.596 test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug)**
   The Train Manager (as the lane reported, 7:11 AM EST on 2026-11-05)
