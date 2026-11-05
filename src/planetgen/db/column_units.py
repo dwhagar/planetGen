@@ -137,7 +137,7 @@ BAND_SWINGS = tuple(f"band{number}_swing_k" for number in BAND_NUMBERS)
 BAND_HOURS = tuple(f"band{number}_{part}_hours" for number in BAND_NUMBERS for part in ("day", "night"))
 """tuple: The hours of day and of night in a solar day at each band."""
 BAND_LONGEST_DAYS = tuple(f"band{number}_longest_{part}_days" for number in BAND_NUMBERS for part in ("day", "night"))
-"""tuple: The longest polar day and night of the year at the poleward edge of each band, days."""
+"""tuple: The longest unbroken day and night of the year (GEN.1260) at the poleward edge of each band, days."""
 
 REGIONAL_TEMPERATURES = (*BAND_TEMPERATURES, *BAND_SWINGS, "temp_mean_swing_k")
 """tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656, GEN.1108), kelvin."""

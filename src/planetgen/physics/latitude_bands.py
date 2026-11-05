@@ -12,9 +12,11 @@ For a body that turns on its own, each band holds, from a circular orbit round a
 
 * **The hours of day and night** in a solar day: the share of one turn the upper limb of the star is up at the band's latitudes (`daylight.day_share_at`), averaged over
   the year and over the band's surface, times the solar day. A band inside the polar circle averages the long summer day and the long winter night over the year.
-* **The longest polar day and the longest polar night** of the year, in days, at the band's poleward edge: the star is up all day while its declination `d` is at least
-  `90 - |latitude| - alpha`, and `sin d = sin(tilt) sin(year angle)`, so the share of the year is `(pi - 2 asin(cos(|latitude| + alpha) / sin(tilt))) / 2 pi` (0 when
-  the ratio is 1 or more); the night is the same with `cos(|latitude| - alpha)`. Earth's pole: 184 days of day and 179 of night (refraction would add a few days of day).
+* **The longest unbroken day and the longest unbroken night** of the year, in days, at the band's poleward edge (GEN.1260): the longest stretch the upper limb of the star stays
+  above (or below) the horizon without a break, from a search that steps the star through the year and the turns of the planet (`longest_spells`) for every body alike, from its
+  own spin, orbit, tilt, star size and solar day. Earth's pole: 184 days of day and 181 of night (refraction would add a few days of day); Nitrikin III turns in 27.9 days round a
+  28.5-day orbit, its solar day is 14.1 days, and its equator has a day of about half of that. When the stretch is longer than the solar day the sun does not set or rise through
+  it, a polar day or night, and the band is `polar day and night`.
 * **The temperature** as `regional_temperature` works it out (the annual-mean insolation of the band, the fourth-root law, the air carrying heat poleward), the **day and the night
   temperature** (the mean plus and minus half the day and night swing, which falls with the cosine of the latitude), and the **state** word: `day and night`, `polar day and
   night` (the band has a day or a night of a day or more at its pole side), `non-rotating` (the solar day is the year).
@@ -117,22 +119,72 @@ def _mean_cosine(high, low):
     return float(np.sum(weight * weight) / np.sum(weight))
 
 
-def polar_day_share(latitude_deg, tilt_deg, alpha):
-    """The share of a circular year the star stays up all day at a latitude (the north's summer is the south's winter): `0` when the tilt is too small to reach it."""
-    sin_tilt = math.sin(math.radians(daylight.folded_tilt_deg(tilt_deg)))
-    if sin_tilt <= 0.0:
-        return 0.0
-    ratio = math.cos(math.radians(abs(latitude_deg)) + alpha) / sin_tilt
-    return 0.0 if ratio >= 1.0 else (math.pi - 2.0 * math.asin(max(ratio, -1.0))) / (2.0 * math.pi)
+_SAMPLES_PER_DAY = 240
+"""int: The time steps of one solar day when the search can afford them, so a day's rise and set are found to 1/240 of a solar day (6 minutes of an Earth day)."""
+
+_MIN_SAMPLES_PER_DAY = 8
+"""int: Fewer steps than this to a solar day cannot follow the turn of the planet, and a step then takes the star's average over the whole days it holds (see `longest_spells`)."""
+
+_MAX_STEPS = 20000
+"""int: The most time steps the search takes for one latitude, shared by the turn phases (see `_PHASES`), which keeps the search to a few milliseconds."""
+
+_PHASES = 16
+"""int: How many starting angles of the planet's turn the search tries when the steps allow it. A body whose year is a few solar days has a turn that slips against the year by a
+fraction of a turn each orbit, so the longest stretch it ever shows is the best over the phases of that slip, which sixteen starting angles sample to a sixteenth of a turn."""
 
 
-def polar_night_share(latitude_deg, tilt_deg, alpha):
-    """The share of a circular year the star stays down all day at a latitude."""
-    sin_tilt = math.sin(math.radians(daylight.folded_tilt_deg(tilt_deg)))
-    if sin_tilt <= 0.0:
-        return 0.0
-    ratio = math.cos(math.radians(abs(latitude_deg)) - alpha) / sin_tilt
-    return 0.0 if ratio >= 1.0 else (math.pi - 2.0 * math.asin(min(ratio, 1.0))) / (2.0 * math.pi)
+def _longest_run(flags):
+    """The longest run of `True` along the last axis of a boolean array, in steps (one number for each row). A run is not joined across the two ends: the year need not hold a whole
+    number of solar days, so the end is not where the start continues."""
+    flags = np.atleast_2d(flags)
+    best = np.zeros(len(flags), dtype=int)
+    for row, values in enumerate(flags):
+        if values.all():
+            best[row] = len(values)
+        elif values.any():
+            change = np.diff(np.concatenate(([False], values, [False])).astype(np.int8))
+            best[row] = int((np.flatnonzero(change == -1) - np.flatnonzero(change == 1)).max())
+    return best
+
+
+def longest_spells(latitude_deg, tilt_deg, alpha, orbital_hours, solar_day_hours):
+    """
+    The longest unbroken day and the longest unbroken night of the year at a latitude and the time step it was found to, days: `(day, night, step)` (GEN.1260).
+
+    One search for every body, from its own year, solar day, tilt and star: the star is stepped through the longer of the year and the solar day, its declination from the tilt
+    and the point of the year, its hour angle from the solar day, and the longest run of steps with the upper limb of the star (`alpha` its angular radius, radians) above the
+    horizon, and the longest below it, are read off; the year starts at an equinox, so the longest stretches (centred on a solstice) are not cut by its ends. The step is a 240th of
+    a solar day when that fits in `_MAX_STEPS` (at most a 360th of the year when the day is the longer), and up to `_PHASES` starting angles of the turn share what is left of the
+    steps, the best of them kept: a year of a few solar days slips its turn against the year, and the longest stretch the body shows over the years is the best phase.
+    A year of very many solar days outruns the steps. When the steps are fewer than `_MIN_SAMPLES_PER_DAY` to a solar day the search no longer follows the turn: the declination
+    is taken as fixed through a step, and the step is a whole day (the share of a turn the star is up, `day_share_at`, is 1), a whole night (0) or a mixed one whose own longest day
+    and night, `share * solar_day` and the rest, are the most a mixed step can show. A star that never crosses the horizon gives the whole span, a lower bound.
+    """
+    orbital_days = orbital_hours / 24.0
+    solar_days = (solar_day_hours or orbital_hours) / 24.0
+    span = max(orbital_days, solar_days)
+    wanted = int(math.ceil(span / min(solar_days / _SAMPLES_PER_DAY, orbital_days / 360.0)))
+    phases = max(1, min(_PHASES, _MAX_STEPS // max(wanted, 1)))
+    count = max(min(wanted, _MAX_STEPS // phases), 360)
+    step = span / count
+    time = (np.arange(count) + 0.5) * step
+    declination = np.arcsin(math.sin(math.radians(daylight.folded_tilt_deg(tilt_deg))) * np.sin(2.0 * math.pi * time / orbital_days))
+    latitude = math.radians(latitude_deg)
+    if step * _MIN_SAMPLES_PER_DAY <= solar_days:
+        offsets = np.arange(phases)[:, None] / phases
+        hour = 2.0 * math.pi * (time[None, :] / solar_days + offsets)
+        sine = math.sin(latitude) * np.sin(declination)[None, :] + math.cos(latitude) * np.cos(declination)[None, :] * np.cos(hour)
+        up = sine > -math.sin(alpha)
+        return float(_longest_run(up).max()) * step, float(_longest_run(~up).max()) * step, step
+    numerator = -math.sin(alpha) - math.sin(latitude) * np.sin(declination)
+    denominator = math.cos(latitude) * np.cos(declination)
+    ratio = np.divide(numerator, denominator, out=np.where(numerator < 0.0, -2.0, 2.0), where=denominator > 1.0e-12)
+    share = np.arccos(np.clip(ratio, -1.0, 1.0)) / math.pi
+    whole_day, whole_night = share >= 1.0 - 1.0e-9, share <= 1.0e-9
+    mixed = ~(whole_day | whole_night)
+    day = max(float(_longest_run(whole_day)[0]) * step, float(share[mixed].max()) * solar_days if mixed.any() else 0.0)
+    night = max(float(_longest_run(whole_night)[0]) * step, float(1.0 - share[mixed].min()) * solar_days if mixed.any() else 0.0)
+    return day, night, step
 
 
 def _mean_day_share(latitudes, weights, tilt_deg, alpha):
@@ -270,14 +322,13 @@ def compute(values, alpha_deg=0.0):
         swing = equator_swing * cosines[i] / equator_cosine
         latitudes = _latitudes(high, low)
         edge = max(abs(high), abs(low))
-        day_days = polar_day_share(edge, tilt, alpha) * (orbital_hours or 0.0) / 24.0
-        night_days = polar_night_share(edge, tilt, alpha) * (orbital_hours or 0.0) / 24.0
+        day_days, night_days, resolution = longest_spells(edge, tilt, alpha, orbital_hours, solar_day) if orbital_hours else (0.0, 0.0, 0.0)
         day_hours = night_hours = None
         if solar_day:
             day_share = _mean_day_share(latitudes, _weights(latitudes), tilt, alpha)
             day_hours, night_hours = day_share * solar_day, (1.0 - day_share) * solar_day
         state = NON_ROTATING if solar_day and orbital_hours and abs(solar_day - orbital_hours) <= 0.01 * orbital_hours else (
-            POLAR if day_days >= 1.0 or night_days >= 1.0 else CYCLE)
+            POLAR if max(day_days, night_days) > (solar_day or orbital_hours or 0.0) / 24.0 + 2.0 * resolution else CYCLE)
         bands.append(Band(NAMES[i], high, low, areas[i], temperatures[i], temperatures[i] + swing / 2.0, temperatures[i] - swing / 2.0, swing,
                           day_hours, night_hours, day_days if orbital_hours else None, night_days if orbital_hours else None, state))
     return bands

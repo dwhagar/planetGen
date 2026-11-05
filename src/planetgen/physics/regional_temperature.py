@@ -42,7 +42,7 @@ BAND_COUNT = 7
 
 BAND_FIELDS = ("mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")
 """tuple: What is stored for each band: the mean temperature (K), the day and night swing, peak to peak (K), the hours of day and of night in a solar day, the longest
-polar day and night of the year (days) at the poleward edge, and the state word."""
+unbroken day and night of the year (days, GEN.1260) at the poleward edge, and the state word."""
 
 
 def column(number, field):
