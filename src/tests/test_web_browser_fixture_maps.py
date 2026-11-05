@@ -1837,6 +1837,10 @@ def test_sector_map_names_its_systems_through_the_label_engine_with_the_system_n
     picking), with no text sprites in the scene; the System names switch (the address's `hide`) takes them away."""
     _open_sector(page, map_site)
     page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'system')")
+    # TEST.597: the page opens at once but its nodes arrive one level at a time (243, 81, 27, 9); a block is drawn whole until its
+    # children are in hand (galaxynodecut.js settledExpanded), and a whole block names its region or family (regionlabels.js) for the
+    # two to four seconds that takes. The labels are read once the nodes are in and those names have gone.
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'region')", timeout=30000)
     shown = page.evaluate(LABELS)
     assert all(label["kind"] in ("system", "sector") for label in shown), shown
     rects = page.evaluate("() => [...document.querySelectorAll('.map-label')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })")
