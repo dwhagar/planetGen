@@ -854,5 +854,5 @@ def test_a_marked_system_leaves_the_api_by_its_printed_id_and_its_page_opens(mys
     client = app.test_client()
     listed = client.get(f"/api/galaxy/nodes?keys={key}").get_json()["nodes"][key]["interests"]
     assert [s["id"] for s in listed] == [printed]
-    assert client.get(f"/system/{listed[0]['id']}").status_code == 200
+    assert client.get(f"/api/systems/{listed[0]['id']}").status_code == 200
     assert client.get(f"/galaxy/system/{listed[0]['id']}/nearest").status_code == 200
