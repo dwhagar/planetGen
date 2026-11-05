@@ -1769,8 +1769,8 @@ def container_detail(printed_id):
 def container_contents(printed_id):
     """
     `GET /api/containers/<object ID>/contents[?limit=]` -- what sits inside a container: `counts` by kind, `total`, and
-    up to `limit` (default 100, at most 500) `items` (`kind`, `id`, `name`) in kind, name order. 404 for an ID that is
-    no container.
+    up to `limit` (default 100, at most 500) `items` (`kind`, `id`, `name`) in kind, name order. A globular cluster
+    lists its own `star`s first and carries `uncharted_stars` (MAP.224). 404 for an ID that is no container.
     """
     conn = get_db()
     try:

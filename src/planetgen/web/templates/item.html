@@ -52,12 +52,13 @@
     </table></div>
 {%- endmacro %}
 {%- macro location_row() %}
-      {%- if location.chain or location.inside %}
+      {%- if location.chain or location.inside or location.cluster %}
       <tr class="glance-location" id="location"><th scope="row">Location</th><td>
         {%- if location.chain %}<ol class="location-chain">
           {%- for place in location.chain %}<li>{% if place.url %}<a href="{{ place.url }}">{{ place.label }}</a>{% else %}{{ place.label }}{% endif %}</li>{% endfor %}
         </ol>{% endif %}
         {%- if location.inside %}<p class="location-inside">Inside: <a href="{{ location.inside.url }}">{{ location.inside.name }}</a></p>{% endif %}
+        {%- if location.cluster %}<p class="location-cluster">Member of: <a href="{{ location.cluster.url }}">{{ location.cluster.name }}</a></p>{% endif %}
       </td></tr>
       {%- endif %}
 {%- endmacro %}
@@ -243,7 +244,7 @@
   <p class="sheet-help">{{ reference_link("method", "stars" if kind == "star" else "bodies", "Where these values come from") }}</p>
 </section>
 {%- else %}
-{%- if glance or symbols or location.chain or location.inside %}
+{%- if glance or symbols or location.chain or location.inside or location.cluster %}
 <section class="panel" id="item-glance" aria-labelledby="item-glance-heading">
   <div class="panel-header"><h2 id="item-glance-heading">At a glance</h2></div>
   {{ glance_table(symbols) }}

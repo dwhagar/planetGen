@@ -471,7 +471,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               near_path="/galaxy/near", locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               uncharted_scene_url=None,
-                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
+                              uncharted_phenomenon_url=None, superbubbles=None, clusters=None, nearby_url=None,
                               system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
                               nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume"):
     """
@@ -582,6 +582,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             frame parsecs), `sector` and `navUrl`. `None` draws none.
         superbubbles (list or None): The galaxy's superbubbles (GEN.254; `apiclient.get_superbubbles`): `x`, `y`,
             `z` and `radius_pc` each, drawn as faint thin shells under everything else. `None` draws none.
+        clusters (list or None): The galaxy's globular clusters (MAP.224; `web/galaxy_views.py`): `ref`, `name` (its name, else its
+            designation), `named`, `href` (its page), `x`, `y`, `z` and `radius_pc` each, offered to the label engine as the
+            cluster's name. `None` names none.
         made (dict or None): The sectors a generate job made (ADM.31):
             `total`, `points` (their centres, parsecs) and `sectors`
             (`[shell, band, wedge]`), up to a cap. The map rings them and
@@ -608,6 +611,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "course": course,
         "made": made,
         "superbubbles": [[b["x"], b["y"], b["z"], b["radius_pc"]] for b in superbubbles or []],
+        "clusters": list(clusters or []),
         "pick": pick["pick"] if pick else None,
         # The NAV pick the page opened with (static/navpick.js carries on
         # from it): the other end already chosen and where Cancel goes.

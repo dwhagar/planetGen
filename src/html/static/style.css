@@ -5997,6 +5997,7 @@ p.hint a {
   color: #fff;
 }
 .map-label[data-kind="nebula"] { font-style: italic; }
+.map-label[data-kind="cluster"] { font-style: italic; letter-spacing: 0.02em; }
 .map-label[data-kind="sector"] { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .map-label { transition: none; }

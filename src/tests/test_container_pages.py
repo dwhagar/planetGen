@@ -124,3 +124,66 @@ def test_the_page_of_a_superbubble_opens_and_a_wrong_kind_is_a_404(world):
     assert page.status_code == 200 and "Superbubble" in page.get_data(as_text=True)
     assert client.get(f"/object/superbubble:{_printed(cluster)}").status_code == 404
     assert client.get("/object/globular_cluster:FFFFFFFFFF-0000000-000").status_code == 404
+
+
+# --- MAP.224: the stars that point to a cluster, before and after its first sector is filled ----------------------------------------------------------
+
+def _component_of(conn, cluster):
+    return conn.execute("SELECT component_id FROM galaxy_containers WHERE uid = ?", (bytes(cluster.uid),)).fetchone()["component_id"]
+
+
+def _forget_cached_answers():
+    import os
+    import redis
+
+    redis.Redis.from_url(os.environ["PLANETGEN_REDIS_URL"]).flushdb()
+
+
+def test_a_cluster_page_lists_its_stars_and_says_how_many_are_not_yet_charted_and_a_star_names_its_cluster(world, mysql_config, monkeypatch):
+    from tests.bright_star_rows import B2V, star_row
+
+    client, cluster, _bubble = world
+    conn = store.get_connection(mysql_config)
+    try:
+        component = _component_of(conn, cluster)
+        with conn:
+            conn.execute("UPDATE galaxy_components SET name = NULL WHERE id = ?", (component,))
+            conn.execute("UPDATE galaxy_containers SET name = NULL WHERE component_id = ?", (component,))
+            store.insert_bright_stars(conn, [
+                star_row((3, 0, 0), (12000, 3000, 0), luminosity_w=3.0e29, cluster_id=component, **B2V),
+                star_row((3, 0, 1), (12000, 3000, 0), luminosity_w=3.0e29, cluster_id=component, **B2V)])
+    finally:
+        conn.close()
+    ref = f"globular_cluster:{_printed(cluster)}"
+    # Before any of its sectors is filled: no name, so its designation; no stars yet, two placed ones not charted.
+    html = client.get(f"/object/{ref}").get_data(as_text=True)
+    assert f"Globular cluster {_printed(cluster)}" in html
+    assert "2 more stars of the cluster are not yet charted." in html and "Stars of the cluster" not in html
+    held = client.get(f"/api/containers/{_printed(cluster)}/contents").get_json()
+    assert held["uncharted_stars"] == 2 and "star" not in held["counts"]
+
+    # The first fill: the system at the cluster's centre is built around one of the placed stars, and the cluster is named.
+    monkeypatch.setattr(store, "_naming_key_of", lambda conn: "A1B2C3D4")
+    conn = store.get_connection(mysql_config)
+    try:
+        system = conn.execute("SELECT id FROM star_systems ORDER BY id LIMIT 1").fetchone()["id"]
+        placed = conn.execute("SELECT id FROM bright_stars WHERE cluster_id = ? ORDER BY id", (component,)).fetchall()
+        with conn:
+            store.mark_bright_star_filled(conn, placed[0]["id"], system)
+            conn.execute("UPDATE stars SET cluster_id = ? WHERE star_system_id = ?", (component, system))
+        named = conn.execute("SELECT name FROM galaxy_components WHERE id = ?", (component,)).fetchone()["name"]
+        assert named                                                        # the fill named it, as the hooks do (GEN.359)
+        star = conn.execute("SELECT name FROM stars WHERE cluster_id = ?", (component,)).fetchone()["name"]
+    finally:
+        conn.close()
+    _forget_cached_answers()                    # the fill above wrote straight to the database; the command line's fill bumps these tags itself
+    html = client.get(f"/object/{ref}").get_data(as_text=True)
+    assert named in html and f"Globular cluster {_printed(cluster)}" not in html.split("<h1", 1)[1].split("</h1>", 1)[0]
+    assert "Stars of the cluster (1)" in html and star in html and "1 more star of the cluster is not yet charted." in html
+    held = client.get(f"/api/containers/{_printed(cluster)}/contents").get_json()
+    star_item = next(item for item in held["items"] if item["kind"] == "star")
+    assert held["counts"]["star"] == 1 and held["uncharted_stars"] == 1 and star_item["name"] == star
+    page = client.get(f"/object/star:{star_item['id']}").get_data(as_text=True)
+    assert "Member of" in page and named in page and f'href="/object/{ref}"' in page
+    detail = client.get(f"/api/objects/star:{star_item['id']}").get_json()
+    assert detail["cluster"] == {"ref": ref, "kind": "globular_cluster", "name": named}
