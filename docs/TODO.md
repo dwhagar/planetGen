@@ -18025,6 +18025,20 @@ clears each one.
   TEST.571's). Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580.
 
+- [ ] **TEST.598 test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug)**
+  Aux 5 (as the lane reported, about 9:00 AM EST on 2026-11-05) found
+  tests/test_fingerprint.py, whose table list does not include
+  designations and chart_ledger, and tests/test_bring_to_epoch.py, whose
+  epoch counts no longer match, red on plain main. Do: run each alone on
+  current main; bisect each file to the commit that turned it red (the
+  table list probably moved with GEN.1014 and GEN.1127, the epoch counts
+  with epoch 132 or an earlier epoch bump); say which item owns each;
+  fix the test with the reason, or the code if the test is right. Do not
+  loosen a check. Done: both green on main with the cause of each noted.
+  Lock-free unless a stored value is the cause (then stop and tell
+  TODO). Version 8.1. Owner: Aux 7. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.580.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
