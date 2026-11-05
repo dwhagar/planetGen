@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1145 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1139 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 156 | 17 | 8 | 1 | 0 | 182 |
+| T1 | 156 | 16 | 8 | 1 | 0 | 181 |
 | T2 | 120 | 47 | 1 | 1 | 0 | 169 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 19 | 10 | 92 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
-| T6 | 106 | 85 | 22 | 58 | 0 | 271 |
+| T6 | 103 | 84 | 22 | 58 | 0 | 267 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 27 | 14 | 5 | 67 | 29 | 142 |
-| All | 635 | 242 | 54 | 174 | 40 | 1145 |
+| T9 | 26 | 14 | 5 | 67 | 29 | 141 |
+| All | 631 | 240 | 54 | 174 | 40 | 1139 |
 
 ## How the labels were given
 
@@ -1109,8 +1109,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RK2 | P | T6 | L0 | rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects | 0.5 to 2 | scattering planets | a scatterer with Theta under 1 that ejects most of what it scatters in an N-body run | the scattering simulations read by GEN.1089 | [R1417, R3867] use the same cut, recalled | - | - |
 | RK3 | P | T1 | L1 | rogue_kick.MEAN_OVER_SCALE 0.87, the mean ejection speed in units of `v_c` | 0.8 to 0.95 | as RK1 | a mean outside 0.75 to 1 `v_c` for a 1 to 10 Jupiter-mass scatterer at 5.2 AU | as RK1 | [R2470: Sec. 4.1] to 4.2: 1.15 km/s (1 Jupiter mass) and 3.4 to 3.6 (10), 0.87 and 0.84 of `v_c`; no trend in the ejected mass over four decades | - | - |
 | RK4 | P | T6 | L2 | rogue_kick.SPEED_SIGMA_LN 0.51, the ln-width of the ejection speed in units of `v_c`, set so the 99th percentile is 2.5 `v_c` | 0.4 to 0.7 | as RK1, two-planet systems | an N-body speed distribution (percentiles) with a 99th percentile outside 2 to 3.5 `v_c` | the percentiles of a rerun of the scattering runs, or of the ejection records (GEN.1119) | Huang and Lai Sec. 4.3: the two-planet distributions range from 0 to 2.5 `v_c` with a peak near 1, read from figures; the paper prints no percentile | - | - |
-| RK5 | P | T1 | L1 | rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays | 0.3 to 1 | moons of ejected planets | a moon-carrying N-body run whose survivors differ from the rule by more than 20 percent | an N-body run with moons (the paper simulates none) | Huang and Lai Eq. 4: `r_moon < f r_min (m_2/m_12)^(1/3)`, "a high survival probability requires f ~ 1/2" | - | - |
-| RK6 | P | T1 | L2 | rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass) | 0.06 to 0.12 | as RK5, two-planet systems spaced by 2 mutual Hill radii | a median closest approach outside 0.05 to 0.15 for that setup | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Sec. 4.2, Fig. 2 (median 0.089); the 0.089 depends strongly on the planet spacing (0.60 at 2.5, 0.051 at 1) and the inclination (0.0030 at 0.01 R_H/a), which this model does not carry | - | - |
+| RK6 | P | T1 | L2 | rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass) | 0.06 to 0.12 | the Huang and Lai fiducial run: two-planet systems spaced by 2 mutual Hill radii | a median closest approach outside 0.05 to 0.15 for that setup | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Sec. 4.2, Fig. 2 (median 0.089); the 0.089 depends strongly on the planet spacing (0.60 at 2.5, 0.051 at 1) and the inclination (0.0030 at 0.01 R_H/a), which this model does not carry | - | - |
 | RK7 | P | T3 | L3 | rogue_kick.CLOSEST_APPROACH_MASS_INDEX 1.13, the median closest approach goes as the scatterer's mass to this power | 0.8 to 1.5 | scatterers of 1 to 10 Jupiter masses at a mass ratio of 10 | medians at other masses that fall off this line by more than a factor of 2 | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Fig. 2: 0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses; a line through two ends of three points | - | replace (GEN.1111) |
 | RK8 | P | T1 | L1 | rogue_kick.CLOSEST_APPROACH_SIGMA_LN 2.35, the ln-width of the closest approach | 2.0 to 2.7 | as RK6 | a closest-approach distribution whose 16 to 84 percent range is not within a factor of 5 of the log-normal's | as RK6 | Huang and Lai Sec. 7: 48 percent of runs above 0.1 and 82 percent above 0.01 mutual Hill radii, which a log-normal of median 0.089 matches at 2.3 and 2.4 | - | - |
 
@@ -1170,16 +1169,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BW4 | P | T9 | L3 | band_winds.SURFACE_COUPLING 0.3, the share of the wind aloft that reaches the surface by day | 0.15 to 0.5 | rocky worlds with air | surface winds off the Earth's 5 to 8 m/s in the mid-latitudes | a boundary-layer drag law on the surface roughness | tuned to the Earth's mid-latitude surface wind | GEN.1110 | no data |
 | BW5 | P | T9 | L3 | band_winds.NIGHT_COUPLING 0.5, the share of the day's coupling left at night | 0.3 to 0.8 | worlds with a stable night layer | a measured night to day wind ratio far from a half | a boundary-layer stability model | the Earth's night winds are about half the day's, recalled | GEN.1110 | no data |
 | BW6 | P | T6 | L0 | band_winds.TROPICS_LIMIT_DEG 60, the latitude where westerlies give way to polar winds | 50 to 70 | worlds with a Hadley cell | a general-circulation run with the Ferrel cell ending far from 60 degrees | the Ferrel cell's edge from the same scaling | the Earth's polar front is near 60 degrees, recalled | GEN.1110 | - |
-
-## 6.99 Stand-ins of the belt density factor
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| BD1 | P | T6 | L0 | belt_density.MAIN_BELT cumulative exponents 1.3 (0.4 to 5 km) and 3.0 (5 km up) | 2.3 and 4.0 (the cumulative reading) to 1.3 and 3.0 | main belts | section 6 of [R2108] defining the index for the cumulative distribution, or counts above 40 km that the law misses by more than a factor of three | the exponents read verbatim from section 6, and a law fitted to the debiased counts [R0484] | the abstract states D^-2.3 and D^-4 and the 530,000 above 1 km; a summary of the PDF says section 6 defines the differential index; the cumulative reading leaves 3 asteroids above 40 km | UX.241 | - |
-| BD2 | P | T6 | L0 | belt_density.KUIPER_HOT breaks 1, 121 and 2500 km, exponents 1.0 and 4.35 | faint exponent 0.75 to 1.0 | hot Kuiper belt objects | a debiased count of hot KBOs above 100 km off by more than a factor of three | the DEEP tapered fit parameters [R3241] | [R1439], alpha 0.87 bright, H_B 7.7 at albedo 0.10; faint side about 1.0 | UX.241 | - |
-| BD3 | P | T6 | L0 | belt_density.KUIPER_COLD breaks 1, 175 and 1500 km, exponents 1.0 and 7.5 | bright exponent 6 to 8 | cold classical belts | the same for the cold population | the DEEP tapered fit parameters | [R1439], alpha 1.5, H_B 6.9 at albedo 0.10 | UX.241 | - |
-| BD4 | P | T9 | L0 | belt_density.DEFAULT_DIAMETERS_KM 1, 10, 100 | any set | the information page | Boss asks for another set | the page's own choice | Boss, 4:37 PM EDT 2026-10-30 | UX.241 | - |
-| BD5 | P | T6 | L1 | belt_density.BULK_DENSITY_KG_M3 2500 | 1000 (ice) to 3500 | the diameter of a mass, where no density is given | a belt whose bodies have a measured mean density far from this | the density of the belt's own composition (the compaction taper) | belt-evolution.md section 11.1 | - | - |
 
 ## 6.76 Stand-ins of the super-puff radius
 
@@ -1315,7 +1304,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | MO1 | P | T2 | L1 | rogue_moons.SURVIVAL_AT_0P01_HILL 0.82 and SURVIVAL_AT_0P1_HILL 0.48: the shares of ejections whose closest approach stayed beyond 0.01 and 0.1 mutual Hill radii | 0.7 to 0.9 and 0.4 to 0.55 | a planet of 10 Jupiter masses ejecting one of 1 (m1 / M about 0.01, m1 / m2 = 10) round a solar-mass star; fewer survive for a lighter scatterer and a smaller mass ratio (their section 4.2.1 to 4.2.4) | the CCDF of a run with another mass ratio or inclination (their Figures 2 to 5 read for other values) | the ejection record's own closest approach (GEN.1119) | [R2031] conclusions, read; the median 0.089 mutual Hill radii agrees with the two points | - | - |
-| MO2 | P | T6 | L3 | rogue_moons.closest_approach_survival: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii | the slope of 0.34 per decade, the end points | between and just outside the two printed points | the CCDF of the paper's own simulations at 0.001 and 1 mutual Hill radius | the closest approach of the ejection record (GEN.1119), which needs no curve | the line through the two points; the ends are our extension | - | replace (GEN.1111) |
+| MO2 | P | T6 | L3 | rogue_moons.closest_approach_hill: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii | the slope of 0.34 per decade, the end points | between and just outside the two printed points | the CCDF of the paper's own simulations at 0.001 and 1 mutual Hill radius | the closest approach of the ejection record (GEN.1119), which needs no curve | the line through the two points; the ends are our extension | - | replace (GEN.1111) |
 | MO3 | P | T3 | L1 | rogue_moons.EJECTED_MOON_ECCENTRICITY 0.13: the eccentricity of a moon carried out with its planet | 0.05 to 0.3 | a lunar-mass moon at 30 Earth radii, a Jupiter as scatterer | a different moon mass or orbit whose ejected eccentricity is far from 0.13 in N-body runs | the moon's eccentricity from the ejection record (GEN.1119) | [R1032], median of the 123 bound ejections, read (one setup, 2,700 runs) | - | - |
 | MO4 | P | T6 | L1 | rogue_moons.circularisation_flux_w_m2: the eccentricity tide is held constant over the age, and the larger early term of the planet's spin being braked by the moon (their eq. 2) is not in it | e from 0.05 to 0.3 | the first hundreds of Myr after the ejection | a rogue younger than 300 Myr whose measured heat flux is far above the constant term | the spin-braking term from the spin-down work (GEN.842) | [R1032] eqs. 1 and 2: the spin term is 100 times the Earth's radiogenic heat for the best case and falls to it in 144 Myr (rocky) or 246 Myr (icy); the constant term is `tidal_heating`'s habit | - | - |
 

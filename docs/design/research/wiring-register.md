@@ -94,11 +94,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| module | planetgen.physics.belt_density | UX.263 | the objects per square AU above a diameter, the mass per square AU and the size-table bins of a belt; the belt page data builder reads it |
-| row | 6.99:BD1 | UX.263 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD2 | UX.263 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD3 | UX.263 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD4 | UX.263 | a constant of the belt density module, read when its wiring step lands |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
@@ -106,14 +101,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| function | planetgen.physics.rogue_drift.along_orbit_speed_pc_myr | GEN.1111 | the along-orbit speed of a drifting rogue, written for the virtual-donor placement; the donor save places a rogue with `rogue_landing.landing`, so GEN.1120 (the rogue top-up) reads it or deletes it |
-| function | planetgen.physics.rogue_drift.donor_offset_pc | GEN.1111 | the donor's place relative to a rogue found far from it (the virtual donor); nothing reads it once a rogue's donor is a stored system, and GEN.1120 (the rogue top-up) reads it or deletes it |
 | function | planetgen.physics.rogue_kick.ejects | GEN.1111 | whether a scattering ejects a body; the share that ends ejected comes from the architecture's loss record now, so GEN.1120 (the rogue top-up) reads it or deletes it |
-| function | planetgen.physics.rogue_kick.moon_survival_probability | GEN.1111 | the chance a moon leaves with its planet; the moon limit of the event decides it now, so GEN.1120 (the rogue top-up) reads it or deletes it |
-| function | planetgen.physics.rogue_kick.moon_survives | GEN.1111 | as `moon_survival_probability`: a draw of it; GEN.1120 (the rogue top-up) reads it or deletes it |
-| function | planetgen.physics.rogue_kick.relative_speed_km_s | GEN.1111 | the speed of a rogue relative to its donor; `rogue_landing` works the velocity from the kick directly, so GEN.1120 (the rogue top-up) reads it or deletes it |
-| function | planetgen.physics.rogue_moons.moon_survives | GEN.1111 | a draw of whether a moon stays with a rogue; the moon limit of the event decides it now, so GEN.1120 (the rogue top-up) reads it or deletes it |
-| function | planetgen.physics.rogue_moons.survival_probability | GEN.1111 | the chance a moon stays with a rogue; part 8 deletes it unless a later item reads it |
 | module | planetgen.physics.rogue_mass_function | GEN.1111 | the masses of the bodies a system ejects and their shares; the rogue rows draw their masses from it |
 | row | 6.110:RM1 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
 | row | 6.110:RM2 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |

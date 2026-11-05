@@ -2,6 +2,55 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3363] - 2026-11-05
+
+**Headline:** The program's log lines are now made and written by one module, with one formatter, and the shell's log helper takes its words from it.
+
+### Changed
+
+- `util/log.py` is the only place a log line is made and written: its `LineFormatter` replaces the five formatter classes that were spread over `util/log.py` and `util/logrecord.py` (the command line's plain text, the debug line, the file line, the JSON line and the display line), and `log.get(component)` replaces `logrecord.get_logger`. What the lines look like does not change.
+- `scripts/logrecord.sh` takes its severities, the ones that go to standard error, the stage word and the divider from the module (a block `scripts/build_log_vocabulary.py` writes), and a test fails when the block is out of date.
+- The test that watches for hand-made log lines also fails on a formatter class or a handler made outside `util/log.py`; the activity log's handlers and the queue run log's handler are named in it as stragglers for the next part.
+
+## [8.0.3362] - 2026-11-05
+
+**Headline:** The rogue-planet physics modules lose the functions and constants nothing read.
+
+### Changed
+- **GEN.1111 register leftovers wired or deleted.** The seven functions that the rogue physics wrote ahead of their callers and that no part of the plan reads (the donor offset and along-orbit speed of `rogue_drift`; the moon survival draw and probability and the relative speed of `rogue_kick`; the moon survival draw and probability of `rogue_moons`), the survival curve helper of `rogue_moons`, and the unread moon loss fraction (stand-in row RK5) are removed with their tests and register lines. `rogue_moons.closest_approach_hill` stays, it is read by the starless host. Generation output is unchanged.
+
+## [8.0.3361] - 2026-11-05
+
+**Headline:** A backed-up sector repair file can be put back and is checked against the database straight away.
+
+### Changed
+
+- `python3 -m planetgen.cli.backup restore --part parity ARCHIVE` (and any restore that names the `parity` part) puts the backed-up repair file back (DB.41). The copy is checked first (whole records only), the galaxy database is reached before anything is changed, and the restore is refused at once, before the safety archive is taken, while a save is writing parity. The file is written beside the live one, synced, and renamed over it with the live file locked.
+- The restored file is then checked against the database (`db/parity.reconcile`, the check of DB.8 with the stale-record rule of DB.9): a record that no longer matches the rows because the database changed after the backup is made again from the rows and is not read as damage; a record that fails its CRC is made again when the sector verifies; a member whose sector is gone is let go. The result says how many sectors the copy holds no record of (unprotected until their next save or `planetgen refresh-parity`) and lists the sectors that are damaged or cannot be trusted, for `planetgen repair-db`.
+- A backup part may now refuse a restore before anything is changed (`Part.check_restorable`), and `RestoreContext.database` names the galaxy database a part checks against; `ParityFile.locked(wait=False)` raises `ParityFileBusy` instead of waiting.
+
+generation-output: unchanged
+
+## [8.0.3360] - 2026-11-05
+
+**Headline:** The page of a planet or moon now shows what its ground is made of, and the lists show each body's spin, tilt and internal heat.
+
+### Changed
+
+- The Composition block of a planet or moon page lists the ground type that covers most of it, the grain of the ground, and the share of each of the 13 ground types (ocean, ice, ultramafic, anorthositic, basalt, granitoid, intermediate, clay, iron-oxidized ground, metal, carbon, evaporite salts, sulfur), each with its unit and a link to the method page that gives the source. The property sheet of the API (`GET /api/objects/<ref>/sheet`) carries the same rows.
+- The planet and moon lists have three more columns, rotation period, axial tilt and internal heat flow, and the star list has the rotation period; the object-list API (`GET /api/object-lists/<kind>`) returns the same values on each item.
+
+## [8.0.3359] - 2026-11-05
+
+**Headline:** The unused second size-law module for belt density is removed; the belt information page keeps its one set of size laws.
+
+### Changed
+- **The separate belt density module (GEN.1093) is deleted (UX.263).** The belt information page already works out the size table and the density factor from the belt ledger's laws, which hold the same hot Kuiper belt and main belt numbers from the same papers, so the second module was never read. Its stand-in rows (section 6.99, BD1 to BD5) and wiring-register lines go with it. The cold classical Kuiper belt numbers stay recorded in the small-body size-law notes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.263.
+
 ## [8.0.3358] - 2026-11-05
 
 **Headline:** The system-generation fuzz tests are split or sampled so none passes the 900 second limit with every flag forced on; no generated output changes.

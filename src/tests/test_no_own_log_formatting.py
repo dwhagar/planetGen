@@ -203,3 +203,85 @@ def test_every_allowed_exception_is_still_needed_and_has_a_reason():
 ])
 def test_the_scan_sees_what_it_should(source, kinds):
     assert [kind for _function, _line, kind in find_own_formatting(source)] == kinds
+
+
+# --- one logging module (OPS.104) -------------------------------------------------------------------------------------
+
+THE_MODULE = "util/log.py"
+"""str: The one module that holds a formatter class, a handler class or a `setFormatter` of the logging layer."""
+
+HANDLER_WORDS = ("Formatter", "Handler")
+
+HANDLER_CALLS = {"Formatter", "StreamHandler", "FileHandler", "WatchedFileHandler", "RotatingFileHandler", "TimedRotatingFileHandler",
+                 "SocketHandler", "SysLogHandler", "NullHandler", "MemoryHandler", "QueueHandler", "setFormatter"}
+"""set: Calls that make a formatter or a handler of the standard library, or give a handler its formatter."""
+
+OTHER_HANDLERS = {
+    ("admin/activity_log.py", "class _WatchedHandler"): "the activity log's own file handler; moves onto the module with the rest of the stragglers",
+    ("admin/activity_log.py", "class _RotatingHandler"): "the activity log's own file handler; moves onto the module with the rest of the stragglers",
+    ("admin/activity_log.py", "Formatter"): "the activity log's own line; moves onto the module with the rest of the stragglers",
+    ("admin/activity_log.py", "setFormatter"): "the activity log's own line; moves onto the module with the rest of the stragglers",
+    ("queue/runrecord.py", "class EventHandler"): "the queue run log's own handler; moves onto the module with the rest of the stragglers",
+}
+"""dict: `(file, what)` to the reason a formatter or handler outside the module is still allowed. Each is a straggler the second part of the
+logging module's work moves (OPS.105); the list only shrinks."""
+
+
+def find_handlers(source, filename="<source>"):
+    """`[(what, line)]`: every class that derives from a formatter or handler, and every call that makes one or sets one, in `source`."""
+    found = []
+    for node in ast.walk(ast.parse(source, filename)):
+        if isinstance(node, ast.ClassDef):
+            for base in node.bases:
+                name = _name(base) or ""
+                if name.endswith(HANDLER_WORDS) and (ast.unparse(base).startswith("logging") or isinstance(base, ast.Name)):
+                    found.append((f"class {node.name}", node.lineno))
+                    break
+        elif isinstance(node, ast.Call) and _name(node.func) in HANDLER_CALLS:
+            found.append((_name(node.func), node.lineno))
+    return sorted(set(found), key=lambda hit: hit[1])
+
+
+def _handler_hits():
+    hits = {}
+    for relative, path in _modules():
+        if relative == THE_MODULE:
+            continue
+        with open(path, encoding="utf-8") as handle:
+            for what, line in find_handlers(handle.read(), path):
+                hits.setdefault((relative, what), []).append(line)
+    return hits
+
+
+def test_no_formatter_class_or_handler_is_made_outside_the_logging_module():
+    stray = {key: lines for key, lines in _handler_hits().items() if key not in OTHER_HANDLERS}
+    assert not stray, (
+        "A formatter or handler is made outside planetgen/util/log.py. The one module writes every line (logging standard, rule 5): "
+        "add the form to log.LineFormatter or the handler to log.py, or name the straggler in OTHER_HANDLERS with its reason:\n  "
+        + "\n  ".join(f"{path}:{lines[0]} {what}" for (path, what), lines in sorted(stray.items())))
+
+
+def test_every_straggler_is_still_there_and_has_a_reason():
+    hits = _handler_hits()
+    for key, reason in OTHER_HANDLERS.items():
+        assert len(reason.split()) >= 8, f"{key} needs a real reason"
+        assert key in hits, f"{key} is gone; remove it from OTHER_HANDLERS"
+
+
+def test_the_logging_module_has_one_formatter_class_and_the_record_layer_has_none():
+    with open(os.path.join(PACKAGE, "util", "log.py"), encoding="utf-8") as handle:
+        formatters = [node.name for node in ast.walk(ast.parse(handle.read())) if isinstance(node, ast.ClassDef)
+                      and any((_name(base) or "").endswith("Formatter") for base in node.bases)]
+    assert formatters == ["LineFormatter"]
+    with open(os.path.join(PACKAGE, "util", "logrecord.py"), encoding="utf-8") as handle:
+        assert not find_handlers(handle.read())
+
+
+@pytest.mark.parametrize("source, found", [
+    ("import logging\nclass F(logging.Formatter):\n    pass\n", ["class F"]),
+    ("import logging\nh = logging.StreamHandler()\nh.setFormatter(x)\n", ["StreamHandler", "setFormatter"]),
+    ("import logging\nclass H(logging.handlers.WatchedFileHandler):\n    pass\n", ["class H"]),
+    ("import logging\nlogging.getLogger('x').addHandler(h)\n", []),
+])
+def test_the_scan_finds_a_formatter_a_handler_and_what_sets_one(source, found):
+    assert [what for what, _line in find_handlers(source)] == found
