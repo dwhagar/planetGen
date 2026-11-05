@@ -3514,7 +3514,8 @@ code {
 }
 
 .starmap-info[data-overlay] .map-info-head > .map-info-close,
-.starmap-info[data-overlay] .map-info-head > .map-info-bookmark {
+.starmap-info[data-overlay] .map-info-head > .map-info-bookmark,
+.starmap-info[data-overlay] .map-info-head > .map-info-waypoint {
   flex: none;
 }
 
