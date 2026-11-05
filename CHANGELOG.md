@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3344] - 2026-11-05
+
+**Headline:** Two bright-star tests no longer disturb each other when they run in one process.
+
+### Fixed
+- **A test left a hole in a cached star track (TEST.612).** `test_a_track_with_a_missing_sample_takes_the_array_path` gave the cached `post_main_sequence.timeline(3.0, 0.0)` a track with a missing sample, so `test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright` saw 190 Gy of bright pieces against 150 when it ran after it. The test now works on a copy of the timeline, and a new test runs the two in both orders in fresh processes.
+
 ## [8.0.3343] - 2026-11-05
 
 **Headline:** The field-cloud placement tests use a cloud that fills its sphere, so they no longer fail when a drawn nebula's lumpy shape leaves its centre empty.
