@@ -154,7 +154,8 @@ def tree_context():
     pages and habitability page its summary line links into."""
     return TreeContext(
         item_url=item_url, tree_url=lambda ref: page_url("object_tree", ref=ref), class_url=class_url,
-        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"), static_url=static_url)
+        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"), static_url=static_url,
+        belt_url=lambda ref: page_url("belt_info_page", belt_ref=ref))
 
 
 def tree_response(ref):
@@ -726,6 +727,7 @@ def render_item(kind, printed_id):
         admin=current_admin(),
         edit=admin,
         object_ref=ref,
+        belt_info_url=page_url("belt_info_page", belt_ref=ref) if kind == "belt" else None,
     )
 
 
