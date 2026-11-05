@@ -1383,6 +1383,20 @@ def test_the_nav_page_says_how_the_course_goes_round_what_it_would_pass_too_clos
     assert "on straight hops and" in page and "3.9" in page
 
 
+def test_the_nav_page_says_how_many_unresolved_stars_a_course_through_the_core_crosses(client, fake):   # NAV.75
+    fake.nav_galaxy_scope = True
+    adjusted = _adjusted(bent=False)
+    adjusted["passed_through"] = []
+    adjusted["passed_through_unresolved"] = {"crossings": 738.1, "length_pc": 202.0, "length_ly": 659.0,
+                                             "unresolved_systems": 1.5e7, "cells": 51}
+    fake.nav_adjusted = adjusted
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "crosses the dense core for" in page and "about 740 stars are too faint to be drawn" in page
+    assert "cannot go round the rest" in page
+    del adjusted["passed_through_unresolved"]
+    assert "dense core" not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+
+
 def test_the_nav_page_says_a_course_inside_a_system_is_aimed_where_the_body_will_be(client, fake):
     fake.nav_system_scope = True
     adjusted = _adjusted(bent=False)

@@ -14,7 +14,7 @@ For a straight line through a cloud of spheres of cross-section `pi R^2` at `n` 
 `n pi R^2 L`. Here `n` is the cell's unresolved systems over its volume, `R` the Hill radius at the point, and the line is summed
 a short step at a time so the cells and the radius change along it.
 
-Nothing is stored: the answer is a function of the segment and the galaxy's skeleton. A course that passes farther from the centre
+Nothing is stored: the answer is a function of the segment and the galaxy's skeleton. A course that passes farther from the center
 than the capped region reaches (`capped_reach_pc`) costs one distance and reads no cell; a course that does touch it reads the cells
 it passes through, each worked out once and kept (`UnresolvedField` keeps them for as long as the caller keeps it).
 """
@@ -84,7 +84,7 @@ def capped_reach_pc(skeleton):
     The distance from the center beyond which no cell of the galaxy expects more systems than the cell star ceiling, so a course that stays
     that far out has nothing unresolved to count. Found by looking at the density model along `REACH_DIRECTIONS` directions at radii a sector
     edge apart (then `REACH_RADIUS_STEP` apart), vectorised; the farthest place that expects `REACH_MARGIN` of the ceiling sets it. A very thin
-    feature between the directions could be missed (the core terms are round or discs, which the directions resolve). Zero when no cell is capped.
+    feature between the directions could be missed (the core terms are round or disks, which the directions resolve). Zero when no cell is capped.
     Worked out once per galaxy: it is the one costly part of a query, a few thousand points.
     """
     edge = skeleton.edge_pc
@@ -176,16 +176,30 @@ class UnresolvedField:
         with the length it spends in capped cells and the unresolved systems of those cells (`Crossings`). `step_pc` is the step it is summed
         in (a quarter of a sector edge when not given). The same segment in either direction gives the same answer.
         """
-        start, end = tuple(float(c) for c in start_pc), tuple(float(c) for c in end_pc)
+        return self.along([start_pc, end_pc], step_pc=step_pc)
+
+    def along(self, points_pc, step_pc=None):
+        """`crossings` for a polyline (a course bent round its obstacles): the segments added up, a cell it passes through twice counted once."""
+        total = inside = 0.0
+        seen = set()
+        for start, end in zip(points_pc, points_pc[1:]):
+            more, longer = self._walk(tuple(float(c) for c in start), tuple(float(c) for c in end), step_pc, seen)
+            total += more
+            inside += longer
+        if not seen:
+            return NONE_CROSSED
+        return Crossings(total, inside, sum(self.cell(a)[0] for a in seen), len(seen))
+
+    def _walk(self, start, end, step_pc, seen):
+        """`(crossings, length inside capped cells)` of one segment; the capped cells it passes through are added to `seen`."""
         clipped = _clip_to_ball(start, end, self.reach_pc) if self.reach_pc > 0.0 else None
         if clipped is None:
-            return NONE_CROSSED
+            return 0.0, 0.0
         t0, t1 = clipped
         edge = self.skeleton.edge_pc
         step = edge / STEPS_PER_EDGE if step_pc is None else float(step_pc)
         span = math.dist(start, end)
         total = inside = 0.0
-        seen = set()
         t = t0
         while t < t1 - 1e-12:
             here = tuple(s + (e - s) * t for s, e in zip(start, end))
@@ -202,4 +216,4 @@ class UnresolvedField:
             hill = self.hill_radius_pc(mean_kg, math.sqrt(sum(c * c for c in middle)))
             total += systems / volume * math.pi * hill * hill * ds
             inside += ds
-        return Crossings(total, inside, sum(self.cell(a)[0] for a in seen), len(seen))
+        return total, inside
