@@ -1087,7 +1087,7 @@ def generate_moons(planet, moon_count=None):
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         # GEN.714, GEN.1244: the origin comes first and the orbit follows from it; a moon of the disk forms inside the disk's zone (`moon_disk_zone`), the rest anywhere a moon can stay
-        origin = moon_composition.draw_origin(parent_kind).row.name
+        origin = moon_composition.draw_origin(parent_kind, moon_mass)
         span_low, span_high = total_orbit_distance, high_orbit
         if origin == "disk" and disk_zone is not None:
             span_low, span_high = max(total_orbit_distance, disk_zone[0]), min(high_orbit, disk_zone[1])
