@@ -17879,6 +17879,20 @@ clears each one.
   TODO thread.
   Prerequisites: none. Related: TEST.598.
 
+- [ ] **TEST.604 A trace gas with no thermo data (CH3Cl) crashes instead of being handled, red on clean main (bug)**
+  The Train Manager (as the lane reported, about 3:00 PM EST on
+  2026-11-05, train 11 gate) found a crash when a CH3Cl trace gas has no
+  thermo data; it fails on clean main too, so it is not a train 11
+  regression. Do: reproduce on current main, find the call that needs
+  thermo data for the gas, and fix it at the cause: either the gas gets
+  its thermo entry from a source in the registry (stand-in registered in
+  GEN.725 with tier and tweak level) or the code treats a gas without
+  thermo data by a stated rule (never a silent skip). Add a test that
+  fails without the fix. Done: the crashing test passes on current main.
+  Lock-free if output is unchanged; a generator epoch (lock item) if
+  values change. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.725.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
