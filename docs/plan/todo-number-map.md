@@ -2250,7 +2250,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.192 | See the objects whose positions changed in the last orbital update | none | open |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | none | open |
-| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
+| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | closed, measured and not built (reports/map195-finer-tile-overlap-2026-11-05.md) |
 | MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | done, PR #1331 |
 | MAP.197 | Remove the obsolete drill container code left by the map flip | none | done, PR #1455 |
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | done, PR #1470 |
