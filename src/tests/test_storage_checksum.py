@@ -274,6 +274,8 @@ WRITERS = {
     ("db/edits.py", "delete_sector_birth_contents"): GONE,
     ("db/edits.py", "empty_sector"): MARKS + " when the row stays, else the sector goes",
     ("db/fingerprint_tree.py", "store_leaf"): DERIVED,
+    ("db/fingerprint_tree.py", "store_residents"): DERIVED,
+    ("db/fingerprint_tree.py", "drop_content"): DERIVED,
     ("db/orbit_trees.py", "write_nodes"): MARKS,
     ("db/orbit_trees.py", "write_dark_members"): MARKS,
     ("db/storage_checksum.py", "seal"): DERIVED,
