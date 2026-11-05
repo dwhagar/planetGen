@@ -32,7 +32,7 @@ node cache keys each node by key and stamp.
 
 import math
 
-from planetgen.db import block_lights, nebula_blocks, query, region_stats
+from planetgen.db import block_lights, field_clouds, nebula_blocks, query, region_stats
 from planetgen.galaxy import spherical
 from planetgen.names import naming_key
 from planetgen.galaxy.nodecut import block_box
@@ -298,8 +298,10 @@ def galaxy_nodes(conn, node_keys):
                     conn, lo, hi, NODE_SECTOR_CLASS_SYSTEMS if block.m == 1 else NODE_CLASS_SYSTEMS)
                 if inside(_point_address(system, edge_pc))], [])
             interest_systems = _with_class_reasons(interest_systems, class_systems)
-        clouds = piece("clouds", lambda: query.galaxy_clouds_in_box(
-            conn, lo, hi, max_clouds=NODE_CLOUDS, margins=margins), [])
+        clouds = piece("clouds", lambda: sorted(
+            query.galaxy_clouds_in_box(conn, lo, hi, max_clouds=NODE_CLOUDS, margins=margins)
+            + field_clouds.field_clouds_in_box(conn, lo, hi, NODE_CLOUDS),    # MAP.178: the seed's clouds no sector has stored yet
+            key=lambda cloud: (-cloud["radius_pc"], cloud["type"], cloud.get("field", False), cloud["id"]))[:NODE_CLOUDS], [])
         node = {"aggregate": aggregate, "stars": stars, "generated": generated, "points": points, "clouds": clouds,
                 "interests": interest_systems}
         grouped = piece("nebula_regions", lambda: node_nebula_regions(conn, block), [])

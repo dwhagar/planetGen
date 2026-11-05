@@ -163,6 +163,13 @@ NEBULA_OVER_THE_FIELD = {
 block (all unfilled space: the generated sectors are in the core) is inside it."""
 NEBULAE = (NEBULA_CLOUD, NEBULA_OVER_THE_FIELD)
 
+FIELD_CLOUD = {
+    "type": "nebula", "id": "field-1.2.3.4", "name": None, "descriptor": "dark", "class": "N", "radius_pc": 9.0, "field": True,
+    "x": STAR_FIELD_CENTER_PC[0] + 60.0, "y": STAR_FIELD_CENTER_PC[1] + 40.0, "z": STAR_FIELD_CENTER_PC[2],
+}
+"""A cloud of the seed no sector has stored (MAP.178): a node of 81 sectors or fewer lists it among its clouds, with `field` set. It is not in
+`NEBULAE`, so the tests that count the stored nebulae do not find it."""
+
 
 def _nebula_group_field():
     """Sixty emission, reflection and diffuse nebulae spread over about 2 kpc round the star field: what the nodes list as
@@ -938,7 +945,7 @@ class FixtureApi:
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
-            for cloud in NEBULAE:
+            for cloud in NEBULAE + ((FIELD_CLOUD,) if block.m <= 81 else ()):
                 nearest = [min(max(cloud[axis], lo[i]), hi[i]) for i, axis in enumerate("xyz")]
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)

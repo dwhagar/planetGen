@@ -6307,7 +6307,7 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 10
+TILE_FORMAT = 11
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
@@ -6315,7 +6315,7 @@ a release that does not alter them leaves every stored node valid (PERF.133). 2:
 (MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
 (MAP.262), whose files are dropped with the generation. 5: a node of a charted region carries its `name` and `parent`
 (API.35), and so does the stage of a 9-block and each charted 9-block child of a stage. 6: a 9-block's node carries its
-`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system)."""
+`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system). 11: a node of 81 sectors or fewer lists the field clouds no sector has stored yet among its `clouds`, each with `field` true (MAP.178)."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists nodes for. More than
