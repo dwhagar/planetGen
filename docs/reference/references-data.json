@@ -171413,6 +171413,53 @@
    "volume": "214",
    "year": 2014
   },
+  "10.1088/0067-0049/216/1/15": {
+   "authors": [
+    [
+     "Li",
+     "G."
+    ],
+    [
+     "Gordon",
+     "I. E."
+    ],
+    [
+     "Rothman",
+     "L. S."
+    ],
+    [
+     "Tan",
+     "Y."
+    ],
+    [
+     "Hu",
+     "S. M."
+    ],
+    [
+     "Kassi",
+     "S."
+    ],
+    [
+     "Campargue",
+     "A."
+    ],
+    [
+     "Medvedev",
+     "E. S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0067-0049/216/1/15",
+   "editors": [],
+   "journal": "ApJS",
+   "page": "15",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "ROVIBRATIONAL LINE LISTS FOR NINE ISOTOPOLOGUES OF THE CO MOLECULE IN THE X 1 Σ + GROUND ELECTRONIC STATE",
+   "type": "journal-article",
+   "volume": "216",
+   "year": 2015
+  },
   "10.1088/0067-0049/216/2/29": {
    "arxiv": "1412.3451",
    "authors": [
@@ -187479,6 +187526,49 @@
    "volume": "437",
    "year": 2013
   },
+  "10.1093/mnras/stt2011": {
+   "authors": [
+    [
+     "Barber",
+     "R. J."
+    ],
+    [
+     "Strange",
+     "J. K."
+    ],
+    [
+     "Hill",
+     "C."
+    ],
+    [
+     "Polyansky",
+     "O. L."
+    ],
+    [
+     "Mellau",
+     "G. C."
+    ],
+    [
+     "Yurchenko",
+     "S. N."
+    ],
+    [
+     "Tennyson",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stt2011",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "1828",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "ExoMol line lists – III. An improved hot rotation-vibration line list for HCN and HNC",
+   "type": "journal-article",
+   "volume": "437",
+   "year": 2013
+  },
   "10.1093/mnras/stt2164": {
    "authors": [
     [
@@ -193555,6 +193645,37 @@
    "volume": "460",
    "year": 2016
   },
+  "10.1093/mnras/stw1133": {
+   "authors": [
+    [
+     "Azzam",
+     "A. A. A."
+    ],
+    [
+     "Tennyson",
+     "J."
+    ],
+    [
+     "Yurchenko",
+     "S. N."
+    ],
+    [
+     "Naumenko",
+     "O. V."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stw1133",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "4063",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "ExoMol molecular line lists – XVI. The rotation–vibration spectrum of hot H 2 S",
+   "type": "journal-article",
+   "volume": "460",
+   "year": 2016
+  },
   "10.1093/mnras/stw1205": {
    "authors": [
     [
@@ -195879,6 +196000,53 @@
    "publisher": "Oxford University Press (OUP)",
    "src": "crossref",
    "title": "Quantifying the (X/peanut)-shaped structure in edge-on disc galaxies: length, strength, and nested peanuts",
+   "type": "journal-article",
+   "volume": "459",
+   "year": 2016
+  },
+  "10.1093/mnras/stw849": {
+   "authors": [
+    [
+     "Underwood",
+     "D. S."
+    ],
+    [
+     "Tennyson",
+     "J."
+    ],
+    [
+     "Yurchenko",
+     "S. N."
+    ],
+    [
+     "Huang",
+     "X."
+    ],
+    [
+     "Schwenke",
+     "D. W."
+    ],
+    [
+     "Lee",
+     "T. J."
+    ],
+    [
+     "Clausen",
+     "S."
+    ],
+    [
+     "Fateev",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stw849",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3890",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "ExoMol molecular line lists – XIV. The rotation–vibration spectrum of hot SO2",
    "type": "journal-article",
    "volume": "459",
    "year": 2016
@@ -279386,7 +279554,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5123,
+ "id_next": 5127,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282067,6 +282235,7 @@
   "10.1088/0067-0049/212/1/6": "R3346",
   "10.1088/0067-0049/214/2/15": "R4167",
   "10.1088/0067-0049/214/2/25": "R1450",
+  "10.1088/0067-0049/216/1/15": "R5123",
   "10.1088/0067-0049/216/2/29": "R0496",
   "10.1088/0067-0049/218/1/7": "R0448",
   "10.1088/0067-0049/219/1/3": "R3212",
@@ -282448,6 +282617,7 @@
   "10.1093/mnras/stt1880": "R2269",
   "10.1093/mnras/stt1891": "R1106",
   "10.1093/mnras/stt1973": "R3224",
+  "10.1093/mnras/stt2011": "R5124",
   "10.1093/mnras/stt2164": "R0699",
   "10.1093/mnras/stt2220": "R3045",
   "10.1093/mnras/stt2288": "R0756",
@@ -282591,6 +282761,7 @@
   "10.1093/mnras/stw1052": "R0269",
   "10.1093/mnras/stw1082": "R1748",
   "10.1093/mnras/stw1099": "R4614",
+  "10.1093/mnras/stw1133": "R5125",
   "10.1093/mnras/stw1205": "R2113",
   "10.1093/mnras/stw121": "R1911",
   "10.1093/mnras/stw1213": "R0057",
@@ -282638,6 +282809,7 @@
   "10.1093/mnras/stw732": "R0883",
   "10.1093/mnras/stw733": "R4406",
   "10.1093/mnras/stw759": "R0799",
+  "10.1093/mnras/stw849": "R5126",
   "10.1093/mnras/stw971": "R4480",
   "10.1093/mnras/stx027": "R3740",
   "10.1093/mnras/stx076": "R0074",

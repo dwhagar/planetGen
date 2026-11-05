@@ -20,8 +20,8 @@ the file carries a digest of the dataset pieces it was fitted to (`data_digest`)
 
 ## The features
 
-Sixteen numbers describe an air (`greenhouse_table.FEATURE_NAMES`): the logarithms of the effective temperature, the gravity and the surface pressure; of the mole
-fractions of H2O, CO2, CH4, N2, O2, H2 and He (an absent gas sits at `FRACTION_FLOOR`); of the share of the other infrared-active gases (those the gas table flags
+Twenty-one numbers describe an air (`greenhouse_table.FEATURE_NAMES`): the logarithms of the effective temperature, the gravity and the surface pressure; of the mole
+fractions of H2O, CO2, CH4, NH3, SO2, H2S, CO, HCN (GEN.852), N2, O2, H2 and He (an absent gas sits at `FRACTION_FLOOR`); of the share of the other infrared-active gases (those the gas table flags
 `ir`) and of the weak ones (`weak`), which the model gives stand-in bands (IR1, IR2); of the mean molar mass; the heat-capacity ratio at `T_e`; and the share of the
 absorbed sunlight a haze takes aloft with the logarithm of the pressure it takes it at over the surface pressure (GEN.851 below). A feature outside the fitted range is
 held at its edge, as the k-tables hold their edge beyond 100 K and 100 bar; the table is fitted up to a surface pressure of 1e8 Pa (1000 bar), above which the model
@@ -34,7 +34,7 @@ does not converge, and the output is capped at 4000 K.
 - **The airs.** The greenhouse calls of the generator over seeds 1000 to 1800 (27,000 calls, 14,900 distinct airs, haze included since GEN.851), one perturbed copy of each (the
   pressure scaled by up to a factor of e, every gas by up to about 1.5, the gravity by 1.35, the flux by 2.2, and in one in five a haze share log-uniform from 0.003 to 0.9
   at a pressure between 3e-6 and a tenth of the surface's), and 8,000 designed airs of four families the generator seldom makes but the table must be right for
-  (terrestrial, carbon-dioxide, cold methane-nitrogen, hydrogen-helium).
+  (terrestrial, carbon-dioxide, cold methane-nitrogen, hydrogen-helium; since GEN.852 also cold ammonia, volcanic sulphur and reducing carbon-monoxide airs, and the hydrogen family with hydrogen sulphide and carbon monoxide).
 - **The solves.** The model on each air, in parallel and resumable; airs the model does not converge on are dropped.
 - **The loss.** The error of `ln(T_s / T_e)` weighted by `1 / (0.004 + 0.03 y)^2` (a few percent of the warming, with a floor), so a thin air is fitted as closely in
   absolute terms and a thick one in relative; L-BFGS-B on numpy; the validation is on fresh seeds the fit never saw.
@@ -51,13 +51,15 @@ The network has three hidden layers (128, 128, 64 tanh units) and was fitted in 
 
 | Surface temperature | Airs | Median error | 90th percentile | 99th percentile |
 |---|---|---|---|---|
-| 0 to 300 K | 1,000 | 0.2 K (0.20 %) | 5.6 K (3.3 %) | 20.5 K (9 %) |
-| 300 to 500 K | 213 | 7.1 K (2.1 %) | 35.4 K (9.1 %) | 78.2 K (17 %) |
-| 500 to 1000 K | 50 | 62.6 K (11 %) | 256 K (28 %) | 319 K (49 %) |
-| over 1000 K | 43 | 39.3 K (3.5 %) | 156 K (13 %) | 270 K (23 %) |
-| all | 1,306 | 0.54 K (0.41 %) | 16.8 K (5.3 %) | 170 K (18 %) |
+| 0 to 300 K | 635 | 0.6 K (0.37 %) | 7.0 K (3.0 %) | 17.4 K (7.0 %) |
+| 300 to 500 K | 274 | 6.5 K (1.9 %) | 32.3 K (8.2 %) | 117 K (28 %) |
+| 500 to 1000 K | 73 | 20.5 K (3.5 %) | 98 K (15 %) | 188 K (32 %) |
+| over 1000 K | 34 | 48.9 K (4.7 %) | 180 K (15 %) | 257 K (18 %) |
+| all | 1,016 | 1.7 K (0.74 %) | 22.1 K (5.6 %) | 162 K (18 %) |
 
-The table was fitted again for GEN.1030 and GEN.1032, on the model with the methane pseudo-adiabat, the ortho-para heat capacity of cold hydrogen (IR14, IR15) and the sourced far wings of carbon dioxide (GEN.1019): about 22,000 training airs. Against the model it stands, in a clear-sky carbon dioxide and nitrogen air at Venus's gravity, 2 to 8 percent warm from 5 to 92 bar (336 K against 329 K at 5 bar and 160 W/m2; 20 bar and 300 W/m2 is the worst, 509 K against 475 K), on the Earth-like airs between 225 and 255 W/m2 within about 3 K, and 1 to 2 percent warm on the three giants at their measured effective temperatures. It is blind to the methane share of a hydrogen air: the model cools by 7 percent as methane goes from 0.5 to 4 percent of a Uranus-like air (condensation shallows the lapse rate), and the table by under 1, so a drawn ice giant with a few percent of methane is read about 5 percent warm. A further round with 3,000 designed one-bar hydrogen and methane airs did not teach it, and it moved the Earth-like airs 5 to 8 K cold (a fit of this size is sensitive to its seed there), so it was not shipped. The 500 to 1000 K row is dominated by a few dense steam and carbon dioxide airs at 10 to 200 bar; the table is weakest there.
+(GEN.852: the figures above are for the table fitted again to eight tabled gases and the line lists of GEN.852; the validation is 1,016 airs from seeds 5000 to 5100 the fit never saw, a larger share of them with the sulphur, carbon-monoxide and ammonia airs the older table did not carry. The table fitted before it read 0.54 K, 16.8 K and 170 K on 1,306 airs of the model before the line lists changed; the two sets are not the same airs, and the old table on the 570 first airs of this set read 5.7 K median and 52 K at the 90th percentile, because the model moved under it.) The third fit round added 1,805 airs around the airs the checks use (the Earth grid of 225 to 255 W/m2 and 600 to 4,000 Pa of vapour, a carbon-dioxide sweep from 100 to 2,400 ppm, Mars, Venus, a 5 bar carbon-dioxide air, Titan clear and under haze, a cold nitrogen-methane air, hydrogen-helium, and Jupiter, Uranus and Neptune from 0.03 to 10 bar, each three times over), because the first six fits, which saw only the generator's airs and the designed families, each missed one of those checks by 5 to 40 percent. Against the model on the checks the file stands within 2 K on the Earth-like grid, 0.2 K on Titan, 14 K (2 percent) warm on Venus and within 5 K on the three giants. A carbon-dioxide doubling gives +0.70 to +0.99 K in the table and +0.86 K in the model.
+
+The table was fitted for GEN.1030 and GEN.1032, on the model with the methane pseudo-adiabat, the ortho-para heat capacity of cold hydrogen (IR14, IR15) and the sourced far wings of carbon dioxide (GEN.1019): about 22,000 training airs. Against the model it stands, in a clear-sky carbon dioxide and nitrogen air at Venus's gravity, 2 to 8 percent warm from 5 to 92 bar (336 K against 329 K at 5 bar and 160 W/m2; 20 bar and 300 W/m2 is the worst, 509 K against 475 K), on the Earth-like airs between 225 and 255 W/m2 within about 3 K, and 1 to 2 percent warm on the three giants at their measured effective temperatures. It is blind to the methane share of a hydrogen air: the model cools by 7 percent as methane goes from 0.5 to 4 percent of a Uranus-like air (condensation shallows the lapse rate), and the table by under 1, so a drawn ice giant with a few percent of methane is read about 5 percent warm. A further round with 3,000 designed one-bar hydrogen and methane airs did not teach it, and it moved the Earth-like airs 5 to 8 K cold (a fit of this size is sensitive to its seed there), so it was not shipped. The 500 to 1000 K row is dominated by a few dense steam and carbon dioxide airs at 10 to 200 bar; the table is weakest there.
 
 The loss weights (an error floor of 0.003 on `ln(T_s/T_e)` and a relative term of 0.025) make the fit follow the cool airs the habitability and the life read; the hot dense airs (over 500 K: runaway greenhouses and
 Venus-like airs) are the model's own weakest and the table's: a hot dense air is right to the first tens of kelvin, not to the degree. The weights are stated in `scripts/fit_greenhouse_table.py` (`NOISE_FLOOR`, `RELATIVE_ERROR`).
