@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3377] - 2026-11-05
+
+**Headline:** A charted region's point of interest on the Galaxy Map now shows the region's name, so it reads as a label that can be clicked to fly in.
+
+### Fixed
+- **Region points of interest were a bare symbol (MAP.369).** The point drawn for each charted region at the galactic view held only a
+  hexagon (and a count when regions were merged), with the name only in the tooltip, so Boss saw no region label. The point now shows
+  the region's name beside its symbol (the biggest region's name for a merged group, with the count as a badge), and points whose
+  names would run into each other merge sooner. A click still flies in and frames the region, or the group.
+
 ## [8.0.3376] - 2026-11-05
 
 **Headline:** A new docs test fails when an item's Version line in the TODO page disagrees with the version file its row sits in.
