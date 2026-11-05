@@ -14569,52 +14569,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
 
-- [ ] **GEN.1269 Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place)**
-  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
-  in /mnt/project-files/reports/): every kind of nebula can be derived
-  at read time with no new column, so the chain is lock-free unless Boss
-  answers question 2 with "store the progenitor mass". Defaults taken
-  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
-  gradient now as a registry stand-in; derive progenitors from the
-  object ID at read time; Magellanic gas drawn within the widest range
-  of the two methods; dust-destruction fractions as tweakable GEN.725
-  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
-  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
-  GEN.1268. Do: section 2 and 3 of the report: one function from the
-  stored class, the place's [Fe/H] and gas density and the host star to
-  H, He and Z mass fractions, the ionized, atomic and molecular split,
-  dust-to-gas and dust-to-metals, the grain mix, and 12+log abundances
-  of C, N, O, Ne, S, Ar and Fe, derived at read time with no stored
-  column. Done: fractions sum to one, a metal-poor place gives a
-  metal-poor nebula, every class of the table has a row, and the
-  stand-ins are in GEN.725 with tier and tweak level. Lock-free. Version
-  8.1. Owner: Sources 1.
-  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
-  composition for all nebulae, all supernova remnants and the field
-  clouds, because he wants as much as possible searchable, and the
-  stored values include the progenitor mass for planetary nebulae and
-  remnants. This replaces the report's default of deriving at read time
-  (question 2 of the report). The model parts keep their work (they
-  compute the values from the place, the class and the progenitor) but
-  the values are written at generation and backfill by GEN.1276 (nebulae
-  and remnants) and GEN.1277 (field clouds), which are lock items. The
-  lock-free statement above applies to this part's model code only.
-  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
-  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
-  the composition is stored for all nebulae, remnants and the field
-  clouds (stars stay derived); the gas gets its OWN metallicity gradient
-  as a separate GEN.725 stand-in (this replaces the default of reusing
-  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
-  range of the two methods; dust survival is sourced in section 11 (H II
-  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
-  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
-  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
-  nebulae get helium and nitrogen enrichment; each field cloud gets its
-  own varied composition keyed on its cell; rogue planets are left out;
-  the pages show everything. The report was written in the coordinator's
-  research thread, not by Sources 1.
-  Prerequisites: none. Related: GEN.1268.
-
 - [ ] **GEN.1271 Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A**
   Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
   in /mnt/project-files/reports/): every kind of nebula can be derived
@@ -14692,7 +14646,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   metal-poor. Done: a Cloud nebula is more metal-poor than one at the
   solar circle, and the range is a GEN.725 row. Lock-free. Version 8.1.
   Owner: with GEN.367's owner.
-  Prerequisites: GEN.1269, GEN.367. Related: GEN.1269, GEN.367.
+  Prerequisites: GEN.367. Related: GEN.1269, GEN.367.
 
 - [ ] **GEN.1275 The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug)**
   Bug 1 (as the lane reported, 8:50 PM EST on 2026-11-04), found while
@@ -14757,7 +14711,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1. Owner: the lane that takes the lock build (Core 3 holds
   GEN.1261 for train 12; decide after the models land). Filed by the
   TODO thread.
-  Prerequisites: GEN.1269, GEN.1271. Related: GEN.1268,
+  Prerequisites: GEN.1271. Related: GEN.1268,
   GEN.1267, GEN.725.
   BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
   GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
@@ -16386,7 +16340,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   settings pages and the orbit infobox eccentricity (UX.210 says what
   the number is). What is left is only the in-site help pages and
   glossary, which wait for DOC.15; nothing to build until then.
-  Prerequisites: none. Related: GEN.771, DOC.15.
+  Core 5 (as the lane reported) (9:41 PM EST on 2026-11-04): the API,
+  CLI, stats and settings parts are merged; the only part left is the
+  units entries of the DOC.15 glossary and units help page, which does
+  not exist yet. Waits behind DOC.15; no build lane is needed until
+  then.
+  Prerequisites: none. Related: GEN.771, DOC.15, .
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -17700,32 +17659,6 @@ clears each one.
   is on this item and the browser phase shows no multi-minute stall in a
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172.
-
-- [ ] **TEST.234 test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug)**
-  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
-  GEN.321's third gate, loaded browser phase), filed by the TODO thread.
-  `src/tests/test_web_settings_browser.py::test_the_review_and_error_pages_are_accessible[admin]`
-  failed `_overflow` (scrollWidth 606 against a 390 px viewport, the
-  widest element `sl-dropdown.site-gear`) once; the same file's other
-  roles and a rerun passed (Core 3 had not rerun it alone at the time of
-  the report). The overflow is read straight after
-  `wait_for_selector("table.settings-diff")`, with no wait for the
-  Shoelace components to be defined; a `sl-dropdown` that is not
-  upgraded yet lays its slotted content out inline, which is as wide as
-  a menu (inferred from the element named, not reproduced). Fails on
-  main: not run on main. Frequency: once. Reproducer: not known; run the
-  test under load (`stress` on the box) or add a `page.route` that
-  delays the Shoelace script by 2 s. Do: wait for
-  `customElements.whenDefined('sl-dropdown')` (or the page's own ready
-  flag) before `_overflow`, in this test and in the shared `_page`
-  helper if other tests read layout before the components load; if the
-  width still shows with the components defined, the gear dropdown is a
-  real overflow on the review page at 390 px and the CSS is the fix.
-  Done: the cause is on this item and the test passes 30 of 30 runs with
-  the Shoelace script delayed by 2 s. Owner: Core 3 (found it;
-  proposed), or Core 5 (owns the TEST/DOC small items) if Core 3 is
-  busy.
-  Prerequisites: none. Related: TEST.126.
 
 - [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
   Found by Core 5 (2026-10-17, relayed by the coordinator at 10:46 PM
