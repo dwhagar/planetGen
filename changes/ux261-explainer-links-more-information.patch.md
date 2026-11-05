@@ -2,5 +2,6 @@
 
 ### Changed
 - **Wording (UX.261).** The link under the habitability section says "More information" in place of "What the colors and symbols mean", and the hidden labels of the "?" marks in the life readings table say "More information about how much", "about trend", "about security", and "about the kinds of life". The line under the life readings reads "More information: stages and animal grades, suitability."
+- **The source link too.** The quiet "Where this comes from" link beside a value, a table, or the life air chart says "More information", and so does the heading of the life classes help section. The heading "Where the radiation comes from" on the habitability help page is now "Radiation", a plain noun, because a heading that only said "More information" would tell a screen reader nothing.
 - **Repeats removed.** The life glance no longer ends with "What these words mean" (its class names already link to their help pages), the habitability group of the facts list drops its second "colors and symbols" link when the habitability section is on the page, and the "the life classes" link of the life help line is gone (the class names are links).
 - **House style.** `docs/design/interface/text-style.md` has the rule: an explainer link says "More information" and is never repeated on a page.
