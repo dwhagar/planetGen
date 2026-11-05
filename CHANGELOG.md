@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3225] - 2026-11-05
+
+**Headline:** The sky of a system can now size, brighten and dim its nebulae and supernova remnants: the data for their sprites is worked out from what each stores.
+
+### Changed
+- **VIEW.28: sprite data for nebulae and remnants.** New `physics/nebula_sprites.py` works, on arrays and from the retarded geometry of VIEW.21, the angular radius of a nebula or remnant (the silhouette of its ball; a ball that holds the observer covers the sky), the extinction it puts in front of what lies behind it (its stored extinction through the middle, a chord's share along other lines of sight, half for an observer inside), its mean V surface brightness and total magnitude, whether it is bright enough to see (under 23 magnitudes per square arcsecond) and whether a remnant's explosion has been seen yet. Ionised gas (H II regions, planetary nebulae, Wolf-Rayet rings) is worked out from its hydrogen-alpha emission measure; reflection nebulae from a central star's scattered light; remnants from the Sedov-Taylor shell; dark and diffuse clouds and plerions have no light of their own. Seven constants are registered stand-ins, none looked up (GEN.725, section 6.173, rows NS1 to NS7). Nothing generated or stored changes. The module is read by the sky route (VIEW.31) once it exists.
+
 ## [8.0.3224] - 2026-11-05
 
 **Headline:** The generator can now work out how bright any star would look from another system, with the dust of the galaxy in the way.
