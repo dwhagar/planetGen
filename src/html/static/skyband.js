@@ -105,6 +105,17 @@ export function halfFloatData(THREE, image) {
   return out;
 }
 
+// The image the server sends (`rgb16f`: little-endian half floats, red green blue a texel, `width` x `height` texels, VIEW.13) from its bytes
+// (an ArrayBuffer or a typed array), as `{ width, height, data }`. Throws for bytes of the wrong length.
+export function imageFromHalfFloats(THREE, bytes, width, height) {
+  const buffer = bytes instanceof ArrayBuffer ? bytes : bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  if (buffer.byteLength !== width * height * 3 * 2) throw new Error("the glow image is not " + width + " x " + height + " texels");
+  const view = new DataView(buffer);
+  const data = new Float32Array(width * height * 3);
+  for (let i = 0; i < data.length; i++) data[i] = THREE.DataUtils.fromHalfFloat(view.getUint16(2 * i, true));
+  return { width, height, data };
+}
+
 export const VERTEX_SHADER = [
   "varying vec3 vDirection;",
   "void main() {",

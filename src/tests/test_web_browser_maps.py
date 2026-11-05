@@ -757,6 +757,36 @@ def test_system_map_diagram_draws_each_star_beyond_the_pair_with_its_planets(pag
         assert _active_scene(page) == "system"
 
 
+def test_system_page_3d_view_offers_the_sky_switch_and_the_status_line(page, base_url, site_app):
+    """VIEW.35: the 3D view fetches the sky its system sees and says what it drew; the switch under the view takes the sky off, remembers that, and puts it
+    back. A system with no place in the galaxy has no sky and keeps the plain background (the fixture's systems may or may not have one)."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'loading'; }", timeout=60000)
+    first = page.locator("#sysview3d").get_attribute("data-sky-state")
+    assert first in ("ready", "filling", "unavailable"), first
+    assert page.locator("#sysview3d-sky-note").inner_text().strip()
+    drawn = first in ("ready", "filling")
+    assert (page.locator("#sysview3d-canvas").get_attribute("data-sky") == "on") is drawn
+    assert page.locator("#sysview3d-sky").is_enabled()
+
+    page.locator("#sysview3d-sky").uncheck()
+    page.wait_for_function("() => document.getElementById('sysview3d').dataset.skyState === 'off'")
+    assert page.locator("#sysview3d-canvas").get_attribute("data-sky") is None
+    assert page.evaluate("window.localStorage.getItem('planetgen.systemSky')") == "off"
+    page.reload(wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => document.getElementById('sysview3d').dataset.skyState === 'off'")
+    assert not page.locator("#sysview3d-sky").is_checked()
+
+    page.locator("#sysview3d-sky").check()
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'off' && s !== 'loading'; }", timeout=60000)
+    assert page.evaluate("window.localStorage.getItem('planetgen.systemSky')") == "on"
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')

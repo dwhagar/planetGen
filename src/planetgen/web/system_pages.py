@@ -363,6 +363,7 @@ def system(system_id):
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
                                            facilities=facilities,
                                            scene_url=page_url("system_scene", system_id=system_id),
+                                           sky_url=page_url("system_sky", system_id=system_id),
                                            nav=body_nav(request.args, course=detail["sector_id"] is not None))
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
