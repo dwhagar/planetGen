@@ -184,6 +184,11 @@ export function mapControlHandlers(ctx) {
       button.setAttribute("aria-pressed", String(on));
       ctx.setPlaneView(on);
     },
+    "plane-stems": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneStems(on);
+    },
     "plane-midplane": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
@@ -734,10 +739,15 @@ function starFacts(star) {
   };
 }
 
+// MAP.373: the plane view's line for a star's spherical position, set once the map is built (null while the plane view is off).
+var describePosition = null;
+
 function showStarInfo(star, nearby) {
   var spec = Object.assign(starFacts(star), {
     more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   });
+  var spherical = describePosition ? describePosition([star.x, star.y, star.z]) : null;
+  if (spherical) spec.more.push(["Position (radius, longitude, latitude)", spherical]);
   if (star.system_id != null && sceneData.systemUrl) {
     var systemPage = String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id));
     spec.view = { href: systemPage, label: "View system →" };
@@ -5105,6 +5115,11 @@ function initGalaxyMap3d(canvasEl, data) {
   planeView = createPlaneView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accentColor: accentColor,
     focus: function () { return [target.x, target.y, target.z]; },
+    // MAP.373: the context of the coordinate labels: the center of the sector opened, else the galactic center.
+    context: function () {
+      var center = stageView.sectorCenter();
+      return center ? { kind: "sector", origin: center } : { kind: "galaxy", origin: [0, 0, 0] };
+    },
     span: function () { return 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2); },
     // MAP.372: what the stems may start from: the names the label engine has placed (not a region's, a sector's or a nebula's, which are
     // places, not points) and the stars the map draws, brightest last.
@@ -5150,6 +5165,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
+  describePosition = function (at) { return planeView.describe(at); };
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
     // Several buttons: let them wrap rather than run off the side panel.
@@ -5164,12 +5180,27 @@ function initGalaxyMap3d(canvasEl, data) {
       setPlaneView: function (on) {
         planeView.set(on);
         stageView.planeTilt(on);
-        var midplane = document.querySelector("[data-action='plane-midplane']");
-        if (midplane) midplane.disabled = !on;
+        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
+          var control = document.querySelector(selector);
+          if (control) control.disabled = !on;
+        });
       },
       setPlaneMidplane: function (on) { planeView.setMidplane(on); },
+      setPlaneStems: function (on) { planeView.setStems(on); },
       setSideStrip: setSideStrip,
     }));
+  }
+  // MAP.373: the stems' height stretch, 1 (true) to 10 times.
+  var stretchInput = document.getElementById("galaxymap3d-plane-stretch");
+  if (stretchInput) {
+    stretchInput.addEventListener("input", function () {
+      planeView.setStretch(stretchInput.value);
+      var stretch = planeView.stretch();
+      var out = document.getElementById("galaxymap3d-plane-stretch-out");
+      var text = stretch > 1 ? stretch + " times" : "true";
+      if (out) out.textContent = text;
+      stretchInput.setAttribute("aria-valuetext", stretch > 1 ? stretch + " times true height" : "true height");
+    });
   }
   var menuEl = document.getElementById("galaxymap3d-menu");
   if (menuEl) {

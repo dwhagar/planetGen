@@ -825,6 +825,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Tilt the map and lay a grid on a plane through a 60 degree wedge of the galaxy, with rings at round distances (around the selection when there is one)">Plane view</button>
     <button type="button" class="starmap-btn" data-action="plane-midplane" data-icon="plane-midplane" aria-pressed="false" disabled
             title="Lay the plane view's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Plane at galactic midplane</button>
+    <button type="button" class="starmap-btn" data-action="plane-stems" data-icon="plane-stems" aria-pressed="true" disabled
+            title="Show or hide the stems from stars down to the plane view's grid plane">Stems</button>
+    <label class="galaxy-menu-stretch" title="Draw heights above and below the plane this many times taller than true; the grid says so">Stem height
+      <input type="range" id="galaxymap3d-plane-stretch" min="1" max="10" step="1" value="1" disabled aria-valuetext="true height">
+      <output id="galaxymap3d-plane-stretch-out" for="galaxymap3d-plane-stretch">true</output></label>
     <button type="button" class="starmap-btn" data-action="side-strip" data-icon="side-strip" aria-pressed="false"
             title="Show the stars of a 60 degree wedge edge-on: distance from the galactic centre across, height up and down. Picking a star in either view selects it in both">Side strip</button>
     <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
