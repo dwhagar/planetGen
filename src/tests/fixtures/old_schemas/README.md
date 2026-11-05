@@ -94,3 +94,4 @@ Commit each file came from:
 - v208: train 10 (GEN.1212 no description, before GEN.1070 belt members; train 10 schema at 5349a86ef)
 - v209: train 10 (GEN.1070 belt members, before GEN.1232a belt history text; train 10 schema at f91e65b29)
 - v210: train 10 (GEN.1232a belt history text, before DOC.103 American spelling; the train schema before the sweep)
+- v211: train 11 (GEN.1084 irregular moons, before them; the schema of main after DOC.103)

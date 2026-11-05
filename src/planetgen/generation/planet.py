@@ -494,6 +494,7 @@ class Planet(PlanetaryObject):
         recursively."""
         data["habitable_zone"] = list(self.habitable_zone)
         data["moons"] = [moon.to_dict() for moon in self.moons]
+        data["irregulars"] = self.irregulars.to_dict()
 
     @classmethod
     def from_dict(cls, data, star, system_config):
@@ -519,6 +520,7 @@ class Planet(PlanetaryObject):
     def _decode(self, data):
         # a rogue planet (GEN.1111) has no host and so no habitable zone of one's own
         self.habitable_zone = tuple(data["habitable_zone"]) if data.get("habitable_zone") is not None else None
+        self.irregulars = irregular_moons.IrregularSet.from_dict(data.get("irregulars"))
 
     @property
     def life_class_id(self):

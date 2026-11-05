@@ -36157,27 +36157,27 @@
           "fields": [
             [
               "What it is",
-              "irregular_moons.source_of: the reservoir every window draws from is the primordial mass of the system's outer-disc belts (their extent is the encounter and exchange windows' source annulus); the gas window draws from the planet's feeding zone but takes the same mass for its scale"
+              "irregular_moons.source_of: the reservoir every window draws from is the primordial mass of the system's outer-disk belts (their extent is the encounter and exchange windows' source annulus); the gas window draws from the planet's feeding zone but takes the same mass for its scale"
             ],
             [
               "The range it moves in",
-              "the outer disc's primordial mass to a few times it"
+              "the outer disk's primordial mass to a few times it"
             ],
             [
               "Where it holds",
-              "every planet of a star with an outer disc"
+              "every planet of a star with an outer disk"
             ],
             [
               "What would show it wrong",
-              "a system with a heavy inner belt and no outer disc whose giants hold many small irregulars"
+              "a system with a heavy inner belt and no outer disk whose giants hold many small irregulars"
             ],
             [
               "What replaces it",
-              "the planetesimal mass in the feeding zone at the gas window from the disc model"
+              "the planetesimal mass in the feeding zone at the gas window from the disk model"
             ],
             [
               "Evidence",
-              "design section 4.1; a system with no outer disc has no irregular moons at all"
+              "design section 4.1; a system with no outer disk has no irregular moons at all"
             ]
           ],
           "id": "IW1",
@@ -36188,7 +36188,7 @@
           "tier_code": "T6",
           "tweak": "L1",
           "unread": null,
-          "what": "irregular_moons.source_of: the reservoir every window draws from is the primordial mass of the system's outer-disc belts (their extent is the encounter and exchange windows' source annulus); the gas window draws from the planet's feeding zone but takes the same mass for its scale"
+          "what": "irregular_moons.source_of: the reservoir every window draws from is the primordial mass of the system's outer-disk belts (their extent is the encounter and exchange windows' source annulus); the gas window draws from the planet's feeding zone but takes the same mass for its scale"
         },
         {
           "burn_down": null,

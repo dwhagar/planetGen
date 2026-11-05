@@ -1484,6 +1484,35 @@ Added in v203 (GEN.1209). The life classes that live on a planet or moon: one ro
 | `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr` | DOUBLE | nullable | The five ages of the class's schedule, Gyr; `NULL` for a step never reached. |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | The four kind scores, 0 to 9, that this class gives. |
 
+### `irregular_moons`
+
+Added in v212 (GEN.1084). The small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`), one row each: every body above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass is held (at most 100). Smaller bodies are a total on `irregular_sets`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` | BIGINT UNSIGNED | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL | UNIQUE with `moon_rank`. |
+| `moon_rank` | INT | NOT NULL | The body's number for its planet (0 is the heaviest when it was built); it stays when a smaller body is lost. |
+| `capture_window` | VARCHAR(10) | NOT NULL | `gas`, `encounter` or `exchange`. |
+| `mass_kg`, `radius_km`, `density_g_cm3` | DOUBLE | NOT NULL | Mass, and the radius and bulk density its composition gives. |
+| `taxon` | VARCHAR(4) | NOT NULL | The class letter of the body at its source. |
+| `source_distance_km`, `ice_loss` | DOUBLE | NOT NULL | Where in the disk it came from, and the share of its water ice that capture removed. |
+| `rock_fraction`, `metal_fraction`, `water_fraction`, `ice_fraction` | DOUBLE | NOT NULL | The shares of its mass. |
+| `distance_km`, `eccentricity`, `inclination_deg`, `ascending_node_deg`, `arg_periapsis_deg`, `mean_anomaly_deg` | DOUBLE | NOT NULL | Its orbit about the planet. |
+
+### `irregular_sets`
+
+Added in v212 (GEN.1084). One row for a planet that has irregular moons (none for one without), with what the stored bodies leave out. It is a table and not columns on `planets` because `planets` has a FULLTEXT key and MySQL rebuilds the whole table for a new column.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` | BIGINT UNSIGNED | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL, UNIQUE | |
+| `remainder_kg` | DOUBLE | NOT NULL | The expected mass of the bodies that are not stored. |
+| `above_floor` | INT | NOT NULL | How many bodies were above the storage floor (1e16 kg). |
+| `lost` | INT | NOT NULL | Stored bodies lost (no orbit that stays, or the zone shrank when the planet moved). |
+| `temporary` | TINYINT(1) | NOT NULL | 1 when the zone can hold temporary captures. |
+
 ### `asteroid_belts`
 
 One row per asteroid belt. Belts have no properties-dict data table
