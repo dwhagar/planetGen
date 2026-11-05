@@ -125,3 +125,49 @@ def test_a_long_route_wraps_on_the_narrow_drawing_and_runs_on_the_wide_one():
     wide = render_drawing(route, _names(path), _urls(path), 880, "wide")
     height = lambda svg: float(re.search(r'viewBox="0 0 \d+ ([\d.]+)"', svg).group(1))
     assert height(narrow) > 2 * height(wide) >= navribbon.ROW_HEIGHT
+
+
+# --- NAV.68: the neighbours ---------------------------------------------------------------------------------------------
+
+def _edge(a, b, length, on_route=False):
+    return {"from": a, "to": b, "distance_ly": length, "on_route": on_route}
+
+
+def _with_graph(route, edges, more=None):
+    return {**route, "graph": {"nodes": [], "edges": edges, "more": more or {}}}
+
+
+def test_a_route_without_a_graph_draws_no_neighbours_and_says_nothing_of_them():
+    html = render_course_diagram(_route(PATH, [4.2, 30.0, 650.0]), _names(PATH), _urls(PATH))
+    assert "nav-diagram-neighbour" not in html and "neighbour" not in html and "nav-diagram-more" not in html
+
+
+def test_stubs_a_link_and_an_and_n_more_are_drawn_faintly_with_their_words():
+    route = _route(PATH, [4.2, 30.0, 650.0])
+    edges = [_edge(11, 12, 4.2, True), _edge(12, 13, 30.0, True), _edge(13, 14, 650.0, True),
+             _edge(11, 900, 2.0), _edge(11, 901, 3.0), _edge(13, 902, 5.0), _edge(11, 13, 34.0)]
+    html = render_course_diagram(_with_graph(route, edges, {13: 6}), _names(PATH), _urls(PATH))
+    assert html.count('class="nav-diagram-neighbour nav-diagram-stub"') == 3 * len(WIDTHS) + 1       # and the legend's
+    # On the narrow drawing the two stops are on different rows, so the arc is counted in a note, not drawn.
+    assert html.count('class="nav-diagram-neighbour nav-diagram-link"') == 2 and "1 neighbour link between stops on different rows is not drawn" in html
+    assert html.count("and 6 more") >= len(WIDTHS)
+    assert "6 more neighbours of Star 13 are not drawn" in html
+    assert "A system 6.13 pc (20 ly) from Star 11: a neighbour, not a travel lane" in html or "from Star 11: a neighbour, not a travel lane" in html
+    assert "Star 11 and Star 13 are neighbours" in html
+    assert "a link is a neighbour relation, not a travel lane" in html and "Neighbour (not a travel lane)" in html
+
+
+def test_the_route_s_own_hops_are_drawn_over_the_neighbours():
+    route = _route(PATH, [4.2, 30.0, 650.0])
+    edges = [_edge(11, 12, 4.2, True), _edge(11, 900, 2.0)]
+    html = render_drawing(_with_graph(route, edges), _names(PATH), _urls(PATH), 520, "middle")
+    assert html.index("nav-diagram-stub") < html.index('class="nav-diagram-hop"')
+    assert html.count('class="nav-diagram-hop"') == 3
+
+
+def test_links_between_stops_on_different_rows_are_counted_in_a_note_and_not_drawn():
+    path = list(range(100, 112))
+    route = _with_graph(_route(path, [40.0] * 11), [_edge(100, 111, 400.0), _edge(101, 109, 300.0)])
+    html = render_course_diagram(route, _names(path), _urls(path))
+    assert "neighbour links between stops on different rows are not drawn" in html
+    assert 'class="nav-diagram-neighbour nav-diagram-link"' not in html.split("nav-diagram-wide-box")[1].split("</svg>")[0]

@@ -2122,6 +2122,39 @@ a:focus-visible .navmap-point circle {
   font-size: 12px;
 }
 
+.nav-diagram-neighbour {
+  stroke: var(--text-muted);
+  stroke-width: 1.2;
+  fill: none;
+  opacity: 0.55;
+}
+
+.nav-diagram-stub circle {
+  fill: var(--text-muted);
+  stroke: none;
+}
+
+.nav-diagram-link path {
+  stroke-dasharray: 2 3;
+}
+
+.nav-diagram-neighbour-label,
+.nav-diagram-more {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* A name over a faint stub keeps a halo of the page's color, so the stub never cuts through its letters. */
+.nav-diagram-name,
+.nav-diagram-label,
+.nav-diagram-course {
+  paint-order: stroke;
+  stroke: var(--bg-elevated);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
 .nav-diagram-label-unknown {
   fill: var(--error);
   font-weight: 700;
