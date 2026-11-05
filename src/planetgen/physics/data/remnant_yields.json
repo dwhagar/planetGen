@@ -126,18 +126,29 @@
    "F": "alpha_light"
   },
   "processed_share_cap": 0.9,
-  "helium_core_coefficient": 0.08,
-  "helium_core_exponent": 1.4,
-  "wind_coefficient": 0.02,
-  "wind_reference_mass_sol": 10.0,
-  "wind_exponent": 1.5,
-  "stripped_above_mass_sol": 30.0,
+  "stripped_above_mass_sol": 40.0,
   "binary_stripped_share": 0.33,
   "type_ia_progenitor_range_sol": [
    3.0,
    8.0
   ],
-  "least_ejecta_share": 0.02,
-  "helium_core_cap_sol": 15.0
+  "least_ejecta_share": 0.02
+ },
+ "presupernova_table": {
+  "source": "[R4251: Table 2] (solar metallicity, their mass-loss prescription): initial mass, final presupernova mass, helium core mass (X(H) <= 0.2); at and above 60 solar masses every model is a bare helium or carbon-oxygen star, so the helium core is the final mass",
+  "columns": ["initial_mass_sol", "final_mass_sol", "helium_core_mass_sol"],
+  "rows": [
+   [10.0, 9.675, 2.476],
+   [12.0, 10.902, 3.116],
+   [15.0, 12.603, 4.352],
+   [20.0, 15.848, 6.207],
+   [25.0, 15.849, 8.251],
+   [30.0, 13.805, 10.359],
+   [60.0, 7.289, 7.289],
+   [70.0, 6.408, 6.408],
+   [80.0, 6.368, 6.368],
+   [100.0, 6.036, 6.036],
+   [120.0, 6.160, 6.160]
+  ]
  }
 }

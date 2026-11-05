@@ -16,7 +16,7 @@ The steps (report section 2):
    the component's own [Fe/H] plus a young-gas offset drawn inside the widest range of the two published estimates (`SATELLITE_GAS_OFFSETS`).
 2. **The total composition** (gas and dust together): the birth composition of a thin-disc star of that metallicity
    (`stellar_abundances.composition`), so a nebula and a star born in it share one chemistry.
-3. **The dust** (`dust_to_gas_law`): the broken power law of [R5098] of the oxygen abundance, times the class's survival
+3. **The dust** (`dust_to_gas_law`): the broken power law of [R5102] of the oxygen abundance, times the class's survival
    (section 11 of the report: the dust that lives through the ionizing radiation, the shock or the winds of the class).
 4. **The grains**: the dust is shared among grain kinds (`GRAIN_MIXES`) of fixed element content (`GRAINS`); no element goes into dust past
    its cap (`MAX_IN_DUST`), so the dust of a metal-poor or a heavily depleted nebula is whatever its metals allow.
@@ -44,7 +44,7 @@ from planetgen.util import draw
 
 GAS_GRADIENT_DEX_PER_KPC = 0.034
 """float: The fall of the Milky Way gas's metallicity with galactic radius, dex per kpc: the oxygen gradient of 35 H II regions from 5 to 17 kpc
-[R5103] (abstract read by the research thread). Boss's answer: the gas has its own gradient, 0.03 to 0.04. [Stand-in NBC1, tier T2, tweak L0.]"""
+[R5107] (abstract read by the research thread). Boss's answer: the gas has its own gradient, 0.03 to 0.04. [Stand-in NBC1, tier T2, tweak L0.]"""
 
 GAS_SCATTER_DEX = 0.14
 """float: The scatter of the gas around its gradient, dex (the same 35 H II regions). [Stand-in NBC2, tier T2, tweak L0.]"""
@@ -52,12 +52,12 @@ GAS_SCATTER_DEX = 0.14
 SATELLITE_GAS_OFFSETS = ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26))
 """tuple: `([Fe/H] of a satellite, lowest, highest offset)` of the gas's [O/H] above that [Fe/H], dex, from the smaller to the larger [Fe/H]. The
 anchors are the two Clouds: the LMC (stored stand-in [Fe/H] about -0.4) has gas at [O/H] -0.34 to -0.14, the SMC (about -0.9) -0.66 to -0.28,
-the lower value from collisional lines and the higher from recombination lines [R5099: Tables 5 to 7 and 10]
+the lower value from collisional lines and the higher from recombination lines [R5103: Tables 5 to 7 and 10]
 (read by the research thread). Boss: draw inside the widest range. Between the anchors the offsets are interpolated, outside them held.
 [Stand-in NBC3, tier T2, tweak L2: tuned to the two published ranges.]"""
 
 SOLAR_OXYGEN_12LOG = 8.69
-"""float: The solar 12 + log(O/H) the dust law is written against [R5098]."""
+"""float: The solar 12 + log(O/H) the dust law is written against [R5102]."""
 
 
 def _stream(key):
@@ -138,7 +138,7 @@ def oxygen_12log(elements):
 DUST_BREAK_12LOG = 7.96
 DUST_HIGH_METALLICITY = (2.21, 1.0)
 DUST_LOW_METALLICITY = (0.68, 3.08)
-"""The broken power law of the gas-to-dust ratio of galaxies [R5098: Table 1] (Galactic X_CO): above
+"""The broken power law of the gas-to-dust ratio of galaxies [R5102: Table 1] (Galactic X_CO): above
 `DUST_BREAK_12LOG`, log(gas/dust) = 2.21 + 1.0 (8.69 - x); at or below it, 0.68 + 3.08 (8.69 - x), with x = 12 + log(O/H). Accuracy a factor 1.6,
 scatter 0.37 dex. [Stand-in NBC4, tier T2, tweak L0.]"""
 
@@ -156,7 +156,7 @@ def dust_to_gas_law(x_12log):
 
 MAX_IN_DUST = {"Mg": 0.95, "Si": 0.95, "Fe": 0.99, "C": 0.70, "O": 0.60}
 """dict: The most of an element that can sit in dust, as a share of its total (the rest stays in the gas). Iron is 96 percent in dust in Orion
-(1.4 dex below solar, [R5102: Tables 14 and 15]); the others are recalled depletion patterns ([R5101] has the coefficients, not
+(1.4 dex below solar, [R5106: Tables 14 and 15]); the others are recalled depletion patterns ([R5105] has the coefficients, not
 yet read). [Stand-in NBC5, tier T4, tweak L0.]"""
 
 _SILICATE = {"Mg": 1.5, "Si": 1.0, "O": 3.5}   # number ratios of a pyroxene and olivine mix, without its iron (the iron is a grain of its own)
@@ -220,7 +220,7 @@ KMT_CHI_METALLICITY = (3.1, 0.365)
 KMT_LOG_TERMS = (0.6, 0.01)
 KMT_S_COEFFICIENT = 0.04
 KMT_FRACTION_TERMS = (0.75, 0.25)
-"""The molecular fraction of a cloud of column density Sigma (solar masses per pc2) and metallicity Z' = Z/Z0, after [R5100]: f = 1 - 0.75 s / (1 + 0.25 s) for s < 2 and 0 above, with s = ln(1 + 0.6 chi + 0.01 chi^2) / (0.04 Sigma Z') and
+"""The molecular fraction of a cloud of column density Sigma (solar masses per pc2) and metallicity Z' = Z/Z0, after [R5104]: f = 1 - 0.75 s / (1 + 0.25 s) for s < 2 and 0 above, with s = ln(1 + 0.6 chi + 0.01 chi^2) / (0.04 Sigma Z') and
 chi = 0.77 (1 + 3.1 Z'^0.365). The chi coefficient is checked against its eq. 7 (2.3/3 = 0.77); the f form is recalled and its half-molecular column
 (34 solar masses per pc2 at solar Z') is near the 27 of the paper's summary. [Stand-in NBC11, tier T2, tweak L0.]"""
 
@@ -291,8 +291,8 @@ CLASSES = {
     "W": ClassRow("iron-group", {k: 0.2 for k in ("silicate", "iron")}, "iron-group dust of a Type Ia ejecta (open: GEN.1271)"),
 }
 """dict: One `ClassRow` for every class of `tuning.NEBULA_CLASSES`. The survivals come from the dust-destruction research of the report (section 11):
-more than 90 percent of the iron of planetary nebulae and H II regions is on grains [R5104]; a shocked LMC remnant keeps 39 percent of the
-Si-rich and 60 percent of the Fe-rich grains [R5105]; the 0.5 of the fragile carbon, the PAHs, the old remnants and the fresh-ejecta
+more than 90 percent of the iron of planetary nebulae and H II regions is on grains [R5108]; a shocked LMC remnant keeps 39 percent of the
+Si-rich and 60 percent of the Fe-rich grains [R5109]; the 0.5 of the fragile carbon, the PAHs, the old remnants and the fresh-ejecta
 dust are stand-ins until the destruction literature is read (the ejecta dust is GEN.1271's). [Stand-ins NBC7 (sourced), NBC8 and NBC9 (open): tiers T2, T4 and
 T6, tweak L1, L0 and L3.]"""
 

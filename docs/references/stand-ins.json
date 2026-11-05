@@ -33713,7 +33713,7 @@
             ],
             [
               "Evidence",
-              "physics: the oxygen made grows with the helium core, which grows faster than the star, and the iron is the mass that fell back or not (0.04 to 0.05 per explosion, [R4251: Table 4]); the exponents are recalled, not read from the yield tables"
+              "physics: the oxygen made grows with the helium core, which grows faster than the star, and the iron is the mass that fell back or not (0.04 to 0.05 per explosion, [R4251: Table 4]); the exponents are recalled, not read from the yield tables; GEN.1274 read [R4251] again: its text and [R5101] give no oxygen-by-mass table in the readable text (their yield tables are not in it), so the exponents stay recalled"
             ]
           ],
           "id": "SNC1",
@@ -33731,87 +33731,11 @@
           "fields": [
             [
               "What it is",
-              "remnant_yields.json wind_coefficient 0.02, wind_reference_mass_sol 10 and wind_exponent 1.5: an unstripped progenitor loses 2 percent of its mass at 10 solar masses and more above, capped at half"
+              "remnant_yields.json binary_stripped_share 0.33: a third of the progenitors lighter than 40 solar masses explode without their hydrogen (a companion took the envelope); the 40 solar masses above which every one does is verified ([R4251], GEN.1274) and is not part of this row"
             ],
             [
               "The range it moves in",
-              "coefficient 0.01 to 0.05; exponent 1 to 2.5"
-            ],
-            [
-              "Where it holds",
-              "red supergiant progenitors of 8 to 30 solar masses"
-            ],
-            [
-              "What would show it wrong",
-              "an evolution track whose mass at core collapse differs from this by more than 5 percent of the initial mass"
-            ],
-            [
-              "What replaces it",
-              "the final masses of the stellar evolution tracks the repo reads (stellar_evolution), when they carry the wind"
-            ],
-            [
-              "Evidence",
-              "educated guess from physics: the hydrogen envelope is kept to explosion, the wind takes a few percent"
-            ]
-          ],
-          "id": "SNC2",
-          "key": "6.177:SNC2",
-          "kind": "P",
-          "slug": "6-177-snc2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "remnant_yields.json wind_coefficient 0.02, wind_reference_mass_sol 10 and wind_exponent 1.5: an unstripped progenitor loses 2 percent of its mass at 10 solar masses and more above, capped at half"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "remnant_yields.json helium_core_coefficient 0.08, helium_core_exponent 1.4 and helium_core_cap_sol 15: the mass at explosion of a progenitor that lost its hydrogen envelope, and the helium core inside an unstripped one"
-            ],
-            [
-              "The range it moves in",
-              "coefficient 0.06 to 0.10; exponent 1.2 to 1.6; cap 10 to 20"
-            ],
-            [
-              "Where it holds",
-              "stripped progenitors of 8 to 80 solar masses and the helium core of the rest; a Wolf-Rayet progenitor is held at the cap"
-            ],
-            [
-              "What would show it wrong",
-              "a stripped progenitor whose final mass differs from this by more than 30 percent at 16 and at 40 solar masses"
-            ],
-            [
-              "What replaces it",
-              "the final masses of a binary or Wolf-Rayet stellar evolution grid"
-            ],
-            [
-              "Evidence",
-              "tuned to a published statistic: a 16 solar mass progenitor gives 3.9 solar masses, so a 1.5 solar mass neutron star leaves 2.4 of ejecta against the 2.2 of Cassiopeia A [R5097], a Type IIb"
-            ]
-          ],
-          "id": "SNC3",
-          "key": "6.177:SNC3",
-          "kind": "P",
-          "slug": "6-177-snc3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L2",
-          "unread": null,
-          "what": "remnant_yields.json helium_core_coefficient 0.08, helium_core_exponent 1.4 and helium_core_cap_sol 15: the mass at explosion of a progenitor that lost its hydrogen envelope, and the helium core inside an unstripped one"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "remnant_yields.json stripped_above_mass_sol 30 and binary_stripped_share 0.33: every progenitor above 30 solar masses explodes without its hydrogen, and a third of the lighter ones do (a companion took the envelope)"
-            ],
-            [
-              "The range it moves in",
-              "above 25 to 35; share 0.2 to 0.5"
+              "share 0.2 to 0.5"
             ],
             [
               "Where it holds",
@@ -33827,7 +33751,7 @@
             ],
             [
               "Evidence",
-              "the 30 solar masses is the edge the research note reports from [R4251]; the third is recalled (the share of massive stars that give up their envelope to a companion), not read"
+              "the third is recalled (the share of massive stars that give up their envelope to a companion), not read; [R4251] says only that \"common SN Ib and Ic result from binary systems\" and gives no share (GEN.1274)"
             ]
           ],
           "id": "SNC4",
@@ -33838,7 +33762,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "remnant_yields.json stripped_above_mass_sol 30 and binary_stripped_share 0.33: every progenitor above 30 solar masses explodes without its hydrogen, and a third of the lighter ones do (a companion took the envelope)"
+          "what": "remnant_yields.json binary_stripped_share 0.33: a third of the progenitors lighter than 40 solar masses explode without their hydrogen (a companion took the envelope); the 40 solar masses above which every one does is verified ([R4251], GEN.1274) and is not part of this row"
         },
         {
           "burn_down": null,
@@ -34071,7 +33995,7 @@
             ],
             [
               "Evidence",
-              "oxygen gradient of 35 H II regions, [R5103] (abstract read by the research thread)"
+              "oxygen gradient of 35 H II regions, [R5107] (abstract read by the research thread)"
             ]
           ],
           "id": "NBC1",
@@ -34109,7 +34033,7 @@
             ],
             [
               "Evidence",
-              "[R5103] (abstract read by the research thread)"
+              "[R5107] (abstract read by the research thread)"
             ]
           ],
           "id": "NBC2",
@@ -34147,7 +34071,7 @@
             ],
             [
               "Evidence",
-              "tuned to the two ranges of [R5099]: LMC -0.34 to -0.14, SMC -0.66 to -0.28 in [O/H], the lower from collisional and the higher from recombination lines; Boss: widest range"
+              "tuned to the two ranges of [R5103]: LMC -0.34 to -0.14, SMC -0.66 to -0.28 in [O/H], the lower from collisional and the higher from recombination lines; Boss: widest range"
             ]
           ],
           "id": "NBC3",
@@ -34185,7 +34109,7 @@
             ],
             [
               "Evidence",
-              "[R5098: Table 1] (Galactic X_CO), read by the research thread"
+              "[R5102: Table 1] (Galactic X_CO), read by the research thread"
             ]
           ],
           "id": "NBC4",
@@ -34219,11 +34143,11 @@
             ],
             [
               "What replaces it",
-              "the depletion coefficients of [R5101], by the strength of depletion"
+              "the depletion coefficients of [R5105], by the strength of depletion"
             ],
             [
               "Evidence",
-              "iron is 96 percent in dust in Orion [R5102: Tables 14 and 15]; the others are recalled patterns"
+              "iron is 96 percent in dust in Orion [R5106: Tables 14 and 15]; the others are recalled patterns"
             ]
           ],
           "id": "NBC5",
@@ -34299,7 +34223,7 @@
             ],
             [
               "Evidence",
-              "more than 90 percent of the iron of 33 planetary nebulae is on grains, the same as 10 H II regions [R5104] (abstract read); the carbon half is a stand-in"
+              "more than 90 percent of the iron of 33 planetary nebulae is on grains, the same as 10 H II regions [R5108] (abstract read); the carbon half is a stand-in"
             ]
           ],
           "id": "NBC7",
@@ -34337,7 +34261,7 @@
             ],
             [
               "Evidence",
-              "61 percent of Si-rich and 40 percent of Fe-rich grains destroyed in 16 LMC remnants [R5105] (abstract read); carbon and PAH are stand-ins"
+              "61 percent of Si-rich and 40 percent of Fe-rich grains destroyed in 16 LMC remnants [R5109] (abstract read); carbon and PAH are stand-ins"
             ]
           ],
           "id": "NBC8",
@@ -34375,7 +34299,7 @@
             ],
             [
               "Evidence",
-              "recalled: sputtering in a cooling shell removes about half; reverse-shock models leave 12 to 40 percent of the ejecta dust [R5106, R5107]"
+              "recalled: sputtering in a cooling shell removes about half; reverse-shock models leave 12 to 40 percent of the ejecta dust [R5110, R5111]"
             ]
           ],
           "id": "NBC9",
@@ -34447,11 +34371,11 @@
             ],
             [
               "What replaces it",
-              "[R5100] read in full (eqs. 35 and 38)"
+              "[R5104] read in full (eqs. 35 and 38)"
             ],
             [
               "Evidence",
-              "[R5100]; the chi coefficient 0.77 checked against 2.3/3 in its eq. 7; the f form recalled and its half-molecular column (34 solar masses per pc2) is near the 27 of the paper"
+              "[R5104]; the chi coefficient 0.77 checked against 2.3/3 in its eq. 7; the f form recalled and its half-molecular column (34 solar masses per pc2) is near the 27 of the paper"
             ]
           ],
           "id": "NBC11",
@@ -34611,7 +34535,7 @@
             ],
             [
               "Evidence",
-              "recalled, about 0.2 solar masses; not looked up"
+              "[R5098] (read) says the loss on the red giant branch is \"perhaps as much as 30% of the star's total mass for the lowest mass stars\", which holds 0.2 only as a value for 1 to 2 solar masses; its per-mass numbers are in the on-line tables of [R5100], which could not be read, so the value stays recalled (GEN.1274)"
             ]
           ],
           "id": "PNE2",
@@ -34623,44 +34547,6 @@
           "tweak": "L0",
           "unread": "GEN.1276",
           "what": "planetary_nebula_ejecta.RGB_MASS_LOSS_SOL 0.2: the mass lost on the red giant branch before the thermally pulsing branch"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "planetary_nebula_ejecta.SECOND_DREDGE_UP_DELTA_Y 0.03: the helium mass fraction the second dredge-up adds, for stars of 4 solar masses and more"
-            ],
-            [
-              "The range it moves in",
-              "0.02 to 0.06"
-            ],
-            [
-              "Where it holds",
-              "4 to 7 solar masses at solar metallicity; larger for the heaviest"
-            ],
-            [
-              "What would show it wrong",
-              "a published surface helium after the second dredge-up outside 0.02 to 0.06"
-            ],
-            [
-              "What replaces it",
-              "the yield tables of a grid of asymptotic branch models"
-            ],
-            [
-              "Evidence",
-              "recalled, a few hundredths; the paper opened for this carries no per-mass table of it"
-            ]
-          ],
-          "id": "PNE3",
-          "key": "6.178:PNE3",
-          "kind": "P",
-          "slug": "6-178-pne3",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L0",
-          "unread": "GEN.1276",
-          "what": "planetary_nebula_ejecta.SECOND_DREDGE_UP_DELTA_Y 0.03: the helium mass fraction the second dredge-up adds, for stars of 4 solar masses and more"
         },
         {
           "burn_down": null,
@@ -34737,44 +34623,6 @@
           "tweak": "L3",
           "unread": "GEN.1276",
           "what": "planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "planetary_nebula_ejecta.TYPE_I_HE_TO_H 0.125 and TYPE_I_LOG_N_TO_O -0.3: the limits of Type I planetary nebulae"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "the usual classification"
-            ],
-            [
-              "What would show it wrong",
-              "the classification as defined in its paper"
-            ],
-            [
-              "What replaces it",
-              "the definition read from its paper"
-            ],
-            [
-              "Evidence",
-              "recalled"
-            ]
-          ],
-          "id": "PNE6",
-          "key": "6.178:PNE6",
-          "kind": "P",
-          "slug": "6-178-pne6",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L0",
-          "unread": "GEN.1276",
-          "what": "planetary_nebula_ejecta.TYPE_I_HE_TO_H 0.125 and TYPE_I_LOG_N_TO_O -0.3: the limits of Type I planetary nebulae"
         },
         {
           "burn_down": null,

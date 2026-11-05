@@ -14455,6 +14455,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TEST.430 prevalence census is re-baselined after it. Proposed owner:
   Core 5 (habitability and API columns), after DOC.103. Filed by the
   TODO thread.
+  Limits to print in the page text (Aux 2, as the lane reported) (9:30
+  PM EST on 2026-11-04): circular orbit only; the sea is spread evenly;
+  ground ice follows the cell's mean, not its season; a near-resonant
+  slow spinner (Nitrikin-like) uses the unlocked transport share.
+  Example livable shares: thick-air locked 1.0, 0.1 bar locked 0.22,
+  0.01 bar 0.06, Earth-like 0.97 (0.83 with ice), 12 h thin 0.62, 60 d
+  spinner 0.67. Cost: see PERF.238.
   Prerequisites: GEN.1264. Related: GEN.725, TEST.430.
 
 - [ ] **GEN.1266 Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc**
@@ -14483,6 +14490,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (habitability from the mean). Rides the same train as part 4 (same
   migration or a second one, golden and epoch). Proposed owner: Core 5.
   Filed by the TODO thread.
+  Limits to print in the page text (Aux 2, as the lane reported) (9:30
+  PM EST on 2026-11-04): circular orbit only; the sea is spread evenly;
+  ground ice follows the cell's mean, not its season; a near-resonant
+  slow spinner (Nitrikin-like) uses the unlocked transport share.
+  Example livable shares: thick-air locked 1.0, 0.1 bar locked 0.22,
+  0.01 bar 0.06, Earth-like 0.97 (0.83 with ice), 12 h thin 0.62, 60 d
+  spinner 0.67. Cost: see PERF.238.
   Prerequisites: GEN.1265. Related: GEN.768.
 
 - [ ] **GEN.1267 A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it**
@@ -15467,6 +15481,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free. Done: the measured cost in the note and a test with a
   budget. Proposed owner: Aux 3, after GEN.1263. Filed by the TODO
   thread.
+  Measured (Aux 2, as the lane reported) (9:30 PM EST on 2026-11-04):
+  the temperature series of GEN.1262 to GEN.1264 costs 0.1 to 0.3 s a
+  body for mild worlds and 1 to 2 s for cold thin-air ones, not the 20
+  ms guessed. Bulk generation needs this item before GEN.1265 stores
+  anything: a coarser grid or fewer steps for the census, or a cached
+  series, with the stored mean unchanged. Owner: Aux 2, next lock-free
+  item, before GEN.1265.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
 ## DB: Database and schema
