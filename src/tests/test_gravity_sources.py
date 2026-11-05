@@ -98,15 +98,15 @@ def test_folding_a_systems_bodies_into_one_point_changes_the_field_at_the_zone_s
         positions.append(direction / np.linalg.norm(direction) * au * AU_PC)
         masses.append(mass)
     positions, masses = np.array(positions), np.array(masses)
-    barycentre = (positions * masses[:, None]).sum(0) / masses.sum()
+    barycenter = (positions * masses[:, None]).sum(0) / masses.sum()
     zones = rng.normal(size=(200, 3))
     zones = zones / np.linalg.norm(zones, axis=1)[:, None] * 0.25
     explicit = gravity_kernel.fields(zones, positions, masses)
-    folded = gravity_kernel.fields(zones, barycentre[None, :], np.array([masses.sum()]))
+    folded = gravity_kernel.fields(zones, barycenter[None, :], np.array([masses.sum()]))
     star_only = gravity_kernel.fields(zones, star[None, :], np.array([1.0]))
     folded_error = np.linalg.norm(folded[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_kernel.pull_size(explicit)
     star_only_error = np.linalg.norm(star_only[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_kernel.pull_size(explicit)
     assert folded_error.max() < 1.0e-3
     assert star_only_error.max() > 5.0e-4        # leaving the planets out is the larger error, so they are folded in
     at_the_star = gravity_kernel.fields(zones, star[None, :], np.array([masses.sum()]))
-    assert (np.linalg.norm(at_the_star[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_kernel.pull_size(explicit)).max() < 1.0e-3     # the mass at the star, not the barycentre, is as good
+    assert (np.linalg.norm(at_the_star[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_kernel.pull_size(explicit)).max() < 1.0e-3     # the mass at the star, not the barycenter, is as good

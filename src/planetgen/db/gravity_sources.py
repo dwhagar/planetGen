@@ -7,7 +7,7 @@ The point masses of the gravity map: one per system (MAP.386; docs/design/orbits
 The sector grid of the gravity map sums point masses over zones 0.25 pc wide. A star system is smaller than that by a factor of a thousand or more (a
 planet at 50 AU is 2.4e-4 pc from its star), so for the grid a system is **one point mass at the system's place with the mass of everything in it**: its
 stars, its planets and its moons. Folding the planets in matters (their mass is about 0.1 to 0.3 percent of the system's, more than the 0.1 percent the
-folded field may be off by at the zone size) and the offsets inside the system do not (the error of putting the mass at the centre instead of in its
+folded field may be off by at the zone size) and the offsets inside the system do not (the error of putting the mass at the center instead of in its
 places is the offset over the distance, 1e-3 at 0.25 pc, times the planets' share, so under one part in a million). The System Map's orbital-plane version
 reads the bodies themselves (MAP.169) and does not come through here.
 
@@ -58,7 +58,7 @@ def system_point_masses(conn, sector_ids):
     if not ids:
         return PointMasses(np.zeros((0, 3)), np.zeros(0), ())
     marks = ", ".join("?" for _ in ids)
-    centres = {row["id"]: (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]) for row in conn.execute(
+    centers = {row["id"]: (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]) for row in conn.execute(
         f"SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id IN ({marks})", ids).fetchall()}
     stars, planets, moons = (_sums(conn, table, marks, ids) for table in ("stars", "planets", "moons"))
     rows = []
@@ -66,8 +66,8 @@ def system_point_masses(conn, sector_ids):
             f"SELECT id, sector_id, position_x_mpc AS x, position_y_mpc AS y, position_z_mpc AS z FROM star_systems"
             f" WHERE sector_id IN ({marks}) AND position_x_mpc IS NOT NULL ORDER BY id", ids).fetchall():
         mass_kg = stars.get(row["id"], 0.0) + planets.get(row["id"], 0.0) + moons.get(row["id"], 0.0)
-        if row["sector_id"] in centres and mass_kg > 0.0:
-            rows.append((("star_systems", row["id"]), geometry.local_to_galaxy_pc(centres[row["sector_id"]], (row["x"] / 1000.0, row["y"] / 1000.0, row["z"] / 1000.0)),
+        if row["sector_id"] in centers and mass_kg > 0.0:
+            rows.append((("star_systems", row["id"]), geometry.local_to_galaxy_pc(centers[row["sector_id"]], (row["x"] / 1000.0, row["y"] / 1000.0, row["z"] / 1000.0)),
                          _kg_to_msun(mass_kg)))
     for table in STAND_ALONE_TABLES:
         for row in conn.execute(
