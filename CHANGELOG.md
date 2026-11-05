@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3322] - 2026-11-05
+
+**Headline:** The unused belt giant event and companion limit functions are removed, so the belt's history has one source for each cause.
+
+### Changed
+
+- Removed `belt_history.giant_event`, `belt_history.limit` and their constants (GEN.1232b): the Grand Tack-type depletion of a belt is `belt_origin`'s (GEN.1068), a companion's limit is the orbit ceiling every belt is trimmed to, and a Nice-type instability alone waits for GEN.1082. The registry row BHS1 is dropped, its values stay in row BG9.
+- generation-output: unchanged
+
 ## [8.0.3321] - 2026-11-05
 
 **Headline:** Two course-diagram tests expect the American spelling again.
