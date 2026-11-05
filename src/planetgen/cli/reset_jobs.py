@@ -165,14 +165,14 @@ def main(argv=None):
     parser.add_argument("--dry-run", action="store_true", help="Print what there is, change nothing.")
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     if not args.yes and not args.dry_run and not sys.stdin.isatty():
-        print("error: there is no terminal to ask on; add --yes to reset without asking.", file=sys.stderr)
+        log.error("error: there is no terminal to ask on; add --yes to reset without asking.")
         return 1
     try:
         done = reset_jobs(assume_yes=args.yes, dry_run=args.dry_run)
     except Exception as exc:  # noqa: BLE001 -- said plainly; nothing half-reported
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(f"error: {exc}")
         return 1
     return 0 if done else 1
 

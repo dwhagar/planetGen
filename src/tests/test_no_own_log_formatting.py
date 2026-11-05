@@ -280,3 +280,88 @@ def test_the_logging_module_has_one_formatter_class_and_the_record_layer_has_non
 ])
 def test_the_scan_finds_a_formatter_a_handler_and_what_sets_one(source, found):
     assert [what for what, _line in find_handlers(source)] == found
+
+
+# --- no print for a log line (OPS.105) --------------------------------------------------------------------------------
+
+PRINT_ALLOWED = {
+    "_version.py": "Prints the banner a person asked for with the version command: an answer, not a record.",
+    "cli/accounts.py": "Prints who is the Owner after the command ran: the answer the admin asked for.",
+    "cli/backup.py": "Lists, makes, checks and restores backups; every line is the answer to the command, not a record of a run.",
+    "cli/benchmark.py": "A benchmark report to the terminal, a result table the person asked for, not a log.",
+    "cli/benchmark_suite.py": "The benchmark suite's own report and step lines for the person at the terminal; it has no log file or severity.",
+    "cli/config.py": "Shows, checks and changes settings; each line is the answer to the command.",
+    "cli/forget_devices.py": "The count of trusted devices revoked: the answer to the command.",
+    "cli/generate.py": "Prints the fingerprint lines the person asked for.",
+    "cli/lift_lockout.py": "The count of lockouts lifted: the answer to the command.",
+    "cli/lockouts.py": "Lists the lockouts: the answer to the command.",
+    "cli/maintenance.py": "Shows whether maintenance mode is on: the answer to the command.",
+    "cli/migrate.py": "The database state answer, and the one-time admin password box that must never reach a log file.",
+    "cli/query.py": "Lists the sectors and systems the person asked for: the data, not a log.",
+    "cli/queue.py": "Lists what is running or queued and whether work is on hold: the answer to the command.",
+    "cli/reset.py": "The confirmation prompt before a wipe: an interactive display, not a record.",
+    "cli/reset_two_factor.py": "Says whether two-factor sign-in is off for the account: the answer to the command.",
+    "cli/smoke.py": "The smoke report table the person asked for.",
+    "cli/species_check.py": "Lists the species found outside their range: the data the check exists to show.",
+    "cli/update_guard.py": "Says whether an update is running and what is queued: the answer to the command.",
+    "cli/version_history.py": "Says which version key was recorded: the answer to the command.",
+    "galaxy/dials.py": "Prints the generated documentation block when run to rebuild the docs.",
+    "physics/mathcheck.py": "Prints the math check report the person asked for.",
+    "util/log.py": "The console writer itself, and the three notes it prints before the logger exists.",
+    "util/secret_key.py": "Says the key was set: the answer to the command.",
+}
+"""dict: `file` to the reason it may still call `print()`. Everything a person reads as a record of a run (a progress line, a warning, an error, a
+status line) goes through `log.normal` / `log.warning` / `log.error` so it carries the severity, time and stderr rule of the standard; what is
+allowed here is only the answer a command was asked for (a listing, a report, a count, a prompt), which is data on stdout and not a log line.
+A new file needs a reason a person can check."""
+
+
+def find_prints(source, filename="<source>"):
+    """`[(line, to_stderr)]`: every call of the builtin `print` in `source`, and whether it writes to a stderr stream."""
+    found = []
+    for node in ast.walk(ast.parse(source, filename)):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "print":
+            to_stderr = any(keyword.arg == "file" and "stderr" in ast.unparse(keyword.value) for keyword in node.keywords)
+            found.append((node.lineno, to_stderr))
+    return sorted(found)
+
+
+def _print_hits():
+    hits = {}
+    for relative, path in _modules():
+        with open(path, encoding="utf-8") as handle:
+            found = find_prints(handle.read(), path)
+        if found:
+            hits[relative] = found
+    return hits
+
+
+def test_no_module_prints_a_log_line():
+    stray = {path: found for path, found in _print_hits().items() if path not in PRINT_ALLOWED}
+    assert not stray, (
+        "print() writes a line outside the logging layer. A progress, status, warning or error line goes through log.normal / log.warning / "
+        "log.error (logging standard, rules 1 and 5); only the answer a command was asked for may print, and its file is named in PRINT_ALLOWED "
+        "with the reason:\n  " + "\n  ".join(f"{path}:{found[0][0]}" for path, found in sorted(stray.items())))
+
+
+def test_nothing_prints_to_stderr_but_the_logging_module():
+    stray = {path: [line for line, to_stderr in found if to_stderr] for path, found in _print_hits().items() if path != THE_MODULE}
+    stray = {path: lines for path, lines in stray.items() if lines}
+    assert not stray, "print(..., file=sys.stderr) is a log line: use log.warning or log.error:\n  " + "\n  ".join(
+        f"{path}:{lines[0]}" for path, lines in sorted(stray.items()))
+
+
+def test_every_printing_file_is_still_printing_and_has_a_reason():
+    hits = _print_hits()
+    for path, reason in PRINT_ALLOWED.items():
+        assert len(reason.split()) >= 8, f"{path} needs a real reason"
+        assert path in hits, f"{path} no longer prints; remove it from PRINT_ALLOWED"
+
+
+@pytest.mark.parametrize("source, found", [
+    ("print('x')\n", [(1, False)]),
+    ("import sys\nprint('x', file=sys.stderr)\n", [(2, True)]),
+    ("console.print('x')\nlog.normal('x')\n", []),
+])
+def test_the_print_scan_finds_a_print_and_where_it_writes(source, found):
+    assert find_prints(source) == found

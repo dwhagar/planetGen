@@ -1943,7 +1943,7 @@ def run_fingerprint(args):
     finally:
         conn.close()
     if warning:
-        log.normal(f"Warning: {warning}")
+        log.warning(warning)
     for line in result:
         print(line)
 
@@ -2096,7 +2096,7 @@ def main():
     try:
         # A command whose own result goes to stdout (`--output -`) keeps stdout for it; the debug lines go to stderr.
         log.configure(level, debug_file=(args.debug or None), to_stderr=getattr(args, "output", None) == "-",
-                      areas=args.debug_areas)
+                      areas=args.debug_areas, errors_to_stderr=True)
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
     logged = (not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
@@ -2309,7 +2309,7 @@ def _fatal(message, logger_ready=True, traceback=False):
         else:
             log.error(f"Error: {message}")
     else:
-        print(f"planetgen: error: {message}", file=sys.stderr)
+        log.error(f"planetgen: error: {message}")
         if traceback:
             import traceback as traceback_module
 

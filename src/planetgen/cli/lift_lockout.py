@@ -35,7 +35,7 @@ def main(argv=None):
     group.add_argument("--all", action="store_true", help="Lift every lockout.")
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
 
     scope = subject = None
     if args.ip is not None:
@@ -50,7 +50,7 @@ def main(argv=None):
     try:
         lifted = store.lift(scope, subject)
     except redis.RedisError as exc:
-        print(f"error: could not use Redis at {ratelimit_storage_uri()} ({exc}).", file=sys.stderr)
+        log.error(f"error: could not use Redis at {ratelimit_storage_uri()} ({exc}).")
         return 1
     target = f"{scope}:{subject}" if scope else "all"
     activity_log.event("DB", "lockout.lift", user=activity_log.login_name(), target=target, lifted=lifted)

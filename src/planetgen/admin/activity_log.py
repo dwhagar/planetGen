@@ -53,9 +53,7 @@ import getpass
 import ipaddress
 import os
 import re
-import sys
 import threading
-import time
 
 from planetgen.util import log, logpaths
 
@@ -204,7 +202,7 @@ def _current_handler():
 def _warn_once(key, message):
     if key not in _warned:
         _warned.add(key)
-        print(message, file=sys.stderr)
+        log.warning(message)
 
 
 def _request_ip():

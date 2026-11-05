@@ -25,7 +25,6 @@ protection.
 and audit rows are still written.
 """
 
-import sys
 
 from flask import current_app, jsonify, request
 
@@ -48,7 +47,7 @@ _warned = set()
 def _warn_once(key, message):
     if key not in _warned:
         _warned.add(key)
-        print(message, file=sys.stderr)
+        log.warning(message)
         log.error(message)
 
 

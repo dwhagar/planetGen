@@ -29,11 +29,11 @@ cache then serves nothing from its copies.
 """
 
 import secrets
-import sys
 
 import redis
 
 from planetgen.queue import redisclient, warmstart
+from planetgen.util import log
 
 TAG_EPOCH = "epoch"
 TAG_SECTOR_SET = "sector-set"
@@ -154,11 +154,11 @@ def bump(database, *tags):
         try:
             _client().delete(key(database))
         except (redis.RedisError, OSError):
-            print(f"warning: the page cache's data versions were not updated ({exc}); "
-                  "cached pages may be stale until Redis answers.", file=sys.stderr)
+            log.warning(f"warning: the page cache's data versions were not updated ({exc}); "
+                  "cached pages may be stale until Redis answers.")
             return False
-        print(f"warning: Redis refused the page cache's data versions ({exc}); every cached page was made stale "
-              "instead. If Redis is out of memory, raise maxmemory.", file=sys.stderr)
+        log.warning(f"warning: Redis refused the page cache's data versions ({exc}); every cached page was made stale "
+              "instead. If Redis is out of memory, raise maxmemory.")
     # Whatever the page cache cannot serve any more is rebuilt by the warm-up, which starts by itself (PERF.141).
     warmstart.request(database, tags[0])
     return True
