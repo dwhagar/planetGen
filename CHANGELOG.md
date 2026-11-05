@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3338] - 2026-11-05
+
+**Headline:** Three bright-star scatter tests that took four to nine minutes under load now take one to two; no generated output changes.
+
+### Changed
+- **Scatter tests drawn only as far as their checks need (TEST.417).** In `test_bright_star_scatter.py`, the test that checks backfilled cells hold band stars in their own cell now takes three cells of the dense shell 2 (about 120 stars each; twelve took nine minutes) and keeps the twelve of shell 3; both shells are still checked for the cell, the band and the Poisson count. The bar test for the "Topping up backfilled sectors" phase now takes the band down to 400 solar luminosities (the cheap first step, which reports the same phase) instead of down to the floor.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.417 continues).
+
 ## [8.0.3337] - 2026-11-05
 
 **Headline:** The System and Galaxy views no longer scroll the page away from a key you have just pressed: a Tab to the skip link at the top of the page stays on screen.
