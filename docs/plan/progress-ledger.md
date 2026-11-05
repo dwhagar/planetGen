@@ -2557,3 +2557,12 @@ Baseline: PR #1817.
 | TEST.615 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.613 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.612 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.228 | 8.1 | Queue, caches and performance |
+| UX.241 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.622 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.620 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.619 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.235 | 8.2 | Robust tile caching |
+| NAV.39 | 8.5 | Saved courses |
+| NAV.22 | 8.5 | Courses on the maps |
+| NAV.5 | 8.5 | Courses on the maps |
