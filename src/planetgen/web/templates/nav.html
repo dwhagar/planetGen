@@ -183,6 +183,15 @@
   {%- elif not adjusted_view.warnings %}
   <p class="hint">Nothing on the straight line comes close enough to bend the course, so the direct course stands.</p>
   {%- endif %}
+  {%- if adjusted_view.aimed and not adjusted_view.bent %}
+  <div class="table-scroll"><table>
+    <tbody>
+      {%- for label, text in adjusted_view.rows %}
+      <tr><td>{{ label }}</td><td>{{ text }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
   {%- for text in adjusted_view.warnings %}
   <p class="hint">{{ text }}</p>
   {%- endfor %}

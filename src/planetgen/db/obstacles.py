@@ -229,3 +229,21 @@ def adjusted_course(conn, start_pc, end_pc, kinds=None):
     names = {row["ref"]: row["name"] for row in found}
     course["names"] = {ref: names[ref] for ref in course["avoided"] + course["ignored_below_resolution"] if ref in names}
     return course
+
+
+def system_keep_outs(conn, scene):
+    """
+    The keep-out radius, in km, of every body of a system's scene (NAV.27): a star its radiation radius, a planet or moon its Hill radius
+    (`db.query.keep_out_radius` at system scale). `{ref: radius_km}`; a comet and a belt keep nothing out (a comet is too small and a belt
+    is thin: `keepout.PASS_THROUGH_NOTE`). The scene is `web.maps.systemscene.build_scene`'s.
+    """
+    from planetgen.db import query
+
+    found = {}
+    for star in scene["stars"]:
+        found[star["ref"]] = query.keep_out_radius(conn, "star", star["id"], scale="system").radius_km
+    for planet in scene["planets"]:
+        found[planet["ref"]] = query.keep_out_radius(conn, "planet", planet["id"], scale="system").radius_km
+        for moon in planet["moons"]:
+            found[moon["ref"]] = query.keep_out_radius(conn, "moon", moon["id"], scale="system").radius_km
+    return {ref: radius for ref, radius in found.items() if radius}

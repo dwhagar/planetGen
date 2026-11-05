@@ -98,6 +98,7 @@ class FakeData:
         self.calls = []
         self.nav_error = None
         self.nav_galaxy_scope = False
+        self.nav_system_scope = False
         self.nav_unknown_space = False
         self.nav_stone = False
         self.nav_graph = False
@@ -142,9 +143,9 @@ class FakeData:
 
     def get_object(self, db, ref):
         self.calls.append(("get_object", db, ref))
-        if ref != "planet:3":
+        if ref not in ("planet:3", "planet:4"):
             raise apiclient.NotFoundError(f"No such object: {ref}")
-        return {"ref": ref, "kind": "planet", "name": "Aster III", "parents": [
+        return {"ref": ref, "kind": "planet", "name": "Aster III" if ref == "planet:3" else "Aster IV", "parents": [
             {"ref": "galaxy", "kind": "galaxy", "name": "Galaxy"},
             {"ref": "sector:5", "kind": "sector", "name": "Sector"},
             {"ref": "system:1001", "kind": "system", "name": "Aster"}]}
@@ -168,7 +169,7 @@ class FakeData:
         kind, from_id = objectref.parse(from_ref)
         to_id = objectref.parse(to_ref)[1]
         result = {
-            "scope": "galaxy" if self.nav_galaxy_scope else "sector",
+            "scope": "system" if self.nav_system_scope else "galaxy" if self.nav_galaxy_scope else "sector",
             "origin": {"ref": from_ref, "kind": kind, "name": f"Start {from_id}"},
             "destination": {"ref": to_ref, "kind": objectref.parse(to_ref)[0], "name": f"End {to_id}"},
             "direct": direct,
@@ -195,9 +196,13 @@ class FakeData:
                 {"kind": "between", "from": from_ref, "to": to_ref, "direct": direct}],
             "note": "Same warp and fold tables." if kind in objectref.BODY_KINDS else None,
         }
+        if self.nav_system_scope:   # NAV.27: a trip inside one system is one leg, no route of hops
+            result["route"] = None
+            result["legs"] = [{"kind": "within", "from": from_ref, "to": to_ref, "direct": direct}]
         if adjusted and self.nav_adjusted is not None:   # NAV.28: the course bent round keep-out spheres
             result["adjusted"] = self.nav_adjusted
-            result["route"]["adjusted_distance_ly"] = 3.9
+            if result["route"]:
+                result["route"]["adjusted_distance_ly"] = 3.9
         if graph and self.nav_graph and len(result["route"]["path"]) > 2:   # NAV.65: the links round the route, NAV.68 draws them
             stops = result["route"]["path"]
             result["route"]["graph"] = {
@@ -1376,6 +1381,16 @@ def test_the_nav_page_says_how_the_course_goes_round_what_it_would_pass_too_clos
     assert "Passes through Rose Cloud for up to" in page and "4.2e+21 atoms per square centimeter" in page
     assert "short detour, not a proven shortest path" in page
     assert "on straight hops and" in page and "3.9" in page
+
+
+def test_the_nav_page_says_a_course_inside_a_system_is_aimed_where_the_body_will_be(client, fake):
+    fake.nav_system_scope = True
+    adjusted = _adjusted(bent=False)
+    adjusted.update(frame="system", unit="km", passed_through=[], moving_end=True)
+    fake.nav_adjusted = adjusted
+    page = client.get("/nav?from=planet:3&to=planet:4").get_data(as_text=True)
+    assert "Adjusted Course" in page
+    assert "Aimed at" in page and "where it will be on arrival" in page and "warp 1, 3 years, 6 months" in page
 
 
 def test_the_nav_page_says_so_when_nothing_bends_the_course(client, fake):
