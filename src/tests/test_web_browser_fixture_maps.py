@@ -6113,3 +6113,52 @@ def test_the_forms_of_a_course_are_layers_of_the_menu(page, map_site, monkeypatc
     assert not {"key-course", "key-direct", "key-course-bent"} & set(page.evaluate(f"() => {drawn}"))
     page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-route', true)")
     assert page.evaluate(f"() => {canvas}.galaxyCourseForms()")["route"] is True
+
+
+# --- NAV.49: waypoints picked from a star's panel ------------------------------------------------------
+
+def _waypoints(page):
+    return page.evaluate("""() => {
+        const key = Object.keys(localStorage).find(k => k.startsWith('planetgen.waypoints.'));
+        return key ? JSON.parse(localStorage.getItem(key)) : [];
+    }""")
+
+
+def test_a_star_panel_adds_and_removes_a_waypoint_and_the_galaxy_menu_lists_it(page, map_site):
+    """NAV.49: the info card of a star system has a waypoint flag by its name (Add waypoint, which becomes Remove waypoint 1); the Galaxy Map's Waypoints menu
+    lists the waypoints in the order they were picked, with Remove and Clear all, and they are kept in this browser."""
+    _open_sector(page, map_site)
+    _x, _y, first = _click_a_star(page)
+    start_id = next(i for i, n, *_rest in SYSTEMS if n == first)
+    button = page.locator("#galaxymap3d-info .map-info-waypoint")
+    button.wait_for(state="visible")
+    assert button.get_attribute("aria-label") == f"Add waypoint: {first}" and button.get_attribute("aria-pressed") == "false"
+    button.click()
+    page.wait_for_function("document.querySelector('#galaxymap3d-info .map-info-waypoint').getAttribute('aria-label').startsWith('Remove waypoint 1')")
+    stored = _waypoints(page)
+    assert [(entry["name"], entry["value"]) for entry in stored] == [(first, f"system:{start_id}")]
+
+    _open_galaxy(page, map_site)
+    menu = page.locator("[data-waypoints-menu]")
+    assert menu.locator("summary").inner_text() == "Waypoints (1)"
+    menu.locator("summary").click()
+    assert first in menu.locator("[data-waypoints-panel]").inner_text()
+    assert menu.locator("[data-waypoints-panel] li").count() == 1
+    menu.get_by_role("button", name=f"Remove waypoint 1, {first}").click()
+    assert "No waypoints yet" in menu.locator("[data-waypoints-panel]").inner_text()
+    assert _waypoints(page) == []
+    assert menu.locator("summary").inner_text() == "Waypoints"
+
+
+def test_clear_all_empties_the_waypoints(page, map_site):
+    """NAV.49: Clear all takes every waypoint out of the list."""
+    _open_sector(page, map_site)
+    _click_a_star(page)
+    page.locator("#galaxymap3d-info .map-info-waypoint").click()
+    page.wait_for_function("document.querySelector('#galaxymap3d-info .map-info-waypoint').getAttribute('aria-label').startsWith('Remove waypoint 1')")
+    _open_galaxy(page, map_site)
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name="Clear all").click()
+    assert "No waypoints yet" in menu.locator("[data-waypoints-panel]").inner_text()
+    assert _waypoints(page) == []
