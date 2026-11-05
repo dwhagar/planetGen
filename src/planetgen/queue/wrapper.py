@@ -24,7 +24,6 @@ PERF.108 and PERF.121 to PERF.128 gave each its units), so every step of a run i
 
 import importlib
 import json
-import logging
 import os
 import time
 
@@ -732,8 +731,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
               f"{workers_count or 'the default number of'} worker(s), kind {kind}, database {database}"
               + (f", debug areas {debug}" if debug else ""), area="queue")
-    events = runrecord.EventHandler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
-    logging.getLogger("planetgen").addHandler(events)
+    events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
+    log.attach(events)
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):
@@ -778,7 +777,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             raise RuntimeError(message) from None
         raise
     finally:
-        logging.getLogger("planetgen").removeHandler(events)
+        log.detach(events)
         from planetgen.queue import runcontrol      # it imports this file
         runcontrol.write_log(conn, run_id)
     return run_id

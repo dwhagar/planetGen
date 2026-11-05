@@ -227,7 +227,7 @@ def test_a_standard_log_record_from_any_logger_becomes_a_record():
 
 
 def test_the_formatter_set_has_one_class_with_a_form_for_each_way_a_line_is_written():
-    assert planetgen_log.FORMS == ("plain", "display", "debug", "file", "json")
+    assert planetgen_log.FORMS == ("plain", "display", "debug", "file", "json", "raw")
     with pytest.raises(ValueError):
         planetgen_log.LineFormatter("loud")
     log_record = logging.LogRecord("planetgen.queue", logging.INFO, "queue.py", 12, "Unit %s done", ("7",), None)
@@ -248,3 +248,9 @@ def test_winter_time_has_the_winter_offset_and_the_old_utc_form_is_refused():
 def test_a_time_in_seconds_is_written_as_the_display_line_writes_it():
     assert logrecord.local_text(OCTOBER / 1000) == "2026-10-24 14:40:00 EDT"
     assert logrecord.local_text(JANUARY / 1000) == "2027-01-05 13:40:00 EST"
+
+
+def test_the_raw_form_is_the_message_as_it_is_and_a_syslog_line_has_the_time_the_process_and_the_body():
+    log_record = logging.LogRecord("planetgen.activity", logging.INFO, "a.py", 1, "AUTH login.failed ip=203.0.113.5", None, None)
+    assert planetgen_log.LineFormatter("raw").format(log_record) == "AUTH login.failed ip=203.0.113.5"
+    assert planetgen_log.syslog_line("AUTH x", JANUARY / 1000, 1234) == "2027-01-05T13:40:00-0500 planetgen[1234]: AUTH x"

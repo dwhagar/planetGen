@@ -213,18 +213,13 @@ THE_MODULE = "util/log.py"
 HANDLER_WORDS = ("Formatter", "Handler")
 
 HANDLER_CALLS = {"Formatter", "StreamHandler", "FileHandler", "WatchedFileHandler", "RotatingFileHandler", "TimedRotatingFileHandler",
-                 "SocketHandler", "SysLogHandler", "NullHandler", "MemoryHandler", "QueueHandler", "setFormatter"}
-"""set: Calls that make a formatter or a handler of the standard library, or give a handler its formatter."""
+                 "SocketHandler", "SysLogHandler", "NullHandler", "MemoryHandler", "QueueHandler", "setFormatter", "getLogger"}
+"""set: Calls that make a formatter or a handler of the standard library, give a handler its formatter or fetch a logger by name (a module logs through
+`log.normal` / `log.get`, OPS.105)."""
 
-OTHER_HANDLERS = {
-    ("admin/activity_log.py", "class _WatchedHandler"): "the activity log's own file handler; moves onto the module with the rest of the stragglers",
-    ("admin/activity_log.py", "class _RotatingHandler"): "the activity log's own file handler; moves onto the module with the rest of the stragglers",
-    ("admin/activity_log.py", "Formatter"): "the activity log's own line; moves onto the module with the rest of the stragglers",
-    ("admin/activity_log.py", "setFormatter"): "the activity log's own line; moves onto the module with the rest of the stragglers",
-    ("queue/runrecord.py", "class EventHandler"): "the queue run log's own handler; moves onto the module with the rest of the stragglers",
-}
-"""dict: `(file, what)` to the reason a formatter or handler outside the module is still allowed. Each is a straggler the second part of the
-logging module's work moves (OPS.105); the list only shrinks."""
+OTHER_HANDLERS = {}
+"""dict: `(file, what)` to the reason a formatter, handler or `getLogger` outside the module is allowed. It is empty since OPS.105 moved the
+activity log, the queue run log and the direct users onto `util/log.py`; a new entry needs a reason a person can check."""
 
 
 def find_handlers(source, filename="<source>"):
@@ -281,7 +276,7 @@ def test_the_logging_module_has_one_formatter_class_and_the_record_layer_has_non
     ("import logging\nclass F(logging.Formatter):\n    pass\n", ["class F"]),
     ("import logging\nh = logging.StreamHandler()\nh.setFormatter(x)\n", ["StreamHandler", "setFormatter"]),
     ("import logging\nclass H(logging.handlers.WatchedFileHandler):\n    pass\n", ["class H"]),
-    ("import logging\nlogging.getLogger('x').addHandler(h)\n", []),
+    ("import logging\nlogging.getLogger('x').addHandler(h)\n", ["getLogger"]),
 ])
 def test_the_scan_finds_a_formatter_a_handler_and_what_sets_one(source, found):
     assert [what for what, _line in find_handlers(source)] == found
