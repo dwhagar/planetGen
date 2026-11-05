@@ -342,7 +342,7 @@ def build_answer(db, target, job_id, config=None):
     try:
         _mark(job_id, started=time.time())
         if _cancel_asked(job_id):
-            log.debug(f"Slow page job {job_id}: {target[:200]} cancelled before it started.")
+            log.debug(f"Slow page job {job_id}: {target[:200]} canceled before it started.")
             return {"cancelled": True}
         app = warmup.build_app(config)
         with app.test_request_context("/"):

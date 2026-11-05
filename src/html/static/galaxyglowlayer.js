@@ -30,8 +30,10 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
   const o = options || {};
   const lookOf = o.look || glowLook;
   const cutOf = o.cut || null;
+  // MAP.215: `options.tint` ({ uniforms, glsl }, nebulavolume.js) makes the blob take the hue of the nebulae in front of it.
+  const tint = o.tint || null;
   const material = new THREE.ShaderMaterial({
-    uniforms: { viewport: { value: new THREE.Vector2(800, 600) } },
+    uniforms: Object.assign({ viewport: { value: new THREE.Vector2(800, 600) } }, tint ? tint.uniforms : {}),
     vertexShader: [
       "attribute vec2 corner;",
       "attribute vec3 glowColor;",
@@ -58,6 +60,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
       "varying vec3 vColor;",
       "varying float vAlpha;",
       "varying float vRing;",
+      tint ? tint.glsl : "vec3 nebulaTinted(vec3 c) { return c; }",
       "void main() {",
       "  float r = length(vCorner);",
       "  if (r >= 1.0) discard;",
@@ -66,7 +69,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
       // A blob with a ring (a group of nebulae, MAP.176) also has a thin line near its rim, so it reads as a group.
       "  float line = vRing * smoothstep(0.78, 0.88, r) * (1.0 - smoothstep(0.88, 0.98, r)) * 0.9;",
       "  float a = max(soft, line) * vAlpha;",
-      "  gl_FragColor = vec4(vColor * a, a);",
+      "  gl_FragColor = vec4(nebulaTinted(vColor) * a, a);",
       "}",
     ].join("\n"),
     transparent: true,

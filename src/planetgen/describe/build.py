@@ -183,7 +183,7 @@ def _star_age_sentence(star):
     age = _gy(star.age)
     if star.yerkes_class in pre_main_sequence.STAGE_CLASSES:
         # GEN.242: still contracting.
-        sentence = inline("The star is about ", age, " old and is still contracting towards the main sequence. ",
+        sentence = inline("The star is about ", age, " old and is still contracting toward the main sequence. ",
                           "It should last about ", _gy(star.lifespan), ".")
     elif star.lifespan == float("inf"):
         sentence = inline("The star is about ", age, " old and is now a white dwarf, which will cool for trillions of years.")
@@ -202,7 +202,7 @@ def _galactic_orbit_or_centre(star):
         speed = math.sqrt(sum(component * component for component in star.ejecta_velocity_kms))
         return inline("Ejected from the galaxy, leaving at ", _kms(speed), " on a straight line")
     if star.galactic_orbital_period_gy is None:
-        return inline("None (the galaxy's centre)")
+        return inline("None (the galaxy's center)")
     return _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)
 
 
@@ -226,7 +226,7 @@ def _black_hole_blocks(hole):
     ]
     glow = _kelvin(hole.temperature, companions=False)
     if hole.mass_class == "supermassive":
-        sentences = [inline("It is the supermassive black hole at the centre of the galaxy, and every star in the galaxy "
+        sentences = [inline("It is the supermassive black hole at the center of the galaxy, and every star in the galaxy "
                             "orbits it in the end."),
                      inline("Its nucleus is quiet: a thin, hot accretion flow feeds it at a tiny fraction of its Eddington "
                             "limit and glows at about ", glow, ".")]
@@ -563,11 +563,14 @@ def _belt_section(belt):
         fact("density", "Density", belt.density),
         fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
+    if belt.largest_body_km:
+        rows.append(fact("largest-body", "Largest body", _km(belt.largest_body_km)))
     rows.append(meteorite_group_fact(belt))
     parts = [{"name": component, "level": level} for component, level in belt.composition]
-    return section("belt", _ref("belt", belt), "Asteroid Belt",
-                   [facts("Asteroid belt", rows),
-                    model.composition("Composition", parts, format_composition_summary(belt.composition))])
+    blocks = [facts("Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
+    if belt.origin_sentence:      # GEN.1069: where the belt came from and what shaped it, as the generator wrote it
+        blocks.append(prose("summary", belt.origin_sentence, *belt.origin_history))
+    return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)
 
 
 def _comet_section(comet):

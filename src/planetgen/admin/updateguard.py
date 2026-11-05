@@ -39,7 +39,7 @@ import tempfile
 import time
 from datetime import datetime, timezone
 
-from planetgen.admin import maintenance
+from planetgen.admin import maintenance, stop_reason
 from planetgen.queue import stopall
 
 UPDATE_CAUSE = "update"
@@ -242,6 +242,7 @@ class MarkerSource:
         return found
 
     def cancel(self, item):
+        stop_reason.leave(item["pid"], "the update guard cancelled it, because an update or a cancel from the Stats page needs the machine")
         with contextlib.suppress(OSError):
             os.kill(item["pid"], signal.SIGTERM)
         return True
@@ -525,7 +526,7 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
         elif unattended:
             write(f"This run was started by {unattended}, with nobody to ask: taking that as no.")
         if not agreed:
-            write("Not updating: nothing was changed and nothing was cancelled. "
+            write("Not updating: nothing was changed and nothing was canceled. "
                   + ("Run it again when the work has finished, or answer y to cancel it."
                      if asks else
                      "Run it again when the work has finished, or add --yes to cancel it."))

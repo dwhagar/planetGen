@@ -50,11 +50,11 @@ def test_the_table_gives_each_span_of_ages_with_its_pressures_and_none_for_a_gas
                                      ["1.00 to 4.00", "21 kPa", "0.04 kPa", "none"]]
 
 
-def test_a_tuned_class_is_marked_speculative_and_a_small_pressure_is_given_in_pascals():
+def test_a_less_sure_class_links_to_its_references_section_and_a_small_pressure_is_given_in_pascals():
     history = {**HISTORY, "speculative": {"tier": "T7", "tweak": "L4"}}
     history["gases"] = [{"formula": "CH4", "name": "Methane", "steps": [[0.0, 0.0], [0.5, 0.0035]]}]
     view = life_air_chart.chart(history, "6")
-    assert "Speculative chemistry" in view["note"] and "T7" in view["note"] and "L4" in view["note"]
+    assert "less sure" in view["note"] and 'href="/references/speculative#class-6"' in view["note"] and "T7" not in view["note"] and "L4" not in view["note"]
     assert view["table"]["rows"][-1][1] == "3.5 Pa"
 
 
@@ -62,3 +62,12 @@ def test_the_age_axis_has_a_round_step_whatever_the_age():
     for top in (0.8, 3.0, 4.6, 9.5, 13.8):
         ticks = life_air_chart._axis_ticks(top)
         assert ticks[0] == 0 and 3 <= len(ticks) <= 8 and ticks[-1] <= top
+
+
+def test_a_world_with_several_classes_says_what_each_made_of_each_gas_and_a_world_with_one_says_nothing():
+    several = {**HISTORY, "classes": [{"life_class": 1, "variant": "a", "share": 0.7, "producers_gyr": 0.5}, {"life_class": 3, "variant": None, "share": 0.3, "producers_gyr": 0.8}],
+               "gases": [{**HISTORY["gases"][0], "by_class": [{"life_class": 1, "variant": "a", "share": 1.0}]},
+                         {**HISTORY["gases"][2], "by_class": [{"life_class": 3, "variant": None, "share": 0.25}, {"life_class": 1, "variant": "a", "share": 0.75}]}]}
+    assert life_air_chart.chart(several, "1a")["makers"] == [{"gas": "Methane", "text": "Class 1a 75 percent, Class 3 25 percent"}]
+    assert life_air_chart.chart({**several, "classes": several["classes"][:1]}, "1a")["makers"] == []
+    assert life_air_chart.chart(HISTORY, "1a")["makers"] == []

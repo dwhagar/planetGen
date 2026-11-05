@@ -57,10 +57,13 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     gas         a giant's cloud-forming gases as mole fractions of its stored mixture, `{"CH4": .., "NH3": .., "H2O": .., "H2S": ..}`
                 (`GIANT_CLOUD_GASES`, rounded to 4 significant digits, a gas the mixture lacks is left out); `static/giantpaint.js` reads it for the
                 palette. Left out when the row stores no mixture, and the painter then goes by temperature alone
+    gravG       a giant's surface gravity, in g (MAP.275: the size of its storms); left out when none is stored
     spinH       rotation period, hours (MAP.328); left out when none is stored, and the body is drawn still
     axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
                 orbit's normal)
     tiltDeg     axial tilt, 0 to 180 degrees (past 90 the body turns backwards)
+    thermal     {hex, strength} the body's own glow when it is hotter than about 800 K (MAP.275); left out when it is not
+    ring        the body's stored ring system (MAP.275, `ringlook.ring_look`): {kind, origin, in, out (radii), tau, ice, alpha, rgb, gaps}; left out when none
     locked      true when the body is tidally locked (its rotation period is its orbital period, UX.244); the views then keep
                 its day side toward what it orbits, and the object page says it is locked
 
@@ -75,6 +78,7 @@ from types import SimpleNamespace
 
 from planetgen.physics import (
     atmosphere, atmosphere_colour, gases, giant_colour, photometry, regional_temperature, stellar_library, surface_composition)
+from planetgen.web.maps.ringlook import ring_look
 from planetgen.web.maps.starmap import star_color
 from planetgen.physics import unit_registry as units
 
@@ -341,7 +345,9 @@ def planet_look(planet, kind="planet"):
     _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
     if gas:
         _put(look, "gas", giant_gas_fractions(planet))
+        _put(look, "gravG", _rounded(planet.get("gravity_g"), 3))      # MAP.275: the Rossby deformation radius of its storms
     _put_spin(look, planet)
+    _put(look, "ring", ring_look(planet))     # MAP.275: the rings the body stores, with the gaps its moons dig
     if has_atmosphere:
         look["atm"] = True
         glow = air_glow(planet)
@@ -354,6 +360,7 @@ def planet_look(planet, kind="planet"):
     pressure_pa = planet.get("atmospheric_pressure_pa")
     _put(look, "pkpa", _rounded(_pa_to_kpa(pressure_pa) if pressure_pa is not None else None, 3))
     _put(look, "tempK", _rounded(temp_k, 1))
+    _put(look, "thermal", thermal_glow(temp_k))      # MAP.275: a body hot enough to shine gives itself light
     _put(look, "radiusKm", _rounded(planet.get("radius_km"), 1))
     if not gas:
         _put(look, "roundness", _rounded(planet.get("roundness_ratio"), 4))
@@ -406,54 +413,52 @@ def look_json(look):
 
 def colour_account(look):
     """
-    The info panel's account of how the colour was worked out (UX.158): which stored inputs it used and whether it is a partial estimate
-    or the full account. A pure function of the look record, which carries exactly the inputs the painters had, so it cannot say more than
-    the picture used. `None` for a record that is not a body.
+    The info panel's account of how the colour was worked out (UX.158, DOC.93): which stored inputs it used, in the words of the story (a world's
+    colour comes from its temperature, its ground, its sea and its air). A pure function of the look record, which carries exactly the inputs the
+    painters had, so it cannot say more than the picture used. `None` for a record that is not a body. How sure each part is lives on the
+    References pages (`/references/method/appearance`), which the panel does not repeat.
 
-    A star is full when its colour is a model atmosphere's at its temperature, partial when only its spectral class gave it. A solid world
-    or a giant is a partial estimate for as long as the record says `quality` "estimate" (the colour from temperature and body family, not
-    from the surface composition, cloud and haze) or "composition" (a solid world whose land colour is the lab reflectance of its stored ground
-    types, MAP.274; the cloud and haze are still not stored).
+    A star's colour comes from its temperature and gravity, or from its spectral class alone when no temperature is stored. A solid world or a
+    giant says what its colour comes from and what the picture leaves out: the clouds and haze, and the surface composition while the colour is
+    only the temperature band's (`quality` "estimate"); the clouds and haze while it is the stored ground types' (`quality` "composition").
     """
     body = look.get("body")
     temperature = look.get("tempK")
     if body == "star":
         if temperature is None:
-            return "Partial: colour from its spectral class alone; no temperature is stored for a model atmosphere"
-        return f"Full: colour of a model atmosphere at its effective temperature ({temperature:,.0f} K) and gravity"
+            return "Color from its spectral class"
+        return f"Color from its temperature ({temperature:,.0f} K) and gravity"
     if body not in ("solid", "gas"):
         return None
     kind = look.get("kind")
     layer = "Cloud-top" if body == "gas" else "Ground"
     if temperature is not None:
-        parts = [f"{layer} colour from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K) alone"]
+        parts = [f"{layer} color from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K)"]
     else:
-        parts = [f"{layer} colour is a default: no temperature is stored"]
+        parts = [f"{layer} color is a typical one: its temperature is not known"]
     if body == "solid" and look.get("quality") == "composition":
         known = look.get("landKnown")
-        parts[0] = "Ground colour from the stored ground types (lab reflectance)" + (
-            "" if (known or 1.0) >= 0.995 else "; %d percent of the land has no measured colour and is left out" % round(100.0 * (1.0 - known)))
+        parts[0] = "Ground color from its ground types" + (
+            "" if (known or 1.0) >= 0.995 else "; %d percent of the land has no known color and is left out" % round(100.0 * (1.0 - known)))
     if body == "solid" and look.get("ocean"):
         if look.get("oceanClass"):
-            parts.append(f"sea colour from its ocean class ({look['oceanClass']})")
+            parts.append(f"sea color from its ocean class ({look['oceanClass']})")
         else:
-            parts.append("sea colour is a default: no ocean class is stored")
+            parts.append("sea color is a typical one: its ocean class is not known")
     if look.get("atm") and kind != "rogue_planet":
         if look.get("glow"):
             parts.append("limb glow from the composition of its air under its star")
         else:
-            parts.append("no limb glow: the colour of its air could not be worked out")
+            parts.append("no limb glow: the color of its air is not known")
     if look.get("quality") == "estimate":
-        missing = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
-        head = "Partial estimate: "
-        tail = f". Not used yet: {missing} (not stored)"
+        left_out = "surface composition, clouds, and haze" if body == "solid" else "chemistry bands and haze"
+        tail = f". Left out: {left_out}"
     elif look.get("quality") == "composition":
         # MAP.274: the land colour is the stored ground types' lab reflectance; the clouds and haze are still not stored
-        head = "Partial estimate: "
-        tail = ". Not used yet: clouds and haze (not stored)"
+        tail = ". Left out: clouds and haze"
     else:
-        head, tail = "Full: ", ""
-    return head + "; ".join(parts) + tail
+        tail = ""
+    return "; ".join(parts) + tail
 
 
 def look_note(look):
@@ -465,9 +470,9 @@ def look_note(look):
     if look.get("locked") and look.get("body") != "star":
         notes.append("Tidally locked: its day side stays toward " + ("its planet" if look.get("kind") == "moon" else "its star"))
     elif look.get("spinH") and look.get("body") == "solid":
-        notes.append("Seen from the side of its orbit, with the day and night line down the middle, turning much faster than its real rotation")
+        notes.append("Seen from the side of its orbit, with the day and night line down the middle, shown turning much faster than it really turns")
     elif look.get("spinH"):
-        notes.append("Turning much faster than its real rotation")
+        notes.append("Shown turning much faster than it really turns")
     return "; ".join(notes) or None
 
 
@@ -506,6 +511,22 @@ def blackbody_hex(temperature_k):
         return photometry.star_colour(float(temperature_k)).hex
     except ValueError:
         return None
+
+
+THERMAL_ONSET_K = 800.0
+"""float: The temperature at which a body begins to shine by its own heat, the Draper point (about 525 C); a stand-in, recalled (RNG9)."""
+THERMAL_FULL_K = 2400.0
+"""float: The temperature at which the glow is drawn at full strength: the hottest giants and molten worlds (a stand-in, RNG10)."""
+
+
+def thermal_glow(temperature_k):
+    """The `thermal` entry of a look record (MAP.275): `{hex, strength}`, the blackbody colour of the body's temperature and a strength rising linearly from
+    0 at `THERMAL_ONSET_K` to 1 at `THERMAL_FULL_K`; `None` for a body cooler than the onset or with no temperature."""
+    if temperature_k is None or not math.isfinite(temperature_k) or temperature_k <= THERMAL_ONSET_K:
+        return None
+    strength = min(1.0, (temperature_k - THERMAL_ONSET_K) / (THERMAL_FULL_K - THERMAL_ONSET_K))
+    colour = blackbody_hex(temperature_k)
+    return None if colour is None else {"hex": colour, "strength": round(strength, 3)}
 
 
 def rogue_planet_look(rogue):

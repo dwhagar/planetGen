@@ -37,11 +37,12 @@ that opens the site after the sector-grid switch closed it (`maintenance.SECTOR_
 only while the maps are being rebuilt.
 """
 
+import os
 import signal
 import sys
 import time
 
-from planetgen.admin import updateguard
+from planetgen.admin import stop_reason, updateguard
 from planetgen.cli import warm_progress
 from planetgen.queue import redisqueue, runrecord, units, warmphases, warmstart, wrapper
 from planetgen.util import log
@@ -90,11 +91,58 @@ def _site_database():
         return db_name()
 
 
-def _stop_on_sigterm():
-    """Makes SIGTERM (the update guard's cancel, update.sh's timeout) end the run as cancelled in Redis, as Ctrl+C does."""
+TIME_LIMIT_ENV = "PLANETGEN_WARM_TIME_LIMIT_SECONDS"
+"""str: update.sh's time limit for the stage (`WARM_STAGE_SECONDS`), told to the run so it can say the limit ended it."""
+
+_started = time.monotonic()
+
+
+class Stopped(KeyboardInterrupt):
+    """The run was told to stop by a signal; `reason` says by what. A `KeyboardInterrupt`, so the run is marked cancelled
+    in Redis and its workers stop, as Ctrl+C does."""
+
+    def __init__(self, reason, status):
+        super().__init__(reason)
+        self.reason = reason
+        self.status = status
+
+
+def _who_sent_sigterm():
+    """What ended the run on SIGTERM: the reason a canceller left (`stop_reason`), else update.sh's time limit when the limit it
+    told this run has passed, else that nothing said."""
+    left = stop_reason.take(os.getpid())
+    if left:
+        return left
+    try:
+        limit = float(os.environ.get(TIME_LIMIT_ENV, ""))
+    except ValueError:
+        limit = 0.0
+    if limit > 0 and time.monotonic() - _started >= limit - 5:
+        return f"update.sh's time limit for this stage ({limit:g} s, WARM_STAGE_SECONDS)"
+    return "a SIGTERM that left no reason (a kill, or a stop-all or cancel that could not write one)"
+
+
+def _stop_on_signals():
+    """Makes SIGTERM (the update guard's cancel, a stop-all, update.sh's time limit) and SIGHUP (the terminal closed) end the run as
+    cancelled in Redis, as Ctrl+C does, with the reason in a `Stopped` that `run_warm` prints as one line."""
+    global _started
+    _started = time.monotonic()
+    stop_reason.clear(os.getpid())
+
     def on_term(_signum, _frame):
-        raise KeyboardInterrupt
+        raise Stopped(_who_sent_sigterm(), 143)
+
+    def on_hangup(_signum, _frame):
+        raise Stopped("the terminal it ran in was closed (hangup)", 129)
     signal.signal(signal.SIGTERM, on_term)
+    signal.signal(signal.SIGHUP, on_hangup)
+
+
+def _say_stopped(reason, status):
+    """The one line a stopped warm-up prints, and the exit status."""
+    log.error(f"The cache warm-up was ended by {reason}. What it stored is kept: run `planetgen warm --progress` again and it "
+              f"continues where it stopped.")
+    raise SystemExit(status)
 
 
 def _warm_once(args, reason=None):
@@ -120,7 +168,7 @@ def _warm_once(args, reason=None):
             warmphases.begin(args.database, phases, reason)
             bars = warm_progress.WarmProgress(
                 [step.key for step in steps], log.normal, show=getattr(args, "progress", False),
-                rich_bars=warm_progress.stdout_is_terminal())
+                rich_bars=warm_progress.stdout_is_terminal(), expected=warmup.EXPECTED_SECONDS)
 
             def report_ended():
                 for name in tally.ended:
@@ -183,15 +231,21 @@ def _warm_on_change(args):
 def run_warm(args):
     """
     `planetgen warm`: runs the cache-warming commands the arguments ask for (`_warm_once`), or with `--on-change`
-    what a change asks for (`_warm_on_change`). Exits 1 on any failure.
+    what a change asks for (`_warm_on_change`). Exits 1 on any failure. A run told to stop (SIGTERM, a hangup, Ctrl+C) prints one
+    line saying what ended it and that a rerun continues, and exits 143, 129 or 130, never with a traceback.
     """
     args.database = _site_database()
-    _stop_on_sigterm()
-    if args.on_change is not None:
-        _warm_on_change(args)
-        return
+    _stop_on_signals()
     try:
-        _warm_once(args)
-    except Failed as exc:
-        log.error(f"error: the cache warm-up stopped: {exc}")
-        raise SystemExit(1)
+        if args.on_change is not None:
+            _warm_on_change(args)
+            return
+        try:
+            _warm_once(args)
+        except Failed as exc:
+            log.error(f"error: the cache warm-up stopped: {exc}")
+            raise SystemExit(1)
+    except Stopped as stop:
+        _say_stopped(stop.reason, stop.status)
+    except KeyboardInterrupt:
+        _say_stopped("Ctrl+C", 130)

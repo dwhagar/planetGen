@@ -3,6 +3,7 @@
 import math
 import json
 
+import pytest
 from planetgen.web.maps import bodylook as bl
 
 from tests.air_support import fold_air
@@ -265,37 +266,35 @@ def test_a_world_with_no_stored_ground_or_no_land_keeps_the_estimate_and_a_giant
 
 def test_the_note_says_where_the_land_colour_came_from_and_what_was_left_out():
     whole = bl.planet_look(dict(_planet(), **_ground(basaltic=1.0)))
-    assert "stored ground types" in bl.look_note(whole)
+    assert "ground types" in bl.look_note(whole)
     partial = bl.planet_look(dict(_planet(), **_ground(basaltic=0.6, metal=0.4)))
-    assert "40 percent of the land has no measured colour" in bl.look_note(partial)
+    assert "40 percent of the land has no known color" in bl.look_note(partial)
 
 
-def test_the_colour_account_names_the_inputs_the_picture_used_and_calls_the_estimate_partial():
-    """UX.158: the info panel line says which stored values gave the colour and that it is partial while the composition is not used."""
+def test_the_colour_account_names_the_inputs_the_picture_used_and_what_it_leaves_out():
+    """UX.158, DOC.93: the info panel line says which stored values gave the colour and what the picture leaves out, in the words of the story."""
     earth = bl.look_note(bl.planet_look(_planet()))
-    assert earth.startswith("Partial estimate: Ground colour from its mean surface temperature (288 K) alone; "
-                            "sea colour from its ocean class (neutral); limb glow") or "no limb glow" in earth
-    assert "sea colour from its ocean class (neutral)" in earth
-    assert "Not used yet: surface composition, clouds and haze (not stored)" in earth
+    assert earth.startswith("Ground color from its mean surface temperature (288 K); sea color from its ocean class (neutral); ")
+    assert earth.endswith("Left out: surface composition, clouds, and haze")
     bare = bl.colour_account(bl.planet_look(_planet(surface_temperature_k=None, ocean_class=None, atmosphere="None")))
-    assert "Ground colour is a default: no temperature is stored" in bare
-    assert "sea colour is a default: no ocean class is stored" in bare and "limb" not in bare
+    assert "Ground color is a typical one: its temperature is not known" in bare
+    assert "sea color is a typical one: its ocean class is not known" in bare and "limb" not in bare
     giant = bl.colour_account(bl.planet_look(_planet(body_type="g", surface_temperature_k=165.0)))
-    assert giant.startswith("Partial estimate: Cloud-top colour from its mean cloud-top temperature (165 K) alone")
-    assert "chemistry bands and haze" in giant and "sea colour" not in giant
+    assert giant.startswith("Cloud-top color from its mean cloud-top temperature (165 K)")
+    assert "chemistry bands and haze" in giant and "sea color" not in giant
     rogue = bl.colour_account(bl.planet_look(_planet(), "rogue_planet"))
     assert "limb" not in rogue
 
 
-def test_the_colour_account_of_a_star_is_full_with_a_temperature_and_partial_without():
+def test_the_colour_account_of_a_star_comes_from_its_temperature_or_its_spectral_class():
     star = {"id": 3, "star_type": "G2V", "temperature_k": 5772.0, "luminosity_w": 3.828e26, "radius_km": 695_700.0}
-    assert bl.colour_account(bl.star_look(star)) == "Full: colour of a model atmosphere at its effective temperature (5,772 K) and gravity"
-    assert bl.colour_account(bl.star_look(dict(star, temperature_k=None))).startswith("Partial: colour from its spectral class alone")
+    assert bl.colour_account(bl.star_look(star)) == "Color from its temperature (5,772 K) and gravity"
+    assert bl.colour_account(bl.star_look(dict(star, temperature_k=None))) == "Color from its spectral class"
     assert bl.colour_account({"body": "nebula"}) is None
-    # MAP.274: a solid world coloured from its stored ground types no longer lacks the surface composition, but the cloud and haze are still not stored
+    # MAP.274: a solid world coloured from its stored ground types no longer lacks the surface composition, but the cloud and haze are still left out
     composed = bl.colour_account(dict(bl.planet_look(_planet()), quality="composition"))
-    assert composed.startswith("Partial estimate: Ground colour from the stored ground types (lab reflectance)")
-    assert "Not used yet: clouds and haze (not stored)" in composed and "surface composition" not in composed
+    assert composed.startswith("Ground color from its ground types")
+    assert composed.endswith("Left out: clouds and haze") and "surface composition" not in composed
 
 
 def _air_look(pressure_kpa, gravity_g=1.0, **over):
@@ -381,3 +380,14 @@ def test_the_air_veils_the_ground_by_its_optical_depth_and_stored_haze_and_cloud
     airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0))
     assert not {"veil", "haze", "cloudCover"} & set(airless)
     assert "veil" not in bl.planet_look(_planet(body_type="g"))
+def test_a_body_hotter_than_the_draper_point_glows_in_the_colour_of_its_heat_and_a_cooler_one_does_not():
+    """MAP.275: `thermal` is {hex, strength}, 0 at 800 K rising to 1 at 2400 K, the blackbody colour of the temperature."""
+    assert bl.thermal_glow(700.0) is None and bl.thermal_glow(800.0) is None and bl.thermal_glow(None) is None
+    warm, hot, white = bl.thermal_glow(1200.0), bl.thermal_glow(2000.0), bl.thermal_glow(5000.0)
+    assert 0.0 < warm["strength"] < hot["strength"] < white["strength"] == 1.0
+    assert hot["hex"].startswith("#") and len(hot["hex"]) == 7
+    red = lambda h: int(h[1:3], 16) / max(1, int(h[5:7], 16))
+    assert red(warm["hex"]) > red(white["hex"]), (warm, white)
+    giant = {"id": 4, "body_type": "g", "planet_class": "G", "surface_temperature_k": 1500.0, "radius_km": 80000.0}
+    assert bl.planet_look(giant)["thermal"]["strength"] == pytest.approx(0.438, abs=0.001)
+    assert "thermal" not in bl.planet_look(dict(giant, surface_temperature_k=300.0))

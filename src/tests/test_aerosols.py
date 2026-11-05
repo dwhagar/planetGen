@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 from planetgen.datasets import fetch
-from planetgen.physics import aerosols, air_column, atmospheric_radiation as ar, constants, stellar_spectrum as ss
+from planetgen.physics import aerosols, air_column, atmospheric_radiation as ar, constants, gases, stellar_spectrum as ss
 
 
 def _air(partials, gravity):
@@ -99,14 +99,18 @@ def test_the_methane_haze_gate_follows_the_ratio_and_the_hydrogen():
 
 def test_the_titan_like_haze_is_the_order_of_titans_and_never_a_preset():
     depths = np.array([_haze(TITAN, 94.0, s).tau for s in range(300)])
-    assert 0.003 < depths.min() < 0.1 and 1.0 < depths.max() < 30.0                  # Titan's 9.6 at 500 nm is a target in the span's order
+    assert depths.min() < 9.6 < depths.max() < 100.0                                  # Titan's 9.6 at 500 nm is a target inside the span (GEN.1229)
     assert len(set(np.round(depths, 6))) > 250
     assert _haze(EARTH, 288.0, 1) is aerosols.NO_HAZE
     assert _haze(HOT_JUPITER_LIKE, 300.0, 1) is aerosols.NO_HAZE                    # no methane, no haze
 
 
-def _haze(column, temperature, seed, star_temperature_k=5772.0):
-    return aerosols.haze_in(column, temperature, aerosols.draw_haze_draws(random.Random(seed)), star_temperature_k)
+TITAN_FAR_UV = aerosols.FarUv(1.0 / 9.54 ** 2, 0.9)
+"""FarUv: The Sun's far ultraviolet at Titan's distance (9.54 AU), nearly all of it the chromosphere's."""
+
+
+def _haze(column, temperature, seed, star_temperature_k=5772.0, far_uv=TITAN_FAR_UV):
+    return aerosols.haze_in(column, temperature, aerosols.draw_haze_draws(random.Random(seed)), star_temperature_k, far_uv)
 
 
 def test_a_haze_takes_a_share_of_the_sunlight_that_grows_with_its_depth_and_sits_aloft():
@@ -127,8 +131,8 @@ def test_a_cooler_star_has_more_of_its_light_where_the_haze_absorbs_less():
 
 def test_a_thick_haze_takes_its_sunlight_higher_up_than_a_thin_one_of_the_same_mass_profile():
     draws = aerosols.draw_haze_draws(random.Random(2))
-    thin = aerosols.haze_in(TITAN, 94.0, aerosols.HazeDraws(draws.kzz_m2_s, 0.01, draws.radius_m), 5772.0)
-    thick = aerosols.haze_in(TITAN, 94.0, aerosols.HazeDraws(draws.kzz_m2_s, 1.0, draws.radius_m), 5772.0)
+    thin = aerosols.haze_in(TITAN, 94.0, aerosols.HazeDraws(draws.kzz_m2_s, 0.01, draws.radius_m), 5772.0, TITAN_FAR_UV)
+    thick = aerosols.haze_in(TITAN, 94.0, aerosols.HazeDraws(draws.kzz_m2_s, 1.0, draws.radius_m), 5772.0, TITAN_FAR_UV)
     assert thick.tau > thin.tau and thick.pressure_pa < thin.pressure_pa
 
 
@@ -233,3 +237,100 @@ def test_the_aerosol_stream_is_keyed_on_the_bodys_identity_and_conditions_never_
     assert first(_body(planet_class="M")) == first(_body(planet_class="D")) == first(_body(planet_class=None))
     assert first(_body()) != first(_body(atmospheric_pressure=5e5))
     assert first(_body()) != first(_body(surface_temperature=250.0))
+
+
+# --- GEN.982: the methane the light can break limits the haze -------------------------------------------------------------------------
+
+def test_no_far_ultraviolet_means_no_methane_broken_and_no_haze():
+    assert _haze(TITAN, 94.0, 1, far_uv=None) is aerosols.NO_HAZE
+    assert aerosols.photon_limited_supply_kg_m2_s(TITAN, 5772.0, None) == 0.0
+    assert aerosols.photon_limited_supply_kg_m2_s(TITAN, None, TITAN_FAR_UV) == 0.0
+
+
+def test_a_fainter_far_ultraviolet_makes_a_thinner_haze_when_the_light_is_what_limits_it():
+    dim = aerosols.FarUv(1.0e-6, 0.9)
+    assert aerosols.photon_limited_supply_kg_m2_s(TITAN, 5772.0, dim) == pytest.approx(
+        1.0e-6 / TITAN_FAR_UV.ratio * aerosols.photon_limited_supply_kg_m2_s(TITAN, 5772.0, TITAN_FAR_UV))
+    for seed in range(5):
+        assert _haze(TITAN, 94.0, seed, far_uv=dim).tau < _haze(TITAN, 94.0, seed).tau
+
+
+def test_a_bright_far_ultraviolet_leaves_the_diffusion_limit_in_charge():
+    draws = aerosols.draw_haze_draws(random.Random(3))
+    diffusion = aerosols.haze_supply_kg_m2_s(TITAN, 94.0, draws.kzz_m2_s)
+    bright = aerosols.FarUv(1.0e6, 0.9)
+    assert aerosols.photon_limited_supply_kg_m2_s(TITAN, 5772.0, bright) > diffusion
+    assert _haze(TITAN, 94.0, 3, far_uv=bright).tau == pytest.approx(_haze(TITAN, 94.0, 3, far_uv=aerosols.FarUv(1.0e9, 0.9)).tau)
+
+
+def test_methane_thinner_than_the_absorbing_column_is_broken_only_as_far_as_there_is_any():
+    from planetgen.physics import photolysis
+    thin_air = _air({"N2": 1.0e5, "CH4": 1.0e-7}, 9.8)
+    full = photolysis.photon_limited_flux_mol_m2_s("CH4", 1.0)
+    limited = aerosols.photon_limited_supply_kg_m2_s(thin_air, 5772.0, aerosols.FarUv(1.0, 1.0)) / gases.gas("CH4").molar_mass
+    assert limited < 1.0e-3 * full
+
+
+def test_a_cool_active_star_is_not_given_the_blackbody_templates_small_methane_rate():
+    from planetgen.physics import photolysis
+    assert photolysis.blended_spectral_ratio("CH4", 3400.0, 1.0) == 1.0
+    assert photolysis.blended_spectral_ratio("CH4", 3400.0, 0.0) == photolysis.spectral_ratio("CH4", 3400.0) < 0.02
+    assert photolysis.blended_spectral_ratio("CH4", 3400.0, 0.5) == pytest.approx(0.5 * (1.0 + photolysis.spectral_ratio("CH4", 3400.0)))
+    with pytest.raises(ValueError):
+        photolysis.blended_spectral_ratio("CH4", 3400.0, 1.5)
+
+
+# --- GEN.1229: the haze depth from the mass flux, the grain it grows to and the time it takes to fall ----------------------------------
+
+TITAN_MASS_FLUX_KG_M2_S = 3.5e-13
+"""float: Titan's haze production, 3.5e-14 g/cm2/s (Podolak and Bar-Nun, in [R2008]); later work gives about 1e-14."""
+TITAN_MONOMER_M = 5.0e-8
+
+
+def _tau(column, temperature, monomer, mdot):
+    _, fall, _ = aerosols.haze_grain(column, temperature, monomer, mdot, 1.0e-4)
+    return 3.0 * aerosols.HAZE_Q_EXT * mdot * fall / (4.0 * aerosols.HAZE_DENSITY_KG_M3 * monomer)
+
+
+def test_titans_own_mass_flux_gives_a_haze_of_titans_order_with_aggregates_of_some_microns():
+    """Titan's measured depth is 9.6 at 500 nm; its production is 1e-14 to 3.5e-14 g/cm2/s. The depth is not tuned to either: it follows from the monomer
+    radius, the fractal dimension and the coagulation balance, and lands within a factor of 3 of the measured value for both fluxes."""
+    for mdot in (TITAN_MASS_FLUX_KG_M2_S, TITAN_MASS_FLUX_KG_M2_S / 3.5):
+        assert 9.6 / 3.0 < _tau(TITAN, 94.0, TITAN_MONOMER_M, mdot) < 9.6 * 3.0
+    radius, fall_s, _ = aerosols.haze_grain(TITAN, 94.0, TITAN_MONOMER_M, TITAN_MASS_FLUX_KG_M2_S, 1.0e-4)
+    assert 1.0e-6 < radius < 5.0e-5 and 10.0 * 3.15e7 < fall_s < 1000.0 * 3.15e7
+
+
+def test_more_production_grows_larger_grains_that_fall_sooner_and_make_a_thicker_haze():
+    low, high = 1.0e-14, 1.0e-12
+    r_low, fall_low, _ = aerosols.haze_grain(TITAN, 94.0, TITAN_MONOMER_M, low, 1.0e-4)
+    r_high, fall_high, _ = aerosols.haze_grain(TITAN, 94.0, TITAN_MONOMER_M, high, 1.0e-4)
+    assert r_high > r_low > TITAN_MONOMER_M and fall_high < fall_low
+    assert _tau(TITAN, 94.0, TITAN_MONOMER_M, high) > _tau(TITAN, 94.0, TITAN_MONOMER_M, low)
+
+
+def test_the_grain_is_where_it_falls_out_as_fast_as_it_coagulates():
+    mdot = TITAN_MASS_FLUX_KG_M2_S
+    radius, fall_s, _ = aerosols.haze_grain(TITAN, 94.0, TITAN_MONOMER_M, mdot, 1.0e-4)
+    profile = aerosols._FallProfile(TITAN, 94.0, 1.0e-4)
+    mass_kg = aerosols.HAZE_DENSITY_KG_M3 * 4.0 / 3.0 * math.pi * TITAN_MONOMER_M ** 3 * (radius / TITAN_MONOMER_M) ** aerosols.HAZE_FRACTAL_DIMENSION
+    coagulation_k = 4.0 * constants.BOLTZMANN * profile.skin_k / (3.0 * profile.skin_viscosity)
+    coagulation_s = profile.scale_height_m * mass_kg / (coagulation_k * mdot * fall_s)
+    assert fall_s == pytest.approx(coagulation_s, rel=0.01)
+
+
+def test_no_production_has_no_fall_and_a_flux_the_monomers_already_fall_out_of_keeps_the_monomers():
+    radius, _, _ = aerosols.haze_grain(TITAN, 94.0, TITAN_MONOMER_M, 0.0, 1.0e-4)
+    assert radius == TITAN_MONOMER_M
+    radius_tiny, _, _ = aerosols.haze_grain(TITAN, 94.0, TITAN_MONOMER_M, 1.0e-30, 1.0e-4)
+    assert radius_tiny == pytest.approx(TITAN_MONOMER_M, rel=0.05)
+
+
+def test_a_denser_air_slows_the_fall_and_the_same_flux_hazes_thicker():
+    thick_air = _air({"N2": 133000.0 * 4, "CH4": 7000.0 * 4}, 1.35)
+    assert _tau(thick_air, 94.0, TITAN_MONOMER_M, TITAN_MASS_FLUX_KG_M2_S) != pytest.approx(_tau(TITAN, 94.0, TITAN_MONOMER_M, TITAN_MASS_FLUX_KG_M2_S), rel=0.01)
+
+
+def test_the_haze_level_lies_inside_the_column():
+    _, _, level = aerosols.haze_grain(TITAN, 94.0, TITAN_MONOMER_M, TITAN_MASS_FLUX_KG_M2_S, 1.0e-4)
+    assert 1.0e-4 < level(0.5) < TITAN.pressure_pa and level(0.1) < level(0.9)

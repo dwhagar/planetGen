@@ -1477,9 +1477,28 @@ export function createStageView(host) {
   function openBlock(block) {
     if (!view || animation || !P.isBlock(block)) return false;
     const next = S.windowStage(block, stage.win ? stage.win.g : P.DEFAULT_WINDOW);
-    if (resolve(next).problem) return false;
-    flyToStage(next);
+    const r = resolve(next);
+    if (r.problem) return false;
+    flyToStage(next, { camera: holdingLevel(cameraFor(r), block.m) });
     return true;
+  }
+
+  // MAP.376: the camera `to` out far enough that the window it lands in is at `level` (a block's m) or coarser. The window follows the camera
+  // (MAP.337), and a block that is small beside its level (one at the core, or the few cells a window holds) fills the view from nearer than
+  // the level's own distance, which would land in a finer window than the block's; the camera is moved out past each finer window's fit until the
+  // block's level holds, so a flight to a family or a region's block frames the whole block at every level of the ladder.
+  function holdingLevel(to, level) {
+    const quat = to.quat.toArray ? to.quat.clone() : new THREE.Quaternion().fromArray(to.quat);
+    let dist = to.dist;
+    for (let n = 0; n <= P.STAGE_LEVELS.length; n++) {
+      const held = stageForCamera({ target: to.target, dist: dist, quat: quat.toArray() });
+      if (!held || !held.win || held.win.centre.m >= level) break;
+      const r = resolve(held);
+      if (r.problem) break;
+      const fit = centeredFit(fitPointsOf(r), S.extentOf(r.view.blocks).center, quat).dist;
+      dist = Math.max(dist, fit) * (1 + 1e-3) * (1 + STAGE_FIT_TOLERANCE);
+    }
+    return { target: to.target.slice(), dist: dist, quat: quat };
   }
 
   // MAP.319: flies to a region: its 9-block's window, with the camera where the region's bounding sphere
@@ -1493,7 +1512,8 @@ export function createStageView(host) {
       target: target.center.slice(), quat: view.quat.toArray(),
       dist: FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }),
     };
-    flyToStage(next, { camera: want });
+    // MAP.376: held to the block's own level (a family's block or a region's 9-block), so the window the camera lands in is that block's.
+    flyToStage(next, { camera: holdingLevel(want, block.m) });
     return true;
   }
 
@@ -1523,7 +1543,7 @@ export function createStageView(host) {
     accentColor: host.accentColor || "#4f5fe8",
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, fetchUnchartedScene: host.fetchUnchartedScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
-    hideCell: host.hideCell || function () {}, preview: host.preview || null,
+    hideCell: host.hideCell || function () {}, preview: host.preview || null, volumeSingles: host.volumeSingles || null,
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
@@ -3337,6 +3357,8 @@ export function createStageView(host) {
       }
       return;
     }
+    // MAP.222: a layer may take a double click for itself (a nebula opens its window); it says so by returning true.
+    if (found.layer.activate && found.layer.activate(found.entry)) return;
     flyToEntry(found.entry);
   }
 
@@ -4013,6 +4035,8 @@ export function createStageView(host) {
   function selectBodyRef(ref) { systemStage.select(ref); }
 
   return {
+    // MAP.142: the nebulae of the sector that is up which the map draws from their own points (nebulavolume.singleSource).
+    sectorNebulaSources: function () { return sectorStage.nebulaSources(); },
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,

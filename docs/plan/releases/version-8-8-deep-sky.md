@@ -21,15 +21,11 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.179 | Scattered nebulae as markers from level 8 | GEN.202 | Phase 2. Foundations lane 2. |
-| MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map |  | Phase 2. Foundations lane 2. |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table |  | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover |  | Phase 2. Foundations lane 2. |
 | MAP.181 | Dust colour for the dark nebula family on both themes |  | Phase 2. Foundations lane 2. |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
-| MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone |  | Split from MAP.194. |
-| MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | MAP.142 | Split from MAP.191. |
-| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.215 |  |
 
 ### Clusters and satellites on the map
 
@@ -67,5 +63,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | MAP.222, MAP.224 | Split from MAP.194. |
-| MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.222, MAP.223 |  |
+| MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | MAP.224 | Split from MAP.194. |
+| MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.223 |  |

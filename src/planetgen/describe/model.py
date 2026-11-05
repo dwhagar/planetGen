@@ -253,4 +253,4 @@ def check(node):
         if isinstance(item, dict) and "swatch" in item:
             swatch_item = item["swatch"]
             if not re.fullmatch(r"#[0-9a-f]{6}", str(swatch_item.get("hex"))) or not swatch_item.get("word"):
-                raise ValueError(f"a swatch needs a #rrggbb colour and a word, not {swatch_item!r}")
+                raise ValueError(f"a swatch needs a #rrggbb color and a word, not {swatch_item!r}")

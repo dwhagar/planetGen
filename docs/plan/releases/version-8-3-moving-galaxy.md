@@ -20,7 +20,6 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
 | MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter |  |  |
 
 ### Nightly maintenance

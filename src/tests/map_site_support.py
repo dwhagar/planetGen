@@ -239,6 +239,60 @@ def nebula_shape_payload(nebula_id, lod):
             "faces": [[int(i) for i in face] for face in faces]}
 
 
+def nebula_volume_payload(key):
+    """What `GET /api/galaxy/nebula-volume?key=` answers for the fixture's nebulae (the two clouds and the group field), sampled by
+    the real sampler from a stand-in density (MAP.365)."""
+    import base64
+
+    from planetgen.db.nebula_volumes import inside_block
+    from planetgen.galaxy import nebula_blocks, nebula_volume
+    from planetgen.galaxy.drill import parse_node_key
+    from planetgen.galaxy.nodecut import block_box
+    from tests import nebula_density_stand_in as stand_in
+
+    block = parse_node_key(key)
+    lo, hi = block_box(block, EDGE_PC)
+    found = []
+    for cloud in list(NEBULAE) + [dict(n, descriptor=n["family"]) for n in NEBULA_GROUP_FIELD]:
+        gap = math.sqrt(sum(max(lo[i] - c, 0.0, c - hi[i]) ** 2 for i, c in enumerate((cloud["x"], cloud["y"], cloud["z"]))))
+        if gap > cloud["radius_pc"]:
+            continue
+        family = cloud.get("family") or ("dark" if cloud.get("descriptor") == "dark" else "diffuse")
+        found.append({"x": cloud["x"], "y": cloud["y"], "z": cloud["z"], "radius_pc": cloud["radius_pc"], "family": family})
+    volume = nebula_volume.sample_group(found, inside_block(block, EDGE_PC), stand_in.density, stand_in.FORM_LEVEL,
+                                        stand_in.MAX_DETAIL, nebula_blocks.FAMILIES)
+    packed = nebula_volume.pack(volume)
+    return {"key": key, "format": "NVOL1", "level": packed[5], "count": int.from_bytes(packed[6:10], "little"),
+            "data": base64.b64encode(packed).decode("ascii")}
+
+
+def single_nebula_volume_payload(nebula_id):
+    """What `GET /api/nebulae/<id>/volume` answers for a fixture nebula: that one cloud sampled alone by the real sampler from the stand-in
+    density, whole (MAP.142)."""
+    import base64
+
+    from planetgen.galaxy import nebula_blocks, nebula_volume
+    from tests import nebula_density_stand_in as stand_in
+
+    cloud = next((n for n in NEBULAE if int(n["id"]) == int(nebula_id)), None)
+    if cloud is None:
+        # A nebula of the fixture sector (`PHENOMENA`): at its offset from the sector's centre.
+        row = next((p for p in PHENOMENA if p["type"] == "nebula" and int(p["id"]) == int(nebula_id)), None)
+        if row is None:
+            raise apiclient.NotFoundError(f"No such nebula: {nebula_id}")
+        centre = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == SECTOR_ID))
+        cloud = {"x": centre[0] + row["offset_x_ly"] / 3.26156, "y": centre[1] + row["offset_y_ly"] / 3.26156,
+                 "z": centre[2] + row["offset_z_ly"] / 3.26156, "radius_pc": row["radius_ly"] / 3.26156, "descriptor": row["descriptor"]}
+    descriptor = cloud.get("descriptor")
+    family = cloud.get("family") or (descriptor if descriptor in nebula_blocks.FAMILIES else "diffuse")
+    volume = nebula_volume.sample_group(
+        [{"x": cloud["x"], "y": cloud["y"], "z": cloud["z"], "radius_pc": cloud["radius_pc"], "family": family}], None,
+        stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL, nebula_blocks.FAMILIES)
+    packed = nebula_volume.pack(volume)
+    return {"id": int(nebula_id), "format": "NVOL1", "level": packed[5], "count": int.from_bytes(packed[6:10], "little"),
+            "data": base64.b64encode(packed).decode("ascii")}
+
+
 def _point(kind, mass_solar, **fields):
     """A fixture point as a node lists it: its mass and the luminosity of a star of it (MAP.208), and its
     own light as a small number."""
@@ -918,6 +972,12 @@ class FixtureApi:
     def get_nebula_shape(self, db, nebula_id, lod="low"):
         return nebula_shape_payload(nebula_id, lod)
 
+    def get_galaxy_nebula_volume(self, db, key):
+        return nebula_volume_payload(key)
+
+    def get_nebula_volume(self, db, nebula_id):
+        return single_nebula_volume_payload(nebula_id)
+
     def get_sector(self, db, sector_id):
         if int(sector_id) not in [s[0] for s in SECTORS]:
             raise apiclient.NotFoundError(f"No such sector: {sector_id}")
@@ -970,7 +1030,7 @@ class FixtureApi:
 
 _APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_nebula_shape", "get_system_scene",
+              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_nebula_shape", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 

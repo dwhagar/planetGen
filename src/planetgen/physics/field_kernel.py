@@ -25,6 +25,12 @@ Two layers:
   dynamical or crossing time, an exit found by bisecting the step's own Hermite curve), and numba, without
   `fastmath`, uses the same arithmetic in the same order as the Python it replaced, so paths agree to 4e-16.
 
+**A local origin (GEN.375).** Positions are absolute galactic metres, and out at the 262 kpc reach a float64 there is 1,049 km apart
+(32.8 km at the Sun), which is more than a sector path's own steps can stand: a step added to an absolute position loses its low bits,
+and the loss builds up over the steps. So each call subtracts an origin (the first point of `accelerations` and `potentials`, the path's
+start for `integrate`) from every position before its loop and runs the sums on the small numbers; only the cell test (`inside`, which
+takes absolute metres) and the returned knots add the origin back. The result does not depend on where in the galaxy the sector is.
+
 A cell is described by numbers, not a callable, because a compiled loop cannot call back into Python: `inside(kind,
 params, x, y, z)` with `kind` one of `BOX`, `BALL`, `CORE` or `SHELL` (see `sector_path.Cell`).
 """
@@ -126,7 +132,7 @@ def _points(points):
     if array.ndim == 1:
         array = array.reshape(1, -1)
     if array.ndim != 2 or array.shape[1] != 3:
-        raise ValueError(f"points must be (n, 3) metres, got shape {array.shape}")
+        raise ValueError(f"points must be (n, 3) meters, got shape {array.shape}")
     return array
 
 
@@ -144,7 +150,8 @@ def accelerations(points, masses, softening, smooth=None):
         numpy.ndarray: `(n, 3)` accelerations, m/s^2.
     """
     array = _points(points)
-    out = _accelerations(array, masses.positions, masses.mus, float(softening) ** 2)
+    origin = array[0]
+    out = _accelerations(array - origin, masses.positions - origin, masses.mus, float(softening) ** 2)
     if smooth is not None:
         out = out + np.asarray(smooth(array), dtype=np.float64).reshape(-1, 3)
     return out
@@ -164,7 +171,8 @@ def potentials(points, masses, softening, smooth=None):
         numpy.ndarray: `(n,)` potentials.
     """
     array = _points(points)
-    out = _potentials(array, masses.positions, masses.mus, float(softening) ** 2)
+    origin = array[0]
+    out = _potentials(array - origin, masses.positions - origin, masses.mus, float(softening) ** 2)
     if smooth is not None:
         out = out + np.asarray(smooth(array), dtype=np.float64).reshape(-1)
     return out
@@ -316,17 +324,23 @@ def integrate(position, velocity, positions, mus, exclude, kind, params, edge_m,
     """
     One body's path through a cell, `sector_path.integrate_path`'s algorithm in one compiled call.
 
+    The sums run on positions measured from the path's start (the local origin, GEN.375); `inside` gets the absolute
+    position back and the returned knots are absolute again.
+
     Returns:
         tuple: `(times (k,), positions (k, 3), velocities (k, 3), exited, steps)`, the kept knots.
     """
-    px, py, pz = position[0], position[1], position[2]
+    ox, oy, oz = position[0], position[1], position[2]
+    px = py = pz = 0.0
     vx, vy, vz = velocity[0], velocity[1], velocity[2]
     softening_sq = softening_m * softening_m
-    chosen = select(px, py, pz, vx, vy, vz, positions, mus, exclude, edge_m, softening_m, tolerance_m, limit)
+    chosen = select(ox, oy, oz, vx, vy, vz, positions, mus, exclude, edge_m, softening_m, tolerance_m, limit)
     active_positions = np.empty((chosen.shape[0], 3))
     active_mus = np.empty(chosen.shape[0])
     for c in range(chosen.shape[0]):
-        active_positions[c] = positions[chosen[c]]
+        active_positions[c, 0] = positions[chosen[c], 0] - ox
+        active_positions[c, 1] = positions[chosen[c], 1] - oy
+        active_positions[c, 2] = positions[chosen[c], 2] - oz
         active_mus[c] = mus[chosen[c]]
     speed0 = math.sqrt(vx * vx + vy * vy + vz * vz)
     max_step = edge_m / (speed0 * 20.0)
@@ -354,7 +368,7 @@ def integrate(position, velocity, positions, mus, exclude, kind, params, edge_m,
         bx, by, bz, dynamical_next, nearest_next = _pull(nx, ny, nz, active_positions, active_mus, softening_sq,
                                                          step_fraction)
         wx, wy, wz = hx + 0.5 * h * bx, hy + 0.5 * h * by, hz + 0.5 * h * bz
-        if not inside(kind, params, nx, ny, nz):
+        if not inside(kind, params, ox + nx, oy + ny, oz + nz):
             # Where the step leaves the cell: bisect the step's own Hermite curve.
             a_p = np.array([px, py, pz])
             a_v = np.array([vx, vy, vz])
@@ -366,7 +380,7 @@ def integrate(position, velocity, positions, mus, exclude, kind, params, edge_m,
             for _bisect in range(40):
                 middle = 0.5 * (low + high)
                 _hermite(t, a_p, a_v, t + h, b_p, b_v, middle, out_p, out_v)
-                if inside(kind, params, out_p[0], out_p[1], out_p[2]):
+                if inside(kind, params, ox + out_p[0], oy + out_p[1], oz + out_p[2]):
                     low = middle
                 else:
                     high = middle
@@ -398,6 +412,8 @@ def integrate(position, velocity, positions, mus, exclude, kind, params, edge_m,
     out_velocities = np.empty((kept.shape[0], 3))
     for c in range(kept.shape[0]):
         times[c] = st[kept[c]]
-        out_positions[c] = sp[kept[c]]
+        out_positions[c, 0] = ox + sp[kept[c], 0]
+        out_positions[c, 1] = oy + sp[kept[c], 1]
+        out_positions[c, 2] = oz + sp[kept[c], 2]
         out_velocities[c] = sv[kept[c]]
     return times, out_positions, out_velocities, exited, steps

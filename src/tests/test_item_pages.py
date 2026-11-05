@@ -485,7 +485,7 @@ def test_gen1108_a_planets_page_has_the_climate_by_latitude_table_between_the_at
     assert page.index('id="sheet-atmosphere"') < page.index('id="sheet-bands"') < page.index('id="sheet-composition"')
     table = page.split('id="sheet-bands"')[1].split("</section>")[0]
     assert "Climate by latitude" in table and "North polar" in table and "South polar" in table and "Equator" in table
-    assert "Annual mean temperature" in table and "Longest day of the year" in table and "Polar day and night" in table
+    assert "Annual mean temperature" in table and "Longest unbroken day" in table and "Polar day and night" in table
     assert "no day and night range stored" not in page
 
 
@@ -563,7 +563,7 @@ def test_a_planet_whose_life_changed_its_air_has_a_collapsed_life_and_air_chart_
     assert re.search(r'<details[^>]*id="life-and-air"(?![^>]*\bopen\b)', page), "the chart starts collapsed"
     block = page.split('id="life-and-air"')[1].split("</details>")[0]
     assert "Life and air through the ages" in page and '<svg class="life-air-chart"' in block and block.count("<polyline") == 3
-    assert '<li value="1">' in block and "Speculative chemistry" in block and 'class="life-air-table"' in block and "29 kPa" in block
+    assert '<li value="1">' in block and "/references/speculative#class-" in block and 'class="life-air-table"' in block and "29 kPa" in block
     assert page.index('id="life-paragraph-heading"') < page.index('id="life-and-air"') < page.index('id="item-properties"')
 
 

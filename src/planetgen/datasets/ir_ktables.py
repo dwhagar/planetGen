@@ -11,7 +11,7 @@ ARCiS-format correlated-k tables at resolving power 1000 from 0.3 to 50 micron, 
 - H2O from the POKAZATEL line list [R3571],
 - CO2 from the UCL-4000 line list [R4854],
 - CH4 from the YT34to10 line list [R4855],
-- NH3 from CoYuTe [R0847], SO2 from ExoAmes [R5081], H2S from AYT2 [R5082], CO from Li2015 [R5083] and HCN from Harris [R5084]
+- NH3 from CoYuTe [R0847], SO2 from ExoAmes [R5099], H2S from AYT2 [R5098], CO from Li2015 [R5096] and HCN from Harris [R5097]
   (GEN.852 part 2; the five files share the axes of the first three).
 
 Each file is 340 to 470 MB. The eight are transient pieces: setup downloads them once, checks their sha256, reduces them to the
@@ -237,7 +237,7 @@ DATASET = fetch.Dataset(
     title="Infrared correlated-k tables of H2O, CO2, CH4, NH3, SO2, H2S, CO and HCN (ExoMolOP, R1000)",
     source="[R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com",
     pieces=tuple(fetch.Piece(name, url, sha, size, transient=True) for name, url, sha, size in GASES.values()),
-    replaces="the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band centre of the gas table",
+    replaces="the band-strength and wing stand-ins of the gray infrared opacity: plateau opacities per band center of the gas table",
     fill="AD10",
     fallback="none at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it",
     derived=(DERIVED,),

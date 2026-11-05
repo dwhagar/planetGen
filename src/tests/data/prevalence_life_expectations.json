@@ -1,13 +1,14 @@
 {
  "reference": {
   "kind": "stand-in: Boss's prevalence targets for the life class system (docs/design/habitability/life-classes.md 5.2, 9:13 PM EDT 2026-10-28), tier T9, tweak level L3; set from Boss's rule that sentient life is the rarest and from Core 1's timing review (complex cells 2.5, animals 3, civilization 60 Gyr, scale 1.0), not from observation",
-  "worlds": "stops_before_animals: every terrestrial planet and moon with a life chemistry in whole seeded systems, with the default configuration. The other three measures: the oxygenic ones among them, in systems made around G2V and K5V (GEN.907, Boss 6:04 AM EDT 10-29: the bands are per oxygenic world, Core 1's figures describe oxygenic life)"
+  "worlds": "stops_before_animals and two_or_more_classes: every terrestrial planet and moon with a life chemistry in whole seeded systems, with the default configuration. The other three measures: the oxygenic ones among them, in systems made around G2V and K5V (GEN.907, Boss 6:04 AM EDT 10-29: the bands are per oxygenic world, Core 1's figures describe oxygenic life)"
  },
  "anomalies": {},
  "measures": {
   "stops_before_animals": {"min": 0.5, "max": 1.0, "kind": "stand-in", "source": "the majority (more than half) of life worlds stop at origin, producers or complex cells"},
   "reaches_animals": {"min": 0.15, "max": 0.35, "kind": "stand-in", "source": "about 15 to 35 percent of oxygenic life worlds reach animals (any grade), Core 1's figures of 21 to 33 per 100 for oxygenic life"},
   "reaches_sentient": {"min": 0.0, "max": 0.02, "kind": "stand-in", "source": "no more than 1 to 2 percent of oxygenic life worlds are sentient (Boss: rarest)"},
-  "sentient_of_animal_worlds": {"min": 0.0, "max": 0.05, "kind": "stand-in", "source": "always fewer than one in twenty of the worlds that have animals are sentient (animals to civilizations 20 to 40 to 1)"}
+  "sentient_of_animal_worlds": {"min": 0.0, "max": 0.05, "kind": "stand-in", "source": "always fewer than one in twenty of the worlds that have animals are sentient (animals to civilizations 20 to 40 to 1)"},
+  "two_or_more_classes": {"min": 0.6, "max": 1.0, "kind": "stand-in", "source": "GEN.1209 (several life classes on one body): measured 0.857 of 727 life worlds on 400 default systems at epoch 131 (the dominant class 3a or 4b with the other beside it); the band is that measurement widened to guard against the list collapsing to one class or a class being lost, not a researched target (registry row LC1, tier T9, tweak level L3)"}
  }
 }

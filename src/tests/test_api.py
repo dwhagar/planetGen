@@ -2287,6 +2287,27 @@ def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
     assert client.get("/api/nebulae/999999/shape").status_code == 404
 
 
+def test_nebula_volume_endpoint_serves_packed_points(client, mysql_config):
+    """MAP.142: `/api/nebulae/<id>/volume` answers `{id, format, level, count, data}` with the base64 of a packed volume (here header-only: the
+    test galaxy was never planned); an unknown nebula is a 404."""
+    import base64
+
+    from planetgen.generation.phenomena.nebula import Nebula
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        nebula_id = _db.insert_nebula(conn, Nebula(SystemConfig(), name="Volumed"), placement={
+            "center_x_pc": 5.0, "center_y_pc": 1.0, "center_z_pc": 2.0, "galactic_radius_pc": 5.5})
+        conn.commit()
+    finally:
+        conn.close()
+    body = client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/volume").get_json()
+    assert body["id"] == pid("nebula", nebula_id) and body["format"] == "NVOL1"
+    raw = base64.b64decode(body["data"])
+    assert raw[:4] == b"NVOL" and raw[5] == body["level"] and int.from_bytes(raw[6:10], "little") == body["count"]
+    assert client.get("/api/nebulae/999999/volume").status_code == 404
+
+
 def test_nebula_surroundings_endpoint_lists_the_bright_stars_round_it(client, mysql_config):
     """MAP.105: `/api/nebulae/<id>/surroundings` lists the brightest stars
     near the nebula, positions relative to its centre; a nebula never

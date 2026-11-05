@@ -27,8 +27,8 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (agb_carbon, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, outside_hours, regional_temperature,
-                               stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
+from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, outside_hours, regional_temperature,
+                               life_classes, stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -158,7 +158,8 @@ _STAR = (
     *_rows("physical", ("mass_kg", "Mass", AUTO, True), ("radius_km", "Radius", "radius"),
            ("temperature_k", "Temperature"), ("luminosity_w", "Luminosity", "luminosity", True),
            ("age_gy", "Age"), ("lifespan_gy", "Main-sequence lifetime"), ("metallicity_fe_h", "Metallicity [Fe/H]"),
-           ("decay_age_yr", "Age since it stopped burning"),
+           ("decay_age_yr", "Age since it stopped burning"), ("density_g_cm3", "Mean density"),
+           ("binding_energy_j", "Binding energy"),
            ("nuclear_arrival_age_gy", "Age it reaches hydrogen burning")),
     *_rows("zones", ("habitable_zone_inner_km", "Habitable zone, inner edge"),
            ("habitable_zone_outer_km", "Habitable zone, outer edge"), ("snow_line_km", "Snow line"),
@@ -284,9 +285,12 @@ _PLANET = _MOON = _BODY_GROUPS
 _BELT = (
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
-    *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
+    *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_km", "Largest body", "radius"),
+           ("primordial_mass_earth", "Mass it formed with"), ("cleared_mass_earth", "Mass the giants cleared"), ("scattered_mass_earth", "Mass an instability scattered"),
+           ("stirred", "Stirred by a giant", FLAG)),
     *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
            ("chondrite_group", "Nearest meteorite group", TEXT)),
+    *_rows("identity", ("origin_cause", "Formed as", TEXT), ("origin_sentence", "Where it came from", TEXT), ("formation_snow_line_au", "Snow line when it formed")),
 )
 
 _COMET = (
@@ -331,7 +335,8 @@ _BLACK_HOLE = (
     *_rows("identity", ("mass_class", "Class", TEXT)),
     *_rows("compact", ("mass_solar", "Mass"), ("event_horizon_radius_km", "Event horizon radius"), ("spin", "Spin"),
            ("has_accretion_disk", "Accretion disk", FLAG), ("temperature_k", "Temperature"),
-           ("luminosity_w", "Luminosity"), ("age_gy", "Age")),
+           ("luminosity_w", "Luminosity"), ("age_gy", "Age"), ("density_g_cm3", "Mean density inside the event horizon"),
+           ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
@@ -339,7 +344,8 @@ _BLACK_HOLE = (
 _NEUTRON_STAR = (
     *_rows("identity", ("pulsar_type", "Pulsar type", TEXT)),
     *_rows("compact", ("mass_solar", "Mass"), ("radius_km", "Radius"), ("magnetic_field_gauss", "Magnetic field"),
-           ("surface_temperature_k", "Surface temperature"), ("luminosity_w", "Luminosity"), ("age_gy", "Age")),
+           ("surface_temperature_k", "Surface temperature"), ("luminosity_w", "Luminosity"), ("age_gy", "Age"),
+           ("density_g_cm3", "Mean density"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("spin_period_ms", "Spin period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
@@ -357,7 +363,9 @@ _ROGUE_PLANET = (
     *_rows("identity", ("planet_type", "Type", TEXT), ("planet_class", "Class", TEXT),
            ("mass_bin", "Mass class", TEXT)),
     *_rows("physical", ("mass_kg", "Mass"), ("radius_km", "Radius", "radius"), ("age_gy", "Age"),
-           ("has_moons", "Has moons", FLAG)),
+           ("has_moons", "Has moons", FLAG), ("density_g_cm3", "Mean density"),
+           ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
+           ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("composition", ("composition", "Composition", TEXT)),
     *_rows("climate", ("has_internal_heat", "Geologically active", FLAG),
            ("internal_heat_flux_w_m2", "Internal heat flow"), ("effective_temperature_k", "Effective temperature"),
@@ -387,8 +395,10 @@ _ROGUE_PLANET = (
 _INTERSTELLAR_COMET = (
     *_rows("identity", ("is_active", "Active", FLAG)),
     *_rows("physical", ("nucleus_diameter_km", "Nucleus diameter"), ("mass_kg", "Mass"),
-           ("velocity_kms", "Speed")),
-    *_rows("composition", ("composition_summary", "Composition", TEXT)),
+           ("velocity_kms", "Speed"), ("density_g_cm3", "Density"),
+           ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
+           ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
+    *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Ice share of its mass")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
@@ -502,7 +512,7 @@ _BODY_NOT_SHOWN = {
               "not list it as a row yet"),
     **_excuse(regional_temperature.BAND_COLUMNS,
               "the seven bands of latitude (the rings of a world that turns once an orbit), side by side in the table of the bands: the annual mean, the day and night swing, "
-              "the hours of day and night, the longest polar day and night and the state of each"),
+              "the hours of day and night, the longest unbroken day and night and the state of each"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -544,6 +554,9 @@ NOT_SHOWN = {
                    "orbital_index")),
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                    "velocity_z_kms"), _VECTORS),
+        "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
+        "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
+        "scatter_fates": "the share of an outer disc in each population after the scatter step, a mapping; the scatter rows come with the scatter step wiring",
     },
     "comet": {
         **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
@@ -668,6 +681,10 @@ def _solar_ratio(kind, si):
     return si / (constants.SOLAR_MASS_TO_KG if kind == "mass" else constants.SOLAR_LUMINOSITY)
 
 
+INFINITE_ENERGY = "Infinite (nothing can be pulled away from a black hole)"
+"""str: What the sheet says for a binding energy stored as `binding_energy.INFINITE` (-1)."""
+
+
 def _value(spec, table, stored):
     """The row's value as an inline list (`describe.model`): a quantity, a number with its unit, or text."""
     if stored is None:
@@ -686,6 +703,8 @@ def _value(spec, table, stored):
         names = habitability_world.TIER_NAMES
         return [names[int(stored)]] if 0 <= int(stored) < len(names) else [str(stored)]
     column = spec.stored_column()
+    if column == "binding_energy_j" and binding_energy.is_infinite(stored):
+        return [INFINITE_ENERGY]    # GEN.1162: a black hole stores -1 for an infinite binding energy
     unit = column_units.COLUMNS[(table, column)]
     info = column_units.unit_info(unit)
     kind = quantity if quantity != AUTO else REGISTRY_QUANTITIES.get(info.kind)
@@ -786,6 +805,7 @@ _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_cla
                 "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
                 "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
                 "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
+_CLASSES_WITH_VARIANTS = frozenset(row.number for row in life_classes.CLASSES if row.variant)
 _LIFE_AFTER_OXYGEN = ("life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
 _STAGES_AFTER_OXYGEN = tuple(tuning.LIFE_MILESTONES[tuning.LIFE_MILESTONES.index("complex_cells"):])
 _DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours", "night_hours", "days_per_year")
@@ -861,6 +881,8 @@ _BODY_RULES = [
      "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") in _CLASSES_WITH_VARIANTS,
+     "only some life classes come in variants, a letter for the pigment or habitat; the others have one form and no letter"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
@@ -900,7 +922,12 @@ _COMET_RULES = [
      "a comet on a parabolic path comes by once, so it has no period, period class, or place on an orbit to give"),
 ]
 
-APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES}
+_ROGUE_RULES = [
+    (("roundness_ratio", "yield_strength_pa"), lambda klass, row: row is None or row.get("planet_type") != "g",
+     "a giant or a brown dwarf is a fluid held up by its own pressure, so it has no strength to measure against its weight and no round radius"),
+]
+
+APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES, "rogue_planet": _ROGUE_RULES}
 """dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
 function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
 apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the
@@ -979,7 +1006,7 @@ PECULIAR_FIELD_KEY = "chemically_peculiar_polar_field"
 """str: The key of an Ap star's derived row for its polar magnetic field (GEN.1027); an Am star has none."""
 
 CHEMISTRY_ROWS = {
-    "chemistry_branch": ("Disc population", "words"),
+    "chemistry_branch": ("Disk population", "words"),
     "chemistry_alpha_fe": ("Alpha enhancement [alpha/Fe]", "dex"),
     "chemistry_metal_fraction": ("Metal mass fraction", "mass fraction"),
     "chemistry_dredge_up_helium": ("Helium added by the first dredge-up", "mass fraction"),
@@ -991,7 +1018,7 @@ class, mass, [Fe/H], and age when the sheet is made and are not columns."""
 CHEMISTRY_KEYS = tuple(CHEMISTRY_ROWS)
 """tuple: The keys of `CHEMISTRY_ROWS`."""
 
-_BRANCH_WORDS = {stellar_abundances.BRANCH_THIN: "Thin disc", stellar_abundances.BRANCH_HIGH_ALPHA: "Thick disc or halo (alpha-rich)"}
+_BRANCH_WORDS = {stellar_abundances.BRANCH_THIN: "Thin disk", stellar_abundances.BRANCH_HIGH_ALPHA: "Thick disk or halo (alpha-rich)"}
 
 
 def _star_distance_ly(conn, system_id):
@@ -1053,14 +1080,14 @@ def _longest_eclipse(conn, kind, object_id):
 
 
 BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and night swing (hottest to coldest)"), ("day_hours", "Day"),
-                   ("night_hours", "Night"), ("longest_day_days", "Longest day of the year"),
-                   ("longest_night_days", "Longest night of the year"), ("state", "State"))
+                   ("night_hours", "Night"), ("longest_day_days", "Longest unbroken day"),
+                   ("longest_night_days", "Longest unbroken night"), ("state", "State"))
 """tuple: The rows of the table of the bands (GEN.1108), `regional_temperature.BAND_FIELDS` in order, each with its label."""
 
 BAND_LABELS = {"north_polar": "North polar", "north_middle": "North middle", "north_tropic": "North tropics", "equator": "Equator",
                "south_tropic": "South tropics", "south_middle": "South middle", "south_polar": "South polar",
-               "day_centre": "Day centre", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
-               "night_edge": "Night edge", "night_middle": "Night side", "night_centre": "Night centre"}
+               "day_centre": "Day center", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
+               "night_edge": "Night edge", "night_middle": "Night side", "night_centre": "Night center"}
 """dict: What the table of the bands calls each band or ring (`latitude_bands.NAMES`, `RING_NAMES`)."""
 
 

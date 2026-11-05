@@ -630,7 +630,7 @@ def _structure(subject, polytrope_index):
     radius_m = subject.radius_km * 1e3
     if fetch.locate(hhe_eos.DATASET).use_stand_in(STAND_IN_POLYTROPE):
         return Polytrope(polytrope_index, mass_kg, radius_m)
-    heavy_kg = subject.heavy_mass_earth * constants.EARTH_MASS_TO_KG
+    heavy_kg = _mearth_to_kg(subject.heavy_mass_earth)
     if subject.is_brown_dwarf:
         z, core, env_ice, core_ice = subject.heavy_mass_earth / subject.mass_earth, 0.0, 0.0, 0.0
     else:

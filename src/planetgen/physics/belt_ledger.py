@@ -39,8 +39,11 @@ import math
 from dataclasses import dataclass
 from functools import lru_cache
 
-from planetgen.physics import belt_mass, constants
+from planetgen.physics import belt_mass, constants, unit_registry as units
 from planetgen.util.checks import finite_domain
+
+_kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 L1_MASS_KG = 1.0e19
 """float: Every body above this mass is its own stored object (about 200 km across for rock). [Stand-in BR17, tier T9, tweak L0.]"""
@@ -300,7 +303,7 @@ class _MedianStream:
 @lru_cache(maxsize=2048)
 def _reference_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, age_myr, law):
     """What the whole disc's solids of a star of the Sun's metals leave after `age_myr` when the belt's largest body is the median one: the mass per area every belt of the same stretch and age is called dense or sparse against."""
-    star_solar = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    star_solar = _kg_to_msun(star_mass_kg)
     primordial = belt_mass.primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au)
     return solve_belt(primordial, lower_au, upper_au, star_solar, age_myr, law, _MedianStream()).mass_earth
 
@@ -315,7 +318,7 @@ def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_
     Args:
         stream: A `draw.Stream` of the belt's own; `LEDGER_MAX_BODIES` draws are taken, whatever the belt.
     """
-    star_solar = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    star_solar = _kg_to_msun(star_mass_kg)
     age_myr = age_gy * 1000.0
     primordial = belt_mass.primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio) if primordial_earth is None else primordial_earth
     if not primordial > 0.0:       # the giants took all of it: no belt, no largest body
@@ -323,4 +326,4 @@ def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_
     settled = solve_belt(primordial, lower_au, upper_au, star_solar, age_myr, law, stream)
     reference = _reference_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, age_myr, law)
     word = belt_mass.density_word(belt_mass.surface_density_earth_per_au2(settled.mass_earth, lower_au, upper_au), belt_mass.surface_density_earth_per_au2(reference, lower_au, upper_au))
-    return settled.mass_earth * constants.EARTH_MASS_TO_KG, word, settled
+    return _mearth_to_kg(settled.mass_earth), word, settled

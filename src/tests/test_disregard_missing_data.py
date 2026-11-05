@@ -102,7 +102,7 @@ def test_the_option_lets_the_gate_through_and_says_what_each_missing_dataset_is_
                                                         "harris_clusters", "noaa_proton_events", "baraffe_isochrones", "stellar_spectra", "hhe_eos"]
     lines = run_galaxy.disregard_notice(missing)
     assert "--disregard-missing-data" in lines[0]
-    assert len(lines) == 11
+    assert len(lines) == 1 + len(missing)    # the notice, then one line for each missing dataset
     for line, dataset in zip(lines[1:], (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET, ozone_uv.DATASET,
                                          ir_ktables.DATASET, hitran_cia.DATASET, harris_clusters.DATASET, noaa_proton_events.DATASET,
                                          baraffe_isochrones.DATASET, stellar_spectra.DATASET, hhe_eos.DATASET)):
@@ -207,7 +207,7 @@ def test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_t
     refused, told = run(*with_fallback), run(*with_fallback, "--disregard-missing-data")
     assert refused.returncode == 1 and "generation will not start" in refused.stdout
     assert told.returncode == 0, told.stdout + told.stderr
-    assert "the run takes a labelled fallback" in told.stdout and "generation will not start" not in told.stdout
+    assert "the run takes a labeled fallback" in told.stdout and "generation will not start" not in told.stdout
     assert "https://mist.science" in told.stdout, "the missing files are still listed with their URLs"
     # the Mamajek sequence has no fallback (GEN.943): told to disregard, the command still exits 1 and says generation will not start
     bare = run("mamajek_dwarf_sequence", "--disregard-missing-data")

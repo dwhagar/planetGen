@@ -258,7 +258,7 @@ def test_the_galaxy_map_is_closed_while_a_galaxy_generation_runs_and_opens_when_
     resp = client.get("/galaxy")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 503
-    assert "The Galaxy Map is closed while the galaxy is generated" in html
+    assert "The Galaxy Map is closed while the galaxy is charted" in html
     assert "The galaxy is being changed by a background job" in html and "Scatter the massive stars" in html
     assert 'id="galaxymap3d-canvas"' not in html and "galaxymap3d.js" not in html
     assert '<meta http-equiv="refresh" content="30">' in html
@@ -766,6 +766,37 @@ def test_nebula_shape_endpoint_reports_a_missing_nebula_and_an_api_failure(clien
     resp = client.get("/galaxy/nebula/9/shape")
     assert resp.status_code == 502
     assert "error" in resp.get_json()
+
+
+def test_nebula_volume_endpoint_serves_the_packed_bytes(client, fake, monkeypatch):
+    """MAP.142: `/galaxy/nebula/<id>/volume` hands the browser the decoded bytes of the API's base64 volume, cacheable; a missing nebula is a
+    404 and an API failure a 502, as JSON."""
+    import base64
+
+    calls = []
+
+    def fake_volume(db, nebula_id):
+        calls.append((db, nebula_id))
+        return {"id": nebula_id, "format": "NVOL1", "level": 2, "count": 0, "data": base64.b64encode(b"NVOL\x01\x02").decode("ascii")}
+
+    monkeypatch.setattr(apiclient, "get_nebula_volume", fake_volume)
+    resp = client.get("/galaxy/nebula/5/volume")
+    assert resp.status_code == 200 and resp.data == b"NVOL\x01\x02"
+    assert "max-age" in resp.headers["Cache-Control"]
+    assert calls == [(DB, "5")]
+
+    def missing(db, nebula_id):
+        raise apiclient.NotFoundError("no such nebula: 9")
+
+    monkeypatch.setattr(apiclient, "get_nebula_volume", missing)
+    assert client.get("/galaxy/nebula/9/volume").status_code == 404
+
+    def fail(db, nebula_id):
+        raise apiclient.ApiError("down")
+
+    monkeypatch.setattr(apiclient, "get_nebula_volume", fail)
+    resp = client.get("/galaxy/nebula/9/volume")
+    assert resp.status_code == 502 and "error" in resp.get_json()
 
 
 def test_nebula_surroundings_endpoint_passes_the_stars_through(client, fake, monkeypatch):

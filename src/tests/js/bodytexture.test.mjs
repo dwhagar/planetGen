@@ -204,3 +204,69 @@ test("a giant's bands run in latitude: rows differ and a row is nearly the same 
   assert.ok(Math.max(...means) - Math.min(...means) > 25, "belts and zones differ in lightness");
   for (let i = 0; i < px.length; i += 4) assert.equal(px[i + 3], 255);
 });
+
+// --- MAP.275 part 2: bands from the equator and storms by the deformation radius ------------------------------
+
+
+test("the Rossby deformation radius is Jupiter's 2000 km at Jupiter and follows the temperature, gravity and spin", () => {
+  const jupiter = { tempK: 165, gravG: 2.53, spinH: 9.93 };
+  assert.ok(Math.abs(G.deformationKm(jupiter) - 2000) < 1e-6);
+  assert.ok(G.deformationKm({ ...jupiter, tempK: 330 }) > 1.99 * 2000 - 1);
+  assert.ok(G.deformationKm({ ...jupiter, gravG: 5.06 }) < 1.01 * 1000);
+  assert.ok(Math.abs(G.deformationKm({ ...jupiter, spinH: 4.965 }) - 1000) < 1e-6);
+  assert.equal(G.deformationKm({}), 2000);
+});
+
+test("a giant's bands are odd with a wide equatorial zone of the same width north and south, and an ice giant has 5 or 7", () => {
+  const counter = (seed) => { let i = seed; return () => { i = (i * 16807) % 2147483647; return i / 2147483647; }; };
+  for (let seed = 1; seed < 40; seed++) {
+    const rand = counter(seed);
+    const n = G.bandsFor(JOVIAN, rand);
+    assert.equal(n % 2, 1);
+    const ice = G.bandsFor(ICY, counter(seed));
+    assert.ok(ice === 5 || ice === 7, ice);
+    const edges = G.bandEdges(n, 20, counter(seed + 1000));
+    assert.equal(edges.length, n + 1);
+    for (let i = 1; i < edges.length; i++) assert.ok(edges[i] > edges[i - 1]);
+    const equator = (n - 1) / 2;
+    assert.ok(Math.abs(edges[equator] - (0.5 - 20 / 180)) < 1e-9 && Math.abs(edges[equator + 1] - (0.5 + 20 / 180)) < 1e-9);
+  }
+});
+
+test("the equatorial band is a zone: lighter than the belt beside it", () => {
+  const w = 128, h = 128;
+  const px = G.paintGiant(JOVIAN, w, h);
+  const rowMean = (y) => { let s = 0; for (let x = 0; x < w; x++) s += px[(y * w + x) * 4 + 1]; return s / w; };
+  const recipe = G.giantRecipe(JOVIAN);
+  const edges = G.bandEdges(recipe.bands, recipe.equatorHalfDeg, (() => { const r = (function () { let i = 7; return () => { i = (i * 16807) % 2147483647; return i / 2147483647; }; })(); return r; })());
+  const mid = rowMean(h / 2);
+  const belt = rowMean(Math.floor(((edges[(recipe.bands - 1) / 2 - 1] + edges[(recipe.bands - 1) / 2]) / 2) * h));
+  assert.ok(mid > belt, [mid, belt]);
+});
+
+test("storms: each large one is 1 to 6.3 deformation radii long and 1.2 to 1.9 times as long as high, about one in ten a cyclone, and a field of small ones", () => {
+  let cyclones = 0, large = 0;
+  for (let seed = 1; seed <= 60; seed++) {
+    const look = { ...JOVIAN, seed: seed * 7919 };
+    const recipe = G.giantRecipe(look);
+    let i = seed * 31;
+    const rand = () => { i = (i * 16807) % 2147483647; return i / 2147483647; };
+    const edges = G.bandEdges(recipe.bands, recipe.equatorHalfDeg, rand);
+    const storms = G.stormsFor(look, recipe, edges, rand);
+    const big = storms.filter((s) => s.large);
+    assert.ok(big.length <= 4 && storms.length - big.length >= 6);
+    for (const s of big) {
+      assert.ok(s.size >= 1000 && s.size <= 2000 * 6.31 + 1, s.size);
+      large += 1;
+      if (s.cyclone) cyclones += 1;
+    }
+    for (const s of storms.filter((t) => !t.large)) assert.ok(s.size >= 1000 && s.size <= 3000 && s.weight < 0.6);
+  }
+  assert.ok(cyclones / large < 0.25, [cyclones, large]);
+});
+
+test("a fast, cold small giant has smaller storms than a slow, warm big one", () => {
+  const small = G.deformationKm({ tempK: 60, gravG: 1.1, spinH: 16 });
+  const big = G.deformationKm({ tempK: 165, gravG: 2.53, spinH: 20 });
+  assert.ok(small < big);
+});

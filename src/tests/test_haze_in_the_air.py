@@ -76,4 +76,4 @@ def test_an_air_of_gases_with_no_rayleigh_entry_has_no_haze():
     from planetgen.physics import aerosols
 
     draws = aerosols.HazeDraws(1.0e4, 0.1, 1.0e-7)
-    assert aerosols.haze_of({"Na": 1.0e-3}, 9.8, 300.0, draws, 5772.0) is aerosols.NO_HAZE
+    assert aerosols.haze_of({"Na": 1.0e-3}, 9.8, 300.0, draws, 5772.0, aerosols.FarUv(1.0, 1.0)) is aerosols.NO_HAZE

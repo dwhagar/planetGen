@@ -107,6 +107,14 @@ def _click_body(marker):
     marker.locator("circle.sysmap-body-fill").click()
 
 
+def _collapse_info(page):
+    """Presses Expand again on the info card when it is open, so the card shrinks back off the map: the expanded card of a planet is
+    as tall as the window and covers whatever body of the scene lies under it, which the next click would then land on (TEST.194)."""
+    button = page.locator("#sysmap-info .map-info-expand")
+    if button.count() and button.is_visible() and button.get_attribute("aria-expanded") == "true":
+        button.click()
+
+
 def _expand_info(page):
     """Presses Expand on the info card (MAP.347) when it has one that is closed: what is behind it is drawn only then."""
     button = page.locator("#sysmap-info .map-info-expand")
@@ -154,6 +162,7 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()
     assert "Radius" in info and "Mass" in info, info
+    _collapse_info(page)
     _click_body(page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first)
     _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()
@@ -835,8 +844,10 @@ def test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others(
         stars.append(star)
     scene["stars"] = stars
     scene["epoch_unix"] = tree["nodes"][0]["epoch_unix"]
-    for planet in scene["planets"]:
-        planet["orbit"]["around"] = "barycenter"
+    for body_with_orbit in scene["planets"] + scene["comets"]:    # a comet goes round a star of the real scene, which this scene replaced
+        body_with_orbit["orbit"]["around"] = "barycenter"
+    for belt in scene["belts"]:    # and so does a belt
+        belt["around"] = "barycenter"
     body = json.dumps(scene)
     page.route(re.compile(r"/system/[^/?]+/scene"),
                lambda route: route.fulfill(status=200, content_type="application/json", body=body))
@@ -1096,6 +1107,34 @@ def test_the_system_map_spheres_turn_at_the_rate_their_stored_period_gives_on_on
     ordered = sorted(before.values(), key=lambda one: one["spinH"])
     for shorter, longer in zip(ordered, ordered[1:]):
         assert shorter["rate"] >= longer["rate"] - 1e-12, (shorter, longer)
+
+
+def test_a_ring_on_the_system_map_is_the_planets_own_stored_ring(page, base_url, site_app):
+    """MAP.275: a planet that stores a ring is drawn with that ring (its edges in the planet's radii and the gaps its moons dig), and a planet that
+    stores none is drawn with none."""
+    client = site_app.test_client()
+    found = None
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if len(scene["stars"]) == 1 and any(p["look"].get("ring") for p in scene["planets"]):
+            found = system["id"], scene
+            break
+    if found is None:
+        pytest.skip("no generated single-star system has a planet with a stored ring")
+    system_id, scene = found
+    _open(page, f"{base_url}/system/{system_id}", "#sysmap-root")
+    _show_diagram(page)
+    drawn = {s["name"]: s for s in page.evaluate("() => document.querySelector('#sysmap-spheres-canvas').__spins()")}
+    for planet in scene["planets"]:
+        ring = planet["look"].get("ring")
+        if planet["name"] not in drawn:
+            continue
+        got = drawn[planet["name"]]["ring"]
+        if ring is None:
+            assert got is None, planet["name"]
+        else:
+            assert got and got["in"] == ring["in"] and got["out"] == ring["out"] and got["gaps"] == len(ring["gaps"]), (planet["name"], got, ring)
+            assert 1.0 < ring["in"] < ring["out"], ring
 
 
 def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url, site_app):
