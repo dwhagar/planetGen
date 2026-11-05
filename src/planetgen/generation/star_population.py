@@ -103,9 +103,12 @@ def _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     windows = []
     wr_start = wolf_rayet.start_gy(mass_sol, t_ms, line.end_gy, fe_h) if mass_sol >= tuning.SUPERGIANT_MIN_MASS_SOL else None
     limit = line.end_gy if wr_start is None else wr_start
+    strip = 1.0 if wr_start is None else wolf_rayet.stripping_chance(mass_sol, fe_h)    # GEN.995: a star the single-star wind does not strip is stripped at a chance
     for _, start, end in line.bright_pieces(min_luminosity_sol, skip=(post_main_sequence.HORIZONTAL_BRANCH,)):
         if start < limit:
             windows.append((start, min(end, limit), 1.0))
+        if strip < 1.0 and end > limit:
+            windows.append((max(start, limit), end, 1.0 - strip))
     branch = line.window(post_main_sequence.HORIZONTAL_BRANCH)
     if branch is not None and horizontal_branch_bright_chance(min_luminosity_sol) > 0:
         windows.append((branch.start_gy, branch.end_gy, horizontal_branch_bright_chance(min_luminosity_sol)))
@@ -113,7 +116,7 @@ def _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
         # GEN.939: the chance its luminosity, which follows its present mass there, clears the threshold.
         chance = wolf_rayet.bright_chance(line.state((wr_start + line.end_gy) / 2.0).mass_sol, min_luminosity_sol)
         if chance > 0:
-            windows.append((wr_start, line.end_gy, chance))
+            windows.append((wr_start, line.end_gy, chance * strip))
     return tuple(windows)
 
 

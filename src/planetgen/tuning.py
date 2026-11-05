@@ -820,6 +820,13 @@ WR_MIN_INITIAL_MASS_SOL = 25.0
 WR_THRESHOLD_METALLICITY_EXPONENT = 0.5
 """float: The threshold rises as Z^-0.5: the winds that strip the star weaken with metals [R], so 25 solar masses at
 the Sun's metallicity is 35 at half and 56 at a fifth of it [I]."""
+WR_BINARY_MIN_RATIO = 0.72
+"""float: The least initial mass at which a close companion can strip a star into a Wolf-Rayet star, as a share of `WR_MIN_INITIAL_MASS_SOL` (the single-star threshold): 18 against 25 solar masses
+at the Sun's metallicity, the least initial mass whose stripped helium star is as massive as a Wolf-Rayet spectrum needs (7.5 solar masses; [R4051] Table 1, section 3.2). The same metallicity law as
+the single-star threshold carries it up (18, 24 and 37 solar masses at the Galaxy, the LMC and the SMC are close to it). Stand-in WB1, tier T1, tweak level L0."""
+WR_STRIPPING_FRACTION = 0.33
+"""float: The share of stars in the band between the binary and single-star thresholds that a companion strips into a Wolf-Rayet star: the share of massive stars that exchange mass in a way that
+removes the envelope, 0.33 ([R4051] section 5, below its Eq. 4, quoting the observed interacting fraction). Stand-in WB2, tier T2, tweak level L0."""
 WR_PHASE_MYR = 0.3
 """float: How long a Wolf-Rayet star stays one, Myr (the last stretch of its life) [R]."""
 WR_MAX_SUPERGIANT_SHARE = 0.5
