@@ -101,6 +101,12 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 |---|---|---|---|
 | POP.13 | A species editor: create and edit species and their environment limits |  |  |
 
+### Console look: admin pages
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.270 | Console look on the admin shell and admin pages, by tokens only | UX.268 |  |
+
 ## Phase 3: Editors that make plans
 
 Each editor produces a plan: move a system, edit an orbit, adjust the world to a density change, and the rearranger that fixes a system around a change.

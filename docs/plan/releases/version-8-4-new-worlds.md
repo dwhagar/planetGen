@@ -71,6 +71,12 @@ Nation-states, the capital and ten largest cities, and the station and space por
 | POP.45 | A facility's richness reads the host's stored composition and resource scores instead of a per-type constant (G6, step 2) | POP.44, GEN.799 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.39, Boss 10:35 PM EDT. |
 | POP.39 | Facility constants are registered with a tier and tweak level, and a facility's richness reads the host's stored composition (G6) | GEN.799, POP.44, POP.45 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
 
+### Console look: panels, dialogs and the status chip
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.268 | Console look on panels, dialogs and the one status chip (with its symbol or word), by tokens only | UX.132 |  |
+
 ### Resource pages
 
 | ID | Item | Needs | Note |
