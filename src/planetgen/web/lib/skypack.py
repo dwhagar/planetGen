@@ -27,6 +27,7 @@ One list (all numbers little-endian)::
     index                         u32: the star's place in the list the caller built it from (to find a star again, to pick it)
 """
 
+import hashlib
 import json
 import math
 import struct
@@ -43,6 +44,44 @@ MAGNITUDE_STEPS_PER_MAG = 512
 
 KIND_CODES = {"charted": 0, "bright_star": 1, "phenomenon": 2, "cluster": 3}
 """dict: The tier of each star, as the kind column numbers it."""
+
+SKY_VERSION = 1
+"""int: Raised when the sky an unchanged galaxy gives changes (a new field, a new constant), so every stored copy is built again (VIEW.31)."""
+
+DEFAULT_LIMIT = 7.5
+"""float: The limiting magnitude the sky route takes when `?limit=` is left out (`galaxy.sky.DEFAULT_LIMIT`; tests/test_system_sky_route.py holds the two equal)."""
+
+MIN_LIMIT, MAX_LIMIT = 2.0, 9.0
+"""float: The faintest and the brightest limiting magnitude the route takes (stand-in SKV1: the star count grows 2.5 to 3 times a magnitude, and the stored
+stars and the sky tiers stop at 9; under 2 the sky holds a few dozen stars)."""
+
+
+class SkyLimitError(ValueError):
+    """A limiting magnitude that is not a number or is out of range."""
+
+
+def check_limit(limit):
+    """`limit` (text or a number, `None` or empty for `DEFAULT_LIMIT`) as a float from `MIN_LIMIT` to `MAX_LIMIT`, rounded to 0.01.
+
+    Raises:
+        SkyLimitError: Not a number, or out of range.
+    """
+    if limit is None or limit == "":
+        return DEFAULT_LIMIT
+    try:
+        value = float(limit)
+    except (TypeError, ValueError):
+        raise SkyLimitError("limit must be a number") from None
+    if not math.isfinite(value) or not MIN_LIMIT <= value <= MAX_LIMIT:
+        raise SkyLimitError(f"limit must be from {MIN_LIMIT:g} to {MAX_LIMIT:g}")
+    return round(value, 2)
+
+
+def version_key(tile_stamp):
+    """The key a stored sky is good for: 16 hex characters from the galaxy's tile stamp (`db.query.galaxy_tile_stamp`: sectors, systems, bright stars and
+    the generator epoch) and `SKY_VERSION`."""
+    return hashlib.sha256(f"{tile_stamp}.sky{SKY_VERSION}".encode("utf-8")).hexdigest()[:16]
+
 
 BYTES_PER_STAR = 12 + 6 + 2 + 1 + 1 + 4
 _HEADER_BYTES = 4 + 4 + 8 + 4 + 4 + 24 + 4

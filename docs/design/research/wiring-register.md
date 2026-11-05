@@ -28,8 +28,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
-| module | planetgen.physics.light_travel | VIEW.31 | light-travel positions on arrays for the sky of a system (VIEW.21), read by the sky catalogue galaxy/sky.py and from it the sky route |
-| module | planetgen.physics.nebula_sprites | VIEW.31 | the angular size, extinction and surface brightness of nebulae and remnants, read by the sky route (VIEW.31) that builds the sprite list |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
 | module | planetgen.generation.redraw_kinds | by design | the names and one-line meanings of the redraw counters (TEST.476); `draw.redrawn` is called by name from the generator and the census reads this registry, so no generation code imports it |
@@ -362,24 +360,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
 | module | planetgen.physics.system_bodies | GEN.1241 | the system body ledger (rows, tree checks, mass sums, the barycentre that includes the belts, the belt wobble); lock-free pure part of GEN.1066, the view over the typed tables reads it when the wiring lands |
-| module | planetgen.physics.sky_photometry | VIEW.31 | the sky catalogue (galaxy/sky.py, sky_from) reads apparent_magnitude and galactic_extinction_av for each stored star; the glow band (VIEW.27) reads the dust law (dust_av_per_pc) and bolometric_correction |
-| row | 6.171:SKP1 | VIEW.31 | the sky catalogue reads the dust normalisation through galactic_extinction_av |
-| row | 6.171:SKP2 | VIEW.31 | the sky catalogue reads the cool-star correction through apparent_magnitude |
-| row | 6.171:SKP3 | VIEW.31 | the sky catalogue reads the hot-star correction through apparent_magnitude |
-| row | 6.171:SKP4 | VIEW.31 | the sky catalogue reads the dust disc's shape through galactic_extinction_av |
 | module | planetgen.galaxy.sky_band | VIEW.31 | the sky route (VIEW.31) reads the band of an observer's 50 pc cell through band_for, with the file store of the sky cache |
 | row | 6.174:SKB1 | VIEW.31 | the sky route reads the luminosity density through band_for |
 | row | 6.174:SKB2 | VIEW.31 | the sky route reads the faint-light table through band_for |
 | row | 6.174:SKB3 | VIEW.31 | the sky route reads the table's ends through band_for |
 | row | 6.174:SKB4 | VIEW.31 | the sky route reads the cell, the map size and the steps through band_for |
-| module | planetgen.galaxy.sky | VIEW.31 | the sky route (VIEW.31) calls sky_from with the sphere query of VIEW.22 as its source and packs the result (VIEW.29) |
-| row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |
-| module | planetgen.generation.sky_tiers | VIEW.25 | charting a system builds the sky tiers from this table: build() gives the luminosity bands and mass rings to draw and the radius of each, floor_table() gives the floor against distance for the report |
-| row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the block-visit budget |
 | row | 6.176:SKT3 | VIEW.25 | the charting step turns the table's visits into a time for the queue's progress bar |
-| row | 6.176:SKT4 | VIEW.25 | the charting step draws the rings under 1 solar mass from these edges |
-| row | 6.176:SKT5 | VIEW.25 | the charting step stops each ring under 1 solar mass where this share of its stars no longer shows |
-| row | 6.176:SKT6 | VIEW.25 | the charting step passes the observer's own population mix instead of this default |
+| function | planetgen.physics.nebula_sprites.chord_extinction_mag | VIEW.8 | the sky route sends the dimming through a cloud's middle and the browser takes the chord (skysprites.js darkOpacity); the per-star dust of nebulae (VIEW.8, 9.1) takes the chord for each line of sight |
 | function | planetgen.generation.bright_stars.backfill_sphere | VIEW.25 | charting draws each luminosity band of the tier table over its sphere with this |
 | function | planetgen.generation.bright_stars.backfill_mass_sphere | VIEW.25 | charting draws each mass ring of the tier table over its sphere with this |
 | module | planetgen.physics.planetary_nebula_ejecta | GEN.1276 | the composition item writes the progenitor mass and the ejecta values of each planetary nebula from `progenitor(...).values()` at generation and backfill |
@@ -398,3 +385,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.179:NBC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
 | data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
+| function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
+| function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
+| function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |

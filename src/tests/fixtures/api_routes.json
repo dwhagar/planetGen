@@ -152,6 +152,7 @@
   "/api/systems/<uid:system_id>/habitable-species GET",
   "/api/systems/<uid:system_id>/owner GET",
   "/api/systems/<uid:system_id>/scene GET",
+  "/api/systems/<uid:system_id>/sky GET",
   "/api/systems/<uid:system_id>/star POST",
   "/api/systems/<uid:system_id>/text GET",
   "/api/table-estimates GET",
