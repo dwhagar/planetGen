@@ -20,9 +20,8 @@ The saved course record and its list, open and rename.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store |  | Sibling of bookmarks.js. |
-| NAV.4 | Save a course | NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
-| NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
+| NAV.4 | Save a course |  | Per browser now; NAV.19 moves it into accounts in phase 3+. |
+| NAV.19 | Saved courses in the account (after USR.7) | USR.7 |  |
 | NAV.21 | Fit the view to the whole course |  | Same fit as MAP.53, exempt from any zoom limit (MAP.58 was superseded by MAP.125). |
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again |  | With NAV.17. |
