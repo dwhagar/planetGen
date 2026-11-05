@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.604 |
+| TEST | TEST.605 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -3959,6 +3959,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.601 | Two tests still expect the British spelling neighbour after DOC.103: test_nav_course_diagram_draws_the_neighbours and test_the_page_says_a_link_is_a_neighbour_relation (bug) | none | done, PR #5121 |
 | TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) | none | open |
 | TEST.603 | The Help menu test pinned the exact list of help pages and went red when VIEW.38 added one (bug) | none | done, PR #5137 |
+| TEST.604 | A trace gas with no thermo data (CH3Cl) crashes instead of being handled, red on clean main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
