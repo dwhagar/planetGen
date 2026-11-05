@@ -33,26 +33,16 @@ The foundations every editor stands on: the change plan and its store, the unit 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.59 | Change plan store: save, load and list plans, and mark them stale |  |  |
-| ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons |  | Shared with 8.9 (API.8) |
-| ADM.60 | Apply, undo and audit a plan: one job, one activity-log entry per operation | ADM.59, ADM.82 | Uses the update guard (OPS.41, OPS.53, OPS.54) |
-| ADM.61 | Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity | ADM.60, DB.17 | Boss dropped GEN.59 (daily merge into a JSON file); this keeps the journal in the database |
 
 ### Aspects
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.62 | Aspect catalogue for systems, stars, planets, moons and belts: every stored field and every generation input, with how they depend on each other |  |  |
-| ADM.63 | Aspect catalogue for phenomena: black holes, neutron stars, nebulae, remnants, rogue planets, comets, asteroid fields and quasars | ADM.62 |  |
-| ADM.64 | Keep-or-regenerate resolution: from the admin's marks to the exact set of aspects redrawn | ADM.62 |  |
-| API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | ADM.62, ADM.64 | Shared with 8.9 (API.18, API.19) |
 
 ### Regions
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it |  | Reads by the cell key built in 8.1 |
-| MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302 |  |
 
 ## Phase 2: Interfaces: approval, locks, regen screens, density overrides
 

@@ -409,11 +409,11 @@ Every line has the same shape, so a tool such as fail2ban can match it
 ([`deployment/fail2ban.md`](../deployment/fail2ban.md) has a ready filter and jail):
 
 ```text
-2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
-2026-10-01T08:00:09Z planetgen[1234]: DB sector.update ip=203.0.113.5 user="boss" target=sector:42 detail="{'name': 'Home'}"
+2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
+2026-10-01T04:00:09-0400 planetgen[1234]: DB sector.update ip=203.0.113.5 user="boss" target=sector:42 detail="{'name': 'Home'}"
 ```
 
-That is: the time in UTC, `planetgen[<process id>]:`, the category, the
+That is: the time local with the offset of its zone, `planetgen[<process id>]:`, the category, the
 event, `ip=` (the client address, or `-` with none, as on the command
 line), `user=` (always quoted; the admin, the username as typed, or the
 login name that ran a command; `-` when nobody), then any further

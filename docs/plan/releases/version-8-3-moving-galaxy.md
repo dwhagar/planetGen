@@ -26,13 +26,11 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.96 | warmup.log in the log folder, written by planetgen warm itself, local time with zone |  |  |
-| OPS.97 | Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter | OPS.96 |  |
-| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | OPS.97 |  |
-| OPS.98 | A time on every line of every script and command | OPS.97 |  |
-| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh | OPS.96 |  |
+| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls |  |  |
+| OPS.98 | A time on every line of every script and command |  |  |
+| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh |  |  |
 | OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
-| OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | OPS.96 |  |
+| OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log |  |  |
 | OPS.102 | Debug log: an area column in, the dead logger-name column out |  |  |
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105 |  |
 
@@ -105,6 +103,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | USR.3, GEN.344 | Needs USR.3's SMTP settings. |
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | GEN.346 | Split from GEN.143. |
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | GEN.347 | Research: makes the collision code testable. |
+| GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | GEN.139 |  |
 
 ### Long steps
 
@@ -120,7 +119,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential |  | Gravity map foundation (Boss 2026-10-10). |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
-| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field | MAP.385 |  |
+| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field |  |  |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | GEN.199 |  |
 
 ### What moved in the last update

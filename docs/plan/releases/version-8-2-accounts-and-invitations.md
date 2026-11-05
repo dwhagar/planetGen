@@ -76,6 +76,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | USR.8 | Every signed-in user can generate a one-off system | USR.26 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
 | USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189 |  |
+| USR.12 | Permission catalogue and one `can()` check: user, moderator, admin and Owner as data | USR.2 | Roles from 8.2 (USR.2 already holds the moderator value) |
+| USR.13 | Moderator role: assign and remove it on the admin accounts page, with the audit entry | USR.12, USR.27 |  |
+| USR.14 | Move every route, page and command from "is admin" checks to permission checks | USR.12 |  |
 
 ### The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)
 
@@ -95,9 +98,6 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.204 | An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2) |  |  |
-| UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID |  | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
-| UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | UX.143 | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
 
 ### Search by physical values
 
@@ -108,17 +108,13 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain PERF.195, Boss 10:35 PM EDT. |
-| PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | PERF.197 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
 
 ### Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05)
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.384 | Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening |  |  |
-| MAP.385 | Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget | MAP.384 |  |
 | MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies |  |  |
-| PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | MAP.384, MAP.385 |  |
+| PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate |  |  |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources |  | Research; the study is done (reports/perf72-gravity-grid-cost-2026-11-05.md), the note in gravity-map.md is still to be extended. |
 
 ### Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2)

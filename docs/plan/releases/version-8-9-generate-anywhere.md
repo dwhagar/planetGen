@@ -58,6 +58,14 @@ Generation without a database, uploads, verification and the incomplete uploads 
 | API.34 | API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them | GEN.799 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
 
 
+### Server housekeeping (moved from 8.2)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| PERF.204 | An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2) |  |  |
+| PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | PERF.197 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
+| PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain PERF.195, Boss 10:35 PM EDT. |
+
 ## Phase 3: Backup parts and restore
 
 Target 8.9 (moved from 9.0; Boss, 2:00 PM EDT): the control database and parity parts of the backup archive, and a restore for each.

@@ -46,6 +46,17 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 
+### Edit everything foundations: change plans and regions (spread back from 8.6)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| ADM.59 | Change plan store: save, load and list plans, and mark them stale |  |  |
+| ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons |  | Shared with 8.9 (API.8) |
+| ADM.60 | Apply, undo and audit a plan: one job, one activity-log entry per operation | ADM.59, ADM.82 | Uses the update guard (OPS.41, OPS.53, OPS.54) |
+| ADM.61 | Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity | ADM.60, DB.17 | Boss dropped GEN.59 (daily merge into a JSON file); this keeps the journal in the database |
+| GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it |  | Reads by the cell key built in 8.1 |
+| MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302 |  |
+
 ## Phase 2: Settlements and nation-states
 
 Nation-states, the capital and ten largest cities, and the station and space port scatter for every planet with a technological civilization at a sufficient tech level, all fixed until 9.2 (Boss, 9:27 PM EDT 2026-10-24).
@@ -59,9 +70,12 @@ Nation-states, the capital and ten largest cities, and the station and space por
 | POP.19 | Cities: the capital and the ten largest cities of a planet, their populations, names and positions on land | POP.17 |  |
 | POP.20 | Cities belong to nation-states: a probability draw weighted by city size and nation dominance, with the capital in the dominant nation | POP.18, POP.19 |  |
 | POP.21 | Station and space port scatter: orbital stations, space ports and starbases placed for each nation and polity from the tech gate, as stored facilities | POP.20 | Carves the station part out of POP.11. |
+| POP.47 | Station and vessel places are physics-checked: a station or ship is placed only in orbit inside the stable fraction of the body's Hill radius, at a Lagrange point, in a belt or at rest at a point in a frame, and an unstable orbit is refused | POP.21 |  |
 | POP.22 | The settlements stage: its own command, its place in the galaxy run and the rescan rules | POP.21 |  |
 | POP.23 | Pages and API for nations, cities and ports: the planet page sections, nation and city pages, species and polity links | POP.22 |  |
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | POP.23, POP.27 |  |
+| POP.46 | Politics constants as settings and registry rows: the reach cap (100 ly), the hysteresis margin, the contested ratio, the cohesion gain and loss, the split threshold and the city growth spread, each with tier and tweak level in GEN.725 | POP.27 |  |
+| DB.110 | Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units | DB.104 |  |
 | POP.40 | Species traits take radiation tolerance, pressure and air tolerance, thermal range and day length from the homeworld (G1, step 1) | POP.17 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.38, Boss 10:35 PM EDT. |
 | POP.41 | Facility ratings (health, housing, maintenance, resources) read the host's dose, pressure, air and temperature (G1, step 2) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.38, Boss 10:35 PM EDT. |
 | POP.42 | Facility need and upkeep read the equipment kit the host requires (eq_body_*, eq_rad_suit*, eq_gas_filter, eq_co2_scrub, eq_dust, eq_supply*, eq_shelter*, outside_hours) (G1, step 3) | POP.41 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.38, Boss 10:35 PM EDT. |

@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3369] - 2026-11-05
+
+**Headline:** Every log now writes the computer's local time with its zone; no log form writes UTC any more.
+
+### Changed
+
+- The file line, the JSON line and so the record file (`--record-file`, and the run's `records.log`) carry `ts=2026-10-24T14:40:00.123-0400`, the local time with the offset of its zone, where they carried UTC with a trailing `Z`. The debug log and the display line were local already.
+- The activity log's lines start with the same kind of time (`2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ...`), and the fail2ban filter reads the offset (`datepattern ... %%z`); the jail no longer sets `logtimezone = UTC`. Copy `examples/fail2ban/planetgen.filter.conf` and `planetgen.jail.conf` over the installed ones when you update: the old filter does not match the new lines.
+- The "another run is running" refusal names the start time in local time with its zone. There is no reader for the old UTC form: a `ts=...Z` line is refused as a bad line.
+
+## [8.0.3368] - 2026-11-05
+
+**Headline:** Every cache warm-up now writes its own record to `warmup.log` in the log folder, in local time with its zone.
+
+### Changed
+
+- `planetgen warm` appends each run to `warmup.log` itself (next to `planetgen.log`, in `log_dir`): a line that says what started it (update stage 1 or 2, by hand, or a change such as an orbit update) and the time limit, the lines the run printed, each with the local time and its zone, and a last line that says it finished, was ended (by a signal or Ctrl+C) or failed, and after how long. Runs are added one after another, and the background warm-up that starts after a change, which wrote nowhere before, is in it too. The file is rotated with the other logs of the folder.
+- `update.sh` no longer pipes the warm-up through `tee`, so the progress bars draw on its terminal as its comments say, and the old overwritten `/tmp/planetgen-warm-map.log` is gone. A warm-up whose log file cannot be written says so once and goes on.
+
 ## [8.0.3367] - 2026-11-05
 
 **Headline:** A planet's or moon's page shows its sky color again, as the first row of the Atmosphere section.
