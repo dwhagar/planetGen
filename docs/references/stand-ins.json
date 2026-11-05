@@ -27019,7 +27019,11 @@
           "what": "habitability.LIVABLE_YELLOW_EDGE 0.10, LIVABLE_GREEN_EDGE 0.50 with COVERAGE_EDGE_SCORES (0, 0), (0.10, 0.4), (0.50, 0.75): the livable share of area and time at which the Temperature score reaches the Yellow edge (0.4) and the Green edge (0.75), joined by straight lines so the geometric mean of overall_score still works"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the Blue edge and the Blue share are a lenient cut set on a sweep of generated bodies (Boss: near 0.8 livable); a survey of what people call a comfortable world would replace them"
+          ],
           "fields": [
             [
               "What it is",
@@ -27057,7 +27061,11 @@
           "what": "habitability.LIVABLE_BLUE_EDGE 0.80 (the livable share at which the score reaches 1) and BLUE_SHARE_MIN 0.30 (the share of area and time in the Blue band a Blue world also needs; under it the score is held below the Blue edge)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the credit for a place that needs a suit is a design choice so a suit-everywhere world reads Yellow, not Red; Boss's decision on that reading would replace it"
+          ],
           "fields": [
             [
               "What it is",
