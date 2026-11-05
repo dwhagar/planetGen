@@ -101,14 +101,13 @@ DEBRIS_MIN_WIDTH = 0.05
 """float: The least half-width of the belt of debris round its distance, as a share of the distance (BG11)."""
 
 PEBBLE_CONVERSION_PER_ORBIT = 0.01
-"""float: The share of the pebbles of a patch of the disc that the streaming instability turns into planetesimals each orbit, where it works (Drazkowska et al. 2016 and
-Lenz et al. 2019 set the rate at 0.01 of the pebble surface density per orbit). [Stand-in BG17, tier Confident Unverified, tweak L0.]"""
+"""float: The share of the pebbles of a patch of the disc that the streaming instability turns into planetesimals each orbit, where it works (pebble-to-planetesimal simulations set the rate at 0.01 of the pebble surface density per orbit). [Stand-in BG17, tier Confident Unverified, tweak L0.]"""
 
 PEBBLE_TO_GAS_SOLAR = 0.01
 """float: The solids-to-gas ratio of a disc of solar metal content, the interstellar value; it scales with the star's `metal_ratio`. [Stand-in BG18, tier Confident Unverified, tweak L0.]"""
 
 PEBBLE_DRIFT_FACTOR = 1.1
-"""float: The pebbles of a drift-limited disc fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)`: their Stokes number is the drift limit `0.55 Z / (eta)` of Birnstiel et al. 2012
+"""float: The pebbles of a drift-limited disc fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)`: their Stokes number is the drift limit `0.55 Z / (eta)` of the drift-limited dust models
 and the drift speed `2 St eta v_K`, so the pressure gradient `eta` drops out and the time is 1.1 inverse growth rates, whatever the radius. [Stand-in BG19, tier Marginal educated guess from physics, tweak L0.]"""
 
 
@@ -117,7 +116,7 @@ def planetesimal_share(metal_ratio=1.0):
     The share of the solids of the cold disc that grew into planetesimals before the pebbles drifted in (GEN.1261). Pebbles turn into planetesimals at
     `PEBBLE_CONVERSION_PER_ORBIT` of their mass an orbit and fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)` (Z the solids-to-gas ratio, `PEBBLE_TO_GAS_SOLAR` times
     `metal_ratio`); the two compete, so the share that becomes planetesimals is `zeta / (zeta + PEBBLE_DRIFT_FACTOR Z)`, the same at every radius because both rates scale with
-    the orbital frequency. The rest is the drift loss ("the majority of the dust reservoir is lost through drift", Appelgren et al. 2023).
+    the orbital frequency. The rest is the drift loss ("the majority of the dust reservoir is lost through drift", a pebble-drift disc model, read second-hand).
     """
     zeta = PEBBLE_CONVERSION_PER_ORBIT
     return zeta / (zeta + PEBBLE_DRIFT_FACTOR * PEBBLE_TO_GAS_SOLAR * max(metal_ratio, 0.0))
@@ -126,7 +125,7 @@ def planetesimal_share(metal_ratio=1.0):
 def isolation_cap_earth(lower, upper, star_mass_kg, snow_line_au, metal_ratio=1.0, scatter=1.0, separation=None):
     """
     The most solids a planetless stretch can hold (GEN.1261): the isolation mass a planet at its centre would have taken from its feeding zone (`formation.isolation_mass_kg`,
-    Lissauer 1987, Kokubo and Ida 2000) in the disc's own solids there. A stretch holding more would have grown the planet, so the chain would not have the gap.
+    [R2430]) in the disc's own solids there. A stretch holding more would have grown the planet, so the chain would not have the gap.
     """
     centre = math.sqrt(lower * upper)
     density = planet_mass.solids_surface_density_gcm2(centre, star_mass_kg, snow_line_au, metal_ratio, scatter)

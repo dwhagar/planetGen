@@ -41595,11 +41595,11 @@
             ],
             [
               "What replaces it",
-              "the rate read from Lenz et al. 2019 or Gerbig and Li 2023 in the paper"
+              "the rate read from Gerbig and Li 2023 in the paper"
             ],
             [
               "Evidence",
-              "Drazkowska et al. 2016 and Lenz et al. 2019 use 0.01 of the pebble surface density per orbit; read second-hand, not opened"
+              "pebble-to-planetesimal simulations use 0.01 of the pebble surface density per orbit; read second-hand, not opened"
             ]
           ],
           "id": "BG17",
@@ -41671,11 +41671,11 @@
             ],
             [
               "What replaces it",
-              "the drift time read from a dust-evolution run (Birnstiel et al. 2012, Appelgren et al. 2023)"
+              "the drift time read from a dust-evolution run (drift-limited dust models, read second-hand)"
             ],
             [
               "Evidence",
-              "physics fixes the form (growth and drift rates both scale with the orbital frequency); the 0.55 is Birnstiel et al. 2012 as quoted second-hand"
+              "physics fixes the form (growth and drift rates both scale with the orbital frequency); the 0.55 is the drift-limited dust model as quoted second-hand"
             ]
           ],
           "id": "BG19",

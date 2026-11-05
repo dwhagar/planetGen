@@ -51,7 +51,7 @@ Stand-ins this section adds: survival factors, the disc edge, the stirring facto
 Two limits on the solids a stretch starts with, both before the giants act (`belt_origin._trace`):
 
 - **Cold-disc loss.** Past the snow line only a share of the disc's solids grew into planetesimals; the pebbles of the rest drifted in. Pebbles become planetesimals at `PEBBLE_CONVERSION_PER_ORBIT` (0.01) of their mass an orbit and fall in over `1 / (1.1 Z Omega)`, with `Z = 0.01` times the star's metal ratio; the two compete, so the share that becomes planetesimals is `zeta / (zeta + 1.1 Z)`, about one half for a solar disc and the same at every radius (both rates scale with the orbital frequency). The share multiplies the solids past the snow line of every belt; inside it the planetesimals formed in place. Stand-ins BG17 to BG19.
-- **Isolation cap on a gap.** A stretch that held more solids than the isolation mass at its centre (Lissauer 1987, Kokubo and Ida 2000, `formation.isolation_mass_kg` with `OLIGARCH_SEPARATION_MEDIAN` spacing and the disc's own density) would have grown the planet, so the chain would not have the gap. A gap belt's solids are the lesser of the disc's solids in it and that mass.
+- **Isolation cap on a gap.** A stretch that held more solids than the isolation mass at its centre ([R2430], `formation.isolation_mass_kg` with `OLIGARCH_SEPARATION_MEDIAN` spacing and the disc's own density) would have grown the planet, so the chain would not have the gap. A gap belt's solids are the lesser of the disc's solids in it and that mass.
 
 The belts are made of the disc the planets grew in: `belt_birth.build` takes the architecture's `disc_scatter` (0.7 dex, [R0114]), where it used the median disc.
 
