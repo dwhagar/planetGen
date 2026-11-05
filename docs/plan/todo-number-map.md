@@ -15,14 +15,14 @@ release is stamped.
 |---|---|
 | UX | UX.262 |
 | MAP | MAP.381 |
-| NAV | NAV.73 |
-| GEN | GEN.1269 |
+| NAV | NAV.74 |
+| GEN | GEN.1275 |
 | PERF | PERF.240 |
 | DB | DB.110 |
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.583 |
+| TEST | TEST.584 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -2046,6 +2046,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1266 | Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc | none | open |
 | GEN.1267 | A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it | none | open |
 | GEN.1268 | Nebulae carry a real composition: gas and dust fractions by kind, metals from the place and age, ejecta from the progenitor | none | open |
+| GEN.1269 | Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place) | none | open |
+| GEN.1270 | Nebula composition part b: planetary nebulae with the progenitor's ejecta and dredge-up enrichment | none | open |
+| GEN.1271 | Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A | none | open |
+| GEN.1272 | Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks | none | open |
+| GEN.1273 | Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value | none | open |
+| GEN.1274 | Nebula composition part f: read the sources marked recalled and replace their stand-ins | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2498,6 +2504,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | none | open |
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
 | NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | open |
+| NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -2825,7 +2832,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.230 | Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical | none | done, PR #4742 |
 | PERF.231 | The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug) | none | done, PR #4880 |
 | PERF.232 | test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug) | none | open |
-| PERF.233 | One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update | none | open |
+| PERF.233 | One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update | none | done, PR #4965 |
 | PERF.234 | The warm-up's overall time left extrapolates the current step's speed over all remaining steps, so it reads hours when most steps are quick (bug) | none | done, PR #4942 |
 | PERF.235 | A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup | none | open |
 | PERF.236 | The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug) | none | open |
@@ -3225,15 +3232,15 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | none | open |
 | VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | none | open |
 | VIEW.19 | System sky S1: measure the backfill cost of a 6.5 and a 7.5 magnitude sky on a real galaxy, and settle the luminosity-versus-mass ledger question | none | open |
-| VIEW.20 | System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule | none | open |
+| VIEW.20 | System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule | none | done, PR #4961 |
 | VIEW.21 | System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility | none | done, PR #4959 |
 | VIEW.22 | System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py | none | open |
 | VIEW.23 | System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report | none | open |
 | VIEW.24 | System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725 | none | open |
 | VIEW.25 | System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill | none | open |
 | VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) | none | open |
-| VIEW.27 | System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell | none | open |
-| VIEW.28 | System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction | none | open |
+| VIEW.27 | System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell | none | done, PR #4964 |
+| VIEW.28 | System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction | none | done, PR #4962 |
 | VIEW.29 | System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both | none | open |
 | VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | none | open |
 | VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= | none | open |
@@ -3915,6 +3922,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.580 | Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug) | none | open |
 | TEST.581 | test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug) | none | open |
 | TEST.582 | Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census | none | open |
+| TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

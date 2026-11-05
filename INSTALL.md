@@ -371,6 +371,13 @@ sudo examples/maintenance/install-maintenance-timer.sh --skip-update-timer  # or
 An unattended update deploys whatever is on the tracked branch with no review, and
 keeps the data when a migration is pending.
 
+On Linux the installer also sets up the nightly rebuild of the whole Galaxy Map tile cache (PERF.233, `planetgen.cli.tiles`, at
+05:00, after the orbit update); `--skip-tiles-timer` leaves it out. It builds every node of every level into a new cache beside the live
+one and swaps it in when it is complete, so visitors never meet an empty cache and a run that is killed leaves the old cache
+serving; then `planetgen warm` rebuilds the lists, objects and search. The disk needs room for both caches while it runs: the run
+refuses to start unless twice the projected size is free, and says the figures (about 80 KB a generated sector and 30 KB a block;
+`reports/perf233-tile-cache-cost-2026-11-04.md`). Run it by hand, as the web server's user, with `python3 -m planetgen.cli.tiles`.
+
 #### Nightly memory smoke run
 
 ```bash

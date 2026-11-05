@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3228] - 2026-11-05
+
+**Headline:** The life census now names every life class no sampled world lived on, so a class that never appears shows in the report.
+
+### Changed
+
+- The life census (TEST.435) counted how many life worlds each class lives on, but listed only the classes it met. Its report now also names each class of the registry that lived on no sampled world, or says none. It is an outcome to measure, not a flag, since no researched band says how often each class should appear (GEN.1209).
+
+## [8.0.3227] - 2026-11-05
+
+**Headline:** One command, `python3 -m planetgen.cli.tiles`, builds the whole Galaxy Map's tile cache from scratch, and a nightly timer runs it after the orbit update.
+
+### Changed
+
+- **The whole-map build (PERF.233).** `planetgen.cli.tiles` builds every node of every level of the whole galaxy (a block of each level that holds a generated sector or a placed object, and each generated sector) into a new cache beside the live one and swaps it in when it is complete, so visitors never meet an empty cache and a run that is killed leaves the old cache serving. It builds a level at a time, `tile_cache.build_workers` processes at once (0 is one per core), prints a line per level, ignores the cache budget while it runs, checks the data once more before the swap and refuses to start unless twice the projected size is free on the cache's disk.
+- **`cache.max_mb` counts only the nodes visits asked for.** The nodes built ahead (the build's and the warm-up's) are no longer counted against the budget or pruned, so a full cache no longer makes every on-demand node get deleted at the next prune.
+- **A nightly timer.** `examples/maintenance/planetgen-tiles@.service` and `.timer` run the build at 05:00 after the orbit update, then `planetgen warm` rebuilds the lists, objects and search; `install-maintenance-timer.sh` installs and enables them (`--skip-tiles-timer` leaves them out). Documented in INSTALL.md, `docs/reference/cli.md` and `docs/design/operations/cache-warm-up.md`.
+
+generation-output: unchanged
+
+TODO items resolved: none (PERF.233 is done with this; the TODO thread retires it).
+
+## [8.0.3226] - 2026-11-05
+
+**Headline:** The generator can now work out the glow of the stars too faint to see one by one, as seen from any place in the galaxy.
+
+### Changed
+
+- `galaxy/sky_band.py` (VIEW.27, the glow band of the unresolved stars): `surface_brightness` marches along 6,144 lines of sight (a cube map of six 32 by 32 faces) through the galaxy's stellar density with the dust of the disc in the way (VIEW.20) and takes out the light of the stars bright enough to be drawn, at the limiting magnitude the caller gives (7.5 by default), so the glow and the drawn stars never count the same star twice. The result is the surface brightness in magnitudes per square arcsecond; in a galaxy shaped like the Milky Way it runs from about 20 in the bright bulge direction to about 25 at the pole. `band_for` keeps one image per 50 pc cell of the observer's place (a move of 20 ly changes it by less than 0.02 mag), in memory or in `.npy` files (`MemoryBandStore`, `FileBandStore`), under a key that names the cell, the galaxy, the limit, the size and every constant the image depends on. A band takes about 0.7 s to work out. Nothing reads it yet: the sky route (VIEW.31) does. Four stand-ins are registered (6.174, SKB1 to SKB4). generation-output: unchanged
+
 ## [8.0.3225] - 2026-11-05
 
 **Headline:** The sky of a system can now size, brighten and dim its nebulae and supernova remnants: the data for their sprites is worked out from what each stores.

@@ -1,0 +1,19 @@
+# examples/maintenance/planetgen-tiles@.timer
+#
+# Fires planetgen-tiles@.service (see that file) every night at 05:00: after the update (03:00) and the orbit update (03:30)
+# of the first of the month, and after the smoke run (04:30) when that is installed. A fixed time, no random delay, so the
+# nights are comparable. Pair it with the service under the same instance name:
+#
+#   sudo systemctl enable --now planetgen-tiles@planetgen.timer
+#
+# Installed by install-maintenance-timer.sh.
+
+[Unit]
+Description=Rebuild planetGen's whole Galaxy Map tile cache every night (%i database)
+
+[Timer]
+OnCalendar=*-*-* 05:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

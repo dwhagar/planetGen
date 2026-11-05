@@ -83,6 +83,16 @@ Each family ends with one line, `<family>: <n> warmed (<m> already cached, <k> l
 
 It runs inside the maintenance flag the update set (OPS.51). A list of every family ends with the command `end-map-rebuild-maintenance`, which ends the sector-switch maintenance after every family has succeeded: it is the list, not a family, that knows the maps are then rebuilt. It registers with the update guard (OPS.53) so a later update lists and cancels it.
 
+## The whole-map build (PERF.233)
+
+`planetgen.cli.tiles` (`web/tilebuild.py`) builds every node of the Galaxy Map from scratch, nightly after the orbit update. The warm-up above builds what a visit would reach and stops at `cache.max_mb`; this builds the whole galaxy: every block of every level that holds a generated sector or a placed object (`nodes.all_node_keys`) and each generated sector, about 80 KB a sector node and 30 KB a block node, 20 nodes a second on four cores (reports/perf233-tile-cache-cost-2026-11-04.md).
+
+- It builds into `<cache root>/.build/` (`tilecache.building_into`: the same layout, no pruning, no budget) and swaps the finished folder in for the live one, so a visitor never meets an empty cache and a run that is killed leaves the old one serving; a rerun picks up the nodes already built.
+- It checks the data's stamp before the swap: a change meanwhile deletes just the nodes it touched, and those are built again.
+- It refuses to start unless twice the projected size is free, saying the figures.
+- `prune` counts only the nodes a visit asked for: the built-ahead ones (this build's and the warm-up's) carry their own bound, the galaxy, so `cache.max_mb` is the allowance of what visits add on top; a cache of nothing but built-ahead nodes past the budget still stops the warm-up.
+- `examples/maintenance/planetgen-tiles@.timer` runs it at 05:00 and then `planetgen warm` rebuilds the lists, objects and search.
+
 ## Done when
 
 After `update.sh`, the first visit to the Galaxy Map, a sector, a system, a phenomena or system list and a search answers from the cache. Changing one sector rebuilds only the caches that read it. A test per kind of change proves a stale copy is never served as current.

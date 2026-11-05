@@ -57,6 +57,7 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.67 | Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops | NAV.66 |  |
 | NAV.66 | Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels | NAV.65 |  |
 | NAV.65 | Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap |  |  |
+| NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) |  |  |
 
 ### Steering clear of gravity wells
 

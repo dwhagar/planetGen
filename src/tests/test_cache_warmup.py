@@ -748,8 +748,9 @@ def test_an_answered_request_builds_what_a_change_touched_again(galaxy, prefetch
 
 def test_prune_marks_the_cache_full_for_the_background_build(tmp_path, monkeypatch):
     from planetgen.web.lib import tileprefetch
-    (tmp_path / "t1.bin").write_bytes(b"x" * 100)
-    (tmp_path / "t2.bin").write_bytes(b"x" * 100)
+    for name in ("t1.bin", "t2.bin"):
+        (tmp_path / name).write_bytes(b"x" * 100)
+        (tmp_path / name).chmod(0o600)     # a node a visit asked for (PERF.233: those built ahead are not counted)
     tilecache.prune(str(tmp_path), max_bytes=500)
     assert not tileprefetch.is_full(str(tmp_path))
     tilecache.prune(str(tmp_path), max_bytes=100)
