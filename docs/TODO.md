@@ -12864,6 +12864,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated from the rules: if the generated pages are part of the
   golden, fold this into step 3's epoch, else it is lock-free. Where we
   think it belongs (best guess, can move): same lane as step 1.
+  Covered by GEN.1207 (Core 4, as the lane reported) (11:59 AM EST on
+  2026-11-05): The wording change (age and stage words dropped, Checked
+  after, leftover) is already in the GEN.1207 branch
+  (claude/core4-gen1207, train 12). No separate build. Retires when
+  GEN.1207 merges.
   Prerequisites: none.
 
 - [ ] **GEN.1209 Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence**
@@ -12991,6 +12996,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
+  Covered by GEN.1221 and GEN.1207 (Core 4, as the lane reported) (11:59
+  AM EST on 2026-11-05): Class Z (hot thin air, 1.4 to 2 g, 340 to 1100
+  K, 1 to 10 kPa, no ocean) is a full row in GEN.1221 (train 11) and in
+  GEN.1207's class table (claude/core4-gen1207, train 12). No separate
+  build. Retires when GEN.1207 merges. Core 4's sweep of 150 systems
+  (seed 1000): of 36 hot thin dry bodies, 25 are Z at 100 percent, 9 are
+  V, 1 is Z at 70 percent, 1 fits nothing (1.25 g, 379 K, 998 Pa, just
+  under Z's 1.4 g edge).
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 - [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
@@ -14106,6 +14119,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1071 is on main. Version 8.1. Owner: Aux 5. Filed by the TODO
   thread.
   Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
+
+- [ ] **GEN.1281 Heavy worlds with a plain nitrogen air and no oxygen or methane (about 1.3 percent of bodies) fit no class: widen a class or add one**
+  Core 4 (as the lane reported, about 11:58 AM EST on 2026-11-05, sweep
+  in reports/class-sweep-gen1207-2026-11-05.md): of 775 bodies in 150
+  systems (seed 1000), 10 are heavy worlds (1.3 to 1.8 g) with a plain
+  nitrogen air and no oxygen or methane, at 250 to 330 K with thin air
+  (about 10 kPa) and water or an ocean. They fit no class because class
+  F needs methane or hydrogen. Do: after GEN.1207 lands, take the 10
+  bodies and say from the physics which class they belong to; either
+  widen F's gas rule or propose a class for abiotic nitrogen-air heavy
+  worlds, with its conditions, name and letter, as a plain-word card to
+  the TODO thread (all 20 class letters stay; a new letter needs Boss's
+  word). Build the chosen option in the class table with a stand-in row
+  and tier in GEN.725, and re-run the sweep to show the gap closes.
+  Generation output changes (lock item, train 13 or the next train after
+  GEN.1207). Version 8.1. Owner: Core 4. Filed by the TODO thread.
+  Prerequisites: GEN.1207.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
