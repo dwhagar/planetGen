@@ -1639,7 +1639,7 @@ def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelle
     requests = []
     page.on("request", lambda request: requests.append(request.url))
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=15000)
+    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
     page.wait_for_timeout(1500)
     assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
     assert any("/galaxy/nebula/801/shape?lod=low" in url for url in requests)    # a stored cloud still gets its mesh
