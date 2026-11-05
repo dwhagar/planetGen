@@ -1,5 +1,0 @@
-**Headline:** A course inside a solar system now goes round the stars, planets and moons and is aimed where its destination will be when the ship arrives.
-
-### Added
-- **Courses inside a system are planned round the bodies.** `GET /api/nav?...&adjusted=1` now gives an `adjusted` course for a trip between two bodies of one system, and for the in-system parts of a longer trip (out to the system's edge, and in from it). Every star keeps out by its radiation radius and every planet and moon by its Hill radius, with each body placed where it is at the departure time (`physics/body_positions.positions_at`). The planner is `galaxy/system_course.plan_system_course`; the keep-out table is `db/obstacles.system_keep_outs`; the API step is `api/nav_system.adjust_legs`.
-- **The destination moves while the ship flies.** The course is aimed at the place the destination will be on arrival, found in up to `tuning.COURSE_SYSTEM_AIM_STEPS` steps. The planning speed is warp `tuning.COURSE_SYSTEM_WARP_FACTOR`. The Navigation page says "Aimed at ... where it will be on arrival" when it applies.
