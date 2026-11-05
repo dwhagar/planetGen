@@ -184,7 +184,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP6 | GEN.1092 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1092 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
 | module | planetgen.physics.irregular_population | GEN.1083 | the capture windows, ground-down count and stored irregulars of a planet (lock-free, GEN.1077); the captured-moon wiring calls `make_pool`, `draw_irregulars` and `draw_exchange` |
-| row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISC_MASS_EARTH`, read when the captured-moon wiring lands |
+| row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISK_MASS_EARTH`, read when the captured-moon wiring lands |
 | row | 6.118:IP2 | GEN.1083 | `irregular_population.CAPTURED_DENSITY_KG_M3`, read when the captured-moon wiring lands |
 | row | 6.118:IP3 | GEN.1083 | `irregular_population.ENCOUNTER_YIELD`, read when the captured-moon wiring lands |
 | row | 6.118:IP4 | GEN.1083 | `irregular_population.REFERENCE_HILL_AU`, read when the captured-moon wiring lands |
@@ -207,7 +207,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.125:TB1 | GEN.1151 | `trojan_bodies.CLASS_J_MIN_EARTH`, read when the whole-body draw lands |
 | row | 6.125:TB2 | GEN.1151 | `trojan_bodies.CLASS_M_MASS_EARTH`, read when the whole-body draw lands |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
-| row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISC_LIFETIME_MYR`, read when the whole-body draw lands |
+| row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
 | function | planetgen.physics.climate_branches.bistable_window | GEN.1051 | the flux range where an Earth twin holds both a warm and a snowball branch; GEN.1051's history draw reads the share of the window the flux sits in |
 | row | 6.126:RN1 | GEN.1201 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1201 wires the module |
