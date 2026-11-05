@@ -2525,3 +2525,6 @@ Baseline: PR #1817.
 | TEST.575 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.595 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.597 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.49 | 8.5 | Waypoints and editing |
+| MAP.382 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.596 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

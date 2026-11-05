@@ -2,6 +2,30 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3319] - 2026-11-05
+
+**Headline:** The prevalence census tests carry the shifts train 10 (epoch 132) made, so they flag only new faults.
+
+### Changed
+- **TEST.550 (census re-tag after train 10).** The class, systems and occurrence census flagged twelve cells on the epoch 132 tree. Each is now tagged with the item that moved it, with the evidence in the anomaly text: six class cells (planet life ceilings of F5V and K0III ecosphere planets under GEN.1226; moon Class D and two moon ceilings under GEN.1244), F5V belts per system and K giants of 2 to 8 AU under GEN.1068 (belt members, belt history and the planet-chain draws), and the G2V abiogenesis share under GEN.1111 (a draw shift of 0.026 inside the sampling spread of 150 systems). Ranges are unchanged. The base shares (`PREVALENCE_BASE_SHARES`) are TEST.579's. Tests only: no generator change.
+
+## [8.0.3318] - 2026-11-05
+
+**Headline:** A test now records that a field cloud's sprite on the Galaxy Map hands over to the nebula density volume by design, and that the cloud is never left undrawn.
+
+### Changed
+- MAP.382: the field cloud sprite is on screen for a few frames when its node arrives and then fades out as the nebula volume layer (MAP.365) draws the same region from the model's density; the map was not changed. A browser test holds that 5 s after the sprite is first seen either the volume layer or the sprite draws the cloud.
+
+## [8.0.3317] - 2026-11-05
+
+**Headline:** Waypoints are flagged and numbered on the Galaxy Map and a sector's map, and a system, phenomenon or body page can add one.
+
+### Added
+- A waypoint picked from a card on the Galaxy Map or a sector's map is flagged and numbered where it is, at every zoom level and inside an opened sector or system. A new Waypoint flags switch in the Menu's Show on the map hides the flags, and the key explains them. A plotted course flags its waypoints too.
+- The Nav menu of a system, phenomenon or body page has Add waypoint; it becomes Remove waypoint once the place is one, and the list is the same as the maps'.
+
+generation-output: unchanged
+
 ## [8.0.3316] - 2026-11-05
 
 **Headline:** The sector page label test waits for the sector's map blocks to arrive before it checks which names are shown, so it no longer fails 1 run in 3.

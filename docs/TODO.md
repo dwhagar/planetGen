@@ -1913,22 +1913,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
 
-- [ ] **MAP.382 The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug)**
-  Core 5 (as the lane reported, about 8:30 AM EST on 2026-11-05), fixing
-  TEST.575, found that the field cloud sprite (MAP.178) is on screen
-  only 1 to 2 frames about 3.7 s after the window opens, even at
-  MAP.178's own commit d4051832b, so the test now records it with a
-  MutationObserver. If the sprite is meant to stay on screen at steady
-  state, this is a map bug; if it is a one-time fade by design, say so
-  in the item and close it. Do: look at the field cloud sprite lifecycle
-  in the map JS (when it is added, when it is removed or hidden), decide
-  which is intended from MAP.178's text, and either fix it with a
-  browser test that holds at steady state or record the by-design
-  behavior. Done: the answer in the item and, if a bug, a passing test
-  that the sprite is present 5 s after the window opens. Lock-free.
-  Version 8.1. Owner: Core 4 (wrote MAP.178). Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.178.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2149,30 +2133,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as ordinary, and the course says what changed. Prerequisites: none.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
 
-- [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
-  Boss (2026-10-07 11:47Z): "Then you can go find another location
-  (star, planet, whatever) and select it and you can add a 2nd waypoint,
-  waypoints are highlighted at all map levels with an icon it will plot
-  a course." And: "Plotted courses should appear on the galactic map and
-  stay until cleared." Done: waypoints set from Star select mode are
-  marked with an icon at every map level, two or more plot a course, and
-  the course stays drawn on every map until cleared.
-  Research (2026-10-09): MAP.122 was rescoped (7:40 PM EDT 2026-10-28):
-  it now delivers the Bookmark action and the touch reach on the star
-  panel; this item only adds the Waypoint button on that panel.
-  Parts 49a and 49c merged (Core 2, #5092, #5101) (7:40 AM EST on
-  2026-11-05): 49a: a waypoint flag on the info card of a system or
-  object and a Waypoints menu beside Bookmarks (order picked, Remove,
-  Clear all), kept in the browser. 49c: with two or more waypoints the
-  menu offers Plot the course; the Galaxy Map draws the course through
-  them (each leg planned like any course: route, direct line, bend round
-  keep-out spheres), waypoints ringed and named, fitted view, kept until
-  Clear all or Remove down to one; the address carries ?via=. Galaxy Map
-  only (inside a sector or system is NAV.22, MAP.217). Left: 49b,
-  waypoint icons at every map level. This item stays open for 49b.
-  Prerequisites: MAP.122.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
   Count how many pairs of keep-out spheres overlap in a generated
   galaxy. The answer decides whether NAV.26's cluster fallback ever
@@ -2217,7 +2177,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   re-planned after each edit (bending around gravity wells once NAV.6 is
   built) and the edit is saved over the saved course or as a new one
   (NAV.4); a test checks add, remove, reorder and save.
-  Prerequisites: NAV.49, NAV.4. Related: NAV.6, NAV.18, NAV.59.
+  Prerequisites: NAV.4. Related: NAV.6, NAV.18, NAV.59.
 
 - [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
   Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
@@ -2228,7 +2188,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
   a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
-  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4. Related: GEN.198,
+  Prerequisites: NAV.6, NAV.58, NAV.4. Related: GEN.198,
   MAP.167.
 
 - [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
@@ -17945,6 +17905,11 @@ clears each one.
   added lines for the sky and glow rows only). The nebula group stays
   with Tides 1. The train 10 gate shows kind factors red on main too, so
   check first whether train 10 changes it.
+  Groups merged (TODO) (9:58 AM EST on 2026-11-05): Nebula group merged
+  by Tides 1 (#5025). Non-nebula groups merged by Core 5 (#5086, #5087:
+  burn-down lines, Magellanic supernova claim, halo planet count). Left:
+  the life-class tests (test_system_interests), Bug 1's. This item
+  closes when those are green on main.
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -18010,21 +17975,6 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.596 test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug)**
-  The Train Manager (as the lane reported, 7:11 AM EST on 2026-11-05)
-  listed these as red on plain main as well as in the train 10 gate:
-  tests/test_generation_mix.py (giant densities and the zone mix) and
-  tests/test_fuzz_planet_inputs.py. Do: first drop leftover planetgen_*
-  databases and run each alone on current main; find the commit that
-  turned each red (git bisect on the one test file) and say which item
-  owns it; fix the test with the reason or the code. Do not loosen a
-  check to get green. Done: both green on main, with the cause of each
-  noted. Lock-free unless the cause is a stored value, in which case
-  stop and tell TODO. Version 8.1. Owner: Tides 1 (the TEST.580
-  life-class tests stay with Bug 1; test_fuzz_system_generation is
-  TEST.571's). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.580.
-
 - [ ] **TEST.598 test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug)**
   Aux 5 (as the lane reported, about 9:00 AM EST on 2026-11-05) found
   tests/test_fingerprint.py, whose table list does not include
@@ -18038,6 +17988,37 @@ clears each one.
   Lock-free unless a stored value is the cause (then stop and tell
   TODO). Version 8.1. Owner: Aux 7. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580.
+
+- [ ] **TEST.599 test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug)**
+  Core 2 (as the lane reported, about 9:10 AM EST on 2026-11-05) saw
+  tests/test_web_a11y.py -k web.system-phone-light fail on plain main on
+  a skip-link tab stop, and says link-colour axe checks also read red on
+  its machine. Core 3 saw web.system pass (8 passed, 4 skipped) on its
+  machine at main 10cf0b86d, so the failure may follow a later commit or
+  the machine. Do: run web.system-phone-light alone on current main,
+  print the failing assertion (the tab order with the skip link first,
+  or a link contrast), bisect test_web_a11y.py to the commit that turned
+  it red, and fix the page or the test at the cause; if it still passes
+  on a second lane machine, say which difference matters. Done:
+  web.system passes on current main on two lane machines. Lock-free.
+  Version 8.1. Owner: Core 3. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.346.
+
+- [ ] **TEST.600 Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12)**
+  The Train Manager (as the lane reported, 9:28 AM EST on 2026-11-05)
+  asked for this. GEN.1275 (the habitable-world bar, Bug 1) and TEST.579
+  (remeasured prevalence base shares, Bug 1, branch
+  bug1/test579-base-shares eac2a5a48, includes PERF.236) were held out
+  of train 11 because GEN.1275 duplicates the bar of GEN.1250 and
+  conflicts in planet.py and system.py; they go to train 12 after Bug 1
+  rebases and keeps one bar. Do: once both land, run the census re-tag,
+  re-baseline the TEST.430 prevalence rows for the new base shares
+  (asteroid_belt 0.653, habitable_world 0.584, large_star 0.056, planets
+  0.822) and check test_prevalence.py goes green (habitable_world -50 is
+  fixed by GEN.1275). Done: the census and prevalence tests pass on main
+  with no other test moved. Version 8.1. Owner: Train Manager, after
+  train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.430.
 
 ## USR: User accounts
 
