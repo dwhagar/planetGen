@@ -3125,6 +3125,15 @@ code {
   border-radius: 0;
   vertical-align: 0.2rem;
 }
+.map-layer-legend-swatch.map-key-waypoint {
+  background: none;
+  border-radius: 0;
+}
+.map-layer-legend-swatch.map-key-waypoint::before {
+  content: "\2691";
+  color: var(--accent);
+  line-height: 1;
+}
 .map-layer-legend-swatch.map-key-bent {
   height: 0;
   border-top: 3px solid var(--tier-yellow);

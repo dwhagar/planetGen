@@ -8,9 +8,12 @@
 // (list, find) are at once. Every storage read and write is wrapped by the store: with storage blocked there are just no waypoints, and
 // adding one says so.
 //
-// An entry is {name, kind, value, url?, created}: `value` is the NAV endpoint ("system:12", "nebula:3"), the entry's key.
+// An entry is {name, kind, value, url?, position?, created}: `value` is the NAV endpoint ("system:12", "nebula:3"), the entry's key, and
+// `position` (x, y, z in parsecs, galaxy frame) is where the Galaxy Map flags it when the card it was picked from knew it.
 //
 // Importing this module wires whatever the page has (no inline script, see the Content-Security-Policy in web/__init__.py):
+// - [data-waypoint-toggle]: an Add waypoint button on a system, phenomenon or body page, its entry in data-waypoint-kind, -value, -name
+//   and -url. Hidden until wired.
 // - [data-waypoints-menu]: the Galaxy Map's Waypoints menu (a <details>), its [data-waypoints-panel] filled with the list and its
 //   [data-waypoints-count] with the number of waypoints. Two or more waypoints plot a course (NAV.49): the Galaxy Map takes them in its
 //   address, `?via=<a>,<b>,...`, and draws the course through them (web/nav_page.galaxy_course_through). The course stays: a Galaxy Map
@@ -47,6 +50,7 @@ function keyOf(entry) {
 function build(entry) {
   const saved = { name: entry.name.trim() || entry.value, kind: entry.value.split(":")[0], value: entry.value, created: new Date().toISOString() };
   if (entry.url) saved.url = entry.url;
+  if (Array.isArray(entry.position) && entry.position.length === 3 && entry.position.every(Number.isFinite)) saved.position = entry.position.slice();
   return saved;
 }
 
@@ -141,6 +145,14 @@ export function toggleButton(button, entryFn, compact) {
   refresh();
   ready.then(refresh);
   return refresh;
+}
+
+function wireToggles() {
+  document.querySelectorAll("[data-waypoint-toggle]").forEach(function (button) {
+    const d = button.dataset;
+    const entry = { name: d.waypointName || "", kind: d.waypointKind, value: d.waypointValue, url: d.waypointUrl || null };
+    toggleButton(button, function () { return entry; });
+  });
 }
 
 // --- The course through the waypoints (NAV.49) -------------------------------------------
@@ -284,3 +296,4 @@ function wireMenus() {
 }
 
 wireMenus();
+wireToggles();

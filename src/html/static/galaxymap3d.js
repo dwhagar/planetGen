@@ -57,6 +57,7 @@ const {
   neighbourBlock, sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
+const Waypoints = await import(`./waypoints.js${VERSION_QUERY}`);
 const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
@@ -514,6 +515,8 @@ function phenomenonUrl(cloud) {
 function phenomenonActions(item) {
   var endpoint = item.type + ":" + item.id;
   var spec = { bookmark: endpointBookmark(endpoint, item.name, sceneData.phenomenonUrl ? phenomenonUrl(item) : null) };
+  // NAV.49: where the Waypoint flag goes on the map.
+  if (spec.bookmark && [item.x, item.y, item.z].every(Number.isFinite)) spec.bookmark.position = [item.x, item.y, item.z];
   // Not while choosing a NAV endpoint (NAV.30): it would leave the course.
   if (sceneData.phenomenonUrl && !navPick.active()) {
     // A scattered point that nothing has built has no record of its own: its page is the scatter row's
@@ -751,6 +754,8 @@ function showStarInfo(star, nearby) {
     spec.view = { href: systemPage, label: "View system →" };
     // MAP.122: the ☆ saves the star's system (a star in unmade space has no system to keep).
     spec.bookmark = endpointBookmark("system:" + star.system_id, star.name || "Star system", systemPage);
+    // NAV.49: where the Waypoint flag goes on the map.
+    if (spec.bookmark) spec.bookmark.position = [star.x, star.y, star.z];
   }
   if (nearby) {
     spec.after = [nearby];
@@ -4412,6 +4417,64 @@ function initGalaxyMap3d(canvasEl, data) {
       if (id.indexOf("course-") === 0) showCourseForms();
     });
   }
+  // NAV.49: a flag, numbered in the order the waypoints were picked, at each waypoint whose place the map knows: the one its card gave
+  // when it was picked here, or the one the plotted course through them has. A layer of the Menu, shown unless the visitor hides it. The
+  // same scene serves every level of the map (the whole galaxy, a block, an opened sector or system) and a sector's own page.
+  var waypointFlags = new THREE.Group();
+  waypointFlags.renderOrder = 5;
+  scene.add(waypointFlags);
+  var flagMarkers = [];
+  stageView.layers.register({
+    id: "waypoints", label: "Waypoint flags", modes: ["galaxy"], group: "Show on the map", data: { waypoints: "flags" },
+    defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+    title: "Show or hide the flags that mark the stops picked for a course with Add waypoint",
+  });
+  stageView.readLayersFromLocation();
+  stageView.layers.refresh();
+  stageView.layers.registerKey({
+    id: "key-waypoints", layer: "waypoints", text: "Flag and number: a waypoint, numbered in the order picked", swatchClass: "map-key-waypoint",
+    drawn: function () { return stageView.layers.isOn("waypoints") && flagMarkers.length > 0; },
+  });
+  function waypointSpots() {
+    var entries = Waypoints.list();
+    // The plotted course knows where its waypoints are, whichever card they were picked from.
+    var plotted = course && course.via && course.waypoints && course.waypoints.length === entries.length ? course.waypoints : null;
+    var spots = [];
+    entries.forEach(function (entry, n) {
+      var at = plotted ? course.points[plotted[n]] : null;
+      if (at) spots.push({ n: n + 1, x: at.x, y: at.y, z: at.z });
+      else if (entry.position) spots.push({ n: n + 1, x: entry.position[0], y: entry.position[1], z: entry.position[2] });
+    });
+    return spots;
+  }
+  function drawWaypointFlags() {
+    flagMarkers.forEach(function (marker) { marker.sprite.material.map.dispose(); marker.sprite.material.dispose(); waypointFlags.remove(marker.sprite); });
+    courseMarkers = courseMarkers.filter(function (marker) { return flagMarkers.indexOf(marker) < 0; });
+    flagMarkers = waypointSpots().map(function (spot) {
+      var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: makeLabelTexture("\u2691 " + spot.n, accentColor), transparent: true, depthWrite: false, depthTest: false, sizeAttenuation: false,
+      }));
+      sprite.position.set(spot.x, spot.y, spot.z);
+      waypointFlags.add(sprite);
+      return { sprite: sprite, px: COURSE_LABEL_PX, label: true, number: spot.n };
+    });
+    courseMarkers = courseMarkers.concat(flagMarkers);
+    waypointFlags.visible = stageView.layers.isOn("waypoints");
+    stageView.layers.refreshKey();
+  }
+  drawWaypointFlags();
+  Waypoints.ready.then(drawWaypointFlags);
+  Waypoints.onChange(drawWaypointFlags);
+  stageView.layers.onChange(function (id) {
+    if (id === "waypoints") waypointFlags.visible = stageView.layers.isOn("waypoints");
+  });
+  // For the browser tests: the flags drawn, `[number, x, y, z]` each.
+  canvasEl.galaxyWaypointFlags = function () {
+    return waypointFlags.visible ? flagMarkers.map(function (marker) {
+      var at = marker.sprite.position;
+      return [marker.number, at.x, at.y, at.z];
+    }) : [];
+  };
   // The superbubbles are a layer of the Menu, off unless the visitor shows them.
   if (bubbleMeshes.length) {
     stageView.layers.register({
