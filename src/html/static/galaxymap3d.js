@@ -3533,6 +3533,10 @@ function initGalaxyMap3d(canvasEl, data) {
   var courseRings = [];
   var courseSelected = null;
   var courseGlows = null;
+  // NAV.23: the course's three forms, each its own group of lines so the Menu can show or hide it; NAV.21: every point of the three, flat
+  // [x, y, z, ...] in parsecs, which the opening view is fitted round.
+  var courseLines = null;
+  var courseFitPoints = [];
   var COURSE_RING_PX = 11;
   var COURSE_LABEL_PX = 13;
 
@@ -3543,31 +3547,35 @@ function initGalaxyMap3d(canvasEl, data) {
     var courseGroup = new THREE.Group();
     courseGroup.renderOrder = 4;
     scene.add(courseGroup);
+    courseLines = { route: new THREE.Group(), direct: new THREE.Group(), adjusted: new THREE.Group() };
+    Object.keys(courseLines).forEach(function (form) { courseGroup.add(courseLines[form]); });
     var linePoints = course.points.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+    course.points.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
     // MAP.240: a line is an object at its first stop with offsets from it.
     // NAV.36: a hop through unknown space is drawn on its own, red, dashed and glowing; the known hops make solid runs.
     var unknownColor = mapVar("--error", "#d64545");
     courseRuns(course.points).forEach(function (run) {
       var runPoints = linePoints.slice(run.from, run.to + 1);
       if (!run.unknown) {
-        courseGroup.add(lineFrom(runPoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
+        courseLines.route.add(lineFrom(runPoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
         return;
       }
       var hopLength = runPoints[0].distanceTo(runPoints[1]);
-      courseGroup.add(lineFrom(runPoints, new THREE.LineDashedMaterial({
+      courseLines.route.add(lineFrom(runPoints, new THREE.LineDashedMaterial({
         color: new THREE.Color(unknownColor), depthTest: false, transparent: true, dashSize: hopLength / 24, gapSize: hopLength / 48,
       }), true));
       courseGlows = courseGlows || { texture: makeGlowTexture(THREE, unknownColor), list: [] };
       var glow = createHopGlow(THREE, runPoints[0], runPoints[1], courseGlows.texture);
       glow.group.renderOrder = 3;
-      courseGroup.add(glow.group);
+      courseLines.route.add(glow.group);
       courseGlows.list.push(glow);
     });
     // NAV.20: with stops on the way, the straight line from the start to the
     // end is drawn apart from the route, dashed and muted.
     if (course.direct && course.direct.length === 2) {
       var directPoints = course.direct.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
-      courseGroup.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
+      directPoints.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
+      courseLines.direct.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
         color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
         dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
         gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
@@ -3577,7 +3585,8 @@ function initGalaxyMap3d(canvasEl, data) {
     var bentColor = mapVar("--tier-yellow", "#d9a400");
     (course.adjusted || []).forEach(function (line) {
       if (line.length < 2) return;
-      courseGroup.add(lineFrom(line.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); }),
+      line.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
+      courseLines.adjusted.add(lineFrom(line.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); }),
         new THREE.LineBasicMaterial({ color: new THREE.Color(bentColor), depthTest: false, transparent: true })));
     });
     course.points.forEach(function (point, n) {
@@ -3733,6 +3742,12 @@ function initGalaxyMap3d(canvasEl, data) {
     return course ? course.points.map(function (point) { return { name: point.name, x: point.x, y: point.y, z: point.z }; }) : [];
   };
   // NAV.36, for the browser tests: how many hops are drawn as jumps through unknown space and how many glow sprites show now.
+  // NAV.23, for the browser tests: which forms of the course are drawn, `{route, direct, adjusted}` (a form the course has none of is left out).
+  canvasEl.galaxyCourseForms = function () {
+    var shown = {};
+    if (courseLines) Object.keys(courseLines).forEach(function (form) { if (courseLines[form].children.length) shown[form] = courseLines[form].visible; });
+    return shown;
+  };
   canvasEl.galaxyCourseUnknown = function () {
     var list = courseGlows ? courseGlows.list : [];
     return {
@@ -4004,6 +4019,8 @@ function initGalaxyMap3d(canvasEl, data) {
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
     accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
+    // NAV.21: with a course, the view opens fitted round every point of it (the route, the direct line and the adjusted lines).
+    courseFit: courseFitPoints.length >= 6 ? function () { return courseFitPoints; } : null,
     blockScene: localBlockScene,
     makeBlockMesh: makeBlockMesh,
     // MAP.131: the blocks' color modes, the legend of the chosen one and the
@@ -4367,6 +4384,31 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.layers.onChange(function (id, on) {
     if (id === "spin") stageView.spinSwitch.set(on);
   });
+  // NAV.23: the forms of a NAV course are layers of the Menu, all shown: the route through its stops, the direct line from the start to
+  // the end, and the course bent round keep-out spheres. A saved course opens here (the Saved Courses list on the NAV page), and the
+  // visitor switches between its forms; the address keeps the choice.
+  if (courseLines) {
+    var courseForms = [
+      { form: "route", id: "course-route", label: "Course: route", title: "Show or hide the course through each of its stops" },
+      { form: "direct", id: "course-direct", label: "Course: direct line", title: "Show or hide the straight line from the start to the end of the course" },
+      { form: "adjusted", id: "course-adjusted", label: "Course: adjusted", title: "Show or hide the course bent round the keep-out spheres it would pass too close to" },
+    ].filter(function (item) { return courseLines[item.form].children.length > 0; });
+    courseForms.forEach(function (item) {
+      stageView.layers.register({
+        id: item.id, label: item.label, modes: ["galaxy"], group: "Show on the map", data: { course: item.form },
+        defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: item.title,
+      });
+    });
+    stageView.readLayersFromLocation();
+    stageView.layers.refresh();
+    var showCourseForms = function () {
+      courseForms.forEach(function (item) { courseLines[item.form].visible = stageView.layers.isOn(item.id); });
+    };
+    showCourseForms();
+    stageView.layers.onChange(function (id) {
+      if (id.indexOf("course-") === 0) showCourseForms();
+    });
+  }
   // The superbubbles are a layer of the Menu, off unless the visitor shows them.
   if (bubbleMeshes.length) {
     stageView.layers.register({
@@ -4606,15 +4648,15 @@ function initGalaxyMap3d(canvasEl, data) {
       });
     }
     if (course) {
-      layers.registerKey({ id: "key-course", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return true; } });
+      layers.registerKey({ id: "key-course", layer: "course-route", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return stageView.layers.isOn("course-route"); } });
       if (course.points.some(function (point) { return point.hopUnknown; })) {
-        layers.registerKey({ id: "key-course-unknown", text: "Red dashed glowing line: a jump through unknown space", swatchClass: "map-key-course-unknown", drawn: function () { return true; } });
+        layers.registerKey({ id: "key-course-unknown", layer: "course-route", text: "Red dashed glowing line: a jump through unknown space", swatchClass: "map-key-course-unknown", drawn: function () { return stageView.layers.isOn("course-route"); } });
       }
       if ((course.adjusted || []).length) {
-        layers.registerKey({ id: "key-course-bent", text: "Amber line: the course bent round a keep-out sphere", swatchClass: "map-key-bent", drawn: function () { return true; } });
+        layers.registerKey({ id: "key-course-bent", layer: "course-adjusted", text: "Amber line: the course bent round a keep-out sphere", swatchClass: "map-key-bent", drawn: function () { return stageView.layers.isOn("course-adjusted"); } });
       }
       if (course.direct && course.direct.length === 2) {
-        layers.registerKey({ id: "key-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return true; } });
+        layers.registerKey({ id: "key-direct", layer: "course-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return stageView.layers.isOn("course-direct"); } });
       }
     }
   })();
