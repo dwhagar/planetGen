@@ -19967,6 +19967,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   packed stars, with the sprite wire format written in the wire-format
   doc here, so Core 2 builds VIEW.34 to VIEW.36 on it. Its prerequisite
   VIEW.29 is retired.
+  Sprite record shape the client reads (11:50 PM EST on 2026-11-04): {
+  id, family, direction [x,y,z] unit vector (galactic axes, light-time
+  retarded), angularRadiusRad, inside, extinctionMag, surfaceBrightness
+  (null for none), visible, seen }, which is
+  nebula_sprites.sprite_data's output. If VIEW.31 packs them differently
+  the fix is a small adapter in the VIEW.35 wiring, not a change to
+  skysprites.js.
   Prerequisites: VIEW.29.
 
 - [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
@@ -20019,6 +20026,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   setting with default 7.5, lower on phones; missing stars are built
   when a system is charted, no visit job. Goal #4907. Filed by the TODO
   thread.
+  Client part merged (Core 2, #5036) (11:50 PM EST on 2026-11-04):
+  skysprites.js merged: a nebula bright enough for the naked eye draws
+  as a soft disc in its family's colour, a seen supernova remnant draws
+  as a ring, a dark cloud dims the stars behind it; remnants not yet
+  seen, faint nebulae and a nebula the observer sits inside are not
+  drawn. Luminous black holes, neutron stars and quasars ride the packed
+  stars (kind phenomenon) through skysphere.js and need nothing more.
+  Left open: the wire-format check against VIEW.31 (the record shape is
+  below), and the page wiring in VIEW.35. Stand-ins SB_RAMP 5 mag and
+  GLOW_MAX 0.55 (Unverified, L3, chosen by eye) are to be registered in
+  GEN.725.
   Prerequisites: VIEW.33.
 
 - [ ] **VIEW.37 System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars**
