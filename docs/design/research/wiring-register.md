@@ -76,9 +76,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.74:SH3 | GEN.1047 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH4 | GEN.1047 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
 | module | planetgen.physics.nightside_collapse | GEN.1051 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
-| row | 6.75:NC1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NC3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NC6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NEB1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NEB3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NEB6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, [R0962]); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
 | row | 6.90:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
 | row | 6.90:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
@@ -381,5 +381,14 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| module | planetgen.physics.nebula_composition | GEN.1276 | the composition item writes the values of each nebula and remnant at generation and backfill from `makeup(...).values()`, with `gas_oh` for the place; GEN.1277 does the same for the field clouds through `field_cloud_density_cm3` |
+| row | 6.179:NBC1 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NBC2 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NBC3 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NBC4 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NBC5 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NBC6 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NBC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NBC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
 | data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
