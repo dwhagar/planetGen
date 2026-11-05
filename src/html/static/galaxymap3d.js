@@ -2226,6 +2226,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // is in (within REGION_POI_REACH of its radii of its middle) gets none: its sectors and stars are the points there.
   var REGION_POI_REACH = 2.5;
   var REGION_POI_MERGE_PX = 48;
+  // MAP.369: a point carries its region's name, so two points are one when their boxes would touch: this far apart across, or less, and no
+  // farther than REGION_POI_MERGE_PX down.
+  var REGION_POI_MERGE_ACROSS_PX = 130;
   var regionPoiLayer = null;
   var regionPoiEls = new Map();
   var regionPoiGroups = [];
@@ -2246,7 +2249,10 @@ function initGalaxyMap3d(canvasEl, data) {
     items.sort(function (a, b) { return (b.blob.sectorCount - a.blob.sectorCount) || (a.blob.key < b.blob.key ? -1 : 1); });
     var groups = [];
     items.forEach(function (item) {
-      var home = groups.find(function (group) { return Math.hypot(group.x - item.x, group.y - item.y) <= REGION_POI_MERGE_PX; });
+      var home = groups.find(function (group) {
+        return Math.abs(group.x - item.x) <= REGION_POI_MERGE_ACROSS_PX && Math.abs(group.y - item.y) <= REGION_POI_MERGE_PX / 2 ||
+          Math.hypot(group.x - item.x, group.y - item.y) <= REGION_POI_MERGE_PX;
+      });
       if (home) home.members.push(item.blob);
       else groups.push({ x: item.x, y: item.y, head: item.blob, members: [item.blob] });
     });
@@ -2314,9 +2320,12 @@ function initGalaxyMap3d(canvasEl, data) {
         var use = document.createElementNS("http://www.w3.org/2000/svg", "use");
         use.setAttribute("href", new URL("poi/region.svg" + VERSION_QUERY + "#poi", import.meta.url).href);
         symbol.appendChild(use);
+        // MAP.369: the point reads as a label: the region's name beside its symbol (the head region's, for a group), then the count.
+        var label = document.createElement("span");
+        label.className = "map-region-poi-name";
         var count = document.createElement("span");
         count.className = "map-region-poi-count";
-        el.append(symbol, count);
+        el.append(symbol, label, count);
         el.addEventListener("click", function () {
           var mine = regionPoiGroups.find(function (g) { return g.head.key === key; });
           if (mine) openRegionGroup(mine);
@@ -2331,6 +2340,7 @@ function initGalaxyMap3d(canvasEl, data) {
         : name + " (" + group.head.sectorCount + " sectors): go to the region";
       el.title = text;
       el.setAttribute("aria-label", text);
+      el.querySelector(".map-region-poi-name").textContent = name;
       el.querySelector(".map-region-poi-count").textContent = many ? String(group.members.length) : "";
       el.hidden = false;
       el.style.left = group.x.toFixed(1) + "px";
@@ -2340,6 +2350,34 @@ function initGalaxyMap3d(canvasEl, data) {
       if (seen.has(key)) return;
       el.remove();
       regionPoiEls.delete(key);
+    });
+  }
+  // MAP.369: a region point lies above its region's middle, where a name the label engine placed (a family's, a region's) may be; it moves up
+  // over that name's top edge rather than cover it, whatever order the two were placed in. Worked out against the names as they stand.
+  var POI_NUDGE_GAP_PX = 4;
+  var poiNudgeSignature = "";
+  function nudgeRegionPois() {
+    if (!regionPoiLayer || !regionPoiGroups.length || !galaxyLabels) return;
+    var names = galaxyLabels.shown().filter(function (label) { return label.kind === "region"; });
+    var signature = regionPoiGroups.map(function (group) { return group.head.key + "@" + group.x.toFixed(0) + "," + group.y.toFixed(0); }).join(";")
+      + "|" + names.map(function (label) { return label.id + "@" + label.left + "," + label.top; }).join(";");
+    if (signature === poiNudgeSignature) return;
+    poiNudgeSignature = signature;
+    regionPoiGroups.forEach(function (group) {
+      var el = regionPoiEls.get(group.head.key);
+      if (!el) return;
+      var width = el.offsetWidth;
+      var height = el.offsetHeight;
+      var left = group.x - width / 2;
+      var bottom = group.y - 16;    // the point's own offset (style.css .map-region-poi)
+      var lift = 0;
+      names.forEach(function (label) {
+        var across = label.left < left + width && left < label.left + label.width;
+        var down = label.top < bottom - lift && bottom - lift - height < label.top + label.height;
+        if (across && down) lift = bottom - label.top + POI_NUDGE_GAP_PX;
+      });
+      lift = Math.min(lift, Math.max(bottom - height, 0));    // never above the top of the map
+      el.style.marginTop = lift ? "-" + lift.toFixed(1) + "px" : "";
     });
   }
   canvasEl.galaxyRegionPois = function () {
@@ -5840,6 +5878,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (sectorFrame) sectorFrame.update();
     planeView.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
+    nudgeRegionPois();
     renderFrame();
   })();
 }
