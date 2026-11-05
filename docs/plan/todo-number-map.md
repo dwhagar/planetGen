@@ -3944,7 +3944,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | done, PR #5079 |
 | TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | done, PR #5088 |
 | TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | done, PR #5104 |
-| TEST.596 | test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug) | none | open |
+| TEST.596 | test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug) | none | done, PR #5115 |
 | TEST.597 | test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug) | none | done, PR #5106 |
 | TEST.598 | test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug) | none | open |
 | TEST.599 | test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug) | none | open |
