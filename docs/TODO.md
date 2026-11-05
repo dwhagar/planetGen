@@ -18215,6 +18215,12 @@ clears each one.
   3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
   test that follows its map changes (proposed by the TODO thread). Filed
   by the TODO thread.
+  Owner change (TODO) (6:12 AM EST on 2026-11-05): Core 5 takes this
+  from Core 3 (who is on the GEN.1261 gate and has not started it).
+  Start by dropping leftover planetgen_* databases and running each of
+  the four files alone on current main; the item's own Done line says
+  they pass in three runs, so if they do, close it with the run log and
+  no change.
   Prerequisites: none.
 
 - [ ] **TEST.579 Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug)**
