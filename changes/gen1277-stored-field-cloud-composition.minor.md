@@ -6,6 +6,6 @@
 - A field cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers as its `nebula_field` row.
 
 ### Changed
-- A stored class M or N nebula with a centre is now keyed on its place, not its object ID, and the composition is worked out inside the galaxy's own scale (`nebula_columns.in_galaxy`), in the generator, the plan and both migrations, so a backfill reproduces what a regeneration stores. This rides on the epoch of GEN.1276.
+- A stored class M or N nebula with a centre is now keyed on its place, not its object ID, and the composition is worked out inside the galaxy's own scale (`nebula_columns.in_galaxy`), in the generator, the plan and both migrations, so a backfill reproduces what a regeneration stores.
 
-generation-output: changed
+generation-output: unchanged

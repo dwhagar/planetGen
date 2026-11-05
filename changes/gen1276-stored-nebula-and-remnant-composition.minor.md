@@ -8,6 +8,6 @@
 
 ### Changed
 - A nebula's `composition` sentence and `dominant_species` (and a remnant's `dominant_species`) are now written from the stored numbers instead of the family table.
-- The generation epoch is bumped: the stored composition and the words written from it change the generated output.
+- The golden files do not hold nebula composition, so they are unchanged and there is no new epoch: migration 0212 fills every older row with the numbers a regeneration stores.
 
-generation-output: changed
+generation-output: unchanged
