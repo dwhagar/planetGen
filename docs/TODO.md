@@ -905,6 +905,56 @@ with `clamp()`.
   the TODO thread.
   Prerequisites: none.
 
+- [ ] **UX.261 Explainer links read as talking down and repeat links the page already has: drop the repeats, reword the rest to "More information"**
+  Boss (EST on 2026-11-04, as the coordinator relayed): links like "What
+  these words mean" feel condescending; use a plain "More information"
+  link instead. Boss, a little later: the link is redundant when the
+  page already links the class (for example the Class P link), so remove
+  it there and reword only the ones that remain. Label text only,
+  lock-free, no migration. First, find which explainer links repeat a
+  link the page already has and remove them. Known so far: the life
+  glance of item_pages.py already links the class names to their help
+  pages, so the "What these words mean" link after it (item.html line
+  110) repeats them and goes; "What the colors and symbols mean" appears
+  twice on a planet page that shows both the habitability group and the
+  Habitability (PHI-6) section (item.html lines 82 and 188), so keep
+  one; the "Help:" line under the life readings (item.html line 137,
+  "the life classes", "suitability", "stages and animal grades")
+  overlaps the linked class names and the ? marks, so check each against
+  the rendered page and report which stay. Then reword what remains.
+  Found by a search of the templates and lib text: (1)
+  web/templates/item.html lines 82 and 188, "What the colors and symbols
+  mean" (to the habitability levels page), becomes one "More
+  information" link where it is kept; (2) the hidden labels of the ?
+  marks in the life readings table header (item.html line 124: "What the
+  words for how much mean", "... trend mean", "... security mean", and
+  "What the kinds of life are") become "More information about how
+  much", "More information about trend", "More information about
+  security" and "More information about the kinds of life", so a screen
+  reader still hears which column. Left as they are unless Boss says
+  otherwise, because they name what the link leads to and carry no tone:
+  "Where this comes from" (the quiet source link, web/helpers.py,
+  lib/reference_urls.py, lib/life_help.py, lib/life_air_chart.py,
+  references_pages.py; kept by docs/design/interface/references.md and
+  asserted by test_sheet_sources.py, test_references_crawl.py and
+  test_references_method.py), "Where the radiation comes from"
+  (templates/habitability.html line 70, a section heading, asserted by
+  test_class_pages.py line 465), and the "What it means" headings on the
+  life help and species pages (lib/life_help.py, templates/species.html,
+  lib/references_site.py). Tests that assert a changed label:
+  test_item_pages.py line 529 asserts 'href="/help/life">What these
+  words mean</a>' and changes to assert the link is absent from the
+  glance; no test asserts "What the colors and symbols mean". Check the
+  plain-words and house-style corpus tests (tests/test_plain_words.py,
+  text-style.md) still pass with the new labels, and update
+  docs/design/interface/text-style.md with the rule: an explainer link
+  says "More information", not a sentence that tells the reader what
+  they do not know. Done: no page shows the old labels or a repeated
+  explainer link, the changed test asserts the new state, and the report
+  lists every place a link was removed, and the corpus tests are green.
+  Version 8.1. Owner: Core 5.
+  Prerequisites: none. Related: UX.252, UX.253.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
