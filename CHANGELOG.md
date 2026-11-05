@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3365] - 2026-11-05
+
+**Headline:** The rogue-planet code that the planet chain replaced is deleted.
+
+### Changed
+- **GEN.1286: the unread rogue_volatiles and rogue_radiogenic modules are deleted.** A rogue planet is built by the one planet chain against a starless host, which already gives its giant class from its radius, its water from where it formed against the snow line, its radiogenic content from the donor's composition and its air from its own conditions, so the two modules were never needed. They go with their tests, the stand-in sections 6.111 and 6.114 (rows EV1, EV2, RY1), their register lines and the five tuning defaults they replaced (`ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, `ROGUE_HYDROGEN_ENVELOPE_CHANCE`, `ROGUE_WATER_RICH_CHANCE`, `ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH`, `ROGUE_ACTIVE_HEAT_FLUX_W_M2`) and the unread `ROGUE_TIDAL_FLUX_RANGE_W_M2`. Generation output is unchanged. Not modelled, as before: the envelope a planet loses to its star's XUV in the time before the ejection.
+
 ## [8.0.3364] - 2026-11-05
 
 **Headline:** Every cache warm-up now writes its own record to `warmup.log` in the log folder, in local time with its zone.
