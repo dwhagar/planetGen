@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3345] - 2026-11-05
+
+**Headline:** One British spelling in a test docstring is American now.
+
+### Changed
+
+- `test_gen_cloud_at_generation.py` said "centre" in a docstring; it says "center" (DOC.103). Tests only.
+
+generation-output: unchanged
+
 ## [8.0.3344] - 2026-11-05
 
 **Headline:** Two bright-star tests no longer disturb each other when they run in one process.
