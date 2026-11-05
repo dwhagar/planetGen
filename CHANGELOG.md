@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3294] - 2026-11-05
+
+**Headline:** Star systems and objects on the maps can be added as waypoints for a course, listed in a Waypoints menu, and cleared.
+
+### Added
+- The info panel of a star system or any object a course can go to has an Add waypoint button, which becomes Remove waypoint and its place in the course (1, 2, and so on).
+- The Galaxy Map has a Waypoints menu beside Bookmarks that lists the waypoints in the order they were picked, with Remove for each and Clear all. They are kept in this browser until cleared.
+
+generation-output: unchanged
+
 ## [8.0.3293] - 2026-11-05
 
 **Headline:** A course opens on the Galaxy Map zoomed in as far as it can go with all of it in view, and its route, direct line and adjusted path can each be shown or hidden.
