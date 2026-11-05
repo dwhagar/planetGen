@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3289] - 2026-11-05
+
+**Headline:** The NAV map and the Galaxy Map now draw the course bent round the objects the straight line would pass too close to.
+
+### Added
+- The NAV map and the Galaxy Map's course draw the bent course in amber over the route, for the direct line and for each hop that bends, and their keys and help say what the amber line is. The map scales to hold the bend.
+
+generation-output: unchanged
+
 ## [8.0.3288] - 2026-11-05
 
 **Headline:** The contents menu test now loads the site stylesheet, so it checks the one-row menu the pages really show and passes.
