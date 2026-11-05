@@ -14418,6 +14418,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owner: Core 3 after GEN.1246. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.579, GEN.725.
 
+- [ ] **GEN.1260 The latitude band table's Day/Night and Longest day/night rows are empty or wrong for slow spinners: rewrite them as a time-stepped spell calculation (bug)**
+  Found on Nitrikin III by a lane, 7:05 PM EST on 2026-11-04 (as the
+  lane reported): rotation 27.9 d, orbit 28.5 d, tilt 128.3, solar day
+  14.1 d, 2.02 solar days per year. In physics/latitude_bands.py
+  (GEN.1108): (1) the Day/Night rows are year averages, and the annual
+  mean day share is 0.5 at every latitude by north-south symmetry, so
+  every band reads about half the solar day and the row says nothing;
+  (2) longest day and longest night are the polar-day share of the year,
+  which holds the declination fixed through one turn and means 'star up
+  all day'; with a solar day of 14 d the declination swings across half
+  its range in one day, so it is invalid, and it reads 0 s at the
+  equator and tropics where the real longest daylight spell is about 7
+  d. A time-stepped check gives longest daylight about 7.1 d at the
+  equator, 8.4 d at 26 degrees, 19 d at 39 degrees (beyond one solar
+  day, a true polar day) and 14 d at the pole; the stored 1.3 d at the
+  tropic edge and 14.3 d at the pole disagree. (3) Near resonance (2.02
+  solar days per year) makes the noon phase lock to the season for
+  decades, so annual averaging is not independent. Retrograde tilt and
+  solar day are handled correctly (folded tilt 51.7, polar circle 37.8).
+  Do: rewrite the band day and night hours as a time-stepped spell
+  calculation (longest unbroken spell of star up and of star down, and
+  the mean spell length, by latitude); no new random draws, so it
+  changes stored values only and needs a column recompute at the epoch
+  bump (a lock item); the label-only part (rename the row to 'Longest
+  unbroken day', 'Longest unbroken night') is lock-free and can go
+  first. Done: a test with this body's numbers (equator about 7.1 d,
+  pole 14 d) and a fast spinner (Earth-like) unchanged within rounding.
+  Proposed owner: Aux 2 (GEN.1108 and GEN.1097). Filed by the TODO
+  thread.
+  Prerequisites: none. Related: GEN.1108, GEN.1097.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
