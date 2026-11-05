@@ -16,7 +16,8 @@ for 6.5 and counts the stars `sky_from_database` finds there, with no dust and w
   radius of 3.15 scale lengths, the Sun's place, where the relative density is 0.91. The scatter places every star of 20 solar masses and 4,000,000 solar luminosities and up. Measured 2026-11-05: 5,733
   stars with no dust, 64 percent of the catalogue's 8,920 (70 percent of it at the place's density), 3,207 (36 percent) with the default dust. By absolute magnitude, no dust, against the catalogue: brighter than -6
   1,548 against 10 (dust takes the real ones), -6 to -3 456 against 318, -3 to 0 2,141 against 3,363, 0 to 2 1,083 against 3,616, 2 to 4 373 against 1,164, 4 to 6 119 against 219.
-* `small`: the galaxy the default seed draws (a 480 parsec disk, 92 percent thick disk at the place where the density is 1), which is the cheap regression guard: 2,184 stars, 24.5 percent.
+* `small`: the galaxy the default seed draws (a 480 parsec disk, 92 percent thick disk at the place where the density is 1), which is the cheap regression guard: 2,231 stars, 25.0 percent
+  (charted with dust-free tiers; 2,184 with the tiers of the default dust, so the tier reach is worth 2 percent; reports/system-sky-hyg-factor-2026-11-05.md).
   Star 2's analysis (reports/gen1279-1280-sky-counts-cause-2026-11-05.md) puts most of that shortfall on the galaxy, not the generator, so its band is only there to catch a change.
 
 The bands hold each case's dust-free count to a window round what was measured so that a change that moves it either way is seen and the band is then set again on purpose.
@@ -112,7 +113,13 @@ def test_the_generated_naked_eye_sky_holds_the_share_of_the_real_one_that_was_me
         observer_pc = _density_one_place(shape) if case["site"] == "density-one" else _reference_place(shape)
         relative = density.relative_density(observer_pc, shape)
         assert 0.9 <= relative <= 1.1, relative
-        sky_charting.chart(conn, observer_pc, LIMIT)
+        # The tiers are sized for the dust the sky is seen through, so the dust-free count below needs dust-free tiers: under the default law a star that shows without dust
+        # but not through it is never stored (a 50 Lsun star reaches 113 pc through the small galaxy's dust and 161 pc without), and the count would be short for that alone.
+        skeleton = store.get_galaxy_shape(conn)
+        limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
+        centre, tiers = sky_charting.plan(observer_pc, LIMIT, skeleton.edge_pc, limits=limits, av_per_kpc_at_sun=0.0)
+        assert not tiers.dropped, f"the visit budget cut {len(tiers.dropped)} dust-free bands"
+        sky_charting.chart(conn, observer_pc, LIMIT, tiers=tiers, centre=centre)
         observer = sky.Observer(observer_pc, 1.0e9)
         clear = sky.sky_from_database(conn, observer, 1.0e9, LIMIT, galaxy_key=SEED_HEX, dust={"av_per_kpc_at_sun": 0.0})
         dusty = sky.sky_from_database(conn, observer, 1.0e9, LIMIT, galaxy_key=SEED_HEX)
