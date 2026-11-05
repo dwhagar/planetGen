@@ -953,6 +953,22 @@ with `clamp()`.
   explainer link, the changed test asserts the new state, and the report
   lists every place a link was removed, and the corpus tests are green.
   Version 8.1. Owner: Core 5.
+  Boss (relayed) (8:01 PM EST on 2026-11-04): the source link and the
+  radiation heading change too, so the earlier "left as they are" list
+  no longer holds: "Where this comes from" (web/helpers.py,
+  lib/reference_urls.py, lib/life_help.py, lib/life_air_chart.py,
+  references_pages.py) and "Where the radiation comes from"
+  (templates/habitability.html line 70) become "More information" as
+  well. Keep the tests in step: test_sheet_sources.py line 99,
+  test_references_crawl.py line 112, test_references_method.py line 109
+  and test_class_pages.py line 465 assert the old wording and move to
+  the new label; update docs/design/interface/references.md (lines 10
+  and 64) to say "More information". Where the section heading needs a
+  name of its own, the radiation heading keeps an id and a plain noun
+  heading such as "Radiation at the surface" if the lane finds a heading
+  that only says "More information" has no meaning for a screen reader;
+  report that choice. The "What it means" headings stay unless Boss
+  asks.
   Prerequisites: none. Related: UX.252, UX.253.
 
 ## MAP: Galaxy Map, Sector Map, System Map
