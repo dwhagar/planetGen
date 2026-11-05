@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3376] - 2026-11-05
+
+**Headline:** A new docs test fails when an item's Version line in the TODO page disagrees with the version file its row sits in.
+
+### Added
+- `tests/test_todo_docs.py` checks that the last `Version 8.2.` style line in an item's text in `docs/TODO.md` names the version whose file (`docs/plan/releases/version-*.md`) holds the item's row, and fails with the item, the version it states and the file found. It reads only an item's own statement (a capital `Version`, a number, then a full stop, comma or similar), not sentences that mention another version.
+
 ## [8.0.3375] - 2026-11-05
 
 **Headline:** The MAP.366 design note writes its date in the form the citation test accepts.
