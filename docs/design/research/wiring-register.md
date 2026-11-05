@@ -383,3 +383,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE6 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| module | planetgen.physics.nebula_composition | GEN.1276 | the composition item writes the values of each nebula and remnant at generation and backfill from `makeup(...).values()`, with `gas_oh` for the place; GEN.1277 does the same for the field clouds through `field_cloud_density_cm3` |
+| row | 6.179:NC1 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NC2 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NC3 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NC4 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NC5 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NC6 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| row | 6.179:NC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |

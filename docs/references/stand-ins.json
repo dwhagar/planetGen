@@ -33769,6 +33769,508 @@
       "title": "Stand-ins of the sky tier table"
     },
     {
+      "key": "6.179",
+      "number": "6.179",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GAS_GRADIENT_DEX_PER_KPC 0.034: the fall of the Milky Way gas's metallicity with galactic radius, dex per kpc (Boss: its own gradient, not the stars' 0.06)"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.04"
+            ],
+            [
+              "Where it holds",
+              "the Milky Way disc between 5 and 17 kpc"
+            ],
+            [
+              "What would show it wrong",
+              "an H II region gradient outside 0.03 to 0.04 dex per kpc"
+            ],
+            [
+              "What replaces it",
+              "a gradient fit to more H II regions and planetary nebulae, with its zero point"
+            ],
+            [
+              "Evidence",
+              "oxygen gradient of 35 H II regions, arXiv:1905.10126 (abstract read by the research thread)"
+            ]
+          ],
+          "id": "NC1",
+          "key": "6.179:NC1",
+          "kind": "P",
+          "slug": "6-179-nc1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.GAS_GRADIENT_DEX_PER_KPC 0.034: the fall of the Milky Way gas's metallicity with galactic radius, dex per kpc (Boss: its own gradient, not the stars' 0.06)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GAS_SCATTER_DEX 0.14: the scatter of the gas around its gradient, dex"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "the same 35 H II regions"
+            ],
+            [
+              "What would show it wrong",
+              "a scatter of azimuthal oxygen variations outside 0.1 to 0.2"
+            ],
+            [
+              "What replaces it",
+              "a published azimuthal and radial scatter"
+            ],
+            [
+              "Evidence",
+              "arXiv:1905.10126 (abstract read by the research thread)"
+            ]
+          ],
+          "id": "NC2",
+          "key": "6.179:NC2",
+          "kind": "P",
+          "slug": "6-179-nc2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.GAS_SCATTER_DEX 0.14: the scatter of the gas around its gradient, dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.SATELLITE_GAS_OFFSETS ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26)): the lowest and highest offset of a satellite's gas [O/H] above the component's [Fe/H], dex, at the SMC and LMC stars"
+            ],
+            [
+              "The range it moves in",
+              "the offsets"
+            ],
+            [
+              "Where it holds",
+              "a satellite of [Fe/H] -0.9 to -0.4 (the two Clouds); held outside"
+            ],
+            [
+              "What would show it wrong",
+              "a dwarf galaxy whose gas [O/H] lies outside the range its [Fe/H] gives"
+            ],
+            [
+              "What replaces it",
+              "gas metallicities of more satellites"
+            ],
+            [
+              "Evidence",
+              "tuned to the two ranges of Toribio San Cipriano et al. 2017 (arXiv:1702.01120): LMC -0.34 to -0.14, SMC -0.66 to -0.28 in [O/H], the lower from collisional and the higher from recombination lines; Boss: widest range"
+            ]
+          ],
+          "id": "NC3",
+          "key": "6.179:NC3",
+          "kind": "P",
+          "slug": "6-179-nc3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L2",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.SATELLITE_GAS_OFFSETS ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26)): the lowest and highest offset of a satellite's gas [O/H] above the component's [Fe/H], dex, at the SMC and LMC stars"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.DUST_BREAK_12LOG 7.96, DUST_HIGH_METALLICITY (2.21, 1.0), DUST_LOW_METALLICITY (0.68, 3.08): the broken power law of the gas-to-dust ratio against 12 + log(O/H)"
+            ],
+            [
+              "The range it moves in",
+              "a factor 1.6; scatter 0.37 dex"
+            ],
+            [
+              "Where it holds",
+              "galaxy-scale averages, 12 + log(O/H) 7.1 to 9"
+            ],
+            [
+              "What would show it wrong",
+              "a nebula whose dust-to-gas lies outside the scatter of the law"
+            ],
+            [
+              "What replaces it",
+              "the dust-to-gas of H II regions and clouds by metallicity"
+            ],
+            [
+              "Evidence",
+              "Remy-Ruyer et al. 2014, A&A 563, A31, arXiv:1312.3442, Table 1 (Galactic X_CO), read by the research thread"
+            ]
+          ],
+          "id": "NC4",
+          "key": "6.179:NC4",
+          "kind": "P",
+          "slug": "6-179-nc4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.DUST_BREAK_12LOG 7.96, DUST_HIGH_METALLICITY (2.21, 1.0), DUST_LOW_METALLICITY (0.68, 3.08): the broken power law of the gas-to-dust ratio against 12 + log(O/H)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.MAX_IN_DUST {Mg 0.95, Si 0.95, Fe 0.99, C 0.70, O 0.60}: the most of an element that can sit in dust, as a share of its total"
+            ],
+            [
+              "The range it moves in",
+              "Fe 0.9 to 0.99; the others 0.5 to 1"
+            ],
+            [
+              "Where it holds",
+              "the Galactic interstellar pattern"
+            ],
+            [
+              "What would show it wrong",
+              "a depletion of an element above its cap in a nebula"
+            ],
+            [
+              "What replaces it",
+              "the depletion coefficients of Jenkins 2009 (arXiv:0905.3173), by the strength of depletion"
+            ],
+            [
+              "Evidence",
+              "iron is 96 percent in dust in Orion (Esteban et al. 2004, arXiv:astro-ph/0408249, Tables 14 and 15); the others are recalled patterns"
+            ]
+          ],
+          "id": "NC5",
+          "key": "6.179:NC5",
+          "kind": "P",
+          "slug": "6-179-nc5",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.MAX_IN_DUST {Mg 0.95, Si 0.95, Fe 0.99, C 0.70, O 0.60}: the most of an element that can sit in dust, as a share of its total"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
+            ],
+            [
+              "The range it moves in",
+              "each share 0.05 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "a solar-metallicity diffuse nebula"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust composition of a nebula"
+            ],
+            [
+              "What replaces it",
+              "grain compositions by class from dust models (Draine and Li, Zubko et al.)"
+            ],
+            [
+              "Evidence",
+              "chosen so that the dust of a solar diffuse nebula fits inside its metals within a fifth of the law; silicate, carbon and PAH shares recalled from Milky Way dust models"
+            ]
+          ],
+          "id": "NC6",
+          "key": "6.179:NC6",
+          "kind": "P",
+          "slug": "6-179-nc6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.CLASSES survival of C, D, E, G, X, H, J, K, L (silicate and iron 0.9, carbon and PAH 0.5, PAH 0.2 in class C): the share of the dust that lives through the ionized gas"
+            ],
+            [
+              "The range it moves in",
+              "iron 0.8 to 1; carbon 0.2 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "H II regions and planetary nebulae"
+            ],
+            [
+              "What would show it wrong",
+              "a measured iron depletion of an H II region or a planetary nebula below 0.8 of its iron on grains"
+            ],
+            [
+              "What replaces it",
+              "a destruction rate of carbon and PAH grains in ionized gas"
+            ],
+            [
+              "Evidence",
+              "more than 90 percent of the iron of 33 planetary nebulae is on grains, the same as 10 H II regions (arXiv:0812.1578, abstract read); the carbon half is a stand-in"
+            ]
+          ],
+          "id": "NC7",
+          "key": "6.179:NC7",
+          "kind": "P",
+          "slug": "6-179-nc7",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.CLASSES survival of C, D, E, G, X, H, J, K, L (silicate and iron 0.9, carbon and PAH 0.5, PAH 0.2 in class C): the share of the dust that lives through the ionized gas"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.CLASSES survival of S (silicate 0.39, iron 0.60, carbon 0.5, PAH 0.1): the share of interstellar dust that lives through a non-radiative shock"
+            ],
+            [
+              "The range it moves in",
+              "silicate 0.3 to 0.5; iron 0.5 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "a shell remnant in the Milky Way or the Clouds"
+            ],
+            [
+              "What would show it wrong",
+              "a destroyed share of the grains of a remnant outside these"
+            ],
+            [
+              "What replaces it",
+              "a shock-by-shock destruction model"
+            ],
+            [
+              "Evidence",
+              "61 percent of Si-rich and 40 percent of Fe-rich grains destroyed in 16 LMC remnants (arXiv:1907.06213, abstract read); carbon and PAH are stand-ins"
+            ]
+          ],
+          "id": "NC8",
+          "key": "6.179:NC8",
+          "kind": "P",
+          "slug": "6-179-nc8",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "nebula_composition.CLASSES survival of S (silicate 0.39, iron 0.60, carbon 0.5, PAH 0.1): the share of interstellar dust that lives through a non-radiative shock"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.CLASSES survival of B (0.7), V (0.5) and of the ejecta classes R, T, U, W (0.2): the share of the dust that lives on"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.9"
+            ],
+            [
+              "Where it holds",
+              "warm ionized gas, old radiative remnants, fresh ejecta dust"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust share of an old remnant or a Type Ia ejecta"
+            ],
+            [
+              "What replaces it",
+              "the destruction literature (the ejecta rule of report section 11 is GEN.1271's)"
+            ],
+            [
+              "Evidence",
+              "recalled: sputtering in a cooling shell removes about half; reverse-shock models leave 12 to 40 percent of the ejecta dust (arXiv:1602.02754, arXiv:1908.10875)"
+            ]
+          ],
+          "id": "NC9",
+          "key": "6.179:NC9",
+          "kind": "P",
+          "slug": "6-179-nc9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_composition.CLASSES survival of B (0.7), V (0.5) and of the ejecta classes R, T, U, W (0.2): the share of the dust that lives on"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.PHASES: the ionized, atomic and molecular shares of the hydrogen of every class (A and B tier T5, tweak L1)"
+            ],
+            [
+              "The range it moves in",
+              "each share 0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "one nebula of the class"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ionized share of a class outside the row"
+            ],
+            [
+              "What replaces it",
+              "observed phase fractions by class"
+            ],
+            [
+              "Evidence",
+              "the Stromgren sphere (C, D, E, X), the warm neutral and ionized medium (A, B), a molecular envelope on a planetary nebula; recalled"
+            ]
+          ],
+          "id": "NC10",
+          "key": "6.179:NC10",
+          "kind": "P",
+          "slug": "6-179-nc10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "nebula_composition.PHASES: the ionized, atomic and molecular shares of the hydrogen of every class (A and B tier T5, tweak L1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
+            ],
+            [
+              "The range it moves in",
+              "the form"
+            ],
+            [
+              "Where it holds",
+              "clouds of 0.01 to 10 solar metallicity, f above 0.25 to 30 percent"
+            ],
+            [
+              "What would show it wrong",
+              "a cloud whose molecular share is outside 30 percent of the law"
+            ],
+            [
+              "What replaces it",
+              "Krumholz, McKee and Tumlinson 2009 read in full (eqs. 35 and 38)"
+            ],
+            [
+              "Evidence",
+              "Krumholz, McKee and Tumlinson 2009, ApJ 693, 216; the chi coefficient 0.77 checked against 2.3/3 in Paper II eq. 7; the f form recalled and its half-molecular column (34 solar masses per pc2) is near the 27 of the paper"
+            ]
+          ],
+          "id": "NC11",
+          "key": "6.179:NC11",
+          "kind": "P",
+          "slug": "6-179-nc11",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.column_density_msun_pc2: the mean column of a nebula as 4/3 n R of mass 1.4 m_H per hydrogen atom"
+            ],
+            [
+              "The range it moves in",
+              "a factor 2"
+            ],
+            [
+              "Where it holds",
+              "uniform spheres"
+            ],
+            [
+              "What would show it wrong",
+              "a cloud whose molecular share is far from its column's"
+            ],
+            [
+              "What replaces it",
+              "a density profile of the cloud"
+            ],
+            [
+              "Evidence",
+              "a uniform sphere's mean column; the stored density is the cloud's mean"
+            ]
+          ],
+          "id": "NC12",
+          "key": "6.179:NC12",
+          "kind": "P",
+          "slug": "6-179-nc12",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_composition.column_density_msun_pc2: the mean column of a nebula as 4/3 n R of mass 1.4 m_H per hydrogen atom"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "ring nebulae of WN and WC stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured helium or nitrogen excess of a ring outside the mix"
+            ],
+            [
+              "What replaces it",
+              "observed ring abundances by host subtype"
+            ],
+            [
+              "Evidence",
+              "the observed rings are mostly swept-up gas with a wind-enriched helium and nitrogen (report section 3); the share is argued, not measured"
+            ]
+          ],
+          "id": "NC13",
+          "key": "6.179:NC13",
+          "kind": "P",
+          "slug": "6-179-nc13",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1276",
+          "what": "nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind"
+        }
+      ],
+      "slug": "6-179-stand-ins-of-the-composition-of-a-nebula",
+      "title": "Stand-ins of the composition of a nebula"
+    },
+    {
       "key": "6.178",
       "number": "6.178",
       "rows": [

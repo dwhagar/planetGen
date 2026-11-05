@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1101 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1114 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 153 | 17 | 8 | 1 | 0 | 179 |
-| T2 | 117 | 45 | 0 | 1 | 0 | 163 |
+| T2 | 121 | 47 | 1 | 1 | 0 | 170 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
-| T4 | 57 | 5 | 1 | 18 | 10 | 91 |
+| T4 | 58 | 5 | 1 | 18 | 10 | 92 |
 | T5 | 50 | 19 | 2 | 1 | 0 | 72 |
-| T6 | 103 | 83 | 21 | 53 | 0 | 260 |
+| T6 | 104 | 83 | 21 | 57 | 0 | 265 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 23 | 14 | 5 | 50 | 29 | 121 |
-| All | 620 | 239 | 52 | 150 | 40 | 1101 |
+| All | 626 | 241 | 53 | 154 | 40 | 1114 |
 
 ## How the labels were given
 
@@ -1481,6 +1481,24 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SKT1 | P | T9 | L3 | sky_tiers.CELL_VISIT_BUDGET 3e8: the cell visits the luminosity bands of one sky may take, so the bands over about 1,000 Lsun are dropped at a 7.5 limit | 5e7 to 2e9 | a sky of 6.5 to 7.5 from a place at the density of the Sun, the backfill as of epoch 131 at 2 to 30 microseconds a visit | a measured visit cost far from VIEW.19's, a sky whose dropped bands hide a conspicuous star the glow band cannot stand in for, or a backfill that visits blocks instead of cells (VIEW.41), which removes the need for a budget | VIEW.41 (a coarser block draw for the sparse bands) | VIEW.19: 2.7e8 visits to 1,000 Lsun is half of the luminosity stars at 7.5 (22 minutes warm, 1.8 hours cold); 8.3e9 uncut | VIEW.25 | - |
 | SKT2 | D | T5 | L0 | sky_tiers.RING_TOP_SOL 50: the luminosity the rings stop at and the luminosity bands start at, `tuning.WD_LUMINOSITY_RANGE_SOL[1]`, the brightest white dwarf, under which `star_population.check_threshold` refuses a luminosity floor | fixed by the star model | the luminosity backfill as written | a luminosity backfill that takes a floor under 50 Lsun (the white dwarfs left out of the sky), which would let the bands replace the rings | a luminosity floor under 50 Lsun for the sky | VIEW.19 section 5: the rings draw about 140 stars for each one that shows | - | - |
+
+## 6.179 Stand-ins of the composition of a nebula
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| NC1 | P | T2 | L0 | nebula_composition.GAS_GRADIENT_DEX_PER_KPC 0.034: the fall of the Milky Way gas's metallicity with galactic radius, dex per kpc (Boss: its own gradient, not the stars' 0.06) | 0.03 to 0.04 | the Milky Way disc between 5 and 17 kpc | an H II region gradient outside 0.03 to 0.04 dex per kpc | a gradient fit to more H II regions and planetary nebulae, with its zero point | oxygen gradient of 35 H II regions, arXiv:1905.10126 (abstract read by the research thread) | GEN.1276 | - |
+| NC2 | P | T2 | L0 | nebula_composition.GAS_SCATTER_DEX 0.14: the scatter of the gas around its gradient, dex | 0.1 to 0.2 | the same 35 H II regions | a scatter of azimuthal oxygen variations outside 0.1 to 0.2 | a published azimuthal and radial scatter | arXiv:1905.10126 (abstract read by the research thread) | GEN.1276 | - |
+| NC3 | P | T2 | L2 | nebula_composition.SATELLITE_GAS_OFFSETS ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26)): the lowest and highest offset of a satellite's gas [O/H] above the component's [Fe/H], dex, at the SMC and LMC stars | the offsets | a satellite of [Fe/H] -0.9 to -0.4 (the two Clouds); held outside | a dwarf galaxy whose gas [O/H] lies outside the range its [Fe/H] gives | gas metallicities of more satellites | tuned to the two ranges of Toribio San Cipriano et al. 2017 (arXiv:1702.01120): LMC -0.34 to -0.14, SMC -0.66 to -0.28 in [O/H], the lower from collisional and the higher from recombination lines; Boss: widest range | GEN.1276 | - |
+| NC4 | P | T2 | L0 | nebula_composition.DUST_BREAK_12LOG 7.96, DUST_HIGH_METALLICITY (2.21, 1.0), DUST_LOW_METALLICITY (0.68, 3.08): the broken power law of the gas-to-dust ratio against 12 + log(O/H) | a factor 1.6; scatter 0.37 dex | galaxy-scale averages, 12 + log(O/H) 7.1 to 9 | a nebula whose dust-to-gas lies outside the scatter of the law | the dust-to-gas of H II regions and clouds by metallicity | Remy-Ruyer et al. 2014, A&A 563, A31, arXiv:1312.3442, Table 1 (Galactic X_CO), read by the research thread | GEN.1276 | - |
+| NC5 | P | T4 | L0 | nebula_composition.MAX_IN_DUST {Mg 0.95, Si 0.95, Fe 0.99, C 0.70, O 0.60}: the most of an element that can sit in dust, as a share of its total | Fe 0.9 to 0.99; the others 0.5 to 1 | the Galactic interstellar pattern | a depletion of an element above its cap in a nebula | the depletion coefficients of Jenkins 2009 (arXiv:0905.3173), by the strength of depletion | iron is 96 percent in dust in Orion (Esteban et al. 2004, arXiv:astro-ph/0408249, Tables 14 and 15); the others are recalled patterns | GEN.1276 | - |
+| NC6 | P | T6 | L3 | nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix | each share 0.05 to 0.1 | a solar-metallicity diffuse nebula | a measured dust composition of a nebula | grain compositions by class from dust models (Draine and Li, Zubko et al.) | chosen so that the dust of a solar diffuse nebula fits inside its metals within a fifth of the law; silicate, carbon and PAH shares recalled from Milky Way dust models | GEN.1276 | - |
+| NC7 | P | T2 | L1 | nebula_composition.CLASSES survival of C, D, E, G, X, H, J, K, L (silicate and iron 0.9, carbon and PAH 0.5, PAH 0.2 in class C): the share of the dust that lives through the ionized gas | iron 0.8 to 1; carbon 0.2 to 0.8 | H II regions and planetary nebulae | a measured iron depletion of an H II region or a planetary nebula below 0.8 of its iron on grains | a destruction rate of carbon and PAH grains in ionized gas | more than 90 percent of the iron of 33 planetary nebulae is on grains, the same as 10 H II regions (arXiv:0812.1578, abstract read); the carbon half is a stand-in | - | - |
+| NC8 | P | T2 | L1 | nebula_composition.CLASSES survival of S (silicate 0.39, iron 0.60, carbon 0.5, PAH 0.1): the share of interstellar dust that lives through a non-radiative shock | silicate 0.3 to 0.5; iron 0.5 to 0.7 | a shell remnant in the Milky Way or the Clouds | a destroyed share of the grains of a remnant outside these | a shock-by-shock destruction model | 61 percent of Si-rich and 40 percent of Fe-rich grains destroyed in 16 LMC remnants (arXiv:1907.06213, abstract read); carbon and PAH are stand-ins | - | - |
+| NC9 | P | T6 | L3 | nebula_composition.CLASSES survival of B (0.7), V (0.5) and of the ejecta classes R, T, U, W (0.2): the share of the dust that lives on | 0.1 to 0.9 | warm ionized gas, old radiative remnants, fresh ejecta dust | a measured dust share of an old remnant or a Type Ia ejecta | the destruction literature (the ejecta rule of report section 11 is GEN.1271's) | recalled: sputtering in a cooling shell removes about half; reverse-shock models leave 12 to 40 percent of the ejecta dust (arXiv:1602.02754, arXiv:1908.10875) | - | - |
+| NC10 | P | T6 | L3 | nebula_composition.PHASES: the ionized, atomic and molecular shares of the hydrogen of every class (A and B tier T5, tweak L1) | each share 0.05 to 0.2 | one nebula of the class | a measured ionized share of a class outside the row | observed phase fractions by class | the Stromgren sphere (C, D, E, X), the warm neutral and ionized medium (A, B), a molecular envelope on a planetary nebula; recalled | - | - |
+| NC11 | P | T2 | L0 | nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity | the form | clouds of 0.01 to 10 solar metallicity, f above 0.25 to 30 percent | a cloud whose molecular share is outside 30 percent of the law | Krumholz, McKee and Tumlinson 2009 read in full (eqs. 35 and 38) | Krumholz, McKee and Tumlinson 2009, ApJ 693, 216; the chi coefficient 0.77 checked against 2.3/3 in Paper II eq. 7; the f form recalled and its half-molecular column (34 solar masses per pc2) is near the 27 of the paper | GEN.1276 | - |
+| NC12 | P | T6 | L0 | nebula_composition.column_density_msun_pc2: the mean column of a nebula as 4/3 n R of mass 1.4 m_H per hydrogen atom | a factor 2 | uniform spheres | a cloud whose molecular share is far from its column's | a density profile of the cloud | a uniform sphere's mean column; the stored density is the cloud's mean | - | - |
+| NC13 | P | T6 | L3 | nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind | 0.1 to 0.5 | ring nebulae of WN and WC stars | a measured helium or nitrogen excess of a ring outside the mix | observed ring abundances by host subtype | the observed rings are mostly swept-up gas with a wind-enriched helium and nitrogen (report section 3); the share is argued, not measured | GEN.1276 | - |
 
 ## 6.178 Stand-ins of the progenitor and ejecta of a planetary nebula
 
