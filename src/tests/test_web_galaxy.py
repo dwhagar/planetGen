@@ -138,7 +138,7 @@ class FakeData:
 def fake(monkeypatch, tmp_path):
     data = FakeData()
     for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers",
-                 "auth_me", "get_galaxy_nebula_cover"):
+                 "auth_me", "get_galaxy_nebula_cover", "get_galaxy_charted_regions"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_nodes", data.get_galaxy_nodes)
