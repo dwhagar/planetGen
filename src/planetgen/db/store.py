@@ -76,6 +76,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
+from planetgen.physics import nebula_columns as nebulaColumns
 from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -3609,6 +3610,36 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
     return row_id
 
 
+_COMPOSITION_READ = {
+    "nebulae": "id, name, uid, nebula_class, density_cm3, radius_ly, galactic_radius_pc, center_x_pc, center_y_pc, center_z_pc, hosts",
+    "supernova_remnants": "id, name, uid, remnant_class, progenitor_type, compact_remnant_kind, density_cm3, radius_ly, galactic_radius_pc",
+}
+"""dict: The columns of a row that its composition is worked out from (`physics/nebula_columns.py`)."""
+
+
+def store_composition(conn, table, row_id):
+    """
+    Works out and stores the composition of one `nebulae` or `supernova_remnants` row (GEN.1276): the columns of `physics/nebula_columns.py`, keyed on the row's object ID, and the
+    plain-words `composition` (a nebula) and `dominant_species` written from the numbers. Called right after a row is inserted, when its `uid` is already issued; the migration that
+    fills the rows of an older galaxy runs the same model.
+
+    Returns:
+        dict: The values stored.
+    """
+    row = conn.execute(f"SELECT {_COMPOSITION_READ[table]} FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    values = nebulaColumns.values_for(table, dict(row))
+    sentence, species = nebulaColumns.sentences_for(values)
+    columns = nebulaColumns.COLUMNS[table]
+    sets = [f"{column} = ?" for column in columns] + ["dominant_species = ?"]
+    params = [values[column] for column in columns] + [species[:255]]
+    if table == "nebulae":
+        sets.append("composition = ?")
+        params.append(sentence)
+    conn.execute(f"UPDATE {table} SET {', '.join(sets)} WHERE id = ?", (*params, row_id))
+    storage_checksum.mark_rows(conn, table, [row_id])
+    return values
+
+
 def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     """
     Inserts a `nebulae` row (see `schema.sql`'s "v16"/"v18" header notes).
@@ -3654,6 +3685,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
     _store_nebula_shape(conn, cur.lastrowid, nebula)
+    store_composition(conn, "nebulae", cur.lastrowid)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
 
@@ -3785,6 +3817,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
         ),
     )
     confirm_object_name(conn, name_base, "supernova_remnants", cur.lastrowid, diminutive_index)
+    store_composition(conn, "supernova_remnants", cur.lastrowid)
     _refresh_containment_around(conn, placement, remnant.radius_ly)
     return cur.lastrowid
 
@@ -6453,8 +6486,8 @@ def clear_phenomenon_scatter(conn):
 
 
 NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radius_ly", "center_x_pc", "center_y_pc",
-                        "center_z_pc")
-"""tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order)."""
+                        "center_z_pc", *nebulaColumns.FIELD_COLUMNS)
+"""tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order): the place, then the composition (GEN.1277)."""
 
 
 def clear_nebula_field(conn):
@@ -6465,12 +6498,14 @@ def clear_nebula_field(conn):
 
 
 def insert_nebula_field(conn, rows, batch_size=5000):
-    """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order), `batch_size` to a statement. Returns the rows
-    written."""
-    head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS)}) VALUES "
+    """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order, a row may stop after the place and leave the composition NULL), `batch_size` to a
+    statement. Returns the rows written."""
+    head = None
     written = 0
     batch = []
     for row in rows:
+        if head is None:
+            head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS[:len(row)])}) VALUES "
         batch.append("(" + ",".join(map(_scatter_value, row)) + ")")
         if len(batch) >= batch_size:
             conn.execute_literal(head + ",".join(batch))

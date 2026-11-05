@@ -27,3 +27,17 @@
 ## 3. Open
 
 Krumholz, McKee and Tumlinson's form is checked only in its chi coefficient and its half-molecular column (34 against the 27 of the paper's summary); [R5105] coefficients, the depletion of the Clouds, and the dust of old remnants stay to be read (GEN.1274). The progenitor of planetary nebulae and the ejecta of remnants enter through the `ejecta` argument (GEN.1270, GEN.1271); without it those classes read as interstellar gas and say so in `open_items`.
+
+## 4. What is stored (GEN.1276, GEN.1277)
+
+**Nebulae and remnants** (GEN.1276): `physics/nebula_columns.py` turns a row into the columns of `nebulae` and `supernova_remnants` (DOUBLE, searchable through the API object lists), at insert and in migration 0205. `composition` and `dominant_species` are written from the stored numbers.
+
+**Field clouds** (GEN.1277, design note). About 163,000 rows in `nebula_field` (classes M and N) carry only a cell, a class, a radius and a place, about 70 bytes a row. Two ways to add the composition were weighed:
+
+* *Stored float columns* (chosen): the 28 composition columns of `nebulae` without the progenitor mass, each FLOAT (4 bytes, 7 digits stored, read back as 6 significant digits by the text protocol, enough for fractions down to 1e-7 and for [O/H] to 1e-6 dex). 112 bytes a row, about 18 MB for 163,000 rows. Each is a plain column a range search or a sort reads, with a unit in `column_units`, and none needs decoding.
+* *Packed integers* (one 16-bit word per value, or all of them in a BINARY blob): 56 bytes a row, about 9 MB. The saving is 9 MB, and the price is that nothing could be searched or sorted in SQL without a generated column per value (which brings the bytes back), and the 16 bits resolve a fraction only to 1.5e-5, which is 15 percent of a sulfur or argon fraction (1e-4). Rejected.
+
+Table growth: from about 11 MB of data to about 29 MB, and a plan writes it in the same pass that already draws the cloud (no second pass).
+
+The key of a field cloud is its cell and place (`nebula_columns.field_key`: the cell index and the centre in milliparsecs), not its object ID, because the row exists at plan time and has none until a sector stores it. The `nebulae` row the cloud becomes is keyed the same way (a class M or N nebula with a centre, `row_key`), so the two read one composition; the stored nebula keeps full doubles and the field row the FLOAT of the same number. The cloud's density is the one its `Nebula` was drawn with (`cell_draw`), which differs from cloud to cloud inside the class range, so gas, dust and phases differ with it and with the place's gas. `field_cloud_density_cm3` is kept for a cloud the draw does not give back (a table planned under another seed), in migration 0206 only. No progenitor mass is stored: no class M or N cloud has a progenitor.
+

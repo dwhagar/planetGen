@@ -1527,6 +1527,8 @@
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
 -- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
+-- v205 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (`grain_silicate`, `_iron`, `_carbon`, `_pah`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v205 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
+-- v206 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v206. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3612,6 +3614,36 @@ CREATE TABLE IF NOT EXISTS nebulae (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
+    gas_oh_dex                   DOUBLE NULL,  -- v205 (GEN.1276): [O/H] of the gas it formed in, dex
+    mass_fraction_h              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of h (gas and dust together)
+    mass_fraction_he             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of he (gas and dust together)
+    mass_fraction_z              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of the metals (gas and dust together)
+    mass_fraction_c              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of c (gas and dust together)
+    mass_fraction_n              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of n (gas and dust together)
+    mass_fraction_o              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of o (gas and dust together)
+    mass_fraction_ne             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of ne (gas and dust together)
+    mass_fraction_s              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of s (gas and dust together)
+    mass_fraction_ar             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of ar (gas and dust together)
+    mass_fraction_fe             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of fe (gas and dust together)
+    abundance_c                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of C in the gas phase
+    abundance_n                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of N in the gas phase
+    abundance_o                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of O in the gas phase
+    abundance_ne                 DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of NE in the gas phase
+    abundance_s                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of S in the gas phase
+    abundance_ar                 DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of AR in the gas phase
+    abundance_fe                 DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of FE in the gas phase
+    ionized_share                DOUBLE NULL,  -- v205 (GEN.1276): share of the hydrogen mass that is ionized
+    atomic_share                 DOUBLE NULL,  -- v205 (GEN.1276): share of the hydrogen mass that is neutral atomic
+    molecular_share              DOUBLE NULL,  -- v205 (GEN.1276): share of the hydrogen mass that is molecular
+    dust_to_gas                  DOUBLE NULL,  -- v205 (GEN.1276): dust mass over gas mass
+    dust_to_metals               DOUBLE NULL,  -- v205 (GEN.1276): dust mass over metal mass
+    grain_silicate               DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in silicate grains
+    grain_iron                   DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in iron grains
+    grain_carbon                 DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in carbon grains
+    grain_pah                    DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in pah grains
+    grain_ice                    DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in ice grains
+    progenitor_mass_sol          DOUBLE NULL,  -- v205 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
+
     UNIQUE KEY uq_nebulae_uid (uid),
     KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
     KEY idx_nebulae_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
@@ -3719,6 +3751,44 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
+
+    gas_oh_dex                   DOUBLE NULL,  -- v205 (GEN.1276): [O/H] of the gas it formed in, dex
+    mass_fraction_h              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of h (gas and dust together)
+    mass_fraction_he             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of he (gas and dust together)
+    mass_fraction_z              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of the metals (gas and dust together)
+    mass_fraction_c              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of c (gas and dust together)
+    mass_fraction_n              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of n (gas and dust together)
+    mass_fraction_o              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of o (gas and dust together)
+    mass_fraction_ne             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of ne (gas and dust together)
+    mass_fraction_s              DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of s (gas and dust together)
+    mass_fraction_ar             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of ar (gas and dust together)
+    mass_fraction_fe             DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of fe (gas and dust together)
+    abundance_c                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of C in the gas phase
+    abundance_n                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of N in the gas phase
+    abundance_o                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of O in the gas phase
+    abundance_ne                 DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of NE in the gas phase
+    abundance_s                  DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of S in the gas phase
+    abundance_ar                 DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of AR in the gas phase
+    abundance_fe                 DOUBLE NULL,  -- v205 (GEN.1276): 12 + log(X/H) of FE in the gas phase
+    ionized_share                DOUBLE NULL,  -- v205 (GEN.1276): share of the hydrogen mass that is ionized
+    atomic_share                 DOUBLE NULL,  -- v205 (GEN.1276): share of the hydrogen mass that is neutral atomic
+    molecular_share              DOUBLE NULL,  -- v205 (GEN.1276): share of the hydrogen mass that is molecular
+    dust_to_gas                  DOUBLE NULL,  -- v205 (GEN.1276): dust mass over gas mass
+    dust_to_metals               DOUBLE NULL,  -- v205 (GEN.1276): dust mass over metal mass
+    grain_silicate               DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in silicate grains
+    grain_iron                   DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in iron grains
+    grain_carbon                 DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in carbon grains
+    grain_pah                    DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in pah grains
+    grain_ice                    DOUBLE NULL,  -- v205 (GEN.1276): share of the dust mass in ice grains
+    progenitor_mass_sol          DOUBLE NULL,  -- v205 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
+    ejecta_mass_sol              DOUBLE NULL,  -- v205 (GEN.1276): mass thrown out by the explosion, solar masses
+    swept_mass_sol               DOUBLE NULL,  -- v205 (GEN.1276): interstellar mass inside the blast wave, solar masses
+    ejecta_mass_fraction_h       DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of h in the ejecta
+    ejecta_mass_fraction_he      DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of he in the ejecta
+    ejecta_mass_fraction_z       DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of z in the ejecta
+    swept_mass_fraction_h        DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of h in the swept-up gas
+    swept_mass_fraction_he       DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of he in the swept-up gas
+    swept_mass_fraction_z        DOUBLE NULL,  -- v205 (GEN.1276): mass fraction of z in the swept-up gas
 
     UNIQUE KEY uq_supernova_remnants_uid (uid),
     KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
@@ -4747,6 +4817,34 @@ CREATE TABLE IF NOT EXISTS nebula_field (
     KEY idx_nebula_field_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     uid           BINARY(12),
     is_stored     TINYINT(1) NOT NULL DEFAULT 0,
+    gas_oh_dex                   FLOAT NULL,  -- v206 (GEN.1277): gas_oh_dex of the cloud, as on `nebulae` but single precision
+    mass_fraction_h              FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_h of the cloud, as on `nebulae` but single precision
+    mass_fraction_he             FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_he of the cloud, as on `nebulae` but single precision
+    mass_fraction_z              FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_z of the cloud, as on `nebulae` but single precision
+    mass_fraction_c              FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_c of the cloud, as on `nebulae` but single precision
+    mass_fraction_n              FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_n of the cloud, as on `nebulae` but single precision
+    mass_fraction_o              FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_o of the cloud, as on `nebulae` but single precision
+    mass_fraction_ne             FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_ne of the cloud, as on `nebulae` but single precision
+    mass_fraction_s              FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_s of the cloud, as on `nebulae` but single precision
+    mass_fraction_ar             FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_ar of the cloud, as on `nebulae` but single precision
+    mass_fraction_fe             FLOAT NULL,  -- v206 (GEN.1277): mass_fraction_fe of the cloud, as on `nebulae` but single precision
+    abundance_c                  FLOAT NULL,  -- v206 (GEN.1277): abundance_c of the cloud, as on `nebulae` but single precision
+    abundance_n                  FLOAT NULL,  -- v206 (GEN.1277): abundance_n of the cloud, as on `nebulae` but single precision
+    abundance_o                  FLOAT NULL,  -- v206 (GEN.1277): abundance_o of the cloud, as on `nebulae` but single precision
+    abundance_ne                 FLOAT NULL,  -- v206 (GEN.1277): abundance_ne of the cloud, as on `nebulae` but single precision
+    abundance_s                  FLOAT NULL,  -- v206 (GEN.1277): abundance_s of the cloud, as on `nebulae` but single precision
+    abundance_ar                 FLOAT NULL,  -- v206 (GEN.1277): abundance_ar of the cloud, as on `nebulae` but single precision
+    abundance_fe                 FLOAT NULL,  -- v206 (GEN.1277): abundance_fe of the cloud, as on `nebulae` but single precision
+    ionized_share                FLOAT NULL,  -- v206 (GEN.1277): ionized_share of the cloud, as on `nebulae` but single precision
+    atomic_share                 FLOAT NULL,  -- v206 (GEN.1277): atomic_share of the cloud, as on `nebulae` but single precision
+    molecular_share              FLOAT NULL,  -- v206 (GEN.1277): molecular_share of the cloud, as on `nebulae` but single precision
+    dust_to_gas                  FLOAT NULL,  -- v206 (GEN.1277): dust_to_gas of the cloud, as on `nebulae` but single precision
+    dust_to_metals               FLOAT NULL,  -- v206 (GEN.1277): dust_to_metals of the cloud, as on `nebulae` but single precision
+    grain_silicate               FLOAT NULL,  -- v206 (GEN.1277): grain_silicate of the cloud, as on `nebulae` but single precision
+    grain_iron                   FLOAT NULL,  -- v206 (GEN.1277): grain_iron of the cloud, as on `nebulae` but single precision
+    grain_carbon                 FLOAT NULL,  -- v206 (GEN.1277): grain_carbon of the cloud, as on `nebulae` but single precision
+    grain_pah                    FLOAT NULL,  -- v206 (GEN.1277): grain_pah of the cloud, as on `nebulae` but single precision
+    grain_ice                    FLOAT NULL,  -- v206 (GEN.1277): grain_ice of the cloud, as on `nebulae` but single precision
     PRIMARY KEY (cell_i, cell_j, cell_k, n),
     KEY idx_nebula_field_uid (uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
