@@ -20230,31 +20230,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   lane is free).
   Prerequisites: none.
 
-- [ ] **VIEW.21 System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S3 of S1 to S22 in section 7. Do: wire
-  physics/light_travel.py (built, no production caller) into production
-  on arrays: advance each star to the sky's time, solve the retarded
-  position in two or three passes, apply the age-at-retarded-time rule
-  with a phase-boundary flag (a star too young to have been seen yet, or
-  one that died within the light time), and the remnant visibility rule
-  (an explosion not yet visible). Done: tests for a star at rest 1 ly
-  away, a receding one, a hypervelocity one, an analytic case and the
-  curvature bound; light_travel.py leaves the wiring-guard list. No
-  prerequisite. Lock-free, no migration. Boss decided at 5:29 PM EST on
-  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
-  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
-  and this part overlaps its 9.1 twin where noted, build it so the 9.1
-  item can reuse it); the limiting magnitude is a setting with default
-  7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 4 (while its
-  chain waits for train 11).
-  Prerequisites: none.
-
 - [ ] **VIEW.22 System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
   thread, Boss 5:17 PM EST on 2026-11-04: the System View background
@@ -20298,7 +20273,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.20, VIEW.21, VIEW.22.
+  Prerequisites: VIEW.20, VIEW.22.
 
 - [ ] **VIEW.24 System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20451,26 +20426,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   charted, no visit job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.27, VIEW.29.
 
-- [ ] **VIEW.32 System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S14 of S1 to S22 in section 7. Do: the browser
-  arithmetic for the sky: magnitude to opacity and size, colour, and the
-  matching GLSL, reusing starmagnitude.js and starlight.js. Done: a node
-  test. No prerequisite. Proposed owner: Core 2 (map lane). Lock-free,
-  no migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1,
-  3.3): a lighter 8.2 backdrop (stored stars and glow only; VIEW.7,
-  VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
-  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
-  it); the limiting magnitude is a setting with default 7.5, lower on
-  phones; missing stars are built when a system is charted, no visit
-  job. Goal #4907. Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Star 2 (moved from
-  Core 2).
-  Prerequisites: none.
-
 - [ ] **VIEW.33 System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
   thread, Boss 5:17 PM EST on 2026-11-04: the System View background
@@ -20487,7 +20442,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.29, VIEW.32.
+  Prerequisites: VIEW.29.
 
 - [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20504,7 +20459,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
-  Prerequisites: VIEW.31, VIEW.32.
+  Prerequisites: VIEW.31.
 
 - [ ] **VIEW.35 System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research

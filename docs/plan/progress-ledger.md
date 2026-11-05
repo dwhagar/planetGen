@@ -2441,3 +2441,5 @@ Baseline: PR #1817.
 | UX.261 | later | Multiple galaxies |
 | MAP.378 | 8.1 | Fly-through map |
 | MAP.379 | 8.1 | Fly-through map |
+| VIEW.21 | 8.2 | Bookmarks |
+| VIEW.32 | 8.2 | Bookmarks |
