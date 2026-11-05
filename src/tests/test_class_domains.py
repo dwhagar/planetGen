@@ -73,3 +73,31 @@ def test_overall_is_the_weighted_geometric_mean_and_zero_when_a_domain_is_zero()
     assert domains.overall(scores, weights) == pytest.approx(0.5)
     scores["water"] = 0.0
     assert domains.overall(scores, weights) == 0.0
+
+
+def _icy_moon(**changes):
+    from tests.test_planet_classes import airless
+    values = airless(mass_earth=0.02, gravity_g=0.13, surface_temperature_k=215.0, water_mass_fraction=0.4, ice_mass_fraction=0.1,
+                     relative_humidity=0.05, groundwater="none")
+    values.update(hydrosphere="ice-covered ocean", ocean_fraction=1.0)
+    values.update(changes)
+    return values
+
+
+def test_an_icy_body_with_ammonia_in_its_water_is_class_x():
+    """GEN.1258: the ammonia of the water is already stored (the percent of the liquid, else the ice and the water), so class X reads it."""
+    stored = _icy_moon(surface_liquid_ammonia_wt=25.0)
+    assert domains.derived(stored)["ammonia_water_mass_fraction"] == pytest.approx(25.0 / 75.0)
+    letter, fit, _runner, _runner_fit = class_fit.best_class(stored)
+    assert letter == "X" and fit == pytest.approx(1.0)
+    worked_out = _icy_moon(ice_mass_fraction=0.5)
+    assert domains.derived(worked_out)["ammonia_water_mass_fraction"] > 0.1
+
+
+def test_a_body_without_the_ammonia_or_outside_the_eutectic_window_is_not_class_x():
+    dry = _icy_moon(surface_liquid_ammonia_wt=0.0)
+    assert class_fit.scores(dry).get("X", 0.0) == 0.0
+    cold = _icy_moon(surface_liquid_ammonia_wt=25.0, surface_temperature_k=150.0)
+    assert class_fit.scores(cold).get("X", 0.0) == 0.0
+    hot = _icy_moon(surface_liquid_ammonia_wt=25.0, surface_temperature_k=300.0)
+    assert class_fit.scores(hot).get("X", 0.0) == 0.0

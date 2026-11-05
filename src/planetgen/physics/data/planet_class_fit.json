@@ -82,6 +82,10 @@
       "relative": 0.25,
       "floor": 0.005,
       "basis": "CF7"
+    },
+    "ammonia_water_mass_fraction": {
+      "absolute": 0.03,
+      "basis": "DM8"
     }
   },
   "shoulder_note": "relative: the shoulder is that share of the edge value (at least `floor` when given); absolute: the shoulder in the quantity's own unit. A shoulder of zero would make a hard edge.",
@@ -985,6 +989,39 @@
         }
       ],
       "note": "the sulfuric acid family (GEN.1221, Boss confirmed Y, a Demon world): acid liquid at the pressure, 300 to 350 K, a sulfur air (sulfur dioxide 3 percent or more) until the acid medium is stored"
+    },
+    {
+      "letter": "X",
+      "name": "Ammonia-water world",
+      "kind": "t",
+      "air": false,
+      "when": [
+        {
+          "quantity": "ocean_fraction",
+          "min": 0.2
+        },
+        {
+          "quantity": "ammonia_water_mass_fraction",
+          "min": 0.1
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 190.0
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 240.0
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.05
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        }
+      ],
+      "note": "the ammonia-water family (GEN.1258, Boss confirmed X): a liquid cover of 20 percent or more (an icy moon's ocean lies under its lid, so the surface phase gate is not applied), ammonia at least 10 percent of the water's mass (life class 8), the ideal band 190 to 240 K of the families report; a body with no air (an icy moon under its ice lid)"
     }
   ],
   "domains_note": "GEN.1221: the table is read as a class-by-domain matrix (`physics/class_domains.py`): each quantity belongs to one domain (structure, gravity, thermal, air_amount, air_chemistry, water, and the regional, day, night, wet_bulb and phase cells of a family), a class with no condition in a domain has the full range there, and `weights` tilt the six main domains in the overall score. The oxygen-water family (M, R, P, O, H) has the ranges of reports/class-families-and-positions-design-2026-10-31.md section 3; the families with their own liquid (U methane-ethane, Y sulfuric acid) are gated by `phase_<family>` (`physics/phase_gate.py`); Z is the hot thin-air world (GEN.1211). The ammonia-water family (X) waits for a stored ammonia-water fraction.",
