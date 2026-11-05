@@ -14033,6 +14033,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1207). Version 8.1. Owner: Core 4. Filed by the TODO thread.
   Prerequisites: GEN.1207.
 
+- [ ] **GEN.1282 Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system)**
+  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
+  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
+  63 percent of the time of an O0V system with every flag on is bodies
+  built twice: reconcile_moved_planet. space_orbits pushes nearly every
+  planet out past its inner neighbour and the planet and its moons are
+  then made again (285 times in 16 validations). Do: move the spacing
+  decision ahead of the atmosphere and moon build so each body is built
+  at its final orbit once, keeping the same physics for the same final
+  orbit. Output may change (draw order), so this is a lock item:
+  generator epoch, golden, census re-tag at the train. Done: an
+  all-flags O0V system takes under 20 s together with the next item, and
+  the all-flags tests of PERF.241 no longer time out at 900 s. Version
+  8.1. Owner: Bug 1. Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.241.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14646,7 +14662,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one all-flags O0V system takes under 20 s. Related: PERF.238,
   TEST.417, TEST.571. Lock-free for the test parts. Version 8.1. Owner:
   Bug 1. Filed by the TODO thread.
+  Profile done (Bug 1, as the lane reported) (4:38 PM EST on
+  2026-11-05): reports/perf241-all-flags-o0v-profile-2026-11-05.md. 63
+  percent of an O0V all-flags system is bodies built twice after
+  space_orbits pushes planets out (GEN.1282, lock item); the forced
+  habitable world makes the placement loop draw the whole system 8 times
+  (PERF.242, lock item); gas-equilibrium solves are 54 percent of the
+  unprofiled time and a cache gains nothing. Cuts that change no output
+  give only 10 to 20 percent. Bug 1 meanwhile cuts the system counts of
+  the timing-out tests where the property allows, in small PRs. The
+  prevalence feature_moves tests on the list are PERF.236, already in
+  train 12. PERF.241 stays open until GEN.1282 and PERF.242 land.
   Prerequisites: none. Related: PERF.238.
+
+- [ ] **PERF.242 Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget**
+  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
+  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
+  the forced habitable world makes the placement loop draw the whole
+  system 8 times and spend the 60-planet request budget. Gas equilibrium
+  (29,800 solves of 7 ms, none repeated) is 54 percent of the unprofiled
+  time, so a cache gains nothing and a warm start of the Newton loop
+  gains 10 to 20 percent without changing output. Do: say from the
+  physics which draws can be skipped for a star where no habitable world
+  can exist (a hot O or B star's habitable zone is far out and
+  short-lived: the forced flag cannot be met before the star leaves the
+  main sequence), short-circuit those, and warm-start the Newton solve
+  where bits are unchanged. Output changes for forced-flag draws: lock
+  item with the generator epoch, after the item above. Done: see the
+  item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
+  Prerequisites: GEN.1282. Related: PERF.241.
 
 ## DB: Database and schema
 
