@@ -1094,6 +1094,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is wanted at the core; it is a queued job there (about 2 minutes for
   1,000 sectors), not an interactive layer. Needs Boss's word when the
   layer is built.
+  Boss decision (5:14 PM EST on 2026-11-05): the gravity map is built so
+  it lands by 9.1, with the foundations spread back: 8.2 holds the
+  double-count decision (MAP.383), the kernel (MAP.384), the interaction
+  lists (MAP.385), the point mass per system (MAP.386), the perf guard
+  (PERF.243) and the cost study close-out (PERF.72); 8.3 holds the
+  evaluator (GEN.198), the per-zone grid (GEN.199), the cache and stamps
+  (MAP.387) and the route (API.24), because they ride on the orbital
+  update and the galaxy potential (GEN.115); 8.5 holds the Sector and
+  System Map layers and the wording (MAP.168, MAP.169, UX.94), because
+  courses around gravity wells use them; 9.1 keeps this parent and the
+  optional Galaxy Map layer (MAP.170). Nothing of it lands in 8.1: only
+  generation aspects that directly impact 8.1 do. The 8.2 items read
+  stars already generated and change no generated output.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
 
 - [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
@@ -3304,7 +3317,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72, MAP.383, MAP.384, MAP.385, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -14172,7 +14185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151
+  Prerequisites: none. Related: GEN.198, GEN.199, MAP.151
   (done, PR #1539).
   Scope after the review (2026-10-16 review): the cost study of the grid
   on top of the kernel (measure the kernel and the aggregate split, pick
