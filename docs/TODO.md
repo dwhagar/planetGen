@@ -14655,6 +14655,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Filed by the TODO thread.
   Prerequisites: GEN.1265. Related: GEN.768.
 
+- [ ] **GEN.1267 A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it**
+  Boss (EST on 2026-11-04, 8:29 PM, as the coordinator relayed): he
+  thought the nebula change also covers the generation shape, not only
+  the drawing. It does not yet. MAP.365 (merged, #4844) draws each
+  nebula as an irregular wispy outline taken from the galaxy model's gas
+  and star-forming density, computed at view time (his five answers:
+  shapes from the real density, never a random blob per object ID; wispy
+  uneven edges; subtle tint; coarse far and finer near; overlaps add,
+  capped). The stored shape of a generated nebula is still the GEN.75
+  shape: 4 to 8 metaballs in nebula_shape_balls plus the ellipsoid,
+  warp, noise and isovalue columns (galaxy/nebula_shape.py), a random
+  draw per object. So the outline on the map and the volume the
+  generator uses disagree: inside_nebula_id, the bounds radius_ly, the
+  stars placed inside by GEN.241 and GEN.320, the planet conditions of
+  GEN.93 and the sector nodes all use the old metaball volume. Do: (1)
+  design note first (Core 2 owns the density helper from MAP.365 part a,
+  #4833): whether the stored shape is replaced by the model-density
+  contour at a stated resolution, so nothing per-nebula is stored beyond
+  what the model holds, or a stored outline per node is needed (then it
+  is a migration); (2) make the bounds, the containment test, the
+  placement of hosted stars and the map outline read the same contour;
+  (3) delete the metaball columns and code once nothing reads them (no
+  shim); (4) the generation census (nebula counts, stars inside, planet
+  conditions) stays within its bands, and GEN.725 rows record any
+  stand-in with tier and tweak level. Done: one shape per nebula that
+  the map, the containment test and the placement all share, a test that
+  a star placed inside a nebula lies inside the drawn outline, and a
+  seeded galaxy keeps its nebula count and hosted star counts within the
+  census bands. Lock item (it changes what a generated galaxy contains:
+  an epoch with --affects fill, and a migration if an outline is
+  stored); the earliest train is 12, after the design note and after
+  train 11 is formed. Version 8.1. Owner: Core 2 for the design note,
+  then the lane that takes the lock build (Core 3 holds GEN.1261 for
+  train 12; decide after the note). Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.365, MAP.142, GEN.75, GEN.241,
+  GEN.295, GEN.93.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
