@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1090 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1092 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 117 | 45 | 0 | 1 | 0 | 163 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
-| T5 | 49 | 19 | 2 | 1 | 0 | 71 |
+| T5 | 50 | 19 | 2 | 1 | 0 | 72 |
 | T6 | 103 | 82 | 21 | 52 | 0 | 258 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 22 | 14 | 5 | 48 | 29 | 118 |
-| All | 613 | 238 | 52 | 147 | 40 | 1090 |
+| T9 | 22 | 14 | 5 | 49 | 29 | 119 |
+| All | 614 | 238 | 52 | 148 | 40 | 1092 |
 
 ## How the labels were given
 
@@ -1474,6 +1474,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.175 Stand-ins of the sky tier table
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SKT1 | P | T9 | L3 | sky_tiers.CELL_VISIT_BUDGET 3e8: the cell visits the luminosity bands of one sky may take, so the bands over about 1,000 Lsun are dropped at a 7.5 limit | 5e7 to 2e9 | a sky of 6.5 to 7.5 from a place at the density of the Sun, the backfill as of epoch 131 at 2 to 30 microseconds a visit | a measured visit cost far from VIEW.19's, a sky whose dropped bands hide a conspicuous star the glow band cannot stand in for, or a backfill that visits blocks instead of cells (VIEW.41), which removes the need for a budget | VIEW.41 (a coarser block draw for the sparse bands) | VIEW.19: 2.7e8 visits to 1,000 Lsun is half of the luminosity stars at 7.5 (22 minutes warm, 1.8 hours cold); 8.3e9 uncut | VIEW.25 | - |
+| SKT2 | D | T5 | L0 | sky_tiers.RING_TOP_SOL 50: the luminosity the rings stop at and the luminosity bands start at, `tuning.WD_LUMINOSITY_RANGE_SOL[1]`, the brightest white dwarf, under which `star_population.check_threshold` refuses a luminosity floor | fixed by the star model | the luminosity backfill as written | a luminosity backfill that takes a floor under 50 Lsun (the white dwarfs left out of the sky), which would let the bands replace the rings | a luminosity floor under 50 Lsun for the sky | VIEW.19 section 5: the rings draw about 140 stars for each one that shows | - | - |
 
 ## 6.174 Stand-ins of the glow band of the unresolved stars
 
