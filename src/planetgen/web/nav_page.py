@@ -38,6 +38,7 @@ from flask import redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
+from planetgen.web.maps.navdiagram import render_course_diagram
 from planetgen.web.maps.navmap import render_nav_map_panel
 from planetgen.galaxy import objectref
 from planetgen.galaxy.navigation import format_course
@@ -632,6 +633,10 @@ def nav():
     in_system = result["scope"] == "system"
     map_html = "" if in_system else render_nav_map_panel(
         page_url, _waypoints(origin, destination, result, names), has_route=route is not None)
+    stops = _route_stops(route, names) if route and route["path"] else []
+    # Like the route list (UX.70): not for a direct hop, which is the course above.
+    diagram_html = "" if in_system or not route or len(route["path"]) < 3 else render_course_diagram(
+        route, names, {node: stop["url"] for node, stop in zip(route["path"], stops)})
     return render_page(
         "nav.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination,
         direct=direct, distance_text=format_distance_ly(direct["distance_ly"]),
@@ -641,16 +646,16 @@ def nav():
         scope_label={"system": "Inside one system", "sector": "Same sector"}.get(
             result["scope"], "Cross-sector (galaxy)"),
         legs=_leg_rows(result["legs"], origin, destination, names), in_system=in_system, note=result["note"],
-        route=route, stops=_route_stops(route, names) if route and route["path"] else [],
+        route=route, stops=stops,
         stay_text=stay_text, stay_error=stay_error, stay_minutes=stay,
         from_param=_param_of(origin), to_param=_param_of(destination),
-        short_stops=_route_short_list(_route_stops(route, names), route) if route and route["path"] else None,
+        short_stops=_route_short_list(stops, route) if route and route["path"] else None,
         longest_hop_text=format_distance_ly(route["longest_hop_ly"]) if route and "longest_hop_ly" in route else None,
         unknown_jumps=sum(1 for hop in route.get("hops", []) if hop.get("unknown_space")) if route else 0,
         chart_url=page_url("nav_chart", **{"from": _param_of(origin), "to": _param_of(destination)})
         if current_admin() is not None and route and any(hop.get("unknown_space") for hop in route.get("hops", []))
         else None,
-        map_html=trusted_html(map_html),
+        map_html=trusted_html(map_html), diagram_html=trusted_html(diagram_html),
         reverse_url=nav_url(_param_of(destination), _param_of(origin)),
         bookmark_changes=[_bookmark_pick("from", _param_of(destination), "New start"),
                           _bookmark_pick("to", _param_of(origin), "New destination")],

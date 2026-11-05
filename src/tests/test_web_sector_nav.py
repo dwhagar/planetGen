@@ -1158,11 +1158,32 @@ def test_nav_route_shows_hop_and_total_times_and_takes_a_stay(client, fake):
     assert "must be a number of minutes" in html
 
 
+def test_nav_draws_the_course_diagram_below_the_map_and_above_the_route_list(client, fake):
+    """NAV.67: the route as a ribbon of stops, after the NAV map and before the route list, a link on each stop with a page."""
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert html.index("navmap-viewport") < html.index('id="course-diagram-heading"') < html.index('id="route-heading"')
+    diagram = re.search(r'<section class="panel nav-diagram".*?</section>', html, re.S).group(0)
+    assert diagram.count('class="nav-diagram-svg') == 3 and diagram.count('class="nav-diagram-stop"') == 3 * 3
+    assert 'href="/system/' in diagram and "1.25 ly" in diagram and "2.25 ly" in diagram
+    assert "unknown space" not in diagram
+
+
+def test_nav_course_diagram_marks_an_unknown_space_hop_and_does_not_link_a_stop_in_unknown_space(client, fake):
+    """NAV.67, NAV.36: a hop through unknown space is red and in words; a stop in unknown space is no link."""
+    fake.nav_stone = True
+    fake.nav_unknown_space = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    diagram = re.search(r'<section class="panel nav-diagram".*?</section>', html, re.S).group(0)
+    assert "nav-diagram-hop-unknown" in diagram and "crosses unknown space" in diagram
+    assert "Black hole in uncharted sector ABC" in diagram
+    assert diagram.count("<a ") == 2 * 3                                  # the stop in unknown space has no page
+
+
 def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):
-    """UX.70: Optimal Route would only list the two ends again."""
+    """UX.70: Optimal Route would only list the two ends again (and the Course Diagram, the same two stops)."""
     fake.nav_direct_hop = True
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
-    assert 'id="route-heading"' not in html and 'class="nav-route"' not in html
+    assert 'id="route-heading"' not in html and 'class="nav-route"' not in html and 'id="course-diagram-heading"' not in html
     assert 'id="course-heading"' in html
 
 
