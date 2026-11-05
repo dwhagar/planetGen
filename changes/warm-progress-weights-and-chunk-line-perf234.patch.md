@@ -1,0 +1,8 @@
+**Headline:** The cache warm-up's overall time left is weighted by what each step costs, and its chunk lines say how many chunks run at once.
+
+### Changed
+
+- **The warm-up's overall bar and time left (PERF.234).** `planetgen warm --progress` moved its overall bar one step in eleven, so the long object steps (systems and phenomena, most of a warm-up) took the bar from 45% to 100% in one stride and the time left swung. It now weighs a step by what it is expected to cost: a step already queued by the cost its units declare (`warmup.ITEM_SECONDS`, seconds an item on one worker, measured: systems 0.23, phenomena 0.15, sectors 3.0, deep nodes 0.02, built-level nodes 0.062), a step not yet queued by `warmup.EXPECTED_SECONDS`. The whole warm-up's time left is marked `(rough guess)` while a later step has not been queued, and the plain bar at the end of a step now names it. `warmup.NODE_SECONDS` and `OBJECT_SECONDS` stay as the ceilings the commands declare for their longest unit.
+- **The chunk line and the time left from the overall rate (PERF.237).** The "this chunk 64 nodes in 37 s" figure is one worker's own time, and about ten chunks run side by side, so it read as ten times too slow. The line now says `took 37.0 s on its worker; about 10 chunks at once, 3.7 s a chunk overall`, and the time left comes only from the overall rate. No time left is shown for the stage or the whole warm-up from fewer than five chunks (`warm_progress.MIN_CHUNKS`), the first results being the first of the workers; the line says `time left not known yet` until then. The rich bars show the same figures. `text_bar` is gone, replaced by the weighted bar.
+
+generation-output: unchanged
