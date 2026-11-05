@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3301] - 2026-11-05
+
+**Headline:** Rogue planets now come from the systems that threw them out: each is built like any other world, with no star, and filed in the sector it has drifted to.
+
+### Changed
+- **A rogue planet row has every planet column.** Surface, air, interior, ocean, life and the rest sit on the rogue row the way they do on a planet row, with the same child tables for its layers, gases, spectrum and life scores. Rogue planets already in the database are not changed; the regenerated galaxy replaces them.
+- **A system that threw a body out saves it.** When a system is saved, each body its planet architecture ejected is built as a planet with no star (its own heat warming it, its air kept from the ejection), moved along its kick for the time since, and stored as a rogue planet in the sector where it landed. The rogue keeps the system that threw it out, which of that system's ejections it is, how long ago and how fast, and a sentence that says where it came from. Saving a system again replaces the rogues it made, so none are doubled.
+- **A rogue's sector may be one nobody has charted.** The sector gets an empty row, not in the chart ledger, which is filled when the cell is charted. A rogue's ID belongs to the sector of the system that threw it out, so deleting that sector removes its rogues wherever they are, and a sector holding a rogue from elsewhere cannot be deleted.
+- **A sector no longer rolls rogue planets of its own.** The flat per-star rate, the mass bins and the sector roll for rogue planets are gone; only the free brown dwarfs keep their roll, and a rogue planet exists because a system threw it out. The rogue-planet counts in the prevalence census are removed with them, to return with the top-up (GEN.1120).
+- **A rogue planet's page, sheet and API show what a planet's do.** The page names the system that threw it out, when, and how fast it left; the API detail names that system and prints its ID; a landing sector nobody has charted has a public ID and a page from the start.
+
+generation-output: changed
+
 ## [8.0.3300] - 2026-11-05
 
 **Headline:** Every belt now keeps its biggest bodies one by one: where each lies, how its orbit is shaped, what it is made of and whether it counts as a planet, a dwarf planet or a minor body.
