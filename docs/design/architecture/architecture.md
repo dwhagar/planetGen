@@ -630,7 +630,7 @@ The map panels and their data.
 | `nearfield.js` | The near field of the fly-through map: what stands close to the camera dissolves and a see-through tube thins what stands between the camera and the focus (MAP.149). |
 | `nebulalook.js` | How a nebula is painted on the Galaxy Map, per theme (MAP.175). |
 | `nebulamesh.js` | A nebula drawn from its shape instead of a flat sprite (GEN.75, MAP.103). |
-| `nebulaview.js` | A nebula page's 3D view: its own shape with the brightest stars round it (MAP.105). |
+| `nebulaview.js` | A nebula page's 3D view: the nebula drawn from its own points by the maps' volume layer, with the brightest stars round it (MAP.105, MAP.142). |
 | `objectref.js` | The browser mirror of `planetgen/galaxy/objectref.py`'s public form (`parse_public`, `format_public`). |
 | `orbitclock.js` | The 3D system view's time control: the years past the scene's epoch (MAP.70). |
 | `orbitpositions.js` | Where every body of a system is at any time: the browser twin of `planetgen/physics/body_positions.py` (MAP.70). |

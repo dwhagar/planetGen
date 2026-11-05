@@ -20,7 +20,7 @@ itself, chosen per type (UX.17), instead of the flat AU-scale diagram
 - Interstellar comet: a nucleus (grey-white when active, dark red-brown
   when not), with a coma and tail when it is active.
 - Asteroid field: no view at all (`view_kind` returns `None`).
-- Nebula (MAP.105): its own shape in 3D, with the brightest stars of the
+- Nebula (MAP.105, MAP.142): the nebula drawn from its own points in 3D, with the brightest stars of the
   galaxy round it dimmed for reference (`render_nebula_view_panel`,
   `static/nebulaview.js`).
 - Supernova remnant: the AU diagram until a render is designed for it.
@@ -35,7 +35,7 @@ import math
 
 from planetgen.web.lib.fmt import esc, format_duration_seconds, format_number
 from planetgen.web.maps import bodylook
-from planetgen.web.maps.starmap import NEBULA_SHAPE_PATH, NEBULA_SURROUNDINGS_PATH, nebula_look
+from planetgen.web.maps.starmap import NEBULA_SURROUNDINGS_PATH, NEBULA_VOLUME_PATH, nebula_look
 
 _RENDERED = {"neutron_star", "black_hole", "quasar", "rogue_planet", "interstellar_comet"}
 _NO_VIEW = {"asteroid_field"}
@@ -180,9 +180,9 @@ def render_phenomenon_view_panel(phenomenon_type, detail):
 
 def render_nebula_view_panel(detail):
     """
-    A nebula page's "View" panel (MAP.105): the nebula's own shape in 3D
-    with the brightest stars of the galaxy round it, dimmed. The script
-    (`static/nebulaview.js`) draws it from the shape and surroundings
+    A nebula page's "View" panel (MAP.105, MAP.142): the nebula drawn from its own
+    points in 3D with the brightest stars of the galaxy round it, dimmed. The script
+    (`static/nebulaview.js`) draws it from the volume and surroundings
     endpoints; the still drawing reads without it.
 
     Args:
@@ -196,7 +196,8 @@ def render_nebula_view_panel(detail):
     color, core, edge = nebula_look(detail.get("nebula_type"))
     name = detail.get("name") or "Nebula"
     data = json.dumps({
-        "shapePath": NEBULA_SHAPE_PATH.replace("{id}", str(detail["id"])),
+        "nebulaId": str(detail["id"]),
+        "volumePath": NEBULA_VOLUME_PATH.replace("{id}", str(detail["id"])),
         "surroundingsPath": NEBULA_SURROUNDINGS_PATH.replace("{id}", str(detail["id"])),
         "color": color, "coreOpacity": core, "edgeOpacity": edge,
     })
@@ -208,12 +209,12 @@ def render_nebula_view_panel(detail):
 <section class="panel" aria-labelledby="nebulaview-heading">
 <div class="panel-header">
   <h2 id="nebulaview-heading">View</h2>
-  <span class="hint">Its shape, with the galaxy's brightest stars round it; drag to turn, scroll to zoom.</span>
+  <span class="hint">Its cloud, with the galaxy's brightest stars round it; drag to turn, scroll to zoom.</span>
 </div>
 <div class="phenomrender-viewport" id="nebulaview" data-view="{esc(data)}">
 {still}
 <canvas class="phenomrender-canvas" id="nebulaview-canvas" hidden
-  role="img" aria-label="{esc(name)}, its shape in 3D with the brightest stars round it. Drag to turn it."></canvas>
+  role="img" aria-label="{esc(name)}, its cloud in 3D with the brightest stars round it. Drag to turn it."></canvas>
 </div>
 <p><button type="button" class="starmap-btn" id="nebulaview-recenter" hidden
   title="Back to the opening angle and zoom, about the nebula's center (C)">Re-center</button></p>
