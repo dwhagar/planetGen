@@ -189,3 +189,12 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.161:FM1 | no data | - | the line is the belts' (BG14): no survey measures the dust of a field; it goes where BG14 goes |
 | 6.161:FM2 | no data | - | no model or measurement of the size distribution of the rubble of a planet-planet collision is in hand; the rocky main-belt law stands in until the largest-fragment reading (LS12) |
 | 6.166:IHA1 | no data | - | no measured viscosity of any rocky planet's mantle other than the Earth's is in hand; the prefactor is retuned to hold the reference viscosity, not fitted to a planet |
+| 6.170:RNG2 | no data | - | no measured slope of a dust ring (Jupiter, Uranus, Neptune) is in hand; a dark red-brown ring was wanted and the slope is a picture choice |
+| 6.170:RNG5 | no data | - | no measured albedo of a dust ring is in hand; an educated guess between the ice ring and the dark sooty ones |
+| 6.170:RNG6 | no data | - | display choices (gain, opacity floor and ceiling) of the ring picture; a rendering model that works the light of the ring would replace them |
+| 6.170:RNG8 | no data | - | the drawn gap widths and the ringlet pattern are a picture; a ring structure worked out from the ring's dynamics would replace them |
+| 6.170:RNG10 | no data | - | the glow of a hot body is tuned by eye (1000 K dull red, 2000 K bright orange); a rendering model of the emitted light would replace it |
+| 6.170:RNG11 | no data | - | the band count is fitted to the 30 and 17 jets seen on Jupiter and Saturn; the report's jet-speed law has no usable jet speed, so no derived count is in hand |
+| 6.170:RNG13 | no data | - | no source gives a jet count for Uranus or Neptune; the 5 or 7 bands are needed output |
+| 6.170:RNG18 | no data | - | no source gives a storm count law by rotation or heat flux; the 1 to 4 large storms are the design's |
+| 6.170:RNG19 | no data | - | band contrast and colour are tuned by eye (a methane giant nearly featureless, an ammonia giant strongly banded); the optics of the generated clouds (GEN.422 k-tables) would replace them |

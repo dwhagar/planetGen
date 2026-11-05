@@ -194,6 +194,9 @@ def test_health_reports_the_reason_for_maintenance(mysql_config, client, tmp_pat
     assert body["status"] == "ok" and body["schema_current"] is True
     assert body["maintenance"] == {"enabled": True, "cause": "update", "reason": "Rebuilding the sector maps",
                                    "eta": "about two hours", "since": body["maintenance"]["since"]}
+    maintenance.turn_on()       # already on: no reason given keeps the one set (`turn_on`'s rule), so the standard line shows only once it was off
+    assert client.get("/api/health").get_json()["maintenance"]["reason"] == "Rebuilding the sector maps"
+    maintenance.turn_off()
     maintenance.turn_on()
     assert client.get("/api/health").get_json()["maintenance"]["reason"] == MESSAGE
 

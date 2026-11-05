@@ -186,6 +186,7 @@ def test_a_pre_placed_hot_star_rolls_the_same_region_as_the_star_its_sector_buil
                "metallicity_fe_h": -0.1, "position_x_mpc": 1.0e6 + k, "position_y_mpc": 2.0e3, "position_z_mpc": -50.0}
         config = SystemConfig()
         config.POPULATION = "young"
+        config.PLANETS = False     # the nebula is the star's own draw: a system of planets costs minutes a star
         with draw.bound(1000 + k):
             system = StarSystem(system_config=config, primary_star_params=brightStars.star_params(row),
                                 member_tree=stored_trees.SINGLE)
