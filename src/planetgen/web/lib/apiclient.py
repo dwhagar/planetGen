@@ -168,6 +168,11 @@ def set_response_cache(provider):
     _response_cache = provider
 
 
+def response_cache():
+    """The `pagecache.ResponseCache` the current call reads through, or `None` (see `set_response_cache`)."""
+    return None if _response_cache is None else _response_cache()
+
+
 cache_stats = {"hits": 0, "misses": 0}
 """dict: How many cached GETs were answered from the response cache and how many had to be fetched and were answered, in
 this process (the warm-up reports them, PERF.104). A GET the API refused (a 404, a 400) built no answer and counts as neither:

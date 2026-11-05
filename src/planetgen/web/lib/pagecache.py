@@ -51,6 +51,7 @@ Settings live under `page_cache` in `config.json` (`enabled`, `max_entries`, `ma
 """
 
 import collections
+import contextlib
 import hashlib
 import json
 import random
@@ -111,6 +112,35 @@ REDIS_ROOM_SECONDS = 5.0
 """float: How long a look at Redis's memory is trusted."""
 
 
+class Slice:
+    """
+    What a run of page reads depended on (PERF.239): the Redis key of each answer, the counter of each tag they read and the
+    incarnation. `usable` is `False` when two answers disagree on a counter (data changed during the run) or on the incarnation,
+    since then no single state describes them.
+    """
+
+    def __init__(self):
+        self.keys = set()
+        self.tags = {}
+        self.incarnation = None
+        self._consistent = True
+
+    def add(self, db, key, incarnation, tags):
+        if self.incarnation not in (None, incarnation):
+            self._consistent = False
+        self.incarnation = incarnation
+        self.keys.add(key)
+        for tag, counter in tags.items():
+            if self.tags.setdefault(tag, counter) != counter:
+                self._consistent = False
+
+    def usable(self):
+        return self._consistent and bool(self.keys) and self.incarnation is not None
+
+    def as_dict(self):
+        return {"i": self.incarnation, "tags": self.tags, "keys": sorted(self.keys)}
+
+
 class ResponseCache:
     """
     The cache itself: raw response bodies keyed by request target, least
@@ -148,6 +178,7 @@ class ResponseCache:
         self._refreshing = {}  # (db, target) -> when its early refresh was claimed (PERF.110)
         self._stamps = {}  # db -> (stamp, checked_at, state, accepted_at, busy)
         self._generation = 0  # bumped by clear()
+        self._recording = threading.local()  # the `Slice` being recorded by this thread (PERF.239), if any
 
     def __len__(self):
         with self._lock:
@@ -286,6 +317,7 @@ class ResponseCache:
             return None
         if self._refresh_early(db, target, entry):
             return None  # this reader fetches it again; the others are still served the old copy
+        self._note(db, target, entry.incarnation, entry.tags)
         return entry.body
 
     def _refresh_early(self, db, target, entry):
@@ -321,6 +353,71 @@ class ResponseCache:
             while len(self._entries) > self._max_entries:
                 self._entries.popitem()
         return entry
+
+    def _note(self, db, target, incarnation, tags):
+        """PERF.239: tells the slice this thread is recording (`recording`) that an answer of it was served or stored."""
+        recording = getattr(self._recording, "slice", None)
+        if recording is not None and db is not None:
+            recording.add(db, shared_key(db, target), incarnation, tags)
+
+    @contextlib.contextmanager
+    def recording(self):
+        """
+        PERF.239: records, for what this thread reads and stores inside the block, the Redis key of each answer, the
+        tag counters they stood on and the incarnation, as a `Slice` (what `slice_is_current` checks later without
+        visiting the pages again).
+        """
+        recorded = Slice()
+        previous = getattr(self._recording, "slice", None)
+        self._recording.slice = recorded
+        try:
+            yield recorded
+        finally:
+            self._recording.slice = previous
+
+    def _slice_key(self, db, name):
+        return f"planetgen:warmed:{db}:{hashlib.sha256(name.encode('utf-8')).hexdigest()[:32]}"
+
+    def save_slice(self, db, name, recorded):
+        """Keeps `recorded` (a `Slice` that is `usable`) for `name` in Redis, for half the time its answers are kept, so a slice
+        is looked at again, and its answers' early refresh (PERF.110) given the chance, before they expire."""
+        if db is None or not recorded.usable():
+            return False
+        try:
+            self._redis().set(self._slice_key(db, name), json.dumps(recorded.as_dict(), sort_keys=True),
+                              ex=max(60, self._shared_seconds // 2))
+        except (redis.RedisError, OSError):
+            return False
+        return True
+
+    def slice_is_current(self, db, name):
+        """
+        PERF.239: whether every answer of the slice `name` recorded (`save_slice`) is still there and stands: the same
+        incarnation, every tag at the counter it had, and every answer's key in Redis. One round trip for the counters and
+        one for the keys, in place of visiting each page. After the galaxy's content stamp is looked at (`_fresh_stamp`), so
+        a change it finds is counted first. `False` for anything it cannot tell.
+
+        Returns:
+            int or None: How many answers the slice holds when it is current, else `None`.
+        """
+        if db is None or not self._fresh_stamp(db):
+            return None
+        try:
+            raw = self._redis().get(self._slice_key(db, name))
+            if raw is None:
+                return None
+            saved = json.loads(raw)
+            now_id, found = dataversion.versions(db, list(saved["tags"]))
+            if now_id != saved["i"] or found != saved["tags"]:
+                return None
+            pipe = self._redis().pipeline(transaction=False)
+            for key in saved["keys"]:
+                pipe.exists(key)
+            if not all(pipe.execute()):
+                return None
+        except (redis.RedisError, OSError, ValueError, KeyError, TypeError, dataversion.Unavailable):
+            return None
+        return len(saved["keys"])
 
     def put(self, db, target, body, token):
         """Stores `body` for `target` in `db` -- skipped when it's too
@@ -369,4 +466,5 @@ class ResponseCache:
             pipe.execute()
         except (redis.RedisError, OSError):
             return False
+        self._note(db, target, now_id, found)
         return True
