@@ -134,7 +134,7 @@ LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due",
 
 LEFT_OUT_TABLE_COLUMNS = {
     "star_systems": frozenset({"location"}),
-    "sectors": frozenset({"leaf_digest"}),
+    "sectors": frozenset({"leaf_digest", "content_leaf"}),
     "galaxy_shape": frozenset({"version_key", "planetgen_version", "python_version", "platform", "generator_epoch",
                                "fp_spec", "battery_digest", "battery_cases"}),
 }

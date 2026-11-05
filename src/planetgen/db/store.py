@@ -3933,8 +3933,9 @@ def delete_rogues_of_donor(conn, donor_uid):
     """
     sectors = [row["sector_id"] for row in conn.execute("SELECT DISTINCT sector_id FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).fetchall()]
     deleted = conn.execute("DELETE FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).rowcount
-    for sector_id in sectors:       # a rogue is filed in the sector it landed in, whose storage checksum covers it (DB.45)
+    for sector_id in sectors:       # a rogue is filed in the sector it landed in, whose storage checksum covers it (DB.45) and whose leaf holds it (TEST.602)
         touch_sector(conn, sector_id)
+        fingerprintTree.store_residents(conn, sector_id)
     return deleted
 
 
@@ -3984,8 +3985,10 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
         delete_rogues_of_donor(conn, uid)
         position = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
         row_ids = []
+        landed = set()
         for rogue in rogue_yield.rogues_of(uid, system, position, edge_pc):
             sector_id = uncharted_sector_id(conn, rogue.landing.address, edge_pc, run_id)
+            landed.add(sector_id)
             row_ids.append(insert_rogue_body(
                 conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
                 event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
@@ -3993,6 +3996,8 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
         if row_ids:
             _assign_rogue_uids(conn, row_ids, birth_sector_id)
             written += len(row_ids)
+        for sector_id in sorted(landed):        # the leaf of each sector a rogue landed in holds it (TEST.602)
+            fingerprintTree.store_residents(conn, sector_id)
     return written
 
 
@@ -4047,6 +4052,7 @@ def delete_topup_rogues(conn, sector_id):
     deleted = conn.execute("DELETE FROM rogue_planets WHERE sector_id = ? AND donor_uid IS NULL", (sector_id,)).rowcount
     if deleted:
         touch_sector(conn, sector_id)       # the sector's storage checksum covers its rogues (DB.45)
+        fingerprintTree.store_residents(conn, sector_id)       # and so does its leaf (TEST.602)
     return deleted
 
 
@@ -4079,6 +4085,7 @@ def save_topup_rogues(conn, sector_id, made):
             ejection_speed_kms=origin.speed_km_s, rogue_note=item.note))
     if row_ids:
         _assign_rogue_uids(conn, row_ids, sector_id)
+        fingerprintTree.store_residents(conn, sector_id)       # the leaf holds them (TEST.602)
     return len(row_ids)
 
 
@@ -7665,7 +7672,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         # GEN.1127: the row of a regenerated sector kept for its residents is filled again, so they keep pointing at it.
         conn.execute(
             "UPDATE sectors SET name = ?, edge_mpc = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
-            " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL,"
+            " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL, content_leaf = NULL,"
             " density_multiplier_used = NULL, override_id = NULL, parity_dirty = 1 WHERE id = ?",
             (sector.name, ly_to_milliparsecs(sector.edge_ly), galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
              galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"], epoch, run_id, kept_id))

@@ -1672,6 +1672,7 @@ CREATE TABLE IF NOT EXISTS sectors (
     storage_checksum            BINARY(32) NULL,  -- v115 (DB.44)
     parity_dirty                TINYINT NOT NULL DEFAULT 1,  -- v115 (DB.44)
     leaf_digest                 BINARY(32) NULL,  -- v120 (DB.49)
+    content_leaf                BINARY(32) NULL,  -- v212 (TEST.602)
     generator_epoch             SMALLINT UNSIGNED NULL,  -- v121 (DB.16)
     run_id                      BIGINT UNSIGNED NULL,  -- v121 (DB.16)
     density_multiplier_used     DECIMAL(10,4) NULL,  -- v125 (DB.60)

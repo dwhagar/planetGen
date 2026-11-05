@@ -226,6 +226,7 @@ NEVER_READ = {
     **{("sectors", column): "read by the rebuild of a density override (DB.60 adds the columns only)"
        for column in ("density_multiplier_used", "override_id")},
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",
+    ("sectors", "content_leaf"): "read by fingerprint_tree.store_residents, which joins it to the rogues filed in the sector (TEST.602)",
     ("sectors", "run_id"): "read in a query by the version check, not by a loader (DB.16)",
     # GEN.764: the stage epochs are read by `galaxy/epoch_record.py` and `bring_to_epoch`, not by a page's loader.
     **{("scatter_epochs", column): "read by galaxy/epoch_record (GEN.764)" for column in

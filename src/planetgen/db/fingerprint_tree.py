@@ -17,6 +17,12 @@ galaxy), band nodes before shell nodes; the roots and `planetgen fingerprint --s
 function of the leaves under it, so the tree does not depend on the order sectors were saved in or on the number of
 workers. `tree` works the whole tree out in memory from the leaves (nothing written): the stored nodes must equal it.
 
+A rogue planet is filed in the sector it landed in, which is often not its donor's and may never have been charted, and it is written after
+that sector's leaf was taken. So the leaf the tree reads (`sectors.leaf_digest`) is the content part (`sectors.content_leaf`, over the sector in
+memory) joined to `resident_digest`, a digest of the rogue planets filed in the sector with their child rows and moons, whenever it holds any
+(`combined`); every writer of a rogue planet calls `store_residents` for the sectors it changed, which makes the leaf again from the content part.
+A sector with no content part, one made only for a landing, has a leaf of its residents alone. A sector with no rogues keeps the content part as its leaf.
+
 A region's digest (`region_digest`) is over its sectors' leaves in address order together with their count, so adding
 a sector changes it.
 
@@ -88,14 +94,73 @@ def _root(shells):
     return _node_digest("galaxy", (), count, [((shell,), digest) for shell, digest, _n in shells]), count
 
 
-def store_leaf(conn, sector_id, address, digest):
-    """Stores a sector's leaf digest and marks its band and shell nodes dirty."""
+def _mark_dirty(conn, address):
     shell, band, _wedge = address
-    conn.execute("UPDATE sectors SET leaf_digest = ? WHERE id = ?", (digest, sector_id))
     for level, node_band in ((BAND, band), (SHELL, 0)):
         conn.execute(
             "INSERT INTO sector_tree_nodes (level, shell_index, band_index, dirty) VALUES (?, ?, ?, 1)"
             " ON DUPLICATE KEY UPDATE dirty = 1", (level, shell, node_band))
+
+
+def combined(content, residents):
+    """
+    The leaf of a sector from its content part (bytes or `None`) and its residents' digest (bytes or `None`): the content part alone when it
+    has no residents, `None` when it has neither, else a digest of both.
+    """
+    if residents is None:
+        return content
+    return bytes.fromhex(encoding.digest({"content": None if content is None else content.hex(), "residents": residents.hex()}))
+
+
+def resident_digest(conn, sector_id):
+    """
+    The 32-byte digest of the rogue planets filed in a sector (`rogue_planets` rows, their child tables and their moons), each row as
+    `fingerprint` writes it (foreign keys by the key of what they point at, never an id, names without the collision decoration), in
+    canonical order; `None` when it holds none.
+    """
+    from planetgen.db import fingerprint
+    reader = fingerprint._Reader(conn, plain_names=True)
+    rogues = reader.select("rogue_planets", "sector_id = ?", (sector_id,))
+    if not rogues:
+        return None
+    reader.prime("rogue_planets", rogues)
+    ids = [row["id"] for row in rogues]
+    values = [reader.row_value("rogue_planets", row) for row in rogues]
+    for table, column, parent in fingerprint.CHILD_TABLES:
+        if parent == "rogue_planets":
+            values += [reader.row_value(table, row) for row in reader.select_in(table, column, ids)]
+    values += [reader.row_value("moons", row) for row in reader.select_in("moons", "rogue_planet_id", ids)]
+    return bytes.fromhex(encoding.row_set_digests(values).full)
+
+
+def store_leaf(conn, sector_id, address, content):
+    """
+    Stores a sector's content part and the leaf made from it and the rogue planets filed in the sector (`combined`), and marks its band and
+    shell nodes dirty. `content` is `leaf_digest(sector, address)` of the sector as it is saved.
+    """
+    conn.execute("UPDATE sectors SET content_leaf = ?, leaf_digest = ? WHERE id = ?",
+                 (content, combined(content, resident_digest(conn, sector_id)), sector_id))
+    _mark_dirty(conn, address)
+
+
+def drop_content(conn, sector_id):
+    """Forgets the content part of a sector that was emptied but stays for the objects filed in it, and makes its leaf again from them (`store_residents`)."""
+    conn.execute("UPDATE sectors SET content_leaf = NULL WHERE id = ?", (sector_id,))
+    store_residents(conn, sector_id)
+
+
+def store_residents(conn, sector_id):
+    """
+    Makes the leaf of a sector again after a rogue planet was written in it or deleted from it, from the content part stored with it (none for
+    a sector made only for a landing), and marks its band and shell nodes dirty. A no-op for a sector with no address. Run it after the rogues'
+    object IDs are assigned, which their rows carry.
+    """
+    row = conn.execute("SELECT shell_index, band_index, wedge_index, content_leaf FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None or row["shell_index"] is None:
+        return
+    content = None if row["content_leaf"] is None else bytes(row["content_leaf"])
+    conn.execute("UPDATE sectors SET leaf_digest = ? WHERE id = ?", (combined(content, resident_digest(conn, sector_id)), sector_id))
+    _mark_dirty(conn, (row["shell_index"], row["band_index"], row["wedge_index"]))
 
 
 def _leaves(conn, shell, band):
