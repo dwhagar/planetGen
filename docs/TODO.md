@@ -14090,6 +14090,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none. Related: MAP.383, GEN.115, GEN.725.
 
+- [ ] **GEN.1286 Delete the unread rogue_volatiles and rogue_radiogenic modules (EV1, EV2, RY1), or wire them, since the starless-host planet chain probably supersedes them**
+  Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
+  PR #5192): after GEN.1111's unread functions were deleted, five rogue
+  modules remain on the wiring register under GEN.1111. Version 8.1.
+  Owner: Planets 1. Filed by the TODO thread. Do: check whether the
+  starless-host planet chain (GEN.1111) already works the envelope,
+  water, giant class and frozen air, and the radiogenic content and
+  heat, of an ejected planet; if it does, delete the two modules, their
+  tests, the stand-in rows EV1, EV2 and RY1 and their register lines; if
+  not, wire them in. Done: the wiring guard passes with no line for
+  either module. Lock-free if it is a delete.
+  Prerequisites: none. Related: GEN.1111, GEN.1120, GEN.725.
+
+- [ ] **GEN.1287 Wire rogue_mass_function into rogue_topup.draw_mass_earth in place of tuning.ROGUE_PLANET_MASS_BINS (RM1, RM2)**
+  Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
+  PR #5192): after GEN.1111's unread functions were deleted, five rogue
+  modules remain on the wiring register under GEN.1111. Version 8.1.
+  Owner: Planets 1. Filed by the TODO thread. Do: the rogue top-up draws
+  a rogue's mass from a hand-set bin table; the physical mass function
+  of the bodies a system ejects (rogue_mass_function, rows RM1 and RM2)
+  is built and nothing reads it. Make rogue_topup.draw_mass_earth read
+  it, delete the bin table and its stand-in row, check the rogue count
+  and mass shares against the census, and remove the register lines.
+  Done: the guard passes, the rogue mass shares follow the function.
+  This changes generated rogue planets, so it is a lock item (epoch).
+  Prerequisites: none. Related: GEN.1111, GEN.1120.
+
+- [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
+  Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
+  PR #5192): after GEN.1111's unread functions were deleted, five rogue
+  modules remain on the wiring register under GEN.1111. Version 8.1.
+  Owner: Planets 1. Filed by the TODO thread. Do:
+  planetgen.physics.cluster_unbinding computes the share of planets a
+  young cluster unbinds from their stars; nothing reads it. Feed it into
+  the ejection record the rogue rows are made from (the cluster-born
+  share of rogues), with the cluster's age and density from the stored
+  cluster, and say in the rogue note when a rogue was unbound by its
+  birth cluster. Done: the guard passes with no line for the module and
+  a cluster-born rogue says so. This changes generated rogue planets, so
+  it is a lock item (epoch).
+  Prerequisites: none. Related: GEN.1111, GEN.209.
+
+- [ ] **GEN.1289 Decide rogue_density (RSM1 to RSM4): wire the smoothed star density into the virtual-donor sector draw, or delete it**
+  Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
+  PR #5192): after GEN.1111's unread functions were deleted, five rogue
+  modules remain on the wiring register under GEN.1111. Version 8.1.
+  Owner: Planets 1. Filed by the TODO thread. Do:
+  planetgen.galaxy.rogue_density gives the smoothed star density a rogue
+  is drawn from (GEN.1115), for the virtual-donor sector draw's Poisson
+  mean; nothing reads it, and GEN.1111 may have replaced the virtual
+  donor with a stored donor. Decide with a small check of what the draw
+  uses today: wire it, or delete the module, its tests, the rows RSM1 to
+  RSM4 and the register lines. Done: the guard passes with no line for
+  the module. A wire changes generated rogues (lock); a delete is
+  lock-free.
+  Prerequisites: none. Related: GEN.1111, GEN.1115.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
