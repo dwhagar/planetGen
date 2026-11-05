@@ -180,7 +180,9 @@ _STAR = (
 )
 
 _BODY_GROUPS = (
-    *_rows("identity", ("planet_class", "Class", TEXT), ("class_variant", "Class variant (the digit of the class code; 0 is the ideal of the class)"),
+    *_rows("identity", ("planet_class", "Class", TEXT), ("class_variant", "Class variant (the digit of the class code; 0 is the ideal of the class, 9 a world limited by its gravity or air amount)"),
+           ("class_match", "Class match (how well the class fits the body; 0 when no class fits it and this is the nearest)"),
+           ("runner_up_class", "Runner-up class", TEXT), ("runner_up_match", "Runner-up class match"),
            ("planet_type", "Body type (terrestrial, transitional or gas, by the share of its mass that is a hydrogen-helium envelope)", TEXT), ("zone", "Zone", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("period_years", "Orbital period"),
            ("orbital_speed_kms", "Orbital speed"), ("eccentricity", "Eccentricity"), ("orbital_inclination_deg", "Inclination"),
@@ -854,8 +856,8 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (("planet_class", "class_variant"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
-     "a body under a roundness ratio of 1 is an Asteroid and has no class letter or digit"),
+    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
+     "a body under a roundness ratio of 1 is an Asteroid and has no class letter, digit or match"),
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),

@@ -38,10 +38,10 @@ def test_codes_sort_by_letter_then_digit():
     assert sorted(codes, key=lambda code: class_code.sort_key(*code)) == [("A", 0), ("F", 0), ("F", 2), ("M", 0)]
 
 
-def test_the_new_letters_are_free_ones_and_the_confirmed_meanings_hold():
-    """Boss, 11:59 AM EDT 2026-10-31: Y sulfuric acid, U methane-ethane, X ammonia-water, Z hot thin-air, R Hothouse."""
-    free = set(planet_classes.RESERVE)
+def test_the_new_letters_are_classes_now_and_the_confirmed_meanings_hold():
+    """Boss, 11:59 AM EDT 2026-10-31: Y sulfuric acid, U methane-ethane, X ammonia-water, Z hot thin-air, R Hothouse (classes since GEN.1207)."""
+    classes = {cls.letter for cls in planet_classes.CLASSES}
     for letter in ("R", "Y", "U", "X", "Z"):
-        assert letter in free
+        assert letter in classes and letter not in planet_classes.RESERVE
     assert "acid" in class_code.LETTERS["Y"] and "methane" in class_code.LETTERS["U"] and "ammonia" in class_code.LETTERS["X"]
     assert "Hothouse" in class_code.LETTERS["R"] and "thin" in class_code.LETTERS["Z"]
