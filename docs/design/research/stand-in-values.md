@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1122 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1127 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 154 | 17 | 8 | 1 | 0 | 180 |
 | T2 | 121 | 47 | 1 | 1 | 0 | 170 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
-| T4 | 56 | 5 | 1 | 18 | 10 | 90 |
+| T4 | 57 | 5 | 1 | 18 | 10 | 91 |
 | T5 | 50 | 19 | 2 | 1 | 0 | 72 |
 | T6 | 106 | 83 | 21 | 57 | 0 | 267 |
 | T7 | 33 | 14 | 7 | 12 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 25 | 14 | 5 | 54 | 29 | 127 |
-| All | 630 | 241 | 53 | 158 | 40 | 1122 |
+| T9 | 25 | 14 | 5 | 58 | 29 | 131 |
+| All | 631 | 241 | 53 | 162 | 40 | 1127 |
 
 ## How the labels were given
 
@@ -1523,6 +1523,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PNE4 | P | T4 | L0 | planetary_nebula_ejecta.INTERSHELL_HE 0.75, INTERSHELL_O 0.02, INTERSHELL_REST 0.01: the helium, oxygen and neon-22 mass fractions of the dredged intershell (the carbon is 0.22, CS3) | 0.70 to 0.75; 0.01 to 0.05 | intershells of pulsing branch stars | a measured intershell composition | the intershell of a thermally pulsing track | recalled, intershell 70 to 75 percent helium, 20 to 25 percent carbon, about 2 percent oxygen | GEN.1276 | - |
 | PNE5 | P | T6 | L3 | planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen | 0.5 to 1.0 | progenitors of 4 solar masses and more at solar metallicity | a surface N/O of a hot-bottom-burning model under log -0.3 at 5 solar masses, or the carbon left over 0.5 | the surface abundances of hot-bottom-burning models by mass and metallicity | set so a 5 solar mass progenitor at solar metallicity is Type I (log N/O 0.1 to 0.3); no source | GEN.1276 | no data |
 | PNE7 | P | T9 | L3 | planetary_nebula_ejecta.CARBON_RICH_TRIES 40: draws of a class K progenitor before the heaviest mass of the window is taken | 10 to 100 | class K | none (a safety limit: at solar metallicity no draw is refused) | none | needed to end the loop; every class K progenitor of the tests came out carbon-rich at the first or second draw | GEN.1276 | no data |
+
+## 6.180 Stand-ins of the drawing of the system sky
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SKD1 | P | T9 | L3 | skyband.PEAK 0.4 and GAIN 0.5: the soft knee that turns a glow value into the share of white the band is drawn at, `PEAK (1 - exp(-GAIN v))` | PEAK 0.2 to 0.6, GAIN 0.3 to 1.5 | the glow image's values of 0.4 to 1.5 (the Milky Way at the Sun, 21.6 to 23.0 mag per square arcsec) | a band that is blown out at the core or is not seen at the edge on a dark monitor in a dark room | a display model that maps the surface brightness to the eye's response (a tone curve fitted to the dark-adapted sky) | chosen by eye so the band shows at the faint end and the core does not clip; no source | - | - |
+| SKD2 | P | T9 | L3 | skyband.GRAIN 0.2 and GRAIN_CELL_DEG 0.12: the relative variation (plus or minus) of the glow over cells of this width on the sky, a seeded noise standing for the stars too faint to resolve | GRAIN 0.05 to 0.4, cells 0.05 to 0.5 degrees | the glow of the unresolved stars at a limit of 7.5 | a band that looks like smooth paint, or one whose grain is larger than the stars it stands for | the grain worked from the star counts under the limit (the Poisson variation of the stars in a cell) | needed output: the plan asks for a seeded noise in the shader; the size is chosen by eye | - | - |
+| SKD3 | P | T4 | L0 | skyband.SB_REF 22: the surface brightness the glow image's value 1 stands for (value = 10^(-0.4 (SB - 22))) | 21 to 23 | the glow image contract (`docs/reference/html-interface.md`) | none (a unit of the image, the server builds to the same number) | none | the middle of the range the Milky Way runs at the Sun, 21.6 to 23.0 (sky-view.md); a unit, not a measurement | - | - |
+| SKD4 | P | T9 | L3 | skysprites.SB_RAMP 5 and GLOW_MAX 0.55: a sprite's glow goes from nothing at the limit of 23 mag per square arcsec to GLOW_MAX at 5 magnitudes brighter (smoothstep), so a bright nebula does not blind the sky | RAMP 3 to 8, GLOW_MAX 0.3 to 0.8 | nebulae and remnants of mean surface brightness 15 to 23 | a faint nebula that is lost on the sky or a bright one that outshines the stars | the eye's response to a surface brightness (the same display model as SKD1) | chosen by eye, like the stars' own scale in skylight.js; no source | - | - |
+| SKD5 | P | T9 | L3 | systemsky.GALAXY_TO_SCENE: the galactic plane laid in the System View's reference plane (the galaxy's north pole is the scene's up, the galactic x stays x) | any turn about the scene's up axis | every system, since a stored system has no orientation to the galaxy | a system whose stored orbital plane is tilted to the galactic plane by a known angle, whose sky then lies at the wrong angle to its orbits | the system's stored orientation (the angle of its reference plane to the galactic frame), when one is stored | needed output: the stored model ties no orbital plane to the galactic frame, so the plane of the Milky Way is drawn in the plane of the orbits | - | - |
 
 ## 6.175 Stand-ins of the sky catalogue of a system
 
