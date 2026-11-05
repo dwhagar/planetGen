@@ -4687,17 +4687,20 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     legend = page.locator("#galaxymap3d-legend")
     assert legend.is_hidden()
     page.locator("#galaxymap3d-menu > summary").click()
-    for mode in ("density", "age", "luminosity", "stars", "habitable"):
+    for mode in ("density", "age", "luminosity", "stars", "habitable", "cover"):
         page.select_option("#galaxymap3d-color-by", mode)
         _settle(page)
         assert f"color={mode}" in _query(page)
         assert legend.is_visible(), mode
         assert legend.locator(".galaxy-legend-low").inner_text() != ""
         assert legend.locator(".galaxy-legend-title").inner_text() != ""
+    # MAP.177: the Nebula cover legend is a fixed scale of the share inside a nebula.
+    assert legend.locator(".galaxy-legend-title").inner_text().startswith("Nebula cover")
+    assert legend.locator(".galaxy-legend-low").inner_text() == "under 0.5%"
     # Reload on the address: the select and the mode follow it.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
-    assert page.input_value("#galaxymap3d-color-by") == "habitable"
+    assert page.input_value("#galaxymap3d-color-by") == "cover"
     legend.wait_for(state="visible", timeout=15000)  # drawn once the nodes are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()

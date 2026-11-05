@@ -282,14 +282,21 @@ export function createStageView(host) {
         (payload.sectors || []).forEach(function (sector) {
           sectors.set(cellKey(sector), sector);
         });
-        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map() };
+        // MAP.177: the share of each cell inside a nebula, filled or not (`null`: the cover could not be read).
+        const covers = new Map();
+        (payload.nebula_cover || []).forEach(function (cell) {
+          covers.set(cell[0] + "/" + cell[1] + "/" + cell[2], cell[3]);
+        });
+        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map(), covers: covers,
+          coverKnown: Array.isArray(payload.nebula_cover) };
         payload.sectors && payload.sectors.forEach(function (sector) {
           entry.value.sectorGenerated.set(cellKey(sector), 1);
         });
         entry.ready = true;
         return entry.value;
       }).then(null, function () {
-        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
+        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), covers: new Map(),
+          coverKnown: false, failed: true };
         entry.ready = true;
         dataCache.delete(key);
         return entry.value;
@@ -333,6 +340,13 @@ export function createStageView(host) {
       return sector ? sector.stats || null : null;
     }
     return data.stats.get(key) || null;
+  }
+
+  // MAP.177: the share of `block` inside a nebula (0 when none), or null when this window has no cover for it: a sector
+  // (the stored aggregates are of the blocks above one) or a payload whose cover could not be read.
+  function coverOf(block, data) {
+    if (!data || !data.coverKnown || block.m === 1) return null;
+    return data.covers.get(cellKey(block)) || 0;
   }
 
   // The choices a stage offers: [{pick, blocks, a0, a1}], one per block.
@@ -412,7 +426,7 @@ export function createStageView(host) {
           shell: block.shell, band: block.band, wedge: block.wedge,
           r0: b.r0, r1: b.r1, c0: b.c0, c1: b.c1, t0: b.t0, t1: b.t1,
           filled: filled, total: filled > 0 ? totalOf(block) : 0, stats: statsOf(block, data), block: block,
-          option: index,
+          cover: coverOf(block, data) || 0, option: index,
         };
       });
     });
@@ -1749,6 +1763,13 @@ export function createStageView(host) {
     tooltip.showAt(optionText(index), camera, canvasEl, middle[0], middle[1], middle[2]);
   }
 
+  // MAP.177: a share of a cell inside a nebula, for the hover text.
+  function coverText(cover) {
+    if (cover === null) return "nebula cover not charted here";
+    if (!(cover > 0)) return "no nebula";
+    return (cover >= 0.1 ? (cover * 100).toFixed(0) : cover >= 0.01 ? (cover * 100).toFixed(1) : (cover * 100).toFixed(2)) + "% inside a nebula";
+  }
+
   function blockText(block, data) {
     const b = block.bounds;
     const generated = generatedOf(block, data);
@@ -1760,6 +1781,7 @@ export function createStageView(host) {
       Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
     if (block.m === 1) parts.push(generated > 0 ? "charted" : "uncharted");
     else parts.push(S.formatCount(generated) + (block.total != null ? " of " + S.formatCount(block.total) : "") + " sectors charted");
+    if (colorBy === "cover") parts.push(coverText(coverOf(block, data)));
     return parts.join(", ");
   }
 
