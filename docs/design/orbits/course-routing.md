@@ -582,7 +582,13 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   media query shows the one that fits, so a phone wraps a long route into rows while the text
   stays near its set size (12 px, drawn at 0.9 or more of it). Each stop is a link to its page
   (a stop in unknown space has none) and has a text alternative; the route list stays the
-  plain-text form. The link to the Galaxy Map (NAV.69) is drawn later.
+  plain-text form.
+  **Linked to the Galaxy Map (NAV.69).** The Galaxy Map's course readout carries the same diagram (stops with
+  no neighbour stubs removed, the link sentence added). A plain click on a stop of the diagram selects that
+  stop on the map's course (its ring is marked and the map flies to it) and marks it in all three drawings; a
+  click on a stop's ring on the map marks the same stop in the diagram; a second click on the selected stop,
+  or a click with Ctrl, Shift, Alt or Meta held, opens the stop's page. `static/coursediagram.js` holds the
+  diagram's side; the map's side is in `galaxymap3d.js`'s NAV course section.
   **Neighbours (NAV.68).** The NAV page asks for the route's graph (`graph=1`, NAV.65) and draws it
   faintly under the route: a short stub from a stop to each neighbour off the route (the graph caps them
   per stop), "and N more" over a stop where the cap cut some, and a dotted arc between two stops of one
@@ -593,8 +599,14 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   travel lane, and the route's own hops are drawn over the neighbours. A hop's course text is left out
   where an "and N more" sits over it. Names and labels carry a halo of the panel's colour so a stub
   never cuts through their letters.
-  The route list's unknown-space hops are red as well. The NAV page's own map polyline and the
-  Galaxy Map course still draw an unknown-space hop like any other (NAV.36's remaining parts).
+  The route list's unknown-space hops are red as well.
+  **On the maps (NAV.36).** The NAV page's own map draws each run of known hops as one solid path and each
+  unknown-space hop as its own path: red, dashed, with an SVG glow filter (`navmap-glow`) and a title in words,
+  pulsing only without `prefers-reduced-motion`; a legend line under the map and a bullet in the map help say
+  what it is. The Galaxy Map's course draws the same hop (`hopUnknown` on the point it arrives at, from
+  `nav_page.galaxy_course`) as a red dashed line, with the glow a row of soft red sprites laid along it,
+  as many as the hop is long on the screen (`static/coursehops.js`), pulsing the same way, and a Key line
+  ("Red dashed glowing line: a jump through unknown space") shown only for a course that has one.
 - **Saved courses (NAV.39, phase 2).** A saved course (NAV.17) keeps which hops
   were unknown-space jumps; opening it checks again, since sectors may have
   been filled, and says what changed.

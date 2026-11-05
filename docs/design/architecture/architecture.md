@@ -618,6 +618,8 @@ The map panels and their data.
 | `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |
 | `mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63). |
 | `mapnavpad.js` | The Galaxy Map's on-map controls: a direction star of four arrows and a middle button that moves the center the view turns and zooms about, a readout of where the center is while it moves (MAP.200), and the log ruler with its named stops and distance readout (MAP.336). |
+| `coursediagram.js` | NAV.69: links the Course Diagram in the Galaxy Map's course readout to the map's course: a click on a stop of the diagram selects it on the map and centres the map on it, a click on a ring on the map marks the stop in the diagram. |
+| `coursehops.js` | NAV.36: draws a jump through unknown space on the Galaxy Map's course red, dashed and glowing (solid runs of known hops, one glowing run per unknown hop). |
 | `findplace.js`, `findplacebox.js` | The find-a-place box (MAP.336): what a typed line can be (coordinates, designations, object IDs, regions, names, recent places) and the box that lists it. |
 | `maplogruler.js` | The named scales of the map's log ruler and the distance readout's words (MAP.336). |
 | `regionlanding.js` | The cluster of a region's heaviest sectors a "densest" Go to a region lands on (MAP.336). |

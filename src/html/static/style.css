@@ -1615,6 +1615,31 @@ a.navmap-label:focus-visible {
   stroke-width: 2;
 }
 
+/* NAV.36: a jump through unknown space is red, dashed and glowing (the glow is the SVG's filter); it pulses only where the visitor has
+   not asked for reduced motion. */
+.navmap-route-unknown,
+.navmap-route-unknown-sample {
+  stroke: var(--error);
+  stroke-width: 3;
+  stroke-dasharray: 7 4;
+}
+
+.navmap-key {
+  margin: 0.25rem 0 0;
+  font-size: 0.9em;
+  color: var(--text-muted);
+}
+
+.navmap-key-glyph {
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .navmap-route-unknown {
+    animation: nav-diagram-glow 2.4s ease-in-out infinite;
+  }
+}
+
 .navmap-point circle {
   stroke-width: 2;
   cursor: pointer;
@@ -2204,6 +2229,22 @@ a.nav-diagram-stop:focus-visible {
   fill: none;
   stroke: var(--accent);
   stroke-width: 1.6;
+}
+
+.nav-diagram-select {
+  display: none;
+  fill: none;
+  stroke: var(--link);
+  stroke-width: 2.5;
+}
+
+.nav-diagram-stop.is-selected .nav-diagram-select {
+  display: inline;
+}
+
+.nav-diagram-stop.is-selected .nav-diagram-name {
+  fill: var(--link);
+  font-weight: 700;
 }
 
 .nav-diagram-end {
@@ -3059,6 +3100,12 @@ code {
 .map-layer-legend-swatch.map-key-course {
   height: 0;
   border-top: 2px solid var(--accent);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
+.map-layer-legend-swatch.map-key-course-unknown {
+  height: 0;
+  border-top: 3px dashed var(--error);
   border-radius: 0;
   vertical-align: 0.2rem;
 }
@@ -5353,6 +5400,12 @@ body.app {
   margin: 0.25rem 0 0.75rem;
   font-size: 0.9rem;
 }
+.course-readout .nav-diagram {
+  flex: 1 1 100%;
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
 .course-key,
 .course-stops {
   margin: 0;

@@ -5845,3 +5845,105 @@ def test_galaxy_map_says_in_plain_words_that_a_level_stalled_when_its_nodes_do_n
     page.unroute("**/galaxy/nodes*")
     page.wait_for_function("() => !document.querySelector('.map-level-progress')", timeout=40000)
 
+
+
+# --- NAV.69: the course diagram and the map's course select each other ----------------------------------------------------
+
+def _course_through_the_fixture_systems():
+    """A NAV course over four systems of Fixture Prime as `nav_page.galaxy_course` makes it: points, readout and the course diagram."""
+    from planetgen.web.maps.navdiagram import render_course_diagram
+
+    centre = _sector_center_pc(1, 0, 1)
+    chosen = [system for system in SYSTEMS if system[0] in (701, 702, 703, 704)]
+    points, path, hops, places, names, urls = [], [], [], [], {}, {}
+    for index, (system_id, name, x, y, z, _stars) in enumerate(chosen):
+        position = (centre[0] + x / 1000.0, centre[1] + y / 1000.0, centre[2] + z / 1000.0)
+        role = "origin" if index == 0 else "destination" if index == len(chosen) - 1 else "hop"
+        points.append({"name": name, "role": role, "url": f"/system/{system_id}", "x": position[0], "y": position[1], "z": position[2]})
+        path.append(system_id)
+        places.append({"node": system_id, "sector_id": None, "sector_position_ly": None})
+        names[system_id], urls[system_id] = name, f"/system/{system_id}"
+        if index:
+            before = points[index - 1]
+            hops.append({"from": path[index - 1], "to": system_id, "unknown_space": False,
+                         "distance_ly": 3.26 * math.dist((before["x"], before["y"], before["z"]), position),
+                         "bearing_deg": 40.0 * index, "mark_deg": 5.0})
+    route = {"path": path, "hops": hops, "stop_places": places}
+    return {"scope": "galaxy", "points": points, "sector": None, "navUrl": "/nav?from=system:701&to=system:704",
+            "direct": [points[0], points[-1]],
+            "readout": {"distance": "9 ly", "course": "045 mark 003", "frame": "Galactic", "route_distance": "12 ly", "times": [],
+                        "stops": [{"name": p["name"], "url": p["url"]} for p in points[1:-1]],
+                        "diagram": render_course_diagram(route, names, urls, linked=True)}}
+
+
+def _course_stop_marked_in_the_diagram(page):
+    """The indexes of the diagram's stops that are marked as the selected one (in the drawing on show)."""
+    return page.evaluate("""() => [...document.querySelectorAll(".nav-diagram-stop.is-selected")]
+        .filter((el) => el.getBoundingClientRect().width > 0).map((el) => Number(el.dataset.index))""")
+
+
+def test_the_course_diagram_and_the_maps_course_select_each_other(page, map_site, monkeypatch):
+    """NAV.69: a click on a stop of the course diagram selects that stop on the map and centres the map on it, and a click on a stop's ring
+    on the map marks the same stop in the diagram; a second click on the selected ring opens its page."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    stops = page.evaluate(f"() => {canvas}.galaxyCourseStops()")
+    assert [stop["name"] for stop in stops] == ["Dimmest Dwarf", "Middling Sun", "Orange Giant", "Blue Beacon"]
+    assert page.locator(".course-readout .nav-diagram").count() == 1 and page.evaluate(f"() => {canvas}.galaxyCourseSelected()") is None
+    here = page.url.split("&cam=")[0]       # the address follows the camera (`cam=`), so only the page is compared
+
+    # The diagram to the map: a plain click on a stop of the diagram stays on the page, selects it and flies the map to it.
+    page.locator(".nav-diagram-stop[data-index='2']:visible").first.click()
+    page.wait_for_function(f"() => {canvas}.galaxyCourseSelected() === 2")
+    assert page.url.split("&cam=")[0] == here
+    _settle(page)
+    camera = page.evaluate(f"() => {canvas}.galaxyCamera()")
+    target = stops[2]
+    assert math.dist(camera["target"], (target["x"], target["y"], target["z"])) < 0.05 * camera["dist"] + 0.01, (camera["target"], target)
+    assert _course_stop_marked_in_the_diagram(page) == [2]
+    assert page.locator(".nav-diagram-stop.is-selected[aria-current='true']").count() >= 1
+
+    # The map to the diagram: a click on another stop's ring marks that one, and only that one.
+    page.evaluate(f"() => {canvas}.scrollIntoView({{block: 'center'}})")      # the course readout above the map pushes the map down the page
+    ring = page.evaluate(f"(p) => {canvas}.galaxyScreenOf(...p)", [stops[1]["x"], stops[1]["y"], stops[1]["z"]])
+    assert ring is not None and 0 < ring["y"] < VIEWPORT["height"]
+    page.mouse.click(ring["x"], ring["y"])
+    page.wait_for_function(f"() => {canvas}.galaxyCourseSelected() === 1")
+    assert _course_stop_marked_in_the_diagram(page) == [1]
+    assert page.url.split("&cam=")[0] == here
+
+    # A second click on the selected ring opens the stop's page.
+    ring = page.evaluate(f"(p) => {canvas}.galaxyScreenOf(...p)", [stops[1]["x"], stops[1]["y"], stops[1]["z"]])
+    page.mouse.click(ring["x"], ring["y"])
+    page.wait_for_url(re.compile(r"/system/702"))
+
+
+def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowing(page, map_site, monkeypatch):
+    """NAV.36: a hop through unknown space is drawn apart on the Galaxy Map's course, as a row of glow sprites along it, and the key says
+    what it is; a course with no such hop has neither."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    assert page.evaluate(f"() => {canvas}.galaxyCourseUnknown().hops") == 0
+    keys = f"{canvas}.__mapLayers.keys().map((k) => k.id)"
+    assert "key-course-unknown" not in page.evaluate(f"() => {keys}")
+
+    course["points"][2]["hopUnknown"] = True
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    assert not errors, errors
+    unknown = page.evaluate(f"() => {canvas}.galaxyCourseUnknown()")
+    assert unknown["hops"] == 1
+    assert all(count >= 2 for count in unknown["beads"]), unknown
+    assert all(0.0 < opacity <= 0.2 for opacity in unknown["opacity"]), unknown
+    assert "key-course-unknown" in page.evaluate(f"() => {keys}")

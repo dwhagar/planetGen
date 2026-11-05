@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.263 |
 | MAP | MAP.381 |
 | NAV | NAV.74 |
-| GEN | GEN.1278 |
+| GEN | GEN.1279 |
 | PERF | PERF.240 |
 | DB | DB.110 |
 | API | API.41 |
@@ -2055,6 +2055,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1275 | The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug) | none | open |
 | GEN.1276 | Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register) | none | open |
 | GEN.1277 | Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one | none | open |
+| GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2470,7 +2471,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | done, PR #615 |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | done, PR #427 |
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
-| NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
+| NAV.36 | Unknown-space jumps drawn red and glowing | none | done, PR #5018 |
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
 | NAV.38 | Every sector a straight line passes through | none | done, PR #357 |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
@@ -2503,7 +2504,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.66 | Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels | none | done, PR #4996 |
 | NAV.67 | Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops | none | done, PR #5006 |
 | NAV.68 | Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more' | none | done, PR #5013 |
-| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | none | open |
+| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | none | done, PR #5015 |
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | none | open |
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
 | NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | open |

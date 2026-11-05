@@ -2252,17 +2252,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT): code built for a pending feature stays.
     Prerequisites: NAV.25, NAV.26, NAV.54.
 
-- [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
-  Boss (2026-10-02 01:53Z): "a jump through unknown space is marked in
-  red and glows to draw attention to it." Done: a hop NAV.12 flags as
-  an unknown-space jump is drawn red with a glow in UX.35's horizontal
-  route strip, on the NAV page's own map (`lib/navmap.py`) and on the
-  Galaxy Map course (with NAV.20), with a legend entry; with
-  `prefers-reduced-motion` it stays red without the pulse; it reads in
-  both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: none.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
@@ -2455,29 +2444,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
-
-- [ ] **NAV.69 Schematic route map part 5: linked selection between the course diagram and the Galaxy Map**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  5 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: clicking a stop
-  in the diagram centres the Galaxy Map's course on it; clicking a
-  marker on the map highlights it in the diagram. Share one route record
-  between the diagram and the map route layers (MAP.309, MAP.310) so the
-  two views never disagree. Done: a browser test in both directions.
-  Proposed owner: Core 2. Related: MAP.309, MAP.310. Goal #1679. Filed
-  by the TODO thread.
-  Prerequisites: NAV.67.
 
 - [ ] **NAV.70 Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain**
   Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
@@ -14653,6 +14619,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
   Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
+
+- [ ] **GEN.1278 Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14)**
+  Aux 5 (as the lane reported, 10:14 PM EST on 2026-11-04), finding
+  behind GEN.1071: the outer belt dust that decides whether a star holds
+  a debris disk now comes from the collisional-cascade law, with a
+  stand-in cut (DU1, L3) tuned so K, G and F dwarfs together hold a disk
+  about as often as surveys find (17 percent). Per type the result is
+  Sun-like 8 percent against 14 measured, A stars none against 24, F
+  about half. Those gaps come from the outer disc's mass and width,
+  which are too small or too narrow for hot stars. Do: derive the outer
+  disc's mass and width from a planetesimal-formation model (the disc
+  mass and the radial extent as a function of the star's mass and
+  luminosity, with the sources and their tier), so A and F stars shine
+  as surveys see, then retune or remove the DU1 cut. Done: the
+  debris-disk share by type (A, F, G, K) within the surveyed bands, the
+  stand-in rows in GEN.725 with tier and tweak level, the census shares
+  re-tagged. Lock item (generation output changes: an epoch with
+  --affects fill, golden, census re-tag); earliest train 12, after
+  GEN.1071 is on main. Version 8.1. Owner: Aux 5. Filed by the TODO
+  thread.
+  Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

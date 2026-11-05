@@ -361,15 +361,20 @@ def _waypoints(origin, destination, result, names):
             hop = hops[index] if index < len(hops) else None
             return format_course(hop["bearing_deg"], hop["mark_deg"]) if hop and "bearing_deg" in hop else None
 
+        def arrives_unknown(index):  # NAV.36: the hop that ends at stop `index` is a jump through unknown space
+            return bool(index - 1 < len(hops) and hops[index - 1].get("unknown_space"))
+
         points[0]["course"] = to_next(0)
         for index, node in enumerate(route["path"][1:-1], start=1):
             stone = isinstance(node, str) and node.startswith("stone:")
             points.append({"id": node, "kind": "stone" if stone else "system", "type": None,
                            "name": names.get(node, str(node)),
-                           "position": route["positions"][str(node)], "role": "hop", "course": to_next(index)})
+                           "position": route["positions"][str(node)], "role": "hop", "course": to_next(index),
+                           "hop_unknown": arrives_unknown(index)})
     points.append({"id": destination["anchor_id"], "kind": destination["anchor_kind"], "type": destination["type"],
                    "name": destination["name"], "position": result["destination_position"],
-                   "role": "destination"})
+                   "role": "destination",
+                   "hop_unknown": bool(route is not None and route.get("hops") and route["hops"][-1].get("unknown_space"))})
     return points
 
 
@@ -466,14 +471,21 @@ def galaxy_course(from_raw, to_raw):
         points.append({
             "name": point["name"], "role": point["role"], "url": _point_url(point),
             "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
+            "hopUnknown": bool(point.get("hop_unknown")),  # NAV.36: the hop that arrives here is a jump through unknown space
         })
     direct = result["direct"]
+    route = result["route"]
+    stops = _route_stops(route, names) if route and route["path"] else []
+    readout = _course_readout(result, direct, route=route, stops=stops if route and len(points) > 2 else [])
+    if route and len(points) > 2 and len(route["path"]) == len(points):
+        # NAV.69: the course diagram beside the map, its stops linked to the map's course (static/coursediagram.js).
+        readout["diagram"] = render_course_diagram(route, names, {node: stop["url"] for node, stop in zip(route["path"], stops)},
+                                                   linked=True)
     return {
         "scope": "galaxy", "points": points, "sector": None, "navUrl": nav_url_here,
         # NAV.20: the straight line apart from the route, and the readout beside the map.
         "direct": [points[0], points[-1]] if len(points) > 2 else None,
-        "readout": _course_readout(result, direct, route=result["route"], stops=_route_stops(result["route"], names)
-                                   if result["route"] and len(points) > 2 else []),
+        "readout": readout,
     }
 
 
