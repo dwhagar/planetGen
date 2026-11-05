@@ -198,3 +198,12 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.170:RNG13 | no data | - | no source gives a jet count for Uranus or Neptune; the 5 or 7 bands are needed output |
 | 6.170:RNG18 | no data | - | no source gives a storm count law by rotation or heat flux; the 1 to 4 large storms are the design's |
 | 6.170:RNG19 | no data | - | band contrast and colour are tuned by eye (a methane giant nearly featureless, an ammonia giant strongly banded); the optics of the generated clouds (GEN.422 k-tables) would replace them |
+| 6.174:SKB3 | no data | - | the ends of the faint-light table are invented to close it; the share worked from the luminosity function of the generator's own stars would replace them |
+| 6.174:SKB4 | no data | - | the cell, cube map and ray sizes are a picture's needs, chosen so the band is smooth; no source gives them |
+| 6.176:SKT1 | replace | VIEW.41 | the cell visit budget goes when a coarser block draw serves the sparse luminosity bands |
+| 6.178:PNE5 | no data | - | the hot-bottom-burning carbon to nitrogen share is set so a 5 solar mass progenitor is Type I; no source gives the surface abundances of hot-bottom-burning models by mass and metallicity |
+| 6.178:PNE7 | no data | - | a safety limit that ends the carbon-rich draw loop; no draw is refused at solar metallicity |
+| 6.179:NBC6 | no data | - | the grain kinds and their shares are recalled from Milky Way dust models (Draine and Li, Zubko et al.) and fitted inside the metals; no measured dust composition by nebula class is in hand |
+| 6.179:NBC9 | no data | - | the dust survival shares are recalled from sputtering and reverse-shock literature; no measured dust share of an old remnant is in hand |
+| 6.179:NBC10 | no data | - | the ionized, atomic and molecular shares by class are recalled from observed phase fractions; none is measured per class here |
+| 6.179:NBC13 | no data | - | the wind share of a Wolf-Rayet ring is argued from the observed rings, not measured |
