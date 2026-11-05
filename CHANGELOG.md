@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3256] - 2026-11-05
+
+**Headline:** A test docstring no longer reads like a citation.
+
+### Changed
+
+- `test_nav_route_graph.py` wrote "Wedge 2000", a name and a year the citation lock took for a paper; it now says "The wedge numbered 2000". Tests only.
+
+generation-output: unchanged
+
 ## [8.0.3255] - 2026-11-05
 
 **Headline:** The slow seed test takes seconds, and lane machines can share the star-table cache
