@@ -42,7 +42,7 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.navdiagram import render_course_diagram
 from planetgen.web.maps.navmap import render_nav_map_panel
-from planetgen.galaxy import objectref
+from planetgen.galaxy import frame, objectref
 from planetgen.galaxy.navigation import FRAME_GALACTIC, course_between, format_course
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 
@@ -436,6 +436,23 @@ def _galaxy_points(origin, destination, result):
     return points, names
 
 
+def _sector_points(origin, destination, result, center_pc):
+    """
+    NAV.22: the stops of a course inside one sector as the Galaxy Map draws them in that sector: `(points, names)` as `_galaxy_points`
+    gives for a galaxy-scope course. The API gives a sector-scope course's positions in the sector's own axes in light-years, so each is
+    turned into the galaxy frame (parsecs) from the sector's center.
+    """
+    names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+    points = []
+    for point in _waypoints(origin, destination, result, names):
+        x, y, z = frame.local_to_galaxy_pc(center_pc, tuple(ly_to_pc(c) for c in point["position"]))
+        points.append({
+            "name": point["name"], "role": point["role"], "url": _point_url(point), "x": x, "y": y, "z": z,
+            "hopUnknown": bool(point.get("hop_unknown")),
+        })
+    return points, names
+
+
 MAX_VIA = 20
 """int: The most waypoints a course through them may have (`static/waypoints.js` `MAX_WAYPOINTS`)."""
 
@@ -530,8 +547,10 @@ def galaxy_course(from_raw, to_raw):
 
     Returns:
         dict or None: `scope` (`"galaxy"` or `"sector"`), `points`
-            (`[{name, url, role, x, y, z}]`, parsecs; only for
-            `"galaxy"`), `sector` (`{id, name, shell, band, wedge}`, only
+            (`[{name, url, role, x, y, z}]`, parsecs; for a course inside
+            one sector (NAV.22) they are placed in the galaxy frame from
+            the sector's center, so the map draws the course in that
+            sector), `sector` (`{id, name, shell, band, wedge}`, only
             for `"sector"`, where the whole course sits inside one
             sector) and `navUrl` (back to the course on the NAV page).
             `None` when either endpoint can't be navigated, or the two
@@ -553,19 +572,20 @@ def galaxy_course(from_raw, to_raw):
     nav_url_here = nav_url(_param_of(origin), _param_of(destination))
     if result["scope"] == "system":
         return None  # inside one system: nothing to draw on the Galaxy Map
+    sector = None
     if result["scope"] != "galaxy":
-        # One sector holds the whole course: the map shows that sector.
-        sector = apiclient.get_sector(db_name(), origin["sector_id"])
-        if sector.get("shell_index") is None:
+        # One sector holds the whole course: the map shows that sector, with the course drawn in it (NAV.22).
+        found = apiclient.get_sector(db_name(), origin["sector_id"])
+        if found.get("shell_index") is None:
             return None
-        return {
-            "scope": "sector", "points": [], "navUrl": nav_url_here,
-            "sector": {
-                "id": sector["id"], "name": sector["name"], "shell": sector["shell_index"],
-                "band": sector["band_index"], "wedge": sector["wedge_index"],
-            },
-        }
-    points, names = _galaxy_points(origin, destination, result)
+        sector = {"id": found["id"], "name": found["name"], "shell": found["shell_index"],
+                  "band": found["band_index"], "wedge": found["wedge_index"]}
+        center = tuple(found.get(f"center_{axis}_pc") for axis in "xyz")
+        if None in center:
+            return {"scope": "sector", "points": [], "navUrl": nav_url_here, "sector": sector}
+        points, names = _sector_points(origin, destination, result, center)
+    else:
+        points, names = _galaxy_points(origin, destination, result)
     direct = result["direct"]
     route = result["route"]
     stops = _route_stops(route, names) if route and route["path"] else []
@@ -575,7 +595,7 @@ def galaxy_course(from_raw, to_raw):
         readout["diagram"] = render_course_diagram(route, names, {node: stop["url"] for node, stop in zip(route["path"], stops)},
                                                    linked=True)
     return {
-        "scope": "galaxy", "points": points, "sector": None, "navUrl": nav_url_here,
+        "scope": "galaxy" if sector is None else "sector", "points": points, "sector": sector, "navUrl": nav_url_here,
         # NAV.20: the straight line apart from the route, and the readout beside the map.
         "direct": [points[0], points[-1]] if len(points) > 2 else None,
         # NAV.28: the course bent round keep-out spheres, one polyline of `{x, y, z}` (parsecs) for each line that bends.
