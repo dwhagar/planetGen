@@ -79,6 +79,27 @@ def test_render_nav_map_panel_with_route_draws_route_line_and_hops():
     assert "data-nav" not in html
 
 
+def test_render_nav_map_panel_draws_a_jump_through_unknown_space_red_dashed_and_glowing():
+    """NAV.36: a hop flagged as a jump through unknown space is its own path (red, dashed, glowing, a title in words), the known hops stay
+    one solid path, and the panel and its help say what the red hop is; with no such hop none of it is drawn."""
+    waypoints = [
+        _waypoint(1, "Origin", (0.0, 0.0, 0.0), "origin"),
+        {**_waypoint(2, "Waystation", (2.0, 0.0, 0.0), "hop"), "hop_unknown": True},
+        _waypoint(3, "Far", (4.0, 1.0, 0.0), "hop"),
+        _waypoint(4, "Destination", (6.0, 1.0, 0.0), "destination"),
+    ]
+    html = render_nav_map_panel(_link, waypoints, has_route=True)
+    assert html.count("navmap-route-unknown") == 2 + 0          # the path, and the legend's sample line
+    assert html.count('class="navmap-route-line navmap-route-unknown"') == 1
+    assert 'filter="url(#navmap-glow)"' in html and '<filter id="navmap-glow"' in html
+    assert "A jump through unknown space: no charted system lies on this hop" in html
+    assert "A jump through unknown space: red, dashed and glowing." in html and "A red, dashed, glowing hop" in html
+    assert html.count('class="navmap-route-line"') == 1          # Far to Destination is one known run
+    known = render_nav_map_panel(_link, [{**w, "hop_unknown": False} for w in waypoints], has_route=True)
+    assert "navmap-route-unknown" not in known and "navmap-glow" not in known and "navmap-key" not in known
+    assert known.count('class="navmap-route-line"') == 1
+
+
 def test_render_nav_map_panel_escapes_names():
     waypoints = [
         _waypoint(1, "<script>alert(1)</script>", (0.0, 0.0, 0.0), "origin"),
