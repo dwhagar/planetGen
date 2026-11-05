@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3286] - 2026-11-05
+
+**Headline:** The route finder can now bend a course around stars, black holes, and other objects it would pass too close to.
+
+### Added
+- Asking for a course between two systems with `adjusted=1` also returns the course bent around the keep-out sphere of each star, black hole, neutron star, rogue planet, quasar, and asteroid field it crosses, with its length and travel times, for the direct line and for each hop of the route. The NAV page and the maps do not show it yet.
+
+generation-output: unchanged
+
 ## [8.0.3285] - 2026-11-05
 
 **Headline:** The directed-moon-count test builds its star from a fixed seed, so it no longer fails now and then.
