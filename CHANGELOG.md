@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3347] - 2026-11-05
+
+**Headline:** The update script prints its settling wait through the log layer, and the tile cache measuring script names a path that exists.
+
+### Changed
+
+- `update.sh` printed "The update steps are finished: waiting ... seconds before reloading the site." with a bare `echo`, the one line of its own that did not go through `scripts/logrecord.sh`; it now uses `log_info` like the others, so it is timestamped and recorded (`test_update_sh_prints_its_own_lines_through_the_layer`, TEST.617).
+- The docstring of `scripts/measure_tile_cache.py` said the sector-block node lives in `db/nodes.py`; it now gives the path `src/planetgen/db/nodes.py` (`test_scripts_only_name_repo_paths_that_exist`, TEST.618). The script itself is unchanged.
+
+generation-output: unchanged
+
 ## [8.0.3346] - 2026-11-05
 
 **Headline:** The bulk-insert test rows carry every bright-star column again, so test_literal_insert passes; no generated output changes.
