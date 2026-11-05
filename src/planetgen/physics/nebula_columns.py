@@ -105,7 +105,7 @@ FIELD_COLUMNS = tuple(column for column in COMMON_COLUMNS if column != "progenit
 
 
 def field_key(center_pc):
-    """The key of a field cloud (GEN.1277): its field cell and its centre in whole milliparsecs, which the `nebula_field` row (at plan time, before any object ID) and the
+    """The key of a field cloud (GEN.1277): its field cell and its center in whole milliparsecs, which the `nebula_field` row (at plan time, before any object ID) and the
     `nebulae` row the same cloud becomes when a sector stores it both know, so the two read one composition."""
     edge = tuning.NEBULA_FIELD_CELL_PC
     cell = "|".join(str(math.floor(c / edge)) for c in center_pc)
@@ -113,7 +113,7 @@ def field_key(center_pc):
 
 
 def row_key(table, row):
-    """The key every draw of the object is keyed on: for a field cloud (class M or N, with a centre) `field_key`, else its `uid` as hex, else the table and the name."""
+    """The key every draw of the object is keyed on: for a field cloud (class M or N, with a center) `field_key`, else its `uid` as hex, else the table and the name."""
     if table == "nebulae" and row.get("nebula_class") in FIELD_CLASSES and row.get("center_x_pc") is not None:
         return field_key((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]))
     uid = row.get("uid")
@@ -185,7 +185,7 @@ def remnant_values(row):
 def field_values(nebula_class, density_cm3, radius_ly, center_pc):
     """
     The `FIELD_COLUMNS` values of one field cloud (GEN.1277), as a tuple in that order: the same `nebula_values` a `nebulae` row of the cloud gets, from the cloud's own density and radius
-    and its place (`galactic_radius_pc` is its distance from the galactic centre, as `store._insert_field_nebulae` places it).
+    and its place (`galactic_radius_pc` is its distance from the galactic center, as `store._insert_field_nebulae` places it).
     """
     x, y, z = center_pc
     values = nebula_values({"nebula_class": nebula_class, "density_cm3": density_cm3, "radius_ly": radius_ly, "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
