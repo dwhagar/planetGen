@@ -6019,3 +6019,27 @@ def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowi
     assert all(count >= 2 for count in unknown["beads"]), unknown
     assert all(0.0 < opacity <= 0.2 for opacity in unknown["opacity"]), unknown
     assert "key-course-unknown" in page.evaluate(f"() => {keys}")
+
+
+def test_the_galaxy_maps_course_draws_the_course_bent_round_a_keep_out_sphere_in_amber(page, map_site, monkeypatch):
+    """NAV.28: a course that carries `adjusted` polylines draws them over the route, and the key says what the amber line is; a course with
+    none has no such line in the key."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    keys = f"{canvas}.__mapLayers.keys().map((k) => k.id)"
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    assert "key-course-bent" not in page.evaluate(f"() => {keys}")
+
+    a, b = course["points"][0], course["points"][1]
+    course["adjusted"] = [[{"x": a["x"], "y": a["y"], "z": a["z"]},
+                           {"x": (a["x"] + b["x"]) / 2, "y": (a["y"] + b["y"]) / 2 + 0.3, "z": a["z"]},
+                           {"x": b["x"], "y": b["y"], "z": b["z"]}]]
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    assert not errors, errors
+    assert "key-course-bent" in page.evaluate(f"() => {keys}")
