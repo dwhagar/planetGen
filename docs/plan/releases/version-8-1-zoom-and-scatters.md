@@ -118,8 +118,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent |  |  |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | GEN.202 | Foundations lane 1. |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
-| MAP.373 | Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple | MAP.372 |  |
-| MAP.372 | Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane |  |  |
+| MAP.373 | Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple |  |  |
 | MAP.380 | The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug) |  |  |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |

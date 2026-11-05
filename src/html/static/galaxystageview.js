@@ -4099,6 +4099,8 @@ export function createStageView(host) {
     onWheel: onWheel,
     resetView: resetView,
     planeTilt: planeTilt,
+    // MAP.373: the center of the sector opened in place, or null.
+    sectorCenter: function () { return entered ? entered.center.slice() : null; },
     recenter: recenter,
     home: home,
     up: up,

@@ -392,3 +392,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.179:NC6 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | row | 6.179:NC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | row | 6.179:NC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
+| data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |

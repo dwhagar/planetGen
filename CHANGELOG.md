@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3241] - 2026-11-05
+
+**Headline:** The sky catalogue can now be built straight from the stars the database stores.
+
+### Changed
+
+- `galaxy/sky.py` (VIEW.23, the database entry point): `sky_from_database(conn, observer, at_unix, limit)` runs the sky over the sphere query of VIEW.22 (`db.sky_sphere.stars_in_sphere`) in shells of distance, and its report says how far the stored stars are complete to the limit (`built_to_pc`) and the largest level of the cells reached (`complete_above_sol`), the "built to magnitude X within Y pc" of the plan. `sphere_source` can now collect each shell's cell levels. Nothing reads it yet: the sky route (VIEW.31) does. generation-output: unchanged
+
+## [8.0.3240] - 2026-11-05
+
+**Headline:** A supernova remnant's ejecta and swept-up gas, and its progenitor's mass, can now be worked out from the physics (not yet stored or shown).
+
+### Added
+
+- `remnant_composition.py` gives a remnant two parts: the interstellar gas swept up inside its radius, and the ejecta of the star that exploded, element by element, with the progenitor's initial mass. A Type Ia remnant throws out the 1.37 solar masses of the W7 model (mostly iron, no hydrogen or helium); a core-collapse remnant throws out oxygen-rich ejecta that grow with the progenitor's mass, from a progenitor drawn from the windows of the core it left (a neutron star or a black hole).
+- A progenitor above 30 solar masses is stripped of its hydrogen, and a third of the lighter ones are; the remnant's core and the ejecta add up to the star's mass at death.
+- Checked against Cassiopeia A: the swept-up mass at 350 years and 3 particles per cm^3 is 8.0 solar masses (7.9 measured) and the ejecta of a stripped 16 solar mass star is 2.4 (2.2 measured).
+- The tables are the published ones (a Type Ia and a Type II table, read as `remnant_yields.json`); what scales them with the progenitor's mass, strips the star and bounds the sums are stand-ins with rows SNC1 to SNC7 in the registry.
+- Nothing reads the model yet: GEN.1276 writes the values at generation and GEN.1272 shows them. The swept-up gas is the star's own birth gas until the shared nebula model (GEN.1269) gives the gas of the place.
+
+generation-output: unchanged
+
 ## [8.0.3239] - 2026-11-05
 
 **Headline:** The stars of a sphere above a luminosity floor can be read from the database as arrays, ready for the System View sky.
