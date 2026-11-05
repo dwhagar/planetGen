@@ -345,6 +345,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.179:NBC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | row | 6.179:NBC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
+| module | planetgen.galaxy.unresolved_crossings | NAV.75 | the mean number of unresolved keep-out spheres a straight course crosses, read by the adjusted course once NAV.75 puts the count in it |
 | data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
