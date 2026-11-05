@@ -375,7 +375,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.sky | VIEW.31 | the sky route (VIEW.31) calls sky_from with the sphere query of VIEW.22 as its source and packs the result (VIEW.29) |
 | row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |
 | module | planetgen.generation.sky_tiers | VIEW.25 | charting a system builds the sky tiers from this table: build() gives the luminosity bands and mass rings to draw and the radius of each, floor_table() gives the floor against distance for the report |
-| row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the cell-visit budget |
+| row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the block-visit budget |
+| row | 6.176:SKT3 | VIEW.25 | the charting step turns the table's visits into a time for the queue's progress bar |
+| row | 6.176:SKT4 | VIEW.25 | the charting step draws the rings under 1 solar mass from these edges |
+| row | 6.176:SKT5 | VIEW.25 | the charting step stops each ring under 1 solar mass where this share of its stars no longer shows |
+| row | 6.176:SKT6 | VIEW.25 | the charting step passes the observer's own population mix instead of this default |
+| function | planetgen.generation.bright_stars.backfill_sphere | VIEW.25 | charting draws each luminosity band of the tier table over its sphere with this |
+| function | planetgen.generation.bright_stars.backfill_mass_sphere | VIEW.25 | charting draws each mass ring of the tier table over its sphere with this |
 | module | planetgen.physics.planetary_nebula_ejecta | GEN.1276 | the composition item writes the progenitor mass and the ejecta values of each planetary nebula from `progenitor(...).values()` at generation and backfill |
 | row | 6.178:PNE2 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
