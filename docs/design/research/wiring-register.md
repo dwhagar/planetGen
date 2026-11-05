@@ -28,7 +28,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
-| module | planetgen.physics.light_travel | VIEW.23 | light-travel positions on arrays for the sky of a system (VIEW.21), read by the sky catalogue galaxy/sky.py and from it the sky route |
+| module | planetgen.physics.light_travel | VIEW.31 | light-travel positions on arrays for the sky of a system (VIEW.21), read by the sky catalogue galaxy/sky.py and from it the sky route |
 | module | planetgen.physics.nebula_sprites | VIEW.31 | the angular size, extinction and surface brightness of nebulae and remnants, read by the sky route (VIEW.31) that builds the sprite list |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
@@ -362,11 +362,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
 | module | planetgen.physics.system_bodies | GEN.1241 | the system body ledger (rows, tree checks, mass sums, the barycentre that includes the belts, the belt wobble); lock-free pure part of GEN.1066, the view over the typed tables reads it when the wiring lands |
-| module | planetgen.physics.sky_photometry | VIEW.23 | the sky catalogue (galaxy/sky.py, sky_from) reads apparent_magnitude and galactic_extinction_av for each stored star; the glow band (VIEW.27) reads the dust law (dust_av_per_pc) and bolometric_correction |
-| row | 6.171:SKP1 | VIEW.23 | the sky catalogue reads the dust normalisation through galactic_extinction_av |
-| row | 6.171:SKP2 | VIEW.23 | the sky catalogue reads the cool-star correction through apparent_magnitude |
-| row | 6.171:SKP3 | VIEW.23 | the sky catalogue reads the hot-star correction through apparent_magnitude |
-| row | 6.171:SKP4 | VIEW.23 | the sky catalogue reads the dust disc's shape through galactic_extinction_av |
+| module | planetgen.physics.sky_photometry | VIEW.31 | the sky catalogue (galaxy/sky.py, sky_from) reads apparent_magnitude and galactic_extinction_av for each stored star; the glow band (VIEW.27) reads the dust law (dust_av_per_pc) and bolometric_correction |
+| row | 6.171:SKP1 | VIEW.31 | the sky catalogue reads the dust normalisation through galactic_extinction_av |
+| row | 6.171:SKP2 | VIEW.31 | the sky catalogue reads the cool-star correction through apparent_magnitude |
+| row | 6.171:SKP3 | VIEW.31 | the sky catalogue reads the hot-star correction through apparent_magnitude |
+| row | 6.171:SKP4 | VIEW.31 | the sky catalogue reads the dust disc's shape through galactic_extinction_av |
 | module | planetgen.galaxy.sky_band | VIEW.31 | the sky route (VIEW.31) reads the band of an observer's 50 pc cell through band_for, with the file store of the sky cache |
 | row | 6.174:SKB1 | VIEW.31 | the sky route reads the luminosity density through band_for |
 | row | 6.174:SKB2 | VIEW.31 | the sky route reads the faint-light table through band_for |
