@@ -6,7 +6,7 @@ Thermal escape of the light gases from a small body's mixture (GEN.693, rebuilt 
 
 A small warm world cannot keep hydrogen or helium: the gas outgassed at the surface leaves from the exobase faster than the
 volcanoes supply it. The filter works on the mole fractions `mixture_draw.draw_mixture` takes from the families that outgas
-(`rocky`, `venus`, `mars`, `abiotic-oxygen`); the giants, the envelopes, the lava vapour (supplied by a
+(`rocky`, `venus`, `mars`, `abiotic-oxygen`); the giants, the envelopes, the lava vapor (supplied by a
 magma ocean faster than it leaves), the ice-supported air and the Titan-like air are not filtered.
 
 The share of each species that stays is the one `thermosphere.kept_shares` finds: the exobase temperature of the star's XUV and the
@@ -31,7 +31,7 @@ _mearth_to_kg = units.converter("Mearth", "kg")
 
 FAMILIES = ("rocky", "venus", "mars", "abiotic-oxygen")
 """tuple: The families that are filtered. Not `titan` (its hydrogen trace is the steady state of photochemical production and escape,
-measured by [R3289], which a loss-only filter would remove) and not `frost` (an air held by the vapour pressure of its ice,
+measured by [R3289], which a loss-only filter would remove) and not `frost` (an air held by the vapor pressure of its ice,
 which the ice resupplies faster than it leaves)."""
 
 LOST_BELOW = 1e-3

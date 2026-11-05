@@ -91,8 +91,8 @@ EMPTY_OUTLINE_REASON = (
 
 @dataclasses.dataclass
 class Report:
-    """What an outline says about its galaxy: `crest` (the thin disc's expected systems per sector on an arm crest at
-    its centre, which is its central density over the one-star density, the density-limits report's D), `share` (the
+    """What an outline says about its galaxy: `crest` (the thin disk's expected systems per sector on an arm crest at
+    its center, which is its central density over the one-star density, the density-limits report's D), `share` (the
     share of the galaxy's systems in sectors that expect one, integrated from its density; approximate), `shells`,
     `sectors` (candidate sectors, the outline's upper bound) and `reaching` (the sectors that expect at least one system,
     integrated from the density; approximate, GEN.627) and `radius_pc` of the outline, `empty` and the `warnings`

@@ -35,10 +35,10 @@ The chain, each link from the one before it and each scatter drawn through `unit
    mean age is raised to the oldest at which it forms no stars. Beyond it, a share `GAS_DETECTED_BEYOND_STRIPPING` of the
    satellites keeps its gas: its mean age is lowered to the oldest at which it still forms stars, if it forms at any.
    The age is drawn first from the mass law (6), so this moves only those near the star formation threshold.
-8. **Place**: the distance from the host's centre from an Einasto profile far less concentrated than the dark matter
+8. **Place**: the distance from the host's center from an Einasto profile far less concentrated than the dark matter
    (`EINASTO_ALPHA`, `EINASTO_R_MINUS2_OVER_R200`: [R3232] calibration on one halo), between `INNER_OVER_R200` of
-   the virial radius (STAND-IN: the host's disc destroys what comes closer) and the virial radius, in an isotropic
-   direction. Nothing lies beyond the virial radius, and the radius is the halo's, not the disc's.
+   the virial radius (STAND-IN: the host's disk destroys what comes closer) and the virial radius, in an isotropic
+   direction. Nothing lies beyond the virial radius, and the radius is the halo's, not the disk's.
 
 The velocities are zero: the sector gate reads only the position, and the satellites' orbits belong with the orbital
 update (GEN.339). A galaxy with no halo (`mass_chain.has_halo`) has no satellites.
@@ -70,7 +70,7 @@ tenth of the Milky Way's): a host drawn light for its halo would otherwise out-w
 
 OCCUPATION_M50_SOLAR = 8.5e7
 OCCUPATION_SIGMA_DEX = 0.03
-"""float: The centre and width of the peak-mass occupation curve [R3232]."""
+"""float: The center and width of the peak-mass occupation curve [R3232]."""
 OCCUPATION_FLOOR_SOLAR = 1.0e6
 """float: The lightest peak mass a detectable galaxy needs ([R3232], section 7.5)."""
 
@@ -83,7 +83,7 @@ CARLSTEN_INTERCEPT = 1.071
 CARLSTEN_SLOPE = 0.247
 CARLSTEN_SCATTER_DEX = 0.181
 SIZE_JOIN_LOG_MASS = 8.5
-"""float: The `log10 M*` where the dwarf size law hands over to the disc size law."""
+"""float: The `log10 M*` where the dwarf size law hands over to the disk size law."""
 
 KIRBY_FE_H_AT_1E6 = -1.69
 KIRBY_FE_H_SLOPE = 0.30
@@ -91,7 +91,7 @@ KIRBY_SCATTER_DEX = 0.17
 KIRBY_IRREGULAR_SCATTER_DEX = 0.09
 
 EXPONENTIAL_MIN_STELLAR_MASS_SOLAR = 1.0e8
-"""float: STAND-IN: the stellar mass from which a satellite is a gas-rich, still star-forming exponential disc ([R4661]:
+"""float: STAND-IN: the stellar mass from which a satellite is a gas-rich, still star-forming exponential disk ([R4661]:
 about 40 percent of the galaxies near 1e8 are quenched today, all of the fainter ones)."""
 AGE_AT_1E5_GY = 11.5
 AGE_SLOPE_GY_PER_DEX = -1.2
@@ -195,7 +195,7 @@ def _direction(stream):
 
 def half_light_radius_pc(stellar_mass_solar, deviation):
     """A satellite's half-light radius, parsecs, at `deviation` standard deviations about the size law of its mass (the
-    dwarf law below `SIZE_JOIN_LOG_MASS`, the disc law above)."""
+    dwarf law below `SIZE_JOIN_LOG_MASS`, the disk law above)."""
     log_mass = math.log10(stellar_mass_solar)
     if log_mass < SIZE_JOIN_LOG_MASS:
         return 10.0 ** (CARLSTEN_INTERCEPT + CARLSTEN_SLOPE * log_mass + deviation * CARLSTEN_SCATTER_DEX)

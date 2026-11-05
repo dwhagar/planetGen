@@ -29,7 +29,7 @@ test("Start Here keeps the user on the map and asks for the destination", () => 
   assert.equal(next[0].label, "End Here");
   assert.equal(next[0].href, "/nav?from=system:1&to=nebula:3");
   assert.deepEqual(pick.bannerParts("star")[0], "Start: Sol. Choosing a destination");
-  assert.equal(pick.cancelUrl(), null, "a pick begun on the map is cancelled in place");
+  assert.equal(pick.cancelUrl(), null, "a pick begun on the map is canceled in place");
 });
 
 test("End Here asks for the start, and the course keeps the order from, to", () => {

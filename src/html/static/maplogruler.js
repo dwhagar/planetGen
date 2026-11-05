@@ -2,7 +2,7 @@
 //
 // MAP.336: the Galaxy Map's vertical log ruler, the pure half: the named scales along it, where a distance stands on it and what the
 // distance readout says. The ruler is one logarithmic scale for the camera's distance from the whole galaxy (the top) down to the
-// nearest the map goes (the bottom, a moon framed); a stop is a named scale and a Go to for it, centred on the focus. The DOM is
+// nearest the map goes (the bottom, a moon framed); a stop is a named scale and a Go to for it, centered on the focus. The DOM is
 // mapnavpad.js's. No DOM and no three.js: tests/js/maplogruler.test.mjs holds it to this description.
 
 // The named scales, nearest last: {key, label, pc}. The galaxy stop is the farthest the camera goes, whatever the galaxy's size

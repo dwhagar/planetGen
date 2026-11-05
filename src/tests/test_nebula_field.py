@@ -45,13 +45,13 @@ def _key(cloud):
 
 
 def test_gas_is_densest_on_the_arms_and_near_the_plane():
-    # The Milky Way's own structure: a galaxy with a lower circular speed has a puffier young disc.
+    # The Milky Way's own structure: a galaxy with a lower circular speed has a puffier young disk.
     shape = SHAPE._replace(structure=REFERENCE_STRUCTURE)
     arm = nebula_field.gas_factor(_on_ring(ARM_ANGLE), shape)
     between = nebula_field.gas_factor(_on_ring(ARM_ANGLE + math.pi / 2), shape)
     high = nebula_field.gas_factor(_on_ring(ARM_ANGLE, z=300.0), shape)
     assert arm > 1.5 > 1.0 > between > 0.0
-    assert high < 0.1 * arm  # the heating law's young disc is 65 pc thick (observed about 50), so 300 pc keeps 6%
+    assert high < 0.1 * arm  # the heating law's young disk is 65 pc thick (observed about 50), so 300 pc keeps 6%
     assert nebula_field.gas_factor((10.0, 10.0, 0.0), shape) <= tuning.NEBULA_FIELD_MAX_GAS_FACTOR
 
 
@@ -202,7 +202,7 @@ def test_the_centroid_lies_inside_the_clouds_bounding_sphere():
 
 
 def test_a_cloud_is_born_in_the_sector_holding_its_centroid(monkeypatch):
-    """GEN.176: the ID names the sector holding the centre of the space the cloud fills, rounded to 1 mpc."""
+    """GEN.176: the ID names the sector holding the center of the space the cloud fills, rounded to 1 mpc."""
     from planetgen.galaxy import object_uid
 
     clouds = _some_clouds(8)
@@ -276,8 +276,8 @@ def test_a_centroid_is_rounded_to_a_milliparsec_before_its_sector_is_taken():
         shape = SimpleNamespace(interior_centroid=lambda: (0.0, 0.0, offset))
         return SimpleNamespace(get_shape=lambda: shape, radius_ly=1.0)
 
-    centre = (face, 0.0, 0.0)
+    center = (face, 0.0, 0.0)
     quiet = cloud_with(0.0)
     noisy = cloud_with(1e-9)                      # a billionth of the radius: far below 1 mpc
-    assert nebula_field.centroid_mpc(quiet, centre) == nebula_field.centroid_mpc(noisy, centre)
-    assert nebula_field.birth_sector(quiet, centre, EDGE_PC) == nebula_field.birth_sector(noisy, centre, EDGE_PC)
+    assert nebula_field.centroid_mpc(quiet, center) == nebula_field.centroid_mpc(noisy, center)
+    assert nebula_field.birth_sector(quiet, center, EDGE_PC) == nebula_field.birth_sector(noisy, center, EDGE_PC)

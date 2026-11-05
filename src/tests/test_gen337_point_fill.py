@@ -25,7 +25,7 @@ pytestmark = pytest.mark.fresh_database
 EPOCH = 1_700_000_000.0
 
 
-def test_a_belt_is_at_its_star_with_no_vector_and_the_mass_its_disc_left_it(mysql_config):
+def test_a_belt_is_at_its_star_with_no_vector_and_the_mass_its_disk_left_it(mysql_config):
     system_id = _system_with_worlds(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -34,7 +34,7 @@ def test_a_belt_is_at_its_star_with_no_vector_and_the_mass_its_disc_left_it(mysq
         conn.close()
     for axis in "xyz":
         assert belt[f"position_{axis}_km"] == 0.0 and belt[f"velocity_{axis}_kms"] == 0.0
-    # TEST.563: the belt's mass is its own (what the disc's solids leave after the star's age of collisions, `belt_ledger.belt_state`, GEN.477), written as it is
+    # TEST.563: the belt's mass is its own (what the disk's solids leave after the star's age of collisions, `belt_ledger.belt_state`, GEN.477), written as it is
     # and read by the sector mass (`sector_mass`); it was a stated zero only while a belt had none.
     assert 0.0 < belt["mass_kg"] < float("inf")
     assert belt["epoch_unix"] is None and belt["next_update_due"] is None  # a belt follows its system's clock

@@ -101,8 +101,8 @@ def test_the_table_of_satellites_holds_the_clouds_at_the_distances_the_design_gi
 def test_a_direction_on_the_sky_is_a_direction_in_the_galaxy():
     sun = satellites.sun_frame(SOLAR_RADIUS, SOLAR_ANGLE)[0]
     assert math.hypot(sun[0], sun[1]) == pytest.approx(SOLAR_RADIUS) and sun[2] == 0.0
-    centre = satellites.satellite_position_pc(0.0, 0.0, SOLAR_RADIUS, SOLAR_RADIUS, SOLAR_ANGLE)
-    assert centre == pytest.approx((0.0, 0.0, 0.0), abs=1e-6)                  # longitude 0 looks at the galactic centre
+    center = satellites.satellite_position_pc(0.0, 0.0, SOLAR_RADIUS, SOLAR_RADIUS, SOLAR_ANGLE)
+    assert center == pytest.approx((0.0, 0.0, 0.0), abs=1e-6)                  # longitude 0 looks at the galactic center
     anti = satellites.satellite_position_pc(180.0, 0.0, 1000.0, SOLAR_RADIUS, SOLAR_ANGLE)
     assert math.hypot(anti[0], anti[1]) == pytest.approx(SOLAR_RADIUS + 1000.0)  # and 180 away from it
     north = satellites.satellite_position_pc(0.0, 90.0, 500.0, SOLAR_RADIUS, SOLAR_ANGLE)
@@ -193,14 +193,14 @@ def test_the_bound_and_the_outline_take_a_satellite_in():
     found = _placed()
     shape = SHAPE._replace(components=component_field.ComponentField(found, EDGE, E1))
     for name in ("Small Magellanic Cloud", "Sagittarius dwarf"):
-        centre = _by_name(found)[name].center_pc
-        r_cyl = math.hypot(centre[0], centre[1])
-        part = shape.components.relative_density(centre)
-        assert shape.components.bound(r_cyl, centre[2]) >= part * (1 - 1e-9) > 0.0
-        added = skeleton.bound_relative_density_at(shape, r_cyl, centre[2]) - skeleton.bound_relative_density_at(
-            SHAPE, r_cyl, centre[2])
-        assert added == pytest.approx(shape.components.bound(r_cyl, centre[2]))
-        shell, band, _wedge = spherical.sector_address_at(centre, EDGE)
+        center = _by_name(found)[name].center_pc
+        r_cyl = math.hypot(center[0], center[1])
+        part = shape.components.relative_density(center)
+        assert shape.components.bound(r_cyl, center[2]) >= part * (1 - 1e-9) > 0.0
+        added = skeleton.bound_relative_density_at(shape, r_cyl, center[2]) - skeleton.bound_relative_density_at(
+            SHAPE, r_cyl, center[2])
+        assert added == pytest.approx(shape.components.bound(r_cyl, center[2]))
+        shell, band, _wedge = spherical.sector_address_at(center, EDGE)
         alone = component_field.ComponentField([_by_name(found)[name]], EDGE, E1)
         if name == "Small Magellanic Cloud":
             assert abs(alone.high_band(shell, spherical.band_at, EDGE)) >= abs(band)

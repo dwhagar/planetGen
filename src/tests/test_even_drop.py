@@ -61,7 +61,7 @@ def test_the_halo_and_the_satellite_galaxies_go_first():
     everything = crowd + far + bright + halo + satellite
     whole = len(crowd + far + bright)
     listed = query._top_by_key(everything, whole)
-    assert {s["id"] for s in listed} == {s["id"] for s in crowd + far + bright}, "the disc and bulge fill it, brighter halo or not"
+    assert {s["id"] for s in listed} == {s["id"] for s in crowd + far + bright}, "the disk and bulge fill it, brighter halo or not"
     listed = query._top_by_key(everything, whole + 10)
     assert sum(1 for s in listed if s["population"] == "halo") == 10
     assert not any(s["population"] == "satellite" for s in listed)

@@ -16,7 +16,7 @@ planets is where `N = 1`. `N` is a quadratic in `a`, `c a^2 + b a` with `c = n p
 that orbit is its positive root, in closed form.
 
 `planet_survival_limit_au` takes any density and dispersion, so the same function serves a cluster at a King profile's
-`n(r)` and `sigma(r)`, the nuclear disc, and the solar neighbourhood; the caller supplies the place.
+`n(r)` and `sigma(r)`, the nuclear disk, and the solar neighbourhood; the caller supplies the place.
 """
 
 import math
@@ -49,7 +49,7 @@ def _terms(systems_per_pc3, dispersion_kms, age_gy, host_mass_solar):
 
 def expected_passes(systems_per_pc3, dispersion_kms, semi_major_axis_au, age_gy=None, host_mass_solar=None):
     """
-    The expected number of ionising passes `N(a)` of an orbit over `age_gy` (the survival rule above).
+    The expected number of ionizing passes `N(a)` of an orbit over `age_gy` (the survival rule above).
 
     Args:
         systems_per_pc3 (float): Systems per cubic parsec at the place.
@@ -70,7 +70,7 @@ def expected_passes(systems_per_pc3, dispersion_kms, semi_major_axis_au, age_gy=
 
 def planet_survival_limit_au(systems_per_pc3, dispersion_kms, age_gy=None, host_mass_solar=None):
     """
-    The largest semi-major axis whose expected number of ionising passes is one: the orbit beyond which a planet has
+    The largest semi-major axis whose expected number of ionizing passes is one: the orbit beyond which a planet has
     been stripped, as the generator's cut (GEN.325).
 
     Args:

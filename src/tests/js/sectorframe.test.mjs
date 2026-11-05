@@ -12,12 +12,12 @@ const EDGE = 4;
 const addressKey = (a) => [a.shell, a.band, a.wedge].join(".");
 const norm = (p) => Math.hypot(p[0], p[1], p[2]);
 
-// A sector well inside the disc, away from the galaxy's poles and centre.
+// A sector well inside the disk, away from the galaxy's poles and center.
 const SECTOR = { shell: 200, band: 0, wedge: 5 };
 const bounds = P.sectorBounds(SECTOR.shell, SECTOR.band, SECTOR.wedge, EDGE);
 
 test("a cell inside the galaxy has all six walls, each with a neighbour just beyond it", () => {
-  const walls = F.wallCentres(bounds, 0.25 * EDGE);
+  const walls = F.wallCenters(bounds, 0.25 * EDGE);
   assert.deepEqual(walls.map((w) => w.dir).sort(), ["east", "in", "north", "out", "south", "west"]);
   const here = addressKey(SECTOR);
   const seen = new Set([here]);
@@ -26,12 +26,12 @@ test("a cell inside the galaxy has all six walls, each with a neighbour just bey
     assert.notEqual(addressKey(there), here, wall.dir + " wall's neighbour is another sector");
     seen.add(addressKey(there));
   });
-  // The wall centres themselves are on the cell's own boundary: the point just inside is this sector.
+  // The wall centers themselves are on the cell's own boundary: the point just inside is this sector.
   assert.equal(seen.size, 7, "six different neighbours");
 });
 
 test("the outer and inner walls are at the cell's radii and the others between them", () => {
-  const walls = Object.fromEntries(F.wallCentres(bounds, 1).map((w) => [w.dir, w]));
+  const walls = Object.fromEntries(F.wallCenters(bounds, 1).map((w) => [w.dir, w]));
   assert.ok(Math.abs(norm(walls.out.point) - bounds.r1) < 1e-6);
   assert.ok(Math.abs(norm(walls.in.point) - bounds.r0) < 1e-6);
   ["north", "south", "east", "west"].forEach((dir) => {
@@ -41,18 +41,18 @@ test("the outer and inner walls are at the cell's radii and the others between t
   assert.ok(norm(walls.out.beyond) > norm(walls.out.point) && norm(walls.in.beyond) < norm(walls.in.point));
 });
 
-test("the wall on the galaxy's own boundary has no icon: no inner wall at the centre, no wall past a pole, no longitude wall all the way round", () => {
+test("the wall on the galaxy's own boundary has no icon: no inner wall at the center, no wall past a pole, no longitude wall all the way round", () => {
   const core = { r0: 0, r1: 4, c0: 0, c1: Math.PI, t0: 0, t1: 2 * Math.PI };
-  assert.deepEqual(F.wallCentres(core, 1).map((w) => w.dir), ["out"]);
+  assert.deepEqual(F.wallCenters(core, 1).map((w) => w.dir), ["out"]);
   const cap = { r0: 100, r1: 104, c0: 0, c1: 0.1, t0: 0, t1: 2 * Math.PI };
-  assert.deepEqual(F.wallCentres(cap, 1).map((w) => w.dir).sort(), ["in", "out", "south"]);
+  assert.deepEqual(F.wallCenters(cap, 1).map((w) => w.dir).sort(), ["in", "out", "south"]);
   const polar = P.sectorBounds(200, P.sectorAddressAt(0.01, 0, 800, EDGE).band, 0, EDGE);
-  assert.ok(F.wallCentres(polar, 1).every((w) => w.dir !== "north"), "no north wall at the north pole");
+  assert.ok(F.wallCenters(polar, 1).every((w) => w.dir !== "north"), "no north wall at the north pole");
 });
 
 test("the walls move with the cell: the same bounds always give the same points", () => {
-  const a = F.wallCentres(bounds, 1);
-  const b = F.wallCentres(bounds, 1);
+  const a = F.wallCenters(bounds, 1);
+  const b = F.wallCenters(bounds, 1);
   assert.deepEqual(a, b);
 });
 

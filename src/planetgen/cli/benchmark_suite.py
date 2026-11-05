@@ -64,7 +64,7 @@ SIZES = {
 (solar luminosities) of the scatters (`None`: the generator's own default)."""
 
 FILL_SCALE_LENGTHS = 2.0
-"""float: The fill starts in the shell this many disc scale lengths out: in the disc, not in the crowded core."""
+"""float: The fill starts in the shell this many disk scale lengths out: in the disk, not in the crowded core."""
 
 DEFAULT_STEP_TIMEOUT_MINUTES = 240
 """int: How long one step may run before it is stopped and recorded as not finished."""
@@ -487,7 +487,7 @@ class Pipeline:
         return base / 10.0
 
     def _fill_shell(self):
-        """The shell the fill starts in: `FILL_SCALE_LENGTHS` disc scale lengths out, inside the outline."""
+        """The shell the fill starts in: `FILL_SCALE_LENGTHS` disk scale lengths out, inside the outline."""
         with self.admin.cursor() as cur:
             cur.execute(f"USE `{self.database}`")
             cur.execute("SELECT disk_scale_length_pc, edge_pc, outer_shell_index FROM galaxy_shape WHERE id = 1")

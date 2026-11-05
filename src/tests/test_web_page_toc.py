@@ -87,6 +87,7 @@ OWN_CONTENTS_JS = """() => {
 headings or sections on the same page, next to how many automatic "On this page" bars the page shows."""
 
 PAGETOC_SOURCE = __import__("pathlib").Path(__file__).resolve().parents[1] / "html" / "static" / "pagetoc.js"
+STYLE_SOURCE = PAGETOC_SOURCE.with_name("style.css")
 
 
 def _toc_page(browser, body):
@@ -188,6 +189,7 @@ def test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_
         page = browser.new_page(viewport={"width": 1280, "height": 800})
         try:
             page.set_content("<main id='main' class='app-main'><h1>Title</h1>" + body + "</main>")
+            page.add_style_tag(path=str(STYLE_SOURCE))      # the row layout is the site's own CSS; without it every list wraps and "fits"
             page.add_script_tag(path=str(PAGETOC_SOURCE))
             assert page.evaluate("document.getElementById('main').classList.contains('toc-strip')") is strip
             assert page.evaluate("n => n.scrollWidth <= n.clientWidth + 1", page.locator("nav.page-toc").element_handle())

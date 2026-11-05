@@ -39,8 +39,8 @@ def standard_edges():
     return EDGES_NM
 
 
-def centres(edges):
-    """The cell centres of a grid given by its `edges`, nm."""
+def centers(edges):
+    """The cell centers of a grid given by its `edges`, nm."""
     edges = np.asarray(edges, dtype=float)
     return 0.5 * (edges[:-1] + edges[1:])
 
@@ -69,7 +69,7 @@ def band_mean_cross_section_cm2(formula, edges):
     molecule. A gas the table has no ultraviolet entry for (He, Ne, N2 in the ultraviolet bins read as zero by the research) is zero.
     """
     values = _bin_values(formula)
-    middle = centres(edges)
+    middle = centers(edges)
     if values is None:
         return np.zeros_like(middle)
     bins = _bin_edges()

@@ -3,7 +3,7 @@
 // Which sector's own scene the Galaxy Map has up while the camera is still in a window of
 // sectors, and how much of it shows (MAP.152, docs/design/interface/fly-through-view-distance.md
 // section 4.7): a sector's scene (every star, phenomenon and body of it, galaxysector.js)
-// fades in as the camera comes within `FADE_IN_EDGES` sector edges of the sector's centre,
+// fades in as the camera comes within `FADE_IN_EDGES` sector edges of the sector's center,
 // is whole by `FULL_EDGES`, and is dropped past `UNLOAD_EDGES`. The gap between the two
 // ends is the hysteresis: a camera hovering near the edge of the range does not load and
 // drop the scene again and again, and a scene already loaded stays put while the camera
@@ -12,7 +12,7 @@
 // Pure functions of numbers (no DOM, no three.js), so tests/js/sectorreach.test.mjs holds
 // them to the spec. `galaxystageview.js` feeds them the camera and the sectors in view.
 
-// The camera's distance, in sector edges, from a sector's centre ...
+// The camera's distance, in sector edges, from a sector's center ...
 export const FADE_IN_EDGES = 1.5; // ... inside which its scene starts to fade in,
 export const FULL_EDGES = 1; // ... inside which it is whole,
 export const UNLOAD_EDGES = 3; // ... and past which it is dropped.
@@ -31,7 +31,7 @@ function smoothstep(lo, hi, x) {
   return t * t * (3 - 2 * t);
 }
 
-// How much of a sector's scene shows with the camera `distance` pc from its centre, `edge` pc
+// How much of a sector's scene shows with the camera `distance` pc from its center, `edge` pc
 // across: 0 from FADE_IN_EDGES out, 1 from FULL_EDGES in, smooth between.
 export function sectorShare(distance, edge) {
   if (!(edge > 0)) return 0;
