@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.597 |
+| TEST | TEST.598 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -3944,6 +3944,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | done, PR #5088 |
 | TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | open |
 | TEST.596 | test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug) | none | open |
+| TEST.597 | test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

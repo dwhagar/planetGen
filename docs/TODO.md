@@ -2144,6 +2144,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09): MAP.122 was rescoped (7:40 PM EDT 2026-10-28):
   it now delivers the Bookmark action and the touch reach on the star
   panel; this item only adds the Waypoint button on that panel.
+  Parts 49a and 49c merged (Core 2, #5092, #5101) (7:40 AM EST on
+  2026-11-05): 49a: a waypoint flag on the info card of a system or
+  object and a Waypoints menu beside Bookmarks (order picked, Remove,
+  Clear all), kept in the browser. 49c: with two or more waypoints the
+  menu offers Plot the course; the Galaxy Map draws the course through
+  them (each leg planned like any course: route, direct line, bend round
+  keep-out spheres), waypoints ringed and named, fitted view, kept until
+  Clear all or Remove down to one; the address carries ?via=. Galaxy Map
+  only (inside a sector or system is NAV.22, MAP.217). Left: 49b,
+  waypoint icons at every map level. This item stays open for 49b.
   Prerequisites: MAP.122.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
 
@@ -18035,6 +18045,19 @@ clears each one.
   life-class tests stay with Bug 1; test_fuzz_system_generation is
   TEST.571's). Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580.
+
+- [ ] **TEST.597 test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug)**
+  Core 2 (as the lane reported, about 7:35 AM EST on 2026-11-05) saw
+  tests/test_web_browser_sector_map*.py::test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch
+  fail about 1 run in 3 on plain main (4 of 6 runs passed): a region
+  label shows when only system names are expected. Not from NAV.49. Do:
+  loop the test 20 times with the label list printed on a failure; find
+  whether the test waits for the label engine's second pass or the
+  region label is a real map bug (if real, file it as its own item); fix
+  at the cause, not with a longer wait. Done: 20 passes in a row on
+  plain main. Lock-free. Version 8.1. Owner: Core 5, with TEST.575 and
+  TEST.595 (same family). Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.575.
 
 ## USR: User accounts
 
