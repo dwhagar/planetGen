@@ -71,6 +71,7 @@ def fixtures():
     return {
         "starLight": star_light(),
         "starLook": star_look(),
+        "skyColour": sky_colour(),
         "sectorMap": sector_map(),
         "edgePc": EDGE_PC,
         "galaxyRadius": GALAXY_RADIUS_PC,
@@ -233,6 +234,16 @@ def star_look():
             light = _star_light(luminosity * SOLAR_LUMINOSITY, radius * 696000.0, 5778.0)
             rows.append({"luminositySol": luminosity, "radiusSol": radius, "corePx": light["corePx"], "sizePx": light["sizePx"],
                          "glow": light["glow"], "bright": light["bright"]})
+    return rows
+
+
+def sky_colour():
+    """`photometry.star_colour` (the mean colour, no spread) from 2000 K to 50000 K, for `starColourExact` in static/skylight.js to match."""
+    from planetgen.physics.photometry import star_colour
+
+    rows = []
+    for temperature in (2000.0, 2300.0, 2650.0, 3000.0, 3400.0, 3900.0, 4200.0, 4499.0, 4500.0, 5772.0, 7500.0, 10000.0, 20000.0, 30000.0, 50000.0):
+        rows.append({"temperatureK": temperature, "linear": list(star_colour(temperature).linear)})
     return rows
 
 
