@@ -1638,8 +1638,18 @@ def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelle
     no stored shape to fetch, no page to open and no name to label."""
     requests = []
     page.on("request", lambda request: requests.append(request.url))
+    # TEST.575: the sprite is on screen for only a frame or two while the window settles, so polling the count can miss it. An observer
+    # that stays set once the count has been above 0 records it, and the wait is on that mark.
+    page.add_init_script("""
+        new MutationObserver((records) => {
+            for (const record of records) {
+                const value = record.target.getAttribute('data-field-clouds');
+                if (value !== null && value !== '0') document.documentElement.setAttribute('data-field-seen', value);
+            }
+        }).observe(document, {subtree: true, attributes: true, attributeFilter: ['data-field-clouds']});
+    """)
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
+    page.locator("html[data-field-seen]").wait_for(state="attached", timeout=40000)
     page.wait_for_timeout(1500)
     assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
     assert not any("/shape" in url for url in requests)
@@ -3540,11 +3550,12 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]')
     _poi_layers(page, "marker-gas-giant")
     assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" for e in entries))
+    # The marks come in as the nodes do (TEST.575): wait for all of them, not for the first.
+    found = _markers_until(page, lambda entries: giants <= {e["name"] for e in entries if e["kind"] == "marker-gas-giant"}, seconds=40)
     assert {e["name"] for e in found if e["kind"] == "marker-gas-giant"} == giants
     assert not [e for e in found if e["kind"] == "marker-habitable"]
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    found = _markers_until(page, lambda entries: worlds <= {e["name"] for e in entries if e["kind"] == "marker-habitable"}, seconds=40)
     marks = [e["name"] for e in found if e["kind"] in ("marker-habitable", "marker-gas-giant")]
     assert sorted(marks) == sorted(giants | worlds), marks    # Fixture Eden once, though it has both reasons
     page.locator("#galaxymap3d-menu > summary").click()
