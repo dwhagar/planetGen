@@ -23,7 +23,6 @@ REMAINING = {
     "physics/planet_survival.py": 1,
     "physics/planets.py": 1,
     "physics/rogue_surface.py": 1,
-    "physics/rogue_volatiles.py": 1,
     "physics/venus_spin.py": 1,
 }
 """dict: The multiplies and divides by a mass constant that stay by hand, by file. Each sits inside a longer product (`G * m * C`, `3 * m * C`), where a converter call would
