@@ -18609,6 +18609,13 @@ clears each one.
   already in TEST.580. Done: the three pass on main. Lock-free. Version
   8.1. Owner: Tides 1, with TEST.580, TEST.581 and TEST.583. Filed by
   the TODO thread.
+  More from Aux 7 (as the lane reported) (9:46 PM EST on 2026-11-04):
+  four nebula-volume fuzz cases, test_page_numbers_clamp for /systems,
+  and test_a_neighborhood_job_runs_its_sectors_through_the_wrapper also
+  fail on main (the last also in a partial gate). The same pass found
+  the citation lock failing on main from
+  src/tests/test_nav_route_graph.py ('Wedge 2000' written by name, from
+  NAV.73, Aux 7 fixes that one). Include all of these in this item.
   Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
 
 ## USR: User accounts
