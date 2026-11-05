@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3287] - 2026-11-05
+
+**Headline:** The NAV page's course diagram now marks a hop that has to bend round a star, black hole, or other object it would pass too close to.
+
+### Added
+- A hop whose straight line crosses the keep-out sphere of a star, black hole, neutron star, rogue planet, quasar, or asteroid field gets a small bend under its line, and its text says how many spheres it goes round and how much longer that makes it. A hop that cannot be bent (overlapping spheres) is flagged and said to be shown as the straight line. The diagram stays a schematic, so the bend says that the hop leaves the straight line, not where. The legend and the note above the diagram explain the mark.
+
+generation-output: unchanged
+
 ## [8.0.3286] - 2026-11-05
 
 **Headline:** The route finder can now bend a course around stars, black holes, and other objects it would pass too close to.
