@@ -892,7 +892,7 @@ python3 -m planetgen.cli.config restore 20261016T193012Z.tar.bz2
 
 ### backup
 
-Backup archives (ADM.87, [config.md](config.md#backups)): one `.tar.bz2` per backup, holding a part per kind of data (`settings`, a copy of `config.json`; `parity`, a copy of the sector repair file, which `settings.backup_parity` switches off; the control database in 9.0). Run it as root or the web user (the archives are mode 0600).
+Backup archives (ADM.87, [config.md](config.md#backups)): one `.tar.bz2` per backup, holding a part per kind of data (`settings`, a copy of `config.json`; `parity`, a copy of the sector repair file, which `settings.backup_parity` switches off and `restore --part parity ARCHIVE` puts back, then checks against the database; the control database in 9.0). Run it as root or the web user (the archives are mode 0600).
 
 ```bash
 python3 -m planetgen.cli.backup take                    # every part (--part NAME for some)

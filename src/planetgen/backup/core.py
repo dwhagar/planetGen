@@ -82,6 +82,8 @@ class RestoreContext:
     role: str = "admin"
     audit: object = None
     environ: object = None
+    database: object = None
+    """`db.store.MySQLConfig` of the galaxy database a part that checks its restore against it uses (the parity part); `None` is the process's own."""
 
 
 class Part:
@@ -95,6 +97,10 @@ class Part:
         """Writes this part's files into `directory` (an empty folder). May return a dict of plain values (numbers, text,
         booleans) for the manifest to keep as the part's `info`, such as how much the dump covers."""
         raise NotImplementedError
+
+    def check_restorable(self, context):
+        """Called for every part of a restore before anything is backed up or changed: raise `BackupError` to refuse the restore now (the data
+        is busy, a service it needs is down). The default accepts."""
 
     def restore(self, directory, context):
         """Puts the files in `directory` (a hash-checked copy of what `dump` wrote) back. May return a result
@@ -606,6 +612,8 @@ def restore(name, parts=None, context=None, directory=None):
     todo = [p for p in wanted if p in _PARTS]
     if not todo:
         return report
+    for part in todo:
+        _PARTS[part].check_restorable(context)
     report.safety = take(todo, who=context.who, reason=f"before restoring {name}", directory=folder).name
     path = os.path.join(folder, name)
     work = tempfile.mkdtemp(prefix=".restore-", dir=folder)

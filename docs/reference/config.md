@@ -156,7 +156,16 @@ galaxy), and `control/` (the control database) when that part arrives in 9.0. A 
 the settings page takes an archive of the settings part alone; `python3 -m
 planetgen.cli.backup take` takes every part. A parity copy is refused, with the
 reason, when the live file is damaged behind its last record (`planetgen repair-db`
-makes it again from the database); putting a copy back is DB.41.
+makes it again from the database).
+
+`python3 -m planetgen.cli.backup restore --part parity ARCHIVE` puts the copy back (DB.41). It is refused, before
+anything is backed up or changed, while a save is writing parity, when the galaxy database cannot be reached, and when
+the part is empty or its file is damaged. Otherwise a safety archive of the live file is taken, the copy is written
+beside the live file, synced and renamed over it, and then it is checked against the database (the check of DB.8, with the
+stale-record rule of DB.9): a record that no longer matches the rows because the database changed since the backup is made
+again from the rows and is not damage, a member whose sector is gone is let go, and the result says how many sectors the
+copy holds no record of (unprotected until their next save or `planetgen refresh-parity`) and which sectors are damaged
+(for `planetgen repair-db`).
 
 Retention is the option `settings.backups_kept`: the newest archives are kept, the
 rest deleted, but never the newest archive that holds every part. A restore verifies
