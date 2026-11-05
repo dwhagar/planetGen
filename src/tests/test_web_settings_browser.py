@@ -31,8 +31,19 @@ from planetgen.web.app import create_app  # noqa: E402
 
 from tests.served import served  # noqa: E402
 from tests.test_web_a11y import (  # noqa: E402,F401 -- the browser and axe fixtures, and the checks
-    CSP_LISTENER, SCHEMES, VIEWPORTS, _axe_blocking, _overflow, axe_source, browser,
+    CSP_LISTENER, SCHEMES, VIEWPORTS, _axe_blocking, _overflow as _raw_overflow, axe_source, browser,
 )
+
+
+def _overflow(page):
+    """TEST.234: the width is read once the page's Shoelace components are defined. A `sl-dropdown` that is not upgraded yet lays its
+    slotted menu out inline, as wide as the menu, so a page read before the components script arrives shows an overflow that is
+    not there. The wait ends after five seconds, so a page without one still gets its check."""
+    page.evaluate("""() => Promise.race([
+        Promise.all(['sl-dropdown', 'sl-button'].map((name) => customElements.whenDefined(name))),
+        new Promise((resolve) => setTimeout(resolve, 5000))])""")
+    return _raw_overflow(page)
+
 
 START = {"mysql": {"host": "db.internal", "password": "db-secret"}, "secret_key": "csrf-secret",
          "site_name": "Mine", "jobs": {"keep": 12}}
@@ -301,3 +312,24 @@ def test_back_up_change_compare_restore_and_import_in_the_browser(browser, serve
     finally:
         context.close()
     assert not problems, "\n".join(problems)
+
+
+def test_the_review_page_fits_a_phone_when_the_components_script_arrives_late(browser, axe_source, server, role, config):
+    """TEST.234: with the Shoelace script held back two seconds, the width is still read only once the components are defined. Read
+    straight after the diff table (the old way) the components are not defined yet; the one failed run (606 px at the gear dropdown) was
+    such a read, a `sl-dropdown` not yet upgraded laying its menu out inline. A late-script overflow itself could not be made to show
+    here, so the wait is the fix and this pins that the width is never read before the components exist."""
+    import time
+
+    context, page, problems, base_url = _page(browser, server, "phone", "dark")
+    page.route("**/components.js*", lambda route: (time.sleep(2), route.continue_()))
+    try:
+        page.goto(base_url + "/admin/settings", wait_until="load")
+        page.fill("#opt-site_name", "Home")
+        page.click("button:has-text('Review the changes')")
+        page.wait_for_selector("table.settings-diff")
+        problems += _overflow(page)
+        assert page.evaluate("() => !!customElements.get('sl-dropdown')"), "the components are defined when the width is read"
+    finally:
+        context.close()
+    assert not problems, f"as {role}:\n  " + "\n  ".join(problems)

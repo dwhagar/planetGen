@@ -921,6 +921,10 @@ NEBULA_SURROUNDINGS_PATH = "/galaxy/nebula/{id}/surroundings"
 """str: The site's endpoint for the stars round a nebula
 (`web/galaxy_views.galaxy_nebula_surroundings`), for its page's 3D view."""
 
+NEBULA_VOLUME_PATH = "/galaxy/nebula/{id}/volume"
+"""str: The site's endpoint for the points that draw one nebula alone (`web/galaxy_views.galaxy_nebula_alone_volume`, MAP.142), for
+its page's 3D view and the Sector Map."""
+
 NEBULA_SHAPE_PATH = "/galaxy/nebula/{id}/shape"
 """str: The site's nebula mesh endpoint (`web/galaxy_views.galaxy_nebula_shape`),
 `{id}` where the nebula's id goes."""

@@ -40,9 +40,27 @@ def _axis_ticks(top):
     return [round(index * step, 6) for index in range(count + 1)]
 
 
+def _class_name(entry):
+    return "Class " + str(entry["life_class"]) + (entry.get("variant") or "")
+
+
+def _makers(history):
+    """What each class of a world with several living classes made of the air (GEN.1213): `[{"gas", "text"}]` with "Class 1a 70 percent, Class 3a 30 percent" for
+    each gas that more than one class changed, from `air_history`'s `by_class`; empty when one class lives there."""
+    if len(history.get("classes") or []) < 2:
+        return []
+    makers = []
+    for gas in history["gases"]:
+        by_class = gas.get("by_class") or []
+        if len(by_class) > 1:
+            parts = [f"{_class_name(entry)} {round(100.0 * entry['share'])} percent" for entry in sorted(by_class, key=lambda entry: -entry["share"])]
+            makers.append({"gas": gas["name"], "text": ", ".join(parts)})
+    return makers
+
+
 def chart(history, class_id, grade=0):
     """
-    The view of a chart for `history` (`air_history`'s dict, or `None`): `{"svg", "table", "stages", "note", "title"}`, or `None` when there is
+    The view of a chart for `history` (`air_history`'s dict, or `None`): `{"svg", "table", "stages", "note", "makers", "title"}`, or `None` when there is
     nothing to draw. `svg` and `note` are HTML (everything in them escaped), `table` is `{"header": [...], "rows": [[...]]}` with one row for
     each span of ages in which the air differs, and `stages` is a list of `{"number", "name", "age"}`.
     """
@@ -105,9 +123,10 @@ def chart(history, class_id, grade=0):
             current = [value for age, value in gas["steps"] if age <= start][-1]
             row.append(_kpa_text(current))
         rows.append(row)
+    makers = _makers(history)
     note = ""
     if history.get("speculative"):
-        note = Markup('This class\'s air numbers are less sure than the rest. <a class="reference-link" href="{}">Where this comes from</a>').format(
+        note = Markup('This class\'s air numbers are less sure than the rest. <a class="reference-link" href="{}">More information</a>').format(
             reference_urls.reference_path("speculative", class_id))
-    return {"svg": "".join(parts), "legend": legend, "stages": stages, "note": note,
+    return {"svg": "".join(parts), "legend": legend, "stages": stages, "note": note, "makers": makers,
             "table": {"header": ["Age (Gyr)"] + [gas["name"] for gas in history["gases"]], "rows": rows}}

@@ -358,7 +358,7 @@ export function createLabelLayer(options) {
   function shown() {
     return lastPlaced.map(function (item) {
       return { id: item.candidate.id, kind: item.candidate.kind, text: item.candidate.text, left: item.left, top: item.top,
-        width: item.width, height: item.height };
+        width: item.width, height: item.height, x: item.candidate.x, y: item.candidate.y, z: item.candidate.z };
     });
   }
 

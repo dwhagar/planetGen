@@ -35,7 +35,7 @@ these:
 - `pager(...)`: `lib/pagination.render_pagination`, as Markup.
 - `bookmark(kind, value, name, url, sector_id=None)`: what a page's
   ☆ Bookmark button saves (`templates/partials/bookmark.html`).
-- `reference_link(kind, entry=None, label="Where this comes from")`: the
+- `reference_link(kind, entry=None, label="More information")`: the
   quiet link from an in-universe page to the References entry that says
   where a number came from (DOC.87). The only way a page points at
   References; the addresses live in `lib/reference_urls.py`. Templates
@@ -103,10 +103,10 @@ def crumb(label, name=None, _anchor=None, **params):
     return {"label": label, "url": page_url(name, _anchor=_anchor, **params) if name else None}
 
 
-def reference_link(kind, entry=None, label="Where this comes from"):
+def reference_link(kind, entry=None, label="More information"):
     """
     The link from an in-universe page to the References entry that answers "where does this come from" (DOC.87), as Markup:
-    `<a class="reference-link" href="...">Where this comes from</a>`. `kind` and `entry` are those of
+    `<a class="reference-link" href="...">More information</a>`. `kind` and `entry` are those of
     `reference_urls.reference_path` (`reference_link("method", "atmospheres/surface_pressure")`, `reference_link("papers",
     "R0123")`); a kind or id that does not exist raises `ValueError`, so a typo in a template fails the page and the crawl test.
     The link adds no sentence to the page: the label is a small phrase or an icon (`label` may be changed for a short form).

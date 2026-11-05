@@ -230,3 +230,71 @@ def test_a_row_with_a_reason_outside_the_list_is_refused(galaxy):
         conn.execute("INSERT INTO designations (designation_kind, designation_name, object_kind, object_row_id, retired_epoch, reason)"
                      " VALUES ('name', 'X', 'planets', 1, 1, 'moved')")
     assert raised.value.args[0] in CHECK_VIOLATED
+
+
+# --- GEN.1141: the cascade ------------------------------------------------------------------------------------------------------------------
+
+def _bodies(conn, system_id):
+    return [(table, row["id"], ou.from_bytes(row["uid"])) for table, row in
+            ((table, row) for table in ("stars", "planets", "moons", "asteroid_belts", "comets")
+             for row in conn.execute(f"SELECT id, uid FROM {table} WHERE star_system_id = ? AND uid IS NOT NULL", (system_id,)).fetchall())]
+
+
+def test_the_bodies_of_a_renumbered_system_follow_it_and_each_keeps_its_own_old_id(galaxy):
+    conn = galaxy
+    system = _systems(conn)[0]
+    old = ou.from_bytes(system["uid"])
+    before = _bodies(conn, system["id"])
+    assert len(before) > 2
+    new = _new_uid(old)
+    with conn:
+        moved = rows.renumber_system(conn, "star_systems", system["id"], new, "admin renumber")
+    assert moved[old] == new and len(moved) == len(before) + 1
+    for table, row_id, old_uid in before:
+        now = ou.from_bytes(conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (row_id,)).fetchone()["uid"])
+        assert now == ou.with_body(new, ou.body_of(old_uid)) == moved[old_uid]
+        [kept] = rows.history(conn, table, row_id)
+        assert (kept.kind, kept.designation, kept.reason) == (d.KIND_UID, old_uid, "parent change")
+        assert rows.retired_uid(conn, old_uid).object_row_id == row_id
+        indexed = conn.execute("SELECT uid FROM object_index WHERE uid = ?", (ou.to_bytes(now),)).fetchone()
+        assert indexed is not None
+        assert rows.live_holder(conn, old_uid) is None and rows.live_holder(conn, now) == (table, row_id)
+    [kept] = rows.history(conn, "star_systems", system["id"])
+    assert kept.reason == "admin renumber"
+    other = _systems(conn)[1]
+    assert all(ou.same_system(u, ou.from_bytes(other["uid"])) for _t, _i, u in _bodies(conn, other["id"]))
+
+
+def test_a_belt_member_and_a_captured_body_name_follow_their_parent_and_the_old_text_finds_the_new(galaxy):
+    conn = galaxy
+    system = _systems(conn)[0]
+    belts = [(t, i, u) for t, i, u in _bodies(conn, system["id"]) if t == "asteroid_belts"]
+    planets = [(t, i, u) for t, i, u in _bodies(conn, system["id"]) if t == "planets"]
+    belt_uid = belts[0][2] if belts else planets[0][2]
+    belt_table, belt_row = (belts[0][0], belts[0][1]) if belts else (planets[0][0], planets[0][1])
+    member_before = ou.designation(belt_uid, 0x42)
+    new = _new_uid(ou.from_bytes(system["uid"]))
+    with conn:
+        moved = rows.renumber_system(conn, "star_systems", system["id"], new, "admin renumber")
+    now = ou.from_bytes(conn.execute(f"SELECT uid FROM {belt_table} WHERE id = ?", (belt_row,)).fetchone()["uid"])
+    assert now == moved[belt_uid] and now != belt_uid
+    member_after = ou.designation(now, 0x42)
+    assert member_after != member_before and member_after.endswith(".0042") and member_before.endswith(".0042")
+    found, text = rows.member_now(conn, member_before)
+    assert found.status == d.REDIRECT and text == member_after
+    found, text = rows.member_now(conn, member_after)
+    assert found.status == d.CURRENT and text == member_after
+
+
+def test_a_body_whose_new_id_is_taken_stops_the_whole_cascade(galaxy):
+    conn = galaxy
+    first, second = _systems(conn)
+    new = _new_uid(ou.from_bytes(first["uid"]))
+    with conn:
+        rows.renumber_system(conn, "star_systems", first["id"], new, "admin renumber")
+    before = conn.execute("SELECT uid FROM star_systems WHERE id = ?", (second["id"],)).fetchone()["uid"]
+    with pytest.raises(d.DesignationError):
+        with conn:
+            rows.renumber_system(conn, "star_systems", second["id"], new, "admin renumber")
+    assert conn.execute("SELECT uid FROM star_systems WHERE id = ?", (second["id"],)).fetchone()["uid"] == before
+    assert len(_retired(conn, designation_kind="uid", object_kind="star_systems")) == 1

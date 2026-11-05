@@ -438,8 +438,10 @@ def _course_readout_html(course):
     """
     The course readout and legend above the map (NAV.20): what the two
     line styles are, the course's distance, bearing and mark, the warp
-    times, and the route's stops as links (the keyboard way to a hop; the
-    ringed hops on the map are clickable too).
+    times, the route's stops as links (the keyboard way to a hop; the
+    ringed hops on the map are clickable too) and, for a route with stops
+    on the way, the course diagram (`readout["diagram"]`, NAV.69), whose
+    stops and the map's rings select each other (`static/coursediagram.js`).
     """
     readout = course.get("readout") or {}
     has_hops = bool(course.get("direct"))
@@ -447,7 +449,7 @@ def _course_readout_html(course):
            + ("Route via adjacent systems" if has_hops else "Course (the direct line is the route)") + "</li>"]
     if has_hops:
         key.append('<li><span class="course-key-direct" aria-hidden="true"></span> Direct line</li>')
-    key.append('<li><span class="course-key-ring" aria-hidden="true"></span> Stop (click to open it)</li>')
+    key.append('<li><span class="course-key-ring" aria-hidden="true"></span> Stop (click to select it, click again to open it)</li>')
     rows = [("Distance", readout.get("distance")), ("Course", readout.get("course")),
             ("Frame", readout.get("frame")), ("Route length", readout.get("route_distance"))]
     rows += [(item["label"], item["text"]) for item in readout.get("times", [])]
@@ -458,6 +460,7 @@ def _course_readout_html(course):
         '<div class="course-readout"><ul class="course-key" aria-label="Legend">' + "".join(key) + "</ul>"
         + (f'<dl class="course-facts">{facts}</dl>' if facts else "")
         + (f'<ol class="course-stops" aria-label="Stops on the route">{stops}</ol>' if stops else "")
+        + (readout.get("diagram") or "")
         + "</div>"
     )
 
@@ -723,6 +726,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '      <option value="luminosity">Luminosity</option>\n'
             '      <option value="stars">Star count</option>\n'
             '      <option value="habitable">Habitable worlds</option>\n'
+            '      <option value="cover">Nebula cover</option>\n'
             '    </select></label>\n')
         legend_block = (
             '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'
@@ -801,6 +805,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <aside class="starmap-info" id="galaxymap3d-info" data-overlay aria-label="Selection">
 <p class="hint">{info_hint}</p>
 </aside>
+<section class="galaxy-strip" id="galaxymap3d-strip" aria-label="Side strip: height above and below the galactic plane" hidden>
+<div class="galaxy-strip-head"><strong>Side strip</strong>
+<button type="button" class="starmap-btn" data-strip-close title="Put the side strip away">Close</button></div>
+</section>
 </div>
 </div>
 <div class="starmap-side">
@@ -817,6 +825,17 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
+    <button type="button" class="starmap-btn" data-action="plane-view" data-icon="plane-view" aria-pressed="false"
+            title="Tilt the map and lay a grid on a plane through a 60 degree wedge of the galaxy, with rings at round distances (around the selection when there is one)">Plane view</button>
+    <button type="button" class="starmap-btn" data-action="plane-midplane" data-icon="plane-midplane" aria-pressed="false" disabled
+            title="Lay the plane view's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Plane at galactic midplane</button>
+    <button type="button" class="starmap-btn" data-action="plane-stems" data-icon="plane-stems" aria-pressed="true" disabled
+            title="Show or hide the stems from stars down to the plane view's grid plane">Stems</button>
+    <label class="galaxy-menu-stretch" title="Draw heights above and below the plane this many times taller than true; the grid says so">Stem height
+      <input type="range" id="galaxymap3d-plane-stretch" min="1" max="10" step="1" value="1" disabled aria-valuetext="true height">
+      <output id="galaxymap3d-plane-stretch-out" for="galaxymap3d-plane-stretch">true</output></label>
+    <button type="button" class="starmap-btn" data-action="side-strip" data-icon="side-strip" aria-pressed="false"
+            title="Show the stars of a 60 degree wedge edge-on: distance from the galactic centre across, height up and down. Picking a star in either view selects it in both">Side strip</button>
     <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
             title="Draw the cells of this step (blocks, then sectors) as a grid over the map">Cell grid</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"

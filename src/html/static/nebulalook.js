@@ -4,8 +4,10 @@
 // opacity composited over the map's background, which is black (`--map-bg`, UX.255 removed the light theme's looks). Every family reaches CONTRAST_TARGET
 // (3:1, WCAG's floor for graphics) against black; tests/js/nebulalook.test.mjs checks it against the real colour in style.css.
 //
-// A look is [colour, core opacity, edge opacity], as galaxymap3d.js reads them. The dark family is a dust colour, a pale umber; MAP.181 settles the final
-// one. The hues are those the Sector Map uses (planetgen/web/maps/starmap.py's _NEBULA_TYPE_COLORS, MAP.175 leaves that map as it is).
+// A look is [colour, core opacity, edge opacity], as galaxymap3d.js reads them. The dark family is dust, an umber (MAP.181): too dim to reach 3:1 as a
+// fill on black (an umber that does at a fill opacity that reads as dust is not an umber any more), so it has a light rim as well (NEBULA_RIMS), drawn
+// as a ring near the cloud's edge, and it is the rim that reaches CONTRAST_TARGET. The other hues are those the Sector Map uses
+// (planetgen/web/maps/starmap.py's _NEBULA_TYPE_COLORS, MAP.175 leaves that map as it is).
 
 export const CONTRAST_TARGET = 3;
 
@@ -14,8 +16,13 @@ export const NEBULA_LOOKS = {
   emission: ["#ff6f91", 0.69, 0.25],
   reflection: ["#6fa8ff", 0.63, 0.22],
   planetary: ["#5be8c9", 0.66, 0.24],
-  dark: ["#b08a67", 0.7, 0.3],
+  dark: ["#a9805a", 0.45, 0.3],
   default: ["#c9a8e0", 0.56, 0.22],
+};
+
+// A family's light rim, [colour, opacity]: a ring near the edge of its sprite. Only the dark family has one.
+export const NEBULA_RIMS = {
+  dark: ["#d9b48a", 0.6],
 };
 
 // "#rrggbb" as [r, g, b], 0..255.
@@ -48,4 +55,11 @@ export function contrastRatio(a, b) {
 // A look's core, as it shows over `background`, against `background`.
 export function lookContrast(look, background) {
   return contrastRatio(compositeOver(parseHex(look[0]), look[1], background), background);
+}
+
+// What a family shows against `background` at its best: its rim where it has one (MAP.181), else its core. Every family reaches CONTRAST_TARGET by this.
+export function familyContrast(family, background) {
+  const rim = NEBULA_RIMS[family];
+  const core = lookContrast(NEBULA_LOOKS[family], background);
+  return rim ? Math.max(core, lookContrast(rim, background)) : core;
 }

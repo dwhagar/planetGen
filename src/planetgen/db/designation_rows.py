@@ -10,7 +10,11 @@ The `designations` table holds what an object stopped being called: this module 
 collision bump hands a stored object's name to another); a retired ID is, by the unique index on `designation_uid` and the objects' own unique
 `uid` columns.
 
-What `renumber` leaves to the cascade of GEN.1141: the bodies of a system whose ID changes (each is renumbered by its own call), the pointers with
+`renumber_system` is the cascade of GEN.1141: a system (or free planet) whose ID changes takes its bodies with it in the same transaction, each
+with its own call of `renumber` and so its own row in `designations`. A belt's members and a captured body print `<parent ID>.<rank hex>` and are
+stored nowhere, so they follow their parent's ID by themselves; `member_now` answers a member's retired text.
+
+What `renumber` leaves to the cascade: the bodies of a system whose ID changes, the pointers with
 no index (`object_index.parent_uid`, which the next index build rewrites, `orbital_events.containing_uid`, `sectors.max_mass_id`), and the
 tombstone of a deleted object. `edit_journal` and `change_plan_ops` name the ID an edit was made under and keep it; a lookup of that ID
 redirects.
@@ -146,10 +150,85 @@ def live_holder(conn, uid):
     return None
 
 
+_SYSTEM_PARENTS = {
+    "star_systems": ("star_system_id", ("stars", "planets", "moons", "asteroid_belts", "comets", "facilities")),
+    "rogue_planets": ("rogue_planet_id", ("moons",)),
+}
+"""dict: The tables whose ID is the prefix of their bodies' IDs, each with the column that names it in a body and the tables that hold bodies (DB.73: a
+moon of a free planet numbers under the rogue planet's own ID)."""
+
+
+def body_rows(conn, table, row_id):
+    """`[(table, row id, uid)]` of the stored bodies that hold an ID under the ID of object `row_id` of `table` (a system or a free planet)."""
+    _check_table(table, tuple(_SYSTEM_PARENTS), "bodies")
+    column, body_tables = _SYSTEM_PARENTS[table]
+    parent = conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    if parent is None or parent["uid"] is None:
+        return []
+    prefix = object_uid.from_bytes(parent["uid"])
+    found = []
+    for body_table in body_tables:
+        for row in conn.execute(f"SELECT id, uid FROM {body_table} WHERE {column} = ? AND uid IS NOT NULL ORDER BY id", (row_id,)).fetchall():
+            uid = object_uid.from_bytes(row["uid"])
+            if object_uid.same_system(uid, prefix):
+                found.append((body_table, row["id"], uid))
+    return found
+
+
+def renumber_system(conn, table, row_id, new_uid, reason):
+    """
+    Gives a system (or a free planet) a new ID and its bodies the new ID with their own body numbers (invariant 4 of the design;
+    `designations.cascade` is the rule). The caller's transaction is the whole of it: a body whose new ID is live or reserved raises
+    before anything is committed, and the caller rolls back. Each body writes its own row in `designations`, with the reason `parent change`.
+
+    A belt's members and a captured body are not stored, so there is nothing to renumber for them: their text follows the belt's or the
+    planet's ID, and `member_now` turns an old text into the current one.
+
+    Args:
+        conn (Connection): Open; one transaction of the caller's.
+        table (str): `star_systems` or `rogue_planets`.
+        row_id (int): The system's `id`.
+        new_uid (int): The ID the system has from now on (body number 0).
+        reason (str): One of `designations.REASONS`.
+
+    Returns:
+        dict: `{old ID: new ID}` of the system and every body, as integers.
+
+    Raises:
+        designations.DesignationError: A new ID that is live or reserved (for the system or any body), or an object that does not exist.
+    """
+    _check_table(table, tuple(_SYSTEM_PARENTS), "bodies")
+    bodies = body_rows(conn, table, row_id)
+    parent = conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    if parent is None:
+        raise designations.DesignationError(f"no object with row {row_id} in {table}")
+    old_uid = object_uid.from_bytes(parent["uid"])
+    moved = designations.cascade(old_uid, new_uid, [uid for _table, _id, uid in bodies])
+    renumber(conn, table, row_id, new_uid, reason)
+    for body_table, body_id, body_uid in bodies:
+        renumber(conn, body_table, body_id, moved[body_uid], "parent change")
+    return {old_uid: new_uid, **moved}
+
+
+def member_now(conn, text):
+    """
+    The current text of a belt member's or captured body's designation (`<parent ID>.<rank hex>`) after its parent's ID changed: `designations.resolve_member`
+    over the database. Returns `(Resolution of the parent, current text or None)`; `None` for a parent nobody held or a deleted one.
+    """
+    def parent(uid):
+        return designations.resolve_uid(uid, lambda value: live_holder(conn, value), [r for r in [retired_uid(conn, uid)] if r is not None])
+
+    def current_uid(table, row_id):
+        row = conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (row_id,)).fetchone()
+        return object_uid.from_bytes(row["uid"])
+
+    return designations.resolve_member(text, parent, current_uid)
+
+
 def renumber(conn, table, row_id, new_uid, reason):
     """
     Gives one object a new ID. The old ID is kept and reserved for ever; the object's row and its `object_index` row take the new one, and so do
-    the live pointers at it that have an index (`_LIVE_POINTERS`). The bodies of a system are not touched: GEN.1141's cascade renumbers each with
+    the live pointers at it that have an index (`_LIVE_POINTERS`). The bodies of a system are not touched: `renumber_system` renumbers each with
     its own call.
 
     Args:

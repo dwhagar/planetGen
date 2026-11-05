@@ -1,0 +1,154 @@
+{
+ "about": "GEN.1271: what a supernova throws out, by element, from the two sourced tables of [R5096: Table 3] (stable isotopes after decay, summed by element) and the stand-ins that scale them with the progenitor's mass, strip it of its envelope and size its remnant (docs/design/research/gap-filling-plan.md section 6.177, registry rows SNC1 to SNC6).",
+ "source": "[R5096: Table 3]",
+ "type_ii_note": "The 'type_ii_10_50' column is the mean mass of each element synthesized per core-collapse supernova over the Type II progenitors of 10 to 50 solar masses (the table's own average, so it carries no progenitor mass; hydrogen and helium are not in it). 'w7' is the thermonuclear model W7 (a 1.37 solar mass white dwarf; no hydrogen or helium).",
+ "elements_solar_masses": {
+  "C": {
+   "type_ii_10_50": 0.0793,
+   "w7": 0.0483
+  },
+  "N": {
+   "type_ii_10_50": 0.00156,
+   "w7": 1.161e-06
+  },
+  "O": {
+   "type_ii_10_50": 1.805,
+   "w7": 0.143
+  },
+  "Ne": {
+   "type_ii_10_50": 0.2314,
+   "w7": 0.004518
+  },
+  "Na": {
+   "type_ii_10_50": 0.00651,
+   "w7": 6.32e-05
+  },
+  "Mg": {
+   "type_ii_10_50": 0.1228,
+   "w7": 0.008572
+  },
+  "Al": {
+   "type_ii_10_50": 0.0148,
+   "w7": 0.000986
+  },
+  "Si": {
+   "type_ii_10_50": 0.122,
+   "w7": 0.1566
+  },
+  "P": {
+   "type_ii_10_50": 0.00121,
+   "w7": 0.000357
+  },
+  "S": {
+   "type_ii_10_50": 0.0412,
+   "w7": 0.087
+  },
+  "Cl": {
+   "type_ii_10_50": 0.0001198,
+   "w7": 0.0001737
+  },
+  "Ar": {
+   "type_ii_10_50": 0.00799,
+   "w7": 0.01565
+  },
+  "K": {
+   "type_ii_10_50": 6.737e-05,
+   "w7": 7.841e-05
+  },
+  "Ca": {
+   "type_ii_10_50": 0.005869,
+   "w7": 0.01194
+  },
+  "Ti": {
+   "type_ii_10_50": 0.0001316,
+   "w7": 0.0003429
+  },
+  "V": {
+   "type_ii_10_50": 1e-05,
+   "w7": 7.492e-05
+  },
+  "Cr": {
+   "type_ii_10_50": 0.001315,
+   "w7": 0.008479
+  },
+  "Mn": {
+   "type_ii_10_50": 0.000386,
+   "w7": 0.00887
+  },
+  "Fe": {
+   "type_ii_10_50": 0.09074,
+   "w7": 0.749
+  },
+  "Co": {
+   "type_ii_10_50": 7.27e-05,
+   "w7": 0.00104
+  },
+  "Ni": {
+   "type_ii_10_50": 0.005973,
+   "w7": 0.1257
+  },
+  "Cu": {
+   "type_ii_10_50": 1.244e-06,
+   "w7": 3.004e-06
+  },
+  "Zn": {
+   "type_ii_10_50": 1.893e-05,
+   "w7": 2.823e-05
+  }
+ },
+ "stand_ins": {
+  "table_mass_window_sol": [
+   10.0,
+   50.0
+  ],
+  "yield_exponent": {
+   "alpha_heavy": 2.5,
+   "alpha_light": 1.5,
+   "iron_group": 0.0
+  },
+  "yield_group": {
+   "O": "alpha_heavy",
+   "Ne": "alpha_heavy",
+   "Mg": "alpha_heavy",
+   "Na": "alpha_heavy",
+   "C": "alpha_light",
+   "Al": "alpha_light",
+   "Si": "alpha_light",
+   "P": "alpha_light",
+   "S": "alpha_light",
+   "Cl": "alpha_light",
+   "Ar": "alpha_light",
+   "K": "alpha_light",
+   "Ca": "alpha_light",
+   "Sc": "alpha_light",
+   "Ti": "alpha_light",
+   "N": "alpha_light",
+   "F": "alpha_light"
+  },
+  "processed_share_cap": 0.9,
+  "stripped_above_mass_sol": 40.0,
+  "binary_stripped_share": 0.33,
+  "type_ia_progenitor_range_sol": [
+   3.0,
+   8.0
+  ],
+  "least_ejecta_share": 0.02
+ },
+ "presupernova_table": {
+  "source": "[R4251: Table 2] (solar metallicity, their mass-loss prescription): initial mass, final presupernova mass, helium core mass (X(H) <= 0.2); at and above 60 solar masses every model is a bare helium or carbon-oxygen star, so the helium core is the final mass",
+  "columns": ["initial_mass_sol", "final_mass_sol", "helium_core_mass_sol"],
+  "rows": [
+   [10.0, 9.675, 2.476],
+   [12.0, 10.902, 3.116],
+   [15.0, 12.603, 4.352],
+   [20.0, 15.848, 6.207],
+   [25.0, 15.849, 8.251],
+   [30.0, 13.805, 10.359],
+   [60.0, 7.289, 7.289],
+   [70.0, 6.408, 6.408],
+   [80.0, 6.368, 6.368],
+   [100.0, 6.036, 6.036],
+   [120.0, 6.160, 6.160]
+  ]
+ }
+}

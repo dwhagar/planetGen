@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.3207 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.3262 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -197,7 +197,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Source: [R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com.
 - Download: 3 files, 1257.8 MB. Kept after setup: `ir_ktables.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_ktables`.
-- Replaces: the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band centre of the gas table.
+- Replaces: the band-strength and wing stand-ins of the gray infrared opacity: plateau opacities per band center of the gas table.
 - With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_h2o.fits.gz`
@@ -209,7 +209,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Source: [R2267], HITRAN collision-induced absorption files from hitran.org.
 - Download: 11 files, 195.4 MB. Kept after setup: `ir_cia.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_cia`.
-- Replaces: the coarse pair coefficients of the grey infrared opacity, read at six temperatures from a part-03 table.
+- Replaces: the coarse pair coefficients of the gray infrared opacity, read at six temperatures from a part-03 table.
 - With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the pairs are read to fit and check it.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://hitran.org/data/CIA/main/N2-N2_2021.cia> as `N2-N2_2021.cia`
@@ -286,7 +286,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
   - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
   - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
 
-### `mamajek_dwarf_sequence`: Mamajek mean dwarf stellar colour and effective temperature sequence (2022.04.16)
+### `mamajek_dwarf_sequence`: Mamajek mean dwarf stellar color and effective temperature sequence (2022.04.16)
 
 - Source: [R3469], version 2022.04.16 of E. Mamajek's table.
 - Download: 1 file, 56 kB. All kept as downloaded.
@@ -295,6 +295,16 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - With `--disregard-missing-data`: nothing falls back, the run is still refused.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://www.pas.rochester.edu/~emamajek/EEM_dwarf_UBVIJHK_colors_Teff.txt> as `EEM_dwarf_UBVIJHK_colors_Teff.txt`
+
+### `hhe_eos`: [R0708] hydrogen-helium equation of state, (T, P) tables
+
+- Source: [R0708, R0709], DirEOS2021, ENS Lyon.
+- Download: 1 file, 16.4 MB. Kept after setup: `hhe_eos.npz` (the download is deleted once it is reduced).
+- Fetch: `python3 -m planetgen.cli.datasets fetch hhe_eos`.
+- Replaces: the n = 1 polytrope of a gas giant, the n = 3/2 polytrope of a brown dwarf and the constant-density layers of an ice giant.
+- With `--disregard-missing-data`: The polytrope profile of the layer pressures (n = 1 gas giant, n = 3/2 brown dwarf, constant-density ice giant).
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://perso.ens-lyon.fr/gilles.chabrier/DirEOS/DirEOS2021.tar.gz> as `DirEOS2021.tar.gz`
 
 <!-- external-files:end -->
 

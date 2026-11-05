@@ -95,6 +95,8 @@ const BUTTON_ZOOM = 1.25;
 // side and one above another. Cells touch: no space between them (Boss,
 // 2026-10-01).
 export const ISO_TILT = Math.atan(Math.SQRT2);
+// MAP.371: the plane view's tilt, from straight down: flatter than the isometric slant, so a grid on the plane and the heights above it read.
+export const PLANE_TILT = (62 * Math.PI) / 180;
 // Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
 // whole galaxy too since MAP.85): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. It turns any way by
@@ -282,14 +284,21 @@ export function createStageView(host) {
         (payload.sectors || []).forEach(function (sector) {
           sectors.set(cellKey(sector), sector);
         });
-        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map() };
+        // MAP.177: the share of each cell inside a nebula, filled or not (`null`: the cover could not be read).
+        const covers = new Map();
+        (payload.nebula_cover || []).forEach(function (cell) {
+          covers.set(cell[0] + "/" + cell[1] + "/" + cell[2], cell[3]);
+        });
+        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map(), covers: covers,
+          coverKnown: Array.isArray(payload.nebula_cover) };
         payload.sectors && payload.sectors.forEach(function (sector) {
           entry.value.sectorGenerated.set(cellKey(sector), 1);
         });
         entry.ready = true;
         return entry.value;
       }).then(null, function () {
-        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
+        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), covers: new Map(),
+          coverKnown: false, failed: true };
         entry.ready = true;
         dataCache.delete(key);
         return entry.value;
@@ -333,6 +342,13 @@ export function createStageView(host) {
       return sector ? sector.stats || null : null;
     }
     return data.stats.get(key) || null;
+  }
+
+  // MAP.177: the share of `block` inside a nebula (0 when none), or null when this window has no cover for it: a sector
+  // (the stored aggregates are of the blocks above one) or a payload whose cover could not be read.
+  function coverOf(block, data) {
+    if (!data || !data.coverKnown || block.m === 1) return null;
+    return data.covers.get(cellKey(block)) || 0;
   }
 
   // The choices a stage offers: [{pick, blocks, a0, a1}], one per block.
@@ -412,7 +428,7 @@ export function createStageView(host) {
           shell: block.shell, band: block.band, wedge: block.wedge,
           r0: b.r0, r1: b.r1, c0: b.c0, c1: b.c1, t0: b.t0, t1: b.t1,
           filled: filled, total: filled > 0 ? totalOf(block) : 0, stats: statsOf(block, data), block: block,
-          option: index,
+          cover: coverOf(block, data) || 0, option: index,
         };
       });
     });
@@ -1477,9 +1493,28 @@ export function createStageView(host) {
   function openBlock(block) {
     if (!view || animation || !P.isBlock(block)) return false;
     const next = S.windowStage(block, stage.win ? stage.win.g : P.DEFAULT_WINDOW);
-    if (resolve(next).problem) return false;
-    flyToStage(next);
+    const r = resolve(next);
+    if (r.problem) return false;
+    flyToStage(next, { camera: holdingLevel(cameraFor(r), block.m) });
     return true;
+  }
+
+  // MAP.376: the camera `to` out far enough that the window it lands in is at `level` (a block's m) or coarser. The window follows the camera
+  // (MAP.337), and a block that is small beside its level (one at the core, or the few cells a window holds) fills the view from nearer than
+  // the level's own distance, which would land in a finer window than the block's; the camera is moved out past each finer window's fit until the
+  // block's level holds, so a flight to a family or a region's block frames the whole block at every level of the ladder.
+  function holdingLevel(to, level) {
+    const quat = to.quat.toArray ? to.quat.clone() : new THREE.Quaternion().fromArray(to.quat);
+    let dist = to.dist;
+    for (let n = 0; n <= P.STAGE_LEVELS.length; n++) {
+      const held = stageForCamera({ target: to.target, dist: dist, quat: quat.toArray() });
+      if (!held || !held.win || held.win.centre.m >= level) break;
+      const r = resolve(held);
+      if (r.problem) break;
+      const fit = centeredFit(fitPointsOf(r), S.extentOf(r.view.blocks).center, quat).dist;
+      dist = Math.max(dist, fit) * (1 + 1e-3) * (1 + STAGE_FIT_TOLERANCE);
+    }
+    return { target: to.target.slice(), dist: dist, quat: quat };
   }
 
   // MAP.319: flies to a region: its 9-block's window, with the camera where the region's bounding sphere
@@ -1493,6 +1528,7 @@ export function createStageView(host) {
       target: target.center.slice(), quat: view.quat.toArray(),
       dist: FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }),
     };
+    // The region's sphere fills the view (MAP.319); the camera's window follows its distance, as on any wheel zoom.
     flyToStage(next, { camera: want });
     return true;
   }
@@ -1729,6 +1765,13 @@ export function createStageView(host) {
     tooltip.showAt(optionText(index), camera, canvasEl, middle[0], middle[1], middle[2]);
   }
 
+  // MAP.177: a share of a cell inside a nebula, for the hover text.
+  function coverText(cover) {
+    if (cover === null) return "nebula cover not charted here";
+    if (!(cover > 0)) return "no nebula";
+    return (cover >= 0.1 ? (cover * 100).toFixed(0) : cover >= 0.01 ? (cover * 100).toFixed(1) : (cover * 100).toFixed(2)) + "% inside a nebula";
+  }
+
   function blockText(block, data) {
     const b = block.bounds;
     const generated = generatedOf(block, data);
@@ -1740,6 +1783,7 @@ export function createStageView(host) {
       Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
     if (block.m === 1) parts.push(generated > 0 ? "charted" : "uncharted");
     else parts.push(S.formatCount(generated) + (block.total != null ? " of " + S.formatCount(block.total) : "") + " sectors charted");
+    if (colorBy === "cover") parts.push(coverText(coverOf(block, data)));
     return parts.join(", ");
   }
 
@@ -2994,6 +3038,26 @@ export function createStageView(host) {
     });
   }
 
+  // MAP.371: the plane view's tilt preset (`on`), or the stage's own tilt again (off): the camera turns about its target to the
+  // tilt, keeping the bearing it looks from, the target and the distance, and the user's zoom is read again from the new turn.
+  // Returns false when the camera is not free to move now.
+  function planeTilt(on) {
+    if (!resolved || animation || !display || !view) return false;
+    dropZoomGoal();
+    const from = viewNow();
+    const kept = view;
+    const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
+    const theta = Math.hypot(back.x, back.y) > 1e-6 ? Math.atan2(back.y, back.x) : -Math.PI / 2;
+    const to = { target: from.target.slice(), dist: from.dist, quat: presetQuat(theta, on ? PLANE_TILT : (enteredSystem || entered) ? ISO_TILT : presetTilt(resolved)) };
+    flyCamera(from, to, null, function () {
+      view = Object.assign({}, kept, { target: to.target.slice(), dist: to.dist, quat: to.quat.clone() });
+      const fit = fitNow();
+      if (fit > 0) view.zoom = view.dist / fit;
+      applyView();
+    });
+    return true;
+  }
+
   // Moves the orbit center to the selection (a star, cloud or body), or to
   // the middle of what the stage shows when nothing is selected, keeping the
   // angle and the zoom, so the mouse and the keys then turn and zoom about it
@@ -3949,14 +4013,34 @@ export function createStageView(host) {
   function sectorLabels() {
     if (!display || !display.options || entered || pinned) return [];
     const labels = [];
+    const seen = new Set();
+    // MAP.378: the generated sectors the server named near the camera (the camera alone chooses what is near, MAP.335) ...
+    if (nearRead) {
+      nearRead.candidates.forEach(function (candidate) {
+        const record = candidate.record;
+        const middle = candidate.center;
+        const id = "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(candidate.block));
+        seen.add(id);
+        labels.push({
+          id: id,
+          text: record.name || "Sector " + S.sectorDesignation(candidate.block.shell, candidate.block.band, candidate.block.wedge),
+          x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
+          slice: { massKg: record.stats && record.stats.mass_kg > 0 ? record.stats.mass_kg : 0 },
+          ref: { kind: "sector", sector: { shell: candidate.block.shell, band: candidate.block.band, wedge: candidate.block.wedge } },
+        });
+      });
+    }
+    // ... and those of a stage whose window holds sectors.
     display.options.forEach(function (option) {
       const block = option.blocks[0];
       if (option.blocks.length !== 1 || block.m !== 1) return;
       const record = sectorRecord(block);
       if (!record) return;
       const middle = P.cellCenter(block.bounds);
+      const id = "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block));
+      if (seen.has(id)) return;
       labels.push({
-        id: "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block)),
+        id: id,
         text: record.name || "Sector " + S.sectorDesignation(block.shell, block.band, block.wedge),
         x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
         slice: { massKg: record.stats && record.stats.mass_kg > 0 ? record.stats.mass_kg : 0 },    // MAP.322: the heaviest sectors are named first
@@ -4036,6 +4120,9 @@ export function createStageView(host) {
     onKey: onKey,
     onWheel: onWheel,
     resetView: resetView,
+    planeTilt: planeTilt,
+    // MAP.373: the center of the sector opened in place, or null.
+    sectorCenter: function () { return entered ? entered.center.slice() : null; },
     recenter: recenter,
     home: home,
     up: up,

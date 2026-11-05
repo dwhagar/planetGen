@@ -39,7 +39,7 @@ import tempfile
 import time
 from datetime import datetime, timezone
 
-from planetgen.admin import maintenance
+from planetgen.admin import maintenance, stop_reason
 from planetgen.queue import stopall
 
 UPDATE_CAUSE = "update"
@@ -242,6 +242,7 @@ class MarkerSource:
         return found
 
     def cancel(self, item):
+        stop_reason.leave(item["pid"], "the update guard canceled it, because an update or a cancel from the Stats page needs the machine")
         with contextlib.suppress(OSError):
             os.kill(item["pid"], signal.SIGTERM)
         return True
