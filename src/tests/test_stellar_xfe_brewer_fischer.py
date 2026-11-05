@@ -4,11 +4,11 @@ The generated stellar [X/Fe] against the [R0535] table, not only its trend and s
 The fits of `tuning.STELLAR_XFE_FITS` were made to [R0349, R3294] and only the residual correlation of C, O, Mg and Si comes
 from Brewer and Fischer (1,615 FGK dwarfs, VizieR J/ApJS/225/32). `tests/data/brewer_fischer_xfe_bands.json` holds that table reduced to
 bands by [Fe/H] (built by `scripts/build_brewer_fischer_bands.py`; the stars are not kept). The generator is asked, bin by bin, for the
-[X/Fe] of stars drawn across the bin with the table's share of thick-disc ages, and its median and scatter are held to the table's.
+[X/Fe] of stars drawn across the bin with the table's share of thick-disk ages, and its median and scatter are held to the table's.
 
 Brewer and Fischer's scatter includes their own measurement error (about 0.03 to 0.06 dex), and their [X/H] sit on their own solar
 scale, so the tolerances are those of a cross-check between two calibrations: the medians within 0.10 dex, the scatter within a factor
-of three either way (the tolerance of the first tests). The scatter and the thin-disc magnesium, silicon and oxygen trend were then refitted to
+of three either way (the tolerance of the first tests). The scatter and the thin-disk magnesium, silicon and oxygen trend were then refitted to
 the table (GEN.988 to GEN.991, `scripts/fit_stellar_xfe_refit.py`): their tests hold the scatter to half again the table's robust spread
 (`(p84 - p16) / 2`, which leaves out the handful of far stars the table has) and the medians to 0.05 dex.
 """
@@ -32,7 +32,7 @@ SCATTER_ROBUST = 1.5
 
 
 def generated(entry, element, seed=456):
-    """`DRAWS` generated [X/Fe] of `element` for stars spread across the bin, a share `older_than_thick_start` of them thick-disc old."""
+    """`DRAWS` generated [X/Fe] of `element` for stars spread across the bin, a share `older_than_thick_start` of them thick-disk old."""
     rng = np.random.default_rng(seed)
     values = []
     for _ in range(DRAWS):
@@ -67,7 +67,7 @@ def test_the_generated_scatter_is_within_half_again_of_the_tables_robust_scatter
 
 
 @pytest.mark.parametrize("element", ["O", "Mg", "Si"])
-def test_the_thin_disc_oxygen_magnesium_and_silicon_medians_are_within_a_twentieth_of_a_dex_of_the_table(element):
+def test_the_thin_disk_oxygen_magnesium_and_silicon_medians_are_within_a_twentieth_of_a_dex_of_the_table(element):
     """GEN.989 and GEN.991: the generated [Mg/Fe] sat 0.05 to 0.07 dex above the table from [Fe/H] -0.2 up (silicon 0.03 to 0.05, oxygen 0.03 to 0.09 below)."""
     for entry in BINS:
         shift = float(np.median(generated(entry, element))) - entry[element]["median"]
@@ -75,7 +75,7 @@ def test_the_thin_disc_oxygen_magnesium_and_silicon_medians_are_within_a_twentie
 
 
 def test_the_magnesium_to_silicon_ratio_stays_on_the_tables_scale():
-    """The two thin-disc trends moved together, so the rock's Mg/Si did not drop by the 0.07 dex of magnesium alone."""
+    """The two thin-disk trends moved together, so the rock's Mg/Si did not drop by the 0.07 dex of magnesium alone."""
     for entry in BINS:
         table = entry["Mg"]["median"] - entry["Si"]["median"]
         shift = float(np.median(generated(entry, "Mg") - generated(entry, "Si"))) - table

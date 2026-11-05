@@ -1,34 +1,34 @@
 # planetgen/physics/belt_populations.py
 
 """
-The population each stored member of an outer disc belongs to, and the orbit that gives it (GEN.1092)
+The population each stored member of an outer disk belongs to, and the orbit that gives it (GEN.1092)
 ======================================================================================================
 
-The scatter step (`scatter.scatter_shares`, GEN.1089) says what share of an outer disc the giants left on cold orbits, excited, held in resonances, scattered, left crossing the giants or
-lifted out of reach. A stored member of that belt (`belt_roster`, GEN.1070) is one body of the disc, so it belongs to one of those populations with the chance of the population's share of the mass
+The scatter step (`scatter.scatter_shares`, GEN.1089) says what share of an outer disk the giants left on cold orbits, excited, held in resonances, scattered, left crossing the giants or
+lifted out of reach. A stored member of that belt (`belt_roster`, GEN.1070) is one body of the disk, so it belongs to one of those populations with the chance of the population's share of the mass
 (the biggest bodies are drawn from the same size law whichever population holds them), and its orbit follows from which one it is:
 
 * `cold_classical`: stirred only as much as the belt's width allows, `COLD_STIRRING` times the rms eccentricity and inclination the whole belt has.
 * `hot_classical`: the belt's own rms eccentricity and inclination.
 * `resonant`: at the giant's exterior 3:2 or 2:1 resonance (`scatter.RESONANCES`, `scatter.resonance_au`), eccentricity drawn from `RESONANT_E_RANGE`; a belt that does not reach the resonance
   keeps the body cold.
-* `scattered_disc`: perihelion between the giant's orbit and the belt's inner edge (the zone the giant scatters), so the eccentricity follows from the semi-major axis.
+* `scattered_disk`: perihelion between the giant's orbit and the belt's inner edge (the zone the giant scatters), so the eccentricity follows from the semi-major axis.
 * `centaurs`: perihelion `CENTAUR_PERIHELION_OVER_GIANT` times the giant's distance, inside it: the orbit crosses the giant's, and the semi-major axis stays in the belt's first stretch.
 * `detached`: perihelion `DETACHED_PERIHELION_OVER_INNER_EDGE` times the belt's inner edge, beyond the giant's reach, with the semi-major axis the belt's.
 
-The populations that left the disc (`ejected`, `trojans`, `implanted_inner_belt`, `captured_moons`) hold no member. A belt without a giant has all its members cold. All the numbers are stand-ins
-(registry 6.168).
+The populations that left the disk (`ejected`, `trojans`, `implanted_inner_belt`, `captured_moons`) hold no member. A belt without a giant has all its members cold. All the numbers are stand-ins
+(registry 6.183).
 """
 
 import math
 
 from planetgen.physics import scatter
 
-IN_DISC = ("cold_classical", "hot_classical", "resonant", "scattered_disc", "centaurs", "detached")
-"""tuple: The scatter populations whose bodies stay in the disc and so can be stored members."""
+IN_DISK = ("cold_classical", "hot_classical", "resonant", "scattered_disk", "centaurs", "detached")
+"""tuple: The scatter populations whose bodies stay in the disk and so can be stored members."""
 
 COLD_STIRRING = 0.25
-"""float: The cold classical members' eccentricity and inclination over the belt's rms (a cold disc stirred only by its own bodies). [Stand-in BPO1, tier Confident educated guess from inferred physics, tweak L4.]"""
+"""float: The cold classical members' eccentricity and inclination over the belt's rms (a cold disk stirred only by its own bodies). [Stand-in BPO1, tier Confident educated guess from inferred physics, tweak L4.]"""
 
 RESONANT_E_RANGE = (0.05, 0.35)
 """tuple: The eccentricity a body held in a resonance is drawn from, uniform. [Stand-in BPO2, tier Marginal educated guess from inferred physics, tweak L4.]"""
@@ -50,7 +50,7 @@ def member_weights(shares):
     """`(tag, weight)` of the populations that hold stored members, the weights the shares of the scatter step (none: all `cold_classical`)."""
     if not shares:
         return (("cold_classical", 1.0),)
-    weights = tuple((tag, max(float(shares.get(tag, 0.0)), 0.0)) for tag in IN_DISC)
+    weights = tuple((tag, max(float(shares.get(tag, 0.0)), 0.0)) for tag in IN_DISK)
     return weights if sum(weight for _, weight in weights) > 0.0 else (("cold_classical", 1.0),)
 
 
@@ -79,7 +79,7 @@ def orbit(tag, base_au, lower_au, upper_au, giant_au, u_a, u_e):
     Args:
         base_au (float): The body's semi-major axis from the belt's solids.
         lower_au, upper_au (float): The belt's edges.
-        giant_au (float or None): The distance of the giant the disc was swept by, if there was one.
+        giant_au (float or None): The distance of the giant the disk was swept by, if there was one.
         u_a, u_e (float): Two uniform numbers, 0 to 1, for the choices the population makes.
     """
     cold = ("cold_classical", base_au, COLD_STIRRING, None)
@@ -93,9 +93,9 @@ def orbit(tag, base_au, lower_au, upper_au, giant_au, u_a, u_e):
         if not places:
             return cold
         return ("resonant", places[min(int(u_a * len(places)), len(places) - 1)], None, _between(RESONANT_E_RANGE, u_e))
-    if tag == "scattered_disc":
+    if tag == "scattered_disk":
         perihelion = giant_au + u_e * (lower_au - giant_au)
-        return ("scattered_disc", base_au, None, _bound(perihelion, base_au))
+        return ("scattered_disk", base_au, None, _bound(perihelion, base_au))
     if tag == "centaurs":
         a = lower_au * (1.0 + 0.5 * u_a)
         a = min(a, upper_au)

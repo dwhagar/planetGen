@@ -9,14 +9,14 @@ what they were, a body with no core keeps no core state).
 
 1. **Geometry.** The core is one uniform shell of the body's metal mass inside the core radius the mantle box already uses; the mantle is one
    uniform shell outside it (the shells of `interior_heat.binding_energy_j`). Pressures are those of the shells times `PRESSURE_FACTOR` (the
-   compression a uniform body leaves out; Earth's core-mantle boundary at 136 GPa and its centre at 364 GPa).
+   compression a uniform body leaves out; Earth's core-mantle boundary at 136 GPa and its center at 364 GPa).
 2. **Boundary layer.** `Q = k_m A (T_c - T_b) / delta`, `T_b` the mantle's adiabat carried down to the boundary (`MANTLE_ADIABAT_K_GPA` per GPa
    above the box's temperature), `delta` the layer's thickness from its critical Rayleigh number at the viscosity of the layer's mean
    temperature with an activation volume (`ACTIVATION_VOLUME_M3_MOL`; the box's viscosity law is the upper mantle's, the lower mantle is stiffer).
 3. **Cooling.** `C dT_c/dt = -Q`, `C` the core's heat capacity plus, once there is an inner core, the latent heat and gravitational energy of the iron
    that freezes onto it per kelvin of cooling (`LATENT_HEAT_J_KG`, `GRAVITATIONAL_ENERGY_J_KG`).
 4. **Inner core.** The core's adiabat (`CORE_ADIABAT_K_GPA` per GPa below `T_c`) meets the iron liquidus (`T_0 sqrt(1 + P / A)`, anchored on Earth's inner
-   core boundary, 5,400 K at 329 GPa) where the inner core stops: the centre freezes first, and the inner core's radius follows `T_c`.
+   core boundary, 5,400 K at 329 GPa) where the inner core stops: the center freezes first, and the inner core's radius follows `T_c`.
 5. **Dynamo.** The core conducts down its own adiabat, `Q_ad = k_c A (dT/dP)_ad rho g`; the convecting power left over, `(1 - T_b / T_c)(Q - Q_ad)`,
    plus the gravitational energy of the freezing iron, drives the dynamo (`Core.dynamo_w`). The dynamo runs while that power is above zero and the
    core still has a liquid shell. `Core.dynamo_ended_gy` is the age it last stopped (`None` while it runs).
@@ -136,7 +136,7 @@ class Stepper:
                                                       + 4.0 / 3.0 * math.pi * mantle_density * (dry_m ** 2 - core_m ** 2) / 2.0)
         self.cmb_gpa = PRESSURE_FACTOR * pressure_pa / 1.0e9
         self.core_slope_gpa_m2 = PRESSURE_FACTOR * 2.0 * math.pi / 3.0 * constants.G * self.density ** 2 / 1.0e9
-        self.centre_gpa = self.cmb_gpa + self.core_slope_gpa_m2 * core_m ** 2
+        self.center_gpa = self.cmb_gpa + self.core_slope_gpa_m2 * core_m ** 2
         self.liquidus_scale_gpa = LIQUIDUS_ANCHOR[0] / ((LIQUIDUS_ANCHOR[1] / LIQUIDUS_ZERO_K) ** 2 - 1.0)
         self.capacity = metal_kg * CORE_SPECIFIC_HEAT
         self.pressure_enthalpy_j_mol = ACTIVATION_VOLUME_M3_MOL * PRESSURE_SCALE_GPA * 1.0e9 * math.log(1.0 + self.cmb_gpa / PRESSURE_SCALE_GPA)
@@ -160,7 +160,7 @@ class Stepper:
 
         def gap(pressure_gpa):
             return self.liquidus_k(pressure_gpa) - (temperature_k + k * (pressure_gpa - self.cmb_gpa))
-        if gap(self.centre_gpa) < 0.0:
+        if gap(self.center_gpa) < 0.0:
             return 0.0, None
         if gap(self.cmb_gpa) >= 0.0:
             return self.core_m, None
@@ -171,8 +171,8 @@ class Stepper:
         c = u * u - LIQUIDUS_ZERO_K ** 2
         root = math.sqrt(max(b * b - 4.0 * k * k * c, 0.0))
         crossing = min(((-b + sign * root) / (2.0 * k * k) for sign in (1.0, -1.0)),
-                       key=lambda pressure: abs(min(max(pressure, self.cmb_gpa), self.centre_gpa) - pressure))
-        crossing = min(max(crossing, self.cmb_gpa), self.centre_gpa)
+                       key=lambda pressure: abs(min(max(pressure, self.cmb_gpa), self.center_gpa) - pressure))
+        crossing = min(max(crossing, self.cmb_gpa), self.center_gpa)
         return math.sqrt(max(self.core_m ** 2 - (crossing - self.cmb_gpa) / self.core_slope_gpa_m2, 0.0)), crossing
 
     def inner_radius_m(self, temperature_k):

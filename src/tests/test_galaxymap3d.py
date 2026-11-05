@@ -127,7 +127,7 @@ def test_the_panel_holds_the_side_strip_closed_with_its_menu_button():
     assert strip.split(">", 1)[0].endswith("hidden") and "data-strip-close" in strip
 
 
-def test_the_panel_carries_the_superbubbles_as_centre_and_radius():
+def test_the_panel_carries_the_superbubbles_as_center_and_radius():
     """GEN.254: `[x, y, z, radius]` each, galaxy-frame parsecs; none when the page gives none."""
     bubbles = [{"x": 100.5, "y": -20.0, "z": 3.0, "radius_pc": 250.0}, {"x": 1.0, "y": 2.0, "z": 3.0, "radius_pc": 60.0}]
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), superbubbles=bubbles)

@@ -72,9 +72,9 @@ def _dn_dlogm(curve, mass):
             if i + 1 < len(slopes):
                 scale *= breaks[i + 1] ** (slopes[i + 1] - alpha)
         return out
-    centre, sigma, edge, x = math.log10(curve["m_c"]), curve["sigma"], curve["break_sol"], curve["power_law_x"]
-    below = np.exp(-((np.log10(mass) - centre) ** 2) / (2.0 * sigma ** 2))
-    at_edge = math.exp(-((math.log10(edge) - centre) ** 2) / (2.0 * sigma ** 2))
+    center, sigma, edge, x = math.log10(curve["m_c"]), curve["sigma"], curve["break_sol"], curve["power_law_x"]
+    below = np.exp(-((np.log10(mass) - center) ** 2) / (2.0 * sigma ** 2))
+    at_edge = math.exp(-((math.log10(edge) - center) ** 2) / (2.0 * sigma ** 2))
     return np.where(mass <= edge, below, at_edge * (mass / edge) ** -x)
 
 

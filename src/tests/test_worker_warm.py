@@ -34,7 +34,7 @@ def test_a_unit_that_draws_stars_builds_the_tables_in_the_worker():
     assert star_population._bright_table.cache_info().currsize == (
         len(star_population.POPULATIONS) * len(star_population.FE_H_BINS))
     assert units.tables_held()
-    Job.args = ("run", 1, 0, "link-neighbours", {}, 1.0)
+    Job.args = ("run", 1, 0, "link-neighbors", {}, 1.0)
     assert units.sheds_tables_for(Job)
     star_population._bright_table.cache_clear()
     assert not units.sheds_tables_for(Job)
@@ -62,7 +62,7 @@ def test_a_worker_with_tables_puts_a_unit_that_needs_none_back_and_starts_over(m
         id = "job-1"
         origin = "q"
         func_name = units.UNIT_FUNCTION
-        args = ("run", 1, 0, "link-neighbours", {}, 1.0)
+        args = ("run", 1, 0, "link-neighbors", {}, 1.0)
     cls = worker.worker_class()
     instance = cls.__new__(cls)
     instance.register_death = lambda: deaths.append(1)

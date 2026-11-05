@@ -199,7 +199,7 @@ def _mc_shell_expected(shell, fractions, count=400_000, seed=5):
 def test_the_expected_stars_beyond_the_outline_match_the_density_whatever_phase_the_arms_are_in(shell):
     """GEN.398: a group beyond the outline was probed at two longitudes, 180 degrees apart, which on a two-armed spiral
     are the same phase of the arms: its young stars came out twice, or none, of what the sampler places. The count the
-    plan's log line and bar use follows the density, also where a thin disc falls away across a group."""
+    plan's log line and bar use follows the density, also where a thin disk falls away across a group."""
     fractions = brightStars.band_fractions(FLOOR, None, None)
     found = brightStars.reach_expected_stars(SHAPE, shell, -1, EDGE_PC, E_VALUE, fractions)[0]
     truth = _mc_shell_expected(shell, fractions)
@@ -244,12 +244,12 @@ def test_a_plan_scatter_covers_the_reach_and_a_pre_placed_star_is_never_drawn_tw
 
 def test_a_polar_groups_nuclear_bound_is_taken_at_its_shell_not_at_the_axis_and_the_nearest_height():
     """PERF.138: a group on the axis has `inner` 0 and a `z_near` far under its shell's radius, so the point
-    `(inner, z_near)` sits inside the nuclear disc and cluster. The bound uses the shell's radius too and stays within a
+    `(inner, z_near)` sits inside the nuclear disk and cluster. The bound uses the shell's radius too and stays within a
     few times the true largest of the two terms on the shell."""
     from planetgen.galaxy import density
     groups = object_first.ReachGroups.for_shell(5, -1, EDGE_PC)
     only = {name: 0.0 for name in brightStars.SCATTERED_POPULATIONS}
-    only.update(nuclear_cluster=1.0, nuclear_disc=1.0)
+    only.update(nuclear_cluster=1.0, nuclear_disk=1.0)
     terms = density.model_terms(SHAPE)
     for index in range(len(groups)):
         bound = object_first.extent_majorants(SHAPE, groups.inner[index:index + 1], groups.z_near[index:index + 1],
@@ -258,6 +258,6 @@ def test_a_polar_groups_nuclear_bound_is_taken_at_its_shell_not_at_the_axis_and_
         radius = groups.r_in[index]
         largest = max(
             SHAPE.k_norm * (float(density._nuclear_cluster_array(radius, terms))
-                            + float(density._nuclear_disc_array(radius * math.sqrt(1.0 - c * c), abs(radius * c), terms)))
+                            + float(density._nuclear_disk_array(radius * math.sqrt(1.0 - c * c), abs(radius * c), terms)))
             for c in np.linspace(groups.cos_low[index], groups.cos_high[index], 200))
         assert largest <= bound <= 3.0 * largest, (index, bound, largest)

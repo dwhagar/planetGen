@@ -1,7 +1,7 @@
 # tests/test_gen_debris_disk.py
 
 """
-GEN.1071: the cold debris disk of a main-sequence star is the dust of its outer-disc belt (`physics/debris_dust.py`), found when its light is bright enough for a survey,
+GEN.1071: the cold debris disk of a main-sequence star is the dust of its outer-disk belt (`physics/debris_dust.py`), found when its light is bright enough for a survey,
 and its edges are the belt's. The dust law is that of [R4785]; the shares of stars it gives are compared with the Herschel DEBRIS survey [R4081].
 """
 
@@ -19,7 +19,7 @@ from planetgen.util import draw
 from tests.test_belt_birth import _belts, _config
 
 SURVEY_SHARE_BY_MASS = ((0.45, 0.022), (0.8, 0.130), (1.04, 0.143), (1.4, 0.239), (math.inf, 0.24))
-"""tuple: The share of stars with a cold disc by the mass band that ends at the first number ([R4081]: M 2.2, K 13.0, G 14.3, F 23.9 percent, A 24)."""
+"""tuple: The share of stars with a cold disk by the mass band that ends at the first number ([R4081]: M 2.2, K 13.0, G 14.3, F 23.9 percent, A 24)."""
 
 
 def test_a_belt_at_its_steady_state_has_dust_that_falls_as_one_over_the_age():
@@ -66,7 +66,7 @@ def test_a_bad_belt_is_refused():
             debris_dust.fractional_luminosity(*bad)
 
 
-def test_the_cut_separates_a_found_disc_from_a_faint_one():
+def test_the_cut_separates_a_found_disk_from_a_faint_one():
     cut = debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY
     assert debris_dust.is_detectable(cut) and debris_dust.is_detectable(10.0 * cut)
     assert not debris_dust.is_detectable(0.5 * cut) and not debris_dust.is_detectable(0.0)
@@ -83,7 +83,7 @@ def test_a_star_with_a_disk_has_the_edges_of_its_outer_belt():
     seen = 0
     for system in _systems(30):
         star = system.star
-        outer = [belt for belt in _belts(system) if belt.origin == "outer-disc"]
+        outer = [belt for belt in _belts(system) if belt.origin == "outer-disk"]
         if star.disk_kind:
             seen += 1
             assert star.disk_kind == "debris" and star.disk_mass_solar is None and star.disk_inner_au < star.disk_outer_au

@@ -9,17 +9,17 @@ body: its semi-major axis, its eccentricity and inclination, and the three angle
 Everything comes from one stream of the belt's own (`draw_roster`): the same number of draws whatever the belt, so the member of rank `n` is the same body whatever the belt's mass
 or the ledger's length, and the rest of the run's draws are not touched.
 
-1. **The semi-major axis** is drawn where the belt's solids are: the cumulative mass of the disc's solids across the stretch (`belt_mass.primordial_mass_earth`, `CDF_POINTS` log-spaced
+1. **The semi-major axis** is drawn where the belt's solids are: the cumulative mass of the disk's solids across the stretch (`belt_mass.primordial_mass_earth`, `CDF_POINTS` log-spaced
    points) is inverted by one uniform number. A belt thick near its inner edge puts more of its bodies there.
 2. **The eccentricity** is a Rayleigh draw whose rms is the width rule of `belt_mass` (the particles' eccentricity from the belt's width, `e = (upper - lower) / (upper + lower)`, the extent
    of the orbits of a belt that stirs itself), cut at `E_MAX`. **The inclination** is a Rayleigh draw with the same rms in radians (`belt_mass`'s `e/I = 1`), cut at `I_MAX_DEG`.
 3. **The angles** (ascending node, argument of periapsis, mean anomaly) are uniform over the circle.
-4. **The population** (GEN.1092). The members of an outer disc that a giant acted on belong to the scatter step's populations (`belt_populations`): each draws one and its semi-major axis,
+4. **The population** (GEN.1092). The members of an outer disk that a giant acted on belong to the scatter step's populations (`belt_populations`): each draws one and its semi-major axis,
    eccentricity and inclination follow from it (cold ones stirred little, resonant ones at the giant's resonances, scattered, crossing and detached ones with their perihelion set), and the
    tag is stored with the member. A belt without those shares draws as 1 and 2 say and has no tag.
 
 Limits. A belt stirred by a giant has a larger `e` than its width gives (`belt_mass`'s own limit); a body in a resonance or a gap keeps no trace of it here (the gaps the giants
-cleared, `belt_origin`, are not cut out of the solids profile); the bodies do not know the planets near them. Stand-ins MR1 to MR3 of `gap-filling-plan.md` section 6.167.
+cleared, `belt_origin`, are not cut out of the solids profile); the bodies do not know the planets near them. Stand-ins MR1 to MR3 of `gap-filling-plan.md` section 6.182.
 
 Use:
 
@@ -34,7 +34,7 @@ from planetgen.physics.belt_page import Placement
 from planetgen.util.checks import finite_domain
 
 CDF_POINTS = 48
-"""int: The log-spaced points across a belt at which the cumulative mass of the disc's solids is tabulated (numerical). [Stand-in MR1, tier T9, tweak L0.]"""
+"""int: The log-spaced points across a belt at which the cumulative mass of the disk's solids is tabulated (numerical). [Stand-in MR1, tier T9, tweak L0.]"""
 
 CDF_STEPS = 8
 """int: The log-spaced steps `belt_mass.primordial_mass_earth` takes between the belt's inner edge and each tabulated point (numerical). [Stand-in MR1, tier T9, tweak L0.]"""
@@ -89,7 +89,7 @@ def rayleigh(u, rms):
 
 
 def cumulative_table(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio):
-    """`(edges, masses)`: `CDF_POINTS + 1` log-spaced distances across the stretch and the cumulative mass of the disc's solids inside each, Earth masses (0 at the inner edge)."""
+    """`(edges, masses)`: `CDF_POINTS + 1` log-spaced distances across the stretch and the cumulative mass of the disk's solids inside each, Earth masses (0 at the inner edge)."""
     step = (math.log(upper_au) - math.log(lower_au)) / CDF_POINTS
     edges = [math.exp(math.log(lower_au) + k * step) for k in range(CDF_POINTS + 1)]
     edges[-1] = upper_au
@@ -98,7 +98,7 @@ def cumulative_table(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio
 
 
 def semi_major_axis_au(table, u):
-    """The distance below which a share `u` (0 to 1) of the disc's solids lies: the table inverted, log-linear between points."""
+    """The distance below which a share `u` (0 to 1) of the disk's solids lies: the table inverted, log-linear between points."""
     edges, masses = table
     target = u * masses[-1]
     lo, hi = 0, len(masses) - 1
@@ -122,7 +122,7 @@ def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_rat
         count (int): How many stored bodies the belt's ledger holds (at most `belt_ledger.LEDGER_MAX_BODIES`).
         stream: An object with `random()` (a `draw.Stream` of the belt's own); `DRAWS_PER_BODY * belt_ledger.LEDGER_MAX_BODIES` draws are taken, whatever `count` is.
         populations (tuple or None): `(tag, weight)` of the populations that hold members (`belt_populations.member_weights`); None for a belt the scatter step did not act on, whose bodies have no tag.
-        giant_au (float or None): The distance of the giant that swept the disc, for the populations that depend on it (None: all the members are cold).
+        giant_au (float or None): The distance of the giant that swept the disk, for the populations that depend on it (None: all the members are cold).
     """
     if not 0.0 < lower_au < upper_au:
         raise BeltRosterError("the belt needs 0 < lower < upper")

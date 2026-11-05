@@ -21,12 +21,18 @@ stop to each neighbour off the route (as many as the graph lists, which it caps 
 arc between two stops of one row that are neighbours but no hop. A link is a neighbour relation (which systems lie near each other),
 not a travel lane, and the panel says so; the route's own hops are always drawn, over the neighbours. The link to the Galaxy Map
 (NAV.69) is not drawn here yet.
+
+NAV.72: a hop that carries its `adjusted` course (NAV.6, `GET /api/nav?adjusted=1`) and is bent by it gets a small bend drawn under its
+line and its text alternative says how many keep-out spheres it goes round and how much longer that makes it. The spacing of the
+diagram is a schematic, so the bend says only that the hop leaves the straight line, not where. A hop the planner could not bend
+(overlapping spheres, or too many) is drawn with a flag and the words say it is shown as the straight line.
 """
 
 import html
 import math
 
 from planetgen.galaxy.navigation import format_course
+from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps import navribbon
 
 WIDTHS = (("narrow", 260), ("middle", 520), ("wide", 880))
@@ -68,8 +74,8 @@ def _number(value):
 
 def glyph(kind, x, y, radius=NODE_RADIUS):
     """
-    The SVG shapes of one stop's glyph centred on (`x`, `y`): a disc for a system, a hexagon for a phenomenon, and for each kind of
-    unknown-space stop its own outline (a four-point star, a ringed dark disc, a diamond, a double ring, a chevron, a square), so
+    The SVG shapes of one stop's glyph centered on (`x`, `y`): a disk for a system, a hexagon for a phenomenon, and for each kind of
+    unknown-space stop its own outline (a four-point star, a ringed dark disk, a diamond, a double ring, a chevron, a square), so
     the kinds read apart by shape and not by colour alone.
     """
     r = radius
@@ -106,11 +112,39 @@ def _short_name(name):
     return name if len(name) <= NAME_LIMIT else name[:NAME_LIMIT - 1].rstrip() + "…"
 
 
+def bend_of(source):
+    """
+    NAV.72: how a hop's `adjusted` course leaves the straight line, or `None` when it does not (or there is none). `{bends, extra_ly,
+    percent, flagged}`: `bends` the spheres it goes round, `extra_ly` and `percent` how much longer it is, `flagged` when the planner
+    could not bend it (`overlap_fallback` or `wrap_limit` in its warnings) and the hop is the straight line.
+    """
+    adjusted = (source or {}).get("adjusted")
+    if not adjusted:
+        return None
+    flagged = bool(adjusted.get("warnings"))
+    bends = sum(1 for waypoint in adjusted.get("waypoints") or [] if waypoint.get("kind") == "tangent_in")
+    if not bends and not flagged:
+        return None
+    straight = adjusted.get("straight_length_ly") or 0.0
+    extra = adjusted.get("extra_ly") or 0.0
+    return {"bends": bends, "extra_ly": extra, "percent": 100.0 * extra / straight if straight else 0.0, "flagged": flagged}
+
+
+def _bend_words(bend):
+    if bend["flagged"]:
+        return "crosses keep-out spheres that overlap, so it is shown as the straight line"
+    spheres = "a keep-out sphere" if bend["bends"] == 1 else f"{bend['bends']} keep-out spheres"
+    return f"bends round {spheres}, {format_distance_ly(bend['extra_ly'])} longer ({bend['percent']:.2g}%)"
+
+
 def _hop_words(hop, source):
-    """The text alternative of a hop: its length, its course when it has one, and that it crosses unknown space."""
+    """The text alternative of a hop: its length, its course when it has one, that it bends round keep-out spheres and that it crosses unknown space."""
     parts = [f"{hop['label']}"]
     if "bearing_deg" in source:
         parts.append(f"course {format_course(source['bearing_deg'], source['mark_deg'])}")
+    bend = bend_of(source)
+    if bend:
+        parts.append(_bend_words(bend))
     if hop["unknown_space"]:
         parts.append("through unknown space (uncharted sectors)")
     return ", ".join(parts)
@@ -118,20 +152,34 @@ def _hop_words(hop, source):
 
 def _stub_words(stub, names):
     """The text alternative of a stub: a neighbour of the stop, how far off, and that it is not a lane."""
-    return f"A system {stub['label']} from {names.get(stub['stop'], stub['stop'])}: a neighbour, not a travel lane"
+    return f"A system {stub['label']} from {names.get(stub['stop'], stub['stop'])}: a neighbor, not a travel lane"
 
 
 def _link_words(link, names):
-    return (f"{names.get(link['from'], link['from'])} and {names.get(link['to'], link['to'])} are neighbours {link['label']} apart: "
-            "a neighbour relation, not a travel lane")
+    return (f"{names.get(link['from'], link['from'])} and {names.get(link['to'], link['to'])} are neighbors {link['label']} apart: "
+            "a neighbor relation, not a travel lane")
 
 
 def _more_words(more, names):
-    return f"{more['count']} more neighbours of {names.get(more['stop'], more['stop'])} are not drawn"
+    return f"{more['count']} more neighbors of {names.get(more['stop'], more['stop'])} are not drawn"
+
+
+def _bend_mark(segments, bend):
+    """NAV.72: the mark of a bent hop, under the middle of its longest piece: a bow for a hop bent round a sphere, a small flag for one the
+    planner could not bend."""
+    piece = max(segments, key=lambda s: abs(s["x2"] - s["x1"]))
+    left, right = sorted((piece["x1"], piece["x2"]))
+    middle, y = (left + right) / 2, piece["y1"]
+    reach = min((right - left) / 4, 14.0)
+    if bend["flagged"]:
+        return (f'<path class="nav-diagram-bend nav-diagram-bend-flag" d="M{_number(middle)} {_number(y + 3)} v9 M{_number(middle)} {_number(y + 3)} '
+                f'h8 l-2 3 l2 3 h-8"/>')
+    return (f'<path class="nav-diagram-bend" d="M{_number(middle - reach)} {_number(y)} Q{_number(middle)} {_number(y + 2 * 8)} '
+            f'{_number(middle + reach)} {_number(y)}"/>')
 
 
 def _anchored(x, text, width):
-    """`(text-anchor, x)` for `text` at a stop at `x`: centred on it, or starting or ending at it when it would run past the drawing's edge."""
+    """`(text-anchor, x)` for `text` at a stop at `x`: centered on it, or starting or ending at it when it would run past the drawing's edge."""
     half = len(text) * CHAR_WIDTH / 2
     if x - half < 2:
         return "start", x - NODE_RADIUS
@@ -203,6 +251,9 @@ def render_drawing(route, names, urls, width, size, ids=None):
         for segment in hop["segments"]:
             out.append(f'<line class="nav-diagram-line" x1="{_number(segment["x1"])}" y1="{_number(segment["y1"])}" '
                        f'x2="{_number(segment["x2"])}" y2="{_number(segment["y2"])}"/>')
+        bend = bend_of(sources.get(index, {}))
+        if bend:
+            out.append(_bend_mark(hop["segments"], bend))
         out.append('</g>')
         gap = _hop_gap_pixels(hop["segments"])
         text = hop["label"] if len(hop["label"]) * CHAR_WIDTH + 6 <= gap else hop["short_label"]
@@ -244,7 +295,7 @@ def render_drawing(route, names, urls, width, size, ids=None):
     return "".join(out)
 
 
-def render_legend(kinds, unknown=False, neighbours=False):
+def render_legend(kinds, unknown=False, neighbours=False, bent=False):
     """The legend of the glyphs the route uses: a small drawing and its words for each kind, then the unknown-space hop when `unknown`."""
     items = []
     for kind in KIND_LABELS:
@@ -255,10 +306,14 @@ def render_legend(kinds, unknown=False, neighbours=False):
     if unknown:
         items.append('<li><svg class="nav-legend-glyph nav-diagram-hop-unknown" viewBox="0 0 34 22" width="34" height="22" aria-hidden="true" '
                      'focusable="false"><line class="nav-diagram-line" x1="1" y1="11" x2="33" y2="11"/></svg> Hop through unknown space</li>')
+    if bent:
+        items.append('<li><svg class="nav-legend-glyph" viewBox="0 0 34 22" width="34" height="22" aria-hidden="true" focusable="false">'
+                     '<line class="nav-diagram-line" x1="1" y1="9" x2="33" y2="9"/><path class="nav-diagram-bend" d="M9 9 Q17 25 25 9"/></svg>'
+                     ' Hop that bends round a keep-out sphere</li>')
     if neighbours:
         items.append('<li><svg class="nav-legend-glyph" viewBox="0 0 34 22" width="34" height="22" aria-hidden="true" focusable="false">'
                      '<g class="nav-diagram-neighbour nav-diagram-stub"><line x1="4" y1="11" x2="29" y2="11"/><circle cx="29" cy="11" r="2.2"/></g></svg>'
-                     ' Neighbour (not a travel lane)</li>')
+                     ' Neighbor (not a travel lane)</li>')
     return f'<ul class="nav-diagram-legend" role="list">{"".join(items)}</ul>' if items else ""
 
 
@@ -270,7 +325,7 @@ def render_course_diagram(route, names, urls, linked=False):
         route (dict): The route `GET /api/nav` sends (`path`, `hops`, `stop_places`).
         names (dict): `{node: name}` of every stop.
         urls (dict): `{node: url or None}` of every stop.
-        linked (bool): The diagram sits beside the Galaxy Map's course (NAV.69): says that a click on a stop centres the map on it.
+        linked (bool): The diagram sits beside the Galaxy Map's course (NAV.69): says that a click on a stop centers the map on it.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -282,28 +337,32 @@ def render_course_diagram(route, names, urls, linked=False):
     kinds = {navribbon._kind(node, places.get(node, {})) for node in path}
     unknown = sum(1 for hop in route.get("hops") or [] if hop.get("unknown_space"))
     has_graph = bool(route.get("graph"))
+    bends = [bend for bend in (bend_of(hop) for hop in route.get("hops") or []) if bend]
     drawings = []
     for size, width in WIDTHS:
         hidden = navribbon.layout_ribbon(route, width)["hidden_links"]
-        hidden_note = (f'<p class="hint nav-diagram-hidden">{hidden} neighbour link{"" if hidden == 1 else "s"} between stops on '
+        hidden_note = (f'<p class="hint nav-diagram-hidden">{hidden} neighbor link{"" if hidden == 1 else "s"} between stops on '
                        f'different rows {"is" if hidden == 1 else "are"} not drawn.</p>' if hidden else "")
         drawings.append(f'<div class="nav-diagram-{size}-box">{render_drawing(route, names, urls, width, size)}{hidden_note}</div>')
     drawings = "".join(drawings)
-    neighbour_note = (" The faint lines round a stop and the dotted arcs between stops show which systems are its nearest neighbours "
-                      "(the few drawn, and \u201cand N more\u201d where there are more); a link is a neighbour relation, not a travel "
+    neighbour_note = (" The faint lines round a stop and the dotted arcs between stops show which systems are its nearest neighbors "
+                      "(the few drawn, and \u201cand N more\u201d where there are more); a link is a neighbor relation, not a travel "
                       "lane. The route\u2019s own hops are always drawn." if has_graph else "")
     unknown_note = (f' {unknown} hop{"" if unknown == 1 else "s"} cross{"es" if unknown == 1 else ""} unknown space (uncharted '
                     f'sectors); {"it is" if unknown == 1 else "they are"} drawn in red, dashed and glowing, and the route list names '
                     f'{"it" if unknown == 1 else "them"} in words.' if unknown else "")
-    link_note = (" A click on a stop selects it on the map and centres the map on it; a second click, or a click with Ctrl held, opens its page."
+    bend_note = (f" {len(bends)} hop{'' if len(bends) == 1 else 's'} would pass inside the keep-out sphere of a star or another object, so "
+                 f"{'it is' if len(bends) == 1 else 'they are'} marked with a bend under the line: the real course goes round the sphere and is "
+                 "a little longer, by the amount in the hop\u2019s text." if bends else "")
+    link_note = (" A click on a stop selects it on the map and centers the map on it; a second click, or a click with Ctrl held, opens its page."
                  if linked else "")
     return (
         '<section class="panel nav-diagram" aria-labelledby="course-diagram-heading">'
         '<h2 id="course-diagram-heading">Course Diagram</h2>'
         '<p class="hint">The route as a line of stops, each hop with its length'
         ' (and its course where there is room). The spacing follows the logarithm of a hop’s length, so the diagram is a'
-        f' schematic, not a map to scale.{_esc(unknown_note)}{_esc(neighbour_note)}{_esc(link_note)}</p>'
+        f' schematic, not a map to scale.{_esc(unknown_note)}{_esc(bend_note)}{_esc(neighbour_note)}{_esc(link_note)}</p>'
         f'<div class="nav-diagram-scroll">{drawings}</div>'
-        f'{render_legend(kinds, bool(unknown), has_graph)}'
+        f'{render_legend(kinds, bool(unknown), has_graph, bool(bends))}'
         '</section>'
     )

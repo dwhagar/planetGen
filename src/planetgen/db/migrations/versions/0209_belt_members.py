@@ -1,10 +1,10 @@
 """The stored members of a belt (GEN.1070).
 
-Schema v205. A new table, `belt_members`: one row for each individual body a belt stores (the ledger's cut rule of `physics/belt_ledger.py`: every body above 1e19 kg and more of the next
+Schema v209. A new table, `belt_members`: one row for each individual body a belt stores (the ledger's cut rule of `physics/belt_ledger.py`: every body above 1e19 kg and more of the next
 heaviest until 90 percent of the belt's mass is held, at most 300), with its rank by mass (1 is the heaviest and keeps its number, so `<belt object ID>.<rank in hex>` names the body), mass,
 radius, orbit (semi-major axis, eccentricity, inclination and the three angles), taxon, density, composition shares, status word, Soter's mu and the scatter tag (NULL until GEN.1092).
 
-A belt saved before v205 has no members: they come from the belt's own draws when the galaxy is regenerated. The table is skipped when it is already there, so a stopped run can be started again.
+A belt saved before v209 has no members: they come from the belt's own draws when the galaxy is regenerated. The table is skipped when it is already there, so a stopped run can be started again.
 """
 
 import sqlalchemy as sa
@@ -12,8 +12,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0205"
-down_revision = "0204"
+revision = "0209"
+down_revision = "0208"
 branch_labels = None
 depends_on = None
 

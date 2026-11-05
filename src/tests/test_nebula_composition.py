@@ -82,7 +82,7 @@ def test_the_gas_gradient_is_its_own_and_zero_at_the_reference_radius():
     reference = scales.reference_radius_pc()
     assert nc.gas_gradient_oh(reference) == pytest.approx(0.0)
     assert nc.gas_gradient_oh(reference + 5000.0) == pytest.approx(-5.0 * nc.GAS_GRADIENT_DEX_PER_KPC)
-    assert nc.GAS_GRADIENT_DEX_PER_KPC != tuning.METALLICITY_DISC_FALL_DEX_PER_KPC
+    assert nc.GAS_GRADIENT_DEX_PER_KPC != tuning.METALLICITY_DISK_FALL_DEX_PER_KPC
     assert 0.03 <= nc.GAS_GRADIENT_DEX_PER_KPC <= 0.04          # Boss: 0.03 to 0.04
 
 

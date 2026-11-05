@@ -2243,6 +2243,28 @@
           "fields": [
             [
               "The range",
+              "none, few, normal, many"
+            ],
+            [
+              "Source",
+              "Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to 10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS)"
+            ]
+          ],
+          "id": "--rogues",
+          "key": "6.3a:--rogues",
+          "kind": "P",
+          "slug": "6-3a-rogues",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L3",
+          "unread": null,
+          "what": "--rogues: none, few, normal, many"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "The range",
               "1 to 10"
             ],
             [
@@ -9705,7 +9727,7 @@
           "fields": [
             [
               "What it is",
-              "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0"
+              "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0, habitability.H2S_TOX_KPA 0.002, habitability.SO2_TOX_KPA 0.001 (GEN.1253: the last two are twice the chronic limits of GAS_LIMITS_KPA, as CO and CO2 sit at about twice theirs)"
             ],
             [
               "The range it moves in",
@@ -9713,7 +9735,7 @@
             ],
             [
               "Where it holds",
-              "T_metazoa's CO and CO2 scales"
+              "T_metazoa's CO, CO2, H2S and SO2 scales"
             ],
             [
               "What would show it wrong",
@@ -9734,9 +9756,9 @@
           "slug": "6-18-lf22",
           "tier": "T2",
           "tier_code": "T2",
-          "tweak": "L0",
+          "tweak": "L1",
           "unread": null,
-          "what": "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0"
+          "what": "habitability.CO_TOX_KPA 0.01, habitability.CO2_TOX_KPA 2.0, habitability.H2S_TOX_KPA 0.002, habitability.SO2_TOX_KPA 0.001 (GEN.1253: the last two are twice the chronic limits of GAS_LIMITS_KPA, as CO and CO2 sit at about twice theirs)"
         },
         {
           "burn_down": [
@@ -11335,7 +11357,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.PLANET_INNER_DISC_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
+              "tuning.PLANET_INNER_DISK_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
             ],
             [
               "The range it moves in",
@@ -11366,7 +11388,7 @@
           "tier_code": "T3",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.PLANET_INNER_DISC_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
+          "what": "tuning.PLANET_INNER_DISK_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU)"
         },
         {
           "burn_down": null,
@@ -12567,44 +12589,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "climate_draws.GIANT_BOND_ALBEDO_RANGE (0.29, 0.503) (a generated giant draws its Bond albedo uniformly from the lowest to the highest of the four measured in the Solar System: Neptune 0.29 [R3466], Uranus 0.30 [R3466], Saturn 0.342 and Jupiter 0.503 Li et al. 2018; GEN.1030)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
-            ],
-            [
-              "The range it moves in",
-              "the exponent 1.4 to 1.9"
-            ],
-            [
-              "Where it holds",
-              "giants"
-            ],
-            [
-              "What would show it wrong",
-              "test_giant_one_bar_temperature::the cooling law gives a Uranus-mass giant far more heat than Uranus has"
-            ],
-            [
-              "What replaces it",
-              "the cooling tracks of the radius tables with the heavy-element interior of each giant (GEN.1033)"
-            ],
-            [
-              "Evidence",
-              "RECALLED ([R3466]: Neptune 0.43 W/m2, Uranus 0.042; Jupiter 5.4)"
-            ]
-          ],
-          "id": "CC14",
-          "key": "6.22:CC14",
-          "kind": "P",
-          "slug": "6-22-cc14",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L1",
-          "unread": null,
-          "what": "rogue_surface.giant_internal_flux_w_m2 (a giant's internal heat flux from one cooling law through Jupiter and Neptune: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age). It gives a Uranus-mass giant Neptune's 0.33 W/m2 where Uranus measures about 0.04, an unexplained anomaly of Uranus; the temperature test of the ice giants gives Uranus its measured heat so that the greenhouse is tested alone"
         },
         {
           "burn_down": null,
@@ -15979,7 +15963,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.PLANET_DISC_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
+              "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
             ],
             [
               "The range it moves in",
@@ -16010,7 +15994,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.PLANET_DISC_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
+          "what": "tuning.PLANET_DISK_SOLIDS_ENHANCEMENT 0.4647, PLANET_OUTER_GROWTH_AU 11.36 and PLANET_OUTER_GROWTH_EXPONENT 2.889 (the solids of the disc against the minimum-mass nebula; where the outer disc's growth falls behind and how fast)"
         },
         {
           "burn_down": [
@@ -16105,7 +16089,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISC_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
+              "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
             ],
             [
               "The range it moves in",
@@ -16136,7 +16120,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISC_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
+          "what": "tuning.INNER_PLANET_MASS_EARTH 3.631 with INNER_PLANET_MASS_STELLAR_EXPONENT 0.6357, INNER_PLANET_MASS_DISK_EXPONENT 0.01653 and INNER_PLANET_MASS_METALLICITY_EXPONENT 0.7565 (the mass scale of an inner system and how it goes with the star, the disc and [Fe/H])"
         },
         {
           "burn_down": [
@@ -16433,7 +16417,7 @@
           "fields": [
             [
               "What it is",
-              "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
+              "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISK_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
             ],
             [
               "The range it moves in",
@@ -16464,7 +16448,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
+          "what": "planet_occurrence.json disc_dust_scatter 0.7 dex and tuning.DISK_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass)"
         },
         {
           "burn_down": [
@@ -18977,7 +18961,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.IMF_BELL_CENTRE_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
+              "tuning.IMF_BELL_CENTER_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
             ],
             [
               "The range it moves in",
@@ -19008,7 +18992,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.IMF_BELL_CENTRE_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
+          "what": "tuning.IMF_BELL_CENTER_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass"
         },
         {
           "burn_down": null,
@@ -23329,7 +23313,7 @@
           "fields": [
             [
               "What it is",
-              "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused"
+              "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused (GEN.1052: heavy_liquid_tide shows the thin-sea factor is exact for a floor that does not move at any depth, so the refusal guards a layer that is no sea, not a deep one)"
             ],
             [
               "The range it moves in",
@@ -23360,7 +23344,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused"
+          "what": "ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused (GEN.1052: heavy_liquid_tide shows the thin-sea factor is exact for a floor that does not move at any depth, so the refusal guards a layer that is no sea, not a deep one)"
         },
         {
           "burn_down": null,
@@ -24469,6 +24453,204 @@
           "tweak": "L3",
           "unread": null,
           "what": "ring_origin.EROSION_YIELD 1.0, the ring mass an impactor takes away in impactor masses"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of the inner moonlets of giants outside the four of the Solar System is in hand"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_MEAN_COUNT 6, the mean number of small moonlets a giant has inside 3 radii (the generator makes no moon under a few hundred km, so these are drawn, not stored)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 15"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of giants' inner moonlets whose mean inside 3 radii is outside 2 to 15, or a giant with a dust ring and none"
+            ],
+            [
+              "What replaces it",
+              "a moonlet population from the ring-moon cycle (the Roche-limit spreading and re-accretion, [R0920])"
+            ],
+            [
+              "Evidence",
+              "Jupiter 4, Saturn 6 to 8, Uranus 13 and Neptune 6 inner moons; four giants, none without any"
+            ]
+          ],
+          "id": "RO14",
+          "key": "6.70:RO14",
+          "kind": "P",
+          "slug": "6-70-ro14",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ring_origin.FEEDER_MEAN_COUNT 6, the mean number of small moonlets a giant has inside 3 radii (the generator makes no moon under a few hundred km, so these are drawn, not stored)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_MAX_DISTANCE_RADII 3 and FEEDER_MAX_RADIUS_KM 100: a moon feeds the dust ring if it orbits inside 3 planet radii and is under 100 km"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4 radii; 50 to 150 km"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "a ring-feeding moon found over 150 km or outside 4 radii"
+            ],
+            [
+              "What replaces it",
+              "the ejecta escape speed and the dust lifetime of each moon from its size and orbit"
+            ],
+            [
+              "Evidence",
+              "Amalthea (84 km, 2.5 Jupiter radii) feeds the gossamer ring; larger moons keep their ejecta"
+            ]
+          ],
+          "id": "RO15",
+          "key": "6.70:RO15",
+          "kind": "P",
+          "slug": "6-70-ro15",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ring_origin.FEEDER_MAX_DISTANCE_RADII 3 and FEEDER_MAX_RADIUS_KM 100: a moon feeds the dust ring if it orbits inside 3 planet radii and is under 100 km"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no impact-ejecta experiment on a small moon's surface gives the kept share of the dust"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon"
+            ],
+            [
+              "The range it moves in",
+              "1 to 100"
+            ],
+            [
+              "Where it holds",
+              "feeding moons of 5 to 100 km"
+            ],
+            [
+              "What would show it wrong",
+              "an impact-ejecta measurement whose kept share is under 1 or over 100"
+            ],
+            [
+              "What replaces it",
+              "the ejecta yield and speed distribution of a hypervelocity impact on a small moon's surface (the escape fraction)"
+            ],
+            [
+              "Evidence",
+              "puts Jupiter's four inner moons at 2.4e7 kg, inside the 1e7 to 1e9 kg of its ring"
+            ]
+          ],
+          "id": "RO16",
+          "key": "6.70:RO16",
+          "kind": "P",
+          "slug": "6-70-ro16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow"
+            ],
+            [
+              "The range it moves in",
+              "1e3 to 1e5"
+            ],
+            [
+              "Where it holds",
+              "micron grains round a giant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured grain lifetime outside 1e3 to 1e5 years"
+            ],
+            [
+              "What replaces it",
+              "the Poynting-Robertson, plasma and Lorentz drag of each grain size at the planet"
+            ],
+            [
+              "Evidence",
+              "1e3 to 1e5 years for micron grains round Jupiter, [R5114], recalled"
+            ]
+          ],
+          "id": "RO17",
+          "key": "6.70:RO17",
+          "kind": "P",
+          "slug": "6-70-ro17",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet"
+            ],
+            [
+              "The range it moves in",
+              "one factor"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "an inner moonlet found outside 3 to 150 km or 1.2 to 4 radii"
+            ],
+            [
+              "What replaces it",
+              "the size distribution of the moonlets from the ring-moon cycle"
+            ],
+            [
+              "Evidence",
+              "Metis 22, Adrastea 8, Pan 14, Cordelia 20, Galatea 79 km; between 1.7 and 3 radii"
+            ]
+          ],
+          "id": "RO18",
+          "key": "6.70:RO18",
+          "kind": "P",
+          "slug": "6-70-ro18",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet"
         }
       ],
       "slug": "6-70-stand-ins-of-the-ring-origin",
@@ -24735,7 +24917,7 @@
           "fields": [
             [
               "What it is",
-              "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOUR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
+              "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
             ],
             [
               "The range it moves in",
@@ -24766,14 +24948,14 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": "GEN.1050",
-          "what": "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOUR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
+          "what": "disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "disintegrating_planet.VAPOUR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
+              "disintegrating_planet.VAPOR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
             ],
             [
               "The range it moves in",
@@ -24804,7 +24986,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": "GEN.1050",
-          "what": "disintegrating_planet.VAPOUR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
+          "what": "disintegrating_planet.VAPOR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius"
         },
         {
           "burn_down": null,
@@ -25367,7 +25549,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "tuning.ROGUE_LEVEL_CEILINGS None 0, Few 2.5, Normal 4.3, Many 10 terrestrial rogues per star, the most the top-up may bring a sector to"
         },
         {
@@ -25409,7 +25591,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "tuning.ROGUE_TOPUP_PLACEMENT 1, the share of the sector edge a top-up rogue may be placed over, centred (1 is the whole sector)"
         },
         {
@@ -25451,7 +25633,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.SCATTERER_AU_RANGE 1 to 30 AU, where the scattering giant of an apparent origin sits, drawn log-uniform"
         },
         {
@@ -25489,7 +25671,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.VELOCITY_DISPERSION_KM_S 35, 25, 20 km/s, the thin disc's U, V and W dispersion of the hosts"
         },
         {
@@ -25527,7 +25709,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "rogue_topup.GALACTOCENTRIC_RADIUS_PC 8000, the galactocentric radius of the ring used for the arc of an apparent origin where the caller gives none"
         }
       ],
@@ -25573,7 +25755,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.SCATTER_SPEED_KM_S 3, the ejection speed scale of a Jupiter-mass scatterer at 1 AU, km/s; v_c goes as the square root of the scatterer's mass over its distance"
         },
         {
@@ -25611,7 +25793,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects"
         },
         {
@@ -25649,7 +25831,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.MEAN_OVER_SCALE 0.87, the mean ejection speed in units of v_c"
         },
         {
@@ -25687,7 +25869,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.SPEED_SIGMA_LN 0.51, the ln-width of the ejection speed in units of v_c, set so the 99th percentile is 2.5 v_c"
         },
         {
@@ -25725,7 +25907,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays"
         },
         {
@@ -25763,7 +25945,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass)"
         },
         {
@@ -25805,7 +25987,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L3",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_MASS_INDEX 1.13, the median closest approach goes as the scatterer's mass to this power"
         },
         {
@@ -25843,7 +26025,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_kick.CLOSEST_APPROACH_SIGMA_LN 2.35, the ln-width of the closest approach"
         }
       ],
@@ -25889,7 +26071,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L2",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation"
         },
         {
@@ -25931,7 +26113,7 @@
           "tier": "T8",
           "tier_code": "T8",
           "tweak": "L3",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1"
         }
       ],
@@ -25977,7 +26159,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.OORT_A_KM_S_KPC 15.3 km/s/kpc, the shear at the Sun"
         },
         {
@@ -26015,7 +26197,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.OORT_B_KM_S_KPC -11.9 km/s/kpc"
         },
         {
@@ -26053,7 +26235,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.VERTICAL_FREQUENCY_KM_S_KPC 76 km/s/kpc, nu = sqrt(4 pi G rho) for 0.1 solar masses per cubic parsec"
         },
         {
@@ -26091,7 +26273,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_drift.LINEAR_LIMIT_PC 1500, the separation up to which the linear equations are taken as good"
         }
       ],
@@ -27131,7 +27313,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "UX.241",
+          "unread": null,
           "what": "belt_density.BULK_DENSITY_KG_M3 2500"
         }
       ],
@@ -27345,7 +27527,7 @@
           "fields": [
             [
               "What it is",
-              "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONISED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
+              "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
             ],
             [
               "The range it moves in",
@@ -27376,7 +27558,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": "GEN.1047",
-          "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONISED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
+          "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
         },
         {
           "burn_down": null,
@@ -27913,7 +28095,7 @@
           "fields": [
             [
               "What it is",
-              "scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
+              "scatter.ZONE_COEFFICIENT 1.3 and DISK_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
             ],
             [
               "The range it moves in",
@@ -27944,7 +28126,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
+          "what": "scatter.ZONE_COEFFICIENT 1.3 and DISK_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5"
         },
         {
           "burn_down": [
@@ -28115,8 +28297,8 @@
           "what": "scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared"
         }
       ],
-      "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disc",
-      "title": "Stand-ins of the scatter step of an outer disc"
+      "slug": "6-83-stand-ins-of-the-scatter-step-of-an-outer-disk",
+      "title": "Stand-ins of the scatter step of an outer disk"
     },
     {
       "key": "6.103",
@@ -30101,7 +30283,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_moons.SURVIVAL_AT_0P01_HILL 0.82 and SURVIVAL_AT_0P1_HILL 0.48: the shares of ejections whose closest approach stayed beyond 0.01 and 0.1 mutual Hill radii"
         },
         {
@@ -30181,7 +30363,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": null,
           "what": "rogue_moons.EJECTED_MOON_ECCENTRICITY 0.13: the eccentricity of a moon carried out with its planet"
         },
         {
@@ -30529,7 +30711,7 @@
           "fields": [
             [
               "What it is",
-              "irregular_population.REFERENCE_DISC_MASS_EARTH 30, DISC_REFERENCE_RADIUS_KM 40, DISC_COUNT_AT_REFERENCE 3.5e7, DISC_BREAK_RADIUS_KM 70, DISC_INDEX_BELOW 1.8, DISC_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
+              "irregular_population.REFERENCE_DISK_MASS_EARTH 30, DISK_REFERENCE_RADIUS_KM 40, DISK_COUNT_AT_REFERENCE 3.5e7, DISK_BREAK_RADIUS_KM 70, DISK_INDEX_BELOW 1.8, DISK_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
             ],
             [
               "The range it moves in",
@@ -30560,7 +30742,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": "GEN.1083",
-          "what": "irregular_population.REFERENCE_DISC_MASS_EARTH 30, DISC_REFERENCE_RADIUS_KM 40, DISC_COUNT_AT_REFERENCE 3.5e7, DISC_BREAK_RADIUS_KM 70, DISC_INDEX_BELOW 1.8, DISC_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
+          "what": "irregular_population.REFERENCE_DISK_MASS_EARTH 30, DISK_REFERENCE_RADIUS_KM 40, DISK_COUNT_AT_REFERENCE 3.5e7, DISK_BREAK_RADIUS_KM 70, DISK_INDEX_BELOW 1.8, DISK_INDEX_ABOVE 5.0: the planetesimal disc the captures come from, cumulative number above a radius, scaled linearly by the reservoir's mass"
         },
         {
           "burn_down": null,
@@ -30723,7 +30905,7 @@
           "fields": [
             [
               "What it is",
-              "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISC_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
+              "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISK_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
             ],
             [
               "The range it moves in",
@@ -30754,7 +30936,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": "GEN.1083",
-          "what": "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISC_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
+          "what": "irregular_population.GAS_SIZE_WINDOW_KM (1, 500) and GAS_MIN_DISK_LIFETIME_MYR 1: the gas window takes only bodies of 1 to 500 km and only from a disc that lasted over 1 Myr"
         },
         {
           "burn_down": null,
@@ -31855,7 +32037,7 @@
           "fields": [
             [
               "What it is",
-              "trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
+              "trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
             ],
             [
               "The range it moves in",
@@ -31886,7 +32068,7 @@
           "tier_code": "T4",
           "tweak": "L4",
           "unread": "GEN.1151",
-          "what": "trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
+          "what": "trojan_bodies.MIN_DISK_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows"
         }
       ],
       "slug": "6-125-stand-ins-of-the-whole-bodies-at-lagrange-points",
@@ -32661,7 +32843,7 @@
             ],
             [
               "What it is",
-              "giant_structure.CENTRE_MASS_FRACTION, CENTRE_RADIUS_FRACTION"
+              "giant_structure.CENTER_MASS_FRACTION, CENTER_RADIUS_FRACTION"
             ],
             [
               "The range it moves in",
@@ -32684,7 +32866,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "giant_structure.CENTRE_MASS_FRACTION, CENTRE_RADIUS_FRACTION"
+          "what": "giant_structure.CENTER_MASS_FRACTION, CENTER_RADIUS_FRACTION"
         },
         {
           "burn_down": null,
@@ -33605,7 +33787,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1219",
+          "unread": null,
           "what": "planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end)"
         },
         {
@@ -33854,34 +34036,34 @@
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "VIEW.41",
-            "the cell visit budget goes when a coarser block draw serves the sparse luminosity bands"
+            "no data",
+            "-",
+            "the visit budget is a serving limit chosen so a dust-free sky drops nothing; a coarser block draw for the sparse luminosity bands (a new draw and an epoch, not yet filed) would remove the need for it"
           ],
           "fields": [
             [
               "What it is",
-              "sky_tiers.CELL_VISIT_BUDGET 3e8: the cell visits the luminosity bands of one sky may take, so the bands over about 1,000 Lsun are dropped at a 7.5 limit"
+              "sky_tiers.BLOCK_VISIT_BUDGET 1e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, about an hour of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7, so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
             ],
             [
               "The range it moves in",
-              "5e7 to 2e9"
+              "1e7 to 1e9"
             ],
             [
               "Where it holds",
-              "a sky of 6.5 to 7.5 from a place at the density of the Sun, the backfill as of epoch 131 at 2 to 30 microseconds a visit"
+              "a sky of 6.5 to 7.5 from a place at the density of the Sun, the backfill as of the sphere draw (VIEW.41)"
             ],
             [
               "What would show it wrong",
-              "a measured visit cost far from VIEW.19's, a sky whose dropped bands hide a conspicuous star the glow band cannot stand in for, or a backfill that visits blocks instead of cells (VIEW.41), which removes the need for a budget"
+              "a measured visit cost far from VIEW.41's (21 to 246 microseconds), or a sky whose dropped bands hide a conspicuous star the glow band cannot stand in for"
             ],
             [
               "What replaces it",
-              "VIEW.41 (a coarser block draw for the sparse bands)"
+              "a coarser block than 256 wedges for the sparse bands (a new draw and an epoch)"
             ],
             [
               "Evidence",
-              "VIEW.19: 2.7e8 visits to 1,000 Lsun is half of the luminosity stars at 7.5 (22 minutes warm, 1.8 hours cold); 8.3e9 uncut"
+              "VIEW.41: the whole luminosity side of a 7.5 sky is 4.3e7 visits against 8.3e9 cell visits (VIEW.19)"
             ]
           ],
           "id": "SKT1",
@@ -33891,8 +34073,8 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "VIEW.25",
-          "what": "sky_tiers.CELL_VISIT_BUDGET 3e8: the cell visits the luminosity bands of one sky may take, so the bands over about 1,000 Lsun are dropped at a 7.5 limit"
+          "unread": null,
+          "what": "sky_tiers.BLOCK_VISIT_BUDGET 1e8: the visits (rows and blocks of the sphere draw, block_visits) the luminosity bands of one sky may take, about an hour of one worker at SKT3; a dust-free 7.5 sky takes 4.3e7, so nothing is dropped by default and the cut serves a slower machine or a queue with a time limit"
         },
         {
           "burn_down": null,
@@ -33931,6 +34113,170 @@
           "tweak": "L0",
           "unread": null,
           "what": "sky_tiers.RING_TOP_SOL 50: the luminosity the rings stop at and the luminosity bands start at, tuning.WD_LUMINOSITY_RANGE_SOL[1], the brightest white dwarf, under which star_population.check_threshold refuses a luminosity floor"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_tiers.BLOCK_VISIT_SECONDS 4e-5: what the sphere draw spends on a row or a block, one worker, warm, in the far bands that hold most of the visits"
+            ],
+            [
+              "The range it moves in",
+              "2e-5 to 3e-4"
+            ],
+            [
+              "Where it holds",
+              "this lane's machine, the galaxy of seed sky-measure-0002, an observer 4,000 pc from the centre in the plane; 21 microseconds a visit at 3,500 pc, 54 at 1,000, 246 at 250"
+            ],
+            [
+              "What would show it wrong",
+              "another machine, or a draw that changed its cost per row"
+            ],
+            [
+              "What replaces it",
+              "a time measured on the production worker"
+            ],
+            [
+              "Evidence",
+              "VIEW.41 report section 3, scripts/measure_sky_sphere.py"
+            ]
+          ],
+          "id": "SKT3",
+          "key": "6.176:SKT3",
+          "kind": "P",
+          "slug": "6-176-skt3",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "VIEW.25",
+          "what": "sky_tiers.BLOCK_VISIT_SECONDS 4e-5: what the sphere draw spends on a row or a block, one worker, warm, in the far bands that hold most of the visits"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the near-ring mass edges are spaced by hand over the lightest stars the sampler draws; a spacing taken from the mass-luminosity relation would replace them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_tiers.NEAR_RING_MASSES_SOL (0.1, 0.3, 0.5, 0.7, 0.85): the mass edges under 1 solar mass the sky's rings add, so the stars born lighter than the Sun that show near the observer are drawn"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2 for the lowest, 3 to 8 edges"
+            ],
+            [
+              "Where it holds",
+              "the star sampler, which takes 0.1 as its lightest mass"
+            ],
+            [
+              "What would show it wrong",
+              "a ring edge that splits a sharp change in the luminosities of the stars born there"
+            ],
+            [
+              "What replaces it",
+              "a spacing taken from the mass-luminosity relation"
+            ],
+            [
+              "Evidence",
+              "VIEW.19 section 5: 900 of 15,500 stars in a 7.5 sky are born under 1 solar mass"
+            ]
+          ],
+          "id": "SKT4",
+          "key": "6.176:SKT4",
+          "kind": "D",
+          "slug": "6-176-skt4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_tiers.NEAR_RING_MASSES_SOL (0.1, 0.3, 0.5, 0.7, 0.85): the mass edges under 1 solar mass the sky's rings add, so the stars born lighter than the Sun that show near the observer are drawn"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the ring yield is a cost set by hand (100 stars drawn for each one that shows, as the heavier rings do); a cost per visible star set by the queue would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "a limiting magnitude of 6.5 to 7.5 and an observer near the Sun"
+            ],
+            [
+              "What would show it wrong",
+              "a sky whose faint dwarfs are missed by a viewer who counts them"
+            ],
+            [
+              "What replaces it",
+              "a cost per visible star set by the queue"
+            ],
+            [
+              "Evidence",
+              "VIEW.41 report section 4: reaches 8 to 62 pc at 7.5"
+            ]
+          ],
+          "id": "SKT5",
+          "key": "6.176:SKT5",
+          "kind": "P",
+          "slug": "6-176-skt5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_tiers.RING_MIN_YIELD 0.01: a ring under 1 solar mass is drawn as far as this share of its stars (weights SKT6) is bright enough to show, so it draws 100 stars or fewer for each one that shows, as the rings over 1 solar mass do (140)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the local mix weighs the young, intermediate and old populations alike, as near the Sun; the populations' densities at the observer, which a caller can pass, would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_tiers.LOCAL_MIX: the young, intermediate and old populations weigh alike in the share of a ring's stars that show, as near the Sun, where the halo and the bulge are a thousandth of the stars"
+            ],
+            [
+              "The range it moves in",
+              "any weights over the populations"
+            ],
+            [
+              "Where it holds",
+              "an observer in the disk"
+            ],
+            [
+              "What would show it wrong",
+              "an observer in the bulge or the halo, where the mix is not this"
+            ],
+            [
+              "What replaces it",
+              "the populations' densities at the observer, which a caller can pass as weights"
+            ],
+            [
+              "Evidence",
+              "VIEW.41 report section 4"
+            ]
+          ],
+          "id": "SKT6",
+          "key": "6.176:SKT6",
+          "kind": "P",
+          "slug": "6-176-skt6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_tiers.LOCAL_MIX: the young, intermediate and old populations weigh alike in the share of a ring's stars that show, as near the Sun, where the halo and the bulge are a thousandth of the stars"
         }
       ],
       "slug": "6-176-stand-ins-of-the-sky-tier-table",
@@ -34661,6 +35007,606 @@
       "title": "Stand-ins of the progenitor and ejecta of a planetary nebula"
     },
     {
+      "key": "6.180",
+      "number": "6.180",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the soft knee of the glow image is chosen by eye so the band shows at the faint end and the core does not clip; a display model of the eye's response to surface brightness would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skyband.PEAK 0.4 and GAIN 0.5: the soft knee that turns a glow value into the share of white the band is drawn at, PEAK (1 - exp(-GAIN v))"
+            ],
+            [
+              "The range it moves in",
+              "PEAK 0.2 to 0.6, GAIN 0.3 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "the glow image's values of 0.4 to 1.5 (the Milky Way at the Sun, 21.6 to 23.0 mag per square arcsec)"
+            ],
+            [
+              "What would show it wrong",
+              "a band that is blown out at the core or is not seen at the edge on a dark monitor in a dark room"
+            ],
+            [
+              "What replaces it",
+              "a display model that maps the surface brightness to the eye's response (a tone curve fitted to the dark-adapted sky)"
+            ],
+            [
+              "Evidence",
+              "chosen by eye so the band shows at the faint end and the core does not clip; no source"
+            ]
+          ],
+          "id": "SKD1",
+          "key": "6.180:SKD1",
+          "kind": "P",
+          "slug": "6-180-skd1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skyband.PEAK 0.4 and GAIN 0.5: the soft knee that turns a glow value into the share of white the band is drawn at, PEAK (1 - exp(-GAIN v))"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the grain of the glow is a seeded noise sized by eye; the Poisson variation of the stars under the limit in a cell would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skyband.GRAIN 0.2 and GRAIN_CELL_DEG 0.12: the relative variation (plus or minus) of the glow over cells of this width on the sky, a seeded noise standing for the stars too faint to resolve"
+            ],
+            [
+              "The range it moves in",
+              "GRAIN 0.05 to 0.4, cells 0.05 to 0.5 degrees"
+            ],
+            [
+              "Where it holds",
+              "the glow of the unresolved stars at a limit of 7.5"
+            ],
+            [
+              "What would show it wrong",
+              "a band that looks like smooth paint, or one whose grain is larger than the stars it stands for"
+            ],
+            [
+              "What replaces it",
+              "the grain worked from the star counts under the limit (the Poisson variation of the stars in a cell)"
+            ],
+            [
+              "Evidence",
+              "needed output: the plan asks for a seeded noise in the shader; the size is chosen by eye"
+            ]
+          ],
+          "id": "SKD2",
+          "key": "6.180:SKD2",
+          "kind": "P",
+          "slug": "6-180-skd2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skyband.GRAIN 0.2 and GRAIN_CELL_DEG 0.12: the relative variation (plus or minus) of the glow over cells of this width on the sky, a seeded noise standing for the stars too faint to resolve"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "skyband.SB_REF 22: the surface brightness the glow image's value 1 stands for (value = 10^(-0.4 (SB - 22)))"
+            ],
+            [
+              "The range it moves in",
+              "21 to 23"
+            ],
+            [
+              "Where it holds",
+              "the glow image contract (docs/reference/html-interface.md)"
+            ],
+            [
+              "What would show it wrong",
+              "none (a unit of the image, the server builds to the same number)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the middle of the range the Milky Way runs at the Sun, 21.6 to 23.0 (sky-view.md); a unit, not a measurement"
+            ]
+          ],
+          "id": "SKD3",
+          "key": "6.180:SKD3",
+          "kind": "P",
+          "slug": "6-180-skd3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "skyband.SB_REF 22: the surface brightness the glow image's value 1 stands for (value = 10^(-0.4 (SB - 22)))"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the sprite glow ramp is chosen by eye, like the stars' own scale; the same display model as SKD1 would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skysprites.SB_RAMP 5 and GLOW_MAX 0.55: a sprite's glow goes from nothing at the limit of 23 mag per square arcsec to GLOW_MAX at 5 magnitudes brighter (smoothstep), so a bright nebula does not blind the sky"
+            ],
+            [
+              "The range it moves in",
+              "RAMP 3 to 8, GLOW_MAX 0.3 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "nebulae and remnants of mean surface brightness 15 to 23"
+            ],
+            [
+              "What would show it wrong",
+              "a faint nebula that is lost on the sky or a bright one that outshines the stars"
+            ],
+            [
+              "What replaces it",
+              "the eye's response to a surface brightness (the same display model as SKD1)"
+            ],
+            [
+              "Evidence",
+              "chosen by eye, like the stars' own scale in skylight.js; no source"
+            ]
+          ],
+          "id": "SKD4",
+          "key": "6.180:SKD4",
+          "kind": "P",
+          "slug": "6-180-skd4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skysprites.SB_RAMP 5 and GLOW_MAX 0.55: a sprite's glow goes from nothing at the limit of 23 mag per square arcsec to GLOW_MAX at 5 magnitudes brighter (smoothstep), so a bright nebula does not blind the sky"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the stored model ties no orbital plane to the galactic frame, so the Milky Way's plane is drawn in the plane of the orbits; a stored orientation of each system would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "systemsky.GALAXY_TO_SCENE: the galactic plane laid in the System View's reference plane (the galaxy's north pole is the scene's up, the galactic x stays x)"
+            ],
+            [
+              "The range it moves in",
+              "any turn about the scene's up axis"
+            ],
+            [
+              "Where it holds",
+              "every system, since a stored system has no orientation to the galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose stored orbital plane is tilted to the galactic plane by a known angle, whose sky then lies at the wrong angle to its orbits"
+            ],
+            [
+              "What replaces it",
+              "the system's stored orientation (the angle of its reference plane to the galactic frame), when one is stored"
+            ],
+            [
+              "Evidence",
+              "needed output: the stored model ties no orbital plane to the galactic frame, so the plane of the Milky Way is drawn in the plane of the orbits"
+            ]
+          ],
+          "id": "SKD5",
+          "key": "6.180:SKD5",
+          "kind": "P",
+          "slug": "6-180-skd5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "systemsky.GALAXY_TO_SCENE: the galactic plane laid in the System View's reference plane (the galaxy's north pole is the scene's up, the galactic x stays x)"
+        }
+      ],
+      "slug": "6-180-stand-ins-of-the-drawing-of-the-system-sky",
+      "title": "Stand-ins of the drawing of the system sky"
+    },
+    {
+      "key": "6.181",
+      "number": "6.181",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the peak magnitude of the star look is chosen by eye so the faint end shows and the bright end does not clip; a display model of the eye's response fitted to the dark-adapted sky would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skylight.PEAK_MAGNITUDE 4.5: a star this bright or brighter is drawn at full strength in its middle, and fainter ones at 10^(-0.4 (m - 4.5)) of it"
+            ],
+            [
+              "The range it moves in",
+              "3.5 to 5.5"
+            ],
+            [
+              "Where it holds",
+              "stars of apparent magnitude -1.5 to 7.5 on a dark monitor in a dark room"
+            ],
+            [
+              "What would show it wrong",
+              "a sky in which the stars of magnitude 5 to 7 cannot be told from the black, or in which the naked-eye ones are all alike"
+            ],
+            [
+              "What replaces it",
+              "a display model of the eye's response, fitted to the dark-adapted sky"
+            ],
+            [
+              "Evidence",
+              "chosen by eye so the faint end shows and the bright end does not clip; no source"
+            ]
+          ],
+          "id": "SKL1",
+          "key": "6.181:SKL1",
+          "kind": "P",
+          "slug": "6-181-skl1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.PEAK_MAGNITUDE 4.5: a star this bright or brighter is drawn at full strength in its middle, and fainter ones at 10^(-0.4 (m - 4.5)) of it"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the width of a drawn star and its growth per magnitude are chosen by eye so a bright star looks brighter on a monitor that cannot make it so; the eye's point-spread function would replace them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skylight.SIGMA_PX 0.7, SIGMA_PER_MAG_PX 0.45, SIZE_SIGMAS 4 and MAX_SIZE_PX 12: the Gaussian width of a point (0.7 pixel at the peak magnitude plus 0.45 pixel per magnitude brighter), the width it is cut at and the widest it is drawn"
+            ],
+            [
+              "The range it moves in",
+              "sigma 0.4 to 1.2, per magnitude 0.2 to 0.8, cap 8 to 24"
+            ],
+            [
+              "Where it holds",
+              "the System View on a 1,000 pixel canvas and a field of view of 60 degrees or more"
+            ],
+            [
+              "What would show it wrong",
+              "a bright star whose glow hides a neighbor a degree away, or a faint one too small to see"
+            ],
+            [
+              "What replaces it",
+              "the point-spread function of the eye for a bright source"
+            ],
+            [
+              "Evidence",
+              "needed output: a bright star has to look brighter than a faint one on a monitor that cannot make it so; chosen by eye"
+            ]
+          ],
+          "id": "SKL2",
+          "key": "6.181:SKL2",
+          "kind": "P",
+          "slug": "6-181-skl2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.SIGMA_PX 0.7, SIGMA_PER_MAG_PX 0.45, SIZE_SIGMAS 4 and MAX_SIZE_PX 12: the Gaussian width of a point (0.7 pixel at the peak magnitude plus 0.45 pixel per magnitude brighter), the width it is cut at and the widest it is drawn"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the colour a faint star keeps is chosen by eye; the eye's loss of colour vision at low light (the display model of SKL1) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skylight.SAT_MIN 0.35, SAT_SLOPE 0.65, SAT_REF_MAG 5.5 and SAT_SPAN_MAG 4: a star keeps all of its colour at magnitude 1.5 and brighter and 35% of it at 5.5 and fainter, linear between"
+            ],
+            [
+              "The range it moves in",
+              "min 0.2 to 0.6, reference magnitude 4 to 7"
+            ],
+            [
+              "Where it holds",
+              "the stars of a naked-eye sky"
+            ],
+            [
+              "What would show it wrong",
+              "a faint red star that is drawn grey, or a faint blue one that is as vivid as a bright one"
+            ],
+            [
+              "What replaces it",
+              "the eye's loss of colour vision at low light (the same display model as SKL1)"
+            ],
+            [
+              "Evidence",
+              "chosen by eye, as sky-view.md section 4 says; no source"
+            ]
+          ],
+          "id": "SKL3",
+          "key": "6.181:SKL3",
+          "kind": "P",
+          "slug": "6-181-skl3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.SAT_MIN 0.35, SAT_SLOPE 0.65, SAT_REF_MAG 5.5 and SAT_SPAN_MAG 4: a star keeps all of its colour at magnitude 1.5 and brighter and 35% of it at 5.5 and fainter, linear between"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the phone's limiting magnitude is set from the plan's count of about 9,000 stars in step with the 15,000 cap; the frame time a phone measures would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skylight.SKY_LIMIT_PHONE 6.5 (and sky.DEFAULT_LIMIT, skylight.SKY_LIMIT 7.5, which Boss chose on 2026-11-04): the limiting magnitude on a window 700 pixels wide or narrower"
+            ],
+            [
+              "The range it moves in",
+              "5.5 to 7.0"
+            ],
+            [
+              "Where it holds",
+              "a phone's graphics card, which draws 15,000 stars"
+            ],
+            [
+              "What would show it wrong",
+              "a phone whose frame rate drops at 6.5, or one that could show 7.5"
+            ],
+            [
+              "What replaces it",
+              "the frame time the phone measures"
+            ],
+            [
+              "Evidence",
+              "the plan's count of about 9,000 stars at 6.5, in step with the 15,000 cap of SKL5"
+            ]
+          ],
+          "id": "SKL4",
+          "key": "6.181:SKL4",
+          "kind": "P",
+          "slug": "6-181-skl4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skylight.SKY_LIMIT_PHONE 6.5 (and sky.DEFAULT_LIMIT, skylight.SKY_LIMIT 7.5, which Boss chose on 2026-11-04): the limiting magnitude on a window 700 pixels wide or narrower"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the star caps are the plan's phone count and a laptop's frame time at 60 frames a second; the count the frame time of the page's own machine allows would replace them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skysphere.MAX_STARS 60000 and MAX_STARS_PHONE 15000: the most stars the page draws, the brightest kept"
+            ],
+            [
+              "The range it moves in",
+              "20,000 to 200,000, phone 5,000 to 30,000"
+            ],
+            [
+              "Where it holds",
+              "one draw call of points, no per-frame upload"
+            ],
+            [
+              "What would show it wrong",
+              "a frame time of more than 16 ms on a mid-range laptop at 60,000"
+            ],
+            [
+              "What replaces it",
+              "the count the frame time of the page's machine allows"
+            ],
+            [
+              "Evidence",
+              "needed output: the plan's phone count of 15,000; the 7.5 count is about 25,000 and a limit of 8.5 about 75,000"
+            ]
+          ],
+          "id": "SKL5",
+          "key": "6.181:SKL5",
+          "kind": "P",
+          "slug": "6-181-skl5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skysphere.MAX_STARS 60000 and MAX_STARS_PHONE 15000: the most stars the page draws, the brightest kept"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the speed that takes a third light-time pass is where the residual of two passes reaches a pixel of the finest view; no measured star needs a lower one"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skysphere.FAST_KMS 1000: a star faster than this relative to the observer takes a third light-time pass"
+            ],
+            [
+              "The range it moves in",
+              "300 to 3,000"
+            ],
+            [
+              "Where it holds",
+              "stars of the stored velocities (hypervelocity stars to 2,000 km/s)"
+            ],
+            [
+              "What would show it wrong",
+              "a hypervelocity star that is more than a pixel from the position a fourth pass gives"
+            ],
+            [
+              "What replaces it",
+              "the speed at which the residual of two passes ((v/c)^2) is a pixel of the finest view"
+            ],
+            [
+              "Evidence",
+              "the plan: two passes leave v/c of the error each, 3e-3 at 1,000 km/s"
+            ]
+          ],
+          "id": "SKL6",
+          "key": "6.181:SKL6",
+          "kind": "P",
+          "slug": "6-181-skl6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skysphere.FAST_KMS 1000: a star faster than this relative to the observer takes a third light-time pass"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the pick reach is chosen so a pixel-sized star can be hit by a mouse; a reach set by the pointer's kind (mouse, pen, touch) would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "skypick.REACH_PX 10 and PREFILTER_SLACK_PX 30: how near the pointer must be to a star to pick it, and the margin the first filter keeps"
+            ],
+            [
+              "The range it moves in",
+              "reach 6 to 16"
+            ],
+            [
+              "Where it holds",
+              "a mouse; a touch screen would want a larger reach"
+            ],
+            [
+              "What would show it wrong",
+              "a star that cannot be picked with the pointer on it, or a click that picks a different star of a crowd"
+            ],
+            [
+              "What replaces it",
+              "a reach set by the pointer's kind (mouse, pen, touch)"
+            ],
+            [
+              "Evidence",
+              "needed output: a star is a point of a pixel or two and a hand is not exact"
+            ]
+          ],
+          "id": "SKL7",
+          "key": "6.181:SKL7",
+          "kind": "P",
+          "slug": "6-181-skl7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "skypick.REACH_PX 10 and PREFILTER_SLACK_PX 30: how near the pointer must be to a star to pick it, and the margin the first filter keeps"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the cap on charted names bounds the size of the route's meta; a name carried in the packed list or looked up on a pick would remove the need for it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "system_sky.MAX_CHARTED_NAMES 5000: the most charted stars the sky route names in meta.charted"
+            ],
+            [
+              "The range it moves in",
+              "1,000 to 50,000"
+            ],
+            [
+              "Where it holds",
+              "a sky of 25,000 stars, of which the charted ones are a few hundred in a young galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a sky with more charted stars than this, whose fainter ones are not named or linked"
+            ],
+            [
+              "What replaces it",
+              "a name carried in the packed list itself, or looked up on a pick"
+            ],
+            [
+              "Evidence",
+              "needed output: bounds the size of meta; the brightest are kept"
+            ]
+          ],
+          "id": "SKL8",
+          "key": "6.181:SKL8",
+          "kind": "P",
+          "slug": "6-181-skl8",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "system_sky.MAX_CHARTED_NAMES 5000: the most charted stars the sky route names in meta.charted"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the poll interval, poll count and phone width are serving limits so a poll does not hammer the route and ends; the build's own notice of completion would replace the poll"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "systemsky.POLL_MS 30000, MAX_POLLS 20 and PHONE_MAX_WIDTH_PX 700: a sky still filling in is asked for every 30 seconds up to 20 times, and a window this narrow is a phone"
+            ],
+            [
+              "The range it moves in",
+              "poll 10 to 120 s, polls 5 to 60, width 500 to 900"
+            ],
+            [
+              "Where it holds",
+              "a sky whose tiers are being built by charting"
+            ],
+            [
+              "What would show it wrong",
+              "a build that takes longer than 10 minutes, or a phone wider than 700 pixels"
+            ],
+            [
+              "What replaces it",
+              "the build's own notice of completion"
+            ],
+            [
+              "Evidence",
+              "needed output: a poll must not hammer the route and must end"
+            ]
+          ],
+          "id": "SKL9",
+          "key": "6.181:SKL9",
+          "kind": "P",
+          "slug": "6-181-skl9",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "systemsky.POLL_MS 30000, MAX_POLLS 20 and PHONE_MAX_WIDTH_PX 700: a sky still filling in is asked for every 30 seconds up to 20 times, and a window this narrow is a phone"
+        }
+      ],
+      "slug": "6-181-stand-ins-of-the-look-of-a-sky-star-the-star-caps-and-the-page-s-reach",
+      "title": "Stand-ins of the look of a sky star, the star caps and the page's reach"
+    },
+    {
       "key": "6.175",
       "number": "6.175",
       "rows": [
@@ -34699,7 +35645,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky.DISPERSION_KMS (35, 25, 20): the velocity dispersion in the radial, tangential and vertical directions (km/s) of a star with no stored velocity, which moves counterclockwise at the circular speed of the galaxy at its radius"
         },
         {
@@ -34783,7 +35729,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.LOCAL_V_LUMINOSITY_DENSITY 0.044: the V light of the stars in a cubic parsec where the relative density is 1 (L_V,sun per pc^3)"
         },
         {
@@ -34821,7 +35767,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.FAINT_LIGHT_TABLE rows (-0.19, 0.81), (2.31, 0.35), (4.81, 0.07): the share of the V light that comes from stars fainter than the absolute magnitude in the row"
         },
         {
@@ -34863,7 +35809,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L4",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.FAINT_LIGHT_TABLE ends (-10, 1.0), (9.0, 0.01), (12.0, 0.0): the share of light from stars fainter than a very bright, a faint and a very faint absolute magnitude"
         },
         {
@@ -34905,8 +35851,50 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_band.FACE_PIXELS 32, STEPS 400, MAX_DISTANCE_PC 30000 and CELL_PC 50: the cell that shares a band, the cube map's size, the steps of a ray and its length"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the glow's colour is a blackbody of 4500 K because the band is worked as one V surface brightness and the page needs three channels; the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix, would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "sky_band.TINT_TEMPERATURE_K 4500: the colour of the glow image, the blackbody of this temperature at a luminance of 1 (sky_band.tint)"
+            ],
+            [
+              "The range it moves in",
+              "4000 to 5500 K"
+            ],
+            [
+              "Where it holds",
+              "the band of the unresolved stars of a disc galaxy, whose faint light is mostly K and M dwarfs and giants"
+            ],
+            [
+              "What would show it wrong",
+              "a glow of another colour than the blackbody of 4500 K in the mean colour of the faint stars (the integrated colour of the unresolved Milky Way)"
+            ],
+            [
+              "What replaces it",
+              "the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix"
+            ],
+            [
+              "Evidence",
+              "needed output: the band is worked as one V surface brightness, the page needs three channels, and the faint-light stars (the table's rows) are cooler than the Sun"
+            ]
+          ],
+          "id": "GLW1",
+          "key": "6.174:GLW1",
+          "kind": "P",
+          "slug": "6-174-glw1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sky_band.TINT_TEMPERATURE_K 4500: the colour of the glow image, the blackbody of this temperature at a luminance of 1 (sky_band.tint)"
         }
       ],
       "slug": "6-174-stand-ins-of-the-glow-band-of-the-unresolved-stars",
@@ -34951,7 +35939,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.DUST_AV_PER_KPC_AT_SUN 1.0: V extinction per kpc in the plane at the solar circle, the normalisation of the dust disc"
         },
         {
@@ -34989,7 +35977,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.COOL_BC_TABLE_K_MAG: BC_V of K7V to L2V, 4,100 K to 2,060 K, linear in log T between rows and held under 2,060 K"
         },
         {
@@ -35027,7 +36015,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.V_WAVELENGTH_M 550e-9 and the blackbody step: over 50,000 K, BC_V(T) = BC_V(50,000 K) - 2.5 log10[T^4 expm1(c2/(550 nm T))] + the same at 50,000 K"
         },
         {
@@ -35065,7 +36053,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "VIEW.31",
+          "unread": null,
           "what": "sky_photometry.DUST_SCALE_LENGTH_PC 2260, DUST_HEIGHT_PC 134.4, DUST_HEIGHT_FLARE_PC_PER_KPC 14.8, DUST_FLARE_START_PC 4400, DUST_SOLAR_RADIUS_PC 8000: the dust disc's shape; no warp, no spiral arms, no central hole"
         }
       ],
@@ -35885,6 +36873,7 @@
       "title": "Stand-ins of the habitable bodies per system"
     },
     {
+<<<<<<< HEAD
       "key": "6.168",
       "number": "6.168",
       "rows": [
@@ -36055,12 +37044,55 @@
           "tweak": "L4",
           "unread": null,
           "what": "belt_populations.DETACHED_PERIHELION_OVER_INNER_EDGE (1.0, 1.6): the perihelion of a body lifted out of the giant's reach, over the belt's inner edge, uniform"
+=======
+      "key": "6.172",
+      "number": "6.172",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
+            ],
+            [
+              "The range it moves in",
+              "15 to 50"
+            ],
+            [
+              "Where it holds",
+              "giants with a circumplanetary disc; the value was adopted for Jupiter and Saturn"
+            ],
+            [
+              "What would show it wrong",
+              "a hydrodynamic or population study of moons forming a good way past 30 planet radii of a giant of another mass, or a mass dependence of the centrifugal radius"
+            ],
+            [
+              "What replaces it",
+              "a centrifugal radius from the planet's mass, spin and the inflow's angular momentum (the Hill-sphere inflow runs behind [R3922])"
+            ],
+            [
+              "Evidence",
+              "[R3922] Appendix A: \"we adopt r_c = 30 R_p\" from three-dimensional hydrodynamic runs of the flow within the Hill sphere; its Table 1 puts Callisto at 26.4, Titan at 20.3 and Ganymede at 15.0 planet radii"
+            ]
+          ],
+          "id": "MD1",
+          "key": "6.172:MD1",
+          "kind": "P",
+          "slug": "6-172-md1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
+>>>>>>> origin/main
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
+<<<<<<< HEAD
               "belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion"
             ],
             [
@@ -36139,6 +37171,48 @@
     {
       "key": "6.167",
       "number": "6.167",
+=======
+              "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
+            ],
+            [
+              "The range it moves in",
+              "none (the planet's spin is drawn)"
+            ],
+            [
+              "Where it holds",
+              "giants whose spin is drawn by planets.draw_birth_spin; 2.25 planet radii for the Jupiter of the source"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose innermost regular moon sits well inside the corotation radius of its birth spin, or a disc whose cavity is set by something other than the spin"
+            ],
+            [
+              "What replaces it",
+              "a magnetospheric truncation radius from the planet's field and the disc's accretion rate"
+            ],
+            [
+              "Evidence",
+              "[R3922] section 2.4 (the disc truncated \"at the corotation radius where the disk gas corotates with the planetary spin\"; set I takes about 2.25 planet radii for Jupiter)"
+            ]
+          ],
+          "id": "MD2",
+          "key": "6.172:MD2",
+          "kind": "P",
+          "slug": "6-172-md2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
+        }
+      ],
+      "slug": "6-172-stand-ins-of-the-zone-the-regular-moons-of-a-giant-form-in",
+      "title": "Stand-ins of the zone the regular moons of a giant form in"
+    },
+    {
+      "key": "6.182",
+      "number": "6.182",
+>>>>>>> origin/main
       "rows": [
         {
           "burn_down": null,
@@ -36169,9 +37243,15 @@
             ]
           ],
           "id": "MR1",
+<<<<<<< HEAD
           "key": "6.167:MR1",
           "kind": "D",
           "slug": "6-167-mr1",
+=======
+          "key": "6.182:MR1",
+          "kind": "D",
+          "slug": "6-182-mr1",
+>>>>>>> origin/main
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
@@ -36207,9 +37287,15 @@
             ]
           ],
           "id": "MR2",
+<<<<<<< HEAD
           "key": "6.167:MR2",
           "kind": "P",
           "slug": "6-167-mr2",
+=======
+          "key": "6.182:MR2",
+          "kind": "P",
+          "slug": "6-182-mr2",
+>>>>>>> origin/main
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -36245,9 +37331,15 @@
             ]
           ],
           "id": "MR3",
+<<<<<<< HEAD
           "key": "6.167:MR3",
           "kind": "D",
           "slug": "6-167-mr3",
+=======
+          "key": "6.182:MR3",
+          "kind": "D",
+          "slug": "6-182-mr3",
+>>>>>>> origin/main
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
@@ -36255,7 +37347,11 @@
           "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
         }
       ],
+<<<<<<< HEAD
       "slug": "6-167-stand-ins-of-where-a-stored-belt-member-lies",
+=======
+      "slug": "6-182-stand-ins-of-where-a-stored-belt-member-lies",
+>>>>>>> origin/main
       "title": "Stand-ins of where a stored belt member lies"
     },
     {
@@ -38029,8 +39125,8 @@
           "what": "tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO 1.8: the scale length of a satellite's gas disc over its stars'"
         }
       ],
-      "slug": "6-140-stand-ins-of-the-gas-disc-of-a-satellite-galaxy",
-      "title": "Stand-ins of the gas disc of a satellite galaxy"
+      "slug": "6-140-stand-ins-of-the-gas-disk-of-a-satellite-galaxy",
+      "title": "Stand-ins of the gas disk of a satellite galaxy"
     },
     {
       "key": "6.141",
@@ -38795,7 +39891,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L1",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_dispersal.RETIREMENT_RADIUS_M 1 light year: the rms radius past which a field is retired (its mass is then under 1e-6 of the background density of a 1 ly ball for a planet's worth of rock, and the field is no longer a place)"
         },
         {
@@ -38833,7 +39929,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1105",
+          "unread": null,
           "what": "field_dispersal.OORT_A_KMS_KPC 15.0 km/s/kpc, with SHEAR_VALID_YEARS 2.6e7: the galactic shear of the field along the orbit, 2 A x t for an offset x, applied to the bodies of a field only while the epicyclic approximation holds"
         },
         {
@@ -38871,7 +39967,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1105",
+          "unread": null,
           "what": "field_dispersal.DEFAULT_DENSITY_KG_M3 3000: the bulk density of a rocky piece, used for the freeze-out radius sqrt(3 M / (2 pi rho D)) at which a column of pieces of diameter D stops colliding (one collision per piece when the optical depth is 1)"
         },
         {
@@ -39283,7 +40379,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.LARGEST_BODY_MASS_KG 1e17, BULK_DENSITY_KG_M3 1500: the largest body of a light field (a rubble pile about 50 km across, a hundredth of the ledger cut of 1e19) and its bulk density (a porous pile, half of the silicate pieces of IF17)"
         },
         {
@@ -39325,7 +40421,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it)"
         },
         {
@@ -39367,7 +40463,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1120",
+          "unread": null,
           "what": "topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up"
         }
       ],
@@ -40291,7 +41387,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
+              "tuning.THICK_DISK_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
             ],
             [
               "The range it moves in",
@@ -40322,7 +41418,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
+          "what": "tuning.THICK_DISK_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars"
         },
         {
           "burn_down": null,
@@ -40363,8 +41459,8 @@
           "what": "thick_ages.mixed_old_law: the thick disc's star formation is flat over its window"
         }
       ],
-      "slug": "6-146-stand-ins-of-the-thick-disc-s-ages",
-      "title": "Stand-ins of the thick disc's ages"
+      "slug": "6-146-stand-ins-of-the-thick-disk-s-ages",
+      "title": "Stand-ins of the thick disk's ages"
     },
     {
       "key": "6.147",
@@ -41665,7 +42761,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISC_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
+              "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
             ],
             [
               "The range it moves in",
@@ -41696,7 +42792,7 @@
           "tier_code": "T2",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISC_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
+          "what": "tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISK_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time"
         },
         {
           "burn_down": null,
@@ -43671,7 +44767,7 @@
           "fields": [
             [
               "What it is",
-              "scatter.DISC_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+              "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
             ],
             [
               "The range it moves in",
@@ -43702,7 +44798,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "scatter.DISC_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
+          "what": "scatter.DISK_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build"
         }
       ],
       "slug": "6-127-stand-ins-of-the-architecture-s-losses",

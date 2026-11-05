@@ -770,6 +770,9 @@ def add_sectors_arguments(parser):
     parser.add_argument('--unit-sectors', type=int, metavar='N',
                         help="With --around: the most sectors in a unit of work, the retry and resume grain (default "
                              f"{region_run.BLOCK_SECTORS}).")
+    parser.add_argument('--rogues', type=dials.lever("rogues").parse, metavar="{" + ",".join(dials.lever("rogues").choices) + "}",
+                        help="With --around: the Rogues level of the run's top-up (stage 3, after every sector is built), for this run only. Default: the level "
+                             "the galaxy's plan was given (plan --rogues), else normal.")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -852,7 +855,8 @@ def validate_sectors_args(args, parser):
     if getattr(args, "around", None) is not None:
         _validate_around(args, parser)
         return
-    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None))):
+    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None)),
+                        ("--rogues", getattr(args, "rogues", None))):
         if value is not None:
             parser.error(f"{flag} requires --around.")
 
@@ -2154,7 +2158,7 @@ def main():
     except SystemExit as exc:
         # SIGTERM inside a work queue (Cancel) exits with 128 + signal.
         if isinstance(exc.code, int) and exc.code >= 128:
-            status, failure = "interrupted", "cancelled"
+            status, failure = "interrupted", "canceled"
         elif exc.code in (None, 0):
             status = "ok"
         else:
@@ -2181,7 +2185,7 @@ def main():
 def _exit_on_sigterm():
     """
     Makes a SIGTERM (Cancel on the Generate page, `kill`) end the run as `SystemExit(128 + 15)`, so the run's own
-    cleanup runs (its run record ends as cancelled at once, not after the stale time) as Ctrl+C does.
+    cleanup runs (its run record ends as canceled at once, not after the stale time) as Ctrl+C does.
 
     Returns:
         The handler it replaced, to put back when the run ends, or `None` when it is not the main thread.

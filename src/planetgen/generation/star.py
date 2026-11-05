@@ -273,7 +273,7 @@ class Star(StellarObject):
             galactic_center_dist_ly (float, optional): This star's actual
                 distance from the galactic center, in light-years, threaded
                 into `calculate_system_perimeter` -- see that method's
-                docstring. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
+                docstring. `None` (the default) uses the radius that holds half of the galaxy's disk stars (`galaxy.scales`).
             galactic_orbital_phase_deg (float, optional): This star's
                 current angular position around its galactic orbit, in
                 degrees -- the value `planetgen.db.store.advance_orbital_phases`

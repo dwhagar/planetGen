@@ -51,7 +51,7 @@ def test_a_region_carries_its_cell_extent_counts_and_name(galaxy, client, keyed)
     for stored, entry in zip(_stored(galaxy), client.get("/api/galaxy/charted-regions").get_json()["regions"]):
         cell = stored["block"]
         assert (entry["m"], entry["shell"], entry["band"], entry["wedge"]) == (named_regions.REGION_LEVEL, cell.shell, cell.band, cell.wedge)
-        assert entry["centre"] == list(stored["extent_centre_pc"]) and entry["radius"] == stored["extent_radius_pc"]
+        assert entry["center"] == list(stored["extent_center_pc"]) and entry["radius"] == stored["extent_radius_pc"]
         assert entry["radius"] >= named_regions.framing_radius_pc(cell, EDGE)
         assert (entry["sector_count"], entry["capacity"]) == (stored["sector_count"], stored["capacity"])
         assert entry["share"] == pytest.approx(stored["sector_count"] / stored["capacity"])

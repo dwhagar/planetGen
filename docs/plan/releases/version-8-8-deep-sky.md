@@ -20,7 +20,6 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.179 | Scattered nebulae as markers from level 8 | GEN.202 | Phase 2. Foundations lane 2. |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
 
 ### Clusters and satellites on the map
@@ -29,6 +28,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 |---|---|---|---|
 | GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill |  | Split from GEN.209. |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | GEN.359 | Split from GEN.209. |
+| MAP.381 | Sector Map: draw the globular clusters and label them by name or designation | MAP.224 |  |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | GEN.359, MAP.224 |  |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) |  | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
 | GEN.248 | Tidal streams as placed components of the halo (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |

@@ -14,7 +14,7 @@ ENCOUNTERS = ip.REFERENCE_ENCOUNTERS
 GIANTS = {"Jupiter": (5.203, 1.898e27, True), "Saturn": (9.537, 5.683e26, True), "Uranus": (19.19, 8.68e25, False), "Neptune": (30.07, 1.024e26, False)}
 
 
-def _planet(distance_au, mass_kg, gas_giant, encounters=ENCOUNTERS, reservoir=ip.REFERENCE_DISC_MASS_EARTH):
+def _planet(distance_au, mass_kg, gas_giant, encounters=ENCOUNTERS, reservoir=ip.REFERENCE_DISK_MASS_EARTH):
     hill = irregular_zone.hill_radius_au(distance_au, mass_kg, SUN)
     pool = ip.make_pool(hill, encounters, reservoir, gas_giant, 3.0 if gas_giant else 0.0)
     return hill, pool, ip.intrinsic_probability(mass_kg, ip.zone_radius_au(hill, distance_au))
@@ -112,18 +112,18 @@ def test_terrestrial_planets_and_hot_jupiters_hold_nothing():
     hot = irregular_zone.hill_radius_au(0.05, 1.898e27, SUN)
     pool = ip.make_pool(hot, ENCOUNTERS, 30.0, True, 3.0)
     assert pool.count_above(5.0) < 0.1 * ip.make_pool(0.355, ENCOUNTERS, 30.0, True, 3.0).count_above(5.0)
-    no_disc = ip.make_pool(0.355, ENCOUNTERS, 0.0, True, 3.0)
-    assert no_disc.count_above(5.0) == 0.0 and no_disc.count_above(0.5) == 0.0
+    no_disk = ip.make_pool(0.355, ENCOUNTERS, 0.0, True, 3.0)
+    assert no_disk.count_above(5.0) == 0.0 and no_disk.count_above(0.5) == 0.0
     no_encounters = ip.make_pool(0.355, 0.0, 30.0)
     assert no_encounters.count_above(5.0) == 0.0
 
 
-def test_the_gas_window_needs_an_envelope_a_lasting_disc_and_takes_a_size_range():
-    none = ip.make_pool(0.45, 0.0, 30.0, gas_giant=False, gas_disc_myr=5.0)
+def test_the_gas_window_needs_an_envelope_a_lasting_disk_and_takes_a_size_range():
+    none = ip.make_pool(0.45, 0.0, 30.0, gas_giant=False, gas_disk_myr=5.0)
     assert none.count_above(5.0) == 0.0                                           # an ice giant with no instability holds none
-    short = ip.make_pool(0.45, 0.0, 30.0, gas_giant=True, gas_disc_myr=0.5)
+    short = ip.make_pool(0.45, 0.0, 30.0, gas_giant=True, gas_disk_myr=0.5)
     assert short.count_above(5.0) == 0.0
-    gas = ip.make_pool(0.45, 0.0, 30.0, gas_giant=True, gas_disc_myr=3.0)
+    gas = ip.make_pool(0.45, 0.0, 30.0, gas_giant=True, gas_disk_myr=3.0)
     full = ip.make_pool(0.45, ip.REFERENCE_ENCOUNTERS, 30.0)
     assert gas.count_above(5.0) == pytest.approx(ip.GAS_WINDOW_STRENGTH * full.count_above(5.0), rel=0.02)
     assert gas.count_above(600.0) == 0.0                                          # bodies over 500 km barely feel the drag

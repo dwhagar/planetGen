@@ -185,7 +185,7 @@ def expected_band(shape, site, e_value, edge_pc, low, high, mass_cap, radius, ra
 
 
 def cells_around(site, radius, edge_pc):
-    """The cells with centres within `radius` of `site`, nearest first: `(addresses, distances)`."""
+    """The cells with centers within `radius` of `site`, nearest first: `(addresses, distances)`."""
     t = time.perf_counter()
     found = sorted(spherical.enumerate_sectors_within_radius(site, radius, edge_pc), key=lambda row: row[6])
     seconds = time.perf_counter() - t

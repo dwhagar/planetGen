@@ -25545,6 +25545,61 @@
       "kind": "paper",
       "label": "Kirchschlager et al. 2019",
       "title": "Dust survival rates in clumps passing through the Cas A reverse shock – I. Results for a range of clump densities"
+    },
+    "R5112": {
+      "kind": "web",
+      "label": "NAIF SPICE: aberration corrections",
+      "title": "NAIF SPICE: aberration corrections"
+    },
+    "R5113": {
+      "kind": "web",
+      "label": "Gaia Sky: level-of-detail catalogs",
+      "title": "Gaia Sky: level-of-detail catalogs"
+    },
+    "R5114": {
+      "kind": "paper",
+      "label": "Burns et al. 1999",
+      "title": "The Formation of Jupiter's Faint Rings"
+    },
+    "R5115": {
+      "kind": "paper",
+      "label": "Guillot and Gautier 2015",
+      "title": "Giant Planets"
+    },
+    "R5116": {
+      "kind": "paper",
+      "label": "Pearl et al. 1990",
+      "title": "The albedo, effective temperature, and energy balance of Uranus, as determined from Voyager IRIS data"
+    },
+    "R5117": {
+      "kind": "paper",
+      "label": "Vazan and Helled 2020",
+      "title": "Explaining the low luminosity of Uranus: a self-consistent thermal and structural evolution"
+    },
+    "R5118": {
+      "kind": "paper",
+      "label": "Reinhardt et al. 2019",
+      "title": "Bifurcation in the history of Uranus and Neptune: the role of giant impacts"
+    },
+    "R5119": {
+      "kind": "paper",
+      "label": "Scheibe et al. 2019",
+      "title": "Thermal evolution of Uranus and Neptune"
+    },
+    "R5120": {
+      "kind": "paper",
+      "label": "Scheibe et al. 2021",
+      "title": "Thermal evolution of Uranus and Neptune"
+    },
+    "R5121": {
+      "kind": "paper",
+      "label": "Boissier and Prantzos 2000",
+      "title": "Chemo-spectrophotometric evolution of spiral galaxies -- II. Main properties of present-day disc galaxies"
+    },
+    "R5122": {
+      "kind": "paper",
+      "label": "Boissier et al. 2001",
+      "title": "Chemo-spectrophotometric evolution of spiral galaxies--IV. Star formation efficiency and effective ages of spirals"
     }
   }
 }

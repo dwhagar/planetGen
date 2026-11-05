@@ -20,7 +20,7 @@ by `cloud_of_nebula` from a drawn `Nebula`), so a system's cloud has one shape w
 `class`, `descriptor` the class letter, and the nebula's family or the remnant's morphology
 `density_cm3`, `temperature_k`, `extinction_av`, `radius_ly`
 `age_myr`             the age of the hosts (nebula) or of the remnant, Myr; `None` for a cloud without an age
-`center`              the cloud's centre in the galaxy frame, parsecs; `None` for a cloud not placed
+`center`              the cloud's center in the galaxy frame, parsecs; `None` for a cloud not placed
 `host_stars`          the stars that light it: dicts of `type`, `count`, `luminosity_sol`, `teff_k`, `position_pc`
 ====================  =====================================================================================
 
@@ -32,7 +32,7 @@ GEN.99's regenerate-in-place calls `StarSystem.apply_cloud` with the cloud the s
 A system outside every cloud draws nothing and is changed in nothing. A system inside one draws from a stream of its own
 (`fill_stages.CLOUDS`, one per placement), so neither it nor the systems after it move any other draw.
 
-Out of scope here (GEN.358): the rules that change planets (photoevaporation cut, planetary-nebula discs, the swallowed
+Out of scope here (GEN.358): the rules that change planets (photoevaporation cut, planetary-nebula disks, the swallowed
 giant flag, orbit expansion). `apply_cloud` stamps `StarSystem.cloud_effects` and regenerates nothing yet. The nebula's
 composition flags of the design sketch are not made: composition comes through the composition chain (GEN.428, GEN.440),
 and `enrichment_k` is a factor for it to read, not a second set of composition fields.
@@ -107,8 +107,8 @@ def cloud_of_nebula(nebula, center_pc, ident=None, name=None):
 def host_stars(hosts, position_pc):
     """
     The stars that light a nebula, from its `hosts` text, as dicts of `type`, `count`, `luminosity_sol`, `teff_k` and
-    `position_pc`. Every host sits at `position_pc` (the cloud's centre): a seeded cloud has no stored positions for
-    its stars, so a system's distance to them is its distance to the centre, within the cluster's half-mass radius
+    `position_pc`. Every host sits at `position_pc` (the cloud's center): a seeded cloud has no stored positions for
+    its stars, so a system's distance to them is its distance to the center, within the cluster's half-mass radius
     (`tuning.NEBULA_CLUSTER_HALF_MASS_PC`) of the truth. A type off the O3V to B5V ladder (a Wolf-Rayet star) has no
     luminosity here and is left out; so is a cloud without a position.
     """

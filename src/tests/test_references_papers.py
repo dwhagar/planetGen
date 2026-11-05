@@ -163,7 +163,7 @@ def test_every_area_of_the_rules_is_an_area_of_the_method_pages_and_has_a_name()
 
 def test_the_registry_rows_are_read_as_rows_with_their_section():
     text = ("## 5.3 Atmosphere\n\n| Id | Kind | Fill |\n|---|---|---|\n| AT.a1, a2 | D | 1 the law [R0001, R0002: Table 2] |\n"
-            "| BC1 | D | nothing cited |\n| GR6 and GR3 thick disc | x | [R0003] |\n\n## 5.1 Galaxy laws\n\n| Id | Fill |\n|---|---|\n| GR1 | [R0003] |\n")
+            "| BC1 | D | nothing cited |\n| GR6 and GR3 thick disk | x | [R0003] |\n\n## 5.1 Galaxy laws\n\n| Id | Fill |\n|---|---|\n| GR1 | [R0003] |\n")
     assert references_usage.registry_rows(text) == [("AT.a1, a2", "5.3 Atmosphere", ["R0001", "R0002"]), ("GR1", "5.1 Galaxy laws", ["R0003"])]
 
 

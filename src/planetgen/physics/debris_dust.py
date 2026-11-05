@@ -4,8 +4,8 @@
 The dust a cold belt makes, and whether a survey would find it (GEN.1071)
 ==========================================================================
 
-A debris disc is the dust that the collisions of a belt's planetesimals grind off, and a survey finds the belt by that dust's light. The outer disc of a system is a belt like the others
-(`belt_origin.outer_disc`), so whether the star "has a debris disc" is not a second roll: it is whether the belt's present dust, `f` times the star's light, is above what a survey can tell
+A debris disk is the dust that the collisions of a belt's planetesimals grind off, and a survey finds the belt by that dust's light. The outer disk of a system is a belt like the others
+(`belt_origin.outer_disk`), so whether the star "has a debris disk" is not a second roll: it is whether the belt's present dust, `f` times the star's light, is above what a survey can tell
 from the star.
 
 The law is that of [R4785]. A belt that has ground down as far as the collisions allow (`M = A / t`, `belt_mass.collisional_constant`) gives, in the size law `q = 11/6` and with the
@@ -16,16 +16,16 @@ planetesimals' eccentricity equal to their inclination, the largest fractional l
 The cascade's largest body
 --------------------------
 The law takes `Dc` as the largest planetesimal of the cascade, 2000 km at most in the paper's nominal belt. A belt's own largest body (`belt_ledger`) can be thousands of kilometres across in a heavy
-outer disc: a body that size is a protoplanet that grows alone and does not sit in the cascade, and it would put the cascade past `Xc = 1` where the law gives no dust at all. The dust is
+outer disk: a body that size is a protoplanet that grows alone and does not sit in the cascade, and it would put the cascade past `Xc = 1` where the law gives no dust at all. The dust is
 therefore reckoned for `min(Dc, CASCADE_MAX_KM)`; a belt heavier than that cascade's ceiling `M_max` is in its steady state and shines at `f_max`.
 
 Detection
 ---------
-`DETECTABLE_FRACTIONAL_LUMINOSITY` is the dust a survey finds against the star's light, a stand-in. [R4081] find most of their discs near a fractional luminosity of 1e-5, but the belts the
+`DETECTABLE_FRACTIONAL_LUMINOSITY` is the dust a survey finds against the star's light, a stand-in. [R4081] find most of their disks near a fractional luminosity of 1e-5, but the belts the
 generator builds are all heavy and old and nearly all at their steady state, so about half the K, G and F stars would shine above 1e-5 where the survey finds 13 to 24 percent. The cut is
-tuned to the combined share of the K, G and F dwarfs, 17 percent [R4081]: it is the number the generator's discs must pass to be as rare as the surveys' (L3, hand-tuned against a sweep of
-the generator). It leaves the A stars (young, bright, their dust diluted by `L^-0.5`) with fewer discs than the survey's 24 percent and the F stars with about half theirs; both are gaps of
-the outer disc's mass and width, not of this law. [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]
+tuned to the combined share of the K, G and F dwarfs, 17 percent [R4081]: it is the number the generator's disks must pass to be as rare as the surveys' (L3, hand-tuned against a sweep of
+the generator). It leaves the A stars (young, bright, their dust diluted by `L^-0.5`) with fewer disks than the survey's 24 percent and the F stars with about half theirs; both are gaps of
+the outer disk's mass and width, not of this law. [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]
 """
 
 import math
@@ -46,7 +46,7 @@ CASCADE_MAX_KM = 2000.0
 """float: The largest body the dust cascade is reckoned for, km: the nominal `Dc` of [R4785] (their Fig. 2 and Eq. 21). [Stand-in DU3, tier T1, tweak L1.]"""
 
 DETECTABLE_FRACTIONAL_LUMINOSITY = 1.5e-4
-"""float: The fractional luminosity, dust over star, at which the generator's discs are as rare as the surveys' (the real survey limit is near 1e-5). [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]"""
+"""float: The fractional luminosity, dust over star, at which the generator's disks are as rare as the surveys' (the real survey limit is near 1e-5). [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]"""
 
 
 @finite_domain()
@@ -79,5 +79,5 @@ def fractional_luminosity(lower_au, upper_au, luminosity_sol, age_myr, largest_k
 
 
 def is_detectable(fractional):
-    """Whether a disc of fractional luminosity `fractional` is one a survey finds."""
+    """Whether a disk of fractional luminosity `fractional` is one a survey finds."""
     return fractional >= DETECTABLE_FRACTIONAL_LUMINOSITY

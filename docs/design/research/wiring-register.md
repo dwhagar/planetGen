@@ -28,8 +28,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
-| module | planetgen.physics.light_travel | VIEW.31 | light-travel positions on arrays for the sky of a system (VIEW.21), read by the sky catalogue galaxy/sky.py and from it the sky route |
-| module | planetgen.physics.nebula_sprites | VIEW.31 | the angular size, extinction and surface brightness of nebulae and remnants, read by the sky route (VIEW.31) that builds the sprite list |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
 | module | planetgen.generation.redraw_kinds | by design | the names and one-line meanings of the redraw counters (TEST.476); `draw.redrawn` is called by name from the generator and the census reads this registry, so no generation code imports it |
@@ -101,7 +99,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.99:BD2 | UX.241 | a constant of the belt density module, read when its wiring step lands |
 | row | 6.99:BD3 | UX.241 | a constant of the belt density module, read when its wiring step lands |
 | row | 6.99:BD4 | UX.241 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD5 | UX.241 | a constant of the belt density module, read when its wiring step lands |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
@@ -109,35 +106,20 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| module | planetgen.generation.rogue_landing | GEN.1111 | where a rogue an ejection event made is now (the ring drift from its donor's place, its velocity and the sector that holds it); the donor's save reads it when the lock wiring lands |
-| module | planetgen.generation.ejection_events | GEN.1111 | the events a rogue is built from (whether, when, how fast and which way a body a donor threw out left, its age and its moon limit); the donor's save reads it when the lock wiring lands |
-| module | planetgen.generation.phenomena.starless_host | GEN.1111 | the host a rogue planet is built against (the donor's mass and snow line, no light, the rogue's age) and `build_ejected_planet`; the rogue rows from the architecture's ejections read it when the lock wiring lands, after the table's no-host rule |
-| module | planetgen.physics.rogue_drift | GEN.1111 | the closed-form drift of an ejected planet from its star; the virtual-donor placement of rogue planets reads it |
-| row | 6.89:GD1 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| row | 6.89:GD2 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| row | 6.89:GD3 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| row | 6.89:GD4 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
-| module | planetgen.physics.rogue_age | GEN.1111 | a rogue's age, ejection delay and time since ejection; the rogue rows read them for the heat law, the drift and the history sentence |
-| row | 6.88:RG1 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
-| row | 6.88:RG2 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
-| module | planetgen.physics.rogue_kick | GEN.1111 | the ejection speed of a rogue and its velocity through the Galaxy; the rogue rows read them |
-| row | 6.87:RK1 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK2 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK3 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK4 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK5 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK6 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK7 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
-| row | 6.87:RK8 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| function | planetgen.physics.rogue_drift.along_orbit_speed_pc_myr | GEN.1111 | the along-orbit speed of a drifting rogue, written for the virtual-donor placement; the donor save places a rogue with `rogue_landing.landing`, so GEN.1120 (the rogue top-up) reads it or deletes it |
+| function | planetgen.physics.rogue_drift.donor_offset_pc | GEN.1111 | the donor's place relative to a rogue found far from it (the virtual donor); nothing reads it once a rogue's donor is a stored system, and GEN.1120 (the rogue top-up) reads it or deletes it |
+| function | planetgen.physics.rogue_kick.ejects | GEN.1111 | whether a scattering ejects a body; the share that ends ejected comes from the architecture's loss record now, so GEN.1120 (the rogue top-up) reads it or deletes it |
+| function | planetgen.physics.rogue_kick.moon_survival_probability | GEN.1111 | the chance a moon leaves with its planet; the moon limit of the event decides it now, so GEN.1120 (the rogue top-up) reads it or deletes it |
+| function | planetgen.physics.rogue_kick.moon_survives | GEN.1111 | as `moon_survival_probability`: a draw of it; GEN.1120 (the rogue top-up) reads it or deletes it |
+| function | planetgen.physics.rogue_kick.relative_speed_km_s | GEN.1111 | the speed of a rogue relative to its donor; `rogue_landing` works the velocity from the kick directly, so GEN.1120 (the rogue top-up) reads it or deletes it |
+| function | planetgen.physics.rogue_moons.moon_survives | GEN.1111 | a draw of whether a moon stays with a rogue; the moon limit of the event decides it now, so GEN.1120 (the rogue top-up) reads it or deletes it |
+| function | planetgen.physics.rogue_moons.survival_probability | GEN.1111 | the chance a moon stays with a rogue; part 8 deletes it unless a later item reads it |
 | module | planetgen.physics.rogue_mass_function | GEN.1111 | the masses of the bodies a system ejects and their shares; the rogue rows draw their masses from it |
 | row | 6.110:RM1 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
 | row | 6.110:RM2 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
 | module | planetgen.physics.rogue_volatiles | GEN.1111 | the envelope, water, giant class and frozen air of an ejected planet; the rogue rows read them |
 | row | 6.111:EV1 | GEN.1111 | a constant of the rogue volatiles module, read when its wiring step lands |
 | row | 6.111:EV2 | GEN.1111 | a constant of the rogue volatiles module, read when its wiring step lands |
-| module | planetgen.physics.rogue_moons | GEN.1111 | whether a moon leaves with its planet and the tide it raises there; the rogue rows read them |
-| row | 6.112:MO1 | GEN.1111 | a constant of the rogue moons module, read when its wiring step lands |
-| row | 6.112:MO3 | GEN.1111 | a constant of the rogue moons module, read when its wiring step lands |
 | module | planetgen.physics.cluster_unbinding | GEN.1111 | the share of planets a birth cluster has unbound; the rogue rows add it to the ejections |
 | module | planetgen.physics.rogue_radiogenic | GEN.1111 | the radiogenic content and heat of a rogue from the star it left; the rogue rows read them in place of the host-less draw |
 | row | 6.114:RY1 | GEN.1111 | a constant of the rogue radiogenic module, read when its wiring step lands |
@@ -172,34 +154,27 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.102:RSM3 | GEN.1111 | `rogue_density.YOUNG_AGE_MYR`, read when the wiring step lands |
 | row | 6.102:RSM4 | GEN.1111 | `rogue_density.RING_STEPS`, read when the wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
-| module | planetgen.physics.field_dispersal | GEN.1103 | the radius, age, retirement, freeze-out, shear and bodies of an interstellar asteroid field (lock-free, GEN.1100); the AsteroidField columns (GEN.1103) read the radius and the retirement, the bring-to-epoch step (GEN.1107) retires fields |
+| function | planetgen.physics.belt_ledger.draw_ledger | GEN.1105 | read by `field_mass` for the stored bodies of a collision field; the field member rows wire it, and the belt member rows (GEN.1069) read the ledger `solve_belt` settles |
 | function | planetgen.physics.belt_ledger.draw_ledger | GEN.1105 | read by `field_mass` for the stored bodies of a collision field; the field member rows wire it, and the belt member rows (GEN.1070) read the ledger `solve_belt` settles |
 | module | planetgen.physics.field_mass | GEN.1103 | the mass of an interstellar field by its origin (a supernova-unbound belt by the belts' own collisional step, two colliding rogue planets by their unbound share) and its stored bodies by the belt ledger (lock-free pure part of GEN.1161); the field columns (GEN.1103) store the mass, the supernova host rule (GEN.1104) calls `unbound_belt_field` and the member rows and designations (GEN.1105) call `stored_bodies` |
 | row | 6.161:FM1 | GEN.1103 | `field_mass.MIN_FIELD_MASS_EARTH`, read when the field columns land |
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
 | row | 6.162:SHT1 | GEN.1201 | `shape_temperature.ICE_SPECIFIC_HEAT`, read when the wiring step lands |
 | row | 6.162:SHT2 | GEN.1201 | `shape_temperature.WINDOW_SHAPE_FACTOR`, read when the wiring step lands |
-| row | 6.105:IF15 | GEN.1103 | `field_dispersal.RETIREMENT_RADIUS_M`, read when the field columns land |
-| row | 6.105:IF16 | GEN.1105 | `field_dispersal.OORT_A_KMS_KPC, SHEAR_VALID_YEARS`, read when the field members land |
-| row | 6.105:IF17 | GEN.1105 | `field_dispersal.DEFAULT_DENSITY_KG_M3`, read when the field members land |
 | module | planetgen.physics.field_rates | GEN.1104 | the physical birth rates of interstellar asteroid fields and the host rule of a supernova remnant (lock-free, GEN.1101); the supernova host rule (GEN.1104) draws `hosted_belt`, the columns (GEN.1103) take the standing numbers |
 | row | 6.106:IF19 | GEN.1104 | `field_rates.GALAXY_CORE_COLLAPSE_RATE_PER_YEAR`, read when the host rule lands |
 | row | 6.106:IF20 | GEN.1104 | `field_rates.TRUNCATION_FRACTION`, read when the cluster swarm hook lands |
 | row | 6.106:IF21 | GEN.1104 | `field_rates.CLUSTER_BELT_SHARE`, read when the cluster swarm hook lands |
-| module | planetgen.physics.rogue_topup | GEN.1120 | the stage 3 top-up of the region run: how many rogues, their masses, places, velocities and apparent origins, and the remainder for the asteroid fields |
-| row | 6.86:TU1 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
-| row | 6.86:TU2 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
-| row | 6.86:TU3 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
-| row | 6.86:TU4 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
-| row | 6.86:TU5 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
-| module | planetgen.galaxy.resident_mass | GEN.1120 | the stage 0 budget of a sector once its residents are off, and the stage 3 shortfall; the generation phases read it |
 | module | planetgen.physics.field_composition | GEN.1103 | the layers, escaping shards, remnant core fraction, collision outcome and makeup of a collision field (lock-free, GEN.1102); the field generation (GEN.1103) calls `collision_field` and `field_makeup` in place of `draw_field("collisional")` |
 | row | 6.107:IF23 | GEN.1103 | `field_composition.CORE_LEAK_SHARE`, read when the field generation lands |
 | row | 6.107:IF24 | GEN.1103 | `field_composition.MANTLE_ROWS, CORE_ROW`, read when the field generation lands |
-| module | planetgen.physics.topup_field | GEN.1120 | the light top-up asteroid fields of the remainder the Rogues level leaves unmatched (lock-free, GEN.1126); the region run's stage 3 calls `plan` with `rogue_topup.TopUp.remainder_kg`, and the field items (GEN.1103 to GEN.1107) store and retire what it returns |
-| row | 6.108:TF2 | GEN.1120 | `topup_field.LARGEST_BODY_MASS_KG, BULK_DENSITY_KG_M3`, read when the region run wires stage 3 |
-| row | 6.108:TF3 | GEN.1120 | `topup_field.SPEED_KM_S_RANGE, MIN_RADIUS_LY`, read when the region run wires stage 3 |
-| row | 6.108:TF4 | GEN.1120 | `topup_field.MIN_FIELD_MASS_KG, MAX_FIELD_MASS_KG, MAX_FIELDS`, read when the region run wires stage 3 |
+| module | planetgen.physics.resonance_gaps | GEN.1069 | the resonance zones, chaotic zones, survivors, Yarkovsky cut and stirring of a belt from its giants (lock-free, GEN.1062); the belt generator reads the map and the clearance ledger (GEN.1014) can reuse the zones |
+| row | 6.116:RGP2 | GEN.1069 | `resonance_gaps.ORDER_WIDTH_EXPONENT`, read when the wiring step lands |
+| row | 6.116:RGP3 | GEN.1069 | `resonance_gaps.RESONANCE_CLEARING_MYR`, read when the wiring step lands |
+| row | 6.116:RGP4 | GEN.1069 | `resonance_gaps.MAX_ORDER, MAX_P`, read when the wiring step lands |
+| row | 6.116:RGP5 | GEN.1069 | `resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT`, read when the wiring step lands |
+| row | 6.116:RGP6 | GEN.1069 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
+| row | 6.116:RGP7 | GEN.1069 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
 | module | planetgen.physics.resonance_gaps | GEN.1092 | the resonance zones, chaotic zones, survivors, Yarkovsky cut and stirring of a belt from its giants (lock-free, GEN.1062); the belt generator reads the map and the clearance ledger (GEN.1014) can reuse the zones |
 | row | 6.116:RGP2 | GEN.1092 | `resonance_gaps.ORDER_WIDTH_EXPONENT`, read when the wiring step lands |
 | row | 6.116:RGP3 | GEN.1092 | `resonance_gaps.RESONANCE_CLEARING_MYR`, read when the wiring step lands |
@@ -208,7 +183,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP6 | GEN.1092 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1092 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
 | module | planetgen.physics.irregular_population | GEN.1083 | the capture windows, ground-down count and stored irregulars of a planet (lock-free, GEN.1077); the captured-moon wiring calls `make_pool`, `draw_irregulars` and `draw_exchange` |
-| row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISC_MASS_EARTH`, read when the captured-moon wiring lands |
+| row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISK_MASS_EARTH`, read when the captured-moon wiring lands |
 | row | 6.118:IP2 | GEN.1083 | `irregular_population.CAPTURED_DENSITY_KG_M3`, read when the captured-moon wiring lands |
 | row | 6.118:IP3 | GEN.1083 | `irregular_population.ENCOUNTER_YIELD`, read when the captured-moon wiring lands |
 | row | 6.118:IP4 | GEN.1083 | `irregular_population.REFERENCE_HILL_AU`, read when the captured-moon wiring lands |
@@ -231,7 +206,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.125:TB1 | GEN.1151 | `trojan_bodies.CLASS_J_MIN_EARTH`, read when the whole-body draw lands |
 | row | 6.125:TB2 | GEN.1151 | `trojan_bodies.CLASS_M_MASS_EARTH`, read when the whole-body draw lands |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
-| row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISC_LIFETIME_MYR`, read when the whole-body draw lands |
+| row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
 | function | planetgen.physics.climate_branches.bistable_window | GEN.1051 | the flux range where an Earth twin holds both a warm and a snowball branch; GEN.1051's history draw reads the share of the window the flux sits in |
 | row | 6.126:RN1 | GEN.1201 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1201 wires the module |
@@ -242,8 +217,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
 | data | planet_class_fit.json | GEN.1207 | the percent-match table of every class; the shadow scorer reads it (GEN.1206) and the best-fit classifier makes it the way a stored letter is decided |
 | module | planetgen.physics.class_fit | GEN.1207 | the percent-match scorer; the shadow scorer in src/tests reads it, the classifier replaces the first-match tree with it |
-| module | planetgen.physics.planet_type | GEN.1219 | the terrestrial, transitional or gas type from the envelope share of the mass; the shadow report in src/tests reads it, GEN.1219 stores the type with GEN.1207's epoch |
-| row | 6.156:PT1 | GEN.1219 | read by planet_type.type_of; the stored type waits for GEN.1207's epoch |
+| function | planetgen.physics.class_code.parse_code | GEN.1207 | reads a written class code (M, F2) into its letter and digit; the search filter and the class pages take it with the best-fit classifier, which is the first to write a digit above 0 |
 | column | binary_epoch_unix | by design | the daily orbit update (`store.advance_*`) reads and writes the pair's clock; nothing outside the store needs it |
 | column | binary_next_update_due | by design | the daily orbit update (`store.advance_*`) schedules the pair's next step from it; nothing outside the store needs it |
 | column | dynamical_state | GEN.291 | `planets` and `moons`: every body is `bound`; the unbind and capture test of GEN.291 is what sets `unbound` |
@@ -270,8 +244,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.run_galaxy.backfill_bright_stars_around | by design | the bright-star backfill (GEN.23) as one call with its own progress bar and shell log (PERF.28); a run does the same draw in `scatter-backfill` units (`expand_backfill_bright_stars`), so this form is what the tests and `tests/sector_support.make_sector` call to backfill one sector |
 | function | planetgen.generation.stats.job_shells_per_second | PERF.147 | the stored whole-job rate that starts the ETA of a task that takes over 15 seconds |
 | function | planetgen.generation.tuning_harness.check_target | by design | the entry of the tuning harness: draws a shipped recipe at a target's subject and compares it; the tests hold every recipe to its target through it, the generator never runs it |
-| function | planetgen.physics.belt_history.giant_event | GEN.1232 | the giant event and the companion limit of a belt, for the belt page |
-| function | planetgen.physics.belt_history.history_text | GEN.1232 | the belt history sentences shown on the belt page |
+| function | planetgen.physics.belt_history.giant_event | GEN.1232 | the giant event and the companion limit of a belt (GEN.1232b, after GEN.1068 belt birth) |
 | function | planetgen.physics.belt_history.is_polluted | GEN.1231 | the pollution flag of a white dwarf from the rate of its belt (GEN.1068 gives the belts that see the giants) |
 | function | planetgen.physics.birth_radioisotopes.fraction_above | by design | the observed share of a fixed-stream sampler, read by test_birth_radioisotopes and the research note, never by the generator |
 | function | planetgen.physics.brown_dwarf_types.type_probabilities | by design | the expected share of each class, read by test_brown_dwarf_types against the sampler it describes |
@@ -333,9 +306,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.surface_dose.share_past_cutoffs | GEN.444 | the shielding of the surface dose from the column and its composition (the spectrum past the cutoffs); radiation.py still uses the single attenuation length |
 | function | planetgen.physics.surface_dose.effective_air_column_g_cm2 | GEN.444 | the effective stopping column of a mixed air, for the shielding of GEN.444 |
 | function | planetgen.physics.surface_dose.neutron_weight | GEN.444 | the ICRP 103 neutron weight, for the secondary dose of GEN.444 |
-| function | planetgen.physics.surface_liquids.stable_liquids | GEN.1218 | the second liquid and the mixed seas of the composition model (Raoult sea of an air, its density, the liquids stable at a state); `surface_liquid_world` picks one liquid with `dominant` today |
-| function | planetgen.physics.surface_liquids.ideal_sea | GEN.1218 | the second liquid and the mixed seas of the composition model (Raoult sea of an air, its density, the liquids stable at a state); `surface_liquid_world` picks one liquid with `dominant` today |
-| function | planetgen.physics.surface_liquids.sea_density_kg_m3 | GEN.1218 | the second liquid and the mixed seas of the composition model (Raoult sea of an air, its density, the liquids stable at a state); `surface_liquid_world` picks one liquid with `dominant` today |
 | function | planetgen.physics.unit_registry.constant_in | by design | the number of a physical constant in another unit system (G in AU, year and solar mass); `relations.py` says a law in those units takes its G from it, and the Gaussian-constant test holds it |
 | function | planetgen.physics.unit_registry.units_of | by design | the registry's listing of a kind's units in declaration order; the registry audits and the page-side export tests walk it, the app looks units up by key |
 | function | planetgen.physics.unit_registry.parts_dimension | by design | the dimension a compound unit's parts give it; the registry's self-check holds every compound's stated dimension to it |
@@ -347,21 +317,21 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.photometry.bolometric_correction_v | VIEW.11 | the VIEW.11 photometry library is the reader: apparent magnitude on a star page reads it when VIEW.11 is built |
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
+| function | planetgen.physics.field_dispersal.age_from_unit_yr | GEN.1105 | the age a field reaches at a given share of its retirement radius; read when the field members land |
+| function | planetgen.physics.field_dispersal.column_density_kg_m2 | GEN.1105 | the column density through a field; read when the field members land |
+| function | planetgen.physics.field_dispersal.freeze_out_time_s | GEN.1105 | when a field stops colliding; read when the field members land |
+| function | planetgen.physics.field_dispersal.is_retired | GEN.1105 | whether a field is past its retirement radius; read when the field members land |
+| function | planetgen.physics.field_dispersal.member_position_m | GEN.1105 | a field member's place from its parent's; read when the field members land |
+| function | planetgen.physics.field_dispersal.shear_displacement_m | GEN.1105 | the shear of a field's members; read when the field members land |
+| function | planetgen.physics.field_dispersal.unbound_belt_speed_ms | GEN.1105 | the speed a belt's unbound members spread at; read when the field members land |
+| function | planetgen.physics.impact_history.erosion_efficiency | by design | the readable one-diameter form of the sum `erosion_per_impactor_mass` takes inline (PERF.229 moved the arithmetic into the loop, the same numbers); `test_impact_history` checks it against the loop |
 | module | planetgen.physics.system_bodies | GEN.1241 | the system body ledger (rows, tree checks, mass sums, the barycentre that includes the belts, the belt wobble); lock-free pure part of GEN.1066, the view over the typed tables reads it when the wiring lands |
-| module | planetgen.physics.sky_photometry | VIEW.31 | the sky catalogue (galaxy/sky.py, sky_from) reads apparent_magnitude and galactic_extinction_av for each stored star; the glow band (VIEW.27) reads the dust law (dust_av_per_pc) and bolometric_correction |
-| row | 6.171:SKP1 | VIEW.31 | the sky catalogue reads the dust normalisation through galactic_extinction_av |
-| row | 6.171:SKP2 | VIEW.31 | the sky catalogue reads the cool-star correction through apparent_magnitude |
-| row | 6.171:SKP3 | VIEW.31 | the sky catalogue reads the hot-star correction through apparent_magnitude |
-| row | 6.171:SKP4 | VIEW.31 | the sky catalogue reads the dust disc's shape through galactic_extinction_av |
-| module | planetgen.galaxy.sky_band | VIEW.31 | the sky route (VIEW.31) reads the band of an observer's 50 pc cell through band_for, with the file store of the sky cache |
-| row | 6.174:SKB1 | VIEW.31 | the sky route reads the luminosity density through band_for |
-| row | 6.174:SKB2 | VIEW.31 | the sky route reads the faint-light table through band_for |
-| row | 6.174:SKB3 | VIEW.31 | the sky route reads the table's ends through band_for |
-| row | 6.174:SKB4 | VIEW.31 | the sky route reads the cell, the map size and the steps through band_for |
-| module | planetgen.galaxy.sky | VIEW.31 | the sky route (VIEW.31) calls sky_from with the sphere query of VIEW.22 as its source and packs the result (VIEW.29) |
-| row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |
-| module | planetgen.generation.sky_tiers | VIEW.25 | charting a system builds the sky tiers from this table: build() gives the luminosity bands and mass rings to draw and the radius of each, floor_table() gives the floor against distance for the report |
-| row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the cell-visit budget |
+| module | planetgen.physics.heavy_liquid_tide | by design | the exact fluid Love numbers of a core under a deep global liquid layer (GEN.1052); the tests hold the thin-sea loading factor of `ocean_tides` to its rigid-floor limit at any depth and the fluid limits to 3/2 and 5/2, and it is the path for a body with a molten core under a global liquid, which no generated body has |
+| row | 6.176:SKT3 | VIEW.25 | the charting step turns the table's visits into a time for the queue's progress bar |
+| function | planetgen.physics.nebula_sprites.chord_extinction_mag | VIEW.8 | the sky route sends the dimming through a cloud's middle and the browser takes the chord (skysprites.js darkOpacity); the per-star dust of nebulae (VIEW.8, 9.1) takes the chord for each line of sight |
+| function | planetgen.galaxy.sky_band.face_lookup | by design | the nearest-pixel lookup of the cube map: the reference the bilinear `face_bilinear` that makes the page's image is tested against (test_sky_band), and the CPU twin of the band shader's lookup |
+| function | planetgen.generation.bright_stars.backfill_sphere | VIEW.25 | charting draws each luminosity band of the tier table over its sphere with this |
+| function | planetgen.generation.bright_stars.backfill_mass_sphere | VIEW.25 | charting draws each mass ring of the tier table over its sphere with this |
 | module | planetgen.physics.planetary_nebula_ejecta | GEN.1276 | the composition item writes the progenitor mass and the ejecta values of each planetary nebula from `progenitor(...).values()` at generation and backfill |
 | row | 6.178:PNE2 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
@@ -378,3 +348,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.179:NBC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
 | data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
+| function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
+| function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
+| function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |

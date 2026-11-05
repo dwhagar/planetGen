@@ -83,7 +83,7 @@ def allow_pending(retry=False):
     `with allow_pending():` -- inside the block, a slow request raises `Pending` instead of being built.
 
     Args:
-        retry (bool): The visitor asked to try again: a job that failed or was cancelled is replaced by a new one at
+        retry (bool): The visitor asked to try again: a job that failed or was canceled is replaced by a new one at
             once, not shown again.
     """
     token, retrying = _allowed.set(True), _retrying.set(retry)
