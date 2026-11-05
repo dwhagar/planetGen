@@ -34949,7 +34949,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "VIEW.23",
+          "unread": "VIEW.31",
           "what": "sky_photometry.DUST_AV_PER_KPC_AT_SUN 1.0: V extinction per kpc in the plane at the solar circle, the normalisation of the dust disc"
         },
         {
@@ -34987,7 +34987,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "VIEW.23",
+          "unread": "VIEW.31",
           "what": "sky_photometry.COOL_BC_TABLE_K_MAG: BC_V of K7V to L2V, 4,100 K to 2,060 K, linear in log T between rows and held under 2,060 K"
         },
         {
@@ -35025,7 +35025,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
-          "unread": "VIEW.23",
+          "unread": "VIEW.31",
           "what": "sky_photometry.V_WAVELENGTH_M 550e-9 and the blackbody step: over 50,000 K, BC_V(T) = BC_V(50,000 K) - 2.5 log10[T^4 expm1(c2/(550 nm T))] + the same at 50,000 K"
         },
         {
@@ -35063,7 +35063,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "VIEW.23",
+          "unread": "VIEW.31",
           "what": "sky_photometry.DUST_SCALE_LENGTH_PC 2260, DUST_HEIGHT_PC 134.4, DUST_HEIGHT_FLARE_PC_PER_KPC 14.8, DUST_FLARE_START_PC 4400, DUST_SOLAR_RADIUS_PC 8000: the dust disc's shape; no warp, no spiral arms, no central hole"
         }
       ],
