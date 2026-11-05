@@ -5,7 +5,8 @@ import math
 
 import pytest
 
-from planetgen.db import query, store
+from planetgen.db import obstacles, query, store
+from planetgen.galaxy import unresolved_crossings
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.physics.units import ly_to_pc
@@ -157,3 +158,57 @@ def test_a_field_between_two_systems_of_one_sector_bends_the_sector_scale_course
     assert result["scope"] == "sector"
     assert result["adjusted"]["avoided"] == [f"asteroid_field:{field_id}"]
     assert result["adjusted"]["length"] > result["adjusted"]["straight_length"]
+
+
+# NAV.75: the unresolved stars a course passes through
+
+def _core_field(ceiling=50.0):
+    """An `UnresolvedField` of a toy galaxy whose core is capped at a low ceiling, so the cells are few and quick."""
+    from tests.test_unresolved_crossings import SEED, SHAPE, EDGE
+    skeleton = store.GalaxySkeletonInfo(
+        shape=SHAPE, edge_pc=EDGE, outer_shell_index=200, expected_system_count_at_density_1=6.0, galaxy_seed=SEED,
+        reach_shell_index=500, cell_star_ceiling=ceiling)
+    return unresolved_crossings.UnresolvedField(skeleton)
+
+
+def test_a_course_through_the_dense_core_says_how_many_unresolved_stars_it_crosses(mysql_config, monkeypatch):
+    field = _core_field()
+    monkeypatch.setattr(obstacles, "unresolved_field", lambda conn: field)
+    conn = store.get_connection(mysql_config)
+    try:
+        course = obstacles.adjusted_course(conn, (-40.0, 3.0, 0.0), (40.0, 3.0, 0.0))
+    finally:
+        conn.close()
+    shown = course["passed_through_unresolved"]
+    assert set(shown) == {"crossings", "length_pc", "length_ly", "unresolved_systems", "cells"}
+    assert shown["crossings"] > 0.0 and shown["cells"] > 5 and shown["length_pc"] == pytest.approx(80.0, rel=0.05)
+    assert shown["length_ly"] == pytest.approx(shown["length_pc"] / ly_to_pc(1.0))
+    assert shown["crossings"] == pytest.approx(field.crossings((-40.0, 3.0, 0.0), (40.0, 3.0, 0.0)).crossings, rel=0.02)
+
+
+def test_a_course_outside_the_core_or_in_a_galaxy_without_a_shape_says_nothing_about_it(mysql_config, monkeypatch):
+    field = _core_field()
+    conn = store.get_connection(mysql_config)
+    try:
+        monkeypatch.setattr(obstacles, "unresolved_field", lambda c: field)
+        far = field.reach_pc + 300.0
+        assert "passed_through_unresolved" not in obstacles.adjusted_course(conn, (far, -50.0, 0.0), (far, 50.0, 0.0))
+        monkeypatch.setattr(obstacles, "unresolved_field", lambda c: None)
+        assert "passed_through_unresolved" not in obstacles.adjusted_course(conn, (-40.0, 3.0, 0.0), (40.0, 3.0, 0.0))
+        monkeypatch.undo()
+        assert obstacles.unresolved_field(conn) is None   # these tests save sectors but no galaxy shape
+    finally:
+        conn.close()
+
+
+def test_the_count_rides_with_the_course_into_the_nav_result_and_the_api(mysql_config, client, monkeypatch):  # noqa: F811
+    west, east = _systems(mysql_config)
+    fake = {"crossings": 740.0, "length_pc": 200.0, "length_ly": 652.3, "unresolved_systems": 1.5e7, "cells": 51}
+    monkeypatch.setattr(obstacles, "passed_through_unresolved", lambda conn, polyline: dict(fake))
+    result = _nav(mysql_config, west, east, adjusted=True)
+    assert result["adjusted"]["passed_through_unresolved"] == fake
+    assert all(hop["adjusted"]["passed_through_unresolved"] == fake for hop in result["route"]["hops"])
+    shown = client.get(f"/api/nav?from={pid('system', west)}&to={pid('system', east)}&adjusted=1").get_json()
+    assert shown["adjusted"]["passed_through_unresolved"] == fake
+    plain = client.get(f"/api/nav?from={pid('system', west)}&to={pid('system', east)}").get_json()
+    assert "adjusted" not in plain

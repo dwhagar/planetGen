@@ -33,6 +33,7 @@ through a link from its own page.
 """
 
 import json
+import math
 import re
 
 from flask import redirect, request, url_for
@@ -727,6 +728,14 @@ def _bent_lines(result):
     return lines
 
 
+def _unresolved_text(unresolved):
+    """NAV.75: what the NAV page says of the unresolved stars a course passes through (`db.obstacles.passed_through_unresolved`)."""
+    count = unresolved["crossings"]
+    about = f"{round(count, 1 - int(math.floor(math.log10(count)))):,.0f}" if count >= 10.0 else f"{count:.1f}"
+    return (f"This course crosses the dense core for {format_distance_ly(unresolved['length_ly'])}, where about {about} stars are too faint to be drawn "
+            "and come within their keep-out distance of it. It goes round the stars that are drawn and cannot go round the rest.")
+
+
 def _adjusted_view(result, names):
     """
     NAV.28: the adjusted course for the NAV page, or `None` when the API sent none. `rows` (`[(label, text)]`), `around` and `through`
@@ -766,6 +775,9 @@ def _adjusted_view(result, names):
                       + (f" ({format_distance_ly(extra)} longer)." if extra > 1e-9 else "."))
     through = [{**_ref_link(entry["ref"], {entry["ref"]: entry["name"]}), "text": _passed_through_text(entry)}
                for entry in adjusted["passed_through"]]
+    unresolved = adjusted.get("passed_through_unresolved")
+    if unresolved:
+        through.append({"name": None, "url": None, "text": _unresolved_text(unresolved)})
     return {
         "bent": bent, "aimed": any(label == "Aimed at" for label, _ in rows), "rows": rows, "around": around, "through": through, "times": times, "route_text": route_text,
         "warnings": [ADJUSTED_WARNING_TEXT.get(code, code) for code in adjusted["warnings"]],
