@@ -53,10 +53,12 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model |  | Boss 5:01 PM EDT: gravity of left-out mass. |
 | NAV.25 | Find the obstacles along a path |  | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
-| NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56, NAV.62 |  |
+| NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56 |  |
+| NAV.76 | A dense-core scale test for course avoidance: a course through the capped core stays within its time budget | NAV.74, NAV.75 |  |
+| NAV.75 | The adjusted course says how many unresolved stars it passes through: the course, the API and the Navigation page | NAV.74 |  |
+| NAV.74 | A pure function for the expected number of unresolved stars a course segment crosses, with a cheap miss test outside the capped core |  |  |
 | NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26 | Parent; closes with its subitems. |
 
 ## Phase 3: Waypoints and the headline
