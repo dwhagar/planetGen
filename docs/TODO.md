@@ -13153,59 +13153,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lines for any L3/L4 row).
   Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
 
-- [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
-  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
-  life and physics, the composition of surface liquids. Filed by the
-  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
-  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
-  stored). Build step, after the design is merged. Implements the
-  design: composition columns with their migration, the pure derivation
-  module and its wiring after the surface liquid step, the life coupling
-  (the air and the liquid change each other: GEN.1213 summed air and
-  this composition), the habitability tolerances, the pages, the API,
-  the property sheet and the census suite. GEN.1215 (acid and ammonia
-  fractions) is its first part and may be built first, with its columns
-  taken into this set. Output change: one epoch with --affects,
-  migration, golden, census re-baseline, on a train. Where we think it
-  belongs (best guess, can move): Tides 1 with Aux 2.
-  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
-  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
-  body may hold one extra liquid beside its main one; (2) store a
-  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
-  answered, the coordinator will ask again, build pools only until he
-  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
-  accepted as a starting guess, BUT it must be tuned from real physics
-  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
-  from where nitrogen freezes as a registered stand-in, also to be tuned
-  from physics and chemistry (same research); (6) a body with methane
-  and carbon monoxide ice warm enough for liquid methane gets a methane
-  sea. The build follows these answers, with the gate and nitrogen
-  amount replaced by the sourced values of GEN.1225 when that research
-  lands.
-  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
-  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
-  the strongest level with a pool-or-cloud flag. This replaces the
-  earlier note that cloud storage waited for an answer; all six surface
-  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
-  4 and 5 to be tuned from physics by GEN.1225).
-  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
-  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
-  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
-  the ammonia gate follows the liquidus share, and nitrogen ice uses the
-  trapping factor and the partial-pressure condensation temperature.
-  Train 10 merged (#5095, 7:11 AM EST on 2026-11-05); register leftovers
-  (7:20 AM EST on 2026-11-05): The surface liquid composition model is
-  in. Open on purpose: physics.surface_liquids.stable_liquids and
-  sea_density_kg_m3 still read as unread in the wiring register. Wire
-  them or delete them (no shim), remove the register lines, then this
-  item retires.
-  Owner of the register leftovers (TODO) (7:25 AM EST on 2026-11-05):
-  Tides 1 wires or deletes stable_liquids and sea_density_kg_m3 (and
-  their register lines). Deleting an unread function changes no output
-  and is lock-free; wiring that changes stored values is lock work for
-  the next train.
-  Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
-
 - [ ] **GEN.1221 Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent**
   From the Class M research thread's handoff
   (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
