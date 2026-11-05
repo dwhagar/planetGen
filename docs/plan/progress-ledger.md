@@ -2507,3 +2507,18 @@ Baseline: PR #1817.
 | TEST.594 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | NAV.21 | 8.5 | Saved courses |
 | NAV.23 | 8.5 | Saved courses |
+| PERF.229 | 8.1 | Queue, caches and performance |
+| GEN.614 | 8.1 | Admin control suite |
+| GEN.1033 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1233 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1226 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1220 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1219 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1212 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1052 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.103 | 8.2 | Robust tile caching |
+| TEST.562 | 8.2 | Robust tile caching |
+| GEN.1246 | 8.2 | Robust tile caching |
+| GEN.1244 | 8.2 | Robust tile caching |
+| TEST.346 | 8.1 | Bugs and flaky tests |
+| GEN.1218 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

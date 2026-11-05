@@ -444,7 +444,7 @@ def _course_readout_html(course):
     stops and the map's rings select each other (`static/coursediagram.js`).
     """
     readout = course.get("readout") or {}
-    has_hops = bool(course.get("direct"))
+    has_hops = bool(course.get("direct") or course.get("directs"))
     key = ['<li><span class="course-key-route" aria-hidden="true"></span> '
            + ("Route via adjacent systems" if has_hops else "Course (the direct line is the route)") + "</li>"]
     if has_hops:
@@ -674,12 +674,21 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     if course and course.get("points"):
         ends = [course["points"][0]["name"], course["points"][-1]["name"]]
         stops = len(course["points"]) - 2
-        course_hint = (
-            '<p class="hint">Showing the course from <strong>' + _escape(ends[0]) + "</strong> to <strong>"
-            + _escape(ends[1]) + "</strong>"
-            + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
-            + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
-        ) + _course_readout_html(course)
+        if course.get("via"):
+            # NAV.49: the course through the visitor's waypoints; the Waypoints menu (static/waypoints.js) clears or changes them.
+            count = len(course.get("waypoints") or [])
+            course_hint = (
+                '<p class="hint">Showing the course through your <strong>' + f"{count} waypoints</strong>, from <strong>"
+                + _escape(ends[0]) + "</strong> to <strong>" + _escape(ends[1]) + "</strong>"
+                + ' &middot; <a href="' + _escape(course["navUrl"]) + '">NAV for the first and the last</a></p>'
+            ) + _course_readout_html(course)
+        else:
+            course_hint = (
+                '<p class="hint">Showing the course from <strong>' + _escape(ends[0]) + "</strong> to <strong>"
+                + _escape(ends[1]) + "</strong>"
+                + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
+                + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
+            ) + _course_readout_html(course)
     elif course and course.get("sector"):
         course_hint = (
             '<p class="hint">That whole course sits inside <strong>' + _escape(course["sector"]["name"])

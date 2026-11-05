@@ -6162,3 +6162,62 @@ def test_clear_all_empties_the_waypoints(page, map_site):
     menu.get_by_role("button", name="Clear all").click()
     assert "No waypoints yet" in menu.locator("[data-waypoints-panel]").inner_text()
     assert _waypoints(page) == []
+
+
+def _set_waypoints(page, refs_and_names):
+    """Puts waypoints in this browser's list as the star card does, and tells the page's store."""
+    page.evaluate("""(entries) => {
+        const db = document.querySelector('[data-bookmark-db]').getAttribute('data-bookmark-db');
+        const key = 'planetgen.waypoints.' + db;
+        localStorage.setItem(key, JSON.stringify(entries.map(([value, name]) => ({name, kind: value.split(':')[0], value, created: new Date().toISOString()}))));
+        window.dispatchEvent(new CustomEvent('planetgen-saved-change', {detail: {key}}));
+    }""", [list(item) for item in refs_and_names])
+
+
+def test_two_waypoints_plot_a_course_that_stays_until_they_are_cleared(page, map_site, monkeypatch):
+    """NAV.49: with two or more waypoints the Galaxy Map offers Plot the course, draws the course through them (its address carries
+    `via`), opens again with the course plotted on a later visit, and drops it when the waypoints are cleared."""
+    from planetgen.web import nav_page
+
+    through = _course_through_the_fixture_systems()
+    through.update({"via": True, "waypoints": [0, 2, 3], "direct": None, "navUrl": "/nav?from=system:701&to=system:704",
+                    "directs": [[through["points"][0], through["points"][2]], [through["points"][2], through["points"][3]]]})
+    through["points"][2]["role"] = "waypoint"
+    asked = []
+    monkeypatch.setattr(nav_page, "galaxy_course_through", lambda raws: asked.append(raws) or through)
+    page.set_viewport_size(VIEWPORT)
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+
+    def drawn(count):      # the map of a page just opened has no hooks until its script has run
+        return f"() => {{ const c = {canvas}; return !!(c && c.galaxyCourseStops && c.galaxyCourseStops().length === {count}); }}"
+
+    _open_galaxy(page, map_site)
+    assert page.evaluate(f"() => {canvas}.galaxyCourseStops()") == []
+    names = [(f"system:{system[0]}", system[1]) for system in SYSTEMS if system[0] in (701, 703, 704)]
+    _set_waypoints(page, names)
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    plot = menu.get_by_role("link", name="Plot the course")
+    plot.wait_for()
+    assert "via=system:701,system:703,system:704" in plot.get_attribute("href")
+    plot.click()
+    page.wait_for_function(drawn(4))
+    assert asked[-1] == ["system:701", "system:703", "system:704"]
+    assert "via=system:701,system:703,system:704" in page.url
+    assert "Showing the course through your 3 waypoints" in page.locator(".hint", has_text="Showing the course through").inner_text()
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()")["direct"] is True
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    assert "is drawn on the map" in menu.locator("[data-waypoints-panel]").inner_text()
+
+    # The course stays: the Galaxy Map opened plain comes up with it plotted.
+    _open_galaxy(page, map_site)
+    page.wait_for_function(drawn(4))
+    assert "via=system:701,system:703,system:704" in page.url
+
+    # Clear all takes the waypoints and the course.
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name="Clear all").click()
+    page.wait_for_function(drawn(0))
+    assert "via=" not in page.url and _waypoints(page) == []
