@@ -958,6 +958,23 @@ with `clamp()`.
   tests.
   Prerequisites: POP.50, POP.51. Related: POP.24.
 
+- [ ] **UX.272 Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted**
+  Boss (6:17 PM EST on 2026-11-05): "Get rid of quadrants BTW, they are
+  useless, instead where quadrants was should list the regional names
+  where sectors are charted." Display and API only, lock-free, no
+  migration and no generated output. The change is built as a patch
+  (patch file
+  /mnt/project-files/patches/regions-replace-quadrants.patch, 20 files:
+  the galaxy page table, the sectors list, the sector page, /api/sectors
+  and their tests, with a release note) by the thread that made it,
+  which cannot push because GitHub rejects its pushes. A lane that can
+  push applies it, runs the targeted web, API and galaxy map tests and
+  opens the PR. Done: the galaxy page lists the region names where
+  sectors are charted in place of the quadrant table, the sectors list
+  and sector page show the region instead of the quadrant, /api/sectors
+  carries the region and no quadrant field is shown, and the tests pass.
+  Prerequisites: none. Related: UX.115, MAP.314.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -15365,6 +15382,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   guard and the storage checksum list pass, and nothing writes vessel
   rows yet.
   Prerequisites: NAV.4. Related: USR.29, POP.21.
+
+- [ ] **DB.112 Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration)**
+  Follow-up of the item that replaces the quadrants with the charted
+  region names (Boss, 6:17 PM EST on 2026-11-05: quadrants are useless).
+  Once nothing reads the quadrant, remove the stored quadrant column on
+  sectors (added with the sector count and density by PERF.208), its
+  index, its writes in the sector fill and the unused quadrant filter
+  code in db/query.py. Lock item: a migration, the old-schema fixture
+  and the storage checksum list change. Done: the migration, the column
+  gone from the schema and the models, the filter code deleted, and the
+  number guard and old-schema tests pass.
+  Prerequisites: UX.272. Related: PERF.208.
 
 ## API: The JSON API
 

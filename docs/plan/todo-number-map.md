@@ -13,12 +13,12 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.272 |
+| UX | UX.273 |
 | MAP | MAP.393 |
 | NAV | NAV.78 |
 | GEN | GEN.1294 |
 | PERF | PERF.244 |
-| DB | DB.112 |
+| DB | DB.113 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
@@ -679,6 +679,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open |
 | DB.110 | Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units | none | open |
 | DB.111 | Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them | none | open |
+| DB.112 | Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -3285,6 +3286,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | none | open |
 | UX.270 | Console look on the admin shell and admin pages, by tokens only | none | open |
 | UX.271 | The polity history page: a timeline of its territory, cohesion, splits and trade totals, and the journal feed on the API | none | open |
+| UX.272 | Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
