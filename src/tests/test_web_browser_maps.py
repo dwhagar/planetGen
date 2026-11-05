@@ -1379,3 +1379,32 @@ def test_a_locked_moon_in_the_system_map_keeps_its_day_side_toward_its_planet(pa
     for moon in (s for s in spins if s["kind"] == "moon" and s["locked"] and s["toward"]):
         want = (parent["cx"] - moon["cx"], -(parent["cy"] - moon["cy"]))
         assert moon["toward"][0] == pytest.approx(want[0], abs=1e-6) and moon["toward"][1] == pytest.approx(want[1], abs=1e-6), (moon, want)
+
+
+def test_a_system_page_adds_and_removes_a_waypoint(page, base_url, sample_params):
+    """NAV.49: the Nav menu of a system page has Add waypoint, which says the waypoint's place once it is one and keeps it across a
+    reload; the sector page, which has no NAV endpoint, has none."""
+    system_id = sample_params["from_id"]
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    item = page.locator("[data-waypoint-toggle]")
+
+    def open_menu():
+        page.locator("sl-dropdown.nav-menu sl-button").click()
+        item.wait_for(state="visible")
+
+    open_menu()
+    assert item.inner_text() == "Add waypoint"
+    item.click()
+    page.wait_for_function("document.querySelector('[data-waypoint-toggle]').textContent === 'Remove waypoint 1'")
+    stored = page.evaluate("""() => {
+        const key = Object.keys(localStorage).find(k => k.startsWith('planetgen.waypoints.'));
+        return key ? JSON.parse(localStorage.getItem(key)) : [];
+    }""")
+    assert [entry["value"].split(":")[0] for entry in stored] == ["system"] and len(stored) == 1
+    page.reload(wait_until="load")
+    open_menu()
+    assert item.inner_text() == "Remove waypoint 1"
+    item.click()
+    page.wait_for_function("document.querySelector('[data-waypoint-toggle]').textContent === 'Add waypoint'")
+    page.goto(f"{base_url}/sector/{sample_params['sector_id']}", wait_until="load")
+    assert page.locator("[data-waypoint-toggle]").count() == 0

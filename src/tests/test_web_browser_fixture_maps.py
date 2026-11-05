@@ -6236,3 +6236,32 @@ def test_two_waypoints_plot_a_course_that_stays_until_they_are_cleared(page, map
     menu.get_by_role("button", name="Clear all").click()
     page.wait_for_function(drawn(0))
     assert "via=" not in page.url and _waypoints(page) == []
+
+
+def test_a_waypoint_is_flagged_on_the_galaxy_map_where_its_card_was_picked(page, map_site):
+    """NAV.49: a waypoint added from a star's card is flagged, numbered, at the star on the Galaxy Map; the Waypoint flags layer hides the
+    flags and the key line follows; removing the waypoint takes its flag."""
+    _open_sector(page, map_site)
+    _x, _y, first = _click_a_star(page)
+    start_id = next(i for i, n, *_rest in SYSTEMS if n == first)
+    page.locator("#galaxymap3d-info .map-info-waypoint").click()
+    page.wait_for_function("document.querySelector('#galaxymap3d-info .map-info-waypoint').getAttribute('aria-label').startsWith('Remove waypoint 1')")
+    stored = _waypoints(page)
+    assert len(stored) == 1 and len(stored[0]["position"]) == 3, stored
+
+    _open_galaxy(page, map_site)
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    flags = page.evaluate(f"() => {canvas}.galaxyWaypointFlags()")
+    assert [flag[0] for flag in flags] == [1]
+    assert flags[0][1:] == pytest.approx(stored[0]["position"])
+    drawn = f"{canvas}.__mapLayers.keys().filter((k) => k.drawn).map((k) => k.id)"
+    assert "key-waypoints" in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('waypoints', false)")
+    assert page.evaluate(f"() => {canvas}.galaxyWaypointFlags()") == []
+    assert "key-waypoints" not in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('waypoints', true)")
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name=f"Remove waypoint 1, {first}").click()
+    assert page.evaluate(f"() => {canvas}.galaxyWaypointFlags()") == []
+    assert start_id
