@@ -4,6 +4,7 @@ GEN.1265 and GEN.1266: the Temperature domain is scored from the share of the su
 are read off the same series, and the gear and the hours outside are those of the best site.
 """
 
+import types
 import math
 
 import numpy as np
@@ -164,8 +165,13 @@ def test_the_gear_is_chosen_for_the_best_site_and_the_worst_place_is_recommended
     assert levels["eq_body_rec"] == 0 or levels["eq_body_rec"] <= max(deepest, equipment.body_at(world, worst_hot)[0])
 
 
-def test_the_rogue_planet_does_not_store_the_columns():
-    assert not set(tc.FIELDS) & set(rogue_habitability.ROGUE_FIELDS)
+def test_the_rogue_planet_stores_the_columns_and_a_brown_dwarf_leaves_them_empty():
+    """A rogue planet is built by the planet chain and scored like any planet (GEN.1111), so `rogue_planets` carries the columns too; a free
+    brown dwarf has no surface and sets each to `None`."""
+    assert set(tc.FIELDS) <= set(rogue_habitability.ROGUE_FIELDS)
+    dwarf = types.SimpleNamespace()
+    rogue_habitability.generate(dwarf)
+    assert all(getattr(dwarf, name) is None for name in tc.FIELDS)
 
 
 def test_the_coverage_of_the_same_inputs_is_kept():
