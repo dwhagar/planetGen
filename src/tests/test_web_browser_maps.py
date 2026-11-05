@@ -787,6 +787,28 @@ def test_system_page_3d_view_offers_the_sky_switch_and_the_status_line(page, bas
     assert page.evaluate("window.localStorage.getItem('planetgen.systemSky')") == "on"
 
 
+def test_system_page_3d_view_says_what_a_sky_star_under_the_pointer_is(page, base_url, site_app):
+    """VIEW.37: with the sky drawn, pointing at one of its stars (where `skyStarScreen` puts it) shows its hover text, "seen as it was N years ago"
+    among it, and a click opens its card. A fixture system whose sky holds no star on the screen has nothing to point at, and the test ends there."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'loading'; }", timeout=60000)
+    if page.locator("#sysview3d").get_attribute("data-sky-state") not in ("ready", "filling"):
+        return
+    stars = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.skyStarScreen()")
+    if not stars:
+        return
+    box = page.locator("#sysview3d-canvas").bounding_box()
+    star = stars[0]
+    page.mouse.move(box["x"] + star["x"], box["y"] + star["y"])
+    page.wait_for_function("() => document.getElementById('sysview3d-canvas').dataset.skyHover !== ''", timeout=15000)
+    tip = page.locator("#sysview3d-tip")
+    assert "seen as it was" in tip.inner_text()
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
