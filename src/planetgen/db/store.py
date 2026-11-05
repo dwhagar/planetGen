@@ -6176,7 +6176,7 @@ BRIGHT_STAR_COLUMNS = (
     "shell_index", "band_index", "wedge_index", *point_columns.LAYOUTS["bright_stars"].position,
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
     "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
-    "rotation_period_hours", "nuclear_arrival_age_gy",
+    "rotation_period_hours", "nuclear_arrival_age_gy", "cluster_id",
 )
 """tuple: The `bright_stars` columns a scatter writes, in the order
 `insert_bright_stars` expects each row's values."""
@@ -7237,8 +7237,10 @@ def filled_sector_addresses(conn):
 
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
     """Links a pre-placed star to the system its sector's fill built
-    around it."""
+    around it. A star of a cluster (GEN.359) passes its cluster to every star of the system."""
     conn.execute("UPDATE bright_stars SET star_system_id = ? WHERE id = ?", (star_system_id, bright_star_id))
+    conn.execute("UPDATE stars SET cluster_id = (SELECT cluster_id FROM bright_stars WHERE id = ?) WHERE star_system_id = ?",
+                 (bright_star_id, star_system_id))
 
 
 def sectors_reached_by(conn, center_pc, radius_pc):
@@ -7452,6 +7454,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             conn.prereserved_names[id(obj)] = (base, diminutive_index)
 
         bright_star_links = []
+        cluster_links = []
         built_tree_ids = []
         built_scatter_ids = []
         nearest = sector.all_nearest_neighbors(3)   # PERF.81: one spatial tree, not a distance to every system each
@@ -7462,6 +7465,8 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
                 location=_location_for_entry(sector, entry, neighbors),
             )
             bright_star_id = getattr(entry, "bright_star_id", None)
+            if getattr(entry, "cluster_id", None) is not None:
+                cluster_links.append((entry.cluster_id, star_system_id))
             if bright_star_id is not None:
                 bright_star_links.append((bright_star_id, star_system_id))
                 if getattr(entry.star_system, "tree_built", False):
@@ -7491,6 +7496,8 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     finally:
         conn.prereserved_names = None
         conn.deferred_name_confirmations = None
+    if cluster_links:       # GEN.359: every star of a system built from a cluster's star points to the cluster
+        conn.executemany("UPDATE stars SET cluster_id = ? WHERE star_system_id = ?", cluster_links)
     if bright_star_links:
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
     if built_tree_ids:  # GEN.315: a built row's members and nodes are its system's stars and orbit_nodes now
