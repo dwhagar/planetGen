@@ -29913,7 +29913,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": "GEN.1287",
           "what": "rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83"
         },
         {
@@ -29951,7 +29951,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": "GEN.1287",
           "what": "rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass"
         }
       ],
@@ -37805,7 +37805,7 @@
             ],
             [
               "Evidence",
-              "[R3103] for the profile; the pairing with the exponential disk is the habit of [R0496] (MWPotential2014 fits a = 3 kpc, b = 280 pc to a disk of 2.6 kpc scale length), recalled"
+              "[R3103] for the profile; the pairing with the exponential disk is the habit of [R0496] (MWPotential2014 fits a = 3 kpc, b = 280 pc to a disk of 2.6 kpc scale length), recalled; since GEN.1285 the profile is only the baseline: stellar_table adds the density model's residual from it, so the field follows the model"
             ]
           ],
           "id": "GP1",
@@ -37843,7 +37843,7 @@
             ],
             [
               "Evidence",
-              "the bulge density model's long axis as scale is this lane's choice"
+              "the bulge density model's long axis as scale is this lane's choice; since GEN.1285 the sphere is only the baseline: stellar_table adds the density model's residual from it (axis-averaged, so the bar's triaxiality is still not held)"
             ]
           ],
           "id": "GP2",
@@ -38799,7 +38799,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.RADIAL_SMOOTH_PC 190: the Gaussian width in galactocentric radius between a donor and an old rogue"
         },
         {
@@ -38837,7 +38837,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.VERTICAL_SMOOTH_PC 30: the same in height"
         },
         {
@@ -38875,7 +38875,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time)"
         },
         {
@@ -38913,7 +38913,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height"
         }
       ],
