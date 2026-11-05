@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3305] - 2026-11-05
+
+**Headline:** Lighter discs now form their stars later and heavier ones earlier, because the disc's inflow carries the mass term of the Milky Way infall model.
+
+### Changed
+
+- The thin disc's inflow (`galaxy/disk_history.py`) is multiplied by `exp(0.4 t (1 - V / 220 km/s))` per gigayear ([R5121]: equation 21), with the disc speed V = 220 (M / 5e10)^(1/3) km/s. A disc slower than the Milky Way's is fed more and more into the present and a faster one the other way, matching the rising, flat and falling histories of [R5122] (GEN.1246).
+- The mass term brings back the downsizing the mass-blind infall of GEN.1230 had flattened: the share of young stars falls about 2.3 times from a 1e10 to a 5e10 solar mass spiral. The reference galaxy forms 2.7 solar masses a year (it was 2.8). Stored star ages, populations and clusters change (generator epoch, `--affects plan,scatter,fill,population`).
+
 ## [8.0.3304] - 2026-11-05
 
 **Headline:** Every body now stores how much of its mass is a hydrogen-rich air, a body type (terrestrial, transitional or gas) and the digit of its class code.
