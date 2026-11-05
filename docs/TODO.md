@@ -958,13 +958,19 @@ with `clamp()`.
   tests.
   Prerequisites: POP.50, POP.51. Related: POP.24.
 
-- [ ] **UX.273 Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views**
+- [ ] **UX.273 Sensor (Rendered) view for every item: a rendered picture of the selected item, painted from its stored properties and Object ID seed**
   Boss asked for it with the Chart View fixes (PR 5208, 6:40 PM EST on
-  2026-11-05, as the lane reported); the first part waits on his answers
-  to the design questions S1 to S4, so nothing is built yet. Do: after
-  Boss answers S1 to S4, write the design and the build items. Version
-  8.8. Owner: none yet. Filed by the TODO thread.
-  Prerequisites: none. Related: UX.143.
+  2026-11-05, as the lane reported) and answered the design questions
+  at 6:46 PM EST on 2026-11-05, option 1 on all four: S1 every kind in
+  the property sheet gets a Sensor view (facilities wait for 9.3); S2
+  the object page first panel plus the map info panel on selection; S3
+  the framework and the already-painted kinds in 8.2, the data polish
+  (MAP.280 to MAP.284) stays in 9.0 phase 1; S4 a short "Sensors show
+  ..." readout line under the picture. Design:
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md.
+  Umbrella: done when the sub-items are done. Version 8.2. Owner: none
+  yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.143, UX.275, UX.276, MAP.394, MAP.395, MAP.396, TEST.629, DOC.107.
 
 - [ ] **UX.274 Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps**
   Boss asked for more View menu streamlining after the Chart View menu
@@ -974,6 +980,35 @@ with `clamp()`.
   build. Version 8.5 (with the console look on the maps chrome). Owner:
   none yet. Filed by the TODO thread.
   Prerequisites: none. Related: UX.269.
+
+- [ ] **UX.275 Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: one registry that maps every kind of the property sheet to the
+  look builder and painter that exist (bodylook.py, bodyview.js,
+  phenomenonrender.js), built from the stored row and the Object ID seed
+  alone (never a cached sky), the API route that returns the look JSON
+  so the Chart and 3D views can reuse it, and a guard test like the
+  property sheet one: a kind with no entry fails. Facilities have no
+  picture before 9.3. Version 8.2. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.171, MAP.270.
+
+- [ ] **UX.276 Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: rename the rendered example of the star, planet and moon pages
+  (UX.171) to Sensor view and make it the first panel of every kind that
+  has an entry in the registry; add the short readout line under the
+  picture, "Sensors show ...", from the text hook that exists in
+  describe/; where an input is not stored (cloud cover before 9.0,
+  ground colour before 8.4) the panel says estimate and the picture uses
+  today's fallback. Same look tokens as the pilot console (UX.130).
+  Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
+  by the TODO thread.
+  Prerequisites: UX.275. Related: UX.171, UX.130.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2127,6 +2162,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nebula at any zoom. Done: the cause is named, the drawing is fixed,
   and the test is in.
   Prerequisites: none. Related: MAP.142, MAP.176, MAP.179, MAP.365.
+
+- [ ] **MAP.394 Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: the info panel shows the Sensor view of the selected object from
+  the registry, with the readout line; the maps keep their own symbols
+  and the Sensor view does not become a third map mode. Version 8.2.
+  Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
+  thread.
+  Prerequisites: UX.275, UX.276.
+
+- [ ] **MAP.395 Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: add the three pictures to the registry from stored data (belt
+  composition and count; comet composition, activity and distance to the
+  nearest star; rogue planet heat flux); belts and comets show "no
+  example yet" today. Version 8.2. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.275.
+
+- [ ] **MAP.396 Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: the system plate reuses the System Map orbits (stars sized and
+  coloured, planets on their orbits); the sector, region, galaxy and
+  cluster picture is a star field and gas patch from stored counts,
+  nebulae, type and size. Stored data only, no cached sky. Version 8.2.
+  Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
+  thread.
+  Prerequisites: UX.275.
 
 ## NAV: Navigation and courses
 
@@ -18316,6 +18385,14 @@ clears each one.
   only). Filed by the TODO thread.
   Prerequisites: none. Related: DOC.105.
 
+- [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
+  by the TODO thread.
+  Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20313,6 +20390,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   flow carried by ship, the icon cluster size). Done: both pages, linked
   from the Help menu, and the help coverage test passes.
   Prerequisites: TEST.625. Related: USR.10.
+
+- [ ] **DOC.107 Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
+  by the TODO thread.
+  Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
 
 ## POP: Population and politics
 
