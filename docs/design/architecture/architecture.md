@@ -599,6 +599,7 @@ The map panels and their data.
 | `starbuffer.js` | The Galaxy Map's one star buffer (MAP.267): relative-to-eye pairs for positions and the dense slot store the node-by-node fill uses. |
 | `galaxyglow.js` | The Galaxy Map's unresolved glow, the choosing half (MAP.266): a blob per node from the light its aggregate stores less the stars it lists, and how strongly it shows. |
 | `galaxyglowlayer.js` | The glow drawn (MAP.266): a screen-sized quad per blob under the stars, each at the share the cut gives its node; the Menu's `glow` layer switches it. |
+| `galaxyplane.js` | The plane view of the Galaxy Map (MAP.371): a grid of rings at round distances in a 60 degree wedge of the galaxy (arcs about the galactic center, or rings about the selection) on a plane through the focus or the galaxy's midplane, with a label on each ring; switched by the Menu's Plane view and Plane at galactic midplane buttons (the camera's tilt preset is `planeTilt` in `galaxystageview.js`). |
 | `galaxynebulae.js` | The nebula regions chosen (MAP.176): the blobs of each drawn node's `nebula_regions`, their look and the 600 budget; drawn by `galaxyglowlayer.js`, switched by the Menu's `nebulae-<family>` layers. |
 | `sectorreach.js` | Which sector's own scene the camera wants up in a window of sectors, and how much of it shows (MAP.152). |
 | `systemreach.js` | Which star's system the camera wants up in an opened sector, by the size of its disc, and how much of it shows (MAP.152). |

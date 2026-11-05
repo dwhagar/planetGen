@@ -817,6 +817,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
+    <button type="button" class="starmap-btn" data-action="plane-view" data-icon="plane-view" aria-pressed="false"
+            title="Tilt the map and lay a grid on a plane through a 60 degree wedge of the galaxy, with rings at round distances (around the selection when there is one)">Plane view</button>
+    <button type="button" class="starmap-btn" data-action="plane-midplane" data-icon="plane-midplane" aria-pressed="false" disabled
+            title="Lay the plane view's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Plane at galactic midplane</button>
     <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
             title="Draw the cells of this step (blocks, then sectors) as a grid over the map">Cell grid</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
