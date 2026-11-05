@@ -14484,6 +14484,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what it is, with no guard that keeps old values.
   Prerequisites: none. Related: GEN.1108, GEN.1097.
 
+- [ ] **GEN.1261 Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken**
+  Boss, 7:23 PM EST on 2026-11-04, confirmed option 1 on the GEN.1259
+  follow-up: file this, no tuning to the observed share. Core 3 measured
+  240 FGK systems (reports/gen1259-belt-shares-2026-11-05.md): the warm
+  belt share is 11 percent (5 to 11 by the present-mass line), inside
+  the observed 4 to 14; the cold share is 70 percent against 14 to 20
+  observed (DEBRIS F/G/K 24/14/13, DUNES 20) and stays 64 to 71 percent
+  even for belts of 1 Earth mass or more. Cause: every chain with no
+  giant past it hands the whole disc to a belt, with no step for solids
+  that never formed planetesimals. Also 11 of 15 gap belts hold more
+  solids than an isolation-mass planet would have taken. Do: (1) a loss
+  step for the cold disc from the physics (the fraction of the outer
+  solids that grew to planetesimals by the disc's age: the growth time
+  of pebbles to planetesimals at that radius against the disc lifetime,
+  the drift loss of pebbles, the streaming-instability condition), with
+  its sources found and any stand-in registered in GEN.725 with tier and
+  tweak level; (2) a cap on a gap belt's solids by the isolation mass a
+  planet at that spot would have taken (the Lissauer isolation mass from
+  the local solid surface density and the Hill-radius spacing); (3)
+  report the new warm and cold shares against the observed ones, without
+  tuning to them. Done: tests of a cold disc with and without the step,
+  a gap belt over the cap, and the measured shares in the note.
+  Generation output changes (an epoch): a lock item. Proposed owner:
+  Core 3 after GEN.1246. Filed by the TODO thread.
+  Prerequisites: GEN.1259. Related: GEN.1259, GEN.1068, GEN.1156,
+  GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
