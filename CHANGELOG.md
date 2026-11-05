@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3228] - 2026-11-05
+
+**Headline:** The life census now names every life class no sampled world lived on, so a class that never appears shows in the report.
+
+### Changed
+
+- The life census (TEST.435) counted how many life worlds each class lives on, but listed only the classes it met. Its report now also names each class of the registry that lived on no sampled world, or says none. It is an outcome to measure, not a flag, since no researched band says how often each class should appear (GEN.1209).
+
 ## [8.0.3227] - 2026-11-05
 
 **Headline:** One command, `python3 -m planetgen.cli.tiles`, builds the whole Galaxy Map's tile cache from scratch, and a nightly timer runs it after the orbit update.
