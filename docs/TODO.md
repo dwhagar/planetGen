@@ -2174,36 +2174,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wedge.
   Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
 
-- [ ] **MAP.376 Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug)**
-  Found by Core 5 in its TEST.575 share, 5:40 PM EST on 2026-11-04 (as
-  the lane reported).
-  test_map_region_labels_browser::test_a_click_on_the_family_flies_to_its_block
-  fails deterministically (assert 9 == 81): clicking the family label
-  'Fixture Reach' (family:81.0.0.0, no extent, so regionOpener.block)
-  ends with the camera at 71.6 pc in a 9-block window instead of an
-  81-block one. Since MAP.336 and MAP.337 every Go to is a camera flight
-  and the window follows the camera, so openBlock lands at the default
-  window distance. MAP.319 (flyToFit) says a flight to a region places
-  the camera so the target fills the window, so this is a map bug, not a
-  test to change. Do: make the flight to a family or region block frame
-  the whole block (camera distance from the block's extent, or from its
-  size when it has no stored extent), for every level of the ladder (3,
-  9, 27, 81, 243). Done: the existing test green unchanged, plus a case
-  for each level. Owner Core 2 (MAP.336, MAP.337 and MAP.319 owner).
-  Goal #3241. Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **MAP.377 Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug)**
-  Boss, 5:49 PM EST on 2026-11-04, saw that MAP.370 left the black hole
-  name labels visible. MAP.370 made the black hole dots always draw with
-  the stars and turned only the POI marks off by default; the labels
-  were missed. Do: the black hole labels follow the same default as the
-  POI marks (hidden until the POI toggle is on); the dots stay drawn at
-  their mass magnitudes. Done: a browser test that a default galaxy view
-  draws the black hole dots and no black hole label, and that the POI
-  toggle shows both marks and labels. Proposed owner: Core 2 (map).
-  Filed by the TODO thread. Related: MAP.370.
-  Prerequisites: none. Related: MAP.370.
+- [ ] **MAP.378 The Galaxy Map no longer shows the fixture galaxy's charted sectors in the browser tests: 11 to 12 fixture-map tests are red alone on main (zoom stuck near 2.5e-8, no sector label, no Fixture Maw or Fixture Eden marker) (bug)**
+  Found by Core 3 and Core 2 while working TEST.575 (7:07 PM EST on
+  2026-11-04, as the lanes reported). Red alone, same on current main:
+  test_one_wheel_scroll_..., test_the_wheel_keeps_the_view_... (scroll
+  never reaches a sector, zoom stuck near 2.5e-8),
+  test_galaxy_map_names_a_generated_sector_in_its_window and
+  ..._heaviest_sectors_first (a sector label never appears),
+  test_galaxy_map_info_popup_stays_inside_the_map_window (4 sizes, the
+  'Fixture Maw' marker never appears),
+  test_galaxy_map_marks_gas_giants_... (marker set lacks 'Fixture
+  Eden'),
+  test_the_blocks_and_their_outlines_are_built_relative_to_origins (one
+  block layer, extentPc 15540 at origin 0, 75675 blocks),
+  test_galaxy_map_draws_block_lines_only_in_a_window (lines invisible at
+  rest), test_galaxy_map_turns_past_edge_on_and_under_the_plane (box
+  left -502, expected at least -1), and the menu,
+  window-fills-page-width and popup-grows-with-window tests. One cause
+  is likely: the map stopped drawing the fixture's charted sectors,
+  which could be a real regression in the continuous zoom (MAP.260 to
+  MAP.262 area) and not a test problem. Do: bisect to the commit that
+  turned the group red, decide whether the map or the fixture is wrong,
+  and fix it; if it is the fixture only, say what the real site does.
+  Done: the group green alone with the commit named in the note. This is
+  the remaining part of TEST.575's fixture-map share. Proposed owner:
+  Core 2, ahead of the PERF.233 measurement. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.575, MAP.376.
 
 ## NAV: Navigation and courses
 
@@ -14410,6 +14406,76 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1254, GEN.1255. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
 
+- [ ] **GEN.1258 Store an ammonia-water fraction for icy bodies so class X (ammonia-water) can join the class-by-domain fit table**
+  Core 4, 6:25 PM EST on 2026-11-04 (as the lane reported), built the
+  GEN.1221 class-by-domain matrix and deferred class X (ammonia-water)
+  because no ammonia-water fraction is stored on a body. Do: work out
+  from the formation physics (ice line, nebula ammonia to water ratio,
+  melt and differentiation history) an ammonia-water fraction for icy
+  planets and moons, store it in a new column (db/column_units.py,
+  wiring register), register its stand-ins in GEN.725 with tier and
+  tweak level, then add class X to the shadow fit table with its range
+  from the families report. Stored letters do not change until GEN.1207.
+  Generation output changes (an epoch), so a lock item. Proposed owner:
+  Core 4 after GEN.1250. Filed by the TODO thread.
+  Prerequisites: GEN.1221. Related: GEN.1221, GEN.1207, GEN.725.
+
+- [ ] **GEN.1259 A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7)**
+  Boss, 6:43 PM EST on 2026-11-04, chose option 1 (keep the physics
+  rule, check it, compare with observation, no hand-tuning). Bug 1
+  measured the share of systems with at least one asteroid belt: 0.02
+  before GEN.1068 and GEN.1156 (train 7, belts come from the finished
+  planet chain), 0.785 at train 7, 0.69 at train 9, 0.66 over 600
+  systems on main. The chain now leaves a belt wherever the planets
+  leave a stretch with no planet. Do: (1) read the rule and decide what
+  leftover rocky mass the stretch had (the solid disc mass beyond what
+  the planets took, the depletion by the neighbouring planets'
+  scattering, the time it needs to survive to the system's age); a gap
+  becomes a belt only above a physical mass and stability floor, not
+  just because it is empty; (2) compare the resulting warm
+  (asteroid-like) and cold (Kuiper-like) belt shares with the observed
+  debris-disc occurrence around Sun-like stars from the indexed sources,
+  report both without tuning to hit them, and register any stand-in in
+  GEN.725 with its tier and tweak level; (3) the base shares in TEST.579
+  are remeasured after this item and the train 10 re-tag, not before.
+  Done: the rule, a test of a gap with too little mass (no belt) and one
+  with enough (a belt), and the measured shares in the note. Generation
+  output changes (an epoch), so a lock item for the next train it is
+  ready for; it cannot reach train 10 (its list is frozen). Proposed
+  owner: Core 3 after GEN.1246. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.579, GEN.725.
+
+- [ ] **GEN.1260 The latitude band table's Day/Night and Longest day/night rows are empty or wrong for slow spinners: rewrite them as a time-stepped spell calculation (bug)**
+  Found on Nitrikin III by a lane, 7:05 PM EST on 2026-11-04 (as the
+  lane reported): rotation 27.9 d, orbit 28.5 d, tilt 128.3, solar day
+  14.1 d, 2.02 solar days per year. In physics/latitude_bands.py
+  (GEN.1108): (1) the Day/Night rows are year averages, and the annual
+  mean day share is 0.5 at every latitude by north-south symmetry, so
+  every band reads about half the solar day and the row says nothing;
+  (2) longest day and longest night are the polar-day share of the year,
+  which holds the declination fixed through one turn and means 'star up
+  all day'; with a solar day of 14 d the declination swings across half
+  its range in one day, so it is invalid, and it reads 0 s at the
+  equator and tropics where the real longest daylight spell is about 7
+  d. A time-stepped check gives longest daylight about 7.1 d at the
+  equator, 8.4 d at 26 degrees, 19 d at 39 degrees (beyond one solar
+  day, a true polar day) and 14 d at the pole; the stored 1.3 d at the
+  tropic edge and 14.3 d at the pole disagree. (3) Near resonance (2.02
+  solar days per year) makes the noon phase lock to the season for
+  decades, so annual averaging is not independent. Retrograde tilt and
+  solar day are handled correctly (folded tilt 51.7, polar circle 37.8).
+  Do: rewrite the band day and night hours as a time-stepped spell
+  calculation (longest unbroken spell of star up and of star down, and
+  the mean spell length, by latitude); no new random draws, so it
+  changes stored values only and needs a column recompute at the epoch
+  bump (a lock item); the label-only part (rename the row to 'Longest
+  unbroken day', 'Longest unbroken night') is lock-free and can go
+  first. Done: a test with this body's numbers (equator about 7.1 d,
+  pole 14 d) and a fast spinner (Earth-like) unchanged within rounding.
+  Proposed owner: Aux 2 (GEN.1108 and GEN.1097). Filed by the TODO
+  thread.
+  Prerequisites: none. Related: GEN.1108, GEN.1097.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15068,6 +15134,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   machine, with the sample size and margin in the test. Proposed owner:
   Bug 1 (PERF.229 owner). Filed by the TODO thread.
   Prerequisites: none. Related: PERF.229, TEST.430.
+
+- [ ] **PERF.237 The warm-up's log line 'this chunk 64 nodes in 37 s' reads like a slowdown but is one worker's time for one chunk while about ten run side by side: say so in the line (bug)**
+  Boss, 6:27 PM EST on 2026-11-04, pasted the full warm-up log after
+  ./update.sh to 8.0.3206: every 23rd galaxy-nodes line says 'this chunk
+  64 nodes in 35 to 42 s', yet 184 chunks took 11:30 elapsed, which is
+  3.7 s a chunk, the same 4.0 s a chunk as his earlier run. So nothing
+  slowed down. The 'this chunk' figure
+  (src/planetgen/cli/warm_progress.py chunk_line, result seconds) is one
+  worker's own time for one chunk, and about ten chunks run side by side
+  (37 s divided by 3.7 s), so the line reads ten times slower than the
+  rate the bar and the time left use. Do: word the line so the two
+  numbers cannot be confused (for example 'this chunk took 37 s on its
+  worker; about 10 at a time, so 3.7 s a chunk overall'), taking the
+  count of chunks in flight from the run, and make the time left come
+  from the overall rate only. Done: a test of the line with several
+  chunks in flight. Proposed owner: Aux 3, with PERF.234. This replaces
+  the first reading of a slowdown after an update (no slowdown). Filed
+  by the TODO thread.
 
 ## DB: Database and schema
 
@@ -18279,6 +18363,21 @@ clears each one.
   epoch re-tag. Proposed owner: Bug 1 (offered to take it). Filed by the
   TODO thread.
   Prerequisites: none. Related: TEST.430, GEN.725, PERF.229.
+
+- [ ] **TEST.580 Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug)**
+  Core 1, 6:38 PM EST on 2026-11-04 (as the lane reported), found these
+  red on main while building GEN.367 and says none are its own. Do: for
+  each, find the commit that turned it red (git bisect on the one test
+  file), say which item owns it, and either fix the test with the reason
+  or fix the code. test_burn_down_register: the 6.170 rows from MAP.275
+  have L3 or L4 tweak levels with no burn-down line (the register rule
+  from the stand-in tiers); add the lines or lower the level with a
+  source. test_gen_magellanic_classes: the supernova factor 0.92 must
+  read above 1.0 by the test's own claim; decide whether the factor or
+  the claim is stale. Done: the four green on main with a note of the
+  cause of each. Proposed owner: Bug 1 after TEST.579. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: TEST.579, GEN.367.
 
 ## USR: User accounts
 

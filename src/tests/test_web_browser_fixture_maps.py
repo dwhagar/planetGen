@@ -14,6 +14,7 @@ generated database.
 
 import time
 import io
+import json
 import math
 import re
 from urllib.parse import parse_qs, urlparse
@@ -3021,9 +3022,15 @@ def test_galaxy_map_black_hole_marks_start_off_and_the_dots_always_draw(page, ma
     page.wait_for_timeout(500)
     assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
     assert "Black hole marks" not in legend.inner_text()
+    # MAP.377: with the marks off the black holes carry no name either (the dots stay).
+    assert not [label for label in page.evaluate(LABELS) if label["text"] in holes], "no black hole is named with its marks off"
+    object_names = "() => document.querySelector('#galaxymap3d-canvas').__mapObjectNames().map((o) => o.text)"
+    page.wait_for_function(f"() => ({object_names})().length > 0")    # the other named objects are offered
+    assert not set(page.evaluate(object_names)) & set(holes), "and none is offered to the label engine"
     # On: the marks, the dots in purple, the legend line and the address.
     button.click()
     assert button.get_attribute("aria-pressed") == "true"
+    page.wait_for_function(f"() => ({object_names})().includes('Fixture Maw')", timeout=15000)    # MAP.377: the names come with the marks
     assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("show", [""])[0].split(",")
     drawn = _markers_until(page, lambda found: {e["name"] for e in found if e["kind"] == "marker-black-hole"} >= set(holes))
     assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
@@ -5174,8 +5181,9 @@ GEOMETRY = """() => {
 
 @pytest.mark.parametrize("width,height", [(1000, 900), (1280, 720), (390, 700)])
 def test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves(page, map_site, width, height):
-    """MAP.291, MAP.350: the map's window is as wide as its column and as tall as the browser window less the header and 20 px
-    above and below (at least 320 px), with no fixed aspect ratio, and the canvas's drawing buffer follows it."""
+    """MAP.291, MAP.350: the map's window is as wide as its column and 95% of the browser window's height less the header it
+    leaves covered (at least 320 px; the rest of the window is split above and below it), with no fixed aspect ratio, and the
+    canvas's drawing buffer follows it."""
     page.set_viewport_size({"width": width, "height": height})
     _open_galaxy(page, map_site)
     g = page.evaluate(GEOMETRY)
@@ -5183,7 +5191,7 @@ def test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves
     assert g["canvas"]["width"] == pytest.approx(g["view"]["width"], abs=1) and g["canvas"]["height"] == pytest.approx(g["view"]["height"], abs=1)
     assert g["buffer"] == [round(g["canvas"]["width"] * g["dpr"]), round(g["canvas"]["height"] * g["dpr"])], g
     covered = page.evaluate("() => document.querySelector('header').getBoundingClientRect().bottom")
-    assert g["view"]["height"] == pytest.approx(max(320, height - covered - 40), abs=1), (g, covered)
+    assert g["view"]["height"] == pytest.approx(max(320, round((height - covered) * 0.95)), abs=1), (g, covered)
     assert g["scrollWidth"] <= width, g
 
 
@@ -5800,3 +5808,4 @@ def test_galaxy_map_says_in_plain_words_that_a_level_stalled_when_its_nodes_do_n
     assert not page.evaluate("() => !!document.querySelector('.map-level-progress [role=progressbar]')"), "no bar is left stuck"
     page.unroute("**/galaxy/nodes*")
     page.wait_for_function("() => !document.querySelector('.map-level-progress')", timeout=40000)
+

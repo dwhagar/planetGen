@@ -941,23 +941,25 @@ def test_the_progress_bar_counts_families():
 
 def test_a_sigterm_ends_the_run_as_canceled_not_stranded(script, redis_server, monkeypatch):
     """SIGTERM (the update guard's cancel, update.sh's timeout) reaches the starter as Ctrl+C does, and the run ends
-    as canceled in Redis, freeing its place."""
+    as canceled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
     import os
     import signal
-    original = signal.getsignal(signal.SIGTERM)
-    warm_cli._stop_on_sigterm()
+    original = signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP)
+    warm_cli._stop_on_signals()
     try:
         with pytest.raises(KeyboardInterrupt):
             os.kill(os.getpid(), signal.SIGTERM)
     finally:
-        signal.signal(signal.SIGTERM, original)
+        signal.signal(signal.SIGTERM, original[0])
+        signal.signal(signal.SIGHUP, original[1])
 
     def interrupted(*args, **kwargs):
         raise KeyboardInterrupt
 
     monkeypatch.setattr(units, "follow_stage", interrupted)
-    with pytest.raises(KeyboardInterrupt):
+    with pytest.raises(SystemExit) as stopped:
         warm_cli.run_warm(_args("lists"))
+    assert stopped.value.code == 130
     conn = redisqueue.connect(redis_server)
     assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "canceled"
     assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None

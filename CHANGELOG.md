@@ -2,6 +2,83 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3214] - 2026-11-05
+
+**Headline:** The Galaxy Map window-size test now expects the 95 percent of the browser window that the map is sized to, so its three sizes pass.
+
+### Changed
+
+- `test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves` still expected the map to be the browser window's height less the header and 40 px (the first MAP.350 rule). The map is sized to 95 percent of the window's height less the header (`mapfit.js` `fillHeight`, Boss's later rule), so the 1000x900, 1280x720 and 390x700 runs failed by 2 to 8 px. The test now expects `max(320, round((height - header) * 0.95))`. The three runs pass (TEST.575).
+
+## [8.0.3213] - 2026-11-05
+
+**Headline:** The update's cache warm-up gets four hours instead of thirty minutes, and a warm-up that is stopped says what stopped it instead of printing a traceback.
+
+### Changed
+
+- **A longer limit (OPS.95).** `update.sh` ran each warm stage under `timeout 1800`. A first warm-up after a new epoch on a real galaxy takes longer (it reached chunk 414 of 458 of the galaxy nodes in 30 minutes), so the run was ended with a `KeyboardInterrupt` traceback and nothing said why. The limit is now `WARM_STAGE_SECONDS`, default 14400 (4 hours), 0 for none, and the stage's first line says it: "Building the site's caches, stage 2 of 2, the full warm-up (time limit 4 hours, WARM_STAGE_SECONDS sets it; log: ...)". A value that is not a number is said and the default used.
+- **One line instead of a traceback.** When SIGTERM or a hangup ends `planetgen warm`, it prints one line saying what ended it and that a rerun continues, and exits 143 (SIGTERM), 129 (hangup) or 130 (Ctrl+C): "The cache warm-up was ended by update.sh's time limit for this stage (14400 s, WARM_STAGE_SECONDS). What it stored is kept: run `planetgen warm --progress` again and it continues where it stopped." The run is still marked cancelled in Redis, so its workers stop as before.
+- **Cancellers leave a reason.** The update guard's cancel and stop-all each leave one line for the process they are about to signal, in `stop-reasons` in the state folder (`admin/stop_reason.py`), and the run reads it, so the line names who stopped it. update.sh's limit is told to the run by environment and recognized when it has passed. A signal with no reason says so.
+- **The final warning says what was kept.** When a stage does not finish, update.sh's warning says whether it failed (with the status) or ran out of its limit, that what it stored is kept, and that `planetgen warm --progress` or the next `./update.sh` continues.
+
+generation-output: unchanged
+
+## [8.0.3212] - 2026-11-04
+
+**Headline:** When a system's ID changes, every body in it takes the new ID in the same step, and each keeps its old ID on record, so an old link still finds the right body.
+
+### Added
+- `designation_rows.renumber_system` gives a system, or a free planet, a new ID and its stars, planets, moons, belts, comets and facilities the new ID with their own body numbers, in one transaction. Each body writes its own row in `designations` with the reason `parent change`, the system's row keeps the caller's reason, and a new ID that is live or reserved for any of them stops the whole change. Nothing calls it yet; the 8.6 edit flow will.
+- `designation_rows.member_now` turns the old text of a belt member or a captured body (`<parent ID>.<rank hex>`) into its current text after the parent's ID changed. Members are stored nowhere, so they follow the belt's or the planet's ID by themselves and need no row of their own.
+- Tests in `tests/test_designation_rows.py`: the bodies follow, each keeps its old ID reserved, a member's old text redirects to the new one, and a refused cascade changes nothing.
+
+generation-output: unchanged
+TODO items resolved: GEN.1141 cascade half (the tombstone on delete waits on GEN.1123's audit of the delete paths)
+
+## [8.0.3211] - 2026-11-04
+
+**Headline:** The Life and air chart and its route now sum every life class that lives on a world, and the page says which class made how much of each gas.
+
+### Changed
+- **GEN.1213 item 3: `GET /api/planets/<id>/life-air` (and moons) drew the history of the dominant class only.** It now reads the classes stored for the body (`planet_life`, `moon_life`) and sums them in timeline order (`life_air.air_history`), so `classes` lists every class with its share of the food production. Each gas also carries `by_class`: the share of what life changed in that gas that each class made (the methane, and the carbon dioxide it is made from, by each class's methane flux times its share; the oxygen by the oxygenic classes' shares).
+- The chart's section of the planet or moon page lists those shares under the legend when more than one class changed a gas ("Methane: Class 3 75 percent, Class 1a 25 percent"). A world with one class reads as before.
+- No generator or stored-data change: the history is worked out on request.
+
+TODO items advanced: GEN.1213.
+
+## [8.0.3210] - 2026-11-04
+
+**Headline:** Flying to a charted region, a family, or a group of regions now lands in the window of the right block.
+
+### Changed
+
+- A flight to a block or a region keeps the camera far enough back that the window it lands in is that block's own, instead of dropping to a finer window that cuts the block off.
+- Clicking the count button of several regions now lands in the smallest block that holds all of them, not the biggest region's 9-block.
+- The family-click browser test clicks a spot of the name that no region button covers.
+
+generation-output: unchanged
+
+## [8.0.3209] - 2026-11-04
+
+**Headline:** update.sh waits up to 90 seconds for the site to answer after a reload and says why each ask failed.
+
+### Changed
+
+- **A longer wait (OPS.94).** After the Apache or gunicorn reload, the health check waited 20 seconds. On a real server the first workers were still compiling and importing after new code, each ask timed out at 5 seconds and read as "HTTP 000", and the update opened the site with a warning. `HEALTH_WAIT_SECONDS` now defaults to 90. The wait still ends at the first good answer, so a quick start costs nothing.
+- **Every retry line says what curl saw.** "no good answer yet (HTTP 000: the connection was refused: nothing listens on that address and port)", or a timeout, a failed name lookup, a TLS error, instead of a bare code. A line is printed for the first miss, then every 5 seconds or when the reason changes.
+
+generation-output: unchanged
+
+## [8.0.3208] - 2026-11-04
+
+**Headline:** On the Galaxy Map the black holes are named only when their marks are turned on, as the marks themselves are; the purple dots always draw.
+
+### Changed
+
+- The black hole name labels follow the Black hole marks switch (off by default), so a default view shows the black hole dots among the stars and no black hole names. Turning the marks on shows both the marks and the names.
+
+generation-output: unchanged
+
 ## [8.0.3207] - 2026-11-04
 
 **Headline:** On the Sector Map a nebula is now drawn as the same irregular cloud of gas the Galaxy Map shows, not a smooth ball or a fixed mesh.

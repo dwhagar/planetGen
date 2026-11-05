@@ -297,13 +297,16 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/planets/<id>/life-air` and `GET /api/moons/<id>/life-air` — the data of
   the Life and air chart on a planet's or moon's page (UX.237,
   `physics.life_air.air_history`): the air through the age of its star as far as the
-  life class that lives on it changed it, worked out on request from the stored air and
-  stored nowhere. `{"id", "life_class_id", "life_air"}`. `life_air` is `null` for a world
+  life classes that live on it changed it (the sum of every class stored for the body, GEN.1213),
+  worked out on request from the stored air and stored nowhere. `{"id", "life_class_id", "life_air"}`. `life_air` is `null` for a world
   with no living class, a giant, a class that changed nothing, or an air the life did not
   change; otherwise `age_gyr` (the star's age), `producers_gyr` (when the producers began),
-  `rose_gyr` (when the oxygen rose, `null` for a class that makes none), `gases` (`{"formula",
-  "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}` for oxygen, carbon dioxide and methane,
-  each value holding until the next age; a gas that is never above 0.1 Pa is left out),
+  `rose_gyr` (when the oxygen rose, `null` for a class that makes none), `classes` (`{"life_class",
+  "variant", "share", "producers_gyr"}` for each class the air sums), `gases` (`{"formula",
+  "name", "steps": [[age_gyr, partial_pressure_kpa], ...], "by_class": [{"life_class", "variant",
+  "share"}, ...]}` for oxygen, carbon dioxide and methane, each value holding until the next age,
+  `by_class` the share of what life changed in the gas that each class made; a gas that is never
+  above 0.1 Pa is left out),
   `stages` (`{"key", "age_gyr"}` for each milestone the star is old enough for) and
   `speculative` (the ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else
   `null`). An unknown planet or moon is a `404`. Additive: the API version does not change.
