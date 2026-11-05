@@ -4801,6 +4801,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/data/harris/mwgc.dat and read by nothing (Sources 1
   is building its setup entry); galaxy tables from Courteau, Comeron,
   Pizzella and Munoz are in the VizieR folder. Catalog sections 1 and 3.
+  Owner (TODO, 11:55 PM EST on 2026-11-04) (11:55 PM EST on 2026-11-04):
+  Core 2 takes this as a lock item (generation output changes: epoch
+  with --affects fill), train 12 at the earliest, because the cluster
+  chain MAP.224, MAP.223 is theirs and no other lane is free for it.
+  Build it first, small: stars get cluster_id and the cluster is named
+  at first fill.
   Prerequisites: none. Related: GEN.209.
 
 - [ ] **GEN.360 Asteroid fields and belts render from their uid: one seeded generator in a shared asteroidfield.js for dust, rocks and heroes**
@@ -19991,6 +19997,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
+  Glow image contract (TODO, 11:55 PM EST on 2026-11-04) (11:55 PM EST
+  on 2026-11-04): The glow image producer is VIEW.13
+  (planetgen/galaxy/sky_band.py, the ray-march), label S9 of the sky
+  plan; no lane owns it yet (proposed: Planets 1, after VIEW.31). Core 2
+  defines the client contract in skyband.js and its docs row (proposed:
+  256 x 128 equirectangular, linear RGB half floats, a stated unit) so
+  VIEW.13 builds to it. Add VIEW.13 as the producer of the image served
+  with the VIEW.31 route.
   Prerequisites: VIEW.31.
 
 - [ ] **VIEW.35 System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL**
