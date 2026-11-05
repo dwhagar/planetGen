@@ -2458,3 +2458,52 @@ Baseline: PR #1817.
 | VIEW.22 | 8.2 | Bookmarks |
 | MAP.372 | 8.1 | Fly-through map |
 | MAP.373 | 8.1 | Fly-through map |
+| TEST.584 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.177 | 8.8 | Nebula drawing |
+| NAV.65 | 8.5 | Courses on the maps |
+| NAV.66 | 8.5 | Courses on the maps |
+| MAP.380 | 8.1 | Fly-through map |
+| GEN.1274 | 8.2 | Robust tile caching |
+| UX.237 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1269 | 8.2 | Robust tile caching |
+| TEST.234 | 8.1 | Bugs and flaky tests |
+| NAV.67 | 8.5 | Courses on the maps |
+| VIEW.23 | 8.2 | Bookmarks |
+| PERF.232 | 8.2 | Robust tile caching |
+| NAV.73 | 8.5 | Courses on the maps |
+| GEN.1255 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.68 | 8.5 | Courses on the maps |
+| NAV.69 | 8.5 | Courses on the maps |
+| NAV.36 | 8.5 | Courses on the maps |
+| MAP.181 | 8.8 | Nebula drawing |
+| MAP.178 | 8.8 | Nebula drawing |
+| MAP.180 | 8.8 | Nebula drawing |
+| GEN.1215 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1214 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.179 | 8.8 | Nebula drawing |
+| TEST.581 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.583 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.142 | 8.1 | Nebula data foundations |
+| VIEW.33 | 8.2 | Bookmarks |
+| VIEW.41 | 8.2 | Bookmarks |
+| VIEW.31 | 8.2 | Bookmarks |
+| TEST.589 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| VIEW.34 | 8.2 | Bookmarks |
+| VIEW.36 | 8.2 | Bookmarks |
+| VIEW.35 | 8.2 | Bookmarks |
+| TEST.590 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.588 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.587 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.586 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| VIEW.37 | 8.2 | Bookmarks |
+| VIEW.38 | 8.2 | Bookmarks |
+| MAP.195 | 8.1 | Fly-through map |
+| NAV.54 | 8.5 | Steering clear of gravity wells |
+| TEST.592 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.72 | 8.5 | Steering clear of gravity wells |
+| TEST.593 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.28 | 8.5 | Steering clear of gravity wells |
+| NAV.18 | 8.5 | Saved courses |
+| TEST.594 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.21 | 8.5 | Saved courses |
+| NAV.23 | 8.5 | Saved courses |

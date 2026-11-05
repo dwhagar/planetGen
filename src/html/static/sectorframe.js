@@ -1,8 +1,8 @@
 // html/static/sectorframe.js
 //
 // The frame of the sector the Galaxy Map has opened in place (MAP.327): a wireframe round its cell that stays where the
-// cell is (it never follows the pointer), and at the centre of each wall that faces another sector a labelled icon whose
-// click flies to that sector. The geometry (`wallCentres`) is pure and runs under plain node (tests/js/sectorframe.test.mjs);
+// cell is (it never follows the pointer), and at the center of each wall that faces another sector a labelled icon whose
+// click flies to that sector. The geometry (`wallCenters`) is pure and runs under plain node (tests/js/sectorframe.test.mjs);
 // `createSectorFrame` adds the three.js lines and the DOM icons.
 //
 // A cell is bounds {r0, r1, c0, c1, t0, t1}: radius in parsecs, colatitude and longitude in radians (a block's, as
@@ -34,10 +34,10 @@ function along(point, unit, length) {
   return [point[0] + unit[0] * length, point[1] + unit[1] * length, point[2] + unit[2] * length];
 }
 
-// The walls of a cell that may face a neighbour: `[{dir, point, beyond}]`, `point` the centre of the wall and `beyond` a
+// The walls of a cell that may face a neighbour: `[{dir, point, beyond}]`, `point` the center of the wall and `beyond` a
 // point `beyondPc` parsecs past it, outward from the cell, where the neighbour is found. `dir` is `out`, `in` (from the
-// galaxy's centre), `north` and `south` (colatitude), `west` and `east` (longitude, the lesser and greater).
-export function wallCentres(b, beyondPc) {
+// galaxy's center), `north` and `south` (colatitude), `west` and `east` (longitude, the lesser and greater).
+export function wallCenters(b, beyondPc) {
   const reach = beyondPc === undefined ? 1 : beyondPc;
   const rMid = (b.r0 + b.r1) / 2;
   const cMid = (b.c0 + b.c1) / 2;
@@ -71,7 +71,7 @@ export const WALL_LABELS = {
 
 // A frame in `scene` for `camera` over `canvasEl`, its icons in `parent`. `options`: `THREE`, `scene`, `camera`, `canvasEl`,
 // `parent`, `accent` (the line color), `edgePc`, `neighbour(wall) -> {shell, band, wedge}` or null (the sector beside the
-// cell across `wall`, `{dir, point, beyond}` as `wallCentres` gives it; null where the galaxy ends), `label(sector) -> text`, `cellPoints(bounds) -> flat [x, y, z, ...]`
+// cell across `wall`, `{dir, point, beyond}` as `wallCenters` gives it; null where the galaxy ends), `label(sector) -> text`, `cellPoints(bounds) -> flat [x, y, z, ...]`
 // (the wireframe's segments), `onMove(sector)` (an icon was clicked).
 export function createSectorFrame(options) {
   const THREE = options.THREE;
@@ -126,7 +126,7 @@ export function createSectorFrame(options) {
     line.frustumCulled = false;
     group.add(line);
     const seen = new Set();
-    wallCentres(bounds, BEYOND_EDGE_SHARE * options.edgePc).forEach(function (wall) {
+    wallCenters(bounds, BEYOND_EDGE_SHARE * options.edgePc).forEach(function (wall) {
       let sector = null;
       try {
         sector = options.neighbour(wall);
@@ -166,7 +166,7 @@ export function createSectorFrame(options) {
     });
   }
 
-  // Puts each icon at its wall's centre on the screen; one whose wall is behind the camera or off the map is hidden.
+  // Puts each icon at its wall's center on the screen; one whose wall is behind the camera or off the map is hidden.
   function update() {
     if (!icons.length) return;
     const width = options.canvasEl.clientWidth || 1;

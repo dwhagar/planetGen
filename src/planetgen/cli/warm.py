@@ -98,7 +98,7 @@ _started = time.monotonic()
 
 
 class Stopped(KeyboardInterrupt):
-    """The run was told to stop by a signal; `reason` says by what. A `KeyboardInterrupt`, so the run is marked cancelled
+    """The run was told to stop by a signal; `reason` says by what. A `KeyboardInterrupt`, so the run is marked canceled
     in Redis and its workers stop, as Ctrl+C does."""
 
     def __init__(self, reason, status):
@@ -124,7 +124,7 @@ def _who_sent_sigterm():
 
 def _stop_on_signals():
     """Makes SIGTERM (the update guard's cancel, a stop-all, update.sh's time limit) and SIGHUP (the terminal closed) end the run as
-    cancelled in Redis, as Ctrl+C does, with the reason in a `Stopped` that `run_warm` prints as one line."""
+    canceled in Redis, as Ctrl+C does, with the reason in a `Stopped` that `run_warm` prints as one line."""
     global _started
     _started = time.monotonic()
     stop_reason.clear(os.getpid())

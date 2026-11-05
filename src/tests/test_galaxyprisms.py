@@ -90,10 +90,10 @@ const cells = {json.dumps(sectors)};
 console.log(JSON.stringify(cells.map(([s, b, w]) => {{
   const x = P.sectorBounds(s, b, w, {EDGE_PC});
   return [P.wedgeCount(s, b), P.bandRange(s), P.isCap(s, b), [x.r0, x.r1, x.c0, x.c1, x.t0, x.t1],
-    P.sectorPositionPc(s, b, w, {EDGE_PC}), P.bandCentrePc(s, b, {EDGE_PC})];
+    P.sectorPositionPc(s, b, w, {EDGE_PC}), P.bandCenterPc(s, b, {EDGE_PC})];
 }})));
 """)
-    for (shell, band, wedge), (count, band_range, cap, bounds, position, centre) in zip(sectors, got):
+    for (shell, band, wedge), (count, band_range, cap, bounds, position, center) in zip(sectors, got):
         assert count == spherical.wedge_count(shell, band), (shell, band)
         assert band_range == list(spherical.band_range(shell))
         assert cap == spherical.is_cap(shell, band)
@@ -102,7 +102,7 @@ console.log(JSON.stringify(cells.map(([s, b, w]) => {{
         start, end = spherical.wedge_longitude_bounds(shell, band, wedge)
         assert bounds == pytest.approx([inner, outer, north, south, start, end], abs=1e-9, rel=1e-12), (shell, band, wedge)
         assert position == pytest.approx(spherical.sector_position_pc(shell, band, wedge, EDGE_PC), abs=1e-6, rel=1e-12)
-        assert centre == pytest.approx(spherical.band_center_pc(shell, band, EDGE_PC), abs=1e-6, rel=1e-12)
+        assert center == pytest.approx(spherical.band_center_pc(shell, band, EDGE_PC), abs=1e-6, rel=1e-12)
 
 
 def test_addresses_at_points_and_designations_match_python():
@@ -235,26 +235,26 @@ console.log(JSON.stringify({{chain, stage, root: P.drillParent(top), stageTop: P
 @pytest.mark.parametrize("g", [3, 9, 11])
 def test_windows_match_python(g):
     rng = random.Random(g)
-    centres = []
+    centers = []
     for m in STAGE_LEVELS:
         for _ in range(5):
             if m == 1:
                 shell = rng.choice([rng.randint(2, 40), rng.randint(40, 3000)])
                 low, high = spherical.band_range(shell)
                 band = rng.randint(low, high)
-                centres.append(DrillBlock(1, shell, band, rng.randrange(spherical.wedge_count(shell, band))))
+                centers.append(DrillBlock(1, shell, band, rng.randrange(spherical.wedge_count(shell, band))))
             else:
                 shell = rng.choice([0, 1, 2, 3, rng.randint(0, max(1, 3700 // m))])
                 rows = drill_band_count(m, shell)
                 band = rng.randint(-(rows // 2), rows // 2)
-                centres.append(DrillBlock(m, shell, band, rng.randrange(drill_wedge_count(m, shell, band))))
+                centers.append(DrillBlock(m, shell, band, rng.randrange(drill_wedge_count(m, shell, band))))
     got = _run(f"""
-const centres = {json.dumps([list(c) for c in centres])};
-console.log(JSON.stringify(centres.map(([m, s, b, w]) =>
+const centers = {json.dumps([list(c) for c in centers])};
+console.log(JSON.stringify(centers.map(([m, s, b, w]) =>
   P.windowCells({{m, shell: s, band: b, wedge: w}}, {EDGE_PC}, {g}).map(c => [c.m, c.shell, c.band, c.wedge]))));
 """)
-    for centre, cells in zip(centres, got):
-        assert cells == [list(c) for c in window_cells(centre, EDGE_PC, g)], tuple(centre)
+    for center, cells in zip(centers, got):
+        assert cells == [list(c) for c in window_cells(center, EDGE_PC, g)], tuple(center)
 
 
 def test_the_outline_and_what_a_block_can_hold_match_python():
@@ -348,8 +348,8 @@ PALETTE = {"dim": [0.01, 0.02, 0.05], "accent": [0.1, 0.2, 0.9], "hot": [0.8, 0.
 
 SCENE_CELLS = """
 const palette = %s;
-const centre = {m: 9, shell: 40, band: 2, wedge: 5};
-const cells = P.windowCells(centre, %s, 5).map(c => Object.assign({m: c.m, shell: c.shell, band: c.band, wedge: c.wedge},
+const center = {m: 9, shell: 40, band: 2, wedge: 5};
+const cells = P.windowCells(center, %s, 5).map(c => Object.assign({m: c.m, shell: c.shell, band: c.band, wedge: c.wedge},
   P.drillBlockBounds(c, %s), {filled: 0, total: 729, stats: null}));
 const plain = part => Object.fromEntries(Object.entries(part).map(([k, v]) => [k, ArrayBuffer.isView(v) ? Array.from(v) : v]));
 """ % (json.dumps(PALETTE), EDGE_PC, EDGE_PC)
@@ -533,7 +533,7 @@ console.log(JSON.stringify({
     low, high = out["ends1"]
     assert out["count1"] == 1 and out["mean1"] == pytest.approx(lone_log)
     assert (low + high) / 2 == pytest.approx(lone_log) and high - low == pytest.approx(2 * out["pad"])
-    # Two cells: still centred on their mean, the ends at least as far out as the cells themselves.
+    # Two cells: still centered on their mean, the ends at least as far out as the cells themselves.
     low2, high2 = out["ends2"]
     assert (low2 + high2) / 2 == pytest.approx(out["mean2"])
     assert low2 <= math.log10(100) and high2 >= math.log10(1000)

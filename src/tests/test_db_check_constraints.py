@@ -107,6 +107,17 @@ _EMPTY_TABLE_ROWS = {
     "orbital_event_bodies": (
         "INSERT INTO orbital_event_bodies (event_id, role, ordinal, uid, object_kind)"
         " VALUES (1, 'participant', 0, UNHEX('000000000000000000000001'), 'rogue_planet')"),
+    # GEN.1111: the four child tables of a rogue planet, empty in a galaxy whose rogues the donors have not thrown out yet.
+    "rogue_planet_reflection_spectrum": (
+        "INSERT INTO rogue_planet_reflection_spectrum (rogue_planet_id, spectrum_type, position, value) VALUES (1, 'visible', 0, '0.5')"),
+    "rogue_planet_interior_layers": (
+        "INSERT INTO rogue_planet_interior_layers (rogue_planet_id, layer_index, kind, state, top_pressure_gpa, bottom_pressure_gpa, mass_earth,"
+        " top_radius_fraction, bottom_radius_fraction, hydrogen, helium, iron, rock, water_liquid, ice_x, nh3_ice, ch4_ice)"
+        " VALUES (1, 0, 'rock_core', 'molten', 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0)"),
+    "rogue_planet_gases": (
+        "INSERT INTO rogue_planet_gases (rogue_planet_id, gas, partial_pa) VALUES (1, 'N2', 1.0)"),
+    "rogue_planet_life_class_scores": (
+        "INSERT INTO rogue_planet_life_class_scores (rogue_planet_id, life_class, score) VALUES (1, '1', 5)"),
     "phenomenon_scatter": (
         "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
         " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),

@@ -201,7 +201,7 @@ def _read(html):
 
 def _paths():
     """The in-universe pages this suite can render without a database."""
-    paths = ["/help", "/help/habitability", "/help/life", "/classes", "/references", "/login", "/preferences", "/polities", "/species"]
+    paths = ["/help", "/help/habitability", "/help/life", "/help/sky", "/classes", "/references", "/login", "/preferences", "/polities", "/species"]
     paths += [f"/help/life/{slug}" for slug, _title, _summary in life_help.TOPICS if slug != "kinds"]
     paths += [f"/help/life/classes/{number}" for number in range(1, 10)]
     if classref.preload():

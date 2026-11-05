@@ -72,7 +72,7 @@ class BeltRecord:
     What the page needs of a belt.
 
     Attributes:
-        belt_id (int): The belt's object ID (its body in the system).
+        belt_id (int or None): The belt's object ID (its body in the system); None for a belt not yet stored, whose members then have no designation.
         inner_au, outer_au (float): The belt's limits.
         star_mass_solar, luminosity_w, aluminium_26_ratio (float): The star's.
         ledger (belt_ledger.Ledger): The stored bodies and the rest (the bodies are `ledger.masses_kg`, heaviest first).
@@ -152,6 +152,12 @@ def _member(record, mass_kg, placement):
     return dataclasses.replace(member, mass_kg=mass_kg, radius_km=radius_km), True
 
 
+def member_bodies(record):
+    """The entry of each stored body of the belt (the `bodies` block of the page) for a `BeltRecord`, without the size table: what the belt's member rows store (GEN.1070)."""
+    _check(record)
+    return _bodies(record)
+
+
 def _bodies(record):
     ledger = record.ledger
     pairs = [_member(record, m, p) for m, p in zip(ledger.masses_kg, record.placements)]
@@ -164,7 +170,7 @@ def _bodies(record):
         state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others)
         out.append({
             "rank": rank,
-            "designation": object_uid.designation(record.belt_id, rank),
+            "designation": None if record.belt_id is None else object_uid.designation(record.belt_id, rank),
             "mass": _q(member.mass_kg, "kg"),
             "diameter": _q(2.0 * member.radius_km, "km"),
             "distance": _q(placement.distance_au, "au"),

@@ -18,10 +18,10 @@ object and reads no database.
   the radius widened by the cells' reach, 1.3 edges, the margin without which a fifth of the neighbours is missed), not
   by a ring-and-slot stencil.
 - **The members** are the point masses of those sectors within the radius of the object (`SectorMasses`, what a sector's
-  point-mass table holds: a hierarchy is one point mass at its barycentre, a star cluster is its members, a lone rogue
+  point-mass table holds: a hierarchy is one point mass at its barycenter, a star cluster is its members, a lone rogue
   has none within reach, so its set is empty). The caller reads a sector through `read_sector(address)`.
 - **The cap**: the `max_exact_members` nearest (default 64) are returned one by one, and the rest of those inside the
-  radius are folded into one point mass per sector, at that part's centre of mass, so the work stays bounded in a cluster
+  radius are folded into one point mass per sector, at that part's center of mass, so the work stays bounded in a cluster
   or beside a heavy object. `InfluenceSet.truncated` says so.
 
 The order is fixed: sectors are read in address order and members within a sector by key, then everything is sorted by
@@ -74,7 +74,7 @@ class SectorMasses:
 
 @dataclasses.dataclass(frozen=True)
 class Monopole:
-    """The members of one sector beyond the exact ones, as one point mass at their centre of mass."""
+    """The members of one sector beyond the exact ones, as one point mass at their center of mass."""
 
     address: tuple
     position_pc: tuple
@@ -133,12 +133,12 @@ def largest_hill_radius_pc(masses_kg, radii_pc, shape, galaxy_seed, skip=None):
 
     Args:
         masses_kg (array): The heaviest mass of each sector (`sectors.max_mass_kg`), or every object's.
-        radii_pc (array): Each one's distance from the galaxy's centre (a sector's centre is near enough: a sector is
+        radii_pc (array): Each one's distance from the galaxy's center (a sector's center is near enough: a sector is
             4 pc across and the radius moves the enclosed mass slowly).
         shape (GalaxyShape): The galaxy's stored shape.
         galaxy_seed (bytes or None): Its seed.
         skip (array of bool, optional): True for the entries left out of the maximum: the central black hole, which the
-            smooth potential holds (the caller names it; it is the object at the centre).
+            smooth potential holds (the caller names it; it is the object at the center).
 
     Returns:
         float: The radius, or `0.0` when nothing is left to count.

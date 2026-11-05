@@ -27,7 +27,7 @@ SPIDER_MASS_LIMIT_SOLAR = 0.1
 def compact_pairs(members, nodes):
     """
     The compact binaries of a tree, one per node whose two children are single members: an `accreting` pair of a neutron star
-    or a black hole and a companion (fed by a wind, a Be star's disc or a donor that fills its lobe) or an ablating pulsar and
+    or a black hole and a companion (fed by a wind, a Be star's disk or a donor that fills its lobe) or an ablating pulsar and
     its companion.
 
     Args:
@@ -57,7 +57,7 @@ def compact_pairs(members, nodes):
             continue
         companion = next(m for m in pair if m is not compact)
         bits = node.get("flags") or 0
-        kind = ("be-xray-binary" if bits & multistar.NODE_DISC_FED
+        kind = ("be-xray-binary" if bits & multistar.NODE_DISK_FED
                 else "high-mass-xray-binary" if bits & multistar.NODE_WIND_FED else "low-mass-xray-binary")
         found.append({"node_no": node["node_no"], "kind": kind, "compact": compact["member_no"],
                       "companion": companion["member_no"],
@@ -71,7 +71,7 @@ def _x_ray_luminosity_w(node, accretor, donor):
     if accretor.get("radius_au") is None or donor.get("radius_au") is None or not node.get("separation_au"):
         return None
     bits = node.get("flags") or 0
-    mode = "wind" if bits & multistar.NODE_WIND_FED else "disc" if bits & multistar.NODE_DISC_FED else "overflow"
+    mode = "wind" if bits & multistar.NODE_WIND_FED else "disk" if bits & multistar.NODE_DISK_FED else "overflow"
     return accretion.x_ray_luminosity_w(
         mode, accretor["kind"], accretor["mass_solar"], accretor["radius_au"], donor["kind"], donor["mass_solar"],
         donor["radius_au"], node["separation_au"], node.get("eccentricity") or 0.0)

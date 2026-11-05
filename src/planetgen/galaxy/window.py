@@ -3,17 +3,17 @@ planetgen/galaxy/window.py
 
 The Galaxy Map's data window (MAP.151, docs/design/interface/drilldown-region-sizes.md
 sections 1 and 5.3; on shells, docs/design/galaxy/spherical-block-ladder.md
-section 4): `g` cells across, centred on a chosen cell of one level of the
+section 4): `g` cells across, centered on a chosen cell of one level of the
 block ladder (`galaxy.drill`). The window is a ball: every cell of the
-centre's level whose centre lies within `g * m / 2` edges of the centre cell's
-centre. The data is whole cells, so a window of blocks is read from the stored
+center's level whose center lies within `g * m / 2` edges of the center cell's
+center. The data is whole cells, so a window of blocks is read from the stored
 block totals and a window of sectors is built from the stage files the cache
 already holds -- the stage of each level-3 block the window touches -- cropped
 to the window's cells.
 
 The cells are found in closed form per shell: the ball meets a sphere in a cap
 of angular radius `psi`, so the rows or bands to look at are those within
-`psi` of the centre's colatitude, and in each the wedges are those within a
+`psi` of the center's colatitude, and in each the wedges are those within a
 longitude half-width. No walk of the ball, and the cost is a handful of
 arithmetic steps per (shell, band) the ball reaches.
 """
@@ -86,9 +86,9 @@ def _block_colatitude(m, shell, band):
 
 
 def cell_position_pc(cell, edge_pc):
-    """The `(x, y, z)` of a cell's centre, parsecs: a sector's own centre, a
-    block's at its block shell's centreline radius, its row's centre
-    colatitude and its wedge's centre longitude."""
+    """The `(x, y, z)` of a cell's center, parsecs: a sector's own center, a
+    block's at its block shell's centreline radius, its row's center
+    colatitude and its wedge's center longitude."""
     m, shell, band, wedge = cell
     if m == 1:
         return spherical.sector_position_pc(shell, band, wedge, edge_pc)
@@ -117,26 +117,26 @@ def _levels_shells(m, low_pc, high_pc, edge_pc):
 
 
 def _bands(m, shell, low_colat, high_colat):
-    """`(band, centre colatitude)` of the rows (blocks) or bands (sectors) of
-    one shell whose centre colatitude lies in `[low_colat, high_colat]`,
+    """`(band, center colatitude)` of the rows (blocks) or bands (sectors) of
+    one shell whose center colatitude lies in `[low_colat, high_colat]`,
     north to south."""
     if m == 1:
         if shell == 0:
             return [(0, math.pi / 2)]
         low, high = spherical.band_range(shell)
         bands = list(range(high, low - 1, -1))
-        centres = [cell_colatitude(shell, b) for b in bands]
+        centers = [cell_colatitude(shell, b) for b in bands]
     else:
         rows = drill_band_count(m, shell)
         bands = list(range(rows // 2, -(rows // 2) - 1, -1))
-        centres = [_block_colatitude(m, shell, b) for b in bands]
-    start = bisect_left(centres, low_colat)
-    stop = bisect_right(centres, high_colat)
-    return [(bands[i], centres[i]) for i in range(start, stop)]
+        centers = [_block_colatitude(m, shell, b) for b in bands]
+    start = bisect_left(centers, low_colat)
+    stop = bisect_right(centers, high_colat)
+    return [(bands[i], centers[i]) for i in range(start, stop)]
 
 
 def _wedge_candidates(count, lon0, half_width):
-    """The wedges of a band of `count` whose centre longitude may lie within
+    """The wedges of a band of `count` whose center longitude may lie within
     `half_width` of `lon0` (a superset; the caller tests the distance)."""
     if half_width >= math.pi or count == 1:
         return range(count)
@@ -146,13 +146,13 @@ def _wedge_candidates(count, lon0, half_width):
     return sorted({w % count for w in range(first, last + 1)})
 
 
-def cells_in_ball(m, centre_pc, reach_pc, edge_pc):
+def cells_in_ball(m, center_pc, reach_pc, edge_pc):
     """
-    The cells of level `m` (a block size, or 1 for sectors) whose centre lies
-    within `reach_pc` of `centre_pc`, as `DrillBlock`s ordered by shell, then
+    The cells of level `m` (a block size, or 1 for sectors) whose center lies
+    within `reach_pc` of `center_pc`, as `DrillBlock`s ordered by shell, then
     band north to south, then wedge.
     """
-    x0, y0, z0 = centre_pc
+    x0, y0, z0 = center_pc
     rho0 = math.sqrt(x0 * x0 + y0 * y0 + z0 * z0)
     theta0 = math.acos(max(-1.0, min(1.0, z0 / rho0))) if rho0 else 0.0
     lon0 = math.atan2(y0, x0)
@@ -163,7 +163,7 @@ def cells_in_ball(m, centre_pc, reach_pc, edge_pc):
         else:
             cos_need = (radius * radius + rho0 * rho0 - reach_pc * reach_pc) / (2 * radius * rho0)
             psi = math.pi if cos_need <= -1 else (0.0 if cos_need >= 1 else math.acos(cos_need))
-        # Block rows are wide: look one row's width beyond the cap for rows whose centre may still be inside.
+        # Block rows are wide: look one row's width beyond the cap for rows whose center may still be inside.
         slack = math.pi / drill_band_count(m, shell) if m > 1 else math.pi / max(1, spherical.band_range(shell)[1] * 2 + 1)
         for band, colat in _bands(m, shell, theta0 - psi - slack, theta0 + psi + slack):
             count = drill_wedge_count(m, shell, band) if m > 1 else spherical.wedge_count(shell, band)
@@ -183,17 +183,17 @@ def cells_in_ball(m, centre_pc, reach_pc, edge_pc):
     return cells
 
 
-def window_cells(centre, edge_pc, g=DEFAULT_WINDOW):
+def window_cells(center, edge_pc, g=DEFAULT_WINDOW):
     """
-    The cells of the window, `[DrillBlock, ...]`: every cell of `centre`'s
-    level whose centre lies within `g * m / 2` edges of `centre`'s. `centre`
+    The cells of the window, `[DrillBlock, ...]`: every cell of `center`'s
+    level whose center lies within `g * m / 2` edges of `center`'s. `center`
     itself is always among them.
     """
-    centre = DrillBlock(*centre)
-    reach = g * centre.m * edge_pc / 2.0
-    cells = cells_in_ball(centre.m, cell_position_pc(centre, edge_pc), reach, edge_pc)
-    if centre not in cells:
-        cells.append(centre)
+    center = DrillBlock(*center)
+    reach = g * center.m * edge_pc / 2.0
+    cells = cells_in_ball(center.m, cell_position_pc(center, edge_pc), reach, edge_pc)
+    if center not in cells:
+        cells.append(center)
         cells.sort(key=lambda c: (c.shell, -c.band, c.wedge))
     return cells
 
@@ -208,12 +208,12 @@ def window_parents(cells):
     return list(seen)
 
 
-def crop_stages(centre, g, stages, edge_pc):
+def crop_stages(center, g, stages, edge_pc):
     """
-    The window of `centre` and `g` cut from the stages of its parents.
+    The window of `center` and `g` cut from the stages of its parents.
 
     Args:
-        centre (DrillBlock): The middle cell.
+        center (DrillBlock): The middle cell.
         g (int): Cells across.
         stages (dict): `{key: stage}` for each of `window_parents`, `key` the
             parent's `format_drill_key`, or `"galaxy"`; each a
@@ -221,16 +221,16 @@ def crop_stages(centre, g, stages, edge_pc):
         edge_pc (float): The sector edge in parsecs.
 
     Returns:
-        dict: `at` (the centre's key), `g`, `child_m` (the cells' size),
+        dict: `at` (the center's key), `g`, `child_m` (the cells' size),
             `cells` (every cell: `[[shell, band, wedge], ...]`), `children`
             (the cells that hold a generated sector, as a stage lists them)
             and `sectors` (a window of sectors lists the generated ones with
             their names; `None` for bigger cells).
     """
-    cells = window_cells(centre, edge_pc, g)
+    cells = window_cells(center, edge_pc, g)
     wanted = {(c.shell, c.band, c.wedge) for c in cells}
     children = []
-    sectors = [] if centre.m == 1 else None
+    sectors = [] if center.m == 1 else None
     for stage in stages.values():
         children += [c for c in stage.get("children") or () if (c["shell"], c["band"], c["wedge"]) in wanted]
         if sectors is not None:
@@ -239,6 +239,6 @@ def crop_stages(centre, g, stages, edge_pc):
     if sectors is not None:
         sectors.sort(key=lambda s: (s["shell"], -s["band"], s["wedge"]))
     return {
-        "at": format_drill_key(centre), "g": g, "child_m": centre.m,
+        "at": format_drill_key(center), "g": g, "child_m": center.m,
         "cells": [[c.shell, c.band, c.wedge] for c in cells], "children": children, "sectors": sectors,
     }

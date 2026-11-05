@@ -736,36 +736,10 @@ def test_locate_endpoint_reports_an_api_failure(client, fake, monkeypatch):
     assert "error" in resp.get_json()
 
 
-# --- /galaxy/nebula/<id>/shape -----------------------------------------------------------
+# --- /galaxy/nebula/<id>/shape (MAP.142 part 4: gone; the maps draw a nebula from its points) -----------------------------
 
-def test_nebula_shape_endpoint_passes_the_mesh_through(client, fake, monkeypatch):
-    calls = []
-
-    def fake_shape(db, nebula_id, lod="low"):
-        calls.append((db, nebula_id, lod))
-        return {"id": nebula_id, "lod": lod, "vertices": [[0, 0, 0]], "faces": []}
-
-    monkeypatch.setattr(apiclient, "get_nebula_shape", fake_shape)
-    resp = client.get("/galaxy/nebula/5/shape?lod=full")
-    assert resp.get_json()["lod"] == "full"
-    assert client.get("/galaxy/nebula/5/shape").get_json()["lod"] == "low"
-    assert calls == [(DB, "5", "full"), (DB, "5", "low")]
-
-
-def test_nebula_shape_endpoint_reports_a_missing_nebula_and_an_api_failure(client, fake, monkeypatch):
-    def missing(db, nebula_id, lod="low"):
-        raise apiclient.NotFoundError("no such nebula: 9")
-
-    monkeypatch.setattr(apiclient, "get_nebula_shape", missing)
-    assert client.get("/galaxy/nebula/9/shape").status_code == 404
-
-    def fail(db, nebula_id, lod="low"):
-        raise apiclient.ApiError("down")
-
-    monkeypatch.setattr(apiclient, "get_nebula_shape", fail)
-    resp = client.get("/galaxy/nebula/9/shape")
-    assert resp.status_code == 502
-    assert "error" in resp.get_json()
+def test_the_site_no_longer_serves_a_nebula_shape_mesh(client, fake):
+    assert client.get("/galaxy/nebula/5/shape?lod=full").status_code == 404
 
 
 def test_nebula_volume_endpoint_serves_the_packed_bytes(client, fake, monkeypatch):

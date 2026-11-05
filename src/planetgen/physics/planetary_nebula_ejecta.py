@@ -17,15 +17,16 @@ relation, inside the window the class allows:
   repeated, from the same stream, until they do; a fixed number of tries, then the heaviest mass of the window).
 * L (nitrogen-rich bipolar, Type I): from `HBB_MIN_MASS_SOL` up, where hot bottom burning makes nitrogen.
 
-**The birth composition** is the thin-disc mean [X/Fe] at the formation-epoch [Fe/H]: the place's [Fe/H] now, less the drift of the
-disc's gas over the progenitor's life (`age_metallicity.THIN_SLOPE_DEX_PER_GY` times the lifespan from the star track), so an older progenitor
+**The birth composition** is the thin-disk mean [X/Fe] at the formation-epoch [Fe/H]: the place's [Fe/H] now, less the drift of the
+disk's gas over the progenitor's life (`age_metallicity.THIN_SLOPE_DEX_PER_GY` times the lifespan from the star track), so an older progenitor
 formed from poorer gas.
 
 **The ejecta**, in this order, as mass fractions (every step keeps the sum at 1):
 
 1. **First dredge-up** (`stellar_abundances.after_first_dredge_up`): helium up, carbon down, nitrogen up. The table ends at 2.5 solar masses; a
    heavier star takes its edge, as the star sheet does.
-2. **Second dredge-up** (a star of `HBB_MIN_MASS_SOL` or more): helium up by `SECOND_DREDGE_UP_DELTA_Y`, taken from hydrogen.
+2. **Second dredge-up** (a star of `SECOND_DREDGE_UP_TABLE`'s lightest row or more): helium up by `second_dredge_up_delta_y` (the table of
+   [R5098: Table 1], linear between its rows), taken from hydrogen.
 3. **Third dredge-up** (a star above `agb_carbon.tdu_minimum_mass_sol`): the carbon, helium and oxygen of the intershell
    (`INTERSHELL_*`) brought up over the thermal pulses (`agb_carbon.dredged_core_mass_sol`), all of which ends in the ejecta, so the mass dredged
    `M_dred` is mixed with the envelope the thermally pulsing branch loses (`M_ej`, the mass after the red giant branch less the white dwarf):
@@ -53,19 +54,22 @@ CLASSES = (H, J, K, L)
 """tuple: The nebula classes this module covers: H young and J evolved planetary nebulae, K carbon-rich, L nitrogen-rich bipolar."""
 
 MIN_MASS_SOL = 0.9
-"""float: The lightest progenitor drawn. [Stand-in PNE1, tier T6, tweak L1: a star must end its life within the age of the disc, about 10 Gy,
+"""float: The lightest progenitor drawn. [Stand-in PNE1, tier T6, tweak L1: a star must end its life within the age of the disk, about 10 Gy,
 which is a little under a solar mass at the track's lifespans; the initial-final relation starts at 0.83.]"""
 
 MAX_MASS_SOL = tuning.WD_IFMR_PIECES[-1][1]
 """float: The heaviest progenitor drawn: the top of the initial-final relation of white dwarfs (7.2 solar masses), where core collapse begins."""
 
 RGB_MASS_LOSS_SOL = 0.2
-"""float: Mass lost on the red giant branch before the thermally pulsing branch begins. [Stand-in PNE2, tier T4, tweak L0: recalled, about
-0.2 solar masses for a star of one to two solar masses; not looked up.]"""
+"""float: Mass lost on the red giant branch before the thermally pulsing branch begins. [Stand-in PNE2, tier T4, tweak L0: [R5098] says only that the
+loss on the branch may be "as much as 30 percent of the star's total mass for the lowest mass stars", which brackets 0.2 for a star of 1 to 2 solar masses
+(0.3 to 0.6) from above; the per-mass numbers are in the on-line tables of [R5100], which could not be read, so the value stays the recalled one.]"""
 
-SECOND_DREDGE_UP_DELTA_Y = 0.03
-"""float: The helium mass fraction the second dredge-up adds (stars of `HBB_MIN_MASS_SOL` or more). [Stand-in PNE3, tier T4, tweak L0: recalled,
-a few hundredths for 4 to 7 solar masses; the paper that was opened for this carries no per-mass table of it.]"""
+SECOND_DREDGE_UP_TABLE = ((4.0, 0.0), (4.5, 0.004), (5.0, 0.018), (5.5, 0.033), (6.0, 0.044), (7.0, 0.059), (8.0, 0.066))
+"""tuple: `(initial mass, solar masses; helium mass fraction the second dredge-up adds)`, the rise in surface Y from after the first to after the second
+dredge-up in [R5098: Table 1] (Z = 0.02: Y 0.293 to 0.297 at 4.5, 0.291 to 0.309 at 5.0, 0.289 to 0.322 at 5.5, 0.289 to
+0.333 at 6.0, 0.291 to 0.350 at 7.0, 0.296 to 0.362 at 8.0; no change from 1 to 4.0). [Verified, tier T1: the table is for solar metallicity
+only and the same rise is used at every metallicity, so the lower-Z shift is not modelled; above 7.2 solar masses nothing is drawn.]"""
 
 INTERSHELL_HE = 0.75
 INTERSHELL_O = 0.02
@@ -80,8 +84,9 @@ masses comes out Type I (log N/O above -0.3), as the nitrogen-rich bipolar class
 
 TYPE_I_HE_TO_H = 0.125
 TYPE_I_LOG_N_TO_O = -0.3
-"""float: The limits of Type I planetary nebulae: He/H (by number) above the first or log N/O above the second. [Stand-in PNE6, tier T4, tweak L0:
-the usual definition, recalled.]"""
+"""float: The limits of Type I planetary nebulae: He/H (by number) above the first or log N/O above the second. [Verified, tier T1: the
+classification as quoted in [R5099]: He/H of 0.125 or more, or N/O above 0.5 (log N/O above -0.30); the
+Magellanic Clouds and another author (N/O above 0.8) use other limits, which are not used here.]"""
 
 CARBON_RICH_TRIES = 40
 """int: Draws made from the stream for a class K progenitor before the heaviest mass of the window is taken."""
@@ -145,8 +150,20 @@ def lifespan_gy(initial_mass_sol, fe_h):
 
 
 def birth_fe_h(place_fe_h, initial_mass_sol):
-    """[Fe/H] of the gas a progenitor formed from: the place's now, less the disc's drift over the progenitor's lifespan."""
+    """[Fe/H] of the gas a progenitor formed from: the place's now, less the disk's drift over the progenitor's lifespan."""
     return place_fe_h + age_metallicity.THIN_SLOPE_DEX_PER_GY * lifespan_gy(initial_mass_sol, place_fe_h)
+
+
+def second_dredge_up_delta_y(initial_mass_sol):
+    """The helium mass fraction the second dredge-up adds at an initial mass: `SECOND_DREDGE_UP_TABLE`, linear between its rows, 0 at and under its
+    lightest row, and its heaviest row's value above."""
+    table = SECOND_DREDGE_UP_TABLE
+    if initial_mass_sol <= table[0][0]:
+        return 0.0
+    for (m0, y0), (m1, y1) in zip(table, table[1:]):
+        if initial_mass_sol <= m1:
+            return y0 + (y1 - y0) * (initial_mass_sol - m0) / (m1 - m0)
+    return table[-1][1]
 
 
 def mass_window_sol(nebula_class, place_fe_h):
@@ -168,9 +185,9 @@ def ejecta_of(nebula_class, initial_mass_sol, place_fe_h):
     elements = dict(envelope.elements)
     white_dwarf = remnant_mass.white_dwarf_mass_sol(initial_mass_sol)
     hbb = initial_mass_sol >= agb_carbon.HBB_MIN_MASS_SOL
-    if hbb:
-        elements["He"] += SECOND_DREDGE_UP_DELTA_Y
-        elements["H"] -= SECOND_DREDGE_UP_DELTA_Y
+    delta_y = second_dredge_up_delta_y(initial_mass_sol)
+    elements["He"] += delta_y
+    elements["H"] -= delta_y
     pulses, dredged = 0, 0.0
     third = initial_mass_sol >= agb_carbon.tdu_minimum_mass_sol(fe_h)
     if third:

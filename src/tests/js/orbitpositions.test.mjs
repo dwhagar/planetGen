@@ -58,7 +58,7 @@ test("a wide pair's stars are closest at periapsis and farthest half a period la
   assert.ok(Math.abs(apart(periodsToPeriapsis + node.period_years / 2) - 30 * 1.6 * AU_KM) < 1e-6 * AU_KM);
 });
 
-test("relativeAt hangs each star from the centre of its node and each node from its parent's, as virtual points (MAP.213)", () => {
+test("relativeAt hangs each star from the center of its node and each node from its parent's, as virtual points (MAP.213)", () => {
   const { scene } = F.orbitPositions.trees.triple;
   for (const years of [0, 1.8, 400]) {
     const at = P.relativeAt(scene, years);
@@ -79,7 +79,7 @@ test("relativeAt hangs each star from the centre of its node and each node from 
   }
 });
 
-test("a node's paths are its two children's ellipses about its centre, each at the other's share of the separation (MAP.213)", () => {
+test("a node's paths are its two children's ellipses about its center, each at the other's share of the separation (MAP.213)", () => {
   const { scene } = F.orbitPositions.trees.triple;
   const paths = P.nodePaths(scene, 64);
   assert.deepEqual(paths.map((path) => [path.ref, path.around]).sort(), [

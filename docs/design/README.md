@@ -154,6 +154,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [small-bodies-composition.md](composition/small-bodies-composition.md) | The composition of belts, fields, comets, icy bodies and moons (GEN.457): which kinds draw composition first, the mixing rule and the compaction law with its hand-over finding, the taxon, comet, icy-body and moon-origin tables, what is stored, the parametrisations, a worked example and the test targets | plan, awaiting Boss's approval |
 | [planetary-rings.md](composition/planetary-rings.md) | Planetary rings (GEN.732): kind, origin, edges against the Roche limit, mass, optical depth and ice share, every stand-in labelled in the gap plan registry (BC20 to BC23). |
 | [stellar-composition.md](composition/stellar-composition.md) | The composition of every star and remnant (GEN.435): X, Y, Z and the elements from the stored [Fe/H], age and population, and what the star's iron, magnesium and silicon give the planets | checked design, for Boss's approval (GEN.435) |
+| [nebula-composition.md](composition/nebula-composition.md) | The composition of every nebula, remnant and cloud (GEN.1269): gas and dust, the dust law and grains, the phases, the abundances, where the gas metallicity comes from, and how it differs from the report | built model, writes are GEN.1276 and GEN.1277 |
 | [radiation-model.md](composition/radiation-model.md) | The radiation model (GEN.436): the bands, transmission and greenhouse from the infrared opacity, shielding by column, the ground's dose and radon, the surface ultraviolet | checked design, for Boss's approval (GEN.436) |
 | [atmosphere-state.md](composition/atmosphere-state.md) | The air's mean molar mass, density, scale height and greenhouse warming worked out from its mixture (GEN.423): the formulas, the greenhouse table of the radiative-convective model (GEN.850, `greenhouse-table.md`) and what changes when the mix changes |
 | [greenhouse-table.md](composition/greenhouse-table.md) | The greenhouse the generator reads (GEN.850, GEN.851): a network fitted to the radiative-convective model on the airs the generator makes, the features, the fit and its stated error, the cloud and haze that go into it, the digest that ties it to the downloaded line data, and how to fit it again. |
@@ -234,6 +235,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [course-routing.md](orbits/course-routing.md) | Course routing and nearby search | partly built |
 | [course-avoidance.md](orbits/course-avoidance.md) | Keep-out radii and path bending | research |
 | [sky-view.md](orbits/sky-view.md) | The view from a planet | research |
+| [sky-system-view.md](orbits/sky-system-view.md) | The sky behind a system in the System View: light-time, stars, glow, picking, stand-ins | built (stored stars; tiers open) |
 | [gravity-map.md](orbits/gravity-map.md) | The field of a sector as a heat map | plan (the 9.1 headline) |
 
 ## Maps and the web interface
@@ -255,6 +257,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [object-pages.md](interface/object-pages.md) | Object pages (UX.168 to UX.178): the page of every star, planet, moon, belt and comet, the property sheet, the children API and the summary trees on the system and sector pages | built |
 | [zoom-star-visibility.md](interface/zoom-star-visibility.md) | Smoother star visibility while zooming | research (superseded in part by MAP.152) |
 | [galaxy-map-wire-format.md](interface/galaxy-map-wire-format.md) | What the browser downloads for the map | built |
+| [system-sky-wire-format.md](interface/system-sky-wire-format.md) | What the System View downloads for its sky: the packed stars, the nebula and remnant sprites, the report, the cache (VIEW.31) | built |
 | [nebula-map-visibility.md](interface/nebula-map-visibility.md) | Making nebulae visible on the Galaxy Map | partly built |
 | [map-ui-and-frontend-libraries.md](interface/map-ui-and-frontend-libraries.md) | The map interface and front-end libraries | research |
 | [3d-rendering-camera-research.md](interface/3d-rendering-camera-research.md) | Camera proximity fading in dense 3D scenes | research (background) |

@@ -270,7 +270,38 @@ def _point_html(url, waypoint, svg_x, svg_y, css_class, radius):
     )
 
 
-def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0, 0.0)):
+def _route_lines(waypoints, projected):
+    """
+    NAV.36: the route's polyline as paths: each run of known hops is one solid path, each hop NAV.12 flags as a jump through
+    unknown space (`hop_unknown` on the waypoint it arrives at) its own red, dashed, glowing path with a title in words.
+    Returns `(svg, number of unknown hops)`.
+    """
+    paths = []
+    run = [projected[0]]
+    unknown = 0
+
+    def flush():
+        if len(run) > 1:
+            d = "M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in run)
+            paths.append(f'<path class="navmap-route-line" d="{d}" fill="none"/>')
+
+    for index in range(1, len(waypoints)):
+        if waypoints[index].get("hop_unknown"):
+            flush()
+            (x0, y0), (x1, y1) = projected[index - 1], projected[index]
+            paths.append(
+                f'<path class="navmap-route-line navmap-route-unknown" d="M {x0:.1f} {y0:.1f} L {x1:.1f} {y1:.1f}" '
+                f'fill="none" filter="url(#navmap-glow)"><title>A jump through unknown space: no charted system lies on this hop'
+                f'</title></path>')
+            unknown += 1
+            run = [projected[index]]
+        else:
+            run.append(projected[index])
+    flush()
+    return "".join(paths), unknown
+
+
+def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0, 0.0), bent=None):
     """
     Builds the "NAV Map" panel: a flat, top-down SVG plot of an origin, a
     destination, and (when `has_route` is true) the optimal route's
@@ -316,13 +347,19 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
                           arrow points from the origin toward it. Defaults
                           to `(0, 0, 0)`, the center of both NAV frames
                           (sector-local and galaxy-frame).
+        bent (list, optional): NAV.28: the lines of the course bent round keep-out spheres, each a list of `(x, y, z)` in the waypoints'
+                          frame and unit (the galaxy frame only), drawn over the route. The map is scaled to hold them.
 
     Returns:
         str: A complete `<section class="panel">` block.
     """
     points_xy = [(w["position"][0], w["position"][1]) for w in waypoints]
-    px_per_ly, center_x, center_y = _scale(points_xy)
+    bent_xy = [[(p[0], p[1]) for p in line] for line in bent or []]
+    px_per_ly, center_x, center_y = _scale(points_xy + [p for line in bent_xy for p in line])
     projected = _project_all(points_xy, px_per_ly, center_x, center_y)
+    bent_paths = "".join(
+        '<path class="navmap-bent-line" fill="none" d="M ' + " L ".join(f"{x:.1f} {y:.1f}" for x, y in _project_all(line, px_per_ly, center_x, center_y))
+        + '"><title>The course bent round a keep-out sphere</title></path>' for line in bent_xy if len(line) > 1)
 
     origin_xy, destination_xy = projected[0], projected[-1]
     direct_line = (
@@ -331,9 +368,14 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
     )
 
     route_line = ""
+    unknown_hops = 0
     if has_route and len(waypoints) > 1:
-        path_d = "M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in projected)
-        route_line = f'<path class="navmap-route-line" d="{path_d}" fill="none"/>'
+        route_line, unknown_hops = _route_lines(waypoints, projected)
+        if unknown_hops:  # NAV.36: the glow of a hop through unknown space (the SVG's own filter; the page's pulse is CSS)
+            route_line = (
+                f'<defs><filter id="navmap-glow" filterUnits="userSpaceOnUse" x="0" y="0" width="{_SVG_WIDTH:.0f}" '
+                f'height="{_SVG_HEIGHT:.0f}"><feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>'
+                f'<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>{route_line}')
 
     points_html = []
     labels = []
@@ -360,7 +402,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
         for css_class, label in (("navmap-compass-label", compass_label), ("navmap-scale-label", scale_label))
     ]
 
-    body = f"{direct_line}{route_line}{''.join(points_html)}{compass_line}{scale_lines}"
+    body = f"{direct_line}{route_line}{bent_paths}{''.join(points_html)}{compass_line}{scale_lines}"
 
     svg = (
         f'<svg class="navmap-svg" viewBox="0 0 {_SVG_WIDTH:.0f} {_SVG_HEIGHT:.0f}" role="img" '
@@ -369,12 +411,25 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
         f"{body}</svg>"
     )
 
+    key = ""
+    if bent_paths:
+        key += ('<p class="navmap-key"><svg class="navmap-key-glyph" width="36" height="8" viewBox="0 0 36 8" aria-hidden="true">'
+                '<path class="navmap-bent-line" d="M1 6 Q18 -2 35 6" fill="none"/></svg> The course bent round a keep-out sphere.</p>')
+    if unknown_hops:
+        key += (
+            '<p class="navmap-key"><svg class="navmap-key-glyph" width="36" height="8" viewBox="0 0 36 8" aria-hidden="true">'
+            '<line class="navmap-route-unknown-sample" x1="1" y1="4" x2="35" y2="4"/></svg> '
+            + ("A jump through unknown space: red, dashed and glowing." if unknown_hops == 1 else
+               "Jumps through unknown space: red, dashed and glowing.") + "</p>")
     route_hint = (
         "the solid line is the optimal route via adjacent systems"
         if has_route
         else "no route via adjacent systems was found, so only the direct line is shown"
     )
 
+    unknown_help = "\n    <li>A red, dashed, glowing hop is a jump through unknown space.</li>" if unknown_hops else ""
+    if bent_paths:
+        unknown_help += "\n    <li>The amber line is the course bent round the keep-out sphere of a star or another object the straight line would pass inside.</li>"
     return f"""
 <section class="panel">
 <div class="panel-header">
@@ -383,6 +438,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
 <div class="navmap-viewport" data-fit-aspect="5/3">
 {svg}<div class="navmap-labels">{''.join(labels_html)}</div>
 </div>
+{key}
 <div class="starmap-controls">
   <button type="button" class="starmap-btn" data-dialog-open="navmap-help" title="How to read the map">Map help</button>
 </div>
@@ -390,7 +446,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
   <ul>
     <li>Top-down view (the galactic X-Y plane; height is not shown, see the course's mark above).</li>
     <li>The dashed line is the direct course; {route_hint}.</li>
-    <li>Click a point for its system.</li>
+    <li>Click a point for its system.</li>{unknown_help}
   </ul>
   <sl-button slot="footer" data-dialog-close>Close</sl-button>
 </sl-dialog>

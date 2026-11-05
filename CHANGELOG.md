@@ -2,6 +2,456 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3294] - 2026-11-05
+
+**Headline:** Star systems and objects on the maps can be added as waypoints for a course, listed in a Waypoints menu, and cleared.
+
+### Added
+- The info panel of a star system or any object a course can go to has an Add waypoint button, which becomes Remove waypoint and its place in the course (1, 2, and so on).
+- The Galaxy Map has a Waypoints menu beside Bookmarks that lists the waypoints in the order they were picked, with Remove for each and Clear all. They are kept in this browser until cleared.
+
+generation-output: unchanged
+
+## [8.0.3293] - 2026-11-05
+
+**Headline:** A course opens on the Galaxy Map zoomed in as far as it can go with all of it in view, and its route, direct line and adjusted path can each be shown or hidden.
+
+### Added
+- A course shown on the Galaxy Map now opens fitted round every point of it (the route, the direct line and any bent path), as large as the window allows, and refits when the window is resized until you move the view yourself.
+- The Menu has three new switches, Course: route, Course: direct line and Course: adjusted, so a saved course opened from the Saved Courses list can show any one of its forms; the key follows the switches and the address keeps the choice.
+
+generation-output: unchanged
+
+## [8.0.3292] - 2026-11-05
+
+**Headline:** Three tests that were red on main are repaired: the sky star rows have their burn-down lines, the Large Cloud's supernova claim follows the new solar circle, and the halo planet count is measured against the disk's.
+
+### Fixed
+- `test_burn_down_register`: the nine hand-tuned sky rows of section 6.181 (SKL1 to SKL9, the look of a star, the star caps and the page's reach) have register lines saying what would replace each.
+- `test_gen_magellanic_classes` (found by bisecting to GEN.1230): the Large Cloud's supernova remnant factor was 1.23 and is 0.92. GEN.1230 gave the thin disc an inside-out infall, which raised the solar circle's young share from 0.011 to 0.016 while the Cloud's stayed 0.014 (a 0.39 solar masses a year Cloud, about what is observed). The claim "above 1" belonged to the old reference; the test now checks the Large Cloud's factor is near 1 (between 0.5 and 2) and larger than the Small Cloud's, and the cell still equals the component pass's factor.
+- `test_gen_kind_factors` halo planets (found by bisecting to GEN.445, epoch 74): a disk G dwarf holds about 9.3 planets now, not the typed 6.9, and a count of planets is heavy tailed (a 17-planet halo system sank the 20-system mean). The test measures the disk on the same draws and requires the halo's mean (about 3.4 to 4.3) to be under 0.6 of it.
+- The nebula group of TEST.580 stays with Tides 1. Train 10 changes `test_gen_kind_factors.py` in other tests (rogue planets), not the halo planet count test.
+
+## [8.0.3291] - 2026-11-05
+
+**Headline:** A course on the NAV page can be saved, named, and found again in a Saved Courses list.
+
+### Added
+- Save course on the NAV page keeps the course in this browser under a name you choose. Opening a saved course plans it again and says what has changed since it was saved, and Update saved course keeps today's plan under the same name.
+- A Saved Courses panel at the foot of the NAV page lists them, each with the Direct and Route forms side by side, a link to its course page, On the map, Rename and Delete.
+- Saved courses stay in this browser until accounts exist; moving them into an account is NAV.19.
+
+generation-output: unchanged
+
+## [8.0.3290] - 2026-11-05
+
+**Headline:** The NAV page now shows the course bent round the objects the straight line would pass too close to, and the clouds a course passes through.
+
+### Added
+- A new Adjusted Course panel on the NAV page names the objects the course goes round, gives the adjusted length and how much longer it is than the straight line, the heading to leave on, the warp travel times for both, and the adjusted length of the whole route. When nothing on the straight line is close enough to bend the course, the panel says so.
+- A course now lists each nebula or supernova remnant it crosses, with the length inside it and, for a nebula, the column of gas along that length. These are upper bounds, since a cloud fills only part of its bounding sphere.
+
+generation-output: unchanged
+
+## [8.0.3289] - 2026-11-05
+
+**Headline:** The NAV map and the Galaxy Map now draw the course bent round the objects the straight line would pass too close to.
+
+### Added
+- The NAV map and the Galaxy Map's course draw the bent course in amber over the route, for the direct line and for each hop that bends, and their keys and help say what the amber line is. The map scales to hold the bend.
+
+generation-output: unchanged
+
+## [8.0.3288] - 2026-11-05
+
+**Headline:** The contents menu test now loads the site stylesheet, so it checks the one-row menu the pages really show and passes.
+
+### Fixed
+- `test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not` (TEST.593) built its page with no stylesheet. The one-row layout is the site's own CSS (`.app-main.toc-strip`), so without it every contents list wrapped inside the nav and counted as fitting, and the 30-section page got the row. With `style.css` loaded the page does what the test says: 3 links fit one row (974 of 974 px), 60 links get the grouped menu. No page change was needed; the test was the broken part.
+
+## [8.0.3287] - 2026-11-05
+
+**Headline:** The NAV page's course diagram now marks a hop that has to bend round a star, black hole, or other object it would pass too close to.
+
+### Added
+- A hop whose straight line crosses the keep-out sphere of a star, black hole, neutron star, rogue planet, quasar, or asteroid field gets a small bend under its line, and its text says how many spheres it goes round and how much longer that makes it. A hop that cannot be bent (overlapping spheres) is flagged and said to be shown as the straight line. The diagram stays a schematic, so the bend says that the hop leaves the straight line, not where. The legend and the note above the diagram explain the mark.
+
+generation-output: unchanged
+
+## [8.0.3286] - 2026-11-05
+
+**Headline:** The route finder can now bend a course around stars, black holes, and other objects it would pass too close to.
+
+### Added
+- Asking for a course between two systems with `adjusted=1` also returns the course bent around the keep-out sphere of each star, black hole, neutron star, rogue planet, quasar, and asteroid field it crosses, with its length and travel times, for the direct line and for each hop of the route. The NAV page and the maps do not show it yet.
+
+generation-output: unchanged
+
+## [8.0.3285] - 2026-11-05
+
+**Headline:** The directed-moon-count test builds its star from a fixed seed, so it no longer fails now and then.
+
+### Changed
+
+- `test_gen_hosting_wiring.py` built its `sun_like` star outside `draw.bound`, a different star every run, and `test_a_directed_moon_count_still_goes_through_the_gate` demanded that every planet asked for two moons keeps at least one. About 1 planet in 24 draws only moons its parent cannot hold (`MOON_REJECTION_LIMIT`) and keeps none, which the docstring of `generate_moons` allows ("fewer than requested"), so the test failed on some stars. The star is now drawn inside `draw.bound(1)`, and the test allows a planet with none while still demanding that no planet gets more than asked and that at least 80 percent get both. Twenty runs in a row passed. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3284] - 2026-11-05
+
+**Headline:** The course planner can now bend a straight course around the objects it would pass too close to.
+
+### Added
+- `galaxy/avoid.py` takes a start, an end and the keep-out spheres between them and returns a short detour: a straight line when nothing is in the way, otherwise tangent lines and arcs around the spheres it crosses. A sphere that holds the start or the end is ignored, overlapping spheres are treated as one larger sphere, and a course it cannot bend safely is given as the straight line with a warning. Nothing shows it yet; the route and the NAV page call it next (NAV.6).
+
+generation-output: unchanged
+
+## [8.0.3283] - 2026-11-05
+
+**Headline:** The course planner can now ask which keep-out spheres a straight path touches.
+
+### Added
+- `db/obstacles.py` lists the keep-out spheres a straight segment of the galaxy touches, in order along it, each with its radius, basis, and whether an end of the segment lies inside it. Systems, black holes, neutron stars, rogue planets, quasars, and asteroid fields count; the search for each kind uses that kind's own widest radius. Nothing shows it yet; the path planner (NAV.26) is its caller.
+
+generation-output: unchanged
+
+## [8.0.3282] - 2026-11-05
+
+**Headline:** A census script counts how many keep-out spheres overlap in a generated galaxy.
+
+### Added
+- `scripts/census_keep_out_overlap.py` reads a galaxy's stored objects and counts overlapping keep-out spheres, nested pairs, and clusters. The answer decides whether the course planner needs its cluster fallback. An estimate from the model's own numbers says a quarter to a third of the star spheres near the Sun overlap another, so the fallback is needed.
+
+generation-output: unchanged
+
+## [8.0.3281] - 2026-11-05
+
+**Headline:** The keep-out table is complete: asteroid fields, the central black hole, quasars, and stars inside their own system now have a keep-out radius.
+
+### Changed
+- An asteroid field keeps out its stored radius. A supermassive black hole keeps out its sphere of influence (3.1 parsecs for four million solar masses) instead of its event horizon, and a quasar keeps out the larger of that and the radius where its light is 10 kW per square meter.
+- A star carries a second keep-out for a course inside its own system, `keep_out_in_system`: the larger of ten of its radii and the distance where its light is 50 kW per square meter (0.17 AU for the Sun). The Galaxy keep-out of a star is unchanged.
+- The note on a nebula or a supernova remnant now says why a course can pass through it (thin gas), and an asteroid belt carries a note too. The knobs are in `tuning.py` (`KEEP_OUT_*`).
+
+generation-output: unchanged
+
+## [8.0.3280] - 2026-11-05
+
+**Headline:** A help page explains the sky behind a system, and the design of it is written down.
+
+### Changed
+- Help gains a page, The sky behind a system, under a new Maps and views group. It says what the stars, the glow, and the clouds behind a system are, how faint the stars go, why a star is shown where it was when its light left, what hovering a star tells, and how sure each part is. The System View's sky switch links to it as "About the sky".
+- The design note for the sky is `docs/design/orbits/sky-system-view.md`. Two sources for the light-time method and the streamed catalog are in the references list (R5112, R5113), and the stand-in registry gains nine rows for the look of a sky star, the star caps, and the page's reach (SKL1 to SKL9).
+
+generation-output: unchanged
+
+## [8.0.3279] - 2026-11-05
+
+**Headline:** You can point at a star in the System View's sky and read what it is and how long ago its light left it.
+
+### Changed
+- With the sky background on, moving the pointer over a star of the sky (where no planet or moon is) shows its name or kind, spectral class and temperature, distance, apparent magnitude and "seen as it was N years ago". A click opens a card with the same lines. A charted star is named and its card links to its page; a star the plan has placed but nobody has charted, a cluster star or a compact object is described but has no page to go to yet.
+- The sky list now names its charted stars (`meta.charted`) and its version is 3, so skies stored before this are built again.
+
+generation-output: unchanged
+
+## [8.0.3278] - 2026-11-05
+
+**Headline:** A re-score of a system now rates a body on every life class that lives on it, as generation does, so the stored life scores no longer drop after a re-score.
+
+### Fixed
+- `store.with_life_inputs` (the input of a habitability re-score, `refresh_habitability` and the fill command) now carries the body's `life_living` classes from `planet_life` and `moon_life`, the dominant class first. It left them out, so a body with two life classes was rated on its dominant class alone and a re-score gave lower `life_microbial` and `life_fauna` than generation stored (for example 2 and 0 against 3 and 1). This is the cause of the life half of the red `test_habitability_fill` parity tests (TEST.591).
+- `test_number_guard` expects the message the code gives, "no unit, scale, or noun" (Oxford comma, rule 15).
+
+### Changed
+- TEST.591 stays open after this merges. The other half of the `test_habitability_fill` parity failure (`band1_day_hours`, because `values_from_body` lacks `day_share_mean`) changes what generation stores, so it is a lock change and rides GEN.1265 (#5053), which carries that line. The two parity tests pass only with both fixes.
+
+## [8.0.3277] - 2026-11-05
+
+**Headline:** The route fuzz test no longer calls a nebula volume (bytes) or an emptied page parameter a failure, so it passes again.
+
+### Fixed
+- `test_fuzz_web_routes` (TEST.588) reads a response as bytes decoded with replacement, because the nebula volume route answers `application/octet-stream`; it was failing on a 200 with a binary body, not on a route error.
+- An empty page parameter on a list page (`/systems?standalone_page=`) redirects to the clean address, as the search page does; the test follows the redirect and requires the clean page to answer 200. No route changes: no hostile or out-of-range page number gets an error page.
+
+## [8.0.3276] - 2026-11-05
+
+**Headline:** Four more tests that were red on the main branch pass again, with no change to what the generator makes.
+
+### Fixed
+- `test_sectors_table_rejects_duplicate_address` (TEST.587) asks the table directly: `insert_sector` has filled the row kept at an occupied address since GEN.1127, so it no longer raises; a new test holds that behavior.
+- The order test of the bright-stars backfill uses its own seed: with the old one the 200 cells held 4 stars where 9 are expected, too few to tell one order from another.
+- The burn-down register has lines for the sky and glow stand-ins that were added without them (GLW1, SKT1, SKT4 to SKT6, SKD1, SKD2, SKD4, SKD5); the SKT1 line named VIEW.41, which is closed.
+
+## [8.0.3275] - 2026-11-05
+
+**Headline:** The nine reference pages (papers, stand-ins, method and the rest) are now classed in the indexing matrix, so the drift test passes again.
+
+### Fixed
+- `web/seo.py` lists `web.references_data_page`, `references_fitted`, `references_gaps`, `references_method`, `references_papers_page`, `references_scorecard`, `references_speculative_page`, `references_stand_in` and `references_stand_ins` as top pages beside `web.references_page`, so `test_every_web_page_is_classified_on_purpose` (TEST.586) is green. No generated output changes.
+
+## [8.0.3274] - 2026-11-05
+
+**Headline:** The bright-star leftover test picks the sector it fills by its ring's lightest backfill step, so it no longer depends on a heavy step drawing a star; no generated output changes.
+
+### Changed
+- **Bright-star scatter leftover test (TEST.590).** `test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star` failed on main with `min()` of an empty list: the failed scatter leaves a leftover star in only 3 sectors, the backfill takes the sectors around the filled one down to 5, 8, 12 and 16 solar masses, and a sector at 8 solar masses or more draws about one star or none, so the ring cells of the sector it had chosen drew nothing. The generator is right (the draws are Poisson). The test now fills the equator leftover sector whose ring holds the lightest step, and says in its failure message when the ring drew no star.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.590.
+
+## [8.0.3273] - 2026-11-05
+
+**Headline:** The display constants of the system sky are now in the stand-in registry.
+
+### Changed
+- Added section 6.180 of the gap-filling plan and its five rows (SKD1 to SKD5) to the stand-in registry: the glow band's soft knee and grain, its surface-brightness unit, the sprites' glow ramp, and the galactic plane laid in the System View's reference plane. Each is marked with its tier and tweak level so a display model or a stored system orientation can replace it. Nothing the pages draw changes.
+
+generation-output: unchanged
+
+## [8.0.3272] - 2026-11-05
+
+**Headline:** The 3D system view's background is now the sky that system sees: its stars where they truly are, the nebulae and the glow of the Milky Way, with a switch to turn it off.
+
+### Changed
+- The 3D view of a system draws the stars around it at their true directions and distances, placed where their light left them, so the sky shifts as the time control runs. Bright nebulae and supernova remnants show as soft shapes, dark clouds dim the stars behind them, and the glow of the fainter stars lies under it all. A body in front of a star hides it.
+- A "Sky background" switch under the view turns the sky off and on, and the browser remembers the choice. A line beside it says what is drawn, and a sky still being filled in says so and is asked for again every half minute. A system with no place in the galaxy keeps the plain background and says why. The galaxy's plane is laid in the view's reference plane for now, since a system's orbital plane is not yet tied to the galaxy's.
+
+generation-output: unchanged
+
+## [8.0.3271] - 2026-11-05
+
+**Headline:** The nebula composition notes name the thing instead of an item code.
+
+### Changed
+
+- `physics/nebula_composition.py` showed `GEN.1270` and `GEN.1271` in the notes on a class's dust survival and in the open-item text a reader sees; they now say that the survival is a stand-in until the dust yields of the ejecta are modeled, and that a planetary nebula's ejecta and a remnant's are modeled separately. The codes stay in comments and docs. No output change beyond that text; `test_no_todo_codes_shown` passes again.
+
+generation-output: unchanged
+
+## [8.0.3270] - 2026-11-05
+
+**Headline:** A system's sky now has a glow image of the faint stars it cannot resolve, served with the sky for the page's band layer.
+
+### Added
+
+- `galaxy/sky_band.py` turns the glow band (the cube map of VIEW.27) into the equirectangular image `skyband.js` samples (VIEW.13): 256 by 128 texels in the sky's galactic axes (row 0 at the north pole, column 0 at longitude -180), three linear channels a texel, each the light in the page's unit `10^(-0.4 (SB - 22))`, tinted by a 4500 K blackbody (stand-in GLW1, 6.174), as little-endian half floats (196,608 bytes).
+- `GET /system/<id>/sky/band?limit=&key=` (the page's route) and `GET /api/systems/<id>/sky/band?limit=` build that image for the 50 parsec cell of the system through the galaxy's density and dust. The sky's `meta.band` names it (`key`, `width`, `height`, `format`, `href`). The web layer keeps the bytes as `b<key>.bin` in the tile cache's generation, so the same cell and limit are worked out once, and `skycache.clear()` removes them with the skies. The key is a hash of the cell, the galaxy shape, the limit and what turns the band into the image. The API route is additive, so the API version stays at 12.
+- The wire format is written down in `docs/design/interface/system-sky-wire-format.md` (section 3.2).
+
+### Changed
+
+- `skypack.SKY_VERSION` is 2, so every stored sky is rebuilt once with the `band` field in its `meta`.
+
+generation-output: unchanged
+
+## [8.0.3269] - 2026-11-05
+
+**Headline:** A system now has a sky route that gives the stars it sees, the nebulae and supernova remnants in its sky, and how much of the sky is built, in one cached file.
+
+### Added
+
+- `GET /system/<id>/sky?limit=` (the page's route) and `GET /api/systems/<id>/sky?limit=` (VIEW.31) build the sky a system sees from the stored stars (`api/system_sky.py`: `galaxy.sky.sky_from` over the sphere query) and send it packed (`PGK1`, `web/lib/skypack.py`). The limiting magnitude is `?limit=`, 2 to 9, default 7.5. The packed list's `meta` carries the nebula and supernova remnant sprites and a report of how much of the sky is built (`built_to_pc`, `complete_above_sol`, `wanted_pc`, `filling`, the counts per tier). The API route is additive, so the API version stays at 12.
+- The sprites are one record per nebula, remnant or cloud that is wider than 0.002 radian and either shines under the naked-eye limit or dims what lies behind it: `{id, kind, family, direction, distanceLy, angularRadiusRad, inside, extinctionMag, surfaceBrightness, visible, seen}`, the output of `nebula_sprites.sprite_data` with the direction taken from where the object was when its light left it (`galaxy/sky_sprites.py`, `db/sky_sprites.py`). A remnant whose explosion has not been seen is left out. This is the shape `skysprites.js` reads.
+- The web layer keeps each sky on disk in the Galaxy Map's cache (`web/lib/skycache.py`), keyed by system, limit and a version key made from the galaxy's tile stamp, so it is rebuilt when stars are stored and not on an orbital update. It is dropped with the cache's generation, counted in `cache.max_mb`, and `skycache.clear()` is the call for the cache page's clear (PERF.134). The API answer is not put in the shared page cache.
+- The wire format, the sprite records and the report are written down in `docs/design/interface/system-sky-wire-format.md`; stand-ins SPR1 to SPR3 and SKV1 to SKV3 are registered (6.179).
+
+generation-output: unchanged
+
+## [8.0.3268] - 2026-11-05
+
+**Headline:** The sky behind a system can now show the soft glow of the Milky Way band under its stars (not shown on a page yet).
+
+### Changed
+- A new browser module, `skyband.js`, draws the glow of the stars too faint to see one by one as a sphere round the camera, from a small map of the sky's light. It adds a fine grain to the band so it does not look like smooth paint, and a dither to avoid banding. The map's layout and units are written in the HTML interface reference for the server side to build to. It is not on any page yet (the System View wiring is VIEW.35).
+
+generation-output: unchanged
+
+## [8.0.3267] - 2026-11-05
+
+**Headline:** The sky behind a system can now show nebulae, supernova remnants and dark clouds as soft shapes among its stars (not shown on a page yet).
+
+### Changed
+- A new browser module, `skysprites.js`, draws the nebulae and supernova remnants of a system's sky from the sprite data of the nebula physics. A nebula bright enough for the naked eye is a soft disc in its family's colour, a supernova remnant that has been seen is a ring, and a dark cloud dims the stars behind it. Remnants not yet seen, faint nebulae and a nebula the observer sits inside are not drawn. It is not on any page yet (the System View wiring is VIEW.35).
+
+generation-output: unchanged
+
+## [8.0.3266] - 2026-11-05
+
+**Headline:** The star backfill can now draw a whole sphere of space by blocks instead of cell by cell, giving the same stars much faster for the far bright bands, and the sky tier table reaches faint stars near the observer.
+
+### Changed
+
+- `bright_stars.backfill_sphere` and `backfill_mass_sphere` (VIEW.41) draw every cell whose centre lies within a radius, by the blocks of `backfill_cells` and `backfill_mass_cells`: a band on the candidate path is looked up block by block, so a sparse band costs one count per block of 256 cells and one lookup per candidate, and only the cells that hold a star are handed to the cell draw. The stars are exactly the ones the cell draw gives (tests/test_backfill_sphere.py compares them on the candidate path, the cell path and a mix, over a sphere that wraps past longitude 0, one on the core and one on the pole). Measured on a 3,500 parsec sphere the brightest band takes 281 seconds for 2.8 billion cells (reports/system-sky-sphere-draw-2026-11-05.md); VIEW.19 priced the cell draw at 2 to 30 microseconds a cell.
+- `spherical.sphere_rows` and `cell_in_sphere` split the walk of `enumerate_sectors_within_radius` into the rows a sphere crosses with their window of wedges, and the exact test of one cell; the enumeration is built on them and lists the same cells (it may list a row's wedges in another order). `bright_stars.bound_terms` and `bound_of` split `block_bound` into the parts that do not depend on the luminosity band; the bound is the same to the last bit.
+- `sky_tiers` (VIEW.24) counts a band's cost in block and row visits (`block_visits`, `BLOCK_VISIT_BUDGET` 1e8, replacing the cell budget): a dust-free 7.5 sky takes 4.3e7 visits instead of 8.3e9 cell visits, so no band is dropped by default. It adds mass rings under 1 solar mass (`NEAR_RING_MASSES_SOL`), each drawn as far as `RING_MIN_YIELD` (1 percent) of its stars still shows, 8 to 62 parsecs at 7.5. Registry rows SKT1, SKT3 to SKT6 (6.176). Nothing reads either yet; the charting step (VIEW.25) will.
+
+generation-output: unchanged
+
+## [8.0.3265] - 2026-11-05
+
+**Headline:** The sky behind a system can now be drawn as one set of stars, each placed where its light left it (not shown on a page yet).
+
+### Changed
+- A new browser module, `skysphere.js`, draws a packed sky as one points object centred on the camera. Each star is moved every frame to where it was when its light left it, from the orbit clock, and drawn with the sky's own brightness, size and colour law. It is not on any page yet (the System View wiring is VIEW.35); a phone draws at most 15,000 stars.
+
+generation-output: unchanged
+
+## [8.0.3264] - 2026-11-05
+
+**Headline:** The hard-edged nebula shell is gone from the maps: nebulae are soft clouds everywhere.
+
+### Changed
+- The Galaxy Map, the Sector Map and the nebula page no longer draw a nebula as a translucent hard-edged mesh. A nebula is its own soft cloud of points (or, where the browser cannot draw that, the soft sprite or sphere it had before the mesh). The site no longer serves `/galaxy/nebula/<id>/shape`; the API's `GET /api/nebulae/<id>/shape` is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3263] - 2026-11-05
+
+**Headline:** The Galaxy Map marks the planetary nebulae and supernova remnants the galaxy has scattered but no sector has been filled for yet.
+
+### Changed
+
+- A map block of 81 sectors or fewer now lists the scattered planetary nebulae and supernova remnants that no sector has built into a nebula, and the map marks each with a small cloud symbol (MAP.179). Nebulae that a sector has built are drawn as clouds as before, and each nebula appears once. The marks are not points of light among the stars.
+- The Menu has a "Nebula marks" switch (on by default; `hide=marker-nebula` in the address turns it off), and picking a mark shows its card. The map's saved blocks are rebuilt once on the next update.
+
+## [8.0.3262] - 2026-11-05
+
+**Headline:** A nebula's own page now draws it as a soft, irregular cloud with fading edges, like the maps do.
+
+### Changed
+- The nebula page's 3D view draws the nebula from its own cloud of points (the same points and layer as the Galaxy Map and the Sector Map) instead of a translucent surface, so it fades unevenly toward its edge and reads as gas. It still turns slowly, zooms and re-centers, with the brightest stars of the galaxy dimmed round it. A nebula that was never placed in the galaxy keeps its still drawing.
+- `GET /api/nebulae/<id>/surroundings` now also says where the nebula is (`center_pc`, parsecs in the galaxy frame; null for one never placed).
+
+generation-output: unchanged
+
+## [8.0.3261] - 2026-11-05
+
+**Headline:** On the Galaxy Map you can now hover a group of nebulae to see what it holds, click it to fly to it, and reach every large group from the keyboard.
+
+### Changed
+
+- Hovering a group of nebulae (the soft glows of MAP.176) outlines it and says how many nebulae it holds and what kind most of them are, for example "12 nebulae, mostly dark nebulae" (MAP.180). Clicking it flies the camera to frame the group, which is the zoom at which it splits into its smaller groups and single clouds; a group has no page, so none opens. A single cloud under the pointer is picked before the group around it, and charted regions after it.
+- The keyboard and screen readers have a list of the 30 largest groups in view, each a button that flies to the group.
+- Hover on the Nebula cover colour already gave the share of a block inside a nebula (MAP.177).
+
+## [8.0.3260] - 2026-11-05
+
+**Headline:** The Galaxy Map now draws the galaxy's dark molecular clouds one by one, before any sector near them has been generated.
+
+### Changed
+
+- A map block of 81 sectors or fewer lists the clouds the galaxy's seed places (the `nebula_field` table, classes M and N, giant molecular and dark clouds) that no sector has stored yet, beside the stored nebulae, and the map draws each as a soft dark-dust sprite that fades in between 1 and 4 pixels of radius (MAP.178). A cloud a sector stores is drawn once, as the stored nebula. A block larger than that keeps showing the nebula regions (MAP.176), which hold these clouds.
+- A field cloud has no page, name or stored shape yet, so it is not labelled, picked or opened as a mesh; picking and fly-to for clouds and regions is MAP.180. The map's saved blocks are rebuilt once on the next update.
+
+## [8.0.3259] - 2026-11-05
+
+**Headline:** A jump through unknown space is now drawn red, dashed and glowing on the NAV page's map and on the Galaxy Map's course.
+
+### Changed
+- On the NAV page's map, a hop through unknown space is its own red, dashed, glowing line, with a legend line under the map and a line in the map help. On the Galaxy Map, the same hop in the course is a red dashed line with a soft red glow along it, and the Key names it. Both pulse slowly unless your system asks for reduced motion, and the hop is also named in words (title and legend), so it does not rely on colour alone.
+
+generation-output: unchanged
+
+## [8.0.3258] - 2026-11-05
+
+**Headline:** The Galaxy Map's course shows the course diagram, and clicking a stop in either one selects it in the other.
+
+### Changed
+- The Galaxy Map's course readout now carries the course diagram (NAV.67). Click a stop in the diagram and the map selects that stop's ring and flies to it; click a ring on the map and the same stop is marked in the diagram. A second click on the selected stop, or a click with Ctrl, Shift, Alt or Meta held, opens the stop's page.
+
+generation-output: unchanged
+
+## [8.0.3257] - 2026-11-05
+
+**Headline:** The NAV page's course diagram now shows each stop's nearest neighbours as faint stubs, with "and N more" where there are more.
+
+### Changed
+
+- The NAV page asks for the route's graph and draws it under the course diagram's route: a faint stub from each stop to each neighbour off the route (a few per stop, nearest first), "and N more" over a stop that has more, and a dotted arc, with its length, between two stops of one row that are neighbours but not a hop. Links between stops on different rows of a wrapped diagram are counted in a note.
+- The panel and its legend say a link is a neighbour relation, not a travel lane. The route's own hops are always drawn over the neighbours, and each stub has a text alternative with its distance.
+
+generation-output: unchanged
+
+## [8.0.3256] - 2026-11-05
+
+**Headline:** A test docstring no longer reads like a citation.
+
+### Changed
+
+- `test_nav_route_graph.py` wrote "Wedge 2000", a name and a year the citation lock took for a paper; it now says "The wedge numbered 2000". Tests only.
+
+generation-output: unchanged
+
+## [8.0.3255] - 2026-11-05
+
+**Headline:** The slow seed test takes seconds, and lane machines can share the star-table cache
+
+### Changed
+
+- `test_a_new_seed_replaces_the_old_only_before_any_sector` puts one sector in the galaxy grid directly instead of generating one, so it takes about 13 s where it took over four minutes on a fresh machine; it still checks that a different seed is refused once a sector exists, that the stored seed stays, and that the same seed plans again (PERF.232).
+- New `scripts/band_table_share.py` copies the kept star sampling tables to a shared folder under a key of the code's contents and back, so a fresh lane machine skips the 100 s table build when the code is the same; a copy made by other code is never read. Production does not use it (PERF.232).
+
+generation-output: unchanged
+
+## [8.0.3254] - 2026-11-05
+
+**Headline:** A route over several sectors now measures true distances: a routed system sits where the database stores it.
+
+### Changed
+
+- The route search added a system's sector-local offset to its sector's centre without turning it by the sector's own axes (`frame.sector_orientation`: local +X points out from the galactic axis), so a routed system sat up to a few light-years from its stored `galaxy_x_pc`, `galaxy_y_pc` and `galaxy_z_pc` (2.7 to 4.5 ly measured at a longitude of about 58 degrees; none only on the +X axis). `corridor._systems_of` and `query._load_nav_endpoint` now use `frame.local_to_galaxy_pc`, and a route between two systems of one sector that is searched in the galaxy frame comes back in that sector's own axes with `frame.galaxy_to_local_pc` (it was a plain shift). The hop lengths and courses of every cross-sector route change to the true ones; stored values are unchanged.
+- The graph round a route (NAV.65) no longer needs its workaround: it reads the route's own positions, which are the index's, and the hops keep the route's lengths because those are now the true ones.
+- Tests: a sector at a longitude of 58 degrees where every routed system equals its stored galaxy position, the hop lengths of a cross-sector route equal the distances between the stored positions, and a route inside one sector comes back in the sector's axes; the NAV.65 graph tests now run at that longitude too.
+
+generation-output: unchanged
+
+## [8.0.3253] - 2026-11-05
+
+**Headline:** The wiring register no longer names VIEW.23 as the item that wires the sky photometry and light-time modules; VIEW.31 (the sky route) does.
+
+### Changed
+
+- `docs/design/research/wiring-register.md` (VIEW.23): the lines for `planetgen.physics.light_travel`, `planetgen.physics.sky_photometry` and rows SKP1 to SKP4 of 6.171 point to VIEW.31, which is where the sky catalogue they feed is read by product code. generation-output: unchanged
+
+## [8.0.3252] - 2026-11-05
+
+**Headline:** The NAV page draws the route as a course diagram: a line of stops with a glyph for each kind, the length and course of every hop, and the hops through unknown space in red, dashed and glowing.
+
+### Changed
+
+- The NAV page has a Course Diagram panel below its map: the route as a ribbon of stops (the NAV.66 layout) drawn as SVG, a disc for a star system, a hexagon for a phenomenon and a shape of its own for each kind of stop in unknown space, with the hop's length on each hop and its course where there is room. The spacing follows the logarithm of a hop's length, so the panel says it is a schematic and not to scale.
+- A hop through unknown space is drawn red, dashed and glowing, listed in the legend and named in words in the panel, and its glow pulses only where the visitor has not asked for reduced motion. The route list's unknown-space hops are red too.
+- The panel has three drawings of the route for a phone, a middle width and a wide page, and shows the one that fits, so a long route wraps into rows on a phone with its text still readable; each stop links to its page and has a text alternative.
+
+generation-output: unchanged
+
+## [8.0.3251] - 2026-11-05
+
+**Headline:** The generator can now work out what any nebula, remnant or cloud is made of, from its class and the metals of the gas where it formed.
+
+### Added
+
+- `physics/nebula_composition.py` (GEN.1269, part a of GEN.1268): `makeup(...)` gives a nebula's hydrogen, helium and metal mass fractions, the mass of each element in gas and in dust, the dust-to-gas and dust-to-metals ratios, the share of the dust in silicate, iron, carbon, PAH and ice, the ionized, atomic and molecular shares of its hydrogen, and the gas-phase abundances of C, N, O, Ne, S, Ar and Fe, for all 23 nebula and remnant classes. `gas_oh(...)` gives the gas metallicity of a place: the Milky Way gas has its own gradient (0.034 dex per kpc, Boss's answer) with 0.14 dex of scatter drawn from the nebula's key, and a satellite's gas falls inside the widest published range of the two Magellanic Clouds. A solar-metallicity Orion-like H II region comes out with gas oxygen 12 + log(O/H) 8.69 and iron mostly on grains; a metal-poor cloud (SMC) has less than half the metals and dust of a solar-circle one; a cold cloud of the same column holds less molecular gas at lower metallicity; a Wolf-Rayet ring is helium and nitrogen enriched. Nothing stores or shows it yet (GEN.1276, GEN.1277 and the pages). Thirteen stand-ins are registered (6.179, NBC1 to NBC13). generation-output: unchanged
+
+## [8.0.3250] - 2026-11-05
+
+**Headline:** The settings review-page width test waits for the page's components before it measures the page.
+
+### Fixed
+- **A phone-width overflow reported once (606 px at the gear dropdown) came from measuring before the components had loaded.** The settings browser tests now wait until the dropdown components are defined (at most five seconds) before reading the page width, and a test holds the components script back two seconds to pin it.
+
+## [8.0.3249] - 2026-11-05
+
+**Headline:** Three nebula composition numbers that were recalled are now read from their papers: the second dredge-up helium, the Type I limits, and the wind loss and helium star of a supernova progenitor.
+
+### Changed
+
+- `physics/planetary_nebula_ejecta.py` (GEN.1274): the helium the second dredge-up adds is the table of [R5098: Table 1] (0 up to 4.0 solar masses, 0.004 at 4.5, 0.018 at 5.0, 0.033 at 5.5, 0.044 at 6.0, 0.059 at 7.0, 0.066 at 8.0, linear between) in place of a flat 0.03, and it begins above 4.0 solar masses only as the table says (it is for solar metallicity, used at every metallicity). The Type I limits are those of [R5099]. Nothing reads the module yet (GEN.1276). generation-output: unchanged
+- `physics/remnant_composition.py` and `physics/data/remnant_yields.json` (GEN.1274): the wind loss and the stripped helium star of a core-collapse progenitor are the presupernova table of [R4251: Table 2] (final mass and helium core at 10 to 30 solar masses and the bare stars of 60 to 120) in place of the fitted laws, and every progenitor of 40 solar masses or more is stripped (it was 30). The Cassiopeia A check now uses the 15 solar mass row. Nothing reads the module yet. generation-output: unchanged
+- Registry (`docs/design/research/gap-filling-plan.md` sections 6.177 and 6.178): rows PNE3, PNE6, SNC2 and SNC3 are verified and removed; PNE2, SNC1 and SNC4 say what the sources could and could not give. Karakas and Lattanzio 2014 is [R5098] and Gruenwald and Viegas 1998 is [R5099].
+
 ## [8.0.3248] - 2026-11-05
 
 **Headline:** Dark nebulae on the Galaxy Map are now drawn as dust, a warm umber cloud with a light rim, so they can be seen on the black map.

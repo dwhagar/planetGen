@@ -57,6 +57,8 @@ NOT_AUDITED = {
     "facility_types.list_facility_types": "a facility type table",
     "api.facility": "no facility in the fixture; its `id` has an `ID_PATHS` rule",
     "api.nav_chart": "a drawing of `api.nav`, which is audited",
+    "api.system_sky_band_route": "an image of the glow, no object",
+    "api.system_sky_route": "the sky of a system: packed stars and sprites, whose ids are printed IDs (tests/test_system_sky_route.py)",
     "api.nebula_shape_route": "no nebula in the fixture; routed by printed ID", "api.nebula_surroundings_route": "no nebula in the fixture",
     "api.nebula_volume_route": "no nebula in the fixture", "api.galaxy_nebula_volume_route": "no nebula in the fixture",
     "api.galaxy_bright_stars_in_cell": "scattered stars, not built systems", "api.galaxy_profile": "density profile numbers",

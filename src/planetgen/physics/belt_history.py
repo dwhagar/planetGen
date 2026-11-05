@@ -48,7 +48,7 @@ INSTABILITY_SURVIVAL = (0.1, 0.5)
 """tuple: The share of a belt left after a giant-planet instability alone ([R4603], READ: 50 to 90 percent lost). [Stand-in BR5 of 6.95, row BHS1, tier T2, tweak L1.]"""
 
 SURFACE_DENSITY_SLOPE = 1.5
-"""float: The belt's solids go as `a^-slope` (the minimum-mass nebula, as `scatter.DISC_SLOPE`), so the mass between two distances goes as `a^(2 - slope)`. [Stand-in BHS2, tier T6, tweak L1.]"""
+"""float: The belt's solids go as `a^-slope` (the minimum-mass nebula, as `scatter.DISK_SLOPE`), so the mass between two distances goes as `a^(2 - slope)`. [Stand-in BHS2, tier T6, tweak L1.]"""
 
 MASS_LOSS_SCATTER_SHARE = 0.5
 """float: The share of a belt thrown inward by the sudden mass loss of the star, per unit fraction of the star's mass lost, if giants remain. [Stand-in BHS3, tier T9, tweak L3.]"""

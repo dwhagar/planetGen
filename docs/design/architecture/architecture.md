@@ -618,6 +618,8 @@ The map panels and their data.
 | `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |
 | `mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63). |
 | `mapnavpad.js` | The Galaxy Map's on-map controls: a direction star of four arrows and a middle button that moves the center the view turns and zooms about, a readout of where the center is while it moves (MAP.200), and the log ruler with its named stops and distance readout (MAP.336). |
+| `coursediagram.js` | NAV.69: links the Course Diagram in the Galaxy Map's course readout to the map's course: a click on a stop of the diagram selects it on the map and centres the map on it, a click on a ring on the map marks the stop in the diagram. |
+| `coursehops.js` | NAV.36: draws a jump through unknown space on the Galaxy Map's course red, dashed and glowing (solid runs of known hops, one glowing run per unknown hop). |
 | `findplace.js`, `findplacebox.js` | The find-a-place box (MAP.336): what a typed line can be (coordinates, designations, object IDs, regions, names, recent places) and the box that lists it. |
 | `maplogruler.js` | The named scales of the map's log ruler and the distance readout's words (MAP.336). |
 | `regionlanding.js` | The cluster of a region's heaviest sectors a "densest" Go to a region lands on (MAP.336). |
@@ -627,8 +629,7 @@ The map panels and their data.
 | `navtimes.js` | The NAV result page's travel-times table with a Warp/Fold switch (UX.70). |
 | `nearfield.js` | The near field of the fly-through map: what stands close to the camera dissolves and a see-through tube thins what stands between the camera and the focus (MAP.149). |
 | `nebulalook.js` | How a nebula is painted on the Galaxy Map, per theme (MAP.175). |
-| `nebulamesh.js` | A nebula drawn from its shape instead of a flat sprite (GEN.75, MAP.103). |
-| `nebulaview.js` | A nebula page's 3D view: its own shape with the brightest stars round it (MAP.105). |
+| `nebulaview.js` | A nebula page's 3D view: the nebula drawn from its own points by the maps' volume layer, with the brightest stars round it (MAP.105, MAP.142). |
 | `objectref.js` | The browser mirror of `planetgen/galaxy/objectref.py`'s public form (`parse_public`, `format_public`). |
 | `orbitclock.js` | The 3D system view's time control: the years past the scene's epoch (MAP.70). |
 | `orbitpositions.js` | Where every body of a system is at any time: the browser twin of `planetgen/physics/body_positions.py` (MAP.70). |

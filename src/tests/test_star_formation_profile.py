@@ -34,7 +34,7 @@ def test_the_factor_averages_one_over_the_disk():
 
 
 def test_the_profile_rings_at_the_bars_end():
-    """With the bar gap the rate per area peaks near the gap's edge, not at the centre (target: the Milky Way's
+    """With the bar gap the rate per area peaks near the gap's edge, not at the center (target: the Milky Way's
     molecular ring, 4 to 5 kpc)."""
     peak = RADII[np.argmax(star_formation.star_formation_rate_profile(RADII, SHAPE))]
     assert 3000.0 <= peak <= 6000.0
@@ -173,7 +173,7 @@ def test_the_thin_gas_factor_is_one_in_dense_gas_and_a_power_of_the_gas_where_it
     factor = star_formation._thin_gas_factor(np.array([0.1, 8.0]), SHAPE)[0]
     saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2
     power = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - tuning.STAR_FORMATION_LAW_EXPONENT
-    assert gas[0] > saturation and factor[0] > 0.6     # dense gas: the factor is well over half (at the saturation it is 0.5^0.7 = 0.62; the infall of GEN.1230 leaves the centre 18 per pc2)
+    assert gas[0] > saturation and factor[0] > 0.6     # dense gas: the factor is well over half (at the saturation it is 0.5^0.7 = 0.62; the infall of GEN.1230 leaves the center 18 per pc2)
     assert factor[1] == pytest.approx((gas[1] / (gas[1] + saturation)) ** power)
     assert factor[1] < 0.3     # thin gas: the factor falls well below 1 (0.21 once the history keeps the thin gas the law gives, GEN.999)
 

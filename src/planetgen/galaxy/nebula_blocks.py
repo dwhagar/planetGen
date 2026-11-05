@@ -6,11 +6,11 @@ and 5.1). Every block of the ladder (`galaxy/drill.py`, levels 243, 81, 27, 9 an
 add up to, so the map can shade a block by how much of it is gas and group the clouds of a block into one region,
 for blocks no sector has been generated in too: the numbers come from the seed's nebulae, not from the sectors.
 
-A nebula is a sphere (centre, radius, class). Per block:
+A nebula is a sphere (center, radius, class). Per block:
 
 * `nebula_count`, `volume_pc3`, the volume-weighted `centroid`, the `bound_radius_pc` that holds every member
   around that centroid, the volume of each family and the class holding the most volume (`dominant_class`): of
-  the nebulae whose *centre* lies in the block, so a nebula is in one block and the counts add up through the
+  the nebulae whose *center* lies in the block, so a nebula is in one block and the counts add up through the
   ladder.
 * `cover`: how much of the block's volume lies inside a nebula. This takes the part of each sphere that lies *in*
   the block, not the whole sphere, so a cloud wider than a block shades every block it reaches. Overlaps are not
@@ -154,7 +154,7 @@ def sphere_volumes(radius):
     return 4 / 3 * math.pi * radius ** 3
 
 
-def _centre_keys(x, y, z, m, edge_pc):
+def _center_keys(x, y, z, m, edge_pc):
     keys = np.empty(len(x), dtype=np.int64)
     for start in range(0, len(x), 200000):
         end = start + 200000
@@ -242,7 +242,7 @@ def roll_up(fine):
 def level_rows(x, y, z, radius, codes, m, edge_pc, covers=None):
     """
     The aggregate rows of level `m` for the spheres at `x`, `y`, `z` (parsecs) of `radius` (parsecs) and class
-    `codes` (`class_codes`): a `LevelRows`. Blocks that no sphere's centre is in but some sphere reaches get a row
+    `codes` (`class_codes`): a `LevelRows`. Blocks that no sphere's center is in but some sphere reaches get a row
     with a count of zero and the cover only. `covers` is the level's `LevelCover` of `roll_up`
     when the caller has it, else it is worked out here.
     """
@@ -257,7 +257,7 @@ def level_rows(x, y, z, radius, codes, m, edge_pc, covers=None):
     classes = []
     unique = np.zeros(0, dtype=np.int64)
     if len(x):
-        keys = _centre_keys(x, y, z, m, edge_pc)
+        keys = _center_keys(x, y, z, m, edge_pc)
         unique, inverse = np.unique(keys, return_inverse=True)
         groups = len(unique)
         count = np.bincount(inverse, minlength=groups)

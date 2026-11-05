@@ -173,21 +173,21 @@ def _merge(old, new, volume):
     it."""
     old_volume = old["volume_pc3"] or 0.0
     total = old_volume + new["volume_pc3"]
-    old_centre = (None if old["centroid_x_pc"] is None else
+    old_center = (None if old["centroid_x_pc"] is None else
                   (old["centroid_x_pc"], old["centroid_y_pc"], old["centroid_z_pc"]))
-    new_centre = (None if new["centroid_x_pc"] is None else
+    new_center = (None if new["centroid_x_pc"] is None else
                   (new["centroid_x_pc"], new["centroid_y_pc"], new["centroid_z_pc"]))
-    if new_centre is None:
-        centre, bound = old_centre, old["bound_radius_pc"]
-    elif old_centre is None or old_volume <= 0:
-        centre, bound = new_centre, new["bound_radius_pc"]
+    if new_center is None:
+        center, bound = old_center, old["bound_radius_pc"]
+    elif old_center is None or old_volume <= 0:
+        center, bound = new_center, new["bound_radius_pc"]
     else:
-        centre = tuple((o * old_volume + n * new["volume_pc3"]) / total for o, n in zip(old_centre, new_centre))
-        bound = max((old["bound_radius_pc"] or 0.0) + detmath.dist(old_centre, centre),
-                    detmath.dist(new_centre, centre) + new["bound_radius_pc"])
+        center = tuple((o * old_volume + n * new["volume_pc3"]) / total for o, n in zip(old_center, new_center))
+        bound = max((old["bound_radius_pc"] or 0.0) + detmath.dist(old_center, center),
+                    detmath.dist(new_center, center) + new["bound_radius_pc"])
     families = [o + n for o, n in zip((old[c] for c in FAMILY_COLUMNS), new["families"])]
     cover_volume = old["cover_volume_pc3"] + new["cover_volume_pc3"]
-    return (old["nebula_count"] + new["nebula_count"], total, centre, bound, families, cover_volume,
+    return (old["nebula_count"] + new["nebula_count"], total, center, bound, families, cover_volume,
             rules.cover_of(cover_volume, volume))
 
 
@@ -243,8 +243,8 @@ def _add_classes(conn, m, added):
 
 def add_nebulae(conn, edge_pc, codes, x, y, z, radius):
     """
-    Adds nebulae (class codes, and centres and radii in parsecs, as `sources` gives them) to the blocks they are in
-    and reach, at every level: count, volume, family and class volume to the block holding the centre, the part of
+    Adds nebulae (class codes, and centers and radii in parsecs, as `sources` gives them) to the blocks they are in
+    and reach, at every level: count, volume, family and class volume to the block holding the center, the part of
     the sphere in each block to that block's cover. Returns the nebulae added.
     """
     if not len(x):
@@ -258,10 +258,10 @@ def add_nebulae(conn, edge_pc, codes, x, y, z, radius):
             if old is None:
                 inserts.append(block_params(row))
                 continue
-            count, total, centre, bound, families, cover_volume, cover = _merge(
+            count, total, center, bound, families, cover_volume, cover = _merge(
                 old, row, rules.block_volume_pc3(m, *key, edge_pc))
-            centre = centre or (None, None, None)
-            updates.append((count, total, *centre, bound, *families, cover_volume, cover, m, *key))
+            center = center or (None, None, None)
+            updates.append((count, total, *center, bound, *families, cover_volume, cover, m, *key))
         for start in range(0, len(inserts), WRITE_BATCH):
             conn.executemany(INSERT_BLOCK, inserts[start:start + WRITE_BATCH])
         for start in range(0, len(updates), WRITE_BATCH):

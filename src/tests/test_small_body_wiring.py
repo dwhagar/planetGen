@@ -44,7 +44,7 @@ def test_a_belt_round_trips_with_its_makeup(system):
     assert again.get_composition_summary() == belt.get_composition_summary()
 
 
-def test_a_belts_mass_and_density_word_come_from_its_discs_solids_ground_down_by_its_age(system):
+def test_a_belts_mass_and_density_word_come_from_its_disks_solids_ground_down_by_its_age(system):
     """GEN.477: the mass is `belt_ledger.belt_state` at the star's mass, snow line, metals and age; it round-trips and the word is no longer a free draw."""
     from planetgen.physics import belt_ledger, bulk_draw
 
@@ -136,7 +136,7 @@ def test_dust_has_no_pores_and_a_collisional_field_is_one_taxon():
 
 
 def test_a_comet_of_a_star_takes_its_ice_from_the_zone_it_formed_in(system):
-    """GEN.595: the median CO and CO2 follow the disc zone of the star's luminosity, snow line and edge, and the zone costs the run's stream nothing."""
+    """GEN.595: the median CO and CO2 follow the disk zone of the star's luminosity, snow line and edge, and the zone costs the run's stream nothing."""
     from planetgen import tuning
     from planetgen.physics import bulk_draw, comet_ice_budget
 

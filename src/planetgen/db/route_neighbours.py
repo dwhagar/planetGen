@@ -70,19 +70,3 @@ def nearby_systems(conn, point_ly, count, exclude_id=None):
         reach_pc = radius
     return ({system_id: tuple(pc_to_ly(c) for c in point) for _away, system_id, point in found}, pc_to_ly(reach_pc))
 
-
-def system_points(conn, system_ids):
-    """
-    The index position of each system given: `{id: (x, y, z)}` in light-years, galaxy frame (the columns
-    `nearby_systems` reads, so a stop and its neighbours are measured from one source). A system with no galaxy
-    position is left out.
-    """
-    points = {}
-    ids = sorted(set(system_ids))
-    for start in range(0, len(ids), 500):
-        chunk = ids[start:start + 500]
-        rows = conn.execute("SELECT id, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc FROM star_systems WHERE id IN ("
-                            + ", ".join("?" * len(chunk)) + ") AND galaxy_x_pc IS NOT NULL", tuple(chunk)).fetchall()
-        for row in rows:
-            points[row["id"]] = tuple(pc_to_ly(row[axis]) for axis in ("galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc"))
-    return points

@@ -156,7 +156,7 @@ def _likelihood(values, row, ratio):
     if scaled.get("surface_temperature_k") is None or atmosphere.GAS_FIELD not in scaled:
         return None
     if ratio != 1.0 and _ocean_lost(scaled):
-        scaled["hydrosphere"] = "vapour"
+        scaled["hydrosphere"] = "vapor"
     for quantity, supplied in life_supply.supplies(scaled).items():
         scaled.setdefault(quantity, supplied)
     scaled.update(life_classes.derived_quantities(scaled))

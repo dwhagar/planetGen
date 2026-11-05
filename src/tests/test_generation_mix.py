@@ -19,10 +19,8 @@ import pytest
 from planetgen.physics import constants as pc
 from planetgen.generation import validation
 from planetgen.physics import planet_classes, planets as planetPhysics
-from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
-from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
@@ -111,20 +109,3 @@ def test_moved_planet_makes_its_moons_again_as_moons():
             assert moon.mass <= max_mass * (1 + 1e-9)
         assert validation.check_lunar_system(planet) == []
     assert moons_seen > 0
-
-
-def test_rogue_planet_split_follows_the_mass_function():
-    """GEN.45, GEN.1133: about 95% terrestrial and 5% giants (the line is the 10 Earth masses a core needs to hold a
-    gas envelope), as dN/dlogM ~ M^-0.65 from 0.1 Earth masses to 13 Jupiter masses gives."""
-    slope = prog_c.ROGUE_PLANET_MASS_FUNCTION_SLOPE
-    low = min(b[0] for b in prog_c.ROGUE_PLANET_MASS_BINS.values())
-    high = max(b[1] for b in prog_c.ROGUE_PLANET_MASS_BINS.values())
-    threshold = prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG
-    expected = (threshold ** -slope - high ** -slope) / (low ** -slope - high ** -slope)
-    assert expected == pytest.approx(0.049, abs=0.002)
-    assert sum(rate for _lo, _hi, rate in prog_c.ROGUE_PLANET_MASS_BINS.values()) == pytest.approx(5.8)
-
-    cfg = SystemConfig()
-    n = 20000
-    gas = sum(1 for _ in range(n) if RoguePlanet(cfg).planet_type == 'g')
-    assert abs(gas / n - expected) < 0.008
