@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3293] - 2026-11-05
+
+**Headline:** A course opens on the Galaxy Map zoomed in as far as it can go with all of it in view, and its route, direct line and adjusted path can each be shown or hidden.
+
+### Added
+- A course shown on the Galaxy Map now opens fitted round every point of it (the route, the direct line and any bent path), as large as the window allows, and refits when the window is resized until you move the view yourself.
+- The Menu has three new switches, Course: route, Course: direct line and Course: adjusted, so a saved course opened from the Saved Courses list can show any one of its forms; the key follows the switches and the address keeps the choice.
+
+generation-output: unchanged
+
 ## [8.0.3292] - 2026-11-05
 
 **Headline:** Three tests that were red on main are repaired: the sky star rows have their burn-down lines, the Large Cloud's supernova claim follows the new solar circle, and the halo planet count is measured against the disk's.
