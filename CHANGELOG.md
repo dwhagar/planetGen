@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3259] - 2026-11-05
+
+**Headline:** A jump through unknown space is now drawn red, dashed and glowing on the NAV page's map and on the Galaxy Map's course.
+
+### Changed
+- On the NAV page's map, a hop through unknown space is its own red, dashed, glowing line, with a legend line under the map and a line in the map help. On the Galaxy Map, the same hop in the course is a red dashed line with a soft red glow along it, and the Key names it. Both pulse slowly unless your system asks for reduced motion, and the hop is also named in words (title and legend), so it does not rely on colour alone.
+
+generation-output: unchanged
+
 ## [8.0.3258] - 2026-11-05
 
 **Headline:** The Galaxy Map's course shows the course diagram, and clicking a stop in either one selects it in the other.
