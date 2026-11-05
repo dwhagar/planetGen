@@ -140,7 +140,7 @@ def test_class_pages_show_the_constants(client):
     assert planet_classes.describe("M").sentence in html
     assert "<th scope=\"row\">Core class</th><td>Yes</td>" in html
     html = _html(client, "/classes/planet/S")
-    assert "surface pressure below 10 Pa; mass at least 1.5 Earth masses" in html
+    assert "mass at least 1.5 Earth masses" in html
 
     low_k, high_k = mamajek_sequence.letter_range_k("G")
     html = _html(client, "/classes/star-spectral/G")
@@ -284,7 +284,7 @@ def test_the_tree_without_hook_or_known_class_stays_text(app):
     assert "/classes/" not in html and "Class M" in html
     from planetgen.web.class_pages import class_url
     system = _system()
-    system["planets"] = [_planet("Z")]
+    system["planets"] = [_planet("W")]
     system["stars"][0]["star_type"] = "Unknown"
     with app.test_request_context("/system/1"):
         html = objecttree.nodes_html(_items(system), _tree_context(class_url))

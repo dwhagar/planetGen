@@ -1,15 +1,10 @@
 {
   "title": "Planet and moon classes as conditions of the finished body",
-  "version": 1,
-  "status": "design thresholds (GEN.645): every number marked design is a planetGen default to be refitted by the shadow sweep (src/tests/class_shadow_cli.py), not a measured constant",
+  "version": 2,
+  "status": "the conditions of every class are its row of physics/data/planet_class_fit.json (GEN.1207: the best-fit classifier); a row here gives only the name, the sentence and the basis of a class. Every number marked design is a planetGen default refitted by the class sweep, not a measured constant",
   "reserve": [
     "Q",
-    "R",
-    "U",
-    "W",
-    "X",
-    "Y",
-    "Z"
+    "W"
   ],
   "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else. Q was retired by Boss (6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit; the swing of the starlight is the stored flux_variation and an At a glance flag. The old wet reducing E was retired by Boss (6:57 PM EDT 2026-10-30, GEN.1142; it was F with steam and got no body) and the letter E now names the deep-frozen world (7:06 PM EDT).",
   "quantities": {
@@ -69,6 +64,49 @@
     "roundness_ratio": {
       "label": "roundness ratio",
       "note": "the mean radius over the radius at which the body's own weight beats the strength of its material; 1 or more is round (physics/roundness.py)"
+    },
+    "hottest_region_k": {
+      "label": "mean temperature of the hottest latitude band",
+      "unit": "K",
+      "note": "the hottest of the seven annual-mean latitude bands (GEN.1108)"
+    },
+    "coldest_region_k": {
+      "label": "mean temperature of the coldest latitude band",
+      "unit": "K",
+      "note": "the coldest of the seven annual-mean latitude bands"
+    },
+    "day_temperature_k": {
+      "label": "hottest day temperature",
+      "unit": "K",
+      "note": "the hottest band's mean plus half its day and night swing"
+    },
+    "night_temperature_k": {
+      "label": "coldest night temperature",
+      "unit": "K",
+      "note": "the coldest band's mean less half its swing"
+    },
+    "wet_bulb_c": {
+      "label": "wet-bulb temperature at the hottest day",
+      "unit": "C",
+      "note": "habitability.wet_bulb_c of the hottest day and the stored humidity"
+    },
+    "relative_humidity": {
+      "label": "relative humidity of the air",
+      "percent": true,
+      "note": "the stored relative humidity of the surface air"
+    },
+    "groundwater_present": {
+      "label": "groundwater (1 when there is some)",
+      "note": "1 when a body with no surface liquid holds reachable or deep groundwater"
+    },
+    "ammonia_water_mass_fraction": {
+      "label": "ammonia share of the water's mass",
+      "percent": true,
+      "note": "the ammonia over the water's mass"
+    },
+    "phase_<family>": {
+      "label": "liquid phase of the <family> family",
+      "note": "1 where the family's liquid (water, methane-ethane, sulfuric acid, ammonia-water, dense CO2) is a liquid at the body's temperature and pressure (phase_gate)"
     }
   },
   "rows": [
@@ -76,12 +114,6 @@
       "letter": "T",
       "name": "Gas dwarf",
       "kind": "g",
-      "when": [
-        {
-          "quantity": "mass_earth",
-          "lt": 10.0
-        }
-      ],
       "sentence": "A gas dwarf: a giant under about 10 Earth masses, a deep hydrogen and helium envelope over a small core.",
       "basis": "design: 10 Earth masses, the lower edge of the ice giants' range; the sweep finds no better cut"
     },
@@ -89,12 +121,6 @@
       "letter": "I",
       "name": "Ice giant",
       "kind": "g",
-      "when": [
-        {
-          "quantity": "mass_earth",
-          "lt": 35.0
-        }
-      ],
       "sentence": "An ice giant: 10 to 35 Earth masses, mostly water, ammonia, and methane ices and rock under a hydrogen and helium envelope.",
       "basis": "design: 35 Earth masses, the cut that misplaces fewest of the drawn ice and gas giants (15 percent; their mass ranges overlap from 30 to 60); the envelope share of GEN.428 replaces it at the cut-over"
     },
@@ -102,7 +128,6 @@
       "letter": "J",
       "name": "Gas giant",
       "kind": "g",
-      "when": [],
       "sentence": "A gas giant: 35 Earth masses or more, mostly hydrogen and helium.",
       "basis": "design: the rest of the giants"
     },
@@ -110,16 +135,6 @@
       "letter": "D",
       "name": "Small airless world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "pressure_pa",
-          "lt": 10.0
-        },
-        {
-          "quantity": "mass_earth",
-          "lt": 0.1
-        }
-      ],
       "sentence": "A small airless world: round (its own weight beats the strength of its material) and under 0.1 Earth masses, with no air.",
       "basis": "design (Boss 8:41 PM EDT 2026-10-30): airless, round (the roundness ratio, which Asteroid bodies fail) and below 0.1 Earth masses; the water rule is dropped. 0.1 Earth masses is the planet minimum inside the snow line"
     },
@@ -127,16 +142,6 @@
       "letter": "S",
       "name": "Airless super-Earth",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "pressure_pa",
-          "lt": 10.0
-        },
-        {
-          "quantity": "mass_earth",
-          "min": 1.5
-        }
-      ],
       "sentence": "A barren, rocky super-Earth with no air: 1.5 Earth masses or more.",
       "basis": "design: 1.5 Earth masses, the lower edge of a super-Earth"
     },
@@ -144,16 +149,6 @@
       "letter": "C",
       "name": "Dead world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "pressure_pa",
-          "lt": 10.0
-        },
-        {
-          "quantity": "mass_earth",
-          "min": 0.1
-        }
-      ],
       "sentence": "A dead world: rock with no air (under 10 Pa) at 0.1 Earth masses or more.",
       "basis": "design: 10 Pa, the edge of an exosphere; 0.1 Earth masses and up (Boss 8:41 PM EDT 2026-10-30)"
     },
@@ -161,12 +156,6 @@
       "letter": "A",
       "name": "Volcanic world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "share_so2",
-          "min": 0.03
-        }
-      ],
       "sentence": "A volcanic world: air with sulfur dioxide as 3 percent or more of it, outgassed by active volcanism.",
       "basis": "design: 3 percent sulfur dioxide, which no non-volcanic mixture reaches"
     },
@@ -174,16 +163,6 @@
       "letter": "T",
       "name": "Gas dwarf",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "share_h2",
-          "min": 0.3
-        },
-        {
-          "quantity": "mass_earth",
-          "lt": 10.0
-        }
-      ],
       "sentence": "A gas dwarf: a small world, under about 10 Earth masses, whose air is a deep hydrogen-dominated envelope (hydrogen 30 percent or more of it) over a rocky core.",
       "basis": "design stand-in (GEN.1142, registry CL1): 30 percent hydrogen and 10 Earth masses; the same T as the giant row, for the terrestrial-kind bodies whose envelope outweighs a thin air"
     },
@@ -191,20 +170,6 @@
       "letter": "N",
       "name": "Hot dense world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "pressure_pa",
-          "min": 1000000.0
-        },
-        {
-          "quantity": "temperature_k",
-          "min": 400.0
-        },
-        {
-          "quantity": "share_h2",
-          "lt": 0.3
-        }
-      ],
       "sentence": "A hot world with an air column of 10 bar or more that is not hydrogen: a dense, Venus-like carbon dioxide and sulfur air.",
       "basis": "design stand-in (GEN.1142, registry CL2): 10 bar, 400 K and under 30 percent hydrogen; cooler thick-air bodies take the later rows by their own conditions"
     },
@@ -212,12 +177,6 @@
       "letter": "V",
       "name": "High-gravity world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "gravity_g",
-          "min": 2.0
-        }
-      ],
       "sentence": "A world with air and a surface gravity of 2 g or more (a heavy super-Earth).",
       "basis": "design stand-in (GEN.1136, registry GV1): 2 g, about 1.6 Earth radii of a rocky planet, just past the 1.5 Earth radii that [R0572] count as Earth-sized in the habitable zone; was 1.25 g (design), which took most of them"
     },
@@ -225,40 +184,6 @@
       "letter": "L",
       "name": "Marginal thin-air world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "pressure_pa",
-          "min": 30000.0
-        },
-        {
-          "quantity": "pressure_pa",
-          "lt": 300000.0
-        },
-        {
-          "quantity": "temperature_k",
-          "min": 273.15
-        },
-        {
-          "quantity": "temperature_k",
-          "lt": 320.0
-        },
-        {
-          "quantity": "share_co2",
-          "min": 0.01
-        },
-        {
-          "quantity": "share_o2",
-          "min": 0.03
-        },
-        {
-          "quantity": "share_o2",
-          "lt": 0.16
-        },
-        {
-          "quantity": "gravity_g",
-          "min": 0.5
-        }
-      ],
       "sentence": "A marginal world, Earth-like but hard to breathe without a mask. The air is not toxic: 30 kPa to 3 bar at 273 to 320 K, with at least 1 percent carbon dioxide and only 3 to 16 percent oxygen.",
       "basis": "design stand-in (GEN.1142, registry CL3): Boss's 6:57 PM EDT 10-30 reading of L (Earth-like, high carbon dioxide, low oxygen, near-Earth temperature); the numbers are fitted, 0.5 g is unchanged"
     },
@@ -266,24 +191,6 @@
       "letter": "K",
       "name": "Thin-air world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "pressure_pa",
-          "lt": 3000.0
-        },
-        {
-          "quantity": "temperature_k",
-          "min": 273.15
-        },
-        {
-          "quantity": "temperature_k",
-          "lt": 320.0
-        },
-        {
-          "quantity": "share_o2",
-          "lt": 0.1
-        }
-      ],
       "sentence": "An adaptable world with a thin atmosphere: air under 3 kPa with little oxygen, a mean surface from freezing to about 320 K.",
       "basis": "design stand-in (GEN.1142, registry CL4): 3 kPa, 273.15 to 320 K and under 10 percent oxygen; the cold part goes to P"
     },
@@ -291,12 +198,6 @@
       "letter": "E",
       "name": "Deep-frozen world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "temperature_k",
-          "lt": 233.15
-        }
-      ],
       "sentence": "A deep-frozen world: air and a mean surface below 233.15 K (-40 C).",
       "basis": "design stand-in (GEN.1142, registry CL7): -40 C, where Boss ended class P (the old wet reducing world E was retired, 6:57 PM EDT 10-30)"
     },
@@ -304,29 +205,13 @@
       "letter": "P",
       "name": "Glaciated world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "temperature_k",
-          "min": 233.15
-        },
-        {
-          "quantity": "temperature_k",
-          "lt": 273.15
-        }
-      ],
-      "sentence": "A cold, glaciated world: air and a mean surface from 233.15 K (-40 C) to freezing (273.15 K).",
+      "sentence": "A glaciated world, the oxygen-water world too cold: a mean surface of 240 to 270 K whose hottest region still melts in season, with poles under 245 K.",
       "basis": "design stand-in (GEN.1142, registry CL5, CL7): freezing (273.15 K) at the top, up from 210 K, and -40 C (233.15 K) at the bottom, below which a body is class E"
     },
     {
       "letter": "B",
       "name": "Small hot world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "gravity_g",
-          "lt": 0.5
-        }
-      ],
       "sentence": "A small world (under 0.5 g) with air and a mean surface above freezing, not an ocean world.",
       "basis": "design: 0.5 g"
     },
@@ -334,65 +219,71 @@
       "letter": "F",
       "name": "Reducing world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "share_o2",
-          "lt": 0.03
-        },
-        {
-          "quantity": "reducing_share",
-          "min": 0.05
-        }
-      ],
-      "sentence": "A world with a reducing air: no free oxygen and methane or hydrogen as 5 percent or more of it.",
+      "sentence": "A world with a reducing air: no free oxygen and methane or hydrogen as 5 percent or more of it, warm (under 400 K) and 0.5 to 2 g.",
       "basis": "design"
     },
     {
       "letter": "G",
       "name": "Carbon dioxide world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "share_co2",
-          "min": 0.2
-        }
-      ],
-      "sentence": "A rocky world with a carbon dioxide air (20 percent or more).",
+      "sentence": "A rocky world with a carbon dioxide air (20 percent or more), warm (under 400 K) and 0.5 to 2 g.",
       "basis": "design"
     },
     {
       "letter": "O",
       "name": "Ocean world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "ocean_fraction",
-          "min": 0.8
-        }
-      ],
-      "sentence": "An ocean world: water covers 80 percent or more of the surface.",
+      "sentence": "An ocean world, the oxygen-water world too wet: water over 80 percent of the surface, a mean surface of 298 to 312 K.",
       "basis": "design stand-in (GEN.1142, registry CL6): 80 percent, from 90"
     },
     {
       "letter": "H",
       "name": "Desert world",
       "kind": "t",
-      "when": [
-        {
-          "quantity": "ocean_fraction",
-          "lt": 0.2
-        }
-      ],
-      "sentence": "A desert world: air, and water over under 20 percent of the surface.",
+      "sentence": "A desert world, the oxygen-water world too dry: water over under 20 percent of the surface with groundwater below it, a mean surface of 295 to 315 K.",
       "basis": "design stand-in (GEN.1142, registry CL6): 20 percent, from 15"
     },
     {
       "letter": "M",
       "name": "Temperate world",
       "kind": "t",
-      "when": [],
-      "sentence": "A temperate terrestrial world: air and water over 20 to 80 percent of the surface.",
+      "sentence": "A temperate world, the Earth-like sweet spot: a mean surface of 275 to 305 K, liquid water over 20 to 80 percent of the surface and 16 to 35 percent oxygen in the air.",
       "basis": "design: the rest of the worlds with air"
+    },
+    {
+      "letter": "R",
+      "name": "Hothouse world",
+      "kind": "t",
+      "sentence": "A hothouse world, the oxygen-water world too hot: a mean surface of 312 to 345 K, a wet bulb of 31 C or more.",
+      "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
+    },
+    {
+      "letter": "Z",
+      "name": "Hot thin-air world",
+      "kind": "t",
+      "sentence": "A hot thin-air world: 1.4 to 2 g, 340 to 1,100 K, 1 to 10 kPa of air and no ocean.",
+      "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
+    },
+    {
+      "letter": "U",
+      "name": "Methane-ethane world",
+      "kind": "t",
+      "sentence": "A methane-ethane world, a Titan-like body: liquid methane and ethane at 91 to 130 K and 50 to 500 kPa of air with methane in it.",
+      "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
+    },
+    {
+      "letter": "Y",
+      "name": "Sulfuric acid world",
+      "kind": "t",
+      "sentence": "A sulfuric acid world: liquid sulfuric acid at 300 to 350 K under a sulfur air (sulfur dioxide 3 percent or more).",
+      "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
+    },
+    {
+      "letter": "X",
+      "name": "Ammonia-water world",
+      "kind": "t",
+      "sentence": "An ammonia-water world: an ocean of ammonia and water, at least 10 percent ammonia by mass of the water, at 190 to 240 K, often under an ice lid.",
+      "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     }
   ],
   "core": [

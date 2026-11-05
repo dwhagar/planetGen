@@ -129,14 +129,17 @@ def apply_class(planet):
     time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
     """
     planet.planet_class = None
-    planet.class_variant = None
+    planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
     planet_type.fill(planet)            # GEN.1219: terrestrial, transitional or gas, from the envelope share (GEN.1226)
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
-    planet.planet_class = planet_classes.classify(planet)
-    if planet.planet_class is None:
+    detail = planet_classes.classify_detail(planet)
+    if detail is None:
         return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+    planet.planet_class = detail.letter
     body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
-    planet.class_variant = class_code.DIGITS[0]     # GEN.1220: the digit of the class code; the best-fit classifier (GEN.1207) gives 1 to 4
+    # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
+    planet.class_variant, planet.class_match = detail.digit, detail.match
+    planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
 
 
 @finite_domain()

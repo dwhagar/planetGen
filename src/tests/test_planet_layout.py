@@ -212,3 +212,11 @@ def test_the_life_section_has_a_row_for_each_kind_and_the_stored_facts():
     assert view["readings"][2] == {"kind": "Fauna", "abundance": "Absent", "trend": "", "security": "", "left": ""}
     assert dict(view["facts"]) == {"Stage": "small mobile animals", "Animal grade": "A2", "Pace of evolution": "standard",
                                    "Age of the system": "4.60 billion years", "Stage reached at": "3.60 billion years"}
+
+
+def test_the_summary_says_how_well_the_class_fits_and_what_the_runner_up_is():
+    """GEN.1207: `It fits class M 92 percent and class O 41 percent.`; a body that fits no class says its nearest is shown."""
+    text = " ".join(planet_summary.summary_sentences("Kepler b", {**ROW, "class_match": 0.92, "runner_up_class": "O", "runner_up_match": 0.41}, VALUES))
+    assert 'It fits class <a href="/classes/planet/M">M</a> 92 percent and class O 41 percent.' in text
+    hole = " ".join(planet_summary.summary_sentences("Kepler b", {**ROW, "class_match": 0.0}, VALUES))
+    assert 'No class fits it; class <a href="/classes/planet/M">M</a> is the nearest.' in hole

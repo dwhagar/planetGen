@@ -95,3 +95,4 @@ Commit each file came from:
 - v209: train 10 (GEN.1070 belt members, before GEN.1232a belt history text; train 10 schema at f91e65b29)
 - v210: train 10 (GEN.1232a belt history text, before DOC.103 American spelling; the train schema before the sweep)
 - v211: GEN.1221 (humidity and groundwater, before the next change; train 10 schema at bf93bc352)
+- v212: GEN.1207 (class match and runner-up, before the next change; the GEN.1221 schema)
