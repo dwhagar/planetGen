@@ -1591,7 +1591,10 @@ def object_list(kind):
     name from this one on, with `sort=name` only; `past_end` is true when none lies at or past it and the last page
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
-    `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
+    `placed`; a star, planet or moon item also carries its stored physics values, UX.187: the star's `temperature_k`, `luminosity_w`, `age_gy`
+    and `rotation_period_hours`, and the planet's or moon's `distance_km`, `eccentricity`, `surface_temperature_k`, `rotation_period_hours`,
+    `axial_tilt_deg` and `internal_heat_flux_w_m2`, each null where none is stored; the whole sheet is `GET /api/objects/<ref>/sheet`),
+    `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
     that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])

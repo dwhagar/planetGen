@@ -62,12 +62,12 @@ HABITABILITY_KINDS = {"planet": "planets", "moon": "moons"}
 """dict: The kinds whose items carry their PHI-6 rating (UX.100), and the table that stores it."""
 
 PHYSICS_COLUMNS = {
-    "star": ("temperature_k", "luminosity_w", "age_gy"),
-    "planet": ("distance_km", "eccentricity", "surface_temperature_k"),
-    "moon": ("distance_km", "eccentricity", "surface_temperature_k"),
+    "star": ("temperature_k", "luminosity_w", "age_gy", "rotation_period_hours"),
+    "planet": ("distance_km", "eccentricity", "surface_temperature_k", "rotation_period_hours", "axial_tilt_deg", "internal_heat_flux_w_m2"),
+    "moon": ("distance_km", "eccentricity", "surface_temperature_k", "rotation_period_hours", "axial_tilt_deg", "internal_heat_flux_w_m2"),
 }
 """dict: The stored physics values each kind's items carry beside the index's own (UX.187: a star's temperature, luminosity
-and age; a planet's or moon's orbit size, eccentricity and surface temperature), read from the kind's table. The lists show
+and age and a star's spin; a planet's or moon's orbit size, eccentricity, surface temperature, spin, tilt and internal heat flow), read from the kind's table. The lists show
 them; they are not sorts (the index holds no column to order by)."""
 
 _TABLES = {"star": "stars", "planet": "planets", "moon": "moons"}
