@@ -59,6 +59,12 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | MAP.168 | Later; only if PERF.72 says it is cheap. |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | MAP.168 |  |
 | MAP.167 | Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0) | GEN.199, MAP.168, MAP.169, UX.94, API.24 | Seminal feature of 9.0 (Boss 2026-10-10). Parent. |
+| PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | MAP.384, MAP.385 |  |
+| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field | MAP.385 |  |
+| MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies |  |  |
+| MAP.385 | Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget | MAP.384 |  |
+| MAP.384 | Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening |  |  |
+| MAP.383 | Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both |  |  |
 
 ## Phase 4: Living population and trade
 

@@ -14,10 +14,10 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.263 |
-| MAP | MAP.383 |
+| MAP | MAP.388 |
 | NAV | NAV.77 |
 | GEN | GEN.1283 |
-| PERF | PERF.243 |
+| PERF | PERF.244 |
 | DB | DB.110 |
 | API | API.41 |
 | ADM | ADM.138 |
@@ -2442,6 +2442,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.380 | The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug) | none | done, PR #4997 |
 | MAP.381 | Sector Map: draw the globular clusters and label them by name or designation | none | open |
 | MAP.382 | The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug) | none | done, PR #5111 |
+| MAP.383 | Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both | none | open |
+| MAP.384 | Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening | none | open |
+| MAP.385 | Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget | none | open |
+| MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies | none | open |
+| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2855,6 +2860,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.240 | A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug) | none | open |
 | PERF.241 | A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug) | none | open |
 | PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | none | open |
+| PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
