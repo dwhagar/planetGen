@@ -19,8 +19,11 @@ from planetgen.galaxy import frame, galactic_orbit, spherical
 from planetgen.generation import ejection_events, rogue_landing
 from planetgen.generation.phenomena import starless_host
 from planetgen.physics import constants, planet_architecture, rogue_moons, rogue_topup
+from planetgen.physics import unit_registry as units
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 ToppedRogue = collections.namedtuple("ToppedRogue", ("rogue", "planet", "landing", "note"))
 """One top-up rogue: the plan's `TopUpRogue`, the planet through the chain, where it is now (`rogue_landing.Landing`) and the sentence that says where it
@@ -38,7 +41,7 @@ def note_of(rogue):
 
 def _event(index, rogue, donor, formation_au, scatter_au, uid_text):
     """The synthetic `EjectionEvent` of a top-up rogue: only the mass, the formation distance and the moon limit are read by the chain."""
-    mass_kg = rogue.mass_earth * constants.EARTH_MASS_TO_KG
+    mass_kg = _mearth_to_kg(rogue.mass_earth)
     origin = rogue.apparent_origin
     jupiter_kg = constants.JUPITER_MASS_TO_KG
     hill_au = formation_au * (mass_kg / (3.0 * donor.mass)) ** (1.0 / 3.0)

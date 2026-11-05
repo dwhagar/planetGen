@@ -46,6 +46,7 @@ import numpy as np
 
 from planetgen.galaxy import density
 from planetgen.physics import sky_photometry
+from planetgen.util import detmath
 
 CELL_PC = 50.0
 """float: Side of the observer cells that share a band (parsecs)."""
@@ -296,7 +297,7 @@ def tint():
     """The colour of the glow, linear red, green and blue with a luminance (0.2126, 0.7152, 0.0722) of 1: the blackbody of `TINT_TEMPERATURE_K`."""
     from planetgen.galaxy import sky
     rgb = sky.star_colours([TINT_TEMPERATURE_K])[0]
-    return rgb / float(np.dot(rgb, (0.2126, 0.7152, 0.0722)))
+    return rgb / detmath.dot(rgb, (0.2126, 0.7152, 0.0722))
 
 
 def face_bilinear(values, directions):

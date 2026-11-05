@@ -465,6 +465,12 @@ class SettingsFile(_Section):
                             label="Settings backups kept",
                             summary="How many settings backup archives to keep; the oldest is "
                                     "deleted first.")
+    backup_parity: bool = opt(True, "Put a copy of the sector repair file (the parity file) in every full backup archive, so a "
+                              "galaxy whose live repair file is lost can still be repaired from a backup. The copy is as big as the "
+                              "file (about 7 percent of the sectors' size); switch it off for a very large galaxy. The settings "
+                              "backup made before each save never holds it.",
+                              group="housekeeping", label="Back up the repair file",
+                              summary="Include the sector repair file in full backup archives.")
 
 
 _HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")

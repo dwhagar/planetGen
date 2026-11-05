@@ -35,3 +35,23 @@ test("with no database named nothing is kept, and adding says so", async () => {
   const result = await W.add({ name: "Sol", value: "system:1" });
   assert.equal(result.ok, false);
 });
+
+test("the address of a course through waypoints lists them in order", () => {
+  assert.deepEqual(W.viaOf("?via=system:1,system:2,nebula:3"), ["system:1", "system:2", "nebula:3"]);
+  assert.deepEqual(W.viaOf("?cam=1,2,3"), []);
+  assert.equal(W.plotUrl("/galaxy?cam=1,2", ["system:1", "system:2"]), "/galaxy?cam=1%2C2&via=system:1,system:2".replace("%2C", ","));
+});
+
+test("fewer than two waypoints plot no course, and a course of its own is dropped for theirs", () => {
+  assert.equal(W.plotUrl("/galaxy?via=system:1,system:2&cam=5", ["system:1"]), "/galaxy?cam=5");
+  assert.equal(W.plotUrl("/galaxy?course=system:1,system:2", ["system:3", "system:4"]), "/galaxy?via=system:3,system:4");
+});
+
+test("the address says whether the waypoints' course is shown", () => {
+  const two = ["system:1", "system:2"];
+  assert.equal(W.plotState("", two), "none");
+  assert.equal(W.plotState("?via=system:1,system:2", two), "plotted");
+  assert.equal(W.plotState("?via=system:1,system:3", two), "stale");
+  assert.equal(W.plotState("?course=system:1,system:2", two), "other");
+  assert.equal(W.plotState("?pick=to&from=system:1", two), "other");
+});

@@ -98,6 +98,8 @@ class FakeData:
         self.calls = []
         self.nav_error = None
         self.nav_galaxy_scope = False
+        self.nav_system_scope = False
+        self.nav_legs = None
         self.nav_unknown_space = False
         self.nav_stone = False
         self.nav_graph = False
@@ -142,9 +144,9 @@ class FakeData:
 
     def get_object(self, db, ref):
         self.calls.append(("get_object", db, ref))
-        if ref != "planet:3":
+        if ref not in ("planet:3", "planet:4"):
             raise apiclient.NotFoundError(f"No such object: {ref}")
-        return {"ref": ref, "kind": "planet", "name": "Aster III", "parents": [
+        return {"ref": ref, "kind": "planet", "name": "Aster III" if ref == "planet:3" else "Aster IV", "parents": [
             {"ref": "galaxy", "kind": "galaxy", "name": "Galaxy"},
             {"ref": "sector:5", "kind": "sector", "name": "Sector"},
             {"ref": "system:1001", "kind": "system", "name": "Aster"}]}
@@ -168,7 +170,7 @@ class FakeData:
         kind, from_id = objectref.parse(from_ref)
         to_id = objectref.parse(to_ref)[1]
         result = {
-            "scope": "galaxy" if self.nav_galaxy_scope else "sector",
+            "scope": "system" if self.nav_system_scope else "galaxy" if self.nav_galaxy_scope else "sector",
             "origin": {"ref": from_ref, "kind": kind, "name": f"Start {from_id}"},
             "destination": {"ref": to_ref, "kind": objectref.parse(to_ref)[0], "name": f"End {to_id}"},
             "direct": direct,
@@ -195,9 +197,15 @@ class FakeData:
                 {"kind": "between", "from": from_ref, "to": to_ref, "direct": direct}],
             "note": "Same warp and fold tables." if kind in objectref.BODY_KINDS else None,
         }
+        if self.nav_system_scope:   # NAV.27: a trip inside one system is one leg, no route of hops
+            result["route"] = None
+            result["legs"] = [{"kind": "within", "from": from_ref, "to": to_ref, "direct": direct}]
+        if self.nav_legs is not None:   # NAV.22: legs inside systems, as the API plans them
+            result["legs"] = self.nav_legs
         if adjusted and self.nav_adjusted is not None:   # NAV.28: the course bent round keep-out spheres
             result["adjusted"] = self.nav_adjusted
-            result["route"]["adjusted_distance_ly"] = 3.9
+            if result["route"]:
+                result["route"]["adjusted_distance_ly"] = 3.9
         if graph and self.nav_graph and len(result["route"]["path"]) > 2:   # NAV.65: the links round the route, NAV.68 draws them
             stops = result["route"]["path"]
             result["route"]["graph"] = {
@@ -665,8 +673,15 @@ def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
     with app.test_request_context("/galaxy"):
         same_sector = galaxy_course("system:1001", "system:1002")
         assert same_sector["scope"] == "sector"
-        assert same_sector["points"] == []
         assert same_sector["sector"]["id"] == 5
+        # NAV.22: the course inside the sector is drawn in it, its stops placed in the galaxy frame from the sector's center.
+        from planetgen.galaxy import frame
+        assert [p["role"] for p in same_sector["points"]] == ["origin", "hop", "destination"]
+        for point, local_ly in zip(same_sector["points"], [(0.0, 0.0, 0.0), (1.5, 0.5, 0.0), (3.0, 1.0, 0.0)]):
+            expected = frame.local_to_galaxy_pc((500.0, 200.0, 10.0), tuple(ly_to_pc(c) for c in local_ly))
+            assert (point["x"], point["y"], point["z"]) == pytest.approx(expected)
+        assert [p["name"] for p in same_sector["direct"]] == ["Alpha", "Other"]
+        assert same_sector["readout"]["distance"]
         assert same_sector["navUrl"] == "/nav?from=system:1001&to=system:1002"
 
         fake.nav_galaxy_scope = True
@@ -1220,16 +1235,16 @@ def test_nav_course_diagram_marks_an_unknown_space_hop_and_does_not_link_a_stop_
 
 def test_nav_course_diagram_draws_the_neighbours_and_says_a_link_is_not_a_travel_lane(client, fake):
     """NAV.68: with the route's graph, stubs round the stops, the 'and N more' of a stop the cap cut, an arc between two stops that are
-    neighbours but no hop, and the page says a link is a neighbour relation and not a travel lane."""
+    neighbours but no hop, and the page says a link is a neighbor relation and not a travel lane."""
     fake.nav_graph = True
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
     diagram = re.search(r'<section class="panel nav-diagram".*?</section>', html, re.S).group(0)
     assert diagram.count('class="nav-diagram-neighbour nav-diagram-stub"') >= 3 * 3
     assert diagram.count('class="nav-diagram-neighbour nav-diagram-link"') >= 2 and "and 4 more" in diagram
-    assert "a link is a neighbour relation, not a travel lane" in diagram and "Neighbour (not a travel lane)" in diagram
+    assert "a link is a neighbor relation, not a travel lane" in diagram and "Neighbor (not a travel lane)" in diagram
     fake.nav_graph = False
     plain = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
-    assert "nav-diagram-stub" not in plain and "neighbour relation" not in plain
+    assert "nav-diagram-stub" not in plain and "neighbor relation" not in plain
 
 
 def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):
@@ -1378,6 +1393,30 @@ def test_the_nav_page_says_how_the_course_goes_round_what_it_would_pass_too_clos
     assert "on straight hops and" in page and "3.9" in page
 
 
+def test_the_nav_page_says_how_many_unresolved_stars_a_course_through_the_core_crosses(client, fake):   # NAV.75
+    fake.nav_galaxy_scope = True
+    adjusted = _adjusted(bent=False)
+    adjusted["passed_through"] = []
+    adjusted["passed_through_unresolved"] = {"crossings": 738.1, "length_pc": 202.0, "length_ly": 659.0,
+                                             "unresolved_systems": 1.5e7, "cells": 51}
+    fake.nav_adjusted = adjusted
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "crosses the dense core for" in page and "about 740 stars are too faint to be drawn" in page
+    assert "cannot go round the rest" in page
+    del adjusted["passed_through_unresolved"]
+    assert "dense core" not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+
+
+def test_the_nav_page_says_a_course_inside_a_system_is_aimed_where_the_body_will_be(client, fake):
+    fake.nav_system_scope = True
+    adjusted = _adjusted(bent=False)
+    adjusted.update(frame="system", unit="km", passed_through=[], moving_end=True)
+    fake.nav_adjusted = adjusted
+    page = client.get("/nav?from=planet:3&to=planet:4").get_data(as_text=True)
+    assert "Adjusted Course" in page
+    assert "Aimed at" in page and "where it will be on arrival" in page and "warp 1, 3 years, 6 months" in page
+
+
 def test_the_nav_page_says_so_when_nothing_bends_the_course(client, fake):
     fake.nav_galaxy_scope = True
     adjusted = _adjusted(bent=False)
@@ -1435,5 +1474,92 @@ def test_a_course_page_carries_the_save_button_the_record_and_the_courses_list(c
     assert set(record["direct"]) == {"distance_ly", "bearing_deg", "mark_deg"}
     assert record["route"]["path"][0] == "1001" and record["route"]["path"][-1] == "1002" and record["route"]["hops"]
     assert record["adjusted"]["avoided"] == ["system:1500", "asteroid_field:4"]
+    assert [hop["unknown_space"] for hop in record["route"]["hops"]] == [False, False]   # NAV.39: the flag is kept for each hop
     landing = client.get("/nav").get_data(as_text=True)
     assert "data-courses-list" in landing and "data-course-save-button" not in landing
+
+
+def test_a_saved_course_keeps_which_hops_were_unknown_space(client, fake):  # NAV.39
+    import html as _html
+    import json
+    import re as _re
+
+    fake.nav_galaxy_scope = True
+    fake.nav_unknown_space = True
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    record = json.loads(_html.unescape(_re.search(r'data-course-result="([^"]*)"', page).group(1)))
+    assert [hop["unknown_space"] for hop in record["route"]["hops"]] == [False, True]
+
+
+def _system_leg(kind, system_id, from_ref, to_ref, bent=True):
+    au = 149597870.7
+    points = [[-120.0 * au, 0.0, 0.0], [-2.0 * au, 0.5 * au, 0.0], [0.4 * au, 0.0, 0.0]] if bent else [[-120.0 * au, 0.0, 0.0], [0.4 * au, 0.0, 0.0]]
+    waypoints = [{"p": points[0], "kind": "start", "ref": None}]
+    if bent:
+        waypoints += [{"p": points[1], "kind": "tangent_in", "ref": "star:7"}]
+    waypoints.append({"p": points[-1], "kind": "end", "ref": None})
+    return {"kind": kind, "from": from_ref, "to": to_ref, "system_id": system_id,
+            "from_km": points[0], "to_km": points[-1],
+            "direct": {"distance_ly": 0.001, "bearing_deg": 90.0, "mark_deg": 0.0, "frame": "system"},
+            "adjusted": {"polyline": points, "waypoints": waypoints, "avoided": ["star:7"] if bent else [], "names": {"star:7": "Hot Star"},
+                         "aimed_at": [0.45 * au, 0.0, 0.0], "moving_end": True}}
+
+
+def test_the_legs_of_a_course_in_a_system_are_handed_to_that_systems_view(client, fake):  # NAV.22
+    from planetgen.web.nav_page import system_course
+
+    fake.nav_galaxy_scope = True
+    fake.nav_legs = [_system_leg("into", 1002, "system:1002", "planet:4"), _system_leg("out", 1001, "planet:3", "system:1001")]
+    with client.application.test_request_context("/system/1002"):
+        course = system_course(1002, "system:1001", "system:1002")
+        assert course["navUrl"] == "/nav?from=system:1001&to=system:1002"
+        (leg,) = course["legs"]
+        assert (leg["kind"], leg["label"], leg["from"], leg["to"]) == ("into", "Into the system", "the heliopause", "Other")
+        assert len(leg["points"]) == 3 and leg["bent"] is True and leg["avoided"] == ["Hot Star"] and leg["aimed"] is not None
+        assert leg["length_au"] == pytest.approx(120.0 + 2.0 + 2.4, rel=0.05)
+        # Another system of the course, and one the course never enters, have their own legs or none.
+        assert [l["kind"] for l in system_course(1001, "system:1001", "system:1002")["legs"]] == ["out"]
+        assert system_course(9999, "system:1001", "system:1002") is None
+        # A leg the API could not plan is the straight line between its ends, and says nothing is avoided.
+        fake.nav_legs = [{**_system_leg("into", 1002, "system:1002", "planet:4", bent=False), "adjusted": None}]
+        straight = system_course(1002, "system:1001", "system:1002")["legs"][0]
+        assert len(straight["points"]) == 2 and straight["bent"] is False and straight["avoided"] == [] and straight["aimed"] is None
+
+
+def test_a_course_page_links_to_the_system_view_of_each_system_it_has_a_leg_in(client, fake):  # NAV.22
+    fake.nav_galaxy_scope = True
+    fake.nav_legs = [_system_leg("out", 1001, "planet:3", "system:1001"), _system_leg("into", 1002, "system:1002", "planet:4")]
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'href="/system/1001?view=3d&amp;course=system:1001,system:1002">Show in start system view</a>' in page
+    assert 'href="/system/1002?view=3d&amp;course=system:1001,system:1002">Show in destination system view</a>' in page
+    fake.nav_legs = None
+    assert "Show in system view" not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+
+
+def test_a_course_through_waypoints_joins_the_legs_at_the_waypoints(app, fake):  # NAV.49
+    from planetgen.web import nav_page
+
+    fake.nav_galaxy_scope = True
+    fake.nav_adjusted = _adjusted()
+    fake.systems[1003] = {**fake.systems[1002], "id": 1003, "name": "Third 1003"}
+    with app.test_request_context("/galaxy"):
+        course = nav_page.galaxy_course_through(["system:1001", "system:1002", "system:1003"])
+    assert course["via"] is True and course["scope"] == "galaxy"
+    # Each leg is origin, one stop on the way, destination; the second leg starts at the waypoint the first ended at.
+    assert [point["role"] for point in course["points"]] == ["origin", "hop", "waypoint", "hop", "destination"]
+    assert course["waypoints"] == [0, 2, 4]
+    assert [call[2:4] for call in fake.calls if call[0] == "get_nav"] == [("system:1001", "system:1002"), ("system:1002", "system:1003")]
+    assert len(course["directs"]) == 2 and course["direct"] is None
+    assert course["directs"][0][1]["name"] == course["points"][2]["name"] == course["directs"][1][0]["name"]
+    assert len(course["adjusted"]) == 2          # each leg's direct course bends round the same sphere in the fake
+    assert course["readout"]["distance"] and [stop["name"] for stop in course["readout"]["stops"]] == [course["points"][2]["name"]]
+    assert course["navUrl"] == "/nav?from=system:1001&to=system:1003"
+
+
+def test_a_course_through_fewer_than_two_waypoints_is_not_drawn(app, fake):  # NAV.49
+    from planetgen.web import nav_page
+
+    with app.test_request_context("/galaxy"):
+        assert nav_page.galaxy_course_through(["system:1001"]) is None
+        assert nav_page.galaxy_course_through([]) is None
+    assert not [call for call in fake.calls if call[0] == "get_nav"]

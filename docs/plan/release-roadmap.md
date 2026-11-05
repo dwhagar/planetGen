@@ -89,7 +89,7 @@ Status: proposed; Boss chose the headline (11:42 PM EDT) Progress (12:34 PM EDT 
 Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
 Today: (new)
 Change: Boss (11:26 PM EDT, 11:42 PM EDT): the view from a planet moved here from 9.0 and is the headline of 9.1, with the gravity map (MAP.167) as the second feature. Its sky data and research are in 8.9 (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and it builds on the atmosphere colour of 9.0 (VIEW.11 extends GEN.416). The gravity map keeps its foundations in 8.3 (GEN.198, TEST.131).
-Needs: 8.3 (so the sky changes with the date), 8.4 (the worlds) and the atmosphere colour of 9.0. VIEW.2 starts with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates. The gravity map needs GEN.199 and PERF.72 (the per-zone grid and its cost), API.24, MAP.168, MAP.169 and UX.94; MAP.170 (the coarse Galaxy Map layer) stays later and optional.
+Needs: 8.3 (so the sky changes with the date), 8.4 (the worlds) and the atmosphere colour of 9.0. VIEW.2 starts with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates. The gravity map (Boss, 5:14 PM EST on 2026-11-05: foundations spread back, nothing in 8.1) is built in 8.2 (MAP.383 to MAP.386, PERF.72, PERF.243), 8.3 (GEN.198, GEN.199, MAP.387, API.24), 8.5 (MAP.168, MAP.169, UX.94) and 9.1 (MAP.167 and the optional MAP.170).
 
 ## Release 9.2: Politics and territories
 Status: Boss ordered it before ships and stations; idea only, no items

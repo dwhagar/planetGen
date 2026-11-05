@@ -685,6 +685,34 @@ def test_galaxy_page_shows_the_course_legend_and_readout(client, fake, monkeypat
     assert "Direct line" not in client.get("/galaxy?course=system:1,system:2").get_data(as_text=True)
 
 
+def test_the_galaxy_map_draws_the_course_through_the_waypoints_in_its_address(client, fake, monkeypatch):  # NAV.49
+    from planetgen.web import nav_page
+
+    asked = []
+
+    def through(raws):
+        asked.append(raws)
+        return {"scope": "galaxy", "points": [{"name": "A", "role": "origin", "url": "/system/1", "x": 1.0, "y": 0.0, "z": 0.0, "hopUnknown": False},
+                                              {"name": "B", "role": "waypoint", "url": "/system/2", "x": 2.0, "y": 1.0, "z": 0.0, "hopUnknown": False},
+                                              {"name": "C", "role": "destination", "url": "/system/3", "x": 3.0, "y": 0.0, "z": 0.0, "hopUnknown": False}],
+                "sector": None, "via": True, "waypoints": [0, 1, 2], "navUrl": "/nav?from=system:1&to=system:3", "direct": None,
+                "directs": [[{"x": 1.0, "y": 0.0, "z": 0.0}, {"x": 2.0, "y": 1.0, "z": 0.0}]], "adjusted": [],
+                "readout": {"distance": "2 ly", "course": None, "frame": "Galactic", "route_distance": "2 ly", "times": [],
+                            "stops": [{"name": "B", "url": "/system/2"}], "diagram": None}}
+
+    monkeypatch.setattr(nav_page, "galaxy_course_through", through)
+    page = client.get("/galaxy?via=system:1,system:2,system:3").get_data(as_text=True)
+    assert asked == [["system:1", "system:2", "system:3"]]
+    assert "Showing the course through your <strong>3 waypoints</strong>, from <strong>A</strong> to <strong>C</strong>" in page
+    assert "course-readout" in page and "Direct line" in page
+    asked.clear()
+    assert "Showing the course" not in client.get("/galaxy?via=system:1").get_data(as_text=True) and asked == []
+    # A course of its own wins over the waypoints.
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda a, b: None)
+    client.get("/galaxy?course=system:1,system:2&via=system:1,system:2,system:3")
+    assert asked == []
+
+
 def test_galaxy_page_without_a_course(client, fake):
     assert _scene(client.get("/galaxy").get_data(as_text=True))["course"] is None
     # A malformed value asks nothing and draws nothing.

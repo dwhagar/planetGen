@@ -98,6 +98,18 @@ def _spot(page, reach):
     return (spot["x"], spot["y"])
 
 
+def _at_rest(page, limit=60):
+    """The camera once two reads 100 ms apart agree (it is no longer coming in or going out)."""
+    last = _camera(page)
+    for _ in range(limit):
+        page.wait_for_timeout(100)
+        now = _camera(page)
+        if now["dist"] == last["dist"]:
+            return now
+        last = now
+    return last
+
+
 def _zoom_in_until(page, reach, edges, limit=40):
     """Wheels toward the sector until the camera is within `edges` sector edges of its center (or no closer is
     possible); returns the distance in edges."""
@@ -106,8 +118,13 @@ def _zoom_in_until(page, reach, edges, limit=40):
         if distance <= edges:
             return distance
         before = _camera(page)["zoom"]
-        _wheel(page, _spot(page, reach), -40)
-        if _camera(page)["zoom"] >= before - 1e-9:
+        # TEST.411: a tick moves the camera over the frames after it (slowly on a loaded machine), so the zoom is read once it has come to
+        # rest; read at once it can look unchanged half way in. The window's nearest zoom is where a second tick moves nothing either.
+        for _ in range(2):
+            _wheel(page, _spot(page, reach), -40)
+            if _at_rest(page)["zoom"] < before - 1e-9:
+                break
+        else:
             break
     return _distance(page, reach.center) / reach.edge
 
@@ -137,7 +154,7 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
     # Nearer is more of it, never less, and it is whole by one edge.
     shares = [ambient["share"]]
     for _ in range(40):
-        if _distance(page, reach.center) / reach.edge < 0.9:
+        if _distance(page, reach.center) / reach.edge <= 1.0:      # whole from one edge in; one more tick would open the sector (TEST.575)
             break
         _wheel(page, _spot(page, reach), -40)
         page.wait_for_timeout(100)
@@ -162,14 +179,21 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
 def test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is(page, reach):
     """Zoomed in until the scene is whole, one more wheel tick opens the sector with no flight (the camera does not
     move) and no second fetch; the address becomes the opened sector's."""
-    _zoom_in_until(page, reach, 0.6)
-    _wheel(page, _spot(page, reach), -600)   # held at the window's nearest zoom, half an edge from the sector
-    page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0.99", timeout=15000)
-    before = _camera(page)
+    _zoom_in_until(page, reach, 1.0)
+    page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share >= 0.999", timeout=15000)
+    # TEST.411: a turn of the wheel of any size is one step (the map caps it), and the step that finds the camera at the window's nearest zoom
+    # opens the sector (`zoomAcross` takes no gesture into account), so the ticks are made one at a time, each once the camera is at rest,
+    # until the sector opens; the camera has not moved in that one.
+    for _ in range(20):
+        before = _at_rest(page)
+        assert "open=1" not in page.url
+        _wheel(page, _spot(page, reach), -40)
+        _at_rest(page)
+        if page.evaluate("() => location.search.includes('open=1')"):
+            break
+    else:
+        pytest.fail(f"no tick opened the sector; the camera is {before['dist'] / reach.edge:.2f} edges from it")
     assert before["dist"] / reach.edge < 0.6
-    page.wait_for_timeout(500)   # the wheel quiet: a new gesture
-    _wheel(page, _spot(page, reach), -40)
-    page.wait_for_function("() => location.search.includes('open=1')", timeout=20000)
     _ready(page)
     after = _camera(page)
     assert after["dist"] == pytest.approx(before["dist"], rel=1e-6), (before["dist"], after["dist"])
@@ -177,8 +201,7 @@ def test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is(page, 
     assert _ambient(page) is None
     # ... and the wheel goes on in from there (the opened sector's own zoom range).
     _wheel(page, _spot(page, reach), -40)
-    page.wait_for_timeout(300)
-    assert _camera(page)["dist"] < after["dist"]
+    assert _at_rest(page)["dist"] < after["dist"]
 
 
 def _system_requests(page):

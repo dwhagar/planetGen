@@ -53,13 +53,16 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model |  | Boss 5:01 PM EDT: gravity of left-out mass. |
-| NAV.25 | Find the obstacles along a path |  | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
-| NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56, NAV.62 |  |
-| NAV.27 | Moving bodies inside a system | NAV.26 |  |
-| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
-| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.51 | Parent; closes with its subitems. |
+| NAV.6 | Courses that steer clear of gravity wells |  | Parent; closes with its subitems. |
+
+### Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | API.24 |  |
+| MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | MAP.168 |  |
+| UX.94 | Gravity map wording: the legend, the mode names and the Map help text | MAP.168 |  |
 
 ## Phase 3: Waypoints and the headline
 
@@ -71,9 +74,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared |  | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
-| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | NAV.49, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). |
-| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.49, NAV.58, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
 
 ## Phase 4: Trade routes
 

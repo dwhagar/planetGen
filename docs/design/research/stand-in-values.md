@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1151 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1150 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 157 | 18 | 8 | 1 | 0 | 184 |
-| T2 | 120 | 48 | 1 | 1 | 0 | 170 |
+| T2 | 120 | 47 | 1 | 1 | 0 | 169 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 29 | 14 | 5 | 68 | 33 | 149 |
-| All | 636 | 243 | 53 | 175 | 44 | 1151 |
+| All | 636 | 242 | 53 | 175 | 44 | 1150 |
 
 ## How the labels were given
 
@@ -1831,7 +1831,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| BHS1 | P | T2 | L1 | belt_history.GRAND_TACK_SURVIVAL (2e-3, 1e-2) and belt_history.INSTABILITY_SURVIVAL (0.1, 0.5): the share of a belt left after a migration of a giant through it and after an instability alone, drawn log-uniform | one decade each way (as BR4 and BR5 of 6.95) | belts of systems with such an event | a system with the event whose belt is outside the range | N-body migration and instability runs with the system's own giants (GEN.1054 origin table) | [R4603] ([R4603], READ); [R3150] ([R3150], READ) | - | - |
 | BHS2 | P | T6 | L1 | belt_history.SURFACE_DENSITY_SLOPE 1.5: the belt's solids go as a^-1.5, so the mass between two distances goes as a^0.5 | 1.0 to 2.0 | belts of 0.1 to 100 au | the mass share of an engulfed or truncated belt differing from the law by more than a factor 2 | the system's own disc profile (GEN.1054) | educated guess from physics (the minimum-mass nebula; the same slope as the scatter step SX1) | - | - |
 | BHS3 | P | T9 | L3 | belt_history.MASS_LOSS_SCATTER_SHARE 0.5: the share of a belt thrown inward per unit fraction of the star's mass lost, if giants remain | 0.1 to 1 | belts beyond a few au of a star that becomes a white dwarf, with giants left | an N-body run of a giant system losing 80 percent of its mass whose belt scatters a share far from the law | an N-body population synthesis of belts round mass-losing stars ([R1031] for planets only) | educated guess from needed output (the observed 27 to 50 percent of white dwarfs accreting) | - | no data |
 | BHS4 | P | T6 | L1 | belt_history.DELIVERY_MYR 100: how long the scattered rock takes to fall on the white dwarf | 20 to 200 Myr (the cooling ages surveyed) | white dwarfs of 20 to 200 Myr cooling age | polluted white dwarfs showing accretion that stops as the delivery time runs out | a delivery time from the scattering rate of the system's own giants | the cooling-age range of [R2415] (READ), the middle in the log | - | - |

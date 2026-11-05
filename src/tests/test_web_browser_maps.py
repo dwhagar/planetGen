@@ -873,6 +873,41 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
 
 
+def test_system_page_3d_view_draws_a_nav_course_that_lies_in_the_system(page, base_url, site_app, monkeypatch):
+    """NAV.22: a course asked for with `?course=` is drawn in the 3D view as a line from where it crosses the heliopause to its body, with
+    a ring at each end and one where a moving destination is aimed, in both scales, and listed under the view with the way back."""
+    from planetgen.web import nav_page
+
+    system_id, scene = _system_with_planets(site_app.test_client())
+    au_km = 149597870.7
+    heliopause = 120.0 * au_km
+    course = {"navUrl": "/nav?from=system:1&to=planet:9", "legs": [{
+        "kind": "into", "label": "Into the system", "from": "the heliopause", "to": "Fixture World",
+        "points": [[-heliopause, 0.0, 0.0], [-2.0 * au_km, 0.5 * au_km, 0.0], [0.4 * au_km, 0.0, 0.0]],
+        "aimed": [0.45 * au_km, 0.0, 0.0], "length_au": 122.0, "bent": True, "avoided": ["Fixture Giant"]}]}
+    monkeypatch.setattr(nav_page, "system_course", lambda system, from_raw, to_raw: course)
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}?course=system:1,planet:9", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    assert not errors, errors
+    drawn = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().map((leg) => ({kind: leg.kind, points: leg.line.length, aimed: !!leg.aimed}))")
+    assert drawn == [{"kind": "into", "points": 2 * 24 + 1, "aimed": True}]
+    note = page.locator("#sysview3d-course").inner_text()
+    assert "Into the system" in note and "Fixture World" in note and "Fixture Giant" in note and "back to the course" in note
+    assert page.locator("#sysview3d-course a").get_attribute("href") == "/nav?from=system:1&to=planet:9"
+    page.select_option("#sysview3d-scale", "true")
+    drawn = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().map((leg) => leg.line.length)")
+    assert drawn == [3]
+    assert not errors, errors
+    # No course asked for: nothing is drawn and no list is made.
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    assert page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().length") == 0
+
+
 def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_url, site_app):
     """MAP.287: the 3D system view takes the body look record the System Map takes: a star, planet and moon is drawn
     from its `look` (seeded, composition-led), and once the painters have run a star and a solid world show a painted
@@ -1242,32 +1277,51 @@ def test_reduced_motion_holds_the_bodies_still(page, base_url, site_app):
     assert page.evaluate("() => localStorage.getItem('planetgen.spin')") is None, "the switch itself was not touched"
 
 
+def _systems_with_moons(client, limit=8):
+    """Up to `limit` generated systems that have a planet with moons, each as `(system id, scene)`."""
+    found = []
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if any(planet["moons"] for planet in scene["planets"]):
+            found.append((system["id"], scene))
+            if len(found) == limit:
+                break
+    return found
+
+
 def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(page, base_url, site_app):
     """MAP.328: in the 3D view a body's mesh turns by the angle spin.js gives for the elapsed spin time, about its stored
-    axis; a body with no stored period stays where it is."""
+    axis; a body with no stored period stays where it is. (TEST.575: the first system with moons may have only one body that turns
+    freely, its moons locked, so the test takes the first of the systems with moons that has two.)"""
     import math
-    system_id, scene = _system_with_moons(site_app.test_client())
     page.emulate_media(reduced_motion="no-preference")
-    page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
-    page.wait_for_selector('#sysview3d[data-ready="true"]')
-    got = page.evaluate("""async () => {
-        const view = document.querySelector('#sysview3d-canvas').systemView;
-        const first = view.spins();
-        await new Promise((resolve) => setTimeout(resolve, 900));
-        return {first: first, second: view.spins()};
-    }""")
-    checked = 0
-    for a, b in zip(got["first"], got["second"]):
-        elapsed = b["at"] - a["at"]
-        assert elapsed > 0.2, elapsed
-        dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
-        turned = 2 * math.acos(min(1.0, dot))
-        if a["locked"]:
-            assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
-            continue
-        assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
-        checked += a["rate"] > 0
-    assert checked >= 2, ("bodies with a stored period turn", [(a["ref"], a["rate"], a["locked"]) for a in got["first"]])
+    systems = _systems_with_moons(site_app.test_client())
+    assert systems, "no generated system has a planet with moons"
+    seen = []
+    for system_id, _scene in systems:
+        page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
+        page.wait_for_selector('#sysview3d[data-ready="true"]')
+        got = page.evaluate("""async () => {
+            const view = document.querySelector('#sysview3d-canvas').systemView;
+            const first = view.spins();
+            await new Promise((resolve) => setTimeout(resolve, 900));
+            return {first: first, second: view.spins()};
+        }""")
+        checked = 0
+        for a, b in zip(got["first"], got["second"]):
+            elapsed = b["at"] - a["at"]
+            assert elapsed > 0.2, elapsed
+            dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
+            turned = 2 * math.acos(min(1.0, dot))
+            if a["locked"]:
+                assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
+                continue
+            assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
+            checked += a["rate"] > 0
+        seen.append((system_id, checked))
+        if checked >= 2:
+            return
+    pytest.fail(f"no system with moons has two bodies that turn freely: {seen}")
 
 
 @pytest.mark.viewport(1280, 900)
@@ -1360,3 +1414,32 @@ def test_a_locked_moon_in_the_system_map_keeps_its_day_side_toward_its_planet(pa
     for moon in (s for s in spins if s["kind"] == "moon" and s["locked"] and s["toward"]):
         want = (parent["cx"] - moon["cx"], -(parent["cy"] - moon["cy"]))
         assert moon["toward"][0] == pytest.approx(want[0], abs=1e-6) and moon["toward"][1] == pytest.approx(want[1], abs=1e-6), (moon, want)
+
+
+def test_a_system_page_adds_and_removes_a_waypoint(page, base_url, sample_params):
+    """NAV.49: the Nav menu of a system page has Add waypoint, which says the waypoint's place once it is one and keeps it across a
+    reload; the sector page, which has no NAV endpoint, has none."""
+    system_id = sample_params["from_id"]
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    item = page.locator("[data-waypoint-toggle]")
+
+    def open_menu():
+        page.locator("sl-dropdown.nav-menu sl-button").click()
+        item.wait_for(state="visible")
+
+    open_menu()
+    assert item.inner_text() == "Add waypoint"
+    item.click()
+    page.wait_for_function("document.querySelector('[data-waypoint-toggle]').textContent === 'Remove waypoint 1'")
+    stored = page.evaluate("""() => {
+        const key = Object.keys(localStorage).find(k => k.startsWith('planetgen.waypoints.'));
+        return key ? JSON.parse(localStorage.getItem(key)) : [];
+    }""")
+    assert [entry["value"].split(":")[0] for entry in stored] == ["system"] and len(stored) == 1
+    page.reload(wait_until="load")
+    open_menu()
+    assert item.inner_text() == "Remove waypoint 1"
+    item.click()
+    page.wait_for_function("document.querySelector('[data-waypoint-toggle]').textContent === 'Add waypoint'")
+    page.goto(f"{base_url}/sector/{sample_params['sector_id']}", wait_until="load")
+    assert page.locator("[data-waypoint-toggle]").count() == 0

@@ -1932,11 +1932,16 @@ def _nav_endpoint(conn, ref):
             "anchor": anchor, "system_km": system_km}
 
 
-def _nav_leg(kind, origin_ref, destination_ref, course):
-    return {
+def _nav_leg(kind, origin_ref, destination_ref, course, system_id=None, ends_km=None):
+    """One leg of `nav_course`. A leg inside a system (NAV.27) also says which `system_id` and where it starts and ends (`from_km`,
+    `to_km`: the System Local Frame, km) so its adjusted course can be planned (`api.nav_system`)."""
+    leg = {
         "kind": kind, "from": origin_ref, "to": destination_ref, "direct": course,
         "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
     }
+    if system_id is not None:
+        leg.update(system_id=system_id, from_km=list(ends_km[0]), to_km=list(ends_km[1]))
+    return leg
 
 
 def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACENCY_K):
@@ -2016,7 +2021,8 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
             "scope": "system", "direct": course,
             "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
             "origin_position": tuple(a), "destination_position": tuple(b), "route": None,
-            "legs": [_nav_leg("within", origin["ref"], destination["ref"], course)],
+            "legs": [_nav_leg("within", origin["ref"], destination["ref"], course, system_id=origin["anchor"][1],
+                              ends_km=(origin["system_km"] or (0.0, 0.0, 0.0), destination["system_km"] or (0.0, 0.0, 0.0)))],
             "note": NAV_IN_SYSTEM_NOTE, **ends,
         }
 
@@ -2037,13 +2043,15 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     if origin["system_km"] is not None:
         edge = [v * _system_heliopause_km(conn, from_id) for v in heading]
         legs.append(_nav_leg("out", origin["ref"], object_ref.format("system", from_id), course_between(
-            [_km_to_ly(v) for v in origin["system_km"]], [_km_to_ly(v) for v in edge], frame=FRAME_SYSTEM)))
+            [_km_to_ly(v) for v in origin["system_km"]], [_km_to_ly(v) for v in edge], frame=FRAME_SYSTEM),
+            system_id=from_id, ends_km=(origin["system_km"], edge)))
     legs.append(_nav_leg("between", object_ref.format(from_kind if from_kind == "system" else from_type, from_id),
                          object_ref.format(to_kind if to_kind == "system" else to_type, to_id), result["direct"]))
     if destination["system_km"] is not None:
         edge = [-v * _system_heliopause_km(conn, to_id) for v in heading]
         legs.append(_nav_leg("into", object_ref.format("system", to_id), destination["ref"], course_between(
-            [_km_to_ly(v) for v in edge], [_km_to_ly(v) for v in destination["system_km"]], frame=FRAME_SYSTEM)))
+            [_km_to_ly(v) for v in edge], [_km_to_ly(v) for v in destination["system_km"]], frame=FRAME_SYSTEM),
+            system_id=to_id, ends_km=(edge, destination["system_km"])))
     return {**result, "legs": legs, "note": NAV_IN_SYSTEM_NOTE if len(legs) > 1 else None, **ends}
 
 

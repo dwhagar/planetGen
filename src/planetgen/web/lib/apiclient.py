@@ -978,6 +978,13 @@ def get_object_sheet(db, ref):
     return _request(f"/objects/{ref}/sheet", {"db": db})
 
 
+def get_belt_page(db, ref):
+    """Returns `GET /api/objects/<ref>/belt-page`'s dict (`belt`, `bodies`, `bins`, `density_factor`, `totals`), the information page data of an
+    asteroid belt -- see `describe/belt_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/belt-page", {"db": db})
+
+
 def get_object_children(db, ref, limit=None, after=None):
     """Returns `GET /api/objects/<ref>/children`'s dict (`ref`, `kind`, `total`, `items`, `next`), one keyset page of what
     belongs to an object -- see `db/children.py`."""

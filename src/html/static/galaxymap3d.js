@@ -57,6 +57,7 @@ const {
   neighbourBlock, sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
+const Waypoints = await import(`./waypoints.js${VERSION_QUERY}`);
 const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
@@ -514,6 +515,8 @@ function phenomenonUrl(cloud) {
 function phenomenonActions(item) {
   var endpoint = item.type + ":" + item.id;
   var spec = { bookmark: endpointBookmark(endpoint, item.name, sceneData.phenomenonUrl ? phenomenonUrl(item) : null) };
+  // NAV.49: where the Waypoint flag goes on the map.
+  if (spec.bookmark && [item.x, item.y, item.z].every(Number.isFinite)) spec.bookmark.position = [item.x, item.y, item.z];
   // Not while choosing a NAV endpoint (NAV.30): it would leave the course.
   if (sceneData.phenomenonUrl && !navPick.active()) {
     // A scattered point that nothing has built has no record of its own: its page is the scatter row's
@@ -751,6 +754,8 @@ function showStarInfo(star, nearby) {
     spec.view = { href: systemPage, label: "View system →" };
     // MAP.122: the ☆ saves the star's system (a star in unmade space has no system to keep).
     spec.bookmark = endpointBookmark("system:" + star.system_id, star.name || "Star system", systemPage);
+    // NAV.49: where the Waypoint flag goes on the map.
+    if (spec.bookmark) spec.bookmark.position = [star.x, star.y, star.z];
   }
   if (nearby) {
     spec.after = [nearby];
@@ -3572,15 +3577,17 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     // NAV.20: with stops on the way, the straight line from the start to the
     // end is drawn apart from the route, dashed and muted.
-    if (course.direct && course.direct.length === 2) {
-      var directPoints = course.direct.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+    // NAV.49: a course through waypoints has the straight line of each leg (`directs`).
+    var directPairs = course.directs && course.directs.length ? course.directs : course.direct && course.direct.length === 2 ? [course.direct] : [];
+    directPairs.forEach(function (pair) {
+      var directPoints = pair.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
       directPoints.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
       courseLines.direct.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
         color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
         dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
         gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
       }), true));
-    }
+    });
     // NAV.28: the course bent round keep-out spheres, one polyline for each line that bends, over the route in amber.
     var bentColor = mapVar("--tier-yellow", "#d9a400");
     (course.adjusted || []).forEach(function (line) {
@@ -3590,7 +3597,8 @@ function initGalaxyMap3d(canvasEl, data) {
         new THREE.LineBasicMaterial({ color: new THREE.Color(bentColor), depthTest: false, transparent: true })));
     });
     course.points.forEach(function (point, n) {
-      var ends = n === 0 || n === course.points.length - 1;
+      // NAV.49: a waypoint is ringed and named like an end.
+      var ends = n === 0 || n === course.points.length - 1 || point.role === "waypoint";
       var ring = new THREE.Sprite(new THREE.SpriteMaterial({
         map: highlightTexture, transparent: true, depthWrite: false, depthTest: false,
         sizeAttenuation: false, opacity: ends ? 1 : 0.7,
@@ -4409,6 +4417,139 @@ function initGalaxyMap3d(canvasEl, data) {
       if (id.indexOf("course-") === 0) showCourseForms();
     });
   }
+  // NAV.49: a flag, numbered in the order the waypoints were picked, at each waypoint whose place the map knows: the one its card gave
+  // when it was picked here, or the one the plotted course through them has. A layer of the Menu, shown unless the visitor hides it. The
+  // same scene serves every level of the map (the whole galaxy, a block, an opened sector or system) and a sector's own page.
+  var waypointFlags = new THREE.Group();
+  waypointFlags.renderOrder = 5;
+  scene.add(waypointFlags);
+  var flagMarkers = [];
+  stageView.layers.register({
+    id: "waypoints", label: "Waypoint flags", modes: ["galaxy"], group: "Show on the map", data: { waypoints: "flags" },
+    defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+    title: "Show or hide the flags that mark the stops picked for a course with Add waypoint",
+  });
+  stageView.readLayersFromLocation();
+  stageView.layers.refresh();
+  stageView.layers.registerKey({
+    id: "key-waypoints", layer: "waypoints", text: "Flag and number: a waypoint, numbered in the order picked", swatchClass: "map-key-waypoint",
+    drawn: function () { return stageView.layers.isOn("waypoints") && flagMarkers.length > 0; },
+  });
+  function waypointSpots() {
+    var entries = Waypoints.list();
+    // The plotted course knows where its waypoints are, whichever card they were picked from.
+    var plotted = course && course.via && course.waypoints && course.waypoints.length === entries.length ? course.waypoints : null;
+    var spots = [];
+    entries.forEach(function (entry, n) {
+      var at = plotted ? course.points[plotted[n]] : null;
+      if (at) spots.push({ n: n + 1, x: at.x, y: at.y, z: at.z });
+      else if (entry.position) spots.push({ n: n + 1, x: entry.position[0], y: entry.position[1], z: entry.position[2] });
+    });
+    return spots;
+  }
+  function drawWaypointFlags() {
+    flagMarkers.forEach(function (marker) { marker.sprite.material.map.dispose(); marker.sprite.material.dispose(); waypointFlags.remove(marker.sprite); });
+    courseMarkers = courseMarkers.filter(function (marker) { return flagMarkers.indexOf(marker) < 0; });
+    flagMarkers = waypointSpots().map(function (spot) {
+      var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: makeLabelTexture("\u2691 " + spot.n, accentColor), transparent: true, depthWrite: false, depthTest: false, sizeAttenuation: false,
+      }));
+      sprite.position.set(spot.x, spot.y, spot.z);
+      waypointFlags.add(sprite);
+      return { sprite: sprite, px: COURSE_LABEL_PX, label: true, number: spot.n };
+    });
+    courseMarkers = courseMarkers.concat(flagMarkers);
+    waypointFlags.visible = stageView.layers.isOn("waypoints");
+    stageView.layers.refreshKey();
+  }
+  drawWaypointFlags();
+  Waypoints.ready.then(drawWaypointFlags);
+  Waypoints.onChange(drawWaypointFlags);
+  stageView.layers.onChange(function (id) {
+    if (id === "waypoints") waypointFlags.visible = stageView.layers.isOn("waypoints");
+  });
+  // NAV.58: a flag is dragged onto a star system to put that system in the waypoint's place (the course is planned again through the new
+  // list). Registered ahead of the map's own pointer handlers, as the course rings' are; a flag on a ringed stop leaves the plain click to
+  // the ring (select the stop, open its page) and takes the drag.
+  var FLAG_GRAB_PX = 18;
+  var FLAG_DRAG_PX = 6;
+  var flagDrag = null;
+  var flagVector = new THREE.Vector3();
+  function flagAt(event) {
+    if (!waypointFlags.visible) return null;
+    camera.updateMatrixWorld();   // the view may have moved since the last frame was drawn
+    var rect = canvasEl.getBoundingClientRect();
+    var found = null;
+    var best = FLAG_GRAB_PX;
+    flagMarkers.forEach(function (marker) {
+      var at = marker.sprite.position;
+      flagVector.set(at.x, at.y, at.z).project(camera);
+      if (flagVector.z > 1) return;
+      var dx = (flagVector.x + 1) / 2 * rect.width + rect.left - event.clientX;
+      var dy = (1 - flagVector.y) / 2 * rect.height + rect.top - event.clientY;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < best) { best = distance; found = marker; }
+    });
+    return found;
+  }
+  // What a drop at the pointer lands on: a star system, or a phenomenon with a NAV endpoint, as a waypoint entry, or null. The same
+  // picker as a click reads, so what can be picked there (a star of the map, of an opened sector or of a system, a nebula) can be dropped on.
+  var NOT_DROPPED_ON = { choices: true, regions: true, "nebula-groups": true, markers: true };
+  function dropTarget(event) {
+    var hit = picker.pick(event.clientX, event.clientY, function (layer) { return !NOT_DROPPED_ON[layer.name]; });
+    var item = hit && hit.entry;
+    if (!item || typeof item !== "object") return null;
+    var value = item.system_id != null ? "system:" + item.system_id
+      : typeof item.endpoint === "string" ? item.endpoint
+      : typeof item.key === "string" && item.kind ? item.key
+      : item.type && item.id != null && !item.scattered ? item.type + ":" + item.id : null;
+    var url = item.href || (item.system_id != null && sceneData.systemUrl ? String(sceneData.systemUrl).replace("{id}", encodeURIComponent(item.system_id)) : null)
+      || (item.type && sceneData.phenomenonUrl ? phenomenonUrl(item) : null);
+    var entry = { name: item.name || "", value: value, kind: value ? value.split(":")[0] : "", url: url };
+    if ([item.x, item.y, item.z].every(Number.isFinite)) entry.position = [item.x, item.y, item.z];
+    return Waypoints.isWaypoint(entry) ? entry : null;
+  }
+  canvasEl.addEventListener("pointerdown", function (event) {
+    var marker = event.button === 0 ? flagAt(event) : null;
+    flagDrag = marker ? { marker: marker, x: event.clientX, y: event.clientY, active: false } : null;
+    // On a ringed stop the ring's own handler ends the event; elsewhere it is ended here, or the map would turn under the drag.
+    if (flagDrag && !(typeof ringAt === "function" && ringAt(event))) event.stopImmediatePropagation();
+  }, true);
+  canvasEl.addEventListener("pointermove", function (event) {
+    if (!flagDrag) return;
+    if (!flagDrag.active && Math.abs(event.clientX - flagDrag.x) + Math.abs(event.clientY - flagDrag.y) >= FLAG_DRAG_PX) {
+      flagDrag.active = true;
+      try { canvasEl.setPointerCapture(event.pointerId); } catch (err) { /* a synthetic pointer: the drag still works */ }
+    }
+    if (flagDrag.active) {
+      event.stopImmediatePropagation();
+      canvasEl.style.cursor = dropTarget(event) ? "copy" : "grabbing";
+    }
+  }, true);
+  canvasEl.addEventListener("pointerup", function (event) {
+    if (!flagDrag) return;
+    var drag = flagDrag;
+    flagDrag = null;
+    canvasEl.style.cursor = "";
+    if (!drag.active) return;
+    event.stopImmediatePropagation();
+    var entry = Waypoints.list()[drag.marker.number - 1];
+    var target = dropTarget(event);
+    if (!entry || !target || target.value === entry.value) return;
+    if (Waypoints.find(target.value)) {
+      window.alert((target.name || "That place") + " is already a waypoint.");
+      return;
+    }
+    Waypoints.replace(entry.value, target).then(function (result) { if (!result.ok) window.alert(result.reason); });
+  }, true);
+  canvasEl.addEventListener("pointercancel", function () { flagDrag = null; canvasEl.style.cursor = ""; }, true);
+  // For the browser tests: the flags drawn, `[number, x, y, z]` each.
+  canvasEl.galaxyWaypointFlags = function () {
+    return waypointFlags.visible ? flagMarkers.map(function (marker) {
+      var at = marker.sprite.position;
+      return [marker.number, at.x, at.y, at.z];
+    }) : [];
+  };
   // The superbubbles are a layer of the Menu, off unless the visitor shows them.
   if (bubbleMeshes.length) {
     stageView.layers.register({
@@ -4655,8 +4796,8 @@ function initGalaxyMap3d(canvasEl, data) {
       if ((course.adjusted || []).length) {
         layers.registerKey({ id: "key-course-bent", layer: "course-adjusted", text: "Amber line: the course bent round a keep-out sphere", swatchClass: "map-key-bent", drawn: function () { return stageView.layers.isOn("course-adjusted"); } });
       }
-      if (course.direct && course.direct.length === 2) {
-        layers.registerKey({ id: "key-direct", layer: "course-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return stageView.layers.isOn("course-direct"); } });
+      if (courseLines && courseLines.direct.children.length) {
+        layers.registerKey({ id: "key-direct", layer: "course-direct", text: course.via ? "Dashed line: the direct line of each leg, waypoint to waypoint" : "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return stageView.layers.isOn("course-direct"); } });
       }
     }
   })();
@@ -5212,7 +5353,7 @@ function initGalaxyMap3d(canvasEl, data) {
       point.set(star.x, star.y, star.z).project(camera);
       var x = (point.x + 1) / 2 * width;
       var y = (1 - point.y) / 2 * height;
-      return { id: star.id, system_id: star.system_id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y,
+      return { id: star.id, system_id: star.system_id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y, world: [star.x, star.y, star.z],
         visible: point.z > -1 && point.z < 1 && x >= 0 && x <= width && y >= 0 && y <= height };
     });
   };

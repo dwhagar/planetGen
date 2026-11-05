@@ -40,8 +40,11 @@ import os
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import constants, elements, imf, remnant_mass, remnant_progenitors, stellar_abundances
+from planetgen.physics import elements, imf, remnant_mass, remnant_progenitors, stellar_abundances
+from planetgen.physics import unit_registry as units
 from planetgen.util import draw
+
+_g_to_msun = units.converter("g", "Msun")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "remnant_yields.json")
 
@@ -83,7 +86,7 @@ def swept_up_mass_sol(radius_ly, density_cm3):
     radius_cm = radius_ly * _PC_PER_LY * _CM_PER_PC
     volume_cm3 = 4.0 / 3.0 * math.pi * radius_cm ** 3
     grams = volume_cm3 * density_cm3 * MEAN_PARTICLE_MASS_OVER_HYDROGEN * _HYDROGEN_MASS_G
-    return grams / (constants.SOLAR_MASS_TO_KG * 1000.0)
+    return _g_to_msun(grams)
 
 
 # --- The progenitor ----------------------------------------------------------------------------------------------------

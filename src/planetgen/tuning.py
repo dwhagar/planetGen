@@ -3380,6 +3380,12 @@ COURSE_ARC_SAMPLE_RAD = 0.05
 COURSE_POLYLINE_SAGITTA = 0.01
 """float: The drawn arc of a wrap is cut so that no chord sags from the sphere by more than this fraction of its radius (about 12 segments for a half circle)."""
 
+# NAV.27: the course planner inside a star system (docs/design/orbits/course-avoidance.md section 6).
+COURSE_SYSTEM_WARP_FACTOR = 1
+"""int: The warp factor a course inside a system is flown at when its destination's arrival time is worked out (warp 1 is the slowest of the planning tables, so the destination has moved the most; at warp 1 a planet moves 3% of Mercury's Hill radius while a ship crosses 0.28 AU)."""
+COURSE_SYSTEM_AIM_STEPS = 3
+"""int: The destination of a course inside a system is aimed at where it will be on arrival, a fixed point that converges in 2 to 3 steps (the speed of a planet against the ship's is below 2e-4)."""
+
 # Asteroid field classes (GEN.14, Boss 2026-09-30: "a digit and part
 # of the class"). The letter comes from composition and density, following
 # asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,

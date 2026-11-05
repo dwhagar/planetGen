@@ -2521,3 +2521,39 @@ Baseline: PR #1817.
 | GEN.1246 | 8.2 | Robust tile caching |
 | GEN.1244 | 8.2 | Robust tile caching |
 | TEST.346 | 8.1 | Bugs and flaky tests |
+| GEN.1218 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.575 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.595 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.597 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.49 | 8.5 | Waypoints and editing |
+| MAP.382 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.596 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.58 | 8.5 | Waypoints and editing |
+| TEST.601 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1280 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1279 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1232 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.27 | 8.5 | Steering clear of gravity wells |
+| NAV.51 | 8.5 | Steering clear of gravity wells |
+| TEST.292 | 8.1 | Bugs and flaky tests |
+| TEST.411 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.603 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.62 | 8.5 | Steering clear of gravity wells |
+| NAV.76 | 8.5 | Steering clear of gravity wells |
+| NAV.75 | 8.5 | Steering clear of gravity wells |
+| NAV.74 | 8.5 | Steering clear of gravity wells |
+| NAV.26 | 8.5 | Steering clear of gravity wells |
+| NAV.25 | 8.5 | Steering clear of gravity wells |
+| TEST.599 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.611 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.604 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.605 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.610 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.609 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.608 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.607 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.618 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.617 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.615 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.613 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.612 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

@@ -1085,6 +1085,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-16, 11:25 and 11:26 PM EDT): 9.1 is the view from a planet
   (VIEW.18) with the gravity map as its second feature, and 9.0 is
   composition and the atmosphere colour.
+  Gravity grid study done (PERF.72, Tides 1) (5:02 PM EST on
+  2026-11-05): Report reports/perf72-gravity-grid-cost-2026-11-05.md.
+  Build items filed: MAP.383 (decide first: GEN.115 smooth potential
+  versus generated stars would double count), MAP.384 kernel, MAP.385
+  hierarchy, MAP.386 system point mass, MAP.387 cache, PERF.243 perf
+  guard. Open question for MAP.167 to MAP.170: whether the volume view
+  is wanted at the core; it is a queued job there (about 2 minutes for
+  1,000 sectors), not an interactive layer. Needs Boss's word when the
+  layer is built.
+  Boss decision (5:14 PM EST on 2026-11-05): the gravity map is built so
+  it lands by 9.1, with the foundations spread back: 8.2 holds the
+  double-count decision (MAP.383), the kernel (MAP.384), the interaction
+  lists (MAP.385), the point mass per system (MAP.386), the perf guard
+  (PERF.243) and the cost study close-out (PERF.72); 8.3 holds the
+  evaluator (GEN.198), the per-zone grid (GEN.199), the cache and stamps
+  (MAP.387) and the route (API.24), because they ride on the orbital
+  update and the galaxy potential (GEN.115); 8.5 holds the Sector and
+  System Map layers and the wording (MAP.168, MAP.169, UX.94), because
+  courses around gravity wells use them; 9.1 keeps this parent and the
+  optional Galaxy Map layer (MAP.170). Nothing of it lands in 8.1: only
+  generation aspects that directly impact 8.1 do. The 8.2 items read
+  stars already generated and change no generated output.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
 
 - [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
@@ -1913,6 +1935,92 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
 
+- [ ] **MAP.383 Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Adding the smooth background and the discrete
+  stars double counts. Do: write the rule (the smooth field minus the
+  smooth mass of the region represented by members, or the smooth field
+  only where nothing is generated), the rule for ungenerated sectors
+  inside the near region (expected mass as one point per sector, as
+  GEN.1120 treats rogue mass, or generate them), and note that the
+  galactic tidal term across 4 pc is tiny and can be a constant per
+  sector; then measure the double count on a small generated galaxy. A
+  short design note in docs/design plus the measurement. Done: the rule
+  is written, measured and the other items of this chain read it.
+  Lock-free, no code. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.167, MAP.168, MAP.169, MAP.170,
+  PERF.72, GEN.115.
+
+- [ ] **MAP.384 Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the kernel in float64, with a test against a
+  plain numpy reference to 1e-9 on random sets; the web app never
+  imports it (a lazy import inside the job), and the wiring register
+  names where it is read once wired. Done: kernel and tests pass;
+  lock-free until wired. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.385 Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: build the hierarchy (check first whether the
+  MAP.151 region pyramid has a sub-sector level; if it does not, the
+  leaf level is a separate small item), the opening angle chosen to a
+  pair budget (floor 0.3, ceiling 0.7), and one interaction list per
+  target sector. Tests: accuracy against the exact sum on a fixed small
+  generated galaxy (pull 1 percent, tidal 2 percent at p95) and a
+  pair-budget test. Done: both tests pass. Lock-free until wired. Owner:
+  Tides 1. Filed by the TODO thread.
+  Prerequisites: MAP.384. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.386 Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the rule and its code, with a test that the
+  folded field is within 0.1 percent of the explicit sum at 0.25 pc.
+  Done: the test passes. Lock-free until wired. Owner: Tides 1. Filed by
+  the TODO thread.
+  Prerequisites: none. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.387 Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the cache as derived data only (no
+  galaxy-table migration), rebuilt on a threshold-based move, a job
+  queue for volume views, a slab on request. Done: a second request of
+  an unchanged sector reads the cache and a changed source stamp
+  rebuilds it, with tests. Lock-free (derived data only) unless it needs
+  a migration, then tell the TODO thread. Owner: Tides 1. Filed by the
+  TODO thread.
+  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2032,119 +2140,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not change in practice (overhead 0.04% to 0.2% on average).
 
   Prerequisites: none.
-  - [ ] **NAV.25 Find the obstacles along a path**
-    Done: from the corridor query of NAV.10 (and NAV.38's
-    line-to-sectors helper), every
-    object whose keep-out sphere comes within reach of the path, at
-    each scale: between systems, inside a sector, inside a system.
-    Research (2026-10-09, course-routing.md): point at the shared
-    segment query (course-routing.md section 6); no separate work.
-    Research (2026-10-09, course-avoidance.md): specify the query as
-    "every object whose keep-out sphere is within R_i of the straight
-    segment" in two parts: stars, neutron stars, rogue planets and small
-    fields by the sectors the segment crosses plus a one-sector margin
-    (their largest radius, 2.1 pc, is under one 4 pc sector edge); large
-    kinds (intermediate black holes up to 25 pc, SMBH and quasar 2 to 10
-    pc and up, nebulae up to 200 ly, remnants, large fields) by a
-    bounding-box query on centre and radius, as
-    `_placed_phenomenon_rows` does. Return `ref`, centre, radius, basis
-    and note per object. An ungenerated sector has no objects to avoid;
-    the answer says so (NAV.12's unknown-space flag already marks it).
-    Scope after the review (2026-10-16 review): the obstacle query only;
-    it returns each object's radius and basis from the keep-out table
-    (NAV.54).
-    Prerequisites: NAV.54.
-
-  - [ ] **NAV.26 Bend the path around keep-out spheres**
-    Done: a path planner that leaves the straight line only where it
-    crosses a keep-out sphere, going around it on the shortest detour
-    (a tangent arc, or waypoints just outside the sphere), checked
-    again against the other spheres; the end bodies' own spheres are
-    exempt (a ship has to enter them to arrive). Unit tests with
-    hand-placed spheres.
-    Asteroid fields count as keep-out areas too (Boss, 2026-10-09
-    01:02Z: "Courses should avoid asteroid fields."), which NAV.51
-    adds; nebulae and remnants stay pass-through with a note until Boss
-    decides.
-    Research (2026-10-09, course-avoidance.md): use the "insert wrap at
-    first hit, then validated polish" method (section 5 of the design
-    doc; the prototype needs only `math` and numpy). Exempt every sphere
-    that contains an end, not only the end body's own. Add the overlap
-    policy (cluster detection, enclosing sphere, flagged straight-line
-    fallback `overlap_fallback`). Hand-placed tests: one sphere on the
-    line (closed form), collinear start-centre-end, start inside a
-    sphere, end on a surface, two spheres with a gap and with contact, a
-    chain of wraps, 40 tiny spheres on a long line, an overlapping pair,
-    a scene shifted by 2e4 pc (same answer). Say "short detour", not
-    "shortest".
-    Waits on NAV.62: the study of how the gravity of the stars a cell
-    leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
-    Prerequisites: NAV.56, NAV.62.
-
-  - [ ] **NAV.27 Moving bodies inside a system**
-    Inside a system the planets move. Done: the in-system planner uses
-    positions at the time of travel (MAP.62's positions-at-time module,
-    Python twin), from the departure time and the leg's speed. That
-    answers the item's second open question: yes. Default departure:
-    now.
-    Research (2026-10-09, course-avoidance.md): warp and fold speeds
-    make departure-time positions sufficient, with the target aimed at
-    its arrival-time position (`t0 + L/v`, 2 to 3 fixed-point steps);
-    add the 3-to-6-pass iteration only if sub-0.01c speeds are
-    introduced. `body_positions.positions_at` is the position source; no
-    new ephemeris code. Galactic-scale motion is negligible at warp, so
-    this stays system-only.
-    Prerequisites: none.
-
-  - [ ] **NAV.51 Courses route around asteroid fields**
-    Boss (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
-    Follows NAV.24's open question (it ruled on asteroid fields only).
-    Done: course planning treats an asteroid field as a keep-out area
-    from its stored `radius_ly`, finds it with NAV.25's obstacle query and
-    goes around it with NAV.26's planner, at every scale. Nebulae and
-    supernova remnants stay undecided: the course passes through them
-    with a note. Parked with the rest of the NAV chain (Boss, 2026-10-09).
-    Research (2026-10-09, course-avoidance.md): keep as written.
-    `keepout.py` currently contradicts it (no keep-out for fields); the
-    whole stored sphere is the radius, no margin (the nebula document
-    suggested 1.1 times; the planner already offsets waypoints by 1e-6;
-    open question for Boss, default exactly the stored `radius_ly`). Say
-    plainly that it is a game rule: a real field would need millions of
-    times the belt's density to threaten a ship. Collision risk stays
-    keep-out only, with expected hits (about 1e-11 per AU in the main
-    belt for bodies over 1 km) as an optional note on the course.
-  Decided (2026-10-10): Boss (19:16Z, Accept all): the answers recorded
-  here stand: a lone star or object uses the galactic Hill radius;
-  inside a system a star uses the radiation radius.
-    Scope after the review (2026-10-16 review): routing around fields,
-    the course test at the three scales, using the keep-out table
-    (NAV.54) and the planner (NAV.26); the keep-out radius for fields is
-    NAV.54's.
-  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
-  2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
-  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
-  EDT): code built for a pending feature stays.
-    Prerequisites: NAV.25, NAV.26.
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
   may have been filled in the meantime; a hop that is now known shows
   as ordinary, and the course says what changed. Prerequisites: none.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
-- [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
-  Boss (2026-10-07 11:47Z): "Then you can go find another location
-  (star, planet, whatever) and select it and you can add a 2nd waypoint,
-  waypoints are highlighted at all map levels with an icon it will plot
-  a course." And: "Plotted courses should appear on the galactic map and
-  stay until cleared." Done: waypoints set from Star select mode are
-  marked with an icon at every map level, two or more plot a course, and
-  the course stays drawn on every map until cleared.
-  Research (2026-10-09): MAP.122 was rescoped (7:40 PM EDT 2026-10-28):
-  it now delivers the Bookmark action and the touch reach on the star
-  panel; this item only adds the Waypoint button on that panel.
-  Prerequisites: MAP.122.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
 
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
@@ -2172,8 +2172,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   modelled) and the phenomena (black holes, neutron stars, rogue
   planets, quasars, fields), so the planner's overlap fallback stays but
   should rarely fire. The real run decides it. NAV.62 (gravity of
-  unresolved stars), a listed prerequisite of NAV.26, is not done; Core
-  2 builds the planner mechanics first (pure geometry, lock-free).
+  unresolved stars) is done and is not a prerequisite of NAV.26 (Core 2,
+  PR #5136); Core 2 builds the planner mechanics (pure geometry,
+  lock-free).
   Prerequisites: NAV.54.
   Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
@@ -2181,17 +2182,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A frame type and the rule for choosing it (stage 2 of GEN.9).
   Prerequisite: GEN.157.
   Design: [docs/design/galaxy/multiple-galaxies.md](design/galaxy/multiple-galaxies.md)
-
-- [ ] **NAV.58 Edit a course: add, remove, reorder and drag its waypoints, then save the edit**
-  Boss (2026-10-10 21:05Z): the 8.5 headline is courses with waypoints
-  that are editable and saved. Waypoints today are picked once and
-  plotted (NAV.49). Done: a course drawn on the map (any display) can be
-  edited in place: add a waypoint by picking an object, remove one,
-  reorder them, or drag a waypoint to another object; the course is
-  re-planned after each edit (bending around gravity wells once NAV.6 is
-  built) and the edit is saved over the saved course or as a new one
-  (NAV.4); a test checks add, remove, reorder and save.
-  Prerequisites: NAV.49, NAV.4. Related: NAV.6, NAV.18, NAV.59.
 
 - [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
   Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
@@ -2202,39 +2192,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
   a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
-  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4. Related: GEN.198,
+  Prerequisites: NAV.6, NAV.4. Related: GEN.198,
   MAP.167.
-
-- [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
-  Boss (2026-10-16, 5:01 PM EDT, on the cell cap of GEN.364): "in the
-  core there are just too many stars to make all of them, no matter how
-  scientifically accurate it would be. I would like to figure out how we
-  can account for the gravity of items left out, but let's put that as a
-  TODO for the courses that bend around gravity wells phase." A cell
-  that expects more systems than its cap resolves the brightest and
-  leaves the rest unmade; GEN.281 already derives the unresolved count
-  and mass of a cell from its address (`galaxy/resolution.py`), from the
-  same density model as every other cell. Done: a written study (a
-  section in docs/design/galaxy/realistic-galactic-core.md) that says how the
-  pull of that unresolved mass is added: as a smooth field summed per
-  cell from the derived unresolved mass and the cell centre, how it
-  joins the galactic potential of GEN.285 and the keep-out spheres of
-  NAV.54, whether a course that bends around wells (NAV.26) and the
-  orbital update need it at every zoom or only inside the dense core,
-  its cost per query, and a recommendation with the work it needs as new
-  items. No fixed table: the mass comes from the density model and the
-  address, never from a stored list. No build in this item. Owner: not
-  assigned; the courses lane of 8.5.
-  Core 1 note (2026-10-16, 6:13 PM EDT): belts and asteroid fields have
-  no mass model, so DB.55 and GEN.337 store a stated zero mass for them;
-  the study says whether a real model is needed (GEN.295 refines nebula
-  mass).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
-  NAV.26, NAV.6.
-  Design: [docs/design/galaxy/realistic-galactic-core.md](design/galaxy/realistic-galactic-core.md)
 
 - [ ] **NAV.63 Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route**
   Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
@@ -3358,7 +3317,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72, MAP.383, MAP.384, MAP.385, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -11697,6 +11656,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1092 part A. How many irregular moons a giant can capture now
   depends on how unstable its system was (lost or thrown planets in its
   architecture); roughly 4 percent of systems get a capture window.
+  Add: INSTABILITY wiring for belts (TODO, from Star 2) (10:50 AM EST on
+  2026-11-05): Star 2 found that GEN.1232b is satisfied by GEN.1068
+  except the Nice-type instability case: belt_origin
+  (src/planetgen/physics/belt_origin.py) already applies the Grand Tack
+  survival (BR4) and the origin_history sentence, and system.py already
+  trims belts inside the star's stability orbit ceiling. Left: when the
+  architecture records an instability (this item), belt_origin reads it
+  and applies the INSTABILITY survival 0.1 to 0.5 (BR5) with its history
+  sentence. Do that here, with a test and the stand-in rows BR5 already
+  registered.
   Prerequisites: GEN.1077. Related: GEN.728.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -12899,6 +12868,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated from the rules: if the generated pages are part of the
   golden, fold this into step 3's epoch, else it is lock-free. Where we
   think it belongs (best guess, can move): same lane as step 1.
+  Covered by GEN.1207 (Core 4, as the lane reported) (11:59 AM EST on
+  2026-11-05): The wording change (age and stage words dropped, Checked
+  after, leftover) is already in the GEN.1207 branch
+  (claude/core4-gen1207, train 12). No separate build. Retires when
+  GEN.1207 merges.
   Prerequisites: none.
 
 - [ ] **GEN.1209 Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence**
@@ -13026,6 +13000,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   acid), U is methane-ethane, X is ammonia-water and Z is the hot
   thin-air world. Class R is Hothouse. The wait on the letters is
   cleared.
+  Covered by GEN.1221 and GEN.1207 (Core 4, as the lane reported) (11:59
+  AM EST on 2026-11-05): Class Z (hot thin air, 1.4 to 2 g, 340 to 1100
+  K, 1 to 10 kPa, no ocean) is a full row in GEN.1221 (train 11) and in
+  GEN.1207's class table (claude/core4-gen1207, train 12). No separate
+  build. Retires when GEN.1207 merges. Core 4's sweep of 150 systems
+  (seed 1000): of 36 hot thin dry bodies, 25 are Z at 100 percent, 9 are
+  V, 1 is Z at 70 percent, 1 fits nothing (1.25 g, 379 K, 998 Pa, just
+  under Z's 1.4 g edge).
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 - [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
@@ -13153,59 +13135,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lines for any L3/L4 row).
   Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
 
-- [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
-  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
-  life and physics, the composition of surface liquids. Filed by the
-  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
-  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
-  stored). Build step, after the design is merged. Implements the
-  design: composition columns with their migration, the pure derivation
-  module and its wiring after the surface liquid step, the life coupling
-  (the air and the liquid change each other: GEN.1213 summed air and
-  this composition), the habitability tolerances, the pages, the API,
-  the property sheet and the census suite. GEN.1215 (acid and ammonia
-  fractions) is its first part and may be built first, with its columns
-  taken into this set. Output change: one epoch with --affects,
-  migration, golden, census re-baseline, on a train. Where we think it
-  belongs (best guess, can move): Tides 1 with Aux 2.
-  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
-  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
-  body may hold one extra liquid beside its main one; (2) store a
-  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
-  answered, the coordinator will ask again, build pools only until he
-  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
-  accepted as a starting guess, BUT it must be tuned from real physics
-  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
-  from where nitrogen freezes as a registered stand-in, also to be tuned
-  from physics and chemistry (same research); (6) a body with methane
-  and carbon monoxide ice warm enough for liquid methane gets a methane
-  sea. The build follows these answers, with the gate and nitrogen
-  amount replaced by the sourced values of GEN.1225 when that research
-  lands.
-  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
-  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
-  the strongest level with a pool-or-cloud flag. This replaces the
-  earlier note that cloud storage waited for an answer; all six surface
-  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
-  4 and 5 to be tuned from physics by GEN.1225).
-  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
-  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
-  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
-  the ammonia gate follows the liquidus share, and nitrogen ice uses the
-  trapping factor and the partial-pressure condensation temperature.
-  Train 10 merged (#5095, 7:11 AM EST on 2026-11-05); register leftovers
-  (7:20 AM EST on 2026-11-05): The surface liquid composition model is
-  in. Open on purpose: physics.surface_liquids.stable_liquids and
-  sea_density_kg_m3 still read as unread in the wiring register. Wire
-  them or delete them (no shim), remove the register lines, then this
-  item retires.
-  Owner of the register leftovers (TODO) (7:25 AM EST on 2026-11-05):
-  Tides 1 wires or deletes stable_liquids and sea_density_kg_m3 (and
-  their register lines). Deleting an unread function changes no output
-  and is lock-free; wiring that changes stored values is lock work for
-  the next train.
-  Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
-
 - [ ] **GEN.1221 Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent**
   From the Class M research thread's handoff
   (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
@@ -13286,32 +13215,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lines for is_polluted and pollution_rate_g_s name this item. Owner:
   Star 2.
   Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
-
-- [ ] **GEN.1232 Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event)**
-  From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
-  follow-up of GEN.1072 (#4430): belt_history.history_text and the
-  giant_event function (the giant event and companion limit for a belt)
-  are built and read only by tests. Do: the belt's page shows its
-  history in plain words (what the star's evolution did to it: survived,
-  scattered by a giant event, engulfed, or limited by a companion) from
-  history_text, with giant_event deciding the event from the stored
-  giants and companions; no generated output changes, so this is
-  lock-free and plain-words rules apply (Oxford comma, no
-  out-of-universe words). The wiring-register lines for history_text and
-  giant_event name this item. Owner: Star 2.
-  Star 2 re-scope (2026-11-01 12:05 AM EDT): Not lock-free as written. A
-  belt history is not stored (asteroid_belts has no history column) and
-  giant_event is not called by generation. Split: GEN.1232a (lock, one
-  epoch): store the belt history text in a new column on asteroid_belts
-  and show it on the belt page, engulfed or scattered by the giant
-  branch only (what #4430 computes); GEN.1232b (lock, after GEN.1068
-  belt birth): wire giant_event into generation. Owner: Star 2 for 1232a
-  once it has a train; 1232b waits for Aux 5.
-  Part merged (train 10, #5095, 7:11 AM EST on 2026-11-05) (7:20 AM EST
-  on 2026-11-05): GEN.1232a merged: the belt history text is stored on
-  the belt and shown on its page. GEN.1232b (wire giant_event into
-  generation) stays open and waits for Aux 5.
-  Prerequisites: none. Related: GEN.1072, GEN.1068.
 
 - [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
   Found by Core 3's TEST.212 part 1 radiation sweep (as the lane
@@ -14221,6 +14124,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
 
+- [ ] **GEN.1281 Heavy worlds with a plain nitrogen air and no oxygen or methane (about 1.3 percent of bodies) fit no class: widen a class or add one**
+  Core 4 (as the lane reported, about 11:58 AM EST on 2026-11-05, sweep
+  in reports/class-sweep-gen1207-2026-11-05.md): of 775 bodies in 150
+  systems (seed 1000), 10 are heavy worlds (1.3 to 1.8 g) with a plain
+  nitrogen air and no oxygen or methane, at 250 to 330 K with thin air
+  (about 10 kPa) and water or an ocean. They fit no class because class
+  F needs methane or hydrogen. Do: after GEN.1207 lands, take the 10
+  bodies and say from the physics which class they belong to; either
+  widen F's gas rule or propose a class for abiotic nitrogen-air heavy
+  worlds, with its conditions, name and letter, as a plain-word card to
+  the TODO thread (all 20 class letters stay; a new letter needs Boss's
+  word). Build the chosen option in the class table with a stand-in row
+  and tier in GEN.725, and re-run the sweep to show the gap closes.
+  Generation output changes (lock item, train 13 or the next train after
+  GEN.1207). Version 8.1. Owner: Core 4. Filed by the TODO thread.
+  Prerequisites: GEN.1207.
+
+- [ ] **GEN.1282 Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system)**
+  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
+  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
+  63 percent of the time of an O0V system with every flag on is bodies
+  built twice: reconcile_moved_planet. space_orbits pushes nearly every
+  planet out past its inner neighbour and the planet and its moons are
+  then made again (285 times in 16 validations). Do: move the spacing
+  decision ahead of the atmosphere and moon build so each body is built
+  at its final orbit once, keeping the same physics for the same final
+  orbit. Output may change (draw order), so this is a lock item:
+  generator epoch, golden, census re-tag at the train. Done: an
+  all-flags O0V system takes under 20 s together with the next item, and
+  the all-flags tests of PERF.241 no longer time out at 900 s. Version
+  8.1. Owner: Bug 1. Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.241.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14249,7 +14185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151
+  Prerequisites: none. Related: GEN.198, GEN.199, MAP.151
   (done, PR #1539).
   Scope after the review (2026-10-16 review): the cost study of the grid
   on top of the kernel (measure the kernel and the aggregate split, pick
@@ -14790,6 +14726,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   anything: a coarser grid or fewer steps for the census, or a cached
   series, with the stored mean unchanged. Owner: Aux 2, next lock-free
   item, before GEN.1265.
+  Fixture cost on the GEN.1265 branch (Core 5, as the lane reported)
+  (11:27 AM EST on 2026-11-05): The species_limits civilized-galaxy
+  fixture takes 275 s on the GEN.1265 branch against 109 s on plain
+  main, same machine. That is the temperature series cost per system.
+  Core 5 and Aux 2 check it against the 20 ms a rocky body target after
+  train 11 lands.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
 - [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
@@ -14806,6 +14748,73 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   identical). Lock-free if the output is identical. Version 8.1. Owner:
   Bug 1, after GEN.1275 merges. Filed by the TODO thread.
   Prerequisites: GEN.1275. Related: GEN.1275, PERF.236.
+
+- [ ] **PERF.241 A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug)**
+  The Train Manager (as the lane reported, about 3:47 PM EST on
+  2026-11-05, full-suite run on main) timed one system with every orbit
+  flag forced on: O0V 96 s, O1V 46 s, O3V 45 s, O2V 20 s, O4V 15 s, O5V
+  22 s. Tests that build about 70 of them time out alone:
+  test_fuzz_system_generation (every_star_type x9, extreme_orbit_counts,
+  forced_flag_on_together, random_valid_configs), test_prevalence
+  (feature_moves_by_percentage x8, no_binaries),
+  test_census_representation (7), test_prevalence_census,
+  test_systems_census, census_nebula_wholesphere, generation_mix giants,
+  bughunt_sector_placement, test_systems O5V, life_text_consistency,
+  generation_size_estimate. Do: profile one O0V system with all flags on
+  (cProfile, top 20 by cumulative time), say where the time goes (the
+  temperature series of PERF.238, moon or rogue builds, the stability
+  search), and cut the cost where it changes no output; where a cut
+  would change values, file it as a lock item with the epoch. In
+  parallel the tests build fewer systems where the property allows
+  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box and
+  one all-flags O0V system takes under 20 s. Related: PERF.238,
+  TEST.417, TEST.571. Lock-free for the test parts. Version 8.1. Owner:
+  Bug 1. Filed by the TODO thread.
+  Profile done (Bug 1, as the lane reported) (4:38 PM EST on
+  2026-11-05): reports/perf241-all-flags-o0v-profile-2026-11-05.md. 63
+  percent of an O0V all-flags system is bodies built twice after
+  space_orbits pushes planets out (GEN.1282, lock item); the forced
+  habitable world makes the placement loop draw the whole system 8 times
+  (PERF.242, lock item); gas-equilibrium solves are 54 percent of the
+  unprofiled time and a cache gains nothing. Cuts that change no output
+  give only 10 to 20 percent. Bug 1 meanwhile cuts the system counts of
+  the timing-out tests where the property allows, in small PRs. The
+  prevalence feature_moves tests on the list are PERF.236, already in
+  train 12. PERF.241 stays open until GEN.1282 and PERF.242 land.
+  Prerequisites: none. Related: PERF.238.
+
+- [ ] **PERF.242 Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget**
+  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
+  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
+  the forced habitable world makes the placement loop draw the whole
+  system 8 times and spend the 60-planet request budget. Gas equilibrium
+  (29,800 solves of 7 ms, none repeated) is 54 percent of the unprofiled
+  time, so a cache gains nothing and a warm start of the Newton loop
+  gains 10 to 20 percent without changing output. Do: say from the
+  physics which draws can be skipped for a star where no habitable world
+  can exist (a hot O or B star's habitable zone is far out and
+  short-lived: the forced flag cannot be met before the star leaves the
+  main sequence), short-circuit those, and warm-start the Newton solve
+  where bits are unchanged. Output changes for forced-flag draws: lock
+  item with the generator epoch, after the item above. Done: see the
+  item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
+  Prerequisites: GEN.1282. Related: PERF.241.
+
+- [ ] **PERF.243 Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: a test that the densest-place sector grid
+  stays under 0.25 s with the pair budget of the hierarchy item, and a
+  reference file for the lane-machine pair rate so a slow machine is
+  recognised (the test scales its limit by it). Done: the test passes on
+  the reference machine and skips with a stated reason on none.
+  Lock-free. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: MAP.384, MAP.385. Related: MAP.167, PERF.72.
 
 ## DB: Database and schema
 
@@ -17391,21 +17400,6 @@ clears each one.
   pytest runs at once on one machine make queue tests fail.
   Prerequisites: none. Related: TEST.289, TEST.288, TEST.280.
 
-- [ ] **TEST.292 test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug)**
-  Found by Core 4 (relayed 6:38 AM EDT 2026-10-23 as the lane reported)
-  in its gate for GEN.284; filed by the TODO thread. Kind: slow flaky
-  test, the same family as TEST.198. Test:
-  src/tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star.
-  Failure: at load 9.7 it ran 130 s and failed; alone it passes in 97 s
-  (the lane's figures; the failure text was not given). Fails on main:
-  unknown. Frequency: once in one gate. Do: capture the failure text,
-  then find what the 97 s alone is spent on (the camera flight, a fixed
-  wait, building the scene) and make the test wait for the state it
-  needs rather than a long time. Done: the test passes 50 times in a row
-  at -n 4 under load and takes well under a minute alone. Owner: Bug
-  Hunt (proposed by the TODO thread).
-  Prerequisites: none. Related: TEST.198, TEST.284, TEST.287, TEST.291.
-
 - [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
   before 8.1 is ready. Lane E owns the end-to-end browser tests across
@@ -17649,26 +17643,6 @@ clears each one.
   its data are in reports/data/planet-class-distribution; the Bern
   synthesis binned fit is ngpps_formation_water.json. No occurrence
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-
-- [ ] **TEST.411 Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug)**
-  Found by Bug 1 (as the lane reported 8:36 AM EDT 2026-10-28) while
-  merging TEST.394 and TEST.383 (#3385): in a full-file run 132 of 136
-  passed; the dense click was fixed since, and the indexeddb revisit
-  test and two sector_reach double-click flight tests fail only after a
-  long run on a loaded 4-core box. Do: find what the loaded run changes
-  (animation timing, a flight that has not finished when the second
-  click lands, an indexeddb transaction not closed), replace fixed waits
-  with waits on the real condition (the flight end event, the db open
-  state), never raise a timeout to hide it. Done: the three tests pass
-  in a full-file run and under -n 4. Owner: Bug 1 or a free lane after
-  TEST.405/406/398/402. Rules: never skip or quarantine a test;
-  scripts/test.py changed --resume.
-  Research (2026-10-09): Update (Bug 1, about 9:40 AM EDT 2026-10-29 as
-  the lane reported): the three flaky map tests (indexeddb revisit and
-  two sector_reach double-click flights) did not reproduce in two long
-  runs. Kept open until it recurs; if it has not recurred when Bug 1
-  finishes its queue, Bug 1 retires it.
-  Prerequisites: none. Related: TEST.394, TEST.383.
 
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
@@ -17929,28 +17903,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.575 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug)**
-  Found by Core 5, about 3:30 PM EST on 2026-11-04 (as the lane
-  reported). Not from the spelling sweep: they fail on the map pages on
-  pixel positions and waits. Possible causes seen since: the log ruler
-  over the halo point and continuous zoom no longer changing crumbs
-  (TEST.573 found the same in two tests), the MAP.367 and MAP.370
-  changes, and leftover planetgen_* databases slowing fixtures (see
-  lanes.md). Do: first drop leftover planetgen_* databases, then run
-  each file alone on current main, split real causes from load, fix the
-  tests at the cause (not by loosening waits that hide a bug), and file
-  any real map bug as its own item. Done: all four files pass on main in
-  3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
-  test that follows its map changes (proposed by the TODO thread). Filed
-  by the TODO thread.
-  Owner change (TODO) (6:12 AM EST on 2026-11-05): Core 5 takes this
-  from Core 3 (who is on the GEN.1261 gate and has not started it).
-  Start by dropping leftover planetgen_* databases and running each of
-  the four files alone on current main; the item's own Done line says
-  they pass in three runs, so if they do, close it with the run log and
-  no change.
-  Prerequisites: none.
-
 - [ ] **TEST.579 Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug)**
   Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
   GEN.951 prevalence check: the three failing cases (habitable_world
@@ -17994,6 +17946,11 @@ clears each one.
   added lines for the sky and glow rows only). The nebula group stays
   with Tides 1. The train 10 gate shows kind factors red on main too, so
   check first whether train 10 changes it.
+  Groups merged (TODO) (9:58 AM EST on 2026-11-05): Nebula group merged
+  by Tides 1 (#5025). Non-nebula groups merged by Core 5 (#5086, #5087:
+  burn-down lines, Magellanic supernova claim, halo planet count). Left:
+  the life-class tests (test_system_interests), Bug 1's. This item
+  closes when those are green on main.
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -18059,20 +18016,172 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.595 Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug)**
-  Core 2 (as the lane reported, about 7:00 AM EST on 2026-11-05) saw
-  these red on plain main, not from NAV.49a (#5092):
-  tests/test_web_browser_map_card.py, the black hole case at 1920x1080
-  and at 390x844, which waits for a button named Fixture Maw that never
-  appears, and
-  test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox,
-  which misses Fixture Eden. Do: first drop leftover planetgen_*
-  databases and run each alone on current main; find the commit that
-  turned them red; fix the tests at the cause (not by loosening waits
-  that hide a bug) and file any real map bug as its own item. Done: all
-  three pass in 3 runs. Lock-free. Version 8.1. Owner: Core 5, with
-  TEST.575 (same family). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.575.
+- [ ] **TEST.598 test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug)**
+  Aux 5 (as the lane reported, about 9:00 AM EST on 2026-11-05) found
+  tests/test_fingerprint.py, whose table list does not include
+  designations and chart_ledger, and tests/test_bring_to_epoch.py, whose
+  epoch counts no longer match, red on plain main. Do: run each alone on
+  current main; bisect each file to the commit that turned it red (the
+  table list probably moved with GEN.1014 and GEN.1127, the epoch counts
+  with epoch 132 or an earlier epoch bump); say which item owns each;
+  fix the test with the reason, or the code if the test is right. Do not
+  loosen a check. Done: both green on main with the cause of each noted.
+  Lock-free unless a stored value is the cause (then stop and tell
+  TODO). Version 8.1. Owner: Aux 7. Filed by the TODO thread.
+  Halves (TODO, from Aux 7) (11:10 AM EST on 2026-11-05):
+  test_bring_to_epoch fixed on claude/test598 (d55b18ca8, lock-free, Aux
+  7 merges it). test_fingerprint fix is on claude/test598-fingerprint
+  (2b6eb08fb): the four rogue_planet_* child tables are compared,
+  designations and chart_ledger left out as bookkeeping. Comparing the
+  rogue tables changes the digests of the 12 golden-galaxy sectors that
+  hold a rogue, so src/tests/golden/galaxy.json must be rewritten: lock
+  item for train 12 (generation-output unchanged). This item stays open
+  until it lands.
+  Prerequisites: none. Related: TEST.580.
+
+- [ ] **TEST.600 Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12)**
+  The Train Manager (as the lane reported, 9:28 AM EST on 2026-11-05)
+  asked for this. GEN.1275 (the habitable-world bar, Bug 1) and TEST.579
+  (remeasured prevalence base shares, Bug 1, branch
+  bug1/test579-base-shares eac2a5a48, includes PERF.236) were held out
+  of train 11 because GEN.1275 duplicates the bar of GEN.1250 and
+  conflicts in planet.py and system.py; they go to train 12 after Bug 1
+  rebases and keeps one bar. Do: once both land, run the census re-tag,
+  re-baseline the TEST.430 prevalence rows for the new base shares
+  (asteroid_belt 0.653, habitable_world 0.584, large_star 0.056, planets
+  0.822) and check test_prevalence.py goes green (habitable_world -50 is
+  fixed by GEN.1275). Done: the census and prevalence tests pass on main
+  with no other test moved. Version 8.1. Owner: Train Manager, after
+  train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.430.
+
+- [ ] **TEST.602 test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug)**
+  Aux 7 (as the lane reported, about 11:05 AM EST on 2026-11-05) found
+  this test red on plain main with 24 saved sectors holding a NULL
+  leaf_digest, while working on TEST.598. Likely the sector rows that
+  rogue planets create in uncharted cells (GEN.1111 part 7) are saved
+  without a leaf digest, or the test counts them as saved sectors. Do:
+  run the test alone on current main, find which sectors have the NULL
+  (charted or uncharted), bisect to the commit, and fix at the cause: if
+  uncharted rogue-landing sectors are not meant to have a leaf, the test
+  counts charted sectors only (as TEST.417's snapshot does); if they
+  should, the save writes the digest (that is lock work, tell TODO).
+  Done: the test green on main. Version 8.1. Owner: Aux 7. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.598.
+
+- [ ] **TEST.606 The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found this red on clean main 0d10348c5, so it is not a train 11
+  regression; the list is reports/train11-main-reds-2026-11-05.md.
+  tests/test_habitability_fill.py::test_a_system_comes_back_with_the_numbers_generation_stored
+  and
+  ::test_the_command_re_scores_every_system_and_a_second_run_changes_nothing.
+  A re-score must give exactly what generation stored. Done: the stored
+  and re-scored values are equal for a wide binary and both tests pass
+  on current main. Owner: Tides 1. Do: reproduce on current main first
+  (it may be fixed by a merge since), fix at the cause with a test that
+  fails without the fix, never skip or loosen a test. Lock-free if
+  output is unchanged; tell the TODO thread if values change. Version
+  8.1. Filed by the TODO thread.
+  Cause fixed in GEN.1265 (Tides 1, as the lane reported) (3:33 PM EST
+  on 2026-11-05): The cause was habitability_world.values_from_body not
+  carrying day_share_mean, so generation worked the latitude bands for a
+  point star while a re-score used the star's angular radius (up to
+  about 1 percent in the day and night hours of a band). The same
+  one-line fix is in Core 5's GEN.1265 branch (PR #5053, train 12), so
+  it rides that train. What is left: Tides 1's test-only branch
+  claude/test606-test (head 0fe61c513), the new test_latitude_bands
+  test, which is red on main until GEN.1265 lands and merges after it.
+  Ignore the old branch claude/test606. TEST.606 retires when both are
+  in.
+  Prerequisites: none.
+
+- [ ] **TEST.614 tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Decide from the cause whether the forcing rules
+  or the test moved. Done: the test passes on current main. Owner: Bug
+  1. Do: reproduce on current main first (a merge since may have fixed
+  it), fix at the cause with the property kept, never skip or loosen a
+  test. Lock-free if output is unchanged; tell the TODO thread if values
+  change. Version 8.1. Filed by the TODO thread.
+  Resolves with TEST.579 (Bug 1, as the lane reported) (3:59 PM EST on
+  2026-11-05): Main's PREVALENCE_BASE_SHARES still hold the old values
+  (asteroid_belt 0.039), so +1000 is not certain and the belt stays
+  None. The TEST.579 head (bug1/test579-base-shares eac2a5a48, in train
+  12) sets habitable_world 0.584 and asteroid_belt 0.653, and with those
+  values the test's 300 draws are all correct. No separate fix; TEST.614
+  retires when TEST.579 merges.
+  Prerequisites: none.
+
+- [ ] **TEST.616 tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Either the rule's tolerance is tighter than the
+  arithmetic (a float order difference) or a value is rounded at
+  storage. Say which and fix at the cause; a tolerance may be set only
+  to the stated precision of the stored column. Done: the test passes on
+  current main. Owner: Aux 2. Do: reproduce on current main first (a
+  merge since may have fixed it), fix at the cause with the property
+  kept, never skip or loosen a test. Lock-free if output is unchanged;
+  tell the TODO thread if values change. Version 8.1. Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **TEST.619 tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Use the registry converters (units.converter)
+  for the two multiplies. Done: the test passes with no new exception in
+  its allow list. Owner: Core 2. Do: reproduce on current main first (a
+  merge since may have fixed it), fix at the cause with the property
+  kept, never skip or loosen a test. Lock-free if output is unchanged;
+  tell the TODO thread if values change. Version 8.1. Filed by the TODO
+  thread.
+  Prerequisites: none.
+
+- [ ] **TEST.620 tests/test_reproducible_draws.py fails: math.dist at db/field_clouds.py:51 and db/obstacles.py:158 must use detmath.dist (bug)**
+  The Train Manager's full-suite run (as the lane reported, about 3:47
+  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
+  main) found this red. Replace both with detmath.dist so results do not
+  depend on the platform's libm. Done: the test passes and obstacle and
+  cloud results are unchanged. Owner: Core 2. Do: reproduce on current
+  main first (a merge since may have fixed it), fix at the cause with
+  the property kept, never skip or loosen a test. Lock-free if output is
+  unchanged; tell the TODO thread if values change. Version 8.1. Filed
+  by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.621 The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug)**
+  The Train Manager (as the lane reported, about 3:47 PM EST on
+  2026-11-05, full-suite run on main) saw twice that the non-browser run
+  hung with all workers idle (futex wait, load 0) for 1.5 h and 3 h; the
+  timeout signal did not fire in a worker that has a process pool. Two
+  tests never ran:
+  test_prevalence_life_census::test_the_life_census_raises_no_new_flag
+  and
+  test_prevalence_occurrence::test_the_figures_count_planets_per_star_by_radius_and_period.
+  Do: find which test leaves a worker waiting on a pool (a child that
+  died, a pool not closed), switch the timeout method to thread or add a
+  per-test watchdog that kills the pool children, and make
+  scripts/test.py report a hung run within the limit instead of waiting.
+  Done: a deliberately hung test is killed at its limit with a clear
+  message, and the full run completes. Lock-free. Version 8.1. Owner:
+  Train Manager. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.417.
+
+- [ ] **TEST.622 tests/test_parallel_names.py::test_two_passes_drawing_the_same_names_still_save_unique_ones fails alone on main (no species made) and passes in a whole-file run (bug)**
+  Core 5 (as the lane reported, about 4:15 PM EST on 2026-11-05) saw the
+  test fail alone on plain main with assert ([]) because no species was
+  made, while it passes when the whole file runs; it depends on test
+  order. Do: reproduce alone, find what an earlier test in the file sets
+  up that this one needs (a seeded draw, a table row, a cached pool),
+  and make the test set up its own state; a test that only passes after
+  another is a bug in the test. Add a check that runs the test alone in
+  the file's own run. Done: the test passes alone and in the whole file.
+  Lock-free. Version 8.1. Owner: Core 5. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.417.
 
 ## USR: User accounts
 
@@ -19694,6 +19803,27 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
+  Built (Core 3) (10:25 AM EST on 2026-11-05): Branch
+  claude/view30-sky-calibration f6d1a5301, stacked on view25; merge
+  after VIEW.25 lands. Band set: the dust-free sky at 6.5 holds 15 to 40
+  percent of the HYG count (measured 24.5 percent). Setup also fetches
+  the HYG v4.1 catalog (dataset hyg_stars, not required; CC BY-SA 4.0,
+  noted for Boss's DATA-LICENSE.md). Test needs
+  PLANETGEN_SKY_CALIBRATION=1 and the catalog, 25 to 40 minutes, so
+  normal gates skip it. Follow-ups: GEN.1279, GEN.1280 (stars, from the
+  findings), VIEW.42 (sky route ledger). The default dust law leaves 586
+  stars beyond 217 pc against 2,184 dust-free: whoever builds the dust
+  law (VIEW.20 was its home) should check its scale.
+  Retarget (TODO, from Star 2) (10:45 AM EST on 2026-11-05): Star 2's
+  report (reports/gen1279-1280-sky-counts-cause-2026-11-05.md) shows the
+  24.5 percent figure comes mostly from the test galaxy: the site is 84
+  percent thick disc (recent star formation factor 0.2 six scale lengths
+  out, so 97+ percent of its stars are 3 Gy or older), and the 75 pc
+  scale height puts most of the 6.5 sample sphere above the disc; the
+  model's luminosity function is 0.55 to 1.7 of HYG. Change the
+  calibration to a disc-dominated galaxy, the sample at about three
+  scale lengths, with a high bright-star floor, and set the band again.
+  Core 3 does this on branch claude/view30-sky-calibration.
   Prerequisites: VIEW.25.
 
 - [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
@@ -19728,6 +19858,23 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.35.
+
+- [ ] **VIEW.42 The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug)**
+  Core 3 (as the lane reported, about 10:20 AM EST on 2026-11-05) found
+  that the sky route (VIEW.31) reports built_to_pc 0.0 after a full
+  chart, because it does not read the sky_tier_draws ledger of VIEW.25.
+  Do: make the route read the ledger so built_to_pc says how far out the
+  sky is built; a test charts a sector and expects built_to_pc above 0.
+  Done: the test. Lock-free once VIEW.25 has landed (train 12), stack it
+  on branch view25. Version 8.1. Owner: Planets 1 (wrote VIEW.31 and
+  VIEW.25). Filed by the TODO thread.
+  Possible cause of the remaining factor (TODO, from Star 2) (10:45 AM
+  EST on 2026-11-05): Star 2 finds a further factor 2 to 3 between the
+  model integral and the generated sky, largest at absolute magnitude 0
+  to 2 (the backfill range), and names the sky route not reading the
+  VIEW.25 ledger as the candidate. After this item lands, rerun the
+  VIEW.30 calibration; if the factor remains, file it as its own item.
+  Prerequisites: none. Related: VIEW.31.
 
 ## POP: Population and politics
 

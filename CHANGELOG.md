@@ -2,6 +2,388 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3354] - 2026-11-05
+
+**Headline:** A course that stays inside one sector is now drawn in that sector on the Galaxy Map, with its line, rings and names.
+
+### Added
+- **A course inside one sector has a line (NAV.22 part a).** Until now the Galaxy Map opened the sector for such a course and drew
+  nothing. The course's stops (the two ends and any systems between them on the route) are placed in the galaxy frame from the sector's
+  center, so the map draws the route, the straight line, any bend round a keep-out sphere, the rings, the names and the course readout
+  and diagram, as it does for a course across the galaxy.
+
+## [8.0.3353] - 2026-11-05
+
+**Headline:** A cache warm-up now goes on when its terminal is closed, and `planetgen warm --follow` watches a running one from another session.
+
+### Changed
+- A lost terminal (an SSH session that dropped, a hangup) no longer ends the cache warm-up as canceled (OPS.95 had done so). The command stops writing to the terminal, notes in the run's log that the terminal was closed, and the warm-up carries on to its end. SIGTERM and Ctrl+C still end it.
+
+### Added
+- `planetgen warm --follow` draws the progress of the warm-up that is running, started by `update.sh` or by hand, from its run record in Redis, the same bars and phase lines the starting session shows. It starts nothing; ending it with Ctrl+C or a hangup leaves the warm-up running. It says so when none is running.
+
+## [8.0.3352] - 2026-11-05
+
+**Headline:** A full backup now holds a copy of the sector repair file, so a galaxy whose live repair file is lost can still be repaired.
+
+### Changed
+
+- New backup part `parity` (DB.40, `backup/parts.py`): a copy of the parity file of the database repair (`db/parity_file.py`, DB.9) in `parity/sector-parity.pgpr`. The copy is taken with the file locked against every save (the lock the saves take) and cut at the end of its last whole record, so it is a state the file really had, never half a record. A file damaged behind its last record is refused with the reason (run `planetgen repair-db`), because that copy could repair nothing. With no parity file yet the part is empty and says so.
+- The manifest keeps what a part says about its dump as `info` (`Part.dump` may return a dict); for the parity part it is `bytes`, `sectors` covered and `groups`, or `present: false` with the reason. `planetgen.backup.PartInfo.info` holds it.
+- New option `settings.backup_parity` (default on, Admin settings, "Back up the repair file"): off leaves the copy out of full archives, for a very large galaxy. The settings backup made before each save still holds the settings part alone.
+- Restoring the part is DB.41; until then a restore of a whole archive leaves the parity copy in the archive and says so.
+
+generation-output: unchanged
+
+## [8.0.3351] - 2026-11-05
+
+**Headline:** Opening a saved course now says when a jump through unknown space has since been filled in with known sectors, or the reverse.
+
+### Changed
+- **A saved course keeps which of its hops were jumps through unknown space (NAV.39).** The record the Save button keeps now carries
+  an `unknown_space` flag on each hop of the route. When the course is opened again and the route runs through the same systems,
+  the list of what has changed adds a line for each hop whose flag differs ("Hop 1 of 2 is now through known space; it was a jump
+  through unknown space."). A course saved before the flag was kept says nothing about it, so no old record is flagged wrongly.
+
+## [8.0.3350] - 2026-11-05
+
+**Headline:** The population tests that run two passes at once now pass alone as well as in a whole-file run, because the test helper that sets the civilization chance no longer lets one pass undo it for the other.
+
+### Fixed
+- `every_window_has_a_civilization` (TEST.622) saved the civilization chance and put it back for each block on its own. Two passes on two threads overlapped: the one that finished first put the chance back to 1 in 1,000 under the one still running, which made no species, and the one that finished last saved the first one's value of 1 and left the chance there for every test after it. That is why `test_two_passes_drawing_the_same_names_still_save_unique_ones` failed alone and passed in a whole-file run. The first block in saves the chance and the last one out puts it back, under a lock.
+
+## [8.0.3349] - 2026-11-05
+
+**Headline:** The tests that need a generated civilization no longer each pay minutes to find one: the systems are drawn from numbered seeds and the numbers that gave a civilization are kept for the other test processes.
+
+### Changed
+- `tests/test_population.py` (TEST.417): the pool of civilized systems (`_civilized_candidates`) draws candidate N under a stream seeded from N, so the same number gives the same system. A number that gave a civilization is written to a file in the temporary directory, named for the size and time of the package's source files, and every test process reads it before it searches: a process that needs a civilized system makes one known to hold a civilization and does not look for another among about one in thirteen. Parallel workers start their search a thousand numbers apart. The generator is not touched, and the same G2V system with a habitable world and intelligent life requested is drawn.
+- The species limits test of a generated galaxy took 1,222 s alone on a lane machine, all in setup; with a file from an earlier run it sets up in under 40 s here, and on a cold start it takes the time the draws take, as before.
+
+## [8.0.3348] - 2026-11-05
+
+**Headline:** The mass-conversion and reproducible-maths guards are green again.
+
+### Fixed
+- **Hand-written mass conversions (TEST.619).** `galaxy/keepout.py`, `galaxy/resident_mass.py`, `generation/rogue_topup_build.py` and `physics/remnant_composition.py` convert a mass through `unit_registry.converter`. The last three give the same bits as before (checked on 200,000 random values); the sphere of influence of a supermassive hole in `keepout.py` may differ in the last bit.
+- **Maths that depends on the Python or BLAS library (TEST.620).** `db/field_clouds.py`, `db/obstacles.py` and `galaxy/unresolved_crossings.py` use `detmath.dist`, and `galaxy/avoid.py` and `galaxy/sky_band.py` use a new `detmath.dot` (a vector's dot products summed left to right, the bits of `detmath.matmul`) instead of `@` and `numpy.dot`.
+
+## [8.0.3347] - 2026-11-05
+
+**Headline:** The update script prints its settling wait through the log layer, and the tile cache measuring script names a path that exists.
+
+### Changed
+
+- `update.sh` printed "The update steps are finished: waiting ... seconds before reloading the site." with a bare `echo`, the one line of its own that did not go through `scripts/logrecord.sh`; it now uses `log_info` like the others, so it is timestamped and recorded (`test_update_sh_prints_its_own_lines_through_the_layer`, TEST.617).
+- The docstring of `scripts/measure_tile_cache.py` said the sector-block node lives in `db/nodes.py`; it now gives the path `src/planetgen/db/nodes.py` (`test_scripts_only_name_repo_paths_that_exist`, TEST.618). The script itself is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3346] - 2026-11-05
+
+**Headline:** The bulk-insert test rows carry every bright-star column again, so test_literal_insert passes; no generated output changes.
+
+### Changed
+- **Bright-star test row made whole (TEST.613).** `tests/test_literal_insert.py` built rows of 19 values while `store.BRIGHT_STAR_COLUMNS` has 21 (rotation period and nuclear arrival age were added), so MySQL answered "Column count doesn't match value count". The test row now carries both, one of them sometimes NULL, and the read-back check covers them.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.613.
+
+## [8.0.3345] - 2026-11-05
+
+**Headline:** One British spelling in a test docstring is American now.
+
+### Changed
+
+- `test_gen_cloud_at_generation.py` said "centre" in a docstring; it says "center" (DOC.103). Tests only.
+
+generation-output: unchanged
+
+## [8.0.3344] - 2026-11-05
+
+**Headline:** Two bright-star tests no longer disturb each other when they run in one process.
+
+### Fixed
+- **A test left a hole in a cached star track (TEST.612).** `test_a_track_with_a_missing_sample_takes_the_array_path` gave the cached `post_main_sequence.timeline(3.0, 0.0)` a track with a missing sample, so `test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright` saw 190 Gy of bright pieces against 150 when it ran after it. The test now works on a copy of the timeline, and a new test runs the two in both orders in fresh processes.
+
+## [8.0.3343] - 2026-11-05
+
+**Headline:** The field-cloud placement tests use a cloud that fills its sphere, so they no longer fail when a drawn nebula's lumpy shape leaves its centre empty.
+
+### Changed
+
+- Three tests in `test_gen_cloud_at_generation.py` put a system at the centre of a drawn nebula and expected the cloud to hold it. A nebula's shape (GEN.75) is a few overlapping blobs and need not hold its own centre; the nebulas those tests draw changed with the generator, and the drawn shape of the test's nebula left the centre empty, so `surrounding_cloud` was `None`. The code was right and the test's assumption was not. The test's nebula now gets a shape that fills its whole bounding sphere, which keeps what the tests check (a placed system finds the cloud, takes the smaller of two nested clouds, turns the sector's local axes into the galaxy frame, and draws the same enrichment for the same placement). A drawn shape's own containment stays tested in `test_nebula_shape.py`. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3342] - 2026-11-05
+
+**Headline:** The web app no longer pulls in numba through the post-main-sequence module, and the belt members table has its documented precision floor.
+
+### Fixed
+- **The web app imported numba (TEST.608).** `physics/post_main_sequence.py` imported the numba bright-piece kernel at the top, and `planetgen.web.app` reaches that module, so Apache's web user (which cannot write numba's cache) would fail on it (OPS.42). The kernel is now imported where it is used, in `bright_pieces`, which only the workers call.
+
+### Changed
+- **The belt members table is in the precision floor table (TEST.609).** `belt_members` places a body to 2.4 m like `asteroid_belts` (km columns at 10,000 AU); `tests/test_precision.py` and `unified-unit-quantity.md` section 6.1 list it.
+
+## [8.0.3341] - 2026-11-05
+
+**Headline:** The job runs test counts only the sectors a fill charted, so it passes now that a rogue planet can put a sector row in a cell nobody charted.
+
+### Fixed
+- `test_a_neighborhood_job_runs_its_sectors_through_the_wrapper` and `test_a_block_job_runs_the_sectors_of_the_block_through_the_wrapper` (TEST.610) counted every `sectors` row, 16 where they expect 1 + 14. A rogue planet lands in a cell that may never have been charted and gets a row there (GEN.1111 part 7). They count the sectors in the chart ledger, as the resume and work queue tests do.
+
+## [8.0.3340] - 2026-11-05
+
+**Headline:** The gas table builder and its research parts spell water vapor and band center the same way again
+
+### Changed
+
+- Parts 01, 02 and 03 of the atmosphere composition research now use the American "vapor" and "center" where the gas table builder reads them, so `scripts/build_gas_table.py` finds the water vapor row again and `test_the_data_file_is_what_the_builder_makes` passes on a clean checkout (TEST.605). The data file is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3339] - 2026-11-05
+
+**Headline:** An air that holds a trace gas with no thermodynamic fit (methyl chloride) no longer crashes the heat capacity ratio that the greenhouse table reads.
+
+### Changed
+
+- `mixture.heat_capacity_ratio` raised `KeyError` for a gas that has a row in the gas table but no NASA Glenn fit (CH3Cl, which the trace-gas draw can add to an air). It now takes the heat capacity of such a gas from the rule the radiative-convective model already used (stand-in row IR9: the gas table's values at 100, 300 and 1000 K, then a rigid-rotor count of the atoms), now one function, `mixture.cp_over_r_without_fit`, that both use. Values for every air that did not crash are unchanged.
+- The test of that rule took HCl as its gas with no fit; HCl has one now, so it takes CH3Cl, and a second test holds that a gas with a fit takes the fit.
+
+## [8.0.3338] - 2026-11-05
+
+**Headline:** Three bright-star scatter tests that took four to nine minutes under load now take one to two; no generated output changes.
+
+### Changed
+- **Scatter tests drawn only as far as their checks need (TEST.417).** In `test_bright_star_scatter.py`, the test that checks backfilled cells hold band stars in their own cell now takes three cells of the dense shell 2 (about 120 stars each; twelve took nine minutes) and keeps the twelve of shell 3; both shells are still checked for the cell, the band and the Poisson count. The bar test for the "Topping up backfilled sectors" phase now takes the band down to 400 solar luminosities (the cheap first step, which reports the same phase) instead of down to the floor.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.417 continues).
+
+## [8.0.3337] - 2026-11-05
+
+**Headline:** The System and Galaxy views no longer scroll the page away from a key you have just pressed: a Tab to the skip link at the top of the page stays on screen.
+
+### Changed
+
+- The map-fit of a map that fills the window (`mapfit.js`, MAP.350) scrolls the page so the map sits in view until the reader scrolls it. A key press, a mouse or finger press and the wheel now count as the reader taking the page over too, for every map on the page, also one built later (the 3D system view is built when its data has come, which on a slow machine is after the reader's first Tab). Before, a scroll down to the map (544 to 616 px on a phone) followed the first Tab and left the focused skip link above the window (TEST.599: `web.system-phone-light` and `-dark` failed about one run in four).
+- Two JavaScript tests for it (they fail without the change), and the skip-link failure in `test_web_a11y.py` now says where the page was.
+
+## [8.0.3336] - 2026-11-05
+
+**Headline:** The three test files that read the small "rich" galaxy now share one build per test run instead of building it each, cutting about 12 minutes to under 5 when they run together; no generated output changes.
+
+### Changed
+- **One rich galaxy per test process (TEST.417).** `test_db_column_round_trip.py`, `test_db_check_constraints.py` and `test_cellkey_motion.py` each built the same seeded galaxy (about four minutes: three filled sectors, system shapes, phenomena, two orbit updates). The `rich_galaxy` fixture now lives in `tests/conftest.py` at session scope (the builder is `scratch_rich_galaxy` in `tests/rich_galaxy_support.py`), so every module in a process shares one build. Nothing is dropped from the galaxy: a cheaper build (no deepest-floor draw, one sector) was tried and lost the rogue planets and ocean columns the column checks need, so the galaxy is unchanged and the three modules only read it.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.417 continues).
+
+## [8.0.3335] - 2026-11-05
+
+**Headline:** The halo and block-path Poisson tests, the giant-tilt test and the wide-pair velocity test now run in two to five minutes each instead of five to nine; no generated output changes.
+
+### Changed
+- **Sampling tests drawn only as far as their checks need (TEST.417).** `test_gen_halo.py` takes every second cell of the halo and edge set at 150 times the rate, still more than 100 stars to compare against the Poisson mean; `test_backfill_block_path.py` draws only as many seeds (ten at most) as it takes the expected stars to pass 100, since each seed costs about 30 seconds; the giant-tilt test in `test_tidal_spin.py` stops once it holds 8 ice giants and 6 gas giants (it asked for 4 of each from 60 systems that cost 7 seconds apiece); the wide-pair test in `test_system_velocity.py` places each of 10 wide pairs at three positions (30 checks, not 30 pairs built). Every property and every threshold is kept; none is skipped or loosened.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.417 continues).
+
+## [8.0.3334] - 2026-11-05
+
+**Headline:** The sector resume and parallel-run tests now finish in two to four minutes each instead of fifteen to twenty-three, and no longer fail on the sector rows a rogue planet creates; no generated output changes.
+
+### Changed
+- **Whole-sector tests made small (TEST.417).** `test_gen_resume.py` (eight cases, 450 to 920 seconds each) and `test_work_queue.py` (1,354 seconds) filled 12 to 54 sectors three times over, and a sector costs about 3 seconds once the first fill's draw down to the backfill's deepest floor is left out (it is half to nine tenths of a sector's cost and the same in every run, so it says nothing about resuming). The resume tests now turn that draw off (`tests/first_fill.py`, as the bright-star scatter tests do) and use shells 0 to 2 (12 to 14 sectors a mode, not 12 to 54); the parallel-run test fills 4 sectors of shell 1 with 2 workers, not 50 of shell 2. Every check is kept: the same sectors after a resume and an uninterrupted run, each filled once, no orphan system or link, nearest-system lists equal to a recompute, every run record done. Eight cases of `test_gen_resume.py` and all of `test_work_queue.py` also failed on main: a rogue planet that lands in a cell nobody charted gets a sector row there (GEN.1111 part 7), so the sector counts were wrong. The snapshot now counts only charted sectors (those in the chart ledger) and checks that a resumed run and an uninterrupted run end with the same uncharted rows.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.417 continues).
+
+## [8.0.3333] - 2026-11-05
+
+**Headline:** A test now shows a course across the dense galactic core goes round what is made and counts the unresolved stars it crosses.
+
+### Changed
+- **Dense-core course test (NAV.76).** `tests/test_nav_dense_core.py` stores a galaxy with a made central hole and a made asteroid field on a course across the core, and checks that the course bends round both, that it carries the count of unresolved stars it crosses, that the count matches `UnresolvedField` along the course's polyline, and that the bent course crosses fewer than the straight line (it skirts the hole's sphere). A course far past the core carries no count.
+
+## [8.0.3332] - 2026-11-05
+
+**Headline:** A course through the dense galactic core now says how many unmade stars it passes through.
+
+### Added
+- **The count of unresolved stars a course crosses.** Where an adjusted course crosses the capped cells of the dense core, `adjusted` (the direct course and each hop) carries `passed_through_unresolved` (`crossings`, `length_pc`, `length_ly`, `unresolved_systems`, `cells`), and the Navigation page says "This course crosses the dense core for ..., where about N stars are too faint to be drawn and come within their keep-out distance of it. It goes round the stars that are drawn and cannot go round the rest." It uses `galaxy/unresolved_crossings.py` (NAV.74) along the course's own polyline; elsewhere nothing is added.
+
+## [8.0.3331] - 2026-11-05
+
+**Headline:** The generator can now say how many of the stars a crowded cell leaves unmade a straight course would pass through.
+
+### Added
+- **The expected unresolved keep-out spheres of a segment.** `galaxy/unresolved_crossings.py` (`UnresolvedField.crossings`) gives, for a straight segment, the mean number of keep-out spheres of the unresolved stars it crosses, the length it spends in capped cells and their unresolved systems. A star's keep-out is its galactic Hill radius from the mean unresolved system mass and the galaxy's own mass inside the point. A segment that stays beyond the capped region's reach (`capped_reach_pc`) reads no cell. The course and the Navigation page do not use it yet (NAV.75).
+
+## [8.0.3330] - 2026-11-05
+
+**Headline:** The study of how the gravity of the stars a crowded cell leaves out affects courses and the orbital update is written.
+
+### Changed
+- **NAV.62 study.** `docs/design/galaxy/realistic-galactic-core.md` section 11 says the unresolved mass is already in the smooth galactic field the orbital update uses, that its fluctuation is under half a percent of a star's speed per Myr, that a course cannot steer clear of the unresolved stars in the core (about 1,100 keep-out spheres across the nuclear disc) and should say how many it passes through, and lists three small items to build.
+
+## [8.0.3329] - 2026-11-05
+
+**Headline:** The Help menu test no longer pins the exact list of help pages, so a new help page such as the sky page does not turn it red.
+
+### Changed
+
+- `test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone` compared the whole menu with a fixed list. The menu is now built from the help registry (`web/lib/help_registry.py`), and VIEW.38 registered "The sky behind a system" in it, so the test failed on main. The test now demands All help first, References last, and Classes, Habitability and Life in that order, and allows other registered pages between them. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3328] - 2026-11-05
+
+**Headline:** The fingerprint tree test counts the sectors that have been charted, since a sector made only for a landed rogue planet has no leaf yet.
+
+### Changed
+
+- `test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree` demanded a leaf digest of every placed sector. Since GEN.1111 a rogue planet that lands in a cell nobody has charted gets a sector row of its own (`store.uncharted_sector_id`) and no leaf, because a leaf is taken from the sector in memory when it is saved: 24 of the 37 sectors of the test galaxy. The test now demands a leaf of every charted sector (those in `chart_ledger`) and counts the tree's sectors against them. The gap itself, a rogue in an uncharted sector missing from the tree, stays open under TEST.602 as a save change. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3327] - 2026-11-05
+
+**Headline:** The sector reach wheel test now ticks the wheel one step at a time and waits for the camera to rest, so it passes every time instead of 1 run in 4.
+
+### Fixed
+- `test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is` (TEST.411) failed 3 runs of 4 alone on main. It turned the wheel by a large amount to reach the window's nearest zoom, but the map caps one wheel event at one step, and it read the zoom before a tick had moved the camera. It brought the camera to the sector by ticks that came faster than the camera moved, so where it ended depended on the machine's speed. It now ticks once the camera is at rest each time, until the tick that finds the camera at the nearest zoom opens the sector, and checks that the camera did not move in that one. `_zoom_in_until` also reads the zoom once the camera is at rest, which the scene fade test shares.
+- Not changed: the indexeddb revisit test passed 6 of 6 alone, and the two double-click flight tests and the system disc fade test passed in every full-file run here, so no cause was found for them to fix.
+
+## [8.0.3326] - 2026-11-05
+
+**Headline:** A test now shows that a course between two systems of one sector also goes round an asteroid field.
+
+### Changed
+- **Asteroid-field avoidance is tested at the sector scale too.** `tests/test_nav_adjusted.py` places a field on the line between two systems of one sector and checks that the course bends round it (NAV.51; the between-sector case was already tested).
+
+## [8.0.3325] - 2026-11-05
+
+**Headline:** A course inside a solar system now goes round the stars, planets and moons and is aimed where its destination will be when the ship arrives.
+
+### Added
+- **Courses inside a system are planned round the bodies.** `GET /api/nav?...&adjusted=1` now gives an `adjusted` course for a trip between two bodies of one system, and for the in-system parts of a longer trip (out to the system's edge, and in from it). Every star keeps out by its radiation radius and every planet and moon by its Hill radius, with each body placed where it is at the departure time (`physics/body_positions.positions_at`). The planner is `galaxy/system_course.plan_system_course`; the keep-out table is `db/obstacles.system_keep_outs`; the API step is `api/nav_system.adjust_legs`.
+- **The destination moves while the ship flies.** The course is aimed at the place the destination will be on arrival, found in up to `tuning.COURSE_SYSTEM_AIM_STEPS` steps. The planning speed is warp `tuning.COURSE_SYSTEM_WARP_FACTOR`. The Navigation page says "Aimed at ... where it will be on arrival" when it applies.
+
+## [8.0.3324] - 2026-11-05
+
+**Headline:** The test that brings a galaxy to the running epoch expects the sectors a galaxy really holds, so it is green again.
+
+### Changed
+
+- `test_a_sector_made_under_an_older_epoch_is_really_generated_again` expected a galaxy of one sector. Since GEN.1111 a saved star system's ejected rogue planets are written into the sectors where they landed, so the galaxy holds 11, each made under the old epoch. The test now expects every sector made again, each at the running epoch, and still checks the sector it made for a new row and the same systems. Tests only.
+
+generation-output: unchanged
+
+## [8.0.3323] - 2026-11-05
+
+**Headline:** The sector resume and parallel-run tests now finish in two to four minutes each instead of fifteen to twenty-three, and no longer fail on the sector rows a rogue planet creates; no generated output changes.
+
+### Changed
+- **Whole-sector tests made small (TEST.417).** `test_gen_resume.py` (eight cases, 450 to 920 seconds each) and `test_work_queue.py` (1,354 seconds) filled 12 to 54 sectors three times over, and a sector costs about 3 seconds once the first fill's draw down to the backfill's deepest floor is left out (it is half to nine tenths of a sector's cost and the same in every run, so it says nothing about resuming). The resume tests now turn that draw off (`tests/first_fill.py`, as the bright-star scatter tests do) and use shells 0 to 2 (12 to 14 sectors a mode, not 12 to 54); the parallel-run test fills 4 sectors of shell 1 with 2 workers, not 50 of shell 2. Every check is kept: the same sectors after a resume and an uninterrupted run, each filled once, no orphan system or link, nearest-system lists equal to a recompute, every run record done. Eight cases of `test_gen_resume.py` and all of `test_work_queue.py` also failed on main: a rogue planet that lands in a cell nobody charted gets a sector row there (GEN.1111 part 7), so the sector counts were wrong. The snapshot now counts only charted sectors (those in the chart ledger) and checks that a resumed run and an uninterrupted run end with the same uncharted rows.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.417 continues).
+
+## [8.0.3322] - 2026-11-05
+
+**Headline:** The unused belt giant event and companion limit functions are removed, so the belt's history has one source for each cause.
+
+### Changed
+
+- Removed `belt_history.giant_event`, `belt_history.limit` and their constants (GEN.1232b): the Grand Tack-type depletion of a belt is `belt_origin`'s (GEN.1068), a companion's limit is the orbit ceiling every belt is trimmed to, and a Nice-type instability alone waits for GEN.1082. The registry row BHS1 is dropped, its values stay in row BG9.
+- generation-output: unchanged
+
+## [8.0.3321] - 2026-11-05
+
+**Headline:** Two course-diagram tests expect the American spelling again.
+
+### Changed
+- The tests that check the course diagram's "neighbor relation, not a travel lane" line, and the sweep's leftover words in test notes, use the American spelling.
+
+generation-output: unchanged
+
+## [8.0.3320] - 2026-11-05
+
+**Headline:** A course through waypoints can be edited on the Galaxy Map (reorder, remove, add, drag a flag to another star) and saved over or as a new course.
+
+### Added
+- The Waypoints menu has Up and Down on each waypoint to put it earlier or later in the course.
+- With the course through the waypoints on the map, every edit (move, remove, add, replace) plans the course again at once through the new list, and the Waypoints menu comes back open; the course goes when fewer than two waypoints are left.
+- A waypoint's flag on the Galaxy Map can be dragged onto another star system: that system takes the waypoint's place in the course.
+- The Waypoints menu saves the waypoints as a course: Save as new course asks for a name, and Save over replaces the saved course the waypoints came from. Saved courses through waypoints are listed there with Open (their stops become the waypoints and the course is plotted) and on the NAV page's Courses list, with On the map, Edit, Rename and Delete.
+
+### Changed
+- Clear all takes every waypoint in one step.
+
+generation-output: unchanged
+
+## [8.0.3319] - 2026-11-05
+
+**Headline:** The prevalence census tests carry the shifts train 10 (epoch 132) made, so they flag only new faults.
+
+### Changed
+- **TEST.550 (census re-tag after train 10).** The class, systems and occurrence census flagged twelve cells on the epoch 132 tree. Each is now tagged with the item that moved it, with the evidence in the anomaly text: six class cells (planet life ceilings of F5V and K0III ecosphere planets under GEN.1226; moon Class D and two moon ceilings under GEN.1244), F5V belts per system and K giants of 2 to 8 AU under GEN.1068 (belt members, belt history and the planet-chain draws), and the G2V abiogenesis share under GEN.1111 (a draw shift of 0.026 inside the sampling spread of 150 systems). Ranges are unchanged. The base shares (`PREVALENCE_BASE_SHARES`) are TEST.579's. Tests only: no generator change.
+
+## [8.0.3318] - 2026-11-05
+
+**Headline:** A test now records that a field cloud's sprite on the Galaxy Map hands over to the nebula density volume by design, and that the cloud is never left undrawn.
+
+### Changed
+- MAP.382: the field cloud sprite is on screen for a few frames when its node arrives and then fades out as the nebula volume layer (MAP.365) draws the same region from the model's density; the map was not changed. A browser test holds that 5 s after the sprite is first seen either the volume layer or the sprite draws the cloud.
+
+## [8.0.3317] - 2026-11-05
+
+**Headline:** Waypoints are flagged and numbered on the Galaxy Map and a sector's map, and a system, phenomenon or body page can add one.
+
+### Added
+- A waypoint picked from a card on the Galaxy Map or a sector's map is flagged and numbered where it is, at every zoom level and inside an opened sector or system. A new Waypoint flags switch in the Menu's Show on the map hides the flags, and the key explains them. A plotted course flags its waypoints too.
+- The Nav menu of a system, phenomenon or body page has Add waypoint; it becomes Remove waypoint once the place is one, and the list is the same as the maps'.
+
+generation-output: unchanged
+
+## [8.0.3316] - 2026-11-05
+
+**Headline:** The sector page label test waits for the sector's map blocks to arrive before it checks which names are shown, so it no longer fails 1 run in 3.
+
+### Fixed
+- `test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch` (TEST.597) read the labels as soon as a system name showed, while the page was still loading its map blocks one level at a time (243, 81, 27, 9). A block is drawn whole until its children are in, and a whole block names its region or family for the two to four seconds that takes, so "Fixture Reach" showed in every run for a moment and the test failed whenever it read the labels in that moment. It waits until those names have gone. The map is as designed; no map bug was found.
+
+## [8.0.3315] - 2026-11-05
+
+**Headline:** Four map browser tests that failed on main wait for the right thing now, so the Galaxy Map and system view tests pass again.
+
+### Fixed
+- `test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate` (TEST.575) took the first generated system with moons, which can have only one freely turning body (its moons locked), and asked for two. It takes the first of up to eight systems with moons that has two, and fails only if none has.
+- `test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox` (TEST.575, TEST.595) waited for the first gas giant mark and then asserted all of them, so it saw only Fixture Jove while Fixture Eden had not drawn. It waits until every expected mark is drawn.
+- `test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out` (TEST.575) kept wheeling in after the sector's scene was whole (one edge in). At the window's nearest zoom, one more tick opens the sector by design (MAP.152), the scene share reads null and the test failed on a window whose nearest zoom is between 0.9 and 1 edge. It stops wheeling at one edge.
+- `test_web_browser_map_card.py` black hole cases (TEST.595) asked for the Fixture Maw button while the Black hole marks layer is off by default (MAP.368). They are marked like the other tests of the marks.
+- Not changed: the field cloud sprite test and the wheel tick test of the sector reach file passed alone in every run here (4 of 4, 3 of 3) and failed only late in a long file run or while other work ran on the machine, on 40 s and 15 s waits for a rendered frame of the software GL. No map bug was found; no wait was lengthened.
+
+## [8.0.3314] - 2026-11-05
+
+**Headline:** Two or more waypoints plot a course on the Galaxy Map that stays drawn until the waypoints are cleared.
+
+### Added
+- The Waypoints menu offers Plot the course once there are two or more waypoints. The Galaxy Map then draws the course through them: each leg planned like any other course (the route, the direct line, and the bend round keep-out spheres), the waypoints ringed and named, and a note giving the total distance.
+- The course stays: a Galaxy Map opened with two or more waypoints and no course of its own comes up with them plotted, until Clear all, or Remove down to fewer than two, takes the course away too.
+- The address carries the waypoints (`?via=`), so the plotted course can be bookmarked or shared; a waypoint the database no longer has simply draws no course.
+
+generation-output: unchanged
+
 ## [8.0.3313] - 2026-11-05
 
 **Headline:** A sea now stores what it is made of: the methane, ethane and nitrogen of a hydrocarbon sea, the salt of a water sea, and a second liquid beside the main one.

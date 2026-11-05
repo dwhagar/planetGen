@@ -14,19 +14,19 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.263 |
-| MAP | MAP.382 |
-| NAV | NAV.74 |
-| GEN | GEN.1279 |
-| PERF | PERF.241 |
+| MAP | MAP.388 |
+| NAV | NAV.77 |
+| GEN | GEN.1283 |
+| PERF | PERF.244 |
 | DB | DB.110 |
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.596 |
+| TEST | TEST.623 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
-| VIEW | VIEW.42 |
+| VIEW | VIEW.43 |
 | POP | POP.46 |
 
 ## Why this exists
@@ -1995,7 +1995,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) | none | done, PR #4436 |
 | GEN.1216 | Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each | none | done, research report written (reports/gen1216-surface-liquid-composition-2026-10-31.md) |
 | GEN.1217 | Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it | none | open |
-| GEN.1218 | Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API | none | open |
+| GEN.1218 | Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API | none | done, PR #5099 |
 | GEN.1219 | Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first | none | done, PR #5096 |
 | GEN.1220 | Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families | none | done, PR #5096 |
 | GEN.1221 | Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent | none | open |
@@ -2009,7 +2009,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1229 | Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug) | none | done, PR #4881 |
 | GEN.1230 | The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug) | none | done, PR #4886 |
 | GEN.1231 | White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent | none | open |
-| GEN.1232 | Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event) | none | open |
+| GEN.1232 | Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event) | none | done, PR #5125 |
 | GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law | none | done, PR #5096 |
 | GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
 | GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
@@ -2056,6 +2056,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1276 | Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register) | none | open |
 | GEN.1277 | Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one | none | open |
 | GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) | none | open |
+| GEN.1279 | The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug) | none | done, PR #5122 |
+| GEN.1280 | The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug) | none | done, PR #5122 |
+| GEN.1281 | Heavy worlds with a plain nitrogen air and no oxygen or methane (about 1.3 percent of bodies) fit no class: widen a class or add one | none | open |
+| GEN.1282 | Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2437,6 +2441,12 @@ Parents marked "new parent" had no old number of their own.
 | MAP.379 | Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug) | none | done, PR #4954 |
 | MAP.380 | The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug) | none | done, PR #4997 |
 | MAP.381 | Sector Map: draw the globular clusters and label them by name or designation | none | open |
+| MAP.382 | The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug) | none | done, PR #5111 |
+| MAP.383 | Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both | none | open |
+| MAP.384 | Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening | none | open |
+| MAP.385 | Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget | none | open |
+| MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies | none | open |
+| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2461,9 +2471,9 @@ Parents marked "new parent" had no old number of their own.
 | NAV.22 | Courses inside a sector and a system | none | open |
 | NAV.23 | Open a saved course on the map | none | done, PR #5091 |
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
-| NAV.25 | Find the obstacles along a path | none | open |
-| NAV.26 | Bend the path around keep-out spheres | none | open |
-| NAV.27 | Moving bodies inside a system | none | open |
+| NAV.25 | Find the obstacles along a path | none | done, PR #5144 |
+| NAV.26 | Bend the path around keep-out spheres | none | done, PR #5143 |
+| NAV.27 | Moving bodies inside a system | none | done, PR #5131 |
 | NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
@@ -2485,20 +2495,20 @@ Parents marked "new parent" had no old number of their own.
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | done, PR #1389 |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | done, PR #1195 |
-| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
+| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | done, PR #5109 |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
-| NAV.51 | Courses route around asteroid fields | none | open |
+| NAV.51 | Courses route around asteroid fields | none | done, PR #5131 |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | done, PR #5066 |
 | NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
-| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | open |
+| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | done, PR #5118 |
 | NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | none | open |
 | NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | none | done, PR #1977 |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | none | done, PR #3685 |
-| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | open |
+| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | done, PR #5137 |
 | NAV.63 | Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route | none | open |
 | NAV.64 | Find the nearest resource location from a position or along a course, by resource kind and minimum score | none | open |
 | NAV.65 | Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap | none | done, PR #4995 |
@@ -2510,6 +2520,9 @@ Parents marked "new parent" had no old number of their own.
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
 | NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | done, PR #5076 |
 | NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) | none | done, PR #5009 |
+| NAV.74 | A pure function for the expected number of unresolved stars a course segment crosses, with a cheap miss test outside the capped core | none | done, PR #5142 |
+| NAV.75 | The adjusted course says how many unresolved stars it passes through: the course, the API and the Navigation page | none | done, PR #5142 |
+| NAV.76 | A dense-core scale test for course avoidance: a course through the capped core stays within its time budget | none | done, PR #5142 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -2845,6 +2858,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.238 | Temperature coverage cost: the illumination and temperature series must stay about 20 ms a rocky body in bulk generation and in the bring-to-epoch recompute | none | open |
 | PERF.239 | A warm-up with nothing changed costs minutes: decide "already stored" from the cache keys, not by visiting every page | none | done, PR #4978 |
 | PERF.240 | A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug) | none | open |
+| PERF.241 | A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug) | none | open |
+| PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | none | open |
+| PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3261,6 +3277,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
 | VIEW.41 | System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer | none | done, PR #5034 |
+| VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) | none | open |
 
 ## Tree IDs to flat IDs
 
@@ -3640,7 +3657,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.289 | Two API tests fail once under the gate's four workers: test_a_neighborhood_job_runs_its_sectors_through_the_wrapper and test_a_quick_edit_answers_in_the_same_response (bug) | none | done, PR #4834 |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) | none | open |
 | TEST.291 | test_a_star_in_a_sector_far_from_the_core_is_selectable fails once in the gate and passes alone (bug) | none | done, PR #2669 |
-| TEST.292 | test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug) | none | open |
+| TEST.292 | test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails at 130 s under load 9.7 and takes 97 s alone (bug) | none | done, PR #5133 |
 | TEST.293 | test_comet_population.py::test_a_draw_is_deterministic_from_its_seed_at_one_and_four_workers fails once under the gate load and passes alone (bug) | none | done, PR #2663 |
 | TEST.294 | full --check run on a main checkout has an empty change set and reports every failure as not selected (the dependency map itself selects test_validation.py::test_system_methods_still_delegate for the GEN.325 change) (bug) | none | done, PR #2663 |
 | TEST.295 | test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug) | none | done, PR #4842 |
@@ -3759,7 +3776,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | done, PR #4797 |
 | TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | done, PR #4797 |
 | TEST.410 | test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug) | none | done, PR #3405 |
-| TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) | none | open |
+| TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) | none | done, PR #5133 |
 | TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | done, PR #4797 |
 | TEST.413 | test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug) | none | done, PR #3499 |
 | TEST.414 | test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug) | none | done, PR #4806 |
@@ -3922,7 +3939,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.572 | Two reds on main from train 8: test_sheet_fill life_class_variant (1 of 30) and nuclear_arrival_age_gy NULL in every star row (bug) | none | done, PR #4898 |
 | TEST.573 | Two galaxy map browser tests red on main: the class buttons count (19 against 20) and a halo black hole not picked on the whole-galaxy view (bug) | none | done, PR #4865 |
 | TEST.574 | Two reds from GEN.1160 on main: a Class D case now scores C in test_class_fit, and a class composition text has no row in materials.json (bug) | none | done, PR #4869 |
-| TEST.575 | 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug) | none | open |
+| TEST.575 | 26 browser tests red on main on pixel positions and waits: test_web_browser_fixture_maps (19), test_web_browser_maps (5), test_map_region_labels_browser, test_web_browser_sector_reach (bug) | none | done, PR #5104 |
 | TEST.576 | test_plain_words is red on main: its corpus is 1306 words against a 1500 floor (bug) | none | done, PR #4897 |
 | TEST.577 | test_gen_scatter_tiers is red on main: the luminosity pass draws each band to its tier floor, and the weights count each band's own tier (bug) | none | dropped (did not reproduce: 26 of 26 pass on main, Core 3) |
 | TEST.578 | test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug) | none | done, PR #4866 |
@@ -3942,7 +3959,34 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.592 | test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug) | none | done, PR #5073 |
 | TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | done, PR #5079 |
 | TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | done, PR #5088 |
-| TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | open |
+| TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | done, PR #5104 |
+| TEST.596 | test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug) | none | done, PR #5115 |
+| TEST.597 | test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug) | none | done, PR #5106 |
+| TEST.598 | test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug) | none | open |
+| TEST.599 | test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug) | none | done, PR #5148 |
+| TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) | none | open |
+| TEST.601 | Two tests still expect the British spelling neighbour after DOC.103: test_nav_course_diagram_draws_the_neighbours and test_the_page_says_a_link_is_a_neighbour_relation (bug) | none | done, PR #5121 |
+| TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) | none | open |
+| TEST.603 | The Help menu test pinned the exact list of help pages and went red when VIEW.38 added one (bug) | none | done, PR #5137 |
+| TEST.604 | A trace gas with no thermo data (CH3Cl) crashes instead of being handled, red on clean main (bug) | none | done, PR #5154 |
+| TEST.605 | test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug) | none | done, PR #5154 |
+| TEST.606 | The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug) | none | open |
+| TEST.607 | Three cloud-placement tests find no cloud for a placed system (surrounding_cloud is None) (bug) | none | done, PR #5159 |
+| TEST.608 | The web app imports numba: tests/test_install_python_deps.py::test_the_web_app_never_imports_numba fails (bug) | none | done, PR #5157 |
+| TEST.609 | tests/test_precision.py::test_the_floor_of_every_table_with_a_position_is_the_documented_one fails: the table set has an extra belt_members (bug) | none | done, PR #5157 |
+| TEST.610 | tests/test_api_job_runs.py::test_a_neighborhood_job_runs_its_sectors_through_the_wrapper counts 16 sectors where it expects 1 + 14 (bug) | none | done, PR #5157 |
+| TEST.611 | tests/test_radiative_convective.py::test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends gives 38.69 against 31.63 +- 0.03 (bug) | none | done, PR #5154 |
+| TEST.612 | test_post_main_sequence.py::test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright fails after test_bright_measure_exactness.py in one process (190 against 150 Gy) (bug) | none | done, PR #5165 |
+| TEST.613 | tests/test_literal_insert.py (bright_stars_read_back_exactly_as_written, a_long_run_is_cut_into_statements) fail with pymysql 1136 Column count doesn't match value count (bug) | none | done, PR #5165 |
+| TEST.614 | tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug) | none | open |
+| TEST.615 | tests/test_gen_fill_groups.py::test_a_member_in_a_decayed_group_is_built_from_the_hierarchy fails: a decayed group builds 1 star where at least 2 are expected (bug) | none | done, PR #5165 |
+| TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) | none | open |
+| TEST.617 | tests/test_log_shell.py::test_update_sh_prints_its_own_lines_through_the_layer fails: update.sh echoes "The update steps are finished: waiting ..." without going through logrecord.sh (bug) | none | done, PR #5165 |
+| TEST.618 | tests/test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist fails: scripts/measure_tile_cache.py names db/nodes.py, which does not exist (bug) | none | done, PR #5165 |
+| TEST.619 | tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug) | none | open |
+| TEST.620 | tests/test_reproducible_draws.py fails: math.dist at db/field_clouds.py:51 and db/obstacles.py:158 must use detmath.dist (bug) | none | open |
+| TEST.621 | The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug) | none | open |
+| TEST.622 | tests/test_parallel_names.py::test_two_passes_drawing_the_same_names_still_save_unique_ones fails alone on main (no species made) and passes in a whole-file run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
