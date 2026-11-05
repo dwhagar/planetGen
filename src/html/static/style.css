@@ -2069,6 +2069,150 @@ a:focus-visible .navmap-point circle {
 
 .nav-hop-unknown {
   font-style: italic;
+  color: var(--error);
+}
+
+/* NAV.67, NAV.36: the course diagram. Three drawings of one route are on the page (a narrow, a middle and a wide one); the one that
+   fits the viewport shows. An unknown-space hop is red, dashed and glowing, and says so in words as well. */
+.nav-diagram-scroll {
+  overflow-x: auto;
+}
+
+.nav-diagram-narrow-box,
+.nav-diagram-middle-box,
+.nav-diagram-wide-box {
+  display: none;
+}
+
+.nav-diagram-narrow-box {
+  display: block;
+}
+
+@media (min-width: 560px) {
+  .nav-diagram-narrow-box { display: none; }
+  .nav-diagram-middle-box { display: block; }
+}
+
+@media (min-width: 960px) {
+  .nav-diagram-middle-box { display: none; }
+  .nav-diagram-wide-box { display: block; }
+}
+
+.nav-diagram-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.nav-diagram-line {
+  stroke: var(--line);
+  stroke-width: 2;
+  fill: none;
+}
+
+.nav-diagram-hop-unknown .nav-diagram-line {
+  stroke: var(--error);
+  stroke-width: 3;
+  stroke-dasharray: 7 4;
+}
+
+.nav-diagram-label,
+.nav-diagram-course {
+  fill: var(--text-muted);
+  font-size: 12px;
+}
+
+.nav-diagram-label-unknown {
+  fill: var(--error);
+  font-weight: 700;
+}
+
+.nav-diagram-name {
+  fill: var(--text);
+  font-size: 12px;
+}
+
+.nav-diagram-stop {
+  cursor: default;
+}
+
+a.nav-diagram-stop {
+  cursor: pointer;
+}
+
+a.nav-diagram-stop:hover .nav-diagram-name,
+a.nav-diagram-stop:focus-visible .nav-diagram-name {
+  fill: var(--link);
+  text-decoration: underline;
+}
+
+a.nav-diagram-stop:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.nav-glyph-fill {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+
+.nav-glyph-stone {
+  fill: var(--tier-yellow);
+  stroke: var(--text);
+  stroke-width: 1.2;
+}
+
+.nav-glyph-hole {
+  fill: var(--text);
+}
+
+.nav-glyph-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+}
+
+.nav-diagram-end {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.nav-diagram-origin {
+  stroke-dasharray: 3 2;
+}
+
+.nav-diagram-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.nav-diagram-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-legend-glyph {
+  flex: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-diagram-hop-unknown {
+    animation: nav-diagram-glow 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes nav-diagram-glow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 .nav-skip {
