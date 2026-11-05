@@ -18969,6 +18969,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/design/operations/cache-warm-up.md, docs/reference/config.md and
   tests. Done: a warm-up by update.sh, by hand and in the background
   each leave a bracketed run in warmup.log.
+  Plan (6:05 PM EST on 2026-11-05): version moved from 8.2 to 8.3 with
+  the rest of the logging chain (OPS.97 to OPS.103, OPS.105), beside the
+  nightly run, to balance the load of 8.2; Aux 2 keeps building the
+  chain now because it is lock-free.
   Prerequisites: OPS.104.
 
 - [ ] **OPS.97 Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter**
@@ -18989,7 +18993,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/design/operations/logging-standard.md, docs/reference/logging.md
   and tests. No shim for the old form. Done: no log form writes UTC and
   the standard says local time.
-  Prerequisites: OPS.96, OPS.104.
+  Prerequisites: OPS.96.
 
 - [ ] **OPS.98 A time on every line of every script and command**
   Boss decided (11-05) that every log uses the system (local) time with
@@ -19102,32 +19106,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   table.
   Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105.
 
-- [ ] **OPS.104 One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone**
-  Boss decided (11-05) that there is one logging codebase for the Python
-  code and the shell scripts. Full text in
-  reports/logging-review-2026-11-05.md, last section "Boss addition
-  (11-05): one logging codebase". Lock-free: it touches no generated
-  content, golden, migration or epoch. Version 8.2. Owner: none yet.
-  Filed by the TODO thread. What exists: two Python stacks (util/log.py
-  with its own two formatters, util/logrecord.py with three, get_logger
-  used in one place), and scripts/logrecord.sh as a separate shell copy.
-  Do: planetgen.util.log stays the one import and becomes the only place
-  a line is made and written: logrecord's record (time local with zone,
-  severity, component, fields) is the one data form, and the console
-  plain line, the debug line, the file line, the JSON line, the display
-  line and the relay are writings of that record from one formatter set.
-  One call surface: log.get(component) returns the logger; log.normal,
-  debug, warning and error stay as thin calls on it; stage marks, the
-  area tag and fields go through the same record. scripts/logrecord.sh
-  stays the only shell helper, made a mirror of the module by a
-  generated vocabulary (severities, components, stage words) and the
-  existing test that runs both on the same records. TEST.183 grows to
-  fail on any formatter class or handler outside the module. Must merge
-  before every item that changes a log format (OPS.96, OPS.97, OPS.98,
-  OPS.101, OPS.103). Done: one formatter set, one call surface, the test
-  fails on a second one.
-  Prerequisites: none. Related: OPS.97, OPS.105, TEST.183.
-
 - [ ] **OPS.105 One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls**
   Boss decided (11-05) that there is one logging codebase for the Python
   code and the shell scripts. Full text in
@@ -19143,7 +19121,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   The activity log and its fail2ban filter move together (this is where
   OPS.97 lands for it). Done: no handler, formatter or log-line print
   outside the module, and TEST.183 proves it.
-  Prerequisites: OPS.104, OPS.97. Related: OPS.97, TEST.183.
+  Prerequisites: OPS.97. Related: OPS.97, TEST.183.
 
 ## DOC: Documentation
 

@@ -2571,3 +2571,4 @@ Baseline: PR #1817.
 | MAP.383 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
 | DB.40 | 8.9 | Parity data |
 | DB.41 | 8.9 | Parity data |
+| OPS.104 | 8.2 | Robust tile caching |
