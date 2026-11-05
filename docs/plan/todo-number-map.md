@@ -2514,9 +2514,9 @@ Parents marked "new parent" had no old number of their own.
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
 | NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | done, PR #5076 |
 | NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) | none | done, PR #5009 |
-| NAV.74 | A pure function for the expected number of unresolved stars a course segment crosses, with a cheap miss test outside the capped core | none | open |
-| NAV.75 | The adjusted course says how many unresolved stars it passes through: the course, the API and the Navigation page | none | open |
-| NAV.76 | A dense-core scale test for course avoidance: a course through the capped core stays within its time budget | none | open |
+| NAV.74 | A pure function for the expected number of unresolved stars a course segment crosses, with a cheap miss test outside the capped core | none | done, PR #5142 |
+| NAV.75 | The adjusted course says how many unresolved stars it passes through: the course, the API and the Navigation page | none | done, PR #5142 |
+| NAV.76 | A dense-core scale test for course avoidance: a course through the capped core stays within its time budget | none | done, PR #5142 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
