@@ -6,7 +6,7 @@ Informs: VIEW.20 to VIEW.38 (goal #4907); VIEW.39 and VIEW.40 are optional and o
 
 Status: built for stored stars (VIEW.20 to VIEW.37, 2026-11-05). The sky tiers that charting builds (VIEW.25, VIEW.26) and the calibration against a real catalogue (VIEW.30) are open; until they land the sky holds the stars that are stored and says how far it is built.
 
-Plan and research: `reports/system-sky-from-the-system-2026-11-04.md`. The wire format is [system-sky-wire-format.md](../interface/system-sky-wire-format.md); the longer, full-chart design for the view from a planet (9.1) is [sky-view.md](sky-view.md), and its items VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 stay in 9.1. Sources are cited as `[R0123]`; the list is on the References pages.
+Plan and research: `reports/system-sky-from-the-system-2026-11-04.md`. The wire format is [system-sky-wire-format.md](../interface/system-sky-wire-format.md); the longer, full-chart design for the view from a planet (9.0 phase 2; 9.1 was folded into 9.0) is [sky-view.md](sky-view.md), and its items VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 are built in 8.2 as its foundations. Sources are cited as `[R0123]`; the list is on the References pages.
 
 ## 1. What Boss decided
 

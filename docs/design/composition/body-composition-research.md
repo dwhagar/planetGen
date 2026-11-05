@@ -1,5 +1,7 @@
 # Body composition: research findings and the composition design (draft for the 9.0 headline)
 
+> Version note (2026-11-05): "8.4 phase 1 to 4" in this document is the old plan. Those phases moved into 8.1 on 2026-10-23 and are now 8.1 phases 6 to 9 (8.4 phase N is 8.1 phase N+5); see docs/plan/releases/version-8-1-zoom-and-scatters.md.
+
 **Status (2026-10-17):** research result of GEN.432 and GEN.433 (the Body composition research lane), merged here by the TODO thread so that every lane has it in the repository. It feeds the designs GEN.426 (bulk), GEN.435 (stars), GEN.436 (radiation) and GEN.457 (small bodies and moons), the tables GEN.427, GEN.438 and GEN.439, and the generation chain of [composition-model.md](composition-model.md). Times in it are as the lane's clock reported. Section 16 says where the TODO thread placed each finding and cluster. The five decisions of section 5 are taken (Boss's card taps of 1:21 to 1:24 AM EDT, as the coordinator relayed them).
 
 Draft of 2026-10-17 (written between 12:00 AM and 1:10 AM EDT as the lane clock reported; lane clocks drift). Research only; the TODO thread merged it into the repository. Requested by Boss (2026-10-16, 11:58 PM EDT): composition of planets, moons, stars and everything else becomes a joint headline of the atmosphere-colour release; every body gets composition figures based on actual science, not made up where it can be avoided; drawing density and other bulk figures first and filling in a fitting composition is fine, and so is building up from the most basic.
