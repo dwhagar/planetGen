@@ -285746,11 +285746,13 @@
   "web:https://docs.python.org/3/library/concurrent.futures.html": "R5032",
   "web:https://docs.unity3d.com/packages/com.unity.visualeffectgraph@10.3/manual/block-camerafade.html": "R5062",
   "web:https://elib.dlr.de/203153/1/final.pdf": "R5046",
+  "web:https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/lod-catalogs.html": "R5113",
   "web:https://hedgedocs.com/index.php/transparency_dithering": "R5050",
   "web:https://interplayoflight.wordpress.com/2022/07/10/order-independent-transparency-endgame/": "R5052",
   "web:https://learnopengl.com/guest-articles/2020/oit/weighted-blended": "R5053",
   "web:https://learnopengl.com/guest-articles/2021/scene/frustum-culling": "R5054",
   "web:https://moonjump.com/game-dev-mechanics-third-person-camera-systems-how-it-works/": "R5058",
+  "web:https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/c/req/abcorr.html": "R5112",
   "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
   "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
   "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
@@ -286256,6 +286258,24 @@
    "name": "Part three – dithering in quantization of 2D images",
    "provider": "Wronski, B",
    "url": "https://bartwronski.com/page/3/",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-05",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "NAIF SPICE: aberration corrections",
+   "provider": "NASA JPL Navigation and Ancillary Information Facility",
+   "url": "https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/req/abcorr.html",
+   "year": ""
+  },
+  {
+   "checked": "2026-11-05",
+   "identifier": "",
+   "kind": "software documentation",
+   "name": "Gaia Sky: level-of-detail catalogs",
+   "provider": "Gaia Sky project, Heidelberg University",
+   "url": "https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/LOD-catalogs.html",
    "year": ""
   }
  ]

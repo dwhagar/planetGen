@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.592 |
+| TEST | TEST.596 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -2250,7 +2250,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.192 | See the objects whose positions changed in the last orbital update | none | open |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | none | open |
-| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
+| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | closed, measured and not built (reports/map195-finer-tile-overlap-2026-11-05.md) |
 | MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | done, PR #1331 |
 | MAP.197 | Remove the obsolete drill container code left by the map flip | none | done, PR #1455 |
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | done, PR #1470 |
@@ -2454,17 +2454,17 @@ Parents marked "new parent" had no old number of their own.
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | done, PR #697 |
 | NAV.17 | A saved course record with both forms | none | done, PR #2553 |
-| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | open |
+| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | done, PR #5084 |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
 | NAV.20 | Draw the direct line and the route apart | none | done, PR #711 |
-| NAV.21 | Fit the view to the whole course | none | open |
+| NAV.21 | Fit the view to the whole course | none | done, PR #5091 |
 | NAV.22 | Courses inside a sector and a system | none | open |
-| NAV.23 | Open a saved course on the map | none | open |
+| NAV.23 | Open a saved course on the map | none | done, PR #5091 |
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
-| NAV.28 | Show and save the adjusted course | none | open |
+| NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
@@ -2490,7 +2490,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.51 | Courses route around asteroid fields | none | open |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
-| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | open |
+| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | done, PR #5066 |
 | NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
@@ -2508,7 +2508,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | none | done, PR #5015 |
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | none | open |
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
-| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | open |
+| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | done, PR #5076 |
 | NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) | none | done, PR #5009 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
@@ -3257,7 +3257,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | none | done, PR #5049 |
 | VIEW.36 | System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points | none | done, PR #5049 |
 | VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | none | done, PR #5061 |
-| VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | none | open |
+| VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | none | done, PR #5063 |
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
 | VIEW.41 | System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer | none | done, PR #5034 |
@@ -3939,6 +3939,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.589 | test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug) | none | done, PR #5045 |
 | TEST.590 | test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star fails on plain main with min() of an empty list in _nearest (bug) | none | done, PR #5051 |
 | TEST.591 | test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug) | none | open |
+| TEST.592 | test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug) | none | done, PR #5073 |
+| TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | done, PR #5079 |
+| TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | done, PR #5088 |
+| TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

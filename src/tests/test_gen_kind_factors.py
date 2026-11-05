@@ -337,17 +337,26 @@ def test_a_metal_poor_star_makes_almost_no_giants(fe_h):
     assert giants <= 0.1 * solar_giants
 
 
-def test_no_halo_system_carries_more_planets_than_a_disk_one_does_on_average():
+def _mean_planets_of_a_g_dwarf(population, systems):
     counts = []
-    for index in range(20):
-        with draw.bound(f"halo-cull:{index}"):
+    for index in range(systems):
+        with draw.bound(f"halo-cull:{population}:{index}"):
             cfg = SystemConfig()
             cfg.STAR_TYPE = "G2V"
-            cfg.POPULATION = "halo"
+            cfg.POPULATION = population
             cfg.BINARY_SYSTEM = False
             system = StarSystem(system_config=cfg)
         counts.append(len(system.planets))
-    assert sum(counts) / len(counts) < 0.5 * 6.9      # a disk G dwarf holds about 6.9
+    return sum(counts) / len(counts)
+
+
+def test_no_halo_system_carries_more_planets_than_a_disk_one_does_on_average():
+    """TEST.580: the disk's mean is measured on the same draws, not typed (it was 6.9 and is about 9.3 now: the epoch 74 draws moved every
+    stream, and a count of planets is heavy-tailed, so 20 systems and a fixed 6.9 failed on a 17-planet halo system). The halo's is about
+    3.4 to 4.3 of it, so a bound of 0.6 holds the claim, that a metal-poor star makes far fewer planets, with room for the tail."""
+    halo = _mean_planets_of_a_g_dwarf("halo", 30)
+    disk = _mean_planets_of_a_g_dwarf("old", 30)
+    assert halo < 0.6 * disk, (halo, disk)
 
 
 def test_a_close_binary_proxy_takes_its_primarys_metallicity():

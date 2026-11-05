@@ -171,3 +171,40 @@ def test_links_between_stops_on_different_rows_are_counted_in_a_note_and_not_dra
     html = render_course_diagram(route, _names(path), _urls(path))
     assert "neighbor links between stops on different rows are not drawn" in html
     assert 'class="nav-diagram-neighbour nav-diagram-link"' not in html.split("nav-diagram-wide-box")[1].split("</svg>")[0]
+
+
+def _adjusted(bends, extra_ly=0.4, straight_ly=100.0, warnings=()):
+    waypoints = [{"p": [0, 0, 0], "kind": "start", "ref": None}]
+    for index in range(bends):
+        waypoints += [{"p": [1, 0, 0], "kind": "tangent_in", "ref": f"star:{index}"}, {"p": [2, 0, 0], "kind": "tangent_out", "ref": f"star:{index}"}]
+    waypoints.append({"p": [9, 0, 0], "kind": "end", "ref": None})
+    return {"waypoints": waypoints, "straight_length_ly": straight_ly, "extra_ly": extra_ly, "length_ly": straight_ly + extra_ly,
+            "avoided": [f"star:{i}" for i in range(bends)], "warnings": list(warnings)}
+
+
+def test_a_hop_that_bends_round_a_sphere_is_marked_and_says_how_much_longer():  # NAV.72
+    route = _route(PATH, [4.2, 100.0, 650.0])
+    route["hops"][1]["adjusted"] = _adjusted(2, extra_ly=0.4)
+    html = render_course_diagram(route, _names(PATH), _urls(PATH))
+    assert html.count('class="nav-diagram-bend"') == len(WIDTHS) + 1       # one under the hop in each drawing, one in the legend
+    assert "bends round 2 keep-out spheres" in html and "0.4%" in html
+    assert "Hop that bends round a keep-out sphere" in html
+    assert "1 hop would pass inside the keep-out sphere" in html
+    assert 'class="nav-diagram-bend nav-diagram-bend-flag"' not in html
+
+
+def test_a_hop_the_planner_could_not_bend_is_flagged_and_drawn_straight():
+    route = _route(PATH, [4.2, 100.0, 650.0])
+    route["hops"][0]["adjusted"] = _adjusted(0, extra_ly=0.0, warnings=["overlap_fallback"])
+    html = render_course_diagram(route, _names(PATH), _urls(PATH))
+    assert html.count("nav-diagram-bend-flag") == len(WIDTHS)
+    assert "overlap, so it is shown as the straight line" in html
+
+
+def test_hops_that_do_not_leave_the_straight_line_draw_no_bend():
+    route = _route(PATH, [4.2, 100.0, 650.0])
+    route["hops"][0]["adjusted"] = _adjusted(0, extra_ly=0.0)
+    html = render_course_diagram(route, _names(PATH), _urls(PATH))
+    assert "nav-diagram-bend" not in html and "keep-out" not in html
+    plain = render_course_diagram(_route(PATH, [4.2, 100.0, 650.0]), _names(PATH), _urls(PATH))
+    assert "nav-diagram-bend" not in plain

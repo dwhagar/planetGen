@@ -1615,6 +1615,12 @@ a.navmap-label:focus-visible {
   stroke-width: 2;
 }
 
+/* NAV.28: the course bent round keep-out spheres, over the route, in the amber of the site's warning tier. */
+.navmap-bent-line {
+  stroke: var(--tier-yellow);
+  stroke-width: 2.5;
+}
+
 /* NAV.36: a jump through unknown space is red, dashed and glowing (the glow is the SVG's filter); it pulses only where the visitor has
    not asked for reduced motion. */
 .navmap-route-unknown,
@@ -2139,6 +2145,16 @@ a:focus-visible .navmap-point circle {
   stroke: var(--error);
   stroke-width: 3;
   stroke-dasharray: 7 4;
+}
+
+.nav-diagram-bend {
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+}
+
+.nav-diagram-bend-flag {
+  stroke: var(--tier-yellow);
 }
 
 .nav-diagram-label,
@@ -3109,6 +3125,12 @@ code {
   border-radius: 0;
   vertical-align: 0.2rem;
 }
+.map-layer-legend-swatch.map-key-bent {
+  height: 0;
+  border-top: 3px solid var(--tier-yellow);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
 .map-layer-legend-swatch.map-key-direct {
   height: 0;
   border-top: 2px dashed var(--text-muted);
@@ -3492,7 +3514,8 @@ code {
 }
 
 .starmap-info[data-overlay] .map-info-head > .map-info-close,
-.starmap-info[data-overlay] .map-info-head > .map-info-bookmark {
+.starmap-info[data-overlay] .map-info-head > .map-info-bookmark,
+.starmap-info[data-overlay] .map-info-head > .map-info-waypoint {
   flex: none;
 }
 
@@ -4986,6 +5009,16 @@ body.app {
 
 .bookmarks-action:hover {
   border-color: var(--accent);
+}
+
+/* NAV.18: a saved course's Direct / Route switch and its link to the map look like the other actions. */
+.bookmarks-action[aria-pressed="true"] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+a.bookmarks-action {
+  text-decoration: none;
 }
 
 .bookmarks-rename {

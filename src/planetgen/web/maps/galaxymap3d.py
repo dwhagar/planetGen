@@ -772,6 +772,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
              title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
     <div class="bookmarks-panel" data-bookmarks-panel></div>
   </details>
+  <details class="bookmarks-menu waypoints-menu" data-waypoints-menu>
+    <summary class="starmap-btn" data-icon="waypoints"
+             title="The stops picked for a course with a star system's or object's Add waypoint button">Waypoints<span data-waypoints-count></span></summary>
+    <div class="bookmarks-panel" data-waypoints-panel></div>
+  </details>
 """
 
     return f"""

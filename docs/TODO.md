@@ -1264,33 +1264,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the nebula window (child
   a) and the cluster window (child b, in phase 2, which needs the parent
   link of GEN.209).
-
-- [ ] **MAP.195 Galaxy Map finer tiles leave out the stars a coarser tile already sent**
-  Foundations lane 2 (2026-10-14): MAP.159 sends packed tiles without
-  leaving out the stars a parent tile already sent, because the page
-  would need the parent tile in hand for every child. Done: finer tiles
-  leave those stars out (31 to 43% of the bright records at levels 3 to
-  6, all of them at levels 7 to 12) and the page keeps parents available
-  so a child never draws without them, with a test that a tile and its
-  parents together hold exactly the stars the full list holds. Measure
-  the saving against the cost of holding the parents before building it.
-  Status (2026-10-09): MAP.159 merged (#1305, Foundations lane 2): tiles
-  are sent packed at about 20 bytes a star, kept packed in the server
-  cache and the browser's IndexedDB. Leaving out stars a parent tile
-  already sent is NOT built; that is this item.
-  Builds only if the measurement says so; part of the tile-format chain
-  MAP.171, MAP.195, MAP.173 (one cache-stamp bump) (2026-10-16 review).
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Parked (Core 2's recommendation, relayed by the coordinator about 4:08
-  AM EDT 2026-10-22 as the lane reported): the duplicate-star share is
-  unmeasured, and MAP.249's profile found that server builds and the
-  tile count dominate the cost, not tile bytes. Not built until a
-  measurement shows the saving is worth holding the parent tiles; no
-  lane is on it, and the tile-format chain (MAP.171, MAP.173) does not
-  wait for it.
-  Prerequisite: none. Related: MAP.159 (done, #1305).
+  Nothing left to build (Core 2) (4:22 AM EST on 2026-11-05): The nebula
+  half is MAP.222 (merged, #4854 and #4856) and the shared plumbing (the
+  group window and openGroupWindow) is what MAP.223 extended with the
+  cluster kind. This item closes when MAP.223 merges (train 12, in the
+  GEN.359, MAP.224, MAP.223 stack).
 
 - [ ] **MAP.207 The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline**
   Step 9 of the whole-sphere train. Components (the Clouds, Sagittarius,
@@ -1957,17 +1935,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bookmarks), moved into the account when USR.7 lands. NAV.4 then does
   not wait for user accounts.
 
-  - [ ] **NAV.18 Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store**
-    Done: a Save course button on the NAV result; a Courses list
-    (beside Bookmarks, from `bookmarks.js` or a sibling module) with
-    open, rename and delete; the viewer switches between Direct and
-    Route on a saved course.
-    Owns the Courses list over the saved-list store (open, rename,
-    delete) and the viewer's switch between Direct and Route; the Save
-    action is NAV.4's; this adds the `course` kind to the store
-    (2026-10-16 review).
-    Prerequisites: none.
-
   - [ ] **NAV.19 Saved courses in the account (after USR.7)**
     Done: the `course` kind of the saved-list store (USR.7's
     `user_saved`, no second table): courses saved per browser can be
@@ -1984,6 +1951,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     shared `user_saved` table of USR.7, with no second table and no
     second import path (2026-10-16
     review).
+  Browser part merged (Core 2, #5084) (5:58 AM EST on 2026-11-05): Save
+  course button on the NAV page (asks for a name, keeps the course in
+  this browser) and a Saved Courses panel (Direct and Route forms side
+  by side, open, On the map, Rename, Delete); saving again says what
+  changed since the first save. NAV.18 is done. This item stays open for
+  NAV.19 (saved courses in the account, after USR.7).
 
 - [ ] **NAV.5 Show a course on the Galaxy Map**
   Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
@@ -2008,14 +1981,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
   on the galactic map and stay until cleared." See NAV.49.
 
-  - [ ] **NAV.21 Fit the view to the whole course**
-    Done: the course opens zoomed in as far as possible with every
-    point of both paths on screen, fitted to the window (the same fit as
-    MAP.53), refitted on resize. This view is exempt from any zoom
-    limit (MAP.58 was superseded by MAP.125); the user can still rotate it.
-    Research (2026-10-09, course-avoidance.md): fit the view to the
-    bounding box of the adjusted `polyline`, not of the waypoints.
-
   - [ ] **NAV.22 Courses inside a sector and a system**
     Today a course that stays in one sector opens the sector with no
     line. Done: the same course drawing at the sector stage (MAP.61)
@@ -2027,10 +1992,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (`heliosphere_radius_km`) and ends at the target body; sector-scale
     courses use the same keep-out table in light-years.
     Prerequisites: MAP.217.
-
-  - [ ] **NAV.23 Open a saved course on the map**
-    Done: a saved course (NAV.4) opens in this view, with Direct, Route
-    and (NAV.6) Adjusted switchable.
 
 - [ ] **NAV.6 Courses that steer clear of gravity wells**
   Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
@@ -2118,7 +2079,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     "shortest".
     Waits on NAV.62: the study of how the gravity of the stars a cell
     leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
-    Prerequisites: NAV.56, NAV.62, NAV.54.
+    Prerequisites: NAV.56, NAV.62.
 
   - [ ] **NAV.27 Moving bodies inside a system**
     Inside a system the planets move. Done: the in-system planner uses
@@ -2134,16 +2095,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     new ephemeris code. Galactic-scale motion is negligible at warp, so
     this stays system-only.
     Prerequisites: none.
-
-  - [ ] **NAV.28 Show and save the adjusted course**
-    Done: the adjusted path, its extra length and its times beside the
-    straight line on the NAV page and on the map (NAV.5); saved courses
-    (NAV.4) keep it as a third form.
-    Research (2026-10-09, course-avoidance.md): use the `adjusted`
-    object of design section 7 (exact legs, waypoints, polyline,
-    `avoided`, `passed_through`, `ignored_below_resolution`, `ruleset`,
-    `warnings`); keep `waypoints`, `legs` and the radii used in the
-    saved record (NAV.17).
 
   - [ ] **NAV.51 Courses route around asteroid fields**
     Boss (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
@@ -2173,7 +2124,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
-    Prerequisites: NAV.25, NAV.26, NAV.54.
+    Prerequisites: NAV.25, NAV.26.
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
@@ -2196,46 +2147,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.122.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
 
-- [ ] **NAV.54 One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants**
-  NAV.24 shipped with these gaps: (a) asteroid fields get a hard
-  keep-out of `radius_ly` in km, basis "radius" (NAV.51 asks for this;
-  `galaxy/keepout.py` and `db/query.py` `keep_out_radius` return none
-  today); (b) a supermassive hole or quasar keeps out a sphere of
-  influence `G M / sigma^2` (sigma = 100 km/s, 1.7 pc at 4e6 solar
-  masses), a quasar the larger of that and the 10 kW/m^2 radiation
-  radius, not the event horizon (0.08 AU, which a course would graze);
-  (c) a moon keeps out its Hill radius against the planet's mass; (d)
-  the pass-through note for nebulae and remnants ("No mass is stored for
-  it...") gives the wrong reason: the drawn shape fills 13% of its
-  bounding sphere and the gas is thin. A test for each. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; defaults taken): nebulae and
-  remnants pass through with a
-  note (chord length, column density, extinction) and no hard keep-out,
-  with an optional soft cost later; a star inside its own system keeps
-  out its radiation radius `max(10 R_star, sqrt(L / (4 pi F_lim)))`,
-  F_lim = 50 kW/m^2 (0.17 AU for the Sun, 165 AU for an O3 star), hard
-  and exempt when an end lies inside it; belts inside a system pass
-  through with a note; the galactic centre keep-out of about 1.7 pc is
-  exempt for any course to a star inside it.
-  Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
-  item for smaller chunks and shared work, 1:33 PM EDT: shared
-  foundations). Owns the keep-out radii and sits first in the Steering
-  thread, with the knobs of NAV.55 before it: asteroid fields keep out
-  `radius_ly`, a supermassive hole or quasar its sphere of influence G M
-  / sigma^2, a moon its Hill radius, a star inside its own system its
-  radiation radius max(10 R_star, sqrt(L / (4 pi F_lim))), nebulae and
-  remnants pass through with a corrected note, and the galactic centre
-  is exempt; F_lim and the floors read from tuning. Done as stated
-  above, one test per kind; it no longer needs NAV.51.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): NAV.55 folded in. The knobs go in `tuning.py`: F_lim = 50
-  kW/m^2, the star floor of 10 R_star, the below-resolution fraction
-  (0.002 of the leg) and the polish tolerances; the planner (NAV.26)
-  reads the polish tolerances and the fraction, and the radii table here
-  reads F_lim and the star floor.
-  Prerequisites: none.
-  Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
-
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
   Count how many pairs of keep-out spheres overlap in a generated
   galaxy. The answer decides whether NAV.26's cluster fallback ever
@@ -2243,6 +2154,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Needs the whole table (NAV.54) and runs before the planner (NAV.26),
   so the cluster fallback is built or skipped on the answer (2026-10-16
   review).
+  Script merged (Core 2, #5068); real run owed (4:47 AM EST on
+  2026-11-05): scripts/census_keep_out_overlap.py --database <db> counts
+  overlapping keep-out spheres in a generated galaxy (pairs by kind,
+  nested pairs, clusters by size). It has not run on real data (the lane
+  has no generated galaxy). Estimate from the Kroupa mass function and
+  the Hill-radius rule: 24 to 43 percent of star spheres near the Sun
+  overlap another, so NAV.26's cluster fallback is needed. Report
+  reports/nav56-keep-out-overlap-census-2026-11-05.md. Stays open until
+  the Train Manager posts one real run from the census database after
+  train 10 (python scripts/census_keep_out_overlap.py --database
+  planetgen).
+  Correction (Core 2) (4:55 AM EST on 2026-11-05): The estimate of 24 to
+  43 percent above was wrong for systems: the sector fill keeps systems
+  at least the sum of their Hill radii apart inside a sector. What can
+  still overlap is cross-sector pairs (about 8 to 11 percent of systems,
+  modelled) and the phenomena (black holes, neutron stars, rogue
+  planets, quasars, fields), so the planner's overlap fallback stays but
+  should rarely fire. The real run decides it. NAV.62 (gravity of
+  unresolved stars), a listed prerequisite of NAV.26, is not done; Core
+  2 builds the planner mechanics first (pure geometry, lock-free).
   Prerequisites: NAV.54.
   Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
@@ -2410,28 +2341,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here. Done: decided when it is scheduled. Goal #1679. Filed by the
   TODO thread.
   Prerequisites: POP.33, POP.34, DB.105.
-
-- [ ] **NAV.72 Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  8 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: a hop whose
-  straight line crosses a gravity-well keep-out sphere is drawn bent
-  around it or flagged in the diagram. Blocked on NAV.6. Done: a browser
-  test. Related: NAV.58 (editing a course by dragging waypoints wants an
-  editing surface; the diagram is a better one than the 3D map, a later
-  part). Goal #1679. Filed by the TODO thread.
-  Prerequisites: NAV.6.
 
 ## GEN: Generation and physics
 
@@ -13973,6 +13882,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 3 after GEN.1246. Filed by the TODO thread.
   Prerequisites: GEN.1259. Related: GEN.1259, GEN.1068, GEN.1156,
   GEN.725.
+  Lock branch (Core 3) (5:27 AM EST on 2026-11-05): Branch
+  claude/gen1261-belt-loss, head c27c6fde9 (as the lane reported);
+  stand-ins BG17 to BG19 in GEN.725; --affects fill, no migration; lock
+  item with epoch. Findings: belt presence unchanged, the cold share is
+  still 70 percent against 14 to 24 percent observed, 3 of 240 belts
+  over 300 Earth masses are flagged. Two generation-set reds are still
+  being attributed; the final head follows.
 
 - [ ] **GEN.1262 Temperature coverage part 1: the shared illumination series (physics/surface_cycle.py): cosine of the zenith angle per latitude-longitude cell and time step, with GEN.1260's spell search moved onto it**
   Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
@@ -14445,6 +14361,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own varied composition keyed on its cell; rogue planets are left out;
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
+  Owner change (TODO) (5:27 AM EST on 2026-11-05): Planets 1 takes this
+  item from Core 3, who is held on GEN.1261's gate and has not started
+  it. Planets 1 has no ready item and already owns the stored-ID and
+  sky-tier work in store.py and run_plan.py (VIEW.25, GEN.1256), where
+  these columns also live. Lock item, train 12 at the earliest.
 
 - [ ] **GEN.1277 Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one**
   Part of GEN.1268. Boss decided to store the composition of the field
@@ -14478,6 +14399,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own varied composition keyed on its cell; rogue planets are left out;
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
+  Owner change (TODO) (5:27 AM EST on 2026-11-05): Planets 1 takes this
+  item from Core 3, who is held on GEN.1261's gate and has not started
+  it. Planets 1 has no ready item and already owns the stored-ID and
+  sky-tier work in store.py and run_plan.py (VIEW.25, GEN.1256), where
+  these columns also live. Lock item, train 12 at the earliest.
   Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
 
 - [ ] **GEN.1278 Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14)**
@@ -18277,6 +18203,12 @@ clears each one.
   3 runs. Owner Core 3 after TEST.126 and TEST.254, with Core 2 for any
   test that follows its map changes (proposed by the TODO thread). Filed
   by the TODO thread.
+  Owner change (TODO) (6:12 AM EST on 2026-11-05): Core 5 takes this
+  from Core 3 (who is on the GEN.1261 gate and has not started it).
+  Start by dropping leftover planetgen_* databases and running each of
+  the four files alone on current main; the item's own Done line says
+  they pass in three runs, so if they do, close it with the run log and
+  no change.
   Prerequisites: none.
 
 - [ ] **TEST.579 Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug)**
@@ -18314,6 +18246,14 @@ clears each one.
   nebula group (census_nebula_wholesphere, emission_members,
   hosted_nebula_rows); Bug 1 keeps the life-class tests (split from Bug
   1).
+  Owner change (TODO) (5:40 AM EST on 2026-11-05): Core 5 takes the
+  non-nebula groups from Bug 1, who is carrying GEN.962, GEN.1275,
+  PERF.240, TEST.579 and PERF.236: test_gen_kind_factors (halo versus
+  disk planets), test_gen_magellanic_classes (the 0.92 supernova
+  factor), and any 6.170 rows left in test_burn_down_register (TEST.587
+  added lines for the sky and glow rows only). The nebula group stays
+  with Tides 1. The train 10 gate shows kind factors red on main too, so
+  check first whether train 10 changes it.
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -18378,6 +18318,21 @@ clears each one.
   parity test needs both; that line changes what generation stores, so
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
+
+- [ ] **TEST.595 Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug)**
+  Core 2 (as the lane reported, about 7:00 AM EST on 2026-11-05) saw
+  these red on plain main, not from NAV.49a (#5092):
+  tests/test_web_browser_map_card.py, the black hole case at 1920x1080
+  and at 390x844, which waits for a button named Fixture Maw that never
+  appears, and
+  test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox,
+  which misses Fixture Eden. Do: first drop leftover planetgen_*
+  databases and run each alone on current main; find the commit that
+  turned them red; fix the tests at the cause (not by loosening waits
+  that hide a bug) and file any real map bug as its own item. Done: all
+  three pass in 3 runs. Lock-free. Version 8.1. Owner: Core 5, with
+  TEST.575 (same family). Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.575.
 
 ## USR: User accounts
 
@@ -20029,25 +19984,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
-
-- [ ] **VIEW.38 System sky S20: design note, help text, citations and GEN.725 rows for the system sky**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S20 of S1 to S22 in section 7. Do:
-  docs/design/orbits/sky-system-view.md with the numbers of the plan,
-  the help page text, the sources in the references registry (citations
-  only there, [R0123] style) and the GEN.725 stand-in rows. Done: the
-  note, the help page and the rows. Lock-free, no migration. Boss
-  decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2
-  backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12
-  and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where
-  noted, build it so the 9.1 item can reuse it); the limiting magnitude
-  is a setting with default 7.5, lower on phones; missing stars are
-  built when a system is charted, no visit job. Goal #4907. Filed by the
-  TODO thread.
-  Prerequisites: VIEW.35.
 
 - [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research

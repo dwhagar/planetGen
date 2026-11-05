@@ -373,13 +373,15 @@ connectivity to that specific schema rather than the default one.
   sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
   or a missing row is a `404`. The answer carries `former_designations` (GEN.1140): the names and IDs the object used to have, newest first, each
   `{designation, kind, reason, retired_epoch, retired_on}` (`kind` is `name` or `uid`; `retired_on` is the date of the change), `[]` for an object that
-  never changed; so do the details of a sector, a system and a phenomenon. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24) is the object's keep-out
+  never changed; so do the details of a sector, a system and a phenomenon. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24, NAV.54) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
-  `hill` (a planet or moon), `perimeter` (a star or system: the widest
+  `hill` (a planet or moon; a moon's is against its planet's mass), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron
-  star, quasar or rogue planet, never smaller than the object itself), `radius`,
-  or `none` (`radius_km` is `null`: nebulae, supernova remnants and asteroid
-  fields pass through with a `note`; belts, comets and sectors have none).
+  star or rogue planet, never smaller than the object itself), `influence` (a
+  supermassive black hole, or a quasar when this is the larger: the sphere of influence `G M / sigma^2`), `radiation` (a quasar's light
+  at 10 kW/m^2, or a star inside its own system at 50 kW/m^2), `radius` (an asteroid field's stored radius), or `none` (`radius_km` is `null`:
+  nebulae and supernova remnants pass through with a `note`, as does a belt; comets and sectors have none). A star also
+  carries `keep_out_in_system`, the same object for a course inside its own system: `max(10 R_star, sqrt(L / (4 pi F)))`.
   `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
 - `GET /api/objects/<ref>/sheet` — the property sheet of a star, planet, moon,
@@ -1350,6 +1352,8 @@ route search does not use it. Each stop weighs its `tuning.NAV_GRAPH_CANDIDATES`
 index (`db/route_neighbours.py`), so a link to a system farther out than the 24th nearest is not looked for; stops in
 unknown space and phenomenon ends get links to the systems round them like any other stop. Without `graph=1` the route
 has no `graph`, and no neighbour is read.
+
+**Courses that steer clear of gravity (NAV.6).** `GET /api/nav?...&adjusted=1` adds `adjusted`, the direct course bent around the keep-out spheres it crosses (`docs/design/orbits/course-avoidance.md`), and an `adjusted` for each of `route.hops`, with `route.adjusted_distance_ly`, `route.adjusted_warp_times` and `route.adjusted_fold_times` for the route as a whole. It is worked out between systems, where both ends have a galaxy placement; the keep-out spheres are those of stars (by their galactic Hill radius), black holes, neutron stars, rogue planets, quasars and asteroid fields, and a sphere that holds an end is ignored. An `adjusted` is `{frame: "galactic", unit: "pc", length, straight_length, extra (and the same three in light-years as length_ly, straight_length_ly, extra_ly), waypoints, legs, polyline, avoided, passed_through, ignored_below_resolution, ruleset, warnings, warp_times, fold_times}`: `waypoints` are `{p, kind, ref}` with kind `start`, `tangent_in`, `tangent_out` or `end`; `legs` are lines between two waypoint indexes or arcs with `center`, `radius` and `obstacle`; `polyline` is what a map draws. `warnings` holds `overlap_fallback` (overlapping spheres the planner could not go around: the course is the straight line) or `wrap_limit`. It is a short detour, not a proven shortest path. `passed_through` lists the nebulae and supernova remnants the straight line crosses (`ref`, `kind`, `id`, `name`, `note`, `inside_length` and `inside_length_ly`, and for a nebula `column_cm2`), as upper bounds from the bounding sphere; `names` maps the reference of each object the course goes round to its name. Without `adjusted=1` nothing is planned.
 
 **Charting a course (NAV.48).** `GET /api/nav/chart?from=<ref>&to=<ref>[&border=1]`
 works out the uncharted sectors that block a course, without generating

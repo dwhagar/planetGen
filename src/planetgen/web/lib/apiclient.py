@@ -600,19 +600,22 @@ def get_near(db, params):
     return _request("/near", {"db": db, **params})
 
 
-def get_nav(db, from_ref, to_ref, stay=None, graph=False):
+def get_nav(db, from_ref, to_ref, stay=None, graph=False, adjusted=False):
     """Returns `GET /api/nav`'s course/route dict -- see `docs/reference/api.md`'s
     "NAV" section for the full shape. `from_ref`/`to_ref` are object
     references (`planetgen.galaxy.objectref`): a system, a body in one, or
     a standalone phenomenon. `stay` is the minutes spent at each stop of
     the route (NAV.11; the API's default, 0, when `None`). `graph` asks for
-    `route.graph`, the links round the route (NAV.65)."""
+    `route.graph`, the links round the route (NAV.65). `adjusted` asks for the course bent round keep-out spheres (NAV.6): `adjusted`, and
+    `adjusted` on each hop of the route."""
     _require_db(db)
     params = {"db": db, "from": from_ref, "to": to_ref}
     if stay is not None:
         params["stay"] = stay
     if graph:
         params["graph"] = 1
+    if adjusted:
+        params["adjusted"] = 1
     return _request("/nav", params)
 
 

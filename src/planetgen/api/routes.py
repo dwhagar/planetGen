@@ -1021,21 +1021,23 @@ def nav():
     system) -- see `db.query.nav_course` for the legs and
     `db.query.nav_between` for the availability rules, and docs/reference/api.md for
     the response shape. `graph=1` adds `route.graph` (NAV.65): the links round the route, for the
-    schematic route map.
+    schematic route map. `adjusted=1` adds `adjusted` (NAV.6): the direct course bent around the keep-out spheres
+    it crosses, and an `adjusted` for each hop of the route with the route's `adjusted_distance_ly` and times.
     """
     from_ref = _nav_ref_param(request.args, "from")
     to_ref = _nav_ref_param(request.args, "to")
 
     stay_minutes = _nav_stay_param(request.args)
     with_graph = request.args.get("graph", "") in ("1", "true", "yes", "on")
+    with_adjusted = request.args.get("adjusted", "") in ("1", "true", "yes", "on")
     try:
-        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph)
+        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph, adjusted=with_adjusted)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify({
+    body = {
         "scope": result["scope"],
         "origin": result["origin"],
         "destination": result["destination"],
@@ -1051,7 +1053,10 @@ def nav():
             "fold_times": [t._asdict() for t in leg["fold_times"]],
         } for leg in result["legs"]],
         "note": result["note"],
-    })
+    }
+    if "adjusted" in result:   # NAV.6: asked for with `adjusted=1`; the route's and each hop's own are inside `route`
+        body["adjusted"] = result["adjusted"]
+    return jsonify(body)
 
 
 @bp.route("/nav/chart")
@@ -1107,6 +1112,11 @@ def _route_for_json(route):
         "warp_times": [leg._asdict() for leg in route["warp_times"]],
         "fold_times": [leg._asdict() for leg in route["fold_times"]],
     }
+    if "adjusted_distance_ly" in route:   # NAV.6: asked for with `adjusted=1`
+        shown["adjusted_distance_ly"] = route["adjusted_distance_ly"]
+    for key in ("adjusted_warp_times", "adjusted_fold_times"):
+        if key in route:
+            shown[key] = [leg._asdict() for leg in route[key]]
     if "graph" in route:   # NAV.65: asked for with `graph=1`; a stop's key in `more` is a string like the keys of `positions`
         shown["graph"] = {**route["graph"], "more": {str(node_id): count for node_id, count in route["graph"]["more"].items()}}
     return shown
