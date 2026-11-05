@@ -1264,33 +1264,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the nebula window (child
   a) and the cluster window (child b, in phase 2, which needs the parent
   link of GEN.209).
-
-- [ ] **MAP.195 Galaxy Map finer tiles leave out the stars a coarser tile already sent**
-  Foundations lane 2 (2026-10-14): MAP.159 sends packed tiles without
-  leaving out the stars a parent tile already sent, because the page
-  would need the parent tile in hand for every child. Done: finer tiles
-  leave those stars out (31 to 43% of the bright records at levels 3 to
-  6, all of them at levels 7 to 12) and the page keeps parents available
-  so a child never draws without them, with a test that a tile and its
-  parents together hold exactly the stars the full list holds. Measure
-  the saving against the cost of holding the parents before building it.
-  Status (2026-10-09): MAP.159 merged (#1305, Foundations lane 2): tiles
-  are sent packed at about 20 bytes a star, kept packed in the server
-  cache and the browser's IndexedDB. Leaving out stars a parent tile
-  already sent is NOT built; that is this item.
-  Builds only if the measurement says so; part of the tile-format chain
-  MAP.171, MAP.195, MAP.173 (one cache-stamp bump) (2026-10-16 review).
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Parked (Core 2's recommendation, relayed by the coordinator about 4:08
-  AM EDT 2026-10-22 as the lane reported): the duplicate-star share is
-  unmeasured, and MAP.249's profile found that server builds and the
-  tile count dominate the cost, not tile bytes. Not built until a
-  measurement shows the saving is worth holding the parent tiles; no
-  lane is on it, and the tile-format chain (MAP.171, MAP.173) does not
-  wait for it.
-  Prerequisite: none. Related: MAP.159 (done, #1305).
+  Nothing left to build (Core 2) (4:22 AM EST on 2026-11-05): The nebula
+  half is MAP.222 (merged, #4854 and #4856) and the shared plumbing (the
+  group window and openGroupWindow) is what MAP.223 extended with the
+  cluster kind. This item closes when MAP.223 merges (train 12, in the
+  GEN.359, MAP.224, MAP.223 stack).
 
 - [ ] **MAP.207 The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline**
   Step 9 of the whole-sphere train. Components (the Clouds, Sagittarius,
