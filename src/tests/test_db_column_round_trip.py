@@ -42,6 +42,19 @@ CONTAINMENT = ("inside_nebula_id", "inside_remnant_id")
 SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "quadrant")
 
 NULL_IN_THIS_GALAXY = {
+    # GEN.1111: the rogue planets of this small galaxy are dark, lifeless and without a surface liquid, so these are never set on them, and two
+    # child tables hold nothing.
+    **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
+        ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
+        ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value")),
+        ("rogue_planets", ("aquifer_depth_km", "aquifer_thickness_km", "evolutionary_pace", "flavor_key", "flux_variation", "ice_shell_thickness_km",
+                           "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
+                           "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
+                           "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
+                           "life_stage", "life_system_age_gyr", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
+                           "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt",
+                           "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
+                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
     # writes and reads it back).
     ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",
@@ -181,6 +194,14 @@ with why: each is set only by something this small galaxy doesn't
 contain (the cases are exercised in their own tests)."""
 
 NEVER_READ = {
+    # GEN.1111: the child rows of a rogue planet are written with the planet; its page and API do not load them yet.
+    **{(table, column): "a rogue planet's children are not loaded yet (GEN.1111 follow-up)" for table, columns in (
+        ("rogue_planet_gases", ("gas", "id", "partial_pa", "rogue_planet_id")),
+        ("rogue_planet_interior_layers", ("bottom_pressure_gpa", "bottom_radius_fraction", "ch4_ice", "helium", "hydrogen", "ice_x", "id", "iron",
+                                          "kind", "layer_index", "mass_earth", "nh3_ice", "rock", "rogue_planet_id", "state", "top_pressure_gpa",
+                                          "top_radius_fraction", "water_liquid")),
+        ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
+        ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value"))) for column in columns},
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
