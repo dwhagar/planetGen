@@ -714,7 +714,13 @@ def _life_air(table, body_id):
         body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
         if body is not None:
             ages = dict(zip(evolution.MILESTONE_KEYS, (getattr(body, field, None) for field in evolution.SCHEDULE_FIELDS)))
-            history = life_air.air_history(body, [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))], ages)
+            living = [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))]
+            stored = store.body_living(conn, [body_id], table == "moons").get(body_id) or []
+            if len(stored) > 1:
+                living = [life_air.Living(life_classes.BY_ID[entry["life_class"]], entry["share"], entry["ages"][1])
+                          for entry in store.dominant_first(stored, row["life_class"], row["life_class_variant"])
+                          if entry["life_class"] in life_classes.BY_ID and entry["ages"][1] is not None]
+            history = life_air.air_history(body, living, ages)
     return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
 
 
@@ -726,8 +732,9 @@ def planet_life_air(planet_id):
     "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class, a giant, or an air the life did not change.
     Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the first producers began and the oxygen rose,
     Gyr, the latter `null` when no class makes any), `classes` (`{"life_class", "variant", "share", "producers_gyr"}` for each class whose life
-    the air sums, with its share of the food production), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
-    value holding until the next age), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
+    the air sums, with its share of the food production; every class that lives on the body, GEN.1213), `gases` (`{"formula", "name", "steps":
+    [[age_gyr, partial_pressure_kpa], ...], "by_class": [{"life_class", "variant", "share"}, ...]}`, each value holding until the next age and
+    `by_class` the share of what life changed in the gas that each class made), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
     ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`).
     """
     return _life_air("planets", planet_id)
@@ -966,14 +973,16 @@ def nav():
     object reference (`?from=planet:7&to=nebula:2`; a bare number is a
     system) -- see `db.query.nav_course` for the legs and
     `db.query.nav_between` for the availability rules, and docs/reference/api.md for
-    the response shape.
+    the response shape. `graph=1` adds `route.graph` (NAV.65): the links round the route, for the
+    schematic route map.
     """
     from_ref = _nav_ref_param(request.args, "from")
     to_ref = _nav_ref_param(request.args, "to")
 
     stay_minutes = _nav_stay_param(request.args)
+    with_graph = request.args.get("graph", "") in ("1", "true", "yes", "on")
     try:
-        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes)
+        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
@@ -1039,7 +1048,7 @@ def _route_for_json(route):
     """
     if route is None:
         return None
-    return {
+    shown = {
         "path": route["path"],
         "distance_ly": route["distance_ly"],
         "positions": {str(node_id): position for node_id, position in route["positions"].items()},
@@ -1051,6 +1060,9 @@ def _route_for_json(route):
         "warp_times": [leg._asdict() for leg in route["warp_times"]],
         "fold_times": [leg._asdict() for leg in route["fold_times"]],
     }
+    if "graph" in route:   # NAV.65: asked for with `graph=1`; a stop's key in `more` is a string like the keys of `positions`
+        shown["graph"] = {**route["graph"], "more": {str(node_id): count for node_id, count in route["graph"]["more"].items()}}
+    return shown
 
 
 @bp.route("/galaxy/sectors")
@@ -1490,6 +1502,19 @@ def uncharted_systems():
     })
 
 
+def _object_list_sector(raw_sector_id):
+    """The sector row an object list is limited to, from the `sector_id` query parameter (a sector ID), `None` when
+    absent; 0 (no sector has it) for a sector that is not there."""
+    if not raw_sector_id:
+        return None
+    try:
+        ids.parse(ids.SECTOR, raw_sector_id)
+    except ids.IdError:
+        raise ApiError(f"sector_id must be a sector ID, got {raw_sector_id!r}")
+    found = ids.row_id(get_db(), ids.SECTOR, raw_sector_id)
+    return 0 if found is None else found
+
+
 @bp.route("/object-lists/<kind>")
 def object_list(kind):
     """
@@ -1507,14 +1532,14 @@ def object_list(kind):
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
     `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
-    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a number.
+    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])
     try:
         limit = int(request.args.get("limit") or objectlist.DEFAULT_LIMIT)
-        sector_id = int(request.args["sector_id"]) if request.args.get("sector_id") else None
     except ValueError:
-        raise ApiError("limit and sector_id must be whole numbers")
+        raise ApiError("limit must be a whole number")
+    sector_id = _object_list_sector(request.args.get("sector_id"))
     try:
         ranges = search_values.ranges_from_args(request.args).get(kind) if kind in objectlist.VALUE_KINDS else None
         page = objectlist.list_objects(

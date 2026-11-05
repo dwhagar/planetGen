@@ -62,3 +62,12 @@ def test_the_age_axis_has_a_round_step_whatever_the_age():
     for top in (0.8, 3.0, 4.6, 9.5, 13.8):
         ticks = life_air_chart._axis_ticks(top)
         assert ticks[0] == 0 and 3 <= len(ticks) <= 8 and ticks[-1] <= top
+
+
+def test_a_world_with_several_classes_says_what_each_made_of_each_gas_and_a_world_with_one_says_nothing():
+    several = {**HISTORY, "classes": [{"life_class": 1, "variant": "a", "share": 0.7, "producers_gyr": 0.5}, {"life_class": 3, "variant": None, "share": 0.3, "producers_gyr": 0.8}],
+               "gases": [{**HISTORY["gases"][0], "by_class": [{"life_class": 1, "variant": "a", "share": 1.0}]},
+                         {**HISTORY["gases"][2], "by_class": [{"life_class": 3, "variant": None, "share": 0.25}, {"life_class": 1, "variant": "a", "share": 0.75}]}]}
+    assert life_air_chart.chart(several, "1a")["makers"] == [{"gas": "Methane", "text": "Class 1a 75 percent, Class 3 25 percent"}]
+    assert life_air_chart.chart({**several, "classes": several["classes"][:1]}, "1a")["makers"] == []
+    assert life_air_chart.chart(HISTORY, "1a")["makers"] == []

@@ -378,7 +378,7 @@ lies behind it can recur.
 - **Sector Map (`sectorscene.js`).** A `BackSide` sphere with `alpha = (1 -
   exp(-density * path / (2R))) * maxAlpha`, `path` being the chord through a uniform
   sphere: soft toward the middle, a sharp limb, blind to the irregular shape.
-- **Nebula page (`nebulaview.js`).** The translucent shape mesh with dimmed stars.
+- **Nebula page (`nebulaview.js`).** The nebula's own cloud of points (MAP.142, the same volume layer as the maps) with dimmed stars.
 - **Colours.** `NEBULA_LOOKS` (core/edge opacity): diffuse `#e3a6c8` 0.47/0.14, emission
   `#ff6f91` 0.69/0.25, reflection `#6fa8ff` 0.63/0.22, planetary `#5be8c9` 0.66/0.24,
   dark `#1c1c24` 0.91/0.56, shared with `starmap.py`.

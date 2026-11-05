@@ -430,3 +430,17 @@ def test_the_history_of_two_classes_steps_at_each_start_and_at_the_rise(world, m
     assert methane[2][1] == pytest.approx(_methane(world), rel=1e-3)
     assert [(entry["life_class"], entry["share"]) for entry in history["classes"]] == [(2, 0.5), (8, 0.5)]
     assert history["producers_gyr"] == 0.5
+
+
+def test_each_gas_of_the_history_says_which_class_made_how_much_of_the_change(world, monkeypatch):
+    _per_class_flux(monkeypatch, {2: 1.0e12, 8: 3.0e12})
+    living = [life_air.Living(_class(2), 0.5, producers_gyr=0.5), life_air.Living(_class(8), 0.5, producers_gyr=1.5)]
+    assert life_air.apply_gases(world, living, False)
+    history = life_air.air_history(world, living, STAGES)
+    by_gas = {gas["formula"]: gas["by_class"] for gas in history["gases"]}
+    # the methane (and the carbon dioxide it is made from) follows each class's flux times its share
+    for formula in ("CH4", "CO2"):
+        if formula in by_gas:
+            assert [(entry["life_class"], entry["share"]) for entry in by_gas[formula]] == [(2, 0.25), (8, 0.75)]
+    assert "CH4" in by_gas
+    assert all(abs(sum(entry["share"] for entry in shares) - 1.0) < 1e-5 for shares in by_gas.values() if shares)
