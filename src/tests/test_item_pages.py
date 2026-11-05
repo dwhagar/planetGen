@@ -526,9 +526,14 @@ def test_a_planet_with_life_lists_the_classes_it_supports_and_what_the_class_liv
     assert "<th scope=\"row\">Flora</th><td>Occasional (3 of 9)</td><td>Declining</td><td>Precarious</td><td>about 0.4 billion years</td>" in table
     assert "Its life scores are" not in page and "latest milestone" not in page and "evolving at" not in page
     assert '<a class="help-link" href="/help/life/classes/1#class-1a">Class 1a</a> (oxygenic light-eaters) best, then <a class="help-link" href="/help/life/classes/2#class-2">Class 2</a>' in glance
-    assert 'href="/help/life">What these words mean</a>' in glance
+    assert "What these words mean" not in glance and "help-link\" href=\"/help/life\"" not in glance    # UX.261: the class names already link to their help pages
     for topic in ("abundance", "trend", "security"):
         assert f'<a class="help-link help-mark" href="/help/life/{topic}"' in table
+    # UX.261: an explainer link says "More information", and the links the page already has are not repeated
+    assert "What these words mean" not in page and "colors and symbols mean" not in page
+    assert 'aria-label="More information about how much"' in table and 'aria-label="More information about the kinds of life"' in table
+    assert '>More information: <a class="help-link" href="/help/life/stages">' in page and "the life classes</a>" not in page
+    assert page.count(">More information</a>") <= 1    # the habitability levels link is kept once
     assert 'href="/help/life/classes/1#class-1a">Class 1a</a>, at the stage of small mobile animals' in page
     assert '/help/life/stages">stages and animal grades</a>' in page and '/help/life/suitability">suitability</a>' in page
     assert page.index('id="life-paragraph-heading"') < page.index("Life here is <a") < page.index('id="life-class-words"')

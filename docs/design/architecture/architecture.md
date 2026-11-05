@@ -397,6 +397,7 @@ The content database: writing, reading, migrating and checking it. `schema.sql` 
 | [`render.py`](../../../src/planetgen/db/render.py) | On-demand rendering of a stored star system's text. |
 | [`sector_paths.py`](../../../src/planetgen/db/sector_paths.py) | `compute_sector_paths` and `settle_sectors`: the path every system, rogue planet and interstellar comet takes from where it is now to where it leaves its sector, saved when a run settles. |
 | [`shell_specs.py`](../../../src/planetgen/db/shell_specs.py) | The galaxy's outline as the Generate page shows it (ADM.28): how many shells it has, how far out they reach, and how many sectors are charted in each. |
+| [`sky_sphere.py`](../../../src/planetgen/db/sky_sphere.py) | The stars of a sphere above a luminosity floor, as arrays, from the charted systems, the pre-placed bright stars and the scattered phenomena (cluster members are among them, by `cluster_id`), with the cell levels the sphere reached (VIEW.22). |
 | [`species_fit.py`](../../../src/planetgen/db/species_fit.py) | Which species could live where (POP.12). |
 | [`stats.py`](../../../src/planetgen/db/stats.py) | Read-only statistics about one content database, for the admin stats page (`html/adminstats.py`, via `GET /api/admin/stats` and `GET /api/admin/duplicate-names` in `planetgen/api/admin.py`). |
 | [`stones.py`](../../../src/planetgen/db/stones.py) | Stepping stones for a route from system to system (NAV). |
@@ -599,6 +600,7 @@ The map panels and their data.
 | `starbuffer.js` | The Galaxy Map's one star buffer (MAP.267): relative-to-eye pairs for positions and the dense slot store the node-by-node fill uses. |
 | `galaxyglow.js` | The Galaxy Map's unresolved glow, the choosing half (MAP.266): a blob per node from the light its aggregate stores less the stars it lists, and how strongly it shows. |
 | `galaxyglowlayer.js` | The glow drawn (MAP.266): a screen-sized quad per blob under the stars, each at the share the cut gives its node; the Menu's `glow` layer switches it. |
+| `galaxyplane.js` | The plane view of the Galaxy Map (MAP.371): a grid of rings at round distances in a 60 degree wedge of the galaxy (arcs about the galactic center, or rings about the selection) on a plane through the focus or the galaxy's midplane, with a label on each ring, and (MAP.372) a budgeted layer of stems from the selection, the placed names, the stars about the pointer and the brightest nearby stars down to their shadow on that plane; switched by the Menu's Plane view, Plane at galactic midplane and Stems buttons, with a height stretch (MAP.373: a bead at up to 10 times the height, stated in a note on the grid) and spherical-coordinate labels (radius, longitude, latitude from the galactic or sector center, or distance, bearing, elevation from the selection) (the camera's tilt preset is `planeTilt` in `galaxystageview.js`). |
 | `galaxynebulae.js` | The nebula regions chosen (MAP.176): the blobs of each drawn node's `nebula_regions`, their look and the 600 budget; drawn by `galaxyglowlayer.js`, switched by the Menu's `nebulae-<family>` layers. |
 | `sectorreach.js` | Which sector's own scene the camera wants up in a window of sectors, and how much of it shows (MAP.152). |
 | `systemreach.js` | Which star's system the camera wants up in an opened sector, by the size of its disc, and how much of it shows (MAP.152). |
@@ -616,6 +618,8 @@ The map panels and their data.
 | `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |
 | `mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63). |
 | `mapnavpad.js` | The Galaxy Map's on-map controls: a direction star of four arrows and a middle button that moves the center the view turns and zooms about, a readout of where the center is while it moves (MAP.200), and the log ruler with its named stops and distance readout (MAP.336). |
+| `coursediagram.js` | NAV.69: links the Course Diagram in the Galaxy Map's course readout to the map's course: a click on a stop of the diagram selects it on the map and centres the map on it, a click on a ring on the map marks the stop in the diagram. |
+| `coursehops.js` | NAV.36: draws a jump through unknown space on the Galaxy Map's course red, dashed and glowing (solid runs of known hops, one glowing run per unknown hop). |
 | `findplace.js`, `findplacebox.js` | The find-a-place box (MAP.336): what a typed line can be (coordinates, designations, object IDs, regions, names, recent places) and the box that lists it. |
 | `maplogruler.js` | The named scales of the map's log ruler and the distance readout's words (MAP.336). |
 | `regionlanding.js` | The cluster of a region's heaviest sectors a "densest" Go to a region lands on (MAP.336). |
@@ -625,8 +629,7 @@ The map panels and their data.
 | `navtimes.js` | The NAV result page's travel-times table with a Warp/Fold switch (UX.70). |
 | `nearfield.js` | The near field of the fly-through map: what stands close to the camera dissolves and a see-through tube thins what stands between the camera and the focus (MAP.149). |
 | `nebulalook.js` | How a nebula is painted on the Galaxy Map, per theme (MAP.175). |
-| `nebulamesh.js` | A nebula drawn from its shape instead of a flat sprite (GEN.75, MAP.103). |
-| `nebulaview.js` | A nebula page's 3D view: its own shape with the brightest stars round it (MAP.105). |
+| `nebulaview.js` | A nebula page's 3D view: the nebula drawn from its own points by the maps' volume layer, with the brightest stars round it (MAP.105, MAP.142). |
 | `objectref.js` | The browser mirror of `planetgen/galaxy/objectref.py`'s public form (`parse_public`, `format_public`). |
 | `orbitclock.js` | The 3D system view's time control: the years past the scene's epoch (MAP.70). |
 | `orbitpositions.js` | Where every body of a system is at any time: the browser twin of `planetgen/physics/body_positions.py` (MAP.70). |

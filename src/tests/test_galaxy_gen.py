@@ -871,9 +871,21 @@ def test_band_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_
 
 
 def test_sectors_table_rejects_duplicate_address(mysql_config):
-    """The schema-level guarantee make_sector's own race
-    recovery depends on: two sectors can never share a (shell_index,
-    band_index, wedge_index) address."""
+    """The schema-level guarantee: two sectors can never share a (shell_index, band_index, wedge_index) address. (`insert_sector` itself no
+    longer raises on an occupied address: it fills the row kept there, GEN.1127, so the table is asked directly.)"""
+    conn = _db.get_connection(mysql_config)
+    try:
+        insert = ("INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, shell_index, band_index, wedge_index)"
+                  " VALUES (?, 4000, 1.0, 2.0, 3.0, 3.74, 1, 0, 0)")
+        conn.execute(insert, ("First",))
+        with pytest.raises(pymysql.err.IntegrityError):
+            conn.execute(insert, ("Second",))
+    finally:
+        conn.close()
+
+
+def test_a_sector_saved_at_an_occupied_address_fills_the_row_kept_there(mysql_config):
+    """GEN.1127: the row of a sector kept for its residents is written into again, so the second save is the same row."""
     conn = _db.get_connection(mysql_config)
     try:
         from planetgen.galaxy.sector import SpaceSector
@@ -881,9 +893,10 @@ def test_sectors_table_rejects_duplicate_address(mysql_config):
             "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
             "galactic_radius_pc": 3.74, "shell_index": 1, "band_index": 0, "wedge_index": 0,
         }
-        _db.insert_sector(conn, SpaceSector(name="First"), galaxy_position=galaxy_position)
-        with pytest.raises(pymysql.err.IntegrityError):
-            _db.insert_sector(conn, SpaceSector(name="Second"), galaxy_position=galaxy_position)
+        first = _db.insert_sector(conn, SpaceSector(name="First"), galaxy_position=galaxy_position)
+        second = _db.insert_sector(conn, SpaceSector(name="Second"), galaxy_position=galaxy_position)
+        assert first == second
+        assert [row["name"] for row in conn.execute("SELECT name FROM sectors").fetchall()] == ["Second"]
     finally:
         conn.close()
 

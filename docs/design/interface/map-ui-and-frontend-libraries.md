@@ -366,7 +366,9 @@ lies behind it can recur.
 
 ## 4. Nebulae with soft boundaries (MAP.142)
 
-### 4.1 How nebulae are drawn today
+### 4.1 How nebulae were drawn before MAP.142
+
+(Historical: MAP.142 parts 2 to 4 replaced the per-ID mesh and the sphere with each nebula's own cloud of points, drawn by the volume layer on the Galaxy Map, the Sector Map and the nebula page; `nebulamesh.js` is removed.)
 
 - **Galaxy Map (`galaxymap3d.js`).** Each nebula or remnant is a `THREE.Sprite` with
   a 128 px radial-gradient texture (`cloudTexture`; diffuse alpha 0.47 at the centre,
@@ -378,7 +380,7 @@ lies behind it can recur.
 - **Sector Map (`sectorscene.js`).** A `BackSide` sphere with `alpha = (1 -
   exp(-density * path / (2R))) * maxAlpha`, `path` being the chord through a uniform
   sphere: soft toward the middle, a sharp limb, blind to the irregular shape.
-- **Nebula page (`nebulaview.js`).** The translucent shape mesh with dimmed stars.
+- **Nebula page (`nebulaview.js`).** The nebula's own cloud of points (MAP.142, the same volume layer as the maps) with dimmed stars.
 - **Colours.** `NEBULA_LOOKS` (core/edge opacity): diffuse `#e3a6c8` 0.47/0.14, emission
   `#ff6f91` 0.69/0.25, reflection `#6fa8ff` 0.63/0.22, planetary `#5be8c9` 0.66/0.24,
   dark `#1c1c24` 0.91/0.56, shared with `starmap.py`.

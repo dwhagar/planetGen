@@ -3138,16 +3138,20 @@ def dominant_first(entries, number, variant):
 
 
 def with_life_inputs(conn, rows, is_moon):
-    """`with_gases` rows that also hold the temperature of the star each orbits as `star_teff_k` (`None` for a circumbinary planet), the
-    one input of a life class re-score (`habitability_world.compute`) a `planets` or `moons` row lacks."""
+    """`with_gases` rows that also hold the temperature of the star each orbits as `star_teff_k` (`None` for a circumbinary planet) and the life
+    classes that live on it (`life_living`, the dominant one first, from `planet_life` or `moon_life`): the inputs of a life class re-score
+    (`habitability_world.compute`) a `planets` or `moons` row lacks. Leaving the other classes out rated a body on its dominant class alone, so a
+    re-score gave lower life scores than generation (TEST.591)."""
     rows = with_gases(conn, rows, is_moon)
+    living = body_living(conn, [row["id"] for row in rows], is_moon)
     star_ids = sorted({row["star_id"] for row in rows if row.get("star_id") is not None})
     teff = {}
     for start in range(0, len(star_ids), 1000):
         chunk = star_ids[start:start + 1000]
         for star in conn.execute(f"SELECT id, temperature_k FROM stars WHERE id IN ({', '.join('?' * len(chunk))})", tuple(chunk)).fetchall():
             teff[star["id"]] = star["temperature_k"]
-    return [{**row, "star_teff_k": teff.get(row.get("star_id"))} for row in rows]
+    return [{**row, "star_teff_k": teff.get(row.get("star_id")),
+             life_classes.LIVING_FIELD: dominant_first(living.get(row["id"]), row["life_class"], row["life_class_variant"])} for row in rows]
 
 
 def with_gases(conn, rows, is_moon):

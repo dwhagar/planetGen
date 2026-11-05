@@ -864,45 +864,48 @@ def sector_quadrant(x_pc, y_pc):
     return min(3, int(theta // (math.pi / 2))) + 1
 
 
+def _wedge_window(count, center, half_width):
+    """The wedges (of a band of `count`) whose center longitude lies within `half_width` of `center`, as the run
+    `(first, length)` that starts at wedge `first` and goes on `length` wedges, wrapping past `count`; `length` is
+    `count` when the window covers the whole circle and 0 when no wedge is in it."""
+    if count == 1 or half_width * 2 >= TWO_PI - TWO_PI / count:
+        return 0, count
+    step = TWO_PI / count
+    first = math.ceil((center - half_width) / step - 0.5 - 1e-9)
+    last = math.floor((center + half_width) / step - 0.5 + 1e-9)
+    if last < first:
+        return 0, 0
+    return first % count, min(last - first + 1, count)
+
+
 def _wedges_near_longitude(count, center, half_width):
     """Wedge indices (of a band of `count` wedges) whose center longitude
     lies within `half_width` of `center`, wrapping around; every wedge when
     the window covers the whole circle."""
-    if count == 1 or half_width * 2 >= TWO_PI - TWO_PI / count:
+    first, length = _wedge_window(count, center, half_width)
+    if length == count:
         return range(count)
-    step = TWO_PI / count
-    first = math.ceil((center - half_width) / step - 0.5 - 1e-9)
-    last = math.floor((center + half_width) / step - 0.5 + 1e-9)
-    return sorted({k % count for k in range(first, last + 1)})
+    return sorted((first + k) % count for k in range(length))
 
 
-def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
+def sphere_rows(center, radius_pc, edge_pc):
     """
-    Every sector address whose center lies within `radius_pc` of `center`
-    -- the primitive behind `planetgen galaxy`'s neighborhood modes and the
-    Galaxy Map's planned-sector tier. Visits only the shells that can reach
-    the sphere and, within each, only the bands and wedges in the angular
-    window the sphere cuts out of the shell's centerline sphere, so the cost
-    scales with the answer, not with a shell's cell count.
+    The rows (a shell's band) the sphere of `radius_pc` around `center` reaches, each with the window of wedges its centers can
+    lie in: the walk `enumerate_sectors_within_radius` makes before it tests one cell, so a caller that draws by blocks of
+    a row can skip the cells (BLOCK_WEDGES to a block) instead of listing them. The core cell is not a row.
 
     Args:
-        center (tuple): `(x, y, z)`, parsecs -- any point.
+        center (tuple): `(x, y, z)`, parsecs.
         radius_pc (float): `>= 0`.
         edge_pc (float): `> 0`.
 
     Yields:
-        tuple: `(shell, band, wedge, x, y, z, distance_pc)` for every
-            qualifying cell, in no particular order; `(x, y, z)` is that
-            cell's own center.
+        tuple: `(shell, band, count, first, length)`: the row holds `count` wedges and the window is the `length` wedges
+        from `first` on, wrapping past `count` (`length == count`: the whole row). Every cell of the row whose center
+        is within `radius_pc` lies in the window; some in it may lie outside the sphere (`cell_in_sphere` tests one).
 
     Raises:
         ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
-
-    Note:
-        This lists cells by their *center*, not the cells the sphere
-        touches; a caller that needs "every cell holding part of the sphere"
-        uses `cells_touching_sphere`. Cells come shell by shell, not nearest
-        first; sort by the distance before applying any limit.
     """
     if radius_pc < 0:
         raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
@@ -911,8 +914,6 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
     eps = 1e-9
     cx, cy, cz = center
     reach = math.sqrt(cx * cx + cy * cy + cz * cz)
-    if reach <= radius_pc + eps:
-        yield (0, 0, 0, 0.0, 0.0, 0.0, reach)
     shell_min = max(1, math.ceil((reach - radius_pc) / edge_pc - eps))
     shell_max = math.floor((reach + radius_pc) / edge_pc + eps)
     colat_c = math.atan2(math.sqrt(cx * cx + cy * cy), cz)
@@ -943,23 +944,72 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
             n = wedge_count(shell, band)
             plane, z = band_center_pc(shell, band, edge_pc)
             if n == 1 or on_axis or delta >= math.pi:
-                wedges = range(n)
+                window = (0, n)
             else:
                 colat_b = math.atan2(plane, z)
                 denominator = math.sin(colat_b) * math.sin(colat_c)
                 if denominator < 1e-12:
-                    wedges = range(n)
+                    window = (0, n)
                 else:
                     cos_width = (cos_delta - math.cos(colat_b) * math.cos(colat_c)) / denominator
                     if cos_width > 1.0 + 1e-6:
                         continue
                     width = math.pi if cos_width <= -1.0 else math.acos(min(1.0, cos_width))
-                    wedges = _wedges_near_longitude(n, lon_c, width + 1e-6)
-            for wedge in wedges:
-                x, y, zz = sector_position_pc(shell, band, wedge, edge_pc)
-                distance = detmath.dist((x, y, zz), center)
-                if distance <= radius_pc + eps:
-                    yield (shell, band, wedge, x, y, zz, distance)
+                    window = _wedge_window(n, lon_c, width + 1e-6)
+            if window[1]:
+                yield (shell, band, n, window[0], window[1])
+
+
+def cell_in_sphere(address, center, radius_pc, edge_pc):
+    """Whether the center of the cell `address` lies within `radius_pc` of `center` (the test `enumerate_sectors_within_radius`
+    applies to each cell of a row)."""
+    return detmath.dist(sector_position_pc(*address, edge_pc), center) <= radius_pc + 1e-9
+
+
+def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
+    """
+    Every sector address whose center lies within `radius_pc` of `center`
+    -- the primitive behind `planetgen galaxy`'s neighborhood modes and the
+    Galaxy Map's planned-sector tier. Visits only the shells that can reach
+    the sphere and, within each, only the bands and wedges in the angular
+    window the sphere cuts out of the shell's centerline sphere (`sphere_rows`), so the cost
+    scales with the answer, not with a shell's cell count.
+
+    Args:
+        center (tuple): `(x, y, z)`, parsecs -- any point.
+        radius_pc (float): `>= 0`.
+        edge_pc (float): `> 0`.
+
+    Yields:
+        tuple: `(shell, band, wedge, x, y, z, distance_pc)` for every
+            qualifying cell, in no particular order; `(x, y, z)` is that
+            cell's own center.
+
+    Raises:
+        ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
+
+    Note:
+        This lists cells by their *center*, not the cells the sphere
+        touches; a caller that needs "every cell holding part of the sphere"
+        uses `cells_touching_sphere`. Cells come shell by shell, not nearest
+        first; sort by the distance before applying any limit.
+    """
+    if radius_pc < 0:
+        raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
+    if edge_pc <= 0:
+        raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
+    eps = 1e-9
+    cx, cy, cz = center
+    reach = math.sqrt(cx * cx + cy * cy + cz * cz)
+    if reach <= radius_pc + eps:
+        yield (0, 0, 0, 0.0, 0.0, 0.0, reach)
+    for shell, band, n, first, length in sphere_rows(center, radius_pc, edge_pc):
+        for k in range(length):
+            wedge = (first + k) % n
+            x, y, zz = sector_position_pc(shell, band, wedge, edge_pc)
+            distance = detmath.dist((x, y, zz), center)
+            if distance <= radius_pc + eps:
+                yield (shell, band, wedge, x, y, zz, distance)
 
 
 CELL_REACH_EDGES = 1.3

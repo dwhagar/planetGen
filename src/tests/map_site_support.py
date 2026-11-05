@@ -163,6 +163,24 @@ NEBULA_OVER_THE_FIELD = {
 block (all unfilled space: the generated sectors are in the core) is inside it."""
 NEBULAE = (NEBULA_CLOUD, NEBULA_OVER_THE_FIELD)
 
+SCATTERED_NEBULAE = (
+    {"type": "planetary_nebula", "id": "s9001", "name": "Planetary nebula (uncharted)", "descriptor": "scattered", "luminosity_sol": 0.0,
+     "scattered": True, "size": 0.4, "charted": False, "map_luminosity_sol": 0.0, "mass_solar": None,
+     "x": STAR_FIELD_CENTER_PC[0] - 70.0, "y": STAR_FIELD_CENTER_PC[1] + 30.0, "z": STAR_FIELD_CENTER_PC[2]},
+    {"type": "supernova_remnant", "id": "s9002", "name": "Supernova remnant (uncharted)", "descriptor": "scattered", "luminosity_sol": 0.0,
+     "scattered": True, "size": 0.4, "charted": False, "map_luminosity_sol": 0.0, "mass_solar": None,
+     "x": STAR_FIELD_CENTER_PC[0] + 80.0, "y": STAR_FIELD_CENTER_PC[1] - 30.0, "z": STAR_FIELD_CENTER_PC[2]},
+)
+"""Two scattered nebulae no sector has built (MAP.179): a node of 81 sectors or fewer lists the ones inside it among its `points`, as
+the real node does, for the map to mark."""
+
+FIELD_CLOUD = {
+    "type": "nebula", "id": "field-1.2.3.4", "name": None, "descriptor": "dark", "class": "N", "radius_pc": 9.0, "field": True,
+    "x": STAR_FIELD_CENTER_PC[0] + 60.0, "y": STAR_FIELD_CENTER_PC[1] + 40.0, "z": STAR_FIELD_CENTER_PC[2],
+}
+"""A cloud of the seed no sector has stored (MAP.178): a node of 81 sectors or fewer lists it among its clouds, with `field` set. It is not in
+`NEBULAE`, so the tests that count the stored nebulae do not find it."""
+
 
 def _nebula_group_field():
     """Sixty emission, reflection and diffuse nebulae spread over about 2 kpc round the star field: what the nodes list as
@@ -220,23 +238,6 @@ def nebula_regions_of(block, field=None, limit=600):
             "shares": shares, "class": max(letters, key=letters.get)})
     listed.sort(key=lambda region: (-region["volume_pc3"], region["key"]))
     return listed[:limit]
-
-
-def nebula_shape_payload(nebula_id, lod):
-    """What `GET /api/nebulae/<id>/shape` answers for the fixture nebula."""
-    import random
-
-    from planetgen.galaxy import nebula_shape
-
-    known = {cloud["id"] for cloud in NEBULAE} | {p["id"] for p in PHENOMENA if p["type"] == "nebula"}
-    if int(nebula_id) not in known:
-        raise apiclient.NotFoundError(f"no such nebula: {nebula_id}")
-    vertices, faces = nebula_shape.draw_shape(random.Random(int(nebula_id))).mesh(lod)
-    cloud = next((c for c in NEBULAE if c["id"] == int(nebula_id)), NEBULA_CLOUD)
-    return {"id": int(nebula_id), "radius_ly": pc_to_ly(cloud["radius_pc"]),
-            "center_pc": [cloud["x"], cloud["y"], cloud["z"]], "lod": lod,
-            "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
-            "faces": [[int(i) for i in face] for face in faces]}
 
 
 def nebula_volume_payload(key):
@@ -524,6 +525,14 @@ def _dense_field():
             "shell_index": shell, "band_index": band, "wedge_index": wedge,
             "system_id": SYSTEMS[i % len(SYSTEMS)][0],
         })
+    # MAP.300, MAP.380: two bright stars 0.05 pc apart, side by side across the view, in the cell beside the first sector (no generated sector
+    # there, so its stars are all the galaxy's to draw: the first sector's cell hands its stars to the sector scene as the camera nears).
+    for k, side in enumerate((-1, 1)):
+        stars.append({
+            "id": DENSE_PAIR_IDS[k], "name": None, "x": center[0] + side * DENSE_PAIR_GAP_PC / 2, "y": center[1] - 1.8, "z": center[2],
+            "luminosity_sol": 30.0 - 10.0 * k, "temperature_k": 6000, "radius_sol": 2.0, "star_type": "fixture",
+            "shell_index": 1, "band_index": 0, "wedge_index": 0, "system_id": SYSTEMS[k][0],
+        })
     points = [
         _point("neutron_star", 1.4, id=141, name="Dense Pulsar", descriptor="millisecond",
                x=center[0] + 0.6, y=center[1] - 0.4, z=center[2] + 0.2),
@@ -539,6 +548,8 @@ def _dense_field():
     return stars, points, worlds, center
 
 
+DENSE_PAIR_IDS = (23000, 23001)
+DENSE_PAIR_GAP_PC = 0.05
 DENSE_CLUSTER_STARS = 2200
 DENSE_HALO_STARS = 800
 DENSE_CLUSTER_SCALE_PC = 0.6
@@ -549,9 +560,14 @@ DENSE_STARS, DENSE_POINTS, DENSE_WORLDS, DENSE_CENTER_PC = _dense_field()
 sector, a filled one), with points (rogue planets, a neutron star, a black hole) and habitable-world systems."""
 
 
-def dense_region_query(dist_pc=30.0):
-    """The address (`?cam=`) of a view of the dense region from `dist_pc` parsecs, looking down the z axis."""
-    x, y, z = DENSE_CENTER_PC
+def close_pair_center():
+    """The middle of the dense region's close pair (`DENSE_PAIR_IDS`, `DENSE_PAIR_GAP_PC` apart), in parsecs."""
+    return (DENSE_CENTER_PC[0], DENSE_CENTER_PC[1] - 1.8, DENSE_CENTER_PC[2])
+
+
+def dense_region_query(dist_pc=30.0, at=None):
+    """The address (`?cam=`) of a view of the dense region (of `at`, a point, instead) from `dist_pc` parsecs, looking down the z axis."""
+    x, y, z = at or DENSE_CENTER_PC
     return f"?cam={x:.6f},{y:.6f},{z:.6f},{dist_pc:.6f},0,0,0,1"
 
 
@@ -655,6 +671,14 @@ def _stats(ids):
             "mean_age_gy": sum(r[2] * r[1] for r in rows if r[1]) / stars if stars else None,
             "luminosity_sol": sum(r[3] for r in rows), "habitable_worlds": sum(r[4] for r in rows),
             "mass_kg": sum(r[5] for r in rows)}
+
+
+COVER_SHARES = (0.0, 0.002, 0.01, 0.02, 0.08)
+
+
+def cover_of_fixture_cell(shell, band, wedge):
+    """The nebula cover (a share of the cell) the fixture gives the cell at this address: every step of the colour in turn, and none."""
+    return COVER_SHARES[(shell * 7 + band * 3 + wedge) % len(COVER_SHARES)]
 
 
 def _children(counts):
@@ -845,8 +869,19 @@ class FixtureApi:
         return {"username": "fixture-admin", "must_change_credentials": False} if cookie_header else None
 
     def get_galaxy_nebula_cover(self, db, at=None, g=None):
-        """No fixture cell lies inside a nebula, and the real API is not asked for a database that does not exist."""
-        return {"at": at, "child_m": 1, "cells": []}
+        """`GET /api/galaxy/nebula-cover` over the fixture cells (MAP.177): a share from `COVER_SHARES` for every cell a stage or a
+        window shows, by its address, so the map's Nebula cover colour has every step to draw; a sector's cells have none. The real
+        API is not asked for a database that does not exist."""
+        if g is not None:
+            window = self.get_galaxy_window(db, at, g)
+            child_m, cells = window["child_m"], window["cells"]
+        else:
+            stage = galaxy_stage(at or None)
+            child_m, cells = stage["child_m"], [[c["shell"], c["band"], c["wedge"]] for c in stage["children"]]
+        if child_m == 1:
+            return {"at": at, "child_m": 1, "cells": []}
+        return {"at": at, "child_m": child_m,
+                "cells": [[*cell, cover_of_fixture_cell(*cell)] for cell in sorted(cells) if cover_of_fixture_cell(*cell) > 0]}
 
     def get_galaxy_charted_regions(self, db):
         """`GET /api/galaxy/charted-regions` over `SECTORS`: one region per 9-block that holds a fixture sector (`charted_regions`),
@@ -892,6 +927,8 @@ class FixtureApi:
                 lit = self.buckets.get(DrillBlock(*block), [])
                 stars = lit[:NODE_SECTOR_STARS if block.m == 1 else NODE_STARS]
             points = [point for point in self.points if address_in_block(self._address(point), block, self._memo)]
+            if block.m <= 81:
+                points += [point for point in SCATTERED_NEBULAE if address_in_block(self._address(point), block, self._memo)]
             worlds = [system for system in self.worlds
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             giants = [system for system in GIANT_FIELD
@@ -904,7 +941,7 @@ class FixtureApi:
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
-            for cloud in NEBULAE:
+            for cloud in NEBULAE + ((FIELD_CLOUD,) if block.m <= 81 else ()):
                 nearest = [min(max(cloud[axis], lo[i]), hi[i]) for i, axis in enumerate("xyz")]
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)
@@ -969,9 +1006,6 @@ class FixtureApi:
     def get_galaxy_locate(self, db, q):
         return []
 
-    def get_nebula_shape(self, db, nebula_id, lod="low"):
-        return nebula_shape_payload(nebula_id, lod)
-
     def get_galaxy_nebula_volume(self, db, key):
         return nebula_volume_payload(key)
 
@@ -1030,7 +1064,7 @@ class FixtureApi:
 
 _APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_nebula_shape", "get_system_scene",
+              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 

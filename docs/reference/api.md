@@ -221,7 +221,7 @@ connectivity to that specific schema rather than the default one.
   (`kind`, `id` the printed object ID, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`,
   `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100; a star's also `temperature_k`, `luminosity_w` and `age_gy`, a planet's or moon's `distance_km` (its orbit size), `eccentricity` and `surface_temperature_k`, as stored, `null` where the row holds none, UX.187), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
   what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
-  kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
+  kind, sort or order, a `limit` that is not a number, a `sector_id` that is not a sector ID, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`). UX.228: a `star`, `planet` or `moon` list takes the numeric keys of `GET /api/search` (UX.226,
   `db.search_values.KEYS`) as well: `sort=<key>` (`gravity`, `surface_temperature`, `orbit_distance`, `luminosity`, `moon_count`, ...; every
   key the kind has except `mass`, which stays the index's own sort) lists the bodies that have a value, with `order` for the direction, and
@@ -323,6 +323,8 @@ connectivity to that specific schema rather than the default one.
   comet's holds its Kepler elements under `kepler`). A planet or moon also carries `habitable`, `inhabited`,
   `body_type` (`t` terrestrial, `g` gas giant), `phi4` (its overall habitability score, `null` unscored) and `tier`
   (that score's colour, `Blue` to `Red`, or `null`), which the Galaxy Map draws its symbol from (MAP.321), and the four life scores `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` (0 none to 9 abundant, `null` unscored) with `life_stage` (kept for a class that can carry life only) and `planet_class`, which its symbols for life, sentient life, a civilization and a planet class read (MAP.343).
+- `GET /api/systems/<id>/sky?limit=` — the sky the system sees (VIEW.31, `planetgen/api/system_sky.py`): the stars brighter than the limiting magnitude `limit` (2 to 9, default 7.5; a limit out of range is a `400`) from the stored stars, packed (`PGK1`, `planetgen/web/lib/skypack.py`), with the nebulae, supernova remnants and clouds the system sees as sprite records, and a report of how much of the sky is built. Answers `{"system", "limit", "epoch_unix", "version_key", "count", "sprites", "report", "seconds", "format": "PGK1", "data"}`, `data` the base64 of the packed list, whose `meta` holds the same sprites and report. A system with no place in the galaxy is a `404`. The sky is a snapshot at the system's epoch and the `version_key` follows the stored stars, not the orbit clock; the web layer caches the bytes by it. Not put in the shared page cache. The page's route is `GET /system/<id>/sky`, which answers the packed list itself; the fields are in [system-sky-wire-format.md](../design/interface/system-sky-wire-format.md). Additive: the API version does not change.
+- `GET /api/systems/<id>/sky/band?limit=` — the glow image of the system's sky (VIEW.13, `planetgen/api/system_sky.py` `build_system_band`, `planetgen/galaxy/sky_band.py`): the light of the stars too faint to be listed, for the system's 50 parsec cell, as the equirectangular image the System View's band layer samples. `limit` as for the sky (a limit out of range is a `400`, a system with no place in the galaxy a `404`). Answers `{"key", "limit", "cell", "width", "height", "format": "rgb16f", "seconds", "data"}`, `data` the base64 of `width x height x 3` little-endian half floats (linear light, the page's unit, row 0 at the north pole); `key` is also in the sky's `meta.band`. Worked out in the API process the first time for each cell and limit (it can take tens of seconds on a galaxy with many clusters), kept in memory after. The page's route is `GET /system/<id>/sky/band`, which sends the raw bytes and keeps them on disk under the key. Additive: the API version does not change.
 - `GET /api/near?from=<ref>&distance=<pc>` (or `point=x,y,z` in galaxy-frame
   parsecs) — everything generated within `distance` parsecs (at most 50) of
   a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,
@@ -635,7 +637,9 @@ connectivity to that specific schema rather than the default one.
   never placed. 404 for an unknown nebula.
 - `GET /api/nebulae/<id>/surroundings` — the brightest stars round a
   nebula, for its page's 3D view (MAP.105): `{radius_pc, half_width_pc,
-  stars: [{x, y, z, luminosity_sol, temperature_k}]}`, positions in
+  center_pc, stars: [{x, y, z, luminosity_sol, temperature_k}]}`, `center_pc`
+  the nebula's center in the galaxy frame (`[x, y, z]` parsecs, `null` for a
+  nebula never placed; MAP.142's view draws the nebula's own points round it); the star positions in
   parsecs from the nebula's center, the most luminous first (at most 300,
   from a box 2.5 radii each side, at least 30 pc). No stars for a nebula
   never placed. 404 for an unknown nebula.
@@ -1333,6 +1337,19 @@ of one sector and in the Galactic Frame otherwise
 (`docs/design/orbits/navigation-frames.md`). `route.stop_places` has one
 `{node, sector_id, sector_position_ly}` per id in `path` (both `null` for a
 phenomenon end). The NAV page shows each course as `045 mark 012, 3.2 ly`.
+
+**The graph round the route (NAV.65).** `GET /api/nav?...&graph=1` adds `route.graph`, the links a schematic route
+map draws: `nodes` (each system that is linked and is not a stop of the route: `{id, position_ly}`, the galaxy-frame
+position in light-years the index holds), `edges` (`{from, to, distance_ly, on_route}`) and `more` (`{stop: n}`, the linked systems left out of a stop
+because it already lists `tuning.NAV_GRAPH_NEIGHBOURS` of them; only stops with some). An edge with `on_route` true is a
+hop of the route, `from` before `to` in `route.path`, with the length `route.hops` gives, and is always listed. The rest are neighbour links by the relative
+neighbourhood graph rule: two points are linked when no system lies closer to both of them than they are to each other
+(no tuning number, about 1.5 links to a system). They join two stops of the route, or a stop to a system off it (the stop
+in `from`), nearest first. A link is a neighbour relation, not a travel lane: nothing says a ship can fly it, and the
+route search does not use it. Each stop weighs its `tuning.NAV_GRAPH_CANDIDATES` nearest systems, read from the cell-key
+index (`db/route_neighbours.py`), so a link to a system farther out than the 24th nearest is not looked for; stops in
+unknown space and phenomenon ends get links to the systems round them like any other stop. Without `graph=1` the route
+has no `graph`, and no neighbour is read.
 
 **Charting a course (NAV.48).** `GET /api/nav/chart?from=<ref>&to=<ref>[&border=1]`
 works out the uncharted sectors that block a course, without generating

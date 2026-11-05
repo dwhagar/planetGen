@@ -280,3 +280,45 @@ def test_cache_can_be_turned_off(mysql_config, monkeypatch):
         MYSQL_CONFIG = mysql_config
         SECRET_KEY = "test-secret"
     assert web.PAGE_CACHE_EXTENSION not in create_app(RealConfig).extensions
+
+
+def _record(cache, db, targets):
+    """Reads (and, on a miss, stores) `targets` inside one recording; returns the `Slice`."""
+    with cache.recording() as recorded:
+        for target in targets:
+            if cache.get(db, target) is None:
+                cache.put(db, target, '{"id": 1}', cache.begin(db))
+    return recorded
+
+
+def test_a_recorded_slice_is_current_until_a_tag_it_read_changes(db):
+    """PERF.239: a slice of pages warmed before is skipped while every answer stands, and visited again when one tag moved."""
+    clock = _Clock()
+    cache, _calls = _cache({db: "a"}, clock)
+    targets = ["/sectors/1?db=g", "/sectors/2?db=g"]
+    recorded = _record(cache, db, targets)
+    assert recorded.usable() and len(recorded.keys) == 2
+    assert cache.slice_is_current(db, "sectors:x") is None          # nothing saved yet
+    assert cache.save_slice(db, "sectors:x", recorded)
+    assert cache.slice_is_current(db, "sectors:x") == 2
+    dataversion.bump(db, dataversion.sector_tag(1))
+    assert cache.slice_is_current(db, "sectors:x") is None
+
+
+def test_a_slice_whose_answer_left_redis_is_not_current(db):
+    clock = _Clock()
+    cache, _calls = _cache({db: "a"}, clock)
+    recorded = _record(cache, db, ["/sectors/1?db=g", "/sectors/2?db=g"])
+    cache.save_slice(db, "sectors:y", recorded)
+    redisclient.client().delete(pagecache.shared_key(db, "/sectors/2?db=g"))
+    assert cache.slice_is_current(db, "sectors:y") is None
+
+
+def test_a_recording_that_saw_two_counters_for_one_tag_is_not_kept(db):
+    recorded = pagecache.Slice()
+    recorded.add(db, "k1", "inc", {"sector:1": 3})
+    recorded.add(db, "k2", "inc", {"sector:1": 4})
+    assert not recorded.usable()
+    assert not pagecache.ResponseCache(lambda *_: {"stamp": "a"}).save_slice(db, "z", recorded)
+    empty = pagecache.Slice()
+    assert not empty.usable()

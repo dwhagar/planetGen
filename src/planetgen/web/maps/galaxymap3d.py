@@ -438,8 +438,10 @@ def _course_readout_html(course):
     """
     The course readout and legend above the map (NAV.20): what the two
     line styles are, the course's distance, bearing and mark, the warp
-    times, and the route's stops as links (the keyboard way to a hop; the
-    ringed hops on the map are clickable too).
+    times, the route's stops as links (the keyboard way to a hop; the
+    ringed hops on the map are clickable too) and, for a route with stops
+    on the way, the course diagram (`readout["diagram"]`, NAV.69), whose
+    stops and the map's rings select each other (`static/coursediagram.js`).
     """
     readout = course.get("readout") or {}
     has_hops = bool(course.get("direct"))
@@ -447,7 +449,7 @@ def _course_readout_html(course):
            + ("Route via adjacent systems" if has_hops else "Course (the direct line is the route)") + "</li>"]
     if has_hops:
         key.append('<li><span class="course-key-direct" aria-hidden="true"></span> Direct line</li>')
-    key.append('<li><span class="course-key-ring" aria-hidden="true"></span> Stop (click to open it)</li>')
+    key.append('<li><span class="course-key-ring" aria-hidden="true"></span> Stop (click to select it, click again to open it)</li>')
     rows = [("Distance", readout.get("distance")), ("Course", readout.get("course")),
             ("Frame", readout.get("frame")), ("Route length", readout.get("route_distance"))]
     rows += [(item["label"], item["text"]) for item in readout.get("times", [])]
@@ -458,6 +460,7 @@ def _course_readout_html(course):
         '<div class="course-readout"><ul class="course-key" aria-label="Legend">' + "".join(key) + "</ul>"
         + (f'<dl class="course-facts">{facts}</dl>' if facts else "")
         + (f'<ol class="course-stops" aria-label="Stops on the route">{stops}</ol>' if stops else "")
+        + (readout.get("diagram") or "")
         + "</div>"
     )
 
@@ -467,7 +470,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               system_url=None, stage_path="/galaxy/stage", window_path="/galaxy/window",
                               near_path="/galaxy/near", locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
-                              nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
+                              uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
                               system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
                               nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume"):
@@ -538,14 +541,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             `{id}` where the system's id goes), which a system's card lists under its position (MAP.296).
         regions_path (str or None): The charted regions' endpoint (`/galaxy/regions`, MAP.316), which the map draws its
             galactic-scale region nodes and its charted-regions list from. `None` (a sector page's map) leaves both out.
-        nebula_shape_path (str): The endpoint of a nebula's mesh (`/galaxy/
-            nebula/{id}/shape`, `{id}` where the nebula's id goes), which the
-            map draws a nebula from once it is big enough on screen
-            (`static/nebulamesh.js`, MAP.103).
         nebula_volume_path (str): The endpoint of a node's nebula points (`/galaxy/nebula-volume?key=<node key>`, MAP.365), which the
             map draws the nebulae of a node from (`static/nebulavolume.js`, `static/nebulavolumelayer.js`) once one is wide enough.
         nebula_alone_volume_path (str): The endpoint of one nebula's points (`/galaxy/nebula/{id}/volume`, `{id}` where the nebula's id goes, MAP.142),
-            which an opened sector draws each of its nebulae from, by the same layer, in place of a sphere and a mesh.
+            which an opened sector draws each of its nebulae from, by the same layer, in place of a sphere (MAP.142 part 4: the per-ID shape mesh is gone).
         uncharted_scene_url (str, optional): The scene endpoint of a sector
             nothing was generated in (`/galaxy/uncharted/{shell}/{band}/{wedge}/scene`),
             which the map opens in place with an "Uncharted" mark when it
@@ -602,7 +601,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "nearPath": near_path,
         "locatePath": locate_path,
         "territoryPath": territory_path,
-        "nebulaShapePath": nebula_shape_path,
         "nebulaVolumePath": nebula_volume_path,
         "nebulaAloneVolumePath": nebula_alone_volume_path,
         "regionsPath": regions_path,
@@ -723,6 +721,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '      <option value="luminosity">Luminosity</option>\n'
             '      <option value="stars">Star count</option>\n'
             '      <option value="habitable">Habitable worlds</option>\n'
+            '      <option value="cover">Nebula cover</option>\n'
             '    </select></label>\n')
         legend_block = (
             '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'
@@ -801,6 +800,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <aside class="starmap-info" id="galaxymap3d-info" data-overlay aria-label="Selection">
 <p class="hint">{info_hint}</p>
 </aside>
+<section class="galaxy-strip" id="galaxymap3d-strip" aria-label="Side strip: height above and below the galactic plane" hidden>
+<div class="galaxy-strip-head"><strong>Side strip</strong>
+<button type="button" class="starmap-btn" data-strip-close title="Put the side strip away">Close</button></div>
+</section>
 </div>
 </div>
 <div class="starmap-side">
@@ -817,6 +820,17 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
+    <button type="button" class="starmap-btn" data-action="plane-view" data-icon="plane-view" aria-pressed="false"
+            title="Tilt the map and lay a grid on a plane through a 60 degree wedge of the galaxy, with rings at round distances (around the selection when there is one)">Plane view</button>
+    <button type="button" class="starmap-btn" data-action="plane-midplane" data-icon="plane-midplane" aria-pressed="false" disabled
+            title="Lay the plane view's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Plane at galactic midplane</button>
+    <button type="button" class="starmap-btn" data-action="plane-stems" data-icon="plane-stems" aria-pressed="true" disabled
+            title="Show or hide the stems from stars down to the plane view's grid plane">Stems</button>
+    <label class="galaxy-menu-stretch" title="Draw heights above and below the plane this many times taller than true; the grid says so">Stem height
+      <input type="range" id="galaxymap3d-plane-stretch" min="1" max="10" step="1" value="1" disabled aria-valuetext="true height">
+      <output id="galaxymap3d-plane-stretch-out" for="galaxymap3d-plane-stretch">true</output></label>
+    <button type="button" class="starmap-btn" data-action="side-strip" data-icon="side-strip" aria-pressed="false"
+            title="Show the stars of a 60 degree wedge edge-on: distance from the galactic center across, height up and down. Picking a star in either view selects it in both">Side strip</button>
     <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
             title="Draw the cells of this step (blocks, then sectors) as a grid over the map">Cell grid</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"

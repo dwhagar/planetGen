@@ -100,6 +100,7 @@ class FakeData:
         self.nav_galaxy_scope = False
         self.nav_unknown_space = False
         self.nav_stone = False
+        self.nav_graph = False
         self.nav_chart_error = None
         self.nav_chart = {"unknown_hops": 2, "cells": [[1980, 0, 1], [1980, 0, 2]], "outside_galaxy": 1,
                           "route_distance_ly": 40.0, "confirm_over": 5000,
@@ -154,7 +155,7 @@ class FakeData:
         except KeyError:
             raise apiclient.NotFoundError("No such phenomenon")
 
-    def get_nav(self, db, from_ref, to_ref, stay=None):
+    def get_nav(self, db, from_ref, to_ref, stay=None, graph=False):
         self.calls.append(("get_nav", db, from_ref, to_ref) if stay is None else ("get_nav", db, from_ref, to_ref, stay))
         if self.nav_error:
             raise self.nav_error
@@ -165,7 +166,7 @@ class FakeData:
                   "elevation_deg": -2.5, "frame": "sector"}
         kind, from_id = objectref.parse(from_ref)
         to_id = objectref.parse(to_ref)[1]
-        return {
+        result = {
             "scope": "galaxy" if self.nav_galaxy_scope else "sector",
             "direct": direct,
             "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years"}],
@@ -191,6 +192,19 @@ class FakeData:
                 {"kind": "between", "from": from_ref, "to": to_ref, "direct": direct}],
             "note": "Same warp and fold tables." if kind in objectref.BODY_KINDS else None,
         }
+        if graph and self.nav_graph and len(result["route"]["path"]) > 2:   # NAV.65: the links round the route, NAV.68 draws them
+            stops = result["route"]["path"]
+            result["route"]["graph"] = {
+                "nodes": [{"id": 7001, "position_ly": (0.5, 1.0, 0.0)}, {"id": 7002, "position_ly": (0.5, -1.0, 0.0)},
+                          {"id": 7003, "position_ly": (2.0, 1.0, 0.0)}],
+                "edges": [{"from": stops[0], "to": stops[1], "distance_ly": 1.25, "on_route": True},
+                          {"from": stops[1], "to": stops[2], "distance_ly": 2.25, "on_route": True},
+                          {"from": stops[0], "to": 7001, "distance_ly": 1.1, "on_route": False},
+                          {"from": stops[0], "to": 7002, "distance_ly": 1.4, "on_route": False},
+                          {"from": stops[1], "to": 7003, "distance_ly": 0.9, "on_route": False},
+                          {"from": stops[0], "to": stops[2], "distance_ly": 3.25, "on_route": False}],
+                "more": {stops[1]: 4}}
+        return result
 
     def get_nav_chart(self, db, from_ref, to_ref, border=False):
         self.calls.append(("get_nav_chart", db, from_ref, to_ref, border))
@@ -1133,6 +1147,25 @@ def test_nav_route_shows_the_longest_hop_and_unknown_space_jumps(client, fake):
     assert "1 jump crosses unknown space" in html
 
 
+def test_nav_map_and_galaxy_course_flag_the_unknown_space_hop(client, fake):
+    """NAV.36: the NAV page's map draws the unknown-space hop apart (red, glowing) and the Galaxy Map's course points say which hop arrives
+    through unknown space."""
+    from planetgen.web.nav_page import galaxy_course
+
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "navmap-route-unknown" not in html
+    fake.nav_unknown_space = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'class="navmap-route-line navmap-route-unknown"' in html and "red, dashed and glowing" in html
+    fake.nav_galaxy_scope = True
+    with client.application.test_request_context("/galaxy"):
+        flags = [point["hopUnknown"] for point in galaxy_course("system:1001", "system:2001")["points"]]
+    assert flags == [False, False, True]          # the fake route's second hop is the unknown one
+    fake.nav_unknown_space = False
+    with client.application.test_request_context("/galaxy"):
+        assert not any(point["hopUnknown"] for point in galaxy_course("system:1001", "system:2001")["points"])
+
+
 def test_nav_route_names_a_stop_in_unknown_space_by_its_kind_and_does_not_link_it(client, fake):
     """NAV.47: a stepping stone in unfilled space is named from the route, is no link, and is on the map."""
     fake.nav_stone = True
@@ -1158,11 +1191,46 @@ def test_nav_route_shows_hop_and_total_times_and_takes_a_stay(client, fake):
     assert "must be a number of minutes" in html
 
 
+def test_nav_draws_the_course_diagram_below_the_map_and_above_the_route_list(client, fake):
+    """NAV.67: the route as a ribbon of stops, after the NAV map and before the route list, a link on each stop with a page."""
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert html.index("navmap-viewport") < html.index('id="course-diagram-heading"') < html.index('id="route-heading"')
+    diagram = re.search(r'<section class="panel nav-diagram".*?</section>', html, re.S).group(0)
+    assert diagram.count('class="nav-diagram-svg') == 3 and diagram.count('class="nav-diagram-stop"') == 3 * 3
+    assert 'href="/system/' in diagram and "1.25 ly" in diagram and "2.25 ly" in diagram
+    assert "unknown space" not in diagram
+
+
+def test_nav_course_diagram_marks_an_unknown_space_hop_and_does_not_link_a_stop_in_unknown_space(client, fake):
+    """NAV.67, NAV.36: a hop through unknown space is red and in words; a stop in unknown space is no link."""
+    fake.nav_stone = True
+    fake.nav_unknown_space = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    diagram = re.search(r'<section class="panel nav-diagram".*?</section>', html, re.S).group(0)
+    assert "nav-diagram-hop-unknown" in diagram and "crosses unknown space" in diagram
+    assert "Black hole in uncharted sector ABC" in diagram
+    assert diagram.count("<a ") == 2 * 3                                  # the stop in unknown space has no page
+
+
+def test_nav_course_diagram_draws_the_neighbours_and_says_a_link_is_not_a_travel_lane(client, fake):
+    """NAV.68: with the route's graph, stubs round the stops, the 'and N more' of a stop the cap cut, an arc between two stops that are
+    neighbours but no hop, and the page says a link is a neighbour relation and not a travel lane."""
+    fake.nav_graph = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    diagram = re.search(r'<section class="panel nav-diagram".*?</section>', html, re.S).group(0)
+    assert diagram.count('class="nav-diagram-neighbour nav-diagram-stub"') >= 3 * 3
+    assert diagram.count('class="nav-diagram-neighbour nav-diagram-link"') >= 2 and "and 4 more" in diagram
+    assert "a link is a neighbour relation, not a travel lane" in diagram and "Neighbour (not a travel lane)" in diagram
+    fake.nav_graph = False
+    plain = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "nav-diagram-stub" not in plain and "neighbour relation" not in plain
+
+
 def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):
-    """UX.70: Optimal Route would only list the two ends again."""
+    """UX.70: Optimal Route would only list the two ends again (and the Course Diagram, the same two stops)."""
     fake.nav_direct_hop = True
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
-    assert 'id="route-heading"' not in html and 'class="nav-route"' not in html
+    assert 'id="route-heading"' not in html and 'class="nav-route"' not in html and 'id="course-diagram-heading"' not in html
     assert 'id="course-heading"' in html
 
 

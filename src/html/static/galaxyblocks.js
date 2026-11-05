@@ -150,6 +150,13 @@ export function statsRanges(cells) {
 // MAP.143: the steps of the Habitable worlds colour and their hue (sRGB, one hue, light rising with the count so
 // it still reads in greyscale and against the dark map).
 const HABITABLE_BINS = 5;
+// MAP.177: the Nebula cover colour. COVER_EDGES are the shares (of a cell) that part its steps, from the nebula density
+// research (MAP.178: cover is about 2% at the median): none, under 0.5%, 0.5% to 1.5%, 1.5% to 3% and 3% or more. A cell with
+// none is drawn as unfilled space, so the other COVER_BINS steps are one hue, the dust umber of the dark nebulae (nebulalook.js), that
+// lightens with the share so it reads on the black map and in greyscale.
+const COVER_BINS = 4;
+export const COVER_EDGES = [0.005, 0.015, 0.03];
+const COVER_RAMP = [[0.45, 0.30, 0.18], [0.62, 0.44, 0.27], [0.80, 0.62, 0.40], [0.95, 0.84, 0.62]];
 const HABITABLE_RAMP = [[0.10, 0.30, 0.18], [0.18, 0.49, 0.29], [0.31, 0.68, 0.37], [0.56, 0.83, 0.42], [0.83, 0.96, 0.54]];
 
 // MAP.131: what the Galaxy Map's fill can show. "default" is the age hue,
@@ -188,6 +195,13 @@ export const COLOR_MODES = {
     text: function (v) { return formatLegend(Math.pow(10, v)); },
     empty: function (stats) { return !(stats.habitable_worlds > 0); },
   },
+  // MAP.177: the share of a cell inside a nebula (the payload's `nebula_cover`, MAP.174), filled or not. It is read off
+  // the cell's `cover`, not ranked against the cells in view, so a share reads the same on every screen: COVER_BINS
+  // steps of one hue at the COVER_EDGES shares, and a cell with none is drawn as unfilled space.
+  cover: {
+    label: "Nebula cover", unit: "share of the block inside a nebula", bins: COVER_BINS, ramp: COVER_RAMP,
+    lowText: "under 0.5%", highText: "3% or more",
+  },
 };
 
 function formatLegend(value) {
@@ -212,6 +226,17 @@ export function habitableBinColor(bin) {
   return HABITABLE_RAMP[Math.max(0, Math.min(HABITABLE_BINS - 1, bin))];
 }
 
+// MAP.177: the step (0 to COVER_BINS - 1) a cell's nebula cover (a share, 0 to 1) falls in, and that step's colour (sRGB).
+export function coverBin(cover) {
+  let bin = 0;
+  COVER_EDGES.forEach(function (edge) { bin += cover >= edge ? 1 : 0; });
+  return bin;
+}
+
+export function coverBinColor(bin) {
+  return COVER_RAMP[Math.max(0, Math.min(COVER_BINS - 1, bin))];
+}
+
 export function statRampColor(share) {
   const t = Math.max(0, Math.min(1, share));
   return t < 0.5 ? lerp3(STAT_RAMP[0], STAT_RAMP[1], t * 2) : lerp3(STAT_RAMP[1], STAT_RAMP[2], (t - 0.5) * 2);
@@ -222,6 +247,17 @@ export function statRampColor(share) {
 // highText, stops (sRGB hex, low to high)}.
 export function legendFor(mode, ranges) {
   const info = COLOR_MODES[mode];
+  const hex = function (color) {
+    return "#" + color.map(function (v) { return ("0" + Math.round(v * 255).toString(16)).slice(-2); }).join("");
+  };
+  const steps = function (ramp) {
+    return [].concat.apply([], ramp.map(function (color, n) {
+      return [hex(color) + " " + (100 * n / ramp.length) + "%", hex(color) + " " + (100 * (n + 1) / ramp.length) + "%"];
+    }));
+  };
+  if (info && info.ramp) {
+    return { mode: mode, label: info.label, unit: info.unit, lowText: info.lowText, highText: info.highText, stops: steps(info.ramp) };
+  }
   if (!info || !info.range) {
     return null;
   }
@@ -233,13 +269,8 @@ export function legendFor(mode, ranges) {
   // or an age never reads below 0.
   const ends = scaleEnds(range, info.range);
   const low = info.range === "luminosity" || info.range === "habitable" ? ends[0] : Math.max(0, ends[0]);
-  const hex = function (color) {
-    return "#" + color.map(function (v) { return ("0" + Math.round(v * 255).toString(16)).slice(-2); }).join("");
-  };
   // A binned mode's legend is its steps side by side (hard stops), a continuous one's the ramp.
-  const stops = info.bins ? [].concat.apply([], HABITABLE_RAMP.map(function (color, n) {
-    return [hex(color) + " " + (100 * n / info.bins) + "%", hex(color) + " " + (100 * (n + 1) / info.bins) + "%"];
-  })) : [0, 0.25, 0.5, 0.75, 1].map(function (t) { return hex(statRampColor(t)); });
+  const stops = info.bins ? steps(HABITABLE_RAMP) : [0, 0.25, 0.5, 0.75, 1].map(function (t) { return hex(statRampColor(t)); });
   return { mode: mode, label: info.label, unit: info.unit, lowText: info.text(low), highText: info.text(ends[1]), stops: stops };
 }
 
@@ -327,6 +358,9 @@ export function ageColor(ageGy) {
 // the other cells in view; a filled one without stars in `unfilled` a
 // shade more saturated.
 export function statsColor(cell, unfilled, ranges, mode) {
+  if (mode === "cover") {
+    return cell.cover > 0 ? coverBinColor(coverBin(cell.cover)).map(srgbToLinear) : unfilled;
+  }
   if (!(cell.filled > 0)) {
     return unfilled;
   }
@@ -410,7 +444,7 @@ export function createBlockScene(config) {
       const ramp = function () { return prismColor(shape ? prismShade(cell, armAmplitude) : 0.5); };
       colorOf.push(statsColor(cell, ramp(), ranges, colorBy));
       alphaOf.push(Math.round(cell.opacity * 255));
-      fillOf.push(cell.noFill ? 0 : Math.round(blockFillStep(cell) * 255));
+      fillOf.push(cell.noFill ? 0 : cell.coverShown ? 255 : Math.round(blockFillStep(cell) * 255));
     });
     for (let v = 0; v < count; v++) {
       const owner = built.owners[v];
@@ -458,9 +492,14 @@ export function createBlockScene(config) {
       }
       cell.opacity = statsOpacity(cell);
       const mode = COLOR_MODES[colorBy];
-      cell.noFill = !!(mode.empty && cell.filled > 0 && cell.stats && mode.empty(cell.stats));
+      cell.coverShown = colorBy === "cover" && cell.cover > 0;
+      cell.noFill = colorBy === "cover" ? !cell.coverShown
+        : !!(mode.empty && cell.filled > 0 && cell.stats && mode.empty(cell.stats));
       if (cell.noFill) {
         cell.opacity = unfilledOpacity(cell);
+      } else if (cell.coverShown) {
+        // Lifted from the unfilled opacity toward MAX_FILL_OPACITY a quarter for each step.
+        cell.opacity = unfilledOpacity(cell) + (MAX_FILL_OPACITY - unfilledOpacity(cell)) * (coverBin(cell.cover) + 1) / COVER_BINS;
       }
       if (dim && dim(cell)) {
         cell.opacity *= 0.2;

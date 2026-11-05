@@ -758,6 +758,7 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | Command | What it is for |
 |---|---|
 | `python3 -m planetgen.cli.orbits` | Moves every object that is due along its orbit. |
+| `python3 -m planetgen.cli.tiles` | Builds every node of the whole Galaxy Map into a new cache and swaps it in. |
 | `python3 -m planetgen.cli.worker` | Runs one queue worker. |
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
@@ -770,6 +771,14 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | `python3 -m planetgen.cli.accounts` | Makes an account the Owner (`--set-owner USER`). |
 | `python3 -m planetgen.cli.config` | Checks, documents and edits the settings. |
 | `python3 -m planetgen.cli.backup` | Takes, lists, verifies and restores backup archives. |
+
+### tiles
+
+Builds the whole Galaxy Map's node cache from scratch (PERF.233): every node of every level of the whole galaxy (a block of each level that holds a generated sector or a placed object, and each generated sector), into a new cache beside the live one, swapped in when it is complete. The live cache keeps serving until the swap, a run that is killed leaves it as it was, and running it again picks up the nodes already built. The map's address space is 23.9 billion cells; only the populated part is a node. It builds a level at a time, biggest blocks first, `tile_cache.build_workers` processes at once (0 is one per core), with one progress line per level, builds with no cache budget and no pruning, and checks the data once more before the swap: a change meanwhile deletes just the nodes it touched, which are built again. It refuses to start unless twice the projected size (110 KB a sector node and 45 KB a block node at most) is free on the cache's disk, saying the figures (`--force` builds anyway). Run it as the web server's user so Apache can read what it writes. `--workers N` overrides the setting and `--no-swap` leaves the finished cache in the `.build` folder under the cache root. It exits 0 done, 1 failed, 75 when an update is running (nothing was built) and 130 when stopped. The maintenance example `examples/maintenance/planetgen-tiles@.timer` runs it nightly at 05:00 after the orbit update, then `planetgen warm` rebuilds the lists, objects and search. The sizes and times it was planned from are in `reports/perf233-tile-cache-cost-2026-11-04.md`. `cache.max_mb` no longer counts the nodes built ahead (this build's and the warm-up's): it is the allowance of the nodes visits asked for.
+
+```bash
+python3 -m planetgen.cli.tiles
+```
 
 ### orbits
 

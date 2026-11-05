@@ -194,6 +194,9 @@ def test_health_reports_the_reason_for_maintenance(mysql_config, client, tmp_pat
     assert body["status"] == "ok" and body["schema_current"] is True
     assert body["maintenance"] == {"enabled": True, "cause": "update", "reason": "Rebuilding the sector maps",
                                    "eta": "about two hours", "since": body["maintenance"]["since"]}
+    maintenance.turn_on()       # already on: no reason given keeps the one set (`turn_on`'s rule), so the standard line shows only once it was off
+    assert client.get("/api/health").get_json()["maintenance"]["reason"] == "Rebuilding the sector maps"
+    maintenance.turn_off()
     maintenance.turn_on()
     assert client.get("/api/health").get_json()["maintenance"]["reason"] == MESSAGE
 
@@ -2329,9 +2332,11 @@ def test_nebula_surroundings_endpoint_lists_the_bright_stars_round_it(client, my
         conn.close()
     body = client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/surroundings").get_json()
     assert body["radius_pc"] > 0 and body["half_width_pc"] >= 30.0
+    assert body["center_pc"] == [100.0, 20.0, 0.0]          # MAP.142: where the nebula's own points are drawn
     assert [(star["x"], star["y"], star["z"]) for star in body["stars"]] == [(4.0, 2.0, 1.0)]
     assert body["stars"][0]["luminosity_sol"] == pytest.approx(900.0, rel=1e-3)
-    assert client.get(f"/api/nebulae/{pid('nebula', unplaced_id)}/surroundings").get_json()["stars"] == []
+    unplaced = client.get(f"/api/nebulae/{pid('nebula', unplaced_id)}/surroundings").get_json()
+    assert unplaced["stars"] == [] and unplaced["center_pc"] is None
     assert client.get("/api/nebulae/999999/surroundings").status_code == 404
 
 

@@ -159,6 +159,31 @@ function classGlyph(letter) {   // `letter` is the text on the disk: a planet cl
   };
 }
 
+// MAP.179: a nebula: three overlapping soft puffs with a bright rim.
+GLYPHS.nebula = function (ctx, size, color, outline) {
+  const c = size / 2;
+  const puffs = [[c * 0.72, c * 1.08, c * 0.5], [c * 1.28, c * 1.08, c * 0.5], [c, c * 0.72, c * 0.56]];
+  ctx.lineJoin = "round";
+  puffs.forEach(function (puff) {
+    ctx.beginPath();
+    ctx.arc(puff[0], puff[1], puff[2], 0, Math.PI * 2);
+    ctx.lineWidth = size * 0.2;
+    ctx.strokeStyle = outline;
+    ctx.stroke();
+  });
+  puffs.forEach(function (puff) {
+    ctx.beginPath();
+    ctx.arc(puff[0], puff[1], puff[2], 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.55;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = size * 0.08;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  });
+};
+
 PLANET_CLASS_LETTERS.forEach(function (letter) { GLYPHS["class-" + letter] = classGlyph(letter); });
 LIFE_CLASS_IDS.forEach(function (id) { GLYPHS["lifeclass-" + id] = classGlyph(id); });
 
@@ -228,6 +253,27 @@ export const BLACK_HOLE_KIND = {
   },
   rank: function (item) { return item.map_luminosity_sol || item.mass_solar || item.size || 0; },
   describe: function (item) { return (item.name ? item.name + ", " : "") + "Black Hole" + (item.descriptor ? " (" + item.descriptor + ")" : ""); },
+};
+
+// MAP.179: the planetary nebulae and supernova remnants the galaxy has scattered and no sector has built yet (a built one is a stored nebula,
+// drawn as a cloud). The nodes list them in `points` with the types below, for blocks of 81 sectors and smaller, and they are marks, not points of
+// light among the stars (`NEBULA_POINT_TYPES`).
+export const NEBULA_POINT_TYPES = { planetary_nebula: "Planetary nebula", supernova_remnant: "Supernova remnant" };
+export const NEBULA_KIND = {
+  id: "marker-nebula",
+  label: "Nebula marks",
+  title: "Show or hide the marks over the planetary nebulae and supernova remnants that no sector has been filled for yet",
+  glyph: "nebula",
+  color: "#c9a8e0",
+  maxBlock: Infinity,
+  defaultOn: true,
+  source: function (node) {
+    return (node.points || []).filter(function (point) { return NEBULA_POINT_TYPES[point.type]; }).map(function (point) {
+      return Object.assign({ key: String(point.id) }, point);
+    });
+  },
+  rank: function (item) { return item.size || 0; },
+  describe: function (item) { return (item.name ? item.name : NEBULA_POINT_TYPES[item.type]); },
 };
 
 // The reasons a star system is worth a mark (MAP.305, MAP.303): the client side of `planetgen.db.interests.REASONS`. A
