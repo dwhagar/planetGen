@@ -69,7 +69,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, NEBULA_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, NEBULA_KIND, REGION_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
@@ -91,11 +91,12 @@ const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare,
   unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
-const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
+const { formatNodeKey, geometry, nodeCut, parseNodeKey, projectedSize, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
 const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuffer.js${VERSION_QUERY}`);
+const { keptShare, rankShare, rankStars, referencePx } = await import(`./starthin.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
-const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const { regionBlobs, regionLook, chartedText, regionMarkers, chartedRegionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
 const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
@@ -184,6 +185,9 @@ export function mapControlHandlers(ctx) {
       button.setAttribute("aria-pressed", String(on));
       ctx.setPlaneView(on);
     },
+    // MAP.376: the wedge on either side becomes the focus.
+    "plane-wedge-prev": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(-1); },
+    "plane-wedge-next": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(1); },
     "plane-stems": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
@@ -2572,6 +2576,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // starList's order; redone when the camera moves or the stars change.
   var starShares = new Float32Array(0);
   var starShareSignature = "";
+  var starThinningOn = true;
   function updateStarShares() {
     var n = starList.length;
     var signature = starSetVersion + "," + n + "," + camera.position.x + "," + camera.position.y + "," + camera.position.z;
@@ -2582,8 +2587,21 @@ function initGalaxyMap3d(canvasEl, data) {
     if (starShares.length !== n) {
       starShares = new Float32Array(n);
     }
-    var weigh = drawnSettled ? weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
+    var cameraAt = camera.position.toArray();
+    var weigh = drawnSettled ? weightCalculator(cameraAt, NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
     var byNode = new Map();
+    // MAP.366: the share of its list each capped node keeps against the nodes of the view (static/starthin.js).
+    var kept = new Map();
+    var cappedSizes = [];
+    for (var j = 0; j < n; j++) {
+      var tile = starFadeList[j];
+      if (tile && tile.capped && !kept.has(tile)) {
+        kept.set(tile, projectedSize(tile.block, cameraAt, NODE_EDGE_PC, focalPixels()));
+        cappedSizes.push(kept.get(tile));
+      }
+    }
+    var reference = referencePx(cappedSizes);
+    kept.forEach(function (px, tile) { kept.set(tile, keptShare(px, reference)); });
     for (var i = 0; i < n; i++) {
       var fade = starFadeList[i];
       var share = 1;
@@ -2592,6 +2610,9 @@ function initGalaxyMap3d(canvasEl, data) {
         if (share === undefined) {
           share = starShare(fade, weigh);
           byNode.set(fade, share);
+        }
+        if (starThinningOn && fade.capped && starList[i].nodeRank !== undefined) {
+          share *= rankShare(starList[i].nodeRank, fade.listed, kept.get(fade));
         }
       }
       starShares[i] = share;
@@ -2697,6 +2718,45 @@ function initGalaxyMap3d(canvasEl, data) {
     return { limit: limit, goal: magGoal, target: magTarget, onScreen: magOnScreen, count: starList.length, stars: shares, ramp: RAMP, focus: nearUniforms.nearD.value, e: e[0] };
   };
 
+  // For tests (MAP.366): what each node on screen lists and shows, by node: its key and size on screen (pixels), the
+  // distance of its box's center, the stars it lists, and how many of them show (the sum of their opacity: the
+  // node's share times the limiting magnitude's), so a test compares nodes at one distance.
+  canvasEl.galaxyNodeStars = function () {
+    var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var tierMag = starPoints.geometry.getAttribute("starTierMag");
+    var limit = starMaterial.uniforms.magLimit.value;
+    var camAt = camera.position.toArray();
+    var found = new Map();
+    var cut = neededNodes();
+    var weigh = weightCalculator(camAt, NODE_EDGE_PC, focalPixels(), drawnSettled || undefined);
+    starList.forEach(function (star, i) {
+      var fade = starFadeList[i];
+      if (!fade) return;
+      var entry = found.get(fade);
+      if (!entry) {
+        var geo = geometry(fade.block, NODE_EDGE_PC);
+        var center = [0, 1, 2].map(function (a) { return (geo.lo[a] + geo.hi[a]) / 2; });
+        var nodeKey = formatNodeKey(fade.block);
+        entry = {
+          key: nodeKey, level: fade.block.m, listed: 0, shown: 0, weight: weigh(fade.block),
+          opened: cut.expanded.has(nodeKey), settled: !!(drawnSettled && drawnSettled.has(nodeKey)),
+          px: projectedSize(fade.block, camAt, NODE_EDGE_PC, focalPixels()),
+          distance: Math.hypot(center[0] - camAt[0], center[1] - camAt[1], center[2] - camAt[2]),
+        };
+        found.set(fade, entry);
+      }
+      var d = Math.sqrt(Math.pow(star.x - camAt[0], 2) + Math.pow(star.y - camAt[1], 2) + Math.pow(star.z - camAt[2], 2));
+      var m = apparentMagnitude(absolute.array[i], d) + tierMag.array[i];
+      entry.listed += 1;
+      entry.faint = Math.max(entry.faint === undefined ? -Infinity : entry.faint, star.phenomenon ? -Infinity : m);
+      entry.brightListed = (entry.brightListed || 0) + (star.generated || star.phenomenon ? 0 : 1);
+      entry.generatedListed = (entry.generatedListed || 0) + (star.generated ? 1 : 0);
+      entry.shown += starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP));
+      if (starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP)) > 0.5) entry.shownFaint = Math.max(entry.shownFaint === undefined ? -Infinity : entry.shownFaint, m);
+    });
+    return Array.from(found.values());
+  };
+
   // For tests (MAP.149): the near field the shaders were given (the
   // camera-to-focus distance, the focus's radius, the center of the block
   // the camera is inside or null), the camera and its target, and the
@@ -2750,6 +2810,13 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.galaxyStarZoomFade = function (on) {
     starMaterial.uniforms.zoomFadeOn.value = on ? 1 : 0;
     starMaterial.uniforms.magOn.value = on ? 1 : 0;
+  };
+
+  // For tests (MAP.366): switches the density rule of static/starthin.js off (every star at its node's share) to compare the picture
+  // with and without it.
+  canvasEl.galaxyStarThinning = function (on) {
+    starThinningOn = !!on;
+    starShareSignature = "";
   };
 
   // For tests: the frame the stars are drawn from and the farthest star
@@ -2867,6 +2934,15 @@ function initGalaxyMap3d(canvasEl, data) {
     return node.allStars;
   }
 
+  // MAP.366: the node's stars ranked by luminosity (`nodeRank` on each, static/starthin.js), once per node, and whether its
+  // lists reached their cap: `{ listed, capped }`.
+  function nodeThinning(node, block) {
+    if (!node.thinning) {
+      Object.defineProperty(node, "thinning", { value: rankStars(nodeStars(node), block) });
+    }
+    return node.thinning;
+  }
+
   // MAP.123: whether the star filters (classes hidden, dimmest star shown)
   // let `star` through. Phenomena are never filtered here: they have their
   // own kind toggles.
@@ -2942,6 +3018,9 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       var node = getNode(key);
       var fade = { block: parseNodeKey(key) };
+      var thin = nodeThinning(node, fade.block);
+      fade.listed = thin.listed;
+      fade.capped = thin.capped;
       var entries = [];
       nodeStars(node).forEach(function (star) {
         if (starShown(star)) {
@@ -4225,6 +4304,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
     markerKinds.register(NEBULA_KIND);
+    markerKinds.register(REGION_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
@@ -4931,6 +5011,17 @@ function initGalaxyMap3d(canvasEl, data) {
           });
         }));
     }
+    // Every charted region (one with a generated sector) carries the Region symbol while its sphere shows, whether or not a world in it is
+    // inhabited; a region that already has its inhabited token is not marked twice.
+    if (regionLayer && regionsOn && !hiddenCell && stageView.layers.isOn(REGION_KIND.id)) {
+      var regionHere = camera.position.toArray();
+      var regionFocal = focalPixels();
+      var regionTaken = chosen.filter(function (entry) { return entry.item.regionKey; });
+      chosen = chosen.concat(chartedRegionMarkers(markerKinds.get(REGION_KIND.id), regionBlobList,
+        function (blob) { return regionLook(blob, regionHere, regionFocal); },
+        function (blob) { return markerFrustum.containsPoint(markerPoint.set(blob.x, blob.y, blob.z)); },
+        function (blob) { return regionTaken.some(function (entry) { return entry.item.regionKey === blob.key; }); }));
+    }
     // MAP.306: a symbol of a reason pulled forward is drawn over the others and named first, whatever level it is drawn at.
     chosen.forEach(function (entry) {
       if (!entry.pulled && entry.kind.interest && stageView.layers.isPulled(entry.kind.id)) entry.pulled = true;
@@ -5483,11 +5574,21 @@ function initGalaxyMap3d(canvasEl, data) {
       // the galaxy's midplane instead of through the focus.
       setPlaneView: function (on) {
         planeView.set(on);
-        stageView.planeTilt(on);
-        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
+        stageView.planeTilt(on, planeView.wedgeAngle());
+        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "[data-action='plane-wedge-prev']", "[data-action='plane-wedge-next']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
           var control = document.querySelector(selector);
           if (control) control.disabled = !on;
         });
+      },
+      // MAP.376: the next wedge (60 degrees round the galactic center) becomes the focus: the grid moves to it and the camera flies to
+      // its middle line at the radius it looked at, keeping the isometric view.
+      stepPlaneWedge: function (direction) {
+        if (!planeView.isOn()) return;
+        var angle = planeView.wedgeAngle() + direction * Math.PI / 3;
+        planeView.setWedgeAngle(angle);
+        var radius = Math.hypot(target.x, target.y);
+        if (radius < 1e-6) radius = Math.max(1, 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+        stageView.planeTilt(true, planeView.wedgeAngle(), [radius * Math.cos(angle), radius * Math.sin(angle), target.z]);
       },
       setPlaneMidplane: function (on) { planeView.setMidplane(on); },
       setPlaneStems: function (on) { planeView.setStems(on); },

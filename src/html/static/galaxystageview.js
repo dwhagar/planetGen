@@ -96,8 +96,6 @@ const BUTTON_ZOOM = 1.25;
 // side and one above another. Cells touch: no space between them (Boss,
 // 2026-10-01).
 export const ISO_TILT = Math.atan(Math.SQRT2);
-// MAP.371: the plane view's tilt, from straight down: flatter than the isometric slant, so a grid on the plane and the heights above it read.
-export const PLANE_TILT = (62 * Math.PI) / 180;
 // Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
 // whole galaxy too since MAP.85): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. It turns any way by
@@ -3039,17 +3037,20 @@ export function createStageView(host) {
     });
   }
 
-  // MAP.371: the plane view's tilt preset (`on`), or the stage's own tilt again (off): the camera turns about its target to the
-  // tilt, keeping the bearing it looks from, the target and the distance, and the user's zoom is read again from the new turn.
-  // Returns false when the camera is not free to move now.
-  function planeTilt(on) {
+  // MAP.371: the Chart View's viewpoint (`on`), or the stage's own tilt again (off). Chart View is a fixed isometric view: the camera
+  // takes the isometric slant (ISO_TILT) looking outward along the wedge's middle line (`angle`, radians from +x, from the galactic
+  // center's side, so the wedge opens away from the viewer), at the same distance. `goal`, when given, is the point the camera
+  // moves to look at (a wedge chosen, MAP.376: the wedge becomes the focus); otherwise the target stays. The user's zoom is read again
+  // from the new turn. Returns false when the camera is not free to move now.
+  function planeTilt(on, angle, goal) {
     if (!resolved || animation || !display || !view) return false;
     dropZoomGoal();
     const from = viewNow();
     const kept = view;
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
-    const theta = Math.hypot(back.x, back.y) > 1e-6 ? Math.atan2(back.y, back.x) : -Math.PI / 2;
-    const to = { target: from.target.slice(), dist: from.dist, quat: presetQuat(theta, on ? PLANE_TILT : (enteredSystem || entered) ? ISO_TILT : presetTilt(resolved)) };
+    const keptTheta = Math.hypot(back.x, back.y) > 1e-6 ? Math.atan2(back.y, back.x) : -Math.PI / 2;
+    const theta = on && angle !== undefined && angle !== null ? angle + Math.PI : keptTheta;
+    const to = { target: goal ? goal.slice() : from.target.slice(), dist: from.dist, quat: presetQuat(theta, on ? ISO_TILT : (enteredSystem || entered) ? ISO_TILT : presetTilt(resolved)) };
     flyCamera(from, to, null, function () {
       view = Object.assign({}, kept, { target: to.target.slice(), dist: to.dist, quat: to.quat.clone() });
       const fit = fitNow();

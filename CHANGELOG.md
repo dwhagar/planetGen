@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3373] - 2026-11-05
+
+**Headline:** The Galaxy Map's Chart View holds still, keeps its labels steady and lets you step from wedge to wedge.
+
+### Fixed
+- **The coordinate labels in the Chart View (the old Plane view) blinked.** They were removed and made again a few times a second; each now stays while its star is labelled and is placed in the frame it is made.
+- **The Chart View had no Region symbol for generated space.** Every region that holds a generated sector now carries the Region symbol while its sphere shows, a "Charted regions" switch under Points of interest, on by default (before, only a region with an inhabited world had a mark).
+
+### Changed
+- **The Plane view is now the Chart View**, a fixed isometric view looking outward along its 60 degree wedge, and its controls sit together in one Chart View group in the Menu, with Previous wedge and Next wedge buttons: the chosen wedge becomes the focus and the view flies to it.
+
+## [8.0.3372] - 2026-11-05
+
+**Headline:** The Galaxy Map keeps the density of stars in a tile that reached its star cap near that of the bigger tiles beside it, so the star map no longer shows square chunks of thin and thick.
+
+### Changed
+
+- **MAP.366.** Boss saw square chunks missing from the star map while a tile at about the same distance kept its stars. The cause: every block tile lists at most 96 bright and 96 generated stars however big it is on screen, and the 1,200-tile cut leaves tiles from a fifth to the whole of the biggest on screen side by side (in the large test galaxy, tiles at one distance differ up to 7 times in size, so the dense tiles are 7 to 38 times as thick in stars per square pixel as the thin ones). The page now keeps a tile that reached its cap to a share of its list that holds its density near that of the bigger capped tiles in the view (the 0.6 quantile of their sizes on screen; never under 30 percent of the list), fading the dimmer stars of the tile out by rank as the camera moves instead of dropping them. A tile under the cap lists every star it has and is untouched, and so are black holes, pulsars and quasars. The spread of density among capped tiles falls from 7 to 38 times to 3 to 12 times in the test galaxy, at the cost of 12 to 29 percent of the stars shown. The numbers are in `src/html/static/starthin.js` (`DENSITY_FLOOR`, `REFERENCE_QUANTILE`) for tuning. Page only; no stored value changes.
+
+generation-output: unchanged
+
 ## [8.0.3371] - 2026-11-05
 
 **Headline:** The test that counts a system page's database statements no longer fails when a generated system has no moons.
