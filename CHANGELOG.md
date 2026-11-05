@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3214] - 2026-11-05
+
+**Headline:** The Galaxy Map window-size test now expects the 95 percent of the browser window that the map is sized to, so its three sizes pass.
+
+### Changed
+
+- `test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves` still expected the map to be the browser window's height less the header and 40 px (the first MAP.350 rule). The map is sized to 95 percent of the window's height less the header (`mapfit.js` `fillHeight`, Boss's later rule), so the 1000x900, 1280x720 and 390x700 runs failed by 2 to 8 px. The test now expects `max(320, round((height - header) * 0.95))`. The three runs pass (TEST.575).
+
 ## [8.0.3213] - 2026-11-05
 
 **Headline:** The update's cache warm-up gets four hours instead of thirty minutes, and a warm-up that is stopped says what stopped it instead of printing a traceback.
