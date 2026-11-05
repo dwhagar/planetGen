@@ -29,8 +29,8 @@ these tests check move a share by 0.15 to 0.3, and each draw is seeded so it rep
 COMET_SYSTEMS = 100
 """int: Systems drawn for the comet and binary cases, whose systems cost more (a pair or comets make the system larger): 830 s for 140 on the slowest cell, so 100 (about 600 s)."""
 FORCED_ON_SYSTEMS = 50
-"""int: Systems drawn when a feature is forced on in many of them (`habitable_world` +50): the forcing repeats a draw until the condition holds, which costs
-about 8.6 seconds a system (2.7 times the baseline), so 50 cost about 430 s. The tolerance at 50 is 0.17 to 0.25; the shares compared lie 0.3 apart."""
+"""int: Systems drawn when a feature is forced on or barred in many of them (`habitable_world` +50 and -50): the forcing or the bar repeats a draw until the condition holds, which costs
+about 8.6 seconds a system forced on and about 12 seconds a system barred (GEN.1275 remakes every body of a life class), so 50 cost 430 to 600 s. The tolerance at 50 is 0.17 to 0.25; the shares compared lie 0.3 apart."""
 BASELINE_SEED = 11
 """int: The seed of the draw with no prevalence change, which the checks that compare against the usual share share."""
 
@@ -101,7 +101,7 @@ def test_a_measured_feature_moves_by_the_percentage(feature, percent):
     expected = min(1.0, tuning.PREVALENCE_BASE_SHARES[feature] * (1 + percent / 100))
     # TEST.233: a seed that is the same in every process (hash() of a string differs per process), so a failure repeats
     seed = zlib.crc32(f"{feature}:{percent}".encode()) % 1000
-    count = FORCED_ON_SYSTEMS if feature == "habitable_world" and percent > 0 else SYSTEMS
+    count = FORCED_ON_SYSTEMS if feature == "habitable_world" else SYSTEMS
     share = _shares({feature: percent}, seed=seed, count=count)[feature]
     assert share == pytest.approx(expected, abs=_tolerance(expected, count)), (feature, percent, seed, count, share)
 
