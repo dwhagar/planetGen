@@ -4468,6 +4468,81 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.layers.onChange(function (id) {
     if (id === "waypoints") waypointFlags.visible = stageView.layers.isOn("waypoints");
   });
+  // NAV.58: a flag is dragged onto a star system to put that system in the waypoint's place (the course is planned again through the new
+  // list). Registered ahead of the map's own pointer handlers, as the course rings' are; a flag on a ringed stop leaves the plain click to
+  // the ring (select the stop, open its page) and takes the drag.
+  var FLAG_GRAB_PX = 18;
+  var FLAG_DRAG_PX = 6;
+  var flagDrag = null;
+  var flagVector = new THREE.Vector3();
+  function flagAt(event) {
+    if (!waypointFlags.visible) return null;
+    camera.updateMatrixWorld();   // the view may have moved since the last frame was drawn
+    var rect = canvasEl.getBoundingClientRect();
+    var found = null;
+    var best = FLAG_GRAB_PX;
+    flagMarkers.forEach(function (marker) {
+      var at = marker.sprite.position;
+      flagVector.set(at.x, at.y, at.z).project(camera);
+      if (flagVector.z > 1) return;
+      var dx = (flagVector.x + 1) / 2 * rect.width + rect.left - event.clientX;
+      var dy = (1 - flagVector.y) / 2 * rect.height + rect.top - event.clientY;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < best) { best = distance; found = marker; }
+    });
+    return found;
+  }
+  // What a drop at the pointer lands on: a star system, or a phenomenon with a NAV endpoint, as a waypoint entry, or null. The same
+  // picker as a click reads, so what can be picked there (a star of the map, of an opened sector or of a system, a nebula) can be dropped on.
+  var NOT_DROPPED_ON = { choices: true, regions: true, "nebula-groups": true, markers: true };
+  function dropTarget(event) {
+    var hit = picker.pick(event.clientX, event.clientY, function (layer) { return !NOT_DROPPED_ON[layer.name]; });
+    var item = hit && hit.entry;
+    if (!item || typeof item !== "object") return null;
+    var value = item.system_id != null ? "system:" + item.system_id
+      : typeof item.endpoint === "string" ? item.endpoint
+      : typeof item.key === "string" && item.kind ? item.key
+      : item.type && item.id != null && !item.scattered ? item.type + ":" + item.id : null;
+    var url = item.href || (item.system_id != null && sceneData.systemUrl ? String(sceneData.systemUrl).replace("{id}", encodeURIComponent(item.system_id)) : null)
+      || (item.type && sceneData.phenomenonUrl ? phenomenonUrl(item) : null);
+    var entry = { name: item.name || "", value: value, kind: value ? value.split(":")[0] : "", url: url };
+    if ([item.x, item.y, item.z].every(Number.isFinite)) entry.position = [item.x, item.y, item.z];
+    return Waypoints.isWaypoint(entry) ? entry : null;
+  }
+  canvasEl.addEventListener("pointerdown", function (event) {
+    var marker = event.button === 0 ? flagAt(event) : null;
+    flagDrag = marker ? { marker: marker, x: event.clientX, y: event.clientY, active: false } : null;
+    // On a ringed stop the ring's own handler ends the event; elsewhere it is ended here, or the map would turn under the drag.
+    if (flagDrag && !(typeof ringAt === "function" && ringAt(event))) event.stopImmediatePropagation();
+  }, true);
+  canvasEl.addEventListener("pointermove", function (event) {
+    if (!flagDrag) return;
+    if (!flagDrag.active && Math.abs(event.clientX - flagDrag.x) + Math.abs(event.clientY - flagDrag.y) >= FLAG_DRAG_PX) {
+      flagDrag.active = true;
+      try { canvasEl.setPointerCapture(event.pointerId); } catch (err) { /* a synthetic pointer: the drag still works */ }
+    }
+    if (flagDrag.active) {
+      event.stopImmediatePropagation();
+      canvasEl.style.cursor = dropTarget(event) ? "copy" : "grabbing";
+    }
+  }, true);
+  canvasEl.addEventListener("pointerup", function (event) {
+    if (!flagDrag) return;
+    var drag = flagDrag;
+    flagDrag = null;
+    canvasEl.style.cursor = "";
+    if (!drag.active) return;
+    event.stopImmediatePropagation();
+    var entry = Waypoints.list()[drag.marker.number - 1];
+    var target = dropTarget(event);
+    if (!entry || !target || target.value === entry.value) return;
+    if (Waypoints.find(target.value)) {
+      window.alert((target.name || "That place") + " is already a waypoint.");
+      return;
+    }
+    Waypoints.replace(entry.value, target).then(function (result) { if (!result.ok) window.alert(result.reason); });
+  }, true);
+  canvasEl.addEventListener("pointercancel", function () { flagDrag = null; canvasEl.style.cursor = ""; }, true);
   // For the browser tests: the flags drawn, `[number, x, y, z]` each.
   canvasEl.galaxyWaypointFlags = function () {
     return waypointFlags.visible ? flagMarkers.map(function (marker) {
@@ -5278,7 +5353,7 @@ function initGalaxyMap3d(canvasEl, data) {
       point.set(star.x, star.y, star.z).project(camera);
       var x = (point.x + 1) / 2 * width;
       var y = (1 - point.y) / 2 * height;
-      return { id: star.id, system_id: star.system_id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y,
+      return { id: star.id, system_id: star.system_id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y, world: [star.x, star.y, star.z],
         visible: point.z > -1 && point.z < 1 && x >= 0 && x <= width && y >= 0 && y <= height };
     });
   };
