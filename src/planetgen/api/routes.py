@@ -973,14 +973,16 @@ def nav():
     object reference (`?from=planet:7&to=nebula:2`; a bare number is a
     system) -- see `db.query.nav_course` for the legs and
     `db.query.nav_between` for the availability rules, and docs/reference/api.md for
-    the response shape.
+    the response shape. `graph=1` adds `route.graph` (NAV.65): the links round the route, for the
+    schematic route map.
     """
     from_ref = _nav_ref_param(request.args, "from")
     to_ref = _nav_ref_param(request.args, "to")
 
     stay_minutes = _nav_stay_param(request.args)
+    with_graph = request.args.get("graph", "") in ("1", "true", "yes", "on")
     try:
-        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes)
+        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
@@ -1046,7 +1048,7 @@ def _route_for_json(route):
     """
     if route is None:
         return None
-    return {
+    shown = {
         "path": route["path"],
         "distance_ly": route["distance_ly"],
         "positions": {str(node_id): position for node_id, position in route["positions"].items()},
@@ -1058,6 +1060,9 @@ def _route_for_json(route):
         "warp_times": [leg._asdict() for leg in route["warp_times"]],
         "fold_times": [leg._asdict() for leg in route["fold_times"]],
     }
+    if "graph" in route:   # NAV.65: asked for with `graph=1`; a stop's key in `more` is a string like the keys of `positions`
+        shown["graph"] = {**route["graph"], "more": {str(node_id): count for node_id, count in route["graph"]["more"].items()}}
+    return shown
 
 
 @bp.route("/galaxy/sectors")
