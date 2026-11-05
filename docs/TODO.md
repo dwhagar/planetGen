@@ -2174,25 +2174,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wedge.
   Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
 
-- [ ] **MAP.376 Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug)**
-  Found by Core 5 in its TEST.575 share, 5:40 PM EST on 2026-11-04 (as
-  the lane reported).
-  test_map_region_labels_browser::test_a_click_on_the_family_flies_to_its_block
-  fails deterministically (assert 9 == 81): clicking the family label
-  'Fixture Reach' (family:81.0.0.0, no extent, so regionOpener.block)
-  ends with the camera at 71.6 pc in a 9-block window instead of an
-  81-block one. Since MAP.336 and MAP.337 every Go to is a camera flight
-  and the window follows the camera, so openBlock lands at the default
-  window distance. MAP.319 (flyToFit) says a flight to a region places
-  the camera so the target fills the window, so this is a map bug, not a
-  test to change. Do: make the flight to a family or region block frame
-  the whole block (camera distance from the block's extent, or from its
-  size when it has no stored extent), for every level of the ladder (3,
-  9, 27, 81, 243). Done: the existing test green unchanged, plus a case
-  for each level. Owner Core 2 (MAP.336, MAP.337 and MAP.319 owner).
-  Goal #3241. Filed by the TODO thread.
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -19006,35 +18987,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.95 update.sh ends its full warm-up with timeout 1800 (30 minutes), which a first warm-up after a new epoch overruns: the run dies with a KeyboardInterrupt traceback at chunk 414 of 458 and nothing says why (bug)**
-  Boss, 6:43 PM EST on 2026-11-04, gave no interrupt, yet stage 2 of
-  ./update.sh (planetgen warm --progress) died with a KeyboardInterrupt
-  traceback at galaxy-nodes chunk 414 of 458, about 28 minutes after the
-  galaxy-nodes step began (the opening phase took 54 s before it, so
-  about 30 minutes in all). Cause, from the code:
-  scripts/deploy-common.sh run_warm_stage runs the warm under 'timeout
-  1800' (comment: at most 30 minutes); timeout sends SIGTERM,
-  cli/warm.py _stop_on_sigterm turns SIGTERM into a KeyboardInterrupt
-  (the update guard's cancel and a stop-all end it the same way), and
-  the run is marked cancelled in Redis, so the workers stop too. The
-  work already stored is kept, so a plain rerun of planetgen warm
-  --progress continues. Aux 3's first-run numbers say the objects phase
-  alone is about 24 minutes on a 14-sector test galaxy, so a first
-  warm-up after an epoch change always overruns 30 minutes on a real
-  galaxy. Do: (1) drop the fixed 1800 s limit for stage 2 or make it
-  WARM_STAGE_SECONDS with a default of several hours, and print the
-  limit in the stage's first line; (2) when SIGTERM or a hangup ends the
-  warm client, print one line saying what ended it (update.sh's time
-  limit, the update guard's cancel, a stop-all, or the terminal) and
-  that a rerun continues, instead of a traceback, and have the canceller
-  leave a short reason in the state folder for the client to read; (3)
-  say in the final warning of run_warm_stage that the stored work is
-  kept and how to continue. Done: a shell test with a fake long run and
-  a short limit, and a Python test that SIGTERM prints the one line and
-  exits non-zero. Proposed owner: Aux 7 (OPS.94 owner). Filed by the
-  TODO thread.
-  Prerequisites: none. Related: OPS.94, PERF.233, PERF.235.
 
 ## DOC: Documentation
 

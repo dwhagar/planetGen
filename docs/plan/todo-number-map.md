@@ -2410,7 +2410,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.373 | Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple | none | open |
 | MAP.374 | Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection | none | open |
 | MAP.375 | A linked side strip for height on the Galaxy Map: an optional panel with height on one axis and distance across, linked to the map so a pick in one rings the star in the other | none | open |
-| MAP.376 | Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug) | none | open |
+| MAP.376 | Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug) | none | done, PR #4929 |
 | MAP.377 | Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug) | none | done, PR #4921 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
@@ -2578,7 +2578,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.92 | The warm-up shows which chunk of how many it is on, with a timed progress bar on a terminal | none | done, PR #4687 |
 | OPS.93 | Recording the version key is faster: the bright-star scatter case skips table bounds it never reads | none | done, PR #4688 |
 | OPS.94 | update.sh's health check gave up after 20 s with HTTP 000 right after a reload on a real server: widen the window, say what curl saw, and ask again once workers are up (bug) | none | done, PR #4923 |
-| OPS.95 | update.sh ends its full warm-up with timeout 1800 (30 minutes), which a first warm-up after a new epoch overruns: the run dies with a KeyboardInterrupt traceback at chunk 414 of 458 and nothing says why (bug) | none | open |
+| OPS.95 | update.sh ends its full warm-up with timeout 1800 (30 minutes), which a first warm-up after a new epoch overruns: the run dies with a KeyboardInterrupt traceback at chunk 414 of 458 and nothing says why (bug) | none | done, PR #4934 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
