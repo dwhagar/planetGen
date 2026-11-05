@@ -143,6 +143,9 @@
     {%- if galaxy_map_url %}
     <a class="btn btn-small" href="{{ galaxy_map_url }}">Show on Galaxy Map</a>
     {%- endif %}
+    {%- for link in system_view_links %}
+    <a class="btn btn-small" href="{{ link.url }}">{{ link.label }}</a>
+    {%- endfor %}
     {#- NAV.4: kept in this browser (static/savedcourses.js); hidden until the script has wired it. -#}
     <span data-course-save data-course-db="{{ course_db }}" data-course-result="{{ course_json }}" hidden>
       <button type="button" class="btn btn-small" data-course-save-button>Save course</button>

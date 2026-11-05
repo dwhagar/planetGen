@@ -44,6 +44,16 @@ function hasWebGl() {
   }
 }
 
+// NAV.22: the NAV course the page was asked to show (`?course=<from>,<to>`): the legs of it that lie in this system, in kilometers, as the
+// server sent them (`data-course`, nav_page.system_course); null when there is none or it cannot be read.
+function courseOf(element) {
+  try {
+    return element.dataset.course ? JSON.parse(element.dataset.course) : null;
+  } catch (err) {
+    return null;
+  }
+}
+
 function setUrl(view, ref) {
   const url = new URL(window.location.href);
   if (view === "3d") url.searchParams.set("view", "3d");
@@ -137,6 +147,7 @@ if (root && diagram && diagramButton && button3d) {
       clock = clockModule.createOrbitClock({ epochUnix: scene.epoch_unix, nowMs: Date.now() });
       view = viewModule.createSystemView({
         canvasEl: els.canvas, labelsEl: els.labels, tooltipEl: els.tip, infoEl: els.info, scene: scene, clock: clock,
+        course: courseOf(root),
         onSelect: (entry) => { if (current === "3d") setUrl("3d", entry ? entry.ref : null); },
       });
       els.canvas.systemBodies = view.bodies;

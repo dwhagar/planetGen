@@ -99,6 +99,7 @@ class FakeData:
         self.nav_error = None
         self.nav_galaxy_scope = False
         self.nav_system_scope = False
+        self.nav_legs = None
         self.nav_unknown_space = False
         self.nav_stone = False
         self.nav_graph = False
@@ -199,6 +200,8 @@ class FakeData:
         if self.nav_system_scope:   # NAV.27: a trip inside one system is one leg, no route of hops
             result["route"] = None
             result["legs"] = [{"kind": "within", "from": from_ref, "to": to_ref, "direct": direct}]
+        if self.nav_legs is not None:   # NAV.22: legs inside systems, as the API plans them
+            result["legs"] = self.nav_legs
         if adjusted and self.nav_adjusted is not None:   # NAV.28: the course bent round keep-out spheres
             result["adjusted"] = self.nav_adjusted
             if result["route"]:
@@ -1486,6 +1489,51 @@ def test_a_saved_course_keeps_which_hops_were_unknown_space(client, fake):  # NA
     page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
     record = json.loads(_html.unescape(_re.search(r'data-course-result="([^"]*)"', page).group(1)))
     assert [hop["unknown_space"] for hop in record["route"]["hops"]] == [False, True]
+
+
+def _system_leg(kind, system_id, from_ref, to_ref, bent=True):
+    au = 149597870.7
+    points = [[-120.0 * au, 0.0, 0.0], [-2.0 * au, 0.5 * au, 0.0], [0.4 * au, 0.0, 0.0]] if bent else [[-120.0 * au, 0.0, 0.0], [0.4 * au, 0.0, 0.0]]
+    waypoints = [{"p": points[0], "kind": "start", "ref": None}]
+    if bent:
+        waypoints += [{"p": points[1], "kind": "tangent_in", "ref": "star:7"}]
+    waypoints.append({"p": points[-1], "kind": "end", "ref": None})
+    return {"kind": kind, "from": from_ref, "to": to_ref, "system_id": system_id,
+            "from_km": points[0], "to_km": points[-1],
+            "direct": {"distance_ly": 0.001, "bearing_deg": 90.0, "mark_deg": 0.0, "frame": "system"},
+            "adjusted": {"polyline": points, "waypoints": waypoints, "avoided": ["star:7"] if bent else [], "names": {"star:7": "Hot Star"},
+                         "aimed_at": [0.45 * au, 0.0, 0.0], "moving_end": True}}
+
+
+def test_the_legs_of_a_course_in_a_system_are_handed_to_that_systems_view(client, fake):  # NAV.22
+    from planetgen.web.nav_page import system_course
+
+    fake.nav_galaxy_scope = True
+    fake.nav_legs = [_system_leg("into", 1002, "system:1002", "planet:4"), _system_leg("out", 1001, "planet:3", "system:1001")]
+    with client.application.test_request_context("/system/1002"):
+        course = system_course(1002, "system:1001", "system:1002")
+        assert course["navUrl"] == "/nav?from=system:1001&to=system:1002"
+        (leg,) = course["legs"]
+        assert (leg["kind"], leg["label"], leg["from"], leg["to"]) == ("into", "Into the system", "the heliopause", "Other")
+        assert len(leg["points"]) == 3 and leg["bent"] is True and leg["avoided"] == ["Hot Star"] and leg["aimed"] is not None
+        assert leg["length_au"] == pytest.approx(120.0 + 2.0 + 2.4, rel=0.05)
+        # Another system of the course, and one the course never enters, have their own legs or none.
+        assert [l["kind"] for l in system_course(1001, "system:1001", "system:1002")["legs"]] == ["out"]
+        assert system_course(9999, "system:1001", "system:1002") is None
+        # A leg the API could not plan is the straight line between its ends, and says nothing is avoided.
+        fake.nav_legs = [{**_system_leg("into", 1002, "system:1002", "planet:4", bent=False), "adjusted": None}]
+        straight = system_course(1002, "system:1001", "system:1002")["legs"][0]
+        assert len(straight["points"]) == 2 and straight["bent"] is False and straight["avoided"] == [] and straight["aimed"] is None
+
+
+def test_a_course_page_links_to_the_system_view_of_each_system_it_has_a_leg_in(client, fake):  # NAV.22
+    fake.nav_galaxy_scope = True
+    fake.nav_legs = [_system_leg("out", 1001, "planet:3", "system:1001"), _system_leg("into", 1002, "system:1002", "planet:4")]
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'href="/system/1001?view=3d&amp;course=system:1001,system:1002">Show in start system view</a>' in page
+    assert 'href="/system/1002?view=3d&amp;course=system:1001,system:1002">Show in destination system view</a>' in page
+    fake.nav_legs = None
+    assert "Show in system view" not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
 
 
 def test_a_course_through_waypoints_joins_the_legs_at_the_waypoints(app, fake):  # NAV.49
