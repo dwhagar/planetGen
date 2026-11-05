@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3265] - 2026-11-05
+
+**Headline:** The sky behind a system can now be drawn as one set of stars, each placed where its light left it (not shown on a page yet).
+
+### Changed
+- A new browser module, `skysphere.js`, draws a packed sky as one points object centred on the camera. Each star is moved every frame to where it was when its light left it, from the orbit clock, and drawn with the sky's own brightness, size and colour law. It is not on any page yet (the System View wiring is VIEW.35); a phone draws at most 15,000 stars.
+
+generation-output: unchanged
+
 ## [8.0.3264] - 2026-11-05
 
 **Headline:** The hard-edged nebula shell is gone from the maps: nebulae are soft clouds everywhere.
