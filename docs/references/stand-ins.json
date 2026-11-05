@@ -37861,7 +37861,7 @@
             ],
             [
               "Evidence",
-              "[R4051] Table 1 and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum"
+              "[R4051: Table 1] and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum"
             ]
           ],
           "id": "WB1",
@@ -38101,7 +38101,7 @@
             ],
             [
               "What replaces it",
-              "the limit of the habitability index (habitability.wet_bulb_c, 31 C, Vecellio 2022) with the class lines read from it"
+              "the limit of the habitability index (habitability.wet_bulb_c, 31 C, [R4521]) with the class lines read from it"
             ],
             [
               "Evidence",
