@@ -6554,3 +6554,16 @@ a.help-mark {
     height: 8rem;
   }
 }
+
+/* MAP.373: the stems' coordinate labels and the note on the grid that says how tall the heights are drawn. */
+.map-plane-labels .map-plane-coords {
+  font-size: 0.66rem;
+  color: #eef1fb;
+  background: rgba(8, 10, 20, 0.45);
+  border-radius: 3px;
+  margin: -18px 0 0 6px;
+}
+.map-plane-labels .map-plane-coords[data-selected] { color: #fff; font-weight: 600; }
+.map-plane-labels .map-plane-note { font-size: 0.68rem; padding: 0 4px; }
+.galaxy-menu-stretch { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+.galaxy-menu-stretch input[type="range"] { flex: 1; min-width: 6rem; }

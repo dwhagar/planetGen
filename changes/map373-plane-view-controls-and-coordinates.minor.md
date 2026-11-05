@@ -1,0 +1,5 @@
+**Headline:** The Galaxy Map's Plane view now has a Stems switch, a height stretch and spherical-coordinate labels.
+
+### Added
+- **Stems switch and height stretch (Menu).** "Stems" turns the stems of the Plane view off and on. "Stem height" draws each stem on past its star to a bead at 2 to 10 times the star's height above or below the plane (1 is true height); a note in the corner of the map says how tall the heights are drawn, so the exaggeration is never hidden.
+- **Spherical coordinates on labels and in the info card.** A selected star and the stars with stems that carry a name, or that the pointer is near, get a label with its position as an ordered triple with units: (radius, longitude, latitude) from the galactic center, or from the center of the sector when one is open. With a star selected, the other labels give (distance, bearing, elevation) from the selected star. The same line, "Position (radius, longitude, latitude)", is in the info card of a star while the Plane view is on.
