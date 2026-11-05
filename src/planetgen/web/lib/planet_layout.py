@@ -20,6 +20,9 @@ from planetgen.util.wordlist import join_words
 PHI6_CAPTIONS = ("Radiation", "Survival equipment")
 """tuple: The captions of the description's facts tables that belong with the PHI-6 rating."""
 
+BODY_CAPTIONS = ("Planet", "Moon")
+"""tuple: The captions of the description's facts table of the body itself."""
+
 ICE_KEYS = (("ice_co2_mass_fraction", "Carbon dioxide ice, part of the ice"), ("ice_ch4_mass_fraction", "Methane ice, part of the ice"),
             ("ice_nh3_mass_fraction", "Ammonia ice, part of the ice"), ("ice_n2_mass_fraction", "Nitrogen ice, part of the ice"),
             ("ice_so2_mass_fraction", "Sulfur dioxide ice, part of the ice"), ("ice_co_mass_fraction", "Carbon monoxide ice, part of the ice"),
@@ -52,6 +55,18 @@ def split_blocks(blocks):
         elif kind == "prose" and block["role"] in ("flavor", "depth"):
             parts["rest"].append(block)
     return parts
+
+
+def atmosphere_colour_fact(blocks):
+    """
+    The "Atmosphere color" row of the description's facts table of the body (`{"key", "label", "value"}`, the value a colour chip and its
+    word), or `None` for a body without one: an airless body, a gas or ice giant, or one whose air lets no light through. `split_blocks`
+    drops that table, so the page puts this row at the head of its Atmosphere section.
+    """
+    for block in blocks:
+        if block["type"] == "facts" and block["caption"] in BODY_CAPTIONS:
+            return next((row for row in block["rows"] if row["key"] == "atmosphere_colour"), None)
+    return None
 
 
 def _rows(sheet, group_key):

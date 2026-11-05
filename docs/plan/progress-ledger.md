@@ -2572,3 +2572,11 @@ Baseline: PR #1817.
 | DB.40 | 8.9 | Parity data |
 | DB.41 | 8.9 | Parity data |
 | OPS.104 | 8.2 | Robust tile caching |
+| GEN.1111 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1120 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.264 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1286 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.384 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| MAP.385 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| OPS.96 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.97 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
