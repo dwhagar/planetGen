@@ -3411,6 +3411,16 @@ KEEP_OUT_STAR_FLOOR_RADII = 10.0
 KEEP_OUT_QUASAR_FLUX_W_M2 = 10000.0
 """float: The light a ship may be asked to stand near a quasar's nucleus, W/m^2 (10 kW/m^2): its keep-out is the larger of this radius and the sphere of influence."""
 
+# NAV.26: the course planner (docs/design/orbits/course-avoidance.md section 5).
+COURSE_BELOW_RESOLUTION = 0.002
+"""float: A keep-out sphere smaller than this fraction of the straight course is still stepped around, with two tangent points, but it is listed apart and not drawn (section 2.1)."""
+COURSE_MAX_WRAPS = 300
+"""int: A course that needs more wraps than this is given as the straight line with the warning `wrap_limit`."""
+COURSE_ARC_SAMPLE_RAD = 0.05
+"""float: The arc of a wrap is checked against the other spheres every this many radians."""
+COURSE_POLYLINE_SAGITTA = 0.01
+"""float: The drawn arc of a wrap is cut so that no chord sags from the sphere by more than this fraction of its radius (about 12 segments for a half circle)."""
+
 # Asteroid field classes (GEN.14, Boss 2026-09-30: "a digit and part
 # of the class"). The letter comes from composition and density, following
 # asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,
