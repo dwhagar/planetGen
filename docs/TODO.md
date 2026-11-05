@@ -800,59 +800,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
-- [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L9. The Life and air chart plots O2, CO2, CH4
-  (and H2S or SO2 where the class moves them) against age with the stage
-  ticks, computed on demand from the stored milestone ages and the class
-  ledger, no stored column; marked 'speculative chemistry' with the tier
-  for Classes 5 to 9. Collapsible block starts collapsed; absent or zero
-  values hidden.
-  Research (2026-10-09): Owner: Core 5 (Boss's rule, relayed 9:24 PM EDT
-  2026-10-28: Aux lanes retire when their queue ends, so the new life
-  class page goes to a Core lane), when the class data is ready (GEN.889
-  and GEN.891). Aux 6 (old Aux 11) finishes UX.215 to UX.222 and
-  retires.
-  Part 1 merged (#3885, Core 5, 12:15 AM EDT as the lane reported)
-  (2026-10-30 12:15 AM EDT): the planet and moon Life section names the
-  supported classes with scores, the class that lives there, its stage,
-  and a collapsed drinks, eats, breathes, gives-off block; class number
-  follows the life icons. Still open: part 2 (air-through-the-ages
-  chart, an additive route, no API version bump) and the adaptation
-  traits, which wait on GEN.875 and GEN.876 because no trait data is
-  stored.
-  Part 2 merged (Core 5, #3951, 4:59 AM EDT as the lane reported)
-  (2026-10-30 4:59 AM EDT): planet and moon pages get a collapsed "Life
-  and air through the ages" chart in the Life section (oxygen, CO2 and
-  methane partial pressure against star age, life stages numbered, the
-  same figures in a table, "Speculative chemistry" with tier and tweak
-  for L3 and L4 classes), worked backwards from the stored air; no
-  migration, epoch, golden or stored value; new additive routes GET
-  /api/planets|moons/<id>/life-air (API version unchanged; route
-  snapshot and api.md updated). Not drawn: sulfur gases, hydrogen
-  drawdown, the reduced gases the rise burned. UX.237 stays open only
-  for the adaptation traits (waits on GEN.875/876)
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 11) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
-  AM EDT): The Life section must read the list of living classes from
-  GEN.1209 when it lands: each living class with its stage, animal
-  grade, kinds and prevalence, the dominant one first. Until then it
-  shows the one dominant class (PR 4471 folds the kind scores into one
-  Life paragraph).
-  Changed by the life readings work (Boss, 10:07 AM EDT 2026-10-31)
-  (2026-10-31 10:14 AM EDT): Boss wants a Life section in the details
-  holding every life fact (classes, stages, animal grades, the three
-  readings per kind from GEN.1210, eats, drinks, breathes and gives off,
-  life and air through the ages), with a short Life summary in At a
-  glance (UX.251). PR 4471 already puts a first Life paragraph at the
-  top of the Life section; this item now owns the rest of the details
-  section on top of it, and the readings from GEN.1210 and the several
-  living classes of GEN.1209 are shown as they land. Help links for each
-  word come from DOC.84.
-  Prerequisites: none. Related: UX.221.
-
 - [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
   Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
   asteroid belt information page that will show the bodies in the
@@ -904,6 +851,21 @@ with `clamp()`.
   when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
   the TODO thread.
   Prerequisites: none.
+
+- [ ] **UX.262 Planet and moon page Life section: the adaptation traits of the living class (the last piece of UX.237)**
+  Core 5 (as the lane reported, 9:31 PM EST on 2026-11-04) checked main:
+  everything in UX.237 is built (supports and living classes, stage and
+  animal grade, the several living classes, the readings table, the
+  drinks, eats, breathes and gives-off block, the Life and air chart,
+  the class number on lists) except the adaptation traits, which need
+  GEN.876 because no trait column is stored. This item holds that one
+  piece so UX.237 can retire. Do: when GEN.876 stores the traits, list
+  them in the Life section of the planet and moon pages, with their
+  units where they have any and the derived marks, hidden when absent.
+  Done: a page test with traits present and absent, plain-words and the
+  wiring guard green. Lock-free once GEN.876 is merged. Version 8.1.
+  Owner: Core 5. Filed by the TODO thread.
+  Prerequisites: GEN.876. Related: UX.237, GEN.875, GEN.876.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -10720,7 +10682,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what could live there; GEN.1209 adds the list of what does live there,
   with a prevalence each. Do not make life_class_id a single-valued
   public contract: GEN.1209 adds a list beside it.
-  Prerequisites: GEN.862, UX.237.
+  Prerequisites: GEN.862.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for

@@ -2464,3 +2464,4 @@ Baseline: PR #1817.
 | NAV.66 | 8.5 | Courses on the maps |
 | MAP.380 | 8.1 | Fly-through map |
 | GEN.1274 | 8.2 | Robust tile caching |
+| UX.237 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
