@@ -972,14 +972,19 @@ with `clamp()`.
   yet. Filed by the TODO thread.
   Prerequisites: none. Related: UX.143, UX.275, UX.276, MAP.394, MAP.395, MAP.396, TEST.629, DOC.107.
 
-- [ ] **UX.274 Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps**
-  Boss asked for more View menu streamlining after the Chart View menu
-  group of PR 5208 (6:40 PM EST on 2026-11-05, as the lane reported); it
-  needs a design first. Do: list every View menu entry on the three
-  maps, propose the grouping, put the plain-word choices to Boss, then
-  build. Version 8.5 (with the console look on the maps chrome). Owner:
-  none yet. Filed by the TODO thread.
-  Prerequisites: none. Related: UX.269.
+- [ ] **UX.274 Streamline the View menu: one Menu grouped by task with search, counts and a reset row, the same builder on the Galaxy, Sector and System Maps**
+  Boss asked for it after the Chart View menu group of PR 5208 (6:40 PM
+  EST on 2026-11-05, as the lane reported) and answered the design
+  cards at 6:50 PM EST on 2026-11-05, option 1 on all four: one Menu
+  grouped by task with search, counts and a reset row; the same shared
+  builder on all three maps; the foundation (registry fields, shared
+  builder, guard test) in 8.2 so the 8.3 and 8.4 layers use it; the
+  Galaxy Map rewiring and the search box in 8.5 beside UX.269; named
+  presets later. Design:
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md.
+  Umbrella: done when the sub-items are done. Version 8.5. Owner: none
+  yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.269, UX.277, UX.278, UX.279, UX.280, UX.281, TEST.630, DOC.108.
 
 - [ ] **UX.275 Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
@@ -1009,6 +1014,82 @@ with `clamp()`.
   Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
   by the TODO thread.
   Prerequisites: UX.275. Related: UX.171, UX.130.
+
+- [ ] **UX.277 Map layer registry fields for the View menu: heading, keywords, common flag and a settings hook, every existing layer given its heading, and a guard test that fails for a layer with none**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: add heading, keywords, common (one of the few
+  most used switches) and a settings hook (for a layer that needs a
+  slider or a filter) to the maplayers.js registry (MAP.217); give every
+  existing layer its heading in one pass (Show, Color and fill, Chart
+  and side views, Move and Settings); a guard test like the
+  unkeyed-layer test fails for a layer with no heading or no keywords.
+  New layers of 8.3 and 8.4 (MAP.307, MAP.312, MAP.193, MAP.235)
+  register with the fields from the start. No look change. Version 8.2.
+  Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: MAP.217, UX.274.
+
+- [ ] **UX.278 Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: one builder that makes the Menu from the layers
+  each map has, so a map shows only the headings it has layers for and a
+  new layer appears in the right place by declaring a heading; it keeps
+  the existing selectors (data-kind, data-action); counts such as
+  "Points of interest 4 of 12 on"; real checkboxes and details elements,
+  a tri-state group box for families such as the 20 world classes.
+  Switched on for the System Map and the Sector Map layers; not yet for
+  the Galaxy Map hand-written controls (UX.280). Version 8.2. Lock-free,
+  no migration, no epoch. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.277. Related: UX.274.
+
+- [ ] **UX.279 Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: a pure function over the registry (name and
+  keywords, case-insensitive) that returns the matches and the groups to
+  open, with unit tests; the search box that uses it is UX.281. Version
+  8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed by the
+  TODO thread.
+  Prerequisites: UX.277. Related: UX.274.
+
+- [ ] **UX.280 Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: move the hand-written controls of
+  galaxymap3d.py onto the builder (UX.278) under the four headings; keep
+  the selectors the browser tests use; restyle with the console tokens
+  (UX.269). Version 8.5. Lock-free, no migration, no epoch. Owner: none
+  yet. Filed by the TODO thread.
+  Prerequisites: UX.269, UX.278. Related: UX.274.
+
+- [ ] **UX.281 View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: the search box ("Find a setting") over UX.279
+  with the matches announced to screen readers ("5 matches"), the Reset
+  to default row that appears only when a setting differs, the common
+  row at the top of Show (stars, nebulae, labels, black holes, Chart
+  View); touch targets of at least 44 px, visible focus, state not shown
+  by colour alone, reduced motion respected. Version 8.5. Lock-free, no
+  migration, no epoch. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.279, UX.280. Related: UX.274.
+
+- [ ] **UX.282 Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: three or four presets that each set many
+  switches and can be tweaked afterwards, placed once every layer has a
+  heading (UX.277); Boss chose this for later. Version later. Lock-free,
+  no migration, no epoch. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.277, UX.281. Related: UX.274.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2196,6 +2277,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
   thread.
   Prerequisites: UX.275.
+
+- [ ] **MAP.397 Some View menu options show only the word "Forward" and cannot be clicked (bug)**
+  Boss (6:50 PM EST on 2026-11-05, as the lane reported): in the Map
+  View menu, some options just say the word "Forward" and are not
+  clickable. Likely the "pull forward" second button of the points of
+  interest rows (or a hand-written control) rendered as plain text; the
+  cause is not yet known. Do: find which menu rows show only "Forward",
+  why they are not interactive (markup, a disabled state with no
+  explanation, or a missing handler), fix them on the Galaxy, Sector and
+  System Maps, and add a browser test that every visible menu control is
+  a working button or checkbox. It may fold into the shared builder of
+  UX.278; fix it now on the present menu, lock-free. Version 8.1. Owner:
+  Core 5. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.274, UX.278, MAP.392.
 
 ## NAV: Navigation and courses
 
@@ -18393,6 +18488,14 @@ clears each one.
   by the TODO thread.
   Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
 
+- [ ] **TEST.630 Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Version 8.5. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.280, UX.281.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20398,6 +20501,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
   by the TODO thread.
   Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
+
+- [ ] **DOC.108 Docs: the View menu (headings, search, reset, how a layer declares its heading) in the help and the design notes**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Version 8.5. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.280, UX.281.
 
 ## POP: Population and politics
 
