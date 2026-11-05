@@ -40,6 +40,7 @@ def _sector(i, name=None, placed=False):
         "id": i, "name": name or f"Sector {i:03d}", "system_count": i % 5, "edge_ly": 10.0,
         "placed": placed, "center_x_pc": 100.0 if placed else None, "center_y_pc": 50.0 if placed else None,
         "galactic_radius_ly": 1234.5 if placed else None,
+        "region": {"name": "Vang Zarh Region", "parent": "Vang Reach"} if placed else None,
     }
 
 
@@ -60,13 +61,11 @@ class FakeData:
         self.asked_ranges = []
         self.admin = None
 
-    def get_sectors(self, db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False, after=None):
+    def get_sectors(self, db, limit=None, offset=None, sort=None, descending=False, after=None):
         self.calls.append(("get_sectors", db, limit, offset))
-        self.asked.append(("sectors", sort, descending, list(quadrants)))
+        self.asked.append(("sectors", sort, descending))
         body = {"items": self.sectors[offset:offset + limit], "total": len(self.sectors),
                 "limit": limit, "offset": offset}
-        if facets:
-            body["facets"] = {"quadrant": [{"value": "I", "count": len(self.sectors)}]}
         return body
 
     def get_systems(self, db, star_type=None, sector_id=None, limit=None, offset=None, sort=None,
@@ -301,10 +300,10 @@ def test_names_are_escaped(client, fake):
     assert "Tom &amp; &lt;b&gt;Jerry&lt;/b&gt;" in client.get("/systems").get_data(as_text=True)
 
 
-def test_placed_sector_links_its_quadrant(client, fake):
+def test_placed_sector_shows_its_region(client, fake):
     fake.sectors = [_sector(7, placed=True)]
     html = client.get("/sectors").get_data(as_text=True)
-    assert 'href="/galaxy?quadrant=I">Quadrant I</a>' in html
+    assert "Quadrant" not in html and "Vang Zarh Region" in html
     assert "378 pc (1,235 ly)" in html
 
 
@@ -592,20 +591,18 @@ def test_systems_page_lists_every_system_with_sector_and_octant(client, fake):
 
 # --- The Sectors and Systems data tables (UX.41) ---------------------------------
 
-def test_sectors_table_asks_for_the_sort_and_quadrant_filter(client, fake):
-    html = client.get("/sectors?sectors_sort=systems&sectors_order=desc&quadrant=I&quadrant=unplaced").get_data(as_text=True)
-    assert ("sectors", "systems", True, ["I", "unplaced"]) in fake.asked
+def test_sectors_table_asks_for_the_sort(client, fake):
+    html = client.get("/sectors?sectors_sort=systems&sectors_order=desc").get_data(as_text=True)
+    assert ("sectors", "systems", True) in fake.asked
     assert '<th scope="col" data-col="systems" aria-sort="descending">' in html
     # The default sort is by distance from the core.
     assert '<th scope="col" data-col="distance" aria-sort="none">' in html
-    assert 'href="/sectors?quadrant=I&amp;quadrant=unplaced#sectors"' in html
-    assert 'name="quadrant" value="I" checked' in html
-    assert '<span class="datatable-option-label">Quadrant I</span>' in html
+    assert 'name="quadrant"' not in html
 
 
 def test_sectors_table_default_sort_is_distance(client, fake):
     html = client.get("/sectors").get_data(as_text=True)
-    assert ("sectors", "distance", False, []) in fake.asked
+    assert ("sectors", "distance", False) in fake.asked
     assert '<th scope="col" data-col="distance" aria-sort="ascending">' in html
 
 
@@ -649,10 +646,9 @@ def test_table_route_serves_the_sectors_and_systems_tables(client, fake):
     body = client.get("/table/sectors?sort=systems&order=desc&facets=1").get_json()
     assert body["total"] == 2
     assert body["rows"][0][0] == {"text": "Sector 001", "href": "/sector/1"}
-    assert body["rows"][0][3] == {"text": "Quadrant I", "href": "/galaxy?quadrant=I"}
+    assert body["rows"][0][3] == {"text": "Vang Zarh Region"}
     assert body["rows"][1][3] == {"text": "Unplaced", "muted": True}
-    assert body["facets"]["quadrant"] == [{"value": "I", "label": "Quadrant I", "count": 2}]
-    assert ("sectors", "systems", True, []) in fake.asked
+    assert ("sectors", "systems", True) in fake.asked
 
     body = client.get("/table/systems?facets=1&placement=standalone").get_json()
     assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "1", "4", "No", "G2V"]

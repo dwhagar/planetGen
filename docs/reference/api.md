@@ -115,10 +115,7 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
   takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
   `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
-  `position`; ties follow the sort's direction by sector ID), the repeatable filter
-  `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
-  `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
-  filter). `total` counts the sectors that pass the filter; a bad `sort` or
+  `position`; ties follow the sort's direction by sector ID). Each item carries `region`, the named region its sector lies in (`{"name", "parent"}`, UX.231), or `null` for an unplaced sector or a galaxy with no naming key. There is no `quadrant` filter and no `facets` (UX.272: the galaxy's four quadrants are gone from the site; a request that still sends them has them ignored). `total` counts the sectors; a bad `sort` or
   `order` is a 400. `after=<sector ID>` (PERF.137, PERF.208) starts the page after that
   sector in every sort and ignores `offset`, so a page costs the same at any depth: the
   placed sectors are read by the distance index and the unplaced ones after them by name; the
