@@ -34,7 +34,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import constants, daylight, regional_temperature as rt, ring_darkening
+from planetgen.physics import constants, daylight, regional_temperature as rt, ring_darkening, surface_cycle
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
@@ -173,8 +173,8 @@ def spells(latitudes_deg, tilt_deg, alpha, orbital_hours, solar_day_hours, sampl
     """
     The longest unbroken day and night of the year and the mean day and night at each of the latitudes, a `Spells` (GEN.1260).
 
-    One search for every body, from its own year, solar day, tilt and star: the star is stepped through the longer of the year and the solar day, its declination from the tilt
-    and the point of the year, its hour angle from the solar day, and the runs of steps with the upper limb of the star (`alpha` its angular radius, radians) above the horizon, and
+    One search for every body, from its own year, solar day, tilt and star: the star is stepped through the longer of the year and the solar day (the geometry is
+    `surface_cycle.cosine_zenith`, GEN.1262: the declination from the tilt and the point of the year, the hour angle from the solar day), and the runs of steps with the upper limb of the star (`alpha` its angular radius, radians) above the horizon, and
     below it, are read off; the year starts at an equinox, so the longest stretches (centred on a solstice) are not cut by its ends. The step is a `samples_per_day`-th of a solar
     day when that fits in `max_steps` (at most a 360th of the year when the day is the longer), and up to `phases` starting angles of the turn share what is left of the steps: a
     year of a few solar days slips its turn against the year, and the longest stretch the body shows over the years is the best phase, the mean the average of them.
@@ -191,15 +191,14 @@ def spells(latitudes_deg, tilt_deg, alpha, orbital_hours, solar_day_hours, sampl
     count = max(min(wanted, max_steps // phases), 360)
     step = span / count
     time = (np.arange(count) + 0.5) * step
-    declination = np.arcsin(math.sin(math.radians(daylight.folded_tilt_deg(tilt_deg))) * np.sin(2.0 * math.pi * time / orbital_days))
     sine_lat, cosine_lat = np.sin(latitude)[:, None, None], np.cos(latitude)[:, None, None]
     if step * _MIN_SAMPLES_PER_DAY <= solar_days:
-        hour = 2.0 * math.pi * (time[None, :] / solar_days + (np.arange(phases)[:, None] / phases))
-        up = (sine_lat * np.sin(declination)[None, None, :] + cosine_lat * np.cos(declination)[None, None, :] * np.cos(hour)[None, :, :]) > -math.sin(alpha)
+        up = surface_cycle.cosine_zenith(latitudes_deg, 360.0 * np.arange(phases) / phases, time, orbital_days, solar_days, tilt_deg) > -math.sin(alpha)
         longest_day, day_runs, day_steps = _runs(up)
         longest_night, night_runs, night_steps = _runs(~up)
         return Spells(longest_day.max(axis=1) * step, longest_night.max(axis=1) * step,
                       day_steps.sum(axis=1) * step / np.maximum(day_runs.sum(axis=1), 1), night_steps.sum(axis=1) * step / np.maximum(night_runs.sum(axis=1), 1), step)
+    declination = surface_cycle.declination_rad(time, orbital_days, tilt_deg)
     numerator = -math.sin(alpha) - sine_lat[:, :, 0] * np.sin(declination)[None, :]
     denominator = cosine_lat[:, :, 0] * np.cos(declination)[None, :]
     ratio = np.divide(numerator, denominator, out=np.where(numerator < 0.0, -2.0, 2.0), where=denominator > 1.0e-12)
