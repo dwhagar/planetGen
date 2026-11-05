@@ -20030,25 +20030,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
 
-- [ ] **VIEW.38 System sky S20: design note, help text, citations and GEN.725 rows for the system sky**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S20 of S1 to S22 in section 7. Do:
-  docs/design/orbits/sky-system-view.md with the numbers of the plan,
-  the help page text, the sources in the references registry (citations
-  only there, [R0123] style) and the GEN.725 stand-in rows. Done: the
-  note, the help page and the rows. Lock-free, no migration. Boss
-  decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2
-  backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12
-  and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin where
-  noted, build it so the 9.1 item can reuse it); the limiting magnitude
-  is a setting with default 7.5, lower on phones; missing stars are
-  built when a system is charted, no visit job. Goal #4907. Filed by the
-  TODO thread.
-  Prerequisites: VIEW.35.
-
 - [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
   thread, Boss 5:17 PM EST on 2026-11-04: the System View background
