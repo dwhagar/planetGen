@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3268] - 2026-11-05
+
+**Headline:** The sky behind a system can now show the soft glow of the Milky Way band under its stars (not shown on a page yet).
+
+### Changed
+- A new browser module, `skyband.js`, draws the glow of the stars too faint to see one by one as a sphere round the camera, from a small map of the sky's light. It adds a fine grain to the band so it does not look like smooth paint, and a dither to avoid banding. The map's layout and units are written in the HTML interface reference for the server side to build to. It is not on any page yet (the System View wiring is VIEW.35).
+
+generation-output: unchanged
+
 ## [8.0.3267] - 2026-11-05
 
 **Headline:** The sky behind a system can now show nebulae, supernova remnants and dark clouds as soft shapes among its stars (not shown on a page yet).
