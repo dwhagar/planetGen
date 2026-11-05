@@ -33,6 +33,7 @@
 // - clearSelection(): a block was picked, so a phenomenon's ring goes;
 // - restingHint: what a pinned sector's panel says before a pick, back when it is cleared;
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
+// - courseFit() (optional, NAV.21): the flat [x, y, z, ...] points of a NAV course (parsecs); the map opens fitted round them;
 // - fetchSectorScene(id): a Promise of GET /sector/<id>/scene's JSON, the
 //   sector opened in place (MAP.66; galaxysector.js);
 // - fetchUnchartedScene({shell, band, wedge}) (optional): a Promise of the
@@ -3593,6 +3594,49 @@ export function createStageView(host) {
     return coarsest && camera.dist <= MAX_ZOOM * coarsestFit ? coarsest : S.galaxyStage();
   }
 
+  // NAV.21: the camera a NAV course opens at: the stage's own turn, fitted round every point of the course (the route, the direct line and
+  // the adjusted lines) as the stage is fitted round its blocks, so the course is as large as the window allows with all of it in view
+  // (only the map's global limits hold it, as for every camera put at a place, MAP.333).
+  function courseCameraAt(quat) {
+    const points = host.courseFit ? host.courseFit() : null;
+    if (!points || points.length < 6) return null;
+    const low = [Infinity, Infinity, Infinity];
+    const high = [-Infinity, -Infinity, -Infinity];
+    for (let k = 0; k + 2 < points.length; k += 3) {
+      for (let axis = 0; axis < 3; axis++) {
+        low[axis] = Math.min(low[axis], points[k + axis]);
+        high[axis] = Math.max(high[axis], points[k + axis]);
+      }
+    }
+    if (!(Math.hypot(high[0] - low[0], high[1] - low[1], high[2] - low[2]) > 0)) return null;
+    const fit = centeredFit(points, [0, 1, 2].map(function (axis) { return (low[axis] + high[axis]) / 2; }), quat);
+    return { target: fit.target, dist: fit.dist, quat: quat.toArray(), course: true };
+  }
+
+  function courseCamera(r) {
+    return courseCameraAt(cameraFor(r).quat);
+  }
+
+  // The course view as it was put, while the visitor has not moved it: a resized window refits it (NAV.21). Any turn, pan or zoom ends it.
+  let courseFit = null;
+
+  function refitCourse() {
+    if (!courseFit || !view) return;
+    const kept = view.dist === courseFit.dist && view.quat.angleTo(courseFit.quat) < 1e-9 &&
+      view.target.every(function (value, axis) { return value === courseFit.target[axis]; });
+    if (!kept) {
+      courseFit = null;
+      return;
+    }
+    const next = courseCameraAt(view.quat);
+    const full = fitNow();
+    if (!next || !(full > 0)) return;
+    view.target = next.target.slice();
+    view.dist = Math.max(GLOBAL_FLOOR_PC, Math.min(globalFarPc(), next.dist));
+    view.zoom = view.dist / full;
+    courseFit = { target: view.target.slice(), dist: view.dist, quat: view.quat.clone() };
+  }
+
   // Puts the view at `camera` within stage `r` (the view already at the stage's own camera): the distance within
   // the zoom's range.
   function viewAtCamera(r, camera) {
@@ -3606,6 +3650,7 @@ export function createStageView(host) {
     // it lands in: the view is not pushed back out after a flight that came closer than the stage's nearest.
     view.zoom = Math.max(GLOBAL_FLOOR_PC, Math.min(globalFarPc(), camera.dist)) / full;
     view.dist = view.zoom * full;
+    courseFit = camera.course ? { target: view.target.slice(), dist: view.dist, quat: view.quat.clone() } : null;
   }
 
   // Writes the view's camera into the address in place (no history entry of its own) once it has been still for
@@ -3770,6 +3815,7 @@ export function createStageView(host) {
   // new size (MAP.53).
   function relayout() {
     if (active && view && !animation) {
+      refitCourse();
       reframe();
       applyView();
     }
@@ -3895,10 +3941,12 @@ export function createStageView(host) {
     }
     if (asked) return { stage: asked, camera: parsed.camera, sector: null, problem: null };
     let next = S.galaxyStage();
+    let course = false;
     if (useCourse && host.courseSectors && host.courseSectors.length) {
       next = S.courseStage(host.courseSectors, getOutline(), edgePc);
+      course = true;
     }
-    return { stage: next, sector: null, problem: parsed.problem };
+    return { stage: next, sector: null, problem: parsed.problem, course: course };
   }
 
   // Opens the stage the URL asks for (or the galaxy, with a notice).
@@ -3916,7 +3964,7 @@ export function createStageView(host) {
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
     if (r.problem) r = resolve(S.galaxyStage());
-    pendingCamera = r.problem ? null : asked.camera || null;
+    pendingCamera = r.problem ? null : asked.camera || (asked.course ? courseCamera(r) : null);
     selectedSector = asked.sector;
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;

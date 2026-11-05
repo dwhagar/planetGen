@@ -5982,8 +5982,16 @@ def test_the_course_diagram_and_the_maps_course_select_each_other(page, map_site
 
     # The map to the diagram: a click on another stop's ring marks that one, and only that one.
     page.evaluate(f"() => {canvas}.scrollIntoView({{block: 'center'}})")      # the course readout above the map pushes the map down the page
-    ring = page.evaluate(f"(p) => {canvas}.galaxyScreenOf(...p)", [stops[1]["x"], stops[1]["y"], stops[1]["z"]])
-    assert ring is not None and 0 < ring["y"] < VIEWPORT["height"]
+    # The course opens fitted (NAV.21), so centring on one stop leaves the others off the map: zoom out until the next stop shows.
+    box = page.evaluate(f"() => {{ const r = {canvas}.getBoundingClientRect(); return {{x: r.left + r.width / 2, y: r.top + r.height / 2}}; }}")
+    for _ in range(8):
+        ring = page.evaluate(f"(p) => {canvas}.galaxyScreenOf(...p)", [stops[1]["x"], stops[1]["y"], stops[1]["z"]])
+        if ring is not None and 0 < ring["x"] < VIEWPORT["width"] and 0 < ring["y"] < VIEWPORT["height"]:
+            break
+        page.mouse.move(box["x"], box["y"])
+        page.mouse.wheel(0, 300)
+        _settle(page)
+    assert ring is not None and 0 < ring["x"] < VIEWPORT["width"] and 0 < ring["y"] < VIEWPORT["height"]
     page.mouse.click(ring["x"], ring["y"])
     page.wait_for_function(f"() => {canvas}.galaxyCourseSelected() === 1")
     assert _course_stop_marked_in_the_diagram(page) == [1]
@@ -6043,3 +6051,65 @@ def test_the_galaxy_maps_course_draws_the_course_bent_round_a_keep_out_sphere_in
     _open_galaxy(page, map_site, "?course=system:701,system:704")
     assert not errors, errors
     assert "key-course-bent" in page.evaluate(f"() => {keys}")
+
+
+# --- NAV.21, NAV.23: the course opens fitted, and its forms are layers of the Menu -------------------------------
+
+def _course_on_screen(page):
+    """The page positions of the course's stops, and the canvas box."""
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    stops = page.evaluate(f"() => {canvas}.galaxyCourseStops()")
+    box = page.evaluate(f"() => {{ const r = {canvas}.getBoundingClientRect(); return {{x: r.left, y: r.top, w: r.width, h: r.height}}; }}")
+    spots = [_screen_of(page, (stop["x"], stop["y"], stop["z"])) for stop in stops]
+    return spots, box
+
+
+def test_a_course_opens_zoomed_in_as_far_as_it_can_with_all_of_it_in_view(page, map_site, monkeypatch):
+    """NAV.21: every stop of the course is on the map when it opens, and the course fills the window: its picture spans most of the map
+    along one side. A resized window refits it."""
+    from planetgen.web import nav_page
+
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: _course_through_the_fixture_systems())
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    spots, box = _course_on_screen(page)
+    assert all(spots), spots
+    xs, ys = [spot[0] for spot in spots], [spot[1] for spot in spots]
+    assert min(xs) >= box["x"] and max(xs) <= box["x"] + box["w"] and min(ys) >= box["y"] and max(ys) <= box["y"] + box["h"], (spots, box)
+    fill = max((max(xs) - min(xs)) / box["w"], (max(ys) - min(ys)) / box["h"])
+    assert fill > 0.55, f"the course should fill the window, it fills {fill:.2f} of it"
+
+    page.set_viewport_size({"width": 700, "height": 900})
+    page.wait_for_timeout(400)
+    spots, box = _course_on_screen(page)
+    assert all(spots), spots
+    xs, ys = [spot[0] for spot in spots], [spot[1] for spot in spots]
+    assert min(xs) >= box["x"] and max(xs) <= box["x"] + box["w"] and min(ys) >= box["y"] and max(ys) <= box["y"] + box["h"], (spots, box)
+    assert max((max(xs) - min(xs)) / box["w"], (max(ys) - min(ys)) / box["h"]) > 0.55
+
+
+def test_the_forms_of_a_course_are_layers_of_the_menu(page, map_site, monkeypatch):
+    """NAV.23: the route, the direct line and the adjusted course are each shown or hidden from the Menu, and the key follows."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    a, b = course["points"][0], course["points"][1]
+    course["adjusted"] = [[{"x": a["x"], "y": a["y"], "z": a["z"]},
+                           {"x": (a["x"] + b["x"]) / 2, "y": (a["y"] + b["y"]) / 2 + 0.3, "z": a["z"]},
+                           {"x": b["x"], "y": b["y"], "z": b["z"]}]]
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()") == {"route": True, "direct": True, "adjusted": True}
+    drawn = f"{canvas}.__mapLayers.keys().filter((k) => k.drawn).map((k) => k.id)"
+    assert {"key-course", "key-direct", "key-course-bent"} <= set(page.evaluate(f"() => {drawn}"))
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-direct', false)")
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()") == {"route": True, "direct": False, "adjusted": True}
+    assert "key-direct" not in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-adjusted', false)")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-route', false)")
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()") == {"route": False, "direct": False, "adjusted": False}
+    assert not {"key-course", "key-direct", "key-course-bent"} & set(page.evaluate(f"() => {drawn}"))
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-route', true)")
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()")["route"] is True
