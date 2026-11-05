@@ -6265,3 +6265,23 @@ def test_a_waypoint_is_flagged_on_the_galaxy_map_where_its_card_was_picked(page,
     menu.get_by_role("button", name=f"Remove waypoint 1, {first}").click()
     assert page.evaluate(f"() => {canvas}.galaxyWaypointFlags()") == []
     assert start_id
+
+
+def test_a_field_cloud_sprite_hands_over_to_the_density_volume_and_something_is_drawn_for_it_at_steady_state(page, map_site):
+    """MAP.382: the field cloud sprite (MAP.178) is the stand-in for a cloud until the nebula volume layer (MAP.365) draws the same region from the model's
+    density, so it is on screen for a few frames when its node arrives and then gives way (`opacity * (1 - covered)`); that is by design. What must hold 5 s
+    after the sprite was first seen is that the cloud is not left undrawn: the volume layer draws, or the sprite is still there."""
+    page.add_init_script("""
+        new MutationObserver((records) => {
+            for (const record of records) {
+                const value = record.target.getAttribute('data-field-clouds');
+                if (value !== null && value !== '0') document.documentElement.setAttribute('data-field-seen', value);
+            }
+        }).observe(document, {subtree: true, attributes: true, attributeFilter: ['data-field-clouds']});
+    """)
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.locator("html[data-field-seen]").wait_for(state="attached", timeout=40000)
+    page.wait_for_timeout(5000)
+    state = page.evaluate("""() => { const c = document.querySelector('#galaxymap3d-canvas'); const v = c.__mapNebulaVolumes;
+        return {sprites: Number(c.dataset.fieldClouds), volumes: v ? v.drawn() : 0}; }""")
+    assert state["sprites"] > 0 or state["volumes"] > 0, state
