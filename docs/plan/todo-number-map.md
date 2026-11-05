@@ -2056,8 +2056,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1276 | Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register) | none | open |
 | GEN.1277 | Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one | none | open |
 | GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) | none | open |
-| GEN.1279 | The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug) | none | open |
-| GEN.1280 | The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug) | none | open |
+| GEN.1279 | The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug) | none | done, PR #5122 |
+| GEN.1280 | The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug) | none | done, PR #5122 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
