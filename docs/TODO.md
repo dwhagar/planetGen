@@ -14377,6 +14377,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the families report. Stored letters do not change until GEN.1207.
   Generation output changes (an epoch), so a lock item. Proposed owner:
   Core 4 after GEN.1250. Filed by the TODO thread.
+  Core 4 (as the lane reported) (8:20 PM EST on 2026-11-04): built, head
+  1848cb52b on claude/core4-gen1258, stacked on the GEN.1221 head
+  (claude/core4-gen1221 at 5561edac1) and merging with it in train 11.
+  No new column is needed: a body already stores the ammonia of its
+  water (surface_liquid_ammonia_wt and ice_nh3_mass_fraction, GEN.1215
+  and GEN.894), so class X reads it; nothing generated changes, so no
+  epoch and no migration, only a patch-level change note. Class X: ocean
+  cover 20 percent or more, ammonia at least 10 percent of the water
+  mass, 190 to 240 K, 0.05 to 2 g, no air; registry rows DM8 and DM9.
   Prerequisites: GEN.1221. Related: GEN.1221, GEN.1207, GEN.725.
 
 - [ ] **GEN.1259 A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7)**
@@ -15247,6 +15256,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (no generator output change). Related: PERF.129, PERF.134, PERF.141,
   MAP.158, MAP.260. Owner Core 2 (map tiles) with Aux 3 for the timings
   (proposed by the TODO thread). Filed by the TODO thread.
+  Aux 3 measurement (merged #4956, report
+  reports/perf233-tile-cache-cost-2026-11-04.md, as the lane reported)
+  (8:20 PM EST on 2026-11-04): a tile is a sector-block node: one per
+  populated block at each of the 11 block levels plus one per generated
+  sector, out of an address space of 23.9 billion cells, so "the entire
+  map" can only mean the populated part. Block nodes are 19 to 39 KB,
+  sector nodes 79 KB (p95 107 KB). A node takes about 0.15 s as one
+  request on one process, 3.5 times faster on 4 processes, about 0.05 s
+  of wall time on 4 cores (Boss's own log gives 0.058 s): about 20 nodes
+  a second, 72,000 an hour. 10,000 sectors is 0.8 GB and 8 minutes,
+  100,000 is 8 GB and 1.4 hours, 1,000,000 is 80 GB and 14 hours, with
+  twice the disk while it builds beside the live generation.
+  cache.max_mb: prune never deletes built-ahead tiles, but once they
+  alone pass the 1,024 MB default (about 13,000 sector nodes) every
+  on-demand tile is deleted at each prune and the warm-up stops building
+  ahead. Recommended build: the command ignores cache_is_full, prune's
+  budget counts only on-demand tiles, and the command checks twice the
+  projected disk free before it starts. Missing input: Boss's real node
+  counts per level; after #4956 his server can run `python
+  scripts/measure_tile_cache.py --database <db> --sample 40 --workers 4`
+  (read-only on the database, builds a sample into a scratch folder it
+  removes) and the report table becomes exact.
   Prerequisites: none.
 
 - [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
