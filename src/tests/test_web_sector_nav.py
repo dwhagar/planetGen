@@ -670,8 +670,15 @@ def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
     with app.test_request_context("/galaxy"):
         same_sector = galaxy_course("system:1001", "system:1002")
         assert same_sector["scope"] == "sector"
-        assert same_sector["points"] == []
         assert same_sector["sector"]["id"] == 5
+        # NAV.22: the course inside the sector is drawn in it, its stops placed in the galaxy frame from the sector's center.
+        from planetgen.galaxy import frame
+        assert [p["role"] for p in same_sector["points"]] == ["origin", "hop", "destination"]
+        for point, local_ly in zip(same_sector["points"], [(0.0, 0.0, 0.0), (1.5, 0.5, 0.0), (3.0, 1.0, 0.0)]):
+            expected = frame.local_to_galaxy_pc((500.0, 200.0, 10.0), tuple(ly_to_pc(c) for c in local_ly))
+            assert (point["x"], point["y"], point["z"]) == pytest.approx(expected)
+        assert [p["name"] for p in same_sector["direct"]] == ["Alpha", "Other"]
+        assert same_sector["readout"]["distance"]
         assert same_sector["navUrl"] == "/nav?from=system:1001&to=system:1002"
 
         fake.nav_galaxy_scope = True
