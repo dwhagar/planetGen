@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1082 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1090 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 115 | 43 | 0 | 1 | 0 | 159 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
 | T4 | 52 | 5 | 1 | 18 | 10 | 86 |
-| T5 | 48 | 19 | 2 | 1 | 0 | 70 |
-| T6 | 103 | 82 | 21 | 52 | 0 | 258 |
+| T5 | 48 | 21 | 3 | 1 | 0 | 73 |
+| T6 | 106 | 84 | 21 | 52 | 0 | 263 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 22 | 14 | 5 | 47 | 28 | 116 |
-| All | 610 | 235 | 52 | 146 | 39 | 1082 |
+| All | 613 | 239 | 53 | 146 | 39 | 1090 |
 
 ## How the labels were given
 
@@ -1145,6 +1145,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SS1 | P | T4 | L0 | seasonal_swing.OCEAN_MIXED_LAYER_M 50, the depth of the sea that follows the seasons | 20 to 100 | worlds with a liquid water ocean | a global ocean model whose seasonal mixed layer averages under 30 m or over 80 m at 45 degrees | the mixed-layer depth by latitude and wind stress, or the ocean's own heat uptake from the hydrosphere | the 50 m mixed layer of the simple climate models of [R4708] and [R4171, R4172], recalled (not opened); the Earth's seasonal mixed layer is 20 to 100 m | GEN.1048 | - |
 | SS2 | D | T1 | L0 | seasonal_swing.WATER_HEAT_CAPACITY_J_M3_K 4.1e6, the volumetric heat capacity of liquid water | none | water oceans | a brine or a non-water ocean (ammonia-water, hydrocarbons) | the heat capacity of the surface liquid table (GEN.1035) | water: 4,186 J per kg per K at 1,000 to 1,025 kg per m3 | GEN.1048 | - |
 | SS3 | D | T5 | L1 | seasonal_swing.MAX_SHARE 0.999, the transport share is cut here; the seasonal damping is the mean state's own, `B_t = B s / (1 - s)` | 0.99 to 0.9999 | air columns up to Venus's | a general circulation model of a thick-air planet whose seasonal swing is not damped like its pole-to-equator contrast | a diffusion coefficient for the seasonal anomalies from the circulation (the seasonal cycle of a 90 bar air) | extends `regional_temperature.TRANSPORT_X0` (DESIGN) from the means to the cycle; the energy balance form is that of [R3313], recalled | GEN.1048 | - |
+| SS4 | P | T5 | L1 | seasonal_swing.OCEAN_EDDY_DIFFUSIVITY_M2_S 2.5e-4, how fast the sea mixes heat down: the depth a cycle of period P reaches is sqrt(kappa P / pi), 50 m for a year and 2.6 m for a day | 1e-4 to 1e-3 | worlds with a liquid water ocean | an ocean model whose diurnal mixed layer averages under 1 m or over 8 m | the ocean's own mixing from the wind and the heat flux (the hydrosphere) | set to give the 50 m of SS1 at a year; the observed diurnal mixed layers are a few metres | - | - |
+| SS5 | P | T6 | L0 | surface_cycle.CELL_ROWS 12 and CELL_COLUMNS 12, the cells of the grid of equal area and equal longitude | rows and columns 8 to 24 | any body | a body whose livable share changes by more than 0.03 when the grid is doubled | a finer grid, if the sweep shows the share moves | a numerical choice (Boss, plan of 7:32 PM EST 11-04) | - | - |
+| SS6 | P | T6 | L0 | surface_cycle.PERIODIC_TOLERANCE 0.02 and MAX_PERIODIC_ORBITS 12 (the solar day may be stretched by 2 percent, or the span lengthened to up to 12 orbits, so the series repeats exactly) | tolerance 0.005 to 0.05 | any body | a body whose livable share changes by more than 0.02 when the tolerance is halved | an exact commensurate solver | a numerical choice | - | - |
+| SS7 | P | T5 | L1 | regional_temperature.LOCKED_TRANSPORT_X0 0.1, the air column in Earth's at which the air removes half of the day to night contrast of a tidally locked world | 0.03 to 0.3 | tidally locked bodies with air | a published locked-planet circulation model whose night side of a 1 bar world is more than 15 K under the day side's mean | the day to night contrast of a general circulation model grid of locked worlds by pressure | the order that general circulation models of locked Earth-like worlds give: a bar of air removes about 90 percent of the contrast, a Mars-thin one about 14 percent | - | - |
+| SS8 | P | T5 | L2 | regional_temperature.TRANSPORT_X0 20, the air column in Earth's at which the air removes half of the pole to equator contrast | 10 to 40 | bodies that turn faster than once an orbit | a general circulation model whose polar annual mean for an Earth-like world is not 35 to 40 K under the mean | a diffusion coefficient from the circulation | fitted so Earth's polar band sits about 35 K under its mean (the observed annual polar mean is 35 to 40 K under) | - | - |
+| SS9 | P | T6 | L1 | regional_temperature.GROUND_INERTIA 300, the thermal inertia of the ground, J/(m2 K s^0.5) | 55 (regolith) to 2500 (bare rock) | rocky bodies | a measured thermal inertia of the body's own ground more than 2 times from 300 | the surface composition and grain (GEN.441) | lunar regolith 55, Mars about 300, bare rock 2000 to 2500 | - | - |
+| SS10 | P | T6 | L1 | regional_temperature.AIR_CP_J_KG_K 1000, the heat capacity of air per kilogram | 850 (carbon dioxide) to 14000 (hydrogen) | bodies with air | a body whose air has a heat capacity under 700 or over 3000 and that is a thin one where the column dominates the capacity | the mixture's own heat capacity | air 1004, carbon dioxide 850, hydrogen 14,000 | - | - |
+| SS11 | P | T6 | L0 | seasonal_swing.TEMPERATURE_MAX_STEPS 6000, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 0.25, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 0.3, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series) | steps 3000 to 20000; tolerance 0.05 to 0.5 K | any body | a body whose livable share changes by more than 0.01 when the steps are doubled or the tolerance halved | none needed | numerical choices | - | - |
 
 ## 6.92 Stand-ins of the resonant chains
 

@@ -56,6 +56,13 @@ STEPS_PER_YEAR = 3000
 MAX_STEPS = 20000
 """int: The most time steps of the series, which bounds the memory (a cell of the grid is `MAX_STEPS` floats) and the time of a body."""
 
+MAX_PERIODIC_ORBITS = 12
+"""int: The most orbits a periodic series may span to make a whole number of solar days of them. [GEN.1263; numerical.]"""
+
+PERIODIC_TOLERANCE = 0.02
+"""float: How far the solar day may be stretched to fit a whole number of them in the span, as a share of the day (and, for a body whose star hardly moves in its sky, the share of a
+turn the star may move in the span). [GEN.1263; numerical.]"""
+
 
 @dataclass(frozen=True)
 class Grid:
@@ -100,10 +107,34 @@ def solar_day_days(rotation_hours, orbital_hours, tilt_deg):
     return 1.0 / (24.0 * abs(rate)) if abs(rate) > 1.0e-12 else math.inf
 
 
-def time_step_days(orbital_days, solar_days, thermal_days=None, samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS):
+def periodic_span(orbital_days, solar_days):
+    """
+    The span and the solar day that make the sunlight repeat: `(span_days, solar_days)`, the span a whole number of orbits (the declination repeats) holding a whole number of
+    solar days (the hour angle repeats), the solar day stretched by at most `PERIODIC_TOLERANCE` of itself. A series cut at an orbit when a solar day is 14 days and the orbit 28.5
+    would end in a jump; one that spans the orbit and holds exactly two days does not. A star that stands still (`inf`) or moves less than `PERIODIC_TOLERANCE` of a turn in
+    the span stays still. When no span of up to `MAX_PERIODIC_ORBITS` fits, the one that fits best is taken.
+    """
+    if not math.isfinite(solar_days):
+        return orbital_days, math.inf
+    turns_per_orbit = orbital_days / solar_days
+    best = None
+    for orbits in range(1, MAX_PERIODIC_ORBITS + 1):
+        turns = round(orbits * turns_per_orbit)
+        error = abs(orbits * turns_per_orbit - turns) / max(turns, 1)
+        if best is None or error < best[0] - 1.0e-12:
+            best = (error, orbits, turns)
+        if error <= PERIODIC_TOLERANCE:
+            best = (error, orbits, turns)
+            break
+    _, orbits, turns = best
+    span = orbits * orbital_days
+    return span, (span / turns if turns > 0 else math.inf)
+
+
+def time_step_days(orbital_days, solar_days, thermal_days=None, samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, span=None):
     """The step and the number of steps of the series: the span is the longer of the orbit and a finite solar day, the step the least of a `samples_per_day`-th of the solar day,
     a quarter of the thermal time constant (when given) and a 3000th of the orbit, but never so small the span needs more than `max_steps`."""
-    span = max(orbital_days, solar_days if math.isfinite(solar_days) else 0.0)
+    span = span or max(orbital_days, solar_days if math.isfinite(solar_days) else 0.0)
     wanted = min(solar_days / samples_per_day if math.isfinite(solar_days) else math.inf, orbital_days / STEPS_PER_YEAR)
     if thermal_days:
         wanted = min(wanted, thermal_days / STEPS_PER_TIME_CONSTANT)
@@ -128,13 +159,17 @@ def cosine_zenith(latitude_deg, longitude_deg, time_days, orbital_days, solar_da
 
 
 def series(rotation_hours, orbital_hours, tilt_deg, thermal_days=None, transmission=None, rows=CELL_ROWS, columns=CELL_COLUMNS,
-           samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS):
+           samples_per_day=SAMPLES_PER_SOLAR_DAY, max_steps=MAX_STEPS, periodic=False):
     """The `Series` of a body from its stored rotation period, orbital period (both hours) and tilt (degrees). `thermal_days` is the thermal time constant of the surface if the
     caller has one; `transmission(latitudes_deg, declinations_rad)`, if given, returns the share of the light left, shape (rows, steps), and multiplies the cosine of the cells
-    where the star is up."""
+    where the star is up. `periodic` stretches the solar day a little and spans several orbits where it must (`periodic_span`) so the series repeats exactly: the form a Fourier
+    filter (GEN.1263) needs."""
     orbital_days = orbital_hours / 24.0
     solar_days = solar_day_days(rotation_hours, orbital_hours, tilt_deg)
-    step, count = time_step_days(orbital_days, solar_days, thermal_days, samples_per_day, max_steps)
+    span = None
+    if periodic:
+        span, solar_days = periodic_span(orbital_days, solar_days)
+    step, count = time_step_days(orbital_days, solar_days, thermal_days, samples_per_day, max_steps, span)
     grid = cell_grid(rows, columns)
     time = (np.arange(count) + 0.5) * step
     cosine = cosine_zenith(grid.latitude_deg, grid.longitude_deg, time, orbital_days, solar_days, tilt_deg)
