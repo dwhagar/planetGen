@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3370] - 2026-11-05
+
+**Headline:** The Systems list with a star type filter now pages by key in the sector and octant sorts, so a deep page costs what the first one does.
+
+### Changed
+- `GET /api/systems` (and the Systems list behind it, `planetgen systems`) with `star_type` set and the `sector` or `octant` sort now starts a page after the system named by `after` instead of skipping rows with `offset`. The star type is one more condition inside each sector or octant of the walk that the unfiltered list already used. Measured on MySQL with 2,000,000 systems and 2,800,000 stars, a G-type filter: a page after a system in the middle of the list went from 11 to 18 s down to 8 to 20 ms. The pages and their order are unchanged. An `offset` page of the octant sort with a star type reads as before (about 20 s at that size; the web table and the API carry `after`).
+
 ## [8.0.3369] - 2026-11-05
 
 **Headline:** Every log now writes the computer's local time with its zone; no log form writes UTC any more.
