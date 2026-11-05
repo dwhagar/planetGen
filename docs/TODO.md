@@ -15235,6 +15235,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item, before GEN.1265.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
+- [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
+  Bug 1 (as the lane reported, 10:33 PM EST on 2026-11-04), found
+  building GEN.1275: once a barred system must hold no planet or moon of
+  a life-carrying class, a barred system costs about 12 s to draw
+  against 3 s. Late remakes are 44 percent of the time and planet
+  redraws 33 percent. Do: profile a barred draw, then cut the repeated
+  work (draw the barred conditions once, reject a class earlier in the
+  planet draw, or reuse the finished bodies that are not affected),
+  keeping the generated output identical to the GEN.1275 branch. Done: a
+  barred system at or under about 4 s on the measured set, the time in
+  the performance guard, the output unchanged (golden and census
+  identical). Lock-free if the output is identical. Version 8.1. Owner:
+  Bug 1, after GEN.1275 merges. Filed by the TODO thread.
+  Prerequisites: GEN.1275. Related: GEN.1275, PERF.236.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
