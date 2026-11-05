@@ -23,7 +23,7 @@ import re
 from planetgen.generation import forced_star, helium_core_draw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence,
+from planetgen.physics import (activity, age_metallicity, formation, imf, metallicity, pre_main_sequence,
                               spin, stellar_state)
 from planetgen.util import draw
 from planetgen.util import log
@@ -354,12 +354,8 @@ class Star(StellarObject):
                 draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
-        elif self.yerkes_class in debris_disk.DEBRIS_CLASSES:
-            # GEN.787: the cold belt of a main-sequence star, from a stream of its own like the disk above.
-            disk = debris_disk.draw_disk(_kg_to_msun(self.mass), self.luminosity / constants.SOLAR_LUMINOSITY,
-                                         draw.Stream(f"debris:{self.mass!r}:{self.age!r}"))
-            for name, value in (disk or {}).items():
-                setattr(self, name, value)
+        # GEN.1071: the cold debris disk of a main-sequence star is not drawn here: it is the dust of the star's outer belt, set when the system's belts are built
+        # (`system.StarSystem._set_debris_disk`, `physics/debris_dust.py`).
 
     def _generate_from_population_model(self, initial_mass_sol=None, age_gy=None, fe_h=None):
         """

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1085 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1084 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 154 | 17 | 8 | 1 | 0 | 180 |
+| T1 | 155 | 18 | 8 | 1 | 0 | 182 |
 | T2 | 115 | 43 | 0 | 1 | 0 | 159 |
 | T3 | 85 | 40 | 7 | 9 | 0 | 141 |
-| T4 | 52 | 5 | 1 | 18 | 10 | 86 |
+| T4 | 50 | 5 | 1 | 18 | 10 | 84 |
 | T5 | 48 | 19 | 2 | 1 | 0 | 70 |
-| T6 | 103 | 82 | 21 | 52 | 0 | 258 |
+| T6 | 103 | 81 | 20 | 52 | 0 | 256 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 24 | 14 | 5 | 47 | 28 | 118 |
-| All | 613 | 235 | 52 | 146 | 39 | 1085 |
+| T9 | 24 | 14 | 5 | 48 | 28 | 119 |
+| All | 612 | 235 | 51 | 147 | 39 | 1084 |
 
 ## How the labels were given
 
@@ -835,11 +835,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| DD1 | B | T1 | L0 | tuning.DEBRIS_DISK_INCIDENCE (0.022, 0.130, 0.143, 0.239, 0.24) with DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL (0.45, 0.8, 1.04, 1.4): the share of stars of each mass that hold a cold disk | M 0.5 to 6 percent, K 9 to 17, G 10 to 19, F 19 to 29, A 20 to 33 (the published errors; Su et al. 2006 give 33 percent for A) | detected discs, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity | a completeness-corrected incidence (27.7 percent of FGK stars) | the survey's volume-limited incidence by type | READ ([R4081] section 3 and Table 2) | - | - |
-| DD2 | B | T4 | L0 | tuning.DEBRIS_DISK_INCIDENCE[-1] 0.24: a star above 1.4 solar masses takes the A figure | B stars unmeasured here | stars up to the Herschel sample's hottest | a B-star survey | a measured B-star incidence | no clear dependence of the dust on type from late B to M (read in the summary part of the fetched copy) | - | - |
-| DD3 | P | T6 | L2 | tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal | median 45 to 70 K, sigma 0.3 to 0.6 | stars of one solar luminosity | the 47 blackbody radii of Table 1 | the temperatures read from the table itself | median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted | - | - |
-| DD4 | P | T6 | L1 | tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius | 1.5 to 2.5 (the paper: a blackbody radius "can underestimate the true disc radius by up to a factor of 2.5") | realistic dust | resolved belt radii | resolved radii from the imaged discs | "scales to about 40 AU for realistic dust properties" over a median of 23 AU | - | - |
-| DD5 | P | T4 | L0 | tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius | width over radius 0.3 to 1.2 | every debris disk | resolved widths | measured fractional widths | design (a ring about as wide as it is far out) | - | - |
+| DD1 | B | T1 | L0 | test_gen_debris_disk.SURVEY_SHARE_BY_MASS (0.022, 0.130, 0.143, 0.239, 0.24): the share of stars of each mass band that hold a cold disk, the benchmark the cut DU1 is tuned to | M 0.5 to 6 percent, K 9 to 17, G 10 to 19, F 19 to 29, A 20 to 33 (the published errors; Su et al. 2006 give 33 percent for A) | detected discs, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity | a completeness-corrected incidence (27.7 percent of FGK stars) | the survey's volume-limited incidence by type | READ ([R4081] section 3 and Table 2) | - | - |
+| DU1 | P | T9 | L3 | debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer discs are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disc) | 8e-5 to 3e-4 (G disc share 33 to 2 percent) | the generator's outer discs, which are heavy, old and mostly at their steady-state dust | the K, G and F dwarfs together holding a disc outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short | a cut from the survey's own sensitivity, once the outer disc's mass and width come from a planetesimal-formation model | tuned against a sweep of 70 to 160 systems each of K3V, G2V, F5V and A2V (A stars then hold none, F about half the survey's share) | - | - |
+| DU2 | P | T1 | L0 | debris_dust.F_MAX_COEFFICIENT 0.004: the steady-state fractional luminosity `0.004 r^1.5 (dr/r) Dc^0.5 L^-0.5 / (t G(Xc))`, r in AU, Dc in km, t in Myr | none (the paper's own) | size law q = 11/6, e equal to I, density 2700 kg/m^3 | a debris disc measured at its steady state with f outside a factor of 3 of this | the paper's Eq. 16 with the blow-out size of the star | [R4785: Eq. 18], checked against its Eq. 21 (1.5e-4 / t at r = 1 AU for its nominal belt) | - | - |
+| DU3 | P | T1 | L1 | debris_dust.CASCADE_MAX_KM 2000: the largest body the dust cascade is reckoned for, whatever the belt's own largest body | 1000 to 3000 | an outer disc whose largest body is protoplanet-size | a belt whose dust is the sum of cascades of bodies over 2000 km | a ledger that settles the cascade's Dc apart from the largest body | the nominal Dc of [R4785] (Fig. 2 and Eq. 21) | - | - |
 
 ## 6.60 Stand-ins of the multiple-star limits and the white-dwarf planets
 
