@@ -196,8 +196,8 @@ Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
 (MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
 sign-up by an email invitation only an admin can send (USR.1), 8.3 the
 orbital update system (GEN.105), 8.5 courses that bend around gravity wells
-(NAV.59), 8.6 edit everything (ADM.57), 9.1 the view from a planet (VIEW.18),
-with the gravity map (MAP.167) as the second feature,
+(NAV.59), 8.6 edit everything (ADM.57), 9.0 phase 2 the view from a planet (VIEW.18),
+with the gravity map (MAP.167) as the third phase,
 10.0 roles and permissions with user edit requests and moderators
 (USR.25, Boss 1:43 PM EDT). 9.0 composition and the atmosphere colour (GEN.421, Boss,
 11:25 PM EDT: the seminal feature of 9.0; 11:58 PM EDT: composition of every
@@ -209,10 +209,10 @@ feature. Boss (5:44 PM EST on 2026-11-05) approved 8.7 (Full help for all pages)
 (VIEW.18), the gravity map (MAP.167) and the dynamic population and trade
 are now phases 2 and 3 of 9.0 (the dynamic population and trade moved to 9.2 at 6:00 PM EST on 2026-11-05), and 9.2 onward keep their numbers. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
 items: 8.4 is now New worlds and the first settlements, and the gravity map
-(MAP.167, the second feature of 9.1) is built across 8.2 (grid foundations
+(MAP.167, the third phase of 9.0) is built across 8.2 (grid foundations
 MAP.383 to MAP.386, PERF.72, PERF.243), 8.3 (GEN.198, GEN.199, MAP.387,
 API.24), 8.5 (the Sector and System Map layers MAP.168, MAP.169, UX.94) and
-9.1 (the parent and the optional Galaxy Map layer MAP.170); nothing of it
+9.0 (the parent and the optional Galaxy Map layer MAP.170); nothing of it
 lands in 8.1. A
 headline feature carries a `Headline: VERSION (name).` line in its item;
 `scripts/build_todo_docs.py` reads it and shows, in every plan page, each
@@ -827,7 +827,7 @@ with `clamp()`.
   lane (galaxy projection survey, report section 8, method 'all-sky').
   Do: a page that draws the sky as seen from a chosen star on a
   projection of the sphere; it shares its data with the System View sky
-  (VIEW.19 to VIEW.40) and the 9.1 sky chart (VIEW.15). Done: decided
+  (VIEW.19 to VIEW.40) and the 9.0 sky chart (VIEW.15). Done: decided
   when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
   the TODO thread.
   Prerequisites: none.
@@ -1197,7 +1197,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (MAP.387) and the route (API.24), because they ride on the orbital
   update and the galaxy potential (GEN.115); 8.5 holds the Sector and
   System Map layers and the wording (MAP.168, MAP.169, UX.94), because
-  courses around gravity wells use them; 9.1 keeps this parent and the
+  courses around gravity wells use them; 9.0 keeps this parent and the
   optional Galaxy Map layer (MAP.170). Nothing of it lands in 8.1: only
   generation aspects that directly impact 8.1 do. The 8.2 items read
   stars already generated and change no generated output.
@@ -10057,7 +10057,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   how a gas giant (hydrogen and helium fuel, its icy moons and rings),
   an icy moon, a comet swarm, a metallic asteroid (type M), a
   carbonaceous one (type C) and a silicate one (type S) score; (4) what
-  is fixed until 9.1 and what the nightly update may change later
+  is fixed until 9.2 and what the nightly update may change later
   (mining depletes). Sources: asteroid taxon composition literature and
   meteorite compositions, with GEN.725 tier labels for every invented
   number. Done: the design is in the docs with sources and stand-in
@@ -19856,7 +19856,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /api/systems/<id>/sky/band?limit= (JSON, base64). SKY_VERSION is 2.
   The first band per 50 pc cell can take tens of seconds (full galaxy
   shape load), then it is cached. Wire format section 3.2. This item
-  stays open for the full 9.1 version (the planet's own sky, VIEW.14
+  stays open for the full 9.0 version (the planet's own sky, VIEW.14
   onward).
   Prerequisites: VIEW.11, VIEW.8. Related: VIEW.2.
 
@@ -20062,8 +20062,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   scatter and fill lane (Core 3 or Star 2). Lock-free, no migration.
   Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
   8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
-  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
-  where noted, build it so the 9.1 item can reuse it); the limiting
+  VIEW.12 and VIEW.13 STAY in 9.0 and this part overlaps its 9.0 twin
+  where noted, build it so the 9.0 item can reuse it); the limiting
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
@@ -20107,8 +20107,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   beyond what S7 does for a newly charted sector. Done: tests.
   Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
   (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
-  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
-  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0 and this part
+  overlaps its 9.0 twin where noted, build it so the 9.0 item can reuse
   it); the limiting magnitude is a setting with default 7.5, lower on
   phones; missing stars are built when a system is charted, no visit
   job. Goal #4907. Filed by the TODO thread.
@@ -20126,8 +20126,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is fetched at setup. Done: the test and the band. Lock-free, no
   migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
   a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
-  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
-  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0 and this part overlaps its
+  9.1 twin where noted, build it so the 9.0 item can reuse it); the
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
@@ -20167,8 +20167,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the aberration of the observer's own motion, off by default. Done: a
   shader test. Lock-free, no migration. Boss decided at 5:29 PM EST on
   2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
-  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
-  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0
+  and this part overlaps its 9.0 twin where noted, build it so the 9.0
   item can reuse it); the limiting magnitude is a setting with default
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
@@ -20184,8 +20184,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   star points into this sky as the camera enters a system. Done: browser
   test. Lock-free, no migration. Boss decided at 5:29 PM EST on
   2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
-  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
-  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0
+  and this part overlaps its 9.0 twin where noted, build it so the 9.0
   item can reuse it); the limiting magnitude is a setting with default
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
@@ -20935,7 +20935,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   set by the habitability scores (Suitability, the food score from Flora
   and Fauna, the land area), the tech band and the civilization's age,
   one closed form per world with a seeded noise draw, so a later dynamic
-  version (9.1) can step it in time; (2) which civilizations trade:
+  version (9.2) can step it in time; (2) which civilizations trade:
   spaceport owners only (POP.21, tech from the settlements design), the
   largest by population first; (3) the partner rule (a gravity model:
   demand rises with the two populations and falls with distance, a cap
@@ -20951,7 +20951,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   spaceport with routes, and the nearest point on any route's path where
   someone could put themselves in the way: the nearest system on a hop
   path and the nearest point on a hop segment); (7) what is fixed until
-  9.1 makes it dynamic. Done: the design is in the docs with its sources
+  9.2 makes it dynamic. Done: the design is in the docs with its sources
   and its stand-in list, and every later item of the tree cites it.
   Owner: a research thread with Core 2 for the map parts. Version 8.2,
   phase 3. Rules: draws through draw.py (GEN.774 streams); a PR that
