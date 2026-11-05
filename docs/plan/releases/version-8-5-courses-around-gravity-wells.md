@@ -53,9 +53,8 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.25 | Find the obstacles along a path |  | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
-| NAV.6 | Courses that steer clear of gravity wells | NAV.25 | Parent; closes with its subitems. |
+| NAV.6 | Courses that steer clear of gravity wells |  | Parent; closes with its subitems. |
 
 ## Phase 3: Waypoints and the headline
 

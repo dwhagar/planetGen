@@ -2465,7 +2465,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.22 | Courses inside a sector and a system | none | open |
 | NAV.23 | Open a saved course on the map | none | done, PR #5091 |
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
-| NAV.25 | Find the obstacles along a path | none | open |
+| NAV.25 | Find the obstacles along a path | none | done, PR #5144 |
 | NAV.26 | Bend the path around keep-out spheres | none | done, PR #5143 |
 | NAV.27 | Moving bodies inside a system | none | done, PR #5131 |
 | NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
