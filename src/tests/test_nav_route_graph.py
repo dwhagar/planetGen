@@ -134,15 +134,6 @@ def test_a_system_next_to_two_stops_is_one_node_with_two_edges():
     assert _pairs(graph, on_route=False) == {frozenset((0, 9)), frozenset((1, 9))}
 
 
-def test_a_hop_keeps_the_length_the_route_gives_it():
-    points = {0: (0.0, 0.0, 0.0), 1: (3.0, 0.0, 0.0), 2: (3.0, 4.0, 0.0)}
-    path = [0, 1, 2]
-    graph = route_graph(path, points, lambda stop, point: ({}, math.inf), 6, hop_distances=[3.5, 4.5])
-    assert [edge["distance_ly"] for edge in graph["edges"] if edge["on_route"]] == [3.5, 4.5]
-    assert [edge["distance_ly"] for edge in route_graph(path, points, lambda stop, point: ({}, math.inf), 6)["edges"]
-            if edge["on_route"]] == [3.0, 4.0]
-
-
 def test_stops_in_unknown_space_and_phenomenon_ends_take_part_like_any_stop():
     points = {"stone:black-hole:3": (10.0, 0.0, 0.0), "phenomenon:nebula:2": (20.0, 0.0, 0.0), 7: (0.0, 0.0, 0.0), 8: (10.0, 2.0, 0.0)}
     graph = _graph_of(points, [7, "stone:black-hole:3", "phenomenon:nebula:2"])
@@ -193,11 +184,12 @@ def _expected_links(config, route):
     return links, everyone
 
 
-@pytest.mark.parametrize("east_wedge", [None, 20])
-def test_the_graph_holds_the_hops_and_the_links_the_rule_gives(mysql_config, monkeypatch, east_wedge):
-    """`None`: both ends in one sector (the route is shifted into the sector's frame, NAV.12); 20: two sectors apart."""
+@pytest.mark.parametrize("west_wedge, east_wedge", [(0, None), (0, 20), (2000, None), (2000, 2020)])
+def test_the_graph_holds_the_hops_and_the_links_the_rule_gives(mysql_config, monkeypatch, west_wedge, east_wedge):
+    """`None`: both ends in one sector (the route is turned back into the sector's frame, NAV.12); else two sectors apart.
+    Wedge 2000 lies at a longitude where the sector's axes are turned well away from the galaxy's (NAV.73)."""
     monkeypatch.setattr(query, "NAV_GRAPH_NEIGHBOURS", 99)
-    west_ids = _save_grid_sector(mysql_config, "West", 0, _cloud_local(1))
+    west_ids = _save_grid_sector(mysql_config, "West", west_wedge, _cloud_local(1))
     if east_wedge is None:
         first, last = west_ids[0], west_ids[-1]
     else:
@@ -214,10 +206,13 @@ def test_the_graph_holds_the_hops_and_the_links_the_rule_gives(mysql_config, mon
     assert len(graph["edges"]) == len({frozenset((edge["from"], edge["to"])) for edge in graph["edges"]})
     assert graph["more"] == {}
     hop_lengths = {frozenset((hop["from"], hop["to"])): hop["distance_ly"] for hop in route["hops"]}
+    assert all(position == pytest.approx(everyone[node], abs=1e-6) for node, position in route["positions"].items()
+               if east_wedge is not None)
     for edge in graph["edges"]:
         pair = frozenset((edge["from"], edge["to"]))
         if edge["on_route"]:
             assert edge["distance_ly"] == hop_lengths[pair]          # the route's own length, as `hops` lists it
+            assert edge["distance_ly"] == pytest.approx(detmath.dist(everyone[edge["from"]], everyone[edge["to"]]), abs=1e-6)
         else:
             assert edge["distance_ly"] == pytest.approx(detmath.dist(everyone[edge["from"]], everyone[edge["to"]]), abs=1e-6)
             assert edge["from"] in route["path"] and edge["to"] not in route["path"] or (
