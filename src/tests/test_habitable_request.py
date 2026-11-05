@@ -224,7 +224,7 @@ def test_bar_life_class_remakes_a_body_until_it_leaves_the_life_classes_and_says
     body.planet_class = life
     never = []
     assert planetPhysics.bar_life_class(body, lambda: never.append(1)) is False
-    assert len(never) == tuning.BARRED_CLASS_MAX_ATTEMPTS
+    assert len(never) == tuning.BARRED_LATE_CLASS_MAX_ATTEMPTS
     body.planet_class = "D"
     assert planetPhysics.bar_life_class(body, lambda: never.append(1)) is True
-    assert len(never) == tuning.BARRED_CLASS_MAX_ATTEMPTS
+    assert len(never) == tuning.BARRED_LATE_CLASS_MAX_ATTEMPTS

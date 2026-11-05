@@ -241,6 +241,9 @@ in this many when a request asks against them. A planetGen stand-in (tier "from 
 # How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
 # from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
 BARRED_CLASS_MAX_ATTEMPTS = 30
+# GEN.1275: the remakes of a body whose class came out as one that can carry life only after the life pass; a class that late moves little with a new air, so a longer search
+# is time and no change (12 systems: 12 of 21 bodies left the classes within 25 remakes, 10 of them within 9; the rest are dropped).
+BARRED_LATE_CLASS_MAX_ATTEMPTS = 10
 
 # The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
 # (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies

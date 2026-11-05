@@ -157,7 +157,7 @@ def bars_life_classes(body):
 def bar_life_class(body, remake):
     """
     Makes a body of a class that can carry life again, in a system that bars them (GEN.1275: `HABITABLE_WORLD` False means no body of any such class
-    anywhere in the system, Boss 2026-11-04): up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times `remake()` runs from a stream of its own (the body's
+    anywhere in the system, Boss 2026-11-04): up to `tuning.BARRED_LATE_CLASS_MAX_ATTEMPTS` times `remake()` runs from a stream of its own (the body's
     mass, distance, star and the attempt, so the run's stream does not move) and ends when the class is not one that can carry life.
 
     Args:
@@ -167,7 +167,7 @@ def bar_life_class(body, remake):
     Returns:
         bool: Whether the body ends outside the classes that can carry life (True too for a body that was never in one).
     """
-    for attempt in range(tuning.BARRED_CLASS_MAX_ATTEMPTS):
+    for attempt in range(tuning.BARRED_LATE_CLASS_MAX_ATTEMPTS):
         if not is_life_class(body):
             return True
         with draw.bound(draw.Stream(f"barred-life-class:{float(body.mass)!r}:{float(body.distance)!r}:{float(body.star.mass)!r}:"
