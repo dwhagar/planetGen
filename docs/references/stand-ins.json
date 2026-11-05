@@ -35007,7 +35007,7 @@
       "title": "Stand-ins of the progenitor and ejecta of a planetary nebula"
     },
     {
-      "key": "6.180 Stand-ins of the drawing of the system sky",
+      "key": "6.180",
       "number": "6.180",
       "rows": [
         {
@@ -35221,7 +35221,7 @@
       "title": "Stand-ins of the drawing of the system sky"
     },
     {
-      "key": "6.181 Stand-ins of the look of a sky star, the star caps and the page's reach",
+      "key": "6.181",
       "number": "6.181",
       "rows": [
         {
@@ -36061,8 +36061,8 @@
       "title": "Stand-ins of the photometry of the system sky"
     },
     {
-      "key": "6.180 Stand-ins of the capture windows of a system",
-      "number": "6.180",
+      "key": "6.184",
+      "number": "6.184",
       "rows": [
         {
           "burn_down": null,
@@ -36093,9 +36093,9 @@
             ]
           ],
           "id": "CW1",
-          "key": "6.180:CW1",
+          "key": "6.184:CW1",
           "kind": "P",
-          "slug": "6-180-cw1",
+          "slug": "6-184-cw1",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
@@ -36135,9 +36135,9 @@
             ]
           ],
           "id": "CW2",
-          "key": "6.180:CW2",
+          "key": "6.184:CW2",
           "kind": "P",
-          "slug": "6-180-cw2",
+          "slug": "6-184-cw2",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
@@ -36145,12 +36145,12 @@
           "what": "capture_windows.FULL_INSTABILITIES 1: one instability of the architecture is the full one the scatter step scales its hot classical share to"
         }
       ],
-      "slug": "6-180-stand-ins-of-the-capture-windows-of-a-system",
+      "slug": "6-184-stand-ins-of-the-capture-windows-of-a-system",
       "title": "Stand-ins of the capture windows of a system"
     },
     {
-      "key": "6.181 Stand-ins of the irregular moons of a planet",
-      "number": "6.181",
+      "key": "6.185",
+      "number": "6.185",
       "rows": [
         {
           "burn_down": null,
@@ -36181,9 +36181,9 @@
             ]
           ],
           "id": "IW1",
-          "key": "6.181:IW1",
+          "key": "6.185:IW1",
           "kind": "P",
-          "slug": "6-181-iw1",
+          "slug": "6-185-iw1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -36219,9 +36219,9 @@
             ]
           ],
           "id": "IW2",
-          "key": "6.181:IW2",
+          "key": "6.185:IW2",
           "kind": "P",
-          "slug": "6-181-iw2",
+          "slug": "6-185-iw2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
@@ -36257,9 +36257,9 @@
             ]
           ],
           "id": "IW3",
-          "key": "6.181:IW3",
+          "key": "6.185:IW3",
           "kind": "B",
-          "slug": "6-181-iw3",
+          "slug": "6-185-iw3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -36295,9 +36295,9 @@
             ]
           ],
           "id": "IW4",
-          "key": "6.181:IW4",
+          "key": "6.185:IW4",
           "kind": "P",
-          "slug": "6-181-iw4",
+          "slug": "6-185-iw4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
@@ -36305,7 +36305,7 @@
           "what": "irregular_moons.COMPOSITION_MASS_CAP_KG (0.999 of compaction.TAPER_END_KG): an exchange capture heavier than the composition rows reach is composed as a body of this mass"
         }
       ],
-      "slug": "6-181-stand-ins-of-the-irregular-moons-of-a-planet",
+      "slug": "6-185-stand-ins-of-the-irregular-moons-of-a-planet",
       "title": "Stand-ins of the irregular moons of a planet"
     },
     {
