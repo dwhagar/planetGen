@@ -115,6 +115,10 @@ The plan, to be settled in GEN.198, GEN.199 and PERF.72:
 
 ## Items
 
+Built: the rule (MAP.383), kernel (MAP.384), hierarchy and lists (MAP.385), point masses (MAP.386), grid job and cache (MAP.387), and the perf guard
+(PERF.243, `tests/test_perf_gravity_grid.py`: the list fits the pair budget exactly on every machine, the time is held against the machine's own pair rate,
+the 0.25 s ceiling of the densest sector is opt-in with `PLANETGEN_RUN_PERF_BENCHMARK=1`). Still open: the layers and the API below.
+
 GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
 per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
 MAP.168 Sector Map layer; MAP.169 System Map layer; UX.94 wording and
