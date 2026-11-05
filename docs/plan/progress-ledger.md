@@ -2489,3 +2489,5 @@ Baseline: PR #1817.
 | VIEW.31 | 8.2 | Bookmarks |
 | TEST.589 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | VIEW.34 | 8.2 | Bookmarks |
+| VIEW.36 | 8.2 | Bookmarks |
+| VIEW.35 | 8.2 | Bookmarks |

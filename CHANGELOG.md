@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3273] - 2026-11-05
+
+**Headline:** The display constants of the system sky are now in the stand-in registry.
+
+### Changed
+- Added section 6.180 of the gap-filling plan and its five rows (SKD1 to SKD5) to the stand-in registry: the glow band's soft knee and grain, its surface-brightness unit, the sprites' glow ramp, and the galactic plane laid in the System View's reference plane. Each is marked with its tier and tweak level so a display model or a stored system orientation can replace it. Nothing the pages draw changes.
+
+generation-output: unchanged
+
+## [8.0.3272] - 2026-11-05
+
+**Headline:** The 3D system view's background is now the sky that system sees: its stars where they truly are, the nebulae and the glow of the Milky Way, with a switch to turn it off.
+
+### Changed
+- The 3D view of a system draws the stars around it at their true directions and distances, placed where their light left them, so the sky shifts as the time control runs. Bright nebulae and supernova remnants show as soft shapes, dark clouds dim the stars behind them, and the glow of the fainter stars lies under it all. A body in front of a star hides it.
+- A "Sky background" switch under the view turns the sky off and on, and the browser remembers the choice. A line beside it says what is drawn, and a sky still being filled in says so and is asked for again every half minute. A system with no place in the galaxy keeps the plain background and says why. The galaxy's plane is laid in the view's reference plane for now, since a system's orbital plane is not yet tied to the galaxy's.
+
+generation-output: unchanged
+
 ## [8.0.3271] - 2026-11-05
 
 **Headline:** The nebula composition notes name the thing instead of an item code.

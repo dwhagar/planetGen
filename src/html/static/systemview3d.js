@@ -453,6 +453,8 @@ export function createSystemView(options) {
   let fitDistance = 1;
   let years = 0;
   let disposed = false;
+  // VIEW.35: the sky this system sees (systemsky.js): a layer `{ objects, update(camera, { years, pixelRatio }) }` drawn behind everything.
+  let skyLayer = null;
   const picker = createPicker(camera, canvasEl);
   const tooltip = createTooltip(options.tooltipEl);
   const info = infoPanelOf(options.infoEl);
@@ -707,6 +709,7 @@ export function createSystemView(options) {
     }
     placeCamera();
     fitRendererToCanvas(renderer, camera, canvasEl);
+    if (skyLayer) skyLayer.update(camera, { years: years, pixelRatio: renderer.getPixelRatio() });
     renderer.render(stage, camera);
     layoutLabels();
   }
@@ -754,6 +757,20 @@ export function createSystemView(options) {
     // The bodies by name, for the screen-reader list.
     list: () => built.entries.map((e) => ({ ref: e.ref, name: e.name, kind: e.kind })),
     camera: camera,
+    // VIEW.35: the sky behind the system. One layer at a time; `detachSky` takes it out (the caller disposes it).
+    attachSky: function (layer) {
+      if (skyLayer) skyLayer.objects.forEach((object) => stage.remove(object));
+      skyLayer = layer;
+      layer.objects.forEach((object) => stage.add(object));
+      canvasEl.dataset.sky = "on";
+    },
+    detachSky: function () {
+      if (skyLayer) skyLayer.objects.forEach((object) => stage.remove(object));
+      skyLayer = null;
+      delete canvasEl.dataset.sky;
+    },
+    // For the browser tests: what the sky layer holds, or null.
+    skyObjects: () => (skyLayer ? skyLayer.objects : null),
     dispose: function () {
       disposed = true;
       cancelAnimationFrame(frame);
