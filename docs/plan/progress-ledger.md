@@ -2505,3 +2505,5 @@ Baseline: PR #1817.
 | NAV.28 | 8.5 | Steering clear of gravity wells |
 | NAV.18 | 8.5 | Saved courses |
 | TEST.594 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.21 | 8.5 | Saved courses |
+| NAV.23 | 8.5 | Saved courses |

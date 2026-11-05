@@ -1981,14 +1981,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
   on the galactic map and stay until cleared." See NAV.49.
 
-  - [ ] **NAV.21 Fit the view to the whole course**
-    Done: the course opens zoomed in as far as possible with every
-    point of both paths on screen, fitted to the window (the same fit as
-    MAP.53), refitted on resize. This view is exempt from any zoom
-    limit (MAP.58 was superseded by MAP.125); the user can still rotate it.
-    Research (2026-10-09, course-avoidance.md): fit the view to the
-    bounding box of the adjusted `polyline`, not of the waypoints.
-
   - [ ] **NAV.22 Courses inside a sector and a system**
     Today a course that stays in one sector opens the sector with no
     line. Done: the same course drawing at the sector stage (MAP.61)
@@ -2000,10 +1992,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (`heliosphere_radius_km`) and ends at the target body; sector-scale
     courses use the same keep-out table in light-years.
     Prerequisites: MAP.217.
-
-  - [ ] **NAV.23 Open a saved course on the map**
-    Done: a saved course (NAV.4) opens in this view, with Direct, Route
-    and (NAV.6) Adjusted switchable.
 
 - [ ] **NAV.6 Courses that steer clear of gravity wells**
   Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
