@@ -62,6 +62,7 @@ const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = a
 const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
+const { connectCourseDiagram } = await import(`./coursediagram.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
@@ -3539,6 +3540,8 @@ function initGalaxyMap3d(canvasEl, data) {
   var course = data.course && (data.course.points || []).length >= 2 ? data.course : null;
   var courseSectors = [];
   var courseMarkers = [];
+  var courseRings = [];
+  var courseSelected = null;
   var COURSE_RING_PX = 11;
   var COURSE_LABEL_PX = 13;
 
@@ -3570,7 +3573,9 @@ function initGalaxyMap3d(canvasEl, data) {
       }));
       ring.position.copy(linePoints[n]);
       courseGroup.add(ring);
-      courseMarkers.push({ sprite: ring, px: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6 });
+      var ringMarker = { sprite: ring, px: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6, basePx: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6, opacity: ends ? 1 : 0.7 };
+      courseMarkers.push(ringMarker);
+      courseRings.push(ringMarker);
       if (!ends) {
         return;
       }
@@ -3686,9 +3691,38 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
+  // NAV.69: the stop of the course that is selected: its ring is bigger and solid, and the course diagram beside the map (coursediagram.js) marks
+  // the same stop, whichever of the two the visitor clicked. `fly` also centres the map on it, keeping the zoom.
+  function selectCourseStop(index, fly) {
+    if (!course || !(index >= 0 && index < course.points.length)) return false;
+    courseSelected = index;
+    courseRings.forEach(function (marker, n) {
+      var chosen = n === index;
+      marker.px = chosen ? COURSE_RING_PX * 1.6 : marker.basePx;
+      marker.sprite.material.opacity = chosen ? 1 : marker.opacity;
+    });
+    var point = course.points[index];
+    if (fly && canvasEl.galaxyGoTo) {
+      var camera_ = canvasEl.galaxyCamera();
+      canvasEl.galaxyGoTo({ center: [point.x, point.y, point.z], dist: camera_ ? camera_.dist : 1 });
+    }
+    canvasEl.dispatchEvent(new CustomEvent("galaxycoursestop", { detail: { index: index, name: point.name, url: point.url || null } }));
+    return true;
+  }
+  // For the diagram's clicks and the browser tests: selects stop `index` of the course and centres the map on it.
+  canvasEl.galaxyCourseSelect = function (index) { return selectCourseStop(index, true); };
+  // For the browser tests: the index of the selected stop, or null.
+  canvasEl.galaxyCourseSelected = function () { return courseSelected; };
+  // For the browser tests: the course's stops as `{name, x, y, z}` (parsecs).
+  canvasEl.galaxyCourseStops = function () {
+    return course ? course.points.map(function (point) { return { name: point.name, x: point.x, y: point.y, z: point.z }; }) : [];
+  };
+  if (course) connectCourseDiagram(canvasEl, document);
+
   // NAV.20: a click on a ringed stop opens its page. Registered ahead of the
   // stage view's own pointer handlers (which come later) and ending the event
   // for them, so a click on a ring never drills into the sector beneath it.
+  // NAV.69: the first click selects the stop (its ring grows and the course diagram marks it); a click on the selected ring opens its page.
   if (course) {
     var ringDown = null;
     var ringVector = new THREE.Vector3();
@@ -3716,7 +3750,10 @@ function initGalaxyMap3d(canvasEl, data) {
       ringDown = null;
       event.stopImmediatePropagation();
       var point = moved < 6 ? ringAt(event) : null;
-      if (point && point.url) window.location.href = point.url;
+      if (!point) return;
+      var index = course.points.indexOf(point);
+      if (index !== courseSelected) selectCourseStop(index, false);
+      else if (point.url) window.location.href = point.url;
     });
     canvasEl.addEventListener("pointermove", function (event) {
       canvasEl.style.cursor = ringAt(event) ? "pointer" : "";

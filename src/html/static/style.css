@@ -2206,6 +2206,22 @@ a.nav-diagram-stop:focus-visible {
   stroke-width: 1.6;
 }
 
+.nav-diagram-select {
+  display: none;
+  fill: none;
+  stroke: var(--link);
+  stroke-width: 2.5;
+}
+
+.nav-diagram-stop.is-selected .nav-diagram-select {
+  display: inline;
+}
+
+.nav-diagram-stop.is-selected .nav-diagram-name {
+  fill: var(--link);
+  font-weight: 700;
+}
+
 .nav-diagram-end {
   fill: none;
   stroke: var(--text-muted);
@@ -5353,6 +5369,12 @@ body.app {
   margin: 0.25rem 0 0.75rem;
   font-size: 0.9rem;
 }
+.course-readout .nav-diagram {
+  flex: 1 1 100%;
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
 .course-key,
 .course-stops {
   margin: 0;

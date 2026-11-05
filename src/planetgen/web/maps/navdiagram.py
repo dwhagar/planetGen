@@ -224,10 +224,12 @@ def render_drawing(route, names, urls, width, size, ids=None):
         words = f"{_ROLE_TEXT[stop['role']]}: {name}, {KIND_LABELS.get(stop['kind'], KIND_LABELS['stone'])}"
         url = urls.get(stop["id"])
         x, y = stop["x"], stop["y"]
-        open_tag = (f'<a class="nav-diagram-stop" href="{_esc(url)}" data-stop="{_esc(stop["id"])}">' if url
-                    else f'<g class="nav-diagram-stop" data-stop="{_esc(stop["id"])}">')
+        open_tag = (f'<a class="nav-diagram-stop" href="{_esc(url)}" data-stop="{_esc(stop["id"])}" data-index="{stop["index"]}">' if url
+                    else f'<g class="nav-diagram-stop" data-stop="{_esc(stop["id"])}" data-index="{stop["index"]}">')
         out.append(open_tag)
         out.append(f'<title>{_esc(words)}</title>')
+        # Shown when the stop is the selected one of the course on the Galaxy Map (NAV.69, coursediagram.js).
+        out.append(f'<circle class="nav-diagram-select" cx="{_number(x)}" cy="{_number(y)}" r="{NODE_RADIUS + 9}"/>')
         if stop["role"] != "stop":
             out.append(f'<circle class="nav-diagram-end nav-diagram-{stop["role"]}" cx="{_number(x)}" cy="{_number(y)}" r="{NODE_RADIUS + 5}"/>')
             if stop["role"] == "destination":
@@ -260,7 +262,7 @@ def render_legend(kinds, unknown=False, neighbours=False):
     return f'<ul class="nav-diagram-legend" role="list">{"".join(items)}</ul>' if items else ""
 
 
-def render_course_diagram(route, names, urls):
+def render_course_diagram(route, names, urls, linked=False):
     """
     The NAV page's course diagram panel for `route`, or an empty string when the route has fewer than two stops.
 
@@ -268,6 +270,7 @@ def render_course_diagram(route, names, urls):
         route (dict): The route `GET /api/nav` sends (`path`, `hops`, `stop_places`).
         names (dict): `{node: name}` of every stop.
         urls (dict): `{node: url or None}` of every stop.
+        linked (bool): The diagram sits beside the Galaxy Map's course (NAV.69): says that a click on a stop centres the map on it.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -292,12 +295,14 @@ def render_course_diagram(route, names, urls):
     unknown_note = (f' {unknown} hop{"" if unknown == 1 else "s"} cross{"es" if unknown == 1 else ""} unknown space (uncharted '
                     f'sectors); {"it is" if unknown == 1 else "they are"} drawn in red, dashed and glowing, and the route list names '
                     f'{"it" if unknown == 1 else "them"} in words.' if unknown else "")
+    link_note = (" A click on a stop selects it on the map and centres the map on it; a second click, or a click with Ctrl held, opens its page."
+                 if linked else "")
     return (
         '<section class="panel nav-diagram" aria-labelledby="course-diagram-heading">'
         '<h2 id="course-diagram-heading">Course Diagram</h2>'
         '<p class="hint">The route as a line of stops, each hop with its length'
         ' (and its course where there is room). The spacing follows the logarithm of a hop’s length, so the diagram is a'
-        f' schematic, not a map to scale.{_esc(unknown_note)}{_esc(neighbour_note)}</p>'
+        f' schematic, not a map to scale.{_esc(unknown_note)}{_esc(neighbour_note)}{_esc(link_note)}</p>'
         f'<div class="nav-diagram-scroll">{drawings}</div>'
         f'{render_legend(kinds, bool(unknown), has_graph)}'
         '</section>'

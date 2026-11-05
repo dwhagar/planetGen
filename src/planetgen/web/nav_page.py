@@ -468,12 +468,18 @@ def galaxy_course(from_raw, to_raw):
             "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
         })
     direct = result["direct"]
+    route = result["route"]
+    stops = _route_stops(route, names) if route and route["path"] else []
+    readout = _course_readout(result, direct, route=route, stops=stops if route and len(points) > 2 else [])
+    if route and len(points) > 2 and len(route["path"]) == len(points):
+        # NAV.69: the course diagram beside the map, its stops linked to the map's course (static/coursediagram.js).
+        readout["diagram"] = render_course_diagram(route, names, {node: stop["url"] for node, stop in zip(route["path"], stops)},
+                                                   linked=True)
     return {
         "scope": "galaxy", "points": points, "sector": None, "navUrl": nav_url_here,
         # NAV.20: the straight line apart from the route, and the readout beside the map.
         "direct": [points[0], points[-1]] if len(points) > 2 else None,
-        "readout": _course_readout(result, direct, route=result["route"], stops=_route_stops(result["route"], names)
-                                   if result["route"] and len(points) > 2 else []),
+        "readout": readout,
     }
 
 

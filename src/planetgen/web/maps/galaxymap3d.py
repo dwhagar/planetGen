@@ -438,8 +438,10 @@ def _course_readout_html(course):
     """
     The course readout and legend above the map (NAV.20): what the two
     line styles are, the course's distance, bearing and mark, the warp
-    times, and the route's stops as links (the keyboard way to a hop; the
-    ringed hops on the map are clickable too).
+    times, the route's stops as links (the keyboard way to a hop; the
+    ringed hops on the map are clickable too) and, for a route with stops
+    on the way, the course diagram (`readout["diagram"]`, NAV.69), whose
+    stops and the map's rings select each other (`static/coursediagram.js`).
     """
     readout = course.get("readout") or {}
     has_hops = bool(course.get("direct"))
@@ -447,7 +449,7 @@ def _course_readout_html(course):
            + ("Route via adjacent systems" if has_hops else "Course (the direct line is the route)") + "</li>"]
     if has_hops:
         key.append('<li><span class="course-key-direct" aria-hidden="true"></span> Direct line</li>')
-    key.append('<li><span class="course-key-ring" aria-hidden="true"></span> Stop (click to open it)</li>')
+    key.append('<li><span class="course-key-ring" aria-hidden="true"></span> Stop (click to select it, click again to open it)</li>')
     rows = [("Distance", readout.get("distance")), ("Course", readout.get("course")),
             ("Frame", readout.get("frame")), ("Route length", readout.get("route_distance"))]
     rows += [(item["label"], item["text"]) for item in readout.get("times", [])]
@@ -458,6 +460,7 @@ def _course_readout_html(course):
         '<div class="course-readout"><ul class="course-key" aria-label="Legend">' + "".join(key) + "</ul>"
         + (f'<dl class="course-facts">{facts}</dl>' if facts else "")
         + (f'<ol class="course-stops" aria-label="Stops on the route">{stops}</ol>' if stops else "")
+        + (readout.get("diagram") or "")
         + "</div>"
     )
 

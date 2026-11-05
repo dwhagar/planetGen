@@ -582,7 +582,13 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   media query shows the one that fits, so a phone wraps a long route into rows while the text
   stays near its set size (12 px, drawn at 0.9 or more of it). Each stop is a link to its page
   (a stop in unknown space has none) and has a text alternative; the route list stays the
-  plain-text form. The link to the Galaxy Map (NAV.69) is drawn later.
+  plain-text form.
+  **Linked to the Galaxy Map (NAV.69).** The Galaxy Map's course readout carries the same diagram (stops with
+  no neighbour stubs removed, the link sentence added). A plain click on a stop of the diagram selects that
+  stop on the map's course (its ring is marked and the map flies to it) and marks it in all three drawings; a
+  click on a stop's ring on the map marks the same stop in the diagram; a second click on the selected stop,
+  or a click with Ctrl, Shift, Alt or Meta held, opens the stop's page. `static/coursediagram.js` holds the
+  diagram's side; the map's side is in `galaxymap3d.js`'s NAV course section.
   **Neighbours (NAV.68).** The NAV page asks for the route's graph (`graph=1`, NAV.65) and draws it
   faintly under the route: a short stub from a stop to each neighbour off the route (the graph caps them
   per stop), "and N more" over a stop where the cap cut some, and a dotted arc between two stops of one
