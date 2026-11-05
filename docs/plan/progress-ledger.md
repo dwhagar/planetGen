@@ -2436,3 +2436,5 @@ Baseline: PR #1817.
 | MAP.376 | 8.1 | Fly-through map |
 | PERF.237 | 8.2 | Robust tile caching |
 | PERF.234 | 8.2 | Robust tile caching |
+| GEN.1147 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DB.99 | 8.4 | Asteroid fields |
