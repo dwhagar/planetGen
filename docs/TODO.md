@@ -12807,43 +12807,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   decisions go away under GEN.1207.
   Prerequisites: none. Related: GEN.1142.
 
-- [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch**
-  Aux 2, GEN.1146 report
-  reports/ocean-fraction-physics-gen1146-2026-10-30.md (as the lane
-  reported, 1,000 systems): 16 percent of temperate air-bearing bodies
-  (36 of 223) have a 20 to 80 percent ocean, 48 percent under 20 and 35
-  percent over 80, a hole at 50 to 80. Causes: the cover law is steep in
-  the water (sqrt law, 20 to 80 percent over a factor of 16 in water
-  layer, full cover at about two Earth oceans) and the Bern water prior
-  is two-humped (46 percent hold under one Earth ocean, 43 percent over
-  ten, only the 1 to 10 ocean window, 11 percent, is Earth-like). Side
-  calculations: a two-level hypsometry [R0914] lifts 20
-  to 80 percent only from 24 to 26 percent, a late-delivery term for dry
-  bodies leaves it at 19 to 22, the mantle cap by mass changes nothing.
-  No physics lever makes Earth types common. Option 1 (Aux 2
-  recommends): replace the sqrt law with a two-level hypsometry plus the
-  mantle cap by mass (Guimond: 2 to 8 oceans) in one epoch, report the
-  share as a physics result, leave the Bern law alone. Option 2: add
-  late delivery for dry bodies. Option 3: change nothing. Do NOT build
-  until Boss picks. Lock work if built (epoch, golden, census). Where we
-  think it belongs (best guess, can move): Aux 2 with Aux 3, a later
-  train window.
-  Decided (Boss, 9:28 AM EDT 2026-10-31) (9:28 AM EDT 2026-10-31):
-  option 1, the recommended one: replace the square-root cover law with
-  a two-level hypsometry plus the mantle water cap by mass (2 to 8
-  oceans), in one epoch, report the share as a physics result, and leave
-  the Bern water prior alone. The BOSS DECIDES hold is lifted. Owner Aux
-  2 with Aux 3, a later train window. Lock work: epoch, golden, census
-  re-tag.
-  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
-  EDT): GEN.1147 is the biggest lever on how many bodies are class M,
-  because M needs 20 to 80 percent water cover (best-fit design,
-  GEN.1205). Boss chose option 1 earlier, so it is not blocked. After it
-  lands, GEN.1206 prints the temperate-ocean count per class (M against
-  O, V, F, G); read that count before GEN.1207 is built, and if both
-  want an epoch they may share one.
-  Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
-
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
   tests. Train 8 with belts, clearance and the region store. Report
@@ -15649,13 +15612,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   EDT): GEN.1207 adds class_match, runner_up_class and runner_up_match
   beside the stored letter. The reclassification step here must keep all
   of them true after an edit or a rebuild, not just the letter.
-
-- [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
-  One migration, one generator epoch and the column_units.py entries.
-  Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: none.
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
