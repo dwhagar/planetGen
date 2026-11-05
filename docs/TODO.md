@@ -18270,6 +18270,18 @@ clears each one.
   Version 8.1. Owner: Core 5. Filed by the TODO thread.
   Prerequisites: none. Related: DOC.97.
 
+- [ ] **TEST.587 Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug)**
+  Planets 1 (as the lane reported, 11:42 PM EST on 2026-11-04) found,
+  while building VIEW.41: test_backfill_block_path (the order test) and
+  test_galaxy_gen (the duplicate-address test) fail on plain main, with
+  no change of its own in play. Do: find the cause of each (a real
+  ordering or address bug in the generator is a GEN item and the fix is
+  not tests-only), repair, and keep the generation output unchanged
+  unless the bug is the cause. Done: both pass on plain main under the
+  narrow gate (scripts/test.py changed). Lock-free. Version 8.1. Owner:
+  Core 5, after TEST.586. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.586.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19919,24 +19931,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.29.
-
-- [ ] **VIEW.33 System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S15 of S1 to S22 in section 7. Do: draw the packed list
-  as one points object centred on the camera; the vertex shader moves
-  every star to its light-time position each frame from the orbit clock;
-  fade at the cut; a cap on phones. Done: a browser fixture test.
-  Proposed owner: Core 2. Lock-free, no migration. Boss decided at 5:29
-  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
-  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
-  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
-  the 9.1 item can reuse it); the limiting magnitude is a setting with
-  default 7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Owner (11:45 PM EST on 2026-11-04): Planets 1 (it built the packed
+  list and the sky tiers: VIEW.28, VIEW.29, VIEW.41). The endpoint also
+  carries the nebula and remnant sprite list (VIEW.28 data) beside the
+  packed stars, with the sprite wire format written in the wire-format
+  doc here, so Core 2 builds VIEW.34 to VIEW.36 on it. Its prerequisite
+  VIEW.29 is retired.
   Prerequisites: VIEW.29.
 
 - [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
@@ -19972,7 +19972,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.31, VIEW.33, VIEW.34.
+  Prerequisites: VIEW.31, VIEW.34.
 
 - [ ] **VIEW.36 System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20061,35 +20061,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.35.
-
-- [ ] **VIEW.41 System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer**
-  Planets 1 (as the lane reported, 8:44 PM EST on 2026-11-04), VIEW.19
-  report reports/system-sky-backfill-cost-2026-11-05.md (script in
-  #4969). (1) The backfill is paid by cells visited, not by stars: the
-  full luminosity side of a 7.5 magnitude sky is about 8e9 cell visits
-  (5.7 h warm, 32 h cold on one worker) for 9,100 stars, and a 6.5 sky
-  is 2.1e9 visits (1.4 h warm, 8 h cold) for 3,300 stars; the plan's
-  "under a minute" was off by three orders. Cutting at 1,000 solar
-  luminosities gives about half the luminosity stars for 22 minutes warm
-  at 7.5. (2) The charted-star ledger and the backfill ledger never
-  overlap (measured in both orders on 8,162 cells, agreement to 0.1
-  percent), so use both. (3) The luminosity backfill refuses floors
-  under 50 solar luminosities, so tiers under that can only be mass
-  rings, which draw about 140 stars for each one shown. (4) No backfill
-  makes stars born under 1 solar mass: 6 percent of a 7.5 sky, nearly
-  all inside 50 pc. (5) The model sky at the solar density is 5,300
-  stars at 6.5 and 15,500 at 7.5 (recalled real: 9,000 and 25,000). Do:
-  a coarser block draw for the sparse bright bands (draw a block's
-  bright stars from the block's own stats instead of visiting every
-  cell), and a ring under 1 solar mass near the observer, so a 7.5 sky
-  is built in minutes, not hours. VIEW.24 and VIEW.25 plan around a
-  luminosity cut or the 6.5 default and a queued tier job until this
-  lands. Done: a 7.5 sky builds in under 30 minutes cold with its star
-  count within 10 percent of the exact backfill, measured by the VIEW.19
-  script. Lock-free if it is a new reader; a lock item if the draw
-  changes what is stored. Version 8.2. Owner: Planets 1, after VIEW.24.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: VIEW.19, VIEW.24, VIEW.25.
 
 ## POP: Population and politics
 
