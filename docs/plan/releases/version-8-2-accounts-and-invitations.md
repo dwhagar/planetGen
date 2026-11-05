@@ -68,6 +68,14 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | USR.26 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
 | USR.7 | A user-level interface with bookmarks | USR.26 | Bookmarks of any object use NAV.7 references. |
 | UX.265 | Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu | USR.7 |  |
+| UX.275 | Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry |  |  |
+| UX.276 | Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels | UX.275 |  |
+| MAP.394 | Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel | UX.275, UX.276 |  |
+| MAP.395 | Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat | UX.275 |  |
+| MAP.396 | Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts | UX.275 |  |
+| TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | UX.276, MAP.394, MAP.395, MAP.396 |  |
+| DOC.107 | Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes | UX.276, MAP.394, MAP.395, MAP.396 |  |
+| UX.273 | Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views | UX.275, UX.276, MAP.394, MAP.395, MAP.396, TEST.629, DOC.107 |  |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in |  |  |
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss |  | Split from UX.43. |
 | UX.131 | Console tokens, type and base template in both themes | UX.130, UX.265 | Split from UX.43. |
