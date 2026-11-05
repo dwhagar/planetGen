@@ -14776,6 +14776,129 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.367, GEN.446, GEN.440, GEN.439,
   GEN.557, GEN.1267.
+  Sources 1 research done (as the lane reported) (8:45 PM EST on
+  2026-11-04): report reports/gen1268-nebula-composition-2026-11-05.md.
+  The build is split into GEN.1269 to GEN.1274 (parts a to f). This item
+  is the umbrella and is done when they are.
+
+- [ ] **GEN.1269 Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place)**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 2 and 3 of the report: one function from the
+  stored class, the place's [Fe/H] and gas density and the host star to
+  H, He and Z mass fractions, the ionized, atomic and molecular split,
+  dust-to-gas and dust-to-metals, the grain mix, and 12+log abundances
+  of C, N, O, Ne, S, Ar and Fe, derived at read time with no stored
+  column. Done: fractions sum to one, a metal-poor place gives a
+  metal-poor nebula, every class of the table has a row, and the
+  stand-ins are in GEN.725 with tier and tweak level. Lock-free. Version
+  8.1. Owner: Sources 1.
+  Prerequisites: none. Related: GEN.1268.
+
+- [ ] **GEN.1270 Nebula composition part b: planetary nebulae with the progenitor's ejecta and dredge-up enrichment**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 5: a planetary nebula's helium, carbon, nitrogen
+  and oxygen from its progenitor's mass (drawn from the object ID at
+  read time, one stream a later central star can read too) and its
+  dredge-up. Done: tests on the progenitor to ejecta relation and on
+  determinism. Lock-free. Version 8.1. Owner: Sources 2 after VIEW.23.
+  Prerequisites: GEN.1269. Related: GEN.1269.
+
+- [ ] **GEN.1271 Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 6: remnants of classes R to W take their ejecta
+  from the progenitor's yields (GEN.439 relations) and the swept-up
+  interstellar part from part a, shown as two columns. Done: tests on
+  the sum, on a core-collapse versus a Type Ia ejecta pattern, and the
+  Cas A check named in the report. Lock-free. Version 8.1. Owner:
+  Planets 1 after its queue.
+  Prerequisites: GEN.1269. Related: GEN.1269.
+
+- [ ] **GEN.1272 Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 8: the page lists the H, He and Z fractions, the
+  abundances, the gas phases, dust-to-gas and the grain mix, with units,
+  the remnant's ejecta and swept-up as two columns, and the Properties
+  sheet marks which values are derived. Done: a page test and a describe
+  test, plain-words and the wiring guard green. Lock-free. Version 8.1.
+  Owner: Core 5 after its stem view queue.
+  Prerequisites: GEN.1269. Related: GEN.1269.
+
+- [ ] **GEN.1273 Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 4: the Large and Small Magellanic Cloud gas
+  takes its own metallicity, drawn within the widest range of the two
+  methods in the cited paper (two sources in question: widest range),
+  hooked into part a, so the nebulae GEN.367 adds to the Clouds are
+  metal-poor. Done: a Cloud nebula is more metal-poor than one at the
+  solar circle, and the range is a GEN.725 row. Lock-free. Version 8.1.
+  Owner: with GEN.367's owner.
+  Prerequisites: GEN.1269, GEN.367. Related: GEN.1269, GEN.367.
+
+- [ ] **GEN.1274 Nebula composition part f: read the sources marked recalled and replace their stand-ins**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: open the sources the report marks "Recalled, not opened"
+  at the end of its Sources section (the star-formation efficiency, the
+  Type Ia yield tables, the grain-model paper, the Peimbert Type I
+  limits, the Crab and Cassiopeia A dust masses, and the warm neutral
+  and ionized medium fractions), add them to the citation registry with
+  scripts/build_references.py add, and replace their GEN.725 rows with
+  verified values. Done: no nebula composition row is marked recalled.
+  Lock-free. Version 8.1. Owner: Sources 1.
+  Prerequisites: none. Related: GEN.1269.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
