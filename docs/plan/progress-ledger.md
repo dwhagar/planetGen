@@ -2569,3 +2569,5 @@ Baseline: PR #1817.
 | UX.263 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.187 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.383 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| DB.40 | 8.9 | Parity data |
+| DB.41 | 8.9 | Parity data |
