@@ -59,9 +59,9 @@ Today: (new)
 Change: New headline (ADM.57), filed as 35 items in 5 phases with the design in docs/design/interface/edit-everything.md. Boss: the admin can move stars in a sector, change orbits in a system, change densities for a sector or region and regenerate any star to any specification; changing an A planet into an M planet makes the system work out how to rearrange the star system and show that generation plan for approval before anything changes. In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves, applies as one job and can undo. An admin approves their own plan, so an admin confirms rather than requests (Boss, 1:49 PM EDT); the plan states already include `requested` so the roles of 10.0 need no new plan table. Two pieces are shared with 8.9 and built here once (Boss, 1:33 PM EDT): the unit finalizer (ADM.82, also API.8) and the recipe schema (API.28, also API.18).
 Needs: The plan model, aspects and regions come first (phase 1); then the approval screen, locks, regen screens and density overrides (phase 2); then the editors that make plans and the rearranger (phase 3); then regeneration to a specification (phase 4); then the end-to-end tests, the help and the headline (phase 5). ADM.36 (edit orbits) comes from the orbital update foundations in 8.3 and ADM.52 (the planet editor) from earlier. The override journal has to keep regeneration, parity repair and the golden-seed tests (GEN.57, DB.9, DB.17 in 8.1 phase 1) working.
 
-## Release 8.7: The pilot's console and built-in help
+## Release 8.7: Full help for all pages
 Status: proposed Progress (12:34 PM EDT 2026-10-28): 0 of 18 items finished (0.0 percent), 18 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
-Headline: A built-in help section and the pilot's starmap look: every page explains itself and the interface reads like a navigation console
+Headline: Full help for all pages: every page explains itself, with the pilot's console look as the second feature (Boss, 5:40 PM EST on 2026-11-05; the version is still proposed)
 Today: (new)
 Change: The help pages (DOC.6 to DOC.16) and the console design (UX.43) have no headline today.
 Needs: The help pages describe what 8.1 to 8.6 built, so this version goes after them; DOC.6 (the template and coverage test) first.
@@ -73,9 +73,9 @@ Today: (new)
 Change: The nebula drawing items (MAP.176 to MAP.183), the cluster work and the "later" stellar phenomena have no headline today.
 Needs: The scatters of 8.1 (components, nebula stars, Wolf-Rayet, scattered nebulae in the index) and the nebula tiles and cover (MAP.173, MAP.174). MAP.194 (nebulae and clusters open their own zoom window) needs MAP.176.
 
-## Release 8.9: Generate anywhere
+## Release 8.9: Remote build
 Status: proposed Progress (12:34 PM EDT 2026-10-28): 4 of 35 items finished (11.4 percent), 31 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
-Headline: Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it
+Headline: Remote build: build a galaxy on a local machine, upload it through the API and have the server verify it (Boss named the headline, 5:40 PM EST on 2026-11-05; the version is still proposed)
 Today: (new)
 Change: The remote generation chain (API.3 and its parts) and recipes (API.18, API.19) have no headline today. Boss (1:33 PM EDT): 8.6 and this version are closely related, so what both need is built once in 8.6: the unit finalizer (ADM.82, used by API.8) and the recipe schema and runner (API.28, used by API.18); API.8 and API.18 here keep only the upload and route parts, and API.19 uses the region object of 8.6 (GEN.302). It depends only on the reproducibility items of 8.1 phase 1 and those 8.6 pieces, so it can move earlier if Boss wants it sooner. Also here (Boss, 11:26 PM EDT): the sky data and research of the view from a planet (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and the backups and repair chain (ADM.88 to ADM.91, DB.40 to DB.42, OPS.55, TEST.180, DOC.56), moved from 9.0 because none of it needs the atmosphere colour.
 Needs: GEN.57, GEN.135, OPS.28 and TEST.77 (reproducibility, 8.1 phase 1) first: remote generation must reproduce what the server makes (API.17). API.10, API.11 and API.12 are the base; API.19 needs API.18.

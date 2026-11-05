@@ -1,4 +1,4 @@
-# Version 8.7: The pilot's console and built-in help
+# Version 8.7: Full help for all pages
 
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
@@ -10,7 +10,7 @@ Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cor
 
 ## Goal
 
-A built-in help section and the pilot's starmap look. Proposed by the TODO thread; not yet approved by Boss.
+Boss (5:40 PM EST on 2026-11-05): the headline is full help for all pages; the pilot's console look (UX.43) stays in the version as its second feature, pending Boss's pick among three mockups. Proposed by the TODO thread; Boss has set the headline but not yet approved the version.
 
 ## Phase 1: Help and console look
 
