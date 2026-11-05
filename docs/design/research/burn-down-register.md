@@ -209,6 +209,15 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.180:SKD2 | no data | - | the grain of the glow is a seeded noise sized by eye; the Poisson variation of the stars under the limit in a cell would replace it |
 | 6.180:SKD4 | no data | - | the sprite glow ramp is chosen by eye, like the stars' own scale; the same display model as SKD1 would replace it |
 | 6.180:SKD5 | no data | - | the stored model ties no orbital plane to the galactic frame, so the Milky Way's plane is drawn in the plane of the orbits; a stored orientation of each system would replace it |
+| 6.181:SKL1 | no data | - | the peak magnitude of the star look is chosen by eye so the faint end shows and the bright end does not clip; a display model of the eye's response fitted to the dark-adapted sky would replace it |
+| 6.181:SKL2 | no data | - | the width of a drawn star and its growth per magnitude are chosen by eye so a bright star looks brighter on a monitor that cannot make it so; the eye's point-spread function would replace them |
+| 6.181:SKL3 | no data | - | the colour a faint star keeps is chosen by eye; the eye's loss of colour vision at low light (the display model of SKL1) would replace it |
+| 6.181:SKL4 | no data | - | the phone's limiting magnitude is set from the plan's count of about 9,000 stars in step with the 15,000 cap; the frame time a phone measures would replace it |
+| 6.181:SKL5 | no data | - | the star caps are the plan's phone count and a laptop's frame time at 60 frames a second; the count the frame time of the page's own machine allows would replace them |
+| 6.181:SKL6 | no data | - | the speed that takes a third light-time pass is where the residual of two passes reaches a pixel of the finest view; no measured star needs a lower one |
+| 6.181:SKL7 | no data | - | the pick reach is chosen so a pixel-sized star can be hit by a mouse; a reach set by the pointer's kind (mouse, pen, touch) would replace it |
+| 6.181:SKL8 | no data | - | the cap on charted names bounds the size of the route's meta; a name carried in the packed list or looked up on a pick would remove the need for it |
+| 6.181:SKL9 | no data | - | the poll interval, poll count and phone width are serving limits so a poll does not hammer the route and ends; the build's own notice of completion would replace the poll |
 | 6.178:PNE5 | no data | - | the hot-bottom-burning carbon to nitrogen share is set so a 5 solar mass progenitor is Type I; no source gives the surface abundances of hot-bottom-burning models by mass and metallicity |
 | 6.178:PNE7 | no data | - | a safety limit that ends the carbon-rich draw loop; no draw is refused at solar metallicity |
 | 6.179:NBC6 | no data | - | the grain kinds and their shares are recalled from Milky Way dust models (Draine and Li, Zubko et al.) and fitted inside the metals; no measured dust composition by nebula class is in hand |
