@@ -39,9 +39,8 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | VIEW.35 |  |
 | VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | VIEW.35 |  |
 | VIEW.36 | System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points |  |  |
-| VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | VIEW.31, VIEW.34 |  |
-| VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | VIEW.31 |  |
-| VIEW.31 | System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit= |  |  |
+| VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | VIEW.34 |  |
+| VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain |  |  |
 | VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | VIEW.25 |  |
 | VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) | VIEW.25 |  |
 | VIEW.25 | System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill | VIEW.19 |  |

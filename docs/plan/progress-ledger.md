@@ -2486,3 +2486,4 @@ Baseline: PR #1817.
 | MAP.142 | 8.1 | Nebula data foundations |
 | VIEW.33 | 8.2 | Bookmarks |
 | VIEW.41 | 8.2 | Bookmarks |
+| VIEW.31 | 8.2 | Bookmarks |
