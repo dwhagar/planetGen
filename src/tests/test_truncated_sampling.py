@@ -33,21 +33,21 @@ def test_the_thermal_eccentricity_cut_at_a_limit_is_the_conditional_law():
     assert builder.eccentricity("star", 2.0, 0.05, True, 0.3) == 0.0       # a pair under a week stays circular
 
 
-def test_the_room_limit_follows_the_pericentre_the_budget_and_the_stability():
+def test_the_room_limit_follows_the_pericenter_the_budget_and_the_stability():
     builder = _builder()
     assert builder._eccentricity_limit(1.0, 0.4, math.inf, None) == pytest.approx(0.6)
-    assert builder._eccentricity_limit(1.0, 0.4, 1.3, None) == pytest.approx(0.3)           # apocentre at most 1.3 AU
-    assert builder._eccentricity_limit(1.0, 1.5, math.inf, None) < 0.0                      # the pericentre floor is past the axis
+    assert builder._eccentricity_limit(1.0, 0.4, 1.3, None) == pytest.approx(0.3)           # apocenter at most 1.3 AU
+    assert builder._eccentricity_limit(1.0, 1.5, math.inf, None) < 0.0                      # the pericenter floor is past the axis
     assert builder._eccentricity_limit(1.0, 0.4, math.inf, lambda e: e <= 0.25) == pytest.approx(0.25, abs=1.0e-6)
     assert builder._eccentricity_limit(1.0, 0.4, math.inf, lambda e: False) == -1.0
 
 
-def test_the_apocentre_budget_is_the_extent_a_node_may_have():
+def test_the_apocenter_budget_is_the_extent_a_node_may_have():
     builder = _builder()
     low, high = single_side(1.0, 0.01), single_side(0.25, 0.004)
-    limit = builder._apocentre_limit_au(0.5, low, high)
+    limit = builder._apocenter_limit_au(0.5, low, high)
     assert multistar.node_extent_au(limit, 0.0, low, high) == pytest.approx(0.5)
-    assert builder._apocentre_limit_au(math.inf, low, high) == math.inf
+    assert builder._apocenter_limit_au(math.inf, low, high) == math.inf
 
 
 @pytest.mark.parametrize("count", [2, 3, 4, 5, 6])

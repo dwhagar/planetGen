@@ -303,7 +303,7 @@ def test_only_a_planet_with_a_surface_ocean_can_have_a_mobile_lid():
     assert magnetism.mobile_lid_chance(earth, 1.0) == magnetism.MOBILE_LID_CHANCE
     assert magnetism.mobile_lid_chance(earth, 8.0) == magnetism.MOBILE_LID_HEAVY_CHANCE
     assert magnetism.mobile_lid_chance(earth, 0.3) == 0.0
-    for state in ("dry", "vapour", "ice", "ice-covered ocean", "hycean", None):
+    for state in ("dry", "vapor", "ice", "ice-covered ocean", "hycean", None):
         venus = _body(0.8, 5.24, 24.0)
         venus.hydrosphere = state
         assert magnetism.mobile_lid_chance(venus, 0.8) == 0.0
@@ -362,7 +362,7 @@ def test_induction_needs_an_ocean_a_field_and_a_changing_field():
     magnetism.generate_induced_field(europa, parent)
     assert europa.induced_moment_a_m2 == 0.0
     parent.rotation_period_hours = 9.925
-    for state in ("dry", "ice", "vapour"):
+    for state in ("dry", "ice", "vapor"):
         europa.hydrosphere = state
         magnetism.generate_induced_field(europa, parent)
         assert europa.induced_moment_a_m2 == 0.0

@@ -48,7 +48,7 @@ Radii: T bodies add by volume; a giant's follows `planets.giant_radius_km` (so d
 remnants have `radius_m = None` in the outcome: the generator that makes the product works it out.
 
 Conservation: `conservation_error` gives the relative mass and momentum error of an outcome, the gas a giant lost counted
-at the pair's centre-of-mass velocity.
+at the pair's center-of-mass velocity.
 """
 
 import dataclasses
@@ -89,7 +89,7 @@ straight from 0.5 to 0.1 (a stand-in, the source gives no value there)."""
 class Body:
     """
     One body at the impact. `position_m` and `velocity_ms` are in the galactic axes (any common origin; only differences
-    and the centre of mass use them), `composition` is `stony`, `carbonaceous` or `icy`, `metallicity_z` the mass share of
+    and the center of mass use them), `composition` is `stony`, `carbonaceous` or `icy`, `metallicity_z` the mass share of
     metals the fusion limits read, and `key` an orderable name (the object ID).
     """
 
@@ -120,7 +120,7 @@ class Survivor:
 
 @dataclasses.dataclass(frozen=True)
 class Debris:
-    """The asteroid field an event makes: its mass, centre-of-mass position and velocity, starting radius (`R1 + R2`),
+    """The asteroid field an event makes: its mass, center-of-mass position and velocity, starting radius (`R1 + R2`),
     composition (`mixed` when the parents differ) and the mass of its largest fragment (`hero_mass_kg`, 0 for none)."""
 
     mass_kg: float
@@ -213,7 +213,7 @@ def _field_composition(a, b):
     return a.composition if a.composition == b.composition else "mixed"
 
 
-def _centre(a, b):
+def _center(a, b):
     return _weighted(a.mass_kg, a.position_m, b.mass_kg, b.position_m)
 
 
@@ -305,7 +305,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
         q_r = q_star = x = 0.0
     numbers = {"v_inf": v_inf, "v_esc": v_esc, "v_imp": v_imp, "q_r": q_r, "q_star": q_star, "x": x, "b": sine,
                "b_crit": b_crit, "lens_fraction": lens, "total_mass_kg": m_total}
-    centre, v_com = _centre(a, b), _velocity(a, b)
+    center, v_com = _center(a, b), _velocity(a, b)
     flags, records = [], []
 
     def finish(code, survivors, destroyed, debris=None, lost=0.0, extra=()):
@@ -315,7 +315,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
     def merged_into_larger(mass_kg, radius_m, kind=None, composition=None, extra=()):
         keeper = target
         gone = projectile.key
-        return _survivor(keeper, mass_kg, radius_m, centre, v_com, extra, kind, composition), gone
+        return _survivor(keeper, mass_kg, radius_m, center, v_com, extra, kind, composition), gone
 
     kinds = {a.kind, b.kind}
     compact = [body for body in (a, b) if body.kind == "X"]
@@ -325,7 +325,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
     if len(compact) == 1 and lighter[0].kind in ("T", "G", "B"):
         x_body, other = compact[0], lighter[0]
         inside = impact_parameter_m <= _roche(x_body, other)
-        survivor = _survivor(x_body, m_total, None, centre, v_com, ("accreted",), composition=x_body.composition)
+        survivor = _survivor(x_body, m_total, None, center, v_com, ("accreted",), composition=x_body.composition)
         return finish("tidal_disruption" if inside else "absorbed", [survivor], [other.key])
 
     if kinds & {"S", "X"}:
@@ -335,7 +335,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
         big = target if target.kind in ("S", "X") else projectile
         small = projectile if big is target else target
         extra = ("transient",) if big.kind == "S" else ()
-        survivor = _survivor(big, m_total, None, centre, v_com, extra)
+        survivor = _survivor(big, m_total, None, center, v_com, extra)
         return finish("absorbed", [survivor], [small.key])
 
     # --- Gas giants and brown dwarfs ---------------------------------------------------------------------------------
@@ -343,13 +343,13 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
         if "T" in kinds:
             giant = a if a.kind != "T" else b
             small = b if giant is a else a
-            new = _survivor(giant, m_total, _giant_radius_m(m_total), centre, v_com)
+            new = _survivor(giant, m_total, _giant_radius_m(m_total), center, v_com)
             new = _fusion(new, giant.metallicity_z, (giant,), flags, records)
             return finish("absorbed", [new], [small.key])
         loss = min(max(q_r / (2.0 * q_star), tuning.GIANT_MERGER_LOSS_RANGE[0]), tuning.GIANT_MERGER_LOSS_RANGE[1])
         new_mass = (1.0 - loss) * m_total
         z = (a.mass_kg * a.metallicity_z + b.mass_kg * b.metallicity_z) / m_total
-        new = _survivor(target, new_mass, _giant_radius_m(new_mass), centre, v_com,
+        new = _survivor(target, new_mass, _giant_radius_m(new_mass), center, v_com,
                         ("rapidly rotating", "inflated", "hot"))
         new = _fusion(new, z, (a, b), flags, records)
         return finish("giant_merger", [new], [projectile.key], lost=loss * m_total)
@@ -358,7 +358,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
     composition = _field_composition(a, b)
     merged_radius = _volume_radius(a.radius_m, b.radius_m)
     if destroy:
-        debris = Debris(m_total, centre, v_com, r_sum, composition, 0.0)
+        debris = Debris(m_total, center, v_com, r_sum, composition, 0.0)
         return finish("disruption", [], [a.key, b.key], debris)
     if (not grazing and x < tuning.COLLISION_EROSION_X) or v_imp < tuning.COLLISION_MERGE_SPEED_RATIO * v_esc:
         survivor, gone = merged_into_larger(m_total, merged_radius, composition=composition)
@@ -368,7 +368,7 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
         return finish("graze_and_merge", [survivor], [gone])
     if x >= 1.0:
         remnant = largest_remnant_fraction(x) * m_total
-        debris = Debris(m_total, centre, v_com, r_sum, composition, remnant)
+        debris = Debris(m_total, center, v_com, r_sum, composition, remnant)
         return finish("disruption", [], [a.key, b.key], debris)
     if grazing:
         eroded = x / 2.0 * 2.0 * m_proj
@@ -389,13 +389,13 @@ def resolve(a, b, impact_parameter_m, window_start_unix, always_destroy_terrestr
     remnant = largest_remnant_fraction(x) * m_total
     radius = merged_radius * (remnant / m_total) ** (1.0 / 3.0)
     survivor, gone = merged_into_larger(remnant, radius, composition=composition)
-    return finish("erosion", [survivor], [gone], Debris(m_total - remnant, centre, v_com, r_sum, composition, 0.0))
+    return finish("erosion", [survivor], [gone], Debris(m_total - remnant, center, v_com, r_sum, composition, 0.0))
 
 
 def conservation_error(a, b, outcome):
     """
     The relative error of an outcome's mass and momentum: `(mass, momentum)`, the survivors, the debris and the gas a
-    giant lost (carried at the pair's centre-of-mass velocity, as the hit-and-run strip is at the bodies' own) against the
+    giant lost (carried at the pair's center-of-mass velocity, as the hit-and-run strip is at the bodies' own) against the
     two parents. A hit-and-run's small unfielded strip is counted in `lost_mass_kg` at the mean of its parents' velocity.
     """
     parents = (a, b)

@@ -175,7 +175,7 @@ def test_a_different_request_gets_a_job_of_its_own(slow):
 
 # --- The answer, the status, the invalidation ----------------------------------------------------------
 
-def _wait_for(job_id, app, states=("succeeded", "failed", "cancelled"), seconds=180):
+def _wait_for(job_id, app, states=("succeeded", "failed", "canceled"), seconds=180):
     client = app.test_client()
     deadline = time.monotonic() + seconds
     while time.monotonic() < deadline:
@@ -273,8 +273,8 @@ def test_a_cancel_before_a_worker_takes_the_job_removes_it(slow):
     db = slow.config.database
     target = f"/phenomena?db={db}"
     job = pagejobs.ensure(db, target, 10, 1.0, slow.config)
-    assert pagejobs.cancel(job["id"])["state"] == "cancelled"
-    assert pagejobs.ensure(db, target, 10, 1.0, slow.config)["state"] == "cancelled"        # shown for a moment
+    assert pagejobs.cancel(job["id"])["state"] == "canceled"
+    assert pagejobs.ensure(db, target, 10, 1.0, slow.config)["state"] == "canceled"        # shown for a moment
     assert pagejobs.ensure(db, target, 10, 1.0, slow.config, retry=True)["id"] != job["id"]
     assert pagejobs.cancel("0123456789abcdef") is None
 
@@ -283,8 +283,8 @@ def test_a_job_whose_cancel_arrives_before_its_query_builds_nothing(slow):
     db = slow.config.database
     target = f"/phenomena?db={db}"
     job = pagejobs.ensure(db, target, 10, 1.0, slow.config)
-    redisclient.client(decode_responses=True).hset(pagejobs.meta_key(job["id"]), "cancelled", "1")
-    assert pagejobs.build_answer(db, target, job["id"], slow.config) == {"cancelled": True}
+    redisclient.client(decode_responses=True).hset(pagejobs.meta_key(job["id"]), "canceled", "1")
+    assert pagejobs.build_answer(db, target, job["id"], slow.config) == {"canceled": True}
     assert not redisclient.client().exists(pagecache.shared_key(db, target))
     assert slowpages.take_notice() is None
 

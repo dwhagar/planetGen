@@ -73,7 +73,7 @@ def test_a_high_mass_compact_companion_accretes_at_the_knob_and_is_a_be_xray_bin
     be_share = RATES["high-mass-xray-binary"].by_class["be_xray_share"]
     young = 1.0e7
     assert multistar.draw_accreting_compact("high-mass-xray-binary", knob + 1e-9, 0.0, young) is None
-    assert multistar.draw_accreting_compact("high-mass-xray-binary", knob - 1e-9, be_share - 1e-9, young) == "disc"
+    assert multistar.draw_accreting_compact("high-mass-xray-binary", knob - 1e-9, be_share - 1e-9, young) == "disk"
     assert multistar.draw_accreting_compact("high-mass-xray-binary", knob - 1e-9, be_share + 1e-9, young) == "wind"
 
 
@@ -135,7 +135,7 @@ def test_the_recycled_pulsar_classes_are_the_rows_shares():
 def test_the_flag_bits_fit_their_columns_and_do_not_collide():
     bits = list(multistar.MEMBER_FLAGS.values())
     assert len(set(bits)) == len(bits) and max(bits) < 2 ** 16
-    nodes = [multistar.NODE_INTERACTED, multistar.NODE_KL_ACTIVE, multistar.NODE_WIND_FED, multistar.NODE_DISC_FED]
+    nodes = [multistar.NODE_INTERACTED, multistar.NODE_KL_ACTIVE, multistar.NODE_WIND_FED, multistar.NODE_DISK_FED]
     assert len(set(nodes)) == len(nodes) and max(nodes) < 2 ** 8
 
 
@@ -229,7 +229,7 @@ def test_a_low_mass_x_ray_binary_has_a_main_sequence_donor_on_a_period_of_hours(
                 assert donor.kind == "main-sequence" and donor.mass_solar <= tuning.LOW_MASS_XRAY_DONOR_MASS_RANGE_SOL[1]
                 low, high = tuning.LOW_MASS_XRAY_PERIOD_DAYS
                 assert low * 0.99 <= _days(node) <= high * 1.01
-                assert not node.flags & (multistar.NODE_WIND_FED | multistar.NODE_DISC_FED)
+                assert not node.flags & (multistar.NODE_WIND_FED | multistar.NODE_DISK_FED)
 
 
 def test_microquasars_are_the_share_of_accreting_neutron_stars_and_black_holes_and_only_those(massive_star_trees, low_mass_trees):

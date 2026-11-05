@@ -35,7 +35,9 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
+from planetgen.api import system_sky
 from planetgen.describe.sheet import sheet as object_sheet
+from planetgen.web.lib import skypack
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
@@ -67,9 +69,11 @@ from planetgen.db.query import (
     is_capped,
     count_systems,
     galaxy_changes,
+    galaxy_content_state,
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    galaxy_tile_stamp,
     sectors_made,
     galaxy_locate,
     galaxy_stage,
@@ -663,6 +667,49 @@ def system_scene(system_id):
     return jsonify(scene)
 
 
+@bp.route("/systems/<uid:system_id>/sky")
+def system_sky_route(system_id):
+    """
+    `GET /api/systems/<id>/sky?limit=` -- the sky the system sees (VIEW.31, `api/system_sky.py`): the stars brighter than the limiting magnitude `limit`
+    (2 to 9, default 7.5) from the stored stars, packed (`web/lib/skypack.py`), with the nebulae and supernova remnants beside them and the report of how
+    much of the sky is built. Answers `{"system", "limit", "epoch_unix", "version_key", "count", "sprites", "report", "seconds", "format": "PGK1",
+    "data"}`: `data` is the base64 of the packed list, whose `meta` holds the sprites and the report too. The web layer caches the bytes by `version_key`
+    (`/system/<id>/sky`, `web/lib/skycache.py`). A limit out of range is a 400, a system with no place in the galaxy a 404.
+    """
+    try:
+        limit = skypack.check_limit(request.args.get("limit"))
+    except skypack.SkyLimitError as exc:
+        raise ApiError(str(exc))
+    conn = get_db()
+    try:
+        built = system_sky.build_system_sky(conn, system_id, limit, tile_stamp=galaxy_tile_stamp(galaxy_content_state(conn)))
+    except system_sky.SkyError as exc:
+        return jsonify({"error": str(exc)}), 404
+    packed = built.pop("packed")
+    return jsonify({**built, "format": "PGK1", "data": base64.b64encode(packed).decode("ascii")})
+
+
+@bp.route("/systems/<uid:system_id>/sky/band")
+def system_sky_band_route(system_id):
+    """
+    `GET /api/systems/<id>/sky/band?limit=` -- the glow image of the system's sky (VIEW.13 light version, `galaxy/sky_band.py`): the light of the stars
+    dimmer than the limiting magnitude `limit` (2 to 9, default 7.5), ray-marched through the model galaxy's density with its dust, for the 50 parsec cell
+    of the system, as the equirectangular image `static/skyband.js` samples. Answers `{"key", "limit", "cell", "width", "height", "format": "rgb16f",
+    "seconds", "data"}`, `data` the base64 of the half floats (see `docs/design/interface/system-sky-wire-format.md` section 3.2). A limit out of range is a
+    400, a system with no place in the galaxy a 404.
+    """
+    try:
+        limit = skypack.check_limit(request.args.get("limit"))
+    except skypack.SkyLimitError as exc:
+        raise ApiError(str(exc))
+    try:
+        built = system_sky.build_system_band(get_db(), system_id, limit)
+    except system_sky.SkyError as exc:
+        return jsonify({"error": str(exc)}), 404
+    data = built.pop("data")
+    return jsonify({**built, "data": base64.b64encode(data).decode("ascii")})
+
+
 @bp.route("/systems/<uid:system_id>/description")
 def system_description(system_id):
     """
@@ -973,20 +1020,24 @@ def nav():
     object reference (`?from=planet:7&to=nebula:2`; a bare number is a
     system) -- see `db.query.nav_course` for the legs and
     `db.query.nav_between` for the availability rules, and docs/reference/api.md for
-    the response shape.
+    the response shape. `graph=1` adds `route.graph` (NAV.65): the links round the route, for the
+    schematic route map. `adjusted=1` adds `adjusted` (NAV.6): the direct course bent around the keep-out spheres
+    it crosses, and an `adjusted` for each hop of the route with the route's `adjusted_distance_ly` and times.
     """
     from_ref = _nav_ref_param(request.args, "from")
     to_ref = _nav_ref_param(request.args, "to")
 
     stay_minutes = _nav_stay_param(request.args)
+    with_graph = request.args.get("graph", "") in ("1", "true", "yes", "on")
+    with_adjusted = request.args.get("adjusted", "") in ("1", "true", "yes", "on")
     try:
-        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes)
+        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph, adjusted=with_adjusted)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify({
+    body = {
         "scope": result["scope"],
         "origin": result["origin"],
         "destination": result["destination"],
@@ -1002,7 +1053,10 @@ def nav():
             "fold_times": [t._asdict() for t in leg["fold_times"]],
         } for leg in result["legs"]],
         "note": result["note"],
-    })
+    }
+    if "adjusted" in result:   # NAV.6: asked for with `adjusted=1`; the route's and each hop's own are inside `route`
+        body["adjusted"] = result["adjusted"]
+    return jsonify(body)
 
 
 @bp.route("/nav/chart")
@@ -1046,7 +1100,7 @@ def _route_for_json(route):
     """
     if route is None:
         return None
-    return {
+    shown = {
         "path": route["path"],
         "distance_ly": route["distance_ly"],
         "positions": {str(node_id): position for node_id, position in route["positions"].items()},
@@ -1058,6 +1112,14 @@ def _route_for_json(route):
         "warp_times": [leg._asdict() for leg in route["warp_times"]],
         "fold_times": [leg._asdict() for leg in route["fold_times"]],
     }
+    if "adjusted_distance_ly" in route:   # NAV.6: asked for with `adjusted=1`
+        shown["adjusted_distance_ly"] = route["adjusted_distance_ly"]
+    for key in ("adjusted_warp_times", "adjusted_fold_times"):
+        if key in route:
+            shown[key] = [leg._asdict() for leg in route[key]]
+    if "graph" in route:   # NAV.65: asked for with `graph=1`; a stop's key in `more` is a string like the keys of `positions`
+        shown["graph"] = {**route["graph"], "more": {str(node_id): count for node_id, count in route["graph"]["more"].items()}}
+    return shown
 
 
 @bp.route("/galaxy/sectors")
@@ -1157,8 +1219,8 @@ def region_of(conn, position_pc):
 
 def superbubble_of(conn, detail):
     """
-    The superbubble a placed sector's centre lies in (`sector_detail`'s `superbubble`), or `None`:
-    `{"radius_pc", "ambient_density_cm3", "temperature_k", "centre_distance_pc"}`.
+    The superbubble a placed sector's center lies in (`sector_detail`'s `superbubble`), or `None`:
+    `{"radius_pc", "ambient_density_cm3", "temperature_k", "center_distance_pc"}`.
     """
     skeleton = get_galaxy_shape(conn)
     if skeleton is None or skeleton.galaxy_seed is None or not detail.get("placed"):
@@ -1169,7 +1231,7 @@ def superbubble_of(conn, detail):
         return None
     return {"radius_pc": round(bubble.radius_pc, 1), "ambient_density_cm3": float("%.3g" % bubble.ambient_density_cm3),
             "temperature_k": bubble.temperature_k,
-            "centre_distance_pc": round(detmath.dist(bubble.center_pc, center), 1)}
+            "center_distance_pc": round(detmath.dist(bubble.center_pc, center), 1)}
 
 
 def scatter_tier_of(conn, detail):
@@ -1334,7 +1396,7 @@ def galaxy_nodes_route():
 def galaxy_nebula_volume_route():
     """
     The points that draw the nebulae of one Galaxy Map node (MAP.365): `?key=<m.shell.band.wedge>`. Answers `{"key", "format",
-    "level", "count", "data"}`: `data` is the base64 of the packed volume (`galaxy.nebula_volume.pack`: the nebulae whose centre lies
+    "level", "count", "data"}`: `data` is the base64 of the packed volume (`galaxy.nebula_volume.pack`: the nebulae whose center lies
     in the block, sampled on an absolute lattice from the model's gas and star-forming density). Nothing is stored; a block with no
     nebula answers `count` 0. A malformed key is a 400.
     """
@@ -1411,7 +1473,7 @@ def galaxy_nebula_cover_route():
 def galaxy_charted_regions_route():
     """
     `{"regions": [...], "edge_pc"}` -- every charted region (a 9-block holding a generated sector, `region_stats`), by share
-    charted, each with its node key, the centre and radius of its extent in parsecs, its sector count and capacity, its
+    charted, each with its node key, the center and radius of its extent in parsecs, its sector count and capacity, its
     `share` (0 to 1) and, with a naming key in force, its `name` and `parent`, and its `population` once head counts are stored
     (absent before, MAP.318) -- see `db.region_stats.charted_regions`.
     Read by the Galaxy Map (MAP.316) for the regions it draws at galactic scale and its charted-regions list.
@@ -1497,6 +1559,19 @@ def uncharted_systems():
     })
 
 
+def _object_list_sector(raw_sector_id):
+    """The sector row an object list is limited to, from the `sector_id` query parameter (a sector ID), `None` when
+    absent; 0 (no sector has it) for a sector that is not there."""
+    if not raw_sector_id:
+        return None
+    try:
+        ids.parse(ids.SECTOR, raw_sector_id)
+    except ids.IdError:
+        raise ApiError(f"sector_id must be a sector ID, got {raw_sector_id!r}")
+    found = ids.row_id(get_db(), ids.SECTOR, raw_sector_id)
+    return 0 if found is None else found
+
+
 @bp.route("/object-lists/<kind>")
 def object_list(kind):
     """
@@ -1514,14 +1589,14 @@ def object_list(kind):
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
     `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
-    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a number.
+    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])
     try:
         limit = int(request.args.get("limit") or objectlist.DEFAULT_LIMIT)
-        sector_id = int(request.args["sector_id"]) if request.args.get("sector_id") else None
     except ValueError:
-        raise ApiError("limit and sector_id must be whole numbers")
+        raise ApiError("limit must be a whole number")
+    sector_id = _object_list_sector(request.args.get("sector_id"))
     try:
         ranges = search_values.ranges_from_args(request.args).get(kind) if kind in objectlist.VALUE_KINDS else None
         page = objectlist.list_objects(
@@ -1723,7 +1798,7 @@ def containers_list():
 def containers_at():
     """
     `GET /api/containers/at?x=&y=&z=[&kind=]` -- the containers holding a galaxy-frame point (parsecs), deepest first,
-    each with `depth` (distance from its centre over its extent) and `distance_pc`. 400 for a missing coordinate or
+    each with `depth` (distance from its center over its extent) and `distance_pc`. 400 for a missing coordinate or
     another kind.
     """
     try:
@@ -1912,7 +1987,7 @@ def nebula_surroundings_route(nebula_id):
     """
     The brightest stars round one nebula (MAP.105): `{"radius_pc",
     "half_width_pc", "stars": [{"x", "y", "z" (parsecs from the nebula's
-    centre), "luminosity_sol", "temperature_k"}]}`, the most luminous first.
+    center), "luminosity_sol", "temperature_k"}]}`, the most luminous first.
     A 404 for an unknown nebula.
     """
     try:
@@ -2328,8 +2403,8 @@ def table_estimates_route():
 @bp.route("/page-jobs/<job_id>")
 def page_job_status_route(job_id):
     """`GET /api/page-jobs/<id>` -- where the job building a slow page's answer stands (PERF.105): `state`
-    (`queued`, `running`, `succeeded`, `failed` or `cancelled`), `done` of `total` rows (an estimate: `estimated`
-    is true), `unit`, `eta_seconds`, `seconds`, `error`, `cancelling`, `cache_key` and `target`. Public, like the
+    (`queued`, `running`, `succeeded`, `failed` or `canceled`), `done` of `total` rows (an estimate: `estimated`
+    is true), `unit`, `eta_seconds`, `seconds`, `error`, `canceling`, `cache_key` and `target`. Public, like the
     pages it serves; it names only page jobs, never the admin's other jobs. 404 for an unknown or expired id
     (a job is kept an hour); 503 without Redis."""
     try:

@@ -4,12 +4,12 @@
 Clathrate hydrates and eutectic brines (GEN.471, docs/design/body-composition-parts/C-volatile-and-giants.md and G4-ices-brines-licences.md)
 ===========================================================================================================================================
 
-Two things keep an icy crust or an ocean moon's water in a form other than ice and vapour:
+Two things keep an icy crust or an ocean moon's water in a form other than ice and vapor:
 
 * **Clathrate hydrates** hold CO, CO2, CH4, H2S and N2 in cages of water ice (and NH3 as a monohydrate) and buffer an atmosphere's
   supply of those gases. A hydrate is stable above its dissociation pressure `ln P(Pa) = A0 + A1 / T` ([R2865: Table 5],
   from [R1925]), with a hydrate number of 6 for all. The curve is the equilibrium of
-  vapour, ice and hydrate: it holds below the freezing point of water, and for CO2 below its quadruple point Q1 (271.60 K, 1.044 [R4015]), above which liquid water takes the place of ice. The second quadruple point (283.13 K, 4.494 MPa) is the
+  vapor, ice and hydrate: it holds below the freezing point of water, and for CO2 below its quadruple point Q1 (271.60 K, 1.044 [R4015]), above which liquid water takes the place of ice. The second quadruple point (283.13 K, 4.494 MPa) is the
   limit of the hydrate itself and is outside what this module covers (`OutOfRange`).
 * **Eutectic brines** keep water liquid below 273.15 K: a salt lowers the freezing point of the solution down to its eutectic
   temperature at the eutectic composition. The perchlorates of NaClO4, Mg(ClO4)2 and Ca(ClO4)2 reach 236, 206 and 198 K. Authors differ by 1 to 7 K, so a
@@ -95,7 +95,7 @@ def structure(species):
 
 
 def upper_temperature_k(species):
-    """The highest temperature of the ice-hydrate-vapour curve: the freezing point of water, or the quadruple point Q1 for CO2."""
+    """The highest temperature of the ice-hydrate-vapor curve: the freezing point of water, or the quadruple point Q1 for CO2."""
     return _clathrate(species).get("upper_k", ICE_POINT_K)
 
 

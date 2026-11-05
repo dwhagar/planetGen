@@ -7,9 +7,9 @@ What a captured small body is made of, and why a family's members differ (GEN.10
 A body captured by a planet is a body of the reservoir it came from, so it is made of what that reservoir was made of **at the distance it came from**, not of a mix chosen for moons. This module asks the taxon kernel
 (`taxon_kernel.kernel_at_distance`, GEN.473, through `belt_member.member`, GEN.1067) at the source, and then takes away what capture takes away:
 
-1. **The source.** The window that brought the body says where it came from (`source_annulus`). An **encounter** or **exchange** capture takes it from the outer planetesimal disc the instability stirred up, whose limits the
-   architecture gives (`irregular_population` draws the count; the disc of the system is the caller's). A **gas-era** capture takes it from the planet's own neighbourhood, the feeding zone `FEEDING_ZONE_HILL_RADII` Hill radii
-   either side of its orbit, because the gas that slows a body is only dense near the planet. The body's place in the annulus follows the disc's solids, `a^-SURFACE_DENSITY_SLOPE` (`belt_history`), so a little more of the mass
+1. **The source.** The window that brought the body says where it came from (`source_annulus`). An **encounter** or **exchange** capture takes it from the outer planetesimal disk the instability stirred up, whose limits the
+   architecture gives (`irregular_population` draws the count; the disk of the system is the caller's). A **gas-era** capture takes it from the planet's own neighbourhood, the feeding zone `FEEDING_ZONE_HILL_RADII` Hill radii
+   either side of its orbit, because the gas that slows a body is only dense near the planet. The body's place in the annulus follows the disk's solids, `a^-SURFACE_DENSITY_SLOPE` (`belt_history`), so a little more of the mass
    is near the inner edge (the mass up to `a` goes as `a^0.5`; `draw_source_distance`).
 2. **The taxon and the grains** are `belt_member.member` at that distance and the body's mass: the dry, hydrated, primitive or ice-rich family from the temperature there, the differentiated taxa only if the star's aluminium-26 allowed
    them, the density from the compaction taper or the family's porosity. At 5 AU round a Sun-like star the kernel gives the primitive and ice-rich taxa (P and D); at 2.5 AU a mix with carbonaceous and rocky ones.
@@ -87,14 +87,14 @@ class Parent:
 
 
 @finite_domain()
-def source_annulus(window, planet_distance_au, planet_mass_kg, star_mass_kg, disc_inner_au, disc_outer_au):
+def source_annulus(window, planet_distance_au, planet_mass_kg, star_mass_kg, disk_inner_au, disk_outer_au):
     """
-    The `(inner, outer)` limits, AU, of the reservoir a window drew from: the outer disc's for an encounter or exchange capture, the planet's feeding zone for a gas-era one.
+    The `(inner, outer)` limits, AU, of the reservoir a window drew from: the outer disk's for an encounter or exchange capture, the planet's feeding zone for a gas-era one.
 
     Args:
         window (str): `gas`, `encounter` or `exchange`.
         planet_distance_au, planet_mass_kg, star_mass_kg (float): The planet's orbit and the masses.
-        disc_inner_au, disc_outer_au (float): The planetesimal disc at the window.
+        disk_inner_au, disk_outer_au (float): The planetesimal disk at the window.
     """
     if window not in WINDOWS:
         raise CapturedCompositionError(f"the window {window!r} is none of {WINDOWS}")
@@ -103,9 +103,9 @@ def source_annulus(window, planet_distance_au, planet_mass_kg, star_mass_kg, dis
             raise CapturedCompositionError("the distance and the masses must be positive")
         half = FEEDING_ZONE_HILL_RADII * irregular_zone.hill_radius_au(planet_distance_au, planet_mass_kg, star_mass_kg)
         return max(planet_distance_au - half, 0.1 * planet_distance_au), planet_distance_au + half
-    if not 0.0 < disc_inner_au < disc_outer_au:
+    if not 0.0 < disk_inner_au < disk_outer_au:
         raise CapturedCompositionError("the disk needs 0 < inner < outer")
-    return disc_inner_au, disc_outer_au
+    return disk_inner_au, disk_outer_au
 
 
 @finite_domain()

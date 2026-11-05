@@ -125,7 +125,7 @@ neighborhood around it requires a galaxy-placed sector (one made with
 <p class="hint sector-details" id="scatter-tier"><strong>Scatter grade:</strong> this band is in the {{ sector.scatter_tier.tier }} grade, so the galaxy scatter placed every star of {{ num(sector.scatter_tier.min_luminosity_sol) }} solar luminosities or more{% if sector.scatter_tier.mass_limit_sol is not none %} and every star born at {{ num(sector.scatter_tier.mass_limit_sol) }} solar masses or more{% endif %} here.</p>
 {%- endif %}
 {%- if sector.superbubble %}
-<p class="hint sector-details" id="superbubble"><strong>Superbubble:</strong> inside a cavity {{ "%g"|format(sector.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(sector.superbubble.centre_distance_pc) }} pc from its center. The gas here is ionized, about {{ "%g"|format(sector.superbubble.temperature_k) }} K and {{ "%g"|format(sector.superbubble.ambient_density_cm3) }} atoms per cm³, and no molecular cloud survives in it.</p>
+<p class="hint sector-details" id="superbubble"><strong>Superbubble:</strong> inside a cavity {{ "%g"|format(sector.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(sector.superbubble.center_distance_pc) }} pc from its center. The gas here is ionized, about {{ "%g"|format(sector.superbubble.temperature_k) }} K and {{ "%g"|format(sector.superbubble.ambient_density_cm3) }} atoms per cm³, and no molecular cloud survives in it.</p>
 {%- endif %}
 {%- if profile %}
 {{ profile_panel(profile) }}

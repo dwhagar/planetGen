@@ -124,7 +124,7 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # property, which draws it on first read from `_name_seed` (PERF.43). A planet's `phi_bio` and `phi_cpx` are the
 # likelihoods its life draw and life scores are made from; the stored life scores say what they gave (GEN.649). A moon's
 # `moon_disk_system` is the giant's disk while its moons are drawn; the giant keeps the disk's numbers in columns (DB.70), as a moon does its
-# `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disc planet is the orbit distance it is
+# `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disk planet is the orbit distance it is
 # stored with; what the draws read it for is kept as `born_beyond_snow_line` (TEST.427). A planet's `_orbit_birth` is the eccentricity
 # and tidal state it was drawn with, which `settle_orbit` takes again once the star's age is final (GEN.985); it is not stored. A giant's `_giant_draw` is the heavy-element draws that
 # `giant_draw.settle` keeps (GEN.961), also runtime state. A planet's `_surface_w` is the surface water its air solve drew, kept so the final-age

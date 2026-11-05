@@ -97,11 +97,11 @@ def alpha(optical_depth):
 
 def resonance_gaps(inner_km, outer_km, planet_mass_kg, moons):
     """
-    The gaps the moons dig in a ring between `inner_km` and `outer_km`, each `[centre, width, depth]` with the centre and width as shares of the ring's width
+    The gaps the moons dig in a ring between `inner_km` and `outer_km`, each `[center, width, depth]` with the center and width as shares of the ring's width
     (0 at the inner edge) and the depth 0 to 1 (1 empty). A moon's resonance falls in the ring at `a * (q / p) ** (2/3)` for each of `RESONANCES`.
 
     Args:
-        inner_km, outer_km (float): The ring's edges, km from the planet's centre.
+        inner_km, outer_km (float): The ring's edges, km from the planet's center.
         planet_mass_kg (float): The planet's mass.
         moons (iterable): Dicts with `distance_km` and `mass_kg`.
     """

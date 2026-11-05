@@ -29,14 +29,14 @@ def test_same_stream_same_planet():
 
 
 def _no_scatter(monkeypatch):
-    """The disc and the spacing at their medians: nothing is drawn but the median."""
-    monkeypatch.setattr(tuning, "DISC_SOLIDS_SCATTER_DEX", 0.0)
+    """The disk and the spacing at their medians: nothing is drawn but the median."""
+    monkeypatch.setattr(tuning, "DISK_SOLIDS_SCATTER_DEX", 0.0)
     monkeypatch.setattr(tuning, "OLIGARCH_SEPARATION_SIGMA_LN", 0.0)
 
 
 def test_the_core_is_the_isolation_mass_of_the_median_spacing_at_zero_scatter(monkeypatch):
     _no_scatter(monkeypatch)
-    density = formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, tuning.PLANET_DISC_SOLIDS_ENHANCEMENT)
+    density = formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, tuning.PLANET_DISK_SOLIDS_ENHANCEMENT)
     expected = formation.isolation_mass_kg(1.0, density, SUN_KG, tuning.OLIGARCH_SEPARATION_MEDIAN)
     got = planet_mass.assembled_core_kg(1.0, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
     assert got == pytest.approx(expected)
@@ -52,7 +52,7 @@ def test_solids_grow_outward_and_jump_at_the_snow_line():
     assert just_outside > 3.0 * just_inside   # the ice boost of the snow line
 
 
-def test_the_slow_outer_disc_builds_less_than_the_isolation_mass_alone(monkeypatch):
+def test_the_slow_outer_disk_builds_less_than_the_isolation_mass_alone(monkeypatch):
     _no_scatter(monkeypatch)
     far = 4 * tuning.PLANET_OUTER_GROWTH_AU
     tapered = planet_mass.assembled_core_kg(far, SUN_KG, SNOW_LINE_AU, 0.0, draw.Stream(3))
@@ -78,13 +78,13 @@ def test_cooler_stars_keep_more_of_their_solids_than_the_dust_law_gives(monkeypa
     _no_scatter(monkeypatch)
     light = 0.3 * SUN_KG
     got = planet_mass.assembled_core_kg(1.0, light, SNOW_LINE_AU, 1.0, draw.Stream(3))
-    dust_scale = formation.disk_surface_density_scale(light, 1.0) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
+    dust_scale = formation.disk_surface_density_scale(light, 1.0) * tuning.PLANET_DISK_SOLIDS_ENHANCEMENT
     dust = formation.isolation_mass_kg(1.0, formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, dust_scale), light)
     assert got > formation.isolation_mass_kg(1.0, formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, dust_scale), light,
                                              tuning.OLIGARCH_SEPARATION_MEDIAN)
 
 
-def test_metal_rich_discs_build_heavier_planets():
+def test_metal_rich_disks_build_heavier_planets():
     poor = median_earth(masses(1.0, fe_h=-0.5))
     rich = median_earth(masses(1.0, fe_h=0.3))
     assert rich > 3.0 * poor
@@ -120,7 +120,7 @@ def test_metal_poor_stars_make_fewer_giants():
     assert poor < rich
 
 
-def test_a_planet_is_never_heavier_than_the_disc_allows():
+def test_a_planet_is_never_heavier_than_the_disk_allows():
     light_star = 0.1 * SUN_KG
     for d in masses(20.0, count=300, star_kg=light_star):
         assert d.mass_kg <= tuning.PLANET_MAX_STAR_MASS_RATIO * light_star * (1 + 1e-9) or \
@@ -161,10 +161,10 @@ def test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au
     assert 0.03 < giants / 400 < 0.4
 
 
-def test_the_inner_disc_is_steeper_than_the_nebula_inside_one_au(monkeypatch):
+def test_the_inner_disk_is_steeper_than_the_nebula_inside_one_au(monkeypatch):
     _no_scatter(monkeypatch)
     got = planet_mass.assembled_core_kg(0.1, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
-    scale = tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
+    scale = tuning.PLANET_DISK_SOLIDS_ENHANCEMENT
     plain = formation.isolation_mass_kg(0.1, formation.mmsn_surface_density_gcm2(0.1, SNOW_LINE_AU, scale), SUN_KG,
                                         tuning.OLIGARCH_SEPARATION_MEDIAN)
-    assert got == pytest.approx(plain * (0.1 ** -tuning.PLANET_INNER_DISC_STEEPENING) ** 1.5)
+    assert got == pytest.approx(plain * (0.1 ** -tuning.PLANET_INNER_DISK_STEEPENING) ** 1.5)

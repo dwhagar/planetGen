@@ -277,6 +277,27 @@ def test_a_slice_warms_the_objects_at_its_place_in_the_listing(object_site):
     assert everything["warmed"] >= 2 and second["warmed"] == 1 and second["left_out"] == 0
 
 
+def test_an_unchanged_slice_is_not_visited_again_and_a_change_to_one_of_its_objects_visits_it(object_site, monkeypatch):
+    """PERF.239: a slice whose pages were warmed, every answer still stored and every tag at its counter, costs a few round trips
+    to Redis, not two requests through the app per object; its answers still count as already cached."""
+    database = object_site.config.database
+    app = warmup.build_app(object_site.config)
+    visits = []
+    real_visit = warmup._Visitor.visit
+    monkeypatch.setattr(warmup._Visitor, "visit", lambda self, path: visits.append(path) or real_visit(self, path))
+    window = {"offset": 0, "count": 2, "left_out": 0}
+    first = warmup.warm_family(database, "systems", app=app, window=window)
+    assert visits and first["built"] > 0
+    visited = len(visits)
+    again = warmup.warm_family(database, "systems", app=app, window=window)
+    assert len(visits) == visited                                    # nothing was visited
+    assert again["built"] == 0 and again["cached"] >= first["built"]
+    from planetgen.db import dataversion
+    dataversion.bump(database, "epoch")                              # a change nothing places
+    changed = warmup.warm_family(database, "systems", app=app, window=window)
+    assert len(visits) > visited and changed["built"] > 0
+
+
 # --- The Galaxy Map's nodes (PERF.130, MAP.260) --------------------------------------------------
 
 DEEP_SLICE = 40
@@ -946,9 +967,9 @@ def test_the_progress_bar_counts_families():
     assert lines[3] == "[##############################] 2/2 search"
 
 
-def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):
+def test_a_sigterm_ends_the_run_as_canceled_not_stranded(script, redis_server, monkeypatch):
     """SIGTERM (the update guard's cancel, update.sh's timeout) reaches the starter as Ctrl+C does, and the run ends
-    as cancelled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
+    as canceled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
     import os
     import signal
     original = signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP)
@@ -968,7 +989,7 @@ def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, 
         warm_cli.run_warm(_args("lists"))
     assert stopped.value.code == 130
     conn = redisqueue.connect(redis_server)
-    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "cancelled"
+    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "canceled"
     assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None
 
 

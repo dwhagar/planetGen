@@ -15,7 +15,7 @@ place of the galaxy's failed-supernova share (`Structure.black_hole_solar_share`
 `RETAIN` the share that stays bound. The first factor is `base_rate_per_star`, the rest `place_factor`; the scatter
 weights its bins by the sum alone (`weights_array`), the sector fill and the profile multiply the base rate by it.
 
-The populations' [Fe/H] distributions are the generator's own (`physics.metallicity`): the disc's gradient, the bulge's
+The populations' [Fe/H] distributions are the generator's own (`physics.metallicity`): the disk's gradient, the bulge's
 and the halo's means, and for a cluster or a satellite the generic peaks of `tuning` (a percent of the systems; the
 sector profile uses the exact peaks of the components that reach the cell, `place_factor_from_peaks`).
 
@@ -128,23 +128,23 @@ def _own_share(kind, structure, failed, bound):
 
 def population_factors(structure, distance_ly, kind=BLACK_HOLE, bound=True):
     """
-    `{population: C_p F_p}` at arrays of distances from the centre, in light years (or one): the factor each population's
+    `{population: C_p F_p}` at arrays of distances from the center, in light years (or one): the factor each population's
     density is weighed by (`C_p (1 - F_p)`, less the unbound share, for the neutron stars: `bound` False leaves that out,
     for the count formed). The generic peaks stand for the cluster and satellite populations.
     """
     _check_kind(kind)
     distance = np.asarray(distance_ly, dtype=float)
     factors = {}
-    by_disc = {}
+    by_disk = {}
     for name in tuning.STELLAR_POPULATION_AGE_RANGES_GY:
         if name in _GENERIC_PEAKS:
             mean = _failed_mean_of_peaks(structure, _GENERIC_PEAKS[name]) + np.zeros_like(distance)
         else:
             key = metallicity.open_cluster_disk_population(name) if name in tuning.OPEN_CLUSTER_POPULATIONS else name
-            if key not in by_disc:
+            if key not in by_disk:
                 means, sigma = metallicity.mean_fe_h_array(key, distance)
-                by_disc[key] = _failed_mean(structure, means, sigma)
-            mean = by_disc[key]
+                by_disk[key] = _failed_mean(structure, means, sigma)
+            mean = by_disk[key]
         factors[name] = _formed(name) * _own_share(kind, structure, mean, bound)
     return factors
 

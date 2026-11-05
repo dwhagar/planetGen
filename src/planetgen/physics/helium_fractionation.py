@@ -13,7 +13,7 @@ Hydrogen drags helium out only while the escape flux is large enough; a smaller 
 (where molecular diffusion takes over from mixing) at `HOMOPAUSE_RADIUS_OVER_TRANSIT` times the transit radius and at a temperature T:
 
     b = 1.04e18 T^0.732 cm^-1 s^-1          binary diffusion of H in He      Hu 2015 eq. 9
-    b' = b / (1 + x)                        with the ionised share x (row HF2)
+    b' = b / (1 + x)                        with the ionized share x (row HF2)
     phi_DL = G M (m_He - m_H) b' / (R^2 k T)     the diffusion-limited number flux of hydrogen          Hu 2015 eq. 12
     phi_He / X_He = phi_H / X_H - phi_DL         the fluxes of the two gases                            Hu 2015 eq. 13
 
@@ -49,8 +49,8 @@ HOMOPAUSE_TEMPERATURE_K = 1.0e4
 """float: The temperature at the homopause, K. [R2839] run 3,000 and 10,000 K and find helium-rich planets at both; Hu et al. 2015 use
 10^4 K, the weaker fractionation (the diffusion-limited flux goes as T^-0.27), row HF2."""
 
-IONISED_SHARE = 0.1
-"""float: The hydrogen ionised share `x` at the homopause (Hu et al. 2015 Sec. 2.1 and [R2840]: 0.1), row HF2."""
+IONIZED_SHARE = 0.1
+"""float: The hydrogen ionized share `x` at the homopause (Hu et al. 2015 Sec. 2.1 and [R2840]: 0.1), row HF2."""
 
 HOMOPAUSE_RADIUS_OVER_TRANSIT = 1.1
 """float: The homopause radius over the transit radius ("approximately 10 percent larger", [R2839] A.1), row HF2."""
@@ -81,16 +81,16 @@ def binary_diffusion_m(temperature_k):
     return DIFFUSION_A_CM * temperature_k ** DIFFUSION_EXPONENT * 100.0
 
 
-def effective_diffusion_m(temperature_k, ionised_share=IONISED_SHARE):
+def effective_diffusion_m(temperature_k, ionized_share=IONIZED_SHARE):
     """`b'`, m^-1 s^-1: the coefficient with ion-neutral drag, `b / (1 + x)`: at 10^4 K and x = 0.1 it is 8.0e20 cm^-1 s^-1, the value Hu et al.
     2015 give (row HF2)."""
-    return binary_diffusion_m(temperature_k) / (1.0 + ionised_share)
+    return binary_diffusion_m(temperature_k) / (1.0 + ionized_share)
 
 
-def diffusion_limited_flux(mass_kg, radius_m, temperature_k=HOMOPAUSE_TEMPERATURE_K, ionised_share=IONISED_SHARE):
+def diffusion_limited_flux(mass_kg, radius_m, temperature_k=HOMOPAUSE_TEMPERATURE_K, ionized_share=IONIZED_SHARE):
     """`phi_DL`, hydrogen atoms per m^2 per s (Hu et al. 2015 eq. 12): the most hydrogen flux that leaves helium behind. `radius_m` is the
     homopause radius."""
-    return (constants.G * mass_kg * (_M_HE - _M_H) * effective_diffusion_m(temperature_k, ionised_share)
+    return (constants.G * mass_kg * (_M_HE - _M_H) * effective_diffusion_m(temperature_k, ionized_share)
             / (radius_m ** 2 * constants.BOLTZMANN * temperature_k))
 
 
@@ -102,20 +102,20 @@ def number_fractions(helium_mass_fraction):
     return hydrogen / total, helium / total
 
 
-def critical_mass_flux_kg_s(mass_kg, radius_m, helium_mass_fraction, temperature_k=HOMOPAUSE_TEMPERATURE_K, ionised_share=IONISED_SHARE):
+def critical_mass_flux_kg_s(mass_kg, radius_m, helium_mass_fraction, temperature_k=HOMOPAUSE_TEMPERATURE_K, ionized_share=IONIZED_SHARE):
     """The total mass loss, kg/s, at and under which only hydrogen leaves (Hu et al. 2015 eq. 14): `4 pi R^2 X_H m_H phi_DL`."""
     x_h, _ = number_fractions(helium_mass_fraction)
-    return 4.0 * math.pi * radius_m ** 2 * x_h * _M_H * diffusion_limited_flux(mass_kg, radius_m, temperature_k, ionised_share)
+    return 4.0 * math.pi * radius_m ** 2 * x_h * _M_H * diffusion_limited_flux(mass_kg, radius_m, temperature_k, ionized_share)
 
 
-def partition(total_kg_s, mass_kg, radius_m, helium_mass_fraction, temperature_k=HOMOPAUSE_TEMPERATURE_K, ionised_share=IONISED_SHARE):
+def partition(total_kg_s, mass_kg, radius_m, helium_mass_fraction, temperature_k=HOMOPAUSE_TEMPERATURE_K, ionized_share=IONIZED_SHARE):
     """`(hydrogen kg/s, helium kg/s)` of a total mass loss `total_kg_s` (Hu et al. 2015 eqs. 13 to 15): all hydrogen at and under
     `critical_mass_flux_kg_s`, the two in the proportions of eq. 15 over it."""
     if total_kg_s <= 0.0:
         return 0.0, 0.0
     x_h, x_he = number_fractions(helium_mass_fraction)
     area = 4.0 * math.pi * radius_m ** 2
-    phi_dl = diffusion_limited_flux(mass_kg, radius_m, temperature_k, ionised_share)
+    phi_dl = diffusion_limited_flux(mass_kg, radius_m, temperature_k, ionized_share)
     helium_over_x = (total_kg_s / area - x_h * _M_H * phi_dl) / (x_h * _M_H + x_he * _M_HE)
     if helium_over_x <= 0.0:
         return total_kg_s, 0.0
@@ -124,7 +124,7 @@ def partition(total_kg_s, mass_kg, radius_m, helium_mass_fraction, temperature_k
 
 
 def evolve(envelope_kg, helium_mass_fraction, mass_kg, radius_m, rate_kg_s, duration_s, temperature_k=HOMOPAUSE_TEMPERATURE_K,
-           ionised_share=IONISED_SHARE):
+           ionized_share=IONIZED_SHARE):
     """
     The envelope and its helium mass fraction after `duration_s` of a total loss `rate_kg_s` (held for the interval). Steps of at most
     `STEP_SHARE` of the envelope; the envelope is gone (`(0.0, helium fraction)`) if the loss outlasts it. `radius_m` is the homopause radius.
@@ -135,7 +135,7 @@ def evolve(envelope_kg, helium_mass_fraction, mass_kg, radius_m, rate_kg_s, dura
     while elapsed < duration_s and hydrogen + helium > 0.0:
         total = hydrogen + helium
         y = helium / total
-        h_rate, he_rate = partition(rate_kg_s, mass_kg, radius_m, y, temperature_k, ionised_share)
+        h_rate, he_rate = partition(rate_kg_s, mass_kg, radius_m, y, temperature_k, ionized_share)
         step = duration_s - elapsed
         if rate_kg_s > 0.0:
             step = min(step, STEP_SHARE * total / rate_kg_s)
@@ -149,7 +149,7 @@ def evolve(envelope_kg, helium_mass_fraction, mass_kg, radius_m, rate_kg_s, dura
 
 
 def helium_fraction_from_history(core_mass_earth, history, insolation, start=SOLAR_ENVELOPE_HELIUM, temperature_k=HOMOPAUSE_TEMPERATURE_K,
-                                 ionised_share=IONISED_SHARE):
+                                 ionized_share=IONIZED_SHARE):
     """
     The envelope left, Earth masses, and its helium mass fraction at the end of a loss `history` of `(age_gy, envelope_earth)` pairs in rising age
     (the first is the start; `envelope_escape.envelope_left_earth` at a few ages gives one). The loss between two ages is held as a constant total
@@ -168,7 +168,7 @@ def helium_fraction_from_history(core_mass_earth, history, insolation, start=SOL
             duration = (next_age - age) * _GY_S
             _, y = evolve(_mearth_to_kg(envelope), y, _mearth_to_kg(planet),
                           radius * _R_EARTH_M * HOMOPAUSE_RADIUS_OVER_TRANSIT, _mearth_to_kg(lost) / duration, duration,
-                          temperature_k, ionised_share)
+                          temperature_k, ionized_share)
         age, envelope = next_age, left
     return envelope, y
 

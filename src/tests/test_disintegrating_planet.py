@@ -16,10 +16,10 @@ def test_the_dayside_of_kepler_1520_b_is_2150_k():
     assert KEPLER_1520_B_K == pytest.approx(2150.0, rel=0.01)
 
 
-def test_the_vapour_pressure_of_olivine_at_2145_k_is_a_few_pascal():
-    pascal = dp.vapour_pressure_pa(2145.0)
+def test_the_vapor_pressure_of_olivine_at_2145_k_is_a_few_pascal():
+    pascal = dp.vapor_pressure_pa(2145.0)
     assert pascal == pytest.approx(3.3, rel=0.1)                    # about 33 dyne/cm^2 from eq. 7 with the olivine constants
-    assert dp.vapour_pressure_pa(2300.0) > 4.0 * pascal             # the exponential in the temperature
+    assert dp.vapor_pressure_pa(2300.0) > 4.0 * pascal             # the exponential in the temperature
 
 
 def test_a_planet_of_two_hundredths_of_an_earth_loses_a_tenth_to_one_earth_mass_per_gyr_and_lasts_tens_to_hundreds_of_myr():

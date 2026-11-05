@@ -6,14 +6,14 @@ Where the Lagrange points of a pair are, for the System Map (MAP.354, and the gr
 
 Pure geometry in the system frame, no drawing and no database. For a host at `r1` (mass `m1`) and a secondary at `r2` (mass `m2`), with the secondary's velocity
 relative to the host `v` (the direction of motion; its cross product with the separation gives the orbit's normal), the five points of the circular restricted
-problem are (units of the arguments; `a` is the separation, `mu = m2 / (m1 + m2)`, `B` the barycentre, `u` the unit vector host to secondary, `w` the unit vector along the motion):
+problem are (units of the arguments; `a` is the separation, `mu = m2 / (m1 + m2)`, `B` the barycenter, `u` the unit vector host to secondary, `w` the unit vector along the motion):
 
     L1  between the two, L2 beyond the secondary, L3 beyond the host (the roots of the collinear force balance, found by bisection)
     L4  B + a ((1/2 - mu) u + (sqrt(3)/2) w)     60 degrees ahead of the secondary
     L5  B + a ((1/2 - mu) u - (sqrt(3)/2) w)     60 degrees behind
 
-`points` returns all five. `occupied` keeps those that hold objects and gives each its centre and its label, `Jupiter-L4` (the same as `trojans.point_label`, which names only L4 and L5; here L1 to L3 are labelled too for the gravity layer), the icon the
-map draws at the centre. Only L4 and L5 hold natural bodies (`trojans`), but L1 to L3 are given for the gravity layer.
+`points` returns all five. `occupied` keeps those that hold objects and gives each its center and its label, `Jupiter-L4` (the same as `trojans.point_label`, which names only L4 and L5; here L1 to L3 are labelled too for the gravity layer), the icon the
+map draws at the center. Only L4 and L5 hold natural bodies (`trojans`), but L1 to L3 are given for the gravity layer.
 """
 
 import math
@@ -43,7 +43,7 @@ def _unit(a):
 
 
 def collinear_offsets(mu):
-    """`(x1, x2, x3)`: the x-coordinates of L1, L2, L3 in the rotating frame in units of the separation, the barycentre at 0, the host at `-mu`, the secondary at `1 - mu`."""
+    """`(x1, x2, x3)`: the x-coordinates of L1, L2, L3 in the rotating frame in units of the separation, the barycenter at 0, the host at `-mu`, the secondary at `1 - mu`."""
     if not 0.0 < mu < 0.5:
         raise trojans.TrojanError(f"the mass parameter must be between 0 and 0.5, got {mu!r}")
 
@@ -77,13 +77,13 @@ def points(host_pos, host_mass, secondary_pos, secondary_mass, secondary_velocit
     w = _unit(_cross(normal, u))
     mu = trojans.mass_parameter(host_mass, secondary_mass)
     total = host_mass + secondary_mass
-    barycentre = [(host_mass * host_pos[i] + secondary_mass * secondary_pos[i]) / total for i in range(3)]
+    barycenter = [(host_mass * host_pos[i] + secondary_mass * secondary_pos[i]) / total for i in range(3)]
     x1, x2, x3 = collinear_offsets(mu)
     out = {}
     for name, x in (("L1", x1), ("L2", x2), ("L3", x3)):
-        out[name] = [barycentre[i] + a * x * u[i] for i in range(3)]
+        out[name] = [barycenter[i] + a * x * u[i] for i in range(3)]
     for name, sign in (("L4", 1.0), ("L5", -1.0)):
-        out[name] = [barycentre[i] + a * ((0.5 - mu) * u[i] + sign * (math.sqrt(3.0) / 2.0) * w[i]) for i in range(3)]
+        out[name] = [barycenter[i] + a * ((0.5 - mu) * u[i] + sign * (math.sqrt(3.0) / 2.0) * w[i]) for i in range(3)]
     return out
 
 

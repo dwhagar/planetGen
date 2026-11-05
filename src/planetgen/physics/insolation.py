@@ -6,8 +6,8 @@ Summed insolation of a planet in a multi-star system (GEN.148).
 A planet's light is a sum, `S = sum(L_i / d_i^2)`, over every star. For a planet of one star of a wide
 (S-type) pair the companion adds `L_c <1/d^2>` with the time-average over its eccentric orbit
 `<1/d^2> = 1 / (a^2 sqrt(1 - e^2))`, and the total swings between the companion's periapsis and apoapsis.
-For a circumbinary (P-type) planet the two stars' lights are summed at the barycentre and the total
-varies with the pair's period because the brighter star is not at the barycentre
+For a circumbinary (P-type) planet the two stars' lights are summed at the barycenter and the total
+varies with the pair's period because the brighter star is not at the barycenter
 (`docs/design/systems/multistar-and-compact-systems.md` 6.5).
 
 `flux_variation` is the fractional peak-to-peak swing of a planet's total insolation, 0 for a lone
@@ -56,8 +56,8 @@ def companion_swing(host_luminosity, distance_au, companion_luminosity, periapsi
 def circumbinary_swing(luminosity_1, luminosity_2, mass_1, mass_2, separation_au, distance_au):
     """
     The peak-to-peak swing of the light a circumbinary planet gets as the pair turns. Star 1 sits `a m2 / M`
-    from the barycentre and star 2 `a m1 / M` on the other side, so along the line to the planet the
-    luminosity-weighted centroid is `delta = |L1 r1 - L2 r2| / (L1 + L2)` off the barycentre, and
+    from the barycenter and star 2 `a m1 / M` on the other side, so along the line to the planet the
+    luminosity-weighted centroid is `delta = |L1 r1 - L2 r2| / (L1 + L2)` off the barycenter, and
     `S ~ 1/d^2` swings by `4 delta / d` peak to peak (first order, a planet at least a few separations out).
     """
     total_mass = mass_1 + mass_2

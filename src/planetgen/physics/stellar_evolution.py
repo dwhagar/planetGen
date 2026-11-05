@@ -376,7 +376,7 @@ def _supergiant_yerkes_class(luminosity_sol):
 def birth_fe_h(rng=draw, population=None, fe_h_peaks=None, galactic_center_dist_ly=None):
     """
     A star's birth [Fe/H] (GEN.651, GEN.553's order: composition first): drawn from its `population` (or
-    `fe_h_peaks`, a cluster's or satellite's own distribution, GEN.662) at `galactic_center_dist_ly` from the centre (the
+    `fe_h_peaks`, a cluster's or satellite's own distribution, GEN.662) at `galactic_center_dist_ly` from the center (the
     Sun's distance without one) by `metallicity.sample_fe_h`. A cluster or satellite star with no distribution of its own
     takes the generic cluster's or satellite's (`metallicity.generic_peaks`), never the halo's.
     """
@@ -437,7 +437,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     The star's birth [Fe/H] sets its lifetimes and its tracks (`ms_lifetime`, `giant_branch`, `post_main_sequence`, GEN.651)
     and a horizontal-branch star's colour; the tracks are read at `alpha_tracks.track_fe_h`, the [Fe/H] raised by the star's branch's alpha excess
     (GEN.1024), and the colour at the star's own. `fe_h` is the star's own; without it one is drawn first, before any other draw
-    here (`birth_fe_h`: the star's `population` or `fe_h_peaks`, at `galactic_center_dist_ly` from the centre, the Sun's
+    here (`birth_fe_h`: the star's `population` or `fe_h_peaks`, at `galactic_center_dist_ly` from the center, the Sun's
     distance without one), and either way returned as `metallicity_fe_h` for the star to keep.
 
     Returns:
@@ -556,7 +556,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     sector's dim stars, once its bright ones were pre-placed); likewise
     `max_mass_sol` redraws any star born with at least that mass (the stars
     the scatter's mass pass placed). `fe_h_peaks` is the place's [Fe/H]
-    distribution and `galactic_center_dist_ly` the star's distance from the centre, the place its birth [Fe/H] is
+    distribution and `galactic_center_dist_ly` the star's distance from the center, the place its birth [Fe/H] is
     drawn for (`birth_fe_h`, GEN.651: each try draws it first, before the mass and the age, and the star's lifetimes
     and giant branch follow it; `fe_h` pins it instead, a companion's, born with its primary). `age_law` (a `galaxy.age_law.AgeLaw` over the
     population's range, GEN.546) spreads the age inside that range by the disk's star formation rate instead of

@@ -21,7 +21,7 @@ is a Solar System preset: the ground is the one the body's own inputs allow.
    resurfaces (the heat flow is over a floor `q_min`, log-uniform), else the primary crust of the magma ocean, ultramafic
    where the mantle overturned (more likely the more FeO) and anorthositic where it did not.
 3. *Modifiers*, each an areal share of the land and drawn only when the inputs allow it: granitoid (`felsic`) with plate
-   tectonics, clay where liquid water ever stood, iron-oxidised ground where the air holds free oxygen, evaporite where an
+   tectonics, clay where liquid water ever stood, iron-oxidized ground where the air holds free oxygen, evaporite where an
    ocean dried back, and sulfur where tidal heating beats the radiogenic flow.
 4. *Grain state* (slab, crushed or powder): a surface under 0.1 Gyr old or molten is not yet regolith.
 
@@ -62,7 +62,7 @@ RANGES = {
     "overturn_feo_scale": 0.20,
     "felsic_share": (0.0, 0.5),
     "clay_share": (0.0, 0.3),
-    "oxidised_share": (0.05, 0.4),
+    "oxidized_share": (0.05, 0.4),
     "evaporite_share": (0.0, 0.02),
     "sulfur_share": (0.05, 0.3),
     "young_surface_gy": 0.1,
@@ -78,7 +78,7 @@ RANGES = {
 - `overturn_feo_scale`: the probability that the magma-ocean mantle overturned is the rock's FeO share over this (more FeO,
   denser late cumulates, E 3.2 rule 3).
 - `felsic_share`: the granitoid share of the land of a body with plate tectonics, uniform (E 3.2 rule 5).
-- `clay_share`, `oxidised_share`, `evaporite_share`, `sulfur_share`: the areal shares of the modifiers, uniform (E 3.2 rules 6, 7).
+- `clay_share`, `oxidized_share`, `evaporite_share`, `sulfur_share`: the areal shares of the modifiers, uniform (E 3.2 rules 6, 7).
 - `young_surface_gy`: a surface younger than this (the body's age) is not yet a regolith (E 3.2 rule 8).
 - `ice_rich_over_rock`: water and other ices, over the rock's mass, from which a frozen body is ice at the surface.
 - `metal_stripped`: the metal share of a body from which the mantle is taken to be stripped (Hu et al. 2012's metal-rich surface).
@@ -108,7 +108,7 @@ ICE_ROW_OF_FORMULA = {formula: row for row, formula in ICE_FORMULAS.items() if r
 """dict: The materials row of each non-water ice, by the formula comet volatiles are listed under."""
 
 VACUUM_ICE_PA = saturation.pressure_pa("H2O", hydrosphere.VACUUM_ICE_MAX_K)
-"""float: The vapour pressure at which an ice survives in vacuum for billions of years: water's at the 220 K that
+"""float: The vapor pressure at which an ice survives in vacuum for billions of years: water's at the 220 K that
 `hydrosphere` already uses, so every ice shares one criterion."""
 
 # GEN.474 replaces the five stand-in rows below.
@@ -137,7 +137,7 @@ GROUND_TYPES = pt.REGISTRY.register(pt.Table(
         pt.Row("clay", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
                limit="Hu's Mg-smectite has no row; kaolinite stands in",
                fractions={"kaolinite": 0.50, "serpentine": 0.50}, notes="aqueous alteration of basalt"),
-        pt.Row("oxidised", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
+        pt.Row("oxidized", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"hematite_fine": 0.50, "plagioclase": 0.38, "diopside": 0.04, "enstatite": 0.03,
                           "basalt_powder": 0.03, "olivine": 0.02}, notes="Hu's 50/50 nanophase hematite and basalt"),
         pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
@@ -190,12 +190,12 @@ RESERVOIRS = {
 }
 """dict: The K, Th and U of the ground types that have a measured reservoir model."""
 
-RESERVOIR_OF = {"ultramafic": "ultramafic", "basaltic": "basaltic", "intermediate": "basaltic", "felsic": "felsic", "clay": "basaltic", "oxidised": "basaltic"}
-"""dict: Which reservoir a ground type's K, Th and U follow. Clay and iron-oxidised ground are altered basalt (Hu et al. 2012 Table 2),
+RESERVOIR_OF = {"ultramafic": "ultramafic", "basaltic": "basaltic", "intermediate": "basaltic", "felsic": "felsic", "clay": "basaltic", "oxidized": "basaltic"}
+"""dict: Which reservoir a ground type's K, Th and U follow. Clay and iron-oxidized ground are altered basalt (Hu et al. 2012 Table 2),
 so they keep its heat producers, and intermediate ground keeps basalt's until a reservoir of its own is read (registry RT4); anorthositic, metal, carbon, evaporite and sulfur ground have no reservoir in the sources read and are
 left to the caller's default."""
 
-GROUND_FRACTION_TYPES = (OCEAN, ICE, "ultramafic", "anorthositic", "basaltic", "felsic", "clay", "oxidised", "metal", "carbon",
+GROUND_FRACTION_TYPES = (OCEAN, ICE, "ultramafic", "anorthositic", "basaltic", "felsic", "clay", "oxidized", "metal", "carbon",
                          "evaporite", "sulfur", "intermediate")
 """tuple: The ground types a body's areal mix is stored for, in column order."""
 
@@ -277,7 +277,7 @@ def ice_stable(material_name, temperature_k, pressure_pa, partial_pa=0.0):
     Whether the ice `material_name` stands on a surface at `temperature_k`.
 
     Water ice stands under 273.15 K where the air holds at least water's triple-point pressure, and where it does not under the
-    220 K that `hydrosphere` uses for exposed ice in vacuum; any other ice stands where its vapour pressure is no higher than its
+    220 K that `hydrosphere` uses for exposed ice in vacuum; any other ice stands where its vapor pressure is no higher than its
     own partial pressure in the air or, with less than that, the vacuum floor `VACUUM_ICE_PA`.
     """
     formula = ICE_FORMULAS[material_name]
@@ -354,7 +354,7 @@ def _modifiers(inputs, covered_kind):
     if water_ever:
         shares["clay"] = draw.uniform(*RANGES["clay_share"])
     if inputs.o2_partial_pa >= RANGES["free_oxygen_pa"]:
-        shares["oxidised"] = draw.uniform(*RANGES["oxidised_share"])
+        shares["oxidized"] = draw.uniform(*RANGES["oxidized_share"])
     if covered_kind == OCEAN:
         shares["evaporite"] = draw.uniform(*RANGES["evaporite_share"])
     if inputs.tidal_heat_flux_w_m2 > inputs.internal_heat_flux_w_m2 > 0.0 or \
@@ -453,7 +453,7 @@ ALBEDO_ROWS = {
     "basaltic": {"basalt_powder": 1.0},
     "felsic": {"felsic_granite_powder_a": 0.5, "felsic_granite_powder_b": 0.5},
     "clay": {"kaolinite": 0.5, "serpentine": 0.5},
-    "oxidised": {"hematite_fine": 1.0},
+    "oxidized": {"hematite_fine": 1.0},
     "carbon": {"kerogen": 0.5, "carbon_black": 0.5},
     "evaporite": {"halite": 0.4, "gypsum": 0.3, "calcite": 0.3},
     "sulfur": {"sulfur": 1.0},
@@ -464,7 +464,7 @@ minerals have no spectra of their own). A grain state of slab or crushed swaps t
 metal have no measured visible spectrum in the sources read, so they are not covered (`band_albedo` reports the covered share)."""
 
 BANDS = ("alb_040_050", "alb_050_060", "alb_060_070")
-BAND_CENTRES_NM = (450.0, 550.0, 650.0)
+BAND_CENTERS_NM = (450.0, 550.0, 650.0)
 """tuple: The middle of each of `BANDS`, nm."""
 
 
