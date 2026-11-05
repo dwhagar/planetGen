@@ -103,7 +103,7 @@ def test_the_update_guards_cancel_leaves_its_reason_before_it_signals(state, mon
     monkeypatch.setattr(updateguard.os, "kill", lambda pid, number: sent.append((pid, number)))
     updateguard.MarkerSource().cancel({"pid": 424242})
     assert sent == [(424242, signal.SIGTERM)]
-    assert "update guard cancelled it" in stop_reason.take(424242)
+    assert "update guard canceled it" in stop_reason.take(424242)
 
 
 def test_stop_all_leaves_its_reason_for_each_process(state, monkeypatch):
