@@ -164,3 +164,22 @@ def test_render_nav_map_panel_tooltips_name_the_course_to_the_next_stop():
     html = render_nav_map_panel(_link, [first, last], has_route=True)
     assert "<title>Alpha (next stop: 045 mark 012)</title>" in html
     assert "<title>Omega</title>" in html
+
+
+def test_a_course_bent_round_a_sphere_is_drawn_over_the_route_and_the_key_says_so():  # NAV.28
+    waypoints = [_waypoint(1, "Alpha", (0.0, 0.0, 0.0), "origin"), _waypoint(2, "Beta", (10.0, 0.0, 0.0), "destination")]
+    bent = [[(0.0, 0.0, 0.0), (4.0, 1.5, 0.0), (6.0, 1.5, 0.0), (10.0, 0.0, 0.0)]]
+    plain = render_nav_map_panel(_link, waypoints, has_route=True)
+    html = render_nav_map_panel(_link, waypoints, has_route=True, bent=bent)
+    assert "navmap-bent-line" not in plain and "bent round" not in plain
+    assert html.count('<path class="navmap-bent-line"') == 2 and "The course bent round a keep-out sphere." in html
+    assert "amber line" in html
+    # one in the drawing, one in the key
+    assert html.index("navmap-route-line") < html.index('<path class="navmap-bent-line"')       # over the route
+
+
+def test_the_map_is_scaled_to_hold_a_bend_that_leaves_the_straight_line():
+    waypoints = [_waypoint(1, "Alpha", (0.0, 0.0, 0.0), "origin"), _waypoint(2, "Beta", (10.0, 0.0, 0.0), "destination")]
+    flat = render_nav_map_panel(_link, waypoints, has_route=False, bent=[[(0.0, 0.0, 0.0), (10.0, 0.0, 0.0)]])
+    bulged = render_nav_map_panel(_link, waypoints, has_route=False, bent=[[(0.0, 0.0, 0.0), (5.0, 40.0, 0.0), (10.0, 0.0, 0.0)]])
+    assert flat != bulged and "navmap-bent-line" in bulged

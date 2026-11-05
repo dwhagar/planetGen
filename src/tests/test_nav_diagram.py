@@ -149,12 +149,12 @@ def test_stubs_a_link_and_an_and_n_more_are_drawn_faintly_with_their_words():
     html = render_course_diagram(_with_graph(route, edges, {13: 6}), _names(PATH), _urls(PATH))
     assert html.count('class="nav-diagram-neighbour nav-diagram-stub"') == 3 * len(WIDTHS) + 1       # and the legend's
     # On the narrow drawing the two stops are on different rows, so the arc is counted in a note, not drawn.
-    assert html.count('class="nav-diagram-neighbour nav-diagram-link"') == 2 and "1 neighbour link between stops on different rows is not drawn" in html
+    assert html.count('class="nav-diagram-neighbour nav-diagram-link"') == 2 and "1 neighbor link between stops on different rows is not drawn" in html
     assert html.count("and 6 more") >= len(WIDTHS)
-    assert "6 more neighbours of Star 13 are not drawn" in html
-    assert "A system 6.13 pc (20 ly) from Star 11: a neighbour, not a travel lane" in html or "from Star 11: a neighbour, not a travel lane" in html
-    assert "Star 11 and Star 13 are neighbours" in html
-    assert "a link is a neighbour relation, not a travel lane" in html and "Neighbour (not a travel lane)" in html
+    assert "6 more neighbors of Star 13 are not drawn" in html
+    assert "A system 6.13 pc (20 ly) from Star 11: a neighbor, not a travel lane" in html or "from Star 11: a neighbor, not a travel lane" in html
+    assert "Star 11 and Star 13 are neighbors" in html
+    assert "a link is a neighbor relation, not a travel lane" in html and "Neighbor (not a travel lane)" in html
 
 
 def test_the_route_s_own_hops_are_drawn_over_the_neighbours():
@@ -169,5 +169,42 @@ def test_links_between_stops_on_different_rows_are_counted_in_a_note_and_not_dra
     path = list(range(100, 112))
     route = _with_graph(_route(path, [40.0] * 11), [_edge(100, 111, 400.0), _edge(101, 109, 300.0)])
     html = render_course_diagram(route, _names(path), _urls(path))
-    assert "neighbour links between stops on different rows are not drawn" in html
+    assert "neighbor links between stops on different rows are not drawn" in html
     assert 'class="nav-diagram-neighbour nav-diagram-link"' not in html.split("nav-diagram-wide-box")[1].split("</svg>")[0]
+
+
+def _adjusted(bends, extra_ly=0.4, straight_ly=100.0, warnings=()):
+    waypoints = [{"p": [0, 0, 0], "kind": "start", "ref": None}]
+    for index in range(bends):
+        waypoints += [{"p": [1, 0, 0], "kind": "tangent_in", "ref": f"star:{index}"}, {"p": [2, 0, 0], "kind": "tangent_out", "ref": f"star:{index}"}]
+    waypoints.append({"p": [9, 0, 0], "kind": "end", "ref": None})
+    return {"waypoints": waypoints, "straight_length_ly": straight_ly, "extra_ly": extra_ly, "length_ly": straight_ly + extra_ly,
+            "avoided": [f"star:{i}" for i in range(bends)], "warnings": list(warnings)}
+
+
+def test_a_hop_that_bends_round_a_sphere_is_marked_and_says_how_much_longer():  # NAV.72
+    route = _route(PATH, [4.2, 100.0, 650.0])
+    route["hops"][1]["adjusted"] = _adjusted(2, extra_ly=0.4)
+    html = render_course_diagram(route, _names(PATH), _urls(PATH))
+    assert html.count('class="nav-diagram-bend"') == len(WIDTHS) + 1       # one under the hop in each drawing, one in the legend
+    assert "bends round 2 keep-out spheres" in html and "0.4%" in html
+    assert "Hop that bends round a keep-out sphere" in html
+    assert "1 hop would pass inside the keep-out sphere" in html
+    assert 'class="nav-diagram-bend nav-diagram-bend-flag"' not in html
+
+
+def test_a_hop_the_planner_could_not_bend_is_flagged_and_drawn_straight():
+    route = _route(PATH, [4.2, 100.0, 650.0])
+    route["hops"][0]["adjusted"] = _adjusted(0, extra_ly=0.0, warnings=["overlap_fallback"])
+    html = render_course_diagram(route, _names(PATH), _urls(PATH))
+    assert html.count("nav-diagram-bend-flag") == len(WIDTHS)
+    assert "overlap, so it is shown as the straight line" in html
+
+
+def test_hops_that_do_not_leave_the_straight_line_draw_no_bend():
+    route = _route(PATH, [4.2, 100.0, 650.0])
+    route["hops"][0]["adjusted"] = _adjusted(0, extra_ly=0.0)
+    html = render_course_diagram(route, _names(PATH), _urls(PATH))
+    assert "nav-diagram-bend" not in html and "keep-out" not in html
+    plain = render_course_diagram(_route(PATH, [4.2, 100.0, 650.0]), _names(PATH), _urls(PATH))
+    assert "nav-diagram-bend" not in plain

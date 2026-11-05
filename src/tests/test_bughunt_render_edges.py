@@ -4,7 +4,7 @@
 Tier 1 bug-hunt coverage: the Document HTML renderer and `systemmap.py` fed
 adversarial or degenerate data -- the two rendering layers most exposed to
 whatever the database actually holds (the renderer writes the stored names
-and flavour text; systemmap renders raw `planets`/`stars`/`asteroid_belts`
+and flavor text; systemmap renders raw `planets`/`stars`/`asteroid_belts`
 rows).
 
 Tier 1: `describe.html.render` never raises and always HTML-escapes dangerous

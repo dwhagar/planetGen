@@ -76,7 +76,7 @@ def test_a_cell_far_out_holds_about_the_expected_ejecta_of_the_design_note():
 
 
 def test_a_cells_ejecta_never_exceed_the_cap_so_a_dense_galaxy_cannot_stall_the_draw():
-    """A galaxy shaped to hold astronomically many systems in a few cells (the fuzz tests'), or a cell beside the centre,
+    """A galaxy shaped to hold astronomically many systems in a few cells (the fuzz tests'), or a cell beside the center,
     draws at most `EJECTA_MAX_PER_CELL` of a kind; the real galaxy's densest cells are below it."""
     dense = ejecta_field.expected_in_cell((EDGE_PC, 0.0, 0.0), CELL_PC3, SHAPE, E_VALUE * 1.0e9, EDGE_PC)
     assert dense == {kind: tuning.EJECTA_MAX_PER_CELL for kind in ejecta_field.KINDS}

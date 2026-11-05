@@ -1,5 +1,5 @@
 // tests/js/camerarelative.test.mjs -- static/camerarelative.js (MAP.240): buffers built as offsets from an origin of their own, so a
-// shape 262 kpc from the galaxy's centre is as exact as one at the centre.
+// shape 262 kpc from the galaxy's center is as exact as one at the center.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -24,9 +24,9 @@ test("a point far from the origin keeps its place as an offset, where one float3
 
 test("the origin is the middle of the points' box and the offsets are about the origin", () => {
   const flat = [100, 0, 0, 300, 20, -40];
-  assert.deepEqual(C.centreOf(flat), [200, 10, -20]);
+  assert.deepEqual(C.centerOf(flat), [200, 10, -20]);
   assert.deepEqual(Array.from(C.relativeBuffer(flat).positions), [-100, -10, 20, 100, 10, -20]);
-  assert.deepEqual(C.centreOf([]), [0, 0, 0]);
+  assert.deepEqual(C.centerOf([]), [0, 0, 0]);
 });
 
 test("scattered points are split into cubes, each with an origin inside it and every offset within the cube", () => {

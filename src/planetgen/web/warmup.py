@@ -249,7 +249,7 @@ def warm_opening_view(db):
 
 def zoom_run_nodes(edge_pc, bounds_pc, start_radius_pc, finest_block):
     """
-    The nodes the map fetches on a zoom from the opening view in to the galaxy's centre, along the opening camera's
+    The nodes the map fetches on a zoom from the opening view in to the galaxy's center, along the opening camera's
     line (the page's starting angles round the origin, the central black hole): the union of `nodecut.node_cut` for the
     camera at `start_radius_pc`, then each `ZOOM_STEP` closer, down to blocks of `finest_block` shells (a block of that
     size is in the cut from about a few of its own sizes in), keeping the nodes finer than `NODE_WARM_FLOOR` and not

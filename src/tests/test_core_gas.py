@@ -1,8 +1,8 @@
 # tests/test_core_gas.py
 
 """
-GEN.282: a barred galaxy's centre has a gas ring, the central molecular zone, fed by the gas of the bar's gap; its young
-field stars are part of the nuclear disc (moved into the `young` population), and its bound clusters are components.
+GEN.282: a barred galaxy's center has a gas ring, the central molecular zone, fed by the gas of the bar's gap; its young
+field stars are part of the nuclear disk (moved into the `young` population), and its bound clusters are components.
 """
 
 import math
@@ -50,23 +50,23 @@ def test_the_ring_scales_with_the_bulge_and_the_gas_of_the_gap():
     assert core_gas.core_gas(small).radius_pc == pytest.approx(core_gas.core_gas(_shape()).radius_pc / 10.0)
 
 
-def test_the_rings_young_stars_come_out_of_the_nuclear_disc_and_the_total_does_not_move(monkeypatch):
+def test_the_rings_young_stars_come_out_of_the_nuclear_disk_and_the_total_does_not_move(monkeypatch):
     shape = _shape()
     with_ring = galaxyDensity.population_densities((100.0, 0.0, 0.0), shape)
     total_with = galaxyDensity.relative_density((100.0, 0.0, 0.0), shape)
     _without_ring(monkeypatch)
     plain = galaxyDensity.population_densities((100.0, 0.0, 0.0), shape)
     assert with_ring["young"] > plain["young"] + 1.0
-    assert with_ring["nuclear_disc"] == pytest.approx(plain["nuclear_disc"] - (with_ring["young"] - plain["young"]))
+    assert with_ring["nuclear_disk"] == pytest.approx(plain["nuclear_disk"] - (with_ring["young"] - plain["young"]))
     assert sum(with_ring.values()) == pytest.approx(sum(plain.values()), rel=1e-12)
     assert sum(with_ring.values()) == pytest.approx(total_with, rel=1e-9)
     assert galaxyDensity.relative_density((100.0, 0.0, 0.0), shape) == pytest.approx(total_with)
 
 
-def test_the_young_share_of_the_nuclear_disc_is_about_a_percent_at_the_ring_and_negligible_far_from_it():
+def test_the_young_share_of_the_nuclear_disk_is_about_a_percent_at_the_ring_and_negligible_far_from_it():
     shape = _shape()
     at_ring = galaxyDensity.population_densities((100.0, 0.0, 0.0), shape)
-    share = core_gas.young_density(100.0, 0.0, core_gas.core_gas(shape)) * shape.k_norm / (at_ring["nuclear_disc"] + at_ring["young"])
+    share = core_gas.young_density(100.0, 0.0, core_gas.core_gas(shape)) * shape.k_norm / (at_ring["nuclear_disk"] + at_ring["young"])
     assert 0.003 < share < 0.05
     ring = core_gas.core_gas(shape)
     assert core_gas.young_density(1000.0, 0.0, ring) < 1.0e-6 * ring.young_density
@@ -87,7 +87,7 @@ def test_the_array_form_agrees_with_the_point_form():
     found = galaxyDensity.population_densities_array(xs, np.zeros(5), zs, shape)
     for i in range(5):
         one = galaxyDensity.population_densities((float(xs[i]), 0.0, float(zs[i])), shape)
-        for name in ("young", "nuclear_disc"):
+        for name in ("young", "nuclear_disk"):
             assert found[name][i] == pytest.approx(one[name], rel=1e-9)
 
 
@@ -109,19 +109,19 @@ def test_the_bound_share_of_the_rings_stars_forms_clusters_where_the_ring_is():
     assert 5 < len(nearby) < 3000         # the clouds that pass the ring disrupt most of what it forms (GEN.1195)
     for cluster in nearby:
         assert components.is_open_cluster(cluster) and cluster.age_gy <= tuning.CORE_STAR_FORMATION_SPAN_GY
-        assert cluster.half_mass_radius_pc < 3.0          # a tide of the centre holds a cluster to a pc or so
+        assert cluster.half_mass_radius_pc < 3.0          # a tide of the center holds a cluster to a pc or so
     radius = np.array([math.hypot(c.center_pc[0], c.center_pc[1]) for c in nearby])
     assert abs(np.median(radius) - ring.radius_pc) < 2.0 * ring.sigma_pc
     assert open_clusters.generate_open_clusters(b"core-seed", shape, EDGE, E1) == found
 
 
-def test_without_the_ring_the_galaxy_draws_no_cluster_near_its_centre(monkeypatch):
+def test_without_the_ring_the_galaxy_draws_no_cluster_near_its_center(monkeypatch):
     _without_ring(monkeypatch)
     found = open_clusters.generate_open_clusters(b"core-seed", _shape(), EDGE, E1)
     assert not [c for c in found if math.hypot(c.center_pc[0], c.center_pc[1]) < 300.0 and c.mass_solar > 5.0e3]
 
 
-def test_the_circular_speed_of_the_centre_is_that_of_the_galaxys_potential():
+def test_the_circular_speed_of_the_center_is_that_of_the_galaxys_potential():
     from planetgen.galaxy import potential
     pot = potential.for_galaxy(_shape(), None)
     radius = np.array([10.0, 100.0, 200.0])
@@ -173,8 +173,8 @@ def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_
     assert max(old) == 0
 
 
-def test_the_milky_way_shapes_disc_rings_change_from_shear_to_feedback_limited_at_about_four_kiloparsecs():
-    """GEN.1196: [R3720] (section 4.1) find the Milky Way's disc shear-limited inside 4.3 (3.5 to 6.3)
+def test_the_milky_way_shapes_disk_rings_change_from_shear_to_feedback_limited_at_about_four_kiloparsecs():
+    """GEN.1196: [R3720] (section 4.1) find the Milky Way's disk shear-limited inside 4.3 (3.5 to 6.3)
     kpc and feedback-limited beyond, the cloud maximum there about 1e6; the rings of the Milky Way's shape, with their own
     gas and the flat curve, change over in the same band, and the cluster maximum stays under the observed 1e4 to 4e4."""
     from planetgen.galaxy import disk_history
@@ -186,11 +186,11 @@ def test_the_milky_way_shapes_disc_rings_change_from_shear_to_feedback_limited_a
     pot = potential.for_galaxy(shape, None)
     kappa = np.array([cmm.epicyclic_frequency_per_myr(potential.circular_speed_kms(pot, r), r, potential.circular_speed_slope_kms_per_pc(pot, r))
                       for r in radii])
-    fraction = np.array([cmm.collapsed_fraction(g, k, tuning.DISC_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
+    fraction = np.array([cmm.collapsed_fraction(g, k, tuning.DISK_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
     assert np.all(fraction[(radii > 1000.0) & (radii < 3500.0)] == 1.0)
     far = (radii > 6300.0) & (radii < 15000.0)
     assert np.all(fraction[far] < 1.0) and np.all(fraction[far] > 0.0)
-    cloud = np.array([cmm.maximum_cloud_mass_sol(g, k, tuning.DISC_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
+    cloud = np.array([cmm.maximum_cloud_mass_sol(g, k, tuning.DISK_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
     assert 1.0e5 < cloud[(radii > 4000.0) & (radii < 10000.0)].max() < 1.0e7
     assert maximum[(radii > 3000.0) & (radii < 12000.0)].max() < 1.0e5
     assert maximum[(radii > 3000.0) & (radii < 12000.0)].max() > 5.0e2

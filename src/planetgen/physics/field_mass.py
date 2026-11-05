@@ -4,14 +4,14 @@
 How much mass an interstellar asteroid field holds, and its stored bodies (GEN.1161; docs/design/systems/interstellar-asteroid-fields.md sections 3, 4 and 6)
 =============================================================================================================================================================
 
-A field is a belt with no star (the design's short answer 6). Boss approved the rule at 2026-10-31 3:14 PM EDT: **a field holds what the disc stretch it came from has left, by
+A field is a belt with no star (the design's short answer 6). Boss approved the rule at 2026-10-31 3:14 PM EDT: **a field holds what the disk stretch it came from has left, by
 the belts' own rule, and its stored bodies add up to that mass**. No field is given a typical mass from a table and none is invented:
 
-1. **A belt unbound by a supernova** (`unbound_belt_field`, source S2, the best physical source). The belt is the leftover of the progenitor's disc stretch after the giants acted on
+1. **A belt unbound by a supernova** (`unbound_belt_field`, source S2, the best physical source). The belt is the leftover of the progenitor's disk stretch after the giants acted on
    it (`belt_origin`, its `mass_earth`), ground by collisions for the progenitor's life (`belt_ledger.solve_belt`: the collisional mass of `belt_mass.belt_mass_earth` and its largest
    body settled together, the belts' own step). The explosion unbinds it (`field_dispersal.unbound_belt_speed_ms`) and from then on nothing grinds it (`field_dispersal`: the
    optical depth falls under 1 within years), so the field's mass is the mass at the explosion and stays that.
-2. **Two rogue planets that collided** (`collision_field`, source S1). The disc stretch is the pair themselves: the field holds the part of the combined mass that leaves the largest
+2. **Two rogue planets that collided** (`collision_field`, source S1). The disk stretch is the pair themselves: the field holds the part of the combined mass that leaves the largest
    remnant faster than its escape speed (`rogue_collision.unbound_fraction`), so a hit-and-run leaves none, a merger or an erosion a trace, and a super-catastrophic hit under a seventh of the mass. The
    remnant is a rogue planet of its own (`largest_remnant_kg`), never a member of the field.
 

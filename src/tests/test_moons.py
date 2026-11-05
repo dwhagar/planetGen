@@ -150,7 +150,7 @@ def test_a_moons_hill_sphere_is_about_its_planet_not_the_star(host_star):
 
 def test_a_massive_moon_of_a_rocky_planet_comes_from_an_impact_at_the_rate_of_elser(host_star):
     """GEN.962: rocky planets held 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets). A rocky planet now gets a moon
-    in about 1 planet in 12 (`tuning.ROCKY_IMPACT_MOON_CHANCE`, [R5112]), of at least `ROCKY_MASSIVE_MOON_MASS_RATIO` of its mass."""
+    in about 1 planet in 12 (`tuning.ROCKY_IMPACT_MOON_CHANCE`, [R5123]), of at least `ROCKY_MASSIVE_MOON_MASS_RATIO` of its mass."""
     planets = [make_host_planet(host_star, 0.5, "e") for _ in range(60)]
     with_moons = [p for p in planets if p.moons]
     assert len(with_moons) <= 18, len(with_moons)                    # 5 expected; the old even chance gave about 30

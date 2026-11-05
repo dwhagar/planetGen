@@ -4,7 +4,7 @@
 Planet kind from formation (GEN.681)
 ====================================
 
-What sort of body the disc built at a formation distance, without a class letter. The mass law (`planet_mass`) gives the
+What sort of body the disk built at a formation distance, without a class letter. The mass law (`planet_mass`) gives the
 mass and whether the core ran away into a gas giant; this module adds the kind the rest of the generator branches on and
 the one fact about origin the composition draws need.
 
@@ -42,7 +42,7 @@ def draw_formation(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_rati
         star_mass_kg (float): The star's mass, in kilograms.
         snow_line_au (float): The star's own snow line, in AU.
         fe_h (float): The star's [Fe/H] in dex.
-        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disc's solids scale with it.
+        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disk's solids scale with it.
         stream (draw.Stream or None): The body's own stream; `None` draws from the stream bound now.
 
     Returns:

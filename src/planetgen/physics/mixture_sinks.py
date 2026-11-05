@@ -10,7 +10,7 @@ law, `physics/gases.py`, mol/(kg bar)). An ocean of `m` kg per square metre over
 gas per square metre keeps `1 / (1 + kH m g M / P0)` of it in the air, with `P0` one bar in pascal (`sulfur_remaining_fraction`,
 read by `surface_air` once the sulfur sinks of the crust have taken theirs).
 
-What stays out of here: the water vapour cap over an ocean (the saturation of `physics/saturation.py`, applied by the air solve), the
+What stays out of here: the water vapor cap over an ocean (the saturation of `physics/saturation.py`, applied by the air solve), the
 outgassed inventory and the carbonate and ocean sinks of the carbon, water and nitrogen the mantle gave (GEN.726,
 `physics/surface_pressure.py`; in the rocky draw the inventory's weathering sink, `mixture_rocky.INVENTORY`), the freezing out of what
 the cold surface condenses (the pressure sum of GEN.411), and the clouds.

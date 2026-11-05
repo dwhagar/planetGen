@@ -73,10 +73,21 @@ def _with_neighbours(route, dense):
     return {**route, "graph": {"nodes": [], "edges": edges, "more": more}}
 
 
-def _open(browser, width, theme="light", motion="no-preference", neighbours=None):
+def _bent(route):
+    """NAV.72: the hop of 140 ly bends round two keep-out spheres, and the hop of 45 ly could not be bent."""
+    waypoints = [{"kind": "start"}, {"kind": "tangent_in"}, {"kind": "tangent_out"}, {"kind": "tangent_in"}, {"kind": "tangent_out"}, {"kind": "end"}]
+    route["hops"][3]["adjusted"] = {"waypoints": waypoints, "straight_length_ly": 140.0, "extra_ly": 1.1, "warnings": []}
+    route["hops"][4]["adjusted"] = {"waypoints": [{"kind": "start"}, {"kind": "end"}], "straight_length_ly": 45.0, "extra_ly": 0.0,
+                                    "warnings": ["overlap_fallback"]}
+    return route
+
+
+def _open(browser, width, theme="light", motion="no-preference", neighbours=None, bent=False):
     with open(_STYLE, encoding="utf-8") as handle:
         css = handle.read()
     route, names, urls = _route()
+    if bent:
+        route = _bent(route)
     if neighbours is not None:
         route = _with_neighbours(route, neighbours == "dense")
     panel = render_course_diagram(route, names, urls)
@@ -200,3 +211,42 @@ def test_the_page_says_a_link_is_a_neighbour_relation_and_not_a_travel_lane(brow
     finally:
         context.close()
     assert "neighbour relation, not a travel lane" in text and "Neighbour (not a travel lane)" in legend
+
+
+@pytest.mark.parametrize("width,size", [(320, "narrow"), (700, "middle"), (1280, "wide")])
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_a_bent_hop_shows_its_mark_inside_the_drawing_without_covering_text(browser, width, size, theme):
+    """NAV.72: the bend under a hop that goes round keep-out spheres and the flag under one the planner could not bend, in both themes."""
+    context, page = _open(browser, width, theme=theme, bent=True)
+    try:
+        result = page.evaluate(SHOWN)
+        marks = page.evaluate("""() => {
+          const svg = [...document.querySelectorAll(".nav-diagram-svg")].find((el) => getComputedStyle(el).display !== "none"
+            && getComputedStyle(el.parentElement).display !== "none");
+          const box = svg.getBoundingClientRect();
+          const css = (el) => getComputedStyle(el);
+          const rect = (el) => { const r = el.getBoundingClientRect(); return { text: "bend", left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
+          const bend = [...svg.querySelectorAll(".nav-diagram-bend:not(.nav-diagram-bend-flag)")];
+          const flag = [...svg.querySelectorAll(".nav-diagram-bend-flag")];
+          const pick = (list) => list.map((el) => ({ rect: rect(el), stroke: css(el).stroke, fill: css(el).fill, width: css(el).strokeWidth }));
+          const line = css(svg.querySelector(".nav-diagram-hop .nav-diagram-line")).stroke;
+          const words = [...svg.querySelectorAll(".nav-diagram-hop title")].map((t) => t.textContent);
+          return { bend: pick(bend), flag: pick(flag), line, words,
+                   inside: [...bend, ...flag].every((el) => { const r = el.getBoundingClientRect();
+                     return r.left >= box.left - 1 && r.right <= box.right + 1 && r.top >= box.top - 1 && r.bottom <= box.bottom + 1; }),
+                   legend: document.querySelector(".nav-diagram-legend").textContent };
+        }""")
+    finally:
+        context.close()
+    assert f"nav-diagram-{size}" in result["size"]
+    assert len(marks["bend"]) >= 1 and len(marks["flag"]) >= 1, marks
+    assert marks["inside"], f"a bend runs outside the drawing at {width}px"
+    assert marks["bend"][0]["stroke"] != marks["line"], "the bend must differ from the hop line, not by colour alone it has its own shape"
+    assert marks["bend"][0]["stroke"] != marks["flag"][0]["stroke"]
+    assert any("bends round 2 keep-out spheres" in w for w in marks["words"])
+    assert any("shown as the straight line" in w for w in marks["words"])
+    assert "Hop that bends round a keep-out sphere" in marks["legend"]
+    texts = result["names"] + result["labels"] + result["courses"] + result["more"]
+    for mark in marks["bend"] + marks["flag"]:
+        for text in texts:
+            assert not _overlaps(mark["rect"], text), f"a bend mark covers {text['text']!r} at {width}px"

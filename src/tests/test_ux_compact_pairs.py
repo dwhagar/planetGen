@@ -44,7 +44,7 @@ CASES = {
     "high-mass-xray-binary": (_member(0, "neutron-star", 1.4), _member(1, "main-sequence", 25.0),
                               _node("accreting", multistar.NODE_WIND_FED), "High-mass X-ray binary"),
     "be-xray-binary": (_member(0, "neutron-star", 1.4), _member(1, "main-sequence", 12.0),
-                       _node("accreting", multistar.NODE_DISC_FED), "Be/X-ray binary"),
+                       _node("accreting", multistar.NODE_DISK_FED), "Be/X-ray binary"),
     "low-mass-xray-binary": (_member(0, "black-hole", 8.0), _member(1, "main-sequence", 0.8),
                              _node("accreting"), "Low-mass X-ray binary"),
     "black-widow": (_member(0, "neutron-star", 1.4, multistar.MEMBER_ABLATING), _member(1, "main-sequence", 0.03),

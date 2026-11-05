@@ -1,12 +1,12 @@
 # planetgen/physics/dwarf_population.py
 
 """
-The dwarf planets of a belt or an outer disc: how many there are, which are round, which have cleared their orbit, and which are Class D (GEN.1090; docs/design/systems/belt-origins.md section 5, belt-evolution.md section 3.2)
+The dwarf planets of a belt or an outer disk: how many there are, which are round, which have cleared their orbit, and which are Class D (GEN.1090; docs/design/systems/belt-origins.md section 5, belt-evolution.md section 3.2)
 ============================================================================================================================================================================================================================
 
 The census of GEN.1087 (`reports/dwarf-census-2026-10-30.md`) found no free-orbiting dwarf planet in any generated system: a belt was an annulus with nothing in it, and the planet list stops at 0.1 Earth masses. The
 belt ledger (`belt_ledger.py`, GEN.1061) draws the heaviest bodies of a belt from its mass and size law; this module says what they are. Pure functions, no wiring (GEN.1069 stores the ledger and GEN.1071 and GEN.1092 put it
-on the outer disc; the system page lists the dwarf planets as members of their belt).
+on the outer disk; the system page lists the dwarf planets as members of their belt).
 
 1. **How many.** `count_above_km` is `N(>D)` of the belt's size law for the belt's mass, `typical_largest` the body with `N(>m) = 1` (the order statistic) and `chance_of_body_above` the chance that a belt holds any body above a mass
    (`1 - exp(-N)`, a Poisson process). Nothing is typed in per belt: the count follows from the mass.

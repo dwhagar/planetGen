@@ -157,7 +157,7 @@ def band_fraction(temperature_k, band_nm):
 # --- The phase of carbon dioxide -------------------------------------------------------------
 
 def co2_saturation_pa(temperature_k):
-    """The vapour pressure of carbon dioxide, Pa, between its triple and critical points: ln p linear in 1/T through the two points
+    """The vapor pressure of carbon dioxide, Pa, between its triple and critical points: ln p linear in 1/T through the two points
     (within a few percent of the measured curve, which is all a phase test needs)."""
     slope = math.log(CO2_CRITICAL_PA / CO2_TRIPLE_PA) / (1.0 / CO2_CRITICAL_K - 1.0 / CO2_TRIPLE_K)
     return CO2_TRIPLE_PA * math.exp(slope * (1.0 / temperature_k - 1.0 / CO2_TRIPLE_K))

@@ -193,8 +193,8 @@ test("a 202 waits on the job, polling its status address, and asks for the rows 
   assert.deepEqual(sleeps, [JOB_POLL_MS, JOB_POLL_MS]);
 });
 
-test("a failed or cancelled job stays on the screen and the fetch fails", async () => {
-  for (const state of ["failed", "cancelled"]) {
+test("a failed or canceled job stays on the screen and the fetch fails", async () => {
+  for (const state of ["failed", "canceled"]) {
     const log = [];
     await assert.rejects(fetchWhileBusy(async () => pending(state, { error: "Disk full" }), () => true, () => {}, async () => {}, jobsFor([], log)),
       new RegExp(state));

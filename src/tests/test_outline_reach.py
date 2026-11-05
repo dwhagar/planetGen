@@ -87,7 +87,7 @@ def test_the_plan_prints_how_many_sectors_expect_a_system_beside_the_candidates(
 
 
 def test_the_reaching_count_matches_a_count_of_the_sectors_that_expect_a_system():
-    """The integral against the model's own density on a coarse lattice of the disc."""
+    """The integral against the model's own density on a coarse lattice of the disk."""
     built = plan_outline.build(plan_outline._parser().parse_args(["--mass", "1e8", "--disk-scale-length", "400pc"]), SEED, 4.0)
     made = plan_outline.report(built)
     edge, reach = built.edge_pc, made.radius_pc

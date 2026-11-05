@@ -15,7 +15,7 @@
 export const SAFE_EXTENT_PC = 10000;
 
 // The middle of the box that holds the points: the origin that keeps a single object's offsets smallest.
-export function centreOf(flat) {
+export function centerOf(flat) {
   if (!flat.length) return [0, 0, 0];
   const low = [Infinity, Infinity, Infinity];
   const high = [-Infinity, -Infinity, -Infinity];
@@ -42,7 +42,7 @@ export function offsetsFrom(flat, origin) {
 
 // One object's buffer: `{ origin, positions }`, the origin the middle of the points (or the one given).
 export function relativeBuffer(flat, origin) {
-  const at = origin || centreOf(flat);
+  const at = origin || centerOf(flat);
   return { origin: at, positions: offsetsFrom(flat, at) };
 }
 

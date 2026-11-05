@@ -65,3 +65,12 @@ def test_the_envelope_left_and_the_share_lost_agree():
     left = ee.envelope_left_earth(6.0, 0.05, 15.0, **SUN)
     assert 0.0 < left < start
     assert _lost(6.0, 0.05, 15.0) == pytest.approx(1.0 - left / start)
+
+
+def test_a_body_with_no_starlight_keeps_its_whole_envelope():
+    """GEN.1111/1120: a rogue planet has no star, so no stellar XUV drives any loss (and the flux division by zero cannot be reached)."""
+    from planetgen.physics import envelope_escape
+
+    left = envelope_escape.envelope_left_earth(10.0, 0.05, 0.0, 1.0, 0.0, 5.0)
+    assert left == pytest.approx(0.05 * 10.0 / 0.95)
+    assert envelope_escape.lost_fraction(10.0, 0.05, 0.0, 1.0, 0.0, 5.0) == 0.0

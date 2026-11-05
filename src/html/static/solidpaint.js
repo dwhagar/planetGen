@@ -70,7 +70,7 @@ function waterState(look) {
   var ocean = typeof look.ocean === "number" ? clamp01(look.ocean) : 0;
   if (hydro === "ice") return { ocean: 0, allIce: true, haze: false };
   if (hydro === "ice-covered ocean") return { ocean: 0, allIce: true, haze: false, underIce: true };
-  if (hydro === "vapour") return { ocean: 0, allIce: false, haze: true };
+  if (hydro === "vapor") return { ocean: 0, allIce: false, haze: true };
   if (hydro === "hycean") return { ocean: 1, allIce: false, haze: false };
   if (hydro === "dry") return { ocean: 0, allIce: false, haze: false };
   return { ocean: ocean, allIce: false, haze: false };
@@ -224,7 +224,7 @@ export function paintSolid(look, w, h) {
 
   var extraBlur = look.atm ? applyAir(look, rgb, w, h, seed) : 0;
 
-  // Craters on a world with no air (and no ice sheet over it): seeded darker discs.
+  // Craters on a world with no air (and no ice sheet over it): seeded darker disks.
   if (!hasAir && !water.allIce && !water.haze) {
     var rnd = makeRandom(seed ^ 0x5bd1e995);
     var count = Math.round((w * h) / 160);

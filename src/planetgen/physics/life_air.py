@@ -160,17 +160,33 @@ def standing_methane_mol(body, living, age_gyr):
     moles = biogenic_oxygen.air_moles(body)
     if not moles:
         return 0.0
+    flux = summed_methane_flux_mol_yr(body, living, lambda one: row_of(one.life_class)["methane"].get("until") == "oxygen" and one.started(body) is not None
+                                      and one.started(body) <= age_gyr)
+    return methane_target_mol(flux, moles) if flux > 0.0 else 0.0
+
+
+def summed_methane_flux_mol_yr(body, living, counts=None):
+    """
+    The methane, mol a year, the classes of `living` make together on `body` (GEN.1213, GEN.1252). `counts(one)` says which classes count (all if not given). A row
+    whose fuel is the buried carbon of the food (`burial`) is a slice of the food, so it goes with the class's share of the body's production; a row limited by its
+    own fuel (the donor supply of the anoxygenic eaters, the hydrogen supply of the hydrogen eaters) is not limited by the food, so each fuel's flux is counted once
+    however many classes burn it and whatever their shares.
+    """
     supplies = None
-    flux = 0.0
+    burial = 0.0
+    fuels = {}
     for one in living:
         row = row_of(one.life_class)
-        started = one.started(body)
-        if row["status"] != "built" or not row.get("methane") or row["methane"].get("until") != "oxygen" or started is None or started > age_gyr:
+        if row["status"] != "built" or not row.get("methane") or (counts is not None and not counts(one)):
             continue
-        if row["methane"]["fuel"] != "burial" and supplies is None:
+        fuel = row["methane"]["fuel"]
+        if fuel == "burial":
+            burial += one.share * methane_flux_mol_yr(body, one.life_class)
+            continue
+        if supplies is None:
             supplies = life_supply.supplies(habitability_world.values_from_body(body))
-        flux += one.share * methane_flux_mol_yr(body, one.life_class, supplies)
-    return methane_target_mol(flux, moles) if flux > 0.0 else 0.0
+        fuels[fuel] = max(fuels.get(fuel, 0.0), methane_flux_mol_yr(body, one.life_class, supplies))
+    return burial + sum(fuels.values())
 
 
 def oxygen_rise_gyr(body, living):
@@ -236,15 +252,7 @@ def apply_gases(body, living, rose):
     changed = False
     new = dict(moles)
     oxygen_free = moles.get("O2", 0.0) <= number("oxygen_max_share") * sum(moles.values())
-    flux = 0.0
-    supplies = None
-    for one in living:
-        row = row_of(one.life_class)
-        if row["status"] != "built" or not row.get("methane") or not _producing(body, one, rose):
-            continue
-        if row["methane"]["fuel"] != "burial" and supplies is None:
-            supplies = life_supply.supplies(habitability_world.values_from_body(body))
-        flux += one.share * methane_flux_mol_yr(body, one.life_class, supplies)
+    flux = summed_methane_flux_mol_yr(body, living, lambda one: _producing(body, one, rose))
     if oxygen_free and flux > 0.0:
         have = moles.get("CH4", 0.0)
         wanted = methane_target_mol(flux, moles)

@@ -44,7 +44,7 @@ export function isLumpy(look) {
 /**
  * The shape of the lump of `look`: `{ axes: [a, b, c], waves: [{ dir, k, phase, weight }], amplitude, extent }`. The axes are the
  * long, middle and short scale with a geometric mean of 1, `amplitude` the bump height, and `extent` the farthest the surface
- * reaches from the centre (the picture is framed to it).
+ * reaches from the center (the picture is framed to it).
  */
 export function shapeOf(look) {
   const ratio = typeof look.roundness === "number" ? look.roundness : FALLBACK_ROUNDNESS;
@@ -69,7 +69,7 @@ export function shapeOf(look) {
   return { axes: axes, waves: waves, amplitude: amplitude, extent: Math.max(...axes) * (1 + amplitude) };
 }
 
-/** How far the surface is from the centre along the unit direction (x, y, z), as a multiple of the mean radius, before the axes stretch it: `1 +- amplitude`. */
+/** How far the surface is from the center along the unit direction (x, y, z), as a multiple of the mean radius, before the axes stretch it: `1 +- amplitude`. */
 export function bumpAt(shape, x, y, z) {
   let sum = 0;
   for (const wave of shape.waves) sum += wave.weight * Math.sin(wave.k * (wave.dir[0] * x + wave.dir[1] * y + wave.dir[2] * z) + wave.phase);

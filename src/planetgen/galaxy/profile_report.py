@@ -14,7 +14,7 @@ def _bubble(bubble, position_pc):
         return None
     return {"radius_pc": bubble.radius_pc, "ambient_density_cm3": bubble.ambient_density_cm3,
             "temperature_k": bubble.temperature_k, "center_pc": list(bubble.center_pc),
-            "centre_distance_pc": detmath.dist(bubble.center_pc, position_pc)}
+            "center_distance_pc": detmath.dist(bubble.center_pc, position_pc)}
 
 
 def profile_report(profile):
@@ -27,7 +27,7 @@ def profile_report(profile):
             (population -> `density`, `share`, `age_gy` as `[youngest, oldest]`, `fe_h` as a list of `[weight, mean,
             sigma]`, `dispersion_kms`, `rotation`), `gas` (`cold_fraction`, `ambient`, `ambient_density_cm3`,
             `mass_solar`, `superbubble` as `null` or the cavity's `radius_pc`, `ambient_density_cm3`,
-            `temperature_k`, `center_pc` and `centre_distance_pc`), `dark_matter` (`density_solar_pc3`, `mass_solar`)
+            `temperature_k`, `center_pc` and `center_distance_pc`), `dark_matter` (`density_solar_pc3`, `mass_solar`)
             `kind_factors` (kind -> factor) and `type_ia_share` (the share of the place's supernova remnants that are
             Type Ia).
     """

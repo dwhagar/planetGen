@@ -126,8 +126,8 @@ def test_filling_an_unfilled_cell_does_not_change_its_cover(seeded, monkeypatch)
         conn.execute("INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems,"
                      " actual_stars, mean_age_gy, total_luminosity_sol, bright_level_sol) VALUES (?, ?, ?, 2, 2, 3, 1.0, 10.0, 0)",
                      (sector.shell, sector.band, sector.wedge))
-        letter, radius_ly, centre = next(c for c in clouds if tuple(c[2]) == tuple(_middle(unfilled)))
-        _link_to_field(conn, _store_nebula(conn, letter, radius_ly, centre))
+        letter, radius_ly, center = next(c for c in clouds if tuple(c[2]) == tuple(_middle(unfilled)))
+        _link_to_field(conn, _store_nebula(conn, letter, radius_ly, center))
         block_stats.rebuild(conn)
         nebula_blocks.catch_up(conn, EDGE_PC)
         conn.commit()
