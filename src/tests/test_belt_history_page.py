@@ -19,6 +19,13 @@ LINES = ("A giant engulfed its inner 0.4 au.", "The star lost mass and a share o
 def _belt(history):
     belt = types.SimpleNamespace(distance=2.0, lower_limit=1.5, upper_limit=3.0, density="typical", mass_kg=1.5e21, chondrite_group="CM",
                                  get_composition_summary=lambda: "rock", history=history)
+    for name in vars(AsteroidBelt):         # a belt of the class has every stored field; this stand-in holds the ones the page and the row read
+        if not name.startswith("_") and not callable(getattr(AsteroidBelt, name)) and not hasattr(belt, name):
+            setattr(belt, name, getattr(AsteroidBelt, name))
+    for name in ("largest_body_km", "stirred", "origin_cause", "co_causes", "origin_sentence", "origin_history", "scatter_fates",
+                 "formation_snow_line_au", "primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth"):
+        if not hasattr(belt, name):
+            setattr(belt, name, None)
     return belt
 
 
