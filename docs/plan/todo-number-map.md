@@ -2425,7 +2425,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.368 | Black holes off by default on the Galaxy Map, still drawn as purple dots when turned on | none | done, PR #4858 |
 | MAP.369 | Region labels still do not show as clickable points of interest that zoom into the charted region (bug) | none | open |
 | MAP.370 | Black hole dots must always draw with the stars; only the black hole POI marks are off by default (bug) | none | done, PR #4865 |
-| MAP.371 | Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead) | none | open |
+| MAP.371 | Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead) | none | done, PR #4982 |
 | MAP.372 | Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane | none | open |
 | MAP.373 | Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple | none | open |
 | MAP.374 | Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection | none | open |

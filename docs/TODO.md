@@ -2072,46 +2072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.371 Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead)**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: a tilt preset
-  in the Galaxy Map 3D camera that reuses the top-down and isometric
-  views of MAP.97; a grid drawn on a plane through the focus (the camera
-  target), parallel to the galaxy midplane, centred on the selection
-  with ring labels; a one-click choice of the midplane z = 0 instead.
-  The grid shows only at region and sector scale (tens to a few hundred
-  pc): at the galaxy scale the disc is too thin for it to mean anything.
-  Done: browser test that the preset tilts, the grid follows the focus
-  and the toggle between the two planes works. Goal #3241. Filed by the
-  TODO thread.
-  Boss decision on the shape: a 60 degree arc wedge (5:48 PM EST on
-  2026-11-04) (2026-11-04 5:50 PM EST): Boss answered the wedge mock-ups
-  (reports/galaxy-projection-survey-2026-11-04/, section 10,
-  galaxy-mock-a to d): the existing 3D perspective mode that shows
-  everything (nebulae, black holes and the rest) stays untouched; the
-  plane view with stems is drawn for a 60 degree arc wedge of the
-  galaxy, a pie slice from the galactic center, laid flat-tilted inside
-  the 3D map, with the edge-on side strip as an option (MAP.375).
-  Everything outside the wedge is drawn as today. This replaces the
-  'region and sector scale only' limit for the wedge itself: the wedge
-  works at galaxy scale (heights are drawn about 12 times taller than
-  true in mock A because the disc is about 3 percent as thick as it is
-  wide, so the height-stretch control of MAP.373 is needed; stems still
-  show only at a scale where they are larger than 2 px). Open sub-part,
-  not a requirement (the TODO thread lists it; Boss has not ruled): a
-  draggable angle and width for the wedge. The other option from the
-  survey, a wedge pointing out from a chosen star (redshift-survey
-  style), is not chosen. Done adds: a browser test that the wedge is 60
-  degrees, that the rest of the 3D view is unchanged, and that the plane
-  and kpc rings follow the wedge.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
-  before).
-  Prerequisites: none.
-
 - [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
   Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
   (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
