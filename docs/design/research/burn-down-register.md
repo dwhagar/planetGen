@@ -200,7 +200,15 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.170:RNG19 | no data | - | band contrast and colour are tuned by eye (a methane giant nearly featureless, an ammonia giant strongly banded); the optics of the generated clouds (GEN.422 k-tables) would replace them |
 | 6.174:SKB3 | no data | - | the ends of the faint-light table are invented to close it; the share worked from the luminosity function of the generator's own stars would replace them |
 | 6.174:SKB4 | no data | - | the cell, cube map and ray sizes are a picture's needs, chosen so the band is smooth; no source gives them |
-| 6.176:SKT1 | replace | VIEW.41 | the cell visit budget goes when a coarser block draw serves the sparse luminosity bands |
+| 6.174:GLW1 | no data | - | the glow's colour is a blackbody of 4500 K because the band is worked as one V surface brightness and the page needs three channels; the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix, would replace it |
+| 6.176:SKT1 | no data | - | the visit budget is a serving limit chosen so a dust-free sky drops nothing; a coarser block draw for the sparse luminosity bands (a new draw and an epoch, not yet filed) would remove the need for it |
+| 6.176:SKT4 | no data | - | the near-ring mass edges are spaced by hand over the lightest stars the sampler draws; a spacing taken from the mass-luminosity relation would replace them |
+| 6.176:SKT5 | no data | - | the ring yield is a cost set by hand (100 stars drawn for each one that shows, as the heavier rings do); a cost per visible star set by the queue would replace it |
+| 6.176:SKT6 | no data | - | the local mix weighs the young, intermediate and old populations alike, as near the Sun; the populations' densities at the observer, which a caller can pass, would replace it |
+| 6.180:SKD1 | no data | - | the soft knee of the glow image is chosen by eye so the band shows at the faint end and the core does not clip; a display model of the eye's response to surface brightness would replace it |
+| 6.180:SKD2 | no data | - | the grain of the glow is a seeded noise sized by eye; the Poisson variation of the stars under the limit in a cell would replace it |
+| 6.180:SKD4 | no data | - | the sprite glow ramp is chosen by eye, like the stars' own scale; the same display model as SKD1 would replace it |
+| 6.180:SKD5 | no data | - | the stored model ties no orbital plane to the galactic frame, so the Milky Way's plane is drawn in the plane of the orbits; a stored orientation of each system would replace it |
 | 6.178:PNE5 | no data | - | the hot-bottom-burning carbon to nitrogen share is set so a 5 solar mass progenitor is Type I; no source gives the surface abundances of hot-bottom-burning models by mass and metallicity |
 | 6.178:PNE7 | no data | - | a safety limit that ends the carbon-rich draw loop; no draw is refused at solar metallicity |
 | 6.179:NBC6 | no data | - | the grain kinds and their shares are recalled from Milky Way dust models (Draine and Li, Zubko et al.) and fitted inside the metals; no measured dust composition by nebula class is in hand |
