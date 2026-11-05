@@ -2092,6 +2092,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   style), is not chosen. Done adds: a browser test that the wedge is 60
   degrees, that the rest of the 3D view is unchanged, and that the plane
   and kpc rings follow the wedge.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
+  before).
   Prerequisites: none.
 
 - [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
@@ -2116,6 +2118,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are unchanged (labelled, selected, near-focus objects, never all
   stars). With a star selected, the grid rings are drawn around it (1, 2
   and 3 kpc in mock C).
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
+  before).
   Prerequisites: MAP.371.
 
 - [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
@@ -2141,6 +2145,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each star relative to the selected star (bearing and distance from it,
   with units). Done adds: a browser test of each of the three contexts
   (sector, galaxy, a star selected).
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
+  before).
   Prerequisites: MAP.372.
 
 - [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
@@ -2172,53 +2178,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plus the edge-on strip, heights about 2.2 times true in the strip
   against about 12 times in the plane view. It shows the same stars as
   the wedge.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Star 2 (unowned
+  before).
   Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
 
-- [ ] **MAP.378 The Galaxy Map no longer shows the fixture galaxy's charted sectors in the browser tests: 11 to 12 fixture-map tests are red alone on main (zoom stuck near 2.5e-8, no sector label, no Fixture Maw or Fixture Eden marker) (bug)**
-  Found by Core 3 and Core 2 while working TEST.575 (7:07 PM EST on
-  2026-11-04, as the lanes reported). Red alone, same on current main:
-  test_one_wheel_scroll_..., test_the_wheel_keeps_the_view_... (scroll
-  never reaches a sector, zoom stuck near 2.5e-8),
-  test_galaxy_map_names_a_generated_sector_in_its_window and
-  ..._heaviest_sectors_first (a sector label never appears),
-  test_galaxy_map_info_popup_stays_inside_the_map_window (4 sizes, the
-  'Fixture Maw' marker never appears),
-  test_galaxy_map_marks_gas_giants_... (marker set lacks 'Fixture
-  Eden'),
-  test_the_blocks_and_their_outlines_are_built_relative_to_origins (one
-  block layer, extentPc 15540 at origin 0, 75675 blocks),
-  test_galaxy_map_draws_block_lines_only_in_a_window (lines invisible at
-  rest), test_galaxy_map_turns_past_edge_on_and_under_the_plane (box
-  left -502, expected at least -1), and the menu,
-  window-fills-page-width and popup-grows-with-window tests. One cause
-  is likely: the map stopped drawing the fixture's charted sectors,
-  which could be a real regression in the continuous zoom (MAP.260 to
-  MAP.262 area) and not a test problem. Do: bisect to the commit that
-  turned the group red, decide whether the map or the fixture is wrong,
-  and fix it; if it is the fixture only, say what the real site does.
-  Done: the group green alone with the commit named in the note. This is
-  the remaining part of TEST.575's fixture-map share. Proposed owner:
-  Core 2, ahead of the PERF.233 measurement. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.575, MAP.376.
-
-- [ ] **MAP.379 Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug)**
-  Core 3 (as the lane reported, 2026-11-04 8:05 PM EST), full
-  test_web_browser_fixture_maps.py run on main af65299a5, alone with no
-  leftover databases: 15 failed, 186 passed, 43 minutes. Ten of the 15
-  are MAP.378 (fixture sectors missing from the map). These five are a
-  separate group: blocks_built_relative_to_origins (extent 15540 pc,
-  origin [0,0,0], 75675 prisms), draws_block_lines_only_in_a_window
-  (lines invisible at rest), turns_past_edge_on_and_under_the_plane
-  (bounds -503 to 1438),
-  one_wheel_scroll_runs_from_the_galaxy_to_a_sector and
-  wheel_keeps_the_view_over_the_disc. Find the commit that broke each
-  (bisect between the last green main and af65299a5), fix the code or,
-  where the test asserts a behavior a later item changed on purpose,
-  change the test and say why. Check first whether MAP.378's cause (no
-  charted sectors, so the camera never reaches a sector) also explains
-  these; if so, close this item with that fix. Done: the five pass on
-  main. Lock-free. Version 8.1. Owner: Core 2, with MAP.378.
-  Prerequisites: none. Related: MAP.378, TEST.580.
+- [ ] **MAP.380 The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug)**
+  Core 2 (as the lane reported, 8:13 PM EST on 2026-11-04):
+  test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parsec_apart
+  fails the same on main before the MAP.378 and MAP.379 fix (#4954): at
+  the end of the wheel the second star is only 15 px from the first.
+  Find the commit that moved it (bisect), then either let the wheel zoom
+  close enough or, if a later item changed the closest zoom on purpose,
+  change the test and say why. Done: the test passes on main. Lock-free.
+  Version 8.1. Owner: Core 2.
+  Prerequisites: none. Related: MAP.378, MAP.379.
 
 ## NAV: Navigation and courses
 
@@ -2688,6 +2661,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   edges, the cap and the on-route flag; the measured cost in the note.
   Proposed owner: Aux 7 (python) after GEN.1255. Goal #1679. Filed by
   the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
+  TEST.562 waits).
   Prerequisites: none.
 
 - [ ] **NAV.66 Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels**
@@ -2711,6 +2686,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   output. Done: unit tests with fixed inputs. Proposed owner: Aux 7. The
   plain ribbon needs no branches; branches need part 1. Goal #1679.
   Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
+  TEST.562 waits).
   Prerequisites: NAV.65.
 
 - [ ] **NAV.67 Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops**
@@ -15320,6 +15297,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
 
+- [ ] **PERF.239 A warm-up with nothing changed costs minutes: decide "already stored" from the cache keys, not by visiting every page**
+  Aux 3 (as the lane reported, 8:14 PM EST on 2026-11-04), unchanged
+  rerun of the 14-sector test galaxy, one process, same state folder: 4
+  min 15 s wall with every family built 0. Opening 1.4 s, built levels
+  0.2 s, deep nodes 25 s (6,855 stored, 3.7 ms each), objects 214 s
+  (43,782 stored pages, 4.9 ms each), search 0.3 s. The cluster field is
+  reused ("already a file"), so it is not part of the cost. The stored
+  check is one full Flask request per page, so a nothing-changed run
+  grows with the object cap (divided by the workers). Do: decide
+  "already stored" for object pages and deep nodes by checking the cache
+  keys directly (one pipelined Redis EXISTS per chunk, a directory
+  listing for the node files) before visiting a page. Done: an unchanged
+  run on the test galaxy takes seconds in the objects and deep-nodes
+  phases, a changed page is still rebuilt, and a test shows both.
+  Lock-free, no migration. Version 8.1. Owner: Aux 3.
+  Prerequisites: none. Related: PERF.235, PERF.234.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16386,6 +16380,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   any numeric row id there, and the audit lists each field checked.
   Lock-free where no stored value changes. Version 8.1. Owner: Core 2
   (map and links).
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (moved from
+  Core 2 to keep the map lane short).
   Prerequisites: API.39. Related: API.39.
 
 ## ADM: Admin tools
@@ -18566,6 +18562,10 @@ clears each one.
   the claim is stale. Done: the four green on main with a note of the
   cause of each. Proposed owner: Bug 1 after TEST.579. Filed by the TODO
   thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Tides 1 takes the
+  nebula group (census_nebula_wholesphere, emission_members,
+  hosted_nebula_rows); Bug 1 keeps the life-class tests (split from Bug
+  1).
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.581 test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug)**
@@ -18578,6 +18578,8 @@ clears each one.
   asserts (a rebuild that cannot reopen the site fails loudly, and does
   not exit zero). Done: the test green alone and in the changed gate.
   Proposed owner: Bug 1, with TEST.580. Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Tides 1 (moved from
+  Bug 1).
   Prerequisites: none. Related: TEST.580.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -20167,6 +20169,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Planets 1 (while its
+  queue waits).
   Prerequisites: none.
 
 - [ ] **VIEW.20 System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule**
@@ -20191,6 +20195,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Sources 2 (while its
+  lane is free).
   Prerequisites: none.
 
 - [ ] **VIEW.21 System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility**
@@ -20214,6 +20220,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   item can reuse it); the limiting magnitude is a setting with default
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 4 (while its
+  chain waits for train 11).
   Prerequisites: none.
 
 - [ ] **VIEW.22 System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py**
@@ -20233,6 +20241,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Sources 1 (while its
+  lane is free).
   Prerequisites: none.
 
 - [ ] **VIEW.23 System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report**
@@ -20426,6 +20436,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it); the limiting magnitude is a setting with default 7.5, lower on
   phones; missing stars are built when a system is charted, no visit
   job. Goal #4907. Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Star 2 (moved from
+  Core 2).
   Prerequisites: none.
 
 - [ ] **VIEW.33 System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock**
