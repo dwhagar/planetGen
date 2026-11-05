@@ -14631,6 +14631,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research thread, not by Sources 1.
   Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
 
+- [ ] **GEN.1278 Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14)**
+  Aux 5 (as the lane reported, 10:14 PM EST on 2026-11-04), finding
+  behind GEN.1071: the outer belt dust that decides whether a star holds
+  a debris disk now comes from the collisional-cascade law, with a
+  stand-in cut (DU1, L3) tuned so K, G and F dwarfs together hold a disk
+  about as often as surveys find (17 percent). Per type the result is
+  Sun-like 8 percent against 14 measured, A stars none against 24, F
+  about half. Those gaps come from the outer disc's mass and width,
+  which are too small or too narrow for hot stars. Do: derive the outer
+  disc's mass and width from a planetesimal-formation model (the disc
+  mass and the radial extent as a function of the star's mass and
+  luminosity, with the sources and their tier), so A and F stars shine
+  as surveys see, then retune or remove the DU1 cut. Done: the
+  debris-disk share by type (A, F, G, K) within the surveyed bands, the
+  stand-in rows in GEN.725 with tier and tweak level, the census shares
+  re-tagged. Lock item (generation output changes: an epoch with
+  --affects fill, golden, census re-tag); earliest train 12, after
+  GEN.1071 is on main. Version 8.1. Owner: Aux 5. Filed by the TODO
+  thread.
+  Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
