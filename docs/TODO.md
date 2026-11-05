@@ -20538,26 +20538,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   #4907. Filed by the TODO thread.
   Prerequisites: VIEW.22.
 
-- [ ] **VIEW.24 System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S6 of S1 to S22 in section 7. Do: the table of how deep
-  the sky must be built at each distance (mass or luminosity floor, per
-  the ledger S1 chose) for a limiting magnitude of 7.5 from the
-  visibility physics and the dust of S2; stand-ins registered in
-  GEN.725. Overlaps the first half of VIEW.7 (9.1). Done: table with
-  tests and registry rows. Related: VIEW.7. Lock-free, no migration.
-  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
-  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
-  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
-  where noted, build it so the 9.1 item can reuse it); the limiting
-  magnitude is a setting with default 7.5, lower on phones; missing
-  stars are built when a system is charted, no visit job. Goal #4907.
-  Filed by the TODO thread.
-  Prerequisites: VIEW.19.
-
 - [ ] **VIEW.25 System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
   thread, Boss 5:17 PM EST on 2026-11-04: the System View background
@@ -20575,7 +20555,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   scatter and fill lane (Core 3). No migration. Boss decided at 5:29 PM
   EST on 2026-11-04 (1.2, 2.1, 3.3) as in the parent plan. Goal #4907.
   Filed by the TODO thread.
-  Prerequisites: VIEW.19, VIEW.24.
+  Prerequisites: VIEW.19.
 
 - [ ] **VIEW.26 System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI)**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
