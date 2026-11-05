@@ -10,7 +10,7 @@ formation" [R4251]. The share of the massive stars that fail to explode and leav
 galaxy's failed share (`black_hole_formation.failed_share`); the windows are the initial masses that make up that share:
 
 * the two verified islands of `tuning.EXPLOSION_FAILURE_ISLANDS_SOL` (23 to 25 and 35 to 45 solar masses), shrunk about
-  their centres when the share is smaller than theirs (about 7% of the massive stars);
+  their centers when the share is smaller than theirs (about 7% of the massive stars);
 * when it is larger, the islands and the top of the mass range down to the mass that makes up the share.
 
 The neutron stars are the massive stars outside the windows. The progenitor of a remnant is drawn from the IMF over its
@@ -63,11 +63,11 @@ def _count(intervals):
 
 
 def _scaled_islands(factor):
-    """The islands with their log widths times `factor` about their geometric centres."""
+    """The islands with their log widths times `factor` about their geometric centers."""
     scaled = []
     for low, high in tuning.EXPLOSION_FAILURE_ISLANDS_SOL:
-        centre = (low * high) ** 0.5
-        scaled.append((centre * (low / centre) ** factor, centre * (high / centre) ** factor))
+        center = (low * high) ** 0.5
+        scaled.append((center * (low / center) ** factor, center * (high / center) ** factor))
     return scaled
 
 

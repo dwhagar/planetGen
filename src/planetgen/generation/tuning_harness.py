@@ -201,9 +201,9 @@ def wilson_interval(k, n, z=1.0):
         raise ValueError("a count needs 0 <= k <= n and n > 0")
     p = k / n
     z2 = z * z
-    centre = (p + z2 / (2 * n)) / (1 + z2 / n)
+    center = (p + z2 / (2 * n)) / (1 + z2 / n)
     half = z * math.sqrt(p * (1 - p) / n + z2 / (4 * n * n)) / (1 + z2 / n)
-    return max(0.0, centre - half), min(1.0, centre + half)
+    return max(0.0, center - half), min(1.0, center + half)
 
 
 class TargetTable:

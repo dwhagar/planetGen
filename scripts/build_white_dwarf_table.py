@@ -5,11 +5,11 @@
 Builds `src/planetgen/physics/data/white_dwarf_mass_radius.json` (GEN.439): the zero-temperature white dwarf mass-radius
 relation, integrated from the Chandrasekhar equation of state of a relativistic degenerate electron gas.
 
-The gas is cold, fully ionised and has two nucleons per electron (mu_e = 2: a carbon-oxygen or oxygen-neon core). With x the
+The gas is cold, fully ionized and has two nucleons per electron (mu_e = 2: a carbon-oxygen or oxygen-neon core). With x the
 electron Fermi momentum over m_e c the pressure is P = A f(x) and the density rho = B x^3, with
 A = pi m_e^4 c^5 / (3 h^3), B = 8 pi m_u mu_e (m_e c)^3 / (3 h^3) and
 f(x) = x (2x^2 - 3) sqrt(1 + x^2) + 3 asinh(x). Hydrostatic equilibrium dP/dr = -G m rho / r^2 and dm/dr = 4 pi r^2 rho are
-integrated outward from the centre (central x_c) to the radius where x falls to 1e-4. There is no Coulomb correction, no
+integrated outward from the center (central x_c) to the radius where x falls to 1e-4. There is no Coulomb correction, no
 temperature and no hydrogen or helium layer, so a real white dwarf is a few percent larger; Sirius B (1.018 solar masses,
 0.00803 +- 0.00011 solar radii, [R2208]) comes out within 0.1 percent, and the honest test limit is 5 percent.
 
@@ -40,7 +40,7 @@ B = 8.0 * math.pi * M_U * MU_E * (M_E * C) ** 3 / (3.0 * H ** 3)
 
 
 def star(central_x):
-    """`(mass_kg, radius_m)` of the star whose centre has the Fermi momentum `central_x` (in m_e c)."""
+    """`(mass_kg, radius_m)` of the star whose center has the Fermi momentum `central_x` (in m_e c)."""
     def rhs(r, y):
         x, m = y
         dp_dx = 8.0 * A * x ** 4 / math.sqrt(1.0 + x * x)

@@ -1,13 +1,13 @@
 # planetgen/galaxy/thick_ages.py
 
 """
-The thick disc's ages in the old population (GEN.1025, after GEN.944 part 1)
+The thick disk's ages in the old population (GEN.1025, after GEN.944 part 1)
 ============================================================================
 
-The old population's window ended at 10 Gy, the thin disc's age, but the thick disc (which `galaxy.density.population_units` holds in `old`) formed
-its stars from 13 to 8 Gy ago ([R1863], `tuning.THICK_DISC_AGE_RANGE_GY`), so no star of 10 to 13 Gy existed. This module builds the
-`AgeLaw` of the old population as a mixture: the thin disc's own law (`disk_history`, 3 to 10 Gy) with the weight the thin disc has among the
-old systems, and the thick disc's, flat over its window (stand-in TD2), with the thick disc's share of them (`thick_disk_units` over the old
+The old population's window ended at 10 Gy, the thin disk's age, but the thick disk (which `galaxy.density.population_units` holds in `old`) formed
+its stars from 13 to 8 Gy ago ([R1863], `tuning.THICK_DISK_AGE_RANGE_GY`), so no star of 10 to 13 Gy existed. This module builds the
+`AgeLaw` of the old population as a mixture: the thin disk's own law (`disk_history`, 3 to 10 Gy) with the weight the thin disk has among the
+old systems, and the thick disk's, flat over its window (stand-in TD2), with the thick disk's share of them (`thick_disk_units` over the old
 population's units).
 
 `mixed_old_law` is the pure mixture and `old_age_law(shape, thin)` the galaxy's (`disk_history.population_age_laws` calls it). Only the shape of the law matters (`AgeLaw`), so the counts of the
@@ -22,7 +22,7 @@ EDGE_GY = 0.01
 
 
 def thick_share_of_old(units, thick_units):
-    """The thick disc's share of the old population's systems, `units` being `density.population_units(shape)["old"]` and `thick_units`
+    """The thick disk's share of the old population's systems, `units` being `density.population_units(shape)["old"]` and `thick_units`
     `density.thick_disk_units(shape)`."""
     if units <= 0.0:
         return 0.0
@@ -41,13 +41,13 @@ def _rate_at(law, age):
 
 def mixed_old_law(thin, thick_share, thick_window=None):
     """
-    The `AgeLaw` of the old population: `thin` (the thin disc's law over its window) with weight `1 - thick_share` and the thick disc's flat law
-    over `thick_window` (default `tuning.THICK_DISC_AGE_RANGE_GY`) with weight `thick_share`, both taken to unit area. With no thick disc
+    The `AgeLaw` of the old population: `thin` (the thin disk's law over its window) with weight `1 - thick_share` and the thick disk's flat law
+    over `thick_window` (default `tuning.THICK_DISK_AGE_RANGE_GY`) with weight `thick_share`, both taken to unit area. With no thick disk
     (`thick_share` 0) it is `thin` itself.
     """
     if thick_share <= 0.0:
         return thin
-    low, high = tuple(tuning.THICK_DISC_AGE_RANGE_GY if thick_window is None else thick_window)
+    low, high = tuple(tuning.THICK_DISK_AGE_RANGE_GY if thick_window is None else thick_window)
     thick_density = thick_share / (high - low)
     thin_weight = 1.0 - thick_share
     thin_low, thin_high = thin.window
@@ -73,8 +73,8 @@ def mixed_old_law(thin, thick_share, thick_window=None):
 
 
 def old_age_law(shape, thin):
-    """The old population's `AgeLaw` for a galaxy `shape`, given the thin disc's law `thin`: `thin` mixed with the thick disc's by the thick
-    disc's share of the old systems."""
+    """The old population's `AgeLaw` for a galaxy `shape`, given the thin disk's law `thin`: `thin` mixed with the thick disk's by the thick
+    disk's share of the old systems."""
     from planetgen.galaxy import density
     share = thick_share_of_old(density.population_units(shape)["old"], density.thick_disk_units(shape))
     return mixed_old_law(thin, share)

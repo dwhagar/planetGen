@@ -9,7 +9,7 @@ surface temperature; `layers` turns them into the `AerosolLayer`s `physics/atmos
 
 **Cloud (10.1).** The air is cooled along a dry adiabat from the ground to the skin temperature (`Ts / 2^(1/4)`), isothermal above. A
 condensable gas `i` with mole fraction `x_i` forms a cloud where `x_i p` reaches its saturation pressure (the first crossing going up;
-at the ground when the ground is already saturated). The most condensate that can fall out is the vapour above the base less what
+at the ground when the ground is already saturated). The most condensate that can fall out is the vapor above the base less what
 the saturated air still holds, `m_c = (M_i / (M g)) integral (x_i - min(x_i, p_sat(T(p)) / p)) dp`, and the in-cloud depth is
 `tau = 3 Q_ext m_c / (4 rho_p r_eff)` (Q_ext = 2). The droplet radius is log-uniform on 1 to 20 micron; the depth is log-uniform
 from 0.1 to its limit; `cloud_cover` is 0 without a condensate, else uniform on 0.1 to 1. Clouds are grey with a single-scattering
@@ -171,7 +171,7 @@ def _cp_j_mol_k(column, temperature_k):
 
 def saturation_pa(formula, temperature_k):
     """
-    The vapour pressure over the condensate of `formula` at `temperature_k`, Pa: the checked saturation curve of `physics/saturation.py`
+    The vapor pressure over the condensate of `formula` at `temperature_k`, Pa: the checked saturation curve of `physics/saturation.py`
     where the gas has one (GEN.452), else a Clausius-Clapeyron line through the gas table's triple point and latent heat. Infinite at
     and above the critical temperature, where nothing condenses.
     """
@@ -217,9 +217,9 @@ def condensate_columns_kg_m2(column, temperature_k):
         saturation = np.array([saturation_pa(formula, t) for t in temperature])
         if not np.any(fraction * pressure >= saturation):
             continue
-        vapour = np.minimum(fraction, saturation / pressure)
+        vapor = np.minimum(fraction, saturation / pressure)
         grams = gases.gas(formula).molar_mass / column.mean_molar_mass_kg_mol / column.gravity_m_s2
-        mass = grams * float(np.sum((fraction - vapour) * weight))
+        mass = grams * float(np.sum((fraction - vapor) * weight))
         if mass > 0.0:
             result[formula] = mass
     return result
@@ -451,8 +451,8 @@ def haze_absorbed_share(tau_550, star_temperature_k):
         return 0.0
     edges = np.arange(SUNLIGHT_BANDS_NM[0], SUNLIGHT_BANDS_NM[1] + 0.5 * SUNLIGHT_BANDS_NM[2], SUNLIGHT_BANDS_NM[2])
     weight = stellar_spectrum.blackbody_fraction(edges[:-1], edges[1:], star_temperature_k)
-    centres = 0.5 * (edges[:-1] + edges[1:])
-    absorption = tau_550 * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centres)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    absorption = tau_550 * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centers)
     total = float(np.sum(weight))
     if total <= 0.0:
         return 0.0      # a star too cold to send light in these bands (a black hole's Hawking temperature) has no sunlight to absorb
@@ -550,19 +550,19 @@ def _haze_exponent(draw):
     return low + draw * (high - low)
 
 
-def _dust_omega(centres, draw):
-    low = np.interp(centres, DUST_OMEGA_NM, DUST_OMEGA_R12)
-    high = np.interp(centres, DUST_OMEGA_NM, DUST_OMEGA_R18)
+def _dust_omega(centers, draw):
+    low = np.interp(centers, DUST_OMEGA_NM, DUST_OMEGA_R12)
+    high = np.interp(centers, DUST_OMEGA_NM, DUST_OMEGA_R18)
     return (1.0 - draw) * low + draw * high
 
 
-def _haze_absorption_shape(centres):
+def _haze_absorption_shape(centers):
     """The tholin's absorption at each wavelength over its value at 550 nm: `k(lambda) / lambda`, log-linear in k between 450 and 650 nm."""
-    k = np.exp(np.interp(centres, (450.0, 550.0, 650.0), np.log(HAZE_K_550)))
-    return (k / HAZE_K_550[1]) * (550.0 / centres)
+    k = np.exp(np.interp(centers, (450.0, 550.0, 650.0), np.log(HAZE_K_550)))
+    return (k / HAZE_K_550[1]) * (550.0 / centers)
 
 
-def layers(aerosols, centres_nm):
+def layers(aerosols, centers_nm):
     """
     The `AerosolLayer`s of a body for `atmospheric_radiation.surface_radiation`.
 
@@ -570,17 +570,17 @@ def layers(aerosols, centres_nm):
         tuple: `(haze, low_aerosol)`: the haze and dust mixed with the lower air (`haze=`), and the cloud (`low_aerosol=`, with
         `cloud_cover=aerosols.cloud_cover`). Either is `None` where its depth is 0.
     """
-    centres = np.asarray(centres_nm, dtype=float)
+    centers = np.asarray(centers_nm, dtype=float)
     parts = []
     if aerosols.tau_haze > 0.0:
-        extinction = aerosols.tau_haze * (550.0 / centres) ** _haze_exponent(aerosols.aerosol_draw)
-        absorption = aerosols.tau_haze * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centres)
+        extinction = aerosols.tau_haze * (550.0 / centers) ** _haze_exponent(aerosols.aerosol_draw)
+        absorption = aerosols.tau_haze * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centers)
         omega = np.clip(1.0 - absorption / extinction, 0.0, 1.0)
         parts.append((extinction, omega, np.full_like(extinction, HAZE_G)))
     if aerosols.tau_dust > 0.0:
         radius_share = aerosols.aerosol_draw
         g = DUST_G[0] + DUST_G[1] * (2.0 * aerosols.aerosol_draw - 1.0)
-        parts.append((np.full_like(centres, aerosols.tau_dust), _dust_omega(centres, radius_share), np.full_like(centres, g)))
+        parts.append((np.full_like(centers, aerosols.tau_dust), _dust_omega(centers, radius_share), np.full_like(centers, g)))
     mixed = None
     if parts:
         tau = sum(p[0] for p in parts)
@@ -590,31 +590,31 @@ def layers(aerosols, centres_nm):
         mixed = atmospheric_radiation.AerosolLayer(tau, omega, g)
     cloud = None
     if aerosols.tau_cloud > 0.0 and aerosols.cloud_cover > 0.0:
-        cloud = atmospheric_radiation.grey_layer(aerosols.tau_cloud, CLOUD_OMEGA, CLOUD_G, centres)
+        cloud = atmospheric_radiation.grey_layer(aerosols.tau_cloud, CLOUD_OMEGA, CLOUD_G, centers)
     return mixed, cloud
 
 
-def colour_layers(aerosols, centres_nm):
+def colour_layers(aerosols, centers_nm):
     """
-    The haze, dust and cloud of a body as `atmosphere_colour.Aerosol`s for the atmosphere colour (GEN.418), on the wavelengths `centres_nm`.
+    The haze, dust and cloud of a body as `atmosphere_colour.Aerosol`s for the atmosphere colour (GEN.418), on the wavelengths `centers_nm`.
 
     Returns:
         tuple: `(haze, dust, cloud)`, each `None` where its depth is 0 (the cloud also where it covers none of the sky).
     """
     from planetgen.physics import atmosphere_colour as colour_model
 
-    centres = np.asarray(centres_nm, dtype=float)
+    centers = np.asarray(centers_nm, dtype=float)
     haze = dust = cloud = None
     if aerosols.tau_haze > 0.0:
-        absorption = aerosols.tau_haze * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centres)
-        extinction = aerosols.tau_haze * (550.0 / centres) ** _haze_exponent(aerosols.aerosol_draw)
+        absorption = aerosols.tau_haze * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centers)
+        extinction = aerosols.tau_haze * (550.0 / centers) ** _haze_exponent(aerosols.aerosol_draw)
         omega = np.clip(1.0 - absorption / extinction, 0.0, 1.0)
-        haze = colour_model.Aerosol(aerosols.tau_haze, tuple(zip(centres.tolist(), omega.tolist())), HAZE_G,
+        haze = colour_model.Aerosol(aerosols.tau_haze, tuple(zip(centers.tolist(), omega.tolist())), HAZE_G,
                                     _haze_exponent(aerosols.aerosol_draw))
     if aerosols.tau_dust > 0.0:
-        omega = _dust_omega(centres, aerosols.aerosol_draw)
+        omega = _dust_omega(centers, aerosols.aerosol_draw)
         g = DUST_G[0] + DUST_G[1] * (2.0 * aerosols.aerosol_draw - 1.0)
-        dust = colour_model.Aerosol(aerosols.tau_dust, tuple(zip(centres.tolist(), omega.tolist())), g)
+        dust = colour_model.Aerosol(aerosols.tau_dust, tuple(zip(centers.tolist(), omega.tolist())), g)
     if aerosols.tau_cloud > 0.0 and aerosols.cloud_cover > 0.0:
         cloud = colour_model.Aerosol(aerosols.tau_cloud, CLOUD_OMEGA, CLOUD_G)
     return haze, dust, cloud

@@ -72,7 +72,7 @@ def test_best_class_is_total_over_gated_bodies():
 
 
 def test_a_body_no_class_matches_has_no_best_letter():
-    hot_thin = body(surface_temperature_k=414.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapour", gravity_g=1.4)
+    hot_thin = body(surface_temperature_k=414.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.4)
     assert cf.best_class(hot_thin)[:2] == (None, 0.0)
 
 

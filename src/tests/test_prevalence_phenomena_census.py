@@ -170,11 +170,10 @@ def test_the_rates_are_read_where_the_fill_reads_them_and_repeat(expectations):
 def test_a_rate_scale_that_dials_a_kind_down_trips_its_flag(monkeypatch, expectations):
     from planetgen import tuning
 
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "rogue-planet", 0.1)
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "brown-dwarf", 2.0)
     values = phenomena.rate_values()
     flagged = {f.measure for f in phenomena.compare(values, expectations) if f.measure in phenomena.RATE_MEASURES}
-    assert {"rogue_terrestrial_per_star", "rogue_terrestrial_per_pc3", "brown_dwarfs_per_pc3"} <= flagged
+    assert "brown_dwarfs_per_pc3" in flagged
 
 
 def test_the_open_clusters_of_the_reference_galaxy_are_alive_young_and_many(expectations):

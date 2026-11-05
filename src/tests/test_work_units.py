@@ -162,7 +162,7 @@ def test_an_interrupt_in_the_starter_cancels_the_run_and_frees_the_machine(monke
     with pytest.raises(KeyboardInterrupt):
         wrapper.run("T", [_step(2)], lambda index, plan: None, lambda index, unit, result: None)
     run = runrecord.read_run(conn, runrecord.recent_runs(conn)[0])
-    assert run["state"] == "cancelled" and runrecord.active_run(conn) is None
+    assert run["state"] == "canceled" and runrecord.active_run(conn) is None
 
 
 def test_a_second_run_is_refused_while_one_has_the_machine_when_it_may_not_wait(monkeypatch, conn):

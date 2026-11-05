@@ -21,11 +21,11 @@ What the library does against the sky (the tests, `test_stellar_library_real.py`
   median ratio 1.12).
 
 So a star's band shares are its photosphere's plus an excess in the far ultraviolet that is `FUV_OVER_XUV` times its XUV power over
-its luminosity (`physics.activity` gives `l_xuv_w`) and an excess XUV in the ionising band. The excess is zero for a star with no
+its luminosity (`physics.activity` gives `l_xuv_w`) and an excess XUV in the ionizing band. The excess is zero for a star with no
 corona (a white dwarf, a hot star). The near-ultraviolet excess is left out: the library already matches the measured near-ultraviolet.
 
 Where the chromospheric far ultraviolet lies in the generator's bands (`stellar_spectrum.BAND_EDGES_NM`): all of it from 100 to 170 nm,
-in UV-C (the 91.2 to 100 nm sliver goes with the ionising light, `FUV_IN_UV_C`).
+in UV-C (the 91.2 to 100 nm sliver goes with the ionizing light, `FUV_IN_UV_C`).
 """
 
 import functools
@@ -58,7 +58,7 @@ FUV_OVER_XUV = 1.12
 10 ** (f_FUV - f_XUV) over `MUSCLES_STARS` (0.32 to 1.15 for the 7 M dwarfs, 1.1 to 2.3 for the 4 K stars). [Stand-in SL2, tier T2,
 tweak L0: eleven stars, one ratio, no dependence on temperature or age.]"""
 
-BANDS = ("ionising", "uv_c", "uv_b", "uv_a", "visible", "near_infrared", "thermal_infrared")
+BANDS = ("ionizing", "uv_c", "uv_b", "uv_a", "visible", "near_infrared", "thermal_infrared")
 """tuple: The bands of `stellar_spectrum.BAND_EDGES_NM`, in order."""
 
 FUV_NM = (91.2, 170.0)
@@ -89,7 +89,7 @@ def band_shares(teff_k, logg=DEFAULT_LOGG, xuv_over_lbol=0.0, lib=None):
         return None
     if xuv_over_lbol > 0.0:
         fuv = FUV_OVER_XUV * xuv_over_lbol
-        shares["ionising"] += xuv_over_lbol + fuv * (1.0 - FUV_IN_UV_C)
+        shares["ionizing"] += xuv_over_lbol + fuv * (1.0 - FUV_IN_UV_C)
         shares["uv_c"] += fuv * FUV_IN_UV_C
     return shares
 
@@ -185,8 +185,8 @@ def _visible_cached(teff_k, logg, wavelengths_nm):
         return None
     edges = stellar_spectra.EDGES_NM
     density = shares / np.diff(edges)
-    centres = np.sqrt(edges[:-1] * edges[1:])
-    return np.interp(np.asarray(wavelengths_nm), centres, density) / density.max()
+    centers = np.sqrt(edges[:-1] * edges[1:])
+    return np.interp(np.asarray(wavelengths_nm), centers, density) / density.max()
 
 
 @functools.lru_cache(maxsize=2048)

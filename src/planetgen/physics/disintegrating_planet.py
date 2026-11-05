@@ -5,12 +5,12 @@ A disintegrating rocky planet: its wind, its lifetime and when a body can be one
 =======================================================================================================================================================
 
 Kepler-1520 b (KIC 12557548 b), K2-22 b and KOI-2700 b dim by a changing fraction with a dust tail. [R3487]
-show the dayside of a rocky planet under about 0.1 Earth mass at over 2000 K lifts a wind of its own rock vapour, and the gravity of such a small body is
-too weak to hold it: the mass loss goes as the vapour density at the surface times the exponential of the escape energy over the thermal energy.
+show the dayside of a rocky planet under about 0.1 Earth mass at over 2000 K lifts a wind of its own rock vapor, and the gravity of such a small body is
+too weak to hold it: the mass loss goes as the vapor density at the surface times the exponential of the escape energy over the thermal energy.
 
-The wind is the isothermal Parker wind of the vapour (eq. 27 of the paper, a solid angle of one steradian):
+The wind is the isothermal Parker wind of the vapor (eq. 27 of the paper, a solid angle of one steradian):
 
-    c^2 = gamma k T / mu                 mu = 30 m_H and gamma = 1.3 (eq. 8), the mean mass and index of the silicate vapour
+    c^2 = gamma k T / mu                 mu = 30 m_H and gamma = 1.3 (eq. 8), the mean mass and index of the silicate vapor
     P_vapor = exp(-m L / (k T) + b)      eq. 7 with the olivine constants of 2.1
     rho_0 = mu P_vapor / (k T)           eq. 9
     r_c = G M / (2 c^2)                  the sonic radius
@@ -39,19 +39,19 @@ _kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
 
 OLIVINE_MOLECULAR_MASS_H = 169.0
-"""float: The mass of a molecule of olivine vapour in hydrogen masses, `m` of eq. 7 (row DP1)."""
+"""float: The mass of a molecule of olivine vapor in hydrogen masses, `m` of eq. 7 (row DP1)."""
 
 OLIVINE_SUBLIMATION_ERG_G = 3.21e10
 """float: The latent heat of sublimation of olivine, erg/g, `L_sub` of eq. 7 (row DP1)."""
 
-OLIVINE_VAPOUR_CONSTANT_DYNE_CM2 = 6.72e14
+OLIVINE_VAPOR_CONSTANT_DYNE_CM2 = 6.72e14
 """float: `exp(b)` of eq. 7 for olivine, dyne/cm^2 (row DP1)."""
 
-VAPOUR_MEAN_MASS_H = 30.0
-"""float: The mean mass of the vapour in hydrogen masses, `mu` of eq. 8 (row DP2)."""
+VAPOR_MEAN_MASS_H = 30.0
+"""float: The mean mass of the vapor in hydrogen masses, `mu` of eq. 8 (row DP2)."""
 
 ADIABATIC_INDEX = 1.3
-"""float: The index of the vapour, `gamma` of eq. 8, in the sound speed (row DP2). With 1 the planet that survives 10 Gyr is half as heavy as the paper's."""
+"""float: The index of the vapor, `gamma` of eq. 8, in the sound speed (row DP2). With 1 the planet that survives 10 Gyr is half as heavy as the paper's."""
 
 NON_ISOTHERMAL_FACTOR = 1.0 / 40.0
 """float: The full model's maximum rate over the isothermal one (3.2: "about 40 times lower"), row DP3."""
@@ -88,10 +88,10 @@ def dayside_temperature_k(star_teff_k, star_radius_m, distance_m):
     return star_teff_k * math.sqrt(star_radius_m / distance_m)
 
 
-def vapour_pressure_pa(temperature_k):
-    """The olivine vapour pressure at `temperature_k`, Pa (eq. 7)."""
+def vapor_pressure_pa(temperature_k):
+    """The olivine vapor pressure at `temperature_k`, Pa (eq. 7)."""
     energy_j = OLIVINE_MOLECULAR_MASS_H * _H * OLIVINE_SUBLIMATION_ERG_G * 1.0e-4      # erg/g to J/kg is 1e-4
-    return OLIVINE_VAPOUR_CONSTANT_DYNE_CM2 * 0.1 * math.exp(-energy_j / (_K * temperature_k))
+    return OLIVINE_VAPOR_CONSTANT_DYNE_CM2 * 0.1 * math.exp(-energy_j / (_K * temperature_k))
 
 
 def radius_m(mass_earth):
@@ -100,12 +100,12 @@ def radius_m(mass_earth):
 
 
 def mass_loss_rate_kg_s(mass_earth, temperature_k, factor=NON_ISOTHERMAL_FACTOR):
-    """The mass the wind carries away while it blows, kg/s: the isothermal Parker wind of the vapour times `factor` (the full model's, or 1 for the
+    """The mass the wind carries away while it blows, kg/s: the isothermal Parker wind of the vapor times `factor` (the full model's, or 1 for the
     isothermal wind of the paper's first estimate)."""
     mass_kg = _mearth_to_kg(mass_earth)
-    mu = VAPOUR_MEAN_MASS_H * _H
+    mu = VAPOR_MEAN_MASS_H * _H
     sound_squared = ADIABATIC_INDEX * _K * temperature_k / mu
-    surface_density = mu * vapour_pressure_pa(temperature_k) / (_K * temperature_k)
+    surface_density = mu * vapor_pressure_pa(temperature_k) / (_K * temperature_k)
     sonic_m = _G * mass_kg / (2.0 * sound_squared)
     exponent = 1.5 - _G * mass_kg / (radius_m(mass_earth) * sound_squared)
     density = surface_density * math.exp(max(exponent, -700.0))

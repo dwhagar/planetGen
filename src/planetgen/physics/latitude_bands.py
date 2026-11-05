@@ -25,7 +25,7 @@ A world that turns once an orbit has no latitude day: its seven bands are rings 
 states are `permanent day side`, `terminator band` (the ring that holds the line between them) and `permanent night side`; the temperatures follow the cosine of the angle
 from the substellar point, shared by the air with `regional_temperature.LOCKED_TRANSPORT_X0`.
 
-Limits. The orbit is circular, so a north band and its south twin are equal (the bands stay separate for the eccentric orbit the model will gain). The star is a disc without
+Limits. The orbit is circular, so a north band and its south twin are equal (the bands stay separate for the eccentric orbit the model will gain). The star is a disk without
 refraction. The day and night swing is the damped-oscillator estimate of `regional_temperature` for the equator times the cosine of the band's latitude.
 """
 
@@ -41,12 +41,12 @@ _yr_to_h = units.converter("yr", "h")
 
 BAND_COUNT = 7
 BAND_WIDTH_DEG = 90.0 / 3.5
-"""float: The width of each band in latitude, degrees: the equator band is this wide centred on the equator and each of the three on a side is this wide. [Stand-in LB1, tier T9, tweak L0.]"""
+"""float: The width of each band in latitude, degrees: the equator band is this wide centered on the equator and each of the three on a side is this wide. [Stand-in LB1, tier T9, tweak L0.]"""
 
 NAMES = ("north_polar", "north_middle", "north_tropic", "equator", "south_tropic", "south_middle", "south_polar")
 """tuple: The bands from the north pole to the south pole."""
 
-RING_NAMES = ("day_centre", "day_middle", "day_edge", "terminator", "night_edge", "night_middle", "night_centre")
+RING_NAMES = ("day_center", "day_middle", "day_edge", "terminator", "night_edge", "night_middle", "night_center")
 """tuple: The rings of a world that turns once an orbit, from the point under the star to the point away from it."""
 
 CYCLE = "day and night"
@@ -272,10 +272,10 @@ def _ring_insolation():
 
 
 def _ring_state(i):
-    centre = (i + 0.5) * BAND_WIDTH_DEG
-    if centre < 90.0 - BAND_WIDTH_DEG / 2.0:
+    center = (i + 0.5) * BAND_WIDTH_DEG
+    if center < 90.0 - BAND_WIDTH_DEG / 2.0:
         return DAY_SIDE
-    if centre > 90.0 + BAND_WIDTH_DEG / 2.0:
+    if center > 90.0 + BAND_WIDTH_DEG / 2.0:
         return NIGHT_SIDE
     return TERMINATOR
 

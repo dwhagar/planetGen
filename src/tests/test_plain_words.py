@@ -41,13 +41,10 @@ PLANET_CLASS_TYPES = ("planet", "rogue-planet", "asteroid-field", "comet")
 
 GUIDE = Path(__file__).resolve().parents[2] / "docs" / "design" / "interface" / "text-style.md"
 
-KNOWN = {
-    ('spelling', "Offset from the system's centre, x"): 'UX.253',
-    ('spelling', "The cold leftover of"): 'UX.252',
-}
-"""dict: `{(rule, start of the sentence or the whole label): the item that rewrites it}` for the text that breaks a rule today. The
-comment is one example. "The cold leftover" is the outer-disk belt origin in `physics/data/belt_origins.json`: the sentence is stored in
-`asteroid_belts.origin_sentence`, so writing "disk" there moves stored output and rides a train (TEST.576 found it). A rewrite item removes its entries; nothing is added without an owner."""
+KNOWN = {}
+"""dict: `{(rule, start of the sentence or the whole label): the item that rewrites it}` for the text that breaks a rule today. A rewrite item
+removes its entries; nothing is added without an owner. (DOC.103 spelled the last two, the system's center and the outer-disk belt origin, the
+American way, and moved the stored sentence with a migration.)"""
 
 
 def shape(sentence):

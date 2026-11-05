@@ -31,7 +31,7 @@
 // so it reads as light spreading out from the body whatever the shell's
 // size. (Measuring the rim the front-face way, `1 - dot`, clamps to a
 // constant 1 on every back face, which is what used to paint the whole
-// shell as one flat, opaque disc.)
+// shell as one flat, opaque disk.)
 //
 // glowPower/glowStrength/innerRatio are per-material uniforms (not baked
 // into the shader source) so one shared ShaderMaterial can be reused for
@@ -100,7 +100,7 @@ export function glowInnerRatio(shellScale) {
 }
 
 // A star's photosphere reads as mottled granulation, not a clean flat
-// disc -- varies in BOTH UV directions (unlike a gas giant's own height-
+// disk -- varies in BOTH UV directions (unlike a gas giant's own height-
 // only banding, correct for a horizontally-banded planet but not a star):
 // several layered sine "octaves" at different frequencies/phases/axes,
 // cross-modulated against each other, give an irregular blotchy pattern

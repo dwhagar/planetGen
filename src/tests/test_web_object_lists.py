@@ -11,7 +11,7 @@ from planetgen.web import object_lists
 
 def _item(index, kind="planet"):
     item = {"kind": kind, "id": f"FE81000A2B-0000005-00{index}", "source_id": index, "name": f"Thing {index}",
-            "sector_id": 4, "system_id": 9, "parent_id": None, "object_class": "gas_giant", "mass_kg": 1.9e27,
+            "sector_id": "1A2B", "system_id": "FE81000A2B-0000009-000", "parent_id": None, "object_class": "gas_giant", "mass_kg": 1.9e27,
             "radius_km": 7.0e4, "placed": True}
     if kind == "star":
         item.update(temperature_k=5772.0, luminosity_w=3.828e26, age_gy=4.6)
@@ -59,7 +59,7 @@ def test_a_list_page_shows_the_first_rows_and_links_each_to_its_object(site):
     body = response.get_data(as_text=True)
     assert response.status_code == 200 and "Thing 1" in body and "Thing 2" in body
     assert "/object/planet:FE81000A2B-0000005-001" in body
-    assert "Gas giant" in body and "Sector 4" in body and seen[-1]["kind"] == "planet" and seen[-1]["after"] is None
+    assert "Gas giant" in body and "Sector 1A2B" in body and seen[-1]["kind"] == "planet" and seen[-1]["after"] is None
 
 
 def test_a_star_list_shows_its_temperature_luminosity_and_age(site):

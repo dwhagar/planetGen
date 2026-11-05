@@ -29,7 +29,7 @@ One node (all numbers little-endian)::
                                   type, 0 for none
       charted                     u8[count]: bit 0 is 1 when the star's system is
                                   known to the database (`system_id`); bits 1
-                                  and 2 are its `tier` (0 the disc, the bulge
+                                  and 2 are its `tier` (0 the disk, the bulge
                                   and the rest, 1 the halo, 2 a satellite
                                   galaxy, MAP.252)
       id kind                     u8: 0 whole numbers, 1 text of one length,

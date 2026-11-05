@@ -15,7 +15,7 @@ from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
 
 FIELDS = ("origin", "co_causes", "formation_snow_line_au", "primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth", "stirred", "origin_history",
-          "origin_sentence", "scatter_fates", "largest_body_km")
+          "origin_sentence", "scatter_fates", "largest_body_km", "members")
 
 
 def _config():
@@ -63,6 +63,10 @@ def test_a_saved_belt_reads_back_what_it_was_made_with(mysql_config):
                 value, got = getattr(before, name), getattr(after, name)
                 if isinstance(value, float):
                     assert got == pytest.approx(value), name
+                elif name == "members":
+                    assert len(got) == len(value), name
+                    for kept, was in zip(got, value):
+                        assert kept == pytest.approx(was), name
                 elif value:
                     assert got == value, name
                 else:

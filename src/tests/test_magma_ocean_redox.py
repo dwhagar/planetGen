@@ -44,7 +44,7 @@ def test_the_model_lands_inside_the_published_range_of_each_body_within_one_sigm
     assert abs(mean - (low + high) / 2) <= (high - low) / 2 + 0.2
 
 
-def test_a_heavier_body_has_a_more_oxidised_surface_up_to_the_end_of_the_calculation_and_not_beyond():
+def test_a_heavier_body_has_a_more_oxidized_surface_up_to_the_end_of_the_calculation_and_not_beyond():
     values = [mor.surface_diw(mass) for mass in (0.01, 0.1, 1.0, 3.0, 5.0)]
     assert values == sorted(values) and len(set(values)) == len(values)
     assert mor.surface_diw(6.0) == mor.surface_diw(30.0)

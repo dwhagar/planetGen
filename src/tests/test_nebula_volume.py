@@ -97,9 +97,9 @@ def test_a_finer_level_keeps_the_coarse_blobs_where_they_were():
     nebula = _nebula(0.0, 0.0, 0.0, 28.0)
     coarse, fine = _sample([nebula], level=4), _sample([nebula], level=3)
     assert len(fine.ix) > len(coarse.ix)
-    centre_coarse = _positions(coarse).mean(axis=0)
-    centre_fine = _positions(fine).mean(axis=0)
-    assert np.linalg.norm(centre_coarse - centre_fine) < 4.0
+    center_coarse = _positions(coarse).mean(axis=0)
+    center_fine = _positions(fine).mean(axis=0)
+    assert np.linalg.norm(center_coarse - center_fine) < 4.0
 
 
 def test_a_shell_family_is_a_ring_not_a_filled_ball():
@@ -149,7 +149,7 @@ def test_inside_block_follows_the_ladders_cut_to_within_a_sector():
 
 def test_a_cloud_drawn_from_the_models_own_density_is_not_a_ball():
     """MAP.365 with `galaxy.nebula_density` itself: placed dark clouds of 20 pc or more, sampled at their level, keep points, and the
-    outline of each (circularity 4 pi A / P^2 of the projected points) is well under a disc's (about 0.78 on a grid)."""
+    outline of each (circularity 4 pi A / P^2 of the projected points) is well under a disk's (about 0.78 on a grid)."""
     from planetgen.galaxy import density, nebula_density
 
     shape = density.build_galaxy_shape(

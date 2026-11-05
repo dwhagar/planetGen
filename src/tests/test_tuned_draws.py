@@ -93,7 +93,7 @@ def test_the_table_refuses_a_malformed_scale_threshold_or_subject():
 # --- radioisotopes (GEN.514) -------------------------------------------------------------------------------------------------
 
 
-def test_the_thorium_scale_of_non_thin_disc_hosts_is_the_thick_disc_offset_on_the_solar_twin_scale_of_row_o1():
+def test_the_thorium_scale_of_non_thin_disk_hosts_is_the_thick_disk_offset_on_the_solar_twin_scale_of_row_o1():
     spec = RECIPES.entry("o2").spec["dist"]
     assert spec["kind"] == "normal" and spec["log10"] and spec["mu"] == 0.061 and spec["sigma"] == 0.19
     assert RECIPES.entry("o1").spec["dist"]["mu"] == 0.08 and 0.08 - 0.019 == pytest.approx(0.061)
@@ -109,7 +109,7 @@ def test_the_thorium_to_uranium_ratio_grows_with_the_planets_age_and_follows_the
     assert low == pytest.approx(3.19 * 1.667 / 1.751, rel=0.005) and high == pytest.approx(4.72 * 2.0 / 1.751, rel=0.005)
     assert dist(6.0, 1.16254)["lo"] / dist(4.5, 1.16254)["lo"] == pytest.approx(1.1719, rel=0.002), "x1.17 over 1.5 Gyr (decay constants 0.1058 per Gyr)"
     assert dist(0.0, 1.16254)["lo"] == pytest.approx(0.97483 * 1.667 * 1.16254, rel=1e-6)
-    assert RECIPES.entry("o4").state == "partly verified" and "disc's star formation history" in RECIPES.entry("o4").limit
+    assert RECIPES.entry("o4").state == "partly verified" and "disk's star formation history" in RECIPES.entry("o4").limit
     assert "T = 3" not in str(RECIPES.entry("o4").spec["dist"]), "the uniform birth epoch is gone"
 
 
@@ -171,7 +171,7 @@ def test_the_coma_class_shares_are_the_printed_counts_and_not_the_rounded_words(
     assert probabilities == pytest.approx({"k1": 13 / 25, "k2": 9 / 25, "k3": 3 / 25}), "the three printed counts of 25 comets"
 
 
-def test_the_carbon_dioxide_and_monoxide_ratios_follow_the_comet_database_and_a_wrong_centre_fails():
+def test_the_carbon_dioxide_and_monoxide_ratios_follow_the_comet_database_and_a_wrong_center_fails():
     assert RECIPES.entry("k4").spec["dist"]["sigma"] == 0.51 and RECIPES.entry("k5").spec["dist"]["sigma"] == 0.65
     assert "range" not in RECIPES.entry("k5").spec["dist"], "the 0.3 to 26 percent range is the sample's extremes, not a bound"
     high = retuned("k5", lambda e: e["dist"].update(mu="log10(0.1)"))

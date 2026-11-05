@@ -107,9 +107,9 @@ test("compressed, the stars of a triple clear each other at every time and the o
     }
   }
   const placed = S.layoutPositions(layout, P.relativeAt(triple, 0));
-  const centre = (a, b) => placed[a].map((c, axis) => (c + placed[b][axis]) / 2);
+  const center = (a, b) => placed[a].map((c, axis) => (c + placed[b][axis]) / 2);
   const innerGap = apart(placed, "star:1", "star:2");
-  const outerGap = Math.hypot(...centre("star:1", "star:2").map((c, axis) => c - placed["star:3"][axis]));
+  const outerGap = Math.hypot(...center("star:1", "star:2").map((c, axis) => c - placed["star:3"][axis]));
   assert.ok(outerGap > innerGap * 1.5, "the outer orbit is drawn wider than the inner one");
 });
 
@@ -153,5 +153,5 @@ test("compressed, a planet round the inner pair of a triple is drawn outside the
   assert.ok(Math.hypot(...layout.place("node:0", [3 * AU_KM, 0, 0])) > reach, "the planet lies beyond the stars of the pair");
   const placed = S.layoutPositions(layout, P.relativeAt(triple, 0));
   const away = Math.hypot(...placed["planet:1"].map((c, axis) => c - placed["node:0"][axis]));
-  assert.ok(Math.abs(away - Math.hypot(...layout.place("node:0", [3 * AU_KM, 0, 0]))) < 1e-9, "placed about the pair's centre");
+  assert.ok(Math.abs(away - Math.hypot(...layout.place("node:0", [3 * AU_KM, 0, 0]))) < 1e-9, "placed about the pair's center");
 });
