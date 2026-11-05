@@ -703,52 +703,6 @@ with `clamp()`.
   sitemap entries.
   Prerequisites: none.
 
-- [ ] **UX.187 Pages, lists, the API and the help text show every physics rectification output**
-  Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the UX.
-  For each physics item in 8.1 that changes a stored value (the table in
-  reports/wiring-db-ux-audit-2026-10-24.md), the planet, moon and star
-  pages, the lists, the API field list and the help text show it with
-  its unit and a one-line source, in the order the pages use today:
-  orbit (eccentricity, inclination, seasons), heat (internal and tidal
-  flux, tectonic mode), spin and field, rings, atmosphere history
-  (escape, delivery), life timeline, star state (spectral type, white
-  dwarf cooling, neutron star structure). Follows the page layout of
-  UX.143 and UX.150 and the field macro. No value is shown that is not
-  stored. Done: a test walks the object pages of a sample galaxy and
-  checks each stored physics value appears once with its unit. Owner:
-  Aux 11 (Lane 3, pages), after the DB columns of its items.
-  Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
-  GEN.430, GEN.445.
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 5 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Core 3 (7:04 PM EDT
-  2026-10-29) after UX.186 merged; taken out of Core 5's chain. Owner:
-  Core 3.
-  Research (2026-10-09): Slice 1 merged (#3781, Core 3, as the lane
-  reported 7:21 PM EDT): every physics value on a star, planet or moon
-  page has a one-sentence source line (and the API sheet row carries it
-  as source). Every stored column the audit names that is on main was
-  already a row on the pages and in the API; the gap was the source
-  line. Remaining, in order: the help text, then the lists (data tables)
-  for columns on main, then the rows for columns not on main yet
-  (GEN.738 to 740, GEN.741 to 745, GEN.762, GEN.730, the brown dwarf
-  label), after train 1. The X-ray luminosity is GEN.952.
-  Boss approved first list slice (2026-10-31 1:48 PM EDT): Boss said yes
-  at 1:47 PM EDT 2026-10-31 to Core 3's first slice: the object index
-  and the star, planet and moon lists gain three stored, sortable
-  columns each (stars: temperature, luminosity, age; planets and moons:
-  orbit axis, eccentricity, surface temperature). It adds object-index
-  columns, so it is lock work: a migration, the API field list and a
-  backfill, on a train slot. Core 3 builds it on a branch off main, no
-  merge, and reports the head to TODO for the Train Manager. Later
-  slices add the rest.
-
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiHAYnXa7XwrhJHvc3pY8X4j, relayed by the
@@ -855,22 +809,6 @@ with `clamp()`.
   wiring guard green. Lock-free once GEN.876 is merged. Version 8.1.
   Owner: Core 5. Filed by the TODO thread.
   Prerequisites: GEN.876. Related: UX.237, GEN.875, GEN.876.
-
-- [ ] **UX.263 The belt page reads the belt density module: wire planetgen.physics.belt_density into the belt page data builder, or delete it**
-  The TODO thread (5:22 PM EST on 2026-11-05), after UX.241 merged
-  (#5178): the wiring guard shows planetgen.physics.belt_density, with
-  its constants 6.99:BD1 to BD4, is built and nothing imports it; the
-  belt page data builder (physics/belt_page.py) computes the density
-  factor and the size-table bins without it. Do: either make the page
-  builder call belt_density (objects above 1, 10 and 100 km per square
-  AU, mass per square AU, the size-table bins), checking that the page
-  numbers do not change, or, if belt_page already holds the same
-  arithmetic, delete the module and its tests and drop its constants and
-  register lines. Then remove the five register lines for it in
-  docs/design/research/wiring-register.md. Done: the wiring guard passes
-  with no line for belt_density. Lock-free if the page numbers do not
-  change. Version 8.1. Owner: Aux 5. Filed by the TODO thread.
-  Prerequisites: none. Related: UX.241, UX.240.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1939,28 +1877,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.224. Owner: Core 2, after MAP.223. Filed by the
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
-
-- [ ] **MAP.383 Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Adding the smooth background and the discrete
-  stars double counts. Do: write the rule (the smooth field minus the
-  smooth mass of the region represented by members, or the smooth field
-  only where nothing is generated), the rule for ungenerated sectors
-  inside the near region (expected mass as one point per sector, as
-  GEN.1120 treats rogue mass, or generate them), and note that the
-  galactic tidal term across 4 pc is tiny and can be a constant per
-  sector; then measure the double count on a small generated galaxy. A
-  short design note in docs/design plus the measurement. Done: the rule
-  is written, measured and the other items of this chain read it.
-  Lock-free, no code. Owner: Tides 1. Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.167, MAP.168, MAP.169, MAP.170,
-  PERF.72, GEN.115.
 
 - [ ] **MAP.384 Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening**
   Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
@@ -3280,7 +3196,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72, MAP.383, MAP.384, MAP.385, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72, MAP.384, MAP.385, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -14138,6 +14054,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   number. A fix that changes generated numbers is a lock item (epoch).
   Version 8.1. Owner: Core 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1265, PERF.228.
+
+- [ ] **GEN.1284 Generated systems hold less mass than the density profile expects: 78 percent in a solar-circle sample (bug)**
+  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
+  reports/map383-background-rule-2026-11-05.md) measured generated
+  blocks while deciding MAP.383: in a 125-sector solar circle sample the
+  generator placed 78 percent of the stellar mass the density profile
+  expects (85 percent of the systems, mean system mass 9 percent low,
+  about 3 sigma); one bulge sector placed 95 percent. Suspects, not
+  examined: the one-system-minimum per sector and the 'ran out of room'
+  cap. Do: find which stage loses the mass (count expected against
+  placed per sector, then per cause: minimum, cap, mass function,
+  multiplicity), fix it or show with numbers that the shortfall is the
+  intended physics (then say why in the density note). Done: the placed
+  mass matches the profile inside the sampling error in the solar circle
+  and the bulge, or the note says why not. A fix changes generated
+  stars, so it is a lock item (epoch). Version 8.1. Owner: Core 3. Filed
+  by the TODO thread.
+  Prerequisites: none. Related: MAP.383, GEN.115.
+
+- [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
+  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
+  reports/map383-background-rule-2026-11-05.md): the stellar mass the
+  smooth potential (GEN.115) carries differs from the stellar density
+  the density model generates from, by -15 percent at the solar circle
+  and +19 percent in the bulge, so the background rule of MAP.383
+  (smooth field minus the smooth galaxy's own stellar mass in the
+  sectors that have generated stars) leaves a residual. Do: make the
+  potential's stellar components follow the density model's, or derive
+  both from one table, and re-register the stand-ins GP1 to GP3 in
+  GEN.725 with tier and tweak level. Done: the two densities agree
+  inside the stated tolerance at the solar circle, the bulge and the
+  disk edge. Version 8.3. Owner: Tides 1 or Core 3. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: MAP.383, GEN.115, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.264 |
 | MAP | MAP.388 |
 | NAV | NAV.77 |
-| GEN | GEN.1284 |
+| GEN | GEN.1286 |
 | PERF | PERF.244 |
 | DB | DB.110 |
 | API | API.41 |
@@ -2061,6 +2061,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1281 | Heavy worlds with a plain nitrogen air and no oxygen or methane (about 1.3 percent of bodies) fit no class: widen a class or add one | none | open |
 | GEN.1282 | Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system) | none | open |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) | none | open |
+| GEN.1284 | Generated systems hold less mass than the density profile expects: 78 percent in a solar-circle sample (bug) | none | open |
+| GEN.1285 | The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2443,7 +2445,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.380 | The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug) | none | done, PR #4997 |
 | MAP.381 | Sector Map: draw the globular clusters and label them by name or designation | none | open |
 | MAP.382 | The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug) | none | done, PR #5111 |
-| MAP.383 | Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both | none | open |
+| MAP.383 | Decide first: the smooth galactic potential (GEN.115) already contains the mass of the stars that are generated as members, so the sector gravity grid must not add both | none | done, PR #5187 |
 | MAP.384 | Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening | none | open |
 | MAP.385 | Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget | none | open |
 | MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies | none | open |
@@ -3169,7 +3171,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.184 | Star cluster and region pages: stored cluster and region objects and their object pages | none | done, PR #3065 |
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | done, PR #3775 |
-| UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | open |
+| UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | done, PR #5187 |
 | UX.188 | Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet) | none | done, PR #3116 |
 | UX.189 | Captain-first object pages, step C1: planet and moon pages | none | done, PR #3116 |
 | UX.190 | Captain-first object pages, step C2: star and star system pages | none | done, PR #3134 |
@@ -3245,7 +3247,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.260 | Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere | none | open |
 | UX.261 | Explainer links read as talking down and repeat links the page already has: drop the repeats, reword the rest to "More information" | none | done, PR #4950 |
 | UX.262 | Planet and moon page Life section: the adaptation traits of the living class (the last piece of UX.237) | none | open |
-| UX.263 | The belt page reads the belt density module: wire planetgen.physics.belt_density into the belt page data builder, or delete it | none | open |
+| UX.263 | The belt page reads the belt density module: wire planetgen.physics.belt_density into the belt page data builder, or delete it | none | done, PR #5187 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
